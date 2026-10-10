@@ -537,8 +537,14 @@ private _destination=_points select _stageIndex;
 // the lease has a real end and cannot orbit indefinitely.
 if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) then {
     private _leadSeconds=[16,5] select (_stage == "ATTACK");
-    _destination=(getPosATL _target) vectorAdd ((velocity _target) vectorMultiply _leadSeconds);
-    _destination set [2,(_job getOrDefault ["stageAltitudes",[_job get "altitude",_job get "altitude",_job get "altitude"]]) select _stageIndex];
+    private _predictedASL=(getPosASL _target) vectorAdd ((velocity _target) vectorMultiply _leadSeconds);
+    _destination=ASLToATL _predictedASL;
+    // Match the moving contact's predicted altitude across terrain cells, with a safety floor.
+    // Surface attack profiles remain independent of this interception-only height.
+    _destination set [2,(_destination select 2) max ([300,100] select !_isPlane)];
+    private _interceptAltitudes=+(_job get "stageAltitudes");
+    _interceptAltitudes set [_stageIndex,_destination select 2];
+    _job set ["stageAltitudes",_interceptAltitudes];
     _points set [_stageIndex,_destination];
     _job set ["points",_points];
 };
@@ -581,6 +587,14 @@ private _stageSpeeds=_job getOrDefault ["stageSpeeds",[_job get "speed",_job get
 // every scheduler tick. Update it only on a real stage transition. The attack-stage target order
 // lets the native air-combat FSM handle subsequent contact movement without Cortex chasing it.
 private _commandedStage=_job getOrDefault ["commandedStage",""];
+// An ingress lead point is useful only while it still represents the moving contact.
+// Refresh the existing waypoint sparsely after meaningful displacement; the attached native
+// ATTACK order already tracks its object and must not be rewritten here.
+private _interceptRefresh=_job getOrDefault ["airToAir",false] && {_stage == "INGRESS"}
+    && {_commandedStage == _stage}
+    && {serverTime >= (_job getOrDefault ["commandedAt",serverTime])+5}
+    && {_destination distance (_job getOrDefault ["commandedDestination",_destination]) >= 300};
+if (_interceptRefresh) then {_commandedStage=""};
 if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith {["CONTROL_RELEASED"] call _finish};
 if (_commandedStage != _stage) then {
     _aircraft limitSpeed (_stageSpeeds select _stageIndex);
