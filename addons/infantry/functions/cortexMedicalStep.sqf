@@ -61,11 +61,19 @@ if (_aid isNotEqualTo []) exitWith {
     // that response instead of waiting for another medical interval.
     if (_dangerActive) exitWith {["CANCELLED","COMBAT_RESUMED"] call _finish};
     _aid params ["_generation","_medic","_casualty","_startedAt","_lastOrderAt","_bestDistance","_lastProgressAt"];
+    // Treatment may legitimately make no spatial progress, but it still needs the same
+    // generation/owner proof as approach movement before counting success or issuing HealSoldier.
+    private _currentAidOperation=_group getVariable ["WAIT_Operation",createHashMap];
+    if ((_currentAidOperation getOrDefault ["generation",-1]) != _generation
+        || {(_currentAidOperation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        || {(_currentAidOperation getOrDefault ["intent",""]) != "MEDICAL_AID"}) exitWith {
+        ["CANCELLED","REPLACED"] call _finish
+    };
     if (isNull _medic || {isNull _casualty} || {!alive _medic} || {!alive _casualty}
         || {!local _medic} || {!local _casualty} || {group _medic != _group} || {group _casualty != _group}
         || {vehicle _medic != _medic} || {vehicle _casualty != _casualty}
         || {!([_medic] call WAIT_fnc_CortexCombatEffective)}
-        || {_casualty getVariable ["ACE_isUnconscious",false]} || {lifeState _casualty == "INCAPACITATED"}) exitWith {
+        || {!([_casualty] call WAIT_fnc_CortexCombatEffective)}) exitWith {
         ["CANCELLED","ACTOR_UNAVAILABLE"] call _finish
     };
     if (damage _casualty < (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_DamageThreshold",0.35])) exitWith {
