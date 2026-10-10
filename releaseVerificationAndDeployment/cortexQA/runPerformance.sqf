@@ -19,7 +19,9 @@ diag_log format ["WAIT PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=fa
 {
     private _enabled=_x;
     private _arm=_forEachIndex;
-    [createHashMapFromArray [["WAIT_AIPass_Enable",_enabled]]] call WAIT_fnc_CortexTuning;
+    // Autonomous group management is part of the measured enabled workload; do not inherit
+    // Contact OFF from the preceding lifecycle case, which deliberately releases that owner.
+    [createHashMapFromArray [["WAIT_AIPass_Enable",_enabled],["WAIT_AIPass_Contact_Enable",true]]] call WAIT_fnc_CortexTuning;
     private _ready=[{(missionNamespace getVariable ["WAIT_AIPass_Active",false]) == _enabled},20] call _wait;
     private _groups=[]; private _actors=[];
     for "_i" from 0 to 49 do {

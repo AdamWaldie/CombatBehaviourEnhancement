@@ -57,3 +57,10 @@ contradicted the fixture's declared provider absence and demanded fabricated int
 state. The standalone case now checks no native registry was created; retained physical
 owner/actor checks remain separate. Dedicated native-provider registration, pruning and
 adoption cases remain unchanged and unaccepted. Original batch failures remain recorded.
+
+Performance arm management cause: the preceding lifecycle case left autonomous Contact
+disabled. The patrol fixture toggled only master enable, while CortexGroupTick deliberately
+releases group ownership with Contact disabled. The next fixture explicitly enables Contact
+for its matched arms. Existing zero-managed samples remain invalid. Queue latency and
+physical route progress are separate measures; observed slow travel is not proven to be
+scheduler delay by this run. No production cadence or native travel speed was changed.
