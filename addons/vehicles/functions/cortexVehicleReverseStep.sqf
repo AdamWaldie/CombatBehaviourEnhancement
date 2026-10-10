@@ -58,6 +58,28 @@ if (isNull _driver || {isNull _commander} || {_driver == _commander}
     || {isPlayer _driver} || {isPlayer _commander} || {group _driver != _group}
     || {group _commander != _group} || {!isNull remoteControlled _driver}
     || {!isNull remoteControlled _commander}) exitWith {["CREW_UNAVAILABLE"] call _release; "FALLBACK"};
+// Observe only the short swept rear area of this active finite reverse leg. This is
+// actor safety, not a path replacement or a global traffic scan. Keep native collisions.
+private _rearOccupied={
+    private _box=boundingBoxReal _vehicle;
+    private _low=_box select 0;
+    private _high=_box select 1;
+    private _depth=(4+(abs speed _vehicle)/1.8) min 12;
+    private _radius=(_depth+(abs (_low select 1))+(abs (_high select 0))) max 8;
+    private _occupants=_vehicle nearEntities [["CAManBase","LandVehicle"],_radius];
+    // Dense traffic is unsafe to reverse through; cap script-side actor evaluation.
+    if (count _occupants > 64) exitWith {true};
+    _occupants findIf {
+        _x != _vehicle && {!(_x in crew _vehicle)} && {alive _x}
+        && {private _relative=_vehicle worldToModel (getPosATL _x);
+            (_relative select 0) >= (_low select 0)-2
+            && {(_relative select 0) <= (_high select 0)+2}
+            && {(_relative select 1) <= (_low select 1)+1}
+            && {(_relative select 1) >= (_low select 1)-_depth}
+        }
+    } >= 0
+};
+if (call _rearOccupied) exitWith {["REAR_OCCUPIED"] call _release; "FALLBACK"};
 if (toUpperANSI _mode == "START") exitWith {
     if (count _record == 9) exitWith {
         if ((_record select 1) == _generation && {(_record select 0) == _vehicle}) then {"REVERSE"} else {"FALLBACK"}
