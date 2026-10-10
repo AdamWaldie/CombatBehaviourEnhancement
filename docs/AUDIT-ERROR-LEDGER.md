@@ -64,3 +64,9 @@ releases group ownership with Contact disabled. The next fixture explicitly enab
 for its matched arms. Existing zero-managed samples remain invalid. Queue latency and
 physical route progress are separate measures; observed slow travel is not proven to be
 scheduler delay by this run. No production cadence or native travel speed was changed.
+
+Server RPT 23:54:07: `CortexCanTransmit` line 30 raised undefined `_factor` during
+artillery smoke request acceptance. With no optional jamming hook, the default empty
+code returned nil. The default now returns zero; nil from an unavailable installed hook
+is treated as absent contribution. Numeric factors retain the 0.5 blocking threshold.
+The original ART-SMOKE request and delivery failures remain recorded pending retest.

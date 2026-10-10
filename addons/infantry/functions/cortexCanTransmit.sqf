@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
+ * Repeat/JIP: Read-only, repeat-safe local query; no public mutation or JIP side effects.
  * Decides whether a soldier can pass information or call for support by radio.
  *
  * AI communications do not require an inventory radio item.
@@ -10,7 +10,7 @@
  * Locality and authority: read-only; callable anywhere.
  *
  * Arguments:
- * 0: unit <OBJECT>
+ * 0: unit <OBJECT, default objNull>
  *
  * Return Value:
  * Boolean - true when the unit can transmit
@@ -24,8 +24,11 @@
 
 params [["_unit", objNull, [objNull]]];
 if (isNull _unit || {!alive _unit}) exitWith {false};
-private _hook = missionNamespace getVariable ["WAIT_AITweaks_JammingFactor", {}];
+private _hook = missionNamespace getVariable ["WAIT_AITweaks_JammingFactor", {0}];
 if !(_hook isEqualType {}) exitWith {true};
 private _factor = [getPosASL _unit, side group _unit] call _hook;
+// An optional provider may return nil while unavailable. Missing data means no jamming
+// contribution; a numeric provider still controls the documented threshold.
+if (isNil "_factor") exitWith {true};
 _factor isEqualType 0 && {_factor < 0.5}
 
