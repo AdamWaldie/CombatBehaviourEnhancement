@@ -114,7 +114,7 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
     private _contact = [{((_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""]) == "CONTACT"},60] call _wait;
     [_prefix+"-contact",_contact] call _check;
     if (_case == "ASSAULT-MULTI-CONTACT") then {
-        private _liveKnowledge=[_group] call WAIT_fnc_CortexKnowledge;
+        private _liveKnowledge=([_group] call WAIT_fnc_CortexKnowledge) select 0;
         private _nearestDistance=if (_liveKnowledge isEqualTo []) then {1e9} else {(_liveKnowledge select 0) select 3};
         private _viableIndex=_liveKnowledge findIf {
             (_x select 2) <= 10 && {(_x select 3) >= 12} && {(_x select 3) <= 60}

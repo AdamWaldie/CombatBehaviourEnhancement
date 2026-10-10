@@ -70,3 +70,9 @@ artillery smoke request acceptance. With no optional jamming hook, the default e
 code returned nil. The default now returns zero; nil from an unavailable installed hook
 is treated as absent contribution. Numeric factors retain the 0.5 blocking threshold.
 The original ART-SMOKE request and delivery failures remain recorded pending retest.
+
+Server RPT 00:35:10, lines 17311-17319: multi-contact combat fixture used the full
+`[enemies, seenCount]` knowledge return as an enemy list. Numeric seenCount then reached
+`select 2`, and the failed prerequisite expression left the recorder's `_ok` undefined.
+The fixture now selects the enemy array before range checks. Production tactics and
+physical completion requirements are unchanged; original failures remain recorded.
