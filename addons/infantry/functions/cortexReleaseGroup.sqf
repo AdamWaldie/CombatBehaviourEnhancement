@@ -119,7 +119,7 @@ if (local _group && {count _state > 0 || {_markedSupportHold} || {(_group getVar
     if (count (_state getOrDefault ["drill", createHashMap]) > 0) then {[_group, _state, ["RELEASE","ZEUS"] select _externalTakeover] call WAIT_fnc_CortexFlankEnd};
     [_group, _state, false, _externalTakeover, _reason] call WAIT_fnc_CortexRestoreCalm;
 };
-if (local _group) then {
+if (local _group && {!_keepBrain}) then {
     _group setVariable ["WAIT_Cortex_DismountContinuation",nil,true];
     [_group,-1,false,""] call WAIT_fnc_DangerGroupHideStep;
     _group setVariable ["WAIT_Danger_CoverPending",nil];
@@ -151,8 +151,10 @@ if (local _group) then {
 // group by the time Zeus, a player or another controller takes ownership, so release the tracked
 // local set as well as currently occupied vehicles.
 if (local _group) then {
-    {[_x] call WAIT_fnc_DrivingAssistRelease} forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
-    _group setVariable ["WAIT_DrivingAssist_Vehicles",nil];
+    if (!_keepBrain) then {
+        {[_x] call WAIT_fnc_DrivingAssistRelease} forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
+        _group setVariable ["WAIT_DrivingAssist_Vehicles",nil];
+    };
     {
         if (local _x) then {
             [_x,_group,"RELEASE",!_externalTakeover] call WAIT_fnc_CortexVehicleUnloadPolicy;
