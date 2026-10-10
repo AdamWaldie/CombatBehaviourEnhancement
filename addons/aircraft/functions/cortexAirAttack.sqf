@@ -633,7 +633,7 @@ if (_commandedStage != _stage) then {
     _job set ["commandedDestination",+_destination];
     _job set ["commandedAt",serverTime];
     _job set ["stageBestDistance",_stageDistance];
-    _job set ["stageProgressAt",serverTime];
+    if (!_interceptRefresh) then {_job set ["stageProgressAt",serverTime]};
 };
 
 // Measure useful approach to the active leg rather than raw displacement. Orbiting 300 metres and
@@ -783,9 +783,10 @@ if (_stage == "ATTACK") then {
         private _integrationStep=0.2;
         for "_integrationIndex" from 0 to 119 do {
             if ((_integrationPosition select 2) > _targetAltitude) then {
-                private _dragAcceleration=_integrationVelocity vectorMultiply
-                    (_airFriction*(vectorMagnitude _integrationVelocity));
-                _integrationVelocity=_integrationVelocity vectorAdd (_dragAcceleration vectorMultiply _integrationStep);
+                // Drag must dissipate energy. Bound the discrete damping factor so a large
+                // configured drag cannot reverse velocity and explode the Euler integration.
+                private _dragRetention=(1-(abs _airFriction)*(vectorMagnitude _integrationVelocity)*_integrationStep) max 0;
+                _integrationVelocity=_integrationVelocity vectorMultiply _dragRetention;
                 _integrationVelocity set [2,(_integrationVelocity select 2)-(9.81*_integrationStep)];
                 _integrationPosition=_integrationPosition vectorAdd (_integrationVelocity vectorMultiply _integrationStep);
                 _integrationTime=_integrationTime+_integrationStep;

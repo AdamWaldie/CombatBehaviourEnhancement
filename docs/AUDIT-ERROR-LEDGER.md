@@ -44,3 +44,9 @@ and operation fallback skip those entries so they can select a physical hostile 
 Release requests additionally check live weapon/launch alignment, and lateral selection reads
 live turret traverse limits once. These corrections are statically/package validated only;
 all original failed delivery and destruction results remain visible pending a new candidate.
+
+At server RPT line 2136 (23:26:02), bomb prediction began repeated `vectorMultiply:
+Type Not a Number` exceptions in the drag integration. The live report reached 4200
+SQF error lines at 707 checks; this is repeated trace volume, not 4200 distinct defects.
+Replace unstable acceleration integration with bounded dissipative velocity retention;
+retain gravity and the measured impact basket. Physical bomb delivery remains unaccepted.
