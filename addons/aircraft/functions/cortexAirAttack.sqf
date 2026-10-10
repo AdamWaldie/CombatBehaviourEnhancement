@@ -222,7 +222,7 @@ private _finish={
         if (_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"]) then {5}
         else {if (_reason in ["COMPLETE","TARGET_DESTROYED"]) then {20}
             else {if (_reason == "DELIVERY_SAFETY_FLOOR") then {120} else {35}}}
-    )];
+    ) max (_aircraft getVariable ["WAIT_Cortex_AirAttackBlockedUntil",0])];
     _aircraft setVariable ["WAIT_Cortex_AirAttackPlan",nil,true];
     _aircraft setVariable ["WAIT_Cortex_AirFireSolution",nil,true];
     _aircraft setVariable ["WAIT_Cortex_AirAttackTarget",nil];
