@@ -36,3 +36,11 @@ Danger mortar handoff: native hostile knowledge/fire passed, but finite owner an
 Braking: enabled peak climb was 63.3451 m versus 75.7375 m disabled, so comparative improvement passed but the 10 m operational limit failed. Release reason was not retained in the old fixture log. The audit now captures the existing last-correction result, final velocity and position before deletion; no threshold or controller gain was relaxed. Late activation, timeout and priority/terrain release require evidence before further tuning.
 
 Lateral attack case restarted after its first outcome: production cleanup shortened the audit's longer blocked-until deadline. Cleanup now retains the maximum existing deadline so another plan cannot overwrite the first case's outcome during collection. The actual target-destruction failure remains unresolved; stable evidence and physical retest are required.
+
+Aircraft target eligibility follow-up: the active 89812ab report records `ModuleCurator_F`
+for plane ground-target and damageable-target checks. Aircraft discovery accepted any living
+hostile-side known/assigned object, including logic. Planning now rejects logic; discovery
+and operation fallback skip those entries so they can select a physical hostile instead.
+Release requests additionally check live weapon/launch alignment, and lateral selection reads
+live turret traverse limits once. These corrections are statically/package validated only;
+all original failed delivery and destruction results remain visible pending a new candidate.

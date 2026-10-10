@@ -313,11 +313,11 @@ if (isTouchingGround _aircraft || {_isPlane && {speed _aircraft < 40}} || {comba
 private _startFailure="";
 if (_stage == "") then {
     private _target=_job getOrDefault ["target",objNull];
-    if (isNull _target || {!alive _target} || {(side _group) getFriend side _target >= 0.6}) then {
+    if (isNull _target || {_target isKindOf "Logic"} || {!alive _target} || {(side _group) getFriend side _target >= 0.6}) then {
         _target=objNull;
         {
             private _candidate=assignedTarget _x;
-            if (!isNull _candidate && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}) exitWith {_target=_candidate};
+            if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}) exitWith {_target=_candidate};
         } forEach ([effectiveCommander _aircraft,driver _aircraft,gunner _aircraft,commander _aircraft]+crew _aircraft);
     };
     if (isNull _target) then {_startFailure="NO_TARGET"};

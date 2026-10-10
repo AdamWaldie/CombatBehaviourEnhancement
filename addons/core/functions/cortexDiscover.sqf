@@ -152,7 +152,7 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
             if (_airAttackEligible) then {
                 {
                     private _candidate=assignedTarget _x;
-                    if (!isNull _candidate && {alive _candidate} && {!captive _candidate}
+                    if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {alive _candidate} && {!captive _candidate}
                         && {!(_candidate getVariable ["ace_captives_isSurrendering",false])}
                         && {!(_candidate getVariable ["ace_captives_isHandcuffed",false])}
                         && {(side group _pilot) getFriend side _candidate < 0.6}) exitWith {_airAttackTarget=_candidate};
@@ -166,7 +166,7 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
                     private _knownTargets=(_pilot nearTargets ([8000,5000] select !(_vehicle isKindOf "Plane"))) select [0,16];
                     private _knownIndex=_knownTargets findIf {
                         private _knownObject=_x param [4,objNull];
-                        !isNull _knownObject && {alive _knownObject} && {!captive _knownObject}
+                        !isNull _knownObject && {!(_knownObject isKindOf "Logic")} && {alive _knownObject} && {!captive _knownObject}
                             && {!(_knownObject getVariable ["ace_captives_isSurrendering",false])}
                             && {!(_knownObject getVariable ["ace_captives_isHandcuffed",false])}
                             && {(side group _pilot) getFriend side _knownObject < 0.6}
