@@ -33,8 +33,14 @@ params [["_job", createHashMap, [createHashMap]]];
 private _group = _job getOrDefault ["group", grpNull];
 private _aircraft = _job getOrDefault ["aircraft", objNull];
 private _finish = {
-    if (!isNull _group) then {_group setVariable ["WAIT_AIPass_Dropping", nil]};
-    if (!isNull _aircraft) then {_aircraft setVariable ["WAIT_AIPass_DropUntil", nil]};
+    // A stale owner must not clear the successor's insertion bookkeeping. The shared
+    // scheduler captures ownerEpoch when queuing this group job.
+    private _sameOwner=!isNull _group && {local _group}
+        && {(_job getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])};
+    if (_sameOwner) then {
+        _group setVariable ["WAIT_AIPass_Dropping",nil];
+        if (!isNull _aircraft && {local _aircraft}) then {_aircraft setVariable ["WAIT_AIPass_DropUntil",nil]};
+    };
     -1
 };
 if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["WAIT_AIPass_Active", false])}
