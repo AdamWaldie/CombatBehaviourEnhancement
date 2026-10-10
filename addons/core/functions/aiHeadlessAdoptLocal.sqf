@@ -71,6 +71,11 @@ _group setVariable ["WAIT_AI_LastAdoptionKey", _adoptionKey, true];
 _group setVariable ["WAIT_AI_LastAdoptionOwner", _newOwner, true];
 _group setVariable ["WAIT_AI_LastHeadlessAdoption", [_newOwner, _applied, toUpperANSI (missionNamespace getVariable ["WAIT_AIRebalance_Profile", "LINE"]), toUpperANSI (missionNamespace getVariable ["WAIT_AIRebalance_Mode", "AUTO"]), serverTime, _providerKey, _providerRevision], true];
 
+// Adoption knows the affected group: wake it directly rather than depending on its
+// position in a bounded discovery snapshot. Flight occupants retain their dedicated domain.
+if (_tacticsActive && {[_group,false,true] call WAIT_fnc_CortexIsEligible}) then {
+    [_group,true] call WAIT_fnc_GroupBrainStart;
+};
 [] call WAIT_fnc_CortexDiscover;
 [] call WAIT_fnc_SchedulerReconcile;
 
