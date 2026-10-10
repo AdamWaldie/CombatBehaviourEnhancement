@@ -46,7 +46,7 @@ if (_cause in [5,6,7]) exitWith {"HIDE"};
 // ambient/friendly danger into CONTACT and RED combat mode without target knowledge.
 if (_cause in [0,3,8]) exitWith {
     private _source=_record param [3,objNull,[objNull]];
-    if (!isNull _source && {alive _source} && {!captive _source}
+    if (!isNull _source && {!(_source isKindOf "Logic")} && {alive _source} && {!captive _source}
         && {!(_source getVariable ["ace_captives_isSurrendering",false])}
         && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
         && {(side _group) getFriend (side _source) < 0.6}) then {"ENGAGE"} else {"ASSESS"}
