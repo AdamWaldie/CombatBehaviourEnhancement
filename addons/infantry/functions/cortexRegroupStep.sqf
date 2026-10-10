@@ -70,8 +70,12 @@ private _finish = {
     -1
 };
 if (isNull _group || {!local _group}) exitWith {call _finish};
+// Direct script queueing follows the same generation contract as casualty-created jobs.
+if !("operationGeneration" in _state) then {
+    _state set ["operationGeneration",_group getVariable ["WAIT_OperationGeneration",0]];
+};
 // A later operation remains authoritative even after it has completed and cleared its map.
-if ((_state getOrDefault ["operationGeneration",_group getVariable ["WAIT_OperationGeneration",0]])
+if ((_state get "operationGeneration")
     != (_group getVariable ["WAIT_OperationGeneration",0])) exitWith {
     _state set ["held",[]]; call _finish
 };
