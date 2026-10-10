@@ -796,7 +796,17 @@ if (_stage == "ATTACK") then {
     private _nativeFixedBasket=!_fixedUnguided || {
         _forwardAlignment >= ([0.985,0.975] select (_weaponClass == "ROCKET"))
     };
-    private _validSolution=_loaded && {!isNull _operator} && {alive _operator}
+    // Horizontal heading alone cannot prove a forward weapon points at the target: a level
+    // aircraft can face a ground contact while its barrel passes well above it. Independently
+    // aimed turrets must also have tracked the target before a scripted native fire request.
+    // Bombs use their ballistic basket instead of barrel alignment; guided weapons use the
+    // predicted launch vector so aircraft motion remains part of the seeker acquisition cone.
+    private _weaponAligned=_bomb || {
+        if (_guided) then {_launchAlignment >= _minimumAlignment} else {
+            _alignment >= _minimumAlignment
+        }
+    };
+    private _validSolution=_loaded && {_weaponAligned} && {!isNull _operator} && {alive _operator}
         && {_range >= _minimumRange} && {_range <= _maximumRange}
         && {_closing} && {_nativeFixedBasket} && {_deliveryTerrainClear}
         && {_bombWindow || {!_bomb && {!_fixedUnguided || {_forwardAlignment >= 0.94}}}}
