@@ -501,3 +501,28 @@ if (_owners isNotEqualTo []) then {
     deleteGroup _retreatGroup;
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 };
+
+// Negative target-admission regression: deliberately seed an observed hostile-side logic.
+// This fixture stimulus is explicit; it does not claim natural combat detection.
+[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true]]] call WAIT_fnc_CortexTuning;
+private _logicGroup=createGroup [west,true];
+private _logic=_logicGroup createUnit ["Logic",[3000,2200,0],[],0,"NONE"];
+private _physicalGroup=createGroup [east,true];
+_physicalGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+private _physicalActor=_physicalGroup createUnit ["O_Soldier_F",[2940,2200,0],[],0,"NONE"];
+_physicalGroup reveal [_logic,4];
+_physicalGroup setVariable ["WAIT_Danger_ObservedContacts",[[_logic,time+30,_physicalActor]]];
+private _knowledge=[_physicalGroup] call WAIT_fnc_CortexKnowledge;
+["LIFE-logic-contact-excluded",(_knowledge select 0) isEqualTo []
+    && {(_physicalGroup getVariable ["WAIT_Danger_ObservedContacts",[]]) isEqualTo []},
+    str _knowledge] call _recordCheck;
+private _logicOrigin=getPosATL _physicalActor;
+private _logicWaypoint=_physicalGroup addWaypoint [[2940,2260,0],0];
+_logicWaypoint setWaypointType "MOVE";
+private _logicTravel=[{_physicalActor distance2D _logicOrigin >= 25},30] call _wait;
+["LIFE-logic-contact-authored-movement",_logicTravel,
+    str [_logicOrigin,getPosATL _physicalActor,_physicalGroup getVariable ["WAIT_AIPass_PublicPhase",""]]] call _recordCheck;
+deleteVehicle _physicalActor;
+deleteGroup _physicalGroup;
+deleteVehicle _logic;
+deleteGroup _logicGroup;
