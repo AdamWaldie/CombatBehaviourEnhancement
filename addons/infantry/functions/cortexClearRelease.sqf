@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Cancels a clearing order immediately and resumes formation after doStop. Clearance does not own
  * group behaviour or combat mode, so release preserves any contact or Zeus change made during it.
+ * Individual player, remote-control and external-owner actors never receive restoration commands.
  * Locality/authority: server authenticates dispatch; the current owner executes group commands.
  * Repeat/JIP: request tokens are consumed once; no stale order is replayed for JIP.
  * Arguments: 0: group <GROUP>, default grpNull; 1: restore formation <BOOL>, default true. Pass
@@ -53,6 +54,8 @@ if (isNull _leader) then {_leader=leader _group};
         private _taskFree=!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]);
         if (_ownedActor && {_free} && {_taskFree}
             && {[_x] call WAIT_fnc_CortexCombatEffective}
+            && {isNull remoteControlled _x}
+            && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
             && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}) then {
             // A replacement owner receives untouched stance and speed. These values are only
             // WAIT's lease while the clear release is returning control to the formation.
