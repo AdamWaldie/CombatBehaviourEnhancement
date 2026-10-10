@@ -550,7 +550,15 @@ if !(["WAIT_AIPass_Contact_Enable", true] call _get) exitWith {
     private _explicitOperation=_group getVariable ["WAIT_Operation",createHashMap];
     private _buildingOwned=(_explicitOperation getOrDefault ["intent",""]) == "CLEAR"
         && {_group getVariable ["WAIT_AIPass_ClearBuilding",false]};
-    if (!_buildingOwned) then {[_group,false,"CONTACT_DISABLED",true] call WAIT_fnc_CortexReleaseGroup};
+    private _autonomousState=(_state getOrDefault ["phase","CALM"]) != "CALM"
+        || {count (_state getOrDefault ["drill",createHashMap]) > 0}
+        || {_state getOrDefault ["responding",false]}
+        || {_state getOrDefault ["assaulting",false]};
+    // A calm Contact-off tick still services independent safety and reflex work above.
+    // Restore autonomous state once when it actually exists, not on every idle tick.
+    if (!_buildingOwned && {_autonomousState}) then {
+        [_group,false,"CONTACT_DISABLED",true] call WAIT_fnc_CortexReleaseGroup
+    };
     _delay
 };
 
