@@ -4,6 +4,32 @@ Status checked on 2026-10-10. WAIT is not production-ready. All 65 registered fe
 
 Game audits are authorized in batches. The full packaged batch runtime-20261010-214346-432 is active against clean candidate 89812ab with observer Zeus, 3840x2160 and two headless clients. Later repairs require a subsequent exact-candidate retest.
 
+## Current batch and queued repairs
+
+The ongoing 89812ab batch has reached 790 recorded checks, with 4200 SQF error trace
+lines, no matched fatal runtime failures, one load warning and missing completion markers.
+This is a partial snapshot, not a final result. Repeated bomb-integration exceptions account
+for the new trace volume. The enabled 50-group patrol arm is invalid because its minimum
+managed-group count was zero, even though all groups moved. Its timing cannot establish
+performance acceptance.
+
+Changes through c615c3f are committed and statically/package validated, awaiting physical retest:
+
+- Aircraft: live weapon/launch alignment, lateral turret traverse eligibility, logic-target
+  rejection, preserved re-attack holds, moving-contact interception and bounded bomb drag.
+- Shared combat: logic objects excluded from knowledge and immediate hostile danger admission.
+- Audit fixtures: native radar acquisition separated from delivery, physical target checks,
+  logic-contact rejection plus ordinary movement, and standalone/native-provider registry distinctions.
+- Diagnostics: failure-only management snapshots for invalid performance arms; actual braking
+  release evidence and capped building terminal route evidence.
+- Vehicle repairs: stopped follower command invalidation, tracked lead resume, unsettled HALT
+  cadence and finite passenger-owner exit retries remain queued for exact-candidate acceptance.
+
+Physical results from the current old package do not validate these changes. Native companion
+provider integration, specialist coexistence, CQB, combined combat and matched mixed-force
+performance remain open. The clean preserved c37feaf candidate predates the later knowledge,
+fixture and diagnostic commits and must not be described as containing all current repairs.
+
 ## Module progress toward completion
 
 Overall: 0 of 65 feature families have full acceptance. All eight addon modules are packaged and statically validated, but their behavioural implementation remains partial. This is accepted completion, not a percentage of code written. No release candidate is accepted.
