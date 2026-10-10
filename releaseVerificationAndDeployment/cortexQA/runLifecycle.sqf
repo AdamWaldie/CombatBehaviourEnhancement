@@ -76,7 +76,7 @@ if (_targetOwner != 2) then {
             ["LIFE-native-provider-adoption",count _adoption == 5 && {_adoption select 2}
                 && {(_adoption select 1) == _targetOwner},str _adoption] call _check;
         } else {
-            ["LIFE-refused-transfer-registry-retained",count _records == 1 && {(_records select 0 select 1) == _targetOwner},str _records] call _check;
+            ["LIFE-standalone-no-native-registry",_refused && {_records isEqualTo []},str _records] call _check;
         };
         _group setVariable ["WAIT_Headless_ExcludeGroup",false,true];
         if (missionNamespace getVariable ["WAIT_QA_NativeHeadlessInstalled",false]) then {

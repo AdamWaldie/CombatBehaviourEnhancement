@@ -3135,10 +3135,10 @@ class CortexOperations(unittest.TestCase):
             'WAIT_Headless_ExcludeGroup',
             'Waldo_Headless_ManagedGroups',
             'LIFE-refused-transfer-owner-retained',
-            'LIFE-refused-transfer-registry-retained',
+            'LIFE-standalone-no-native-registry',
             'groupOwner _group == _targetOwner',
-            'count _records == 1',
-            '(_records select 0 select 1) == _targetOwner',
+            '_records isEqualTo []',
+            'LIFE-refused-transfer-registry-pruned',
         ]:
             self.assertIn(token, lifecycle)
 

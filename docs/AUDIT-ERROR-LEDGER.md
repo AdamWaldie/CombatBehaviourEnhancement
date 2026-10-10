@@ -50,3 +50,10 @@ Type Not a Number` exceptions in the drag integration. The live report reached 4
 SQF error lines at 707 checks; this is repeated trace volume, not 4200 distinct defects.
 Replace unstable acceleration integration with bounded dissipative velocity retention;
 retain gravity and the measured impact basket. Physical bomb delivery remains unaccepted.
+
+Lifecycle fixture classification: HC1/HC2 `LIFE-refused-transfer-registry-retained`
+failed with empty companion-provider registry in the standalone engine-transfer batch. That assertion
+contradicted the fixture's declared provider absence and demanded fabricated integration
+state. The standalone case now checks no native registry was created; retained physical
+owner/actor checks remain separate. Dedicated native-provider registration, pruning and
+adoption cases remain unchanged and unaccepted. Original batch failures remain recorded.
