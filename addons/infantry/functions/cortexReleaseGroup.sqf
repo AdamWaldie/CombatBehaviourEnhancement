@@ -31,6 +31,8 @@
  * 2: transition reason <STRING> - published with the CALM handover. Empty selects
  *    ZEUS_TAKEOVER or EXTERNAL_TAKEOVER when another controller owns the group, otherwise RELEASED
  *    (optional, default: "").
+ * 3: retain independent group brain <BOOL>, default false; internal Contact-disabled release only.
+ *    Ignored for full forgetting, nonlocality, Zeus or external takeover.
  *
  * Return Value:
  * Nothing
@@ -43,11 +45,16 @@
  * defence, garrison and building-clear order entry.
  */
 
-params [["_group", grpNull, [grpNull]], ["_forget", true, [false]], ["_reason", "", [""]]];
+params [["_group", grpNull, [grpNull]], ["_forget", true, [false]], ["_reason", "", [""]], ["_keepBrain",false,[false]]];
 if (isNull _group) exitWith {};
+// Contact disablement releases autonomous state without rebuilding the same independent
+// safety/aid brain every discovery cycle. Full, external and locality releases still retire it.
+_keepBrain=_keepBrain && {!_forget} && {local _group}
+    && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
+    && {!([_group] call WAIT_fnc_CortexZeusHeld)};
 private _state = _group getVariable ["WAIT_AIPass_State", createHashMap];
 private _brain=_group getVariable ["WAIT_GroupBrain",createHashMap];
-if (count _brain > 0) then {
+if (count _brain > 0 && {!_keepBrain}) then {
     _brain set ["cancelled",true];
     _brain set ["cancelReason",if (_reason == "") then {"RELEASED"} else {_reason}];
     _brain set ["wakeAt",time];

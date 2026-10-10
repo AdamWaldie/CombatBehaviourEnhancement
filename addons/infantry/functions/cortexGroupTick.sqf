@@ -550,7 +550,7 @@ if !(["WAIT_AIPass_Contact_Enable", true] call _get) exitWith {
     private _explicitOperation=_group getVariable ["WAIT_Operation",createHashMap];
     private _buildingOwned=(_explicitOperation getOrDefault ["intent",""]) == "CLEAR"
         && {_group getVariable ["WAIT_AIPass_ClearBuilding",false]};
-    if (!_buildingOwned) then {[_group,false] call WAIT_fnc_CortexReleaseGroup};
+    if (!_buildingOwned) then {[_group,false,"CONTACT_DISABLED",true] call WAIT_fnc_CortexReleaseGroup};
     _delay
 };
 
