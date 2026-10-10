@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Restores recorded formation, attack permission, vehicle speed and unload settings; cancels only follower paths. A speed baseline is restored only when the
  * vehicle is leaving WAIT control, WAIT still owns the current cap and no newer controller owns it.
+ * Unload policy and attack permission restore only while their convoy-applied values remain current.
  * Crew target cleanup also checks actor ownership and combat effectiveness; a newer target owner
  * keeps its command while obsolete convoy target metadata is retired.
  * Locality/authority: server owns registration; driving commands execute only on current owners.
@@ -40,7 +41,7 @@ if (_restore isNotEqualTo []) then {
     private _mayRestoreGroup=local _group && {!_externalTakeover};
     if (_mayRestoreGroup) then {
         if (formation _group == "COLUMN") then {_group setFormation _formation};
-        _group enableAttack _attack;
+        if (!attackEnabled _group) then {_group enableAttack _attack};
     };
     {
         _x params ["_vehicle", "_speed", "_unload"];
@@ -88,7 +89,10 @@ if (_restore isNotEqualTo []) then {
                 if (count _ownedSpeed >= 1 && {(_ownedSpeed select 0) isEqualTo _group}) then {
                     _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",nil];
                 };
-                _vehicle setUnloadInCombat _unload;
+                if (!_externalTakeover && {!_externalCrew} && {!_externalVehicle}
+                    && {getUnloadInCombat _vehicle isEqualTo [false,false]}) then {
+                    _vehicle setUnloadInCombat _unload;
+                };
             };
             if (_mayRestoreGroup && {!isNull _driver} && {!_externalCrew} && {local _driver} && {_driver != leader _group}) then {_driver doFollow leader _group};
         };
