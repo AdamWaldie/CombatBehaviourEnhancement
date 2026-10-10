@@ -15,6 +15,21 @@ private _crew=crew _gun;
 private _batteryGroup=group gunner _gun;
 private _requester=createGroup [east,true];
 private _caller=_requester createUnit ["O_Soldier_F",[1800,1100,0],[],0,"NONE"];
+// Exercise the optional provider boundary independently of shell delivery. Restore the
+// exact mission hook before requesting artillery; these checks cannot bypass live jamming.
+private _hadJammingHook=!isNil {missionNamespace getVariable "WAIT_AITweaks_JammingFactor"};
+private _savedJammingHook=missionNamespace getVariable ["WAIT_AITweaks_JammingFactor",{0}];
+missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",nil];
+["ART-SMOKE-radio-without-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{}];
+["ART-SMOKE-radio-unavailable-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{0.49}];
+["ART-SMOKE-radio-clear-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{0.5}];
+["ART-SMOKE-radio-jammed-provider",!([_caller] call WAIT_fnc_CortexCanTransmit)] call _check;
+if (_hadJammingHook) then {
+    missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",_savedJammingHook];
+} else {missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",nil]};
 {
     _x setVariable ["WAIT_Headless_ExcludeGroup",true,true];
     _x setVariable ["acex_headless_blacklist",true,true];
