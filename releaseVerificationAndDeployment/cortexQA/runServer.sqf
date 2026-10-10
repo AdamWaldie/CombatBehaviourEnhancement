@@ -426,6 +426,7 @@ deleteGroup _spotterGroup;
 // naturally; no reveal, target assignment or direct fire request is injected by the fixture.
 [createHashMapFromArray [
     ["WAIT_AIPass_Artillery_Enable",false],["WAIT_AIPass_Danger_Enable",true],
+    ["WAIT_AIPass_Contact_Enable",true],
     ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleGunnery_Enable",true]
 ]] call WAIT_fnc_CortexTuning;
 private _dangerEnemyGroup=createGroup [west,true];
