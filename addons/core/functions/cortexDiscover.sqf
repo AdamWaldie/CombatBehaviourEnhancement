@@ -29,10 +29,10 @@
  * Missile-warning bursts carry an owner-local generation token, so handler replacement, locality
  * migration or a stop/restart cannot revive countermeasures queued by an earlier Cortex run.
  * Arguments:
- * 0: job <HASHMAP> - unused
+ * 0: job <HASHMAP>, default empty - persistent discovery cursors and completed-cycle caches.
  *
  * Return Value:
- * Number - seconds until the next sweep, or -1 when the pass has stopped
+ * Number - 0.05 while bounded chunks remain, configured sweep interval after completion, or -1 when stopped.
  *
  * Example:
  * [WAIT_fnc_CortexDiscover, createHashMap, 1] call WAIT_fnc_CortexQueueJob;
@@ -43,13 +43,28 @@
  * group tactics brain; handlers retire on membership/owner changes and shutdown. No second movement owner.
  */
 
+params [["_job",createHashMap,[createHashMap]]];
 if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
     missionNamespace setVariable ["WAIT_AIPass_DiscoveryQueued", false];
     -1
 };
-missionNamespace setVariable ["WAIT_AIPass_PlayerPositions", (allPlayers select {alive _x && {!(_x isKindOf "HeadlessClient_F")}}) apply {getPosATL _x}];
+if !(_job getOrDefault ["scanActive",false]) then {
+    _job set ["scanGroups",allGroups];
+    _job set ["scanVehicles",vehicles];
+    _job set ["groupCursor",0];
+    _job set ["vehicleCursor",0];
+    _job set ["spotters",[]];
+    _job set ["artillery",[]];
+    _job set ["allArtillery",[]];
+    _job set ["scanActive",true];
+    missionNamespace setVariable ["WAIT_AIPass_PlayerPositions",(allPlayers select {alive _x && {!(_x isKindOf "HeadlessClient_F")}}) apply {getPosATL _x}];
+};
+private _scanGroups=_job get "scanGroups";
+private _scanVehicles=_job get "scanVehicles";
+private _groupCursor=_job get "groupCursor";
+private _vehicleCursor=_job get "vehicleCursor";
 
-private _spotters = [];
+private _spotters=_job get "spotters";
 {
     private _group = _x;
     // Aircraft occupants remain eligible for the dedicated air systems below, but the generic
@@ -116,8 +131,8 @@ private _spotters = [];
             [_group,false] call WAIT_fnc_GroupBrainStart;
         };
     };
-} forEach allGroups;
-missionNamespace setVariable ["WAIT_AIPass_LocalSpotters", _spotters];
+} forEach (_scanGroups select [_groupCursor,12]);
+_job set ["groupCursor",_groupCursor+12];
 
 private _wantArtillery = (missionNamespace getVariable ["WAIT_AIPass_Artillery_Enable", false])
     || {missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Enable", false]};
@@ -126,8 +141,8 @@ private _wantFlares = (missionNamespace getVariable ["WAIT_AIPass_AircraftFlares
 private _wantAttackFlares=missionNamespace getVariable ["WAIT_Cortex_AttackRunFlares_Enable",true];
 private _wantAirAttack=missionNamespace getVariable ["WAIT_Cortex_AirAttack_Enable",true];
 if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
-    private _artillery = [];
-    private _allArtillery = [];
+    private _artillery=_job get "artillery";
+    private _allArtillery=_job get "allArtillery";
     {
         private _vehicle = _x;
         if (isServer && {alive _vehicle} && {getNumber (configOf _vehicle >> "artilleryScanner") == 1}) then {_allArtillery pushBack _vehicle};
@@ -221,8 +236,14 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
                 missionNamespace setVariable ["WAIT_AIPass_FlareVehicles", _tracked];
             };
         };
-    } forEach vehicles;
-    missionNamespace setVariable ["WAIT_AIPass_LocalArtillery", _artillery];
-    if (isServer) then {missionNamespace setVariable ["WAIT_AIPass_AllArtillery", _allArtillery]};
+    } forEach (_scanVehicles select [_vehicleCursor,16]);
+
 };
-missionNamespace getVariable ["WAIT_AIPass_DiscoveryInterval", 10]
+_job set ["vehicleCursor",_vehicleCursor+16];
+if ((_job get "groupCursor") < count _scanGroups
+    || {(_job get "vehicleCursor") < count _scanVehicles}) exitWith {0.05};
+missionNamespace setVariable ["WAIT_AIPass_LocalSpotters",_spotters];
+missionNamespace setVariable ["WAIT_AIPass_LocalArtillery",_job get "artillery"];
+if (isServer) then {missionNamespace setVariable ["WAIT_AIPass_AllArtillery",_job get "allArtillery"]};
+_job set ["scanActive",false];
+missionNamespace getVariable ["WAIT_AIPass_DiscoveryInterval",10]
