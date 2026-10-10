@@ -4,7 +4,7 @@
  * creating or sharing target knowledge.
  * Locality/authority: Read-only; call where the group is local. It reads native AI knowledge and
  * prunes only that owner's short-lived observation cache. Nothing is broadcast or commanded.
- * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
+ * Repeat/JIP: Repeat calls update only the bounded owner-local cache; this read-only summary has no JIP side effects.
  * Summarises what a group already knows about nearby enemies, using only engine knowledge.
  *
  * The pass uses existing engine detection and preserves AI Rebalance settings. Enemies come from the leader's `targets` list plus a small,
@@ -47,7 +47,7 @@ if (isNull _leader || {!alive _leader}) exitWith {[[], 0]};
 private _observed=_group getVariable ["WAIT_Danger_ObservedContacts",[]];
 _observed=(_observed select [((count _observed)-8) max 0,8]) select {
     _x isEqualType [] && {count _x in [2,3]} && {(_x select 0) isEqualType objNull} && {(_x select 1) isEqualType 0}
-        && {alive (_x select 0)} && {!captive (_x select 0)}
+        && {!((_x select 0) isKindOf "Logic")} && {alive (_x select 0)} && {!captive (_x select 0)}
         && {!((_x select 0) getVariable ["ace_captives_isSurrendering",false])}
         && {!((_x select 0) getVariable ["ace_captives_isHandcuffed",false])}
         && {(side _group) getFriend (side (_x select 0)) < 0.6} && {(_x select 1) > time}
@@ -74,7 +74,7 @@ private _candidateTargets=+(_leader targets [true, _range]);
 private _candidates = [];
 {
     private _enemy = _x;
-    if (alive _enemy && {!captive _enemy}
+    if (!(_enemy isKindOf "Logic") && {alive _enemy} && {!captive _enemy}
         && {!(_enemy getVariable ["ace_captives_isSurrendering",false])}
         && {!(_enemy getVariable ["ace_captives_isHandcuffed",false])}
         && {(side _group) getFriend (side _enemy) < 0.6}) then {
