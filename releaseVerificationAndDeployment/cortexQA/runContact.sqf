@@ -861,6 +861,7 @@ _observerWall setPosATL (_observerStart getPos [4,270]);
 ["DANGER-observer-cover-fixture-range",_observerWingman distance2D _observerWall <= 18,
     str [getPosATL _observerWingman,getPosATL _observerWall,currentCommand _observerWingman]] call _check;
 private _observerCoverBefore=(_observerGroup getVariable ["WAIT_Danger_EngineStats",createHashMap]) getOrDefault ["coverMoves",0];
+private _observerEventsBefore=_observerGroup getVariable ["WAIT_Danger_EngineEvents",0];
 private _observerGrenade=[(getPosATL _observerWingman) getPos [7,90]] call _spawnRealGrenade;
 private _observerGroupHide=[{
     private _leases=_observerGroup getVariable ["WAIT_Danger_GroupHideLeases",[]];
@@ -883,6 +884,16 @@ private _observerCover=[{
         && {((_observerGroup getVariable ["WAIT_Danger_EngineStats",createHashMap]) getOrDefault ["coverMoves",0]) > _observerCoverBefore}
         && {_observerWingman distance2D _observerStart >= 2}
 },18] call _wait;
+diag_log format ["WAIT OBSERVER COVER EVIDENCE|beforeEvents=%1|afterEvents=%2|stats=%3|actors=%4",
+    _observerEventsBefore,_observerGroup getVariable ["WAIT_Danger_EngineEvents",0],
+    _observerGroup getVariable ["WAIT_Danger_EngineStats",createHashMap],
+    (units _observerGroup select [0,8]) apply {[
+        netId _x,getPosATL _x,currentCommand _x,speed _x,
+        _x getVariable ["WAIT_Danger_EngineResponse",[]],
+        _x getVariable ["WAIT_Danger_EngineReleaseEvidence",[]],
+        _x getVariable ["WAIT_Danger_LastEvasion",[]],
+        _x getVariable ["WAIT_Cortex_ActorMove",[]]
+    ]}];
 ["DANGER-finite-group-hide",_observerGroupHide,str [_observerGroup getVariable ["WAIT_Danger_GroupHideLeases",[]],
     [_observerSupportOne] call WAIT_fnc_CortexCapabilities,unitPos _observerSupportOne,
     unitPos _observerSupportTwo,unitPos _observerSupportThree,unitPos _observerSupportFour,unitPos _observerSupportFive]] call _check;
