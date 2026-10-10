@@ -43,6 +43,6 @@ if !(_group getVariable ["WAIT_AIPass_Adopted",false]) then {[_group,true] call 
 _group setVariable ["WAIT_AIPass_RegroupQueued", true];
 [
     WAIT_fnc_CortexRegroupStep,
-    createHashMapFromArray [["group", _group], ["phase", "EVALUATE"], ["firstEvaluation", -1]],
+    createHashMapFromArray [["group", _group], ["phase", "EVALUATE"], ["firstEvaluation", -1], ["operationGeneration",_group getVariable ["WAIT_OperationGeneration",0]]],
     missionNamespace getVariable ["WAIT_AIPass_Regroup_SettleSeconds", 5]
 ] call WAIT_fnc_CortexQueueJob;
