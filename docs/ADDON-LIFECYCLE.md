@@ -469,3 +469,17 @@ Tracked convoy resume replaces WAIT's matching lead-vehicle current-position HAL
 Convoy HALT retains one-second shared-scheduler cadence while any live local registered vehicle moves at least 1 km/h, then drops to the existing thirty-second settled hold cadence. This avoids treating an accepted halt as a physical stop and permits bounded crew/braking retries during deceleration. No extra worker or global scan is added. Tracked 75 m halt failure remains open until physical retest.
 
 Separate convoy passenger owners now retry HALT unloading through a finite revision-scoped shared-scheduler job. It checks current registry identity, actor locality/ownership and remaining mounted cargo, handles at most sixteen records per callback at five-second cadence, and expires after ninety seconds. Vehicle movement remains with the convoy owner; all seat/safe-stop/new-task checks stay in ConvoyCrewLocal. Physical split-owner unload acceptance remains pending.
+
+Survivor regroup is subordinate to newer group operations. Casualty-created and directly
+queued jobs capture the operation generation once; a changed generation retires the job
+without recalling its held actors. Surrendered, captive, incapacitated and externally owned
+actors cannot become movers or receive regroup restoration. Host selection and continuation
+use a capable local anchor, with capable strength distinct from the total membership cap.
+Locality adoption retires this opportunistic merge; it does not fabricate a migrated merge
+commitment. These changes require physical casualty, surrender, host-loss and handover retests.
+
+Finite tracked reverse observes a bounded rear swept area for live infantry and vehicles.
+A newly occupied rear area ends the reverse leg through its existing release path; collision,
+damage and native pathfinding remain active. Physical obstruction and pedestrian acceptance
+is still pending. Smoke delivery audits retain actual shell/landing requirements; rejected
+requests fail delivery immediately rather than consuming an impossible 150-second wait.
