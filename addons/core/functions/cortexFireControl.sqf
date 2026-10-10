@@ -84,6 +84,19 @@ if (_now < (_drill getOrDefault ["grenadeActionUntil",-1])) then {
 };
 private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 private _eligible = (units _group) select {([_x] call WAIT_fnc_CortexCombatEffective) && {local _x} && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x} && {!(_x in _recovering)} && {primaryWeapon _x != ""}};
+// Route ownership extends beyond drills: a clearer, evading actor or finite aid mover
+// must not receive an ATTACK/SUPPRESS command over its current destination.
+private _reservedActors=_eligible select {
+    private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+    _reservation isEqualType [] && {count _reservation == 3}
+        && {(_reservation select 2) isEqualType 0} && {(_reservation select 2) > _now}
+};
+private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+if ((_operation getOrDefault ["intent",""]) in ["CLEAR","MEDICAL_AID","WITHDRAW"]
+    && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+    _reservedActors append (_operation getOrDefault ["participants",[]]);
+};
+_drillUnits=(_drillUnits+_reservedActors) arrayIntersect (_drillUnits+_reservedActors);
 private _members = _eligible - _drillUnits;
 private _movingMembers = _eligible arrayIntersect _drillUnits;
 if (_members isEqualTo [] && {_movingMembers isEqualTo []}) exitWith {0};
