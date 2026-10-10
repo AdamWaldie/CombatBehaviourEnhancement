@@ -115,6 +115,7 @@ if (_phase == "EVALUATE") exitWith {
     private _minimumHost = (missionNamespace getVariable ["WAIT_AIPass_Regroup_MaxRemnantSize", 2]) + 1;
     private _host = grpNull;
     private _hostDistance = _radius;
+    private _hostAnchor=objNull;
     // Regroup is exceptional but can coincide across several casualty remnants. Bound discovery to
     // actual nearby soldiers instead of scanning every group on the server.
     private _candidateGroups=[];
@@ -127,17 +128,19 @@ if (_phase == "EVALUATE") exitWith {
     {
         private _candidate = _x;
         private _leader = [_candidate] call WAIT_fnc_CortexGroupAnchor;
-        if (isNull _leader) then {_leader=leader _candidate};
+        
         if (_candidate != _group && {side _candidate == _side} && {local _candidate}
             && {!isNull _leader} && {alive _leader} && {vehicle _leader == _leader}) then {
             private _hostAlive = {alive _x} count units _candidate;
+            private _hostCapable={[_x] call WAIT_fnc_CortexCombatEffective} count units _candidate;
             private _distance = _leader distance2D _origin;
-            if (_distance < _hostDistance && {_hostAlive >= _minimumHost}
+            if (_distance < _hostDistance && {_hostCapable >= _minimumHost}
                 && {_hostAlive + count _movers <= _maxSize}
                 && {!(_candidate getVariable ["WAIT_AIPass_RegroupQueued", false])}
                 && {[_candidate] call WAIT_fnc_CortexIsEligible}) then {
                 _host = _candidate;
                 _hostDistance = _distance;
+                _hostAnchor=_leader;
             };
         };
     } forEach _candidateGroups;
@@ -145,11 +148,11 @@ if (_phase == "EVALUATE") exitWith {
     if (isNull _host) exitWith {
         if (time - (_state get "firstEvaluation") >= _timeout) then {call _finish} else {20}
     };
-    private _target = getPosATL leader _host;
+    private _target = getPosATL _hostAnchor;
     // Arma can retain a dead group leader for several scheduler frames after casualties. Elect a
     // living survivor before issuing one coherent group move; doStop followed by individual doMove
     // left remnants stationary with an expected destination beside their current position.
-    if (!alive leader _group) then {_group selectLeader (_movers select 0)};
+    if (!([leader _group] call WAIT_fnc_CortexCombatEffective)) then {_group selectLeader (_movers select 0)};
     _group move _target;
     _state set ["held",+_movers];
     _group setVariable ["WAIT_AIPass_RegroupHost", _host];
@@ -168,8 +171,8 @@ if (_phase == "EVALUATE") exitWith {
 // replacement order: doFollow here would overwrite that controller's unit movement.
 if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {call _finish};
 private _host = _state getOrDefault ["host", grpNull];
-private _hostLeader = leader _host;
-if (isNull _host || {!local _host} || {!alive _hostLeader} || {!([_host] call WAIT_fnc_CortexIsEligible)}) exitWith {
+private _hostLeader = [_host] call WAIT_fnc_CortexGroupAnchor;
+if (isNull _host || {!local _host} || {isNull _hostLeader} || {vehicle _hostLeader != _hostLeader} || {!([_host] call WAIT_fnc_CortexIsEligible)}) exitWith {
     _state set ["phase", "EVALUATE"];
     _group setVariable ["WAIT_AIPass_RegroupHost", nil];
     0
