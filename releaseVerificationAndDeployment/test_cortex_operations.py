@@ -1838,6 +1838,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_retries < 3',timeout)
         self.assertIn('count (_job get "cleared") == count (_job get "positions")',text)
 
+    def test_clearance_handover_requires_physical_travel_and_native_formation_arrival(self):
+        comparison=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        handover=comparison.split('private _beforeMove=_members apply',1)[1].split('sleep 8;',1)[0]
+        self.assertIn('leader _group distance2D _destination <= 18',handover)
+        self.assertIn('formationPosition _x',handover)
+        self.assertIn('_beforeMove select _forEachIndex) < 25',handover)
+        self.assertIn('_x distance2D _formationPoint > 18',handover)
+        self.assertIn('AGLToASL _formationPoint',handover)
+        self.assertNotIn('_x distance2D _destination > 18',handover)
+
     def test_native_building_controls_validate_all_model_door_sources(self):
         comparison=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         matrix=comparison.split('private _heightCases=[];',1)[1].split('if (_nativeOnly) exitWith',1)[0]

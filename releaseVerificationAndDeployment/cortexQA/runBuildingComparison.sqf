@@ -478,13 +478,19 @@ if (_nativeOnly) exitWith {};
     _group setCurrentWaypoint _waypoint;
     [format ["Clearance handover: %1 soldiers",_size],"After the recorded clearance result, the same soldiers must follow an ordinary waypoint away from the building. No cleanup function or movement reset is injected before this check. One actor receives an external speed-limit edit; it must survive while unchanged WAIT indoor limits release.",_destination] call _phase;
     private _moved=[{
-        private _allMoved=true;
+        private _allMoved=alive leader _group && {leader _group distance2D _destination <= 18};
         {
-            if (!alive _x || {_x distance2D (_beforeMove select _forEachIndex) < 25} || {_x distance2D _destination > 18}) then {_allMoved=false};
+            private _formationPoint=formationPosition _x;
+            if (!alive _x || {_x distance2D (_beforeMove select _forEachIndex) < 25}
+                || {_formationPoint isEqualTo [0,0,0]}
+                || {_x distance2D _formationPoint > 18}
+                || {abs (((getPosASL _x) select 2)-((AGLToASL _formationPoint) select 2)) > 1.5}) then {_allMoved=false};
         } forEach _members;
         _allMoved
     },90] call _wait;
-    [format ["CLEAR-fresh-%1-handover-physical",_size],_moved,str (_members apply {getPosATL _x})] call _check;
+    [format ["CLEAR-fresh-%1-handover-physical",_size],_moved,str [getPosATL leader _group,formation _group,_members apply {
+        [getPosATL _x,formationPosition _x,currentCommand _x,expectedDestination _x]
+    }]] call _check;
     private _speedReleased=true;
     {
         if (_x != _editedActor && {abs ((getForcedSpeed _x)-(_originalSpeedLimits select _forEachIndex)) > 0.1}) then {
