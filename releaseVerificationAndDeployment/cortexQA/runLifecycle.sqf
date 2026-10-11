@@ -526,3 +526,35 @@ deleteVehicle _physicalActor;
 deleteGroup _physicalGroup;
 deleteVehicle _logic;
 deleteGroup _logicGroup;
+
+// Explicit release-boundary fixture: install only the published hold receipt, then replace
+// it with a real native cargo order. This proves cleanup/handover, not building placement.
+{
+    private _intent=_x;
+    private _group=createGroup [east,true];
+    _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    private _unit=_group createUnit ["O_Soldier_F",[3100,2300+_forEachIndex*20,0],[],0,"NONE"];
+    private _vehicle=createVehicle ["O_MRAP_02_F",[3112,2300+_forEachIndex*20,0],[],0,"NONE"];
+    _vehicle setDir 0;
+    missionNamespace setVariable ["WAIT_CortexQA_Actors",[_unit,_vehicle],true];
+    ["Hold release: "+_intent+" to native boarding", "Explicit cleanup boundary: a newer cargo task must survive hold release and physically board. This does not validate building placement."] call _phase;
+    private _groupKey="WAIT_AIPass_"+_intent;
+    private _unitKey=_groupKey+"Pos";
+    _group setVariable [_groupKey,[getPosATL _unit],true];
+    _unit setVariable [_unitKey,[getPosATL _unit,0],true];
+    _unit assignAsCargo _vehicle;
+    [_unit] orderGetIn true;
+    private _taskReady=[{currentCommand _unit == "GET IN"},8] call _wait;
+    ["LIFE-"+_intent+"-boarding-prerequisite",_taskReady,str [currentCommand _unit,assignedVehicle _unit]] call _recordCheck;
+    if (_taskReady) then {
+        if (_intent == "Garrison") then {[_group,true] call WAIT_fnc_CortexGarrisonRelease} else {[_group,true] call WAIT_fnc_CortexDefendRelease};
+        ["LIFE-"+_intent+"-boarding-task-retained",currentCommand _unit == "GET IN" && {assignedVehicle _unit == _vehicle},str [currentCommand _unit,assignedVehicle _unit]] call _recordCheck;
+        private _boarded=[{vehicle _unit == _vehicle},30] call _wait;
+        ["LIFE-"+_intent+"-physical-boarding",_boarded,str [vehicle _unit,currentCommand _unit]] call _recordCheck;
+        ["LIFE-"+_intent+"-hold-receipts-cleared",(_group getVariable [_groupKey,[]]) isEqualTo [] && {(_unit getVariable [_unitKey,[]]) isEqualTo []}] call _recordCheck;
+    };
+    deleteVehicle _unit;
+    deleteVehicle _vehicle;
+    deleteGroup _group;
+    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+} forEach ["Garrison","Defend"];
