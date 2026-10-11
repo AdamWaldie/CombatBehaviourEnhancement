@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Exercises cover stance, live grenade evasion, civilian danger responses and casualty-driven
  * retreat/surrender, including terminal CONTACT -> RETREAT -> REGROUP and CONTACT -> CALM/SURRENDER
- * handovers. Civilian checks measure real travel and later Zeus replacement-order execution. The
+ * handovers. Native medical cases require real approach/health improvement and disabled-state cleanup.
+ * Civilian checks measure real travel and later Zeus replacement-order execution. The
  * additive two-squad withdrawal keeps its deterministic VR baseline, but on terrain worlds rotates
  * the full contact and escape geometry onto a measured dry corridor with relief and separate lanes.
  * Locality/authority: scheduled dedicated-server audit, with server-pinned disposable actors.
@@ -545,3 +546,57 @@ private _replacementArrived=[{_civilian distance2D _replacement < 5},35] call _w
 private _blockedDuringZeus=!([_civilian,_civilianThreat] call WAIT_fnc_CortexCivilianReact);
 ["CIVILIAN-zeus-replacement-physical",_replacementArrived && {_blockedDuringZeus},format ["remaining=%1 blocked=%2",_civilian distance2D _replacement,_blockedDuringZeus]] call _check;
 call _cleanup;
+
+// Native medical acceptance: damage is fixture stimulus, never the completion mechanism.
+private _medicalSaved=createHashMap;
+{_medicalSaved set [_x,missionNamespace getVariable [_x,true]]} forEach [
+    "WAIT_AIPass_MedicalAssist_Enable","WAIT_AIPass_Danger_Enable","WAIT_AIPass_Contact_Enable"];
+_medicalSaved set ["WAIT_AIPass_MedicalAssist_Range",missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Range",80]];
+_medicalSaved set ["WAIT_AIPass_MedicalAssist_DamageThreshold",missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_DamageThreshold",0.35]];
+_medicalSaved set ["WAIT_AIPass_MedicalAssist_Timeout",missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Timeout",45]];
+[createHashMapFromArray [["WAIT_AIPass_Danger_Enable",false],["WAIT_AIPass_Contact_Enable",false],
+    ["WAIT_AIPass_MedicalAssist_Range",80],["WAIT_AIPass_MedicalAssist_DamageThreshold",0.35],
+    ["WAIT_AIPass_MedicalAssist_Timeout",45]]] call WAIT_fnc_CortexTuning;
+{
+    private _interrupt=_x;
+    private _id=["MEDICAL-native-treatment","MEDICAL-disable-approach"] select _interrupt;
+    [createHashMapFromArray [["WAIT_AIPass_MedicalAssist_Enable",true]]] call WAIT_fnc_CortexTuning;
+    private _aidGroup=createGroup [east,true];
+    _aidGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _aidGroup setVariable ["acex_headless_blacklist",true,true];
+    private _origin=[3300,2900,0];
+    private _medic=_aidGroup createUnit ["O_medic_F",_origin,[],0,"NONE"];
+    private _casualty=_aidGroup createUnit ["O_Soldier_F",_origin vectorAdd [[25,60] select _interrupt,0,0],[],0,"NONE"];
+    _aidGroup setCombatMode "BLUE";
+    _aidGroup setBehaviourStrong "SAFE";
+    {_x setVariable ["acex_headless_blacklist",true,true];_x setUnitCombatMode "BLUE"} forEach [_medic,_casualty];
+    _casualty disableAI "PATH";
+    _casualty setDamage 0.5;
+    private _damageBefore=damage _casualty;
+    private _ready=local _medic && {local _casualty} && {_medic getUnitTrait "Medic"}
+        && {"Medikit" in items _medic} && {_damageBefore >= 0.35};
+    [_id+"-fixture-ready",_ready,str [_medic getUnitTrait "Medic",items _medic,_damageBefore]] call _check;
+    _medic setVariable ["WAIT_CortexQA_Label",_id+" / MEDIC",true];
+    _casualty setVariable ["WAIT_CortexQA_Label",_id+" / CASUALTY",true];
+    missionNamespace setVariable ["WAIT_CortexQA_Actors",[_medic,_casualty],true];
+    [_id,"A real medic must approach and use native treatment. The interruption arm disables assistance after ownership is observed; it must release the aid record without changing casualty health.",getPosATL _casualty] call _phase;
+    private _owned=[{(_aidGroup getVariable ["WAIT_Cortex_MedicalAid",[]]) isNotEqualTo []},20] call _wait;
+    [_id+"-operation-owned",_ready && {_owned}] call _check;
+    if (_interrupt) then {
+        [createHashMapFromArray [["WAIT_AIPass_MedicalAssist_Enable",false]]] call WAIT_fnc_CortexTuning;
+        private _released=[{(_aidGroup getVariable ["WAIT_Cortex_MedicalAid",[]]) isEqualTo []
+            && {((_aidGroup getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["intent",""]) != "MEDICAL_AID"}},15] call _wait;
+        [_id+"-owned-state-release",_owned && {_released},str (_aidGroup getVariable ["WAIT_OperationResult",[]])] call _check;
+        [_id+"-no-fabricated-treatment",abs ((damage _casualty)-_damageBefore) < 0.01] call _check;
+    } else {
+        private _treated=[{alive _medic && {alive _casualty} && {damage _casualty < 0.35}},70] call _wait;
+        [_id+"-physical-approach",_owned && {_medic distance2D _origin >= 10},str getPosATL _medic] call _check;
+        [_id+"-native-health-improvement",_owned && {_treated},str [_damageBefore,damage _casualty]] call _check;
+        private _settled=[{(_aidGroup getVariable ["WAIT_Cortex_MedicalAid",[]]) isEqualTo []},10] call _wait;
+        [_id+"-terminal-cleanup",_treated && {_settled},str (_aidGroup getVariable ["WAIT_OperationResult",[]])] call _check;
+    };
+    {deleteVehicle _x} forEach [_medic,_casualty];
+    deleteGroup _aidGroup;
+    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+} forEach [false,true];
+[_medicalSaved] call WAIT_fnc_CortexTuning;
