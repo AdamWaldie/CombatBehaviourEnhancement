@@ -8,7 +8,7 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACombat.sqf";
  */
 params ["_check","_phase","_wait"];
-private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE"];
+private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE"];
 private _selected = missionNamespace getVariable ["WAIT_CortexQA_CombatCase",""];
 if (_selected != "" && {!(_selected in _cases)}) exitWith {["COMBAT-invalid-case",false,_selected] call _check};
 if (_selected != "") then {_cases = [_selected]};
@@ -16,10 +16,10 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
 {
     private _case = _x;
     private _blockage = _case in ["FLANK-BLOCKED","ADVANCE-BLOCKED"];
-    private _handover = _case in ["FLANK-ZEUS","ADVANCE-ZEUS","FLANK-ZEUS-ROE","FLANK-ZEUS-CONSOLIDATE"];
+    private _handover = _case in ["FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","FLANK-ZEUS-ROE","FLANK-ZEUS-CONSOLIDATE"];
     private _directAssault=_case in ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT"];
     private _mode = if (_directAssault) then {"ASSAULT"} else {if ((_case find "FLANK") == 0) then {"FLANK"} else {"ADVANCE"}};
-    private _enemyPosition = [1200,switch (_case) do {case "ASSAULT-CLOSE": {1250}; case "ASSAULT-MULTI-CONTACT": {1250}; case "ADVANCE-YELLOW": {1450}; case "ADVANCE-AWARE": {1450}; case "ADVANCE-BLOCKED": {1450}; case "ADVANCE-ZEUS": {1450}; case "ADVANCE": {1450}; case "ADVANCE-DISTANT": {1550}; default {1350}},0];
+    private _enemyPosition = [1200,switch (_case) do {case "ASSAULT-CLOSE": {1250}; case "ASSAULT-MULTI-CONTACT": {1250}; case "ADVANCE-YELLOW": {1450}; case "ADVANCE-AWARE": {1450}; case "ADVANCE-BLOCKED": {1450}; case "ADVANCE-ZEUS": {1450}; case "ADVANCE-ZEUS-ATTACK": {1450}; case "ADVANCE": {1450}; case "ADVANCE-DISTANT": {1550}; default {1350}},0];
     private _advance = _mode == "ADVANCE";
     private _group = createGroup [east,true];
     private _enemyGroup = createGroup [west,true];
@@ -205,6 +205,20 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
                 private _row = _originalModes findIf {(_x select 0) == _actor};
                 if (_row >= 0) then {(_originalModes select _row) set [1,"BLUE"]};
             };
+        };
+        if (_case == "ADVANCE-ZEUS-ATTACK") then {
+            private _ownedAttack = !attackEnabled _group;
+            [_prefix+"-owned-attack-policy-prerequisite",_moving && {_ownedAttack}] call _check;
+            // External policy edit only. Do not call WAIT cancellation or assign a successful result.
+            _group enableAttack true;
+            private _policyReleased=[{
+                private _result=_group getVariable ["WAIT_Cortex_DrillResult",[]];
+                (_result param [1,""]) == "ATTACK_POLICY_CHANGED"
+                    && {count (((_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap])) == 0}
+            },8] call _wait;
+            [_prefix+"-external-attack-policy-cancels",_moving && {_ownedAttack} && {_policyReleased},
+                str (_group getVariable ["WAIT_Cortex_DrillResult",[]])] call _check;
+            [_prefix+"-external-attack-policy-preserved",_policyReleased && {attackEnabled _group}] call _check;
         };
         [_group,true] call WAIT_fnc_CortexZeusMark;
         // End the contact stimulus so this isolates old-order cleanup and replacement travel.
