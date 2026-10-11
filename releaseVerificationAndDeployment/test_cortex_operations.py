@@ -1767,7 +1767,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('call WAIT_fnc_CortexClearBuilding',text)
         self.assertIn('CLEAR-door-lock-preserved',text)
         self.assertIn('CLEAR-door-unlocked-physical-entry',text)
-        self.assertIn('vectorDistance (AGLToASL _position) <= 1.5',text)
+        self.assertIn('vectorDistance (AGLToASL _x) <= 1.5',text)
         self.assertNotIn('call WAIT_fnc_CortexBuildingDoor',text)
         self.assertNotIn('call BIS_fnc_door',text)
         self.assertNotIn('animateSource [',text)
@@ -7454,3 +7454,10 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(morale.index('!isNull objectParent'),morale.index('private _hasAT'))
         self.assertIn('alive _x && {!isNull objectParent _x}',reposition)
         self.assertLess(reposition.index('!isNull objectParent'),reposition.index('WAIT_fnc_OperationStart'))
+
+    def test_unlocked_door_audit_observes_entry_concurrently(self):
+        text=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        self.assertIn('if (_doorOpened && {!_entered}) then',text)
+        self.assertIn('_entryEvidence pushBack [netId _actor,_node,getPosASL _actor,time]',text)
+        self.assertIn('(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5',text)
+        self.assertNotIn('private _doorOpened=[{_doorHouse animationSourcePhase',text)

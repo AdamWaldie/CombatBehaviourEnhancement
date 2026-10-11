@@ -616,14 +616,28 @@ waitUntil {
 // Changing the lock is the test stimulus; opening and entry must be performed by production.
 _doorHouse setVariable ["bis_disabled_Door_1",0,true];
 ["Clearance: entry unlocked","The lock is now removed. Watch the same soldiers open the door and physically enter. The audit does not animate the door, teleport actors or reset their movement.",getPosATL _doorHouse] call _phase;
-private _doorOpened=[{_doorHouse animationSourcePhase _doorSource >= 0.8},45] call _wait;
-["CLEAR-door-unlocked-opens",_doorReady && {_doorOpened}] call _check;
 private _doorPositions=_doorHouse buildingPos -1;
-private _entered=[{_doorPositions findIf {
-    private _position=_x;
-    _doorMembers findIf {(getPosASL _x) vectorDistance (AGLToASL _position) <= 1.5} >= 0
-} >= 0},45] call _wait;
-["CLEAR-door-unlocked-physical-entry",_doorReady && {_doorOpened} && {_entered}] call _check;
+private _doorOpened=false;
+private _entered=false;
+private _entryEvidence=[];
+private _unlockedDeadline=time+90;
+waitUntil {
+    sleep 0.25;
+    if (_doorHouse animationSourcePhase _doorSource >= 0.8) then {_doorOpened=true};
+    if (_doorOpened && {!_entered}) then {
+        {
+            private _actor=_x;
+            private _node=_doorPositions findIf {(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5};
+            if (alive _actor && {_node >= 0}) then {
+                _entered=true;
+                _entryEvidence pushBack [netId _actor,_node,getPosASL _actor,time];
+            };
+        } forEach _doorMembers;
+    };
+    (_doorOpened && {_entered}) || {time >= _unlockedDeadline}
+};
+["CLEAR-door-unlocked-opens",_doorReady && {_doorOpened}] call _check;
+["CLEAR-door-unlocked-physical-entry",_doorReady && {_doorOpened} && {_entered},str _entryEvidence] call _check;
 [_doorGroup] call WAIT_fnc_CortexClearRelease;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _doorMembers;
