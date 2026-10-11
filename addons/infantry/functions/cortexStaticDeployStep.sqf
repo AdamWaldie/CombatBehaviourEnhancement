@@ -143,7 +143,8 @@ if (count _record >= 10) exitWith {
             || {_status == "PACK_EXITING" && {_actor == _gunner} && {_command == "GET OUT"}
                 && {!isNull _weapon} && {vehicle _actor == _weapon || {isNull objectParent _actor}}}
             || {_status == "PACKING" && {_command == "DISASSEMBLE"}}
-            || {_status == "TAKING" && {_command == "TAKE BAG"}}
+            || {_status == "TAKING" && {_command == "TAKE BAG"
+                || {_actor == _gunner && {_command == "DISASSEMBLE"} && {!isNull _weapon}}}}
             || {_status == "MOUNTING" && {_actor == _gunner} && {_command == "GET IN"}
                 && {!isNull _weapon} && {assignedVehicle _actor == _weapon}};
         !([_actor] call WAIT_fnc_CortexCombatEffective)
@@ -534,8 +535,10 @@ if (count _record >= 10) exitWith {
                         && {(_current select 1) == "PACKING"} && {(_current select 2) == _actor}
                         && {(_current select 3) == _assistant}
                         && {typeOf _primaryBag == _primaryClass} && {typeOf _baseBag == _baseClass}) then {
-                        _actor action ["TakeBag",_primaryBag];
-                        _assistant action ["TakeBag",_baseBag];
+                        // Record the event only. Another equipment action here can interrupt
+                        // native disassembly before its original emplacement is removed.
+                        _current set [25,[_primaryBag,_baseBag]];
+                        _current set [26,false];
                         _current set [1,"TAKING"];
                         _current set [6,time+8];
                         // Retain the original weapon identity until native deletion is
@@ -564,6 +567,18 @@ if (count _record >= 10) exitWith {
         } else {"PACKING"}
     };
     if (_status == "TAKING") exitWith {
+        if (isNull _weapon && {!(_record param [26,false,[false]])}) then {
+            private _bags=_record param [25,[],[[]]];
+            if (count _bags == 2 && {_bags findIf {isNull _x} < 0}) then {
+                _bags params ["_primaryBag","_baseBag"];
+                _gunner action ["TakeBag",_primaryBag];
+                _assistant action ["TakeBag",_baseBag];
+                _record set [26,true];
+                _deadline=time+8;
+                _record set [6,_deadline];
+                _group setVariable ["WAIT_Danger_StaticDeployment",_record,true];
+            };
+        };
         // Bags alone do not prove native packing removed the original emplacement.
         // Never report success while that weapon still exists, or delete it to fake completion.
         if (isNull _weapon && {backpack _gunner == _gunnerBag} && {backpack _assistant == _assistantBag}) then {
