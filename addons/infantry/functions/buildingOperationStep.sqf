@@ -58,16 +58,18 @@ private _delay=call {
         };
         _restore=_restore && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
         _group setVariable ["WAIT_Cortex_ClearEvidence",[+(_job get "cleared"),+(_job get "unreachable"),+(_job get "retryCounts"),+(_job get "failedBy"),_job get "deadline",_job get "lastProgressAt"],true];
+        private _result = ["INCOMPLETE","COMPLETE"] select (count (_job get "cleared") == count (_job get "positions") && {!(_job getOrDefault ["egressFailed",false])});
+        if (_reason != "COMPLETE") then {_result="CANCELLED"};
         // One bounded terminal snapshot preserves the route which actually failed before cleanup
         // clears actors' destinations. No geometry query or recurring trace is added to the hot path.
         private _routeActors=+(_job getOrDefault ["team",[]]);
         _routeActors resize ((count _routeActors) min 16);
         private _routeStates=+(_job getOrDefault ["pairStates",[]]);
         _routeStates resize ((count _routeStates) min 8);
-        private _routeEvidence=[serverTime,_reason,_routeStates,_routeActors apply {
+        private _routeEvidence=[serverTime,_result,_routeStates,_routeActors apply {
             [netId _x,getPosATL _x,currentCommand _x,expectedDestination _x,
                 _x checkAIFeature "MOVE",_x checkAIFeature "PATH"]
-        }];
+        },_reason];
         _group setVariable ["WAIT_Cortex_ClearRouteEvidence",_routeEvidence,true];
         diag_log format ["WAIT CLEAR ROUTE END: %1",_routeEvidence];
         if (!isNull _group) then {
@@ -107,8 +109,6 @@ private _delay=call {
             _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
             _group setVariable ["WAIT_AIPass_ClearApplied", nil];
         };
-        private _result = ["INCOMPLETE","COMPLETE"] select (count (_job get "cleared") == count (_job get "positions") && {!(_job getOrDefault ["egressFailed",false])});
-        if (_reason != "COMPLETE") then {_result="CANCELLED"};
         _group setVariable ["WAIT_Cortex_ClearResult",[_result,count (_job get "cleared"),count (_job get "positions")],true];
         _job set ["finished",true];
         _job set ["finishReason",_reason];

@@ -7466,3 +7466,9 @@ class CortexOperations(unittest.TestCase):
         text=source('buildingOperationStep')
         self.assertIn('if (_restore && {[_x] call _actorTaskFree}) then',text)
         self.assertLess(text.index('if (_restore && {[_x] call _actorTaskFree}) then'),text.index('_x doFollow _leader;'))
+
+    def test_clearance_route_trace_reports_actual_terminal_outcome(self):
+        text=source('buildingOperationStep')
+        self.assertIn('private _routeEvidence=[serverTime,_result,_routeStates',text)
+        self.assertLess(text.index('private _result = ["INCOMPLETE","COMPLETE"]'),text.index('private _routeEvidence='))
+        self.assertIn('},_reason];',text)
