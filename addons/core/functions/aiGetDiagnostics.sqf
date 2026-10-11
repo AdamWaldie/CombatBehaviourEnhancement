@@ -297,7 +297,13 @@ private _convoyHandoffMissing=_convoyGroups select {
     && {(count _wait < 2) || {(_wait select 1) != groupOwner _x}}
 };
 private _navalGroups=_groups select {(_x getVariable ["WAIT_Cortex_NavalStatus",[]]) isNotEqualTo []};
+private _turretPolicyLoaded=isClass (configFile >> "CfgPatches" >> "WAIT_policy_turret_aiming");
+private _turretPolicyCeiling=getNumber (configFile >> "CfgBrains" >> "DefaultSoldierBrain" >> "Components" >> "AIBrainAimingErrorComponent" >> "maxAngularErrorTurrets");
+private _turretPolicyState=if (!_turretPolicyLoaded) then {"DISABLED"} else {
+    ["ERROR","LOADED"] select (abs (_turretPolicyCeiling-0.12) < 0.0001)
+};
 private _checks = [
+    ["ai","engine-policy-turret-aiming",_turretPolicyState,format ["optionalLoaded=%1 effectiveCeilingRadians=%2 restartRequired=true. Runtime CBA gates cannot unload this configuration. A different effective ceiling while loaded indicates a configuration override; physical lethality and player precision require separate acceptance.",_turretPolicyLoaded,_turretPolicyCeiling]],
     ["ai", "cortex", _passState, format ["enabled=%1 serverActive=%2 serverJobs=%3 paused=%4 includedSides=%5. %6", _passEnabled, _passActive, _passJobs, [] call WAIT_fnc_CortexIsPaused, missionNamespace getVariable ["WAIT_AIPass_IncludedSides", []], _passHint]],
     ["ai", "cortex-scheduler", if (!_passEnabled) then {"DISABLED"} else {"LOADED"}, format ["sampledJobs=%1 callbackMs=%2 maxQueueLatency=%3 staleProgress=%4",count _schedulerQueue,_schedulerCallbackMs toFixed 3,_schedulerLatency toFixed 2,_schedulerStaleProgress]],
     ["ai", "cortex-regroup", if (_passEnabled && {_regroupEnabled}) then {"LOADED"} else {"DISABLED"}, format ["enabled=%1 serverRegroupsCompleted=%2 serverUnitsJoined=%3", _regroupEnabled, missionNamespace getVariable ["WAIT_AIPass_RegroupsCompleted", 0], missionNamespace getVariable ["WAIT_AIPass_RegroupJoined", 0]]],
