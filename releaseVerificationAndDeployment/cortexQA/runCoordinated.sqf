@@ -624,8 +624,12 @@ private _attackReleaseBefore=_teams apply {
         (_operation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]],
         attackEnabled _group,_group getVariable ["WAIT_Cortex_SupportRole",[]]]
 };
-[createHashMapFromArray [["WAIT_AIPass_CoordinatedAssault_Enable",false],["WAIT_AIPass_Reinforce_Enable",false]]] call WAIT_fnc_CortexTuning;
-["Coordinated assault: disable and hand back","Support is now disabled. Both squads must release their support assignments and temporary orders, then physically follow fresh ordinary movement orders. The cyan trails show real travel.",[1500,1580] call _terrainPosition] call _phase;
+// Isolate administrative hand-back from an independent close-contact assault opportunity.
+// Flank/Advance were already disabled for this fixture; restore this additional gate at cleanup.
+private _cleanupAssaultGate=missionNamespace getVariable ["WAIT_AIPass_Assault_Enable",true];
+[createHashMapFromArray [["WAIT_AIPass_CoordinatedAssault_Enable",false],["WAIT_AIPass_Reinforce_Enable",false],
+    ["WAIT_AIPass_Assault_Enable",false]]] call WAIT_fnc_CortexTuning;
+["Coordinated assault: disable and hand back","Support and independent scripted manoeuvres are now disabled for this hand-back comparison. Both squads must release their support assignments and temporary orders, then physically follow fresh ordinary movement orders. The cyan trails show real travel.",[1500,1580] call _terrainPosition] call _phase;
 private _released=[{
     _teams findIf {
         private _g=group (_x select 0);
@@ -770,3 +774,4 @@ private _unopposedTravel=[{
 
 {deleteVehicle _x} forEach (_actors+_walls); {deleteGroup _x} forEach _groups;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+[createHashMapFromArray [["WAIT_AIPass_Assault_Enable",_cleanupAssaultGate]]] call WAIT_fnc_CortexTuning;
