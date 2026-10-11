@@ -68,6 +68,16 @@ private _kept = [];
 } forEach _leases;
 _job set ["leases",_kept];
 if (!_valid) exitWith {
+    private _reason=call {
+        if (isNull _requester) exitWith {"REQUESTER_DELETED"};
+        if (serverTime >= (_job get "expiry")) exitWith {"EXPIRED"};
+        if (!(missionNamespace getVariable ["WAIT_AIPass_Enable",false]) || {!_requesterSupport}
+            || {!([_requester,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {"DISABLED"};
+        if (isNull _requesterTransmitter) exitWith {"NO_TRANSMITTER"};
+        if (_job getOrDefault ["sawContact",false] && {_observedPhase == "CALM"}) exitWith {"CONTACT_LOST"};
+        "REQUESTER_INELIGIBLE"
+    };
+    _job set ["terminationReason",_reason];
     _requester setVariable ["WAIT_Cortex_SupportResponders",nil,true];
     _requester setVariable ["WAIT_Cortex_SupportRequestState",nil,true];
     _requests deleteAt (_job get "key");
@@ -136,6 +146,7 @@ if (_responders isNotEqualTo (_requester getVariable ["WAIT_Cortex_SupportRespon
     _requester setVariable ["WAIT_Cortex_SupportResponders",_responders,true];
 };
 if (_cursor >= count _candidates && {_kept isEqualTo []}) exitWith {
+    _job set ["terminationReason","NO_RESPONDER"];
     _requester setVariable ["WAIT_Cortex_SupportResponders",nil,true];
     _requester setVariable ["WAIT_Cortex_SupportRequestState",[_job get "serial","NO_RESPONDER",serverTime],true];
     _requests deleteAt (_job get "key");

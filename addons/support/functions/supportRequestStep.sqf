@@ -40,7 +40,7 @@ _brain set ["pending",false];
 _brain set ["completed",true];
 if (_delay < 0) then {
     _brain set ["finished",true];
-    _brain set ["cancelReason",["NO_RESPONDER","COMPLETE"] select (_leases isNotEqualTo [])];
+    _brain set ["cancelReason",_job getOrDefault ["terminationReason","REQUEST_ENDED"]];
 } else {
     _brain set ["nextAt",time+_delay];
 };
