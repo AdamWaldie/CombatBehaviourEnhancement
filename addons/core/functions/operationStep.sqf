@@ -145,7 +145,16 @@ if (_progressed) then {
     _operation set ["recovery",_recovery];
     _operation set ["unavailable",_unavailable];
     if (_changed) then {_group setVariable ["WAIT_Operation",_operation,true]};
-    if (_participantsRequired && {_participants isEqualTo []}) then {"STALLED"} else {
+    if (_participantsRequired && {_participants isEqualTo []}) then {
+        // An isolated retry owns one bounded observation window. An empty aggregate
+        // roster must not cancel that fresh attempt before it can physically execute.
+        // No progress timestamp is renewed, and another stationary element still stalls.
+        private _pendingRecovery=_recovering findIf {
+            private _record=_recovery getOrDefault [netId _x,[]];
+            count _record >= 2 && {time-(_record select 1) < _staleSeconds}
+        } >= 0;
+        ["STALLED","ACTIVE"] select _pendingRecovery
+    } else {
         if (time-(_operation getOrDefault ["lastProgressAt",time]) >= _staleSeconds) then {"STALLED"} else {"ACTIVE"}
     }
 }

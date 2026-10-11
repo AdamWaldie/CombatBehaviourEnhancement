@@ -255,6 +255,8 @@ private _recoveryTarget=_recoveryOrigin vectorAdd [100,0,0];
 private _recoveryOperation=[_recoveryGroup,"RECOVERY_DIAGNOSTIC",_recoveryTarget,[_recoveryActor],[_recoveryTarget],"MOVING"] call WAIT_fnc_OperationStart;
 private _recoveryGeneration=_recoveryOperation getOrDefault ["generation",-1];
 private _recoveryAccepted=[_recoveryGroup,_recoveryGeneration,_recoveryActor,_recoveryTarget] call WAIT_fnc_RecoveryStep;
+private _freshRecoveryState=[_recoveryGroup,_recoveryGeneration,3,12] call WAIT_fnc_OperationStep;
+["RECOVERY-fresh-window-remains-active",_recoveryAccepted == "RECOVERING" && {_freshRecoveryState == "ACTIVE"}] call _check;
 _recoveryActor doMove (_recoveryOrigin vectorAdd [-60,0,0]);
 private _awayTravel=[{_recoveryActor distance2D _recoveryOrigin >= 10},25] call _wait;
 private _awayOutcome=[_recoveryGroup,_recoveryGeneration,3,0] call WAIT_fnc_OperationStep;
