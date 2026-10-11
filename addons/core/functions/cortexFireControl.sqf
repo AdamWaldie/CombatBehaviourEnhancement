@@ -131,7 +131,9 @@ private _held = {(_this getVariable ["WAIT_AIPass_TargetHold", -1]) > _now};
         private _distance = _unit distance2D (_x select 1);
         if ((_x select 2) <= 5 && {_distance < _closestDistance}) then {_closest = _x select 0; _closestDistance = _distance};
     } forEach _enemies;
-    if (!isNull _closest && {assignedTarget _unit != _closest}) then {
+    if (!isNull _closest && {assignedTarget _unit != _closest}
+        && {alive _closest} && {!captive _closest}
+        && {[_unit,aimPos _closest] call WAIT_fnc_CortexLineOfFireClear}) then {
         _unit doTarget _closest;
         _unit setVariable ["WAIT_Cortex_FireTarget",[_group,_group getVariable ["WAIT_AIPass_Epoch",0],_closest]];
         _unit doFire _closest;
@@ -166,7 +168,9 @@ if (count _visible >= 2) then {
         if (!isNull _target && {!(_unit call _held)} && {(_target call _shootersOn) > _maximum}
             && {([_unit] call WAIT_fnc_CortexUnitRole) != "AT"}) then {
             private _freeIndex = _visible findIf {(_x call _shootersOn) == 0};
-            if (_freeIndex >= 0) then {
+            if (_freeIndex >= 0 && {alive (_visible select _freeIndex)}
+                && {!captive (_visible select _freeIndex)}
+                && {[_unit,aimPos (_visible select _freeIndex)] call WAIT_fnc_CortexLineOfFireClear}) then {
                 private _free = _visible select _freeIndex;
                 _unit doTarget _free;
                 _unit setVariable ["WAIT_Cortex_FireTarget",[_group,_group getVariable ["WAIT_AIPass_Epoch",0],_free]];
