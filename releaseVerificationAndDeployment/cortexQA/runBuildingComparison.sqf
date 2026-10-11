@@ -44,6 +44,25 @@ private _recordFixture={
         && {_positions isNotEqualTo []},str _detail] call _check;
 };
 
+private _validateNewFixturePlacement={
+    params ["_house","_label"];
+    // Correct only a newly created production audit fixture, before any actor exists.
+    // Derive a small bounded lift from model access clearance, never a classname map.
+    private _highestAccess=-1e12;
+    for "_access" from 0 to 15 do {
+        private _point=_house buildingExit _access;
+        if (_point isEqualTo [0,0,0]) exitWith {};
+        _highestAccess=_highestAccess max (((AGLToASL _point) select 2)-getTerrainHeightASL _point);
+    };
+    private _fixtureLift=0;
+    if (_highestAccess < -0.05 && {_highestAccess >= -0.35}) then {
+        _fixtureLift=(ceil ((0.15-_highestAccess)/0.05))*0.05;
+        _house setPosATL ((getPosATL _house) vectorAdd [0,0,_fixtureLift]);
+    };
+    ["CLEAR-"+_label+"-placement-access",_highestAccess+_fixtureLift >= -0.05,
+        str [_highestAccess,_fixtureLift,getPosATL _house]] call _check;
+};
+
 private _cases = [];
 private _actors = [];
 private _terrainHouses=if (_nativeOnly && {worldName == "Altis"}) then {
@@ -265,21 +284,7 @@ if (_nativeOnly) exitWith {};
     private _site=[6550+_forEachIndex*200,5800,0];
     private _house=createVehicle [_class,_site,[],0,"NONE"];
     _house enableSimulationGlobal true;
-    // Correct only this newly created audit fixture, before any actor exists.
-    // Derive a small bounded lift from model access clearance, never a classname map.
-    private _highestAccess=-1e12;
-    for "_access" from 0 to 15 do {
-        private _point=_house buildingExit _access;
-        if (_point isEqualTo [0,0,0]) exitWith {};
-        _highestAccess=_highestAccess max (((AGLToASL _point) select 2)-getTerrainHeightASL _point);
-    };
-    private _fixtureLift=0;
-    if (_highestAccess < -0.05 && {_highestAccess >= -0.35}) then {
-        _fixtureLift=(ceil ((0.15-_highestAccess)/0.05))*0.05;
-        _house setPosATL ((getPosATL _house) vectorAdd [0,0,_fixtureLift]);
-    };
-    [format ["CLEAR-fresh-%1-placement-access",_size],_highestAccess+_fixtureLift >= -0.05,
-        str [_highestAccess,_fixtureLift,getPosATL _house]] call _check;
+    [_house,format ["fresh-%1",_size]] call _validateNewFixturePlacement;
     [_house,format ["fresh-%1",_size]] call _recordFixture;
     private _otherBuildings=(nearestObjects [_site,["House"],50,true])-[_house];
     [format ["CLEAR-fresh-%1-site-isolated",_size],_otherBuildings isEqualTo [],str [_site,_otherBuildings]] call _check;
@@ -463,6 +468,7 @@ if (_nativeOnly) exitWith {};
 private _casualtySite=[7150,5800,0];
 private _casualtyHouse=createVehicle ["Land_i_House_Big_01_V1_F",_casualtySite,[],0,"NONE"];
 _casualtyHouse enableSimulationGlobal true;
+[_casualtyHouse,"casualty"] call _validateNewFixturePlacement;
 private _casualtyGroup=createGroup [east,true];
 _casualtyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
 _casualtyGroup setVariable ["acex_headless_blacklist",true,true];
@@ -530,6 +536,7 @@ deleteVehicle _casualtyHouse;
 private _doorSite=[7350,5800,0];
 private _doorHouse=createVehicle ["Land_i_House_Small_01_V1_F",_doorSite,[],0,"NONE"];
 _doorHouse enableSimulationGlobal true;
+[_doorHouse,"door"] call _validateNewFixturePlacement;
 private _doorGroup=createGroup [east,true];
 _doorGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
 _doorGroup setVariable ["acex_headless_blacklist",true,true];
@@ -582,6 +589,7 @@ deleteVehicle _doorHouse;
 private _contactSite=[7550,5800,0];
 private _contactHouse=createVehicle ["Land_i_House_Small_01_V1_F",_contactSite,[],0,"NONE"];
 _contactHouse enableSimulationGlobal true;
+[_contactHouse,"contact"] call _validateNewFixturePlacement;
 private _contactRooms=_contactHouse buildingPos -1;
 // Find an exterior approach with a genuine view through an opening before creating actors.
 // A hidden room plus an arbitrary rear approach tests absent detection, not contact-to-clear.

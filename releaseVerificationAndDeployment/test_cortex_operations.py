@@ -2206,8 +2206,8 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_members select [1,2]',text)
         self.assertNotIn('_unit setPos', cases)
         self.assertNotIn('_actor setPos', cases)
-        self.assertEqual(cases.count('setPosATL'), 1)
-        self.assertLess(cases.index('_house setPosATL'), cases.index('private _members=[]'))
+        self.assertNotIn('setPosATL', cases)
+        self.assertLess(cases.index('call _validateNewFixturePlacement'), cases.index('private _members=[]'))
         self.assertNotIn('call WAIT_fnc_CortexGarrison',cases)
 
     def test_cqb_casualty_uses_real_reserve_and_physical_movement(self):
@@ -5003,7 +5003,9 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_actor setPos',comparison)
         self.assertEqual(comparison.count('setPosATL'), 2)
         self.assertIn('_highestAccess >= -0.35', comparison)
-        self.assertIn('CLEAR-fresh-%1-placement-access', comparison)
+        self.assertIn('CLEAR-"+_label+"-placement-access', comparison)
+        for fixture in ('_casualtyHouse', '_doorHouse', '_contactHouse'):
+            self.assertIn('['+fixture+',', comparison)
         self.assertIn('_house setPosATL', comparison)
         self.assertIn('if (_nativeOnly && {worldName == "VR"}) then', comparison)
 
