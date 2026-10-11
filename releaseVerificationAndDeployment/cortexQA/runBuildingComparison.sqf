@@ -265,6 +265,21 @@ if (_nativeOnly) exitWith {};
     private _site=[6550+_forEachIndex*200,5800,0];
     private _house=createVehicle [_class,_site,[],0,"NONE"];
     _house enableSimulationGlobal true;
+    // Correct only this newly created audit fixture, before any actor exists.
+    // Derive a small bounded lift from model access clearance, never a classname map.
+    private _highestAccess=-1e12;
+    for "_access" from 0 to 15 do {
+        private _point=_house buildingExit _access;
+        if (_point isEqualTo [0,0,0]) exitWith {};
+        _highestAccess=_highestAccess max (((AGLToASL _point) select 2)-getTerrainHeightASL _point);
+    };
+    private _fixtureLift=0;
+    if (_highestAccess < -0.05 && {_highestAccess >= -0.35}) then {
+        _fixtureLift=(ceil ((0.15-_highestAccess)/0.05))*0.05;
+        _house setPosATL ((getPosATL _house) vectorAdd [0,0,_fixtureLift]);
+    };
+    [format ["CLEAR-fresh-%1-placement-access",_size],_highestAccess+_fixtureLift >= -0.05,
+        str [_highestAccess,_fixtureLift,getPosATL _house]] call _check;
     [_house,format ["fresh-%1",_size]] call _recordFixture;
     private _otherBuildings=(nearestObjects [_site,["House"],50,true])-[_house];
     [format ["CLEAR-fresh-%1-site-isolated",_size],_otherBuildings isEqualTo [],str [_site,_otherBuildings]] call _check;
@@ -279,7 +294,7 @@ if (_nativeOnly) exitWith {};
         _members pushBack _unit;
     };
     missionNamespace setVariable ["WAIT_CortexQA_Actors",_members,true];
-    [format ["Fresh clearance: %1 soldiers / %2",_size,_class],"This fresh group has never garrisoned. Watch clearing pairs physically enter and continue through their assigned sector. The 2/6/12-person cases use progressively larger building models. Markers are navigation positions, not proof that a hostile room is safe. No test-side teleport, door opening or forced completion is applied.",getPosATL _house] call _phase;
+    [format ["Fresh clearance: %1 soldiers / %2",_size,_class],"This new audit house has bounded placement validation before actors spawn. This fresh group has never garrisoned. Watch clearing pairs physically enter and continue through their assigned sector. The 2/6/12-person cases use progressively larger building models. Markers are navigation positions, not proof that a hostile room is safe. No test-side teleport, door opening or forced completion is applied.",getPosATL _house] call _phase;
     private _allRooms=_house buildingPos -1;
     private _rooms=_allRooms select {
         private _origin=AGLToASL _x;

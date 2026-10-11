@@ -2204,7 +2204,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('vectorDistance (AGLToASL _room) <= 1.5',cases)
         self.assertIn('private _clearingMembers=+_members',cases)
         self.assertNotIn('_members select [1,2]',text)
-        self.assertNotIn('setPos',cases)
+        self.assertNotIn('_unit setPos', cases)
+        self.assertNotIn('_actor setPos', cases)
+        self.assertEqual(cases.count('setPosATL'), 1)
+        self.assertLess(cases.index('_house setPosATL'), cases.index('private _members=[]'))
         self.assertNotIn('call WAIT_fnc_CortexGarrison',cases)
 
     def test_cqb_casualty_uses_real_reserve_and_physical_movement(self):
@@ -4998,7 +5001,9 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('useBuildingBackend',comparison)
         self.assertNotIn('_unit setPos',comparison)
         self.assertNotIn('_actor setPos',comparison)
-        self.assertEqual(comparison.count('setPosATL'), 1)
+        self.assertEqual(comparison.count('setPosATL'), 2)
+        self.assertIn('_highestAccess >= -0.35', comparison)
+        self.assertIn('CLEAR-fresh-%1-placement-access', comparison)
         self.assertIn('_house setPosATL', comparison)
         self.assertIn('if (_nativeOnly && {worldName == "VR"}) then', comparison)
 
