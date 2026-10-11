@@ -7203,6 +7203,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_objects=(_ranked select [0,10])',text)
         self.assertLess(text.index('forEach _placed'),text.index('_ranked sort true'))
 
+    def test_danger_release_retires_lease_before_yielding_to_actor_reservation(self):
+        release=source('dangerEngineRelease')
+        guard=release.index('["ACTOR_RESERVATION"] call _evidence')
+        self.assertLess(release.index('setVariable ["WAIT_Danger_EngineResponse",nil]'),guard)
+        self.assertLess(release.index('setVariable ["WAIT_Danger_EngineStanceLease",nil]'),guard)
+        self.assertLess(guard,release.index('_actor setUnitPosWeak _prior'))
+        self.assertIn('(_reservation param [2,-1,[0]]) > time',release)
+        self.assertNotIn('enableAI',release)
+        self.assertNotIn('doMove',release)
+
     def test_engine_wait_and_recycle_share_operation_identity_without_squad_scan(self):
         act=source('dangerEngineAct')
         gate=source('dangerEngineCanContinue')
