@@ -22,7 +22,7 @@
  * 0: group <GROUP>
  * 1: state <HASHMAP>
  * 2: reason <STRING> - COMPLETE, CLOSE, ABORT, LOSSES, STALLED, TIME_LIMIT, RELEASE, ZEUS, CALM,
- *    ROE_CHANGED, SPEED_CHANGED, GRENADE_UNRESOLVED, RECOVERY_FAILED, OWNERSHIP_LOST or SCHEDULER_STALLED
+ *    ROE_CHANGED, SPEED_CHANGED, ATTACK_POLICY_CHANGED, GRENADE_UNRESOLVED, RECOVERY_FAILED, OWNERSHIP_LOST or SCHEDULER_STALLED
  * Unresolved stragglers change COMPLETE/CLOSE to PARTIAL; main actors hold while stragglers rejoin.
  *
  * Return Value:
@@ -46,7 +46,7 @@ private _liveDrill=(_group getVariable ["WAIT_AIPass_State",createHashMap]) getO
 if (count _liveDrill > 0 && {(_liveDrill getOrDefault ["token",""]) != (_drill getOrDefault ["token",""])}) exitWith {};
 private _liveOperation=_group getVariable ["WAIT_Operation",createHashMap];
 private _sameOperation=count _liveOperation == 0 || {(_liveOperation getOrDefault ["generation",-2]) == (_drill getOrDefault ["operationGeneration",-1])};
-private _mayRestore=_sameOperation && {!(_reason in ["ZEUS","OWNERSHIP_LOST","EXTERNAL","REPLACED"])}
+private _mayRestore=_sameOperation && {!(_reason in ["ZEUS","OWNERSHIP_LOST","EXTERNAL","REPLACED","ATTACK_POLICY_CHANGED"])}
     && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
 private _mayCommand = _mayRestore && {!(_reason in ["ZEUS","OWNERSHIP_LOST"])}
     && {[_group] call WAIT_fnc_CortexIsEligible};

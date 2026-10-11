@@ -12,6 +12,7 @@
  * street crossings, group-level RED pursuit is replaced by a finite YELLOW lease, but individual
  * TARGET, AUTOTARGET and AUTOCOMBAT remain enabled. Movers therefore keep acquiring, engaging and
  * reacting to visible threats while one committed doMove destination expresses WAIT's tactical intent.
+ * A generation-owned group attack-delegation lease prevents competing leader-issued pursuit routes.
  * WAIT does not pair doMove with setDestination, clear native targets, or repeatedly fight a live ATTACK
  * command. A mover is reconsidered only after measured physical no-progress; one route refresh is allowed
  * before the actor becomes a recovery straggler and the viable element continues.
@@ -158,6 +159,31 @@ private _mayIssueMovement = {
     params ["_actor"];
     !([_group] call WAIT_fnc_CortexExternalTakeover) && {[_actor] call _actorTaskFree}
 };
+// A committed bound owns movement, not weapon aiming. Prevent the native leader from
+// delegating a competing ATTACK route while TARGET/AUTOTARGET/FIREWEAPON remain untouched.
+// The common operation consumes this exact-value lease on release; an external policy edit
+// ends the drill rather than being forced back on every callback.
+private _movementOperation=_group getVariable ["WAIT_Operation",createHashMap];
+if (_operationGeneration >= 0 && {(_movementOperation getOrDefault ["generation",-1]) == _operationGeneration}) then {
+    private _restore=_movementOperation getOrDefault ["restore",createHashMap];
+    private _attackLease=_restore getOrDefault ["groupAttack",[]];
+    if (_attackLease isEqualTo []) then {
+        private _delegates=units _group;
+        if (count _delegates <= 64 && {_delegates findIf {
+            isPlayer _x || {!isNull remoteControlled _x}
+                || {([_x] call WAIT_fnc_CortexExternalOwner) != ""}
+                || {[_x] call WAIT_fnc_CompatibilityExternalControl}
+        } < 0}) then {
+            _restore set ["groupAttack",[attackEnabled _group,false]];
+            _movementOperation set ["restore",_restore];
+            _group setVariable ["WAIT_Operation",_movementOperation,true];
+            _group enableAttack false;
+        };
+    } else {
+        if (attackEnabled _group != (_attackLease select 1)) then {_operationEndReason="ATTACK_POLICY_CHANGED"};
+    };
+};
+if (_operationEndReason != "") exitWith {_operationEndReason call _end};
 // YELLOW preserves fire-at-will while discouraging independent RED pursuit subgroups. Give the
 // engine one scheduler step to settle the group mode before issuing the committed destination.
 private _groupModeLease = _drill getOrDefault ["groupCombatMode",[]];
