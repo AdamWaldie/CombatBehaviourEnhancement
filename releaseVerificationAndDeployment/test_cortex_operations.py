@@ -7528,3 +7528,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_job set ["entryFailed",!_allWorkersEntered]',text)
         result=text.split('private _result =',1)[1].split('_group setVariable ["WAIT_Cortex_ClearResult"',1)[0]
         self.assertIn('!(_job getOrDefault ["entryFailed",false])',result)
+
+    def test_clearance_partner_recovery_is_independent_and_generation_bounded(self):
+        text=source('buildingOperationStep')
+        block=text.split('// Partner entry recovery is independent',1)[1].split('// Persist retirement',1)[0]
+        self.assertIn('_group,_operationGeneration,_partner,_entryTarget',block)
+        self.assertIn('call WAIT_fnc_RecoveryStep',block)
+        self.assertIn('_receipt set [2,true]',block)
+        self.assertNotIn('_lastProgress=',block)
+        self.assertNotIn('_cursor=',block)

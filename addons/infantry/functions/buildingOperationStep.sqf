@@ -441,6 +441,31 @@ private _delay=call {
                     };
                     _cursor=_cursor+1;
                 };
+                // Partner entry recovery is independent of the lead's current room.
+                // A finished room queue must not strand an unentered partner with an ended order.
+                if (_entered && {count _pair > 1} && {_route isNotEqualTo []}) then {
+                    private _partner=_pair select ((_moverIndex+1) mod count _pair);
+                    if !(_partner in (_job getOrDefault ["enteredActors",[]])) then {
+                        private _entryTarget=_positions select (_route select 0);
+                        private _entryRecovery=_job getOrDefault ["entryRecovery",createHashMap];
+                        private _key=netId _partner;
+                        private _distance=(getPosASL _partner) vectorDistance (AGLToASL _entryTarget);
+                        private _receipt=_entryRecovery getOrDefault [_key,[_distance,_now,false]];
+                        if ((_receipt select 0)-_distance >= 1) then {
+                            _receipt set [0,_distance]; _receipt set [1,_now];
+                        };
+                        if (!(_receipt select 2) && {_now-(_receipt select 1) >= 12}
+                            && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
+                            && {call _mayIssueMovement}) then {
+                            private _recovery=[_group,_operationGeneration,_partner,_entryTarget] call WAIT_fnc_RecoveryStep;
+                            if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {
+                                _receipt set [2,true];
+                            };
+                        };
+                        _entryRecovery set [_key,_receipt];
+                        _job set ["entryRecovery",_entryRecovery];
+                    };
+                };
                 // Persist retirement even when no pending room can be claimed this step.
                 _state set [0,_cursor]; _state set [3,_lastProgress];
                 _state set [4,_retries]; _state set [5,_lastTarget];
