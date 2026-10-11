@@ -1014,6 +1014,46 @@ private _hookProfile=_observedProfiles getOrDefault ["HOOK",[]];
         && {(_offsetProfile select 2) isNotEqualTo (_hookProfile select 2)},
     str _observedProfiles] call _recordCheck;
 
+// Negative execution boundary, separate from physical attack acceptance. Forgetting the
+// contact is an explicit fixture input; no reveal, target order or successful release is injected.
+[createHashMapFromArray [["WAIT_Cortex_AirAttack_Enable",true]]] call WAIT_fnc_CortexTuning;
+private _unknownAircraft=objNull;
+private _unknownTarget=objNull;
+private _unknownCrew=[];
+private _unknownTargetCrew=[];
+private _unknownTargetGroup=grpNull;
+private _unknownGroup=grpNull;
+private _unknownReady=false;
+private _unknownOutcome=[];
+isNil {
+    _unknownAircraft=createVehicle ["O_Heli_Attack_02_dynamicLoadout_F",[9800,4000,140],[],0,"FLY"];
+    createVehicleCrew _unknownAircraft;
+    _unknownCrew=crew _unknownAircraft;
+    _unknownGroup=group driver _unknownAircraft;
+    _unknownGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _unknownGroup setVariable ["acex_headless_blacklist",true,true];
+    _unknownGroup setCombatMode "RED";
+    _unknownAircraft setVelocityModelSpace [0,55,0];
+    _unknownTarget=createVehicle ["B_APC_Tracked_01_rcws_F",[9800,5200,0],[],0,"NONE"];
+    createVehicleCrew _unknownTarget;
+    _unknownTargetCrew=crew _unknownTarget;
+    _unknownTargetGroup=group driver _unknownTarget;
+    private _capability=[_unknownAircraft,_unknownTarget] call WAIT_fnc_CortexAirAttackPlan;
+    _unknownGroup forgetTarget _unknownTarget;
+    private _token="QA_UNKNOWN_CONTACT";
+    private _lease=[_unknownAircraft,"AIR_ATTACK",_token,300] call WAIT_fnc_FlightLeaseAcquire;
+    _unknownReady=_lease && {(_unknownGroup knowsAbout _unknownTarget) == 0}
+        && {count _capability > 0} && {(_capability getOrDefault ["selectedWeapon",""]) != ""};
+    private _job=createHashMapFromArray [["aircraft",_unknownAircraft],["target",_unknownTarget],
+        ["flightLeaseToken",_token],["stage",""]];
+    [_job] call WAIT_fnc_CortexAirAttack;
+    _unknownOutcome=_unknownAircraft getVariable ["WAIT_Cortex_AirAttackOutcome",[]];
+};
+["AIR-ATTACK-unknown-contact-prerequisite",_unknownReady,str _unknownOutcome] call _recordCheck;
+["AIR-ATTACK-unknown-contact-refused",_unknownReady && {_unknownOutcome param [0,""] == "NO_KNOWN_TARGET"}
+    && {(_unknownAircraft getVariable ["WAIT_Cortex_AirAttackPlan",[]]) isEqualTo []},str _unknownOutcome] call _recordCheck;
+{deleteVehicle _x} forEach (_unknownCrew+_unknownTargetCrew+[_unknownAircraft,_unknownTarget]);
+deleteGroup _unknownGroup; deleteGroup _unknownTargetGroup;
 // The adaptive controller's disabled boundary must preserve an ordinary authored flight. This is a
 // physical comparison rather than an absence-only assertion: the aircraft must keep moving while no
 // Cortex plan or AIR_ATTACK transition appears.
