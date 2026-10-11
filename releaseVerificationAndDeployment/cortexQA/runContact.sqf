@@ -317,7 +317,9 @@ private _enabledReady=[{missionNamespace getVariable ["WAIT_AIPass_Danger_Enable
     private _probeExplosion=[{
         private _response=_probeActor getVariable ["WAIT_Danger_EngineResponse",[]];
         // The engine may deliver blast damage as HIT, which correctly outranks EXPLOSION.
-        if (count _response == 4 && {(_response select 1) in [2,4]}) then {
+        if (count _response == 7 && {(_response select 1) in [2,4]}
+            && {(_response select 6) == _probeGroup}
+            && {(_response select 5) == (_probeGroup getVariable ["WAIT_AIPass_Epoch",0])}) then {
             _probeEvidence=+_response;
             true
         } else {false}
@@ -1086,7 +1088,7 @@ private _evasionNativeEvidence=[];
 private _evasionEligibility=[];
 private _evasionNative=[{
     private _response=_reflexUnit getVariable ["WAIT_Danger_EngineResponse",[]];
-    if (count _response == 4 && {(_response select 0) == "IMMEDIATE"}
+    if (count _response == 7 && {(_response select 0) == "IMMEDIATE"}
         && {(_response select 1) in [2,9]}) then {
         _evasionNativeEvidence=+_response;
         _evasionEligibility=[stance _reflexUnit,speed _reflexUnit,currentCommand _reflexUnit,
