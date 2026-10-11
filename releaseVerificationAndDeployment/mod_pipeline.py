@@ -117,7 +117,7 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         server_init = mission/'initServer.sqf'
         server_init.write_text(server_init.read_text().replace('cortexQAStandalonePerformance.sqf', 'cortexQANativeBuildings.sqf'), encoding='utf-8')
         with (mission/'initPlayerLocal.sqf').open('a') as client_init:
-            client_init.write('\ndiag_log "WAIT CORTEX QA CLIENT COMPLETE: 0 finding(s) []";\n')
+            client_init.write('\nplayer setCaptive true;\ndiag_log "WAIT CORTEX QA CLIENT COMPLETE: 0 finding(s) []";\n')
     provider_evidence = None
     if headless_provider:
         from stage_headless_provider import stage_provider

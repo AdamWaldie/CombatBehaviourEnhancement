@@ -20,7 +20,11 @@ private _loaded=isClass (configFile >> "CfgPatches" >> "WAIT_AI_Tweaks_Main")
     || {isClass (configFile >> "CfgPatches" >> "WAIT_danger")};
 ["BUILD-NATIVE-addon-absent",!_loaded,
     getText (configFile >> "CfgVehicles" >> "O_Soldier_F" >> "fsmDanger")] call _check;
-if (!_loaded) then {
+private _observerDeadline=time+10;
+waitUntil {sleep 0.2; allPlayers findIf {!(_x isKindOf "HeadlessClient_F") && {!captive _x}} < 0 || {time >= _observerDeadline}};
+private _observerSafe=allPlayers findIf {!(_x isKindOf "HeadlessClient_F") && {!captive _x}} < 0;
+["BUILD-NATIVE-observer-noncombat",_observerSafe] call _check;
+if (!_loaded && {_observerSafe}) then {
     private _phase={
         params ["_title","_expected",["_position",[],[[]]]];
         diag_log format ["WAIT NATIVE BUILDING PHASE: %1",[_title,_expected]];
