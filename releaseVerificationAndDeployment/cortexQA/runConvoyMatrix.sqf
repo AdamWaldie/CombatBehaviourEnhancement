@@ -252,11 +252,14 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
         private _minimumAverage=_requestedSpeed*0.6;
         private _minimumTravel=_minimumAverage/3.6*60;
         diag_log format ["WAIT CORTEX QA CONVOY SPEED: case=%1 requestedKmh=%2 spacingM=%3 minimumAverageKmh=%4 minimumTravelM=%5",_id,_requestedSpeed,_spacing,_minimumAverage,_minimumTravel];
-        [_id+"-continuous-speed",_count >= 40 && {_averages findIf {_x < _minimumAverage} < 0},str _averages] call _check;
+        [_id+"-continuous-speed",_count >= 40 && {_averages findIf {!finite _x || {_x < _minimumAverage}} < 0},str _averages] call _check;
         [_id+"-stop-fraction",_count >= 40 && {_stops findIf {_x/(_count max 1) > 0.1} < 0},str [_stops,_count]] call _check;
         [_id+"-restart-count",_restartCounts findIf {_x > 2} < 0,str _restartCounts] call _check;
         private _travelled=true;
-        {if (_x distance2D (_origins select _forEachIndex) < _minimumTravel) then {_travelled=false}} forEach _vehicles;
+        {
+            private _distance=_x distance2D (_origins select _forEachIndex);
+            if (!finite _distance || {_distance < _minimumTravel}) then {_travelled=false};
+        } forEach _vehicles;
         [_id+"-physical-progress",_travelled,str (_vehicles apply {getPosATL _x})] call _check;
         if (!_baseline) then {
             diag_log format ["WAIT CORTEX QA HALT SEATS BEFORE: case=%1 seats=%2",_id,_vehicles apply {fullCrew [_x,"",false]}];
@@ -277,14 +280,17 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                 private _moving=true;
                 {
                     if (abs speed _x > 2 && {abs (((getDir _x-_terrainHeading+540) mod 360)-180) > 75}) then {_turned=true};
-                    if (_x distance2D (_restartOrigins select _forEachIndex) < 60 || {abs speed _x < 10}) then {_moving=false};
+                    private _distance=_x distance2D (_restartOrigins select _forEachIndex);
+                    private _speed=abs speed _x;
+                    if (!finite _distance || {!finite _speed} || {_distance < 60} || {_speed < 10}) then {_moving=false};
                 } forEach _vehicles;
                 _moving
             },60] call _wait;
-            private _resumeEvidence=_vehicles apply {
-                [getPosATL _x,_x distance2D (_restartOrigins select _forEachIndex),speed _x,getDir _x,
-                    currentCommand driver _x,expectedDestination driver _x,getForcedSpeed _x]
-            };
+            private _resumeEvidence=[];
+            {
+                _resumeEvidence pushBack [getPosATL _x,_x distance2D (_restartOrigins select _forEachIndex),speed _x,getDir _x,
+                    currentCommand driver _x,expectedDestination driver _x,getForcedSpeed _x];
+            } forEach _vehicles;
             [_id+"-resume-forward-progress",_resumed,str _resumeEvidence] call _check;
             [_id+"-resume-no-turnaround",!_turned,str [_terrainHeading,_resumeEvidence]] call _check;
         };
