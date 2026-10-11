@@ -398,6 +398,18 @@ private _ensureMovingTeam={
     private _otherTurn=1-_turn;
     private _movingAvailable=(_teams select _turn) select {_x in _available};
     private _coverAvailable=(_teams select _otherTurn) select {_x in _available};
+    if (!_support && {count _available == 2} && {_coverAvailable isEqualTo []}
+        && {count _movingAvailable == 2}) then {
+        private _coverer=_movingAvailable deleteAt 1;
+        (_teams select _turn) deleteAt ((_teams select _turn) find _coverer);
+        (_teams select _otherTurn) pushBack _coverer;
+        _coverAvailable pushBack _coverer;
+        _drill set ["teams",_teams];
+        if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
+            [_group,_drill,"START","SURVIVOR_PAIR_REBALANCE"] call WAIT_fnc_CortexDrillSetStage;
+            _drill set ["spots",[]];
+        };
+    };
     while {count _movingAvailable < _minimumMovers && {count _coverAvailable > 1}} do {
         private _replacement=_coverAvailable deleteAt ((count _coverAvailable)-1);
         (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _replacement);

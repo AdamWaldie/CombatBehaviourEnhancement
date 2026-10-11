@@ -8,7 +8,7 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACombat.sqf";
  */
 params ["_check","_phase","_wait"];
-private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","ADVANCE-HC-CONTINUATION","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE"];
+private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","ADVANCE-HC-CONTINUATION","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE","ADVANCE-SURVIVOR-PAIR"];
 private _selected = missionNamespace getVariable ["WAIT_CortexQA_CombatCase",""];
 if (_selected != "" && {!(_selected in _cases)}) exitWith {["COMBAT-invalid-case",false,_selected] call _check};
 if (_selected != "") then {_cases = [_selected]};
@@ -142,6 +142,35 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
         && {(_assessment select 0) == _mode} && {(_assessment select 5) == "STARTED"},str _assessment] call _check;
     private _drill = (_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
     private _drillToken = _drill getOrDefault ["token",""];
+    // Last case in the batch: isolate casualty continuity from normal six-actor completion checks.
+    if (_case == "ADVANCE-SURVIVOR-PAIR") exitWith {
+        private _liveMove=[{private _live=(_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
+            (_live getOrDefault ["stage",""]) == "MOVE" && {(_live getOrDefault ["movers",[]]) findIf {abs speed _x > 1} >= 0}},40] call _wait;
+        [_prefix+"-moving-bound-prerequisite",_started && {_liveMove}] call _check;
+        if (_started && {_liveMove}) then {
+            private _survivors=+(_drill get "units" select [0,2]);
+            private _starts=_survivors apply {getPosATL _x};
+            private _beforeShots=_survivors apply {_x getVariable ["WAIT_CortexQA_Shots",0]};
+            ["Two-survivor manoeuvre","Four scripted casualties isolate role degradation. Both capable survivors must continue the existing bound and fire; a running flag alone cannot pass.",getPosATL (_survivors select 0)] call _phase;
+            {_x allowDamage true; _x setDamage 1} forEach (_members-_survivors);
+            [_prefix+"-two-capable-survivors",{alive _x} count _members == 2] call _check;
+            private _continued=[{private _travel=true;
+                {if (_x distance2D (_starts select _forEachIndex) < 8) then {_travel=false}} forEach _survivors;
+                _travel},90] call _wait;
+            [_prefix+"-both-survivors-physical-travel",_continued,str (_survivors apply {getPosATL _x})] call _check;
+            private _firing=true;
+            {if ((_x getVariable ["WAIT_CortexQA_Shots",0]) <= (_beforeShots select _forEachIndex)) then {_firing=false}} forEach _survivors;
+            [_prefix+"-survivor-fire",_firing,str (_survivors apply {_x getVariable ["WAIT_CortexQA_Shots",0]})] call _check;
+            private _result=_group getVariable ["WAIT_Cortex_DrillResult",[]];
+            [_prefix+"-no-half-strength-abandon",(_result param [1,""]) != "LOSSES",str _result] call _check;
+        };
+        [_group] call WAIT_fnc_CortexReleaseGroup;
+        {deleteVehicle _x} forEach (_members+_enemies);
+        deleteGroup _group; deleteGroup _enemyGroup;
+        missionNamespace setVariable ["WAIT_CortexQA_Combat",[],true];
+        missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    };
+
     if (_case == "ASSAULT-MULTI-CONTACT") then {
         [_prefix+"-viable-contact-selected",_started && {(_drill getOrDefault ["target",objNull]) == (_enemies select 1)},
             str [_drill getOrDefault ["target",objNull],_enemies]] call _check;
