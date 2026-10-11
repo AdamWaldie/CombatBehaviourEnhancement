@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Waits for the matching server reservation before issuing a support order on its current owner.
  * Locality/authority: queued only by authenticated SupportLocal; all execution gates are checked again.
- * Repeat/JIP: at most five seconds waiting for ordered state; stale tokens never issue movement.
+ * Repeat/JIP: at most five seconds waiting for ordered lease/contact state; stale tokens never issue movement.
  * A support update may replace its own lease. A server-selected coordinated attack route may
  * replace the exact local tactical drill only within the same 75 m contact area; it never replaces withdrawal, vehicle or artillery movement.
  * When coordinated assault is enabled, the first shared-contact delivery acknowledges eligibility
@@ -85,6 +85,11 @@ private _localDrill = _state getOrDefault ["drill",createHashMap];
 private _localTarget = _localDrill getOrDefault ["target",objNull];
 private _contactReceipt=_group getVariable ["WAIT_Cortex_SupportContact",[]];
 private _requestContact=if (count _contactReceipt == 2 && {(_contactReceipt select 0) == _token}) then {_contactReceipt select 1} else {[]};
+// Public contact and lease state can arrive separately during delivery or HC adoption.
+// Wait only inside the original finite delivery window; acquire no controls while waiting.
+if (_attackAllowed && {_movementOwner == "TACTICAL_DRILL"} && {!isNull _localTarget}
+    && {alive _localTarget} && {count _requestContact != 3}
+    && {serverTime < (_job get "waitUntil")}) exitWith {0.25};
 private _sharedDrillContact = isNull _localTarget || {!alive _localTarget}
     || {count _requestContact == 3 && {_localTarget distance2D _requestContact <= 75}};
 private _replaceLocalDrill = _attackAllowed && {_sharedDrillContact} && {_movementOwner == "TACTICAL_DRILL"}

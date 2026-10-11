@@ -106,7 +106,7 @@ if (_sent > 0) then {
         if (_dispatched findIf {(_x select 0) == _helper && {(_x select 1) == _token}} < 0) then {
             private _lease=_helper getVariable ["WAIT_AIPass_SupportLease",[]];
             if (count _lease == 6 && {(_lease select 0) == _token}) then {
-                _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
+                _helper setVariable ["WAIT_Cortex_SupportContact",nil,true]; _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
                 _helper setVariable ["WAIT_Cortex_SupportRole",nil,true];
             _helper setVariable ["WAIT_Cortex_SupportEligibility",nil,true];
             };
@@ -125,7 +125,7 @@ if (_sent > 0) then {
         _x params ["_helper","_token"];
         private _lease=_helper getVariable ["WAIT_AIPass_SupportLease",[]];
         if (count _lease == 6 && {(_lease select 0) == _token}) then {
-            _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
+            _helper setVariable ["WAIT_Cortex_SupportContact",nil,true]; _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
             _helper setVariable ["WAIT_Cortex_SupportRole",nil,true];
             _helper setVariable ["WAIT_Cortex_SupportEligibility",nil,true];
         };
