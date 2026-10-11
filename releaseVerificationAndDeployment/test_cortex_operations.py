@@ -4391,6 +4391,8 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;',code)
             self.assertIn('private _canRestore = _restore && {!_externalTakeover};',code)
             self.assertIn('_canRestore || {!_externalTakeover && {_ownedHold',code)
+            self.assertIn('WAIT_Cortex_ActorMove',code)
+            self.assertIn('&& {_reservationFree} && {!_nativeTask}',code)
             restore_condition=code.split('if (_canRestore ||',1)[1].split('then {',1)[0]
             for external in ['MOVE','GET IN','GET OUT','ACTION','SCRIPTED']:
                 self.assertNotIn(f'"{external}"',restore_condition)
