@@ -557,8 +557,16 @@ private _issue = {
                 _combatModes pushBack [_unit,"RED","YELLOW"];
                 _unit setUnitCombatMode "YELLOW";
             };
+            private _handoff=[serverTime,netId _unit,_drill get "index",
+                currentCommand _unit,expectedDestination _unit,+_spot,attackEnabled _group];
             _unit doWatch _enemyPos;
             _unit doMove _spot;
+            // Keep a bounded pre-command record; native aiming remains untouched.
+            private _handoffs=_drill getOrDefault ["movementHandoffs",[]];
+            if (count _handoffs < 16) then {
+                _handoffs pushBack _handoff;
+                _drill set ["movementHandoffs",_handoffs];
+            };
         };
     } forEach _units;
     private _waypointIndex = currentWaypoint _group;
@@ -568,6 +576,9 @@ private _issue = {
     };
     _drill set ["boundWaypoint",_waypointSnapshot];
     _drill set ["spots", _spots];
+    _group setVariable ["WAIT_Cortex_DrillMovementHandoffs",[
+        _operationGeneration,_token,+(_drill getOrDefault ["movementHandoffs",[]])
+    ],true];
     _drill set ["movers", +_units];
     _drill set ["arrivedUnits",[]];
     private _progress = [];
