@@ -152,7 +152,7 @@ if (local _group && {!_keepBrain}) then {
 // local set as well as currently occupied vehicles.
 if (local _group) then {
     if (!_keepBrain) then {
-        {[_x] call WAIT_fnc_DrivingAssistRelease} forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
+        {[_x,_group] call WAIT_fnc_DrivingAssistRelease} forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
         _group setVariable ["WAIT_DrivingAssist_Vehicles",nil];
     };
     {

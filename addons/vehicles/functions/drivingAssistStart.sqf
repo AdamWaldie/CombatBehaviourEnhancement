@@ -23,7 +23,8 @@ private _enabled=[_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_
 private _vehicles=[];
 {
     private _vehicle=vehicle _x;
-    if (_vehicle != _x && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")} && {!(_vehicle in _vehicles)}) then {
+    if (_vehicle != _x && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")} && {!(_vehicle in _vehicles)}
+        && {!isNull driver _vehicle} && {group driver _vehicle == _group}) then {
         _vehicles pushBack _vehicle;
     };
 } forEach units _group;
@@ -31,7 +32,7 @@ private _vehicles=[];
 // scheduler steps. Release only the vehicles we previously owned; never touch another group's cap.
 private _previous=_group getVariable ["WAIT_DrivingAssist_Vehicles",[]];
 {
-    if !(_x in _vehicles) then {[_x] call WAIT_fnc_DrivingAssistRelease};
+    if !(_x in _vehicles) then {[_x,_group] call WAIT_fnc_DrivingAssistRelease};
 } forEach _previous;
 _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
 {
@@ -51,11 +52,16 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
         || {behaviour leader _group == "CARELESS"}
         || {currentWaypoint _group >= count waypoints _group}) then {_release=true};
-    if (_release) then {[_vehicle] call WAIT_fnc_DrivingAssistRelease} else {
+    if (_release) then {[_vehicle,_group] call WAIT_fnc_DrivingAssistRelease} else {
         // Terrain sampling is deliberately sparse but may still overlap a newer Zeus or specialist
         // order. Preserve that order at the actual cap/recovery command boundary.
         private _mayIssueDriving = {
             !([_group] call WAIT_fnc_CortexExternalTakeover)
+        };
+        private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
+        if (!isNull _priorOwner && {_priorOwner != _group}) then {
+            // A new driver group adopts only after retiring the old group's exact cap lease.
+            [_vehicle,_priorOwner] call WAIT_fnc_DrivingAssistRelease;
         };
         if (time >= (_vehicle getVariable ["WAIT_DrivingAssist_Next",-1])) then {
             // A new Zeus, mission or specialist cap may not advertise an ownership marker. The
@@ -65,7 +71,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _state=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
             private _ownedCap=_state param [0,-1];
             if (_previous isNotEqualTo [] && {_ownedCap >= 0} && {abs ((getForcedSpeed _vehicle)-_ownedCap) > 0.1}) then {
-                [_vehicle] call WAIT_fnc_DrivingAssistRelease;
+                [_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;
             } else {
             private _origin=getPosASL _vehicle;
             private _direction=vectorDir _vehicle;
@@ -96,7 +102,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             if (_saved > 0) then {_capMps=_capMps min _saved};
             if !(call _mayIssueDriving) then {
                 // Do not retain a restore record or claim a lease that WAIT never applied.
-                [_vehicle] call WAIT_fnc_DrivingAssistRelease;
+                [_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;
             } else {
             _vehicle forceSpeed _capMps;
             // Retain the owning group for diagnostics only. The lease remains the forced-speed

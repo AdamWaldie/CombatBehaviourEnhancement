@@ -2071,7 +2071,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _mayIssueDriving = {',driving)
         self.assertIn('!([_group] call WAIT_fnc_CortexExternalTakeover)',driving)
         self.assertIn('if !(call _mayIssueDriving) then {',driving)
-        self.assertIn('[_vehicle] call WAIT_fnc_DrivingAssistRelease;',driving)
+        self.assertIn('[_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;',driving)
         self.assertLess(driving.index('if !(call _mayIssueDriving) then {'),driving.index('_vehicle forceSpeed _capMps;'))
         recovery=driving.split('if (_hasRoute &&',1)[1].split('switch (_recoveryStage)',1)[0]
         self.assertIn('&& {call _mayIssueDriving}',recovery)

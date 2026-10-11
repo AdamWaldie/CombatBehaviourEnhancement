@@ -8,15 +8,17 @@
  * restore record can be applied.
  * Arguments:
  * 0: vehicle <OBJECT> - ground vehicle to release.
+ * 1: expected group <GROUP, grpNull> - group-scoped cleanup; grpNull permits subsystem shutdown.
  * Return Value: Nothing.
  * Current callers: WAIT_fnc_DrivingAssistStart and WAIT_fnc_CortexStop.
  * Example: [truck1] call WAIT_fnc_DrivingAssistRelease;
  */
 
-params [["_vehicle",objNull,[objNull]]];
+params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
 private _restore=_vehicle getVariable ["WAIT_DrivingAssist_Restore",[]];
 private _state=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
+if (!isNull _expectedGroup && {(_state param [3,grpNull]) != _expectedGroup}) exitWith {};
 private _ownedCap=_state param [0,-1];
 // Restore only the cap that this driving lease still owns. If another controller changed it,
 // clear our state and leave that newer value untouched.
