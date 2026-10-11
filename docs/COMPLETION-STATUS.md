@@ -1,19 +1,19 @@
 # WAIT completion status
 
-Status checked on 2026-10-10. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
+Status checked on 2026-10-11. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
 
 Game audits are authorized in batches. The full packaged batch runtime-20261010-214346-432 is active against clean candidate 89812ab with observer Zeus, 3840x2160 and two headless clients. Later repairs require a subsequent exact-candidate retest.
 
 ## Current batch and queued repairs
 
-The ongoing 89812ab batch has reached 790 recorded checks, with 4200 SQF error trace
+The ongoing 89812ab batch has reached 1528 recorded checks, with 4231 SQF error trace
 lines, no matched fatal runtime failures, one load warning and missing completion markers.
 This is a partial snapshot, not a final result. Repeated bomb-integration exceptions account
 for the new trace volume. The enabled 50-group patrol arm is invalid because its minimum
 managed-group count was zero, even though all groups moved. Its timing cannot establish
 performance acceptance.
 
-Changes through c615c3f are committed and statically/package validated, awaiting physical retest:
+Changes through fba6685 are committed and statically/package validated, awaiting physical retest:
 
 - Aircraft: live weapon/launch alignment, lateral turret traverse eligibility, logic-target
   rejection, preserved re-attack holds, moving-contact interception and bounded bomb drag.
@@ -22,13 +22,22 @@ Changes through c615c3f are committed and statically/package validated, awaiting
   logic-contact rejection plus ordinary movement, and standalone/native-provider registry distinctions.
 - Diagnostics: failure-only management snapshots for invalid performance arms; actual braking
   release evidence and capped building terminal route evidence.
+- Movement repairs: reserved actors protected from scripted fire orders; generation-owned leader
+  attack delegation, eligible consolidation rosters, result-aware recovery budgets and survivor
+  replacement retain committed bounds and hard deadlines. Physical movement remains unaccepted.
+- Ownership repairs: CQB cleanup yields to individual controllers; explicit vehicle driving
+  ownership blocks reverse, group routes, withdrawal admission and stale speed restoration.
+- Additive audits: standalone driving travel, condition waits, HOLD, same-index replacement,
+  disabled cleanup and physical external handover; attack-policy interruption; concurrent
+  exact-observer posture/cover evidence. These cases are queued, not passes.
 - Vehicle repairs: stopped follower command invalidation, tracked lead resume, unsettled HALT
   cadence and finite passenger-owner exit retries remain queued for exact-candidate acceptance.
 
 Physical results from the current old package do not validate these changes. Native companion
 provider integration, specialist coexistence, CQB, combined combat and matched mixed-force
-performance remain open. The clean preserved c37feaf candidate predates the later knowledge,
-fixture and diagnostic commits and must not be described as containing all current repairs.
+performance remain open. Clean candidate fba668510e199b8240de647889a105f8cdf5f739 is preserved
+with dirty=false and fingerprint f19bd3fc44d6f03900c65407348f4d5a19b444552b8cc5c97e8a901de610f169.
+It includes the queued repairs; it has not run physically.
 
 ## Module progress toward completion
 
@@ -127,4 +136,15 @@ Evidence contract: [performance validation](PERFORMANCE-VALIDATION.md), [all 65 
 - `6308d3f` infantry patrol pair: native and WAIT both observed 21 ms median and 23 ms p95. Strict comparison is INVALID because both contain the loader warning. Patrol results do not establish combat performance.
 - `runtime-20261010-214346-432`, clean candidate `89812ab`: observer Zeus and 3840x2160 mission entry verified. Batch remains active: an unrestricted process check confirmed all four original PIDs and fresh building-stage RPT entries. An earlier restricted-shell inventory falsely appeared empty and its partial reporter snapshot must not be treated as terminal evidence. Completion and final results remain pending.
 
-The latest live snapshot of that batch records 137 checks and 37 failed assertions; completion is pending. Three building-contact cases are assessed as test problems following the user's manual visibility intervention. CQB timing assertions also require retest with bounded terminal settlement. Initial convoy travel, column alignment, speed, unload/crew retention and headless-transfer subchecks passed; these do not establish complete convoy acceptance. Four client SQF error lines point to CBA notification parsing; the malformed WAIT payload is repaired in acc9b93 but remains untested in this running candidate.
+The latest observed partial snapshot records 1528 checks, 4231 SQF error trace lines,
+no matched fatal failures, one startup load warning and no completion marker. All four
+original processes remain live. The batch reached its final combat case; mechanics,
+reactions, support and further suites still follow. Later source edits are not loaded.
+
+Three manually assisted building-contact cases remain test problems. CQB, convoy resume,
+air delivery and natural danger-cover findings remain open. Advance AWARE and YELLOW
+stalled with native ATTACK destinations away from their bounds; the old audit awarded
+assault-transition passes even when no assault was observed. Queued fixes and corrected
+physical evidence cannot retroactively turn those runs into acceptance. Notification,
+bomb integration, communication-hook and multi-contact fixture exceptions are recorded
+by cause in the error ledger; repeated trace lines are not separate defects.
