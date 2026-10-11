@@ -2015,7 +2015,9 @@ class CortexOperations(unittest.TestCase):
         for text in [garrison,defend]:
             self.assertGreaterEqual(text.count('private _mayIssueMovement = {'),2)
             self.assertIn('!([_group] call WAIT_fnc_CortexExternalTakeover)',text)
-            self.assertIn('&& {[_x] call _mayIssueMovement}' if text == garrison else '&& {call _mayIssueMovement}',text)
+            self.assertIn('&& {[_x] call _mayIssueMovement}',text)
+            self.assertIn('WAIT_Cortex_ActorMove',text)
+            self.assertIn('currentCommand _actor in [',text)
         self.assertIn('if ([_x] call _mayIssueMovement) then {',garrison)
         self.assertIn('private _openedDoor = if ([_x] call _mayIssueMovement)',garrison)
         self.assertIn('WAIT_Cortex_ActorMove',garrison)
