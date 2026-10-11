@@ -372,7 +372,24 @@ private _delay=call {
                         _entered=true;
                         _previousPositionIndex=_completedRoom;
                         _roomsCleared=_roomsCleared+1;
-                        if (count _pair > 1) then {_moverIndex=(_moverIndex+1) mod count _pair};
+                        if (count _pair > 1) then {
+                            private _nextMover=(_moverIndex+1) mod count _pair;
+                            private _entryRoom=_positions select (_route select 0);
+                            private _enteredActors=_job getOrDefault ["enteredActors",[]];
+                            {
+                                if ((getPosASL _x) vectorDistance (AGLToASL _entryRoom) <= 1.5) then {
+                                    _enteredActors pushBackUnique _x;
+                                };
+                            } forEach _pair;
+                            _job set ["enteredActors",_enteredActors];
+                            // A security partner still outside cannot inherit an interior leg.
+                            // Keep the successful entrant moving while its partner follows the
+                            // preceding room through the native entrance. Alternate only after
+                            // that partner physically reaches the lane's first interior node.
+                            if ((_pair select _nextMover) in _enteredActors) then {
+                                _moverIndex=_nextMover;
+                            };
+                        };
                         _lastTarget=-1;
                         _retries=0;
                         _lastProgress=_now;
