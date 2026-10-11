@@ -1,8 +1,25 @@
 import unittest
-from report_cortex_audit import summarize, render_markdown
+from report_cortex_audit import summarize, render_markdown, staged_mission_path
+from pathlib import Path
+import tempfile
 
 class CortexReportTests(unittest.TestCase):
     SOURCE = 'WAIT CORTEX QA SOURCE|fingerprint=' + ('a' * 64) + '\n'
+
+    def test_provenance_uses_actual_world_and_rejects_missing_or_unsafe_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for world in ('VR', 'Altis'):
+                mission = root / ('WAIT_Audit.' + world)
+                mission.mkdir()
+                self.assertEqual(mission, staged_mission_path(root, {'world': world}))
+            self.assertEqual(root / 'WAIT_Audit.VR', staged_mission_path(root, {}))
+            for world in ('../outside', 'Malden', None):
+                with self.assertRaises(ValueError):
+                    staged_mission_path(root, {'world': world})
+            (root / 'WAIT_Audit.Altis').rmdir()
+            with self.assertRaises(ValueError):
+                staged_mission_path(root, {'world': 'Altis'})
 
     def test_pass_requires_both_completion_markers(self):
         text=self.SOURCE+'WAIT CORTEX QA|case|PASS|\nWAIT CORTEX QA SERVER COMPLETE: 0 finding(s) []'

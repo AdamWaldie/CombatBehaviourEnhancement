@@ -156,6 +156,17 @@ def render_markdown(report):
         ]
     return lines
 
+def staged_mission_path(root, manifest):
+    """Resolve only supported staged worlds; retain legacy VR manifest support."""
+    world = manifest.get('world', 'VR')
+    if world not in ('VR', 'Altis'):
+        raise ValueError('Unsupported audit world in manifest')
+    mission = root / ('WAIT_Audit.' + world)
+    if not mission.is_dir():
+        raise ValueError('Staged audit mission directory is missing')
+    return mission
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('runtime', type=Path)
@@ -174,7 +185,7 @@ def main():
             identity=verify(root/'@WaldosAITweaks')
             if identity['fingerprint'] != manifest['package']['fingerprint'] or identity['fingerprint'] != report['source_fingerprint']:
                 raise ValueError('RPT, package and audit manifest identity disagree')
-            mission=root/'WAIT_Audit.VR'
+            mission=staged_mission_path(root, manifest)
             if mission_hashes(mission) != manifest['mission_files']:
                 raise ValueError('Audit scripts changed after staging')
         except (ValueError, OSError) as error:
