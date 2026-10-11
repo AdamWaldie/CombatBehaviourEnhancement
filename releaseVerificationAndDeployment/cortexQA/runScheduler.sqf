@@ -103,6 +103,20 @@ private _detachedFSMFinished=[{completedFSM _detachedFSM},10] call _wait;
 ["SCHED-detached-fsm-live-brain-preserved",_detachedFSMFinished
     && {(_epochGroup getVariable ["WAIT_GroupBrain",createHashMap]) isEqualTo _registeredBrain}
     && {!(_registeredBrain getOrDefault ["cancelled",false])}] call _check;
+private _registeredSupport=createHashMapFromArray [["requester",_epochGroup],["phase","DISCOVER"]];
+private _detachedSupport=createHashMapFromArray [["requester",_epochGroup],["phase","RESERVE"]];
+private _supportReservation=["WAIT_QA_SUPPORT_PRESERVE",time+30];
+_epochGroup setVariable ["WAIT_Support_BrainGeneration",1];
+_epochGroup setVariable ["WAIT_Support_Brain",_registeredSupport];
+_epochGroup setVariable ["WAIT_AIPass_SupportLease",_supportReservation];
+private _detachedSupportFSM=[createHashMapFromArray [["requester",_epochGroup]],1,_detachedSupport]
+    execFSM "\z\waldo_ai_tweaks\addons\main\fsm\supportRequest.fsm";
+private _supportFSMFinished=[{completedFSM _detachedSupportFSM},10] call _wait;
+["SCHED-detached-support-fsm-retires",_supportFSMFinished] call _check;
+["SCHED-detached-support-state-preserved",_supportFSMFinished
+    && {(_epochGroup getVariable ["WAIT_Support_Brain",createHashMap]) isEqualTo _registeredSupport}
+    && {(_epochGroup getVariable ["WAIT_AIPass_SupportLease",[]]) isEqualTo _supportReservation}] call _check;
+_epochGroup setVariable ["WAIT_AIPass_SupportLease",nil];
 private _epochKey="WAIT_QA_EPOCH_"+str diag_tickTime;
 private _staleState=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",5],["calls",0]];
 [_coalesceCallback,_staleState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
