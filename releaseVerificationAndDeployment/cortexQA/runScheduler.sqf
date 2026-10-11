@@ -96,6 +96,13 @@ private _detachedResult=[_detachedBrain] call WAIT_fnc_GroupBrainStep;
 ["SCHED-detached-brain-live-state-preserved",!(_registeredBrain getOrDefault ["cancelled",false])
     && {(_registeredBrain get "phase") == "CALM"}
     && {(_epochGroup getVariable ["WAIT_GroupBrain",createHashMap]) isEqualTo _registeredBrain}] call _check;
+private _detachedFSMBrain=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",6],["generation",1],["phase","INVESTIGATE"]];
+private _detachedFSM=[_epochGroup,6,1,_detachedFSMBrain] execFSM "\z\waldo_ai_tweaks\addons\main\fsm\groupTactics.fsm";
+private _detachedFSMFinished=[{completedFSM _detachedFSM},10] call _wait;
+["SCHED-detached-fsm-retires",_detachedFSMFinished] call _check;
+["SCHED-detached-fsm-live-brain-preserved",_detachedFSMFinished
+    && {(_epochGroup getVariable ["WAIT_GroupBrain",createHashMap]) isEqualTo _registeredBrain}
+    && {!(_registeredBrain getOrDefault ["cancelled",false])}] call _check;
 private _epochKey="WAIT_QA_EPOCH_"+str diag_tickTime;
 private _staleState=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",5],["calls",0]];
 [_coalesceCallback,_staleState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
