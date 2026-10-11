@@ -408,6 +408,7 @@ private _ensureMovingTeam={
         private _history=_group getVariable ["WAIT_Cortex_DrillReinforcements",[]];
         _history pushBack [serverTime,_drill getOrDefault ["type",""],_drill getOrDefault ["index",-1],
             [[format ["TEAM_%1_RECOVERY",_turn+1],netId _replacement]]];
+        if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
         _group setVariable ["WAIT_Cortex_DrillReinforcements",_history,true];
     };
     [_movingAvailable,_coverAvailable]
