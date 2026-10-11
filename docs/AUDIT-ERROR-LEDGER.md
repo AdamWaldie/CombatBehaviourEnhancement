@@ -132,3 +132,19 @@ an old-token receipt must not authorize replacement; repeat these cases across s
 then issue a Zeus replacement order. Record actual travel, drill generation and cancellation reason.
 These cases are pending, not accepted.
 FSM follow-up: tacticalDrill now retires immediately when its active drill token is replaced, before watchdog requeue. It cancels only its old queued job and does not interrupt or restore the replacement drill. Physical replacement and HC cases remain pending.
+
+## Active coordination batch runtime-20261011-045348-544
+
+Candidate: clean ecdff24. Snapshot: 134 checks, no matched SQF errors or fatal failures,
+one unresolved load warning; client/server completion is still pending.
+
+Four failures have explicit physical reviews in the runtime's manual-behaviour-assessments.json:
+unequal squad-2 flank travel (0.15 to 139 m), 58.824 m standard-case reverse travel,
+37.81 m contact-during-preparation reverse travel, and both standard-case groups retaining
+attackEnabled=false after support shutdown. The review does not alter raw assertions or identify
+an unproven root cause. Other failed checks remain unresolved pending review.
+
+The HC movement stage has recorded RECOVERY_FAILED and STALLED outcomes. Object-not-found
+network messages remain observations; their cause and relation to unavailable actors are unproven.
+Tactical/danger stance, service-task, FSM supersession and restoration-evidence changes made
+since ecdff24 are not loaded in this batch and require a subsequent exact-package retest.
