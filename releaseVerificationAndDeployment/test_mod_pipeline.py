@@ -108,6 +108,12 @@ class PackagePipelineTests(unittest.TestCase):
             self.assertIn(expected, launcher)
         self.assertNotIn('Stop-Process', launcher)
         self.assertNotIn('-filePatching', launcher)
+        self.assertIn('$manifest.package.dirty -ne $false', launcher)
+        self.assertIn("$manifest.package.commit -notmatch '^[0-9a-f]{40}$'", launcher)
+        gate=launcher.index('Audit launch requires a clean committed package')
+        self.assertGreater(gate, launcher.index('if ($StageOnly)'))
+        self.assertLess(gate, launcher.index("$server=Start-AuditProcess"))
+
         self.assertIn("if ($Interactive) {'Normal'} else {'Hidden'}", launcher)
         self.assertIn("'-name=WAIT_Audit',$modArg) -Interactive", launcher)
         self.assertIn('"-name=WAIT_HC$i"', launcher)

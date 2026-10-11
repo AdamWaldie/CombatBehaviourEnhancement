@@ -87,6 +87,11 @@ $manifest | Add-Member resolution @($ResolutionWidth,$ResolutionHeight)
 $manifest | Add-Member headlessClients $HeadlessClients
 $manifest | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $runtime 'audit-manifest.json')
 if ($StageOnly) {Write-Output "Staged packaged audit: $runtime"; return}
+# Staging can inspect a development package; physical acceptance needs committed identity.
+if ($manifest.package.dirty -ne $false -or $manifest.package.commit -notmatch '^[0-9a-f]{40}$') {
+    throw 'Audit launch requires a clean committed package. Commit validated source, rebuild its seal, and stage a fresh candidate before launching.'
+}
+
 $mission=Join-Path $runtime "WAIT_Audit.$World"
 $installedMission=Join-Path $ArmaPath ('MPMissions/WAIT_Audit_'+(Split-Path $runtime -Leaf)+'.'+$World)
 Copy-Item -LiteralPath $mission -Destination $installedMission -Recurse
