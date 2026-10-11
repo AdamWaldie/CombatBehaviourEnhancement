@@ -1045,6 +1045,26 @@ private _driveArrived=[{_driveVehicle distance2D _driveGate <= 12
 ["DRIVING-native-physical-travel",_driveReady && {_driveArrived},str getPosATL _driveVehicle] call _check;
 private _driveManaged=(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo [];
 ["DRIVING-contact-disabled-independent-assistance",_driveArrived && {_driveManaged}] call _check;
+// Ownership boundary checks beside the native movement case: a separate cargo group
+// cannot adopt the driver's cap or release it through stale group-scoped cleanup.
+private _cargoGroup=createGroup [east,true];
+_cargoGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+private _cargoActor=_cargoGroup createUnit ["O_Soldier_F",getPosATL _driveVehicle,[],0,"NONE"];
+_cargoActor moveInCargo _driveVehicle;
+private _cargoReady=objectParent _cargoActor == _driveVehicle && {_cargoGroup != _driveGroup};
+["DRIVING-passenger-fixture-ready",_cargoReady] call _check;
+private _driverCapBefore=getForcedSpeed _driveVehicle;
+[_cargoGroup] call WAIT_fnc_DrivingAssistStart;
+["DRIVING-passenger-no-driving-owner",_driveManaged && {_cargoReady}
+    && {(_cargoGroup getVariable ["WAIT_DrivingAssist_Vehicles",[]]) isEqualTo []}
+    && {((_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull]) == _driveGroup}] call _check;
+[_driveVehicle,_cargoGroup] call WAIT_fnc_DrivingAssistRelease;
+["DRIVING-stale-group-release-preserves-driver",_driveManaged && {_cargoReady}
+    && {getForcedSpeed _driveVehicle == _driverCapBefore}
+    && {((_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull]) == _driveGroup}] call _check;
+deleteVehicle _cargoActor;
+deleteGroup _cargoGroup;
+
 private _driveHeld=true;
 for "_driveSample" from 1 to 20 do {
     sleep 1;
