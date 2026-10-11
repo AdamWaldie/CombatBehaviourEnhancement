@@ -11,6 +11,16 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
 params ["_check","_phase","_wait"];
+private _recordFixture={
+    params ["_house","_label"];
+    private _positions=_house buildingPos -1;
+    private _detail=[worldName,"CREATE_VEHICLE",typeOf _house,getModelInfo _house,
+        isSimpleObject _house,simulationEnabled _house,count _positions,getPosATL _house];
+    diag_log format ["WAIT BUILDING FIXTURE: %1",[_label,_detail]];
+    ["BUILD-fixture-"+_label,!isNull _house && {!isSimpleObject _house}
+        && {_positions isNotEqualTo []},str _detail] call _check;
+};
+
 private _cases = [];
 private _actors = [];
 {
@@ -20,6 +30,7 @@ private _actors = [];
         private _method = _x;
         private _house = createVehicle [_class,[6250+_forEachIndex*60,5800+_row*60,0],[],0,"NONE"];
         _house enableSimulationGlobal true;
+        [_house,format ["%1-model-%2",_method,_row+1]] call _recordFixture;
         private _group = createGroup [east,true];
         _group setVariable ["WAIT_AIPass_Exclude",true,true];
         _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
@@ -75,6 +86,7 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
     private _site=[6550+_forEachIndex*200,5800,0];
     private _house=createVehicle [_class,_site,[],0,"NONE"];
     _house enableSimulationGlobal true;
+    [_house,format ["fresh-%1",_size]] call _recordFixture;
     private _otherBuildings=(nearestObjects [_site,["House"],50,true])-[_house];
     [format ["CLEAR-fresh-%1-site-isolated",_size],_otherBuildings isEqualTo [],str [_site,_otherBuildings]] call _check;
     private _group=createGroup [east,true];
