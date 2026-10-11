@@ -15,6 +15,15 @@ if (_loaded != _expectedLoaded) exitWith {diag_log "WAIT STANDALONE PERF INVALID
 private _fsm=getText (configFile >> "CfgVehicles" >> "O_Soldier_F" >> "fsmDanger");
 private _composition=missionNamespace getVariable ["WAIT_QA_PerfComposition","infantry"];
 if (!(_composition in ["infantry","mixed"])) exitWith {diag_log "WAIT STANDALONE PERF INVALID: composition"};
+private _initialObservers=allPlayers select {!(_x isKindOf "HeadlessClient_F")};
+if (count _initialObservers != 1 || {!alive (_initialObservers select 0)}) exitWith {
+    diag_log "WAIT STANDALONE PERF INVALID: initial observer";
+};
+private _benchmarkObserver=_initialObservers select 0;
+missionNamespace setVariable ["WAIT_QA_StandaloneObserverLost",false];
+private _observerKilledHandler=_benchmarkObserver addMPEventHandler ["MPKilled",{
+    if (isServer) then {missionNamespace setVariable ["WAIT_QA_StandaloneObserverLost",true]};
+}];
 private _vehicles=[];
 private _aircraft=[];
 private _fixtureValid=true;
@@ -112,7 +121,12 @@ private _owned=0;
     if (groupOwner _x == 2) then {_owned=_owned+1};
 } forEach _groups;
 private _observers=allPlayers select {!(_x isKindOf "HeadlessClient_F")};
-private _observerValid=count _observers == 1 && {alive (_observers select 0)};
+private _observerLost=missionNamespace getVariable ["WAIT_QA_StandaloneObserverLost",true];
+private _observerValid=count _observers == 1 && {(_observers select 0) == _benchmarkObserver}
+    && {alive _benchmarkObserver} && {!_observerLost};
+diag_log format ["WAIT STANDALONE PERF OBSERVER CONTINUITY: %1",[
+    netId _benchmarkObserver,_observers apply {netId _x},_observerLost,_observerValid]];
+if (!isNull _benchmarkObserver) then {_benchmarkObserver removeMPEventHandler ["MPKilled",_observerKilledHandler]};
 private _airValid=_aircraft findIf {!canMove _x || {(getPosATL _x) select 2 < 50} || {abs speed _x < 80}} < 0;
 private _valid=_airValid && {_fixtureValid} && {_vehicles findIf {!alive _x || {!simulationEnabled _x}} < 0} && {_observerValid} && {count _samples >= 100} && {_moving == 50} && {_alive == _expectedActors} && {_owned == 50};
 diag_log format ["WAIT STANDALONE PERF RESULT: %1",[_loaded,_valid,count _samples,
