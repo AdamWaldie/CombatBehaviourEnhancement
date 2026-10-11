@@ -14,7 +14,7 @@ if ((_state getOrDefault ["generation", -1]) != (missionNamespace getVariable ["
 private _units = missionNamespace getVariable ["WAIT_Cortex_LightingUnits",[]];
 private _cursor = missionNamespace getVariable ["WAIT_Cortex_LightingCursor",0];
 if (_cursor >= count _units) then {
-    _units = _units select {!isNull _x && {alive _x} && {local _x} && {!isPlayer _x}};
+    _units = _units select {!isNull _x && {alive _x} && {local _x} && {!isPlayer _x || {!isNil {_x getVariable "WAIT_AI_OriginalSkills"}}}};
     missionNamespace setVariable ["WAIT_Cortex_LightingUnits",_units];
     _cursor = 0;
 };
@@ -27,7 +27,10 @@ for "_i" from _cursor to ((_cursor + 9) min ((count _units)-1)) do {
     private _profileSeat = toUpperANSI (_seat param [0,""]);
     private _precisionExcluded = [_unit] call WAIT_fnc_CompatibilityPrecisionExcluded;
     private _signature = [_mode,_dark,hmd _unit,netId _profileVehicle,_profileSeat,_precisionExcluded];
-    if (local _unit && {alive _unit} && {_signature isNotEqualTo (_unit getVariable ["WAIT_Cortex_LightingSignature",[]])}) then {
+    private _humanControl=isPlayer _unit || {!isNull remoteControlled _unit}
+        || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])};
+    if (local _unit && {_humanControl}) then {[_unit] call WAIT_fnc_AIRestoreProfile};
+    if (local _unit && {alive _unit} && {!_humanControl} && {_signature isNotEqualTo (_unit getVariable ["WAIT_Cortex_LightingSignature",[]])}) then {
         [_unit] call WAIT_fnc_AIApplyProfile;
     };
 };

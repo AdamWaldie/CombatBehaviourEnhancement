@@ -32,9 +32,12 @@
  */
 
 params [["_unit", objNull, [objNull]]];
-if (isNull _unit || {!local _unit} || {isPlayer _unit}
+if (isNull _unit || {!local _unit}) exitWith {false};
+if (isPlayer _unit
     || {!isNull remoteControlled _unit}
-    || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}) exitWith {false};
+    || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}) exitWith {
+    [_unit] call WAIT_fnc_AIRestoreProfile; false
+};
 if !(missionNamespace getVariable ["WAIT_AI_RebalanceActive", false]) exitWith {false};
 if (_unit getVariable ["WAIT_AI_Exclude", false]) exitWith {false};
 // Specialist actors retain complete ownership of their movement, animation, damage and combat
@@ -206,7 +209,21 @@ if (_operatingCrew && {!_precisionExcluded}) then {
     private _infantryDispersion=((missionNamespace getVariable ["WAIT_AI_InfantryDispersion",1.35]) max 1) min 3;
     _unit setCustomAimCoef ((_infantryDispersion * (1-(0.15*(_unit skill "general")))) max (_unit getVariable ["WAIT_AI_OriginalAimCoef",1]));
 } else {
-    _unit setCustomAimCoef (_unit getVariable ["WAIT_AI_OriginalAimCoef", 1]);
+    private _priorAppliedAim=_unit getVariable ["WAIT_AI_AppliedAimCoef",-1];
+    if (_priorAppliedAim >= 0 && {abs (getCustomAimCoef _unit-_priorAppliedAim) < 0.00001}) then {
+        _unit setCustomAimCoef (_unit getVariable ["WAIT_AI_OriginalAimCoef", 1]);
+    };
+}};
+private _appliedSkills=createHashMap;
+{_appliedSkills set [_x,_unit skill _x]} forEach _skillNames;
+if (_appliedSkills isNotEqualTo (_unit getVariable ["WAIT_AI_AppliedSkills",createHashMap])) then {
+    _unit setVariable ["WAIT_AI_AppliedSkills",_appliedSkills,true];
+};
+private _appliedAim=getCustomAimCoef _unit;
+if (_precisionExcluded) then {
+    _unit setVariable ["WAIT_AI_AppliedAimCoef",nil,true];
+} else {if (_appliedAim != (_unit getVariable ["WAIT_AI_AppliedAimCoef",-1])) then {
+    _unit setVariable ["WAIT_AI_AppliedAimCoef",_appliedAim,true];
 }};
 _unit setVariable ["WAIT_Cortex_LightingSignature", [
     _mode, (getLighting select 1) <= (missionNamespace getVariable ["WAIT_AI_DarknessThreshold",5]), hmd _unit,

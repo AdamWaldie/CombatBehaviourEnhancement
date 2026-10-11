@@ -224,6 +224,7 @@
       ],
       "production_sources": [
         "addons/core/functions/aiApplyProfile.sqf",
+        "addons/core/functions/aiRestoreProfile.sqf",
         "addons/core/functions/aiRebalanceInit.sqf",
         "addons/core/functions/aiRebalanceStop.sqf",
         "addons/core/functions/AISkillAdjustmentSystem.sqf"

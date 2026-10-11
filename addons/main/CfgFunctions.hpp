@@ -60,6 +60,7 @@ class CfgFunctions {
             class AIApplyProfile {
                 file = "\z\waldo_ai_tweaks\addons\core\functions\aiApplyProfile.sqf";
             };
+            class AIRestoreProfile {file = "\z\waldo_ai_tweaks\addons\core\functions\aiRestoreProfile.sqf";};
             class AIRebalanceStop {
                 file = "\z\waldo_ai_tweaks\addons\core\functions\aiRebalanceStop.sqf";
             };

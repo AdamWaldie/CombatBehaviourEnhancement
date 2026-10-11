@@ -35,14 +35,6 @@ missionNamespace setVariable ["WAIT_Cortex_LightingUnits",[]];
 missionNamespace setVariable ["WAIT_Cortex_LightingCursor",0];
 if (missionNamespace getVariable ["WAIT_AI_RestoreOnStop", true]) then {
     {
-        if (local _x && {!isPlayer _x}) then {
-            private _unit = _x;
-            private _original = _unit getVariable ["WAIT_AI_OriginalSkills", createHashMap];
-            {_unit setSkill [_x, _original get _x]} forEach keys _original;
-            _unit setCustomAimCoef (_unit getVariable ["WAIT_AI_OriginalAimCoef", getCustomAimCoef _unit]);
-            _unit setVariable ["WAIT_AI_OriginalSkills", nil, true];
-            _unit setVariable ["WAIT_AI_OriginalAimCoef", nil, true];
-            _unit setVariable ["WAIT_AI_SkillVarianceOffsets", nil, true];
-        };
+        if (local _x) then {[_x] call WAIT_fnc_AIRestoreProfile};
     } forEach allUnits;
 };
