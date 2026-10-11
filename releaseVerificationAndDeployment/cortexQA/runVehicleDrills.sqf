@@ -1061,6 +1061,35 @@ _driveDriver setVariable ["WAIT_CortexQA_Target",_driveOnward,true];
 private _driveResumed=[{_driveVehicle distance2D _driveOnward <= 12
     && {_driveVehicle distance2D _driveGate >= 60}},100] call _wait;
 ["DRIVING-condition-release-physical-resume",_driveArrived && {_driveHeld} && {_driveResumed},str getPosATL _driveVehicle] call _check;
+private _driveHoldPosition=[3660,1780,0];
+private _driveHold=_driveGroup addWaypoint [_driveHoldPosition,0];
+_driveHold setWaypointType "HOLD";
+_driveHold setWaypointCompletionRadius 5;
+_driveGroup setCurrentWaypoint _driveHold;
+_driveDriver setVariable ["WAIT_CortexQA_Target",_driveHoldPosition,true];
+["Standalone driving: HOLD and replacement","The native HOLD must remain a deliberate stop. Editing that same waypoint to a new MOVE destination must produce physical travel without an old-route recall.",_driveHoldPosition] call _phase;
+private _driveHoldArrived=[{_driveVehicle distance2D _driveHoldPosition <= 12
+    && {_driveVehicle distance2D _driveOnward >= 60}},100] call _wait;
+["DRIVING-hold-physical-arrival",_driveResumed && {_driveHoldArrived},str getPosATL _driveVehicle] call _check;
+private _driveHoldStable=true;
+for "_driveHoldSample" from 1 to 20 do {
+    sleep 1;
+    private _holdState=_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]];
+    if (_driveVehicle distance2D _driveHoldPosition > 15
+        || {currentWaypoint _driveGroup != (_driveHold select 1)}
+        || {(_holdState param [8,""]) in ["ROUTE_REFRESH","CAUTIOUS_REVERSE","FINAL_ROUTE_RETRY"]}) then {_driveHoldStable=false};
+};
+["DRIVING-native-hold-preserved",_driveHoldArrived && {_driveHoldStable}] call _check;
+private _driveReplacement=[3660,1860,0];
+_driveHold setWaypointPosition [_driveReplacement,0];
+_driveHold setWaypointType "MOVE";
+_driveGroup setCurrentWaypoint _driveHold;
+_driveDriver setVariable ["WAIT_CortexQA_Target",_driveReplacement,true];
+private _driveReplacementReached=[{_driveVehicle distance2D _driveReplacement <= 12
+    && {_driveVehicle distance2D _driveHoldPosition >= 60}},100] call _wait;
+["DRIVING-same-index-replacement-physical-travel",_driveHoldArrived && {_driveHoldStable}
+    && {_driveReplacementReached} && {waypointPosition _driveHold distance2D _driveReplacement <= 1},
+    str [getPosATL _driveVehicle,waypointPosition _driveHold,currentWaypoint _driveGroup]] call _check;
 [createHashMapFromArray [["WAIT_AIPass_DrivingAssist_Enable",false]]] call WAIT_fnc_CortexTuning;
 private _driveReleased=[{(_driveVehicle getVariable ["WAIT_DrivingAssist_Restore",[]]) isEqualTo []
     && {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isEqualTo []}},15] call _wait;
