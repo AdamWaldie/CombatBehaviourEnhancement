@@ -23,6 +23,12 @@ params [
 ];
 if (isNull _group || {!local _group}) exitWith {false};
 
+private _actorEligible={
+    params ["_actor"];
+    !isNull _actor && {local _actor} && {!isPlayer _actor} && {isNull remoteControlled _actor}
+        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+};
 private _finish = {
     params ["_result","_reason"];
     private _aid=_group getVariable ["WAIT_Cortex_MedicalAid",[]];
@@ -51,9 +57,11 @@ if (!_medicalEnabled || {_medicalInterrupted}) exitWith {
 // command. Recheck at each movement or treatment write so Zeus and specialist controllers never
 // receive a stale WAIT command from this finite operation.
 private _mayIssueMedical = {
+    params ["_medic","_casualty"];
     !([_group] call WAIT_fnc_CortexExternalTakeover)
         && {!([_group] call WAIT_fnc_CortexZeusHeld)}
         && {!([_group] call WAIT_fnc_CompatibilityExternalControl)}
+        && {[_medic] call _actorEligible} && {[_casualty] call _actorEligible}
 };
 
 private _aid=_group getVariable ["WAIT_Cortex_MedicalAid",[]];
@@ -76,6 +84,7 @@ if (_aid isNotEqualTo []) exitWith {
         ["CANCELLED","REPLACED"] call _finish
     };
     if (isNull _medic || {isNull _casualty} || {!alive _medic} || {!alive _casualty}
+        || {!([_medic] call _actorEligible)} || {!([_casualty] call _actorEligible)}
         || {!local _medic} || {!local _casualty} || {group _medic != _group} || {group _casualty != _group}
         || {vehicle _medic != _medic} || {vehicle _casualty != _casualty}
         || {!([_medic] call WAIT_fnc_CortexCombatEffective)}
@@ -102,7 +111,7 @@ if (_aid isNotEqualTo []) exitWith {
         if (_operationState == "STALLED") then {_cancelReason="NO_PROGRESS"};
     };
     if (_cancelReason != "") exitWith {["CANCELLED",_cancelReason] call _finish};
-    if !(call _mayIssueMedical) exitWith {["CANCELLED","EXTERNAL"] call _finish};
+    if !([_medic,_casualty] call _mayIssueMedical) exitWith {["CANCELLED","EXTERNAL"] call _finish};
     if (_distance < _bestDistance-2) then {
         _bestDistance=_distance;
         _lastProgressAt=time;
@@ -110,7 +119,7 @@ if (_aid isNotEqualTo []) exitWith {
     if (!_inTreatmentRange && {time-_lastProgressAt >= 12}) exitWith {
         ["CANCELLED","NO_PROGRESS"] call _finish
     };
-    if (time-_lastOrderAt >= 8 && {call _mayIssueMedical}) then {
+    if (time-_lastOrderAt >= 8 && {[_medic,_casualty] call _mayIssueMedical}) then {
         if (!_inTreatmentRange) then {
             if (currentCommand _medic in ["","STOP"] || {time-_lastProgressAt >= 8}) then {
                 _medic doMove getPosATL _casualty;
@@ -138,7 +147,11 @@ if (count (_group getVariable ["WAIT_Operation",createHashMap]) > 0
     || {(_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo []}) exitWith {false};
 
 private _members=(units _group) select {
-    alive _x && {local _x} && {!isPlayer _x} && {group _x == _group}
+    private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
+        && {(_reservation param [2,1e12,[0]]) <= time}};
+    alive _x && {[_x] call _actorEligible} && {group _x == _group} && {_free}
+        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {vehicle _x == _x} && {[_x] call WAIT_fnc_CortexCombatEffective}
         && {!(_x getVariable ["ACE_isUnconscious",false])}
 };
@@ -166,7 +179,7 @@ _pair params ["_medic","_casualty"];
 private _operation=[_group,"MEDICAL_AID",_casualty,[_medic], [getPosATL _casualty],"APPROACH"] call WAIT_fnc_OperationStart;
 if (count _operation == 0) exitWith {false};
 private _generation=_operation get "generation";
-if !(call _mayIssueMedical) exitWith {
+if !([_medic,_casualty] call _mayIssueMedical) exitWith {
     [_group,_generation,"EXTERNAL"] call WAIT_fnc_OperationCancel;
     false
 };

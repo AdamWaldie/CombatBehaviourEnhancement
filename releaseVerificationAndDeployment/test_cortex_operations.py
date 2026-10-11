@@ -1429,7 +1429,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('WAIT_fnc_OperationRelease',medical)
         self.assertIn('private _mayIssueMedical = {',medical)
         self.assertIn('!([_group] call WAIT_fnc_CortexExternalTakeover)',medical)
-        self.assertIn('if !(call _mayIssueMedical) exitWith {["CANCELLED","EXTERNAL"] call _finish};',medical)
+        self.assertIn('if !([_medic,_casualty] call _mayIssueMedical) exitWith {["CANCELLED","EXTERNAL"] call _finish};',medical)
         self.assertLess(medical.index('private _mayIssueMedical = {'),medical.index('_medic doMove getPosATL _casualty'))
         self.assertLess(medical.rindex('call _mayIssueMedical',0,medical.rindex('_medic action ["HealSoldier",_casualty]')),medical.rindex('_medic action ["HealSoldier",_casualty]'))
         self.assertIn('private _dangerResponse=_group getVariable ["WAIT_Danger_Response",[]];',medical)
