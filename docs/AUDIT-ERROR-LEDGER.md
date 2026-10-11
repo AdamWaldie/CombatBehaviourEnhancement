@@ -131,3 +131,4 @@ a live drill against another contact beyond the 75 m contact area must continue 
 an old-token receipt must not authorize replacement; repeat these cases across server and HC owners,
 then issue a Zeus replacement order. Record actual travel, drill generation and cancellation reason.
 These cases are pending, not accepted.
+FSM follow-up: tacticalDrill now retires immediately when its active drill token is replaced, before watchdog requeue. It cancels only its old queued job and does not interrupt or restore the replacement drill. Physical replacement and HC cases remain pending.
