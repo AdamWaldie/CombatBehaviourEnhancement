@@ -614,6 +614,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     if ([] call _mayIssueDriving) then {
                         _movementOperator doMove _destination;
                         _progress set [5,+_destination];
+                        _progress set [7,false];
                     };
                 };
                 _progress set [2, time + 1];
@@ -648,9 +649,14 @@ for "_i" from 1 to (count _vehicles - 1) do {
             // Native formation here recreates side-by-side traffic and can close the gap first.
             if (_native) then {
                 _pathOwners set [_key,false];
-                if ([] call _mayIssueDriving) then {
-                    (driver _vehicle) doFollow leader _group;
+                // No forward predecessor trail is not permission to rejoin formation.
+                // Retain an existing native destination. Before the first commitment,
+                // hold once so the leader's formation cannot pull us alongside it.
+                if (count (_progress param [5,[]]) < 2
+                    && {!(_progress param [7,false])} && {[] call _mayIssueDriving}) then {
+                    doStop _movementOperator;
                     _vehicle setConvoySeparation _desiredGap;
+                    _progress set [7,true];
                 };
             } else {
                 if (!(_pathOwners getOrDefault [_key,false]) && {[] call _mayIssueDriving}) then {doStop driver _vehicle};
