@@ -321,7 +321,8 @@ if (_stage == "") then {
         _target=objNull;
         {
             private _candidate=assignedTarget _x;
-            if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}) exitWith {_target=_candidate};
+            if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}
+                && {(_group knowsAbout _candidate) > 0}) exitWith {_target=_candidate};
         } forEach ([effectiveCommander _aircraft,driver _aircraft,gunner _aircraft,commander _aircraft]+crew _aircraft);
     };
     if (isNull _target) then {_startFailure="NO_TARGET"};
