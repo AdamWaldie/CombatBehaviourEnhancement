@@ -61,10 +61,13 @@ private _freshRan=[{(_freshState get "calls") == 1},10] call _wait;
 ["SCHED-current-epoch-runs",_freshRan && {(_freshState get "ownerEpoch") == 6}
     && {(_staleState get "calls") == 0},str [_freshState get "calls",_staleState get "calls"]] call _check;
 private _oldEpochState=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",6],["calls",0]];
-[_coalesceCallback,_oldEpochState,1,_epochKey] call WAIT_fnc_CortexQueueJob;
-_epochGroup setVariable ["WAIT_AIPass_Epoch",7];
 private _newEpochState=createHashMapFromArray [["group",_epochGroup],["calls",0]];
-[_coalesceCallback,_newEpochState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
+// Change authority before either queued callback can run, even if the fixture is descheduled.
+isNil {
+    [_coalesceCallback,_oldEpochState,1,_epochKey] call WAIT_fnc_CortexQueueJob;
+    _epochGroup setVariable ["WAIT_AIPass_Epoch",7];
+    [_coalesceCallback,_newEpochState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
+};
 ["SCHED-keyed-epoch-state-isolated",(_oldEpochState get "ownerEpoch") == 6] call _check;
 private _epochsRetired=[{
     private _queued=(missionNamespace getVariable ["WAIT_AIPass_Jobs",[]])
@@ -76,8 +79,10 @@ private _epochsRetired=[{
 deleteGroup _epochGroup;
 private _deletedGroup=createGroup [east,false];
 private _deletedState=createHashMapFromArray [["group",_deletedGroup],["calls",0]];
-[_coalesceCallback,_deletedState,1,"WAIT_QA_DELETED_"+str diag_tickTime] call WAIT_fnc_CortexQueueJob;
-deleteGroup _deletedGroup;
+isNil {
+    [_coalesceCallback,_deletedState,1,"WAIT_QA_DELETED_"+str diag_tickTime] call WAIT_fnc_CortexQueueJob;
+    deleteGroup _deletedGroup;
+};
 private _deletedRetired=[{(_deletedState getOrDefault ["skippedReason",""]) == "LOCALITY"},10] call _wait;
 ["SCHED-deleted-group-no-execution",_deletedRetired && {(_deletedState get "calls") == 0},str (_deletedState get "calls")] call _check;
 private _cancelKey="WAIT_QA_CANCELLED_"+str diag_tickTime;
