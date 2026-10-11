@@ -2766,7 +2766,9 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_unit doFollow', issue)
         self.assertNotIn('setUnitCombatMode "BLUE"', issue)
         self.assertIn('_unit doMove _spot', issue)
-        self.assertNotIn('_unit setUnitCombatMode "YELLOW"', issue)
+        self.assertIn('if (unitCombatMode _unit == "RED")', issue)
+        self.assertIn('_combatModes pushBack [_unit,"RED","YELLOW"]', issue)
+        self.assertIn('unitCombatMode _unit == _ownedMode', text)
 
     def test_cancelled_throw_does_not_block_assault_progression(self):
         throw = source('cortexThrowGrenade')

@@ -550,6 +550,12 @@ private _issue = {
         // WAIT commits a route and role but leaves moment-to-moment combat to the engine.
         // Do not issue doFollow or setDestination: either can create a second movement owner.
         if ([_unit] call _mayIssueMovement) then {
+            // Individual RED overrides the group's YELLOW bound policy. Lease only that
+            // permissive mode; keep firing enabled and preserve authored hold-fire modes.
+            if (unitCombatMode _unit == "RED") then {
+                _combatModes pushBack [_unit,"RED","YELLOW"];
+                _unit setUnitCombatMode "YELLOW";
+            };
             _unit doWatch _enemyPos;
             _unit doMove _spot;
         };

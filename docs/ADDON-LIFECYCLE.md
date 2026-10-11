@@ -523,3 +523,5 @@ A coordinated next-bound geometry rejection permits one retry after eight second
 Building room progression opens usable doors without replacing committed movement solely because a door changed. Interior no-progress retries affect the room mover, retaining the partner's security destination; entrance staging can still retry the pair. Physical room visits remain the only completion evidence.
 
 A CQB reserve replacement rebases best-distance observation at its actual position. The committed room cursor and generation-owned recovery budget remain unchanged; a removed actor's closer baseline must not hide real approach progress by the reserve.
+
+Moving bounds lease individual RED orders as YELLOW while retaining native target and fire features. Cover/release restores the exact prior mode only if unchanged. BLUE/GREEN holds are not escalated. This repair follows native ATTACK diversion in the b3a9f70 batch and requires physical retest.
