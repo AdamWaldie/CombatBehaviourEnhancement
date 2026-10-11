@@ -17,6 +17,16 @@ private _recordFixture={
     private _detail=[worldName,"CREATE_VEHICLE",typeOf _house,getModelInfo _house,
         isSimpleObject _house,simulationEnabled _house,count _positions,getPosATL _house];
     diag_log format ["WAIT BUILDING FIXTURE: %1",[_label,_detail]];
+    private _doorProfile=[];
+    private _doorCount=(getNumber (configOf _house >> "numberOfDoors")) min 16;
+    for "_door" from 1 to _doorCount do {
+        private _source=format ["Door_%1_sound_source",_door];
+        _doorProfile pushBack [_door,_source,
+            isClass (configOf _house >> "AnimationSources" >> _source),
+            _house selectionPosition [format ["Door_%1_trigger",_door],"Memory"]];
+    };
+    _house setVariable ["WAIT_CortexQA_DoorProfile",_doorProfile];
+    diag_log format ["WAIT BUILDING DOOR CONFIG: %1",[_label,_doorProfile]];
     ["BUILD-fixture-"+_label,!isNull _house && {!isSimpleObject _house}
         && {_positions isNotEqualTo []},str _detail] call _check;
 };
@@ -131,7 +141,7 @@ private _doorControls=[];
         if (_node isNotEqualTo []) then {
             _unit doMove _node;
             if (_method == "REPLAN") then {_unit setDestination [_node,"LEADER PLANNED",true]};
-            _doorControls pushBack [_unit,_node,_label,false,_doorCount];
+            _doorControls pushBack [_unit,_node,_label,false,_doorCount,_house];
         };
     };
 } forEach _cases;
@@ -145,8 +155,18 @@ waitUntil {
     time >= _doorDeadline || {_doorControls findIf {!(_x select 3)} < 0}
 };
 {
-    _x params ["_unit","_node","_label","_arrived","_doorCount"];
-    ["BUILD-OPEN-DOORS-"+_label,_arrived,str [_doorCount,getPosATL _unit,_node,expectedDestination _unit]] call _check;
+    _x params ["_unit","_node","_label","_arrived","_doorCount","_house"];
+    private _doorPhases=[];
+    for "_door" from 1 to _doorCount do {
+        _doorPhases pushBack [_door,
+            _house animationSourcePhase format ["Door_%1_sound_source",_door],
+            _house animationPhase format ["Door_%1_rot",_door],
+            _house getVariable [format ["bis_disabled_Door_%1",_door],0]];
+    };
+    private _doorsOpen=_doorPhases isNotEqualTo []
+        && {_doorPhases findIf {((_x select 1) max (_x select 2)) < 0.9} < 0};
+    ["BUILD-OPEN-DOORS-FIXTURE-"+_label,_doorsOpen,str _doorPhases] call _check;
+    ["BUILD-OPEN-DOORS-"+_label,_arrived && {_doorsOpen},str [_doorPhases,getPosATL _unit,_node,expectedDestination _unit]] call _check;
 } forEach _doorControls;
 sleep 15;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
@@ -214,6 +234,13 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
             private _brain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
             private _job=_brain getOrDefault ["job",createHashMap];
             private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+            private _traceHouse=_job getOrDefault ["building",objNull];
+            diag_log format ["WAIT CLEAR LIVE DOORS: %1",[_size,_routeTraceCount,
+                _traceHouse getVariable ["WAIT_Cortex_DoorDefinitions",[]],
+                (_traceHouse getVariable ["WAIT_CortexQA_DoorProfile",[]]) apply {
+                    [_x select 0,_traceHouse animationSourcePhase (_x select 1),
+                        _traceHouse getVariable [format ["bis_disabled_Door_%1",_x select 0],0]]
+                }]];
             diag_log format ["WAIT CLEAR LIVE ROUTE: %1",[
                 _size,_routeTraceCount,diag_tickTime,
                 _group getVariable ["WAIT_AIPass_Epoch",0],
@@ -227,7 +254,7 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
                 (_clearingMembers select [0,16]) apply {
                     [str _x,local _x,getPosATL _x,currentCommand _x,expectedDestination _x,
                         _x checkAIFeature "MOVE",_x checkAIFeature "PATH",getForcedSpeed _x,
-                        _x == leader _group]
+                        _x == leader _group,getUnitState _x,unitReady _x,simulationEnabled _x]
                 }
             ]];
         };
