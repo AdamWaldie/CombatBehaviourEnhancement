@@ -7,6 +7,17 @@ from unittest.mock import patch
 from mod_pipeline import ROOT, seal, stage, verify, release_gate, supported_focuses
 
 class PackagePipelineTests(unittest.TestCase):
+    def test_terrain_building_baseline_uses_altis_mission_identity(self):
+        mission=stage(self.folder,Path(self.temp.name)/'terrain-buildings','nativebuildings',native_baseline=True,world='Altis')
+        self.assertEqual(mission.name,'WAIT_Audit.Altis')
+        sqm=(mission/'mission.sqm').read_text()
+        self.assertIn('A3_Map_Altis',sqm)
+        self.assertNotIn('A3_Map_VR',sqm)
+        self.assertIn('position[]={16600,0,12800}',sqm)
+        self.assertEqual(json.loads((mission.parent/'audit-manifest.json').read_text())['world'],'Altis')
+        with self.assertRaises(ValueError):
+            stage(self.folder,Path(self.temp.name)/'invalid-terrain','all',world='Altis')
+
     def test_native_building_diagnostics_cannot_promote_wait(self):
         evidence=Path(self.temp.name)/'native-report.json'
         evidence.write_text(json.dumps({'focus':'nativebuildings','status':'PASS','complete':True}))

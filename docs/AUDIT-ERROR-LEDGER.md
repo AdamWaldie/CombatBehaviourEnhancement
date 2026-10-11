@@ -4,6 +4,10 @@ Every batch keeps its original RPT files and generated report. Repeated trace li
 
 ## CQB entry investigation, 2026-10-11 evening
 
+Addon-absent batch `runtime-20261011-214429-080` completed 50 checks with 18 failed assertions, zero SQF exceptions, zero fatal failures and one unresolved load warning. Both WAIT core and danger addons were confirmed absent, the observer was confirmed noncombatant, and the restored guide was visually verified. Native direct movement and forced replanning on the small-house comparison both visited only position 0. Retrying position 1 with all four door animation phases verified fully open still failed. This reproduces the specific fixture failure without WAIT; it does not establish that all terrain buildings or CQB behaviours are impossible. An existing-terrain-house comparison is required before another movement-policy change.
+
+Building routing must remain opportunistic during ordinary movement, preserving the current objective. A separate staged traversal order, authored entrance/exit model or scheduled assembly is not the desired implementation. Clearance and garrison still require separate physical acceptance, and incomplete room visits never count as successful tactics.
+
 These normal batches run without headless clients. Retired partial batches retain their failed checks and are not reported as completed acceptance.
 
 | Candidate / batch | Physical evidence | Action and remaining acceptance |

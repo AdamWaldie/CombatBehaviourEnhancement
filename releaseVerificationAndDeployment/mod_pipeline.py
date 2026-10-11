@@ -64,7 +64,9 @@ def supported_focuses(root=ROOT):
     values.add("nativebuildings")
     return sorted(values)
 
-def stage(package, destination, focus, root=ROOT, native_baseline=False, performance_composition="infantry", headless_provider=None, batch_mode="normal"):
+def stage(package, destination, focus, root=ROOT, native_baseline=False, performance_composition="infantry", headless_provider=None, batch_mode="normal", world="VR"):
+    if world not in ('VR', 'Altis') or (world != 'VR' and focus != 'nativebuildings'):
+        raise ValueError('Terrain building diagnosis supports only nativebuildings on Altis')
     if focus not in supported_focuses(root):
         raise ValueError(f'Unknown audit focus: {focus}')
     if native_baseline and focus not in ('standaloneperformance', 'nativebuildings'):
@@ -84,7 +86,7 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         raise ValueError('Audit destination already exists; each run needs a fresh directory')
     destination.mkdir(parents=True)
     shutil.copytree(package, destination/'@WaldosAITweaks')
-    mission = destination/'WAIT_Audit.VR'
+    mission = destination/f'WAIT_Audit.{world}'
     shutil.copytree(root/'releaseVerificationAndDeployment/auditMission', mission)
     for path in (root/'releaseVerificationAndDeployment/cortexQA').glob('run*.sqf'):
         suffix = path.stem[3:]
@@ -118,6 +120,11 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         server_init.write_text(server_init.read_text().replace('cortexQAStandalonePerformance.sqf', 'cortexQANativeBuildings.sqf'), encoding='utf-8')
         with (mission/'initPlayerLocal.sqf').open('a') as client_init:
             client_init.write('\nplayer setCaptive true;\n[] execVM "cortexQAGuide.sqf";\ndiag_log "WAIT CORTEX QA CLIENT COMPLETE: 0 finding(s) []";\n')
+        if world == 'Altis':
+            sqm=mission/'mission.sqm'
+            sqm.write_text(sqm.read_text().replace('A3_Map_VR','A3_Map_Altis').replace('position[]={5800,0,5800}','position[]={16600,0,12800}'),encoding='utf-8')
+            identity=mission/'auditIdentity.sqf'
+            identity.write_text(identity.read_text().replace('A3_Map_VR','A3_Map_Altis'),encoding='utf-8')
     provider_evidence = None
     if headless_provider:
         from stage_headless_provider import stage_provider
@@ -143,7 +150,7 @@ call compile preprocessFileLineNumbers "compatibilityHeadlessProvider\init.sqf";
                 missing.append(name)
     if missing:
         raise ValueError(f'Missing audit payloads: {sorted(set(missing))}')
-    (destination/'audit-manifest.json').write_text(json.dumps(dict(package=record, focus=focus, batch_mode=batch_mode, native_baseline=native_baseline, performance_composition=performance_composition, headless_provider=provider_evidence,
+    (destination/'audit-manifest.json').write_text(json.dumps(dict(package=record, focus=focus, world=world, batch_mode=batch_mode, native_baseline=native_baseline, performance_composition=performance_composition, headless_provider=provider_evidence,
         mission_files=mission_hashes(mission)), indent=2)+'\n')
     return mission
 
@@ -174,12 +181,13 @@ def main():
     child.add_argument('destination', type=Path)
     child.add_argument('--focus', default='all', choices=supported_focuses())
     child.add_argument('--native-baseline', action='store_true')
+    child.add_argument('--world', choices=['VR','Altis'], default='VR')
     child.add_argument('--performance-composition', choices=['infantry','mixed'], default='infantry')
     child.add_argument('--headless-provider', type=Path)
     child.add_argument('--batch-mode', choices=['normal','headless'], default='normal')
     args = parser.parse_args()
     if args.command == 'stage':
-        print(stage(args.package.resolve(), args.destination.resolve(), args.focus, native_baseline=args.native_baseline, performance_composition=args.performance_composition, headless_provider=args.headless_provider, batch_mode=args.batch_mode))
+        print(stage(args.package.resolve(), args.destination.resolve(), args.focus, native_baseline=args.native_baseline, performance_composition=args.performance_composition, headless_provider=args.headless_provider, batch_mode=args.batch_mode, world=args.world))
     elif args.command == 'seal':
         print(json.dumps(seal(args.package.resolve()), indent=2))
     elif args.command == 'verify':

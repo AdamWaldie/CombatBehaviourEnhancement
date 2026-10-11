@@ -2,6 +2,7 @@ param(
     [string]$ArmaPath='',
     [string]$Package='',
     [string]$Focus='all',
+    [ValidateSet('VR','Altis')][string]$World='VR',
     [ValidateSet('normal','headless')][string]$BatchMode='normal',
     [string]$HeadlessProvider='',
     [string[]]$Mods=@(),
@@ -50,9 +51,9 @@ if ($HeadlessProvider) {
     $providerArguments=@('--headless-provider',(Resolve-Path -LiteralPath $HeadlessProvider).Path)
 }
 if ($NativeBaseline) {
-    & $Python (Join-Path $PSScriptRoot 'mod_pipeline.py') stage $Package $runtime --focus $Focus --batch-mode $BatchMode --native-baseline --performance-composition $PerformanceComposition @providerArguments
+    & $Python (Join-Path $PSScriptRoot 'mod_pipeline.py') stage $Package $runtime --focus $Focus --world $World --batch-mode $BatchMode --native-baseline --performance-composition $PerformanceComposition @providerArguments
 } else {
-    & $Python (Join-Path $PSScriptRoot 'mod_pipeline.py') stage $Package $runtime --focus $Focus --batch-mode $BatchMode --performance-composition $PerformanceComposition @providerArguments
+    & $Python (Join-Path $PSScriptRoot 'mod_pipeline.py') stage $Package $runtime --focus $Focus --world $World --batch-mode $BatchMode --performance-composition $PerformanceComposition @providerArguments
 }
 if ($LASTEXITCODE) {throw 'Audit staging failed'}
 $launchMods=$Mods
@@ -86,11 +87,11 @@ $manifest | Add-Member resolution @($ResolutionWidth,$ResolutionHeight)
 $manifest | Add-Member headlessClients $HeadlessClients
 $manifest | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $runtime 'audit-manifest.json')
 if ($StageOnly) {Write-Output "Staged packaged audit: $runtime"; return}
-$mission=Join-Path $runtime 'WAIT_Audit.VR'
-$installedMission=Join-Path $ArmaPath ('MPMissions/WAIT_Audit_'+(Split-Path $runtime -Leaf)+'.VR')
+$mission=Join-Path $runtime "WAIT_Audit.$World"
+$installedMission=Join-Path $ArmaPath ('MPMissions/WAIT_Audit_'+(Split-Path $runtime -Leaf)+'.'+$World)
 Copy-Item -LiteralPath $mission -Destination $installedMission -Recurse
 $missionName=Split-Path $installedMission -Leaf
-$missionName=$missionName.Substring(0,$missionName.Length-3)
+$missionName=[System.IO.Path]::GetFileNameWithoutExtension($missionName)
 $config=Join-Path $runtime 'server.cfg'
 @"
 hostname="WAIT packaged audit";
@@ -103,7 +104,7 @@ allowedFilePatching=0;
 headlessClients[]={"127.0.0.1"};
 localClient[]={"127.0.0.1"};
 persistent=1;
-class Missions {class Audit {template="$missionName.VR"; difficulty="Regular";};};
+class Missions {class Audit {template="$missionName.$World"; difficulty="Regular";};};
 "@ | Set-Content $config
 $modArg=if ($NativeBaseline) {'-mod='+($launchMods -join ';')} else {
     '-mod='+(@((Join-Path $runtime '@WaldosAITweaks'))+$launchMods -join ';')

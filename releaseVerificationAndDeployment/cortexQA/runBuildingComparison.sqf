@@ -15,7 +15,7 @@ params ["_check","_phase","_wait",["_nativeOnly",false,[true]]];
 private _recordFixture={
     params ["_house","_label"];
     private _positions=_house buildingPos -1;
-    private _detail=[worldName,"CREATE_VEHICLE",typeOf _house,getModelInfo _house,
+    private _detail=[worldName,["TERRAIN","CREATE_VEHICLE"] select (worldName == "VR"),typeOf _house,getModelInfo _house,
         isSimpleObject _house,simulationEnabled _house,count _positions,getPosATL _house];
     diag_log format ["WAIT BUILDING FIXTURE: %1",[_label,_detail]];
     private _doorProfile=[];
@@ -34,13 +34,20 @@ private _recordFixture={
 
 private _cases = [];
 private _actors = [];
+private _terrainHouses=if (_nativeOnly && {worldName == "Altis"}) then {
+    nearestTerrainObjects [[16600,12800,0],["House"],5000,false,true]
+} else {[]};
+private _usedTerrainHouses=[];
 {
     private _class = _x;
     private _row = _forEachIndex;
     {
         private _method = _x;
-        private _house = createVehicle [_class,[6250+_forEachIndex*60,5800+_row*60,0],[],0,"NONE"];
-        _house enableSimulationGlobal true;
+        private _house=if (worldName == "Altis") then {
+            (_terrainHouses select {typeOf _x == _class && {!(_x in _usedTerrainHouses)}}) param [0,objNull]
+        } else {createVehicle [_class,[6250+_forEachIndex*60,5800+_row*60,0],[],0,"NONE"]};
+        if (isNull _house) exitWith {[format ["BUILD-%1-model-%2-terrain-fixture",_method,_row+1],false,_class] call _check};
+        if (worldName == "VR") then {_house enableSimulationGlobal true} else {_usedTerrainHouses pushBack _house};
         [_house,format ["%1-model-%2",_method,_row+1]] call _recordFixture;
         private _group = createGroup [east,true];
         _group setVariable ["WAIT_AIPass_Exclude",true,true];
@@ -58,7 +65,8 @@ private _actors = [];
     } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN"];
 } forEach ["Land_i_House_Small_03_V1_F","Land_i_House_Small_01_V1_F","Land_i_House_Big_01_V1_F","Land_i_House_Big_02_V1_F"];
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
-["Building entry: independent comparisons","Twelve excluded soldiers compare direct movement, a building-attached waypoint and forced path replanning across small and large, single- and multi-storey houses. Cyan trails show actual movement; targets show remaining distance. Each model reports independently and does not replace the production clearance cases.",[6280,5890,0]] call _phase;
+private _comparisonPosition=if (_cases isNotEqualTo []) then {getPosATL ((_cases select 0) select 2)} else {[16600,12800,0]};
+["Building entry: independent comparisons","Excluded soldiers compare direct movement, a building-attached waypoint and forced path replanning across small and large, single- and multi-storey houses. Cyan trails show actual movement; targets show remaining distance. Each model reports independently and does not replace the production clearance cases.",_comparisonPosition] call _phase;
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
     private _valid = simulationEnabled _house && {simulationEnabled _unit} && {local _unit} && {_target isNotEqualTo []};
@@ -97,7 +105,7 @@ private _walkCases=[];
         _walkCases pushBack [_unit,_nodes,0,_nodes apply {false},time,_method,_label];
     };
 } forEach _cases;
-["Building traversal: independent comparisons","The same excluded actors now attempt successive model positions. Physical 3D arrival is required for each node. A bounded timeout skips a node only to inspect the next; it never marks that node visited or validates WAIT clearance.",[6280,5890,0]] call _phase;
+["Building traversal: independent comparisons","The same excluded actors now attempt successive model positions. Physical 3D arrival is required for each node. A bounded timeout skips a node only to inspect the next; it never marks that node visited or validates WAIT clearance.",_comparisonPosition] call _phase;
 private _walkDeadline=time+180;
 waitUntil {
     sleep 2;
@@ -114,6 +122,8 @@ waitUntil {
                 if (_cursor < count _nodes) then {
                     private _next=_nodes select _cursor;
                     _unit doMove _next;
+                    _unit setVariable ["WAIT_CortexQA_Target",_next,true];
+                    _unit setVariable ["WAIT_CortexQA_Label",format ["%1 / node %2",_label,_cursor],true];
                     if (_method == "REPLAN") then {_unit setDestination [_next,"LEADER PLANNED",true]};
                 };
             };
@@ -141,12 +151,13 @@ private _doorControls=[];
         };
         if (_node isNotEqualTo []) then {
             _unit doMove _node;
+            _unit setVariable ["WAIT_CortexQA_Target",_node,true];
             if (_method == "REPLAN") then {_unit setDestination [_node,"LEADER PLANNED",true]};
             _doorControls pushBack [_unit,_node,_label,false,_doorCount,_house];
         };
     };
 } forEach _cases;
-["Building traversal: native open-door control","Diagnostic only: unlocked doors are explicitly opened on the native comparison houses, then actors retry the previously failed room index 1. Original failures remain. Production clearance receives no test-side door assistance.",[6280,5890,0]] call _phase;
+["Building traversal: native open-door control","Diagnostic only: unlocked doors are explicitly opened on the native comparison houses, then actors retry the previously failed room index 1. Original failures remain. Production clearance receives no test-side door assistance.",_comparisonPosition] call _phase;
 private _doorDeadline=time+60;
 waitUntil {
     sleep 2;
@@ -171,7 +182,7 @@ waitUntil {
 } forEach _doorControls;
 sleep 15;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
-{_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; deleteVehicle _house} forEach _cases;
+{_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; if (worldName == "VR") then {deleteVehicle _house}} forEach _cases;
 if (_nativeOnly) exitWith {};
 
 // Fresh groups distinguish clearance defects from state left by a previous garrison.
