@@ -183,3 +183,14 @@ assault-transition passes even when no assault was observed. Queued fixes and co
 physical evidence cannot retroactively turn those runs into acceptance. Notification,
 bomb integration, communication-hook and multi-contact fixture exceptions are recorded
 by cause in the error ledger; repeated trace lines are not separate defects.
+## Follow-up changes awaiting packaged acceptance
+
+PR #13 contains the work after merged PR #12. No feature family has gained complete behavioural acceptance from these static changes.
+
+- Scheduler: function-scope keyed coalescing, earliest/self-wake deadlines, epoch and generation isolation, retired-state separation, and atomic admission fixtures.
+- FSM ownership: registered-brain checks across group, building, convoy, support and artillery waits and cleanup; real packaged-FSM retirement cases are queued.
+- CQB: physically visited rooms apply pair handoff before cursor advancement; another lane's completion cannot establish entry; entrance staging requires the assigned mover. The two-person audit additionally requires both actors to progress through multiple interior positions when the fixture supports it.
+- Aircraft: pilot-fixed helicopter delivery legs cross the aim point; OFFSET/HOOK armed rocket fixtures are added. Stand-off geometry is tested separately from target-crossing runs. Actual shots, impacts, destruction, safe exits and terrain acceptance remain required.
+- Diagnostics: bounded movement-handoff records and smoke-request prerequisites expose unresolved competing destinations and admission failures.
+
+The last completed coordination run remains 456 checks with 32 failures. None of those failures has been waived by these changes. The preserved a2bed47 candidate predates later entrance-staging and aircraft changes; results from that candidate cannot validate later commits. The completed audit applications remain open and replacement-launch approval is pending. Full infantry/CQB, convoy, aircraft/support, compatibility, headless/JIP and matched performance acceptance remain incomplete.
