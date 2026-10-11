@@ -430,7 +430,12 @@ private _delay=call {
                     private _entryTarget=if (_entryIndex >= 0 && {_entryIndex < count (_job get "entries")}) then {
                         (_job get "entries") select _entryIndex
                     } else {[]};
-                    if (_approachingEntry && {_entryTarget isNotEqualTo []} && {_pair findIf {_x distance2D _entryTarget <= 3} >= 0}) then {
+                    private _entryMover=_pair select (_moverIndex mod count _pair);
+                    // The security partner deliberately holds outside the doorway. Its
+                    // proximity cannot complete the assigned mover's physical approach.
+                    if (_approachingEntry && {_entryTarget isNotEqualTo []}
+                        && {_entryMover distance2D _entryTarget <= 3}
+                        && {abs (((getPosATL _entryMover) select 2)-(_entryTarget select 2)) <= 1.5}) then {
                         _approachingEntry=false;
                         // Reaching the entrance only completes approach staging. Interior entry
                         // is established by a physically visited room below, never doorway proximity.

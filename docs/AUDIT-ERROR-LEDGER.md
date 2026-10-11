@@ -176,3 +176,7 @@ Room visits are recorded before pair-route progression. The old cursor loop skip
 The fresh two-person building audit retains both-participate and successive-position checks, and adds both-progress-through-interior when the fixture offers at least four interior positions. Both actors must physically visit at least two sampled positions. Role flags and doorway arrival cannot satisfy it. The new case is queued, not passed.
 
 The building handoff additionally requires a member of the retiring pair to be physically within the completed interior position radius and floor band. Shared completion by another lane advances the cursor only; it cannot establish this pair's entry, previous interior support position or mover rotation. This refinement preserves multi-pair physical evidence and remains queued for acceptance.
+
+### Assigned mover entrance staging
+
+Entrance approach formerly ended when either pair member was within three metres of the entry. The security partner deliberately holds at that distance outside, so its arrival could prematurely send a distant mover directly to the interior. Staging now requires the assigned mover within the entry radius and floor band. Doorway arrival still does not establish interior entry or complete a room. Physical retest remains pending.
