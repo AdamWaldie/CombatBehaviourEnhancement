@@ -296,6 +296,44 @@ if (_nativeOnly && {worldName == "VR"}) then {
         _x params ["_group","_unit","_house","_nodes","_cursor","_seen","_issued","_method","_label"];
         ["BUILD-PLACEMENT-"+_label,_seen isNotEqualTo [] && {_seen findIf {!_x} < 0},str [_nodes,_seen,getPosATL _unit,expectedDestination _unit]] call _check;
     } forEach _heightCases;
+    // Preserve first-pass failures before testing whether approach order caused them.
+    // Revisit failed nodes once from the actor's final physical position; never teleport.
+    private _revisitCases=[];
+    {
+        _x params ["_group","_unit","_house","_nodes","_cursor","_seen","_issued","_method","_label"];
+        private _failedNodes=[];
+        {if (!_x) then {_failedNodes pushBack (_nodes select _forEachIndex)}} forEach _seen;
+        if (_failedNodes isNotEqualTo []) then {
+            _revisitCases pushBack [_unit,_failedNodes,0,_failedNodes apply {false},time,_method,_label];
+            [_unit,_failedNodes select 0,_method] call _issueHeightMove;
+            _unit setVariable ["WAIT_CortexQA_Target",_failedNodes select 0,true];
+        };
+    } forEach _heightCases;
+    ["Building traversal: failed-node revisit","Original failures remain recorded. Actors revisit missed nodes once from their actual final position, testing approach order. Only physical arrival can pass; no actor relocation or production route assistance is applied.",[6250,6120,0]] call _phase;
+    private _revisitDeadline=time+180;
+    waitUntil {
+        sleep 1;
+        {
+            _x params ["_unit","_nodes","_cursor","_seen","_issued","_method","_label"];
+            if (_cursor < count _nodes) then {
+                private _arrived=(getPosASL _unit) vectorDistance (AGLToASL (_nodes select _cursor)) <= 1.5;
+                if (_arrived || {time-_issued >= 20}) then {
+                    if (_arrived) then {_seen set [_cursor,true]};
+                    _cursor=_cursor+1;
+                    _x set [2,_cursor]; _x set [4,time];
+                    if (_cursor < count _nodes) then {
+                        [_unit,_nodes select _cursor,_method] call _issueHeightMove;
+                        _unit setVariable ["WAIT_CortexQA_Target",_nodes select _cursor,true];
+                    };
+                };
+            };
+        } forEach _revisitCases;
+        time >= _revisitDeadline || {_revisitCases findIf {(_x select 2) < count (_x select 1)} < 0}
+    };
+    {
+        _x params ["_unit","_nodes","_cursor","_seen","_issued","_method","_label"];
+        ["BUILD-REVISIT-"+_label,_seen findIf {!_x} < 0,str [_nodes,_seen,getPosATL _unit,expectedDestination _unit]] call _check;
+    } forEach _revisitCases;
     sleep 10;
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
     {_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; deleteVehicle _house} forEach _heightCases;

@@ -7472,3 +7472,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _routeEvidence=[serverTime,_result,_routeStates',text)
         self.assertLess(text.index('private _result = ["INCOMPLETE","COMPLETE"]'),text.index('private _routeEvidence='))
         self.assertIn('},_reason];',text)
+
+    def test_native_room_revisit_preserves_first_pass_and_requires_arrival(self):
+        text=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        start=text.index('private _revisitCases=[];')
+        end=text.index('forEach _revisitCases;',start)+len('forEach _revisitCases;')
+        revisit=text[start:end]
+        self.assertLess(text.index('["BUILD-PLACEMENT-"+_label'),start)
+        self.assertIn('private _revisitDeadline=time+180;',revisit)
+        self.assertIn('if (_arrived) then {_seen set [_cursor,true]}',revisit)
+        self.assertIn('vectorDistance (AGLToASL (_nodes select _cursor)) <= 1.5',revisit)
+        self.assertNotIn('setPos',revisit)
