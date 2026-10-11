@@ -1838,6 +1838,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_retries < 3',timeout)
         self.assertIn('count (_job get "cleared") == count (_job get "positions")',text)
 
+    def test_native_building_controls_validate_all_model_door_sources(self):
+        comparison=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        matrix=comparison.split('private _heightCases=[];',1)[1].split('if (_nativeOnly) exitWith',1)[0]
+        self.assertNotIn('from 1 to 4',matrix)
+        self.assertIn('getNumber (configOf _house >> "numberOfDoors")',matrix)
+        self.assertIn('forEach ["sound","noSound"]',matrix)
+        self.assertIn('BUILD-PLACEMENT-DOORS-',matrix)
+
     def test_clearance_native_tasks_gate_initial_retry_speed_and_exit_writes(self):
         step=source('buildingOperationStep')
         self.assertIn('private _actorTaskFree=',step)

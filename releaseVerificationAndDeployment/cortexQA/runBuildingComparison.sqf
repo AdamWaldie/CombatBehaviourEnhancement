@@ -242,9 +242,19 @@ if (_nativeOnly && {worldName == "VR"}) then {
             _house setPosATL [6250+_forEachIndex*60,6120+_row*60,_height];
             private _label=format ["HEIGHT-%1-%2-%3",_fixtureClass,_height,_method];
             [_house,_label] call _recordFixture;
-            for "_door" from 1 to 4 do {
-                _house animateSource [format ["Door_%1_sound_source",_door],1,true];
+            private _doorCount=(getNumber (configOf _house >> "numberOfDoors")) min 16;
+            private _doorPhases=[];
+            for "_door" from 1 to _doorCount do {
+                {
+                    private _source=format ["Door_%1_%2_source",_door,_x];
+                    if (isClass (configOf _house >> "AnimationSources" >> _source)) then {
+                        _house animateSource [_source,1,true];
+                        _doorPhases pushBack [_door,_source,_house animationSourcePhase _source];
+                    };
+                } forEach ["sound","noSound"];
             };
+            ["BUILD-PLACEMENT-DOORS-"+_label,_doorPhases isNotEqualTo []
+                && {_doorPhases findIf {(_x select 2) < 0.9} < 0},str [_doorCount,_doorPhases]] call _check;
             private _group=createGroup [east,true];
             private _unit=_group createUnit ["O_Soldier_F",_house getPos [25,180],[],0,"NONE"];
             _unit allowDamage false;
