@@ -172,6 +172,9 @@ private _makeUnit={
     _unit allowDamage false; _actors pushBack _unit; _unit
 };
 private _requester=[east] call _makeGroup;
+// The requester must be allowed to initiate autonomous support discovery.
+// BLUE helpers stay isolated until dispatch; BLUE on the requester blocks the handshake.
+_requester setCombatMode "YELLOW";
 private _observer=[_requester,[1500,1500] call _terrainPosition,"CONTACT / BASE OF FIRE"] call _makeUnit;
 _observer setDir _terrainHeading; _observer disableAI "PATH";
 private _base=[_observer];
