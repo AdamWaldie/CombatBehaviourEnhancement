@@ -161,3 +161,6 @@ its nested exitWith returned from the search block rather than the function, the
 callback. The code paths are corrected. No completed physical failure is closed on that basis.
 The added SCHED-keyed and SCHED-stale/current-epoch cases run with coordination in future packages.
 A clean paired retest and the matched 50-group performance arms must establish actual effect.
+### Coordination movement evidence refinement
+
+The completed ecdff24 coordination batch records bound retries with currentCommand ATTACK and expectedDestination LEADER PLANNED differing from the committed bound (server RPT lines 1155-1160). Later HC retries retain MOVE and the exact committed destination (lines 1336-1338) while physical progress remains insufficient. Treat competing native destinations and retained-route stalls as separate investigation paths. This evidence does not establish that the recent scheduler or FSM guards resolve either outcome. Preserve all original backtracking, idle and physical-travel failures for the next packaged batch.
