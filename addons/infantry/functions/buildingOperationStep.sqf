@@ -45,6 +45,10 @@ private _delay=call {
             && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
+    private _actorTaskFree={
+        params ["_actor"];
+        !(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
+    };
     private _finish = {
         params [["_restore",true,[true]],["_reason","CANCELLED",[""]]];
         // Old-owner callbacks may finish their local FSM, but never retire a successor's
@@ -138,6 +142,12 @@ private _delay=call {
         _group setVariable ["WAIT_OperationGeneration",(_group getVariable ["WAIT_OperationGeneration",0])+1,true];
         _result
     };
+    private _building=_job get "building";
+    private _buildingTransform=_job getOrDefault ["buildingTransform",[]];
+    if (_buildingTransform isNotEqualTo []
+        && {_buildingTransform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}) exitWith {
+        [true,"BUILDING_MOVED"] call _finish
+    };
     private _operationGeneration=_job getOrDefault ["operationGeneration",-1];
     private _operationEndReason="";
     if (_operationGeneration >= 0) then {
@@ -163,12 +173,10 @@ private _delay=call {
     // can take over during this queued callback after the operation-level eligibility check.
     private _mayIssueMovement = {
         !([_group] call WAIT_fnc_CortexExternalTakeover)
+            && {_buildingTransform isEqualTo []
+                || {_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
-    };
-    private _actorTaskFree={
-        params ["_actor"];
-        !(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
     };
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
         private _assignments=(_job get "egressAssignments") select {

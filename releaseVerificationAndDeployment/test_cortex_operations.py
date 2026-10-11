@@ -7497,3 +7497,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_cached select 2) isNotEqualTo _transform',text)
         self.assertIn('_cached=[_damage,+(_building buildingPos -1),_transform]',text)
         self.assertIn('count _cached < 3',text)
+
+    def test_clearance_transform_changes_retire_before_room_or_egress_commands(self):
+        text=source('buildingOperationStep')
+        self.assertLess(text.index('private _actorTaskFree={'),text.index('private _finish = {'))
+        self.assertLess(text.index('[true,"BUILDING_MOVED"] call _finish'),text.index('== "EGRESS"'))
+        self.assertIn('_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',text)
+        self.assertIn('["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]]',source('cortexClearBuilding'))
