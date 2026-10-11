@@ -76,3 +76,18 @@ Server RPT 00:35:10, lines 17311-17319: multi-contact combat fixture used the fu
 `select 2`, and the failed prerequisite expression left the recorder's `_ok` undefined.
 The fixture now selects the enemy array before range checks. Production tactics and
 physical completion requirements are unchanged; original failures remain recorded.
+
+Server RPT 01:02:08: ADVANCE-AWARE terminated STALLED on bound 0. Actor 2:8960
+was 53.85 m short with ATTACK and no physical progress for 25.84 s. At 01:16:46,
+ADVANCE-YELLOW terminated STALLED on bound 1 with actors 2:9188 and 2:9180
+55-64 m short under ATTACK. These are physical movement failures, not FSM-load
+failures. The original audit's assault and clear-through transition checks passed
+when no assault was observed; that vacuous condition is removed in the queued fixture.
+
+A manoeuvre operation now leases leader attack delegation without disabling native
+TARGET/AUTOTARGET/FIREWEAPON. A newer policy edit cancels without formation recall.
+Consolidation admission excludes recovery and independently owned actors. These fixes
+remain physically unaccepted. The combat trace now includes actor, assigned target and
+attack-target identities at its existing cadence to distinguish hostile pursuit from
+observer/logic contamination. An observer-target cause for the infantry detour is not
+established; the observer already receives captive protection. Original failures remain.

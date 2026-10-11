@@ -450,7 +450,9 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
                 if (_recoveryDetail isNotEqualTo []) then {
                     diag_log format ["WAIT CORTEX QA RECOVERY: case=%1 actors=%2",_case,_recoveryDetail];
                 };
-                diag_log format ["WAIT CORTEX QA COMBAT: case=%1 phase=%2 stage=%3 index=%4 positions=%5 spots=%6 result=%7",_case,(_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""],_live getOrDefault ["stage",""],_live getOrDefault ["index",-1],_element apply {[getPosATL _x,currentCommand _x,expectedDestination _x,stance _x,lifeState _x,getSuppression _x,simulationEnabled _x,_x checkAIFeature "PATH",_x checkAIFeature "AUTOCOMBAT",behaviour _x,unitCombatMode _x,attackEnabled _group,_x checkAIFeature "TARGET",_x checkAIFeature "AUTOTARGET",netId assignedTarget _x]},_live getOrDefault ["spots",[]],_group getVariable ["WAIT_Cortex_DrillResult",[]]];
+                diag_log format ["WAIT CORTEX QA COMBAT: case=%1 phase=%2 stage=%3 index=%4 positions=%5 spots=%6 result=%7",_case,(_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""],_live getOrDefault ["stage",""],_live getOrDefault ["index",-1],_element apply {[getPosATL _x,currentCommand _x,expectedDestination _x,stance _x,lifeState _x,getSuppression _x,simulationEnabled _x,_x checkAIFeature "PATH",_x checkAIFeature "AUTOCOMBAT",behaviour _x,unitCombatMode _x,attackEnabled _group,_x checkAIFeature "TARGET",_x checkAIFeature "AUTOTARGET",netId assignedTarget _x,netId _x,
+                    [typeOf assignedTarget _x,side assignedTarget _x,getPosATL assignedTarget _x],
+                    [netId getAttackTarget _x,typeOf getAttackTarget _x,side getAttackTarget _x,getPosATL getAttackTarget _x]]},_live getOrDefault ["spots",[]],_group getVariable ["WAIT_Cortex_DrillResult",[]]];
             };
             count _live == 0 || {diag_tickTime >= _endTime}
         };
