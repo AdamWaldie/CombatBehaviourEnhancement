@@ -51,6 +51,8 @@ if (_living findIf {!local _x} >= 0) exitWith {
     if !([_group,"TACTICAL_DRILL",true,_settleUntil] call WAIT_fnc_CortexOwnershipLease) exitWith {false};
     private _state=[_group] call WAIT_fnc_CortexGroupState;
     _state set ["movementLease",["TACTICAL_DRILL",time+5]];
+    _state set ["enemyPos",+(_drill get "enemyPos")];
+    [_group,_state,"CONTACT","DRILL_LOCALITY_SETTLING",time,true] call WAIT_fnc_CortexSetPhase;
     [{
         params ["_job"];
         private _group=_job get "group";
@@ -64,6 +66,7 @@ if (_living findIf {!local _x} >= 0) exitWith {
             [_group,"TACTICAL_DRILL",false] call WAIT_fnc_CortexOwnershipLease;
             private _state=[_group] call WAIT_fnc_CortexGroupState;
             _state deleteAt "movementLease";
+            [_group,_state,false,[_group] call WAIT_fnc_CortexExternalTakeover,"DRILL_MIGRATION_REFUSED",true] call WAIT_fnc_CortexRestoreCalm;
         };
         -1
     },createHashMapFromArray [["group",_group],["checkpoint",_checkpoint],["until",_settleUntil]],0.2,
@@ -78,7 +81,8 @@ private _capable=_living select {
 };
 if (count _capable < 2) exitWith {false};
 if !([_group,"TACTICAL_DRILL",true,serverTime+90] call WAIT_fnc_CortexOwnershipLease) exitWith {false};
-private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},"MANOEUVRE"] call WAIT_fnc_OperationStart;
+private _operationPhase=["MANOEUVRE","ASSAULT"] select (_type == "ASSAULT" || {_drill getOrDefault ["assaulting",false]});
+private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase] call WAIT_fnc_OperationStart;
 if (count _operation == 0) exitWith {[_group,"TACTICAL_DRILL",false] call WAIT_fnc_CortexOwnershipLease; false};
 _operation set ["unavailable",_drill getOrDefault ["resumeUnavailable",[]]];
 _operation set ["recoveryAttempts",createHashMapFromArray (_drill getOrDefault ["resumeAttempts",[]])];

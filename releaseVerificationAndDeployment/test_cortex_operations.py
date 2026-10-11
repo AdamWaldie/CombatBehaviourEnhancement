@@ -14,6 +14,11 @@ class CortexOperations(unittest.TestCase):
         for field in ['points','index','teamTurn','boundDeadlineIdentity','resumeSpots','resumeRetries','resumeRecovery','resumeUnavailable','resumeAttempts']:
             self.assertIn('"'+field+'"',checkpoint)
         self.assertIn('migrationClocks',checkpoint)
+        restore=source('cortexRestoreCalm')
+        self.assertIn('if (!_preservePhase || {_reason != "OWNERSHIP_ADOPTED"})',restore)
+        self.assertIn('DRILL_LOCALITY_SETTLING',resume)
+        self.assertIn('DRILL_MIGRATION_REFUSED',resume)
+        self.assertIn('_operationPhase',resume)
         self.assertIn('count _points <= 64',checkpoint)
         self.assertIn('count (_drill getOrDefault ["units",[]]) <= 64',checkpoint)
         self.assertIn('_sourceGeneration != (_group getVariable ["WAIT_OperationGeneration",-1])',resume)

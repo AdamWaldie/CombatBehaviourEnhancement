@@ -6,14 +6,14 @@ Game audits are authorized in batches. The full packaged batch runtime-20261010-
 
 ## Current batch and queued repairs
 
-The ongoing 89812ab batch has reached 1528 recorded checks, with 4231 SQF error trace
+The ongoing 89812ab batch has reached 1820 recorded checks, with 4231 SQF error trace
 lines, no matched fatal runtime failures, one load warning and missing completion markers.
 This is a partial snapshot, not a final result. Repeated bomb-integration exceptions account
 for the new trace volume. The enabled 50-group patrol arm is invalid because its minimum
 managed-group count was zero, even though all groups moved. Its timing cannot establish
 performance acceptance.
 
-Changes through fba6685 are committed and statically/package validated, awaiting physical retest:
+Changes through 5fedb57 are committed and statically/package validated, awaiting physical retest:
 
 - Aircraft: live weapon/launch alignment, lateral turret traverse eligibility, logic-target
   rejection, preserved re-attack holds, moving-contact interception and bounded bomb drag.
@@ -29,14 +29,19 @@ Changes through fba6685 are committed and statically/package validated, awaiting
   ownership blocks reverse, group routes, withdrawal admission and stale speed restoration.
 - Additive audits: standalone driving travel, condition waits, HOLD, same-index replacement,
   disabled cleanup and physical external handover; attack-policy interruption; concurrent
-  exact-observer posture/cover evidence. These cases are queued, not passes.
+  exact-observer posture/cover evidence, and separate native handback versus tactical HC
+  continuation. These cases are queued, not passes.
+- Tactical migration: standalone advance/flank/assault checkpoints retain committed routes,
+  actor destinations, bound deadlines and spent recovery budgets. New owners rebuild one local
+  operation/FSM after authority validation; coordinated bounds keep server-role adoption.
+  Physical resumption, interruption and loaded performance remain unaccepted.
 - Vehicle repairs: stopped follower command invalidation, tracked lead resume, unsettled HALT
   cadence and finite passenger-owner exit retries remain queued for exact-candidate acceptance.
 
 Physical results from the current old package do not validate these changes. Native companion
 provider integration, specialist coexistence, CQB, combined combat and matched mixed-force
-performance remain open. Clean candidate fba668510e199b8240de647889a105f8cdf5f739 is preserved
-with dirty=false and fingerprint f19bd3fc44d6f03900c65407348f4d5a19b444552b8cc5c97e8a901de610f169.
+performance remain open. Clean candidate 5fedb57b88d3ce05a994815e523e2b78ea025a96 is preserved
+with dirty=false and fingerprint 74b1d83c723e52d1123596cca2a7973c0ab0facb4d59c9e0ed45e6878b85b68e.
 It includes the queued repairs; it has not run physically.
 
 ## Module progress toward completion

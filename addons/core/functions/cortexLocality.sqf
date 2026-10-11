@@ -1,9 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Passenger, naval landing, pending calm remount, active coordinated-support, post-contact movement
- * and active withdrawal intent survive migration without replaying old owner jobs. Invalidates old jobs,
+ * standalone manoeuvre and active withdrawal intent survive migration without replaying old owner jobs. Invalidates old jobs,
  * restores interrupted transient behaviour and resumes a bounded support assignment,
- * investigation, search or withdrawal after WAIT or ACE migration. A Zeus hold or the
+ * investigation, search, standalone manoeuvre or withdrawal after WAIT or ACE migration. A Zeus hold or the
  * matching infantry-morale/vehicle-withdrawal gate cancels restoration so migration cannot revive
  * superseded work or incorrectly couple the two withdrawal types.
  * Locality/authority: current group owner unless stated otherwise below.
@@ -222,7 +222,7 @@ private _withdrawalResumeEligible=count _withdrawalIntent == 7
 // A newly local group may already be under Zeus or an external controller. Treat the former
 // owner's checkpoint as a release-only record in that case: cancelling WAIT's own restrictions
 // must not issue a fresh follow order or restore a speed/ROE value into the replacement task.
-[_group, _restore, false, (!_restoreEligible || {_inheritedDrill isNotEqualTo []}), "OWNERSHIP_ADOPTED",!(_transitionResumeEligible || {_withdrawalResumeEligible})] call WAIT_fnc_CortexRestoreCalm;
+[_group, _restore, false, (!_restoreEligible || {_inheritedDrill isNotEqualTo []}), "OWNERSHIP_ADOPTED",!(_transitionResumeEligible || {_withdrawalResumeEligible}),_inheritedDrill isNotEqualTo []] call WAIT_fnc_CortexRestoreCalm;
 // The public token is semantic state only. CortexNavalAssault validates its unchanged deadline,
 // plan owner and boat before issuing any replacement-owner command on the normal group tick.
 if (count _navalIntent == 5 && {serverTime < (_navalIntent select 4)}

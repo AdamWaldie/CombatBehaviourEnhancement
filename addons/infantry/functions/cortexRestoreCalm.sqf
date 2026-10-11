@@ -28,6 +28,8 @@
  * 4: transition reason <STRING>, "RESTORED"; published with the CALM handover.
  * 5: force transition record <BOOL>, false; used only when a new owner must replace a stale public
  *    phase even though its fresh local state already begins in CALM.
+ * 6: preserve phase during adoption <BOOL>, false; internal locality continuation only.
+ *    Suppresses an artificial CALM record while a validated unfinished drill is reconstructed.
  * Repeat/JIP: removes only WAIT transient orders and restores recorded values.
  * Explicitly tracked Cortex holds and their public actor markers restore PATH and resume formation
  * even if local state vanished during migration or combat relabelled doStop as ATTACK/FIRE.
@@ -48,7 +50,7 @@
  * Current callers: CortexGroupTick, CortexReleaseGroup, CortexLocality and CortexOnboardContact.
  */
 
-params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_allowRemount",true,[true]], ["_yieldToExternal",false,[true]], ["_reason","RESTORED",[""]], ["_forcePhase",false,[true]]];
+params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_allowRemount",true,[true]], ["_yieldToExternal",false,[true]], ["_reason","RESTORED",[""]], ["_forcePhase",false,[true]], ["_preservePhase",false,[true]]];
 private _reverseCleanup=_group getVariable ["WAIT_VehicleReverse",[]];
 if (local _group && {count _reverseCleanup == 9}) then {
     [_group,_state,objNull,[],"RELEASE",_reverseCleanup select 1] call WAIT_fnc_CortexVehicleReverseStep;
@@ -234,5 +236,7 @@ _group setVariable ["WAIT_Cortex_TransitionIntent",nil,true];
 _group setVariable ["WAIT_AIPass_Checkpoint", [], true];
 // Explicit terminal handovers remain observable even when the tactical phase was already CALM.
 _forcePhase=_forcePhase || {_reason in ["CORTEX_STOPPED","ZEUS_TAKEOVER","EXTERNAL_TAKEOVER"]};
-[_group,_state,"CALM",_reason,time,_forcePhase] call WAIT_fnc_CortexSetPhase;
+if (!_preservePhase || {_reason != "OWNERSHIP_ADOPTED"}) then {
+    [_group,_state,"CALM",_reason,time,_forcePhase] call WAIT_fnc_CortexSetPhase;
+};
 if (missionNamespace getVariable ["WAIT_AIPass_Debug", false]) then {diag_log format ["[WAIT] %1 CALM restored", _group]};
