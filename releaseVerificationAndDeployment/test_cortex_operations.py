@@ -2557,8 +2557,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_g,true,_wp select 1] call WAIT_fnc_CortexZeusMark',zeus)
         self.assertLess(zeus.index('_g setCurrentWaypoint _wp'),
                         zeus.index('[_g,true,_wp select 1] call WAIT_fnc_CortexZeusMark'))
-        self.assertIn('_arrived < 4',zeus)
-        self.assertIn('_progressed < 4',zeus)
+        self.assertIn('_arrived < _viableMinimum',zeus)
+        self.assertIn('_progressed < _viableMinimum',zeus)
         for setting in ['setWaypointBehaviour "AWARE"','setWaypointCombatMode "YELLOW"',
                         'setWaypointSpeed "FULL"']:
             self.assertIn(setting,zeus)
@@ -3941,6 +3941,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_small_coordinated_fixture_uses_size_aware_handover_quorum(self):
+        text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')
+        self.assertIn('ceil (_helperSize*0.6)',text)
+        self.assertNotIn('count _members != 6',text)
+        self.assertNotIn('_arrived < 4',text)
+        self.assertNotIn('_progressed < 4',text)
+        self.assertIn('count _members != _helperSize',text)
+        self.assertIn('COORD-both-teams-physical-advance',text)
     def test_coordinated_bound_uses_existing_operation_generation_and_epoch(self):
         text=source('cortexSupportBoundStart')
         self.assertIn('"supportOperationGeneration",-1',text)

@@ -26,6 +26,7 @@
  */
 params ["_check","_phase","_wait",["_responderOwners",[],[[]]],["_exposeDuringRally",false,[true]],["_localScreens",false,[true]],["_helperSize",6,[0]]];
 _helperSize=(round _helperSize) max 3 min 6;
+private _viableMinimum=((ceil (_helperSize*0.6)) max 2) min _helperSize;
 private _terrainOrigin=[1500,1500,0];
 private _terrainHeading=0;
 private _terrainRelief=0;
@@ -569,7 +570,7 @@ private _advanced=true;
 ["COORD-intra-squad-physical-cover",(_intraCover findIf {_x == 0}) < 0,str _intraCover] call _check;
 ["COORD-both-teams-physical-advance",_rallied && {_advanced},str (_helpers apply {getPosATL _x})] call _check;
 // Report viable-element progress separately; never replace all-actor acceptance with it.
-// Four of six is the same rounded-up 60 percent threshold used by movement recovery.
+// Use the same rounded-up 60 percent threshold as movement recovery, with at least two.
 private _viableCounts = [];
 {
     private _teamIndex = _forEachIndex;
@@ -580,7 +581,7 @@ private _viableCounts = [];
     } forEach _x;
     _viableCounts pushBack _arrivedCount;
 } forEach _teams;
-["COORD-two-viable-elements-advance",_rallied && {(_viableCounts findIf {_x < 4}) < 0},str _viableCounts] call _check;
+["COORD-two-viable-elements-advance",_rallied && {(_viableCounts findIf {_x < _viableMinimum}) < 0},str _viableCounts] call _check;
 private _centres=_teams apply {
     private _team=_x;
     private _sum=[0,0,0]; {_sum=_sum vectorAdd getPosATL _x} forEach _team;
@@ -653,7 +654,7 @@ private _handedBack=[{
             private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_releaseOrigins select _globalIndex) >= 30 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
-        if (count _members != 6 || {_arrived < 4} || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
+        if (count _members != _helperSize || {_arrived < _viableMinimum} || {_progressed < _viableMinimum} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
     } forEach _teams;
     _okay
 },60] call _wait;
@@ -695,7 +696,7 @@ private _zeusTravel=[{
             private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_zeusOrigins select _globalIndex) >= 30 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
-        if (count _members != 6 || {_arrived < 4} || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
+        if (count _members != _helperSize || {_arrived < _viableMinimum} || {_progressed < _viableMinimum} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
     } forEach _teams;
     _okay
 },75] call _wait;
@@ -733,7 +734,7 @@ private _unopposedTravel=[{
             private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_unopposedOrigins select _globalIndex) >= 50 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
-        if (count _members != 6 || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
+        if (count _members != _helperSize || {_progressed < _viableMinimum} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
     } forEach _teams;
     _okay
 },60] call _wait;
