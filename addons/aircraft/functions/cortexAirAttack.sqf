@@ -737,19 +737,28 @@ if (_stage == "ATTACK") then {
     } else {-1};
     private _aimed=if (_weapon == "") then {0} else {_aircraft aimedAtTarget [_target,_weapon]};
     private _selectedMagazine=_job getOrDefault ["selectedMagazine",""];
-    private _magazineConfig=configFile >> "CfgMagazines" >> _selectedMagazine;
-    private _ammoClass=getText (_magazineConfig >> "ammo");
-    private _muzzleSpeed=getNumber (_magazineConfig >> "initSpeed");
-    if (_muzzleSpeed <= 0 && {_ammoClass != ""}) then {
-        _muzzleSpeed=getNumber (configFile >> "CfgAmmo" >> _ammoClass >> "typicalSpeed");
-    };
-    if (_muzzleSpeed <= 0) then {
-        _muzzleSpeed=switch _weaponClass do {
-            case "ROCKET": {180};
-            case "BOMB": {0};
-            default {900};
+    private _ballisticFacts=_job getOrDefault ["ballisticFacts",[]];
+    if (count _ballisticFacts != 4 || {(_ballisticFacts select 0) != _selectedMagazine}) then {
+        private _magazineConfig=configFile >> "CfgMagazines" >> _selectedMagazine;
+        private _ammoClass=getText (_magazineConfig >> "ammo");
+        private _muzzleSpeed=getNumber (_magazineConfig >> "initSpeed");
+        if (_muzzleSpeed <= 0 && {_ammoClass != ""}) then {
+            _muzzleSpeed=getNumber (configFile >> "CfgAmmo" >> _ammoClass >> "typicalSpeed");
         };
+        if (_muzzleSpeed <= 0) then {
+            _muzzleSpeed=switch _weaponClass do {
+                case "ROCKET": {180};
+                case "BOMB": {0};
+                default {900};
+            };
+        };
+        private _airFriction=getNumber (configFile >> "CfgAmmo" >> _ammoClass >> "airFriction");
+        _ballisticFacts=[_selectedMagazine,_ammoClass,_muzzleSpeed,_airFriction];
+        _job set ["ballisticFacts",_ballisticFacts];
     };
+    // Parse cached facts in the consuming scope. Live loading, aim, velocity and terrain still
+    // determine whether this specific operation can release its selected station.
+    _ballisticFacts params ["_factsMagazine","_ammoClass","_muzzleSpeed","_airFriction"];
     private _predictedLaunchVelocity=((vectorNormalized _weaponVector) vectorMultiply _muzzleSpeed)
         vectorAdd (velocity _aircraft);
     private _launchAlignment=if (vectorMagnitude _predictedLaunchVelocity > 0.01
@@ -811,7 +820,6 @@ if (_stage == "ATTACK") then {
         if (_muzzleSpeed > 0) then {
             _integrationVelocity=_integrationVelocity vectorAdd ((vectorDir _aircraft) vectorMultiply _muzzleSpeed);
         };
-        private _airFriction=getNumber (configFile >> "CfgAmmo" >> _ammoClass >> "airFriction");
         private _targetAltitude=aimPos _target select 2;
         private _integrationTime=0;
         private _integrationStep=0.2;
