@@ -1869,6 +1869,22 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _pair=_x select {[_x] call _actorAvailable',text)
         self.assertIn('!(_x in _unavailable)',text)
 
+    def test_clear_egress_preserves_progressing_routes_and_bounds_retries(self):
+        step=source('buildingOperationStep')
+        egress=step.split('== "EGRESS") exitWith {',1)[1].split('private _positions =',1)[0]
+        self.assertNotIn('egressReissue',egress)
+        self.assertIn('(_record select 1)-_remaining >= 0.5',egress)
+        self.assertIn('time-(_record select 2) >= 8',egress)
+        self.assertIn('(_record select 3) < 1',egress)
+        self.assertIn('if ([_x] call _outsideExit)',egress)
+        self.assertIn('[_unit] call _actorAvailable',egress)
+        self.assertIn('_record set [3,1]',egress)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        self.assertIn('physical-egress',qa)
+        self.assertIn('_actor distance2D _exitTarget <= 5',qa)
+        self.assertIn('abs (((getPosATL _actor) select 2)',qa)
+        self.assertIn('egress-retry-budget',qa)
+
     def test_clearance_egresses_before_terminal_handover(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('(_job getOrDefault ["phase","CLEAR"]) == "EGRESS"',text)

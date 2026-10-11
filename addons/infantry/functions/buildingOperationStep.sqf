@@ -162,13 +162,31 @@ private _delay=call {
             if (call _mayIssueMovement) then {
                 {
                     _x params ["_unit","_target"];
-                    private _openedDoor=[_unit,_job get "building"] call WAIT_fnc_CortexBuildingDoor;
-                    if ((_openedDoor || {currentCommand _unit in ["","STOP"]} || {time >= (_job get "egressReissue")}) && {call _mayIssueMovement}) then {
-                        _unit doMove _target;
+                    if ([_x] call _outsideExit) then {
+                        private _records=_job get "egressProgress";
+                        private _recordIndex=_records findIf {(_x select 0) == _unit};
+                        if (_recordIndex >= 0) then {
+                            private _record=_records select _recordIndex;
+                            private _remaining=(getPosATL _unit) vectorDistance _target;
+                            if ((_record select 1)-_remaining >= 0.5) then {
+                                _record set [1,_remaining];
+                                _record set [2,time];
+                            };
+                            // Opening an unlocked door does not replace a moving route. The engine
+                            // observes the opened door; only measured no-progress permits one retry.
+                            [_unit,_job get "building"] call WAIT_fnc_CortexBuildingDoor;
+                            if (time-(_record select 2) >= 8 && {(_record select 3) < 1}
+                                && {[_unit] call _actorAvailable} && {call _mayIssueMovement}) then {
+                                _unit doMove _target;
+                                _record set [3,1];
+                                private _evidence=_group getVariable ["WAIT_Cortex_ClearEgressRetries",[]];
+                                _evidence pushBack [serverTime,netId _unit,1,getPosATL _unit,+_target,_remaining];
+                                _group setVariable ["WAIT_Cortex_ClearEgressRetries",_evidence,true];
+                            };
+                        };
                     };
                 } forEach _assignments;
             };
-            if (time >= (_job get "egressReissue")) then {_job set ["egressReissue",time+6]};
             1.5
         }
     };
@@ -592,7 +610,10 @@ private _delay=call {
         _job set ["phase","EGRESS"];
         _job set ["egressAssignments",_egressAssignments];
         _job set ["egressDeadline",time+45];
-        _job set ["egressReissue",time];
+        _job set ["egressProgress",_egressAssignments apply {
+            [_x select 0,(getPosATL (_x select 0)) vectorDistance (_x select 1),time,0]
+        }];
+        _group setVariable ["WAIT_Cortex_ClearEgressRetries",[],true];
         if (call _mayIssueMovement) then {
             {
                 _x params ["_unit","_target"];
@@ -601,7 +622,7 @@ private _delay=call {
                 };
             } forEach _egressAssignments;
         };
-        _group setVariable ["WAIT_Cortex_ClearEgress",["EGRESS",_egressAssignments apply {_x select 1},serverTime],true];
+        _group setVariable ["WAIT_Cortex_ClearEgress",["EGRESS",_egressAssignments apply {_x select 1},serverTime,_egressAssignments],true];
         _group setVariable ["WAIT_Cortex_ClearStatus",["EGRESS",count (_job get "cleared"),count (_job get "unreachable"),count (_job get "positions"),count (_job get "pairs"),serverTime],true];
         1.5
     };

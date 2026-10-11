@@ -112,10 +112,26 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
     private _entryEpoch=_group getVariable ["WAIT_AIPass_Epoch",0];
     private _entryGeneration=(_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["generation",-1];
     private _entryOwnerStable=true;
+    private _egressSeen=false;
+    private _egressAssignments=[];
+    private _egressVisits=[];
     [format ["CLEAR-fresh-%1-owner-established",_size],_accepted && {_entryEpoch > 0}
         && {_group getVariable ["WAIT_AIPass_Adopted",false]} && {_entryGeneration >= 0},
         str [_entryEpoch,_entryGeneration]] call _check;
     private _settled=[{
+        private _exit=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
+        if (!_egressSeen && {count _exit == 4} && {(_exit select 0) == "EGRESS"}) then {
+            _egressAssignments=+(_exit select 3);
+            _egressVisits=_egressAssignments apply {false};
+            _egressSeen=_egressAssignments isNotEqualTo [];
+        };
+        {
+            _x params ["_actor","_exitTarget"];
+            if (alive _actor && {_actor distance2D _exitTarget <= 5}
+                && {abs (((getPosATL _actor) select 2)-(_exitTarget param [2,0])) <= 1.5}) then {
+                _egressVisits set [_forEachIndex,true];
+            };
+        } forEach _egressAssignments;
         private _currentOperation=_group getVariable ["WAIT_Operation",createHashMap];
         if ((_group getVariable ["WAIT_AIPass_Epoch",0]) != _entryEpoch
             || {count _currentOperation > 0 && {(_currentOperation getOrDefault ["generation",-1]) != _entryGeneration}}) then {
@@ -163,6 +179,9 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
         str [_localResult,_originalAttack,attackEnabled leader _group]] call _check;
     private _physical=_rooms isNotEqualTo [] && {_visits findIf {!_x} < 0};
     [format ["CLEAR-fresh-%1-physical-room-visits",_size],_physical,format ["visits=%1 units=%2",_visits,_members apply {[getPosATL _x,currentCommand _x,expectedDestination _x,_x checkAIFeature "PATH",_x checkAIFeature "MOVE",behaviour _x]}]] call _check;
+    [format ["CLEAR-fresh-%1-physical-egress",_size],_egressSeen && {_egressVisits findIf {!_x} < 0},str [_egressAssignments,_egressVisits]] call _check;
+    private _egressRetries=_group getVariable ["WAIT_Cortex_ClearEgressRetries",[]];
+    [format ["CLEAR-fresh-%1-egress-retry-budget",_size],_egressSeen && {_egressRetries findIf {(_x select 2) > 1} < 0},str _egressRetries] call _check;
     [format ["CLEAR-fresh-%1-result-agrees",_size],_physical && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"}] call _check;
     [format ["CLEAR-fresh-%1-successive-positions",_size],_memberVisits findIf {count _x >= 2} >= 0,str _memberVisits] call _check;
     if (_size == 2) then {
