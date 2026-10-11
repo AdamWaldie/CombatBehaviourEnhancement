@@ -67,6 +67,18 @@ private _selfWakeRan=[{(_selfWakeState get "calls") >= 2},10] call _wait;
     && {(_selfWakeState get "secondAt")-(_selfWakeState get "firstAt") < 10},
     str [_selfWakeState get "calls",_selfWakeState get "firstAt",_selfWakeState get "secondAt"]] call _check;
 missionNamespace setVariable ["WAIT_CortexQA_SelfWakeCallback",nil];
+// Stable aircraft observer keys survive locality changes; generation must isolate their state.
+private _generationKey="WAIT_QA_GENERATION_"+str diag_tickTime;
+private _previousGeneration=createHashMapFromArray [["generation",1],["calls",0],["oldProgress",true]];
+private _currentGeneration=createHashMapFromArray [["generation",2],["calls",0]];
+isNil {
+    [_coalesceCallback,_previousGeneration,1,_generationKey] call WAIT_fnc_CortexQueueJob;
+    [_coalesceCallback,_currentGeneration,0,_generationKey] call WAIT_fnc_CortexQueueJob;
+};
+private _generationRan=[{(_currentGeneration get "calls") == 1},10] call _wait;
+["SCHED-keyed-generation-state-isolated",_generationRan
+    && {(_previousGeneration get "generation") == 1}
+    && {!("oldProgress" in _currentGeneration)},str [_previousGeneration get "generation",_currentGeneration get "calls"]] call _check;
 // Isolated owner-epoch admission check: do not change any live mission group's epoch.
 private _epochGroup=createGroup [east,false];
 _epochGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];

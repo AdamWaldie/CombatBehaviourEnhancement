@@ -564,3 +564,5 @@ cases measure one keyed callback, updated state, retirement, rejection without e
 fresh-owner execution and no old-epoch execution. They supplement physical movement, interruption,
 HC and performance acceptance; they are queued and have not passed in game.
 A keyed callback may request an earlier wake while it is running. The scheduler carries that wake into both the rescheduled job and its cached earliest deadline, so the idle gate cannot postpone immediate reassessment until the callback's normal cadence. The additive scheduler audit checks a self-wake against a twenty-second return delay; physical acceptance remains pending.
+
+Keyed updates coalesce only within the same explicit generation as well as group and owner epoch. Stable aircraft observer keys therefore cannot adopt an earlier generation's braking or landing progress after locality changes. The retired callback retains its original generation for its existing release checks; fresh work receives separate state. The additive generation-isolation audit remains pending in game.

@@ -50,6 +50,7 @@ if (_jobKey != "") then {
             && {!(_candidateState getOrDefault ["cancelled",false])}
             && {!(_candidateState getOrDefault ["finished",false])}
             && {!(_candidateState getOrDefault ["done",false])}
+            && {(_candidateState getOrDefault ["generation",-1]) == (_state getOrDefault ["generation",-1])}
             && {(_candidateState getOrDefault ["group",grpNull]) == _group}
             && {isNull _group || {(_candidateState getOrDefault ["ownerEpoch",-1]) == (_state get "ownerEpoch")}}) exitWith {
             _existingState = _candidateState;
