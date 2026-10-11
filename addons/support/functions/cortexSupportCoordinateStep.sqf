@@ -91,7 +91,7 @@ private _routeFailuresByToken=_job getOrDefault ["routeFailuresByToken",createHa
 _job set ["boundRetired",_retired];
 
 private _cursor=_job getOrDefault ["boundCursor",0];
-private _maxConcurrent=(count _teams) min 2;
+private _maxConcurrent=(count _teams) min (_job getOrDefault ["boundMaxConcurrent",2]);
 for "_slot" from count _active to (_maxConcurrent-1) do {
     private _next=grpNull;
     private _point=[];

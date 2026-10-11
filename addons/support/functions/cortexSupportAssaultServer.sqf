@@ -115,6 +115,7 @@ if (_sent > 0) then {
     _job set ["leases",_dispatched];
     _requester setVariable ["WAIT_Cortex_SupportResponders",_dispatched apply {[_x select 0,_x select 1]},true];
     _requester setVariable ["WAIT_Cortex_SupportRequestState",[_job get "serial","ACTIVE",_job get "expiry"],true];
+    _job set ["boundMaxConcurrent",(round (missionNamespace getVariable ["WAIT_AIPass_CoordinatedAssault_MaxMovers",2])) max 1 min 4];
     _job set ["assaultIssued",true];
     [_job,_dispatched] call WAIT_fnc_CortexSupportCoordinateStep;
 } else {

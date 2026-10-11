@@ -1148,7 +1148,8 @@
       "setup": "Use two eligible responders on separate owners and a supported squad in real contact.",
       "expected": "Responders accept communicated contact and begin separated approaches from their live positions without an intermediate assembly or all-responder readiness gate; rejection, loss and disable release every affected lease independently.",
       "settings": [
-        "WAIT_AIPass_CoordinatedAssault_Enable"
+        "WAIT_AIPass_CoordinatedAssault_Enable",
+        "WAIT_AIPass_CoordinatedAssault_MaxMovers"
       ],
       "status": "implemented_partial",
       "live_evidence": [

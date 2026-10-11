@@ -3886,7 +3886,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_token,serverTime,"INSUFFICIENT_STRENGTH",count _fit]',coordinator)
         self.assertIn('private _watchdog=(((_boundTimeout max 10)*4)+15) min 180',coordinator)
         self.assertNotIn('serverTime+180',coordinator)
-        self.assertIn('private _maxConcurrent=(count _teams) min 2',coordinator)
+        self.assertIn('private _maxConcurrent=(count _teams) min (_job getOrDefault ["boundMaxConcurrent",2])',coordinator)
         self.assertIn('for "_slot" from count _active to (_maxConcurrent-1)',coordinator)
         self.assertIn('_active pushBack [_group,_sequence,serverTime+_watchdog',coordinator)
         self.assertIn('distance2D _goal < 60',coordinator)

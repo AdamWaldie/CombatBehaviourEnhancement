@@ -464,6 +464,7 @@ createHashMapFromArray [
         ["WAIT_AIPass_Advance_MinContactSeconds", 0], // SECONDS: optional confirmed-contact delay before an advance is considered.
         ["WAIT_AIPass_Advance_Cooldown", 20], // SECONDS: after an advance ends before the squad may start another.
         ["WAIT_AIPass_CoordinatedAssault_Enable", true], // BOOL: reinforcing squads assault together while the first squad fires.
+        ["WAIT_AIPass_CoordinatedAssault_MaxMovers", 2], // Per-operation concurrent mover cap; safe distinct corridors remain required.
         ["WAIT_AIPass_Stance_Enable", true], // BOOL: stance chosen from the height of the cover in front.
         ["WAIT_AIPass_AmmoShare_Enable", true], // BOOL: soldiers low on magazines get one from a squad-mate.
         ["WAIT_AIPass_AmmoShare_Distance", 10], // METRES: how close the squad-mate must be.

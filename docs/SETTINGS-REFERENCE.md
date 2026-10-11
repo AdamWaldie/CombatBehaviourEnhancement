@@ -156,6 +156,7 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 | --- | --- | --- | --- | --- | --- | --- |
 | `WAIT_AIPass_Reinforce_Enable` | Reinforcement | CHECKBOX | true | [] | NEXT_OPERATION | Idle nearby squads move up behind a squad in contact. |
 | `WAIT_AIPass_CoordinatedAssault_Enable` | Coordinated assault | CHECKBOX | true | [] | NEXT_OPERATION | Reinforcing squads assault from both sides while the squad in contact fires. |
+| `WAIT_AIPass_CoordinatedAssault_MaxMovers` | Concurrent manoeuvre squads | SLIDER | 2 | [1, 4, 0] | NEXT_OPERATION | Maximum simultaneous manoeuvre elements in one communicating support opportunity. Distinct safe corridors are still required; the requester supplies support. Higher values increase planning work. Captured when the assault begins. |
 | `WAIT_Cortex_CombinedArms_AirRange` | Aircraft support range (m) | SLIDER | 4000 | [500, 10000, 0] | NEXT_OPERATION | How far a radio-linked aircraft may accept a fresh combined-arms opportunity. This is independent of the shorter squad report radius. |
 | `WAIT_AIPass_Reinforce_Radius` | Reinforcement radius (m) | SLIDER | 600 | [100, 2000, 0] | NEXT_OPERATION | How far away idle squads may be sent to help. |
 | `WAIT_AIPass_Reinforce_MaxResponders` | Reinforcing squads | SLIDER | 2 | [0, 5, 0] | NEXT_OPERATION | Squads sent to help one squad in contact. |
