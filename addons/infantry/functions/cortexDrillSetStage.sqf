@@ -35,7 +35,9 @@ private _entry=[
     _next,
     _reason,
     _drill getOrDefault ["index",-1],
-    _drill getOrDefault ["teamTurn",-1]
+    _drill getOrDefault ["teamTurn",-1],
+    _drill getOrDefault ["operationGeneration",-1],
+    _drill getOrDefault ["ownerEpoch",-1]
 ];
 private _history=_group getVariable ["WAIT_Cortex_DrillTransitions",[]];
 _history pushBack _entry;

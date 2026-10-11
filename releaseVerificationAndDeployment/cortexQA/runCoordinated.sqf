@@ -374,6 +374,8 @@ private _intraCover=[0,0];
 private _movingShots=[0,0];
 private _physicalMoverSamples=[0,0];
 private _attackOverrideSamples=[0,0];
+private _childLifecycleSamples=[0,0];
+private _childLifecycleViolations=[0,0];
 private _movementRoeSamples=[0,0];
 private _movementRoeViolations=[0,0];
 private _idleSince=createHashMap;
@@ -448,6 +450,14 @@ private _movementWindowEnded=[{
                 // the pass had deliberately relinquished the element.
                 private _transition=_g getVariable ["WAIT_Cortex_DrillTransition",[]];
                 private _stage=if (count _transition >= 5) then {_transition select 4} else {""};
+                private _boundPrefix=format ["SUPPORT:%1:%2:",_role select 0,_role select 1];
+                if (_stage == "MOVE" && {((_transition param [1,""]) find _boundPrefix) == 0}) then {
+                    _childLifecycleSamples set [_ti,(_childLifecycleSamples select _ti)+1];
+                    if ((_transition param [8,-1]) != (_g getVariable ["WAIT_OperationGeneration",-2])
+                        || {(_transition param [9,-1]) != (_g getVariable ["WAIT_AIPass_Epoch",-2])}) then {
+                        _childLifecycleViolations set [_ti,(_childLifecycleViolations select _ti)+1];
+                    };
+                };
                 if (_stage == "MOVE") then {
                     _movementRoeSamples set [_ti,(_movementRoeSamples select _ti)+1];
                     if (combatMode _g != "YELLOW") then {
@@ -537,6 +547,9 @@ private _movementWindowEnded=[{
     };
     _retiredSince >= 0 && {diag_tickTime-_retiredSince >= 5}
 },600] call _wait;
+["COORD-child-lifecycle-bound",(_childLifecycleSamples findIf {_x <= 0}) < 0
+    && {(_childLifecycleViolations select 0)+(_childLifecycleViolations select 1) == 0},
+    str [_childLifecycleSamples,_childLifecycleViolations]] call _check;
 ["COORD-tactical-role-observed",_movementRoleObserved] call _check;
 ["COORD-movement-admission",!_movementAdmissionFailed,format ["roleObserved=%1 elapsed=%2",_movementRoleObserved,diag_tickTime-_movementAdmissionStarted]] call _check;
 private _advanced=true;
