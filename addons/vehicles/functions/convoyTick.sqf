@@ -117,7 +117,7 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     private _resumeFollowers = if (_sameLine) then {_state getOrDefault ["followers",createHashMap]} else {createHashMap};
     // Revision setup stops/reacquires followers below. Preserve the predecessor trail and cursor,
     // but invalidate command commitments so an unchanged endpoint cannot hide that stopped command.
-    {private _v=_x; private _key=netId _v; private _record=_resumeFollowers getOrDefault [_key,[]]; if (_record isNotEqualTo []) then {_record set [0,getPosATL _v]; _record set [1,time]; _record set [2,-1]; _record set [5,[]]; _record set [6,[]]}} forEach _vehicles;
+    {private _v=_x; private _key=netId _v; private _record=_resumeFollowers getOrDefault [_key,[]]; if (_record isNotEqualTo []) then {_record set [0,getPosATL _v]; _record set [1,time]; _record set [2,-1]; _record set [5,[]]; _record set [6,[]]; _record set [7,false]}} forEach _vehicles;
     // A revision alone does not relinquish driving authority to native formation.
     if (count _state > 0 && {!_sameLine}) then {[_group, false, _restore, _registered] call WAIT_fnc_ConvoyReleaseLocal};
     private _savedProgress = _group getVariable ["WAIT_Convoy_ContactProgress", []];
@@ -165,7 +165,18 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
                 // Waiting for a large gap lets native formation compress/overtake during startup.
                 doStop driver _x;
                 _initialPathOwners set [netId _x,true];
-            } else {(driver _x) doFollow leader _group};
+            } else {
+                // Native followers also acquire column control before a forward trail
+                // exists. Formation following here can overtake the predecessor.
+                private _initialOperator=effectiveCommander _x;
+                if (isNull _initialOperator) then {_initialOperator=driver _x};
+                doStop _initialOperator;
+                private _initialKey=netId _x;
+                private _initialProgress=_resumeFollowers getOrDefault [_initialKey,
+                    [getPosATL _x,time,-1,0,0,[],[]]];
+                _initialProgress set [7,true];
+                _resumeFollowers set [_initialKey,_initialProgress];
+            };
             _x setConvoySeparation _separation;
         };
     } forEach _vehicles;
