@@ -55,6 +55,17 @@ for "_i" from 0 to 1 do {
     _targets pushBack _unit;
 };
 _group setCombatMode "BLUE"; _enemyGroup setCombatMode "BLUE";
+// A geometry boundary case, separate from the real-shot acceptance below.
+private _protectedBlocker=_enemyGroup createUnit ["B_Soldier_F",[2100,1107.5,0],[],0,"NONE"];
+_protectedBlocker disableAI "PATH";
+_protectedBlocker setUnitCombatMode "BLUE";
+_protectedBlocker setCaptive true;
+private _lineShooter=_shooters select 0;
+private _lineTarget=aimPos (_targets select 0);
+["FIRE-protected-captive-blocks-lane",!([_lineShooter,_lineTarget] call WAIT_fnc_CortexLineOfFireClear)] call _check;
+_protectedBlocker setCaptive false;
+["FIRE-hostile-does-not-block-lane",[_lineShooter,_lineTarget] call WAIT_fnc_CortexLineOfFireClear] call _check;
+deleteVehicle _protectedBlocker;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_shooters+_targets,true];
 ["Fire control: hold fire","Enemies are within 20 m. Cortex must respect BLUE hold-fire even when close-threat targeting would otherwise order a shot. Observe weapons and actual shots.",[2100,1100,0]] call _phase;
 ["FIRE-real-contact",[{((_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""]) == "CONTACT"},35] call _wait] call _check;
