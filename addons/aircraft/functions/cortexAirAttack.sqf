@@ -448,15 +448,24 @@ if (_stage == "") then {
                 && {(_liveJob getOrDefault ["stage",""]) in ["INGRESS","ATTACK"]}
                 && {!captive _guidedTarget} && {(side _fireGroup) getFriend side _guidedTarget < 0.6}
                 && {(_fireGroup knowsAbout _guidedTarget) > 0}) then {
-                private _targetAccepted=_projectile setMissileTarget _guidedTarget;
-                // Air seekers track the object directly. Ground seekers also need one immutable
-                // aim point when their ammo explicitly supports manual point guidance. This is one
-                // release-time assignment, not a scripted homing loop or an airframe correction.
-                if (!(_guidedTarget isKindOf "Air")) then {
-                    _projectile setMissileTargetPos (ASLToATL (aimPos _guidedTarget));
+                private _nativeTarget=missileTarget _projectile;
+                private _nativePoint=missileTargetPos _projectile;
+                private _hasNativePoint=count _nativePoint == 3 && {vectorMagnitude _nativePoint > 1};
+                private _targetAccepted=_nativeTarget == _guidedTarget;
+                private _guidanceDecision="NATIVE_GUIDANCE_RETAINED";
+                // A valid native seeker/laser/countermeasure target takes priority. Only fill
+                // missing guidance; never replace an existing target with the planned object.
+                if (isNull _nativeTarget && {!_hasNativePoint}) then {
+                    _targetAccepted=_projectile setMissileTarget _guidedTarget;
+                    _guidanceDecision=["SEEKER_REFUSED","SEEKER_TARGET_ACCEPTED"] select _targetAccepted;
+                    if (!_targetAccepted && {!(_guidedTarget isKindOf "Air")}
+                        && {getNumber (configFile >> "CfgAmmo" >> typeOf _projectile >> "manualControl") > 0}) then {
+                        _projectile setMissileTargetPos (ASLToATL (aimPos _guidedTarget));
+                        _guidanceDecision="MANUAL_POINT_REQUESTED";
+                    };
                 };
                 _aircraft setVariable ["WAIT_Cortex_AirGuidanceAssignment",[
-                    serverTime,_weapon,_targetAccepted,missileTarget _projectile,missileTargetPos _projectile
+                    serverTime,_weapon,_targetAccepted,missileTarget _projectile,missileTargetPos _projectile,_guidanceDecision
                 ],true];
             };
         };
