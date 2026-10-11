@@ -8,7 +8,7 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACombat.sqf";
  */
 params ["_check","_phase","_wait"];
-private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE"];
+private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE"];
 private _selected = missionNamespace getVariable ["WAIT_CortexQA_CombatCase",""];
 if (_selected != "" && {!(_selected in _cases)}) exitWith {["COMBAT-invalid-case",false,_selected] call _check};
 if (_selected != "") then {_cases = [_selected]};
@@ -16,10 +16,10 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
 {
     private _case = _x;
     private _blockage = _case in ["FLANK-BLOCKED","ADVANCE-BLOCKED"];
-    private _handover = _case in ["FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","FLANK-ZEUS-ROE","FLANK-ZEUS-CONSOLIDATE"];
+    private _handover = _case in ["FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","FLANK-ZEUS-ROE","FLANK-ZEUS-CONSOLIDATE"];
     private _directAssault=_case in ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT"];
     private _mode = if (_directAssault) then {"ASSAULT"} else {if ((_case find "FLANK") == 0) then {"FLANK"} else {"ADVANCE"}};
-    private _enemyPosition = [1200,switch (_case) do {case "ASSAULT-CLOSE": {1250}; case "ASSAULT-MULTI-CONTACT": {1250}; case "ADVANCE-YELLOW": {1450}; case "ADVANCE-AWARE": {1450}; case "ADVANCE-BLOCKED": {1450}; case "ADVANCE-ZEUS": {1450}; case "ADVANCE-ZEUS-ATTACK": {1450}; case "ADVANCE": {1450}; case "ADVANCE-DISTANT": {1550}; default {1350}},0];
+    private _enemyPosition = [1200,switch (_case) do {case "ASSAULT-CLOSE": {1250}; case "ASSAULT-MULTI-CONTACT": {1250}; case "ADVANCE-YELLOW": {1450}; case "ADVANCE-AWARE": {1450}; case "ADVANCE-BLOCKED": {1450}; case "ADVANCE-ZEUS": {1450}; case "ADVANCE-ZEUS-ATTACK": {1450}; case "ADVANCE-HC-HANDOVER": {1450}; case "ADVANCE": {1450}; case "ADVANCE-DISTANT": {1550}; default {1350}},0];
     private _advance = _mode == "ADVANCE";
     private _group = createGroup [east,true];
     private _enemyGroup = createGroup [west,true];
@@ -204,6 +204,39 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
                 _actor setUnitCombatMode "BLUE";
                 private _row = _originalModes findIf {(_x select 0) == _actor};
                 if (_row >= 0) then {(_originalModes select _row) set [1,"BLUE"]};
+            };
+        };
+        if (_case == "ADVANCE-HC-HANDOVER") then {
+            private _migrationOwners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+            [_prefix+"-headless-owner-prerequisite",_moving && {_migrationOwners isNotEqualTo []}] call _check;
+            if (_migrationOwners isNotEqualTo []) then {
+                private _migrationOwner=_migrationOwners select 0;
+                private _migrationStarts=_members apply {getPosATL _x};
+                private _permissionBefore=attackEnabled _group;
+                private _operationBefore=_group getVariable ["WAIT_Operation",createHashMap];
+                private _permissionLease=(_operationBefore getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]];
+                [_prefix+"-headless-permission-lease-prerequisite",_moving && {!_permissionBefore}
+                    && {_permissionLease isEqualTo [_originalAttackPolicy,false]}] call _check;
+                // Remove the enemy stimulus, not WAIT operation state. This measures native
+                // handback rather than claiming uninterrupted tactical intent has been rebuilt.
+                {deleteVehicle _x} forEach _enemies;
+                _group setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+                {_x setVariable ["acex_headless_blacklist",false,true]} forEach _members;
+                ["Advance: headless native handback","A real moving bound transfers ownership after its enemy is removed. The old job must retire, attack permission must return to baseline, and all soldiers must continue physically under the native route. Seamless tactical resumption is a separate requirement.",getPosATL leader _group] call _phase;
+                private _migrationRequested=[_group,_migrationOwner] call WAIT_fnc_HeadlessMigrateGroup;
+                private _migrationAdopted=[{groupOwner _group == _migrationOwner
+                    && {_members findIf {owner _x != _migrationOwner} < 0}},35] call _wait;
+                [_prefix+"-headless-owner-adopted",_moving && {_migrationRequested} && {_migrationAdopted}] call _check;
+                private _permissionRestored=[{attackEnabled _group == _originalAttackPolicy},15] call _wait;
+                [_prefix+"-headless-attack-permission-restored",_moving && {_migrationAdopted}
+                    && {_permissionRestored},str [_permissionBefore,_originalAttackPolicy,attackEnabled _group]] call _check;
+                private _migrationTravel=[{
+                    private _allMoved=true;
+                    {if (!alive _x || {_x distance2D (_migrationStarts select _forEachIndex) < 10}) then {_allMoved=false}} forEach _members;
+                    _allMoved
+                },60] call _wait;
+                [_prefix+"-headless-native-physical-continuation",_moving && {_migrationAdopted}
+                    && {_permissionRestored} && {_migrationTravel},str (_members apply {getPosATL _x})] call _check;
             };
         };
         if (_case == "ADVANCE-ZEUS-ATTACK") then {
