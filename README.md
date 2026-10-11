@@ -92,3 +92,5 @@ Current implementation, physical acceptance and progression blockers are recorde
 ## Optional engine policy
 
 The packaged optionals folder contains a separate AI Turret Aiming addon. Load that optional mod alongside WAIT to apply a restart-required AI turret aiming-error ceiling of 0.12 radians. It changes no weapon dispersion, ammunition, projectile or recoil properties. CBA switches cannot unload an engine configuration patch; remove the optional mod and restart to restore the base configuration. Default WAIT installation does not load it. Physical lethality, player precision and compatibility acceptance remain pending.
+
+For packaged audit comparisons, use the checked-in launcher with -EnginePolicies turret_aiming for the policy arm and omit it for the default arm. The launcher records the selection and uses the same sealed optional addon on every participating machine; native baseline runs reject WAIT engine policies.

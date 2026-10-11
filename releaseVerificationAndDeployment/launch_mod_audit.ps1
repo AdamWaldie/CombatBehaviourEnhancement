@@ -4,6 +4,7 @@ param(
     [string]$Focus='all',
     [string]$HeadlessProvider='',
     [string[]]$Mods=@(),
+    [ValidateSet("turret_aiming")][string[]]$EnginePolicies=@(),
     [string]$Python='python',
     [int]$Port=24142,
     [int]$ResolutionWidth=3840,
@@ -29,6 +30,7 @@ if (!$ArmaPath) {
 if (!$StageOnly -and (Get-Process arma3*,arma3server* -ErrorAction SilentlyContinue)) {
     throw 'An Arma process is already running. Finish that session before launching this batch.'
 }
+if ($NativeBaseline -and $EnginePolicies.Count) {throw 'NativeBaseline cannot load WAIT engine policies'}
 if ($NativeBaseline -and $Focus -ne 'standaloneperformance') {throw 'NativeBaseline requires standaloneperformance focus'}
 if ($Focus -eq 'standaloneperformance' -and $HeadlessClients -ne 0) {throw 'Standalone server-owned performance requires HeadlessClients 0; use the migration audit for headless cases'}
 $stageDefaultDependencies=!$Mods.Count
@@ -60,9 +62,22 @@ if ($stageDefaultDependencies) {
         $launchMods+=$stagedMod
     }
 }
+# Optional engine configuration is selected from the same sealed package, never a source folder.
+# These paths join the one shared mod argument used by server, client and every headless client.
+$policyMods=@()
+foreach ($policy in ($EnginePolicies | Select-Object -Unique)) {
+    $policyMod=Join-Path $runtime ("@WaldosAITweaks/optionals/@waldo_ai_tweaks_"+$policy)
+    if (!(Test-Path -LiteralPath (Join-Path $policyMod 'addons')) -or
+        !(Get-ChildItem -LiteralPath (Join-Path $policyMod 'addons') -Filter '*.pbo')) {
+        throw "Selected engine policy is missing from the sealed package: $policy"
+    }
+    $policyMods+=(Resolve-Path -LiteralPath $policyMod).Path
+}
+$launchMods+=$policyMods
 $manifest=Get-Content -Raw (Join-Path $runtime 'audit-manifest.json') | ConvertFrom-Json
 $manifest | Add-Member dependencySources ($Mods | ForEach-Object { (Resolve-Path -LiteralPath $_).Path })
 $manifest | Add-Member dependencies ($launchMods | ForEach-Object { (Resolve-Path -LiteralPath $_).Path })
+$manifest | Add-Member enginePolicies @($EnginePolicies | Select-Object -Unique)
 $manifest | Add-Member resolution @($ResolutionWidth,$ResolutionHeight)
 $manifest | Add-Member headlessClients $HeadlessClients
 $manifest | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $runtime 'audit-manifest.json')
