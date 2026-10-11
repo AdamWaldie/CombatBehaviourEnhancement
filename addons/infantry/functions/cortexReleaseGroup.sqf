@@ -58,6 +58,12 @@ if (count _brain > 0 && {!_keepBrain}) then {
     _brain set ["cancelled",true];
     _brain set ["cancelReason",if (_reason == "") then {"RELEASED"} else {_reason}];
     _brain set ["wakeAt",time];
+    // Retire this FSM's identity synchronously. Its later Finished state must not
+    // release a replacement CLEAR or other operation started in this same frame.
+    _group setVariable ["WAIT_GroupBrain_Generation",(_group getVariable ["WAIT_GroupBrain_Generation",0])+1];
+    _group setVariable ["WAIT_GroupBrain",nil];
+    _group setVariable ["WAIT_GroupBrain_FSM",nil];
+    _group setVariable ["WAIT_Cortex_GroupJob",nil];
 };
 private _yieldToZeus=local _group && {[_group] call WAIT_fnc_CortexZeusHeld};
 // The helper covers player members, curator possession, specialist ownership and explicit
