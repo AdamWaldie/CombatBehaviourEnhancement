@@ -14,7 +14,7 @@
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, km/h, gap, pushThrough, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
  * Return Value: Nothing.
- * Current callers: revision-scoped ConvoyJobStep callbacks through the shared owner-local scheduler.
+ * Current caller: WAIT_fnc_ConvoyOperationStep through the shared owner-local scheduler.
  * Example: [_group, _configuration] call WAIT_fnc_ConvoyTick;
  */
 params ["_group", "_configuration"];
@@ -526,7 +526,6 @@ for "_i" from 1 to (count _vehicles - 1) do {
         if (_attempts > 3) then {
             [_group,_revision,([_vehicle] call _classifyStall),[],_vehicle] remoteExecCall ["WAIT_fnc_ConvoyHaltServer",2];
         } else {
-            _pathOwners set [_key,false];
             if ([] call _mayIssueDriving) then {
                 // Recovery must retain predecessor intent, not re-enter native group formation.
                 // Formation following can overtake an escort and obstruct its weapon sector.
@@ -537,15 +536,30 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     private _frontDirection=vectorDir _front;
                     _behind set [2,0];
                     _frontDirection set [2,0];
-                    if ((_behind vectorDotProduct _frontDirection) >= 0
-                        && {_recoveryTarget distance2D _front >= _gapLow}) then {
-                        (driver _vehicle) doMove _recoveryTarget;
+                    if ((_behind vectorDotProduct _frontDirection) >= 0) then {
+                        // Navigation endpoints may lie inside the spacing band; the
+                        // speed controller remains responsible for the physical gap.
+                        // Keep one movement controller during bounded recovery.
+                        if (_native) then {
+                            _movementOperator doMove _recoveryTarget;
+                        } else {
+                            // A native doMove competes with the retained steering path.
+                            // Invalidate only its commitment so path refresh below
+                            // resubmits one segment without another doStop acquisition.
+                            _progress set [6,[]];
+                        };
                     };
                 };
                 _vehicle setConvoySeparation _desiredGap;
             };
         };
-        _progress = [getPosATL _vehicle, time, time + 10, _progress select 3, _attempts, [], []];
+        // Keep the follower's route/hold identity across recovery. Native
+        // doMove gets its existing observation window; fixed steering must refresh
+        // the invalidated path now rather than sit on a stalled segment for ten seconds.
+        _progress set [0,getPosATL _vehicle];
+        _progress set [1,time];
+        _progress set [2,[time,time+10] select _native];
+        _progress set [4,_attempts];
     };
     if (time >= (_progress select 2) && {count _trail >= 1} && {_gap > _desiredGap * 0.8 || {_pathOwners getOrDefault [_key,false]}}) then {
         private _nearest = -1;
