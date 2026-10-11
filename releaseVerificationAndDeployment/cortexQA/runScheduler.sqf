@@ -74,6 +74,15 @@ private _deletedState=createHashMapFromArray [["group",_deletedGroup],["calls",0
 deleteGroup _deletedGroup;
 private _deletedRetired=[{(_deletedState getOrDefault ["skippedReason",""]) == "LOCALITY"},10] call _wait;
 ["SCHED-deleted-group-no-execution",_deletedRetired && {(_deletedState get "calls") == 0},str (_deletedState get "calls")] call _check;
+private _cancelKey="WAIT_QA_CANCELLED_"+str diag_tickTime;
+private _cancelledState=createHashMapFromArray [["calls",0],["cancelled",true]];
+private _replacementState=createHashMapFromArray [["calls",0]];
+private _cancelAware={params ["_state"]; if (_state getOrDefault ["cancelled",false]) exitWith {-1}; _state set ["calls",(_state get "calls")+1]; -1};
+[_cancelAware,_cancelledState,1,_cancelKey] call WAIT_fnc_CortexQueueJob;
+[_cancelAware,_replacementState,0,_cancelKey] call WAIT_fnc_CortexQueueJob;
+private _replacementRan=[{(_replacementState get "calls") == 1},10] call _wait;
+["SCHED-cancelled-key-fresh-state",_replacementRan && {(_cancelledState get "calls") == 0}
+    && {_cancelledState get "cancelled"},str [_cancelledState get "calls",_replacementState get "calls"]] call _check;
 private _groups=[];
 private _actors=[];
 private _states=[];

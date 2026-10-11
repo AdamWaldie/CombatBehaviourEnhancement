@@ -47,6 +47,9 @@ if (_jobKey != "") then {
     {
         private _candidateState = _x param [2, createHashMap, [createHashMap]];
         if ((_candidateState getOrDefault ["jobKey", ""]) == _jobKey
+            && {!(_candidateState getOrDefault ["cancelled",false])}
+            && {!(_candidateState getOrDefault ["finished",false])}
+            && {!(_candidateState getOrDefault ["done",false])}
             && {(_candidateState getOrDefault ["group",grpNull]) == _group}
             && {isNull _group || {(_candidateState getOrDefault ["ownerEpoch",-1]) == (_state get "ownerEpoch")}}) exitWith {
             _existingState = _candidateState;
