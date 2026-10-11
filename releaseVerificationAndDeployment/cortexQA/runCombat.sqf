@@ -523,7 +523,11 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
         diag_log format ["WAIT CORTEX QA LATE COMPLETION: case=%1 result=%2 actors=%3",_case,_lateResult,_element apply {[netId _x,getPosATL _x,currentCommand _x,expectedDestination _x]}];
     };
     private _caseTransitions = (_group getVariable ["WAIT_Cortex_DrillTransitions",[]]) select {(_x param [1,""]) == _drillToken};
-    [_prefix+"-transition-assault-committed",!_observedAssault || {_caseTransitions findIf {(_x param [5,""]) == "ASSAULT_COMMITTED"} >= 0},str _caseTransitions] call _check;
+    if (_observedAssault || {!_advance}) then {
+        [_prefix+"-transition-assault-committed",_observedAssault && {_caseTransitions findIf {(_x param [5,""]) == "ASSAULT_COMMITTED"} >= 0},str _caseTransitions] call _check;
+    } else {
+        diag_log format ["WAIT CORTEX QA NOT OBSERVED: %1 assault handover; no transition pass awarded",_prefix];
+    };
     if (_observedAssault) then {
         private _commitIndex=_caseTransitions findIf {(_x param [5,""]) == "ASSAULT_COMMITTED"};
         private _immediate=false;
@@ -537,7 +541,9 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
         // a fast state change cannot substitute for soldiers reaching the objective.
         [_prefix+"-transition-assault-no-idle-turn",_immediate,str _caseTransitions] call _check;
     };
-    [_prefix+"-transition-clear-through",!_observedAssault || {_caseTransitions findIf {(_x param [5,""]) == "CLEAR_THROUGH_ARRIVED"} >= 0},str _caseTransitions] call _check;
+    if (_observedAssault || {!_advance}) then {
+        [_prefix+"-transition-clear-through",_observedAssault && {_caseTransitions findIf {(_x param [5,""]) == "CLEAR_THROUGH_ARRIVED"} >= 0},str _caseTransitions] call _check;
+    };
     if (_case in ["FLANK-GRENADE","ADVANCE-GRENADE"]) then {
         private _dispatchIndex=_caseTransitions findIf {(_x param [5,""]) == "ASSAULT_GRENADE_DISPATCHED"};
         private _dispatchImmediate=_dispatchIndex >= 0 && {_dispatchIndex+1 < count _caseTransitions} && {

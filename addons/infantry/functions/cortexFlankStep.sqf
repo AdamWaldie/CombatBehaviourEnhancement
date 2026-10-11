@@ -149,6 +149,8 @@ private _actorTaskFree={
         && {(_reservation param [2,1e12,[0]]) <= time}};
     _free && {[_actor] call WAIT_fnc_CortexCombatEffective}
         && {local _actor} && {!isPlayer _actor} && {group _actor == _group} && {isNull objectParent _actor}
+        && {isNull remoteControlled _actor}
+        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
@@ -712,10 +714,9 @@ switch (_drill get "stage") do {
             // forward under the assault element's cover before declaring completion.
             // Advance already brought both elements through the objective.
             if ((_assaulting || {_drill getOrDefault ["finishFlank",false]}) && {_teams isEqualTo []} && {!(_drill getOrDefault ["consolidating",false])}) exitWith {
-                private _support = (units _group) select {
-                    !(_x in _allUnits) && {local _x} && {isNull objectParent _x}
-                    && {[_x] call WAIT_fnc_CortexCombatEffective}
-                };
+                // Recovery and independent actor tasks are not spare consolidation participants.
+                // Reuse the capable roster instead of bypassing its ownership/path checks.
+                private _support = (_fitSquad - (_allUnits + _recovering)) select {[_x] call _actorTaskFree};
                 if (_support isEqualTo []) then {
                     _result = "COMPLETE" call _end;
                 } else {
