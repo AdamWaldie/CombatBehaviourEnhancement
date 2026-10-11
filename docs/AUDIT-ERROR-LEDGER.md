@@ -148,3 +148,10 @@ The HC movement stage has recorded RECOVERY_FAILED and STALLED outcomes. Object-
 network messages remain observations; their cause and relation to unavailable actors are unproven.
 Tactical/danger stance, service-task, FSM supersession and restoration-evidence changes made
 since ecdff24 are not loaded in this batch and require a subsequent exact-package retest.
+HC diagnostic fixture repair: runCoordinated previously applied allowDamage=false only on
+spawn. That engine permission does not survive locality transfer, so the stated invulnerable
+fixture was not guaranteed on an HC. The owner-local sampler now reinstalls diagnostic protection
+and publishes an owner/local-damage receipt. Each migration asserts living actors and that receipt.
+This repair is restricted to the instrumented fixture; production and damage-enabled battles are
+unchanged. Existing HC failures remain recorded and require a fresh valid-fixture run; the defect
+does not prove the cause of every death, stalled actor or network message.

@@ -103,6 +103,10 @@ WAIT_fnc_CortexQAInstallShotCounter = {
     {
         private _unit = _x;
         if (local _unit) then {
+            // This fixture is explicitly invulnerable; allowDamage must be reapplied after
+            // locality transfer. Damage-enabled battle fixtures never call this installer.
+            _unit allowDamage false;
+            _unit setVariable ["WAIT_CortexQA_ProtectionOwner",[clientOwner,serverTime,isDamageAllowed _unit],true];
             private _old = _unit getVariable ["WAIT_CortexQA_FiredManEH",-1];
             if (_old >= 0) then {_unit removeEventHandler ["FiredMan",_old]};
             private _handler = _unit addEventHandler ["FiredMan",{
@@ -210,6 +214,11 @@ private _migrateTeam={
         private _receipt=_x getVariable ["WAIT_CortexQA_FiredManOwner",[]];
         count _receipt != 2 || {(_receipt select 0) != _owner}
     }) < 0},10] call _wait;
+    private _protected=_sampled && {_members findIf {
+        private _receipt=_x getVariable ["WAIT_CortexQA_ProtectionOwner",[]];
+        !alive _x || {count _receipt != 3} || {(_receipt select 0) != _owner} || {_receipt select 2}
+    } < 0};
+    ["COORD-protection-owner-"+_stage,_protected,str (_members apply {[_x,alive _x,_x getVariable ["WAIT_CortexQA_ProtectionOwner",[]]]})] call _check;
     ["COORD-owner-"+_stage,_requested && {_adopted},str [groupOwner _g,_members apply {owner _x}]] call _check;
     ["COORD-shot-sampler-"+_stage,_sampled,str (_members apply {_x getVariable ["WAIT_CortexQA_FiredManOwner",[]]})] call _check;
     _g setVariable ["WAIT_Headless_ExcludeGroup",true,true];
