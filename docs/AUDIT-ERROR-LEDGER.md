@@ -2,6 +2,18 @@
 
 Every batch keeps its original RPT files and generated report. Repeated trace lines are not separate root causes. A fix is closed only after an exact packaged candidate completes the relevant retest without recurrence; static checks alone leave it pending.
 
+## CQB entry investigation, 2026-10-11 evening
+
+These normal batches run without headless clients. Retired partial batches retain their failed checks and are not reported as completed acceptance.
+
+| Candidate / batch | Physical evidence | Action and remaining acceptance |
+| --- | --- | --- |
+| `ec810ba` / runtime-20261011-202220-419 | Fresh two-person clearance retained owner epoch/generation, enabled MOVE/PATH and advancing FSM callbacks. The leader held room index 1 as its engine destination but remained at spawn; the security partner moved outside. Zero interior visits. | This case does not support lost scheduler ownership as its primary cause. Initial room selection and native interior routing require correction. |
+| `ce72971` / runtime-20261011-203438-003 | Model-order initial entry let the leader physically enter and visit position 0. The next room was assigned to its outside partner, which stalled. Visits were `[true,false,false,false]`; clearance still failed. | First-entry improvement only. Preserve this failure and test partner entry, successive rooms, all models and handback. |
+| `a66d876` / runtime-20261011-204255-310 | Sealed corrected candidate launched with observer Zeus at 3840×2160. Physical results remain pending. | Role swaps require recorded physical arrival at the lane's first interior node. The successful entrant continues while exterior security follows the previous room. Static/package checks passed; this is not accepted CQB. |
+
+The persistent `a3_characters_f` load warning remains unresolved and is not waived. Native comparison groups run with the addon loaded; they are scheduler-excluded comparisons, not an addon-absent baseline. Complete building clearance, casualty replacement, blocked routes, locality migration and danger-to-CQB transitions remain unaccepted.
+
 ## Running batch runtime-20261011-145921-734
 
 Candidate: clean `543880e`, fingerprint `97e8d2da340e90366c7eca32488cebecc224b68e605ffc7c97b752d10ae3b364`. Dedicated server, observer Zeus, two headless clients and 3840x2160 client mission entry are confirmed. This batch is still running; no final totals or acceptance are claimed.
