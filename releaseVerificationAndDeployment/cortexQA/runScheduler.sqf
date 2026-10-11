@@ -17,23 +17,29 @@ private _saved = createHashMapFromArray [
     ["WAIT_AIRebalance_Profile", missionNamespace getVariable ["WAIT_AIRebalance_Profile","LINE"]]
 ];
 [createHashMapFromArray [["WAIT_AIPass_TickBudgetMs",0.2]]] call WAIT_fnc_CortexTuning;
-// Component check beside the physical movement cases: two wakes of one key must produce
-// one callback, without clearing or replacing any other queued operation.
+// Submit successive updates atomically: the scheduled fixture must not yield between
+// admission and observation. Only the production scheduler executes the callback later.
 private _coalesceKey="WAIT_QA_COALESCE_"+str diag_tickTime;
 private _coalesceState=createHashMapFromArray [["calls",0],["value",1]];
 private _coalesceCallback={params ["_state"]; _state set ["calls",(_state get "calls")+1]; -1};
-[_coalesceCallback,_coalesceState,10,_coalesceKey] call WAIT_fnc_CortexQueueJob;
-[_coalesceCallback,createHashMapFromArray [["value",2]],0,_coalesceKey] call WAIT_fnc_CortexQueueJob;
-private _earlyWake=_coalesceState getOrDefault ["wakeAt",-1];
-[_coalesceCallback,createHashMapFromArray [["value",3]],5,_coalesceKey] call WAIT_fnc_CortexQueueJob;
-["SCHED-keyed-earliest-wake-retained",_earlyWake >= 0 && {(_coalesceState get "wakeAt") == _earlyWake}] call _check;
 private _countMatching={
     ((missionNamespace getVariable ["WAIT_AIPass_Jobs",[]])
         +(missionNamespace getVariable ["WAIT_AIPass_PendingJobs",[]])) select {
         ((_x select 2) getOrDefault ["jobKey",""]) == _coalesceKey
     }
 };
-["SCHED-keyed-single-queued",count (call _countMatching) == 1,str count (call _countMatching)] call _check;
+private _earliestWakeRetained=false;
+private _queuedCount=0;
+isNil {
+    [_coalesceCallback,_coalesceState,10,_coalesceKey] call WAIT_fnc_CortexQueueJob;
+    [_coalesceCallback,createHashMapFromArray [["value",2]],0,_coalesceKey] call WAIT_fnc_CortexQueueJob;
+    private _earlyWake=_coalesceState getOrDefault ["wakeAt",-1];
+    [_coalesceCallback,createHashMapFromArray [["value",3]],5,_coalesceKey] call WAIT_fnc_CortexQueueJob;
+    _earliestWakeRetained=_earlyWake >= 0 && {(_coalesceState get "wakeAt") == _earlyWake};
+    _queuedCount=count (call _countMatching);
+};
+["SCHED-keyed-earliest-wake-retained",_earliestWakeRetained] call _check;
+["SCHED-keyed-single-queued",_queuedCount == 1,str _queuedCount] call _check;
 private _coalesceRetired=[{(_coalesceState get "calls") >= 1 && {count (call _countMatching) == 0}},10] call _wait;
 ["SCHED-keyed-callback-retired",_coalesceRetired] call _check;
 ["SCHED-keyed-callback-once",_coalesceRetired && {(_coalesceState get "calls") == 1}
