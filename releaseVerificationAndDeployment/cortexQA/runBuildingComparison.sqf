@@ -127,10 +127,37 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
     private _egressSeen=false;
     private _egressAssignments=[];
     private _egressVisits=[];
+    private _nextRouteTrace=diag_tickTime;
+    private _routeTraceCount=0;
     [format ["CLEAR-fresh-%1-owner-established",_size],_accepted && {_entryEpoch > 0}
         && {_group getVariable ["WAIT_AIPass_Adopted",false]} && {_entryGeneration >= 0},
         str [_entryEpoch,_entryGeneration]] call _check;
     private _settled=[{
+        // Observe the live controller without injecting destinations or changing acceptance.
+        // Ten-second samples and bounded actor/state slices keep diagnostics finite.
+        if (diag_tickTime >= _nextRouteTrace && {_routeTraceCount < 26}) then {
+            _nextRouteTrace=diag_tickTime+10;
+            _routeTraceCount=_routeTraceCount+1;
+            private _brain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
+            private _job=_brain getOrDefault ["job",createHashMap];
+            private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+            diag_log format ["WAIT CLEAR LIVE ROUTE: %1",[
+                _size,_routeTraceCount,diag_tickTime,
+                _group getVariable ["WAIT_AIPass_Epoch",0],
+                _brain getOrDefault ["generation",-1],_brain getOrDefault ["ownerEpoch",-1],
+                _brain getOrDefault ["pending",false],_brain getOrDefault ["lastStepAt",-1],
+                _operation getOrDefault ["generation",-1],_operation getOrDefault ["intent",""],
+                _job getOrDefault ["phase",""],
+                (_job getOrDefault ["pairStates",[]]) select [0,8],
+                (_job getOrDefault ["pairRoutes",[]]) select [0,8],
+                (_job getOrDefault ["assigned",[]]) select [0,16],
+                (_clearingMembers select [0,16]) apply {
+                    [str _x,local _x,getPosATL _x,currentCommand _x,expectedDestination _x,
+                        _x checkAIFeature "MOVE",_x checkAIFeature "PATH",getForcedSpeed _x,
+                        _x == leader _group]
+                }
+            ]];
+        };
         private _exit=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
         if (!_egressSeen && {count _exit == 4} && {(_exit select 0) == "EGRESS"}) then {
             _egressAssignments=+(_exit select 3);
