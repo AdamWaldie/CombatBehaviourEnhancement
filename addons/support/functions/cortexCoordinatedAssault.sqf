@@ -97,7 +97,7 @@ if (_acknowledged) exitWith {
     // local drill now, before publishing coordinated ownership, so two movement controllers never
     // overlap and a rejected or delayed request never creates an idle planning window.
     if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
-        [_group,_state,"ABORT"] call WAIT_fnc_CortexFlankEnd;
+        [_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd;
     };
     _state set ["coordinated",true];
     _state deleteAt "coordinatedPendingUntil";

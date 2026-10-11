@@ -27,7 +27,7 @@ class AIModularityContracts(unittest.TestCase):
         step = src('cortexFlankStep')
         self.assertLess(step.index('"OWNERSHIP_LOST" call _end'), step.index('_group setCombatMode'))
         end = src('cortexFlankEnd')
-        self.assertIn('_reason in ["ZEUS","OWNERSHIP_LOST"]', end)
+        self.assertIn('_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"]', end)
         self.assertIn('if (_mayCommand) then {{_x doFollow _leader}', end)
         self.assertIn('private _hold = _mayCommand', end)
 

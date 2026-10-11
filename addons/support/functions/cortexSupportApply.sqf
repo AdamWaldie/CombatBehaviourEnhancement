@@ -108,7 +108,7 @@ if (_okay && {_directCoordinationPending}) exitWith {
     -1
 };
 if (_okay && {_replaceLocalDrill}) then {
-    [_group,_state,"ABORT"] call WAIT_fnc_CortexFlankEnd;
+    [_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd;
 };
 if (_okay) then {
     _okay = [_group,"SUPPORT",true,_expiry] call WAIT_fnc_CortexOwnershipLease;

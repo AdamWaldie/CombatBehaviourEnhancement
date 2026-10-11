@@ -48,8 +48,17 @@ private _liveOperation=_group getVariable ["WAIT_Operation",createHashMap];
 private _sameOperation=count _liveOperation == 0 || {(_liveOperation getOrDefault ["generation",-2]) == (_drill getOrDefault ["operationGeneration",-1])};
 private _mayRestore=_sameOperation && {!(_reason in ["ZEUS","OWNERSHIP_LOST","EXTERNAL","REPLACED","ATTACK_POLICY_CHANGED"])}
     && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
-private _mayCommand = _mayRestore && {!(_reason in ["ZEUS","OWNERSHIP_LOST"])}
+// A legitimate internal role change restores exact-owned controls without recalling the
+// manoeuvre element. The incoming support/cover operation owns the next movement command.
+private _mayCommand = _mayRestore && {!(_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"])}
     && {[_group] call WAIT_fnc_CortexIsEligible};
+private _mayRestoreActor={
+    params ["_actor"];
+    alive _actor && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
+        && {isNull remoteControlled _actor}
+        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+};
 private _groupModeLease = _drill getOrDefault ["groupCombatMode",[]];
 if (_mayRestore && {count _groupModeLease == 2} && {combatMode _group == (_groupModeLease select 1)}) then {
     _group setCombatMode (_groupModeLease select 0);
@@ -60,15 +69,15 @@ if (_mayRestore && {count _groupSpeedLease == 2} && {speedMode _group == (_group
 };
 {
     _x params ["_unit", "_feature"];
-    if (alive _unit && {local _unit}) then {_unit enableAI _feature};
+    if ([_unit] call _mayRestoreActor) then {_unit enableAI _feature};
 } forEach (_drill getOrDefault ["disabled", []]);
 {
     _x params ["_unit","_mode",["_ownedMode","BLUE"]];
-    if (_mayRestore && {local _unit} && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
+    if (_mayRestore && {[_unit] call _mayRestoreActor} && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
 } forEach (_drill getOrDefault ["combatModes",[]]);
 {
     _x params ["_unit","_previous","_owned"];
-    if (_mayRestore && {local _unit} && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
+    if (_mayRestore && {[_unit] call _mayRestoreActor} && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
 } forEach (_drill getOrDefault ["combatBehaviours",[]]);
 private _members = (_drill getOrDefault ["units", []]) select {alive _x && {local _x} && {group _x == _group}};
 // Retire only the temporary throw listener belonging to this cancelled/completed drill.

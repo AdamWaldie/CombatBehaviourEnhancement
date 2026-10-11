@@ -498,3 +498,6 @@ Clearance egress retains each actor's exit destination while it makes new best a
 
 
 A stand-off pass without a firing solution enters its existing immutable egress leg before releasing flight ownership. The finite exit has a 75-second deadline and retains `NO_FIRE_SOLUTION` as the failed-delivery result. A physical exit cannot turn the missed attack into success. Zeus, external ownership and safety interruptions still release immediately through their existing guards. Physical no-solution egress is queued for packaged acceptance.
+
+
+Coordinated acknowledgement, responder adoption and MOVE-to-COVER role changes end the outgoing drill as `ROLE_HANDOVER`. Matching posture, combat/speed and attack-permission leases are released without a follow, stop or return-to-leader command from drill cleanup. The incoming role remains the next movement owner. Actor feature restoration additionally rejects player, remote, specialist and declared external ownership. Physical role-transition continuity and specialist activation during release remain queued for packaged acceptance.

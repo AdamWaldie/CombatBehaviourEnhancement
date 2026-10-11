@@ -200,7 +200,7 @@ if (_coordinating) then {
         };
     } else {
         private _drill=_state getOrDefault ["drill",createHashMap];
-        if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ABORT"] call WAIT_fnc_CortexFlankEnd};
+        if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd};
         {
             private _actorMove=_x getVariable ["WAIT_Cortex_ActorMove",[]];
             if (local _x && {isNull objectParent _x} && {[_x] call WAIT_fnc_CortexCombatEffective}

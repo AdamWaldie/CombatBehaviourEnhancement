@@ -7,6 +7,21 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'addons/main/functions/Cortex'
 def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encoding='utf-8')
 class CortexOperations(unittest.TestCase):
+    def test_coordinated_role_handover_does_not_recall_movers(self):
+        end=source('cortexFlankEnd')
+        command=end.split('private _mayCommand =',1)[1].split('private _mayRestoreActor=',1)[0]
+        self.assertIn('"ROLE_HANDOVER"',command)
+        restoration=end.split('private _mayRestore=',1)[1].split('private _mayCommand',1)[0]
+        self.assertNotIn('"ROLE_HANDOVER"',restoration)
+        self.assertIn('if ([_unit] call _mayRestoreActor) then {_unit enableAI _feature}',end)
+        actor=end.split('private _mayRestoreActor=',1)[1].split('private _groupModeLease',1)[0]
+        for guard in ['remoteControlled','CortexExternalOwner','CompatibilityExternalControl','group _actor == _group','isPlayer']:
+            self.assertIn(guard,actor)
+        for name in ['cortexCoordinatedAssault','cortexSupportApply','cortexSupportMaintain']:
+            self.assertIn('["ROLE_HANDOVER"]',source(name).replace('_group,_state,',''))
+            self.assertNotIn('["ABORT"] call WAIT_fnc_CortexFlankEnd',source(name).replace('_group,_state,',''))
+
+
     def test_drill_adoption_reuses_destinations_without_cover_replanning(self):
         step=source('cortexFlankStep')
         branch=step.split('if (_resumeIndex >= 0) then {',1)[1].split('_spots pushBack _spot;',1)[0]
@@ -2031,7 +2046,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (!_yieldToExternal && {count _retreatSpeedLease == 2}',restore)
         self.assertIn('speedMode _group == (_retreatSpeedLease select 1)',restore)
         self.assertIn('preserving a newer individual command',restore)
-        self.assertIn('!(_reason in ["ZEUS","OWNERSHIP_LOST"])',flank_end)
+        self.assertIn('!(_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"])',flank_end)
         self.assertIn('if (_mayCommand) then',flank_end)
 
     def test_garrison_reassigns_unreachable_positions_without_wall_clock_failure(self):
@@ -3297,7 +3312,7 @@ class CortexOperations(unittest.TestCase):
         requester=source('cortexCoordinatedAssault')
         self.assertIn('if (_status select 3) then {_acknowledged = true}', requester)
         self.assertIn('if (_acknowledged) exitWith {', requester)
-        self.assertIn('[_group,_state,"ABORT"] call WAIT_fnc_CortexFlankEnd', requester)
+        self.assertIn('[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd', requester)
         self.assertLess(requester.index('call WAIT_fnc_CortexFlankEnd'),requester.index('_state set ["coordinated",true]'))
         self.assertIn('if (time < _pendingUntil && {_publicResponders isNotEqualTo []}) exitWith {false}',requester)
         self.assertIn('_pendingUntil > 0 && {_publicResponders isEqualTo []}',requester)
@@ -3354,7 +3369,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_state set ["coordinatedPendingUntil",time+15]',coordinated)
         self.assertIn('if (time < _pendingUntil && {_publicResponders isNotEqualTo []}) exitWith {false}',coordinated)
         self.assertIn('false // A request alone owns no movement; acknowledgement performs the handover.',coordinated)
-        self.assertIn('[_group,_state,"ABORT"] call WAIT_fnc_CortexFlankEnd',coordinated)
+        self.assertIn('[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd',coordinated)
         self.assertIn('"coordinatedPendingUntil"',source('cortexRestoreCalm'))
 
     def test_live_context_chooses_action_instead_of_profile_or_idleness(self):
@@ -3894,7 +3909,7 @@ class CortexOperations(unittest.TestCase):
         restore=source('cortexRestoreCalm')
         flank_end=source('cortexFlankEnd')
         self.assertIn('if (!_yieldToExternal && {_state getOrDefault ["attackChanged",false]})',restore)
-        self.assertIn('!(_reason in ["ZEUS","OWNERSHIP_LOST"])',flank_end)
+        self.assertIn('!(_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"])',flank_end)
         self.assertIn('if (_mayCommand && {_state getOrDefault ["attackChanged",false]})',flank_end)
 
     def test_zeus_takeover_releases_explicit_orders_without_waypoint(self):
@@ -6639,7 +6654,7 @@ class CortexOperations(unittest.TestCase):
             self.assertNotIn(forbidden,pending)
         self.assertLess(apply.index('if (_okay && {_directCoordinationPending}) exitWith {'),apply.index('call WAIT_fnc_CortexOwnershipLease'))
         self.assertIn('private _replaceLocalDrill = _attackAllowed && {_movementOwner == "TACTICAL_DRILL"}',apply)
-        self.assertIn('[_group,_state,"ABORT"] call WAIT_fnc_CortexFlankEnd',apply)
+        self.assertIn('[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd',apply)
         self.assertLess(apply.index('call WAIT_fnc_CortexFlankEnd'),apply.index('call WAIT_fnc_CortexOwnershipLease'))
     def test_support_reservations_use_the_common_generation_lifecycle(self):
         apply=source('cortexSupportApply')
