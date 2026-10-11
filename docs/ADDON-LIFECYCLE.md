@@ -541,3 +541,25 @@ Ground-support refusal retires its exact reservation on the server through curre
 Combined ground-fire admission checks both group and gunner fire permissions, current operator ownership and the shared friendly/civilian firing-lane guard. NO_FIRE_OPERATOR and BLOCKED_FIRE_LANE retire the exact reservation instead of publishing APPLIED. This is one admission check, not a persistent scanning loop; native aiming and weapon release remain responsible for actual fire.
 
 Combined ground arrival uses the same fire permissions, actor ownership and friendly-lane checks as direct fire admission. CombinedFireDecision records ORDER_ISSUED or a refusal, separately from physical POSITION_REACHED. Neither receipt proves shots, suppression or destruction; combat acceptance still requires fired and target-effect evidence.
+
+### Scheduler and tactical FSM authority
+
+Queue admission rejects a non-local group or a supplied owner epoch that differs from the current
+epoch. It assigns the current epoch only to new work without a conflicting proof. Keyed coalescing
+requires the same group and epoch, updates the existing state and due time, and returns from the
+function before append. A stale callback cannot become fresh by being queued again.
+
+Tactical FSMs retire when their drill token or operation generation is superseded. Building queue,
+callback and finalization boundaries require the current brain and owner epoch. Aircraft waiting
+states retire replaced/non-local brains before invoking control-handover actions. These checks
+retire old work; they do not complete, restore or command a successor operation.
+
+Real tactical stage changes update the matching operation to MANOEUVRE, ASSAULT, SUPPORT or SECURITY.
+Ending a coordinated child never completes its parent. Danger posture reads the matching child's
+moving and recovery actors rather than treating every participant as a mover. Cover actors retain
+native low-profile protection; active movers retain mobile protection.
+
+The coordination batch now includes scheduler component and physical movement cases. Component
+cases measure one keyed callback, updated state, retirement, rejection without epoch rewriting,
+fresh-owner execution and no old-epoch execution. They supplement physical movement, interruption,
+HC and performance acceptance; they are queued and have not passed in game.

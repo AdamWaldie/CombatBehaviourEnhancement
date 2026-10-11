@@ -155,3 +155,9 @@ and publishes an owner/local-damage receipt. Each migration asserts living actor
 This repair is restricted to the instrumented fixture; production and damage-enabled battles are
 unchanged. Existing HC failures remain recorded and require a fresh valid-fixture run; the defect
 does not prove the cause of every death, stalled actor or network message.
+Scheduler root-cause candidates awaiting runtime verification: queue admission previously stamped
+current epochs onto supplied stale work; keyed coalescing could mutate an old owner's state; and
+its nested exitWith returned from the search block rather than the function, then appended another
+callback. The code paths are corrected. No completed physical failure is closed on that basis.
+The added SCHED-keyed and SCHED-stale/current-epoch cases run with coordination in future packages.
+A clean paired retest and the matched 50-group performance arms must establish actual effect.
