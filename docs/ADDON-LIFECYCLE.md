@@ -501,3 +501,6 @@ A stand-off pass without a firing solution enters its existing immutable egress 
 
 
 Coordinated acknowledgement, responder adoption and MOVE-to-COVER role changes end the outgoing drill as `ROLE_HANDOVER`. Matching posture, combat/speed and attack-permission leases are released without a follow, stop or return-to-leader command from drill cleanup. The incoming role remains the next movement owner. Actor feature restoration additionally rejects player, remote, specialist and declared external ownership. Physical role-transition continuity and specialist activation during release remain queued for packaged acceptance.
+
+
+Coordinated admission distinguishes authenticated eligibility from an executing support operation. The server acknowledges the exact current-owner lease and publishes a token, owner and expiry for route preparation. Both requester and server dispatch consume that eligibility; only an executing assault status can claim the requester as base of fire. Prepared acknowledgement may coexist with an existing tactical drill but cannot claim its movement. Direct coordination uses the helper's live position as reservation metadata and does not require a safe rear rally route; reinforcement-only admission retains its separate rally routing. Physical direct-contact composition and HC re-acknowledgement remain unaccepted.

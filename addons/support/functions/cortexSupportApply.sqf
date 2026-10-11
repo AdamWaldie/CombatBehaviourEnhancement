@@ -81,6 +81,8 @@ private _attackAllowed = _attack isNotEqualTo [] && {_sharedCoordinated};
 private _directCoordinationPending = _attack isEqualTo [] && {_sharedCoordinated};
 private _replaceLocalDrill = _attackAllowed && {_movementOwner == "TACTICAL_DRILL"}
     && {count (_state getOrDefault ["drill",createHashMap]) > 0};
+private _prepareAlongsideDrill=_directCoordinationPending && {_movementOwner == "TACTICAL_DRILL"}
+    && {count (_state getOrDefault ["drill",createHashMap]) > 0};
 // Communication remains tied to a qualified transmitter, but local tactical readiness must survive
 // the formal leader becoming a casualty before the engine elects a replacement.
 private _anchor=[_group] call WAIT_fnc_CortexGroupAnchor;
@@ -98,7 +100,7 @@ private _okay = missionNamespace getVariable ["WAIT_AIPass_Active",false] && {!(
     && {_same || {(_phase == "CALM" || {_contactPeer}) && {!(_state getOrDefault ["responding",false])}}}
     // A support order may update its own movement. Only a server-selected attack route may
     // replace the exact local tactical drill; all other movement owners remain authoritative.
-    && {!_movementLeaseActive || {_supportOwnsMovement} || {_replaceLocalDrill}}
+    && {!_movementLeaseActive || {_supportOwnsMovement} || {_replaceLocalDrill} || {_prepareAlongsideDrill}}
     && {_fit findIf {private _v = vehicle _x; _v isKindOf "Air" || {_v isKindOf "StaticWeapon"} || {getNumber (configOf _v >> "artilleryScanner") == 1}} < 0}
     && {!_needAT || {_footFit findIf {"AT" in ([_x] call WAIT_fnc_CortexCapabilities)} >= 0}};
 // Eligibility acknowledgement is not an operation and owns no movement. A route-rejected or

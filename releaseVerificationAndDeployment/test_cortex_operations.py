@@ -7,6 +7,39 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'addons/main/functions/Cortex'
 def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encoding='utf-8')
 class CortexOperations(unittest.TestCase):
+    def test_prepared_coordination_is_separate_from_execution_and_rally(self):
+        ack=source('cortexSupportAck')
+        self.assertLess(ack.index('HeadlessResolveSender'),ack.index('WAIT_Cortex_SupportEligibility'))
+        self.assertLess(ack.index('_lease isNotEqualTo _snapshot'),ack.index('WAIT_Cortex_SupportEligibility'))
+        self.assertIn('[_token,groupOwner _group,_lease select 2]',ack)
+        self.assertIn('WAIT_Cortex_SupportPreparedReceipt',ack)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombinedOperation.sqf').read_text()
+        self.assertIn('COMBINED-OP-prepared-contact-becomes-coordinated-movement',qa)
+        self.assertIn('_receipt select 0) == (_status select 0)',qa)
+        self.assertIn('_receipt select 0) == (_role select 0)',qa)
+        self.assertIn('_travelSquads >= 2',qa)
+        for name in ['cortexCoordinatedAssault','cortexSupportAssaultServer']:
+            code=source(name)
+            self.assertIn('WAIT_Cortex_SupportEligibility',code)
+            self.assertIn('(_eligibility select 1) == groupOwner _helper',code)
+            self.assertIn('serverTime < (_eligibility select 2)',code)
+            self.assertIn('_prepared || {_executing}',code)
+        requester=source('cortexCoordinatedAssault')
+        self.assertIn('if (_executing && {_status select 3}) then {_acknowledged = true}',requester)
+        apply=source('cortexSupportApply')
+        self.assertIn('_prepareAlongsideDrill',apply)
+        self.assertIn('_directCoordinationPending && {_movementOwner == "TACTICAL_DRILL"}',apply)
+        pending=apply.split('if (_okay && {_directCoordinationPending}) exitWith {',1)[1].split('};',1)[0]
+        self.assertNotIn('OperationStart',pending)
+        self.assertNotIn('responding',pending)
+        self.assertNotIn('doMove',pending)
+        step=source('cortexSupportStep')
+        direct=step.split('if (_sharedCoordinated) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('_rally=getPosATL _helperTransmitter',direct)
+        self.assertNotIn('CortexSelectAvenue',direct)
+        self.assertIn('WAIT_Cortex_SupportEligibility",nil,true',step)
+
+
     def test_coordinated_role_handover_does_not_recall_movers(self):
         end=source('cortexFlankEnd')
         command=end.split('private _mayCommand =',1)[1].split('private _mayRestoreActor=',1)[0]
@@ -3310,7 +3343,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_helper setVariable ["WAIT_AIPass_SupportLease",nil,true]',empty)
         self.assertNotIn('remains retryable',server)
         requester=source('cortexCoordinatedAssault')
-        self.assertIn('if (_status select 3) then {_acknowledged = true}', requester)
+        self.assertIn('if (_executing && {_status select 3}) then {_acknowledged = true}', requester)
         self.assertIn('if (_acknowledged) exitWith {', requester)
         self.assertIn('[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd', requester)
         self.assertLess(requester.index('call WAIT_fnc_CortexFlankEnd'),requester.index('_state set ["coordinated",true]'))
