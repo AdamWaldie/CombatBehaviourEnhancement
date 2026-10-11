@@ -8,10 +8,11 @@
  * Repeat/JIP: disposable actors and houses are removed; observer state is public for joining clients.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; all required audit callbacks.
  * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
+ * Optional fifth argument: skipNative <BOOL>, false; run production acceptance without repeating controls.
  * Return: Nothing. Current callers: cortexQA/runServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
-params ["_check","_phase","_wait",["_nativeOnly",false,[true]]];
+params ["_check","_phase","_wait",["_nativeOnly",false,[true]],["_skipNative",false,[true]]];
 private _recordFixture={
     params ["_house","_label"];
     private _positions=_house buildingPos -1;
@@ -63,6 +64,7 @@ private _validateNewFixturePlacement={
         str [_highestAccess,_fixtureLift,getPosATL _house]] call _check;
 };
 
+if (!_skipNative) then {
 private _cases = [];
 private _actors = [];
 private _terrainHouses=if (_nativeOnly && {worldName == "Altis"}) then {
@@ -280,6 +282,7 @@ if (_nativeOnly && {worldName == "VR"}) then {
     sleep 10;
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
     {_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; deleteVehicle _house} forEach _heightCases;
+};
 };
 if (_nativeOnly) exitWith {};
 
