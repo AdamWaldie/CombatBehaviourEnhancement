@@ -1065,6 +1065,19 @@ private _driverCapBefore=getForcedSpeed _driveVehicle;
 deleteVehicle _cargoActor;
 deleteGroup _cargoGroup;
 
+private _driveSavedMaxSpeed=missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_MaxSpeed",70];
+[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_MaxSpeed",15]]] call WAIT_fnc_CortexTuning;
+private _driveLiveCap=[{
+    private _state=_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]];
+    (_state param [0,-1]) > 0 && {(_state param [0,1e6]) <= 15/3.6+0.01}
+        && {getForcedSpeed _driveVehicle > 0} && {getForcedSpeed _driveVehicle <= 15/3.6+0.01}
+},15] call _wait;
+["DRIVING-live-speed-cap-applied",_driveManaged && {_driveLiveCap},
+    str [getForcedSpeed _driveVehicle,_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]]] call _check;
+["DRIVING-live-speed-edit-retains-route",_driveLiveCap
+    && {currentWaypoint _driveGroup == (_driveWP select 1)}
+    && {waypointPosition _driveWP distance2D _driveGate <= 1}] call _check;
+[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_MaxSpeed",_driveSavedMaxSpeed]]] call WAIT_fnc_CortexTuning;
 private _driveHeld=true;
 for "_driveSample" from 1 to 20 do {
     sleep 1;
