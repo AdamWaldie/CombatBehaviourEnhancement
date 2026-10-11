@@ -379,9 +379,11 @@ _contactEnemy setVariable ["acex_headless_blacklist",true,true];
 _contactEnemy setVariable ["WAIT_CortexQA_Label","INDOOR LIVE HOSTILE",true];
 _contactGroup setCombatMode "RED";
 _contactOpposition setCombatMode "RED";
-missionNamespace setVariable ["WAIT_AIPass_BuildingCombat_Enable",true,true];
-missionNamespace setVariable ["WAIT_AIPass_BuildingCombat_Range",100,true];
-[createHashMapFromArray [["WAIT_AIPass_Contact_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [
+    ["WAIT_AIPass_BuildingCombat_Enable",true],
+    ["WAIT_AIPass_BuildingCombat_Range",100],
+    ["WAIT_AIPass_Contact_Enable",true]
+]] call WAIT_fnc_CortexTuning;
 private _contactSightline=_contactGeometryReady && {_contactMembers findIf {
     (lineIntersectsSurfaces [eyePos _x,eyePos _contactEnemy,_x,_contactEnemy,true,1,"VIEW","NONE"]) isEqualTo []
 } >= 0};
