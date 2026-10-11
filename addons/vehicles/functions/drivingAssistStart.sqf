@@ -162,9 +162,12 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _waypointIndex=currentWaypoint _group;
             private _hasRoute=_waypointIndex < count waypoints _group;
             private _inCombat=behaviour leader _group in ["COMBAT","STEALTH"] || {getSuppression _driver > 0.1};
+            // A reverse leg has its own finite deadline. It must return to the authored
+            // route even while still moving; the ordinary stall timer is not another hold.
+            private _reverseComplete=_recoveryStage == 2 && {time >= _recoveryUntil};
             if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-                && {!_inCombat} && {abs speed _vehicle < 1}
-                && {time-_progressAt >= 12} && {time >= _recoveryUntil} && {call _mayIssueDriving}) then {
+                && {!_inCombat} && {abs speed _vehicle < 1 || {_reverseComplete}}
+                && {time-_progressAt >= 12 || {_reverseComplete}} && {time >= _recoveryUntil} && {call _mayIssueDriving}) then {
                 private _waypoint=[_group,_waypointIndex];
                 private _destination=waypointPosition _waypoint;
                 if (waypointType _waypoint == "MOVE" && {_vehicle distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
