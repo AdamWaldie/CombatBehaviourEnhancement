@@ -3941,6 +3941,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_coordinated_bound_uses_existing_operation_generation_and_epoch(self):
+        text=source('cortexSupportBoundStart')
+        self.assertIn('"supportOperationGeneration",-1',text)
+        self.assertIn('"operationGeneration",_generation',text)
+        self.assertIn('"ownerEpoch",_ownerEpoch',text)
+        self.assertIn('(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"',text)
+        self.assertNotIn('call WAIT_fnc_OperationStart',text)
     def test_support_release_retires_only_matching_bound_before_operation_cleanup(self):
         text=source('cortexSupportMaintain')
         release=text.split('private _releaseSupport={',1)[1].split('// The cached operation step',1)[0]

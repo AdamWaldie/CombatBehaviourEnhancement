@@ -140,7 +140,8 @@ if (_supportToken != "") then {
 };
 private _type = _drill getOrDefault ["type", "FLANK"];
 private _operationGeneration=_drill getOrDefault ["operationGeneration",-1];
-if (_operationGeneration >= 0) then {
+// A coordinated bound is a child phase; SupportMaintain owns the parent operation lifetime.
+if (_operationGeneration >= 0 && {_supportToken == ""}) then {
     if (_reason in ["COMPLETE","CLOSE","PARTIAL"]) then {
         [_group,_operationGeneration,["COMPLETE","PARTIAL"] select (_reason == "PARTIAL"),_reason] call WAIT_fnc_OperationRelease;
     } else {

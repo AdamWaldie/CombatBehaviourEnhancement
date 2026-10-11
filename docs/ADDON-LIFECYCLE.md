@@ -529,3 +529,5 @@ Moving bounds lease individual RED orders as YELLOW while retaining native targe
 Between-bound restoration uses the same actor-task ownership guard as movement admission. New player, remote, specialist, boarding, treatment and independent actor reservations block restoration of former WAIT combat modes, behaviour and AI features, even when the former applied value is unchanged.
 
 Support release retires its exact token-matched tactical bound before shared operation cleanup. It uses ROLE_HANDOVER without formation recall, preventing an old queued drill from blocking a replacement bound as NOT_READY. A different drill token is untouched.
+
+Coordinated fire-team bounds inherit the existing support operation generation and owner epoch after validation. They do not start a second operation. This enables the common interruption, attack-delegation and exact restoration paths already used by standalone tactical drills.

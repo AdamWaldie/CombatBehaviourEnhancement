@@ -19,6 +19,12 @@ _role params ["_leaseToken","_sequence","_roleName","_point","_enemy"];
 if (_roleName != "MOVE" || {_role isNotEqualTo (_group getVariable ["WAIT_Cortex_SupportRole",[]])}) exitWith {false};
 private _lease=_group getVariable ["WAIT_AIPass_SupportLease",[]];
 if (count _lease != 6 || {(_lease select 0) != _leaseToken} || {serverTime >= (_lease select 2)}) exitWith {false};
+private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+private _generation=_state getOrDefault ["supportOperationGeneration",-1];
+private _ownerEpoch=_group getVariable ["WAIT_AIPass_Epoch",0];
+if (_generation < 0 || {(_operation getOrDefault ["generation",-2]) != _generation}
+    || {(_operation getOrDefault ["ownerEpoch",-1]) != _ownerEpoch}
+    || {(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}) exitWith {false};
 private _final=_point distance2D (_lease select 5) < 2;
 private _fit=(units _group) select {
     private _actorMove=_x getVariable ["WAIT_Cortex_ActorMove",[]];
@@ -41,6 +47,7 @@ if (count _first < 2 || {count _second < 1}) exitWith {false};
 private _token=format ["SUPPORT:%1:%2:%3",_leaseToken,_sequence,clientOwner];
 _state set ["drill",createHashMapFromArray [
     ["token",_token],["supportToken",_leaseToken],["supportSequence",_sequence],
+    ["operationGeneration",_generation],["ownerEpoch",_ownerEpoch],
     ["type","ADVANCE"],["teams",[_first,_second]],["teamSizes",[count _first,count _second]],["teamTurn",0],["units",_fit],["desiredStrength",count _fit],
     ["points",[[+_point,["SUPPORT_BOUND","FINAL"] select _final]]],["index",0],["stage",""],
     ["enemyPos",+_enemy],["disabled",[]],["spots",[]],["started",time],["lastStep",time],
