@@ -89,7 +89,17 @@ if (_now < (_drill getOrDefault ["grenadeActionUntil",-1])) then {
     _drillUnits pushBackUnique (_drill getOrDefault ["grenadeThrower",objNull]);
 };
 private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
-private _eligible = (units _group) select {([_x] call WAIT_fnc_CortexCombatEffective) && {local _x} && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x} && {!(_x in _recovering)} && {primaryWeapon _x != ""}};
+// Physical capability does not imply firing authority. Evaluate specialist ownership once
+// per roster member, before any scripted targeting or suppression command in this callback.
+private _eligible = (units _group) select {
+    ([_x] call WAIT_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
+        && {isNull remoteControlled _x}
+        && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+        && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x}
+        && {!(_x in _recovering)} && {primaryWeapon _x != ""}
+};
 // Route ownership extends beyond drills: a clearer, evading actor or finite aid mover
 // must not receive an ATTACK/SUPPRESS command over its current destination.
 private _reservedActors=_eligible select {
