@@ -517,7 +517,7 @@ private _delay=call {
                                 _unit setVariable ["WAIT_Cortex_ClearStance",_priorStance,true];
                                 _unit setVariable ["WAIT_Cortex_ClearForcedSpeed",_priorSpeed,true];
                                 _unit setUnitPos "UP";
-                                private _clearSpeed=[4.5,5] select (combatMode _group in ["YELLOW","RED"]);
+                                private _clearSpeed=4;
                                 _unit setVariable ["WAIT_Cortex_ClearAppliedSpeed",_clearSpeed,true];
                                 _unit forceSpeed _clearSpeed;
                                 _started pushBack _unit;
@@ -528,6 +528,20 @@ private _delay=call {
                                 if (_unit == _point && {!_approachingEntry}) then {
                                     _unit setDestination [_unitTarget,"FORMATION PLANNED",false];
                                 };
+                            };
+                        };
+                        // Slow the final indoor approach without replacing its destination.
+                        // Update only our unchanged cap; an externally edited speed remains owned
+                        // by that controller. Distance checks reuse the existing bounded pair step.
+                        if (_unit in (_job get "started") && {call _mayIssueMovement}
+                            && {[_unit] call _actorAvailable}) then {
+                            private _speedTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
+                            private _applied=_unit getVariable ["WAIT_Cortex_ClearAppliedSpeed",-1];
+                            private _desiredSpeed=[4,2] select (_unit distance2D _speedTarget < 5);
+                            if (abs ((getForcedSpeed _unit)-_applied) <= 0.1
+                                && {abs (_desiredSpeed-_applied) > 0.1}) then {
+                                _unit forceSpeed _desiredSpeed;
+                                _unit setVariable ["WAIT_Cortex_ClearAppliedSpeed",_desiredSpeed,true];
                             };
                         };
                         _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];
