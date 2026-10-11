@@ -40,9 +40,9 @@ private _dueAt = time + (_delay max 0);
 // Only callers with a deliberate, stable key are coalesced. This keeps independent grenade,
 // artillery and group operations separate while a burst of updates for the same owner wakes its
 // existing finite callback immediately.
+private _existingState = createHashMap;
+private _found = false;
 if (_jobKey != "") then {
-    private _existingState = createHashMap;
-    private _found = false;
     {
         private _candidateState = _x param [2, createHashMap, [createHashMap]];
         if ((_candidateState getOrDefault ["jobKey", ""]) == _jobKey) exitWith {
@@ -50,12 +50,13 @@ if (_jobKey != "") then {
             _found = true;
         };
     } forEach ((missionNamespace getVariable ["WAIT_AIPass_Jobs", []]) + (missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []]));
-    if (_found) exitWith {
-        {_existingState set [_x, _y]} forEach _state;
-        _existingState set ["wakeAt", _dueAt];
-        private _nextDue = missionNamespace getVariable ["WAIT_AIPass_NextJobDue", -1];
-        if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _dueAt]};
-    };
+};
+// Function-scope return: an exit inside the key-search block would still append a duplicate.
+if (_found) exitWith {
+    {_existingState set [_x, _y]} forEach _state;
+    _existingState set ["wakeAt", _dueAt];
+    private _nextDue = missionNamespace getVariable ["WAIT_AIPass_NextJobDue", -1];
+    if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _dueAt]};
 };
 private _pending = missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []];
 _pending pushBack [_dueAt, _job, _state];
