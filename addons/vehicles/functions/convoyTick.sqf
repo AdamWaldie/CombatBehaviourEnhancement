@@ -414,7 +414,11 @@ if (!_contact) then {
             // instantaneous follower speed. Feeding acceleration lag back into the
             // leader here ratchets the whole convoy down on every small gap change.
             private _catchup=(_maximum - (((_gap-_target)*0.4) min 8)) max 5;
-            if (_gap > _target*1.2) then {
+            // Ordinary outer-band error must not feed each follower's transient
+            // acceleration lag back into the lead. That ratchets a mobile column
+            // down to walking speed. Actual-speed pacing is reserved for a
+            // substantially stretched column; normal closure uses cruise reserve.
+            if (_gap > _target*2) then {
                 _catchup=_catchup min ((abs speed _follower - (((_gap-_target*1.2)*0.15) min 8)) max 5);
             };
             _leadLimit=_leadLimit min _catchup;
