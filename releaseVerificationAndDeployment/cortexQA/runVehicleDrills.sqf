@@ -1094,6 +1094,41 @@ private _driveReplacementReached=[{_driveVehicle distance2D _driveReplacement <=
 private _driveReleased=[{(_driveVehicle getVariable ["WAIT_DrivingAssist_Restore",[]]) isEqualTo []
     && {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isEqualTo []}},15] call _wait;
 ["DRIVING-disabled-owned-state-release",_driveManaged && {_driveReleased}] call _check;
+[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_Enable",true]]] call WAIT_fnc_CortexTuning;
+private _driveTakeoverOrigin=getPosATL _driveVehicle;
+private _driveOldDestination=_driveTakeoverOrigin vectorAdd [80,0,0];
+private _driveTakeoverWP=[_driveGroup,_driveOldDestination,5] call WAIT_fnc_CortexGroupMove;
+["DRIVING-no-external-owner-route-positive-control",_driveTakeoverWP isNotEqualTo [grpNull,-1]] call _check;
+if (_driveTakeoverWP isEqualTo [grpNull,-1]) exitWith {
+    ["DRIVING-external-handover-prerequisite-unavailable",false,"No valid WAIT route; physical takeover cannot be evaluated"] call _check;
+    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    {deleteVehicle _x} forEach crew _driveVehicle;
+    deleteVehicle _driveVehicle;
+    deleteGroup _driveGroup;
+    [_drivePreviousSettings] call WAIT_fnc_CortexTuning;
+};
+private _driveTakeoverMoving=[{_driveVehicle distance2D _driveTakeoverOrigin >= 10
+    && {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo []}},45] call _wait;
+["DRIVING-external-handover-physical-prerequisite",_driveTakeoverMoving] call _check;
+private _driveLeasedCap=getForcedSpeed _driveVehicle;
+_driveVehicle setVariable ["WAIT_ExternalDrivingOwner","QA_EXTERNAL_DRIVER",true];
+private _driveExternalDestination=(getPosATL _driveVehicle) vectorAdd [0,80,0];
+_driveTakeoverWP setWaypointPosition [_driveExternalDestination,0];
+_driveGroup setCurrentWaypoint _driveTakeoverWP;
+_driveDriver setVariable ["WAIT_CortexQA_Target",_driveExternalDestination,true];
+private _driveWaypointCount=count waypoints _driveGroup;
+private _driveRejected=[_driveGroup,_driveOldDestination,5] call WAIT_fnc_CortexGroupMove;
+["DRIVING-external-owner-rejects-wait-route",_driveTakeoverMoving
+    && {_driveRejected isEqualTo [grpNull,-1]} && {count waypoints _driveGroup == _driveWaypointCount}] call _check;
+private _driveOwnershipReleased=[{(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isEqualTo []},15] call _wait;
+["DRIVING-external-owner-keeps-current-cap",_driveTakeoverMoving && {_driveOwnershipReleased}
+    && {abs ((getForcedSpeed _driveVehicle)-_driveLeasedCap) <= 0.1},str [_driveLeasedCap,getForcedSpeed _driveVehicle]] call _check;
+// The replacement driver now applies its own speed; this is fixture input, not WAIT state.
+_driveVehicle forceSpeed 6;
+private _driveExternalArrived=[{_driveVehicle distance2D _driveExternalDestination <= 12},100] call _wait;
+["DRIVING-external-owner-physical-route",_driveTakeoverMoving && {_driveOwnershipReleased}
+    && {_driveExternalArrived} && {abs ((getForcedSpeed _driveVehicle)-6) <= 0.1},str getPosATL _driveVehicle] call _check;
+_driveVehicle setVariable ["WAIT_ExternalDrivingOwner",nil,true];
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach crew _driveVehicle;
 deleteVehicle _driveVehicle;
