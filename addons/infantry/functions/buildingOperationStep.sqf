@@ -359,7 +359,27 @@ private _delay=call {
             _state params ["_cursor","_approachingEntry","_lastPositions","_lastProgress","_retries","_lastTarget","_startAt","_moverIndex","_previousPositionIndex","_entryIndex","_triedEntries","_roomsCleared","_entered"];
             if (_now >= _startAt) then {
                 private _route=_pairRoutes select _pairIndex;
-                while {_cursor < count _route && {(_route select _cursor) in (_cleared+_unreachable)}} do {_cursor=_cursor+1};
+                while {_cursor < count _route && {(_route select _cursor) in (_cleared+_unreachable)}} do {
+                    private _completedRoom=_route select _cursor;
+                    // Physical visits are collected before this loop. Apply the room handoff
+                    // here before skipping it, otherwise the mover never rotates and its
+                    // partner keeps exterior security even after the first interior visit.
+                    if (_completedRoom in _cleared) then {
+                        _entered=true;
+                        _previousPositionIndex=_completedRoom;
+                        _roomsCleared=_roomsCleared+1;
+                        if (count _pair > 1) then {_moverIndex=(_moverIndex+1) mod count _pair};
+                        _lastTarget=-1;
+                        _retries=0;
+                        _lastProgress=_now;
+                    };
+                    _cursor=_cursor+1;
+                };
+                // Persist retirement even when no pending room can be claimed this step.
+                _state set [0,_cursor]; _state set [3,_lastProgress];
+                _state set [4,_retries]; _state set [5,_lastTarget];
+                _state set [7,_moverIndex]; _state set [8,_previousPositionIndex];
+                _state set [11,_roomsCleared]; _state set [12,_entered];
                 // Claim the nearest room that this pair has not already failed. Claims are removed
                 // from the shared queue immediately, preventing several pairs from crowding one node.
                 if (_cursor >= count _route) then {

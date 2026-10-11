@@ -168,3 +168,7 @@ The completed ecdff24 coordination batch records bound retries with currentComma
 The next candidate records at most sixteen initial bound handoffs per drill in WAIT_Cortex_DrillMovementHandoffs, with operation generation/token, actor, bound, pre-command, previous expected destination, committed destination and attack-delegation state. This is diagnostic evidence, not a movement fix or acceptance result. It preserves native aiming and introduces no additional scan or worker.
 
 The scheduler batch also includes a detached support-FSM retirement case on an empty isolated group. It checks that the real packaged FSM preserves the registered support brain and a reservation sentinel. This is an authority/cleanup boundary check, not proof of physical support coordination or a valid combat reservation; runtime execution is pending.
+
+### Building pair handoff after physical visits
+
+Room visits are recorded before pair-route progression. The old cursor loop skipped cleared rooms before applying the entered flag, previous interior support position or mover rotation; the later cleared-room branch was bypassed in normal progression. The cursor loop now applies those handoff updates for physically cleared rooms before advancing. Unreachable rooms do not establish entry or rotate the pair. Existing physical entry and room-visit audits remain required; this production correction is not yet accepted in game.
