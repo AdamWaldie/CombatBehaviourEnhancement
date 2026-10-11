@@ -1987,6 +1987,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('time-(_record select 2) >= 8',egress)
         self.assertIn('(_record select 3) < 1',egress)
         self.assertIn('if ([_x] call _outsideExit)',egress)
+        self.assertIn('if (_assignment param [2,false,[true]]) exitWith {false}', egress)
+        self.assertIn('if (!_outside) then {_assignment set [2,true]}', egress)
+        self.assertIn('abs (((getPosATL _unit) select 2)', egress)
+
         self.assertIn('[_unit] call _actorAvailable',egress)
         self.assertIn('_record set [3,1]',egress)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
@@ -1998,7 +2002,7 @@ class CortexOperations(unittest.TestCase):
     def test_clearance_egresses_before_terminal_handover(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('(_job getOrDefault ["phase","CLEAR"]) == "EGRESS"',text)
-        self.assertIn('[_unit,_entry getPos [10,_outward]]',text)
+        self.assertIn('[_unit,_entry getPos [10,_outward],false]',text)
         self.assertIn('_job set ["phase","EGRESS"]',text)
         self.assertIn('_job set ["egressAssignments",_egressAssignments]',text)
         self.assertIn('_job set ["egressFailed",true]',text)

@@ -158,8 +158,14 @@ private _delay=call {
         private _outsideExit={
             params ["_assignment"];
             _assignment params ["_unit","_target"];
-            _unit distance2D _target > 5
-                || {abs (((getPosATL _unit) select 2)-(_target param [2,0])) > 1.5}
+            // Physical exit is monotonic progress for this generation. Native formation
+            // can carry an exited actor away while its partner descends the stairs;
+            // requiring simultaneous arrival would repeatedly pull that actor back.
+            if (_assignment param [2,false,[true]]) exitWith {false};
+            private _outside=_unit distance2D _target > 5
+                || {abs (((getPosATL _unit) select 2)-(_target param [2,0])) > 1.5};
+            if (!_outside) then {_assignment set [2,true]};
+            _outside
         };
         // Matching a ground exit horizontally is insufficient when still upstairs.
         private _arrived=_assignments findIf {[_x] call _outsideExit} < 0;
@@ -701,7 +707,7 @@ private _delay=call {
             };
             if (_entry isEqualTo []) then {_entry=_buildingPos};
             private _outward=_buildingPos getDir _entry;
-            [_unit,_entry getPos [10,_outward]]
+            [_unit,_entry getPos [10,_outward],false]
         };
         _job set ["phase","EGRESS"];
         _job set ["egressAssignments",_egressAssignments];

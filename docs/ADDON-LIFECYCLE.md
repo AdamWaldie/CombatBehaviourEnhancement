@@ -576,3 +576,7 @@ The group tactical FSM watches registered-brain replacement in Router, Delay and
 Support and artillery Delay states watch registered-brain replacement as well as generation changes. Support Waiting retires superseded work before invoking Zeus or external cleanup callbacks. Final bookkeeping requires the matching generation and registered brain. Existing current-generation interruption cleanup remains active; these paths await packaged runtime acceptance.
 
 Building Router, Delay and Waiting now watch registered-brain replacement directly, matching queue and execution guards. A detached same-generation packaged-FSM case verifies retirement without altering the registered sweep brain. This lifecycle case remains pending; physical entry, room visits and traversal are still separately unaccepted.
+
+### Clearance exit progress
+
+Each exit assignment retains physical arrival within five horizontal metres and the 1.5 metre floor band for its current owner and operation generation. Once observed, that exit is complete even if native formation later moves the actor away; WAIT does not pull it back while a partner descends. Replacement ownership still cancels routing, and an unavailable actor or unvisited exit retains failure evidence. The existing one-refresh recovery bound and 45-second deadline remain. This uses the existing bounded building callback, with no extra scanner or per-unit worker. The two-person case has physical clearance and handover evidence; the larger-house exit-latching repair still requires its next packaged retest.
