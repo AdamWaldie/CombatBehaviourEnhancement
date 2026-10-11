@@ -28,6 +28,11 @@
 
 params [["_job", {}, [{}]], ["_state", createHashMap, [createHashMap]], ["_delay", 0, [0]], ["_jobKey", "", [""]]];
 private _group = _state getOrDefault ["group", grpNull];
+// A queue is not an ownership-adoption boundary. Preserve supplied authority proof:
+// stamping today's epoch onto an old brain would make stale work appear current.
+if (!isNull _group && {!local _group
+    || {(_state getOrDefault ["ownerEpoch",_group getVariable ["WAIT_AIPass_Epoch",0]])
+        != (_group getVariable ["WAIT_AIPass_Epoch",0])}}) exitWith {};
 if (!isNull _group) then {_state set ["ownerEpoch", _group getVariable ["WAIT_AIPass_Epoch", 0]]};
 if (_jobKey == "") then {_jobKey = _state getOrDefault ["jobKey", ""]};
 if (_jobKey != "") then {_state set ["jobKey", _jobKey]};
