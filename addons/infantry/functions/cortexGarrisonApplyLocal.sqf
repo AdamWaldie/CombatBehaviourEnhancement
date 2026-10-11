@@ -29,6 +29,8 @@
  * Locality and authority: call where the group is local.
  * Each actor must remain combat-effective and free of player/specialist ownership before
  * initial movement or an arrival PATH lock; captive and surrendered actors are never retasked.
+ * Actor reservations and finite native service, boarding and assembly tasks defer garrison commands
+ * independently, allowing other available soldiers to continue their routes.
  *
  * Review contract: Arrival jobs carry a local generation token, so replacing an order retires older work. PATH restoration is recorded publicly only when this pass disables it.
  *
@@ -55,7 +57,15 @@ private _buildingTopologyCache=missionNamespace getVariable ["WAIT_Cortex_Garris
 // Every later movement write is guarded again because an external controller can take
 // ownership after this application passed its initial eligibility check.
 private _mayIssueMovement = {
-    !([_group] call WAIT_fnc_CortexExternalTakeover)
+    params ["_actor"];
+    private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _free=_reservation isEqualTo []
+        || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+    !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
+        && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
+        && {[_actor] call WAIT_fnc_CortexCombatEffective}
+        && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+        && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 private _buildingEntries = {
     params ["_building","_unit","_destination"];
@@ -93,7 +103,7 @@ private _buildingAnchor = {
     private _assignment = _unit getVariable ["WAIT_AIPass_GarrisonPos", []];
     if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
         && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
-        && {_assignment isNotEqualTo []}) then {
+        && {_assignment isNotEqualTo []} && {[_unit] call _mayIssueMovement}) then {
         _unit setVariable ["WAIT_AIPass_GarrisonFailed",nil,true];
         if (isNil {_unit getVariable "WAIT_AIPass_GarrisonStance"}) then {_unit setVariable ["WAIT_AIPass_GarrisonStance", unitPos _unit, true]};
         if (isNil {_unit getVariable "WAIT_Cortex_GarrisonForcedSpeed"}) then {
@@ -132,7 +142,7 @@ private _buildingAnchor = {
         };
         // Release the former formation task only while WAIT still owns movement. A curator or
         // specialist can take over between setup and this first individual building command.
-        if (call _mayIssueMovement) then {doStop _unit};
+        if ([_unit] call _mayIssueMovement) then {doStop _unit};
         private _destination = _assignment select 0;
         private _building = _assignment param [2,objNull];
         private _entries=[_building,_unit,_destination] call _buildingEntries;
@@ -141,7 +151,7 @@ private _buildingAnchor = {
         private _target = if (_approach) then {_entries select 0} else {_destination};
         private _anchor=if (_approach) then {[_building,_target,_destination] call _buildingAnchor} else {[]};
         _routes set [netId _unit,[_target,_approach,getPosATL _unit,time,0,[str _destination],0,_entries,_entryIndex,_anchor,false]];
-        if (_unit distance _destination > 2 && {call _mayIssueMovement}) then {
+        if (_unit distance _destination > 2 && {[_unit] call _mayIssueMovement}) then {
             _unit setUnitPos "UP";
             _unit forceSpeed 4;
             // Record the exact value WAIT applied.  Release restores the previous value only
@@ -163,7 +173,15 @@ private _buildingAnchor = {
         -1
     };
     private _mayIssueMovement = {
-        !([_group] call WAIT_fnc_CortexExternalTakeover)
+        params ["_actor"];
+        private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _free=_reservation isEqualTo []
+            || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+        !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
+            && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
+            && {[_actor] call WAIT_fnc_CortexCombatEffective}
+            && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+            && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
     private _pending = 0;
     {
@@ -177,13 +195,13 @@ private _buildingAnchor = {
         if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
             && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
             && {_assignment isNotEqualTo []} && {_x checkAIFeature "PATH"} && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}) then {
-            private _openedDoor = if (call _mayIssueMovement) then {
+            private _openedDoor = if ([_x] call _mayIssueMovement) then {
                 [_x,_assignment param [2,objNull],["GARRISON",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor
             } else {false};
             if (_x distance (_assignment select 0) <= 2) then {
                 // Arrival locks are movement ownership too. Do not freeze or retask a soldier
                 // whose group changed owner while this bounded callback was already running.
-                if (call _mayIssueMovement) then {
+                if ([_x] call _mayIssueMovement) then {
                     doStop _x;
                     _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
                     _x setVariable ["WAIT_AIPass_GarrisonDisabledPath", true, true];
@@ -200,8 +218,8 @@ private _buildingAnchor = {
                     _route params ["_target","_approach","_lastPosition","_lastProgress","_retries","_attempted","_reassignments","_entries","_entryIndex","_anchor","_crossing"];
                     // Door requests can repeat on multi-door buildings. Reissue the current move, but
                     // only measured travel renews progress so an actor at a threshold cannot wait forever.
-                    if (_openedDoor && {call _mayIssueMovement}) then {_x doMove _target};
-                    if (_approach && {_x distance2D _target <= 5} && {call _mayIssueMovement}) then {
+                    if (_openedDoor && {[_x] call _mayIssueMovement}) then {_x doMove _target};
+                    if (_approach && {_x distance2D _target <= 5} && {[_x] call _mayIssueMovement}) then {
                         // Some building models expose an exterior entry but no usable interior
                         // crossing anchor. Proceed toward the assigned building position instead of
                         // issuing an empty target and aborting the owner-local garrison callback.
@@ -213,7 +231,7 @@ private _buildingAnchor = {
                         _route set [3,time];
                         _x doMove _crossTarget;
                     } else {
-                        if (_crossing && {count _anchor >= 3} && {_x distance _anchor <= 2} && {call _mayIssueMovement}) then {
+                        if (_crossing && {count _anchor >= 3} && {_x distance _anchor <= 2} && {[_x] call _mayIssueMovement}) then {
                             _route set [0,_assignment select 0]; _route set [2,getPosATL _x];
                             _route set [3,time]; _route set [4,0]; _route set [10,false];
                             _x doMove (_assignment select 0);
@@ -222,7 +240,7 @@ private _buildingAnchor = {
                             _route set [2,getPosATL _x]; _route set [3,time];
                         } else {
                             if (time-_lastProgress >= 12) then {
-                                if (_retries < 2 && {call _mayIssueMovement}) then {
+                                if (_retries < 2 && {[_x] call _mayIssueMovement}) then {
                                     _x doMove _target;
                                     _route set [3,time]; _route set [4,_retries+1];
                                 } else {
@@ -230,7 +248,7 @@ private _buildingAnchor = {
                                     // entrance was reached, cycling outside creates the visible door
                                     // orbit and cannot repair a broken interior navigation path.
                                     private _nextEntry=if (_approach || {_crossing}) then {_entryIndex+1} else {count _entries};
-                                    if (_nextEntry < count _entries && {call _mayIssueMovement}) then {
+                                    if (_nextEntry < count _entries && {[_x] call _mayIssueMovement}) then {
                                         private _nextTarget=_entries select _nextEntry;
                                         _route set [0,_nextTarget];
                                         _route set [1,true];
@@ -251,7 +269,7 @@ private _buildingAnchor = {
                                         private _key=str (_x select 0);
                                         !(_key in _attempted) && {!(_key in _occupied)}
                                     };
-                                    if (_reassignments < 2 && {_alternatives isNotEqualTo []} && {call _mayIssueMovement}) then {
+                                    if (_reassignments < 2 && {_alternatives isNotEqualTo []} && {[_x] call _mayIssueMovement}) then {
                                         private _routeUnit=_x;
                                         _alternatives=[_alternatives,[],{(_x select 0) distance2D getPosATL _routeUnit},"ASCEND"] call BIS_fnc_sortBy;
                                         private _replacement=_alternatives select 0;

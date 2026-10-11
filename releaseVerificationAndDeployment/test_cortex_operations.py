@@ -2015,9 +2015,12 @@ class CortexOperations(unittest.TestCase):
         for text in [garrison,defend]:
             self.assertGreaterEqual(text.count('private _mayIssueMovement = {'),2)
             self.assertIn('!([_group] call WAIT_fnc_CortexExternalTakeover)',text)
-            self.assertIn('&& {call _mayIssueMovement}',text)
-        self.assertIn('if (call _mayIssueMovement) then {',garrison)
-        self.assertIn('private _openedDoor = if (call _mayIssueMovement)',garrison)
+            self.assertIn('&& {[_x] call _mayIssueMovement}' if text == garrison else '&& {call _mayIssueMovement}',text)
+        self.assertIn('if ([_x] call _mayIssueMovement) then {',garrison)
+        self.assertIn('private _openedDoor = if ([_x] call _mayIssueMovement)',garrison)
+        self.assertIn('WAIT_Cortex_ActorMove',garrison)
+        self.assertIn('currentCommand _actor in [',garrison)
+        self.assertIn('!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)',garrison)
         self.assertIn('[_group] call WAIT_fnc_CortexExternalTakeover',reserve)
         self.assertLess(reserve.index('CortexExternalTakeover'),reserve.index('_x setVariable ["WAIT_AIPass_DefendPos"'))
         self.assertNotIn('_x doMove _position;',reserve)
@@ -2128,9 +2131,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _replacementTarget=if (_replacementApproach)',apply)
         self.assertIn('private _replacementAnchor=if (_replacementApproach)',apply)
         self.assertIn('_entries resize ((count _entries) min 4)',apply)
-        self.assertIn('if (_nextEntry < count _entries && {call _mayIssueMovement}) then',apply)
+        self.assertIn('if (_nextEntry < count _entries && {[_x] call _mayIssueMovement}) then',apply)
         self.assertNotIn('doStop _x; _x doMove',apply)
-        self.assertIn('if (call _mayIssueMovement) then {doStop _unit}',apply)
+        self.assertIn('if ([_unit] call _mayIssueMovement) then {doStop _unit}',apply)
         self.assertIn('["deadline", time + 240]',apply)
         self.assertNotIn('_job set ["deadline",(_job get "deadline") max (time+60)]',apply)
 
@@ -4302,10 +4305,10 @@ class CortexOperations(unittest.TestCase):
         # The garrison job must release its own PATH lock at loss of eligibility and recheck
         # ownership before its arrival hold or first individual move can mutate a unit.
         self.assertIn('[_group,false] call WAIT_fnc_CortexGarrisonRelease;',garrison_apply)
-        self.assertIn('if (call _mayIssueMovement) then {doStop _unit};',garrison_apply)
+        self.assertIn('if ([_unit] call _mayIssueMovement) then {doStop _unit};',garrison_apply)
         arrival=garrison_apply.split('if (_x distance (_assignment select 0) <= 2) then {',1)[1].split('} else {',1)[0]
-        self.assertIn('if (call _mayIssueMovement) then {',arrival)
-        self.assertLess(arrival.index('if (call _mayIssueMovement) then {'),arrival.index('_x disableAI "PATH"'))
+        self.assertIn('if ([_x] call _mayIssueMovement) then {',arrival)
+        self.assertLess(arrival.index('if ([_x] call _mayIssueMovement) then {'),arrival.index('_x disableAI "PATH"'))
     def test_locality_handover_uses_a_surviving_anchor_for_restoration_and_search(self):
         """A handoff during leader succession must restore only toward a viable local actor."""
         locality=source('cortexLocality')
