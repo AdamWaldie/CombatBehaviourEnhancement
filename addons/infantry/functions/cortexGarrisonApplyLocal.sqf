@@ -75,7 +75,12 @@ private _buildingEntries = {
     private _entries=[];
     for "_index" from 0 to 31 do {
         private _entry=_building buildingExit _index;
-        if (count _entry >= 3 && {_entry isNotEqualTo [0,0,0]} && {_entry distance2D _destination < 80}) then {
+        // Preserve real model coordinates. Buried path nodes are not usable
+        // physical recovery stops; flattening them would invent an entrance.
+        private _entryASL=AGLToASL _entry;
+        private _aboveTerrain=(_entryASL select 2) >= (getTerrainHeightASL _entry)-0.05;
+        if (count _entry >= 3 && {_entry isNotEqualTo [0,0,0]} && {_entry distance2D _destination < 80}
+            && {_aboveTerrain}) then {
             _entries pushBackUnique _entry;
         };
     };

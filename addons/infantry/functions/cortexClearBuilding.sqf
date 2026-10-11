@@ -172,7 +172,7 @@ for "_exitIndex" from 0 to 15 do {
     // Model exit nodes can be buried below terrain after placement. Do not
     // make one an obligatory recovery destination or flatten it into a fake exit.
     private _candidateASL=AGLToASL _candidate;
-    private _aboveTerrain=(_candidateASL select 2) >= (getTerrainHeightASL _candidate)-0.25;
+    private _aboveTerrain=(_candidateASL select 2) >= (getTerrainHeightASL _candidate)-0.05;
     if (_candidate isNotEqualTo [0,0,0] && {_candidate distance2D _building < 50}
         && {_aboveTerrain}
         && {_entries findIf {_x distance2D _candidate < 1} < 0}) then {
