@@ -526,9 +526,15 @@ if (_nativeOnly) exitWith {};
         } forEach _members;
         _allMoved
     },90] call _wait;
-    [format ["CLEAR-fresh-%1-handover-physical",_size],_moved,str [getPosATL leader _group,formation _group,_members apply {
-        [getPosATL _x,formationPosition _x,currentCommand _x,expectedDestination _x]
-    }]] call _check;
+    private _handoverEvidence=[];
+    {
+        private _formationPoint=formationPosition _x;
+        _handoverEvidence pushBack [netId _x,getPosATL _x,_formationPoint,currentCommand _x,expectedDestination _x,
+            _beforeMove select _forEachIndex,_x distance2D (_beforeMove select _forEachIndex),
+            _x distance2D _formationPoint,
+            abs (((getPosASL _x) select 2)-((AGLToASL _formationPoint) select 2))];
+    } forEach _members;
+    [format ["CLEAR-fresh-%1-handover-physical",_size],_moved,str [getPosATL leader _group,formation _group,_handoverEvidence]] call _check;
     private _speedReleased=true;
     {
         if (_x != _editedActor && {abs ((getForcedSpeed _x)-(_originalSpeedLimits select _forEachIndex)) > 0.1}) then {
