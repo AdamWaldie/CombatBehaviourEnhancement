@@ -17,6 +17,7 @@ class StandalonePerformanceReportTests(unittest.TestCase):
         identity=[loaded,'z/wait/danger/danger.fsm' if loaded else 'native.fsm',50,300,'INFANTRY_PATROL',2]
         result=[loaded,True,1000,10,20,30,50,300,50,1,True]
         text='WAIT STANDALONE PERF IDENTITY: '+json.dumps(identity)+'\n'
+        text+='WAIT STANDALONE PERF COMPOSITION: [50,50,0,0,0,0]\n'
         text+='WAIT STANDALONE PERF RESULT: '+json.dumps(result)+'\nWAIT STANDALONE PERF COMPLETE\n'
         (folder/'server/run.rpt').write_text(text)
         return read_run(folder)

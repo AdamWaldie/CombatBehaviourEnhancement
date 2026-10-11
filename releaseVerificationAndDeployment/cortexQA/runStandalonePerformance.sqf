@@ -78,6 +78,13 @@ for "_i" from 0 to 49 do {
 };
 {_x addCuratorEditableObjects [_actors+_vehicles,true]} forEach allCurators;
 private _expectedActors=count _actors;
+private _fixtureComposition=[count _groups,
+    {_x findIf {!isNull objectParent _x} < 0} count (_groups apply {units _x}),
+    {typeOf _x == "O_MRAP_02_hmg_F"} count _vehicles,
+    {typeOf _x == "O_APC_Tracked_02_cannon_F"} count _vehicles,
+    {typeOf _x == "O_Heli_Attack_02_dynamicLoadout_F"} count _vehicles,
+    {typeOf _x == "O_Plane_CAS_02_dynamicLoadout_F"} count _vehicles];
+diag_log format ["WAIT STANDALONE PERF COMPOSITION: %1",_fixtureComposition];
 private _scenario=["INFANTRY_PATROL","MIXED_PATROL"] select (_composition == "mixed");
 diag_log format ["WAIT STANDALONE PERF IDENTITY: %1",[_loaded,_fsm,50,_expectedActors,_scenario,groupOwner (_groups select 0)]];
 sleep 20;
