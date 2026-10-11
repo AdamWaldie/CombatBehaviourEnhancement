@@ -511,3 +511,5 @@ Coordinated bounds now use the same three-person minimum as responder admission.
 Coordinated support leases store their attack destination as one ATL position. Operation admission retains that complete position as its objective and initial route point; it must not interpret the coordinate array as a route and reduce the objective to altitude. This handoff correction awaits physical acceptance.
 
 Coordinated covering roles retain their finite lease without requiring travel every thirty seconds. Their moving bounds retain separate physical-progress watchdogs. Cover stop orders are issued once per token/sequence transition and exclude player, remotely controlled and specialist-owned actors; normal rally still retains aggregate no-progress failure.
+
+Legacy support PATH holds retire their WAIT marker during calm, support and withdrawal cleanup. Restoring PATH or issuing follow commands separately requires an ordinary local actor without player, remote or specialist ownership. Removing WAIT metadata is not permission to alter the replacement controller's movement state.

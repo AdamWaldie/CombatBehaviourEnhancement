@@ -67,7 +67,12 @@ if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
 };
 private _releaseOwnedHold={
     params ["_unit",["_restorePath",true],["_returnSearchTeam",false]];
-    if (local _unit && {group _unit == _group}) then {
+    if (_restorePath && {local _unit} && {group _unit == _group}) then {
+        _unit setVariable ["WAIT_Cortex_SupportPathHold",nil,true];
+    };
+    if (local _unit && {group _unit == _group} && {!isPlayer _unit}
+        && {isNull (remoteControlled _unit)} && {([_unit] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_unit] call WAIT_fnc_CompatibilityExternalControl)}) then {
         if (_restorePath) then {
             _unit enableAI "PATH";
             _unit setVariable ["WAIT_Cortex_SupportPathHold",nil,true];

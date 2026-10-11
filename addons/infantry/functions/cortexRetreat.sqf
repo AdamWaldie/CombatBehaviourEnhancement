@@ -110,7 +110,10 @@ private _supportHeld=_state getOrDefault ["supportHeld",[]];
     if (_x getVariable ["WAIT_Cortex_SupportPathHold",false]) then {_supportHeld pushBackUnique _x};
 } forEach units _group;
 {
-    if (local _x && {group _x == _group}) then {
+    if (local _x && {group _x == _group}) then {_x setVariable ["WAIT_Cortex_SupportPathHold",nil,true]};
+        if (local _x && {group _x == _group} && {!isPlayer _x}
+            && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}) then {
         _x enableAI "PATH";
         _x setVariable ["WAIT_Cortex_SupportPathHold",nil,true];
         // supportHeld is an explicit Cortex ownership record. A withdrawal replaces that

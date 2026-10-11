@@ -176,7 +176,10 @@ private _newMove=_moving && {(_state getOrDefault ["supportBoundSequence",-1]) !
 if (_newMove || {!_coordinating}) then {
     _state deleteAt "supportCoverIdentity";
     {
-        if (local _x && {group _x == _group}) then {
+        if (local _x && {group _x == _group}) then {_x setVariable ["WAIT_Cortex_SupportPathHold",nil,true]};
+        if (local _x && {group _x == _group} && {!isPlayer _x}
+            && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}) then {
             _x enableAI "PATH";
             _x setVariable ["WAIT_Cortex_SupportPathHold",nil,true];
             // supportHeld is the ownership record. Combat can relabel our doStop

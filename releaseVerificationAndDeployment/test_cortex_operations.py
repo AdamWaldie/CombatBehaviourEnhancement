@@ -3936,6 +3936,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_legacy_support_hold_restoration_yields_individual_ownership(self):
+        for name in ['cortexSupportMaintain','cortexRetreat','cortexRestoreCalm']:
+            text=source(name)
+            actor='_unit' if name == 'cortexRestoreCalm' else '_x'
+            self.assertIn('remoteControlled '+actor,text)
+            self.assertIn('['+actor+'] call WAIT_fnc_CortexExternalOwner',text)
+            self.assertIn('['+actor+'] call WAIT_fnc_CompatibilityExternalControl',text)
+            self.assertIn('!isPlayer '+actor,text)
     def test_coordinated_cover_does_not_timeout_or_repeat_stop_commands(self):
         maintain=source('cortexSupportMaintain')
         self.assertIn('_operationState == "STALLED" && {!(_state getOrDefault ["assaulting",false])}',maintain)
