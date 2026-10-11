@@ -537,3 +537,5 @@ Combined-arms discovery preserves an asset's unexpired role from another opportu
 Combined ground manoeuvre admission refuses OTHER_INTENT_ACTIVE when an existing local operation has a different intent or target. It does not cancel that operation or reveal the new target through the refused move. Fire-only support remains a separate non-movement opportunity. Compatible same-target combined intent can continue through normal generation validation.
 
 Ground-support refusal retires its exact reservation on the server through current-owner and snapshot validation. It retains the refusal result, clears only matching role metadata, and never cancels the asset's existing operation. Repeated or replaced replies are no-ops; aircraft retains its separate fallback path.
+
+Combined ground-fire admission checks both group and gunner fire permissions, current operator ownership and the shared friendly/civilian firing-lane guard. NO_FIRE_OPERATOR and BLOCKED_FIRE_LANE retire the exact reservation instead of publishing APPLIED. This is one admission check, not a persistent scanning loop; native aiming and weapon release remain responsible for actual fire.

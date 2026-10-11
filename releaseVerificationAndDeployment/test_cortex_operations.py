@@ -3950,7 +3950,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',text)
         self.assertNotIn('doFollow',text)
         local=source('cortexCombinedArmsLocal')
-        self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),5)
+        self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),6)
     def test_combined_ground_admission_preserves_other_live_intents(self):
         text=source('cortexCombinedArmsLocal')
         self.assertIn('_role == "GROUND_MANOEUVRE" && {count _existingOperation > 0}',text)

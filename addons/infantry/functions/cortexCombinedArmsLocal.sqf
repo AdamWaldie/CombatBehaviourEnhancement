@@ -65,11 +65,24 @@ if (_role == "GROUND_FIRE") exitWith {
     // target. Ordering the driver/commander to attack can replace the vehicle's current route with
     // native pursuit. GROUND_MANOEUVRE and AIR_ATTACK deliberately skip this block because their
     // operation controllers own the later target/release boundary.
-    if (!isNull _gunner && {alive _gunner} && {local _gunner} && {combatMode _group in ["YELLOW","RED"]}
-        && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
-        _gunner doTarget _target;
-        _gunner doFire _target;
+    private _fireRefusal="";
+    if (isNull _gunner || {!alive _gunner} || {!local _gunner}
+        || {!(combatMode _group in ["YELLOW","RED"])}
+        || {!(unitCombatMode _gunner in ["YELLOW","RED"])}
+        || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
+        || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
+        || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
+        || {[_group] call WAIT_fnc_CortexExternalTakeover}) then {_fireRefusal="NO_FIRE_OPERATOR"};
+    if (_fireRefusal == "" && {!([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear)}) then {
+        _fireRefusal="BLOCKED_FIRE_LANE";
     };
+    if (_fireRefusal != "") exitWith {
+        _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,_fireRefusal,serverTime,_target],true];
+        [_group,_opportunity,_fireRefusal,clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
+        false
+    };
+    _gunner doTarget _target;
+    _gunner doFire _target;
     _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
     _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"APPLIED",serverTime,_target],true];
     true
