@@ -2061,7 +2061,9 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('forEach crew _asset',combined)
         self.assertLess(combined.rindex('CortexExternalTakeover'),combined.index('call WAIT_fnc_AirAttackOperationStart'))
         self.assertIn('!([_group] call WAIT_fnc_CortexExternalTakeover) then {',ground)
-        self.assertIn('&& {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {_gunner doTarget _target; _gunner doFire _target};',ground)
+        arrival=ground.split('if (_asset distance2D _destination <= 70)',1)[1].split('if (time >=',1)[0]
+        self.assertLess(arrival.index('CortexExternalTakeover'),arrival.index('_gunner doTarget _target'))
+        self.assertIn('if (_fireAllowed) then {',arrival)
         self.assertIn('if ([_group] call WAIT_fnc_CortexExternalTakeover ||',crew)
         self.assertIn('&& {!([group _unit] call WAIT_fnc_CortexExternalTakeover)}) then {',crew)
     def test_driving_recovery_rechecks_takeover_after_sparse_terrain_sampling(self):
@@ -3941,6 +3943,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_combined_arrival_preserves_fire_permissions_and_reports_order_not_effect(self):
+        text=source('cortexCombinedGroundStep')
+        arrival=text.split('if (_asset distance2D _destination <= 70)',1)[1].split('if (time >=',1)[0]
+        self.assertIn('unitCombatMode _gunner in ["YELLOW","RED"]',arrival)
+        self.assertIn('WAIT_fnc_CortexLineOfFireClear',arrival)
+        self.assertIn('WAIT_fnc_CortexExternalOwner',arrival)
+        self.assertIn('"ORDER_ISSUED"',arrival)
+        self.assertIn('"WAIT_Cortex_CombinedFireDecision"',arrival)
+        self.assertLess(arrival.index('WAIT_fnc_CortexLineOfFireClear'),arrival.index('_gunner doFire'))
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)

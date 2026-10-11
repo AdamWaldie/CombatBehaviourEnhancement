@@ -73,7 +73,24 @@ if (serverTime >= (_job getOrDefault ["expiry",serverTime])) exitWith {["EXPIRED
 if (_asset distance2D _destination <= 70) exitWith {
     _group reveal [_target,3];
     private _gunner=gunner _asset;
-    if (!isNull _gunner && {alive _gunner} && {local _gunner} && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {_gunner doTarget _target; _gunner doFire _target};
+    private _fireDecision="NO_FIRE_OPERATOR";
+    private _fireAllowed=!isNull _gunner && {alive _gunner} && {local _gunner}
+        && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
+        && {([_gunner] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}
+        && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
+        && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+    if (_fireAllowed) then {
+        _fireDecision="BLOCKED_FIRE_LANE";
+        if ([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear) then {
+            _gunner doTarget _target;
+            _gunner doFire _target;
+            _fireDecision="ORDER_ISSUED";
+        };
+    };
+    // Physical arrival completes the move, not the requested fire effect. Fired-event and
+    // target-damage evidence are still required by combat acceptance.
+    _group setVariable ["WAIT_Cortex_CombinedFireDecision",[_token,_fireDecision,serverTime,_gunner,_target],true];
     ["POSITION_REACHED"] call _finish
 };
 if (time >= (_job getOrDefault ["progressAt",time])+10) then {
