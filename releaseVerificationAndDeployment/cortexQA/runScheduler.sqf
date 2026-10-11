@@ -83,6 +83,19 @@ private _generationRan=[{(_currentGeneration get "calls") == 1},10] call _wait;
 private _epochGroup=createGroup [east,false];
 _epochGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
 _epochGroup setVariable ["WAIT_AIPass_Epoch",6];
+// Authority rejection only: no actors or tactical outcome is fabricated by this boundary case.
+private _registeredBrain=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",6],["generation",1],["phase","CALM"]];
+private _detachedBrain=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",6],["generation",1],["phase","CONTACT"]];
+_epochGroup setVariable ["WAIT_GroupBrain_Generation",1];
+_epochGroup setVariable ["WAIT_GroupBrain",_registeredBrain];
+private _detachedAccepted=[_epochGroup,6,1,_detachedBrain,"CONTACT"] call WAIT_fnc_GroupBrainQueue;
+["SCHED-detached-brain-not-admitted",!_detachedAccepted && {!(_detachedBrain getOrDefault ["pending",false])}] call _check;
+private _detachedResult=[_detachedBrain] call WAIT_fnc_GroupBrainStep;
+["SCHED-detached-brain-step-rejected",_detachedResult == -1
+    && {(_detachedBrain getOrDefault ["cancelReason",""]) == "SUPERSEDED"}] call _check;
+["SCHED-detached-brain-live-state-preserved",!(_registeredBrain getOrDefault ["cancelled",false])
+    && {(_registeredBrain get "phase") == "CALM"}
+    && {(_epochGroup getVariable ["WAIT_GroupBrain",createHashMap]) isEqualTo _registeredBrain}] call _check;
 private _epochKey="WAIT_QA_EPOCH_"+str diag_tickTime;
 private _staleState=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",5],["calls",0]];
 [_coalesceCallback,_staleState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
