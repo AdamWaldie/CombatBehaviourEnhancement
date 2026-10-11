@@ -686,6 +686,9 @@
       "expected": "Vehicle physically withdraws, uses only available smoke and restores controls; immobilized or deleted vehicles terminate safely.",
       "settings": [
         "WAIT_AIPass_VehicleReverse_Enable",
+        "WAIT_AIPass_VehicleReverse_Distance",
+        "WAIT_AIPass_VehicleReverse_Timeout",
+        "WAIT_AIPass_VehicleReverse_FacingTolerance",
         "WAIT_AIPass_VehicleWithdraw_Enable"
       ],
       "status": "implemented_partial",
