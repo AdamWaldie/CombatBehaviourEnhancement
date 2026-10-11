@@ -127,6 +127,19 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
             private _requester=_job getOrDefault ["requester",grpNull];
             private _requesterTransmitter=[_requester] call WAIT_fnc_CortexGroupTransmitter;
             private _supportOrigins=if (isNull _requesterTransmitter) then {[]} else {[getPosATL _requesterTransmitter]};
+            // Other covering elements also own live fire lanes. Reuse this operation's
+            // bounded responder list; do not scan nearby groups or moving elements.
+            {
+                _x params ["_coverGroup","_coverToken"];
+                if (_coverGroup != _group && {!(_coverToken in _completed)}
+                    && {!(_coverToken in _retired)}
+                    && {_active findIf {(_x select 0) == _coverGroup} < 0}) then {
+                    private _coverTransmitter=[_coverGroup] call WAIT_fnc_CortexGroupTransmitter;
+                    if (!isNull _coverTransmitter) then {
+                        _supportOrigins pushBackUnique (getPosATL _coverTransmitter);
+                    };
+                };
+            } forEach (_teams select [0,6]);
             private _selected=[_centre,_candidateRoutes,_job get "assaultEnemy",_supportOrigins]
                 call WAIT_fnc_CortexSelectAvenue;
             if (_selected isNotEqualTo []) then {
