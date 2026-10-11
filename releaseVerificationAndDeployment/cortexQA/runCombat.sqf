@@ -74,6 +74,7 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
         _enemy setVariable ["acex_headless_blacklist",true,true];
         _enemies pushBack _enemy;
     };
+    private _originalAttackPolicy = attackEnabled _group;
     private _fixtureCombatMode = ["RED","YELLOW"] select (_case in ["FLANK-YELLOW","FLANK-YELLOW-NATIVE-FIRE","ADVANCE-YELLOW"]);
     _group setCombatMode _fixtureCombatMode;
     // Group orders can reach unit mode state after this scheduled frame. Observe
@@ -266,6 +267,8 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
     private _clearThroughTeams = [];
     private _assaultPositionReached = false;
     private _assaultVisitors = [];
+    private _movementPolicySamples = 0;
+    private _movementPolicyValid = true;
     private _grenadeDispatchSeen = false;
     private _fragShots = 0;
     private _moved = false;
@@ -299,6 +302,16 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
             sleep 0.5;
             private _live = (_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
             _observedAssault = _observedAssault || {_live getOrDefault ["assaulting",false]};
+            if ((_live getOrDefault ["stage",""]) == "MOVE" && {count (_live getOrDefault ["movers",[]]) > 0}) then {
+                _movementPolicySamples = _movementPolicySamples + 1;
+                private _operation = _group getVariable ["WAIT_Operation",createHashMap];
+                private _attackLease = (_operation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]];
+                if (attackEnabled _group || {count _attackLease != 2}
+                    || {(_live get "movers") findIf {
+                        !(_x checkAIFeature "TARGET") || {!(_x checkAIFeature "AUTOTARGET")}
+                            || {!(_x checkAIFeature "FIREWEAPON")}
+                    } >= 0}) then {_movementPolicyValid=false};
+            };
             if (_live getOrDefault ["assaulting",false]) then {
                 private _objective = _live getOrDefault ["assaultObjective",_enemyPosition];
                 _clearedObjective = +_objective;
@@ -465,6 +478,7 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
     private _remainingDrill=(_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
     [_prefix+"-observation-completed",_started && {count _remainingDrill == 0},format ["Observed stage=%1 index=%2; controllerFailure=%3",_remainingDrill getOrDefault ["stage","ENDED"],_remainingDrill getOrDefault ["index",-1],_group getVariable ["WAIT_Cortex_DrillFailure",[]]]] call _check;
     [_prefix+"-physical-movement",_moved] call _check;
+    [_prefix+"-movement-delegation-lease-native-fire",_movementPolicySamples > 0 && {_movementPolicyValid},str [_movementPolicySamples,_movementPolicyValid]] call _check;
     [_prefix+"-threat-facing-frontage",_haltMeasurements isNotEqualTo [] && {_haltMeasurements findIf {!(_x select 3)} < 0},str _haltMeasurements] call _check;
     private _ending = _group getVariable ["WAIT_Cortex_DrillResult",[]];
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
@@ -571,6 +585,7 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
     [createHashMapFromArray [["WAIT_AIPass_Contact_Enable",false]]] call WAIT_fnc_CortexTuning;
     [_prefix+"-disabled-cleanup",[{count ((_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap]) == 0 && {_members findIf {!(_x checkAIFeature "TARGET") || {!(_x checkAIFeature "AUTOTARGET")}} < 0}},15] call _wait] call _check;
     [_group] call WAIT_fnc_CortexReleaseGroup;
+    [_prefix+"-attack-policy-restored",attackEnabled _group == _originalAttackPolicy,str [_originalAttackPolicy,attackEnabled _group]] call _check;
     [_prefix+"-combat-mode-restored",_originalModes findIf {alive (_x select 0) && {unitCombatMode (_x select 0) != (_x select 1)}} < 0,str [_originalModes apply {[netId (_x select 0),_x select 1]},_members apply {[netId _x,unitCombatMode _x]}]] call _check;
     {deleteVehicle _x} forEach (_members+_enemies);
     deleteGroup _group;
