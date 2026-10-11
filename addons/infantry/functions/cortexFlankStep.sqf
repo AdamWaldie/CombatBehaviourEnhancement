@@ -125,7 +125,10 @@ private _operationEndReason="";
 if (_operationGeneration >= 0) then {
     private _operationStale=missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25];
     private _operationStatus=[_group,_operationGeneration,3,_operationStale] call WAIT_fnc_OperationStep;
-    if (_operationStatus in ["LOST_OWNER","ZEUS","EXTERNAL","REPLACED","STALLED"]) then {_operationEndReason=_operationStatus};
+    if (_operationStatus in ["LOST_OWNER","ZEUS","EXTERNAL","REPLACED","STALLED"]
+        && {_operationStatus != "STALLED" || {!((_drill getOrDefault ["stage",""]) in ["START","MOVE"])}}) then {_operationEndReason=_operationStatus};
+    // MOVE has actor-specific retry/replacement and a hard bound deadline below. Aggregate
+    // no-progress must not pre-empt that finite recovery path or pretend that progress occurred.
 };
 if (_operationEndReason != "") exitWith {_operationEndReason call _end};
 // External control and replacement orders win before any mode or movement mutation.
@@ -387,8 +390,8 @@ if (_teams isNotEqualTo []) then {
     private _otherTurn=1-_turn;
     private _movingAvailable=(_teams select _turn) select {_x in _units};
     private _coverAvailable=(_teams select _otherTurn) select {_x in _units};
-    if (count _movingAvailable < 2 && {count _coverAvailable > 2
-        || {count _movingAvailable == 1 && {count _coverAvailable == 2}}}) then {
+    while {count _movingAvailable < 2 && {count _coverAvailable > 2
+        || {count _movingAvailable == 1 && {count _coverAvailable == 2}}}} do {
         private _replacement=_coverAvailable select ((count _coverAvailable)-1);
         (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _replacement);
         (_teams select _turn) pushBack _replacement;
@@ -541,6 +544,12 @@ private _issue = {
     _drill set ["disabled", _disabled];
     _drill set ["combatModes",_combatModes];
     _drill set ["combatBehaviours",_combatBehaviours];
+    private _boundIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0]];
+    if (_boundIdentity isNotEqualTo (_drill getOrDefault ["boundDeadlineIdentity",[]])) then {
+        _drill set ["boundDeadlineIdentity",_boundIdentity];
+        _drill set ["boundDeadline",_now+4*(missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25])];
+    };
+    // Replacing casualties or blocked movers cannot renew this bound's hard travel limit.
     _drill set ["boundStart", _now];
     [_group,_drill,"MOVE",format ["BOUND_%1_ISSUED",_drill get "index"]] call WAIT_fnc_CortexDrillSetStage;
 };
@@ -640,7 +649,25 @@ switch (_drill get "stage") do {
             diag_log format ["[WAIT] Bound continues with stragglers group=%1 separated=%2 continuing=%3",_group,_blocked,_units-_blocked];
             _stalled = false;
         };
-        if (!_arrived && {_stalled || {_now-(_drill get "boundStart") > _timeout*4}}) exitWith {
+        private _neededReplacements=(2-count (_units-_blocked)) max 0;
+        private _availableCover=(_fit-_units)-_recovering;
+        if (!_arrived && {_stalled} && {_teams isNotEqualTo []}
+            && {_neededReplacements > 0} && {count _availableCover >= (_neededReplacements+1)}
+            && {_now <= (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}) exitWith {
+            {
+                private _blockedActor=_x;
+                if (_recovery findIf {(_x select 0) == _blockedActor} < 0) then {
+                    _recovery pushBack [_blockedActor,0,_now];
+                };
+            } forEach _blocked;
+            _drill set ["recovery",_recovery];
+            // Next callback removes isolated actors and rebalances at most two coverers.
+            // Keep this exact bound and its remaining actors; never return to an old rally.
+            [_group,_drill,"START","STALLED_ELEMENT_REINFORCEMENT"] call WAIT_fnc_CortexDrillSetStage;
+            diag_log format ["[WAIT] Bound replacement pending group=%1 isolated=%2 reserve=%3",_group,_blocked,_availableCover];
+            _result=1.5;
+        };
+        if (!_arrived && {_stalled || {_now > (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}}) exitWith {
             private _reason = ["TIME_LIMIT","STALLED"] select _stalled;
             private _measurements = [];
             {
