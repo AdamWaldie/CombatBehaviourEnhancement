@@ -124,6 +124,12 @@ _batteryGroup setCombatMode "BLUE";
 ["ART-SMOKE-never-fire-rejected",!(call _request)] call _check;
 _batteryGroup setCombatMode "YELLOW";
 {_x setUnitCombatMode "YELLOW"} forEach _crew;
+private _busyBeforeRejected=_gun getVariable ["WAIT_AIPass_BusyUntil",-1];
+private _outOfRangeAccepted=[_gun,[1000000,1000000,0],0,"SMOKE",2,false,"SUPPORT",objNull,objNull,_requester]
+    call WAIT_fnc_CortexArtilleryFire;
+["ART-SMOKE-out-of-range-rejected",!_outOfRangeAccepted] call _check;
+["ART-SMOKE-out-of-range-no-reservation",!((netId _gun) in (missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap]))
+    && {(_gun getVariable ["WAIT_AIPass_BusyUntil",-1]) == _busyBeforeRejected}] call _check;
 private _initialAccepted=call _request;
 private _requestEvidence=[
     ["radio",!isNull ([_requester] call WAIT_fnc_CortexGroupTransmitter)],

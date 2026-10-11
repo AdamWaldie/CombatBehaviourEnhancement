@@ -84,7 +84,10 @@ if (isNull _battery || {!alive gunner _battery} || {(netId _battery) in _mission
     || {!isNull _spotter && {side group _spotter != side group gunner _battery}}
     || {_retreatSmoke && {_requestSide != side group gunner _battery}}) exitWith {false};
 private _magazine = [_battery, _mode == "SMOKE"] call WAIT_fnc_CortexArtilleryAmmo;
-if (_magazine == "" || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}) exitWith {false};
+// Explicit batteries need the same range admission as automatically selected candidates.
+// Reject before token/busy reservation; later aim checks still enforce safety and live range.
+if (_magazine == "" || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}
+    || {!(_target inRangeOfArtillery [[_battery],_magazine])}) exitWith {false};
 if (_danger) then {
     _rounds=1;
     _scoot=false;
