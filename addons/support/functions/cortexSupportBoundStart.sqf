@@ -35,6 +35,7 @@ private _fit=(units _group) select {
         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {count _actorMove != 3 || {time >= (_actorMove select 2)}}
+        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 if (count _fit < 3) exitWith {false};
 // Do not discard leaders, machine gunners or anti-tank soldiers when forming the

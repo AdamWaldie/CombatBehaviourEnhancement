@@ -119,6 +119,12 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
             && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
             && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
     };
+        _fit=_fit select {
+            private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+            private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
+                && {(_reservation param [2,1e12,[0]]) <= time}};
+            _free && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        };
         if (count _fit >= 3 && {serverTime >= (_group getVariable ["WAIT_Cortex_SupportRetryAfter",0])}
             && {!(_token in _completed)} && {!(_token in _retired)}
             && {_active findIf {(_x select 4) == _token} < 0}
