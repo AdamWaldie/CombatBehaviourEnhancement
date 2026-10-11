@@ -6845,7 +6845,7 @@ class CortexOperations(unittest.TestCase):
         for forbidden in ['WAIT_fnc_CortexOwnershipLease','WAIT_fnc_OperationStart','movementLease','set ["responding"']:
             self.assertNotIn(forbidden,pending)
         self.assertLess(apply.index('if (_okay && {_directCoordinationPending}) exitWith {'),apply.index('call WAIT_fnc_CortexOwnershipLease'))
-        self.assertIn('private _replaceLocalDrill = _attackAllowed && {_movementOwner == "TACTICAL_DRILL"}',apply)
+        self.assertIn('private _replaceLocalDrill = _attackAllowed && {_sharedDrillContact} && {_movementOwner == "TACTICAL_DRILL"}',apply)
         self.assertIn('[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd',apply)
         self.assertLess(apply.index('call WAIT_fnc_CortexFlankEnd'),apply.index('call WAIT_fnc_CortexOwnershipLease'))
     def test_support_reservations_use_the_common_generation_lifecycle(self):

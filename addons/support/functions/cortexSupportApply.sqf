@@ -4,7 +4,7 @@
  * Locality/authority: queued only by authenticated SupportLocal; all execution gates are checked again.
  * Repeat/JIP: at most five seconds waiting for ordered state; stale tokens never issue movement.
  * A support update may replace its own lease. A server-selected coordinated attack route may
- * replace the exact local tactical drill; it never replaces withdrawal, vehicle or artillery movement.
+ * replace the exact local tactical drill only within the same 75 m contact area; it never replaces withdrawal, vehicle or artillery movement.
  * When coordinated assault is enabled, the first shared-contact delivery acknowledges eligibility
  * without acquiring movement, compatibility or operation ownership. The squad keeps its native
  * combat and any local tactical drill while the server selects a safe avenue. Only a returned viable
@@ -79,7 +79,15 @@ private _groupTransmitter = [_group] call WAIT_fnc_CortexGroupTransmitter;
 private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;
 private _attackAllowed = _attack isNotEqualTo [] && {_sharedCoordinated};
 private _directCoordinationPending = _attack isEqualTo [] && {_sharedCoordinated};
-private _replaceLocalDrill = _attackAllowed && {_movementOwner == "TACTICAL_DRILL"}
+// Revalidate on the actor owner: proximity to the requester does not imply a shared contact.
+// Keep an existing drill committed when its live target belongs to a different engagement.
+private _localDrill = _state getOrDefault ["drill",createHashMap];
+private _localTarget = _localDrill getOrDefault ["target",objNull];
+private _requestContact = getPosATL _requester;
+if (_attackAllowed) then {_requestContact=+_attack};
+private _sharedDrillContact = isNull _localTarget || {!alive _localTarget}
+    || {_localTarget distance2D _requestContact <= 75};
+private _replaceLocalDrill = _attackAllowed && {_sharedDrillContact} && {_movementOwner == "TACTICAL_DRILL"}
     && {count (_state getOrDefault ["drill",createHashMap]) > 0};
 private _prepareAlongsideDrill=_directCoordinationPending && {_movementOwner == "TACTICAL_DRILL"}
     && {count (_state getOrDefault ["drill",createHashMap]) > 0};
