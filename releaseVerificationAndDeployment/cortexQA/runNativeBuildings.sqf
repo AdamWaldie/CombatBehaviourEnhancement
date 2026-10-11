@@ -15,6 +15,9 @@ private _check={
     params ["_id","_ok",["_detail",""]];
     diag_log format ["WAIT CORTEX QA|%1|%2|%3",_id,["FAIL","PASS"] select _ok,_detail];
     if (!_ok) then {_failures pushBack _id};
+    private _results=missionNamespace getVariable ["WAIT_CortexQA_Results",[]];
+    _results pushBack [_id,["FAIL","PASS"] select _ok];
+    missionNamespace setVariable ["WAIT_CortexQA_Results",_results,true];
 };
 private _loaded=isClass (configFile >> "CfgPatches" >> "WAIT_AI_Tweaks_Main")
     || {isClass (configFile >> "CfgPatches" >> "WAIT_danger")};

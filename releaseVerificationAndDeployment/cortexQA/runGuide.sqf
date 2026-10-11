@@ -263,7 +263,9 @@ while {true} do {
         {ctrlDelete _x} forEach _controls;
         if (!isNil "WAIT_fnc_UnregisterUiReservationLocal") then {["CORTEX_QA"] call WAIT_fnc_UnregisterUiReservationLocal};
         _host = _next;
-        private _theme = [] call WAIT_fnc_AITweaksUiTheme;
+        private _theme = if (isNil "WAIT_fnc_AITweaksUiTheme") then {
+            createHashMapFromArray [["panel",[0.02,0.025,0.03,0.95]],["text",[1,1,1,1]]]
+        } else {[] call WAIT_fnc_AITweaksUiTheme};
         private _back = _host ctrlCreate ["RscText",-1];
         private _body = _host ctrlCreate ["RscStructuredText",-1];
         private _inspect = _host ctrlCreate ["RscButton",-1];

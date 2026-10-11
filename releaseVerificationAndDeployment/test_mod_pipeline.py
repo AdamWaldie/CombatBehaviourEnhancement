@@ -21,6 +21,7 @@ class PackagePipelineTests(unittest.TestCase):
         runner=(mission/'cortexQANativeBuildings.sqf').read_text()
         self.assertIn('BUILD-NATIVE-addon-absent',runner)
         self.assertIn('[_check,_phase,_wait,true]',runner)
+        self.assertIn('cortexQAGuide.sqf',(mission/'initPlayerLocal.sqf').read_text())
         self.assertTrue(json.loads((mission.parent/'audit-manifest.json').read_text())['native_baseline'])
         with self.assertRaises(ValueError):
             stage(self.folder,Path(self.temp.name)/'loaded-buildings','nativebuildings')
