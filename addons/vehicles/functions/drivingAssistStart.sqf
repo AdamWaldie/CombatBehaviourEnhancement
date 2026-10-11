@@ -9,7 +9,7 @@
  * deletes a waypoint and yields to players, Zeus remote control, convoy ownership and specialist
  * driving ownership. An authored zero forced-speed hold is retained without recovery commands.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
- * it after a locality change; release restores only the forced speed captured by this function.
+ * it after a locality change; route changes reset finite recovery; release restores only the forced speed captured by this function.
  * Arguments:
  * 0: group <GROUP> - local AI group commanding the vehicle.
  * Return Value: Nothing.
@@ -80,6 +80,20 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             if (_previous isNotEqualTo [] && {_ownedCap >= 0} && {abs ((getForcedSpeed _vehicle)-_ownedCap) > 0.1}) then {
                 [_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;
             } else {
+            // Recovery belongs to this authored route, not merely to this vehicle.
+            // Same-index waypoint replacement must not inherit an old reverse stage
+            // or exhausted timer, nor receive an immediate recovery command.
+            private _routeWaypoint=[_group,currentWaypoint _group];
+            private _routeIdentity=[_routeWaypoint select 1,waypointType _routeWaypoint,
+                waypointPosition _routeWaypoint,waypointCompletionRadius _routeWaypoint,
+                waypointBehaviour _routeWaypoint];
+            if (_state isNotEqualTo [] && {(_state param [9,[]]) isNotEqualTo _routeIdentity}) then {
+                _state set [4,getPosATL _vehicle];
+                _state set [5,time];
+                _state set [6,0];
+                _state set [7,-1];
+                _state set [8,"NEW_ROUTE"];
+            };
             private _origin=getPosASL _vehicle;
             private _direction=vectorDir _vehicle;
             _direction set [2,0];
@@ -205,7 +219,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 };
             };
             _vehicle setVariable ["WAIT_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
-                _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult]];
+                _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity]];
             _vehicle setVariable ["WAIT_DrivingAssist_Next",time+4];
             };
             };
