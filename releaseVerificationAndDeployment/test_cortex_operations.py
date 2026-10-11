@@ -3936,6 +3936,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_building_room_retries_preserve_security_partner_and_committed_path(self):
+        text=source('buildingOperationStep')
+        self.assertNotIn('_issue || {_openedDoor}',text)
+        self.assertIn('if (_issue && {call _mayIssueMovement})',text)
+        self.assertIn('(_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}',text)
     def test_coordinated_fixture_requester_can_initiate_support(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')
         self.assertIn('_requester setCombatMode "YELLOW";',qa)

@@ -519,3 +519,5 @@ Support acknowledgements must match the exact six-field lease and current owner.
 Coordinated bound selection continues through its bounded responder list when an eligible element has no safe next route. It stops scoring after the first viable bound. Eligibility alone must not consume a movement slot or prevent another element from progressing.
 
 A coordinated next-bound geometry rejection permits one retry after eight seconds, without blocking other elements. A second rejection retires that token as NO_SAFE_BOUND. Selecting a viable route clears its geometry-failure count. This is finite failure handling, not proof of route success or physical acceptance.
+
+Building room progression opens usable doors without replacing committed movement solely because a door changed. Interior no-progress retries affect the room mover, retaining the partner's security destination; entrance staging can still retry the pair. Physical room visits remain the only completion evidence.

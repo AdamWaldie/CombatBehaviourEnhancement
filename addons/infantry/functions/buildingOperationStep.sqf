@@ -430,8 +430,9 @@ private _delay=call {
                     };
                     {
                         private _unit=_x;
-                        private _openedDoor=[_unit,_job get "building"] call WAIT_fnc_CortexBuildingDoor;
-                        if ((_issue || {_openedDoor}) && {call _mayIssueMovement}) then {
+                        // Opening a door does not replace an already committed native path.
+                        [_unit,_job get "building"] call WAIT_fnc_CortexBuildingDoor;
+                        if (_issue && {call _mayIssueMovement}) then {
                             private _started=_job get "started";
                             if !(_unit in _started) then {
                                 doStop _unit;
@@ -503,7 +504,10 @@ private _delay=call {
                             if (_retries < 3 && {call _mayIssueMovement}) then {
                                 {
                                     private _unitTarget=if (_x == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
-                                    if (call _mayIssueMovement) then {
+                                    // Interior recovery belongs to the room mover. Keep the security
+                                    // partner at its committed position instead of restarting its path.
+                                    if ((_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}
+                                        && {call _mayIssueMovement}) then {
                                         _x doMove _unitTarget;
                                     };
                                 } forEach _pair;
