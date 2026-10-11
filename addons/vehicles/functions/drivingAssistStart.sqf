@@ -89,6 +89,9 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             } forEach [20,45,70];
             private _cap=(missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_MaxSpeed",70]) max 15 min 120;
             if (_maximumGrade > 0.2) then {_cap=_cap min 18} else {if (_maximumGrade > 0.12) then {_cap=_cap min 28}};
+            // The short rear leg must not inherit the normal road-speed cap. Retain
+            // this cautious cap through reverse observation and the final retry handoff.
+            if ((_state param [6,0]) in [1,2]) then {_cap=_cap min 10};
             private _previous=_vehicle getVariable ["WAIT_DrivingAssist_Restore",[]];
             if (_previous isEqualTo []) then {
                 _previous=[getForcedSpeed _vehicle];
