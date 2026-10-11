@@ -9,6 +9,9 @@ one unresolved load warning. Neither establishes subsystem acceptance.
 
 ## Current batch and queued repairs
 
+Subsequent repairs through `ae23694` are committed to follow-up PR #13 and remain physically unverified. Garrison and defence commands defer finite actor tasks and reservations; cleanup preserves newer tasks; door requests verify building-order generation. Route watchdogs require three-dimensional approach rather than arbitrary lateral travel. New lifecycle cases require real boarding after hold release. These changes do not close earlier coordination failures or prove building path acceptance.
+
+
 Clean candidate ecdff24431f12c7fc780dee195ef5befe4a62fcf is preserved with dirty=false and
 fingerprint e1c26e9caf17f11e632eb0c2117f5f23bdea2fb92b3760b2c8a796bbee6ef139.
 Its corrected coordination retest was authorized on 2026-10-11 and launched as

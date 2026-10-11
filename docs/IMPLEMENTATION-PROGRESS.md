@@ -1,4 +1,12 @@
-## Current acceptance boundary — 2026-10-10
+## Current acceptance boundary - 2026-10-11
+
+WAIT remains unaccepted. The latest completed coordination batch, `runtime-20261011-045348-544`, tested candidate `ecdff24`: 456 checks, 32 failed checks, zero SQF error lines, zero fatal runtime failures and one unresolved load warning. Its failures remain recorded. It cannot validate later commits.
+
+Changes through `ae23694` have static and package evidence only. They include actor-owned garrison/defence movement and release guards, building-order generation checks for doors, and three-dimensional approach progress for building and defensive routes. The lifecycle batch now contains explicit native boarding handover cases requiring retained tasks, physical boarding and retired hold receipts; these cases have not run. All 65 feature families and the 5% median/10% p95 performance acceptance remain incomplete.
+
+The completed audit's client, server and two headless clients were still open when checked on 2026-10-11. The existing close-and-replace approval request remains unanswered. No later candidate has been launched. Entries below are historical and do not establish current implementation or process state.
+
+## Previous acceptance boundary - 2026-10-10
 
 WAIT is not production accepted. Candidate `20fd9d7` completed at 13:54:16 in `runtime-20261010-123843-079`: 62 server findings, zero client findings, 755 recorded checks, zero matched SQF errors, zero fatal runtime failures and one load warning. The raw report remains FAIL. Six failed case IDs are classified as test problems: four cover cases expected an obsolete four-field ownership record, and two registry cases lacked the native mission-pack adoption provider. These classifications do not establish physical acceptance.
 
