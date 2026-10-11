@@ -413,7 +413,10 @@ private _delay=call {
                         // when it has no valid entry; an entered lane must not rally outside again.
                         if ((_entryIndex < 0 || {_entryIndex >= count (_job get "entries")})
                             && {(_job get "entries") isNotEqualTo []}) then {
-                            private _entryRanks=(_job get "entries") apply {[_point distance2D _x,_forEachIndex]};
+                            private _entryRanks=[];
+                            {
+                                _entryRanks pushBack [_point distance2D _x,_forEachIndex];
+                            } forEach (_job get "entries");
                             _entryRanks sort true;
                             _entryIndex=(_entryRanks select 0) select 1;
                         };
