@@ -141,7 +141,7 @@ def release_gate(package, evidence):
         raise ValueError('Release requires completed passing server/client evidence')
     if report.get('source_fingerprint') != record['fingerprint']:
         raise ValueError('Evidence belongs to a different packaged build')
-    if any(not list(pbo.parent.glob(pbo.name+'.*.bisign')) for pbo in (package/'addons').glob('*.pbo')) or not list((package/'keys').glob('*.bikey')):
+    if any(not list(pbo.parent.glob(pbo.name+'.*.bisign')) for pbo in package.rglob('*.pbo')) or not list((package/'keys').glob('*.bikey')):
         raise ValueError('Release requires signed PBOs and public keys')
 
 def main():
