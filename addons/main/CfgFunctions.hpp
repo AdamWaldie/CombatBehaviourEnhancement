@@ -181,6 +181,7 @@ class CfgFunctions {
             class CortexFlankEnd {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexFlankEnd.sqf";};
             class CortexFlankStart {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexFlankStart.sqf";};
             class CortexFlankStep {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexFlankStep.sqf";};
+            class CortexDrillResume {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexDrillResume.sqf";};
             class CortexDrillStart {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexDrillStart.sqf";};
             class CortexDrillSetStage {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexDrillSetStage.sqf";};
             class CortexSetPhase {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexSetPhase.sqf";};

@@ -9,7 +9,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | --- | ---: | ---: | ---: | --- | ---: | --- |
 | TERRAIN - Cross-cutting uneven-terrain movement and air attack | 0 | 0 | 0 | `runTerrain.sqf` | 0 | implemented_partial |
 | TERRAIN-BATTLE - Equal-force live battle on measured terrain | 0 | 0 | 0 | `runTerrain.sqf` | 0 | implemented_partial |
-| CORE - Master, exclusions and ownership | 3 | 1 | 32 | `runGates.sqf`, `runAddon.sqf` | 2 | implemented_partial |
+| CORE - Master, exclusions and ownership | 3 | 1 | 33 | `runGates.sqf`, `runAddon.sqf` | 2 | implemented_partial |
 | COMPAT - Specialist ownership and alternative-controller handover | 0 | 0 | 8 | `runCompatibility.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | SCHED - Scheduler and distance tiers | 11 | 0 | 6 | `runScheduler.sqf`, `runPerformance.sqf`, `runPerformanceContact.sqf` | 3 | implemented_partial |
 | PROFILE - Behaviour profiles and aggression | 4 | 1 | 1 | `runProfiles.sqf` | 1 | implemented_partial |
@@ -18,7 +18,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | DECEL - Helicopter braking | 14 | 1 | 3 | `runDeceleration.sqf` | 0 | implemented_partial |
 | REGROUP - Survivor regroup | 9 | 0 | 2 | `runMechanics.sqf` | 0 | implemented_partial |
 | MEDICAL - Finite squad medical assistance | 4 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
-| CONTACT - Contact detection | 6 | 0 | 21 | `runContact.sqf`, `runCombat.sqf`, `runTacticalAssessment.sqf`, `runScheduler.sqf`, `runVehicleDrills.sqf` | 0 | implemented_partial |
+| CONTACT - Contact detection | 9 | 0 | 21 | `runContact.sqf`, `runCombat.sqf`, `runTacticalAssessment.sqf`, `runScheduler.sqf`, `runVehicleDrills.sqf` | 0 | implemented_partial |
 | POST - Post-contact search | 5 | 0 | 0 | `runMechanics.sqf`, `runContact.sqf` | 0 | implemented_partial |
 | FLANK - Flanking bounds | 8 | 0 | 4 | `runCombat.sqf` | 3 | implemented_partial |
 | CROSS - Road crossing | 1 | 0 | 1 | `runCrossing.sqf` | 0 | implemented_partial |
@@ -28,10 +28,10 @@ Feature cases: **65**. Required variant categories: **14**.
 | GRENADE - Grenade avoidance | 1 | 0 | 2 | `runReactions.sqf` | 2 | implemented_partial |
 | CIVILIAN - Civilian danger response and external ownership | 4 | 0 | 4 | `runReactions.sqf` | 0 | implemented_partial |
 | AT - Anti-armour and ammunition roles | 2 | 0 | 1 | `runFireControl.sqf` | 0 | implemented_partial |
-| VEH - Vehicle engagement | 4 | 0 | 7 | `runGunnery.sqf`, `runNaval.sqf`, `runVehicleDrills.sqf` | 1 | implemented_partial |
+| VEH - Vehicle engagement | 4 | 0 | 8 | `runGunnery.sqf`, `runNaval.sqf`, `runVehicleDrills.sqf` | 1 | implemented_partial |
 | DISMOUNT - Contact passenger dismount | 1 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | REMOUNT - Contact passenger remount | 1 | 0 | 1 | `runVehicleDrills.sqf` | 0 | implemented_partial |
-| WITHDRAW - Damaged vehicle withdrawal | 1 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
+| WITHDRAW - Damaged vehicle withdrawal | 2 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
 | COVER - Cover selection and clearance | 1 | 0 | 1 | `runCover.sqf` | 1 | implemented_partial |
 | VEH-DRIVING - Ordinary vehicle route safety | 1 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | CNV-MOVE - Mixed convoy path and spacing | 5 | 0 | 7 | `runServer.sqf`, `runConvoyMatrix.sqf` | 0 | implemented_partial |
@@ -60,7 +60,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | DEFEND - Defence orders | 0 | 0 | 4 | `runServer.sqf` | 0 | implemented_partial |
 | CLEAR - Building clearance | 2 | 0 | 7 | `runBuildingComparison.sqf` | 1 | implemented_partial |
 | UI - CBA configuration and diagnostics | 0 | 0 | 1 | `runClient.sqf` | 0 | implemented_partial |
-| LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 15 | `runLifecycle.sqf` | 6 | implemented_partial |
+| LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 16 | `runLifecycle.sqf` | 6 | implemented_partial |
 | MULTI-FLANK - Multi-squad flank cohesion | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-BOUND - Squad and multi-squad bounding overwatch | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-WITHDRAW - Multi-squad screened withdrawal | 0 | 0 | 0 | `runReactions.sqf` | 0 | implemented_partial |

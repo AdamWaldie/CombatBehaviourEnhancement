@@ -9,7 +9,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | --- | ---: | ---: | ---: | --- | ---: | --- |
 | TERRAIN - Cross-cutting uneven-terrain movement and air attack | 0 | 0 | 0 | `runTerrain.sqf` | 0 | implemented_partial |
 | TERRAIN-BATTLE - Equal-force live battle on measured terrain | 0 | 0 | 0 | `runTerrain.sqf` | 0 | implemented_partial |
-| CORE - Master, exclusions and ownership | 3 | 1 | 32 | `runGates.sqf`, `runAddon.sqf` | 2 | implemented_partial |
+| CORE - Master, exclusions and ownership | 3 | 1 | 33 | `runGates.sqf`, `runAddon.sqf` | 2 | implemented_partial |
 | COMPAT - Specialist ownership and alternative-controller handover | 0 | 0 | 8 | `runCompatibility.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | SCHED - Scheduler and distance tiers | 11 | 0 | 6 | `runScheduler.sqf`, `runPerformance.sqf`, `runPerformanceContact.sqf` | 3 | implemented_partial |
 | PROFILE - Behaviour profiles and aggression | 4 | 1 | 1 | `runProfiles.sqf` | 1 | implemented_partial |

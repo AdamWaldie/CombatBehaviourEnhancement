@@ -8,7 +8,7 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACombat.sqf";
  */
 params ["_check","_phase","_wait"];
-private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE"];
+private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","ADVANCE-HC-CONTINUATION","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE"];
 private _selected = missionNamespace getVariable ["WAIT_CortexQA_CombatCase",""];
 if (_selected != "" && {!(_selected in _cases)}) exitWith {["COMBAT-invalid-case",false,_selected] call _check};
 if (_selected != "") then {_cases = [_selected]};
@@ -16,10 +16,10 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
 {
     private _case = _x;
     private _blockage = _case in ["FLANK-BLOCKED","ADVANCE-BLOCKED"];
-    private _handover = _case in ["FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","FLANK-ZEUS-ROE","FLANK-ZEUS-CONSOLIDATE"];
+    private _handover = _case in ["FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","ADVANCE-HC-CONTINUATION","FLANK-ZEUS-ROE","FLANK-ZEUS-CONSOLIDATE"];
     private _directAssault=_case in ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT"];
     private _mode = if (_directAssault) then {"ASSAULT"} else {if ((_case find "FLANK") == 0) then {"FLANK"} else {"ADVANCE"}};
-    private _enemyPosition = [1200,switch (_case) do {case "ASSAULT-CLOSE": {1250}; case "ASSAULT-MULTI-CONTACT": {1250}; case "ADVANCE-YELLOW": {1450}; case "ADVANCE-AWARE": {1450}; case "ADVANCE-BLOCKED": {1450}; case "ADVANCE-ZEUS": {1450}; case "ADVANCE-ZEUS-ATTACK": {1450}; case "ADVANCE-HC-HANDOVER": {1450}; case "ADVANCE": {1450}; case "ADVANCE-DISTANT": {1550}; default {1350}},0];
+    private _enemyPosition = [1200,switch (_case) do {case "ASSAULT-CLOSE": {1250}; case "ASSAULT-MULTI-CONTACT": {1250}; case "ADVANCE-YELLOW": {1450}; case "ADVANCE-AWARE": {1450}; case "ADVANCE-BLOCKED": {1450}; case "ADVANCE-ZEUS": {1450}; case "ADVANCE-ZEUS-ATTACK": {1450}; case "ADVANCE-HC-HANDOVER": {1450}; case "ADVANCE-HC-CONTINUATION": {1450}; case "ADVANCE": {1450}; case "ADVANCE-DISTANT": {1550}; default {1350}},0];
     private _advance = _mode == "ADVANCE";
     private _group = createGroup [east,true];
     private _enemyGroup = createGroup [west,true];
@@ -204,6 +204,51 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
                 _actor setUnitCombatMode "BLUE";
                 private _row = _originalModes findIf {(_x select 0) == _actor};
                 if (_row >= 0) then {(_originalModes select _row) set [1,"BLUE"]};
+            };
+        };
+        if (_case == "ADVANCE-HC-CONTINUATION") then {
+            private _owners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+            private _before=createHashMapFromArray (_group getVariable ["WAIT_AIPass_Checkpoint",[]]);
+            private _saved=_before getOrDefault ["drillIntent",[]];
+            private _valid=_moving && {_owners isNotEqualTo []} && {count _saved == 5};
+            [_prefix+"-tactical-migration-prerequisite",_valid] call _check;
+            if (_valid) then {
+                private _owner=_owners select 0;
+                private _intent=createHashMapFromArray (_saved select 2);
+                private _points=+(_intent get "points");
+                private _bound=_intent get "index";
+                private _expiry=_saved select 3;
+                private _starts=_members apply {getPosATL _x};
+                _group setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+                {_x setVariable ["acex_headless_blacklist",false,true]} forEach _members;
+                ["Advance: tactical headless continuation","The hostile remains alive. A moving advance transfers to the headless client and must resume its committed route with the same bound deadline, then make real progress. Native waypoint travel alone cannot pass.",getPosATL leader _group] call _phase;
+                private _requested=[_group,_owner] call WAIT_fnc_HeadlessMigrateGroup;
+                private _adopted=[{
+                    private _migration=_group getVariable ["WAIT_Cortex_DrillMigration",[]];
+                    groupOwner _group == _owner && {_members findIf {owner _x != _owner} < 0}
+                        && {count _migration == 7} && {(_migration select 2) == (_saved select 0)}
+                        && {(_migration select 3) > (_saved select 0)}
+                },35] call _wait;
+                [_prefix+"-tactical-owner-adopted",_requested && {_adopted}] call _check;
+                private _after=createHashMapFromArray (_group getVariable ["WAIT_AIPass_Checkpoint",[]]);
+                private _resumed=_after getOrDefault ["drillIntent",[]];
+                private _routeMatches=false;
+                if (count _resumed == 5) then {
+                    private _resumedIntent=createHashMapFromArray (_resumed select 2);
+                    _routeMatches=((_resumedIntent getOrDefault ["points",[]]) select [0,count _points]) isEqualTo _points
+                        && {(_resumedIntent getOrDefault ["index",-1]) >= _bound};
+                };
+                private _migration=_group getVariable ["WAIT_Cortex_DrillMigration",[]];
+                [_prefix+"-committed-route-preserved",_adopted && {_routeMatches},str _resumed] call _check;
+                [_prefix+"-bound-deadline-preserved",_adopted && {count _migration == 7}
+                    && {abs ((_migration select 6)-_expiry) < 0.25},str _migration] call _check;
+                private _continued=[{
+                    private _moved=0;
+                    {if (alive _x && {_x distance2D (_starts select _forEachIndex) >= 8}) then {_moved=_moved+1}} forEach _members;
+                    _moved >= 2 && {((_group getVariable ["WAIT_OperationResult",[]]) param [1,""]) == "RUNNING"}
+                        && {(_group getVariable ["WAIT_OperationGeneration",-1]) == ((_group getVariable ["WAIT_Cortex_DrillMigration",[]]) param [3,-2])}
+                },45] call _wait;
+                [_prefix+"-resumed-physical-progress",_adopted && {_routeMatches} && {_continued},str (_members apply {getPosATL _x})] call _check;
             };
         };
         if (_case == "ADVANCE-HC-HANDOVER") then {

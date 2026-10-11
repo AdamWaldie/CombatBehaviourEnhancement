@@ -7,6 +7,44 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'addons/main/functions/Cortex'
 def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encoding='utf-8')
 class CortexOperations(unittest.TestCase):
+    def test_tactical_migration_preserves_intent_and_finite_budgets(self):
+        checkpoint=source('cortexCheckpoint')
+        resume=source('cortexDrillResume')
+        locality=source('cortexLocality')
+        for field in ['points','index','teamTurn','boundDeadlineIdentity','resumeSpots','resumeRetries','resumeRecovery','resumeUnavailable','resumeAttempts']:
+            self.assertIn('"'+field+'"',checkpoint)
+        self.assertIn('migrationClocks',checkpoint)
+        self.assertIn('count _points <= 64',checkpoint)
+        self.assertIn('count (_drill getOrDefault ["units",[]]) <= 64',checkpoint)
+        self.assertIn('_sourceGeneration != (_group getVariable ["WAIT_OperationGeneration",-1])',resume)
+        self.assertIn('time+(_deadline-serverTime)',resume)
+        self.assertIn('createHashMapFromArray (_drill getOrDefault ["resumeAttempts",[]])',resume)
+        self.assertIn('serverTime+5',resume)
+        self.assertIn('_waitUntil >= 0 && {serverTime >= _waitUntil}',resume)
+        self.assertIn('_waypoint isEqualTo [] && {currentWaypoint _group < count waypoints _group}',resume)
+        self.assertIn('if (_stage != "MOVE")',resume)
+        self.assertIn('_drill deleteAt "resumeSpots"',resume)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombat.sqf').read_text()
+        continuation=qa.split('if (_case == "ADVANCE-HC-CONTINUATION") then {',1)[1].split('if (_case == "ADVANCE-HC-HANDOVER")',1)[0]
+        self.assertIn('tactical-owner-adopted',continuation)
+        self.assertIn('committed-route-preserved',continuation)
+        self.assertIn('bound-deadline-preserved',continuation)
+        self.assertIn('resumed-physical-progress',continuation)
+        self.assertNotIn('deleteVehicle',continuation)
+        self.assertNotIn('CortexDrillResume',continuation)
+
+        self.assertIn('CortexQueueJob',resume)
+        self.assertNotIn('CortexPlanRoute',resume)
+        self.assertNotIn('setPos',resume)
+        self.assertNotIn('doFollow',resume)
+        self.assertLess(locality.index('[_group,_candidate,-1,true]'),locality.index('call WAIT_fnc_OperationCancel'))
+        self.assertIn('_inheritedDrill isEqualTo [] && {[_x] call _restoreActorEligible}',locality)
+        self.assertLess(locality.index('[_group,_inheritedDrill]'),locality.index('call WAIT_fnc_CortexSupportApply'))
+        step=source('cortexFlankStep')
+        self.assertIn('(_resumeSpots select _resumeIndex) select 1',step)
+        self.assertIn('(_resumeRetries select _record) select 1',step)
+
+
     def test_support_refusal_cannot_fall_through_as_success(self):
         apply=source('cortexSupportApply')
         failed_operation=apply.split('if (count _operation == 0) exitWith {',1)[1].split('private _generation=',1)[0]

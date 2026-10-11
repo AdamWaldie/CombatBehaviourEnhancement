@@ -33,11 +33,24 @@ private _navalIntent = _group getVariable ["WAIT_Cortex_NavalOperation",[]];
 // Its public order remains available below (for example, a partially completed building clear),
 // but no stale route can survive long enough to compete with the reconstructed operation.
 private _inheritedAttackLease=[];
+private _inheritedDrill=[];
 if (local _group) then {
     private _previousOperation=_group getVariable ["WAIT_Operation",createHashMap];
     if (count _previousOperation > 0) then {
         if ((_previousOperation getOrDefault ["generation",-1]) == (_group getVariable ["WAIT_OperationGeneration",-2])) then {
             _inheritedAttackLease=+((_previousOperation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]]);
+            private _checkpoint=createHashMapFromArray (_group getVariable ["WAIT_AIPass_Checkpoint",[]]);
+            private _candidate=_checkpoint getOrDefault ["drillIntent",[]];
+            private _candidateModes=[_checkpoint getOrDefault ["restoreGroupCombatMode",[]],_checkpoint getOrDefault ["restoreGroupSpeedMode",[]]];
+            if (count _candidate == 5 && {(_candidate select 0) == (_previousOperation get "generation")}
+                && {[_group,_candidate,-1,true] call WAIT_fnc_CortexDrillResume}
+                && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
+                && {count _inheritedAttackLease != 2 || {attackEnabled _group == (_inheritedAttackLease select 1)}}
+                && {count (_candidateModes select 0) != 2 || {combatMode _group == ((_candidateModes select 0) select 1)}}
+                && {count (_candidateModes select 1) != 2 || {speedMode _group == ((_candidateModes select 1) select 1)}}) then {
+                _inheritedDrill=+_candidate;
+            };
+
         };
         [_group,_previousOperation getOrDefault ["generation",-1],"OWNERSHIP_LOST"] call WAIT_fnc_OperationCancel;
     };
@@ -151,7 +164,7 @@ if (_restoreEligible) then {
             _ownedMove=_destination distance2D _spot <= 1
                 && {abs ((_destination param [2,0])-(_spot param [2,0])) <= 1.5};
         };
-        if ([_x] call _restoreActorEligible && {_ownedMove} && {!isNull _restoreAnchor}
+        if (_inheritedDrill isEqualTo [] && {[_x] call _restoreActorEligible} && {_ownedMove} && {!isNull _restoreAnchor}
             && {currentCommand _x in ["","MOVE","STOP","ATTACK","FIRE","SUPPRESS"]}) then {_x doFollow _restoreAnchor};
     } forEach (_restore getOrDefault ["restoreMovers", []]);
     {
@@ -209,7 +222,7 @@ private _withdrawalResumeEligible=count _withdrawalIntent == 7
 // A newly local group may already be under Zeus or an external controller. Treat the former
 // owner's checkpoint as a release-only record in that case: cancelling WAIT's own restrictions
 // must not issue a fresh follow order or restore a speed/ROE value into the replacement task.
-[_group, _restore, false, !_restoreEligible, "OWNERSHIP_ADOPTED",!(_transitionResumeEligible || {_withdrawalResumeEligible})] call WAIT_fnc_CortexRestoreCalm;
+[_group, _restore, false, (!_restoreEligible || {_inheritedDrill isNotEqualTo []}), "OWNERSHIP_ADOPTED",!(_transitionResumeEligible || {_withdrawalResumeEligible})] call WAIT_fnc_CortexRestoreCalm;
 // The public token is semantic state only. CortexNavalAssault validates its unchanged deadline,
 // plan owner and boat before issuing any replacement-owner command on the normal group tick.
 if (count _navalIntent == 5 && {serverTime < (_navalIntent select 4)}
@@ -225,6 +238,10 @@ if ((_group getVariable ["WAIT_Cortex_NavalOperation",[]]) isNotEqualTo []) exit
 if ((units _group) findIf {
     alive _x && {vehicle _x != _x} && {vehicle _x isKindOf "Air"}
 } >= 0) exitWith {};
+// Resume the committed standalone drill before discovery can select a different manoeuvre.
+// Coordinated bounds retain their existing authenticated server-role adoption path below.
+if (_inheritedDrill isNotEqualTo [] && {_withdrawalIntent isEqualTo []} && {_transitionIntent isEqualTo []}
+    && {[_group,_inheritedDrill] call WAIT_fnc_CortexDrillResume}) exitWith {};
 // The server-owned lease/status pair is the durable assignment. Reuse the normal support
 // acceptance path so every feature gate, vehicle exclusion, COMPAT handover and movement flag keeps
 // exactly one implementation. The new owner reconstructs semantics; it never replays an old job.

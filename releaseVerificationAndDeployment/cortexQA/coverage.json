@@ -100,7 +100,8 @@
         "addons/main/XEH_postInit.sqf",
         "addons/main/XEH_preInit.sqf",
         "addons/main/bootstrap/zenRegister.sqf",
-        "addons/main/settings/aiConfig.sqf"
+        "addons/main/settings/aiConfig.sqf",
+        "addons/infantry/functions/cortexDrillResume.sqf"
       ]
     },
     {

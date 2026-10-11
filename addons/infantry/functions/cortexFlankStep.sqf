@@ -523,6 +523,9 @@ private _issue = {
             // Cover may lie beyond the search radius on a large object. Preserve the formation slot.
             if (_cover distance2D _spot <= 2 && {_spots findIf {_cover distance2D _x < 2} < 0}) then {_spot = _cover};
         };
+        private _resumeSpots=_drill getOrDefault ["resumeSpots",[]];
+        private _resumeIndex=_resumeSpots findIf {(_x select 0) == _unit};
+        if (_resumeIndex >= 0) then {_spot=+((_resumeSpots select _resumeIndex) select 1)};
         _spots pushBack _spot;
         // Preserve native target acquisition, autonomous combat and the actor's current behaviour.
         // WAIT commits a route and role but leaves moment-to-moment combat to the engine.
@@ -544,7 +547,14 @@ private _issue = {
     private _progress = [];
     {_progress pushBack [_x distance2D (_spots select _forEachIndex),_now,getPosATL _x,_now]} forEach _units;
     _drill set ["progress",_progress];
-    _drill set ["retries",_units apply {[0,_now]}];
+    private _resumeRetries=_drill getOrDefault ["resumeRetries",[]];
+    _drill set ["retries",_units apply {
+        private _actor=_x;
+        private _record=_resumeRetries findIf {(_x select 0) == _actor};
+        [if (_record < 0) then {0} else {(_resumeRetries select _record) select 1},_now]
+    }];
+    _drill deleteAt "resumeSpots";
+    _drill deleteAt "resumeRetries";
     _drill set ["disabled", _disabled];
     _drill set ["combatModes",_combatModes];
     _drill set ["combatBehaviours",_combatBehaviours];

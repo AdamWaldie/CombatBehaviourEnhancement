@@ -483,3 +483,12 @@ A newly occupied rear area ends the reverse leg through its existing release pat
 damage and native pathfinding remain active. Physical obstruction and pedestrian acceptance
 is still pending. Smoke delivery audits retain actual shell/landing requirements; rejected
 requests fail delivery immediately rather than consuming an impossible 150-second wait.
+
+
+### Standalone tactical drill migration
+
+An unfinished advance, flank or assault publishes a bounded semantic checkpoint through the shared scheduler. It contains the committed route, bound index, fire teams, current actor destinations, absolute bound deadline and spent retry/recovery budgets. Stable server-time clock anchors keep countdowns from generating repeated network updates. The checkpoint is capped at 64 route records and 64 actors; it contains no FSM handles, scheduled callbacks or previous-owner feature leases.
+
+Locality adoption checks the source operation generation, target, feature gate, external ownership, unchanged waypoint and applied combat/speed/attack policies before suppressing return-to-formation. It restores old leases, then allocates a fresh generation and owner epoch for the same intent. Current moving destinations are reused; completed bound destinations are discarded before the next phase. Member locality may settle for at most five seconds through the existing shared scheduler. A newer order, expired deadline, protected target or unsupported owner refuses resumption.
+
+Coordinated bounds continue to use their server-role adoption path; this standalone checkpoint does not replace that protocol. `ADVANCE-HC-CONTINUATION` retains the hostile and checks route continuity, unchanged deadline and physical progress under the resumed generation. `ADVANCE-HC-HANDOVER` removes the hostile and separately checks native permission restoration and travel. Both cases are queued for a fresh packaged batch. Static validation is not physical acceptance, and continuity under disconnects, specialist interruption and performance load remains unaccepted.

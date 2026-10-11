@@ -39,6 +39,44 @@ if (count _drill > 0) then {
         if (_forEachIndex < count _spots) then {_moveProof pushBack [_x,+(_spots select _forEachIndex)]};
     } forEach (_drill getOrDefault ["movers",[]]);
     _saved pushBack ["restoreMoveDestinations",_moveProof];
+    // Serialize semantic drill state, never callbacks or machine-local feature leases.
+    // Stable clock anchors avoid broadcasting a changing countdown on every checkpoint.
+    private _generation=_drill getOrDefault ["operationGeneration",-1];
+    private _points=_drill getOrDefault ["points",[]];
+    if (_generation >= 0 && {count _points <= 64} && {count (_drill getOrDefault ["units",[]]) <= 64}
+        && {(_drill getOrDefault ["supportToken",""]) == ""}
+        && {(_drill getOrDefault ["stage",""]) in ["START","MOVE","PAUSE","HOLD"]}) then {
+        private _clock=[_drill getOrDefault ["boundDeadline",-1],_drill getOrDefault ["pauseUntil",0]];
+        private _anchors=_drill getOrDefault ["migrationClocks",[]];
+        if (count _anchors != 3 || {(_anchors select 0) isNotEqualTo _clock}) then {
+            _anchors=[+_clock,if ((_clock select 0) < 0) then {-1} else {serverTime+(_clock select 0)-time},serverTime+(_clock select 1)-time];
+            _drill set ["migrationClocks",_anchors];
+        };
+        private _payload=[];
+        {
+            private _value=_drill get _x;
+            if (!isNil "_value") then {
+                // At most three nested array levels: positions, teams and route records.
+                if (_value isEqualType []) then {
+                    _value=_value apply {if (_x isEqualType []) then {_x apply {if (_x isEqualType []) then {+_x} else {_x}}} else {_x}};
+                };
+                _payload pushBack [_x,_value];
+            };
+        } forEach ["type","target","units","desiredStrength","teams","teamSizes","teamTurn","points","index","stage","enemyPos",
+            "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundWaypoint"];
+        _payload pushBack ["resumeSpots",if (_moveProof isEqualTo []) then {+(_drill getOrDefault ["resumeSpots",[]])} else {_moveProof}];
+        private _movers=_drill getOrDefault ["movers",[]];
+        _payload pushBack ["resumeRetries",if (_movers isEqualTo []) then {+(_drill getOrDefault ["resumeRetries",[]])} else {
+            (_drill getOrDefault ["retries",[]]) apply {[_movers param [_forEachIndex,objNull],_x select 0]}
+        }];
+        _payload pushBack ["resumeRecovery",(_drill getOrDefault ["recovery",[]]) apply {[_x select 0,_x select 1]}];
+        private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+        _payload pushBack ["resumeUnavailable",+(_operation getOrDefault ["unavailable",[]])];
+        private _attempts=_operation getOrDefault ["recoveryAttempts",createHashMap];
+        _payload pushBack ["resumeAttempts",(keys _attempts select [0,64]) apply {[_x,_attempts get _x]}];
+        _saved pushBack ["drillIntent",[_generation,_drill getOrDefault ["token",""],_payload,_anchors select 1,_anchors select 2]];
+    };
+
 };
 if (_saved isNotEqualTo (_group getVariable ["WAIT_AIPass_Checkpoint", []])) then {
     _group setVariable ["WAIT_AIPass_Checkpoint", _saved, true];

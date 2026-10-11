@@ -82,7 +82,7 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('"OWNERSHIP_ADOPTED"',locality)
         self.assertIn('call WAIT_fnc_CortexRestoreCalm',locality)
         self.assertIn('private _restoreEligible=[_group,false,false,true] call WAIT_fnc_CortexIsEligible',locality)
-        self.assertIn('false, !_restoreEligible, "OWNERSHIP_ADOPTED"',locality)
+        self.assertIn('false, (!_restoreEligible || {_inheritedDrill isNotEqualTo []}), "OWNERSHIP_ADOPTED"',locality)
         restore = src('cortexRestoreCalm')
         self.assertIn('!_yieldToExternal && {_ownedHold}',restore)
         release=src('cortexReleaseGroup')
