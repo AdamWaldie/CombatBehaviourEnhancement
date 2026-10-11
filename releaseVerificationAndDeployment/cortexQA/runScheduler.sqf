@@ -51,6 +51,19 @@ private _freshState=createHashMapFromArray [["group",_epochGroup],["calls",0]];
 private _freshRan=[{(_freshState get "calls") == 1},10] call _wait;
 ["SCHED-current-epoch-runs",_freshRan && {(_freshState get "ownerEpoch") == 6}
     && {(_staleState get "calls") == 0},str [_freshState get "calls",_staleState get "calls"]] call _check;
+private _oldEpochState=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",6],["calls",0]];
+[_coalesceCallback,_oldEpochState,1,_epochKey] call WAIT_fnc_CortexQueueJob;
+_epochGroup setVariable ["WAIT_AIPass_Epoch",7];
+private _newEpochState=createHashMapFromArray [["group",_epochGroup],["calls",0]];
+[_coalesceCallback,_newEpochState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
+["SCHED-keyed-epoch-state-isolated",(_oldEpochState get "ownerEpoch") == 6] call _check;
+private _epochsRetired=[{
+    private _queued=(missionNamespace getVariable ["WAIT_AIPass_Jobs",[]])
+        +(missionNamespace getVariable ["WAIT_AIPass_PendingJobs",[]]);
+    (_newEpochState get "calls") == 1 && {_queued findIf {((_x select 2) getOrDefault ["jobKey",""]) == _epochKey} < 0}
+},10] call _wait;
+["SCHED-keyed-epoch-no-old-execution",_epochsRetired && {(_oldEpochState get "calls") == 0}
+    && {(_newEpochState get "ownerEpoch") == 7},str [_oldEpochState get "calls",_newEpochState get "calls"]] call _check;
 deleteGroup _epochGroup;
 private _groups=[];
 private _actors=[];
