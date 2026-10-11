@@ -7213,6 +7213,17 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('enableAI',release)
         self.assertNotIn('doMove',release)
 
+    def test_coordinated_locality_settling_is_finite_and_cannot_consume_sequence_early(self):
+        text=source('cortexSupportMaintain')
+        boundary=text.split('private _settling=',1)[1].split('} else {',1)[0]
+        self.assertIn('serverTime+5',boundary)
+        self.assertIn('WAIT_AIPass_Epoch',boundary)
+        gate='if (!_localityPending || {serverTime >= (_settling select 1)}) then {'
+        self.assertLess(boundary.index(gate),boundary.index('WAIT_fnc_CortexSupportBoundStart'))
+        self.assertLess(boundary.index(gate),boundary.index('_state set ["supportBoundSequence"'))
+        self.assertIn('"assaulting","supportBoundSettling"]',text)
+        self.assertGreaterEqual(text.count('deleteAt "supportBoundSettling"'),2)
+
     def test_engine_wait_and_recycle_share_operation_identity_without_squad_scan(self):
         act=source('dangerEngineAct')
         gate=source('dangerEngineCanContinue')

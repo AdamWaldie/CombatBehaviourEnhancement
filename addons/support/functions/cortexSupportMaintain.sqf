@@ -113,7 +113,7 @@ private _releaseSupport={
     ["CANCELLED",_reason] call _finishOperation;
     [_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
     call _restoreAttack;
-    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting"];
+    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling"];
 };
 // The cached operation step is intentionally infrequent. A curator or specialist can claim this
 // group between those steps, so retire the matching support lease before any covering hold or bound
@@ -224,6 +224,7 @@ if (_coordinating) then {
             };
         };
     } else {
+        _state deleteAt "supportBoundSettling";
         private _drill=_state getOrDefault ["drill",createHashMap];
         if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd};
         private _coverIdentity=[_token,_role select 1];
