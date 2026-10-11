@@ -26,7 +26,7 @@ private _fit=(units _group) select {
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {count _actorMove != 3 || {time >= (_actorMove select 2)}}
 };
-if (count _fit < 4) exitWith {false};
+if (count _fit < 3) exitWith {false};
 // Do not discard leaders, machine gunners or anti-tank soldiers when forming the
 // moving teams. The server reserves any four combat-effective dismounts; applying a
 // narrower role filter here made ordinary four-person squads accept a 180-second MOVE
@@ -37,7 +37,7 @@ private _second=[];
 {
     ([_first,_second] select (_forEachIndex mod 2)) pushBack _x;
 } forEach _fit;
-if (count _first < 2 || {count _second < 2}) exitWith {false};
+if (count _first < 2 || {count _second < 1}) exitWith {false};
 private _token=format ["SUPPORT:%1:%2:%3",_leaseToken,_sequence,clientOwner];
 _state set ["drill",createHashMapFromArray [
     ["token",_token],["supportToken",_leaseToken],["supportSequence",_sequence],

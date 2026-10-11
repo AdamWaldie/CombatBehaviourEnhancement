@@ -504,3 +504,6 @@ Coordinated acknowledgement, responder adoption and MOVE-to-COVER role changes e
 
 
 Coordinated admission distinguishes authenticated eligibility from an executing support operation. The server acknowledges the exact current-owner lease and publishes a token, owner and expiry for route preparation. Both requester and server dispatch consume that eligibility; only an executing assault status can claim the requester as base of fire. Prepared acknowledgement may coexist with an existing tactical drill but cannot claim its movement. Direct coordination uses the helper's live position as reservation metadata and does not require a safe rear rally route; reinforcement-only admission retains its separate rally routing. Physical direct-contact composition and HC re-acknowledgement remain unaccepted.
+
+
+Coordinated bounds now use the same three-person minimum as responder admission. Three capable dismounts begin with two movers and one coverer; role changes rebalance the moving element before issuing a bound. Transferring a donor removes that actor from the available covering list immediately, preventing duplicate selection and false two-person strength. Fewer than three capable actors retires the coordinated role. Physical three-person movement, casualty replacement and unique-participant acceptance remain queued.

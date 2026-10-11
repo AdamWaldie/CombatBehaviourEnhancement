@@ -7,6 +7,29 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'addons/main/functions/Cortex'
 def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encoding='utf-8')
 class CortexOperations(unittest.TestCase):
+    def test_role_replacement_consumes_each_donor_and_supports_three_survivors(self):
+        step=source('cortexFlankStep')
+        transfer=step.split('while {count _movingAvailable < 2',1)[1].split('if (count _movingAvailable < 2)',1)[0]
+        self.assertIn('_coverAvailable deleteAt ((count _coverAvailable)-1)',transfer)
+        self.assertNotIn('_coverAvailable select ((count _coverAvailable)-1)',transfer)
+        self.assertLess(transfer.index('_coverAvailable deleteAt'),transfer.index('_movingAvailable pushBack _replacement'))
+        start=source('cortexSupportBoundStart')
+        coordinator=source('cortexSupportCoordinateStep')
+        self.assertIn('if (count _fit < 3)',start)
+        self.assertEqual(step.count('call _ensureMovingTeam'),2)
+        issue=step.split('private _issue = {',1)[1].split('private _result =',1)[0]
+        self.assertLess(issue.index('call _ensureMovingTeam'),issue.index('_unit doMove _spot'))
+        self.assertIn('count _units >= 2 && {count (_roster select 1) >= 1}',issue)
+        self.assertIn('count _first < 2 || {count _second < 1}',start)
+        self.assertIn('count _fit < 3',coordinator)
+        self.assertIn('count _fit >= 3',coordinator)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text()
+        runner=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text()
+        self.assertIn('for "_i" from 0 to (_helperSize-1)',qa)
+        self.assertIn('coordinatedsmall',runner)
+        self.assertIn('[_smallCheck,_phase,_wait,[],true,true,3]',runner)
+
+
     def test_prepared_coordination_is_separate_from_execution_and_rally(self):
         ack=source('cortexSupportAck')
         self.assertLess(ack.index('HeadlessResolveSender'),ack.index('WAIT_Cortex_SupportEligibility'))
@@ -3142,7 +3165,7 @@ class CortexOperations(unittest.TestCase):
     def test_coordinated_bound_team_contract_matches_server_reservation(self):
         start=source('cortexSupportBoundStart')
         self.assertIn('([_first,_second] select (_forEachIndex mod 2)) pushBack _x',start)
-        self.assertIn('count _first < 2 || {count _second < 2}',start)
+        self.assertIn('count _first < 2 || {count _second < 1}',start)
         self.assertNotIn('private _riflemen=',start)
         self.assertNotIn('CortexUnitRole',start)
         maintain=source('cortexSupportMaintain')
@@ -3898,6 +3921,7 @@ class CortexOperations(unittest.TestCase):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')
         for check in ['COORD-inter-squad-role-exchange','COORD-concurrent-squad-bounds','COORD-concurrent-lanes-separated','COORD-inter-squad-physical-cover','COORD-intra-squad-physical-cover']:
             self.assertIn(check,qa)
+        self.assertIn('["WAIT_AIPass_PostContact_Enable",true]',qa)
         self.assertIn('abs speed _x > 2',qa)
         self.assertIn('_shots-(_shotCounts select _i)',qa)
         operation=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombinedOperation.sqf').read_text(encoding='utf-8')
@@ -4654,7 +4678,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_recovery_cannot_launch_a_one_soldier_bound(self):
         text = source('cortexFlankStep')
-        self.assertIn('private _movingAvailable=(_teams select _turn) select {_x in _units};', text)
+        self.assertIn('private _movingAvailable=(_teams select _turn) select {_x in _available};', text)
         self.assertIn('count _movingAvailable < 2 && {count _coverAvailable > 2', text)
         self.assertIn('count _movingAvailable == 1 && {count _coverAvailable == 2}', text)
         self.assertIn('_pendingRecovery isEqualTo []', text)
@@ -5436,7 +5460,7 @@ class CortexOperations(unittest.TestCase):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombat.sqf').read_text()
         self.assertIn('-observation-completed',qa)
         coordinated=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text()
-        for marker in ['COORD-base-actual-supporting-fire','COORD-team-%1-actual-fire','from 0 to 5','from 1 to 5']:
+        for marker in ['COORD-base-actual-supporting-fire','COORD-team-%1-actual-fire','from 0 to (_helperSize-1)','from 1 to 5']:
             self.assertIn(marker,coordinated)
         for marker in ['WAIT_fnc_CortexQASetCombatMode','WAIT_CortexQA_CombatModeReceipt',
                        'WAIT_CortexQA_FiredManOwner','COORD-shot-sampler-',

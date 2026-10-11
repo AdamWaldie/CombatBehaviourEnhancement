@@ -589,6 +589,11 @@ if (_focus in ["all","features","mechanics","fire"]) then {[_check,_phase,_wait]
 // Long multi-squad comparisons run last so they cannot delay unrelated feature coverage.
 if (_focus == "coordinatedbounds") then {[_check,_phase,_wait,[],true] call compile preprocessFileLineNumbers "cortexQACoordinated.sqf"};
 // Additive geometry comparison; do not replace the original long-screen audit.
+if (_focus in ["all","features","coordinatedsmall"]) then {
+    private _recordSmallCheck=_check;
+    private _smallCheck={params ["_id","_passed",["_detail",""]]; ["SMALL-"+_id,_passed,_detail] call _recordSmallCheck};
+    [_smallCheck,_phase,_wait,[],true,true,3] call compile preprocessFileLineNumbers "cortexQACoordinated.sqf";
+};
 if (_focus in ["all","features","coordinatedclean"]) then {
     private _recordCleanCheck=_check;
     private _cleanCheck={params ["_id","_passed",["_detail",""]]; ["CLEAN-"+_id,_passed,_detail] call _recordCleanCheck};

@@ -385,14 +385,14 @@ _units = _units - _recovering;
 // Never wait for a recovery actor which does not exist.
 private _waitForTeam=false;
 private _teamRecoveryFailed=false;
-if (_teams isNotEqualTo []) then {
-    private _turn=_drill getOrDefault ["teamTurn",0];
+private _ensureMovingTeam={
+    params ["_turn","_available"];
     private _otherTurn=1-_turn;
-    private _movingAvailable=(_teams select _turn) select {_x in _units};
-    private _coverAvailable=(_teams select _otherTurn) select {_x in _units};
+    private _movingAvailable=(_teams select _turn) select {_x in _available};
+    private _coverAvailable=(_teams select _otherTurn) select {_x in _available};
     while {count _movingAvailable < 2 && {count _coverAvailable > 2
         || {count _movingAvailable == 1 && {count _coverAvailable == 2}}}} do {
-        private _replacement=_coverAvailable select ((count _coverAvailable)-1);
+        private _replacement=_coverAvailable deleteAt ((count _coverAvailable)-1);
         (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _replacement);
         (_teams select _turn) pushBack _replacement;
         _movingAvailable pushBack _replacement;
@@ -407,6 +407,12 @@ if (_teams isNotEqualTo []) then {
             [[format ["TEAM_%1_RECOVERY",_turn+1],netId _replacement]]];
         _group setVariable ["WAIT_Cortex_DrillReinforcements",_history,true];
     };
+    [_movingAvailable,_coverAvailable]
+};
+if (_teams isNotEqualTo []) then {
+    private _turn=_drill getOrDefault ["teamTurn",0];
+    private _roster=[_turn,_units] call _ensureMovingTeam;
+    _roster params ["_movingAvailable","_coverAvailable"];
     if (count _movingAvailable < 2) then {
         private _pendingRecovery=_recovery select {(_x select 0) in (_teams select _turn)};
         private _exhausted=_pendingRecovery isEqualTo [] || {_pendingRecovery findIf {
@@ -473,7 +479,15 @@ private _restoreFeatures = {
 };
 private _issue = {
     [] call _restoreFeatures;
-    if (_teams isNotEqualTo []) then {_units = (_teams select (_drill get "teamTurn")) select {_x in _fit}};
+    private _viable=true;
+    if (_teams isNotEqualTo []) then {
+        // PAUSE can swap the team inside this same callback. Rebalance the newly selected
+        // movers before any destination write, not one scheduler interval afterward.
+        private _roster=[_drill get "teamTurn",_fit] call _ensureMovingTeam;
+        _units=_roster select 0;
+        _viable=count _units >= 2 && {count (_roster select 1) >= 1};
+    };
+    if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
     private _direction = if (_kind in ["ASSAULT","CLEAR","CONSOLIDATE"]) then {_drill get "assaultDirection"} else {_point getDir _enemyPos};
     private _spots = [];

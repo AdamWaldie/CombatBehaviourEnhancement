@@ -81,7 +81,7 @@ private _sequence=_job getOrDefault ["boundSequence",0];
 {
     _x params ["_group","_token"];
     private _fit=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}};
-    if (count _fit < 4 && {!(_token in _completed)} && {!(_token in _retired)}) then {
+    if (count _fit < 3 && {!(_token in _completed)} && {!(_token in _retired)}) then {
         _retired pushBackUnique _token;
         _group setVariable ["WAIT_Cortex_SupportAbort",
             [_token,serverTime,"INSUFFICIENT_STRENGTH",count _fit],true];
@@ -99,7 +99,7 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
         private _index=(_cursor+_offset) mod count _teams;
         (_teams select _index) params ["_group","_token","_goal"];
         private _fit=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}};
-        if (count _fit >= 4 && {serverTime >= (_group getVariable ["WAIT_Cortex_SupportRetryAfter",0])}
+        if (count _fit >= 3 && {serverTime >= (_group getVariable ["WAIT_Cortex_SupportRetryAfter",0])}
             && {!(_token in _completed)} && {!(_token in _retired)}
             && {_active findIf {(_x select 4) == _token} < 0}
             // Concurrent movers need genuinely different approach lanes. A second squad on the

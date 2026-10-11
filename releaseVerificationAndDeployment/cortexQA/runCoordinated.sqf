@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Controller diagnostic, not combat acceptance: actors are invulnerable and the opponent
- * cannot fire. Exercises natural contact with three full squads, actual supporting/assault fire,
+ * cannot fire. Exercises natural contact with a base-of-fire squad and two configurable manoeuvre groups, actual supporting/assault fire,
  * two real reinforcement arrivals, a deterministic engine-hidden CONTACT-to-SECURITY transition,
  * coordinated assault travel from that SECURITY handoff and
  * release to new ordinary group orders after both support switches are disabled.
@@ -20,10 +20,12 @@
  * 5: localScreens <BOOL>, default false; additive fixture comparison with short screens
  * at the initial helper positions, never across the later assault corridor. The original
  * long-screen geometry remains available unchanged.
+ * 6: helperSize <NUMBER>, default 6; three to six actors per helper squad.
  * Return: Nothing. Current caller: cortexQAServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACoordinated.sqf";
  */
-params ["_check","_phase","_wait",["_responderOwners",[],[[]]],["_exposeDuringRally",false,[true]],["_localScreens",false,[true]]];
+params ["_check","_phase","_wait",["_responderOwners",[],[[]]],["_exposeDuringRally",false,[true]],["_localScreens",false,[true]],["_helperSize",6,[0]]];
+_helperSize=(round _helperSize) max 3 min 6;
 private _terrainOrigin=[1500,1500,0];
 private _terrainHeading=0;
 private _terrainRelief=0;
@@ -182,7 +184,7 @@ private _helpers=[]; private _teams=[];
 for "_team" from 0 to 1 do {
     private _group=[east] call _makeGroup;
     private _members=[];
-    for "_i" from 0 to 5 do {
+    for "_i" from 0 to (_helperSize-1) do {
         private _unit=[_group,[1400+_team*200+_i*3,1400] call _terrainPosition,format ["ASSAULT TEAM %1 / %2",_team+1,_i+1]] call _makeUnit;
         _members pushBack _unit; _helpers pushBack _unit;
         _unit setVariable ["WAIT_CortexQA_Target",[1500,1420] call _terrainPosition,true];
@@ -309,6 +311,7 @@ _requester ignoreTarget [_enemy,true];
 [createHashMapFromArray [
     ["WAIT_AIPass_CoordinatedAssault_Enable",true],
     ["WAIT_AIPass_FireControl_Enable",true],
+    ["WAIT_AIPass_PostContact_Enable",true],
     ["WAIT_AIPass_PostContact_LostSeconds",3]
 ]] call WAIT_fnc_CortexTuning;
 ["Coordinated assault: contact-loss handoff","The rallied squads are ready while the known target is temporarily hidden by the engine. Cortex must pass CONTACT to SECURITY without discarding the prepared assault, then publish both squad roles. The same target is restored before movement is measured.",[1500,1525] call _terrainPosition] call _phase;
