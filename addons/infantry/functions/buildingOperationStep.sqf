@@ -5,8 +5,8 @@
  * operation generation, Zeus and external ownership before issuing any movement command.
  * Repeat/JIP: One-shot callback. Durable room progress is public; owner-local actor assignments are
  * generation scoped and reconstructed after locality migration. Each room, entrance and egress
- * leg has one native doMove owner. WAIT never pairs it with setDestination, which can create a
- * second low-level route owner and leave an actor oscillating or stationary at a threshold.
+ * leg has one generation-owned movement writer. Interior room movement also supplies the native
+ * FORMATION PLANNED destination hint; entrance and exterior security retain ordinary doMove.
  * Arguments: 0: building brain <HASHMAP> created by WAIT_fnc_BuildingOperationStart.
  * Return Value: Number - always -1 because the FSM schedules each later step separately.
  * Current caller: WAIT_fnc_BuildingOperationQueue through WAIT_fnc_CortexQueueJob.
@@ -505,7 +505,12 @@ private _delay=call {
                                 _started pushBack _unit;
                             };
                             private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
-                            if (call _mayIssueMovement) then {_unit doMove _unitTarget;};
+                            if (call _mayIssueMovement) then {
+                                _unit doMove _unitTarget;
+                                if (_unit == _point && {!_approachingEntry}) then {
+                                    _unit setDestination [_unitTarget,"FORMATION PLANNED",false];
+                                };
+                            };
                         };
                         _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];
                     } forEach _pair;
