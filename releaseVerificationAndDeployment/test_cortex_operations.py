@@ -3936,6 +3936,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_coordinated_cover_does_not_timeout_or_repeat_stop_commands(self):
+        maintain=source('cortexSupportMaintain')
+        self.assertIn('_operationState == "STALLED" && {!(_state getOrDefault ["assaulting",false])}',maintain)
+        self.assertIn('private _coverIdentity=[_token,_role select 1];',maintain)
+        self.assertIn('isNotEqualTo _coverIdentity',maintain)
+        self.assertIn('_state deleteAt "supportCoverIdentity"',maintain)
+        cover=maintain.split('private _coverIdentity=',1)[1]
+        self.assertIn('WAIT_fnc_CompatibilityExternalControl',cover)
+        self.assertIn('remoteControlled _x',cover)
+        self.assertIn('WAIT_fnc_CortexExternalOwner',cover)
     def test_support_operation_records_position_not_coordinate_scalar(self):
         apply=source('cortexSupportApply')
         self.assertIn('private _objective=if (_attackAllowed) then {+_attack} else {+_rally};',apply)
@@ -4324,7 +4334,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('&& {(_supportOwnsMovement || {!_movementLeaseActive})}',maintain)
         self.assertIn('if (_supportOwnsMovement) then {_state deleteAt "movementLease"}',maintain)
         self.assertIn('private _operationEndReason=""',maintain)
-        self.assertIn('if (_operationState == "STALLED") then {_operationEndReason="NO_PROGRESS"}',maintain)
+        self.assertIn('if (_operationState == "STALLED" && {!(_state getOrDefault ["assaulting",false])}) then {_operationEndReason="NO_PROGRESS"}',maintain)
         self.assertIn('if (_operationEndReason != "") exitWith {',maintain)
         self.assertNotIn('if (_operationState in ["ZEUS","EXTERNAL","LOST_OWNER","REPLACED"]) exitWith {',maintain)
 
