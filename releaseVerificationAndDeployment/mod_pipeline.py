@@ -61,13 +61,16 @@ def supported_focuses(root=ROOT):
         parsed=json.loads(array or single)
         values.update(parsed if isinstance(parsed, list) else [parsed])
     values.add("standaloneperformance")
+    values.add("nativebuildings")
     return sorted(values)
 
 def stage(package, destination, focus, root=ROOT, native_baseline=False, performance_composition="infantry", headless_provider=None, batch_mode="normal"):
     if focus not in supported_focuses(root):
         raise ValueError(f'Unknown audit focus: {focus}')
-    if native_baseline and focus != 'standaloneperformance':
-        raise ValueError('Native baseline is restricted to standalone performance')
+    if native_baseline and focus not in ('standaloneperformance', 'nativebuildings'):
+        raise ValueError('Native baseline requires an addon-independent focus')
+    if focus == 'nativebuildings' and not native_baseline:
+        raise ValueError('Native building comparison requires addon-absent baseline')
     if performance_composition not in ('infantry','mixed'):
         raise ValueError('Unknown performance composition')
     if batch_mode not in ('normal', 'headless'):
@@ -108,6 +111,13 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         with (mission/'auditIdentity.sqf').open('a') as identity:
             identity.write(f'if (isServer) then {{missionNamespace setVariable ["WAIT_QA_PerfExpectedLoaded",{str(not native_baseline).lower()},true]}};\n')
             identity.write(f'if (isServer) then {{missionNamespace setVariable ["WAIT_QA_PerfComposition","{performance_composition}",true]}};\n')
+    if focus == 'nativebuildings':
+        for name in ('initServer.sqf', 'initPlayerLocal.sqf', 'mission.sqm'):
+            shutil.copyfile(root/'releaseVerificationAndDeployment/standalonePerformance'/name, mission/name)
+        server_init = mission/'initServer.sqf'
+        server_init.write_text(server_init.read_text().replace('cortexQAStandalonePerformance.sqf', 'cortexQANativeBuildings.sqf'), encoding='utf-8')
+        with (mission/'initPlayerLocal.sqf').open('a') as client_init:
+            client_init.write('\ndiag_log "WAIT CORTEX QA CLIENT COMPLETE: 0 finding(s) []";\n')
     provider_evidence = None
     if headless_provider:
         from stage_headless_provider import stage_provider
@@ -140,6 +150,8 @@ call compile preprocessFileLineNumbers "compatibilityHeadlessProvider\init.sqf";
 def release_gate(package, evidence):
     record = verify(package)
     report = json.loads(evidence.read_text())
+    if report.get('focus') == 'nativebuildings':
+        raise ValueError('Native building diagnostics cannot accept a WAIT release')
     if record['dirty']:
         raise ValueError('Release requires a clean committed build')
     if report.get('status') != 'PASS' or not report.get('complete'):

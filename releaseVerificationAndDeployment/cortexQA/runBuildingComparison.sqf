@@ -7,10 +7,11 @@
  * separately recorded as exterior evidence, rather than being counted as uncleared rooms.
  * Repeat/JIP: disposable actors and houses are removed; observer state is public for joining clients.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; all required audit callbacks.
+ * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
  * Return: Nothing. Current callers: cortexQA/runServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
-params ["_check","_phase","_wait"];
+params ["_check","_phase","_wait",["_nativeOnly",false,[true]]];
 private _recordFixture={
     params ["_house","_label"];
     private _positions=_house buildingPos -1;
@@ -171,6 +172,7 @@ waitUntil {
 sleep 15;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; deleteVehicle _house} forEach _cases;
+if (_nativeOnly) exitWith {};
 
 // Fresh groups distinguish clearance defects from state left by a previous garrison.
 // Keep all original comparisons above, including their failures.

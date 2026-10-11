@@ -7,6 +7,24 @@ from unittest.mock import patch
 from mod_pipeline import ROOT, seal, stage, verify, release_gate, supported_focuses
 
 class PackagePipelineTests(unittest.TestCase):
+    def test_native_building_diagnostics_cannot_promote_wait(self):
+        evidence=Path(self.temp.name)/'native-report.json'
+        evidence.write_text(json.dumps({'focus':'nativebuildings','status':'PASS','complete':True}))
+        with self.assertRaisesRegex(ValueError,'Native building diagnostics'):
+            release_gate(self.folder,evidence)
+
+    def test_native_buildings_does_not_start_addon_dependent_runner(self):
+        mission=stage(self.folder,Path(self.temp.name)/'native-buildings','nativebuildings',native_baseline=True)
+        server=(mission/'initServer.sqf').read_text()
+        self.assertIn('cortexQANativeBuildings.sqf',server)
+        self.assertNotIn('cortexQAServer.sqf',server)
+        runner=(mission/'cortexQANativeBuildings.sqf').read_text()
+        self.assertIn('BUILD-NATIVE-addon-absent',runner)
+        self.assertIn('[_check,_phase,_wait,true]',runner)
+        self.assertTrue(json.loads((mission.parent/'audit-manifest.json').read_text())['native_baseline'])
+        with self.assertRaises(ValueError):
+            stage(self.folder,Path(self.temp.name)/'loaded-buildings','nativebuildings')
+
     def setUp(self):
         (ROOT/'.test-tmp').mkdir(exist_ok=True)
         self.temp = tempfile.TemporaryDirectory(dir=ROOT/'.test-tmp')
