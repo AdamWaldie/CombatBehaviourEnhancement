@@ -215,6 +215,13 @@ if (_coordinating) then {
         if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd};
         private _coverIdentity=[_token,_role select 1];
         if ((_state getOrDefault ["supportCoverIdentity",[]]) isNotEqualTo _coverIdentity) then {
+            private _coverOperation=_group getVariable ["WAIT_Operation",createHashMap];
+            if ((_coverOperation getOrDefault ["generation",-2]) == _operationGeneration
+                && {(_coverOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_coverOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}) then {
+                _coverOperation set ["phase","SUPPORT"];
+                _group setVariable ["WAIT_Operation",_coverOperation,true];
+            };
             {
                 private _actorMove=_x getVariable ["WAIT_Cortex_ActorMove",[]];
                 if (local _x && {group _x == _group} && {isNull objectParent _x}

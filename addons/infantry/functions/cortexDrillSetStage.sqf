@@ -33,6 +33,26 @@ if (_epoch >= 0 && {_epoch != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exi
 private _previous=_drill getOrDefault ["stage",""];
 if (_previous == _next) exitWith {false};
 _drill set ["stage",_next];
+// Publish semantic progress into the matching parent lifecycle only at a real stage change.
+// ENDED belongs to release/cancellation; a child must never complete its coordinated parent.
+if (_next in ["START","MOVE","PAUSE","HOLD"] && {_generation >= 0}) then {
+    private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    if ((_operation getOrDefault ["generation",-2]) == _generation
+        && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+        private _phase=switch (_next) do {
+            case "PAUSE": {"SUPPORT"};
+            case "HOLD": {"SECURITY"};
+            default {
+                private _point=(_drill getOrDefault ["points",[]]) param [_drill getOrDefault ["index",0],[]];
+                ["MANOEUVRE","ASSAULT"] select ((_point param [1,"",[""]]) in ["ASSAULT","CLEAR"])
+            };
+        };
+        if ((_operation getOrDefault ["phase",""]) != _phase) then {
+            _operation set ["phase",_phase];
+            _group setVariable ["WAIT_Operation",_operation,true];
+        };
+    };
+};
 private _entry=[
     serverTime,
     _drill getOrDefault ["token",""],
