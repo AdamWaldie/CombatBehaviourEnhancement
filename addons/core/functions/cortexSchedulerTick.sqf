@@ -97,7 +97,17 @@ private _earliest = -1;
         // remains intentionally queued, while a later successful callback clears its previous
         // pause marker before it is reported as healthy again.
         if (_stale) then {
-            _state set ["skippedReason",if (!_enabled) then {"DISABLED"} else {"LOCALITY"}]
+            private _discardReason=if (!_enabled) then {"DISABLED"} else {"LOCALITY"};
+            _state set ["skippedReason",_discardReason];
+            // A finite FSM must observe terminal rejection, not wait for its watchdog
+            // to retry a callback which this scheduler has already discarded. Retire
+            // only this queued brain; its guarded FSM cleanup owns any restoration.
+            if ("pending" in _state && {"completed" in _state}) then {
+                _state set ["pending",false];
+                _state set ["completed",true];
+                _state set ["cancelled",true];
+                _state set ["cancelReason",_discardReason];
+            }
         } else {
             if (_jobPaused) then {_state set ["skippedReason","PAUSED"]} else {_state deleteAt "skippedReason"};
         };
