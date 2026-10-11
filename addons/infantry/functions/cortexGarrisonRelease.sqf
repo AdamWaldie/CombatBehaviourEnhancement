@@ -14,7 +14,8 @@
  *
  * Restores only an unchanged Cortex duck stance; preserves later Zeus/script stance choices.
  * Posture, watch, speed and formation restoration also require a combat-effective actor
- * without actor-specific external ownership. Owned PATH-lock metadata is still retired.
+ * without actor-specific external ownership, an active reservation or a finite native task.
+ * Owned PATH locks and metadata are still retired, allowing replacement tasks to move.
  * Repeat/JIP: repeated release clears published assignments; new owners do not replay a released order.
  * Arguments:
  * 0: group <GROUP or OBJECT>
@@ -57,7 +58,13 @@ if (isNull _leader) then {_leader=leader _group};
         _unit setVariable ["WAIT_AIPass_DuckUntil", nil];
 
         if (_x getVariable ["WAIT_AIPass_GarrisonDisabledPath", false]) then {_x enableAI "PATH"};
+        private _reservation=_unit getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _reservationFree=_reservation isEqualTo []
+            || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+        private _nativeTask=currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
         if ([_x] call WAIT_fnc_CortexCombatEffective && {!isPlayer _x}
+            && {_reservationFree} && {!_nativeTask} && {isNull objectParent _unit}
+            && {isNull remoteControlled _unit}
             && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}) then {
             // A replacement owner receives untouched posture, watch and speed. Normal release
             // still restores WAIT's temporary hold exactly when its own lease remains intact.

@@ -4301,6 +4301,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_restore && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}}',clear_job)
         self.assertIn('if (unitPos _x == (_x getVariable ["WAIT_Cortex_GarrisonDuckStance", ""])) then {',garrison_release)
         self.assertIn('if (!_externalTakeover) then {',garrison_release)
+        self.assertIn('&& {_reservationFree} && {!_nativeTask} && {isNull objectParent _unit}',garrison_release)
+        self.assertIn('WAIT_Cortex_ActorMove',garrison_release)
+        self.assertIn('currentCommand _unit in [',garrison_release)
         self.assertIn('if (!_externalTakeover && {getForcedSpeed _x ==',garrison_release)
         # The garrison job must release its own PATH lock at loss of eligibility and recheck
         # ownership before its arrival hold or first individual move can mutate a unit.
@@ -4388,8 +4391,9 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;',code)
             self.assertIn('private _canRestore = _restore && {!_externalTakeover};',code)
             self.assertIn('_canRestore || {!_externalTakeover && {_ownedHold',code)
+            restore_condition=code.split('if (_canRestore ||',1)[1].split('then {',1)[0]
             for external in ['MOVE','GET IN','GET OUT','ACTION','SCRIPTED']:
-                self.assertNotIn(f'"{external}"',code)
+                self.assertNotIn(f'"{external}"',restore_condition)
 
     def test_garrison_restores_only_the_speed_lease_it_applied(self):
         apply=source('cortexGarrisonApplyLocal')
