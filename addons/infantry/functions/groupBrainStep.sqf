@@ -30,7 +30,8 @@ if (_brain getOrDefault ["cancelled",false]) exitWith {
 };
 if (!local _group) exitWith {["OWNERSHIP_LOST"] call _cancel};
 if (_epoch != (_group getVariable ["WAIT_AIPass_Epoch",0])) exitWith {["OWNER_EPOCH"] call _cancel};
-if (_generation != (_group getVariable ["WAIT_GroupBrain_Generation",0])) exitWith {["SUPERSEDED"] call _cancel};
+if (_generation != (_group getVariable ["WAIT_GroupBrain_Generation",0])
+    || {(_group getVariable ["WAIT_GroupBrain",createHashMap]) isNotEqualTo _brain}) exitWith {["SUPERSEDED"] call _cancel};
 if (!(missionNamespace getVariable ["WAIT_AIPass_Active",false])) exitWith {["DISABLED"] call _cancel};
 if ([_group] call WAIT_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
 if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};

@@ -23,6 +23,7 @@ params [
 if (isNull _group || {!local _group} || {count _brain == 0}
     || {_epoch != (_group getVariable ["WAIT_AIPass_Epoch",0])}
     || {_generation != (_group getVariable ["WAIT_GroupBrain_Generation",0])}
+    || {(_group getVariable ["WAIT_GroupBrain",createHashMap]) isNotEqualTo _brain}
     || {_brain getOrDefault ["cancelled",false]}) exitWith {false};
 if (_brain getOrDefault ["pending",false]) exitWith {true};
 _brain set ["pending",true];
