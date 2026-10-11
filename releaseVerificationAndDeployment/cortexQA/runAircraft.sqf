@@ -688,8 +688,14 @@ private _observedProfiles=createHashMap;
             case "GUIDED": {abs _descentAngle <= 8};
             default {false};
         };
-        [_id+"-delivery-axis-crosses-target",_deliveryLength >= 3000 && {_crossTrack <= 75}
-            && {_targetAlong > 0} && {_targetAlong < _deliveryLength}
+        private _standoffGeometry=_pattern == "STANDOFF";
+        private _alongValid=if (_standoffGeometry) then {
+            // A stand-off release ends on the inbound side; crossing is a direct-run test.
+            _targetAlong > _deliveryLength
+        } else {_targetAlong > 0 && {_targetAlong < _deliveryLength}};
+        private _geometryCase=["-delivery-axis-crosses-target","-delivery-axis-stays-standoff"] select _standoffGeometry;
+        [_id+_geometryCase,_deliveryLength >= 3000 && {_crossTrack <= 75}
+            && {_alongValid}
             && {_angleValid} && {(_deliveryEnd select 2) >= 220},
             str [_selectedWeaponClass,_descentAngle,_crossTrack,_targetAlong,_deliveryLength,
                 _deliveryStart,_deliveryEnd,_plannedTargetPosition,getPosATL _target,
