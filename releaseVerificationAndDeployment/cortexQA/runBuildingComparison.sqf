@@ -75,6 +75,46 @@ waitUntil {
     _x params ["_group","_unit","_house","_target","_method","_label","_arrived"];
     [format ["BUILD-%1-arrival",_label],_arrived,format ["class=%1 owner=%2 simulation=%3 position=%4 target=%5 command=%6 expected=%7",typeOf _house,groupOwner _group,simulationEnabled _unit,getPosATL _unit,_target,currentCommand _unit,expectedDestination _unit]] call _check;
 } forEach _cases;
+// Entry at position zero does not prove that later model nodes are reachable.
+// Reuse the isolated native comparison actors to test successive 3D nodes without
+// WAIT route ownership, partner assignments or room selection. Skipped nodes remain failures.
+private _walkCases=[];
+{
+    _x params ["_group","_unit","_house","_target","_method","_label"];
+    if (_method in ["DIRECT","REPLAN"]) then {
+        private _nodes=(_house buildingPos -1) select [0,16];
+        _walkCases pushBack [_unit,_nodes,0,_nodes apply {false},time,_method,_label];
+    };
+} forEach _cases;
+["Building traversal: independent comparisons","The same excluded actors now attempt successive model positions. Physical 3D arrival is required for each node. A bounded timeout skips a node only to inspect the next; it never marks that node visited or validates WAIT clearance.",[6280,5890,0]] call _phase;
+private _walkDeadline=time+180;
+waitUntil {
+    sleep 2;
+    {
+        _x params ["_unit","_nodes","_cursor","_seen","_issued","_method","_label"];
+        if (_cursor < count _nodes) then {
+            private _node=_nodes select _cursor;
+            private _arrived=(getPosASL _unit) vectorDistance (AGLToASL _node) <= 1.5;
+            if (_arrived || {time-_issued >= 20}) then {
+                if (_arrived) then {_seen set [_cursor,true]};
+                _cursor=_cursor+1;
+                _x set [2,_cursor];
+                _x set [4,time];
+                if (_cursor < count _nodes) then {
+                    private _next=_nodes select _cursor;
+                    _unit doMove _next;
+                    if (_method == "REPLAN") then {_unit setDestination [_next,"LEADER PLANNED",true]};
+                };
+            };
+        };
+    } forEach _walkCases;
+    time >= _walkDeadline || {_walkCases findIf {(_x select 2) < count (_x select 1)} < 0}
+};
+{
+    _x params ["_unit","_nodes","_cursor","_seen","_issued","_method","_label"];
+    ["BUILD-TRAVERSE-"+_label,_nodes isNotEqualTo [] && {_seen findIf {!_x} < 0},
+        str [_nodes,_seen,getPosATL _unit,currentCommand _unit,expectedDestination _unit,getUnitState _unit]] call _check;
+} forEach _walkCases;
 sleep 15;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; deleteVehicle _house} forEach _cases;
