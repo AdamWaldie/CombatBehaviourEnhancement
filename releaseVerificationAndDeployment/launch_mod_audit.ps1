@@ -197,15 +197,15 @@ while ((Get-Date) -lt $clientDeadline -and !$client.HasExited -and !$server.HasE
     Start-Sleep -Seconds 1
 }
 if (!$observerReady) {
-    throw "Client did not enter WAIT_Audit.VR with observer Zeus within $ClientReadyTimeoutSeconds seconds. Inspect $runtime; this batch is not valid and its processes have been left available for inspection."
+    throw "Client did not enter WAIT_Audit.$World with observer Zeus within $ClientReadyTimeoutSeconds seconds. Inspect $runtime; this batch is not valid and its processes have been left available for inspection."
 }
 $client.Refresh()
 if ($client.MainWindowHandle -eq [IntPtr]::Zero -or !$([WaitAuditWindow]::IsWindowVisible($client.MainWindowHandle))) {
-    throw "Client entered WAIT_Audit.VR but its interactive window is no longer visible. Inspect $runtime; this batch is not valid."
+    throw "Client entered WAIT_Audit.$World but its interactive window is no longer visible. Inspect $runtime; this batch is not valid."
 }
 [WaitAuditWindow]::ShowWindowAsync($client.MainWindowHandle,9) | Out-Null
 [WaitAuditWindow]::SetForegroundWindow($client.MainWindowHandle) | Out-Null
-Write-Output "WAIT batch entered WAIT_Audit.VR in a visible ${ResolutionWidth}x${ResolutionHeight} client window. The audit mission skips role selection and assigns the sole observer Zeus slot automatically. Runtime: $runtime"
+Write-Output "WAIT batch entered WAIT_Audit.$World in a visible ${ResolutionWidth}x${ResolutionHeight} client window. The audit mission skips role selection and assigns the sole observer Zeus slot automatically. Runtime: $runtime"
 if ($WaitForCompletion) {
     # Retain the actual Process handles: a later process inventory cannot recover exit codes
     # and PID reuse must not make an unrelated application look like this audit.

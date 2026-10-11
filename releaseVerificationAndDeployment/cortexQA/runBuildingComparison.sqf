@@ -18,6 +18,18 @@ private _recordFixture={
     private _detail=[worldName,["TERRAIN","CREATE_VEHICLE"] select (worldName == "VR"),typeOf _house,getModelInfo _house,
         isSimpleObject _house,simulationEnabled _house,count _positions,getPosATL _house];
     diag_log format ["WAIT BUILDING FIXTURE: %1",[_label,_detail]];
+    // Access points are model path entrances, not authored clearance destinations.
+    // Record terrain clearance without moving either terrain or curator-created houses.
+    private _accessProfile=[];
+    for "_access" from 0 to 15 do {
+        private _point=_house buildingExit _access;
+        if (_point isEqualTo [0,0,0]) exitWith {};
+        private _asl=AGLToASL _point;
+        _accessProfile pushBack [_access,_point,(_asl select 2)-getTerrainHeightASL _point];
+    };
+    diag_log format ["WAIT BUILDING PLACEMENT: %1",[_label,getPosWorld _house,
+        vectorDir _house,vectorUp _house,_accessProfile]];
+
     private _doorProfile=[];
     private _doorCount=(getNumber (configOf _house >> "numberOfDoors")) min 16;
     for "_door" from 1 to _doorCount do {
