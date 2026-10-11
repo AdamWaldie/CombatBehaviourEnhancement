@@ -1056,6 +1056,7 @@ _driveGroup setVariable ["acex_headless_blacklist",true,true];
 _driveGroup setBehaviour "SAFE";
 _driveGroup setSpeedMode "FULL";
 private _driveOrigin=getPosATL _driveVehicle;
+_driveVehicle forceSpeed 0;
 private _driveGate=[3580,1700,0];
 private _driveOnward=[3580,1780,0];
 private _driveWP=_driveGroup addWaypoint [_driveGate,0];
@@ -1073,6 +1074,18 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[_driveDriver,_driveVehicle
 private _driveReady=!isNull _driveDriver && {local _driveVehicle} && {simulationEnabled _driveVehicle}
     && {count crew _driveVehicle == 1} && {!(_driveVehicle getVariable ["WAIT_Convoy_Active",false])};
 ["DRIVING-native-fixture-ready",_driveReady] call _check;
+["Standalone driving: authored zero-speed hold","The truck has a real MOVE waypoint but an authored zero-speed hold. WAIT must retain that hold, claim no speed lease and issue no recovery that moves it. Releasing the hold then exercises the existing native travel case.",_driveOrigin] call _phase;
+private _driveHoldStable=true;
+for "_sample" from 1 to 6 do {
+    sleep 3;
+    if (getForcedSpeed _driveVehicle != 0 || {_driveVehicle distance2D _driveOrigin > 2}
+        || {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo []}) then {_driveHoldStable=false};
+};
+["DRIVING-authored-zero-hold-retained",_driveReady && {_driveHoldStable}
+    && {_driveGroup getVariable ["WAIT_AIPass_Adopted",false]},
+    str [getForcedSpeed _driveVehicle,getPosATL _driveVehicle,_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]]] call _check;
+_driveVehicle forceSpeed -1;
+
 private _driveArrived=[{_driveVehicle distance2D _driveGate <= 12
     && {_driveVehicle distance2D _driveOrigin >= 60}},100] call _wait;
 ["DRIVING-native-physical-travel",_driveReady && {_driveArrived},str getPosATL _driveVehicle] call _check;

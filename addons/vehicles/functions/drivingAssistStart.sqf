@@ -7,7 +7,7 @@
  * second required by forceSpeed before the command and ownership lease are recorded.
  * Locality / Authority: Runs only where the vehicle is local. It never creates, replaces or
  * deletes a waypoint and yields to players, Zeus remote control, convoy ownership and specialist
- * driving ownership.
+ * driving ownership. An authored zero forced-speed hold is retained without recovery commands.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
  * it after a locality change; release restores only the forced speed captured by this function.
  * Arguments:
@@ -48,6 +48,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         || {!isNull (_driver getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         || {[_driver] call WAIT_fnc_CortexExternalOwner != ""}
         || {_yieldToOwner}
+        || {getForcedSpeed _vehicle == 0}
         || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
         || {behaviour leader _group == "CARELESS"}
