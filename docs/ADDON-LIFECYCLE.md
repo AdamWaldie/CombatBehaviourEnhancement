@@ -588,3 +588,5 @@ Room recovery consults durable native retry counts before starting another isola
 ### Native order cancellation during clearance
 
 Clearance captures a bounded receipt of the current native waypoint and waypoint count. Its callback compares that receipt before any room, recovery, speed or posture write. A new or edited authored order cancels the matching clear as NEW_ORDER, releases unchanged owned settings without formation recall and advances the operation generation. The implicit spawn waypoint is excluded. The durable clearance order retains the receipt so locality replay refuses a superseded intent. This adds no waypoint scan or new worker; physical replacement-order and HC acceptance remain pending.
+
+Clearance checks the individual native task immediately before initial room movement, posture/speed changes, stalled retries and exit commands. Boarding, medical, service, joining and assembly actions yield without fresh movement or consuming route-failure retries; other lanes continue. The existing finite deadline remains. These guards use current actor command state in the existing callback; native-task physical regression acceptance remains pending.

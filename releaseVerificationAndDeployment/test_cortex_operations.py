@@ -1823,7 +1823,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_timeout_cannot_clear_rooms_or_abort_other_workers(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
-        timeout=text.split('if (_now-_lastProgress > _retryDelay)',1)[1].split('_state set [0,_cursor]',1)[0]
+        timeout=text.split('if (_now-_lastProgress > _retryDelay && {[_point] call _actorTaskFree})',1)[1].split('_state set [0,_cursor]',1)[0]
         self.assertNotIn('_cleared pushBack',timeout)
         self.assertNotIn('movementFailed',text)
         self.assertIn('_unreachable pushBackUnique _positionIndex',timeout)
@@ -1837,6 +1837,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_approachingEntry && {!_moved}) then {',text)
         self.assertIn('_retries < 3',timeout)
         self.assertIn('count (_job get "cleared") == count (_job get "positions")',text)
+
+    def test_clearance_native_tasks_gate_initial_retry_speed_and_exit_writes(self):
+        step=source('buildingOperationStep')
+        self.assertIn('private _actorTaskFree=',step)
+        self.assertIn('"HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE"',step)
+        self.assertIn('_retryDelay && {[_point] call _actorTaskFree}',step)
+        self.assertIn('&& {[_x] call _actorTaskFree}',step)
+        self.assertGreaterEqual(step.count('[_unit] call _actorTaskFree'),4)
 
     def test_clearance_cancels_changed_native_order_before_movement_and_preserves_replay_receipt(self):
         receipt=source('nativeOrderReceipt')
@@ -4055,7 +4063,7 @@ class CortexOperations(unittest.TestCase):
     def test_building_room_retries_preserve_security_partner_and_committed_path(self):
         text=source('buildingOperationStep')
         self.assertNotIn('_issue || {_openedDoor}',text)
-        self.assertIn('if (_issue && {call _mayIssueMovement})',text)
+        self.assertIn('if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree})',text)
         self.assertIn('(_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}',text)
     def test_coordinated_fixture_requester_can_initiate_support(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')

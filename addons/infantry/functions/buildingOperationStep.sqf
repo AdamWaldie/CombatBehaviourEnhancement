@@ -163,6 +163,10 @@ private _delay=call {
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };
+    private _actorTaskFree={
+        params ["_actor"];
+        !(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
+    };
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
         private _assignments=(_job get "egressAssignments") select {
             _x params ["_unit"];
@@ -209,7 +213,7 @@ private _delay=call {
                             // observes the opened door; only measured no-progress permits one retry.
                             [_unit,_job get "building",["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
                             if (time-(_record select 2) >= 8 && {(_record select 3) < 1}
-                                && {[_unit] call _actorAvailable} && {call _mayIssueMovement}) then {
+                                && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                                 _unit doMove _target;
                                 _record set [3,1];
                                 private _evidence=_group getVariable ["WAIT_Cortex_ClearEgressRetries",[]];
@@ -524,7 +528,7 @@ private _delay=call {
                         private _unit=_x;
                         // Opening a door does not replace an already committed native path.
                         [_unit,_job get "building",["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
-                        if (_issue && {call _mayIssueMovement}) then {
+                        if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
                             private _started=_job get "started";
                             if !(_unit in _started) then {
                                 doStop _unit;
@@ -545,7 +549,7 @@ private _delay=call {
                                 _started pushBack _unit;
                             };
                             private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
-                            if (call _mayIssueMovement) then {
+                            if (call _mayIssueMovement && {[_unit] call _actorTaskFree}) then {
                                 _unit doMove _unitTarget;
                                 if (_unit == _point && {!_approachingEntry}) then {
                                     _unit setDestination [_unitTarget,"FORMATION PLANNED",false];
@@ -556,7 +560,7 @@ private _delay=call {
                         // Update only our unchanged cap; an externally edited speed remains owned
                         // by that controller. Distance checks reuse the existing bounded pair step.
                         if (_unit in (_job get "started") && {call _mayIssueMovement}
-                            && {[_unit] call _actorAvailable}) then {
+                            && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree}) then {
                             private _speedTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
                             private _applied=_unit getVariable ["WAIT_Cortex_ClearAppliedSpeed",-1];
                             private _desiredSpeed=[4,2] select (_unit distance2D _speedTarget < 5);
@@ -611,14 +615,14 @@ private _delay=call {
                         // deliberately hold cover, so treating any pair member as stopped churns a working clear.
                         private _commandEnded=currentCommand _point in ["","STOP"];
                         private _retryDelay=[12,4] select _commandEnded;
-                        if (_now-_lastProgress > _retryDelay) then {
+                        if (_now-_lastProgress > _retryDelay && {[_point] call _actorTaskFree}) then {
                             if (_retries < 3 && {call _mayIssueMovement}) then {
                                 {
                                     private _unitTarget=if (_x == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
                                     // Interior recovery belongs to the room mover. Keep the security
                                     // partner at its committed position instead of restarting its path.
                                     if ((_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}
-                                        && {call _mayIssueMovement}) then {
+                                        && {call _mayIssueMovement} && {[_x] call _actorTaskFree}) then {
                                         _x doMove _unitTarget;
                                         if (_x == _point && {!_approachingEntry}) then {
                                             _x setDestination [_unitTarget,"FORMATION PLANNED",false];
@@ -741,7 +745,7 @@ private _delay=call {
         if (call _mayIssueMovement) then {
             {
                 _x params ["_unit","_target"];
-                if (call _mayIssueMovement) then {
+                if (call _mayIssueMovement && {[_unit] call _actorTaskFree}) then {
                     _unit doMove _target;
                 };
             } forEach _egressAssignments;
