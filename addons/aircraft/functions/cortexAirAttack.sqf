@@ -429,12 +429,12 @@ if (_stage == "") then {
             private _guidedWeapon=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidedWeapon",""];
             private _guidedTarget=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidanceTarget",objNull];
             if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}) then {
-                private _targetAccepted=_projectile setMissileTarget [_guidedTarget,true];
+                private _targetAccepted=_projectile setMissileTarget _guidedTarget;
                 // Air seekers track the object directly. Ground seekers also need one immutable
                 // aim point when their ammo explicitly supports manual point guidance. This is one
                 // release-time assignment, not a scripted homing loop or an airframe correction.
                 if (!(_guidedTarget isKindOf "Air")) then {
-                    _projectile setMissileTargetPos (aimPos _guidedTarget);
+                    _projectile setMissileTargetPos (ASLToATL (aimPos _guidedTarget));
                 };
                 _aircraft setVariable ["WAIT_Cortex_AirGuidanceAssignment",[
                     serverTime,_weapon,_targetAccepted,missileTarget _projectile,missileTargetPos _projectile
