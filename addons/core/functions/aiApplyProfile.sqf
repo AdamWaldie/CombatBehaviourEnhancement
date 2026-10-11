@@ -32,7 +32,9 @@
  */
 
 params [["_unit", objNull, [objNull]]];
-if (isNull _unit || {!local _unit} || {isPlayer _unit}) exitWith {false};
+if (isNull _unit || {!local _unit} || {isPlayer _unit}
+    || {!isNull remoteControlled _unit}
+    || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}) exitWith {false};
 if !(missionNamespace getVariable ["WAIT_AI_RebalanceActive", false]) exitWith {false};
 if (_unit getVariable ["WAIT_AI_Exclude", false]) exitWith {false};
 // Specialist actors retain complete ownership of their movement, animation, damage and combat
