@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Restores recorded formation, attack permission, vehicle speed and unload settings; cancels only follower paths. A speed baseline is restored only when the
+ * Purpose: Restores recorded formation, attack permission, vehicle speed and unload settings; cancels only follower paths. A speed baseline is restored only when the
  * vehicle is leaving WAIT control, WAIT still owns the current cap and no newer controller owns it.
  * Unload policy and attack permission restore only while their convoy-applied values remain current.
  * Crew target cleanup also checks actor ownership and combat effectiveness; a newer target owner
@@ -9,7 +9,7 @@
  * Repeat/JIP: ordered registry snapshots replace old settings; owner-local paths rebuild on migration.
  * Arguments: 0: group <GROUP>, grpNull; 1: forget baseline <BOOL>, true; 2: baseline <ARRAY>, [] reads the locally received baseline; 3: still-controlled vehicles <ARRAY>, []; 4: cancellation reason <STRING, RELEASED>.
  * Return Value: Nothing.
- * Current callers: ConvoySync and ConvoyTick.
+ * Current callers: WAIT_fnc_ConvoySync, WAIT_fnc_ConvoyTick and the convoy operation FSM.
  * Example: [convoyGroup] call WAIT_fnc_ConvoyReleaseLocal;
  */
 params [["_group", grpNull, [grpNull]], ["_forget", true, [true]], ["_restore", [], [[]]], ["_keepCrew", [], [[]]], ["_reason", "RELEASED", [""]]];
@@ -94,7 +94,13 @@ if (_restore isNotEqualTo []) then {
                     _vehicle setUnloadInCombat _unload;
                 };
             };
-            if (_mayRestoreGroup && {!isNull _driver} && {!_externalCrew} && {local _driver} && {_driver != leader _group}) then {_driver doFollow leader _group};
+            // A vehicle retained by the successor convoy still owns its route. An
+            // external vehicle-level owner may likewise leave group ownership unchanged.
+            // Neither permits a formation recall during obsolete convoy cleanup.
+            if (_mayRestoreGroup && {!isNull _driver} && {!_externalCrew} && {!_externalVehicle}
+                && {!(_vehicle in _keepCrew)} && {local _driver} && {_driver != leader _group}) then {
+                _driver doFollow leader _group;
+            };
         };
     } forEach _vehicles;
 };
