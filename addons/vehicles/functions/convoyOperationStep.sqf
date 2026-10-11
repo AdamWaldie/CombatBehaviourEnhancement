@@ -14,7 +14,8 @@ private _group=_brain getOrDefault ["group",grpNull];private _configuration=_bra
 private _cancel={params ["_reason"];_brain set ["pending",false];_brain set ["completed",true];_brain set ["cancelled",true];_brain set ["cancelReason",_reason];-1};
 if (_brain getOrDefault ["cancelled",false] || {_brain getOrDefault ["finished",false]}) exitWith {[_brain getOrDefault ["cancelReason","CANCELLED"]] call _cancel};
 if (isNull _group || {!local _group}) exitWith {["OWNERSHIP_LOST"] call _cancel};
-if (_registryRevision != (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2]) || {_token isNotEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])}) exitWith {["REPLACED"] call _cancel};
+if (_registryRevision != (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2]) || {_token isNotEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])}
+    || {(_group getVariable ["WAIT_Convoy_Brain",createHashMap]) isNotEqualTo _brain}) exitWith {["REPLACED"] call _cancel};
 private _entry=(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {(_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}};
 if (_entry < 0) exitWith {["REPLACED"] call _cancel};
 if ([_group] call WAIT_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
