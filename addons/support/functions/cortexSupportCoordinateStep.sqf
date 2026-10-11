@@ -96,6 +96,9 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
     private _point=[];
     private _nextIndex=-1;
     for "_offset" from 0 to ((count _teams)-1) do {
+        // Eligibility is not route acceptance. Try another element after unsafe geometry,
+        // but stop before any further scoring once this slot has a viable bound.
+        if (!isNull _next) exitWith {};
         private _index=(_cursor+_offset) mod count _teams;
         (_teams select _index) params ["_group","_token","_goal"];
         private _fit=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}};
@@ -108,7 +111,7 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
                 private _activeGroup=_x select 0;
                 private _activeTeam=_teams findIf {(_x select 0) == _activeGroup};
                 _activeTeam >= 0 && {((_teams select _activeTeam) select 2) distance2D _goal < 60}
-            } < 0}) exitWith {
+            } < 0}) then {
             private _centre=[0,0,0];
             {_centre=_centre vectorAdd getPosATL _x} forEach _fit;
             _centre=_centre vectorMultiply (1/count _fit);

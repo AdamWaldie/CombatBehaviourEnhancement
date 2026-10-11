@@ -515,3 +515,5 @@ Coordinated covering roles retain their finite lease without requiring travel ev
 Legacy support PATH holds retire their WAIT marker during calm, support and withdrawal cleanup. Restoring PATH or issuing follow commands separately requires an ordinary local actor without player, remote or specialist ownership. Removing WAIT metadata is not permission to alter the replacement controller's movement state.
 
 Support acknowledgements must match the exact six-field lease and current owner. A delayed acceptance becomes rejection when either the lease or request has expired; it cannot publish fresh prepared eligibility. Matching rejection remains valid for cleanup.
+
+Coordinated bound selection continues through its bounded responder list when an eligible element has no safe next route. It stops scoring after the first viable bound. Eligibility alone must not consume a movement slot or prevent another element from progressing.

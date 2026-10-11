@@ -3936,6 +3936,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_coordinator_rejected_route_does_not_starve_other_elements(self):
+        text=source('cortexSupportCoordinateStep')
+        selection=text.split('for "_offset"',1)[1].split('_job set ["boundCursor"',1)[0]
+        self.assertIn('if (!isNull _next) exitWith {};',selection)
+        self.assertIn('} < 0}) then {',selection)
+        self.assertNotIn('} < 0}) exitWith {',selection)
+        self.assertLess(selection.index('if (_selected isNotEqualTo [])'),selection.index('_next=_group'))
     def test_support_ack_rejects_expired_exact_reservations(self):
         ack=source('cortexSupportAck')
         self.assertIn('count _lease != 6',ack)
