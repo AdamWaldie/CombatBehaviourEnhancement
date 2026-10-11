@@ -81,14 +81,15 @@ private _finish={
             };
         };
     };
-    private _finishGroup=group driver _aircraft;
+    private _finishGroup=_job getOrDefault ["group",grpNull];
     if (!isNull _finishGroup && {"token" in _job}) then {[_finishGroup,_job,"ENDED",_reason] call WAIT_fnc_CortexDrillSetStage};
     private _handler=_job getOrDefault ["firedHandler",-1];
     if (_handler >= 0) then {_aircraft removeEventHandler ["Fired",_handler]};
     private _guidanceTarget=_job getOrDefault ["guidanceTarget",objNull];
     if (!isNull _guidanceTarget) then {deleteVehicle _guidanceTarget};
     if (local _aircraft) then {
-        private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid;
+        private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid
+            && {group driver _aircraft == _finishGroup};
         // A newer flight controller owns speed and pilot features. Retire only our bookkeeping.
         if (_ownsFlight) then {_aircraft limitSpeed (2 * getNumber (configOf _aircraft >> "maxSpeed"))};
         // Remove exactly the lease-owned waypoint before selecting any authored route. Searching
@@ -182,9 +183,9 @@ private _finish={
             private _ownedTarget=_job getOrDefault ["fireTarget",objNull];
             private _cleanupExternal=[_finishGroup] call WAIT_fnc_CortexExternalTakeover
                 || {[_finishGroup] call WAIT_fnc_CortexZeusHeld};
-            if (!_cleanupExternal && {!isNull _ownedTarget}) then {
+            if (_ownsFlight && {!_cleanupExternal} && {!isNull _ownedTarget}) then {
                 {
-                    if (alive _x && {local _x} && {!isPlayer _x} && {isNull (remoteControlled _x)}
+                    if (alive _x && {local _x} && {!isPlayer _x} && {group _x == _finishGroup} && {isNull (remoteControlled _x)}
                         && {!([group _x,false,_x] call WAIT_fnc_CortexExternalTakeover)}
                         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
                         && {assignedTarget _x isEqualTo _ownedTarget}) then {
@@ -251,6 +252,10 @@ private _finish={
 };
 private _pilot=driver _aircraft;
 private _group=group _pilot;
+// Bind direct callers once as well as FSM-created jobs. Cleanup uses this original
+// group so a pilot reassignment cannot cancel a different group's matching generation.
+if (isNil {_job get "group"}) then {_job set ["group",_group]};
+if ((_job get "group") != _group) exitWith {["PILOT_GROUP_CHANGED"] call _finish};
 private _stage=_job getOrDefault ["stage",""];
 private _flightLeaseToken=_job getOrDefault ["flightLeaseToken",""];
 // Air operations share the same generation contract as ground operations, but retain their own
@@ -280,7 +285,8 @@ private _explicitlyExcluded=[_group] call WAIT_fnc_CompatibilityExternalControl
 // that claims the aircraft during planning receives an immediate release rather than one stale
 // flight, targeting or fire request.
 private _mayControlAircraft = {
-    local _aircraft && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
+    local _aircraft && {local _group} && {(_job get "group") == group driver _aircraft}
+        && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
         && {!([_group] call WAIT_fnc_CortexZeusHeld)}
 };
 if (_job getOrDefault ["flightLeaseLost",false]
@@ -288,7 +294,7 @@ if (_job getOrDefault ["flightLeaseLost",false]
     _job set ["releaseDetail",["flightLease",_aircraft getVariable ["WAIT_FlightLease",createHashMap]]];
     ["FLIGHT_OWNER_CHANGED"] call _finish
 };
-private _allowed=local _aircraft && {alive _aircraft} && {!isNull _pilot} && {alive _pilot} && {!isPlayer _pilot}
+private _allowed=local _aircraft && {local _group} && {alive _aircraft} && {!isNull _pilot} && {alive _pilot} && {!isPlayer _pilot}
     && {!unitIsUAV _aircraft} && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
     && {!([] call WAIT_fnc_CortexIsPaused)}
     && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
