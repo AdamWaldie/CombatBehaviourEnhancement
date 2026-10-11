@@ -2,16 +2,25 @@
 
 Status checked on 2026-10-11. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
 
-Game audits are authorized in batches. The full packaged batch runtime-20261010-214346-432 is active against clean candidate 89812ab with observer Zeus, 3840x2160 and two headless clients. Later repairs require a subsequent exact-candidate retest.
+Game audits are authorized in batches. The broad candidate 89812ab batch completed with
+2,375 checks and 462 failed checks. The subsequent coordination candidate b3a9f70 completed
+with 453 checks and 30 failed checks, zero SQF error lines, zero fatal runtime failures and
+one unresolved load warning. Neither establishes subsystem acceptance.
 
 ## Current batch and queued repairs
 
-The ongoing 89812ab batch has reached 2047 recorded checks, with 4231 SQF error trace
-lines, no matched fatal runtime failures, one load warning and missing completion markers.
-This is a partial snapshot, not a final result. Repeated bomb-integration exceptions account
-for the new trace volume. The enabled 50-group patrol arm is invalid because its minimum
-managed-group count was zero, even though all groups moved. Its timing cannot establish
-performance acceptance.
+Clean candidate ecdff24431f12c7fc780dee195ef5befe4a62fcf is preserved with dirty=false and
+fingerprint e1c26e9caf17f11e632eb0c2117f5f23bdea2fb92b3760b2c8a796bbee6ef139.
+Its corrected coordination retest was authorized on 2026-10-11 and launched as
+runtime-20261011-045348-544. Completion and physical acceptance are pending.
+
+Repairs since b3a9f70 include matching operation generations on coordinated child bounds,
+retiring outgoing child work before parent release, mover pursuit posture, protected actor
+restoration and reservation-token-bound contact positions. Combined ground support preserves
+unrelated movement owners and refuses unavailable operators or unsafe friendly firing lanes.
+Those latter combined-fire repairs require their own physical batch; coordination results cannot
+validate them. Larger force coordination, independent contact areas, capability-selected effects
+and matched performance remain incomplete.
 
 Changes through 82e0fc6 are committed and statically/package validated, awaiting physical retest:
 
@@ -49,7 +58,7 @@ Changes through 82e0fc6 are committed and statically/package validated, awaiting
 - Vehicle repairs: stopped follower command invalidation, tracked lead resume, unsettled HALT
   cadence and finite passenger-owner exit retries remain queued for exact-candidate acceptance.
 
-Physical results from the current old package do not validate these changes. Native companion
+Physical results from older packages do not validate later changes. Native companion
 provider integration, specialist coexistence, CQB, combined combat and matched mixed-force
 performance remain open. Clean candidate 82e0fc63eedffccaee8a0337657c92e94772a9f7 is preserved
 with dirty=false and fingerprint ba42aa4fc0b74b0ec3f732107f2962d14c54133bace2f9a895ea3ed10bb4be15.
