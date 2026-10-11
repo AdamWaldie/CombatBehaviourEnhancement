@@ -816,6 +816,7 @@ if (_stage == "ATTACK") then {
         private _integrationTime=0;
         private _integrationStep=0.2;
         for "_integrationIndex" from 0 to 119 do {
+            if ((_integrationPosition select 2) <= _targetAltitude) exitWith {};
             if ((_integrationPosition select 2) > _targetAltitude) then {
                 // Drag must dissipate energy. Bound the discrete damping factor so a large
                 // configured drag cannot reverse velocity and explode the Euler integration.
@@ -830,7 +831,11 @@ if (_stage == "ATTACK") then {
         _predictedBombImpact=_integrationPosition;
         _bombReleaseDistance=(getPosASL _aircraft) distance2D _predictedBombImpact;
     };
-    private _bombImpactError=_predictedBombImpact distance2D getPosASL _target;
+    // A moving target will not remain under its current coordinates during the fall.
+    // This bounded linear estimate only vetoes an unsuitable release; native aiming and the
+    // real projectile remain untouched, and later acceleration can still defeat this estimate.
+    private _bombTargetPosition=(getPosASL _target) vectorAdd ((velocity _target) vectorMultiply _fallTime);
+    private _bombImpactError=_predictedBombImpact distance2D _bombTargetPosition;
     private _bombWindow=_bombImpactError <= 55 && {_forwardAlignment >= 0.92};
     // A nose-mounted weapon needs forward closure. A retained lateral turret is specifically
     // selected to fire abeam, so forcing the helicopter nose onto the target defeats that pattern.
