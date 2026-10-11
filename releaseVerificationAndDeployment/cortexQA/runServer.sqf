@@ -474,11 +474,21 @@ private _dangerShotHandler=_gun addEventHandler ["Fired",{
 }];
 _gun setVariable ["WAIT_CortexQA_DangerFirstShot",-1,true];
 ["Danger mortar: finite self-defence","The hostile fires naturally at the useful mortar. The crew must retain the emplacement, acquire the attacker, enter one finite DANGER mission, receive the lethal-burst red warning, fire one real HE round and release without enabling optional artillery support.",[6500,6000,0]] call _phase;
+private _dangerSightline=(lineIntersectsSurfaces [eyePos _dangerEnemy,aimPos _gun,_dangerEnemy,_gun,true,1,"VIEW","NONE"]) isEqualTo [];
+private _dangerHE=[_gun,false] call WAIT_fnc_CortexArtilleryAmmo;
+private _dangerRange=_dangerHE != "" && {(getPosATL _dangerEnemy) inRangeOfArtillery [[_gun],_dangerHE]};
+["DANGER-MORTAR-contact-fixture",_dangerSightline && {_dangerRange}
+    && {primaryWeapon _dangerEnemy != ""} && {magazines _dangerEnemy isNotEqualTo []}
+    && {!isNull gunner _gun} && {alive gunner _gun},
+    str [getPosATL _dangerEnemy,getPosATL _gun,_dangerSightline,primaryWeapon _dangerEnemy,
+        magazines _dangerEnemy,_dangerEnemy distance2D _gun,_dangerHE,_dangerRange]] call _check;
 private _dangerFireUntil=time+12;
 while {time < _dangerFireUntil && {alive _dangerEnemy}} do {
-    _dangerEnemy doWatch gunner _gun;
-    _dangerEnemy doTarget gunner _gun;
-    _dangerEnemy doFire gunner _gun;
+    // The seated operator can be occluded by the emplacement. Fire at the occupied
+    // static weapon; WAIT's crew still has to acquire the real attacker natively.
+    _dangerEnemy doWatch _gun;
+    _dangerEnemy doTarget _gun;
+    _dangerEnemy doFire _gun;
     sleep 1;
 };
 private _dangerEnemyFired=(_dangerEnemy getVariable ["WAIT_CortexQA_Shots",0]) > 0;

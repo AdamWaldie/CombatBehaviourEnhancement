@@ -6741,7 +6741,9 @@ class CortexOperations(unittest.TestCase):
                      'DANGER-MORTAR-crew-retained','DANGER-MORTAR-support-remained-disabled']:
             self.assertIn(case,audit)
         mortar=audit.split('// A useful static mortar',1)[1].split('// Real enemy artillery events',1)[0]
-        self.assertIn('_dangerEnemy doFire gunner _gun',mortar)
+        self.assertIn('_dangerEnemy doFire _gun',mortar)
+        self.assertIn('DANGER-MORTAR-contact-fixture',mortar)
+        self.assertIn('inRangeOfArtillery [[_gun],_dangerHE]',mortar)
         self.assertNotIn(' reveal ',mortar)
         self.assertNotIn('call WAIT_fnc_CortexArtilleryFire',mortar)
 
