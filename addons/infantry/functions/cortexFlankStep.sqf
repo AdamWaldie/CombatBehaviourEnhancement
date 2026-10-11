@@ -348,15 +348,22 @@ if (_main isNotEqualTo []) then {
             if (time >= _next && {_attempts < 1} && {_actor checkAIFeature "PATH"} && {_actor checkAIFeature "MOVE"}) then {
                 // Recovery owns only movement. Preserve the actor's current target so a
                 // separated soldier can fight while closing on the correct fire team.
+                private _recoveryResult="YIELDED";
                 if (_operationGeneration >= 0) then {
-                    [_group,_operationGeneration,_actor,_rally] call WAIT_fnc_RecoveryStep;
+                    _recoveryResult=[_group,_operationGeneration,_actor,_rally] call WAIT_fnc_RecoveryStep;
                 } else {
                     if ([_actor] call _mayIssueMovement) then {
                         _actor doMove _rally;
+                        _recoveryResult="RECOVERING";
                     };
                 };
-                _x set [1,_attempts+1];
-                _x set [2,time+8];
+                // Refused movement is not an issued attempt. Preserve the retry budget
+                // while another finite task owns this actor; the remaining element continues.
+                switch (_recoveryResult) do {
+                    case "RECOVERING": {_x set [1,_attempts+1]; _x set [2,time+8]};
+                    case "EXHAUSTED": {_x set [1,1]; _x set [2,time]};
+                    default {_x set [2,time+2]};
+                };
             };
         };
     } forEach _recovery;
