@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Changes one Cortex manoeuvre stage and publishes a bounded transition ledger for diagnostics.
  * Locality/authority: call only on the local group owner which owns the supplied drill HashMap.
- * Repeat/JIP: identical stages are ignored. The current transition and the newest 64 entries
+ * Repeat/JIP: stale supplied generations/epochs and identical stages are ignored. The current transition and the newest 64 entries
  * are public for Zeus/JIP observers; no scheduled work or per-unit handler is installed.
  * Arguments:
  * 0: group <GROUP, default grpNull>
@@ -24,6 +24,12 @@ params [
     ["_reason","",[""]]
 ];
 if (isNull _group || {!local _group} || {count _drill == 0} || {_next == ""}) exitWith {false};
+// Transition history is authoritative evidence too. A delayed old-owner/job callback
+// cannot change its stage or overwrite the current operation's diagnostic transition.
+private _generation=_drill getOrDefault ["operationGeneration",-1];
+private _epoch=_drill getOrDefault ["ownerEpoch",-1];
+if (_generation >= 0 && {_generation != (_group getVariable ["WAIT_OperationGeneration",0])}) exitWith {false};
+if (_epoch >= 0 && {_epoch != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {false};
 private _previous=_drill getOrDefault ["stage",""];
 if (_previous == _next) exitWith {false};
 _drill set ["stage",_next];
