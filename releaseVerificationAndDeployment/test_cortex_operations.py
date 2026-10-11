@@ -1214,7 +1214,10 @@ class CortexOperations(unittest.TestCase):
         bounds=source('cortexFlankStep')
         self.assertIn('&& {[_x] call _actorTaskFree}',bounds)
         self.assertIn('[_actor] call _mayIssueMovement',bounds)
-        self.assertEqual(bounds.count('[_unit] call _mayIssueMovement'),3)
+        self.assertGreaterEqual(bounds.count('[_unit] call _mayIssueMovement'),3)
+        restoration=bounds.split('private _restoreFeatures = {',1)[1].split('private _issue = {',1)[0]
+        self.assertNotIn('if (local _unit &&',restoration)
+        self.assertGreaterEqual(restoration.count('[_unit] call _mayIssueMovement'),5)
         cover=bounds.split('forEach (_fit - _units)',1)[0].rsplit('// Cover is a movement command too.',1)[1]
         self.assertLess(cover.index('[_x] call _mayIssueMovement'),cover.index('doStop _x'))
         self.assertNotIn('{call _mayIssueMovement}',bounds)

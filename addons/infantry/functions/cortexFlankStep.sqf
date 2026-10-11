@@ -451,20 +451,20 @@ private _restoreFeatures = {
     private _keptBehaviours = [];
     {
         _x params ["_unit","_previous","_owned"];
-        if (_unit in _stillRecovering && {local _unit} && {behaviour _unit == _owned}) then {
+        if (_unit in _stillRecovering && {[_unit] call _mayIssueMovement} && {behaviour _unit == _owned}) then {
             _keptBehaviours pushBack _x;
         } else {
-            if (local _unit && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
+            if ([_unit] call _mayIssueMovement && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
         };
     } forEach (_drill getOrDefault ["combatBehaviours",[]]);
     _drill set ["combatBehaviours",_keptBehaviours];
     private _keptModes = [];
     {
         _x params ["_unit","_mode",["_ownedMode","BLUE"]];
-        if (_unit in _stillRecovering && {local _unit} && {unitCombatMode _unit == _ownedMode}) then {
+        if (_unit in _stillRecovering && {[_unit] call _mayIssueMovement} && {unitCombatMode _unit == _ownedMode}) then {
             _keptModes pushBack _x;
         } else {
-            if (local _unit && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
+            if ([_unit] call _mayIssueMovement && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
         };
     } forEach (_drill getOrDefault ["combatModes",[]]);
     _drill set ["combatModes",_keptModes];
@@ -472,7 +472,7 @@ private _restoreFeatures = {
     {
         _x params ["_unit", "_feature"];
         if (_unit in _stillRecovering && {_feature in ["AUTOTARGET","TARGET","AUTOCOMBAT"]}) then {_kept pushBack _x} else {
-            if (alive _unit && {local _unit}) then {_unit enableAI _feature};
+            if (alive _unit && {[_unit] call _mayIssueMovement}) then {_unit enableAI _feature};
         };
     } forEach (_drill get "disabled");
     _drill set ["disabled", _kept];

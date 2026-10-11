@@ -525,3 +525,5 @@ Building room progression opens usable doors without replacing committed movemen
 A CQB reserve replacement rebases best-distance observation at its actual position. The committed room cursor and generation-owned recovery budget remain unchanged; a removed actor's closer baseline must not hide real approach progress by the reserve.
 
 Moving bounds lease individual RED orders as YELLOW while retaining native target and fire features. Cover/release restores the exact prior mode only if unchanged. BLUE/GREEN holds are not escalated. This repair follows native ATTACK diversion in the b3a9f70 batch and requires physical retest.
+
+Between-bound restoration uses the same actor-task ownership guard as movement admission. New player, remote, specialist, boarding, treatment and independent actor reservations block restoration of former WAIT combat modes, behaviour and AI features, even when the former applied value is unchanged.
