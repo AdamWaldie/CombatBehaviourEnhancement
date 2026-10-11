@@ -318,6 +318,9 @@ if (_operationGeneration >= 0) then {
 if (_reinforcements isNotEqualTo []) then {
     private _history=_group getVariable ["WAIT_Cortex_DrillReinforcements",[]];
     _history pushBack [serverTime,_drill getOrDefault ["type",""],_drill getOrDefault ["index",-1],_reinforcements];
+    // Diagnostics must not grow the public payload for a long-lived casualty/recovery operation.
+    // Current participants remain authoritative; retain only the latest replacement transitions.
+    if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
     _group setVariable ["WAIT_Cortex_DrillReinforcements",_history,true];
     if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
         [_group,_drill,"START","CASUALTY_REINFORCEMENT"] call WAIT_fnc_CortexDrillSetStage;
