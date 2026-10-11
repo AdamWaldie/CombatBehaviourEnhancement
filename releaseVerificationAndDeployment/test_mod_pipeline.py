@@ -130,6 +130,32 @@ class PackagePipelineTests(unittest.TestCase):
         (self.folder/'wait-build.json').write_text(json.dumps(record))
         with self.assertRaises(ValueError): release_gate(self.folder,evidence)
 
+    def test_optional_policy_is_sealed_staged_and_requires_its_own_signature(self):
+        policy=self.folder/'optionals/@waldo_ai_tweaks_turret_aiming/addons/policy.pbo'
+        policy.parent.mkdir(parents=True)
+        policy.write_bytes(b'optional policy fixture')
+        (self.folder/'addons/main.pbo.fixture.bisign').write_bytes(b'core signature fixture')
+        (self.folder/'keys').mkdir()
+        (self.folder/'keys/fixture.bikey').write_bytes(b'public key fixture')
+        evidence=Path(self.temp.name)/'optional-evidence.json'
+        def reseal():
+            with patch('mod_pipeline.subprocess.check_output', side_effect=['a'*40+'\n','']):
+                record=seal(self.folder)
+            evidence.write_text(json.dumps(dict(status='PASS',complete=True,source_fingerprint=record['fingerprint'])))
+            return record
+        record=reseal()
+        self.assertIn(policy.relative_to(self.folder).as_posix(),record['files'])
+        with self.assertRaisesRegex(ValueError,'signed PBOs'):
+            release_gate(self.folder,evidence)
+        policy.with_name(policy.name+'.fixture.bisign').write_bytes(b'optional signature fixture')
+        reseal()
+        release_gate(self.folder,evidence)
+        mission=stage(self.folder,Path(self.temp.name)/'optional-stage','all')
+        staged=mission.parent/'@WaldosAITweaks'/policy.relative_to(self.folder)
+        self.assertEqual(staged.read_bytes(),policy.read_bytes())
+        policy.write_bytes(b'changed optional policy')
+        with self.assertRaisesRegex(ValueError,'changed after sealing'):
+            verify(self.folder)
     def test_native_headless_stage_installs_all_machines_and_seals_provider_files(self):
         from stage_headless_provider import REQUIRED
         provider=Path(self.temp.name)/'provider'
