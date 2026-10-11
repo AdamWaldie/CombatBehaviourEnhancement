@@ -402,7 +402,15 @@ private _delay=call {
                             [(_point distance2D _candidate)+(abs (((getPosATL _point) select 2)-(_candidate select 2))*2.5),_x]
                         };
                         _ranked sort true;
-                        private _claimed=(_ranked select 0) select 1;
+                        // Start an unentered lane in the model's interior-position order.
+                        // Nearest Euclidean nodes can be windows behind a wall; they do not
+                        // describe the native doorway route. Rank by distance only after a
+                        // physical interior visit has established this lane's entry.
+                        private _claimed=if (_entered) then {(_ranked select 0) select 1} else {
+                            private _modelOrder=+_candidates;
+                            _modelOrder sort true;
+                            _modelOrder select 0
+                        };
                         _pending deleteAt (_pending find _claimed);
                         _route pushBack _claimed;
                         _cursor=(count _route)-1;
@@ -559,6 +567,9 @@ private _delay=call {
                                     if ((_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}
                                         && {call _mayIssueMovement}) then {
                                         _x doMove _unitTarget;
+                                        if (_x == _point && {!_approachingEntry}) then {
+                                            _x setDestination [_unitTarget,"FORMATION PLANNED",false];
+                                        };
                                     };
                                 } forEach _pair;
                                 _retries=_retries+1;
