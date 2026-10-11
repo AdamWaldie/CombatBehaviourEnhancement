@@ -122,6 +122,7 @@ for "_i" from 1 to 8 do {
             private _lease = [_token,_requester,_job get "expiry",_rally,_job get "at",[]];
             // A retired older operation must not abort this replacement reservation.
             _helper setVariable ["WAIT_Cortex_SupportAbort",nil,true];
+            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+(_job get "enemy")],true];
             _helper setVariable ["WAIT_AIPass_SupportLease",_lease,true];
             _kept pushBack [_helper,_token,groupOwner _helper,serverTime+15,"PENDING"];
             [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",groupOwner _helper];

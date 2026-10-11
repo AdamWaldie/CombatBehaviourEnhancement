@@ -89,6 +89,7 @@ private _dispatched=[];
         if (_attack isNotEqualTo []) then {
             _approaches pushBack +_attack;
             _lease = +_lease; _lease set [2,_job get "expiry"]; _lease set [5,_attack];
+            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+_enemy],true];
             _helper setVariable ["WAIT_AIPass_SupportLease",_lease,true];
             [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",groupOwner _helper];
             _dispatched pushBack _x;

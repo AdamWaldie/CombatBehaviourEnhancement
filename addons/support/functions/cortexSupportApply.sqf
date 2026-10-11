@@ -83,10 +83,10 @@ private _directCoordinationPending = _attack isEqualTo [] && {_sharedCoordinated
 // Keep an existing drill committed when its live target belongs to a different engagement.
 private _localDrill = _state getOrDefault ["drill",createHashMap];
 private _localTarget = _localDrill getOrDefault ["target",objNull];
-private _requestContact = getPosATL _requester;
-if (_attackAllowed) then {_requestContact=+_attack};
+private _contactReceipt=_group getVariable ["WAIT_Cortex_SupportContact",[]];
+private _requestContact=if (count _contactReceipt == 2 && {(_contactReceipt select 0) == _token}) then {_contactReceipt select 1} else {[]};
 private _sharedDrillContact = isNull _localTarget || {!alive _localTarget}
-    || {_localTarget distance2D _requestContact <= 75};
+    || {count _requestContact == 3 && {_localTarget distance2D _requestContact <= 75}};
 private _replaceLocalDrill = _attackAllowed && {_sharedDrillContact} && {_movementOwner == "TACTICAL_DRILL"}
     && {count (_state getOrDefault ["drill",createHashMap]) > 0};
 private _prepareAlongsideDrill=_directCoordinationPending && {_movementOwner == "TACTICAL_DRILL"}

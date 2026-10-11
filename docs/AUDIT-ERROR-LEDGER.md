@@ -4,7 +4,7 @@ Every batch keeps its original RPT files and generated report. Repeated trace li
 
 ## Batch runtime-20261010-214346-432
 
-Candidate: clean `89812ab`. Full batch remains active. Snapshot checked 2026-10-10; counts may grow until completion.
+Candidate: clean `89812ab`. Completed with 2,375 checks, 462 failed checks, 4,231 SQF trace lines, no fatal runtime failures and one load warning. Its applications were closed with user approval.
 
 | ID | Evidence | Cause and action | Retest status |
 | --- | --- | --- | --- |
@@ -108,3 +108,26 @@ The running 89812ab coordinated case recorded CONTACT -> CALM / CONTACT_ENDED at
 HC coordination follow-up: at 03:42:17 and 03:42:26 both complete helper rosters were owned by clients 4 and 5 with installed shot samplers. Helper view isolation and requester natural contact passed. At 03:44:34 both helpers already had empty leases and statuses; CONTACT_ENDED followed at 03:45:13. This shows absence of initial reservation, not merely later loss during post-contact. The fixture set the requester to BLUE until after its expected handshake, while production intentionally gates autonomous support requests under BLUE/GREEN. The corrected requester uses YELLOW before contact; helpers retain their initial BLUE posture. Production hold-fire authority is unchanged. All original failures remain; corrected discovery, dispatch and travel require physical retest.
 
 Corrected coordination batch runtime-20261011-035918-630, clean b3a9f70: at 67 checks it recorded ten failures, zero SQF error lines and the existing load warning. Natural contact, support admission and owner position objectives now pass; MOVE roles and actual travel/fire are observed. This is partial coordination, not successful assault. Both multi-flank squads fail physical travel/cohesion; coordinated movement records 15.55 m reverse travel, native attack overrides, RED-mode violations and actors still outside the 50 m objective radius. Later disable/release passes are cleanup evidence only. Replacement tokens report NOT_READY while old drills remain at PAUSE/MOVE. Source inspection established coordinated drills omitted generation/epoch required by cleanup; c46ee45 binds them to the parent operation while preserving that parent's lifetime. 469600d adds an exact-owned RED-to-YELLOW mover lease, and 94f0ae5 retires outgoing support bounds synchronously. Those later repairs are not loaded in this batch and remain physically unaccepted. User screenshot confirms the visible assault was disordered before the hand-back stage; original failed assertions remain unchanged.
+
+## Final coordination batch runtime-20261011-035918-630
+
+Clean candidate `b3a9f70` completed both client and server observations: 453 recorded checks,
+30 failed checks, zero matched SQF error lines, zero fatal runtime failures and one load warning.
+The running applications were left untouched. Four physical failures have been reviewed;
+26 failed cases remain unresolved. Passing settings checks do not establish tactical acceptance.
+
+Movement, pursuit overrides, backtracking and post-operation order following remain failures.
+Generation binding, child retirement and mover fire posture repairs committed after this candidate
+were not loaded in this batch and still require exact-package retesting. The retained dependency
+warning remains unresolved.
+
+Separate-contact admission follow-up: an owner-local tactical drill must be compared with the
+server-reported enemy position, not the offset approach destination. Discovery and assault dispatch
+now publish a reservation-token-bound contact receipt before delivering the lease. A receipt for
+another token cannot authorize replacing a live drill. Pending discovery still acquires no movement.
+
+Queued physical cases: same enemy with an approach offset beyond 75 m must remain admissible;
+a live drill against another contact beyond the 75 m contact area must continue without cancellation;
+an old-token receipt must not authorize replacement; repeat these cases across server and HC owners,
+then issue a Zeus replacement order. Record actual travel, drill generation and cancellation reason.
+These cases are pending, not accepted.
