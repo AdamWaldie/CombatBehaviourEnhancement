@@ -608,6 +608,13 @@ private _baseHeld=true;
 {
     [format ["COORD-team-%1-actual-fire",_forEachIndex+1],(_x findIf {(_x getVariable ["WAIT_CortexQA_Shots",0]) > 0}) >= 0,str (_x apply {_x getVariable ["WAIT_CortexQA_Shots",0]})] call _check;
 } forEach _teams;
+private _attackReleaseBefore=_teams apply {
+    private _group=group (_x select 0);
+    private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    [netId _group,groupOwner _group,_operation getOrDefault ["generation",-1],
+        (_operation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]],
+        attackEnabled _group,_group getVariable ["WAIT_Cortex_SupportRole",[]]]
+};
 [createHashMapFromArray [["WAIT_AIPass_CoordinatedAssault_Enable",false],["WAIT_AIPass_Reinforce_Enable",false]]] call WAIT_fnc_CortexTuning;
 ["Coordinated assault: disable and hand back","Support is now disabled. Both squads must release their support assignments and temporary orders, then physically follow fresh ordinary movement orders. The cyan trails show real travel.",[1500,1580] call _terrainPosition] call _phase;
 private _released=[{
@@ -625,7 +632,14 @@ if (count _responderOwners == 2) then {
 };
 private _attackRestored=true;
 {if (attackEnabled (group (_x select 0)) != (_attackBaseline select _forEachIndex)) then {_attackRestored=false}} forEach _teams;
-["COORD-autonomous-attack-restored",_attackRestored,str (_teams apply {attackEnabled (group (_x select 0))})] call _check;
+private _attackReleaseAfter=_teams apply {
+    private _group=group (_x select 0);
+    [netId _group,groupOwner _group,attackEnabled _group,
+        _group getVariable ["WAIT_OperationRestoreResult",[]],
+        _group getVariable ["WAIT_OperationResult",[]],
+        _group getVariable ["WAIT_OperationGeneration",-1]]
+};
+["COORD-autonomous-attack-restored",_attackRestored,str [_attackBaseline,_attackReleaseBefore,_attackReleaseAfter]] call _check;
 private _restoredFeatures=_helpers apply {[_x checkAIFeature "TARGET",_x checkAIFeature "AUTOTARGET",_x checkAIFeature "AUTOCOMBAT",_x checkAIFeature "PATH"]};
 ["COORD-movement-features-restored",_restoredFeatures isEqualTo _featureBaseline,str [_featureBaseline,_restoredFeatures]] call _check;
 private _releaseOrigins=_helpers apply {getPosATL _x};
