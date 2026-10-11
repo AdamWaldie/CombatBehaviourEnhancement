@@ -7224,6 +7224,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"assaulting","supportBoundSettling"]',text)
         self.assertGreaterEqual(text.count('deleteAt "supportBoundSettling"'),2)
 
+    def test_cba_feedback_uses_separate_content_rows_for_title_and_body(self):
+        text=source('aiTweaksNotifyLocal')
+        self.assertIn('[[format ["%1 | %2", _title, _prefix]], [_message]] call CBA_fnc_notify;',text)
+        self.assertNotIn('[format ["%1 | %2", _title, _prefix], _message] call CBA_fnc_notify',text)
+        self.assertIn('if (!hasInterface) exitWith {false}',text)
+
     def test_engine_wait_and_recycle_share_operation_identity_without_squad_scan(self):
         act=source('dangerEngineAct')
         gate=source('dangerEngineCanContinue')
