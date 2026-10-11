@@ -226,6 +226,11 @@ if (_trackedOnly) then {_types=_types select {(_x select 0) == "TRACKED"}};
             _count=_count+1;
             if (diag_tickTime >= _nextLog) then {
                 _nextLog=diag_tickTime+5;
+                private _convoyBrain=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
+                diag_log format ["WAIT CORTEX QA CONVOY ADMISSION: case=%1 groupOwner=%2 epoch=%3 brainEpoch=%4 lastStep=%5 pending=%6 queuedAt=%7 skipped=%8",_id,groupOwner _group,
+                    _group getVariable ["WAIT_AIPass_Epoch",0],_convoyBrain getOrDefault ["ownerEpoch",-1],
+                    _convoyBrain getOrDefault ["lastStepAt",-1],_convoyBrain getOrDefault ["pending",false],
+                    _convoyBrain getOrDefault ["queuedAt",-1],_convoyBrain getOrDefault ["skippedReason",""]];
                 diag_log format ["WAIT CORTEX QA CONVOY MATRIX: case=%1 speeds=%2 forced=%3 gaps=%4 motion=%5 formation=%6 steering=%7",_id,_vehicles apply {speed _x},_vehicles apply {getForcedSpeed _x},[(_vehicles select 1) distance2D (_vehicles select 0),(_vehicles select 2) distance2D (_vehicles select 1)],_vehicles apply {[getDir _x,currentCommand driver _x,expectedDestination driver _x,getPosATL _x]},formation _group,_vehicles apply {isAISteeringComponentEnabled _x}];
             };
             sleep 1;
