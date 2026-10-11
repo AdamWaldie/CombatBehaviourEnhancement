@@ -51,10 +51,10 @@ private _requested=false;
     // Unknown door/lock conventions are left to their mod rather than guessed or unlocked.
     if (_lock isEqualTo 0 && {_building animationSourcePhase _source < 0.1}) then {
         private _position=_building modelToWorldWorld _memory;
-        // Building pathfinding can discard a closed-door route six to twelve metres before
-        // the interaction point. Request the normal unlocked-door action during approach so
-        // reaching the threshold is not itself a prerequisite for making the route valid.
-        if ((getPosASL _unit) vectorDistance _position <= 12
+        // Open only within interaction approach distance and on the actor's floor.
+        // A nearby ground-floor actor must not open upper-storey doors remotely.
+        if ((getPosASL _unit) vectorDistance _position <= 3
+            && {abs (((getPosASL _unit) select 2)-(_position select 2)) <= 1.5}
             && {call _orderCurrent} && {[_unit] call WAIT_fnc_CortexCombatEffective}
             && {!isPlayer _unit} && {isNull remoteControlled _unit}
             && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) exitWith {

@@ -1787,7 +1787,7 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexBuildingDoor')
         self.assertIn('!local _unit',text)
         self.assertIn('_lock isEqualTo 0',text)
-        self.assertIn('vectorDistance _position <= 12',text)
+        self.assertIn('vectorDistance _position <= 3',text)
         self.assertIn('serverTime+2',text)
         self.assertIn('isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}',text)
         self.assertLess(text.index('private _requested=false'),text.index('private _lock='))
@@ -1962,7 +1962,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if ((_forEachIndex mod 2) == 0) then {',text)
         self.assertNotIn('private _pairs=_team apply {[_x]}',text)
         self.assertIn('private _team = +_available',text)
-        self.assertIn('private _squadElement = ceil ((count _available) / 2)',text)
+        self.assertIn('private _squadElement = count _available',text)
         self.assertIn('private _topologyElement = ((count _allPositions) max 2) min 8',text)
         self.assertIn('private _entryCapacity = ((2 max _squadElement) min _topologyElement) min 8',text)
         self.assertIn('private _pending=+_routeOrder',text)
@@ -2251,7 +2251,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_members select [1,2]',text)
         self.assertNotIn('_unit setPos', cases)
         self.assertNotIn('_actor setPos', cases)
-        self.assertNotIn('setPosATL', cases)
+        self.assertNotIn('setPosATL', cases.split('// Moving the building is the administrative stimulus;',1)[0])
         self.assertLess(cases.index('call _validateNewFixturePlacement'), cases.index('private _members=[]'))
         self.assertNotIn('call WAIT_fnc_CortexGarrison',cases)
 
@@ -5048,7 +5048,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('useBuildingBackend',comparison)
         self.assertNotIn('_unit setPos',comparison)
         self.assertNotIn('_actor setPos',comparison)
-        self.assertEqual(comparison.count('setPosATL'), 2)
+        self.assertEqual(comparison.count('setPosATL'), 3)
         self.assertIn('_highestAccess >= -0.35', comparison)
         self.assertIn('CLEAR-"+_label+"-placement-access', comparison)
         for fixture in ('_casualtyHouse', '_doorHouse', '_contactHouse'):
@@ -7504,3 +7504,21 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('[true,"BUILDING_MOVED"] call _finish'),text.index('== "EGRESS"'))
         self.assertIn('_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',text)
         self.assertIn('["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]]',source('cortexClearBuilding'))
+
+    def test_clearance_building_transform_audit_requires_real_cancel_and_entry(self):
+        text=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        case=text.split('// Moving the building is the administrative stimulus;',1)[1].split('// A casualty inside',1)[0]
+        self.assertIn('_movedHouse setDir 90;',case)
+        self.assertIn('== "BUILDING_MOVED"',case)
+        self.assertIn('vectorDistance (AGLToASL _x) <= 1.5',case)
+        self.assertEqual(case.count('call WAIT_fnc_CortexClearBuilding'),2)
+        self.assertNotIn('_actor setPos',case)
+
+    def test_clearance_partner_entry_is_committed_and_doors_require_proximity(self):
+        step=source('buildingOperationStep')
+        self.assertIn('_supportTarget=_positions select (_route select 0)',step)
+        self.assertIn('_allWorkersEntered',step)
+        self.assertIn('_enteredActors pushBackUnique _visitor',step)
+        door=source('cortexBuildingDoor')
+        self.assertIn('vectorDistance _position <= 3',door)
+        self.assertIn('(_position select 2)) <= 1.5',door)

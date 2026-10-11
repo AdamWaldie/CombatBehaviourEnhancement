@@ -93,8 +93,9 @@ private _team = +_available;
 if (_team isEqualTo []) exitWith {false};
 // Keep enough distinct lanes for a real squad clear without crowding every reported room node.
 // The roof filter can undercount valid interior lanes on some models, so capacity uses the full
-// engine position set as well as squad strength. The remainder stays available as a casualty reserve.
-private _squadElement = ceil ((count _available) / 2);
+// engine position set as well as squad strength. Admit the full capable squad within the
+// eight-actor concurrent limit; do not silently reserve half of a clearing squad outside.
+private _squadElement = count _available;
 private _topologyElement = ((count _allPositions) max 2) min 8;
 private _entryCapacity = ((2 max _squadElement) min _topologyElement) min 8;
 _entryCapacity = _entryCapacity min (count _team);

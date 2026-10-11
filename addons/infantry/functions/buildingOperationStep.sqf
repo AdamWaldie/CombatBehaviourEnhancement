@@ -367,6 +367,11 @@ private _delay=call {
             private _actual = getPosASL _visitor;
             {
                 private _positionIndex=_x;
+                if (_actual vectorDistance (AGLToASL (_positions select _positionIndex)) <= 1.5) then {
+                    private _enteredActors=_job getOrDefault ["enteredActors",[]];
+                    _enteredActors pushBackUnique _visitor;
+                    _job set ["enteredActors",_enteredActors];
+                };
                 if !(_positionIndex in _cleared) then {
                     if (_actual vectorDistance (AGLToASL (_positions select _positionIndex)) <= 1.5) then {
                         _cleared pushBackUnique _positionIndex;
@@ -519,7 +524,14 @@ private _delay=call {
                         _bestDistance=(getPosATL _point) vectorDistance _target;
                     };
                     private _supportTarget=[];
-                    if (count _pair > 1) then {
+                    private _partner=_pair select ((_moverIndex+1) mod count _pair);
+                    private _partnerEntered=_partner in (_job getOrDefault ["enteredActors",[]]);
+                    if (count _pair > 1 && {_entered} && {!_partnerEntered}) then {
+                        // Commit the partner's entry until it physically reaches an interior node.
+                        // Following the lead's changing previous-room target can cancel entry.
+                        _supportTarget=_positions select (_route select 0);
+                    };
+                    if (count _pair > 1 && {_supportTarget isEqualTo []}) then {
                         _supportTarget=if (_approachingEntry) then {
                             private _outward=(getPosATL (_job get "building")) getDir _entryTarget;
                             _entryTarget getPos [3,_outward]
@@ -730,7 +742,8 @@ private _delay=call {
         _group setVariable ["WAIT_AIPass_ClearOrder", [_job get "building", +_cleared, _job get "deadline", _job get "baseBehaviour", +_unreachable, +_retryCounts, +_failedBy, _job get "lastProgressAt",_job getOrDefault ["baseAttack",true],_job getOrDefault ["nativeOrderReceipt",[]]], true];
         _group setVariable ["WAIT_Cortex_ClearStatus",[_job getOrDefault ["phase","SWEEP"],count _cleared,count _unreachable,count (_job get "positions"),count (_job get "pairs"),_job get "lastProgressAt"],true];
     };
-    if ((count _cleared + count _unreachable) >= count _positions || {serverTime > (_job get "deadline")} || {_activeWorkers isEqualTo []}) exitWith {
+    private _allWorkersEntered=_activeWorkers findIf {!(_x in (_job getOrDefault ["enteredActors",[]]))} < 0;
+    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersEntered}) || {serverTime > (_job get "deadline")} || {_activeWorkers isEqualTo []}) exitWith {
         private _active=[];
         {_active append _x} forEach (_job get "pairs");
         _active=_active arrayIntersect _active;

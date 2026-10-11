@@ -555,6 +555,54 @@ if (_nativeOnly) exitWith {};
     deleteVehicle _house;
 } forEach [[2,"Land_i_House_Small_01_V1_F"],[6,"Land_i_House_Big_01_V1_F"],[12,"Land_i_House_Big_02_V1_F"]];
 
+// Moving the building is the administrative stimulus; actors are never repositioned.
+private _movedHouse=createVehicle ["Land_i_House_Small_01_V1_F",[7750,5800,0],[],0,"NONE"];
+[_movedHouse,"transform"] call _validateNewFixturePlacement;
+private _transformGroup=createGroup [east,true];
+_transformGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_transformGroup setVariable ["acex_headless_blacklist",true,true];
+private _transformActors=[];
+for "_i" from 0 to 1 do {
+    private _actor=_transformGroup createUnit ["O_Soldier_F",[7735+_i*4,5760,0],[],0,"NONE"];
+    _actor setVariable ["WAIT_CortexQA_Label",format ["MOVED BUILDING %1",_i+1],true];
+    _transformActors pushBack _actor;
+};
+missionNamespace setVariable ["WAIT_CortexQA_Actors",_transformActors,true];
+["Clearance: building movement","A real clearance starts, then its target house moves and rotates. WAIT must cancel BUILDING_MOVED before stale room orders continue. A fresh explicit order must physically enter the new location; actors are not relocated.",getPosATL _movedHouse] call _phase;
+private _transformAccepted=[_transformGroup,_movedHouse] call WAIT_fnc_CortexClearBuilding;
+private _transformStarted=[{
+    private _brain=_transformGroup getVariable ["WAIT_BuildingBrain",createHashMap];
+    private _job=_brain getOrDefault ["job",createHashMap];
+    (_job getOrDefault ["buildingTransform",[]]) isNotEqualTo []
+},15] call _wait;
+["CLEAR-transform-operation-started",_transformAccepted && {_transformStarted}] call _check;
+private _movedPosition=(getPosATL _movedHouse) vectorAdd [30,0,0];
+_movedHouse setDir 90;
+_movedHouse setPosATL _movedPosition;
+private _transformCancelled=[{
+    private _result=_transformGroup getVariable ["WAIT_OperationResult",[]];
+    (_result param [1,""]) == "CANCELLED" && {(_result param [4,""]) == "BUILDING_MOVED"}
+        && {!(_transformGroup getVariable ["WAIT_AIPass_ClearBuilding",false])}
+},15] call _wait;
+["CLEAR-transform-stale-operation-cancelled",_transformStarted && {_transformCancelled},
+    str (_transformGroup getVariable ["WAIT_OperationResult",[]])] call _check;
+private _transformReordered=[_transformGroup,_movedHouse] call WAIT_fnc_CortexClearBuilding;
+["CLEAR-transform-fresh-order-accepted",_transformCancelled && {_transformReordered}] call _check;
+private _movedRooms=_movedHouse buildingPos -1;
+private _transformEntry=[{
+    _transformActors findIf {
+        private _actor=_x;
+        _movedRooms findIf {(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5} >= 0
+    } >= 0
+},90] call _wait;
+["CLEAR-transform-reorder-physical-entry",_transformCancelled && {_transformReordered} && {_transformEntry},
+    str [_movedPosition,_movedRooms,_transformActors apply {getPosASL _x}]] call _check;
+[_transformGroup] call WAIT_fnc_CortexClearRelease;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach _transformActors;
+deleteGroup _transformGroup;
+deleteVehicle _movedHouse;
+
 // A casualty inside the clearing element must not strand the shared room queue. Use ten soldiers
 // so the production room-limited entry element leaves genuine reserves available as replacements.
 private _casualtySite=[7150,5800,0];
