@@ -538,7 +538,8 @@ if (count _record >= 10) exitWith {
                         _assistant action ["TakeBag",_baseBag];
                         _current set [1,"TAKING"];
                         _current set [6,time+8];
-                        _current set [7,objNull];
+                        // Retain the original weapon identity until native deletion is
+                        // observed by TAKING. Clearing it here fabricated removal evidence.
                         _current set [10,-1];
                         _owner setVariable ["WAIT_Danger_StaticDeployment",_current,true];
                     };
