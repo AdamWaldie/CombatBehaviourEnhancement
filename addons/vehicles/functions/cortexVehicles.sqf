@@ -557,7 +557,7 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
             } >= 0
         } >= 0
     };
-    if (_commandsVehicle && {_vehicle isKindOf "LandVehicle"} && {[_group, "WAIT_AIPass_VehicleWithdraw_Enable", true] call WAIT_fnc_CortexFeatureEnabled} && {local _vehicle} && {alive _vehicle} && {canMove _vehicle} && {!(_vehicle in _withdrawn)} && {_distance < 800}
+    if (_commandsVehicle && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}} && {_vehicle isKindOf "LandVehicle"} && {[_group, "WAIT_AIPass_VehicleWithdraw_Enable", true] call WAIT_fnc_CortexFeatureEnabled} && {local _vehicle} && {alive _vehicle} && {canMove _vehicle} && {!(_vehicle in _withdrawn)} && {_distance < 800}
         && {serverTime >= (_vehicle getVariable ["WAIT_Cortex_WithdrawRetryAt",0])}
         && {damage _vehicle >= 0.5 || {!canFire _vehicle && {call _hasRealWeapon}}}) then {
         // A rejected route is not a completed withdrawal. Reconsider sparsely after geometry

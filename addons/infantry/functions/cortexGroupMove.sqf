@@ -39,6 +39,17 @@ params [["_group", grpNull, [grpNull]], ["_position", [], [[]]], ["_radius", 25,
 if (isNull _group || {!local _group} || {!(count _position in [2,3])}
     || {_position findIf {!(_x isEqualType 0)} >= 0}
     || {!([_group,false,false,true] call WAIT_fnc_CortexIsEligible)}) exitWith {[grpNull, -1]};
+// A vehicle-specific driving controller need not own every actor in its crew group.
+// A group waypoint still affects that vehicle, so reject it without disabling other domains.
+private _externalDriving={
+    private _movementMembers=units _group;
+    _movementMembers findIf {
+        private _vehicle=objectParent _x;
+        !isNull _vehicle && {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
+            && {driver _vehicle in _movementMembers || {effectiveCommander _vehicle in _movementMembers}}
+    } >= 0
+};
+if (call _externalDriving) exitWith {[grpNull,-1]};
 // Establish the owner epoch before committing an unscoped route on a newly spawned
 // group. Later periodic discovery must not treat this active route as pre-adoption work.
 if !(_group getVariable ["WAIT_AIPass_Adopted",false]) then {
@@ -106,9 +117,9 @@ if (_sameRequest) exitWith {
 };
 // A curator, player or specialist can take the group after the earlier eligibility gate but before
 // the waypoint write. Recheck at the mutation boundary so no delayed WAIT route is inserted over it.
-if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {[grpNull, -1]};
+if ([_group] call WAIT_fnc_CortexExternalTakeover || {call _externalDriving}) exitWith {[grpNull, -1]};
 [_group] call WAIT_fnc_CortexGroupMoveClear;
-if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {[grpNull, -1]};
+if ([_group] call WAIT_fnc_CortexExternalTakeover || {call _externalDriving}) exitWith {[grpNull, -1]};
 // Radius-zero placement may be adjusted by the engine. Explicit elevated destinations need
 // exact ASL placement; ordinary ground routes retain native safe placement.
 private _elevated=abs (_desired select 2) > 1.5;

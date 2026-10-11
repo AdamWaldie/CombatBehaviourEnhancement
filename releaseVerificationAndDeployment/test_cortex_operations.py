@@ -6905,7 +6905,9 @@ class CortexOperations(unittest.TestCase):
     def test_reverse_cleanup_sends_no_stop_into_external_control(self):
         text=source('cortexVehicleReverseStep')
         release=text.split('private _release={',1)[1].split('if (toUpperANSI _mode',1)[0]
-        self.assertIn('if (!([_group] call WAIT_fnc_CortexExternalTakeover)) then',release)
+        self.assertIn('if (!([_group] call WAIT_fnc_CortexExternalTakeover)',release)
+        self.assertIn('isNil {_ownedVehicle getVariable "WAIT_ExternalDrivingOwner"}',release)
+        self.assertLess(release.index('WAIT_ExternalDrivingOwner'),release.index('sendSimpleCommand'))
         self.assertLess(release.index('WAIT_fnc_CortexExternalTakeover'),release.index('sendSimpleCommand'))
         self.assertIn('setVariable ["WAIT_VehicleReverseOwner",nil,true]',release)
 

@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Own one finite tracked reverse leg while preserving a threat-facing hull and native turret engagement.
  * Locality/authority: Current AI group and vehicle owner only; all command boundaries yield to external ownership.
+ * A vehicle-specific external driving marker blocks reverse commands and release STOP/turn writes.
  * Repeat/JIP: Generation/epoch-bound record; repeated steps retain commands. No worker or JIP command replay.
  * Arguments: 0 group <GROUP>; 1 state <HASHMAP>; 2 vehicle <OBJECT>; 3 threat ATL <ARRAY>;
  * 4 mode <STRING, START>; 5 operation generation <NUMBER, -1>.
@@ -28,7 +29,8 @@ private _release={
             && {(_ownedVehicle getVariable ["WAIT_VehicleReverseOwner",[]]) isEqualTo [_group,_generation]}) then {
             // Matching markers prove the old lease, not authority over a newer external order.
             // Clear those markers on handover without sending driving commands into its owner.
-            if (!([_group] call WAIT_fnc_CortexExternalTakeover)) then {
+            if (!([_group] call WAIT_fnc_CortexExternalTakeover)
+                && {isNil {_ownedVehicle getVariable "WAIT_ExternalDrivingOwner"}}) then {
                 private _info=vehicleMoveInfo _ownedVehicle;
                 if ((_info param [1,""]) in ["LEFT","RIGHT"]) then {_ownedVehicle sendSimpleCommand "STOPTURNING"};
                 if ((_info param [0,""]) == "BACK") then {_ownedVehicle sendSimpleCommand "STOP"};
@@ -49,6 +51,7 @@ private _eligible=(missionNamespace getVariable ["WAIT_AIPass_Active",false])
     && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
     && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
     && {!isNull _vehicle} && {local _vehicle} && {alive _vehicle} && {canMove _vehicle}
+    && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
     && {_vehicle isKindOf "Tank"} && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])};
 if (!_eligible) exitWith {["INELIGIBLE"] call _release; "FALLBACK"};
 private _driver=driver _vehicle;
