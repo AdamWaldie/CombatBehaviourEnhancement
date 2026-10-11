@@ -73,7 +73,13 @@ private _drill = _state getOrDefault ["drill", createHashMap];
 private _drillUnits = if ((_drill getOrDefault ["teams",[]]) isEqualTo []) then {
     _drill getOrDefault ["units",[]]
 } else {
-    if ((_drill getOrDefault ["stage",""]) in ["START","MOVE"]) then {_drill getOrDefault ["movers",_drill getOrDefault ["units",[]]]} else {[]}
+    if ((_drill getOrDefault ["stage",""]) == "START") then {
+        // A team swap precedes destination issuance. The previous bound's movers no longer
+        // identify the actors about to move; protect the selected team from scripted fire.
+        (_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]
+    } else {
+        if ((_drill getOrDefault ["stage",""]) == "MOVE") then {_drill getOrDefault ["movers",_drill getOrDefault ["units",[]]]} else {[]}
+    }
 };
 // Rejoining actors still own movement, even while the main element pauses.
 // An opportunistic grenade reserves only its thrower for the short next-frame

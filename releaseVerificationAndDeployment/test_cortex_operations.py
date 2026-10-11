@@ -3137,7 +3137,9 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('getOrDefault ["recovery",[]]', text)
             self.assertIn('!(_x in _recovering)', text)
         text = source('cortexFireControl')
-        self.assertIn('in ["START","MOVE"]', text)
+        self.assertIn('(_drill getOrDefault ["stage",""]) == "START"', text)
+        self.assertIn('(_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]', text)
+        self.assertIn('(_drill getOrDefault ["stage",""]) == "MOVE"', text)
         self.assertIn('WAIT_fnc_CortexCombatEffective', text)
 
     def test_stragglers_remain_tracked_after_live_element_quorum(self):
