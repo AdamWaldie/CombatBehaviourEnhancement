@@ -99,6 +99,35 @@ sleep 2;
 private _refreshed = [{abs ((_unit skill "spotDistance")-_daySpot) < 0.001},90] call _wait;
 ["LIGHT-owner-worker-refresh",_refreshed,"No direct apply call after daylight change; owner worker must restore skills."] call _check;
 ["LIGHT-day-restores-baseline",abs ((_unit skill "spotDistance")-_daySpot) < 0.001,str getLighting] call _check;
+// State-restoration boundary only: these explicit fixture edits represent an external
+// controller's new tuning. No projectile accuracy or player takeover is claimed here.
+private _restoreReady=false;
+private _restoredOwned=false;
+private _preservedExternal=false;
+private _restoreIdempotent=false;
+isNil {
+    [_unit] call WAIT_fnc_AIRestoreProfile;
+    _unit setSkill ["aimingSpeed",0.013];
+    _unit setSkill ["courage",0.37];
+    _unit setCustomAimCoef 1.11;
+    private _applied=[_unit] call WAIT_fnc_AIApplyProfile;
+    private _receipt=_unit getVariable ["WAIT_AI_AppliedSkills",createHashMap];
+    _restoreReady=_applied && {"aimingSpeed" in _receipt}
+        && {abs ((_receipt get "aimingSpeed")-0.013) > 0.001};
+    _unit setSkill ["courage",0.123];
+    _unit setCustomAimCoef 0.88;
+    private _released=[_unit] call WAIT_fnc_AIRestoreProfile;
+    _restoredOwned=_released && {abs ((_unit skill "aimingSpeed")-0.013) < 0.0001};
+    _preservedExternal=abs ((_unit skill "courage")-0.123) < 0.0001
+        && {abs (getCustomAimCoef _unit-0.88) < 0.0001};
+    _restoreIdempotent=!([_unit] call WAIT_fnc_AIRestoreProfile)
+        && {isNil {_unit getVariable "WAIT_AI_AppliedSkills"}}
+        && {isNil {_unit getVariable "WAIT_AI_OriginalSkills"}};
+};
+["PROFILE-restore-receipt-prerequisite",_restoreReady] call _check;
+["PROFILE-restore-owned-value",_restoreReady && {_restoredOwned}] call _check;
+["PROFILE-restore-preserves-external-values",_restoreReady && {_preservedExternal}] call _check;
+["PROFILE-restore-idempotent",_restoreReady && {_restoreIdempotent}] call _check;
 setDate _date;
 {missionNamespace setVariable [_x,_lightingSaved select _forEachIndex]} forEach _lightingKeys;
 {missionNamespace setVariable [_x,_saved select _forEachIndex]} forEach _keys;
