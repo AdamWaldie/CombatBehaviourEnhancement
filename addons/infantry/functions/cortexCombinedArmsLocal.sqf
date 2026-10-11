@@ -45,6 +45,15 @@ if (_role == "AIR_ATTACK" && {
     !(_asset isKindOf "Air") || {isTouchingGround _asset}
         || {!([_group,"WAIT_Cortex_AirAttack_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
 }) exitWith {false};
+// Server reservation is not permission to replace a different live owner operation.
+// Fire-only support does not claim movement; a manoeuvre must match the existing intent.
+private _existingOperation=_group getVariable ["WAIT_Operation",createHashMap];
+if (_role == "GROUND_MANOEUVRE" && {count _existingOperation > 0}
+    && {(_existingOperation getOrDefault ["intent",""]) != "COMBINED_GROUND"
+        || {(_existingOperation getOrDefault ["objective",objNull]) isNotEqualTo _target}}) exitWith {
+    _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"OTHER_INTENT_ACTIVE",serverTime,_target],true];
+    false
+};
 // Role discovery and weapon preflight may take longer than an external order transition.
 // Recheck before assigning targets or starting a finite manoeuvre.
 if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {false};

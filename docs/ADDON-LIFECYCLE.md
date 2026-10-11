@@ -533,3 +533,5 @@ Support release retires its exact token-matched tactical bound before shared ope
 Coordinated fire-team bounds inherit the existing support operation generation and owner epoch after validation. They do not start a second operation. This enables the common interruption, attack-delegation and exact restoration paths already used by standalone tactical drills.
 
 Combined-arms discovery preserves an asset's unexpired role from another opportunity. Separate requesters cannot overwrite that reservation; matching tokens or expired roles remain eligible for validated dispatch. This protects simultaneous local contacts without creating a battle-wide assembly controller.
+
+Combined ground manoeuvre admission refuses OTHER_INTENT_ACTIVE when an existing local operation has a different intent or target. It does not cancel that operation or reveal the new target through the refused move. Fire-only support remains a separate non-movement opportunity. Compatible same-target combined intent can continue through normal generation validation.

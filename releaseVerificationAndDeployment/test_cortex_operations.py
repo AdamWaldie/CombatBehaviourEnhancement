@@ -3941,6 +3941,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_combined_ground_admission_preserves_other_live_intents(self):
+        text=source('cortexCombinedArmsLocal')
+        self.assertIn('_role == "GROUND_MANOEUVRE" && {count _existingOperation > 0}',text)
+        self.assertIn('"OTHER_INTENT_ACTIVE"',text)
+        self.assertIn('"objective",objNull]) isNotEqualTo _target',text)
+        self.assertLess(text.index('"OTHER_INTENT_ACTIVE"'),text.index('_group reveal'))
+        self.assertLess(text.index('"OTHER_INTENT_ACTIVE"'),text.index('call WAIT_fnc_OperationStart'))
     def test_combined_dispatch_preserves_other_live_contact_reservations(self):
         text=source('cortexCombinedArmsServer')
         self.assertIn('private _existingRole=_candidate getVariable ["WAIT_Cortex_CombinedRole",[]]',text)
