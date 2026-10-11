@@ -2,6 +2,18 @@
 
 Every batch keeps its original RPT files and generated report. Repeated trace lines are not separate root causes. A fix is closed only after an exact packaged candidate completes the relevant retest without recurrence; static checks alone leave it pending.
 
+## Running batch runtime-20261011-145921-734
+
+Candidate: clean `543880e`, fingerprint `97e8d2da340e90366c7eca32488cebecc224b68e605ffc7c97b752d10ae3b364`. Dedicated server, observer Zeus, two headless clients and 3840x2160 client mission entry are confirmed. This batch is still running; no final totals or acceptance are claimed.
+
+| ID | Evidence | Cause and action | Retest status |
+| --- | --- | --- | --- |
+| E3 | Fresh two-/six-person clear terminal traces show `REPLACED`, absent shared operation, unchanged owner epoch; shared outcome records `RELEASED` | Explicit order entry cancelled the old group brain without synchronously invalidating its generation. Its delayed FSM Finished callback could release the successor CLEAR operation. Repair `94897c0` invalidates generation and removes the retired identity before replacement. | Static/package gates pass; physical corrected-candidate retest pending. |
+| F3 | Closed- and open-door garrison arrival, hold and scheduler-excluded building movement fail | Door opening alone does not resolve entry. Comparison still loads WAIT's danger configuration, so it is not an addon-absent native baseline. Sparse permissions, speed, reservation and danger-state evidence added in `0a2751d`. | Pathfinding or competing control remains unresolved. |
+| F4 | Fresh-clear cancellation still waited the full observation deadline; unchanged epoch passed owner continuity despite cancellation | Repair `b60e985` recognizes CANCELLED as terminal and fails continuity. Physical room visits and completion requirements remain unchanged. | Audit-only repair statically validated; live retest pending. |
+| F5 | Casualty clear cancels before its entry/reserve job is established | Downstream reserve assertions fail without exercising a live clearance roster. Preserve these failures; do not infer casualty-rebalance correctness or failure from missing prerequisite work. | Requires repaired clear lifecycle and physical casualty retest. |
+| E2 | Server startup repeats `a3_characters_f` warning while post-load activation reports it present | Root cause remains unresolved; retain strict load failure. | Not waived. |
+
 ## Batch runtime-20261010-214346-432
 
 Candidate: clean `89812ab`. Completed with 2,375 checks, 462 failed checks, 4,231 SQF trace lines, no fatal runtime failures and one load warning. Its applications were closed with user approval.
