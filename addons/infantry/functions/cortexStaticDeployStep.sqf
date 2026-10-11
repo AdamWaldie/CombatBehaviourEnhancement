@@ -563,7 +563,9 @@ if (count _record >= 10) exitWith {
         } else {"PACKING"}
     };
     if (_status == "TAKING") exitWith {
-        if (backpack _gunner == _gunnerBag && {backpack _assistant == _assistantBag}) then {
+        // Bags alone do not prove native packing removed the original emplacement.
+        // Never report success while that weapon still exists, or delete it to fake completion.
+        if (isNull _weapon && {backpack _gunner == _gunnerBag} && {backpack _assistant == _assistantBag}) then {
             [false] call _retire;
             _group setVariable ["WAIT_Danger_StaticDeployAttempt",[_episode,"PACKED",serverTime],true];
             "PACKED"
