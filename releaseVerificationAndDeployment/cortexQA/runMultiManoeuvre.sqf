@@ -249,7 +249,15 @@ private _terrainPosition={
             _group getVariable ["WAIT_Cortex_DrillResult",[]],_group getVariable ["WAIT_Cortex_DrillFailure",[]],
             _group getVariable ["WAIT_Cortex_FlankRefusal",[]],_group getVariable ["WAIT_Cortex_AdvanceRefusal",[]]];
         [_prefix+format ["-squad-%1-physical-travel",_teamIndex+1],_contact && {_drillSeen select _teamIndex} && {(_peaks select [_teamIndex*6,6]) findIf {_x < 30} < 0},str (_peaks select [_teamIndex*6,6])] call _check;
-        [_prefix+format ["-squad-%1-cohesion",_teamIndex+1],_members findIf {!alive _x || {group _x != _group} || {_x distance2D leader _group > 40}} < 0] call _check;
+        // Capture physical and native command state before deleting the fixture. A boolean alone
+        // cannot distinguish a held support actor, lost movement intent or dispersed followers.
+        private _actorEvidence=_members apply {
+            [netId _x,alive _x,group _x == _group,getPosATL _x,_x distance2D leader _group,
+                currentCommand _x,expectedDestination _x,assignedTarget _x,unitCombatMode _x,
+                _x checkAIFeature "PATH",_x checkAIFeature "MOVE",
+                _x getVariable ["WAIT_Cortex_ActorMove",[]]]
+        };
+        [_prefix+format ["-squad-%1-cohesion",_teamIndex+1],_members findIf {!alive _x || {group _x != _group} || {_x distance2D leader _group > 40}} < 0,str _actorEvidence] call _check;
         [_prefix+format ["-squad-%1-covering-fire",_teamIndex+1],(_drillSeen select _teamIndex) && {(_coverEvents select _teamIndex) > 0},str _coverEvents] call _check;
         if (_mode == "FLANK") then {
             [_prefix+format ["-squad-%1-no-support-fire-lane-crossing",_teamIndex+1],(_drillSeen select _teamIndex) && {(_fireLaneCrossings select _teamIndex) == 0},str _fireLaneCrossings] call _check;
