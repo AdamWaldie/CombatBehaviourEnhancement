@@ -71,10 +71,12 @@ if (captive _target || {_target getVariable ["ace_captives_isSurrendering",false
     || {(side _group) getFriend (side _target) >= 0.6}) exitWith {["TARGET_NO_LONGER_HOSTILE"] call _finish};
 if (serverTime >= (_job getOrDefault ["expiry",serverTime])) exitWith {["EXPIRED"] call _finish};
 if (_asset distance2D _destination <= 70) exitWith {
-    _group reveal [_target,3];
+    // Arrival grants no new observation. Preserve native/shared knowledge; do not refresh
+    // an unseen moving target merely because the vehicle reached its firing position.
     private _gunner=gunner _asset;
-    private _fireDecision="NO_FIRE_OPERATOR";
-    private _fireAllowed=!isNull _gunner && {alive _gunner} && {local _gunner}
+    private _knownTarget=(_group knowsAbout _target) > 0;
+    private _fireDecision=["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR"] select _knownTarget;
+    private _fireAllowed=_knownTarget && {!isNull _gunner} && {alive _gunner} && {local _gunner}
         && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
         && {([_gunner] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}
