@@ -221,7 +221,9 @@ if (_coordinating) then {
                     && {[_x] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _x}
                     && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
                     && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
-                    && {_x checkAIFeature "PATH"} && {count _actorMove != 3 || {time >= (_actorMove select 2)}}) then {
+                    && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
+                    && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+                    && {count _actorMove != 3 || {time >= (_actorMove select 2)}}) then {
                     doStop _x;
                 };
             } forEach units _group;
