@@ -39,11 +39,11 @@ if (isPlayer _unit
     [_unit] call WAIT_fnc_AIRestoreProfile; false
 };
 if !(missionNamespace getVariable ["WAIT_AI_RebalanceActive", false]) exitWith {false};
-if (_unit getVariable ["WAIT_AI_Exclude", false]) exitWith {false};
+if (_unit getVariable ["WAIT_AI_Exclude", false]) exitWith {[_unit] call WAIT_fnc_AIRestoreProfile; false};
 // Specialist actors retain complete ownership of their movement, animation, damage and combat
 // setup. Skill changes are still behavioural control, so this must use the same compatibility
 // boundary as Cortex rather than relying on callers to recognise every specialist class.
-if ([_unit] call WAIT_fnc_CortexExternalOwner != "") exitWith {false};
+if ([_unit] call WAIT_fnc_CortexExternalOwner != "") exitWith {[_unit] call WAIT_fnc_AIRestoreProfile; false};
 
 private _includedSides = missionNamespace getVariable ["WAIT_AI_IncludedSides", []];
 private _includedFactions = missionNamespace getVariable ["WAIT_AI_IncludedFactions", []];

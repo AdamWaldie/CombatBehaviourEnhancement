@@ -29,8 +29,10 @@ for "_i" from _cursor to ((_cursor + 9) min ((count _units)-1)) do {
     private _signature = [_mode,_dark,hmd _unit,netId _profileVehicle,_profileSeat,_precisionExcluded];
     private _humanControl=isPlayer _unit || {!isNull remoteControlled _unit}
         || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])};
-    if (local _unit && {_humanControl}) then {[_unit] call WAIT_fnc_AIRestoreProfile};
-    if (local _unit && {alive _unit} && {!_humanControl} && {_signature isNotEqualTo (_unit getVariable ["WAIT_Cortex_LightingSignature",[]])}) then {
+    private _profileBlocked=_humanControl || {_unit getVariable ["WAIT_AI_Exclude",false]}
+        || {[_unit] call WAIT_fnc_CortexExternalOwner != ""};
+    if (local _unit && {_profileBlocked}) then {[_unit] call WAIT_fnc_AIRestoreProfile};
+    if (local _unit && {alive _unit} && {!_profileBlocked} && {_signature isNotEqualTo (_unit getVariable ["WAIT_Cortex_LightingSignature",[]])}) then {
         [_unit] call WAIT_fnc_AIApplyProfile;
     };
 };
