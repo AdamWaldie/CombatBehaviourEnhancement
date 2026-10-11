@@ -66,9 +66,12 @@ if (count _drill > 0) then {
             "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundWaypoint"];
         _payload pushBack ["resumeSpots",if (_moveProof isEqualTo []) then {+(_drill getOrDefault ["resumeSpots",[]])} else {_moveProof}];
         private _movers=_drill getOrDefault ["movers",[]];
-        _payload pushBack ["resumeRetries",if (_movers isEqualTo []) then {+(_drill getOrDefault ["resumeRetries",[]])} else {
-            (_drill getOrDefault ["retries",[]]) apply {[_movers param [_forEachIndex,objNull],_x select 0]}
-        }];
+        private _resumeRetries=+(_drill getOrDefault ["resumeRetries",[]]);
+        if (_movers isNotEqualTo []) then {
+            _resumeRetries=[];
+            {_resumeRetries pushBack [_movers param [_forEachIndex,objNull],_x select 0]} forEach (_drill getOrDefault ["retries",[]]);
+        };
+        _payload pushBack ["resumeRetries",_resumeRetries];
         _payload pushBack ["resumeRecovery",(_drill getOrDefault ["recovery",[]]) apply {[_x select 0,_x select 1]}];
         private _operation=_group getVariable ["WAIT_Operation",createHashMap];
         _payload pushBack ["resumeUnavailable",+(_operation getOrDefault ["unavailable",[]])];

@@ -7205,7 +7205,8 @@ class CortexOperations(unittest.TestCase):
 
     def test_cover_budget_ranks_placed_and_terrain_objects_together(self):
         text=source('cortexFindCover')
-        self.assertIn('private _ranked=_objects apply',text)
+        self.assertIn('private _ranked=[];',text)
+        self.assertIn('{_ranked pushBack [_x distance2D _position,_forEachIndex,_x]} forEach _objects;',text)
         self.assertIn('_ranked sort true',text)
         self.assertIn('_objects=(_ranked select [0,10])',text)
         self.assertLess(text.index('forEach _placed'),text.index('_ranked sort true'))

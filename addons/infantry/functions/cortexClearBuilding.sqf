@@ -234,7 +234,8 @@ private _claimedEntryIndices=[];
     private _pairLead=_pair select 0;
     private _entryIndex=-1;
     if (_entries isNotEqualTo []) then {
-        private _ranked=_entries apply {[_pairLead distance2D _x,_forEachIndex]};
+        private _ranked=[];
+        {_ranked pushBack [_pairLead distance2D _x,_forEachIndex]} forEach _entries;
         _ranked sort true;
         private _unclaimed=_ranked select {!((_x select 1) in _claimedEntryIndices)};
         private _choice=if (_unclaimed isEqualTo []) then {_ranked} else {_unclaimed};
