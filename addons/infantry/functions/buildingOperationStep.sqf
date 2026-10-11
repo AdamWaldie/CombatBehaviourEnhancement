@@ -364,7 +364,11 @@ private _delay=call {
                     // Physical visits are collected before this loop. Apply the room handoff
                     // here before skipping it, otherwise the mover never rotates and its
                     // partner keeps exterior security even after the first interior visit.
-                    if (_completedRoom in _cleared) then {
+                    // Shared completion can belong to another lane. Only this pair's
+                    // physical arrival proves its entry and interior support handoff.
+                    if (_completedRoom in _cleared && {_pair findIf {
+                        (getPosASL _x) vectorDistance (AGLToASL (_positions select _completedRoom)) <= 1.5
+                    } >= 0}) then {
                         _entered=true;
                         _previousPositionIndex=_completedRoom;
                         _roomsCleared=_roomsCleared+1;
