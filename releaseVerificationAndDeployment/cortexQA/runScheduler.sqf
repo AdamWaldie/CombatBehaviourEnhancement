@@ -242,6 +242,29 @@ sleep 5;
 {deleteVehicle _x} forEach _actors;
 {deleteGroup _x} forEach _groups;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+// Isolated recovery boundary: the fixture deliberately replaces one retry with a native
+// away leg. This measures real travel and recovery classification, not tactical completion.
+private _recoveryGroup=createGroup [east,true];
+_recoveryGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_recoveryGroup setVariable ["acex_headless_blacklist",true,true];
+private _recoveryActor=_recoveryGroup createUnit ["O_Soldier_F",[2350,1700,0],[],0,"NONE"];
+_recoveryGroup setCombatMode "BLUE";
+_recoveryGroup setBehaviourStrong "CARELESS";
+private _recoveryOrigin=getPosATL _recoveryActor;
+private _recoveryTarget=_recoveryOrigin vectorAdd [100,0,0];
+private _recoveryOperation=[_recoveryGroup,"RECOVERY_DIAGNOSTIC",_recoveryTarget,[_recoveryActor],[_recoveryTarget],"MOVING"] call WAIT_fnc_OperationStart;
+private _recoveryGeneration=_recoveryOperation getOrDefault ["generation",-1];
+private _recoveryAccepted=[_recoveryGroup,_recoveryGeneration,_recoveryActor,_recoveryTarget] call WAIT_fnc_RecoveryStep;
+_recoveryActor doMove (_recoveryOrigin vectorAdd [-60,0,0]);
+private _awayTravel=[{_recoveryActor distance2D _recoveryOrigin >= 10},25] call _wait;
+private _awayOutcome=[_recoveryGroup,_recoveryGeneration,3,0] call WAIT_fnc_OperationStep;
+["RECOVERY-away-travel-prerequisite",_recoveryAccepted == "RECOVERING" && {_awayTravel}
+    && {_recoveryActor distance2D _recoveryTarget > _recoveryOrigin distance2D _recoveryTarget}] call _check;
+["RECOVERY-away-travel-does-not-renew",_awayTravel && {_awayOutcome == "STALLED"}
+    && {_recoveryActor in ((_recoveryGroup getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["unavailable",[]])},str _awayOutcome] call _check;
+[_recoveryGroup,_recoveryGeneration,"QA_FINISHED"] call WAIT_fnc_OperationCancel;
+deleteVehicle _recoveryActor;
+deleteGroup _recoveryGroup;
 // This section diagnoses the real FSM-to-existing-job bridge. It does not claim combat efficacy.
 ["Danger: event-to-decision handoff","A fresh ordinary squad keeps its MOVE route. A danger observation must wake its existing budgeted decision job, without revealing a target or creating another movement owner.",[2140,1740,0]] call _phase;
 [createHashMapFromArray [["WAIT_AIPass_Danger_Enable",true]]] call WAIT_fnc_CortexTuning;
