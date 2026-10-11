@@ -115,6 +115,39 @@ waitUntil {
     ["BUILD-TRAVERSE-"+_label,_nodes isNotEqualTo [] && {_seen findIf {!_x} < 0},
         str [_nodes,_seen,getPosATL _unit,currentCommand _unit,expectedDestination _unit,getUnitState _unit]] call _check;
 } forEach _walkCases;
+// Isolate door state after preserving every original traversal failure. This is
+// an explicit native diagnostic, never assistance to the production clearance cases.
+private _doorControls=[];
+{
+    _x params ["_group","_unit","_house","_target","_method","_label"];
+    if (typeOf _house == "Land_i_House_Small_01_V1_F" && {_method in ["DIRECT","REPLAN"]}) then {
+        private _node=(_house buildingPos -1) param [1,[]];
+        private _doorCount=(getNumber (configOf _house >> "numberOfDoors")) min 16;
+        for "_door" from 1 to _doorCount do {
+            if ((_house getVariable [format ["bis_disabled_Door_%1",_door],0]) isEqualTo 0) then {
+                [_house,_door,1] call BIS_fnc_door;
+            };
+        };
+        if (_node isNotEqualTo []) then {
+            _unit doMove _node;
+            if (_method == "REPLAN") then {_unit setDestination [_node,"LEADER PLANNED",true]};
+            _doorControls pushBack [_unit,_node,_label,false,_doorCount];
+        };
+    };
+} forEach _cases;
+["Building traversal: native open-door control","Diagnostic only: unlocked doors are explicitly opened on the native comparison houses, then actors retry the previously failed room index 1. Original failures remain. Production clearance receives no test-side door assistance.",[6280,5890,0]] call _phase;
+private _doorDeadline=time+60;
+waitUntil {
+    sleep 2;
+    {
+        if ((getPosASL (_x select 0)) vectorDistance (AGLToASL (_x select 1)) <= 1.5) then {_x set [3,true]};
+    } forEach _doorControls;
+    time >= _doorDeadline || {_doorControls findIf {!(_x select 3)} < 0}
+};
+{
+    _x params ["_unit","_node","_label","_arrived","_doorCount"];
+    ["BUILD-OPEN-DOORS-"+_label,_arrived,str [_doorCount,getPosATL _unit,_node,expectedDestination _unit]] call _check;
+} forEach _doorControls;
 sleep 15;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; deleteVehicle _house} forEach _cases;
