@@ -51,7 +51,7 @@
  * assaultChance controls optional grenade preparation, not whether an enabled, successful manoeuvre
  * arbitrarily abandons its assault transition. One member may throw a fragmentation grenade
  * (WAIT_fnc_CortexThrowGrenade, never near friendlies). The approach uses a covered spot
- * 20 m short of the reported enemy and clears 20 m beyond that fixed objective, while the base of fire keeps suppressing. Formation commitment issues the covered approach immediately. Arrival without a queued grenade issues the clear-through immediately; a queued throw retains a two-second reservation pending physical grenade-safety acceptance. A queued frag is an opportunistic action: its own next-frame safety check may cancel it, but deployment never gates the assault or aborts movement. The assault axis stays fixed through the crossing; water destinations are rejected.
+ * 20 m short of the reported enemy and clears 20 m beyond that fixed objective, while the base of fire keeps suppressing. Formation commitment issues the covered approach immediately. Arrival issues the clear-through immediately, whether or not a grenade throw was queued. A queued frag is an opportunistic action: its own next-frame safety check may cancel it, but deployment never gates the assault or aborts movement. The assault axis stays fixed through the crossing; water destinations are rejected.
  * Consolidation: a flank brings its covering element forward even when no final assault
  * is selected; the manoeuvre element holds its gained position. After clearing through,
  * its surviving on-foot covering element moves
