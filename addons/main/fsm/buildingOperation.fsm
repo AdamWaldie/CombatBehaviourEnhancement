@@ -57,7 +57,7 @@ class FSM {
         };
         class Finished {
             name = "Finished";
-            init = "_brain set [""cancelled"",true]; _brain set [""cancelReason"",_reason]; if (!isNull _group && {local _group} && {_generation == (_group getVariable [""WAIT_AIPass_ClearGeneration"",-2])}) then {_group setVariable [""WAIT_BuildingBrain_State"",[_phase,_generation,_epoch,serverTime,_reason],true]; if ((_group getVariable [""WAIT_AIPass_ClearBuilding"",false]) && {_reason in [""ZEUS"",""EXTERNAL_OWNER"",""DISABLED""]}) then {[_group,false] call WAIT_fnc_CortexClearRelease;}; _group setVariable [""WAIT_BuildingBrain"",nil]; _group setVariable [""WAIT_BuildingBrain_FSM"",nil];};";
+            init = "_brain set [""cancelled"",true]; _brain set [""cancelReason"",_reason]; if (!isNull _group && {local _group} && {_epoch == (_group getVariable [""WAIT_AIPass_Epoch"",0])} && {_generation == (_group getVariable [""WAIT_AIPass_ClearGeneration"",-2])} && {(_group getVariable [""WAIT_BuildingBrain"",createHashMap]) isEqualTo _brain}) then {_group setVariable [""WAIT_BuildingBrain_State"",[_phase,_generation,_epoch,serverTime,_reason],true]; if ((_group getVariable [""WAIT_AIPass_ClearBuilding"",false]) && {_reason in [""ZEUS"",""EXTERNAL_OWNER"",""DISABLED""]}) then {[_group,false] call WAIT_fnc_CortexClearRelease;}; _group setVariable [""WAIT_BuildingBrain"",nil]; _group setVariable [""WAIT_BuildingBrain_FSM"",nil];};";
             precondition = "";
             class Links {};
         };
