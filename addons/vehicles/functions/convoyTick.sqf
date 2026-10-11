@@ -500,7 +500,20 @@ for "_i" from 1 to (count _vehicles - 1) do {
         } else {
             _pathOwners set [_key,false];
             if ([] call _mayIssueDriving) then {
-                (driver _vehicle) doFollow leader _group;
+                // Recovery must retain predecessor intent, not re-enter native group formation.
+                // Formation following can overtake an escort and obstruct its weapon sector.
+                private _recoveryTarget=+(_progress param [5,[],[[]]]);
+                if (_recoveryTarget isEqualTo []) then {_recoveryTarget=+(_progress param [6,[],[[]]])};
+                if (count _recoveryTarget >= 2) then {
+                    private _behind=(getPosATL _front) vectorDiff _recoveryTarget;
+                    private _frontDirection=vectorDir _front;
+                    _behind set [2,0];
+                    _frontDirection set [2,0];
+                    if ((_behind vectorDotProduct _frontDirection) >= 0
+                        && {_recoveryTarget distance2D _front >= _gapLow}) then {
+                        (driver _vehicle) doMove _recoveryTarget;
+                    };
+                };
                 _vehicle setConvoySeparation _desiredGap;
             };
         };
