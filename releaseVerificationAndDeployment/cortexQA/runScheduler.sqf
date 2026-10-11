@@ -117,6 +117,17 @@ private _supportFSMFinished=[{completedFSM _detachedSupportFSM},10] call _wait;
     && {(_epochGroup getVariable ["WAIT_Support_Brain",createHashMap]) isEqualTo _registeredSupport}
     && {(_epochGroup getVariable ["WAIT_AIPass_SupportLease",[]]) isEqualTo _supportReservation}] call _check;
 _epochGroup setVariable ["WAIT_AIPass_SupportLease",nil];
+private _registeredBuilding=createHashMapFromArray [["group",_epochGroup],["phase","SWEEP"]];
+private _detachedBuilding=createHashMapFromArray [["group",_epochGroup],["phase","ENTRY"]];
+_epochGroup setVariable ["WAIT_AIPass_ClearGeneration",1];
+_epochGroup setVariable ["WAIT_BuildingBrain",_registeredBuilding];
+private _detachedBuildingFSM=[_epochGroup,6,1,_detachedBuilding]
+    execFSM "\z\waldo_ai_tweaks\addons\main\fsm\buildingOperation.fsm";
+private _buildingFSMFinished=[{completedFSM _detachedBuildingFSM},10] call _wait;
+["SCHED-detached-building-fsm-retires",_buildingFSMFinished] call _check;
+["SCHED-detached-building-state-preserved",_buildingFSMFinished
+    && {(_epochGroup getVariable ["WAIT_BuildingBrain",createHashMap]) isEqualTo _registeredBuilding}
+    && {(_registeredBuilding get "phase") == "SWEEP"}] call _check;
 private _epochKey="WAIT_QA_EPOCH_"+str diag_tickTime;
 private _staleState=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",5],["calls",0]];
 [_coalesceCallback,_staleState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
