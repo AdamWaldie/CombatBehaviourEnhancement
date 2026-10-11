@@ -6,7 +6,7 @@ class FSM
         class Init
         {
             name = "Init";
-            init = "_empty = createHashMap; _group = _this param [0,grpNull,[grpNull]]; _token = _this param [1,"""",[""""]]; _epoch = _group getVariable [""WAIT_AIPass_Epoch"",0]; _job = createHashMapFromArray [[""group"",_group],[""drillToken"",_token],[""jobKey"",""WAIT_DRILL_""+str _group+""_""+_token],[""queuedAt"",time],[""watchdogCount"",0],[""done"",false],[""cancelled"",false]]; _zeusToken = +(_group getVariable [""WAIT_AIPass_ZeusHold"",[]]); _group setVariable [""WAIT_Cortex_DrillFSMJob"",_job]; _finished = false;";
+            init = "_empty = createHashMap; _group = _this param [0,grpNull,[grpNull]]; _token = _this param [1,"""",[""""]]; _epoch = _group getVariable [""WAIT_AIPass_Epoch"",0]; _generation = _group getVariable [""WAIT_OperationGeneration"",0]; _job = createHashMapFromArray [[""group"",_group],[""drillToken"",_token],[""jobKey"",""WAIT_DRILL_""+str _group+""_""+_token],[""queuedAt"",time],[""watchdogCount"",0],[""done"",false],[""cancelled"",false]]; _zeusToken = +(_group getVariable [""WAIT_AIPass_ZeusHold"",[]]); _group setVariable [""WAIT_Cortex_DrillFSMJob"",_job]; _finished = false;";
             precondition = "";
             class Links
             {
@@ -97,7 +97,7 @@ class FSM
                     priority = 3.500000;
                     to = "Finished";
                     precondition = "";
-                    condition = "local _group && {(_group getVariable [""WAIT_AIPass_Epoch"",0]) == _epoch} && {private _current = (_group getVariable [""WAIT_AIPass_State"",_empty]) getOrDefault [""drill"",_empty]; (_current getOrDefault [""token"",""""]) != _token}";
+                    condition = "local _group && {(_group getVariable [""WAIT_AIPass_Epoch"",0]) == _epoch} && {private _current = (_group getVariable [""WAIT_AIPass_State"",_empty]) getOrDefault [""drill"",_empty]; (_current getOrDefault [""token"",""""]) != _token || {(_group getVariable [""WAIT_OperationGeneration"",0]) != _generation}}";
                     action = "_job set [""cancelled"",true]; _finished = true;";
                 };
                 class SchedulerWatchdog
