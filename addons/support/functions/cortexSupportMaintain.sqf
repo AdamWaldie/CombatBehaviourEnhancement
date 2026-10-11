@@ -91,6 +91,12 @@ private _sharedCoordinated = !isNull _requester
 private _supportEnabled = _sharedReinforce || {_sharedCoordinated};
 private _releaseSupport={
     params [["_reason","SUPPORT_RELEASED"]];
+    // Retire the exact outgoing bound before a replacement reservation can be admitted.
+    // Waiting for its queued callback leaves an old drill blocking SupportBoundStart.
+    private _outgoingDrill=_state getOrDefault ["drill",createHashMap];
+    if ((_outgoingDrill getOrDefault ["supportToken",""]) == _token) then {
+        [_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd;
+    };
     // Reject only the exact lease snapshot accepted by this owner. The server validates token,
     // snapshot and sender again, making repeated cleanup and a racing replacement lease harmless.
     if (count _lease == 6 && {_token == (_lease select 0)}) then {

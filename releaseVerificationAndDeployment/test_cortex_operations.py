@@ -3941,6 +3941,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_support_release_retires_only_matching_bound_before_operation_cleanup(self):
+        text=source('cortexSupportMaintain')
+        release=text.split('private _releaseSupport={',1)[1].split('// The cached operation step',1)[0]
+        self.assertIn('(_outgoingDrill getOrDefault ["supportToken",""]) == _token',release)
+        self.assertIn('[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd',release)
+        self.assertLess(release.index('WAIT_fnc_CortexFlankEnd'),release.index('call _finishOperation'))
     def test_building_replacement_rebases_approach_without_changing_room_sequence(self):
         text=source('buildingOperationStep')
         replacement=text.split('private _replacement=_reserves deleteAt 0;',1)[1].split('Clear pair %1 reinforced',1)[0]

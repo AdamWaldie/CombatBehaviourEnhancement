@@ -527,3 +527,5 @@ A CQB reserve replacement rebases best-distance observation at its actual positi
 Moving bounds lease individual RED orders as YELLOW while retaining native target and fire features. Cover/release restores the exact prior mode only if unchanged. BLUE/GREEN holds are not escalated. This repair follows native ATTACK diversion in the b3a9f70 batch and requires physical retest.
 
 Between-bound restoration uses the same actor-task ownership guard as movement admission. New player, remote, specialist, boarding, treatment and independent actor reservations block restoration of former WAIT combat modes, behaviour and AI features, even when the former applied value is unchanged.
+
+Support release retires its exact token-matched tactical bound before shared operation cleanup. It uses ROLE_HANDOVER without formation recall, preventing an old queued drill from blocking a replacement bound as NOT_READY. A different drill token is untouched.
