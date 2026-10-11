@@ -26,9 +26,13 @@ if (_generation < 0 || {(_operation getOrDefault ["generation",-2]) != _generati
     || {(_operation getOrDefault ["ownerEpoch",-1]) != _ownerEpoch}
     || {(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}) exitWith {false};
 private _final=_point distance2D (_lease select 5) < 2;
+private _unavailable=_operation getOrDefault ["unavailable",[]];
 private _fit=(units _group) select {
     private _actorMove=_x getVariable ["WAIT_Cortex_ActorMove",[]];
     local _x && {[_x] call WAIT_fnc_CortexCombatEffective} && {isNull objectParent _x}
+        && {!(_x in _unavailable)} && {!isPlayer _x} && {isNull remoteControlled _x}
+        && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {count _actorMove != 3 || {time >= (_actorMove select 2)}}
 };
