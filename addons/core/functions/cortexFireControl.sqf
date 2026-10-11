@@ -133,6 +133,7 @@ private _held = {(_this getVariable ["WAIT_AIPass_TargetHold", -1]) > _now};
     } forEach _enemies;
     if (!isNull _closest && {assignedTarget _unit != _closest}) then {
         _unit doTarget _closest;
+        _unit setVariable ["WAIT_Cortex_FireTarget",[_group,_group getVariable ["WAIT_AIPass_Epoch",0],_closest]];
         _unit doFire _closest;
         _unit setVariable ["WAIT_AIPass_TargetHold", _now + 6];
         _orders = _orders + 1;
@@ -168,6 +169,7 @@ if (count _visible >= 2) then {
             if (_freeIndex >= 0) then {
                 private _free = _visible select _freeIndex;
                 _unit doTarget _free;
+                _unit setVariable ["WAIT_Cortex_FireTarget",[_group,_group getVariable ["WAIT_AIPass_Epoch",0],_free]];
                 _unit setVariable ["WAIT_AIPass_TargetHold", _now + 6];
                 [_target, -1] call _addShooter;
                 [_free, 1] call _addShooter;

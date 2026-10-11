@@ -3032,7 +3032,10 @@ class CortexOperations(unittest.TestCase):
     def test_native_attack_is_not_fought_before_physical_no_progress(self):
         step = source("cortexFlankStep")
         self.assertNotIn('currentCommand _unit == "ATTACK"', step)
-        self.assertNotIn('_unit doTarget objNull',step)
+        self.assertEqual(step.count('_unit doTarget objNull'),1)
+        self.assertIn('assignedTarget _unit == (_fireTarget select 2)',step)
+        self.assertIn('(_fireTarget select 0) == _group',step)
+        self.assertIn('(_fireTarget select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])',step)
         retry=step.split('private _retry = _retries select _forEachIndex;',1)[1].split('if (_now-(_last select 3) > _timeout)',1)[0]
         self.assertIn('_now-(_last select 3) >= 8',retry)
         self.assertIn('(_retry select 0) < 1',retry)
@@ -3056,7 +3059,9 @@ class CortexOperations(unittest.TestCase):
         issue=step.split('private _issue = {',1)[1].split('private _result =',1)[0]
         self.assertEqual(1,issue.count('_unit doMove _spot'))
         self.assertNotIn('setDestination [',body)
-        self.assertNotIn('doTarget objNull',body)
+        self.assertEqual(body.count('doTarget objNull'),1)
+        self.assertIn('WAIT_Cortex_FireTarget',issue)
+        self.assertLess(issue.index('_unit doTarget objNull'),issue.index('_unit doMove _spot'))
         for capability in ['TARGET','AUTOTARGET','AUTOCOMBAT','PATH']:
             self.assertNotIn(f'_unit disableAI "{capability}"',step)
 

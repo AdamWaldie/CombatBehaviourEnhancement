@@ -559,8 +559,20 @@ private _issue = {
             };
             private _handoff=[serverTime,netId _unit,_drill get "index",
                 currentCommand _unit,expectedDestination _unit,+_spot,attackEnabled _group];
-            _unit doWatch _enemyPos;
-            _unit doMove _spot;
+            // A previous covering role may have received a WAIT target assignment. Retire
+            // only that exact local receipt before the actor becomes a mover; native knowledge
+            // and a newer external assignment remain available to ordinary engine aiming.
+            private _fireTarget=_unit getVariable ["WAIT_Cortex_FireTarget",[]];
+            if (count _fireTarget == 3 && {(_fireTarget select 0) == _group}
+                && {(_fireTarget select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {!isNull (_fireTarget select 2)} && {assignedTarget _unit == (_fireTarget select 2)}) then {
+                _unit doTarget objNull;
+            };
+            _unit setVariable ["WAIT_Cortex_FireTarget",nil];
+            if ([_unit] call _mayIssueMovement) then {
+                _unit doWatch _enemyPos;
+                _unit doMove _spot;
+            };
             // Keep a bounded pre-command record; native aiming remains untouched.
             private _handoffs=_drill getOrDefault ["movementHandoffs",[]];
             if (count _handoffs < 16) then {
