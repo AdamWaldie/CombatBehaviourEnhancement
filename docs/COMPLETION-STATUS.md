@@ -12,7 +12,8 @@ one unresolved load warning. Neither establishes subsystem acceptance.
 Clean candidate ecdff24431f12c7fc780dee195ef5befe4a62fcf is preserved with dirty=false and
 fingerprint e1c26e9caf17f11e632eb0c2117f5f23bdea2fb92b3760b2c8a796bbee6ef139.
 Its corrected coordination retest was authorized on 2026-10-11 and launched as
-runtime-20261011-045348-544. Completion and physical acceptance are pending.
+runtime-20261011-045348-544. It completed with 456 checks, 32 failed checks, zero SQF error
+lines, zero fatal runtime failures and one unresolved load warning. Physical acceptance failed.
 
 Repairs since b3a9f70 include matching operation generations on coordinated child bounds,
 retiring outgoing child work before parent release, mover pursuit posture, protected actor
@@ -22,6 +23,15 @@ Those latter combined-fire repairs require their own physical batch; coordinatio
 validate them. Larger force coordination, independent contact areas, capability-selected effects
 and matched performance remain incomplete.
 
+Later fixes remain queued: tactical/building/aircraft FSM supersession and cleanup, role-aware danger
+posture, shared tactical operation phases, and scheduler admission/coalescing. Scheduler coalescing
+now returns before duplicate append, isolates group/owner epochs and retires deleted-group work.
+Additive in-engine cases exercise single execution, epoch rejection, stale callback retirement and
+existing physical movement under the scheduler budget. Those cases have not run in the completed
+package. The HC diagnostic fixture also reapplies its stated damage protection after migration;
+this does not change production or damage-enabled battles. Restart approval remains pending.
+
+Historical queued repairs below require individual evidence review against later batches:
 Changes through 82e0fc6 are committed and statically/package validated, awaiting physical retest:
 
 - Aircraft: live weapon/launch alignment, lateral turret traverse eligibility, logic-target
