@@ -52,6 +52,7 @@ if (_role == "GROUND_MANOEUVRE" && {count _existingOperation > 0}
     && {(_existingOperation getOrDefault ["intent",""]) != "COMBINED_GROUND"
         || {(_existingOperation getOrDefault ["objective",objNull]) isNotEqualTo _target}}) exitWith {
     _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"OTHER_INTENT_ACTIVE",serverTime,_target],true];
+        [_group,_opportunity,"OTHER_INTENT_ACTIVE",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
     false
 };
 // Role discovery and weapon preflight may take longer than an external order transition.
@@ -102,6 +103,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
     if (_selected isEqualTo []) exitWith {
         _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"NO_SAFE_ROUTE",serverTime,_target],true];
+        [_group,_opportunity,"NO_SAFE_ROUTE",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
     };
     private _destination=_selected select ((count _selected)-1);
@@ -109,6 +111,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
     if !([_group,"COMBINED_GROUND",true,_expiry] call WAIT_fnc_CortexOwnershipLease) exitWith {
         _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"EXTERNAL_BUSY",serverTime,_target],true];
+        [_group,_opportunity,"EXTERNAL_BUSY",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
     };
     // This remains native vehicle pathfinding, but the temporary firing-area move has a common
@@ -119,6 +122,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         [_group,"COMBINED_GROUND",false] call WAIT_fnc_CortexOwnershipLease;
         _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"OWNER_LOST",serverTime,_target],true];
+        [_group,_opportunity,"OWNER_LOST",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
     };
     private _generation=_operation get "generation";
@@ -129,6 +133,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         [_group,"COMBINED_GROUND",false] call WAIT_fnc_CortexOwnershipLease;
         _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"MOVEMENT_REJECTED",serverTime,_target],true];
+        [_group,_opportunity,"MOVEMENT_REJECTED",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
     };
     private _state=[_group] call WAIT_fnc_CortexGroupState;

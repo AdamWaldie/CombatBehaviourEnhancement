@@ -535,3 +535,5 @@ Coordinated fire-team bounds inherit the existing support operation generation a
 Combined-arms discovery preserves an asset's unexpired role from another opportunity. Separate requesters cannot overwrite that reservation; matching tokens or expired roles remain eligible for validated dispatch. This protects simultaneous local contacts without creating a battle-wide assembly controller.
 
 Combined ground manoeuvre admission refuses OTHER_INTENT_ACTIVE when an existing local operation has a different intent or target. It does not cancel that operation or reveal the new target through the refused move. Fire-only support remains a separate non-movement opportunity. Compatible same-target combined intent can continue through normal generation validation.
+
+Ground-support refusal retires its exact reservation on the server through current-owner and snapshot validation. It retains the refusal result, clears only matching role metadata, and never cancels the asset's existing operation. Repeated or replaced replies are no-ops; aircraft retains its separate fallback path.
