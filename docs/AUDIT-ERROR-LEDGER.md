@@ -133,10 +133,10 @@ then issue a Zeus replacement order. Record actual travel, drill generation and 
 These cases are pending, not accepted.
 FSM follow-up: tacticalDrill now retires immediately when its active drill token is replaced, before watchdog requeue. It cancels only its old queued job and does not interrupt or restore the replacement drill. Physical replacement and HC cases remain pending.
 
-## Active coordination batch runtime-20261011-045348-544
+## Completed coordination batch runtime-20261011-045348-544
 
-Candidate: clean ecdff24. Snapshot: 134 checks, no matched SQF errors or fatal failures,
-one unresolved load warning; client/server completion is still pending.
+Candidate: clean ecdff24. Completed: 456 checks, 32 failed checks, no matched SQF errors or fatal failures,
+one unresolved load warning; both client and server completion markers are present.
 
 Four failures have explicit physical reviews in the runtime's manual-behaviour-assessments.json:
 unequal squad-2 flank travel (0.15 to 139 m), 58.824 m standard-case reverse travel,
