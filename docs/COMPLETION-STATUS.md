@@ -18,6 +18,8 @@ Its corrected coordination retest was authorized on 2026-10-11 and launched as
 runtime-20261011-045348-544. It completed with 456 checks, 32 failed checks, zero SQF error
 lines, zero fatal runtime failures and one unresolved load warning. Physical acceptance failed.
 
+The unresolved `a3_characters_f` warning occurs in the dedicated server RPT at 04:53:56, before its `Starting mission` marker at 04:53:59. The client and HC1 RPTs for this batch contain no corresponding missing-content warning. The installed character PBO exists, and the server's post-load diagnostics confirm the character patch and soldier classes. These observations narrow investigation to startup/loading; they neither identify the cause nor waive the warning for acceptance. Removing a valid mission dependency is not an established repair.
+
 Repairs since b3a9f70 include matching operation generations on coordinated child bounds,
 retiring outgoing child work before parent release, mover pursuit posture, protected actor
 restoration and reservation-token-bound contact positions. Combined ground support preserves
