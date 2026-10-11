@@ -15,8 +15,14 @@ private _best = -1e9;
 private _targets = _observer nearTargets ((_range max 50) min 1200);
 if (count _targets > 16) then {_targets resize 16};
 {
-    _x params ["_position", "", "_side", "", "_enemy"];
-    if (!isNull _enemy && {alive _enemy} && {(side group _observer) getFriend _side < 0.6}
+    _x params ["_position", "", "", "", "_enemy"];
+    // The native table may retain an old side after a mission/Zeus change.
+    // Non-combat entities and surrendered actors cannot trigger convoy contact drills.
+    if (!isNull _enemy && {alive _enemy} && {!(_enemy isKindOf "Logic")}
+        && {!(_enemy isKindOf "HeadlessClient_F")} && {!captive _enemy}
+        && {!(_enemy getVariable ["ace_captives_isSurrendering",false])}
+        && {!(_enemy getVariable ["ace_captives_isHandcuffed",false])}
+        && {(side group _observer) getFriend (side _enemy) < 0.6}
         && {_observer knowsAbout _enemy >= 1.5}) then {
         private _knowledge = _observer targetKnowledge _enemy;
         private _seen = _knowledge select 2;
