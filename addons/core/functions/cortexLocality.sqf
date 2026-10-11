@@ -1,9 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Passenger, naval landing, pending calm remount, active coordinated-support, post-contact movement
- * and active withdrawal intent survive migration without replaying old owner jobs. Invalidates old jobs,
+ * standalone manoeuvre and active withdrawal intent survive migration without replaying old owner jobs. Invalidates old jobs,
  * restores interrupted transient behaviour and resumes a bounded support assignment,
- * investigation, search or withdrawal after WAIT or ACE migration. A Zeus hold or the
+ * investigation, search, standalone manoeuvre or withdrawal after WAIT or ACE migration. A Zeus hold or the
  * matching infantry-morale/vehicle-withdrawal gate cancels restoration so migration cannot revive
  * superseded work or incorrectly couple the two withdrawal types.
  * Locality/authority: current group owner unless stated otherwise below.
@@ -22,6 +22,7 @@
  */
 params [["_group", grpNull, [grpNull]], ["_gained", false, [true]]];
 if (isNull _group) exitWith {};
+private _firstAdoption=_gained && {local _group} && {(_group getVariable ["WAIT_AIPass_Epoch",0]) == 0};
 private _withdrawalIntent = _group getVariable ["WAIT_Cortex_WithdrawalIntent",[]];
 private _transitionIntent = _group getVariable ["WAIT_Cortex_TransitionIntent",[]];
 private _remountIntent = _group getVariable ["WAIT_Cortex_Remount",[]];
@@ -31,9 +32,26 @@ private _navalIntent = _group getVariable ["WAIT_Cortex_NavalOperation",[]];
 // Retire the old owner's common operation before this owner rebuilds any durable semantic intent.
 // Its public order remains available below (for example, a partially completed building clear),
 // but no stale route can survive long enough to compete with the reconstructed operation.
+private _inheritedAttackLease=[];
+private _inheritedDrill=[];
 if (local _group) then {
     private _previousOperation=_group getVariable ["WAIT_Operation",createHashMap];
     if (count _previousOperation > 0) then {
+        if ((_previousOperation getOrDefault ["generation",-1]) == (_group getVariable ["WAIT_OperationGeneration",-2])) then {
+            _inheritedAttackLease=+((_previousOperation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]]);
+            private _checkpoint=createHashMapFromArray (_group getVariable ["WAIT_AIPass_Checkpoint",[]]);
+            private _candidate=_checkpoint getOrDefault ["drillIntent",[]];
+            private _candidateModes=[_checkpoint getOrDefault ["restoreGroupCombatMode",[]],_checkpoint getOrDefault ["restoreGroupSpeedMode",[]]];
+            if (count _candidate == 5 && {(_candidate select 0) == (_previousOperation get "generation")}
+                && {[_group,_candidate,-1,true] call WAIT_fnc_CortexDrillResume}
+                && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
+                && {count _inheritedAttackLease != 2 || {attackEnabled _group == (_inheritedAttackLease select 1)}}
+                && {count (_candidateModes select 0) != 2 || {combatMode _group == ((_candidateModes select 0) select 1)}}
+                && {count (_candidateModes select 1) != 2 || {speedMode _group == ((_candidateModes select 1) select 1)}}) then {
+                _inheritedDrill=+_candidate;
+            };
+
+        };
         [_group,_previousOperation getOrDefault ["generation",-1],"OWNERSHIP_LOST"] call WAIT_fnc_OperationCancel;
     };
 };
@@ -64,6 +82,10 @@ _group setVariable ["WAIT_BuildingBrain_FSM",nil];
         private _fragHandler = _unit getVariable ["WAIT_Cortex_FragHandler",-1];
         if (_fragHandler >= 0) then {_unit removeEventHandler ["FiredMan",_fragHandler]};
         _unit setVariable ["WAIT_Cortex_FragHandler",-1];
+        private _throwTraceHandler=_unit getVariable ["WAIT_Cortex_ThrowTraceHandler",-1];
+        if (_throwTraceHandler >= 0) then {_unit removeEventHandler ["FiredMan",_throwTraceHandler]};
+        _unit setVariable ["WAIT_Cortex_ThrowTraceHandler",-1];
+        _unit setVariable ["WAIT_Cortex_ThrowTracePending",nil];
         {_unit removeEventHandler _x} forEach (_unit getVariable ["WAIT_AIPass_GarrisonHandlerIds", []]);
         _unit setVariable ["WAIT_AIPass_GarrisonHandlerIds", nil];
         _unit setVariable ["WAIT_AIPass_GarrisonHandlers", nil];
@@ -71,11 +93,22 @@ _group setVariable ["WAIT_BuildingBrain_FSM",nil];
         _unit setVariable ["WAIT_Cortex_ActorMove",nil];
 } forEach units _group;
 _group setVariable ["WAIT_AIPass_Epoch", (_group getVariable ["WAIT_AIPass_Epoch", 0]) + 1];
-_group setVariable ["WAIT_AIPass_State", nil];
+// First adoption establishes this machine's epoch; it is not a transfer from another
+// owner. Keep the existing map object so an initiating feature's local reference remains
+// authoritative. Real owner changes rebuild state from the published checkpoint.
+if (!_firstAdoption) then {_group setVariable ["WAIT_AIPass_State", nil];};
 _group setVariable ["WAIT_AIPass_Managed", nil];
 {_group setVariable [_x, nil]} forEach ["WAIT_AIPass_GarrisonApplied", "WAIT_AIPass_DefendApplied", "WAIT_AIPass_ClearApplied"];
 _group setVariable ["WAIT_AIPass_Adopted", _gained];
 if (!_gained || {!local _group}) exitWith {};
+// Retire inherited simple driving before the new owner resumes the durable escape route.
+private _reverseCleanup=_group getVariable ["WAIT_VehicleReverse",[]];
+if (count _reverseCleanup == 9) then {
+    [_group,createHashMap,objNull,[],"RELEASE",_reverseCleanup select 1] call WAIT_fnc_CortexVehicleReverseStep;
+};
+// Observation-only hearing has its own eligibility boundary and may coexist with a curator
+// waypoint. Reinstall it on the new owner now instead of losing sound events until discovery.
+[_group] call WAIT_fnc_CortexHearingLocal;
 // Recovery is cancelled by adoption, not silently resumed from stale diagnostics.
 if ((_group getVariable ["WAIT_Cortex_DrillRecovery",[]]) isNotEqualTo []) then {
     _group setVariable ["WAIT_Cortex_DrillRecovery",["MIGRATED",[],-1],true];
@@ -85,7 +118,25 @@ private _restore = createHashMapFromArray (_group getVariable ["WAIT_AIPass_Chec
 // old owner's checkpoint is then evidence only: never replay its follow, AI-feature or ROE cleanup
 // into the new owner's task.  Eligible WAIT groups still recover only the values WAIT recorded.
 private _restoreEligible=[_group,false,false,true] call WAIT_fnc_CortexIsEligible;
+// A disabled master is not a new controller. Restore this exact-owned native permission
+// independently of movement eligibility, before a resumed operation captures its baseline.
+// Direct player/specialist ownership still wins; a waypoint-only hold owns no attack flag.
+if (count _inheritedAttackLease == 2 && {count units _group <= 64}
+    && {!([_group,true] call WAIT_fnc_CortexExternalTakeover)}
+    && {(_inheritedAttackLease select 0) isEqualType true}
+    && {(_inheritedAttackLease select 1) isEqualType true}
+    && {attackEnabled _group == (_inheritedAttackLease select 1)}
+    && {(_inheritedAttackLease select 0) != (_inheritedAttackLease select 1)}) then {
+    _group enableAttack (_inheritedAttackLease select 0);
+};
 if (_restoreEligible) then {
+    private _restoreActorEligible={
+        params ["_unit"];
+        !isNull _unit && {alive _unit} && {local _unit} && {group _unit == _group}
+            && {!isPlayer _unit} && {isNull (remoteControlled _unit)}
+            && {([_unit] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_unit] call WAIT_fnc_CompatibilityExternalControl)}
+    };
     // Locality can change before the engine elects a replacement leader. Restore only WAIT-owned
     // followers toward a combat-effective local anchor, never an incapacitated former leader.
     private _restoreAnchor=[_group] call WAIT_fnc_CortexGroupAnchor;
@@ -100,18 +151,29 @@ if (_restoreEligible) then {
     };
     {
         _x params ["_unit", "_feature"];
-        if (local _unit) then {_unit enableAI _feature};
+        if ([_unit] call _restoreActorEligible) then {_unit enableAI _feature};
     } forEach (_restore getOrDefault ["restoreDisabled", []]);
     {
-        if (alive _x && {local _x} && {group _x == _group} && {!isNull _restoreAnchor}) then {_x doFollow _restoreAnchor};
+        private _unit=_x;
+        private _moveProof=_restore getOrDefault ["restoreMoveDestinations",[]];
+        private _proofIndex=_moveProof findIf {(_x select 0) == _unit};
+        private _ownedMove=currentCommand _unit != "MOVE";
+        if (!_ownedMove && {_proofIndex >= 0}) then {
+            private _spot=(_moveProof select _proofIndex) select 1;
+            private _destination=(expectedDestination _unit) select 0;
+            _ownedMove=_destination distance2D _spot <= 1
+                && {abs ((_destination param [2,0])-(_spot param [2,0])) <= 1.5};
+        };
+        if (_inheritedDrill isEqualTo [] && {[_x] call _restoreActorEligible} && {_ownedMove} && {!isNull _restoreAnchor}
+            && {currentCommand _x in ["","MOVE","STOP","ATTACK","FIRE","SUPPRESS"]}) then {_x doFollow _restoreAnchor};
     } forEach (_restore getOrDefault ["restoreMovers", []]);
     {
         _x params ["_unit","_mode",["_ownedMode","BLUE"]];
-        if (local _unit && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
+        if ([_unit] call _restoreActorEligible && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
     } forEach (_restore getOrDefault ["restoreCombatModes",[]]);
     {
         _x params ["_unit","_previous","_owned"];
-        if (local _unit && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
+        if ([_unit] call _restoreActorEligible && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
     } forEach (_restore getOrDefault ["restoreCombatBehaviours",[]]);
 };
 // Keep restoration intent, not engine commands, across HC ownership changes.
@@ -160,7 +222,7 @@ private _withdrawalResumeEligible=count _withdrawalIntent == 7
 // A newly local group may already be under Zeus or an external controller. Treat the former
 // owner's checkpoint as a release-only record in that case: cancelling WAIT's own restrictions
 // must not issue a fresh follow order or restore a speed/ROE value into the replacement task.
-[_group, _restore, false, !_restoreEligible, "OWNERSHIP_ADOPTED",!(_transitionResumeEligible || {_withdrawalResumeEligible})] call WAIT_fnc_CortexRestoreCalm;
+[_group, _restore, false, (!_restoreEligible || {_inheritedDrill isNotEqualTo []}), "OWNERSHIP_ADOPTED",!(_transitionResumeEligible || {_withdrawalResumeEligible}),_inheritedDrill isNotEqualTo []] call WAIT_fnc_CortexRestoreCalm;
 // The public token is semantic state only. CortexNavalAssault validates its unchanged deadline,
 // plan owner and boat before issuing any replacement-owner command on the normal group tick.
 if (count _navalIntent == 5 && {serverTime < (_navalIntent select 4)}
@@ -176,6 +238,10 @@ if ((_group getVariable ["WAIT_Cortex_NavalOperation",[]]) isNotEqualTo []) exit
 if ((units _group) findIf {
     alive _x && {vehicle _x != _x} && {vehicle _x isKindOf "Air"}
 } >= 0) exitWith {};
+// Resume the committed standalone drill before discovery can select a different manoeuvre.
+// Coordinated bounds retain their existing authenticated server-role adoption path below.
+if (_inheritedDrill isNotEqualTo [] && {_withdrawalIntent isEqualTo []} && {_transitionIntent isEqualTo []}
+    && {[_group,_inheritedDrill] call WAIT_fnc_CortexDrillResume}) exitWith {};
 // The server-owned lease/status pair is the durable assignment. Reuse the normal support
 // acceptance path so every feature gate, vehicle exclusion, COMPAT handover and movement flag keeps
 // exactly one implementation. The new owner reconstructs semantics; it never replays an old job.

@@ -47,8 +47,12 @@ private _dispatched=[];
     _x params ["_helper","_token","","","_accepted"];
     private _lease = _helper getVariable ["WAIT_AIPass_SupportLease",[]];
     private _status = _helper getVariable ["WAIT_AIPass_SupportStatus",[]];
+    private _eligibility=_helper getVariable ["WAIT_Cortex_SupportEligibility",[]];
+    private _prepared=count _eligibility == 3 && {(_eligibility select 0) == _token}
+        && {(_eligibility select 1) == groupOwner _helper} && {serverTime < (_eligibility select 2)};
+    private _executing=count _status == 4 && {(_status select 0) == _token} && {_status select 2};
     if (_accepted == "ACCEPTED" && {count _lease == 6} && {(_lease select 0) == _token}
-        && {count _status == 4} && {(_status select 0) == _token} && {_status select 2}
+        && {_prepared || {_executing}}
         && {!isNull ([_helper] call WAIT_fnc_CortexGroupTransmitter)}
         && {count ((units _helper) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}
         && {[_helper] call WAIT_fnc_CortexIsEligible} && {[_helper,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) then {
@@ -85,6 +89,7 @@ private _dispatched=[];
         if (_attack isNotEqualTo []) then {
             _approaches pushBack +_attack;
             _lease = +_lease; _lease set [2,_job get "expiry"]; _lease set [5,_attack];
+            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+_enemy],true];
             _helper setVariable ["WAIT_AIPass_SupportLease",_lease,true];
             [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",groupOwner _helper];
             _dispatched pushBack _x;
@@ -101,8 +106,9 @@ if (_sent > 0) then {
         if (_dispatched findIf {(_x select 0) == _helper && {(_x select 1) == _token}} < 0) then {
             private _lease=_helper getVariable ["WAIT_AIPass_SupportLease",[]];
             if (count _lease == 6 && {(_lease select 0) == _token}) then {
-                _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
+                _helper setVariable ["WAIT_Cortex_SupportContact",nil,true]; _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
                 _helper setVariable ["WAIT_Cortex_SupportRole",nil,true];
+            _helper setVariable ["WAIT_Cortex_SupportEligibility",nil,true];
             };
         };
     } forEach (_job get "leases");
@@ -119,8 +125,9 @@ if (_sent > 0) then {
         _x params ["_helper","_token"];
         private _lease=_helper getVariable ["WAIT_AIPass_SupportLease",[]];
         if (count _lease == 6 && {(_lease select 0) == _token}) then {
-            _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
+            _helper setVariable ["WAIT_Cortex_SupportContact",nil,true]; _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
             _helper setVariable ["WAIT_Cortex_SupportRole",nil,true];
+            _helper setVariable ["WAIT_Cortex_SupportEligibility",nil,true];
         };
     } forEach (_job get "leases");
     _job set ["leases",[]];

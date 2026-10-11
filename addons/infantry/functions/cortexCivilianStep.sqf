@@ -40,7 +40,7 @@ private _finish={
     };
     -1
 };
-if (isNull _unit || {isNull _group} || {!local _unit} || {!local _group} || {!alive _unit}
+if (isNull _unit || {isNull _group} || {!local _unit} || {!local _group} || {!([_unit] call WAIT_fnc_CortexCombatEffective)}
     || {isPlayer _unit} || {_generation != (_unit getVariable ["WAIT_Cortex_CivilianGeneration",-2])}
     || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {-1};
 if !(missionNamespace getVariable ["WAIT_AIPass_CivilianReaction_Enable",true]) exitWith {call _finish};
@@ -53,8 +53,10 @@ if (_position distance2D _lastPosition >= 3) then {
     _state set ["lastPosition",_position];
     _state set ["lastProgressAt",serverTime];
 };
-if (serverTime-(_state getOrDefault ["lastProgressAt",serverTime]) >= 8) then {
-    if (_state getOrDefault ["reissued",false]) exitWith {call _finish};
+private _stalled=serverTime-(_state getOrDefault ["lastProgressAt",serverTime]) >= 8;
+// Finish at function scope; an exit inside the retry block would still return 2 below.
+if (_stalled && {_state getOrDefault ["reissued",false]}) exitWith {call _finish};
+if (_stalled) then {
     // One engine-native retry is sufficient. A second stall is reported by retirement rather than
     // allowing a civilian to hold the shared queue or repeatedly overwrite movement.
     _unit doMove _destination;

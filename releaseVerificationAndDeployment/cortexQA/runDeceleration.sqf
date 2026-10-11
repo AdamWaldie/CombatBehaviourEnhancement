@@ -67,7 +67,8 @@ private _results=[];
     if (!_enabled) then {[_id+"-no-correction",!_activeSeen] call _check};
     [_id+"-authored-route-preserved",waypointType _wp == "MOVE" && {(waypointPosition _wp) distance2D _brake < 1} && {waypointSpeed _wp == "LIMITED"},str [waypointPosition _wp,waypointType _wp,waypointSpeed _wp]] call _check;
     _results pushBack [_gain,_activeSeen,_cruise,_startSpeed,_start select 2];
-    diag_log format ["WAIT CORTEX QA DECEL: case=%1 peakGain=%2 activeSeen=%3 minimumAltitude=%4",_id,_gain,_activeSeen,_minimum];
+    diag_log format ["WAIT CORTEX QA DECEL: case=%1 peakGain=%2 activeSeen=%3 minimumAltitude=%4 lastCorrection=%5 velocity=%6 finalPosition=%7",
+        _id,_gain,_activeSeen,_minimum,_aircraft getVariable ["WAIT_HelicopterDeceleration_LastResult",[]],velocity _aircraft,getPosATL _aircraft];
     {deleteVehicle _x} forEach _crew;
     deleteVehicle _aircraft; deleteGroup _group;
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];

@@ -15,6 +15,21 @@ private _crew=crew _gun;
 private _batteryGroup=group gunner _gun;
 private _requester=createGroup [east,true];
 private _caller=_requester createUnit ["O_Soldier_F",[1800,1100,0],[],0,"NONE"];
+// Exercise the optional provider boundary independently of shell delivery. Restore the
+// exact mission hook before requesting artillery; these checks cannot bypass live jamming.
+private _hadJammingHook=!isNil {missionNamespace getVariable "WAIT_AITweaks_JammingFactor"};
+private _savedJammingHook=missionNamespace getVariable ["WAIT_AITweaks_JammingFactor",{0}];
+missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",nil];
+["ART-SMOKE-radio-without-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{}];
+["ART-SMOKE-radio-unavailable-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{0.49}];
+["ART-SMOKE-radio-clear-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{0.5}];
+["ART-SMOKE-radio-jammed-provider",!([_caller] call WAIT_fnc_CortexCanTransmit)] call _check;
+if (_hadJammingHook) then {
+    missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",_savedJammingHook];
+} else {missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",nil]};
 {
     _x setVariable ["WAIT_Headless_ExcludeGroup",true,true];
     _x setVariable ["acex_headless_blacklist",true,true];
@@ -109,9 +124,10 @@ _batteryGroup setCombatMode "BLUE";
 ["ART-SMOKE-never-fire-rejected",!(call _request)] call _check;
 _batteryGroup setCombatMode "YELLOW";
 {_x setUnitCombatMode "YELLOW"} forEach _crew;
-["ART-SMOKE-request-accepted",call _request] call _check;
+private _initialAccepted=call _request;
+["ART-SMOKE-request-accepted",_initialAccepted] call _check;
 ["Artillery smoke delivery","Observe two actual smoke shells reaching the marked area. No HE is permitted. The test measures fired ammunition and smoke payloads arriving below 3 m near the target, then checks that firing stops.",_target] call _phase;
-private _delivered=[{count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) >= 2},150] call _wait;
+private _delivered=if (_initialAccepted) then {[{count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) >= 2},150] call _wait} else {false};
 private _positions=_gun getVariable ["WAIT_CortexQA_SmokeGround",[]];
 ["ART-SMOKE-physical-ground-delivery",_delivered && {_positions findIf {_x distance2D _target > 70} < 0},str _positions] call _check;
 sleep 20;
@@ -144,7 +160,7 @@ if (_magazine != "" && {_released}) then {
     private _repeatGround=count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]);
     private _accepted=call _request;
     ["ART-SMOKE-resupplied-request",_accepted] call _check;
-    private _repeatDelivered=[{count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) >= _repeatGround+2},150] call _wait;
+    private _repeatDelivered=if (_accepted) then {[{count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) >= _repeatGround+2},150] call _wait} else {false};
     private _newPositions=(_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) select [_repeatGround];
     ["ART-SMOKE-repeat-ground-delivery",_accepted && {_repeatDelivered} && {_newPositions findIf {_x distance2D _target > 70} < 0},str _newPositions] call _check;
     sleep 20;

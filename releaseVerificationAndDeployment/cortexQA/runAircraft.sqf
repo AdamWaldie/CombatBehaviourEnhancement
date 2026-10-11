@@ -467,7 +467,21 @@ private _observedProfiles=createHashMap;
     // Declare a detected contact without pre-commanding every seat to attack it. The production
     // discovery path must turn normal group knowledge into the finite job; otherwise native fire
     // can make a controller that never reaches ATTACK appear successful.
-    if (_fixtureArmed) then {_group reveal [_target,4]};
+    if (_fixtureArmed && {!_airTarget}) then {_group reveal [_target,4]};
+    if (_airTarget) then {
+        // This arm measures native acquisition, rather than injecting a detected contact.
+        // Radar emissions are a declared fixture condition, not a production override.
+        _aircraft setVehicleRadar 1;
+        _target setVehicleRadar 1;
+        private _detected=[{_group knowsAbout _target > 0},30] call _wait;
+        [_id+"-native-air-contact",_detected,str [
+            _group knowsAbout _target,_targetGroup knowsAbout _aircraft,
+            isVehicleRadarOn _aircraft,isVehicleRadarOn _target,
+            (getSensorTargets _aircraft) select [0,16],
+            (getSensorTargets _target) select [0,16],
+            getPosATL _aircraft,getPosATL _target
+        ]] call _recordCheck;
+    };
     private _authoredDestination=[8200,[12500,17000] select _isPlaneClass,[180,900] select _isPlaneClass];
     private _waypoint=_group addWaypoint [_authoredDestination,0];
     _waypoint setWaypointType "MOVE"; _waypoint setWaypointBehaviour "COMBAT";
@@ -575,6 +589,10 @@ private _observedProfiles=createHashMap;
     // defence threat. From this point the audit must measure the production plan's accepted target;
     // comparing impacts and damage with the superseded fixture object creates false miss results.
     private _plannedTargetObject=_initialPlan param [3,_target];
+    [_id+"-physical-target-prerequisite",!isNull _plannedTargetObject
+        && {!(_plannedTargetObject isKindOf "Logic")}
+        && {_plannedTargetObject in ([_target]+([_aa] select {!isNull _x}))},
+        str [typeOf _plannedTargetObject,typeOf _target,typeOf _aa]] call _recordCheck;
     if (!isNull _plannedTargetObject && {_plannedTargetObject != _target}) then {
         _aircraft setVariable ["WAIT_CortexQA_AttackTarget",_plannedTargetObject,true];
         _plannedTargetObject setVariable ["WAIT_CortexQA_AttackAircraft",_aircraft,true];

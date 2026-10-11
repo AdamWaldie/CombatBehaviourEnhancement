@@ -3,6 +3,8 @@
  * Applies an ordered convoy registry on server/headless machines and queues bounded maintenance through the shared scheduler.
  * Locality/authority: server owns registration; driving commands execute only on current owners.
  * Repeat/JIP: ordered registry snapshots replace old settings; owner-local paths rebuild on migration.
+ * Separate passenger owners receive a finite, revision-scoped HALT retry on the shared scheduler.
+ * Each retry handles at most sixteen cargo records and retains the existing safety/task gates.
  * Arguments: 0: revision <NUMBER>; 1: registry <ARRAY> of [group, configuration].
  * Return Value: Nothing.
  * Current callers: SimpleAiConvoy and JIP replay.
@@ -69,6 +71,41 @@ if !(missionNamespace getVariable ["WAIT_Convoy_CompatibilityHeadlessHandlerInst
     _group setVariable ["WAIT_Convoy_NextTick", -1];
     _group setVariable ["WAIT_Convoy_Suspended", false];
     [_group, _configuration] call WAIT_fnc_ConvoyCrewLocal;
+    if (!local _group && {(_configuration param [5,""]) == "HALT"}
+        && {(_configuration param [6,[]]) findIf {local (_x select 0)} >= 0}) then {
+        [{
+            params ["_job"];
+            private _convoy=_job get "convoy";
+            private _configuration=_job get "configuration";
+            if (isNull _convoy || {local _convoy} || {time >= (_job get "deadline")}
+                || {(_job get "revision") != (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-1])}) exitWith {-1};
+            private _current=(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {
+                (_x select 0) == _convoy && {(_x select 1) isEqualTo _configuration}
+            };
+            if (_current < 0) exitWith {-1};
+            private _cargo=_configuration param [6,[]];
+            private _cursor=_job get "cursor";
+            private _records=_cargo select [_cursor,16];
+            private _slice=_records select {
+                _x params ["_unit","_vehicle"];
+                local _unit && {[_unit] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _unit}
+                    && {vehicle _unit == _vehicle} && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
+            };
+            if (_slice isNotEqualTo []) then {_job set ["cyclePending",true]};
+            private _nextCursor=_cursor+count _records;
+            private _finishedCycle=_nextCursor >= count _cargo;
+            if (_finishedCycle && {!(_job get "cyclePending")}) exitWith {-1};
+            _job set ["cursor",[ _nextCursor,0] select _finishedCycle];
+            if (_finishedCycle) then {_job set ["cyclePending",false]};
+            private _packet=+_configuration;
+            private _vehicles=[];{_vehicles pushBackUnique (_x select 1)} forEach _slice;
+            _packet set [4,_vehicles];_packet set [6,_slice];
+            if (_slice isNotEqualTo []) then {[_convoy,_packet] call WAIT_fnc_ConvoyCrewLocal};
+            5
+        },createHashMapFromArray [["convoy",_group],["configuration",_configuration],
+            ["revision",_revision],["deadline",time+90],["cursor",0],["cyclePending",false]],2,
+            format ["WAIT_CONVOY_PASSENGER_HALT_%1_%2",str _group,clientOwner]] call WAIT_fnc_CortexQueueJob;
+    };
     if (isNil {_group getVariable "WAIT_Convoy_LocalHandler"}) then {
         _group setVariable ["WAIT_Convoy_LocalHandler", _group addEventHandler ["Local", {
             params ["_group", "_isLocal"];

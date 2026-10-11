@@ -30,7 +30,7 @@
  */
 
 params [["_unit",objNull,[objNull]],["_threat",objNull,[objNull,[]]],["_cause","MANUAL",[""]],["_priority",1,[0]]];
-if (isNull _unit || {!local _unit} || {!alive _unit} || {isPlayer _unit}
+if (isNull _unit || {!local _unit} || {!([_unit] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _unit}
     || {side group _unit != civilian}
     || {primaryWeapon _unit != "" || {secondaryWeapon _unit != ""} || {handgunWeapon _unit != ""}}
     || {!(missionNamespace getVariable ["WAIT_AIPass_CivilianReaction_Enable",true])}

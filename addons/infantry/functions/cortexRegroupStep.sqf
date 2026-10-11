@@ -17,6 +17,7 @@
  * becomes invalid, the step returns to EVALUATE.
  * An external takeover retires the merge and releases only Cortex-owned STOP/ATTACK/FIRE holds.
  * A newer direct movement, boarding, action or scripted command is preserved.
+ * A current shared operation retires remnant regroup; cleanup cannot recall its participants.
  * Hosts on other machines are never used, so a merge never moves a unit's locality.
  * Unconscious ACE casualties stay where they are.
  * Locality and authority: runs on the group owner's scheduler. doMove and joinSilent are issued for
@@ -50,8 +51,11 @@ private _mayRestoreHeld = {
 private _finish = {
     if (!isNull _group) then {
         if ([_group] call _mayRestoreHeld) then {
+            private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+            private _participants=_operation getOrDefault ["participants",[]];
             {
-                if (alive _x && {local _x}) then {
+                if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!(_x in _participants)}
+                    && {(_x getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}) then {
                     private _command = toUpperANSI currentCommand _x;
                     if (_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]) then {
                         _x doFollow (leader group _x);
@@ -66,10 +70,23 @@ private _finish = {
     -1
 };
 if (isNull _group || {!local _group}) exitWith {call _finish};
+// Direct script queueing follows the same generation contract as casualty-created jobs.
+if !("operationGeneration" in _state) then {
+    _state set ["operationGeneration",_group getVariable ["WAIT_OperationGeneration",0]];
+};
+// A later operation remains authoritative even after it has completed and cleared its map.
+if ((_state get "operationGeneration")
+    != (_group getVariable ["WAIT_OperationGeneration",0])) exitWith {
+    _state set ["held",[]]; call _finish
+};
+// Remnant merging is opportunistic and subordinate to a committed group operation. Retiring
+// the old merge also leaves its actors' newer finite movement reservations untouched.
+if (count (_group getVariable ["WAIT_Operation",createHashMap]) > 0) exitWith {call _finish};
 if !([_group,"WAIT_AIPass_Regroup_Enable",true] call WAIT_fnc_CortexFeatureEnabled) exitWith {call _finish};
 
 private _movers = (units _group) select {
-    alive _x && {local _x} && {!(_x getVariable ["ACE_isUnconscious", false])} && {lifeState _x != "INCAPACITATED"}
+    [_x] call WAIT_fnc_CortexCombatEffective && {local _x}
+        && {[_group,false,false,true,_x] call WAIT_fnc_CortexIsEligible}
 };
 if (_movers isEqualTo []) exitWith {call _finish};
 if ((units _group) findIf {alive _x && {
@@ -98,6 +115,7 @@ if (_phase == "EVALUATE") exitWith {
     private _minimumHost = (missionNamespace getVariable ["WAIT_AIPass_Regroup_MaxRemnantSize", 2]) + 1;
     private _host = grpNull;
     private _hostDistance = _radius;
+    private _hostAnchor=objNull;
     // Regroup is exceptional but can coincide across several casualty remnants. Bound discovery to
     // actual nearby soldiers instead of scanning every group on the server.
     private _candidateGroups=[];
@@ -110,17 +128,19 @@ if (_phase == "EVALUATE") exitWith {
     {
         private _candidate = _x;
         private _leader = [_candidate] call WAIT_fnc_CortexGroupAnchor;
-        if (isNull _leader) then {_leader=leader _candidate};
+        
         if (_candidate != _group && {side _candidate == _side} && {local _candidate}
             && {!isNull _leader} && {alive _leader} && {vehicle _leader == _leader}) then {
             private _hostAlive = {alive _x} count units _candidate;
+            private _hostCapable={[_x] call WAIT_fnc_CortexCombatEffective} count units _candidate;
             private _distance = _leader distance2D _origin;
-            if (_distance < _hostDistance && {_hostAlive >= _minimumHost}
+            if (_distance < _hostDistance && {_hostCapable >= _minimumHost}
                 && {_hostAlive + count _movers <= _maxSize}
                 && {!(_candidate getVariable ["WAIT_AIPass_RegroupQueued", false])}
                 && {[_candidate] call WAIT_fnc_CortexIsEligible}) then {
                 _host = _candidate;
                 _hostDistance = _distance;
+                _hostAnchor=_leader;
             };
         };
     } forEach _candidateGroups;
@@ -128,11 +148,11 @@ if (_phase == "EVALUATE") exitWith {
     if (isNull _host) exitWith {
         if (time - (_state get "firstEvaluation") >= _timeout) then {call _finish} else {20}
     };
-    private _target = getPosATL leader _host;
+    private _target = getPosATL _hostAnchor;
     // Arma can retain a dead group leader for several scheduler frames after casualties. Elect a
     // living survivor before issuing one coherent group move; doStop followed by individual doMove
     // left remnants stationary with an expected destination beside their current position.
-    if (!alive leader _group) then {_group selectLeader (_movers select 0)};
+    if (!([leader _group] call WAIT_fnc_CortexCombatEffective)) then {_group selectLeader (_movers select 0)};
     _group move _target;
     _state set ["held",+_movers];
     _group setVariable ["WAIT_AIPass_RegroupHost", _host];
@@ -151,8 +171,8 @@ if (_phase == "EVALUATE") exitWith {
 // replacement order: doFollow here would overwrite that controller's unit movement.
 if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {call _finish};
 private _host = _state getOrDefault ["host", grpNull];
-private _hostLeader = leader _host;
-if (isNull _host || {!local _host} || {!alive _hostLeader} || {!([_host] call WAIT_fnc_CortexIsEligible)}) exitWith {
+private _hostLeader = [_host] call WAIT_fnc_CortexGroupAnchor;
+if (isNull _host || {!local _host} || {isNull _hostLeader} || {vehicle _hostLeader != _hostLeader} || {!([_host] call WAIT_fnc_CortexIsEligible)}) exitWith {
     _state set ["phase", "EVALUATE"];
     _group setVariable ["WAIT_AIPass_RegroupHost", nil];
     0

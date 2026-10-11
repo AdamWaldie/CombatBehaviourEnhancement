@@ -102,6 +102,10 @@ _orderedGroups sort true;
     private _candidateRadio=!isNull _candidateTransmitter;
     if (_candidate != _requester && {side _candidate == side _requester} && {!isNull _candidateAnchor} && {alive _candidateAnchor}
         && {[_candidate] call WAIT_fnc_CortexIsEligible}
+        // Different local contacts may request support concurrently. Preserve a live role
+        // already reserved by another opportunity, matching the air fallback contract.
+        && {private _existingRole=_candidate getVariable ["WAIT_Cortex_CombinedRole",[]];
+            count _existingRole != 7 || {serverTime >= (_existingRole select 5)} || {(_existingRole select 0) == _token}}
         && {_distance <= _voiceRange || {_senderRadio && {_candidateRadio}}}) then {
         private _asset=objNull;
         {

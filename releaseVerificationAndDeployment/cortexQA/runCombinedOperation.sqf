@@ -268,6 +268,7 @@ private _contact=[{
     "Look for distinct approaches, more than one squad moving, fire during movement, APC route progress and an aircraft attack controller. A role, waypoint or accepted drill alone cannot pass.",
     [[5000,3850,0]] call _place] call _phase;
 private _drillSeen=[false,false,false];
+private _preparedExecutionSeen=[false,false,false];
 private _peakTravel=[0,0,0];
 private _firstInfantryFire=-1;
 private _firstGroundFire=-1;
@@ -282,6 +283,16 @@ while {diag_tickTime < _until} do {
     private _infantryShotCount=0;
     {
         private _teamIndex=_forEachIndex;
+        private _group=_x;
+        private _receipt=_group getVariable ["WAIT_Cortex_SupportPreparedReceipt",[]];
+        private _status=_group getVariable ["WAIT_AIPass_SupportStatus",[]];
+        private _role=_group getVariable ["WAIT_Cortex_SupportRole",[]];
+        if (count _receipt == 4 && {count _status == 4} && {count _role == 5}
+            && {(_receipt select 0) == (_status select 0)} && {(_receipt select 0) == (_role select 0)}
+            && {(_receipt select 1) == groupOwner _group} && {serverTime < (_receipt select 3)}
+            && {_status select 2} && {_status select 3} && {(_role select 2) in ["MOVE","COVER"]}) then {
+            _preparedExecutionSeen set [_teamIndex,true];
+        };
         private _state=_x getVariable ["WAIT_AIPass_State",createHashMap];
         private _drill=_state getOrDefault ["drill",createHashMap];
         if (count _drill > 0) then {_drillSeen set [_teamIndex,true]};
@@ -330,6 +341,8 @@ private _drillSquads={_x} count _drillSeen;
     && {(_starts select 1) distance2D (_starts select 2) >= 100},str _starts] call _check;
 ["COMBINED-OP-multiple-squads-manoeuvred",_travelSquads >= 2 && {_maxMovingGroups >= 2},str [_peakTravel,_maxMovingGroups]] call _check;
 ["COMBINED-OP-composed-tactics",_drillSquads >= 2,str _drillSeen] call _check;
+["COMBINED-OP-prepared-contact-becomes-coordinated-movement",_preparedExecutionSeen findIf {_x} >= 0
+    && {_travelSquads >= 2} && {_maxMovingGroups >= 2},str [_preparedExecutionSeen,_peakTravel,_maxMovingGroups]] call _check;
 ["COMBINED-OP-infantry-actual-fire",_activeFireSquads >= 2,str _squadShots] call _check;
 ["COMBINED-OP-fire-while-moving",({_x > 0} count _movingShots) >= 1,str _movingShots] call _check;
 ["COMBINED-OP-no-operation-wide-pause",_maxIdleTicks <= 10,format ["longest infantry movement/fire lull=%1 seconds",_maxIdleTicks*2]] call _check;

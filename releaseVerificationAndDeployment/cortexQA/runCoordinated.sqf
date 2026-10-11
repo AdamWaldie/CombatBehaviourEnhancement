@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Controller diagnostic, not combat acceptance: actors are invulnerable and the opponent
- * cannot fire. Exercises natural contact with three full squads, actual supporting/assault fire,
+ * cannot fire. Exercises natural contact with a base-of-fire squad and two configurable manoeuvre groups, actual supporting/assault fire,
  * two real reinforcement arrivals, a deterministic engine-hidden CONTACT-to-SECURITY transition,
  * coordinated assault travel from that SECURITY handoff and
  * release to new ordinary group orders after both support switches are disabled.
@@ -20,10 +20,13 @@
  * 5: localScreens <BOOL>, default false; additive fixture comparison with short screens
  * at the initial helper positions, never across the later assault corridor. The original
  * long-screen geometry remains available unchanged.
+ * 6: helperSize <NUMBER>, default 6; three to six actors per helper squad.
  * Return: Nothing. Current caller: cortexQAServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACoordinated.sqf";
  */
-params ["_check","_phase","_wait",["_responderOwners",[],[[]]],["_exposeDuringRally",false,[true]],["_localScreens",false,[true]]];
+params ["_check","_phase","_wait",["_responderOwners",[],[[]]],["_exposeDuringRally",false,[true]],["_localScreens",false,[true]],["_helperSize",6,[0]]];
+_helperSize=(round _helperSize) max 3 min 6;
+private _viableMinimum=((ceil (_helperSize*0.6)) max 2) min _helperSize;
 private _terrainOrigin=[1500,1500,0];
 private _terrainHeading=0;
 private _terrainRelief=0;
@@ -170,6 +173,9 @@ private _makeUnit={
     _unit allowDamage false; _actors pushBack _unit; _unit
 };
 private _requester=[east] call _makeGroup;
+// The requester must be allowed to initiate autonomous support discovery.
+// BLUE helpers stay isolated until dispatch; BLUE on the requester blocks the handshake.
+_requester setCombatMode "YELLOW";
 private _observer=[_requester,[1500,1500] call _terrainPosition,"CONTACT / BASE OF FIRE"] call _makeUnit;
 _observer setDir _terrainHeading; _observer disableAI "PATH";
 private _base=[_observer];
@@ -182,7 +188,7 @@ private _helpers=[]; private _teams=[];
 for "_team" from 0 to 1 do {
     private _group=[east] call _makeGroup;
     private _members=[];
-    for "_i" from 0 to 5 do {
+    for "_i" from 0 to (_helperSize-1) do {
         private _unit=[_group,[1400+_team*200+_i*3,1400] call _terrainPosition,format ["ASSAULT TEAM %1 / %2",_team+1,_i+1]] call _makeUnit;
         _members pushBack _unit; _helpers pushBack _unit;
         _unit setVariable ["WAIT_CortexQA_Target",[1500,1420] call _terrainPosition,true];
@@ -220,11 +226,19 @@ _enemy setDir (_terrainHeading+180); _enemy disableAI "PATH";
 _enemy setUnitPos "UP";
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
 ["Coordinated assault: rally first","The base squad must see the opponent naturally. Two helper squads start behind a concrete screen; each must physically reach its own separate rear rally area. Coordinated assault is disabled during this stage.",[1500,1460] call _terrainPosition] call _phase;
-private _blocked=_helpers findIf {
-    private _rays=lineIntersectsSurfaces [eyePos _x,eyePos _enemy,_x,_enemy,true,-1,"VIEW","GEOM"];
-    (_rays findIf {(_x select 2) in _walls || {(_x select 3) in _walls}}) < 0
-} < 0;
-["COORD-helper-view-blocked",_blocked] call _check;
+private _helperViews=(_helpers select [0,16]) apply {
+    private _actor=_x;
+    private _rays=lineIntersectsSurfaces [eyePos _actor,eyePos _enemy,_actor,_enemy,true,8,"VIEW","GEOM"];
+    private _screenHit=_rays findIf {(_x select 2) in _walls || {(_x select 3) in _walls}} >= 0;
+    [netId _actor,eyePos _actor,eyePos _enemy,_screenHit,_rays apply {
+        [_x select 0,typeOf (_x select 2),typeOf (_x select 3)]
+    }]
+};
+private _blocked=count _helpers <= 16 && {_helperViews findIf {!(_x select 3)} < 0};
+private _wallGeometry=(_walls select [0,4]) apply {[typeOf _x,getPosATL _x,getDir _x,boundingBoxReal _x]};
+["COORD-helper-view-blocked",_blocked,str [_helperViews,_wallGeometry]] call _check;
+private _requesterRays=lineIntersectsSurfaces [eyePos _observer,eyePos _enemy,_observer,_enemy,true,8,"VIEW","GEOM"];
+["COORD-requester-view-clear",_requesterRays isEqualTo [],str [eyePos _observer,eyePos _enemy,_requesterRays]] call _check;
 private _nearestPlayer=1e9;
 {if (!(_x isKindOf "HeadlessClient_F") && {alive _x}) then {_nearestPlayer=_nearestPlayer min (_observer distance2D _x)}} forEach allPlayers;
 ["COORD-fixture-tactical-range",_nearestPlayer <= (missionNamespace getVariable ["WAIT_AIPass_FarRange",2500]),format ["nearestPlayer=%1 farRange=%2",_nearestPlayer,missionNamespace getVariable ["WAIT_AIPass_FarRange",2500]]] call _check;
@@ -301,6 +315,7 @@ _requester ignoreTarget [_enemy,true];
 [createHashMapFromArray [
     ["WAIT_AIPass_CoordinatedAssault_Enable",true],
     ["WAIT_AIPass_FireControl_Enable",true],
+    ["WAIT_AIPass_PostContact_Enable",true],
     ["WAIT_AIPass_PostContact_LostSeconds",3]
 ]] call WAIT_fnc_CortexTuning;
 ["Coordinated assault: contact-loss handoff","The rallied squads are ready while the known target is temporarily hidden by the engine. Cortex must pass CONTACT to SECURITY without discarding the prepared assault, then publish both squad roles. The same target is restored before movement is measured.",[1500,1525] call _terrainPosition] call _phase;
@@ -310,6 +325,21 @@ private _rolesDispatched=[{
     _teams findIf {count ((group (_x select 0)) getVariable ["WAIT_Cortex_SupportRole",[]]) != 5} < 0
 },30] call _wait;
 ["COORD-security-dispatches-prepared-assault",_rolesDispatched,str (_teams apply {(group (_x select 0)) getVariable ["WAIT_Cortex_SupportRole",[]]})] call _check;
+// A server role alone does not prove that the owner admitted a valid position objective.
+private _positionObjectives=[{
+    _teams findIf {
+        private _g=group (_x select 0);
+        private _lease=_g getVariable ["WAIT_AIPass_SupportLease",[]];
+        private _operation=_g getVariable ["WAIT_Operation",createHashMap];
+        count _lease != 6 || {count _operation == 0}
+            || {(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}
+            || {(_operation getOrDefault ["objective",[]]) isNotEqualTo (_lease select 5)}
+    } < 0
+},5] call _wait;
+["COORD-owner-position-objectives",_positionObjectives,str (_teams apply {
+    private _g=group (_x select 0);
+    (_g getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["objective",[]]
+})] call _check;
 _requester ignoreTarget [_enemy,false];
 _requester reveal [_enemy,4];
 _enemy hideObjectGlobal false;
@@ -345,11 +375,15 @@ private _intraCover=[0,0];
 private _movingShots=[0,0];
 private _physicalMoverSamples=[0,0];
 private _attackOverrideSamples=[0,0];
+private _childLifecycleSamples=[0,0];
+private _childLifecycleViolations=[0,0];
 private _movementRoeSamples=[0,0];
 private _movementRoeViolations=[0,0];
 private _idleSince=createHashMap;
 private _longestMovingIdle=0;
 private _movementRoleObserved=false;
+private _movementAdmissionStarted=diag_tickTime;
+private _movementAdmissionFailed=false;
 private _retiredSince=-1;
 private _shotCounts=_helpers apply {_x getVariable ["WAIT_CortexQA_Shots",0]};
 private _baseShotCount=0;
@@ -372,7 +406,7 @@ private _movementWindowEnded=[{
             if (count _role == 5) then {_movementRoleObserved=true};
             private _moving=0; private _firing=0; private _coverShots=0;
             {
-                private _i=_ti*6+_forEachIndex;
+                private _i=_ti*_helperSize+_forEachIndex;
                 private _shots=_x getVariable ["WAIT_CortexQA_Shots",0];
                 private _delta=_shots-(_shotCounts select _i);
                 _shotCounts set [_i,_shots];
@@ -417,6 +451,14 @@ private _movementWindowEnded=[{
                 // the pass had deliberately relinquished the element.
                 private _transition=_g getVariable ["WAIT_Cortex_DrillTransition",[]];
                 private _stage=if (count _transition >= 5) then {_transition select 4} else {""};
+                private _boundPrefix=format ["SUPPORT:%1:%2:",_role select 0,_role select 1];
+                if (_stage == "MOVE" && {((_transition param [1,""]) find _boundPrefix) == 0}) then {
+                    _childLifecycleSamples set [_ti,(_childLifecycleSamples select _ti)+1];
+                    if ((_transition param [8,-1]) != (_g getVariable ["WAIT_OperationGeneration",-2])
+                        || {(_transition param [9,-1]) != (_g getVariable ["WAIT_AIPass_Epoch",-2])}) then {
+                        _childLifecycleViolations set [_ti,(_childLifecycleViolations select _ti)+1];
+                    };
+                };
                 if (_stage == "MOVE") then {
                     _movementRoeSamples set [_ti,(_movementRoeSamples select _ti)+1];
                     if (combatMode _g != "YELLOW") then {
@@ -480,6 +522,10 @@ private _movementWindowEnded=[{
                     _x checkAIFeature "PATH",behaviour _x,unitCombatMode _x]}];
         } forEach _teams;
     };
+    // Missing admission is a failed prerequisite, not ten minutes of native wandering.
+    if (!_movementRoleObserved && {diag_tickTime-_movementAdmissionStarted >= 30}) exitWith {
+        _movementAdmissionFailed=true; true
+    };
     private _allArrived=true;
     {if (!alive _x || {_x distance2D (_origins select _forEachIndex) < 60} || {_x distance2D _enemy > 50}) then {_allArrived=false}} forEach _helpers;
     if (_allArrived) exitWith {true};
@@ -492,7 +538,9 @@ private _movementWindowEnded=[{
             private _g=group (_x select 0);
             private _role=_g getVariable ["WAIT_Cortex_SupportRole",[]];
             private _result=_g getVariable ["WAIT_Cortex_SupportBoundResult",[]];
-            count _role == 5 || {count _result < 3} || {!((_result select 2) in ["STALLED","TIME_LIMIT"])}
+            private _lease=_g getVariable ["WAIT_AIPass_SupportLease",[]];
+            count _role == 5 || {count _lease == 6 && {serverTime < (_lease select 2)}}
+                || {count _result < 3} || {!((_result select 2) in ["STALLED","TIME_LIMIT","NOT_READY","RECOVERY_FAILED"])}
         }) < 0
     };
     if (_allRetired) then {
@@ -502,7 +550,11 @@ private _movementWindowEnded=[{
     };
     _retiredSince >= 0 && {diag_tickTime-_retiredSince >= 5}
 },600] call _wait;
+["COORD-child-lifecycle-bound",(_childLifecycleSamples findIf {_x <= 0}) < 0
+    && {(_childLifecycleViolations select 0)+(_childLifecycleViolations select 1) == 0},
+    str [_childLifecycleSamples,_childLifecycleViolations]] call _check;
 ["COORD-tactical-role-observed",_movementRoleObserved] call _check;
+["COORD-movement-admission",!_movementAdmissionFailed,format ["roleObserved=%1 elapsed=%2",_movementRoleObserved,diag_tickTime-_movementAdmissionStarted]] call _check;
 private _advanced=true;
 {if (!alive _x || {_x distance2D (_origins select _forEachIndex) < 60} || {_x distance2D _enemy > 50}) then {_advanced=false}} forEach _helpers;
 ["COORD-movement-window-terminated",_movementWindowEnded,format ["roleObserved=%1 results=%2",_movementRoleObserved,_teams apply {(group (_x select 0)) getVariable ["WAIT_Cortex_SupportBoundResult",[]]}]] call _check;
@@ -520,18 +572,18 @@ private _advanced=true;
 ["COORD-intra-squad-physical-cover",(_intraCover findIf {_x == 0}) < 0,str _intraCover] call _check;
 ["COORD-both-teams-physical-advance",_rallied && {_advanced},str (_helpers apply {getPosATL _x})] call _check;
 // Report viable-element progress separately; never replace all-actor acceptance with it.
-// Four of six is the same rounded-up 60 percent threshold used by movement recovery.
+// Use the same rounded-up 60 percent threshold as movement recovery, with at least two.
 private _viableCounts = [];
 {
     private _teamIndex = _forEachIndex;
     private _arrivedCount = 0;
     {
-        if (alive _x && {_x distance2D (_origins select (_teamIndex*6+_forEachIndex)) >= 60}
+        if (alive _x && {_x distance2D (_origins select (_teamIndex*_helperSize+_forEachIndex)) >= 60}
             && {_x distance2D _enemy <= 50}) then {_arrivedCount = _arrivedCount+1};
     } forEach _x;
     _viableCounts pushBack _arrivedCount;
 } forEach _teams;
-["COORD-two-viable-elements-advance",_rallied && {(_viableCounts findIf {_x < 4}) < 0},str _viableCounts] call _check;
+["COORD-two-viable-elements-advance",_rallied && {(_viableCounts findIf {_x < _viableMinimum}) < 0},str _viableCounts] call _check;
 private _centres=_teams apply {
     private _team=_x;
     private _sum=[0,0,0]; {_sum=_sum vectorAdd getPosATL _x} forEach _team;
@@ -601,10 +653,10 @@ private _handedBack=[{
         private _arrived={_x distance2D _destination <= 55} count _members;
         private _progressed=0;
         {
-            private _globalIndex=_teamIndex*6+_forEachIndex;
+            private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_releaseOrigins select _globalIndex) >= 30 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
-        if (count _members != 6 || {_arrived < 4} || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
+        if (count _members != _helperSize || {_arrived < _viableMinimum} || {_progressed < _viableMinimum} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
     } forEach _teams;
     _okay
 },60] call _wait;
@@ -643,10 +695,10 @@ private _zeusTravel=[{
         private _arrived={_x distance2D _destination <= 55} count _members;
         private _progressed=0;
         {
-            private _globalIndex=_teamIndex*6+_forEachIndex;
+            private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_zeusOrigins select _globalIndex) >= 30 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
-        if (count _members != 6 || {_arrived < 4} || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
+        if (count _members != _helperSize || {_arrived < _viableMinimum} || {_progressed < _viableMinimum} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
     } forEach _teams;
     _okay
 },75] call _wait;
@@ -681,10 +733,10 @@ private _unopposedTravel=[{
         private _destination=_unopposedDestinations select _teamIndex;
         private _progressed=0;
         {
-            private _globalIndex=_teamIndex*6+_forEachIndex;
+            private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_unopposedOrigins select _globalIndex) >= 50 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
-        if (count _members != 6 || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
+        if (count _members != _helperSize || {_progressed < _viableMinimum} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
     } forEach _teams;
     _okay
 },60] call _wait;

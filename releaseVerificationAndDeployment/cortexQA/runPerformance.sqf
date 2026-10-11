@@ -10,10 +10,18 @@
  */
 params ["_check","_phase","_wait"];
 private _results=[];
+// Both arms retain the loaded addon configuration. Report this as a runtime-toggle
+// comparison, never as the full addon overhead versus a separate native-AI launch.
+private _baselineDanger=getText (configFile >> "CfgVehicles" >> "O_Soldier_F" >> "fsmDanger");
+missionNamespace setVariable ["WAIT_CortexQA_PerformanceComparisonScope","RUNTIME_TOGGLE",true];
+diag_log format ["WAIT PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=false|dangerFSM=%1",_baselineDanger];
+
 {
     private _enabled=_x;
     private _arm=_forEachIndex;
-    [createHashMapFromArray [["WAIT_AIPass_Enable",_enabled]]] call WAIT_fnc_CortexTuning;
+    // Autonomous group management is part of the measured enabled workload; do not inherit
+    // Contact OFF from the preceding lifecycle case, which deliberately releases that owner.
+    [createHashMapFromArray [["WAIT_AIPass_Enable",_enabled],["WAIT_AIPass_Contact_Enable",true]]] call WAIT_fnc_CortexTuning;
     private _ready=[{(missionNamespace getVariable ["WAIT_AIPass_Active",false]) == _enabled},20] call _wait;
     private _groups=[]; private _actors=[];
     for "_i" from 0 to 49 do {
@@ -65,6 +73,19 @@ private _results=[];
     private _valid=_ready && {_count >= 100} && {_count < 120000} && {count _groups == 50} && {count _actors == 300}
         && {_actors findIf {!alive _x || {owner _x != 2}} < 0} && {_moved} && {!_enabled || {_managedMinimum == 50 && {_eligibleAll}}};
     [format ["PERF-50-patrol-arm-%1-valid",_arm],_valid,format ["frames=%1 medianMs=%2 p95Ms=%3 maxOverdueSeconds=%4 allGroupsMoved=%5 minimumManaged=%6 allEligible=%7",_count,_median,_p95,_overdue,_moved,_managedMinimum,_eligibleAll]] call _check;
+    if (_enabled && {_managedMinimum != 50}) then {
+        // Failure-only evidence: no per-frame logging or artificial controller wake-up.
+        diag_log format ["WAIT PERFORMANCE MANAGEMENT FAILURE|arm=%1|active=%2|jobs=%3|groups=%4",
+            _arm,missionNamespace getVariable ["WAIT_AIPass_Active",false],
+            count (missionNamespace getVariable ["WAIT_AIPass_Jobs",[]]),
+            (_groups select [0,3]) apply {[
+                groupOwner _x,_x getVariable ["WAIT_AIPass_Adopted",false],
+                _x getVariable ["WAIT_AIPass_Managed",false],
+                _x getVariable ["WAIT_AIPass_Epoch",-1],
+                _x getVariable ["WAIT_GroupBrain_State",[]],
+                _x getVariable ["WAIT_GroupBrain",createHashMap]
+            ]}];
+    };
     [format ["PERF-50-patrol-arm-%1-no-starvation",_arm],_overdue <= 10,str _overdue] call _check;
     _results pushBack [_median,_p95,_valid,_overdue];
     {deleteVehicle _x} forEach _actors; {deleteGroup _x} forEach _groups;

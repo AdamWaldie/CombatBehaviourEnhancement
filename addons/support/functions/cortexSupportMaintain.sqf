@@ -91,6 +91,12 @@ private _sharedCoordinated = !isNull _requester
 private _supportEnabled = _sharedReinforce || {_sharedCoordinated};
 private _releaseSupport={
     params [["_reason","SUPPORT_RELEASED"]];
+    // Retire the exact outgoing bound before a replacement reservation can be admitted.
+    // Waiting for its queued callback leaves an old drill blocking SupportBoundStart.
+    private _outgoingDrill=_state getOrDefault ["drill",createHashMap];
+    if ((_outgoingDrill getOrDefault ["supportToken",""]) == _token) then {
+        [_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd;
+    };
     // Reject only the exact lease snapshot accepted by this owner. The server validates token,
     // snapshot and sender again, making repeated cleanup and a racing replacement lease harmless.
     if (count _lease == 6 && {_token == (_lease select 0)}) then {
@@ -140,7 +146,9 @@ if (_operationGeneration >= 0) then {
     if (_operationState in ["ZEUS","EXTERNAL","LOST_OWNER","REPLACED"]) then {
         _operationEndReason=_operationState;
     };
-    if (_operationState == "STALLED") then {_operationEndReason="NO_PROGRESS"};
+    // Coordinated cover is deliberately stationary. Its bound drill/server watchdog owns
+    // physical movement failure; only ordinary rally uses this aggregate travel timeout.
+    if (_operationState == "STALLED" && {!(_state getOrDefault ["assaulting",false])}) then {_operationEndReason="NO_PROGRESS"};
 };
 // This exit belongs to the function scope. An exitWith nested inside the preceding condition block
 // returned only from that block and allowed an invalid reservation to continue into rally/hold work.
@@ -172,8 +180,12 @@ private _held=_state getOrDefault ["supportHeld",[]];
 } forEach units _group;
 private _newMove=_moving && {(_state getOrDefault ["supportBoundSequence",-1]) != (_role select 1)};
 if (_newMove || {!_coordinating}) then {
+    _state deleteAt "supportCoverIdentity";
     {
-        if (local _x && {group _x == _group}) then {
+        if (local _x && {group _x == _group}) then {_x setVariable ["WAIT_Cortex_SupportPathHold",nil,true]};
+        if (local _x && {group _x == _group} && {!isPlayer _x}
+            && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}) then {
             _x enableAI "PATH";
             _x setVariable ["WAIT_Cortex_SupportPathHold",nil,true];
             // supportHeld is the ownership record. Combat can relabel our doStop
@@ -200,13 +212,22 @@ if (_coordinating) then {
         };
     } else {
         private _drill=_state getOrDefault ["drill",createHashMap];
-        if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ABORT"] call WAIT_fnc_CortexFlankEnd};
-        {
-            private _actorMove=_x getVariable ["WAIT_Cortex_ActorMove",[]];
-            if (local _x && {isNull objectParent _x} && {[_x] call WAIT_fnc_CortexCombatEffective}
-                && {_x checkAIFeature "PATH"} && {count _actorMove != 3 || {time >= (_actorMove select 2)}}) then {
-                doStop _x;
-            };
-        } forEach units _group;
+        if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd};
+        private _coverIdentity=[_token,_role select 1];
+        if ((_state getOrDefault ["supportCoverIdentity",[]]) isNotEqualTo _coverIdentity) then {
+            {
+                private _actorMove=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+                if (local _x && {group _x == _group} && {isNull objectParent _x}
+                    && {[_x] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _x}
+                    && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+                    && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+                    && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
+                    && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+                    && {count _actorMove != 3 || {time >= (_actorMove select 2)}}) then {
+                    doStop _x;
+                };
+            } forEach units _group;
+            _state set ["supportCoverIdentity",_coverIdentity];
+        };
     };
 };

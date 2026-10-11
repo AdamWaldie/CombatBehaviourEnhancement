@@ -20,7 +20,9 @@ private _state=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
 private _ownedCap=_state param [0,-1];
 // Restore only the cap that this driving lease still owns. If another controller changed it,
 // clear our state and leave that newer value untouched.
-if (_restore isNotEqualTo [] && {_ownedCap >= 0} && {abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1}) then {
+if (_restore isNotEqualTo [] && {_ownedCap >= 0}
+    && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
+    && {abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1}) then {
     _vehicle forceSpeed (_restore param [0,-1]);
 };
 _vehicle setVariable ["WAIT_DrivingAssist_Restore",nil];

@@ -12,6 +12,7 @@
  * street crossings, group-level RED pursuit is replaced by a finite YELLOW lease, but individual
  * TARGET, AUTOTARGET and AUTOCOMBAT remain enabled. Movers therefore keep acquiring, engaging and
  * reacting to visible threats while one committed doMove destination expresses WAIT's tactical intent.
+ * A generation-owned group attack-delegation lease prevents competing leader-issued pursuit routes.
  * WAIT does not pair doMove with setDestination, clear native targets, or repeatedly fight a live ATTACK
  * command. A mover is reconsidered only after measured physical no-progress; one route refresh is allowed
  * before the actor becomes a recovery straggler and the viable element continues.
@@ -124,16 +125,68 @@ private _operationEndReason="";
 if (_operationGeneration >= 0) then {
     private _operationStale=missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25];
     private _operationStatus=[_group,_operationGeneration,3,_operationStale] call WAIT_fnc_OperationStep;
-    if (_operationStatus in ["LOST_OWNER","ZEUS","EXTERNAL","REPLACED","STALLED"]) then {_operationEndReason=_operationStatus};
+    if (_operationStatus in ["LOST_OWNER","ZEUS","EXTERNAL","REPLACED","STALLED"]
+        && {_operationStatus != "STALLED" || {!((_drill getOrDefault ["stage",""]) in ["START","MOVE"])}}) then {_operationEndReason=_operationStatus};
+    // MOVE has actor-specific retry/replacement and a hard bound deadline below. Aggregate
+    // no-progress must not pre-empt that finite recovery path or pretend that progress occurred.
 };
 if (_operationEndReason != "") exitWith {_operationEndReason call _end};
 // External control and replacement orders win before any mode or movement mutation.
 if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {"OWNERSHIP_LOST" call _end};
+private _intentTarget=_drill getOrDefault ["target",objNull];
+// Retain a clear-through after a casualty, but surrender or a side change ends hostile intent.
+// Never continue a committed approach against a now-protected object merely because its old
+// native position remains in the drill's route record.
+if (!isNull _intentTarget && {captive _intentTarget
+    || {_intentTarget getVariable ["ace_captives_isSurrendering",false]}
+    || {_intentTarget getVariable ["ace_captives_isHandcuffed",false]}
+    || {(side _group) getFriend (side _intentTarget) >= 0.6}}) exitWith {
+    "TARGET_NO_LONGER_HOSTILE" call _end
+};
+
 // A queued drill can run after a new direct owner appears. Recheck only at actual command
 // writes; route scoring and progress accounting remain bounded and do not issue movement.
-private _mayIssueMovement = {
-    !([_group] call WAIT_fnc_CortexExternalTakeover)
+private _actorTaskFree={
+    params ["_actor"];
+    private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
+        && {(_reservation param [2,1e12,[0]]) <= time}};
+    _free && {[_actor] call WAIT_fnc_CortexCombatEffective}
+        && {local _actor} && {!isPlayer _actor} && {group _actor == _group} && {isNull objectParent _actor}
+        && {isNull remoteControlled _actor}
+        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+        && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
+private _mayIssueMovement = {
+    params ["_actor"];
+    !([_group] call WAIT_fnc_CortexExternalTakeover) && {[_actor] call _actorTaskFree}
+};
+// A committed bound owns movement, not weapon aiming. Prevent the native leader from
+// delegating a competing ATTACK route while TARGET/AUTOTARGET/FIREWEAPON remain untouched.
+// The common operation consumes this exact-value lease on release; an external policy edit
+// ends the drill rather than being forced back on every callback.
+private _movementOperation=_group getVariable ["WAIT_Operation",createHashMap];
+if (_operationGeneration >= 0 && {(_movementOperation getOrDefault ["generation",-1]) == _operationGeneration}) then {
+    private _restore=_movementOperation getOrDefault ["restore",createHashMap];
+    private _attackLease=_restore getOrDefault ["groupAttack",[]];
+    if (_attackLease isEqualTo []) then {
+        private _delegates=units _group;
+        if (count _delegates <= 64 && {_delegates findIf {
+            isPlayer _x || {!isNull remoteControlled _x}
+                || {([_x] call WAIT_fnc_CortexExternalOwner) != ""}
+                || {[_x] call WAIT_fnc_CompatibilityExternalControl}
+        } < 0}) then {
+            _restore set ["groupAttack",[attackEnabled _group,false]];
+            _movementOperation set ["restore",_restore];
+            _group setVariable ["WAIT_Operation",_movementOperation,true];
+            _group enableAttack false;
+        };
+    } else {
+        if (attackEnabled _group != (_attackLease select 1)) then {_operationEndReason="ATTACK_POLICY_CHANGED"};
+    };
+};
+if (_operationEndReason != "") exitWith {_operationEndReason call _end};
 // YELLOW preserves fire-at-will while discouraging independent RED pursuit subgroups. Give the
 // engine one scheduler step to settle the group mode before issuing the committed destination.
 private _groupModeLease = _drill getOrDefault ["groupCombatMode",[]];
@@ -186,14 +239,25 @@ if (count _movementLease == 2 && {(_movementLease select 0) == "TACTICAL_DRILL"}
 // There is no casualty event handler or per-unit scheduler. A change during a live bound restarts
 // that bound from the same route point so spot indexes cannot drift after a casualty.
 private _ownedPathUnits=(_drill getOrDefault ["disabled",[]]) select {(_x select 1) == "PATH"} apply {_x select 0};
-private _fitSquad=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective && {local _x}
+private _unavailable=(_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["unavailable",[]];
+private _fitSquad=(units _group) select {!(_x in _unavailable)} select {[_x] call WAIT_fnc_CortexCombatEffective && {local _x}
     && {isNull objectParent _x} && {group _x == _group} && {_x checkAIFeature "MOVE"}
-    && {_x checkAIFeature "PATH" || {_x in _ownedPathUnits}}};
+    && {_x checkAIFeature "PATH" || {_x in _ownedPathUnits}} && {[_x] call _actorTaskFree}};
 private _teams=_drill getOrDefault ["teams",[]];
 private _desiredStrength=_drill getOrDefault ["desiredStrength",count (_drill get "units")];
 private _reinforcements=[];
 private _rankCandidates={
     params ["_candidates"];
+    // Reserve selection must honour finite actor tasks before the drill mutates its own roster;
+    // the later shared operation roster check cannot undo a carrier already added to a fire team.
+    _candidates=_candidates select {
+        private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _reservationFree=_reservation isEqualTo []
+            || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+        _reservationFree
+            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+            && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+    };
     private _anchor=[_group] call WAIT_fnc_CortexGroupAnchor;
     if (isNull _anchor) then {_anchor=leader _group};
     private _rifles=_candidates select {!(([_x] call WAIT_fnc_CortexUnitRole) in ["MG","AT","LEADER"])};
@@ -247,7 +311,9 @@ if (_operationGeneration >= 0) then {
     // The drill's live units are the desired operation participants, not an exclusion list. Passing
     // them as excluded removed the whole active element from physical-progress accounting and could
     // make the operation appear leader-only or stalled after an otherwise valid casualty rebalance.
-    [_group,_operationGeneration,count _units,[]] call WAIT_fnc_RebalanceRoles;
+    // Exclude actors outside the committed live element, rather than admitting unrelated
+    // security or support actors whose movement could mask a stalled bound.
+    [_group,_operationGeneration,count _units,(units _group)-_units] call WAIT_fnc_RebalanceRoles;
 };
 if (_reinforcements isNotEqualTo []) then {
     private _history=_group getVariable ["WAIT_Cortex_DrillReinforcements",[]];
@@ -285,15 +351,22 @@ if (_main isNotEqualTo []) then {
             if (time >= _next && {_attempts < 1} && {_actor checkAIFeature "PATH"} && {_actor checkAIFeature "MOVE"}) then {
                 // Recovery owns only movement. Preserve the actor's current target so a
                 // separated soldier can fight while closing on the correct fire team.
+                private _recoveryResult="YIELDED";
                 if (_operationGeneration >= 0) then {
-                    [_group,_operationGeneration,_actor,_rally] call WAIT_fnc_RecoveryStep;
+                    _recoveryResult=[_group,_operationGeneration,_actor,_rally] call WAIT_fnc_RecoveryStep;
                 } else {
-                    if (call _mayIssueMovement) then {
+                    if ([_actor] call _mayIssueMovement) then {
                         _actor doMove _rally;
+                        _recoveryResult="RECOVERING";
                     };
                 };
-                _x set [1,_attempts+1];
-                _x set [2,time+8];
+                // Refused movement is not an issued attempt. Preserve the retry budget
+                // while another finite task owns this actor; the remaining element continues.
+                switch (_recoveryResult) do {
+                    case "RECOVERING": {_x set [1,_attempts+1]; _x set [2,time+8]};
+                    case "EXHAUSTED": {_x set [1,1]; _x set [2,time]};
+                    default {_x set [2,time+2]};
+                };
             };
         };
     } forEach _recovery;
@@ -312,14 +385,14 @@ _units = _units - _recovering;
 // Never wait for a recovery actor which does not exist.
 private _waitForTeam=false;
 private _teamRecoveryFailed=false;
-if (_teams isNotEqualTo []) then {
-    private _turn=_drill getOrDefault ["teamTurn",0];
+private _ensureMovingTeam={
+    params ["_turn","_available"];
     private _otherTurn=1-_turn;
-    private _movingAvailable=(_teams select _turn) select {_x in _units};
-    private _coverAvailable=(_teams select _otherTurn) select {_x in _units};
-    if (count _movingAvailable < 2 && {count _coverAvailable > 2
-        || {count _movingAvailable == 1 && {count _coverAvailable == 2}}}) then {
-        private _replacement=_coverAvailable select ((count _coverAvailable)-1);
+    private _movingAvailable=(_teams select _turn) select {_x in _available};
+    private _coverAvailable=(_teams select _otherTurn) select {_x in _available};
+    while {count _movingAvailable < 2 && {count _coverAvailable > 2
+        || {count _movingAvailable == 1 && {count _coverAvailable == 2}}}} do {
+        private _replacement=_coverAvailable deleteAt ((count _coverAvailable)-1);
         (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _replacement);
         (_teams select _turn) pushBack _replacement;
         _movingAvailable pushBack _replacement;
@@ -334,6 +407,12 @@ if (_teams isNotEqualTo []) then {
             [[format ["TEAM_%1_RECOVERY",_turn+1],netId _replacement]]];
         _group setVariable ["WAIT_Cortex_DrillReinforcements",_history,true];
     };
+    [_movingAvailable,_coverAvailable]
+};
+if (_teams isNotEqualTo []) then {
+    private _turn=_drill getOrDefault ["teamTurn",0];
+    private _roster=[_turn,_units] call _ensureMovingTeam;
+    _roster params ["_movingAvailable","_coverAvailable"];
     if (count _movingAvailable < 2) then {
         private _pendingRecovery=_recovery select {(_x select 0) in (_teams select _turn)};
         private _exhausted=_pendingRecovery isEqualTo [] || {_pendingRecovery findIf {
@@ -372,20 +451,20 @@ private _restoreFeatures = {
     private _keptBehaviours = [];
     {
         _x params ["_unit","_previous","_owned"];
-        if (_unit in _stillRecovering && {local _unit} && {behaviour _unit == _owned}) then {
+        if (_unit in _stillRecovering && {[_unit] call _mayIssueMovement} && {behaviour _unit == _owned}) then {
             _keptBehaviours pushBack _x;
         } else {
-            if (local _unit && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
+            if ([_unit] call _mayIssueMovement && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
         };
     } forEach (_drill getOrDefault ["combatBehaviours",[]]);
     _drill set ["combatBehaviours",_keptBehaviours];
     private _keptModes = [];
     {
         _x params ["_unit","_mode",["_ownedMode","BLUE"]];
-        if (_unit in _stillRecovering && {local _unit} && {unitCombatMode _unit == _ownedMode}) then {
+        if (_unit in _stillRecovering && {[_unit] call _mayIssueMovement} && {unitCombatMode _unit == _ownedMode}) then {
             _keptModes pushBack _x;
         } else {
-            if (local _unit && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
+            if ([_unit] call _mayIssueMovement && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
         };
     } forEach (_drill getOrDefault ["combatModes",[]]);
     _drill set ["combatModes",_keptModes];
@@ -393,14 +472,22 @@ private _restoreFeatures = {
     {
         _x params ["_unit", "_feature"];
         if (_unit in _stillRecovering && {_feature in ["AUTOTARGET","TARGET","AUTOCOMBAT"]}) then {_kept pushBack _x} else {
-            if (alive _unit && {local _unit}) then {_unit enableAI _feature};
+            if (alive _unit && {[_unit] call _mayIssueMovement}) then {_unit enableAI _feature};
         };
     } forEach (_drill get "disabled");
     _drill set ["disabled", _kept];
 };
 private _issue = {
     [] call _restoreFeatures;
-    if (_teams isNotEqualTo []) then {_units = (_teams select (_drill get "teamTurn")) select {_x in _fit}};
+    private _viable=true;
+    if (_teams isNotEqualTo []) then {
+        // PAUSE can swap the team inside this same callback. Rebalance the newly selected
+        // movers before any destination write, not one scheduler interval afterward.
+        private _roster=[_drill get "teamTurn",_fit] call _ensureMovingTeam;
+        _units=_roster select 0;
+        _viable=count _units >= 2 && {count (_roster select 1) >= 1};
+    };
+    if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
     private _direction = if (_kind in ["ASSAULT","CLEAR","CONSOLIDATE"]) then {_drill get "assaultDirection"} else {_point getDir _enemyPos};
     private _spots = [];
@@ -411,15 +498,20 @@ private _issue = {
     private _combatBehaviours = +(_drill getOrDefault ["combatBehaviours",[]]);
     if (_teams isNotEqualTo []) then {
         {
-            doStop _x;
-            _x doWatch _enemyPos;
+            // Cover is a movement command too. A specialist or newer actor task may
+            // have claimed this soldier since the roster was selected.
+            if ([_x] call _mayIssueMovement) then {
+                doStop _x;
+                _x doWatch _enemyPos;
+            };
         } forEach (_fit - _units);
     };
     {
         private _unit = _x;
         // Release only Cortex's matching cover stance when this soldier starts moving.
         // A later mission-maker or Zeus stance remains authoritative.
-        if (_unit getVariable ["WAIT_AIPass_StanceSet",false]
+        if ([_unit] call _mayIssueMovement
+            && {_unit getVariable ["WAIT_AIPass_StanceSet",false]}
             && {toUpperANSI (unitPos _unit) == (_unit getVariable ["WAIT_Cortex_AppliedStance",""])}) then {
             _unit setUnitPos "AUTO";
             _unit setVariable ["WAIT_AIPass_StanceSet",nil,true];
@@ -433,24 +525,38 @@ private _issue = {
         private _depth = 0;
         if (_teams isNotEqualTo []) then {_lateral = _lateral + ([-8,8] select (_drill get "teamTurn"))};
         private _spot = (_point getPos [_lateral, _direction + 90]) getPos [_depth, _direction];
-        if (surfaceIsWater _spot || {((surfaceNormal _spot) select 2) < 0.55}) then {
-            {
-                private _alternative=(_point getPos [_lateral*_x,_direction+90]) getPos [_depth,_direction];
-                if (!surfaceIsWater _alternative && {((surfaceNormal _alternative) select 2) >= 0.55}) exitWith {
-                    _spot=_alternative;
-                };
-            } forEach [0.65,0.35,0];
-        };
-        if (_kind in ["BOUND", "FINAL", "ASSAULT"]) then {
-            private _cover = ([_spot, _enemyPos, 3, _spots, _group] call WAIT_fnc_CortexFindCover) select 0;
-            // Cover may lie beyond the search radius on a large object. Preserve the formation slot.
-            if (_cover distance2D _spot <= 2 && {_spots findIf {_cover distance2D _x < 2} < 0}) then {_spot = _cover};
+        private _resumeSpots=_drill getOrDefault ["resumeSpots",[]];
+        private _resumeIndex=_resumeSpots findIf {(_x select 0) == _unit};
+        if (_resumeIndex >= 0) then {
+            // Adoption retains the committed actor destination. Do not spend geometry budget
+            // selecting cover that will immediately be discarded or reroll the approach.
+            _spot=+((_resumeSpots select _resumeIndex) select 1);
+        } else {
+            if (surfaceIsWater _spot || {((surfaceNormal _spot) select 2) < 0.55}) then {
+                {
+                    private _alternative=(_point getPos [_lateral*_x,_direction+90]) getPos [_depth,_direction];
+                    if (!surfaceIsWater _alternative && {((surfaceNormal _alternative) select 2) >= 0.55}) exitWith {
+                        _spot=_alternative;
+                    };
+                } forEach [0.65,0.35,0];
+            };
+            if (_kind in ["BOUND", "FINAL", "ASSAULT"]) then {
+                private _cover = ([_spot, _enemyPos, 3, _spots, _group] call WAIT_fnc_CortexFindCover) select 0;
+                // Cover may lie beyond the search radius on a large object. Preserve the formation slot.
+                if (_cover distance2D _spot <= 2 && {_spots findIf {_cover distance2D _x < 2} < 0}) then {_spot = _cover};
+            };
         };
         _spots pushBack _spot;
         // Preserve native target acquisition, autonomous combat and the actor's current behaviour.
         // WAIT commits a route and role but leaves moment-to-moment combat to the engine.
         // Do not issue doFollow or setDestination: either can create a second movement owner.
-        if (call _mayIssueMovement) then {
+        if ([_unit] call _mayIssueMovement) then {
+            // Individual RED overrides the group's YELLOW bound policy. Lease only that
+            // permissive mode; keep firing enabled and preserve authored hold-fire modes.
+            if (unitCombatMode _unit == "RED") then {
+                _combatModes pushBack [_unit,"RED","YELLOW"];
+                _unit setUnitCombatMode "YELLOW";
+            };
             _unit doWatch _enemyPos;
             _unit doMove _spot;
         };
@@ -467,10 +573,23 @@ private _issue = {
     private _progress = [];
     {_progress pushBack [_x distance2D (_spots select _forEachIndex),_now,getPosATL _x,_now]} forEach _units;
     _drill set ["progress",_progress];
-    _drill set ["retries",_units apply {[0,_now]}];
+    private _resumeRetries=_drill getOrDefault ["resumeRetries",[]];
+    _drill set ["retries",_units apply {
+        private _actor=_x;
+        private _record=_resumeRetries findIf {(_x select 0) == _actor};
+        [if (_record < 0) then {0} else {(_resumeRetries select _record) select 1},_now]
+    }];
+    _drill deleteAt "resumeSpots";
+    _drill deleteAt "resumeRetries";
     _drill set ["disabled", _disabled];
     _drill set ["combatModes",_combatModes];
     _drill set ["combatBehaviours",_combatBehaviours];
+    private _boundIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0]];
+    if (_boundIdentity isNotEqualTo (_drill getOrDefault ["boundDeadlineIdentity",[]])) then {
+        _drill set ["boundDeadlineIdentity",_boundIdentity];
+        _drill set ["boundDeadline",_now+4*(missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25])];
+    };
+    // Replacing casualties or blocked movers cannot renew this bound's hard travel limit.
     _drill set ["boundStart", _now];
     [_group,_drill,"MOVE",format ["BOUND_%1_ISSUED",_drill get "index"]] call WAIT_fnc_CortexDrillSetStage;
 };
@@ -496,8 +615,10 @@ switch (_drill get "stage") do {
                 if (_remaining <= 3) then {
                     _arrivedUnits pushBack _unit;
                     if !(_unit in _previousArrivals) then {
-                        doStop _unit;
-                        _unit doWatch _enemyPos;
+                        if ([_unit] call _mayIssueMovement) then {
+                            doStop _unit;
+                            _unit doWatch _enemyPos;
+                        };
                     };
                 } else {
                     _arrived = false;
@@ -518,14 +639,14 @@ switch (_drill get "stage") do {
                         && {((expectedDestination _unit) select 0) distance2D (_waypoint select 1) < 1};
                     if ((_now-(_last select 3) >= 8 || {_returnedToWaypoint}) && {_now-(_retry select 1) >= 8}
                         && {(_retry select 0) < 1} && {_unit checkAIFeature "PATH"}
-                        && {_unit checkAIFeature "MOVE"} && {call _mayIssueMovement}) then {
+                        && {_unit checkAIFeature "MOVE"} && {[_unit] call _mayIssueMovement}) then {
                         // Replan the same destination; do not move the actor or waive arrival.
                         // One native route refresh is allowed only after measured no-progress.
                         // Target and combat behaviour remain engine-owned.
                         _unit doMove (_spots select _forEachIndex);
                         _retry set [0,(_retry select 0)+1];
                         _retry set [1,_now];
-                        diag_log format ["[WAIT] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5",_group,netId _unit,_drill get "index",_retry select 0,_remaining];
+                        diag_log format ["[WAIT] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,_remaining,currentCommand _unit,expectedDestination _unit,_spots select _forEachIndex,assignedTarget _unit];
                     };
                     if (_now-(_last select 3) > _timeout) then {_stalled = true; _blocked pushBack _unit};
                 };
@@ -570,7 +691,25 @@ switch (_drill get "stage") do {
             diag_log format ["[WAIT] Bound continues with stragglers group=%1 separated=%2 continuing=%3",_group,_blocked,_units-_blocked];
             _stalled = false;
         };
-        if (!_arrived && {_stalled || {_now-(_drill get "boundStart") > _timeout*4}}) exitWith {
+        private _neededReplacements=(2-count (_units-_blocked)) max 0;
+        private _availableCover=(_fit-_units)-_recovering;
+        if (!_arrived && {_stalled} && {_teams isNotEqualTo []}
+            && {_neededReplacements > 0} && {count _availableCover >= (_neededReplacements+1)}
+            && {_now <= (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}) exitWith {
+            {
+                private _blockedActor=_x;
+                if (_recovery findIf {(_x select 0) == _blockedActor} < 0) then {
+                    _recovery pushBack [_blockedActor,0,_now];
+                };
+            } forEach _blocked;
+            _drill set ["recovery",_recovery];
+            // Next callback removes isolated actors and rebalances at most two coverers.
+            // Keep this exact bound and its remaining actors; never return to an old rally.
+            [_group,_drill,"START","STALLED_ELEMENT_REINFORCEMENT"] call WAIT_fnc_CortexDrillSetStage;
+            diag_log format ["[WAIT] Bound replacement pending group=%1 isolated=%2 reserve=%3",_group,_blocked,_availableCover];
+            _result=1.5;
+        };
+        if (!_arrived && {_stalled || {_now > (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}}) exitWith {
             private _reason = ["TIME_LIMIT","STALLED"] select _stalled;
             private _measurements = [];
             {
@@ -677,10 +816,9 @@ switch (_drill get "stage") do {
             // forward under the assault element's cover before declaring completion.
             // Advance already brought both elements through the objective.
             if ((_assaulting || {_drill getOrDefault ["finishFlank",false]}) && {_teams isEqualTo []} && {!(_drill getOrDefault ["consolidating",false])}) exitWith {
-                private _support = (units _group) select {
-                    !(_x in _allUnits) && {local _x} && {isNull objectParent _x}
-                    && {[_x] call WAIT_fnc_CortexCombatEffective}
-                };
+                // Recovery and independent actor tasks are not spare consolidation participants.
+                // Reuse the capable roster instead of bypassing its ownership/path checks.
+                private _support = (_fitSquad - (_allUnits + _recovering)) select {[_x] call _actorTaskFree};
                 if (_support isEqualTo []) then {
                     _result = "COMPLETE" call _end;
                 } else {

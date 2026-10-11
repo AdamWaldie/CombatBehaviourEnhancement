@@ -76,12 +76,13 @@ private _stillActive=[];
 _active=_stillActive;
 _job set ["boundActive",_active];
 private _sequence=_job getOrDefault ["boundSequence",0];
+private _routeFailuresByToken=_job getOrDefault ["routeFailuresByToken",createHashMap];
 // Casualties can make a formerly valid responder unable to field a moving and covering pair.
 // Retire it here so it cannot be reconsidered every two seconds until the lease ends.
 {
     _x params ["_group","_token"];
     private _fit=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}};
-    if (count _fit < 4 && {!(_token in _completed)} && {!(_token in _retired)}) then {
+    if (count _fit < 3 && {!(_token in _completed)} && {!(_token in _retired)}) then {
         _retired pushBackUnique _token;
         _group setVariable ["WAIT_Cortex_SupportAbort",
             [_token,serverTime,"INSUFFICIENT_STRENGTH",count _fit],true];
@@ -96,10 +97,13 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
     private _point=[];
     private _nextIndex=-1;
     for "_offset" from 0 to ((count _teams)-1) do {
+        // Eligibility is not route acceptance. Try another element after unsafe geometry,
+        // but stop before any further scoring once this slot has a viable bound.
+        if (!isNull _next) exitWith {};
         private _index=(_cursor+_offset) mod count _teams;
         (_teams select _index) params ["_group","_token","_goal"];
         private _fit=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}};
-        if (count _fit >= 4 && {serverTime >= (_group getVariable ["WAIT_Cortex_SupportRetryAfter",0])}
+        if (count _fit >= 3 && {serverTime >= (_group getVariable ["WAIT_Cortex_SupportRetryAfter",0])}
             && {!(_token in _completed)} && {!(_token in _retired)}
             && {_active findIf {(_x select 4) == _token} < 0}
             // Concurrent movers need genuinely different approach lanes. A second squad on the
@@ -108,7 +112,7 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
                 private _activeGroup=_x select 0;
                 private _activeTeam=_teams findIf {(_x select 0) == _activeGroup};
                 _activeTeam >= 0 && {((_teams select _activeTeam) select 2) distance2D _goal < 60}
-            } < 0}) exitWith {
+            } < 0}) then {
             private _centre=[0,0,0];
             {_centre=_centre vectorAdd getPosATL _x} forEach _fit;
             _centre=_centre vectorMultiply (1/count _fit);
@@ -126,6 +130,7 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
             private _selected=[_centre,_candidateRoutes,_job get "assaultEnemy",_supportOrigins]
                 call WAIT_fnc_CortexSelectAvenue;
             if (_selected isNotEqualTo []) then {
+                _routeFailuresByToken deleteAt _token;
                 _point=+(_selected select ((count _selected)-1));
                 _next=_group;
                 _nextIndex=_index;
@@ -134,11 +139,23 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
                 private _boundTimeout=missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25];
                 private _watchdog=(((_boundTimeout max 10)*4)+15) min 180;
                 _active pushBack [_group,_sequence,serverTime+_watchdog,_point distance2D _goal < 2,_token,+_point];
+            } else {
+                // Geometry failure must not become a repeated hot-path scan or indefinite cover.
+                // One delayed retry can exploit changed positions; retire only this element after it.
+                private _routeFailures=(_routeFailuresByToken getOrDefault [_token,0])+1;
+                _routeFailuresByToken set [_token,_routeFailures];
+                _group setVariable ["WAIT_Cortex_SupportRetryAfter",serverTime+8];
+                if (_routeFailures >= 2) then {
+                    _retired pushBackUnique _token;
+                    _group setVariable ["WAIT_Cortex_SupportAbort",[_token,serverTime,"NO_SAFE_BOUND",_routeFailures],true];
+                };
             };
         };
     };
     if (!isNull _next) then {_cursor=(_nextIndex+1) mod count _teams};
 };
+_job set ["routeFailuresByToken",_routeFailuresByToken];
+_job set ["boundRetired",_retired];
 _job set ["boundCursor",_cursor];
 _job set ["boundActive",_active];
 {

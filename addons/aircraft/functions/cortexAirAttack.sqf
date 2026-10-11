@@ -46,7 +46,7 @@
  * never completes it. Zeus priority, locality loss, explicit exclusions, runtime disablement or a
  * changed curator waypoint end the lease immediately. Cleanup deletes only that named temporary
  * waypoint. A successful run hands the aircraft back toward its unchanged original waypoint.
- * During direct Zeus handover, cleanup clears this attack's target commands, restores the native
+ * During direct Zeus handover, cleanup clears this attack's target commands, preserves the native
  * attack policy and selects the authenticated curator waypoint. One non-forced height request uses
  * the waypoint's AGL altitude when meaningful, or the live aircraft height for a normal ground-level
  * map click; this cancels the otherwise persistent Cortex flight-height hint without inventing a
@@ -74,7 +74,11 @@ private _finish={
         if (_job getOrDefault ["targetDestroyed",false]) then {
             _reason="TARGET_DESTROYED";
         } else {
-            if (_job getOrDefault ["deliveryMissed",false]) then {_reason="DELIVERY_MISSED"};
+            if (_job getOrDefault ["deliveryMissed",false]) then {
+                _reason="DELIVERY_MISSED";
+                private _deliveryFailure=_job getOrDefault ["deliveryFailureReason",""];
+                if (_deliveryFailure != "") then {_reason=_deliveryFailure};
+            };
         };
     };
     private _finishGroup=group driver _aircraft;
@@ -84,22 +88,35 @@ private _finish={
     private _guidanceTarget=_job getOrDefault ["guidanceTarget",objNull];
     if (!isNull _guidanceTarget) then {deleteVehicle _guidanceTarget};
     if (local _aircraft) then {
-        _aircraft limitSpeed -1;
+        private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid;
+        // A newer flight controller owns speed and pilot features. Retire only our bookkeeping.
+        if (_ownsFlight) then {_aircraft limitSpeed (2 * getNumber (configOf _aircraft >> "maxSpeed"))};
         // Remove exactly the lease-owned waypoint before selecting any authored route. Searching
         // by name remains correct when Zeus added or removed other waypoints and shifted indices.
         private _ownedWaypointName=_job getOrDefault ["ownedWaypointName",""];
         if (!isNull _finishGroup && {_ownedWaypointName != ""}) then {
             private _ownedWaypointIndex=(waypoints _finishGroup) findIf {waypointName _x == _ownedWaypointName};
-            if (_ownedWaypointIndex >= 0) then {deleteWaypoint ((waypoints _finishGroup) select _ownedWaypointIndex)};
+            if (_ownedWaypointIndex >= 0) then {private _ownedWaypoint=(waypoints _finishGroup) select _ownedWaypointIndex;
+                    private _snapshot=_finishGroup getVariable ["WAIT_Cortex_ZeusOrderSnapshot",[]];
+                    private _hold=_finishGroup getVariable ["WAIT_AIPass_ZeusHold",[]];
+                    private _claimed=count _snapshot == 7 && {count _hold == 2}
+                        && {(_snapshot select 0) == (_hold select 0)}
+                        && {(_snapshot select 5) == (_ownedWaypoint select 1)};
+                    if (_claimed) then {
+                        _ownedWaypoint setWaypointName "";
+                    } else {deleteWaypoint _ownedWaypoint};};
         };
-        if (!isNull _finishGroup) then {_finishGroup enableAttack (_job getOrDefault ["previousAttackEnabled",true])};
+        // This controller never changes enableAttack, so cleanup has no restoration authority.
         private _finishPilot=driver _aircraft;
-        if (!isNull _finishPilot && {alive _finishPilot}) then {
+        if (_ownsFlight && {!isNull _finishPilot} && {alive _finishPilot} && {local _finishPilot}
+            && {!isPlayer _finishPilot} && {isNull (remoteControlled _finishPilot)}
+            && {([_finishPilot] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_finishPilot] call WAIT_fnc_CompatibilityExternalControl)}) then {
             {_finishPilot enableAI _x} forEach (_job getOrDefault ["lateralPilotFeatures",[]]);
         };
         // Direct Zeus input owns the aircraft immediately. Do not clear target or watch state here:
         // the curator or external controller may have replaced it before this scheduled cleanup ran.
-        // Restore the native attack policy, reselect the authenticated waypoint and leave. A timed
+        // Preserve the native attack policy, reselect the authenticated waypoint and leave. A timed
         // guard was observed to suppress the new route for 90 seconds and violated this boundary.
         if (_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"]) then {
             private _handoverPilot=driver _aircraft;
@@ -167,19 +184,22 @@ private _finish={
                 || {[_finishGroup] call WAIT_fnc_CortexZeusHeld};
             if (!_cleanupExternal && {!isNull _ownedTarget}) then {
                 {
-                    if (alive _x && {!isPlayer _x} && {assignedTarget _x isEqualTo _ownedTarget}) then {
+                    if (alive _x && {local _x} && {!isPlayer _x} && {isNull (remoteControlled _x)}
+                        && {!([group _x,false,_x] call WAIT_fnc_CortexExternalTakeover)}
+                        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+                        && {assignedTarget _x isEqualTo _ownedTarget}) then {
                         _x doTarget objNull;
                         _x doWatch objNull;
                     };
                 } forEach crew _aircraft;
             };
         };
-        if (_resume) then {
+        if (_resume && {!isNull _finishGroup} && {local _finishGroup}) then {
             private _resumePosition=_job getOrDefault ["resumePosition",[]];
             private _resumeGroup=group driver _aircraft;
-            private _resumeWaypointIndex=(waypoints _resumeGroup) findIf {
-                waypointPosition _x distance2D _resumePosition <= 2
-            };
+            private _resumeWaypointIndex=if (count _resumePosition >= 2) then {
+                (waypoints _resumeGroup) findIf {waypointPosition _x distance2D _resumePosition <= 2}
+            } else {-1};
             // The shared takeover boundary includes player occupants, Zeus and specialist markers
             // on every crew group. A completed attack must not re-form the aircraft over any one
             // of those newer owners merely because its own operation reached a normal release.
@@ -187,9 +207,11 @@ private _finish={
                 || {(crew _aircraft) findIf {[group _x] call WAIT_fnc_CortexExternalTakeover} >= 0};
             if (count _resumePosition >= 2 && {!_resumeExternal}) then {
                 {if (alive _x && {!isPlayer _x}) then {_x doFollow leader _resumeGroup}} forEach crew _aircraft;
-                if (_resumeWaypointIndex >= 0 && {_resumeWaypointIndex < count waypoints _resumeGroup}
-                    && {waypointPosition [_resumeGroup,_resumeWaypointIndex] distance2D _resumePosition <= 2}) then {
-                    _resumeGroup setCurrentWaypoint [_resumeGroup,_resumeWaypointIndex];
+                if (_resumeWaypointIndex >= 0 && {_resumeWaypointIndex < count waypoints _resumeGroup}) then {
+                    private _resumeWaypoint=(waypoints _resumeGroup) select _resumeWaypointIndex;
+                    if (waypointPosition _resumeWaypoint distance2D _resumePosition <= 2) then {
+                        _resumeGroup setCurrentWaypoint _resumeWaypoint;
+                    };
                 };
             };
         };
@@ -204,7 +226,7 @@ private _finish={
         if (_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"]) then {5}
         else {if (_reason in ["COMPLETE","TARGET_DESTROYED"]) then {20}
             else {if (_reason == "DELIVERY_SAFETY_FLOOR") then {120} else {35}}}
-    )];
+    ) max (_aircraft getVariable ["WAIT_Cortex_AirAttackBlockedUntil",0])];
     _aircraft setVariable ["WAIT_Cortex_AirAttackPlan",nil,true];
     _aircraft setVariable ["WAIT_Cortex_AirFireSolution",nil,true];
     _aircraft setVariable ["WAIT_Cortex_AirAttackTarget",nil];
@@ -239,7 +261,9 @@ private _setOperationPhase={
     private _generation=_job getOrDefault ["operationGeneration",-1];
     if (_generation < 0 || {isNull _group} || {!local _group}) exitWith {};
     private _operation=_group getVariable ["WAIT_Operation",createHashMap];
-    if (count _operation > 0 && {(_operation getOrDefault ["generation",-2]) == _generation}) then {
+    if (count _operation > 0 && {(_operation getOrDefault ["generation",-2]) == _generation}
+        && {(_operation getOrDefault ["phase",""]) != _phase}) then {
+        // Stable flight samples do not retransmit the common operation payload.
         _operation set ["phase",_phase];
         _group setVariable ["WAIT_Operation",_operation,true];
     };
@@ -293,11 +317,11 @@ if (isTouchingGround _aircraft || {_isPlane && {speed _aircraft < 40}} || {comba
 private _startFailure="";
 if (_stage == "") then {
     private _target=_job getOrDefault ["target",objNull];
-    if (isNull _target || {!alive _target} || {(side _group) getFriend side _target >= 0.6}) then {
+    if (isNull _target || {_target isKindOf "Logic"} || {!alive _target} || {(side _group) getFriend side _target >= 0.6}) then {
         _target=objNull;
         {
             private _candidate=assignedTarget _x;
-            if (!isNull _candidate && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}) exitWith {_target=_candidate};
+            if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}) exitWith {_target=_candidate};
         } forEach ([effectiveCommander _aircraft,driver _aircraft,gunner _aircraft,commander _aircraft]+crew _aircraft);
     };
     if (isNull _target) then {_startFailure="NO_TARGET"};
@@ -431,6 +455,10 @@ private _currentRoute=(waypoints _group select {waypointName _x != _ownedWaypoin
 };
 if (_currentRoute isNotEqualTo (_job getOrDefault ["routeSignature",_currentRoute])) exitWith {["AUTHORED_ROUTE_CHANGED"] call _finish};
 private _target=_job getOrDefault ["target",objNull];
+if (!isNull _target && {alive _target} && {captive _target
+    || {_target getVariable ["ace_captives_isSurrendering",false]}
+    || {_target getVariable ["ace_captives_isHandcuffed",false]}
+    || {(side _group) getFriend side _target >= 0.6}}) exitWith {["TARGET_NO_LONGER_HOSTILE",true] call _finish};
 if (!isNull _target) then {_job set ["lastTargetPosition",getPosATL _target]};
 // Destroying the target must not strand the aircraft at the firing point. Complete the full
 // INGRESS -> ATTACK -> EGRESS contract, using the wreck's stable position for departure geometry.
@@ -513,8 +541,14 @@ private _destination=_points select _stageIndex;
 // the lease has a real end and cannot orbit indefinitely.
 if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) then {
     private _leadSeconds=[16,5] select (_stage == "ATTACK");
-    _destination=(getPosATL _target) vectorAdd ((velocity _target) vectorMultiply _leadSeconds);
-    _destination set [2,(_job getOrDefault ["stageAltitudes",[_job get "altitude",_job get "altitude",_job get "altitude"]]) select _stageIndex];
+    private _predictedASL=(getPosASL _target) vectorAdd ((velocity _target) vectorMultiply _leadSeconds);
+    _destination=ASLToATL _predictedASL;
+    // Match the moving contact's predicted altitude across terrain cells, with a safety floor.
+    // Surface attack profiles remain independent of this interception-only height.
+    _destination set [2,(_destination select 2) max ([300,100] select !_isPlane)];
+    private _interceptAltitudes=+(_job get "stageAltitudes");
+    _interceptAltitudes set [_stageIndex,_destination select 2];
+    _job set ["stageAltitudes",_interceptAltitudes];
     _points set [_stageIndex,_destination];
     _job set ["points",_points];
 };
@@ -557,6 +591,14 @@ private _stageSpeeds=_job getOrDefault ["stageSpeeds",[_job get "speed",_job get
 // every scheduler tick. Update it only on a real stage transition. The attack-stage target order
 // lets the native air-combat FSM handle subsequent contact movement without Cortex chasing it.
 private _commandedStage=_job getOrDefault ["commandedStage",""];
+// An ingress lead point is useful only while it still represents the moving contact.
+// Refresh the existing waypoint sparsely after meaningful displacement; the attached native
+// ATTACK order already tracks its object and must not be rewritten here.
+private _interceptRefresh=_job getOrDefault ["airToAir",false] && {_stage == "INGRESS"}
+    && {_commandedStage == _stage}
+    && {serverTime >= (_job getOrDefault ["commandedAt",serverTime])+5}
+    && {_destination distance (_job getOrDefault ["commandedDestination",_destination]) >= 300};
+if (_interceptRefresh) then {_commandedStage=""};
 if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith {["CONTROL_RELEASED"] call _finish};
 if (_commandedStage != _stage) then {
     _aircraft limitSpeed (_stageSpeeds select _stageIndex);
@@ -595,7 +637,7 @@ if (_commandedStage != _stage) then {
     _job set ["commandedDestination",+_destination];
     _job set ["commandedAt",serverTime];
     _job set ["stageBestDistance",_stageDistance];
-    _job set ["stageProgressAt",serverTime];
+    if (!_interceptRefresh) then {_job set ["stageProgressAt",serverTime]};
 };
 
 // Measure useful approach to the active leg rather than raw displacement. Orbiting 300 metres and
@@ -609,6 +651,16 @@ if (_stageDistance <= _stageBest-40) then {
 };
 private _routeStalled=serverTime >= (_job getOrDefault ["stageProgressAt",serverTime])+([35,24] select !_isPlane);
 if (_stage == "ATTACK" && {!([] call _mayControlAircraft)}) exitWith {["CONTROL_RELEASED"] call _finish};
+if (_stage == "ATTACK") then {
+    private _station=_job getOrDefault ["selectedTurret",[]];
+    private _weaponOperator=if (_station isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _station};
+    _job set ["weaponOperatorEligible",[_weaponOperator] call WAIT_fnc_CortexCombatEffective
+        && {local _weaponOperator} && {!isPlayer _weaponOperator} && {isNull remoteControlled _weaponOperator}
+        && {[group _weaponOperator,false,false,true,_weaponOperator] call WAIT_fnc_CortexIsEligible}];
+};
+if (_stage == "ATTACK" && {!(_job getOrDefault ["weaponOperatorEligible",false])}) exitWith {
+    ["WEAPON_OPERATOR_RELEASED"] call _finish
+};
 if (_stage == "ATTACK") then {
     // This flag is live for one scheduler pass only. It selects a faster cadence while a fixed
     // weapon is inside its terminal basket without turning every aircraft job into a high-rate
@@ -735,9 +787,10 @@ if (_stage == "ATTACK") then {
         private _integrationStep=0.2;
         for "_integrationIndex" from 0 to 119 do {
             if ((_integrationPosition select 2) > _targetAltitude) then {
-                private _dragAcceleration=_integrationVelocity vectorMultiply
-                    (_airFriction*(vectorMagnitude _integrationVelocity));
-                _integrationVelocity=_integrationVelocity vectorAdd (_dragAcceleration vectorMultiply _integrationStep);
+                // Drag must dissipate energy. Bound the discrete damping factor so a large
+                // configured drag cannot reverse velocity and explode the Euler integration.
+                private _dragRetention=(1-(abs _airFriction)*(vectorMagnitude _integrationVelocity)*_integrationStep) max 0;
+                _integrationVelocity=_integrationVelocity vectorMultiply _dragRetention;
                 _integrationVelocity set [2,(_integrationVelocity select 2)-(9.81*_integrationStep)];
                 _integrationPosition=_integrationPosition vectorAdd (_integrationVelocity vectorMultiply _integrationStep);
                 _integrationTime=_integrationTime+_integrationStep;
@@ -762,7 +815,17 @@ if (_stage == "ATTACK") then {
     private _nativeFixedBasket=!_fixedUnguided || {
         _forwardAlignment >= ([0.985,0.975] select (_weaponClass == "ROCKET"))
     };
-    private _validSolution=_loaded && {!isNull _operator} && {alive _operator}
+    // Horizontal heading alone cannot prove a forward weapon points at the target: a level
+    // aircraft can face a ground contact while its barrel passes well above it. Independently
+    // aimed turrets must also have tracked the target before a scripted native fire request.
+    // Bombs use their ballistic basket instead of barrel alignment; guided weapons use the
+    // predicted launch vector so aircraft motion remains part of the seeker acquisition cone.
+    private _weaponAligned=_bomb || {
+        if (_guided) then {_launchAlignment >= _minimumAlignment} else {
+            _alignment >= _minimumAlignment
+        }
+    };
+    private _validSolution=_loaded && {_weaponAligned} && {!isNull _operator} && {alive _operator}
         && {_range >= _minimumRange} && {_range <= _maximumRange}
         && {_closing} && {_nativeFixedBasket} && {_deliveryTerrainClear}
         && {_bombWindow || {!_bomb && {!_fixedUnguided || {_forwardAlignment >= 0.94}}}}
@@ -878,7 +941,17 @@ if (_stage == "ATTACK" && {_attackShots > 0} && {(_job getOrDefault ["firstAttac
 if ((_job getOrDefault ["pattern",""]) == "STANDOFF" && {_stage == "ATTACK"} && {_attackShots <= 0}
     && {serverTime > (_job getOrDefault ["attackStartedAt",serverTime])+25}) exitWith {
     _aircraft setVariable ["WAIT_Cortex_AirStandoffBlockedUntil",serverTime+90];
-    ["NO_FIRE_SOLUTION",true] call _finish
+    // Failure to release is not permission to abandon the escape leg over the threat.
+    // Keep the failed-delivery reason, fly the immutable exit, then release native control.
+    _job set ["deliveryMissed",true];
+    _job set ["deliveryFailureReason","NO_FIRE_SOLUTION"];
+    [_group,_job,"EGRESS","NO_FIRE_SOLUTION"] call WAIT_fnc_CortexDrillSetStage;
+    ["EGRESS"] call _setOperationPhase;
+    _job set ["commandedStage",""];
+    _job set ["egressStartPosition",getPosATL _aircraft];
+    _job set ["egressStartedAt",serverTime];
+    _job set ["deadline",serverTime+75];
+    0
 };
 if (serverTime > (_job get "deadline")) exitWith {["STAGE_TIMEOUT"] call _finish};
 private _captureRadii=_job getOrDefault ["captureRadii",[if (_isPlane) then {700} else {450},if (_isPlane) then {700} else {450},if (_isPlane) then {700} else {450}]];

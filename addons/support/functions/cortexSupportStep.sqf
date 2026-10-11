@@ -63,7 +63,7 @@ private _kept = [];
     };
     if (_keep && {_status == "PENDING"} && {serverTime >= _ackBy}) then {_keep = false};
     if (_keep) then {_kept pushBack [_helper,_token,_owner,_ackBy,_status]} else {
-        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["WAIT_AIPass_SupportLease",nil,true]; _helper setVariable ["WAIT_Cortex_SupportRole",nil,true]};
+        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["WAIT_Cortex_SupportContact",nil,true]; _helper setVariable ["WAIT_AIPass_SupportLease",nil,true]; _helper setVariable ["WAIT_Cortex_SupportRole",nil,true]; _helper setVariable ["WAIT_Cortex_SupportEligibility",nil,true]};
     };
 } forEach _leases;
 _job set ["leases",_kept];
@@ -92,30 +92,37 @@ for "_i" from 1 to 8 do {
         // The request rally is an area anchor, never a common squad destination.
         // Reserve the footprint in the lease so migration preserves the same area.
         private _rally = [];
-        private _rallyCandidates=[];
-        private _axis = _job get "rallyDirection";
-        for "_slot" from 0 to 5 do {
-            private _row = floor (_slot / 2);
-            private _centre = (_job get "rally") getPos [110*_row,_axis+180];
-            _centre = _centre getPos [55,_axis+([-90,90] select (_slot mod 2))];
-            private _occupied = _kept findIf {
-                private _other = (_x select 0) getVariable ["WAIT_AIPass_SupportLease",[]];
-                count _other == 6 && {(_other select 3) distance2D _centre < 109}
-            } >= 0;
-            if (!_occupied && {!surfaceIsWater _centre} && {((surfaceNormal _centre) select 2) >= 0.55}) then {
-                _rallyCandidates pushBack [_centre];
+        if (_sharedCoordinated) then {
+            // Admission reserves eligibility, not a rearward move. A safe attack avenue is
+            // selected separately from the live origin after owner acknowledgement.
+            _rally=getPosATL _helperTransmitter;
+        } else {
+            private _rallyCandidates=[];
+            private _axis = _job get "rallyDirection";
+            for "_slot" from 0 to 5 do {
+                private _row = floor (_slot / 2);
+                private _centre = (_job get "rally") getPos [110*_row,_axis+180];
+                _centre = _centre getPos [55,_axis+([-90,90] select (_slot mod 2))];
+                private _occupied = _kept findIf {
+                    private _other = (_x select 0) getVariable ["WAIT_AIPass_SupportLease",[]];
+                    count _other == 6 && {(_other select 3) distance2D _centre < 109}
+                } >= 0;
+                if (!_occupied && {!surfaceIsWater _centre} && {((surfaceNormal _centre) select 2) >= 0.55}) then {
+                    _rallyCandidates pushBack [_centre];
+                };
             };
-        };
-        if (_rallyCandidates isNotEqualTo []) then {
-            private _selected=[getPosATL _helperTransmitter,_rallyCandidates,
-                _job getOrDefault ["enemy",getPosATL _requesterTransmitter]] call WAIT_fnc_CortexSelectAvenue;
-            if (_selected isNotEqualTo []) then {_rally=+(_selected select 0)};
+            if (_rallyCandidates isNotEqualTo []) then {
+                private _selected=[getPosATL _helperTransmitter,_rallyCandidates,
+                    _job getOrDefault ["enemy",getPosATL _requesterTransmitter]] call WAIT_fnc_CortexSelectAvenue;
+                if (_selected isNotEqualTo []) then {_rally=+(_selected select 0)};
+            };
         };
         if (_rally isNotEqualTo []) then {
             private _token = format ["%1:%2",_job get "serial",_cursor];
             private _lease = [_token,_requester,_job get "expiry",_rally,_job get "at",[]];
             // A retired older operation must not abort this replacement reservation.
             _helper setVariable ["WAIT_Cortex_SupportAbort",nil,true];
+            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+(_job get "enemy")],true];
             _helper setVariable ["WAIT_AIPass_SupportLease",_lease,true];
             _kept pushBack [_helper,_token,groupOwner _helper,serverTime+15,"PENDING"];
             [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",groupOwner _helper];

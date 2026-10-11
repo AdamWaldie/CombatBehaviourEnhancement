@@ -39,7 +39,11 @@ if (isNull _aircraft || {isNull _target} || {!alive _aircraft} || {!alive _targe
 private _pilot=driver _aircraft;
 if (isNull _pilot || {!alive _pilot} || {!local _aircraft}) exitWith {createHashMap};
 private _side=side group _pilot;
-if (_side getFriend side _target >= 0.6) exitWith {createHashMap};
+// Logic objects can have a hostile side without being a physical combat target.
+// In particular, curator modules must never become weapon-delivery objectives.
+if (_target isKindOf "Logic" || {_side getFriend side _target >= 0.6} || {captive _target}
+    || {_target getVariable ["ace_captives_isSurrendering",false]}
+    || {_target getVariable ["ace_captives_isHandcuffed",false]}) exitWith {createHashMap};
 private _airToAir=_target isKindOf "Air" && {!isTouchingGround _target};
 
 private _ammoCache=missionNamespace getVariable ["WAIT_Cortex_AirAmmoFacts",createHashMap];
@@ -192,7 +196,16 @@ private _lateralWeaponScore=-1;
                 // does not make an airframe a gunship and produced the observed stationary circles.
                 private _simulation=_facts select 3;
                 private _score=(_facts select 4) min 300;
-                if (_simulation in ["shotbullet","shotshell"] && {_score > _lateralWeaponScore}) then {
+                // A gun-bearing turret is not necessarily able to fire abeam. Read live limits,
+                // including mission overrides, once during planning. This corridor may turn either
+                // side during ingress/egress, so require useful traverse on both sides; otherwise
+                // retain a forward attack rather than promising an unsupported lateral pass.
+                private _limits=_aircraft getTurretLimits _turret;
+                private _abeamCapable=count _limits >= 4
+                    && {(_limits select 0) <= -80} && {(_limits select 1) >= 80}
+                    && {(_limits select 2) < 0};
+                if (_simulation in ["shotbullet","shotshell"] && {_abeamCapable}
+                    && {_score > _lateralWeaponScore}) then {
                     _lateralWeaponScore=_score;
                     _lateralTurret=true;
                     _lateralTurretPath=_turret;

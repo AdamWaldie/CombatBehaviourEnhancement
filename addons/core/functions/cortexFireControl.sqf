@@ -73,7 +73,13 @@ private _drill = _state getOrDefault ["drill", createHashMap];
 private _drillUnits = if ((_drill getOrDefault ["teams",[]]) isEqualTo []) then {
     _drill getOrDefault ["units",[]]
 } else {
-    if ((_drill getOrDefault ["stage",""]) in ["START","MOVE"]) then {_drill getOrDefault ["movers",_drill getOrDefault ["units",[]]]} else {[]}
+    if ((_drill getOrDefault ["stage",""]) == "START") then {
+        // A team swap precedes destination issuance. The previous bound's movers no longer
+        // identify the actors about to move; protect the selected team from scripted fire.
+        (_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]
+    } else {
+        if ((_drill getOrDefault ["stage",""]) == "MOVE") then {_drill getOrDefault ["movers",_drill getOrDefault ["units",[]]]} else {[]}
+    }
 };
 // Rejoining actors still own movement, even while the main element pauses.
 // An opportunistic grenade reserves only its thrower for the short next-frame
@@ -83,7 +89,31 @@ if (_now < (_drill getOrDefault ["grenadeActionUntil",-1])) then {
     _drillUnits pushBackUnique (_drill getOrDefault ["grenadeThrower",objNull]);
 };
 private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
-private _eligible = (units _group) select {([_x] call WAIT_fnc_CortexCombatEffective) && {local _x} && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x} && {!(_x in _recovering)} && {primaryWeapon _x != ""}};
+// Physical capability does not imply firing authority. Evaluate specialist ownership once
+// per roster member, before any scripted targeting or suppression command in this callback.
+private _eligible = (units _group) select {
+    ([_x] call WAIT_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
+        && {isNull remoteControlled _x}
+        && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+        && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x}
+        && {!(_x in _recovering)} && {primaryWeapon _x != ""}
+        && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+};
+// Route ownership extends beyond drills: a clearer, evading actor or finite aid mover
+// must not receive an ATTACK/SUPPRESS command over its current destination.
+private _reservedActors=_eligible select {
+    private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+    _reservation isEqualType [] && {count _reservation == 3}
+        && {(_reservation select 2) isEqualType 0} && {(_reservation select 2) > _now}
+};
+private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+if ((_operation getOrDefault ["intent",""]) in ["CLEAR","MEDICAL_AID","WITHDRAW"]
+    && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+    _reservedActors append (_operation getOrDefault ["participants",[]]);
+};
+_drillUnits=(_drillUnits+_reservedActors) arrayIntersect (_drillUnits+_reservedActors);
 private _members = _eligible - _drillUnits;
 private _movingMembers = _eligible arrayIntersect _drillUnits;
 if (_members isEqualTo [] && {_movingMembers isEqualTo []}) exitWith {0};

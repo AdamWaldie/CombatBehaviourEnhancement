@@ -84,10 +84,14 @@ private _acknowledged = false;
     _x params ["_helper","_token"];
     private _lease = _helper getVariable ["WAIT_AIPass_SupportLease",[]];
     private _status = _helper getVariable ["WAIT_AIPass_SupportStatus",[]];
+    private _eligibility=_helper getVariable ["WAIT_Cortex_SupportEligibility",[]];
+    private _prepared=count _eligibility == 3 && {(_eligibility select 0) == _token}
+        && {(_eligibility select 1) == groupOwner _helper} && {serverTime < (_eligibility select 2)};
+    private _executing=count _status == 4 && {(_status select 0) == _token} && {_status select 2};
     if (count _lease == 6 && {(_lease select 0) == _token} && {(_lease select 1) == _group}
-        && {count _status == 4} && {(_status select 0) == _token}
-        && {_status select 2} && {[_helper] call WAIT_fnc_CortexIsEligible}) then {
-        if (_status select 3) then {_acknowledged = true};
+        && {serverTime < (_lease select 2)} && {_prepared || {_executing}}
+        && {[_helper] call WAIT_fnc_CortexIsEligible}) then {
+        if (_executing && {_status select 3}) then {_acknowledged = true};
         _responders pushBack _helper;
     };
 } forEach _publicResponders;
@@ -97,7 +101,7 @@ if (_acknowledged) exitWith {
     // local drill now, before publishing coordinated ownership, so two movement controllers never
     // overlap and a rejected or delayed request never creates an idle planning window.
     if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
-        [_group,_state,"ABORT"] call WAIT_fnc_CortexFlankEnd;
+        [_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd;
     };
     _state set ["coordinated",true];
     _state deleteAt "coordinatedPendingUntil";
