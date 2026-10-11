@@ -104,6 +104,8 @@ if (_nativeHandover) then {
         _nativeBrain deleteAt "responsiveUntil";
         _nativeBrain set ["wakeAt",time];
         _nativeBrain set ["nextAt",time];
+        // A pending callback also passes through the scheduler's cached idle deadline.
+        missionNamespace setVariable ["WAIT_AIPass_NextJobDue",time];
     };
 };
 if (_nativeHandover && {(_group getVariable ["WAIT_Danger_Events",[]]) isEqualTo []}) exitWith {-1};
