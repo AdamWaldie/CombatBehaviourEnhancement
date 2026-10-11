@@ -17,6 +17,17 @@ params [["_brain",createHashMap,[createHashMap]]];
 if (_brain getOrDefault ["cancelled",false] || {_brain getOrDefault ["finished",false]}) exitWith {-1};
 private _job=_brain getOrDefault ["job",createHashMap];
 private _group=_brain getOrDefault ["group",grpNull];
+// Retire obsolete scheduled work before route observations or room assignment. Only the
+// obsolete brain is changed; the successor's public order and physical progress survive.
+if (isNull _group || {!local _group}
+    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}
+    || {(_group getVariable ["WAIT_BuildingBrain",createHashMap]) isNotEqualTo _brain}) exitWith {
+    _brain set ["pending",false];
+    _brain set ["completed",true];
+    _brain set ["cancelled",true];
+    _brain set ["cancelReason","REPLACED_OR_LOST_OWNER"];
+    -1
+};
 private _delay=call {
     private _group = _job get "group";
     if (isNull _group || {!local _group}) exitWith {-1};
