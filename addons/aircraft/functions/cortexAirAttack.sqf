@@ -325,6 +325,7 @@ if (_stage == "") then {
         } forEach ([effectiveCommander _aircraft,driver _aircraft,gunner _aircraft,commander _aircraft]+crew _aircraft);
     };
     if (isNull _target) then {_startFailure="NO_TARGET"};
+    if (_startFailure == "" && {(_group knowsAbout _target) <= 0}) then {_startFailure="NO_KNOWN_TARGET"};
     private _plan=if (_startFailure == "") then {[_aircraft,_target] call WAIT_fnc_CortexAirAttackPlan} else {createHashMap};
     if (_startFailure == "" && {count _plan == 0}) then {_startFailure="NO_PLAN"};
     if (_startFailure == "" && {!([] call _mayControlAircraft)}) then {_startFailure="CONTROL_RELEASED"};
@@ -445,7 +446,8 @@ if (_stage == "") then {
             private _guidedTarget=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidanceTarget",objNull];
             if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}
                 && {(_liveJob getOrDefault ["stage",""]) in ["INGRESS","ATTACK"]}
-                && {!captive _guidedTarget} && {(side _fireGroup) getFriend side _guidedTarget < 0.6}) then {
+                && {!captive _guidedTarget} && {(side _fireGroup) getFriend side _guidedTarget < 0.6}
+                && {(_fireGroup knowsAbout _guidedTarget) > 0}) then {
                 private _targetAccepted=_projectile setMissileTarget _guidedTarget;
                 // Air seekers track the object directly. Ground seekers also need one immutable
                 // aim point when their ammo explicitly supports manual point guidance. This is one
@@ -476,6 +478,8 @@ if (!isNull _target && {alive _target} && {captive _target
     || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
     || {(side _group) getFriend side _target >= 0.6}}) exitWith {["TARGET_NO_LONGER_HOSTILE",true] call _finish};
+if (!isNull _target && {alive _target} && {_stage in ["INGRESS","ATTACK"]}
+    && {(_group knowsAbout _target) <= 0}) exitWith {["TARGET_KNOWLEDGE_LOST",true] call _finish};
 if (!isNull _target) then {_job set ["lastTargetPosition",getPosATL _target]};
 // Destroying the target must not strand the aircraft at the firing point. Complete the full
 // INGRESS -> ATTACK -> EGRESS contract, using the wreck's stable position for departure geometry.
