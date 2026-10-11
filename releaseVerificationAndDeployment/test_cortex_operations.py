@@ -3922,6 +3922,10 @@ class CortexOperations(unittest.TestCase):
         for check in ['COORD-inter-squad-role-exchange','COORD-concurrent-squad-bounds','COORD-concurrent-lanes-separated','COORD-inter-squad-physical-cover','COORD-intra-squad-physical-cover']:
             self.assertIn(check,qa)
         self.assertIn('["WAIT_AIPass_PostContact_Enable",true]',qa)
+        self.assertIn('_ti*_helperSize+_forEachIndex',qa)
+        self.assertNotIn('_teamIndex*6+_forEachIndex',qa)
+        self.assertIn('diag_tickTime-_movementAdmissionStarted >= 30',qa)
+        self.assertIn('["COORD-movement-admission",!_movementAdmissionFailed',qa)
         self.assertIn('abs speed _x > 2',qa)
         self.assertIn('_shots-(_shotCounts select _i)',qa)
         operation=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombinedOperation.sqf').read_text(encoding='utf-8')

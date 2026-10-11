@@ -361,6 +361,8 @@ private _movementRoeViolations=[0,0];
 private _idleSince=createHashMap;
 private _longestMovingIdle=0;
 private _movementRoleObserved=false;
+private _movementAdmissionStarted=diag_tickTime;
+private _movementAdmissionFailed=false;
 private _retiredSince=-1;
 private _shotCounts=_helpers apply {_x getVariable ["WAIT_CortexQA_Shots",0]};
 private _baseShotCount=0;
@@ -383,7 +385,7 @@ private _movementWindowEnded=[{
             if (count _role == 5) then {_movementRoleObserved=true};
             private _moving=0; private _firing=0; private _coverShots=0;
             {
-                private _i=_ti*6+_forEachIndex;
+                private _i=_ti*_helperSize+_forEachIndex;
                 private _shots=_x getVariable ["WAIT_CortexQA_Shots",0];
                 private _delta=_shots-(_shotCounts select _i);
                 _shotCounts set [_i,_shots];
@@ -491,6 +493,10 @@ private _movementWindowEnded=[{
                     _x checkAIFeature "PATH",behaviour _x,unitCombatMode _x]}];
         } forEach _teams;
     };
+    // Missing admission is a failed prerequisite, not ten minutes of native wandering.
+    if (!_movementRoleObserved && {diag_tickTime-_movementAdmissionStarted >= 30}) exitWith {
+        _movementAdmissionFailed=true; true
+    };
     private _allArrived=true;
     {if (!alive _x || {_x distance2D (_origins select _forEachIndex) < 60} || {_x distance2D _enemy > 50}) then {_allArrived=false}} forEach _helpers;
     if (_allArrived) exitWith {true};
@@ -514,6 +520,7 @@ private _movementWindowEnded=[{
     _retiredSince >= 0 && {diag_tickTime-_retiredSince >= 5}
 },600] call _wait;
 ["COORD-tactical-role-observed",_movementRoleObserved] call _check;
+["COORD-movement-admission",!_movementAdmissionFailed,format ["roleObserved=%1 elapsed=%2",_movementRoleObserved,diag_tickTime-_movementAdmissionStarted]] call _check;
 private _advanced=true;
 {if (!alive _x || {_x distance2D (_origins select _forEachIndex) < 60} || {_x distance2D _enemy > 50}) then {_advanced=false}} forEach _helpers;
 ["COORD-movement-window-terminated",_movementWindowEnded,format ["roleObserved=%1 results=%2",_movementRoleObserved,_teams apply {(group (_x select 0)) getVariable ["WAIT_Cortex_SupportBoundResult",[]]}]] call _check;
@@ -537,7 +544,7 @@ private _viableCounts = [];
     private _teamIndex = _forEachIndex;
     private _arrivedCount = 0;
     {
-        if (alive _x && {_x distance2D (_origins select (_teamIndex*6+_forEachIndex)) >= 60}
+        if (alive _x && {_x distance2D (_origins select (_teamIndex*_helperSize+_forEachIndex)) >= 60}
             && {_x distance2D _enemy <= 50}) then {_arrivedCount = _arrivedCount+1};
     } forEach _x;
     _viableCounts pushBack _arrivedCount;
@@ -612,7 +619,7 @@ private _handedBack=[{
         private _arrived={_x distance2D _destination <= 55} count _members;
         private _progressed=0;
         {
-            private _globalIndex=_teamIndex*6+_forEachIndex;
+            private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_releaseOrigins select _globalIndex) >= 30 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
         if (count _members != 6 || {_arrived < 4} || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
@@ -654,7 +661,7 @@ private _zeusTravel=[{
         private _arrived={_x distance2D _destination <= 55} count _members;
         private _progressed=0;
         {
-            private _globalIndex=_teamIndex*6+_forEachIndex;
+            private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_zeusOrigins select _globalIndex) >= 30 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
         if (count _members != 6 || {_arrived < 4} || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
@@ -692,7 +699,7 @@ private _unopposedTravel=[{
         private _destination=_unopposedDestinations select _teamIndex;
         private _progressed=0;
         {
-            private _globalIndex=_teamIndex*6+_forEachIndex;
+            private _globalIndex=_teamIndex*_helperSize+_forEachIndex;
             if (_x distance2D (_unopposedOrigins select _globalIndex) >= 50 || {_x distance2D _destination <= 55}) then {_progressed=_progressed+1};
         } forEach _members;
         if (count _members != 6 || {_progressed < 4} || {leader (group (_x select 0)) distance2D _destination > 55}) then {_okay=false};
