@@ -422,7 +422,12 @@ private _delay=call {
                         // near the building keep the faster direct route.
                         private _entryTarget=if (_entryIndex >= 0) then {(_job get "entries") select _entryIndex} else {[]};
                         private _entryProbe=_pair select (_moverIndex mod count _pair);
-                        _approachingEntry=!_entered && {_entryTarget isNotEqualTo []} && {_entryProbe distance2D _entryTarget > 8};
+                        // Nearby is not doorway arrival: an actor six metres away can still be
+                        // outside the opposite wall. Use the same threshold as entry staging
+                        // below, retaining the actual entrance leg until physically reached.
+                        _approachingEntry=!_entered && {_entryTarget isNotEqualTo []}
+                            && {_entryProbe distance2D _entryTarget > 3
+                                || {abs (((getPosATL _entryProbe) select 2)-(_entryTarget select 2)) > 1.5}};
                     };
                 };
                 if (_cursor < count _route) then {
