@@ -10,6 +10,15 @@
  */
 params [["_group",grpNull,[grpNull]],["_configuration",[],[[]]],["_registryRevision",-1,[0]],["_jobToken","",[""]]];
 if (isNull _group || {!local _group} || {count _configuration < 8} || {_registryRevision < 0}) exitWith {false};
+// Establish the owner epoch before the scheduler stamps this brain. The first convoy tick
+// starts a common operation; letting it adopt an epoch-zero group there invalidates every
+// later queued step and strands followers on their initial speed/path command.
+if (!(_group getVariable ["WAIT_AIPass_Adopted",false])) then {
+    if ([_group,false,false,true] call WAIT_fnc_CortexIsEligible) then {
+        [_group,true] call WAIT_fnc_CortexLocality;
+    };
+};
+if (!local _group || {!(_group getVariable ["WAIT_AIPass_Adopted",false])}) exitWith {false};
 private _current=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
 if (count _current > 0 && {!(_current getOrDefault ["cancelled",false])} && {(_current getOrDefault ["registryRevision",-2]) == _registryRevision} && {(_current getOrDefault ["jobToken",""]) isEqualTo _jobToken}) exitWith {true};
 if (count _current > 0) then {_current set ["cancelled",true];_current set ["cancelReason","REPLACED"]};
