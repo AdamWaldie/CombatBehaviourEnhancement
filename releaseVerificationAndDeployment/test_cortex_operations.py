@@ -3941,6 +3941,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_combined_dispatch_preserves_other_live_contact_reservations(self):
+        text=source('cortexCombinedArmsServer')
+        self.assertIn('private _existingRole=_candidate getVariable ["WAIT_Cortex_CombinedRole",[]]',text)
+        self.assertIn('serverTime >= (_existingRole select 5)',text)
+        self.assertIn('(_existingRole select 0) == _token',text)
+        self.assertLess(text.index('private _existingRole='),text.index('_candidate setVariable ["WAIT_Cortex_CombinedRole"'))
     def test_small_coordinated_fixture_uses_size_aware_handover_quorum(self):
         text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')
         self.assertIn('ceil (_helperSize*0.6)',text)

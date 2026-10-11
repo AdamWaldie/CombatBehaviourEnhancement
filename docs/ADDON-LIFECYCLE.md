@@ -531,3 +531,5 @@ Between-bound restoration uses the same actor-task ownership guard as movement a
 Support release retires its exact token-matched tactical bound before shared operation cleanup. It uses ROLE_HANDOVER without formation recall, preventing an old queued drill from blocking a replacement bound as NOT_READY. A different drill token is untouched.
 
 Coordinated fire-team bounds inherit the existing support operation generation and owner epoch after validation. They do not start a second operation. This enables the common interruption, attack-delegation and exact restoration paths already used by standalone tactical drills.
+
+Combined-arms discovery preserves an asset's unexpired role from another opportunity. Separate requesters cannot overwrite that reservation; matching tokens or expired roles remain eligible for validated dispatch. This protects simultaneous local contacts without creating a battle-wide assembly controller.
