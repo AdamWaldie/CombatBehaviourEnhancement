@@ -35,6 +35,23 @@ private _coalesceRetired=[{(_coalesceState get "calls") >= 1 && {count (call _co
 ["SCHED-keyed-callback-retired",_coalesceRetired] call _check;
 ["SCHED-keyed-callback-once",_coalesceRetired && {(_coalesceState get "calls") == 1}
     && {(_coalesceState get "value") == 2},str [_coalesceState get "calls",_coalesceState get "value"]] call _check;
+// Isolated owner-epoch admission check: do not change any live mission group's epoch.
+private _epochGroup=createGroup [east,false];
+_epochGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_epochGroup setVariable ["WAIT_AIPass_Epoch",6];
+private _epochKey="WAIT_QA_EPOCH_"+str diag_tickTime;
+private _staleState=createHashMapFromArray [["group",_epochGroup],["ownerEpoch",5],["calls",0]];
+[_coalesceCallback,_staleState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
+private _epochQueued=(missionNamespace getVariable ["WAIT_AIPass_Jobs",[]])
+    +(missionNamespace getVariable ["WAIT_AIPass_PendingJobs",[]]);
+["SCHED-stale-epoch-not-queued",_epochQueued findIf {((_x select 2) getOrDefault ["jobKey",""]) == _epochKey} < 0] call _check;
+["SCHED-stale-epoch-retained",(_staleState get "ownerEpoch") == 5,str (_staleState get "ownerEpoch")] call _check;
+private _freshState=createHashMapFromArray [["group",_epochGroup],["calls",0]];
+[_coalesceCallback,_freshState,0,_epochKey] call WAIT_fnc_CortexQueueJob;
+private _freshRan=[{(_freshState get "calls") == 1},10] call _wait;
+["SCHED-current-epoch-runs",_freshRan && {(_freshState get "ownerEpoch") == 6}
+    && {(_staleState get "calls") == 0},str [_freshState get "calls",_staleState get "calls"]] call _check;
+deleteGroup _epochGroup;
 private _groups=[];
 private _actors=[];
 private _states=[];
