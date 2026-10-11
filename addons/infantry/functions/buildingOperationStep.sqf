@@ -420,17 +420,10 @@ private _delay=call {
                             _entryRanks sort true;
                             _entryIndex=(_entryRanks select 0) select 1;
                         };
-                        // Distant interior targets can leave Arma planning without moving. Stage at
-                        // the nearest real entrance first, then commit through it. Workers already
-                        // near the building keep the faster direct route.
-                        private _entryTarget=if (_entryIndex >= 0) then {(_job get "entries") select _entryIndex} else {[]};
-                        private _entryProbe=_pair select (_moverIndex mod count _pair);
-                        // Nearby is not doorway arrival: an actor six metres away can still be
-                        // outside the opposite wall. Use the same threshold as entry staging
-                        // below, retaining the actual entrance leg until physically reached.
-                        _approachingEntry=!_entered && {_entryTarget isNotEqualTo []}
-                            && {_entryProbe distance2D _entryTarget > 3
-                                || {abs (((getPosATL _entryProbe) select 2)-(_entryTarget select 2)) > 1.5}};
+                        // Let native interior planning choose its entrance for the first
+                        // committed room. buildingExit nodes are recovery choices, not
+                        // compulsory staging stops that can strand actors outside a wall.
+                        _approachingEntry=false;
                     };
                 };
                 if (_cursor < count _route) then {
