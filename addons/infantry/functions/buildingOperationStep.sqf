@@ -62,7 +62,7 @@ private _delay=call {
         };
         _restore=_restore && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
         _group setVariable ["WAIT_Cortex_ClearEvidence",[+(_job get "cleared"),+(_job get "unreachable"),+(_job get "retryCounts"),+(_job get "failedBy"),_job get "deadline",_job get "lastProgressAt"],true];
-        private _result = ["INCOMPLETE","COMPLETE"] select (count (_job get "cleared") == count (_job get "positions") && {!(_job getOrDefault ["egressFailed",false])});
+        private _result = ["INCOMPLETE","COMPLETE"] select (count (_job get "cleared") == count (_job get "positions") && {!(_job getOrDefault ["egressFailed",false])} && {!(_job getOrDefault ["entryFailed",false])});
         if (_reason != "COMPLETE") then {_result="CANCELLED"};
         // One bounded terminal snapshot preserves the route which actually failed before cleanup
         // clears actors' destinations. No geometry query or recurring trace is added to the hot path.
@@ -744,6 +744,9 @@ private _delay=call {
     };
     private _allWorkersEntered=_activeWorkers findIf {!(_x in (_job getOrDefault ["enteredActors",[]]))} < 0;
     if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersEntered}) || {serverTime > (_job get "deadline")} || {_activeWorkers isEqualTo []}) exitWith {
+        // Room coverage does not prove that every active clearing actor entered.
+        // A deadline may release the operation, but cannot convert missing participation to success.
+        _job set ["entryFailed",!_allWorkersEntered];
         private _active=[];
         {_active append _x} forEach (_job get "pairs");
         _active=_active arrayIntersect _active;

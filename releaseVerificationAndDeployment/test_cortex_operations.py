@@ -7522,3 +7522,9 @@ class CortexOperations(unittest.TestCase):
         door=source('cortexBuildingDoor')
         self.assertIn('vectorDistance _position <= 3',door)
         self.assertIn('(_position select 2)) <= 1.5',door)
+
+    def test_clearance_deadline_cannot_fabricate_partner_entry_success(self):
+        text=source('buildingOperationStep')
+        self.assertIn('_job set ["entryFailed",!_allWorkersEntered]',text)
+        result=text.split('private _result =',1)[1].split('_group setVariable ["WAIT_Cortex_ClearResult"',1)[0]
+        self.assertIn('!(_job getOrDefault ["entryFailed",false])',result)
