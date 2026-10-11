@@ -186,6 +186,9 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
     [format ["CLEAR-fresh-%1-successive-positions",_size],_memberVisits findIf {count _x >= 2} >= 0,str _memberVisits] call _check;
     if (_size == 2) then {
         ["CLEAR-fresh-2-both-participate",_memberVisits findIf {_x isEqualTo []} < 0,str _memberVisits] call _check;
+        if (count _rooms >= 4) then {
+            ["CLEAR-fresh-2-both-progress-through-interior",_memberVisits findIf {count _x < 2} < 0,str _memberVisits] call _check;
+        };
     };
     // Exercise natural completion/failure cleanup before invoking any explicit release.
     // A fresh ordinary waypoint must take control even when some rooms were unreachable.

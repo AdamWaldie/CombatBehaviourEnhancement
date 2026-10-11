@@ -172,3 +172,5 @@ The scheduler batch also includes a detached support-FSM retirement case on an e
 ### Building pair handoff after physical visits
 
 Room visits are recorded before pair-route progression. The old cursor loop skipped cleared rooms before applying the entered flag, previous interior support position or mover rotation; the later cleared-room branch was bypassed in normal progression. The cursor loop now applies those handoff updates for physically cleared rooms before advancing. Unreachable rooms do not establish entry or rotate the pair. Existing physical entry and room-visit audits remain required; this production correction is not yet accepted in game.
+
+The fresh two-person building audit retains both-participate and successive-position checks, and adds both-progress-through-interior when the fixture offers at least four interior positions. Both actors must physically visit at least two sampled positions. Role flags and doorway arrival cannot satisfy it. The new case is queued, not passed.
