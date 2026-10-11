@@ -126,6 +126,15 @@ private _delay=call {
     };
     if (isNull _group || {!local _group} || {!(_group getVariable ["WAIT_AIPass_ClearBuilding", false])}
         || {!alive (_job get "building")} || {!(missionNamespace getVariable ["WAIT_AIPass_Active", false])}) exitWith {[true,"CANCELLED"] call _finish};
+    // This operation issues actor destinations, never native waypoints. Any authored
+    // waypoint change supersedes it before observations, recovery or speed writes.
+    private _nativeOrderReceipt=_job getOrDefault ["nativeOrderReceipt",[]];
+    if (_nativeOrderReceipt isNotEqualTo []
+        && {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo _nativeOrderReceipt}) exitWith {
+        private _result=[false,"NEW_ORDER"] call _finish;
+        _group setVariable ["WAIT_OperationGeneration",(_group getVariable ["WAIT_OperationGeneration",0])+1,true];
+        _result
+    };
     private _operationGeneration=_job getOrDefault ["operationGeneration",-1];
     private _operationEndReason="";
     if (_operationGeneration >= 0) then {
@@ -151,6 +160,8 @@ private _delay=call {
     // can take over during this queued callback after the operation-level eligibility check.
     private _mayIssueMovement = {
         !([_group] call WAIT_fnc_CortexExternalTakeover)
+            && {_nativeOrderReceipt isEqualTo []
+                || {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
         private _assignments=(_job get "egressAssignments") select {
@@ -642,13 +653,19 @@ private _delay=call {
                                     // A stalled worker gets one recovery attempt through the common operation
                                     // lifecycle before this pair gives up its room. Recovery is actor-scoped and
                                     // bounded; the other workers keep sweeping rather than waiting for it.
-                                    private _recovery = if (_operationGeneration >= 0) then {
+                                    // Durable room retries survive reserve replacement and owner replay.
+                                    // A new actor must not reopen an exhausted room recovery budget.
+                                    private _roomRetryBudget=3*_failureThreshold;
+                                    private _recovery = if (_operationGeneration >= 0
+                                        && {(_retryCounts param [_positionIndex,0]) <= _roomRetryBudget}) then {
                                         [_group,_operationGeneration,_point,_target] call WAIT_fnc_RecoveryStep
                                     } else {"EXHAUSTED"};
-                                    if (_recovery == "RECOVERING") then {
+                                    if (_recovery in ["RECOVERING","YIELDED"]) then {
                                         _lastProgress=_now;
                                         _lastPositions=_pair apply {getPosATL _x};
-                                        _retries=0;
+                                        // A native task owns movement while yielding. Do not restart
+                                        // its route or mark the room unreachable during that task.
+                                        _retries=[0,3] select (_recovery == "YIELDED");
                                     } else {
                                         private _pairId=format ["PAIR_%1",_pairIndex];
                                         private _failures=_failedBy select _positionIndex;
@@ -692,7 +709,7 @@ private _delay=call {
         _job set ["deadline",(_job get "deadline") max (serverTime+120)];
     };
     if (_madeProgress || {_retryChanged}) then {
-        _group setVariable ["WAIT_AIPass_ClearOrder", [_job get "building", +_cleared, _job get "deadline", _job get "baseBehaviour", +_unreachable, +_retryCounts, +_failedBy, _job get "lastProgressAt",_job getOrDefault ["baseAttack",true]], true];
+        _group setVariable ["WAIT_AIPass_ClearOrder", [_job get "building", +_cleared, _job get "deadline", _job get "baseBehaviour", +_unreachable, +_retryCounts, +_failedBy, _job get "lastProgressAt",_job getOrDefault ["baseAttack",true],_job getOrDefault ["nativeOrderReceipt",[]]], true];
         _group setVariable ["WAIT_Cortex_ClearStatus",[_job getOrDefault ["phase","SWEEP"],count _cleared,count _unreachable,count (_job get "positions"),count (_job get "pairs"),_job get "lastProgressAt"],true];
     };
     if ((count _cleared + count _unreachable) >= count _positions || {serverTime > (_job get "deadline")} || {_activeWorkers isEqualTo []}) exitWith {

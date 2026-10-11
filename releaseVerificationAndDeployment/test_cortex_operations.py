@@ -1838,11 +1838,26 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_retries < 3',timeout)
         self.assertIn('count (_job get "cleared") == count (_job get "positions")',text)
 
+    def test_clearance_cancels_changed_native_order_before_movement_and_preserves_replay_receipt(self):
+        receipt=source('nativeOrderReceipt')
+        start=source('cortexClearBuilding')
+        step=source('buildingOperationStep')
+        self.assertIn('_count <= 1 || {_index <= 0}',receipt)
+        self.assertNotIn('forEach',receipt)
+        self.assertIn('_previous param [9,_nativeOrderReceipt,[[]]]',start)
+        self.assertIn('["nativeOrderReceipt",_nativeOrderReceipt]',start)
+        gate=step.index('([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo _nativeOrderReceipt')
+        self.assertLess(gate,step.index('if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS")'))
+        self.assertIn('[false,"NEW_ORDER"] call _finish',step)
+        self.assertIn('([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt', step)
+        self.assertIn('_job getOrDefault ["nativeOrderReceipt",[]]], true]',step)
+
     def test_clearance_attempts_one_isolated_recovery_before_abandoning_a_room(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
-        recovery=text.split('private _recovery = if (_operationGeneration >= 0) then {',1)[1].split('private _pairId=format',1)[0]
+        recovery=text.split('private _roomRetryBudget=',1)[1].split('private _pairId=format',1)[0]
         self.assertIn('call WAIT_fnc_RecoveryStep',recovery)
-        self.assertIn('_recovery == "RECOVERING"',recovery)
+        self.assertIn('_recovery in ["RECOVERING","YIELDED"]',recovery)
+        self.assertIn('_retryCounts param [_positionIndex,0]', recovery)
         self.assertIn('_lastPositions=_pair apply {getPosATL _x}',recovery)
         self.assertNotIn('_unreachable pushBack',recovery)
 

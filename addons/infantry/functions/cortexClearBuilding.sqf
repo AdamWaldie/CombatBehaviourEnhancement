@@ -127,7 +127,13 @@ if (serverTime >= _deadline) exitWith {[_group] call WAIT_fnc_CortexClearRelease
 // HC resume keeps the published progress/deadline rather than starting a new episode.
 if (!_resume && {_previous isNotEqualTo []}) then {[_group] call WAIT_fnc_CortexClearRelease};
 private _baseAttack=if (_resume) then {_previous param [8,attackEnabled _leader,[true]]} else {attackEnabled _leader};
-_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack], true];
+private _nativeOrderReceipt=[_group] call WAIT_fnc_NativeOrderReceipt;
+if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nativeOrderReceipt}) exitWith {
+    [_group,false] call WAIT_fnc_CortexClearRelease;
+    false
+};
+
+_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt], true];
 _group setVariable ["WAIT_AIPass_ClearApplied", true];
 _group setVariable ["WAIT_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
 _group setVariable ["WAIT_Cortex_ClearEvidence",nil,true];
@@ -255,7 +261,7 @@ private _job=createHashMapFromArray [
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
     ["deadline", _deadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
-    ["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
+    ["nativeOrderReceipt",_nativeOrderReceipt],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
 [_job] call WAIT_fnc_BuildingOperationStart;
 diag_log format ["[WAIT] %1 clearing %2 (%3 positions, %4 soldiers, %5 entrances)", _group, typeOf _building, count _positions, count _team, count _entries];
