@@ -21,7 +21,7 @@ if (isNull _actor || {!local _actor} || {!alive _actor} || {isPlayer _actor}
 
 private _group=group _actor;
 private _source=_record param [3,objNull,[objNull]];
-if (isNull _group || {isNull _source} || {_source isKindOf "Logic"} || {!alive _source} || {captive _source}
+if (isNull _group || {isNull _source} || {_source isKindOf "Logic"} || {_source isKindOf "HeadlessClient_F"} || {!alive _source} || {captive _source}
     || {_source getVariable ["ace_captives_isSurrendering",false]}
     || {_source getVariable ["ace_captives_isHandcuffed",false]}) exitWith {[]};
 if ((side _group) getFriend (side _source) >= 0.6) exitWith {[]};

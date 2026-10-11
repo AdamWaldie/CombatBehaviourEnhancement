@@ -46,7 +46,7 @@ private _reflexOnly=0;
             if (count _position == 2) then {_position pushBack ((getPosATL _actor) select 2)};
             private _source=_x param [3,objNull,[objNull]];
             private _knownFriendly=!isNull _source && {(side _group) getFriend (side _source) >= 0.6};
-            private _hostileSource=!isNull _source && {!(_source isKindOf "Logic")} && {alive _source} && {!captive _source}
+            private _hostileSource=!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
                 && {!(_source getVariable ["ace_captives_isSurrendering",false])}
                 && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
                 && {(side _group) getFriend (side _source) < 0.6};
