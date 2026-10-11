@@ -219,6 +219,15 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 if (_nativeOnly && {worldName == "VR"}) then {
     // Controlled diagnostic: same model, direction, flat ground and open doors.
     // Height is the only placement difference; no production object is repositioned.
+    private _issueHeightMove={
+        params ["_unit","_target","_method"];
+        // A deterministic small offset probes node-edge planning without changing
+        // the recorded objective or physical acceptance radius.
+        private _destination=if (_method == "OFFSET") then {_target vectorAdd [0.35,0.35,0]} else {_target};
+        _unit doMove _destination;
+        if (_method == "REPLAN") then {_unit setDestination [_target,"LEADER PLANNED",true]};
+        if (_method == "OFFSET") then {_unit setDestination [_target,"FORMATION PLANNED",false]};
+    };
     private _heightCases=[];
     {
         private _fixtureClass=_x;
@@ -243,14 +252,13 @@ if (_nativeOnly && {worldName == "VR"}) then {
             private _nodes=(_house buildingPos -1) select [0,16];
             private _target=_nodes param [0,[]];
             _unit setVariable ["WAIT_CortexQA_Target",_target,true];
-            _unit doMove _target;
-            if (_method == "REPLAN") then {_unit setDestination [_target,"LEADER PLANNED",true]};
+            [_unit,_target,_method] call _issueHeightMove;
             _heightCases pushBack [_group,_unit,_house,_nodes,0,_nodes apply {false},time,_method,_label];
-        } forEach ["DIRECT","REPLAN"];
+        } forEach ["DIRECT","REPLAN","OFFSET"];
         } forEach [0,0.3,0.6];
     } forEach ["Land_i_House_Small_01_V1_F","Land_i_House_Big_01_V1_F","Land_i_House_Big_02_V1_F"];
     missionNamespace setVariable ["WAIT_CortexQA_Actors",_heightCases apply {_x select 1},true];
-    ["Building entry: controlled placement height","Diagnostic only: identical houses at 0, 0.3 and 0.6 metres, all doors open. Each actor attempts every model node. Failed nodes remain unvisited when the bounded diagnostic advances. Raised houses test access clearance; they are not a production remedy.",[6250,6120,0]] call _phase;
+    ["Building entry: controlled placement height","Diagnostic only: identical houses at 0, 0.3 and 0.6 metres, all doors open. Each actor attempts every model node. Failed nodes remain unvisited when the bounded diagnostic advances. Raised houses test access clearance; they are not a production remedy. OFFSET uses a small deterministic move offset with the original room-node hint; visits still require arrival at the original node.",[6250,6120,0]] call _phase;
     private _heightDeadline=time+240;
     waitUntil {
         sleep 2;
@@ -266,9 +274,8 @@ if (_nativeOnly && {worldName == "VR"}) then {
                     _x set [4,_cursor];
                     if (_cursor < count _nodes) then {
                         _target=_nodes select _cursor;
-                        _unit doMove _target;
+                        [_unit,_target,_method] call _issueHeightMove;
                         _unit setVariable ["WAIT_CortexQA_Target",_target,true];
-                        if (_method == "REPLAN") then {_unit setDestination [_target,"LEADER PLANNED",true]};
                     };
                 };
             };
