@@ -637,7 +637,10 @@ private _attackReleaseAfter=_teams apply {
     [netId _group,groupOwner _group,attackEnabled _group,
         _group getVariable ["WAIT_OperationRestoreResult",[]],
         _group getVariable ["WAIT_OperationResult",[]],
-        _group getVariable ["WAIT_OperationGeneration",-1]]
+        _group getVariable ["WAIT_OperationGeneration",-1],
+        (_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["intent","NONE"],
+        (_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["phase","NONE"],
+        _group getVariable ["WAIT_Cortex_DrillTransition",[]]]
 };
 ["COORD-autonomous-attack-restored",_attackRestored,str [_attackBaseline,_attackReleaseBefore,_attackReleaseAfter]] call _check;
 private _restoredFeatures=_helpers apply {[_x checkAIFeature "TARGET",_x checkAIFeature "AUTOTARGET",_x checkAIFeature "AUTOCOMBAT",_x checkAIFeature "PATH"]};
