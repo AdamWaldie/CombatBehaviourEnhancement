@@ -219,14 +219,17 @@ if (_nativeOnly && {worldName == "VR"}) then {
     // Height is the only placement difference; no production object is repositioned.
     private _heightCases=[];
     {
+        private _fixtureClass=_x;
+        private _modelRow=_forEachIndex;
+        {
         private _height=_x;
-        private _row=_forEachIndex;
+        private _row=_modelRow*3+_forEachIndex;
         {
             private _method=_x;
-            private _house=createVehicle ["Land_i_House_Small_01_V1_F",[6250+_forEachIndex*60,6120+_row*60,0],[],0,"NONE"];
+            private _house=createVehicle [_fixtureClass,[6250+_forEachIndex*60,6120+_row*60,0],[],0,"NONE"];
             _house setDir 0;
             _house setPosATL [6250+_forEachIndex*60,6120+_row*60,_height];
-            private _label=format ["HEIGHT-%1-%2",_height,_method];
+            private _label=format ["HEIGHT-%1-%2-%3",_fixtureClass,_height,_method];
             [_house,_label] call _recordFixture;
             for "_door" from 1 to 4 do {
                 _house animateSource [format ["Door_%1_sound_source",_door],1,true];
@@ -235,25 +238,28 @@ if (_nativeOnly && {worldName == "VR"}) then {
             private _unit=_group createUnit ["O_Soldier_F",_house getPos [25,180],[],0,"NONE"];
             _unit allowDamage false;
             _unit setVariable ["WAIT_CortexQA_Label",_label,true];
-            private _nodes=(_house buildingPos -1) select [0,2];
+            private _nodes=(_house buildingPos -1) select [0,16];
             private _target=_nodes param [0,[]];
             _unit setVariable ["WAIT_CortexQA_Target",_target,true];
             _unit doMove _target;
             if (_method == "REPLAN") then {_unit setDestination [_target,"LEADER PLANNED",true]};
-            _heightCases pushBack [_group,_unit,_house,_nodes,0,[false,false],time,_method,_label];
+            _heightCases pushBack [_group,_unit,_house,_nodes,0,_nodes apply {false},time,_method,_label];
         } forEach ["DIRECT","REPLAN"];
-    } forEach [0,0.3,0.6];
+        } forEach [0,0.3,0.6];
+    } forEach ["Land_i_House_Small_01_V1_F","Land_i_House_Big_01_V1_F","Land_i_House_Big_02_V1_F"];
     missionNamespace setVariable ["WAIT_CortexQA_Actors",_heightCases apply {_x select 1},true];
-    ["Building entry: controlled placement height","Diagnostic only: identical houses at 0, 0.3 and 0.6 metres, all doors open. Each actor must physically visit the first two nodes. Raised houses test access clearance; they are not a production remedy.",[6250,6120,0]] call _phase;
-    private _heightDeadline=time+150;
+    ["Building entry: controlled placement height","Diagnostic only: identical houses at 0, 0.3 and 0.6 metres, all doors open. Each actor attempts every model node. Failed nodes remain unvisited when the bounded diagnostic advances. Raised houses test access clearance; they are not a production remedy.",[6250,6120,0]] call _phase;
+    private _heightDeadline=time+240;
     waitUntil {
         sleep 2;
         {
             _x params ["_group","_unit","_house","_nodes","_cursor","_seen","_issued","_method","_label"];
             if (_cursor < count _nodes) then {
                 private _target=_nodes select _cursor;
-                if ((getPosASL _unit) vectorDistance (AGLToASL _target) <= 1.5) then {
-                    _seen set [_cursor,true];
+                private _arrived=(getPosASL _unit) vectorDistance (AGLToASL _target) <= 1.5;
+                if (_arrived || {time-_issued >= 20}) then {
+                    if (_arrived) then {_seen set [_cursor,true]};
+                    _x set [6,time];
                     _cursor=_cursor+1;
                     _x set [4,_cursor];
                     if (_cursor < count _nodes) then {
@@ -269,7 +275,7 @@ if (_nativeOnly && {worldName == "VR"}) then {
     };
     {
         _x params ["_group","_unit","_house","_nodes","_cursor","_seen","_issued","_method","_label"];
-        ["BUILD-PLACEMENT-"+_label,_seen isEqualTo [true,true],str [_nodes,_seen,getPosATL _unit,expectedDestination _unit]] call _check;
+        ["BUILD-PLACEMENT-"+_label,_seen isNotEqualTo [] && {_seen findIf {!_x} < 0},str [_nodes,_seen,getPosATL _unit,expectedDestination _unit]] call _check;
     } forEach _heightCases;
     sleep 10;
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
