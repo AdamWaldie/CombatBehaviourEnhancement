@@ -99,6 +99,7 @@ private _eligible = (units _group) select {
         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
         && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x}
         && {!(_x in _recovering)} && {primaryWeapon _x != ""}
+        && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 // Route ownership extends beyond drills: a clearer, evading actor or finite aid mover
 // must not receive an ATTACK/SUPPRESS command over its current destination.
