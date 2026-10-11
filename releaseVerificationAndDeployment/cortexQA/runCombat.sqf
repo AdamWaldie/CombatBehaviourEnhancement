@@ -265,6 +265,7 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
     private _observedAssault = false;
     private _clearThroughTeams = [];
     private _assaultPositionReached = false;
+    private _assaultVisitors = [];
     private _grenadeDispatchSeen = false;
     private _fragShots = 0;
     private _moved = false;
@@ -301,7 +302,15 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
             if (_live getOrDefault ["assaulting",false]) then {
                 private _objective = _live getOrDefault ["assaultObjective",_enemyPosition];
                 _clearedObjective = +_objective;
-                _assaultPositionReached = _assaultPositionReached || {count _element >= 2 && {_element findIf {!alive _x || {_x distance2D _objective > 20}} < 0}};
+                // A moving assault passes through the objective; simultaneous assembly is not required.
+                // Every original actor still needs a measured physical visit, with the correct floor band.
+                {
+                    if (alive _x && {_x distance2D _objective <= 20}
+                        && {abs (((getPosATL _x) select 2)-(_objective param [2,0])) <= 3}) then {
+                        _assaultVisitors pushBackUnique _x;
+                    };
+                } forEach _element;
+                _assaultPositionReached = count _element >= 2 && {count _assaultVisitors == count _element};
             };
             private _fragRecords = [];
             {_fragRecords append (_x getVariable ["WAIT_CortexQA_FragShots",[]])} forEach _members;
@@ -479,7 +488,7 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
     [_prefix+"-actual-fire",_members findIf {(_x getVariable ["WAIT_CortexQA_Shots",0]) > 0} >= 0] call _check;
     if (!_advance) then {
         [_prefix+"-assault-entered",_observedAssault] call _check;
-        [_prefix+"-assault-position",_assaultPositionReached] call _check;
+        [_prefix+"-assault-position",_assaultPositionReached,str [_assaultVisitors apply {netId _x},_element apply {netId _x}]] call _check;
     };
     // Preserve every deadline finding above. This separate diagnostic distinguishes
     // late physical completion from a controller that never finishes its last stage.
