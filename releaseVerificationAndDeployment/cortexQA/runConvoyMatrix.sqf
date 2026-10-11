@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Compares wheeled, tracked and mixed convoy continuity on a long route at four spacings.
+ * Compares wheeled, tracked and mixed convoy continuity at four spacings; additive mixed
+ * columns separately exercise 15/30/50/75 km/h at a fixed 30 m spacing.
  * Outside VR one bounded scan rotates the 1.8 km route across real relieved terrain; all spacing,
  * heading and order measurements use that selected route axis rather than world X/Y.
  * Locality/authority: scheduled server creates and owns fixtures through the public convoy API.
@@ -101,8 +102,15 @@ if (_followDiagnostic) then {
 };
 if (_columnOnly) then {_types=_types select {(_x select 0) find "BASELINE-" != 0}};
 if (_trackedOnly) then {_types=_types select {(_x select 0) == "TRACKED"}};
+if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
+    {
+        _types pushBack [format ["MIXED-SPEED-%1",_x],["O_MRAP_02_F","O_APC_Tracked_02_cannon_F","O_Truck_03_transport_F"],_x];
+    } forEach [15,30,50,75];
+};
 {
     _x params ["_label","_classes"];
+    private _requestedSpeed=_x param [2,30,[0]];
+    private _speedCase=count _x >= 3;
     private _baseline = _label find "BASELINE-" == 0;
     {
         private _spacing = _x;
@@ -162,7 +170,7 @@ if (_trackedOnly) then {_types=_types select {(_x select 0) == "TRACKED"}};
             if (_label == "BASELINE-DRIVER-FOLLOW") then {{if (_forEachIndex > 0) then {(driver _x) doFollow leader _group}} forEach _vehicles};
             if (_label == "BASELINE-VEHICLE-FOLLOW") then {{if (_forEachIndex > 0) then {_x doFollow leader _group}} forEach _vehicles};
             [_id+"-fixture",count _vehicles == 3 && {_vehicles findIf {!alive driver _x} < 0}] call _check;
-        } else {[_id+"-start",[_group,30,_spacing,true] call WAIT_fnc_SimpleAiConvoy] call _check};
+        } else {[_id+"-start",[_group,_requestedSpeed,_spacing,true] call WAIT_fnc_SimpleAiConvoy] call _check};
         private _origins=_vehicles apply {getPosATL _x};
         private _samples=[0,0,0];
         private _stops=[0,0,0];
@@ -239,11 +247,16 @@ if (_trackedOnly) then {_types=_types select {(_x select 0) == "TRACKED"}};
         [_id+"-spacing-band",_count >= 40 && {_gapInBand findIf {_x / (_count max 1) < 0.8} < 0},
             format ["in-band samples=%1/%2 min=%3 max=%4",_gapInBand,_count,_minimumGaps,_maximumGaps]] call _check;
         private _averages=_samples apply {_x/(_count max 1)};
-        [_id+"-continuous-speed",_count >= 40 && {_averages findIf {_x < 18} < 0},str _averages] call _check;
+        // Keep the original 30 km/h criteria (18 km/h, 300 m). Lower-speed cases
+        // require proportional real travel, never merely an accepted speed setting.
+        private _minimumAverage=_requestedSpeed*0.6;
+        private _minimumTravel=_minimumAverage/3.6*60;
+        diag_log format ["WAIT CORTEX QA CONVOY SPEED: case=%1 requestedKmh=%2 spacingM=%3 minimumAverageKmh=%4 minimumTravelM=%5",_id,_requestedSpeed,_spacing,_minimumAverage,_minimumTravel];
+        [_id+"-continuous-speed",_count >= 40 && {_averages findIf {_x < _minimumAverage} < 0},str _averages] call _check;
         [_id+"-stop-fraction",_count >= 40 && {_stops findIf {_x/(_count max 1) > 0.1} < 0},str [_stops,_count]] call _check;
         [_id+"-restart-count",_restartCounts findIf {_x > 2} < 0,str _restartCounts] call _check;
         private _travelled=true;
-        {if (_x distance2D (_origins select _forEachIndex) < 300) then {_travelled=false}} forEach _vehicles;
+        {if (_x distance2D (_origins select _forEachIndex) < _minimumTravel) then {_travelled=false}} forEach _vehicles;
         [_id+"-physical-progress",_travelled,str (_vehicles apply {getPosATL _x})] call _check;
         if (!_baseline) then {
             diag_log format ["WAIT CORTEX QA HALT SEATS BEFORE: case=%1 seats=%2",_id,_vehicles apply {fullCrew [_x,"",false]}];
@@ -258,7 +271,7 @@ if (_trackedOnly) then {_types=_types select {(_x select 0) == "TRACKED"}};
             } forEach _vehicles;
             private _restartOrigins=_vehicles apply {getPosATL _x};
             [_id+" restart","Same straight route after a deliberate stop: every vehicle must resume forwards without a U-turn or long hold. Heading and actual destinations are recorded.",getPosATL (_vehicles select 1)] call _phase;
-            [_id+"-resume-accepted",[_group,30,_spacing,true] call WAIT_fnc_SimpleAiConvoy] call _check;
+            [_id+"-resume-accepted",[_group,_requestedSpeed,_spacing,true] call WAIT_fnc_SimpleAiConvoy] call _check;
             private _turned=false;
             private _resumed=[{
                 private _moving=true;
@@ -284,5 +297,5 @@ if (_trackedOnly) then {_types=_types select {(_x select 0) == "TRACKED"}};
         {private _v=_x; {deleteVehicle _x} forEach crew _v; deleteVehicle _v} forEach _vehicles;
         deleteGroup _group;
         missionNamespace setVariable ["WAIT_CortexQA_ConvoyVehicles",[],true];
-    } forEach (if (_diagnostic) then {[30]} else {if (_columnOnly) then {[30,50]} else {[[15,30,50,75],[50]] select _baseline}});
+    } forEach (if (_speedCase || {_diagnostic}) then {[30]} else {if (_columnOnly) then {[30,50]} else {[[15,30,50,75],[50]] select _baseline}});
 } forEach _types;
