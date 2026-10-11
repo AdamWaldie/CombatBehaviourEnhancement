@@ -4,6 +4,7 @@
  * Locality/authority: Current group owner; matching operation generation and owner epoch only.
  * Repeat/JIP: Consumes the matching restore entry once. Migration cleanup does not restore old-owner
  * settings; resumable feature orders retain their original baseline for the destination owner.
+ * Player, specialist and declared actor ownership block restoration; unchanged native permission can hand back to Zeus.
  * Arguments: 0 group <GROUP>, grpNull; 1 operation <HASHMAP>, empty; 2 reason <STRING>, RELEASE.
  * Return: Boolean - true when an unchanged owned setting was restored.
  * Current callers: WAIT_fnc_OperationCancel and WAIT_fnc_OperationRelease.
@@ -21,7 +22,7 @@ if (count _attack != 2 || {!((_attack select 0) isEqualType true)} || {!((_attac
 _restore deleteAt "groupAttack";
 private _members=units _group;
 if (count _members > 64 || {[_group] call WAIT_fnc_CompatibilityExternalControl}
-    || {_members findIf {isPlayer _x || {[_x] call WAIT_fnc_CompatibilityExternalControl}} >= 0}) exitWith {false};
+    || {_members findIf {isPlayer _x || {([_x] call WAIT_fnc_CortexExternalOwner) != ""} || {[_x] call WAIT_fnc_CompatibilityExternalControl}} >= 0}) exitWith {false};
 private _anchor=leader _group;
 if (isNull _anchor || {attackEnabled _anchor != (_attack select 1)}
     || {(_attack select 0) == (_attack select 1)}) exitWith {false};
