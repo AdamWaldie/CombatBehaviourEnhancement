@@ -12,10 +12,14 @@
 params [["_group",grpNull,[grpNull]],["_token","",[""]],["_accepted",false,[true]],["_snapshot",[],[[]]],["_replyOwner",-1,[0]]];
 if (!isServer || {isNull _group} || {([_replyOwner,groupOwner _group] call WAIT_fnc_HeadlessResolveSender) < 0}) exitWith {};
 private _lease = _group getVariable ["WAIT_AIPass_SupportLease",[]];
-if (_lease isEqualTo [] || {(_lease select 0) != _token} || {_lease isNotEqualTo _snapshot}) exitWith {};
+if (count _lease != 6 || {(_lease select 0) != _token} || {_lease isNotEqualTo _snapshot}) exitWith {};
 private _requests = missionNamespace getVariable ["WAIT_AIPass_SupportRequests",createHashMap];
 private _job = _requests getOrDefault [netId (_lease select 1),createHashMap];
 if (count _job == 0) exitWith {};
+// A delayed owner reply may arrive after either finite deadline. Keep a matching
+// rejection valid for cleanup, but never publish fresh eligibility for expired work.
+_accepted=_accepted && {serverTime < (_lease select 2)}
+    && {serverTime < (_job get "expiry")};
 private _leases = _job get "leases";
 private _index = _leases findIf {(_x select 0) == _group && {(_x select 1) == _token}};
 if (_index >= 0) then {

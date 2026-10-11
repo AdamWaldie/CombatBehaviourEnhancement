@@ -3936,6 +3936,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_support_ack_rejects_expired_exact_reservations(self):
+        ack=source('cortexSupportAck')
+        self.assertIn('count _lease != 6',ack)
+        self.assertIn('_lease isNotEqualTo _snapshot',ack)
+        self.assertIn('_accepted=_accepted && {serverTime < (_lease select 2)}',ack)
+        self.assertIn('serverTime < (_job get "expiry")',ack)
+        self.assertLess(ack.index('_accepted=_accepted'),ack.index('private _prepared='))
     def test_legacy_support_hold_restoration_yields_individual_ownership(self):
         for name in ['cortexSupportMaintain','cortexRetreat','cortexRestoreCalm']:
             text=source(name)
