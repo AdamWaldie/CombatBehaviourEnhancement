@@ -9,7 +9,7 @@ def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(enco
 class CortexOperations(unittest.TestCase):
     def test_role_replacement_consumes_each_donor_and_supports_three_survivors(self):
         step=source('cortexFlankStep')
-        transfer=step.split('while {count _movingAvailable < 2',1)[1].split('if (count _movingAvailable < 2)',1)[0]
+        transfer=step.split('while {count _movingAvailable < _minimumMovers',1)[1].split('if (count _movingAvailable < _minimumMovers)',1)[0]
         self.assertIn('_coverAvailable deleteAt ((count _coverAvailable)-1)',transfer)
         self.assertNotIn('_coverAvailable select ((count _coverAvailable)-1)',transfer)
         self.assertLess(transfer.index('_coverAvailable deleteAt'),transfer.index('_movingAvailable pushBack _replacement'))
@@ -19,7 +19,9 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(step.count('call _ensureMovingTeam'),2)
         issue=step.split('private _issue = {',1)[1].split('private _result =',1)[0]
         self.assertLess(issue.index('call _ensureMovingTeam'),issue.index('_unit doMove _spot'))
-        self.assertIn('count _units >= 2 && {count (_roster select 1) >= 1}',issue)
+        self.assertIn('count _units >= _minimumMovers && {count (_roster select 1) >= 1}',issue)
+        self.assertIn('private _minimumMovers=[2,1] select (!_support && {count _units == 2})',step)
+        self.assertIn('private _minimumStrength=[2,3] select _support',step)
         self.assertIn('count _first < 2 || {count _second < 1}',start)
         self.assertIn('count _fit < 3',coordinator)
         self.assertIn('count _fit >= 3',coordinator)
@@ -4832,11 +4834,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_reason == "COMPLETE") then', end)
         self.assertIn('WAIT_Cortex_DrillResult', end)
 
-    def test_recovery_cannot_launch_a_one_soldier_bound(self):
+    def test_recovery_retains_a_coverer_for_a_survivor_pair(self):
         text = source('cortexFlankStep')
         self.assertIn('private _movingAvailable=(_teams select _turn) select {_x in _available};', text)
-        self.assertIn('count _movingAvailable < 2 && {count _coverAvailable > 2', text)
-        self.assertIn('count _movingAvailable == 1 && {count _coverAvailable == 2}', text)
+        self.assertIn('count _movingAvailable < _minimumMovers && {count _coverAvailable > 1}', text)
+        self.assertIn('count (_roster select 1) >= 1', text)
         self.assertIn('_pendingRecovery isEqualTo []', text)
         self.assertIn('RECOVERY_REINFORCEMENT', text)
         self.assertIn('TEAM_%1_RECOVERY', text)

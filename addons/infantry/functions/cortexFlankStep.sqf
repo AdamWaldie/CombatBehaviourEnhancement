@@ -328,7 +328,12 @@ if (_reinforcements isNotEqualTo []) then {
         _drill set ["boundStart",time];
     };
 };
-if (count _units < ((ceil (_desiredStrength / 2)) max 1)) exitWith {"LOSSES" call _end};
+// Two ordinary survivors can still alternate a covered movement pair. Loss of half the
+// original roster alone is not a reason to discard their committed route; morale owns retreat.
+// Reserved multi-squad roles retain their existing three-person admission contract.
+private _minimumStrength=[2,3] select _support;
+if (count _units < _minimumStrength) exitWith {"LOSSES" call _end};
+private _minimumMovers=[2,1] select (!_support && {count _units == 2});
 // Recovery stays in this existing bounded group job; no per-soldier loop is spawned.
 private _recovery = (_drill getOrDefault ["recovery",[]]) select {(_x select 0) in _units};
 private _recovering = _recovery apply {_x select 0};
@@ -393,8 +398,7 @@ private _ensureMovingTeam={
     private _otherTurn=1-_turn;
     private _movingAvailable=(_teams select _turn) select {_x in _available};
     private _coverAvailable=(_teams select _otherTurn) select {_x in _available};
-    while {count _movingAvailable < 2 && {count _coverAvailable > 2
-        || {count _movingAvailable == 1 && {count _coverAvailable == 2}}}} do {
+    while {count _movingAvailable < _minimumMovers && {count _coverAvailable > 1}} do {
         private _replacement=_coverAvailable deleteAt ((count _coverAvailable)-1);
         (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _replacement);
         (_teams select _turn) pushBack _replacement;
@@ -417,7 +421,7 @@ if (_teams isNotEqualTo []) then {
     private _turn=_drill getOrDefault ["teamTurn",0];
     private _roster=[_turn,_units] call _ensureMovingTeam;
     _roster params ["_movingAvailable","_coverAvailable"];
-    if (count _movingAvailable < 2) then {
+    if (count _movingAvailable < _minimumMovers) then {
         private _pendingRecovery=_recovery select {(_x select 0) in (_teams select _turn)};
         private _exhausted=_pendingRecovery isEqualTo [] || {_pendingRecovery findIf {
             (_x select 1) >= 1 && {time >= (_x select 2)}
@@ -489,7 +493,7 @@ private _issue = {
         // movers before any destination write, not one scheduler interval afterward.
         private _roster=[_drill get "teamTurn",_fit] call _ensureMovingTeam;
         _units=_roster select 0;
-        _viable=count _units >= 2 && {count (_roster select 1) >= 1};
+        _viable=count _units >= _minimumMovers && {count (_roster select 1) >= 1};
     };
     if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
