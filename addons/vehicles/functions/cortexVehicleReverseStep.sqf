@@ -29,7 +29,15 @@ private _release={
             && {(_ownedVehicle getVariable ["WAIT_VehicleReverseOwner",[]]) isEqualTo [_group,_generation]}) then {
             // Matching markers prove the old lease, not authority over a newer external order.
             // Clear those markers on handover without sending driving commands into its owner.
+            private _currentDriver=driver _ownedVehicle;
+            private _currentCommander=effectiveCommander _ownedVehicle;
+            private _crewStillOwned=[_currentDriver,_currentCommander] findIf {
+                isNull _x || {isPlayer _x} || {!local _x} || {!isNull remoteControlled _x}
+                    || {group _x != _group} || {([_x] call WAIT_fnc_CortexExternalOwner) != ""}
+                    || {[_x] call WAIT_fnc_CompatibilityExternalControl}
+            } < 0;
             if (!([_group] call WAIT_fnc_CortexExternalTakeover)
+                && {_crewStillOwned} && {(_record select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
                 && {isNil {_ownedVehicle getVariable "WAIT_ExternalDrivingOwner"}}) then {
                 private _info=vehicleMoveInfo _ownedVehicle;
                 if ((_info param [1,""]) in ["LEFT","RIGHT"]) then {_ownedVehicle sendSimpleCommand "STOPTURNING"};
