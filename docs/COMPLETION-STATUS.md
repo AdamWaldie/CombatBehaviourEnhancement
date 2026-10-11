@@ -2,6 +2,8 @@
 
 Status checked on 2026-10-11. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
 
+Current live batch: `runtime-20261011-145921-734`, sealed candidate `543880e`, 3840x2160 observer Zeus with two headless clients. It is incomplete and has physical CQB and convoy failures; no final totals are claimed. Later repairs through `a2d6770` have static/package validation only: synchronous tactical brain retirement, convoy owner-epoch adoption before queueing, retained predecessor recovery intent and commander-led movement. The running batch does not contain them. Compatibility expansion is deferred until FSM/driving foundations and individual-to-squad behaviours work.
+
 Game audits are authorized in batches. The broad candidate 89812ab batch completed with
 2,375 checks and 462 failed checks. The subsequent coordination candidate b3a9f70 completed
 with 453 checks and 30 failed checks, zero SQF error lines, zero fatal runtime failures and
@@ -93,7 +95,7 @@ Overall: 0 of 65 feature families have full acceptance. All eight addon modules 
 | Support | Artillery, medical, ammunition, civilian and delivery capabilities present or partial | Complete physical outcomes, safety, interruption and cleanup |
 | Compatibility | Ownership adapters and actual headless-provider fixture present | Native HC registration; real specialist coexistence, disconnect and migration |
 | Main | Function registration, settings and operation FSM integration packaged | Complete settings persistence/parity and exact-candidate end-to-end acceptance |
-| Optional engine policies | Separate policy PBOs absent | Implementation, packaging and player-accuracy exclusion proof |
+| Optional engine policies | Separate turret policy PBO packaged, default off and restart-required | Physical lethality, override detection and player-accuracy exclusion proof |
 
 The category table below gives feature-level detail. Blockers B1-B7 define the progression order. Static validation is a gate; physical subsystem acceptance, cross-cutting handover and matched performance checks remain separate gates.
 

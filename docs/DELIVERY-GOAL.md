@@ -43,6 +43,17 @@ The release candidate is successful only when it provides the following in real 
    never proves behaviour. Promotion requires the exact packaged candidate to pass physical audit
    cases.
 
+## Current execution order
+
+1. Stabilise danger FSMs, operation identity, scheduler admission and synchronous retirement.
+2. Rebuild and physically prove General Driving and Convoy as separate use cases on shared safe primitives.
+3. Prove individual combat response, cover, recovery and building movement.
+4. Compose those working primitives into paired movement and squad tactics.
+5. Expand to communicating squads, independent contacts and combined arms.
+6. Complete specialist compatibility expansion and companion integration acceptance.
+
+This order changes delivery priority, not product scope. Existing Zeus, player, external-owner and locality safeguards remain mandatory at every stage. Assessment of local behavioural methods feeds each stage; packaging and detection do not establish implementation parity. Run physical retests in consolidated batches against a sealed candidate.
+
 ## Work packages and exit criteria
 
 | Package | It is complete only when… | Current position |
