@@ -322,6 +322,7 @@ if (_nativeOnly) exitWith {};
     private _clearingMembers=+_members;
     private _memberVisits=_clearingMembers apply {[]};
     private _originalAttack=attackEnabled leader _group;
+    private _originalSpeedLimits=_members apply {getForcedSpeed _x};
     private _accepted=[_group,_house] call WAIT_fnc_CortexClearBuilding;
     [format ["CLEAR-fresh-%1-accepted",_size],_accepted] call _check;
     [format ["CLEAR-fresh-%1-owned-attack-delegation",_size],_accepted && {!attackEnabled leader _group},
@@ -448,10 +449,14 @@ if (_nativeOnly) exitWith {};
     // A fresh ordinary waypoint must take control even when some rooms were unreachable.
     private _destination=_site vectorAdd [75,-30,0];
     private _beforeMove=_members apply {getPosATL _x};
+    // One real external edit must survive cancellation; other actors must release
+    // their unchanged indoor caps to the pre-operation baseline.
+    private _editedActor=_members select ((count _members)-1);
+    _editedActor forceSpeed 8;
     private _waypoint=_group addWaypoint [_destination,0];
     _waypoint setWaypointType "MOVE";
     _group setCurrentWaypoint _waypoint;
-    [format ["Clearance handover: %1 soldiers",_size],"After the recorded clearance result, the same soldiers must follow an ordinary waypoint away from the building. No cleanup function or movement reset is injected before this check.",_destination] call _phase;
+    [format ["Clearance handover: %1 soldiers",_size],"After the recorded clearance result, the same soldiers must follow an ordinary waypoint away from the building. No cleanup function or movement reset is injected before this check. One actor receives an external speed-limit edit; it must survive while unchanged WAIT indoor limits release.",_destination] call _phase;
     private _moved=[{
         private _allMoved=true;
         {
@@ -460,6 +465,17 @@ if (_nativeOnly) exitWith {};
         _allMoved
     },90] call _wait;
     [format ["CLEAR-fresh-%1-handover-physical",_size],_moved,str (_members apply {getPosATL _x})] call _check;
+    private _speedReleased=true;
+    {
+        if (_x != _editedActor && {abs ((getForcedSpeed _x)-(_originalSpeedLimits select _forEachIndex)) > 0.1}) then {
+            _speedReleased=false;
+        };
+    } forEach _members;
+    [format ["CLEAR-fresh-%1-handover-owned-speed-release",_size],_speedReleased,
+        str [_originalSpeedLimits,_members apply {getForcedSpeed _x}]] call _check;
+    [format ["CLEAR-fresh-%1-handover-external-speed-preserved",_size],abs ((getForcedSpeed _editedActor)-8) <= 0.1,
+        str [netId _editedActor,getForcedSpeed _editedActor]] call _check;
+
     sleep 8;
     [_group] call WAIT_fnc_CortexClearRelease;
     missionNamespace setVariable ["WAIT_CortexQA_Rooms",[],true];
