@@ -28,6 +28,7 @@
 
 params [["_job", {}, [{}]], ["_state", createHashMap, [createHashMap]], ["_delay", 0, [0]], ["_jobKey", "", [""]]];
 private _group = _state getOrDefault ["group", grpNull];
+if ("group" in _state && {isNull _group}) exitWith {};
 // A queue is not an ownership-adoption boundary. Preserve supplied authority proof:
 // stamping today's epoch onto an old brain would make stale work appear current.
 if (!isNull _group && {!local _group

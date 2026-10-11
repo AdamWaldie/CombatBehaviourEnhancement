@@ -65,6 +65,12 @@ private _epochsRetired=[{
 ["SCHED-keyed-epoch-no-old-execution",_epochsRetired && {(_oldEpochState get "calls") == 0}
     && {(_newEpochState get "ownerEpoch") == 7},str [_oldEpochState get "calls",_newEpochState get "calls"]] call _check;
 deleteGroup _epochGroup;
+private _deletedGroup=createGroup [east,false];
+private _deletedState=createHashMapFromArray [["group",_deletedGroup],["calls",0]];
+[_coalesceCallback,_deletedState,1,"WAIT_QA_DELETED_"+str diag_tickTime] call WAIT_fnc_CortexQueueJob;
+deleteGroup _deletedGroup;
+private _deletedRetired=[{(_deletedState getOrDefault ["skippedReason",""]) == "LOCALITY"},10] call _wait;
+["SCHED-deleted-group-no-execution",_deletedRetired && {(_deletedState get "calls") == 0},str (_deletedState get "calls")] call _check;
 private _groups=[];
 private _actors=[];
 private _states=[];
