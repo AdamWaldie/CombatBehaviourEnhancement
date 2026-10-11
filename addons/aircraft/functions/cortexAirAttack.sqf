@@ -416,19 +416,36 @@ if (_stage == "") then {
     _aircraft setVariable ["WAIT_Cortex_AirAttackSelectedWeapon",_plan getOrDefault ["selectedWeapon",""]];
     _aircraft setVariable ["WAIT_Cortex_AirAttackSelectedMagazine",_plan getOrDefault ["selectedMagazine",""]];
     private _handler=_aircraft addEventHandler ["Fired",{
-        params ["_aircraft","_weapon","","","","_magazine","_projectile"];
+        params ["_aircraft","_weapon","","","","_magazine","_projectile",["_operator",objNull]];
+        if (isNull _operator) then {_operator=currentPilot _aircraft};
         private _selectedWeapon=_aircraft getVariable ["WAIT_Cortex_AirAttackSelectedWeapon",""];
         private _selectedMagazine=_aircraft getVariable ["WAIT_Cortex_AirAttackSelectedMagazine",""];
         private _selectedRelease=_weapon == _selectedWeapon
             && {_selectedMagazine != ""} && {_magazine == _selectedMagazine};
-        if (_selectedRelease) then {
+        private _brain=_aircraft getVariable ["WAIT_AirAttack_Brain",createHashMap];
+        private _liveJob=_brain getOrDefault ["job",createHashMap];
+        private _fireGroup=_liveJob getOrDefault ["group",grpNull];
+        if (isNull _fireGroup) then {_fireGroup=group currentPilot _aircraft};
+        private _ownsRelease=(_liveJob getOrDefault ["firedHandler",-1]) == _thisEventHandler
+            && {!(_brain getOrDefault ["finished",false])}
+            && {!(_brain getOrDefault ["cancelled",false])}
+            && {!isNull _operator} && {local _operator} && {!isPlayer _operator}
+            && {isNull remoteControlled _operator}
+            && {([_operator] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_operator] call WAIT_fnc_CompatibilityExternalControl)}
+            && {[_aircraft,"AIR_ATTACK",_liveJob getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid}
+            && {!isNull _fireGroup} && {!([_fireGroup] call WAIT_fnc_CortexZeusHeld)}
+            && {!([_fireGroup] call WAIT_fnc_CortexExternalTakeover)};
+        if (_selectedRelease && {_ownsRelease}) then {
             _aircraft setVariable ["WAIT_Cortex_AirAttackShots",(_aircraft getVariable ["WAIT_Cortex_AirAttackShots",0])+1];
             // Preserve native ballistics and seeker behaviour, but give the projectile the hostile
             // already selected by its operator. fireAtTarget alone can launch a guided pylon round
             // without a missile target, producing the observed straight-line ground and A2A misses.
             private _guidedWeapon=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidedWeapon",""];
             private _guidedTarget=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidanceTarget",objNull];
-            if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}) then {
+            if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}
+                && {(_liveJob getOrDefault ["stage",""]) in ["INGRESS","ATTACK"]}
+                && {!captive _guidedTarget} && {(side _fireGroup) getFriend side _guidedTarget < 0.6}) then {
                 private _targetAccepted=_projectile setMissileTarget _guidedTarget;
                 // Air seekers track the object directly. Ground seekers also need one immutable
                 // aim point when their ammo explicitly supports manual point guidance. This is one

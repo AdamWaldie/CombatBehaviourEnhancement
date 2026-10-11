@@ -5939,7 +5939,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('WAIT_Cortex_AirAttackSelectedMagazine',controller)
         self.assertIn('private _selectedRelease=_weapon == _selectedWeapon',controller)
         self.assertIn('&& {_selectedMagazine != ""} && {_magazine == _selectedMagazine};',controller)
-        self.assertIn('if (_selectedRelease) then {',controller)
+        self.assertIn('if (_selectedRelease && {_ownsRelease}) then {',controller)
+        self.assertIn('== _thisEventHandler',controller)
+        self.assertIn('call WAIT_fnc_FlightLeaseValid',controller)
         self.assertIn('&& {(_x select 0) == _selectedMagazine}',controller)
         self.assertNotIn('(_x select 0) == _selectedMagazine || {(_x select 0) in compatibleMagazines _weapon}',controller)
 
