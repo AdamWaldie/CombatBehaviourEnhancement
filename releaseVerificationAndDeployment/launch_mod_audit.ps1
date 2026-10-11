@@ -26,6 +26,7 @@ $repo=Split-Path $PSScriptRoot -Parent
 if (!$Package) { $Package=Join-Path $repo '.hemttout/build' }
 if ($BatchMode -eq 'normal' -and $HeadlessClients -ne 0) {throw 'Normal batches require zero HCs; use BatchMode headless for migration tests'}
 if ($BatchMode -eq 'headless' -and $HeadlessClients -ne 2) {throw 'Headless batches require two HCs for split-owner acceptance'}
+if ($Focus -in @('performancecontact','performancemixed') -and $BatchMode -ne 'headless') {throw 'Multi-owner performance requires a dedicated headless batch; use standaloneperformance for normal comparisons'}
 if ($ServerOnly -and $Focus -ne 'dangerload') {throw 'ServerOnly is restricted to the dangerload loader diagnostic.'}
 if (!$ArmaPath) {
     $ArmaPath=(Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\bohemia interactive\arma 3').main

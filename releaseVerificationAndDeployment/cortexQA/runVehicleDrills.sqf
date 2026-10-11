@@ -819,7 +819,9 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 // Keeping it independent preserves the original disabled/enabled comparison and prevents a failed
 // migration precondition from consuming that result.
 private _hcOwners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 ["WITHDRAW-MIGRATION-headless-prerequisite",_hcOwners isNotEqualTo [],str _hcOwners] call _check;
+} else {_hcOwners=[]};
 if (_hcOwners isNotEqualTo []) then {
     private _hcOwner=_hcOwners select 0;
     [createHashMapFromArray [
