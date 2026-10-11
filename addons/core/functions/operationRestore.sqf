@@ -19,14 +19,22 @@ if ((_current getOrDefault ["generation",-1]) != (_operation getOrDefault ["gene
 private _restore=_operation getOrDefault ["restore",createHashMap];
 private _attack=_restore getOrDefault ["groupAttack",[]];
 if (count _attack != 2 || {!((_attack select 0) isEqualType true)} || {!((_attack select 1) isEqualType true)}) exitWith {false};
+private _report={
+    params ["_restored","_decision"];
+    _group setVariable ["WAIT_OperationRestoreResult",[
+        _operation get "generation",toUpperANSI _reason,_decision,serverTime,
+        +_attack,attackEnabled _group,_restored],true];
+    _restored
+};
 _restore deleteAt "groupAttack";
 private _members=units _group;
 if (count _members > 64 || {[_group] call WAIT_fnc_CompatibilityExternalControl}
-    || {_members findIf {isPlayer _x || {([_x] call WAIT_fnc_CortexExternalOwner) != ""} || {[_x] call WAIT_fnc_CompatibilityExternalControl}} >= 0}) exitWith {false};
+    || {_members findIf {isPlayer _x || {([_x] call WAIT_fnc_CortexExternalOwner) != ""} || {[_x] call WAIT_fnc_CompatibilityExternalControl}} >= 0}) exitWith {[false,"EXTERNAL_OWNER"] call _report};
 private _anchor=leader _group;
-if (isNull _anchor || {attackEnabled _anchor != (_attack select 1)}
-    || {(_attack select 0) == (_attack select 1)}) exitWith {false};
+if (isNull _anchor) exitWith {[false,"NO_LEADER"] call _report};
+if (attackEnabled _anchor != (_attack select 1)) exitWith {[false,"POLICY_CHANGED"] call _report};
+if ((_attack select 0) == (_attack select 1)) exitWith {[false,"UNCHANGED_BASELINE"] call _report};
 // A later different setting belongs to its new owner. Restoring this unchanged boolean does
 // not issue an attack or alter a Zeus waypoint, target, posture or movement command.
 _group enableAttack (_attack select 0);
-true
+[true,"RESTORED"] call _report
