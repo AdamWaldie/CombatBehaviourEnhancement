@@ -5250,7 +5250,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('!([_group] call WAIT_fnc_CortexExternalTakeover)',tick)
         self.assertIn('[_group,false,_restore,_registered,"EXTERNAL"] call WAIT_fnc_ConvoyReleaseLocal;',tick)
         for command in ['_lead forceSpeed _ownedSpeed',
-                        '(driver _lead) doMove _watchedPosition',
+                        '_leadOperator doMove _watchedPosition',
                         '_movementOperator doMove _destination',
                         '_vehicle setDriveOnPath _path']:
             self.assertLess(tick.rindex('[] call _mayIssueDriving',0,tick.index(command)+len(command)),tick.index(command))

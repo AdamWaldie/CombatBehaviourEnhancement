@@ -106,6 +106,8 @@ if (_vehicles isEqualTo []) exitWith {
     };
 };
 private _lead = _vehicles select 0;
+private _leadOperator=effectiveCommander _lead;
+if (isNull _leadOperator) then {_leadOperator=driver _lead};
 if (!(vehicle leader _group in _vehicles)) then {_group selectLeader driver _lead};
 if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault ["lead", objNull]) != _lead} || {_vehicles isNotEqualTo (_state getOrDefault ["vehicles", []])}) then {
     // A local halt/resume or speed edit must not discard the predecessor route.
@@ -265,7 +267,7 @@ if ([_group,"WAIT_Convoy_RouteRecovery_Enable",true] call WAIT_fnc_CortexFeature
             && {_lead distance2D _watchedPosition > (_watchedRadius max 20)+75}) then {
             if ([] call _mayIssueDriving) then {
                 _group setCurrentWaypoint _watchedWaypoint;
-                (driver _lead) doMove _watchedPosition;
+                _leadOperator doMove _watchedPosition;
                 _state set ["routeRecoveryAt",time+15];
                 private _recoveries=(_group getVariable ["WAIT_Convoy_RouteRecoveries",0])+1;
                 _group setVariable ["WAIT_Convoy_RouteRecoveries",_recoveries,true];
@@ -426,7 +428,7 @@ if (!_routeDone && {_leadLimit > 0} && {_waypointIndex < count waypoints _group}
         private _attempts=(_leadProgress param [2,0])+1;
         if (_attempts > 3) then {
             [_group,_revision,([_lead] call _classifyStall),[],_lead] remoteExecCall ["WAIT_fnc_ConvoyHaltServer",2];
-        } else {if ([] call _mayIssueDriving) then {driver _lead doMove _destination}};
+        } else {if ([] call _mayIssueDriving) then {_leadOperator doMove _destination}};
         _leadProgress set [2,_attempts];
     };
     _leadProgress set [0,getPosATL _lead]; _leadProgress set [1,time];
