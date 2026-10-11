@@ -531,12 +531,12 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 // Formation following can overtake an escort and obstruct its weapon sector.
                 private _recoveryTarget=+(_progress param [5,[],[[]]]);
                 if (_recoveryTarget isEqualTo []) then {_recoveryTarget=+(_progress param [6,[],[[]]])};
-                if (count _recoveryTarget >= 2) then {
-                    private _behind=(getPosATL _front) vectorDiff _recoveryTarget;
-                    private _frontDirection=vectorDir _front;
-                    _behind set [2,0];
-                    _frontDirection set [2,0];
-                    if ((_behind vectorDotProduct _frontDirection) >= 0) then {
+                if (count _recoveryTarget == 3) then {
+                    // A turn changes the predecessor's heading, not the validity of
+                    // its recorded route. Reuse only a real retained trail point;
+                    // this bounded lookup runs on the existing stalled-actor cadence.
+                    private _recorded=_trail findIf {(_x vectorDistance _recoveryTarget) <= 1};
+                    if (_recorded >= 0) then {
                         // Navigation endpoints may lie inside the spacing band; the
                         // speed controller remains responsible for the physical gap.
                         // Keep one movement controller during bounded recovery.
