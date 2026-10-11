@@ -20,7 +20,7 @@ private _failures = [];
 private _focus = missionNamespace getVariable ["WAIT_CortexQA_Focus","all"];
 missionNamespace setVariable ["WAIT_CortexQA_Results",[],true];
 private _phase = {
-    params ["_title","_expected","_position"];
+    params ["_title","_expected",["_position",[],[[]]]];
     // Zeus camera travel does not move the player used by production distance tiers.
     // Relocate only the protected audit observer, never fixture AI or their targets.
     if (count _position >= 2) then {
