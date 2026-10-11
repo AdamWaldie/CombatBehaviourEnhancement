@@ -757,21 +757,52 @@ for "_sample" from 1 to 15 do {
 ["WITHDRAW-disabled-holds",_withdrawContact && {_disabledTravel <= 5} && {_disabledCrewRetained},str _disabledTravel] call _check;
 ["WITHDRAW-disabled-no-smoke",(_armour getVariable ["WAIT_CortexQA_SmokeShots",0]) == 0] call _check;
 _origin=getPosATL _armour;
-[createHashMapFromArray [["WAIT_AIPass_VehicleWithdraw_Enable",true]]] call WAIT_fnc_CortexTuning;
+private _savedReverseLimits=createHashMapFromArray [
+    ["WAIT_AIPass_VehicleReverse_Enable",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Enable",true]],
+    ["WAIT_AIPass_VehicleReverse_Distance",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Distance",30]],
+    ["WAIT_AIPass_VehicleReverse_Timeout",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Timeout",20]],
+    ["WAIT_AIPass_VehicleReverse_FacingTolerance",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_FacingTolerance",35]]
+];
+[createHashMapFromArray [["WAIT_AIPass_VehicleWithdraw_Enable",true],
+    ["WAIT_AIPass_VehicleReverse_Enable",true],["WAIT_AIPass_VehicleReverse_Distance",20],
+    ["WAIT_AIPass_VehicleReverse_Timeout",25],["WAIT_AIPass_VehicleReverse_FacingTolerance",30]]] call WAIT_fnc_CortexTuning;
 ["Damaged armour withdrawal","Withdrawal is now enabled on the same APC. It must fire actual defensive smoke and drive at least 40 m away from the visible threat, retaining all operating crew.",[1900,1100,0]] call _phase;
 private _reversePhysical=false;
 private _reverseFacing=false;
+private _reverseLimitsObserved=false;
+private _reverseLimitsStable=true;
+private _reverseDeadline=-1;
+private _reverseEditSent=false;
 private _withdrawn=[{
     private _reverse=_group getVariable ["WAIT_VehicleReverse",[]];
+    if (count _reverse == 9 && {(_reverse select 0) == _armour}) then {
+        private _limits=(_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["reverseLimits",[]];
+        _reverseLimitsObserved=_reverseLimitsObserved || {_limits isEqualTo [20,25,30]};
+        _reverseLimitsStable=_reverseLimitsStable && {_limits isEqualTo [20,25,30]};
+        if (!_reverseEditSent) then {
+            _reverseDeadline=_reverse select 5;
+            _reverseEditSent=true;
+            [createHashMapFromArray [["WAIT_AIPass_VehicleReverse_Distance",50],
+                ["WAIT_AIPass_VehicleReverse_Timeout",5],["WAIT_AIPass_VehicleReverse_FacingTolerance",60]]] call WAIT_fnc_CortexTuning;
+        } else {
+            _reverseLimitsStable=_reverseLimitsStable && {(_reverse select 5) == _reverseDeadline};
+        };
+    };
     if (count _reverse == 9 && {(_reverse select 0) == _armour}
         && {(_armour distance2D _origin) >= 8}
         && {(velocityModelSpace _armour select 1) < -0.5}) then {
         _reversePhysical=true;
         private _bearing=_armour getRelDir (getPosATL _enemy);
-        _reverseFacing=_reverseFacing || {_bearing <= 45 || {_bearing >= 315}};
+        _reverseFacing=_reverseFacing || {_bearing <= 30 || {_bearing >= 330}};
     };
     _armour distance2D _origin > 40 && {_armour distance2D _enemy > (_origin distance2D _enemy)+30}
 },100] call _wait;
+["WITHDRAW-tracked-captured-limits",_reverseLimitsObserved] call _check;
+["WITHDRAW-tracked-next-operation-edit",_reverseEditSent && {_reverseLimitsStable}
+    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Distance",-1]) == 50}
+    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Timeout",-1]) == 5}
+    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_FacingTolerance",-1]) == 60}] call _check;
+[_savedReverseLimits] call WAIT_fnc_CortexTuning;
 ["WITHDRAW-tracked-physical-reverse",_withdrawContact && {_reversePhysical},str [getPosATL _armour,vehicleMoveInfo _armour,
     _group getVariable ["WAIT_VehicleReverseEnd",[]],
     _group getVariable ["WAIT_VehicleReverseFallback",[]],
