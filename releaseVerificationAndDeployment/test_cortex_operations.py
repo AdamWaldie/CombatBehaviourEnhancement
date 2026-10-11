@@ -2018,6 +2018,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('&& {[_x] call _mayIssueMovement}',text)
             self.assertIn('WAIT_Cortex_ActorMove',text)
             self.assertIn('currentCommand _actor in [',text)
+            self.assertGreaterEqual(text.count('_actor checkAIFeature "MOVE"'),2)
         self.assertIn('if ([_x] call _mayIssueMovement) then {',garrison)
         self.assertIn('private _openedDoor = if ([_x] call _mayIssueMovement)',garrison)
         self.assertIn('WAIT_Cortex_ActorMove',garrison)

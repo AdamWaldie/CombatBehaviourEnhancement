@@ -30,7 +30,8 @@
  * Each actor must remain combat-effective and free of player/specialist ownership before
  * initial movement or an arrival PATH lock; captive and surrendered actors are never retasked.
  * Actor reservations and finite native service, boarding and assembly tasks defer garrison commands
- * independently, allowing other available soldiers to continue their routes.
+ * independently, allowing other available soldiers to continue their routes. Mission-owned MOVE
+ * restrictions also prevent commands; this controller never enables MOVE.
  *
  * Review contract: Arrival jobs carry a local generation token, so replacing an order retires older work. PATH restoration is recorded publicly only when this pass disables it.
  *
@@ -63,6 +64,7 @@ private _mayIssueMovement = {
         || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
     !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
+        && {_actor checkAIFeature "MOVE"}
         && {[_actor] call WAIT_fnc_CortexCombatEffective}
         && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
@@ -179,6 +181,7 @@ private _buildingAnchor = {
             || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
         !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
             && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
+        && {_actor checkAIFeature "MOVE"}
             && {[_actor] call WAIT_fnc_CortexCombatEffective}
             && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
