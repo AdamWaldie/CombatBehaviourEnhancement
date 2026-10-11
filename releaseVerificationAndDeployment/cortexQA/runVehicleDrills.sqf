@@ -4,6 +4,7 @@
  * classification, effective-commander mounted-contact persistence, contact dismount,
  * calm remount and damaged-armour withdrawal using live vehicles, including an active withdrawal
  * migrating from the server to a real headless owner before Zeus replacement.
+ * Standalone driving also measures native travel, a condition-gated wait, resume and disabled cleanup.
  * Locality/authority: scheduled server creates disposable fixtures; production Cortex code commands
  * each current owner, and the migration case deliberately transfers its crew group and vehicle.
  * Repeat/JIP: fresh fixtures and public observer state; caller restores tuning, actors are deleted.
@@ -1003,3 +1004,69 @@ private _handoverArrived=[{_handoverActor distance2D _handoverDestination <= 5
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach [_handoverActor,_handoverLeader,_handoverVehicle];
 deleteGroup _handoverGroup;
+
+private _drivePreviousSettings=createHashMapFromArray [
+    ["WAIT_AIPass_Enable",missionNamespace getVariable ["WAIT_AIPass_Enable",true]],
+    ["WAIT_AIPass_Contact_Enable",missionNamespace getVariable ["WAIT_AIPass_Contact_Enable",true]],
+    ["WAIT_AIPass_DrivingAssist_Enable",missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_Enable",true]]
+];
+// Standalone driving is distinct from registered convoy coordination. Exercise native orders,
+// never call the assistance callback manually or assign successful recovery/progress state.
+[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],
+    ["WAIT_AIPass_DrivingAssist_Enable",true]]] call WAIT_fnc_CortexTuning;
+private _driveVehicle=createVehicle ["O_Truck_03_transport_F",[3500,1700,0],[],0,"NONE"];
+createVehicleCrew _driveVehicle;
+private _driveDriver=driver _driveVehicle;
+private _driveGroup=group _driveDriver;
+_driveGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_driveGroup setVariable ["acex_headless_blacklist",true,true];
+_driveGroup setBehaviour "SAFE";
+_driveGroup setSpeedMode "FULL";
+private _driveOrigin=getPosATL _driveVehicle;
+private _driveGate=[3580,1700,0];
+private _driveOnward=[3580,1780,0];
+private _driveWP=_driveGroup addWaypoint [_driveGate,0];
+_driveWP setWaypointType "MOVE";
+_driveWP setWaypointCompletionRadius 5;
+_driveWP setWaypointStatements ["false",""];
+private _driveNext=_driveGroup addWaypoint [_driveOnward,0];
+_driveNext setWaypointType "MOVE";
+_driveNext setWaypointCompletionRadius 5;
+_driveGroup setCurrentWaypoint _driveWP;
+_driveDriver setVariable ["WAIT_CortexQA_Label","STANDALONE DRIVER: CONDITION WAIT",true];
+_driveDriver setVariable ["WAIT_CortexQA_Target",_driveGate,true];
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[_driveDriver,_driveVehicle],true];
+["Standalone driving: authored wait","The truck must travel to its native MOVE waypoint, wait on its false condition, then continue when that condition is released. No convoy or manual assistance callback is used.",_driveGate] call _phase;
+private _driveReady=!isNull _driveDriver && {local _driveVehicle} && {simulationEnabled _driveVehicle}
+    && {count crew _driveVehicle == 1} && {!(_driveVehicle getVariable ["WAIT_Convoy_Active",false])};
+["DRIVING-native-fixture-ready",_driveReady] call _check;
+private _driveArrived=[{_driveVehicle distance2D _driveGate <= 12
+    && {_driveVehicle distance2D _driveOrigin >= 60}},100] call _wait;
+["DRIVING-native-physical-travel",_driveReady && {_driveArrived},str getPosATL _driveVehicle] call _check;
+private _driveManaged=(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo [];
+["DRIVING-contact-disabled-independent-assistance",_driveArrived && {_driveManaged}] call _check;
+private _driveHeld=true;
+for "_driveSample" from 1 to 20 do {
+    sleep 1;
+    private _driveState=_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]];
+    if (_driveVehicle distance2D _driveGate > 15
+        || {currentWaypoint _driveGroup != (_driveWP select 1)}
+        || {(_driveState param [8,""]) in ["ROUTE_REFRESH","CAUTIOUS_REVERSE","FINAL_ROUTE_RETRY"]}) then {_driveHeld=false};
+};
+["DRIVING-authored-condition-wait-preserved",_driveArrived && {_driveHeld},
+    str [getPosATL _driveVehicle,currentWaypoint _driveGroup,_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]]] call _check;
+// Releasing the real waypoint condition is a fixture input, not fabricated controller success.
+_driveWP setWaypointStatements ["true",""];
+_driveDriver setVariable ["WAIT_CortexQA_Target",_driveOnward,true];
+private _driveResumed=[{_driveVehicle distance2D _driveOnward <= 12
+    && {_driveVehicle distance2D _driveGate >= 60}},100] call _wait;
+["DRIVING-condition-release-physical-resume",_driveArrived && {_driveHeld} && {_driveResumed},str getPosATL _driveVehicle] call _check;
+[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_Enable",false]]] call WAIT_fnc_CortexTuning;
+private _driveReleased=[{(_driveVehicle getVariable ["WAIT_DrivingAssist_Restore",[]]) isEqualTo []
+    && {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isEqualTo []}},15] call _wait;
+["DRIVING-disabled-owned-state-release",_driveManaged && {_driveReleased}] call _check;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach crew _driveVehicle;
+deleteVehicle _driveVehicle;
+deleteGroup _driveGroup;
+[_drivePreviousSettings] call WAIT_fnc_CortexTuning;
