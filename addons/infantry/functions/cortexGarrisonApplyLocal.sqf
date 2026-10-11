@@ -17,7 +17,7 @@
  * upright at assault pace until they reach their post.
  * Nearby units try the interior destination directly, matching the engine path that works on viable
  * building models, then try up to four usable entrances nearest-first as bounded recovery.
- * Twelve seconds without two metres of progress retries the current leg twice, including commands
+ * Twelve seconds without two metres of three-dimensional approach progress retries the current leg twice, including commands
  * still reporting MOVE. While still approaching the building it then advances to another entrance.
  * Once the soldier has reached an entrance, an interior stall reassigns a free alternative position
  * instead of sending the soldier back outside through another door. Reassignment is attempted twice
@@ -236,7 +236,8 @@ private _buildingAnchor = {
                             _route set [3,time]; _route set [4,0]; _route set [10,false];
                             _x doMove (_assignment select 0);
                         } else {
-                        if (_x distance2D _lastPosition >= 2) then {
+                        // Lateral wandering does not renew a stalled interior route. Include floor height.
+                        if ((_lastPosition vectorDistance _target)-((getPosATL _x) vectorDistance _target) >= 2) then {
                             _route set [2,getPosATL _x]; _route set [3,time];
                         } else {
                             if (time-_lastProgress >= 12) then {

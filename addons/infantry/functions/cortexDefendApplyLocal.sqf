@@ -11,7 +11,8 @@
  * actors; established line soldiers retain their hold and route generation. A job stops each selected
  * soldier only on arrival and points him at
  * his sector. Each route leg has one native doMove owner. Each soldier has an independent
- * physical-progress watchdog: measured travel renews the lease, inactivity causes a bounded route
+ * physical-progress watchdog: measured three-dimensional approach renews the lease; lateral
+ * wandering does not. Inactivity causes a bounded route
  * refresh, and only exhausted refreshes record failure.
  * Scheduler delay and temporary Zeus ownership do not consume recovery attempts.
  * Locality and authority: call where the group is local.
@@ -117,7 +118,9 @@ private _mayIssueMovement = {
                 _pending = _pending + 1;
                 private _route=_routes select _routeIndex;
                 _route params ["_routeUnit","_lastPosition","_lastProgress","_retries","_actorGeneration"];
-                if (_unit distance2D _lastPosition >= 1) then {
+                private _destination=_assignment select 0;
+                // Only approach to the committed post renews progress, not circles around it.
+                if ((_lastPosition vectorDistance _destination)-((getPosATL _unit) vectorDistance _destination) >= 1) then {
                     _route set [1,getPosATL _unit];
                     _route set [2,time];
                 } else {
