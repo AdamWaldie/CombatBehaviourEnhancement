@@ -281,7 +281,7 @@ private _dangerVehicleSafety=_dangerActive && {_dangerActionName == "VEHICLE"};
 private _physicalCoverCause=(_dangerResponse param [0,"",[""]]) in ["HIT","EXPLOSION","SUPPRESSED","GUNFIRE"];
 if (_dangerActive && {_dangerActionName == "HIDE"} && {_physicalCoverCause}) then {
     [_group,_dangerCoverActor,_dangerResponse select 1,_dangerResponse select 4] call WAIT_fnc_DangerCoverStep;
-    [_group,_dangerResponse select 4,true,_dangerResponse select 0] call WAIT_fnc_DangerGroupHideStep;
+    [_group,_dangerResponse select 4,true,_dangerResponse select 0,_dangerCoverActor] call WAIT_fnc_DangerGroupHideStep;
 } else {
     private _coverLease=_group getVariable ["WAIT_Danger_CoverLease",[]];
     if (count _coverLease >= 2) then {
