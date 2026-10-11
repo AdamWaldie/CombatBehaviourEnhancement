@@ -185,7 +185,7 @@ private _delay=call {
                             };
                             // Opening an unlocked door does not replace a moving route. The engine
                             // observes the opened door; only measured no-progress permits one retry.
-                            [_unit,_job get "building"] call WAIT_fnc_CortexBuildingDoor;
+                            [_unit,_job get "building",["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
                             if (time-(_record select 2) >= 8 && {(_record select 3) < 1}
                                 && {[_unit] call _actorAvailable} && {call _mayIssueMovement}) then {
                                 _unit doMove _target;
@@ -475,7 +475,7 @@ private _delay=call {
                     {
                         private _unit=_x;
                         // Opening a door does not replace an already committed native path.
-                        [_unit,_job get "building"] call WAIT_fnc_CortexBuildingDoor;
+                        [_unit,_job get "building",["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
                         if (_issue && {call _mayIssueMovement}) then {
                             private _started=_job get "started";
                             if !(_unit in _started) then {

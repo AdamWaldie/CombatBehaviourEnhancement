@@ -6,16 +6,29 @@
  * Door model metadata is cached per building on each owner; locks are always read live.
  * Only combat-effective ordinary actors may request an opening; capture and specialist ownership
  * are rechecked independently of the group order.
- * Arguments: 0 unit <OBJECT>, default objNull; 1 building <OBJECT>, default objNull.
+ * Arguments: 0 unit <OBJECT>, default objNull; 1 building <OBJECT>, default objNull;
+ * 2 context <ARRAY, []> - optional [CLEAR or GARRISON <STRING>, order generation <NUMBER>].
  * Return: BOOL, an opening request was issued (not proof of entry).
  * Current callers: CortexClearBuilding and CortexGarrisonApplyLocal owner jobs.
  * Example: [_soldier,_house] call WAIT_fnc_CortexBuildingDoor;
  */
-params [["_unit",objNull,[objNull]],["_building",objNull,[objNull]]];
+params [["_unit",objNull,[objNull]],["_building",objNull,[objNull]],["_context",[],[[]]]];
+private _orderCurrent={
+    if (_context isEqualTo []) exitWith {true};
+    if (count _context != 2 || {!((_context select 0) isEqualType "")} || {!((_context select 1) isEqualType 0)}) exitWith {false};
+    private _group=group _unit;
+    private _key=switch (_context select 0) do {
+        case "CLEAR": {"WAIT_AIPass_ClearGeneration"};
+        case "GARRISON": {"WAIT_AIPass_GarrisonGeneration"};
+        default {""};
+    };
+    local _group && {_key != ""} && {(_group getVariable [_key,-1]) == (_context select 1)}
+};
 if (isNull _unit || {isNull _building} || {!local _unit} || {!([_unit] call WAIT_fnc_CortexCombatEffective)}
     || {isPlayer _unit} || {[group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover}
     || {vehicle _unit != _unit} || {!alive _building}
     || {!([group _unit] call WAIT_fnc_CortexIsEligible)}) exitWith {false};
+if !(call _orderCurrent) exitWith {false};
 if (serverTime < (_building getVariable ["WAIT_Cortex_DoorRequestUntil",-1])) exitWith {false};
 // Model metadata is stable for this object's lifetime. Locks and animation phases are not.
 private _doors=_building getVariable ["WAIT_Cortex_DoorDefinitions",[]];
@@ -41,7 +54,10 @@ private _requested=false;
         // Building pathfinding can discard a closed-door route six to twelve metres before
         // the interaction point. Request the normal unlocked-door action during approach so
         // reaching the threshold is not itself a prerequisite for making the route valid.
-        if ((getPosASL _unit) vectorDistance _position <= 12) exitWith {
+        if ((getPosASL _unit) vectorDistance _position <= 12
+            && {call _orderCurrent} && {[_unit] call WAIT_fnc_CortexCombatEffective}
+            && {!isPlayer _unit} && {isNull remoteControlled _unit}
+            && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) exitWith {
             _building setVariable ["WAIT_Cortex_DoorRequestUntil",serverTime+2,true];
             [_building,_index,1] call BIS_fnc_door;
             _requested=true;

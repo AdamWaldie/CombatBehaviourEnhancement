@@ -178,7 +178,7 @@ private _buildingAnchor = {
             && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
             && {_assignment isNotEqualTo []} && {_x checkAIFeature "PATH"} && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}) then {
             private _openedDoor = if (call _mayIssueMovement) then {
-                [_x,_assignment param [2,objNull]] call WAIT_fnc_CortexBuildingDoor
+                [_x,_assignment param [2,objNull],["GARRISON",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor
             } else {false};
             if (_x distance (_assignment select 0) <= 2) then {
                 // Arrival locks are movement ownership too. Do not freeze or retask a soldier
