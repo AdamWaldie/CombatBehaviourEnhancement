@@ -154,10 +154,17 @@ diag_log format ["WAIT CORTEX QA COMBAT SCOPE: %1",_cases];
             ["Two-survivor manoeuvre","Four scripted casualties isolate role degradation. Both capable survivors must continue the existing bound and fire; a running flag alone cannot pass.",getPosATL (_survivors select 0)] call _phase;
             {_x allowDamage true; _x setDamage 1} forEach (_members-_survivors);
             [_prefix+"-two-capable-survivors",{alive _x} count _members == 2] call _check;
-            private _continued=[{private _travel=true;
-                {if (_x distance2D (_starts select _forEachIndex) < 8) then {_travel=false}} forEach _survivors;
-                _travel},90] call _wait;
-            [_prefix+"-both-survivors-physical-travel",_continued,str (_survivors apply {getPosATL _x})] call _check;
+            private _committedPoints=(_drill get "points") apply {+_x};
+            private _continued=[{
+                private _live=(_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
+                private _travel=(_live getOrDefault ["token",""]) == _drillToken
+                    && {(_live getOrDefault ["points",[]]) isEqualTo _committedPoints}
+                    && {count (_live getOrDefault ["units",[]]) == 2};
+                {if (!alive _x || {_x distance2D (_starts select _forEachIndex) < 8}) then {_travel=false}} forEach _survivors;
+                _travel
+            },90] call _wait;
+            [_prefix+"-both-survivors-owned-physical-travel",_continued,
+                str [_survivors apply {getPosATL _x},_group getVariable ["WAIT_Cortex_DrillResult",[]]]] call _check;
             private _firing=true;
             {if ((_x getVariable ["WAIT_CortexQA_Shots",0]) <= (_beforeShots select _forEachIndex)) then {_firing=false}} forEach _survivors;
             [_prefix+"-survivor-fire",_firing,str (_survivors apply {_x getVariable ["WAIT_CortexQA_Shots",0]})] call _check;
