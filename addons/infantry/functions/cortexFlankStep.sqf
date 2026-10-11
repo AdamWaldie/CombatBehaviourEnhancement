@@ -484,8 +484,12 @@ private _issue = {
     private _combatBehaviours = +(_drill getOrDefault ["combatBehaviours",[]]);
     if (_teams isNotEqualTo []) then {
         {
-            doStop _x;
-            _x doWatch _enemyPos;
+            // Cover is a movement command too. A specialist or newer actor task may
+            // have claimed this soldier since the roster was selected.
+            if ([_x] call _mayIssueMovement) then {
+                doStop _x;
+                _x doWatch _enemyPos;
+            };
         } forEach (_fit - _units);
     };
     {
@@ -575,8 +579,10 @@ switch (_drill get "stage") do {
                 if (_remaining <= 3) then {
                     _arrivedUnits pushBack _unit;
                     if !(_unit in _previousArrivals) then {
-                        doStop _unit;
-                        _unit doWatch _enemyPos;
+                        if ([_unit] call _mayIssueMovement) then {
+                            doStop _unit;
+                            _unit doWatch _enemyPos;
+                        };
                     };
                 } else {
                     _arrived = false;
@@ -604,7 +610,7 @@ switch (_drill get "stage") do {
                         _unit doMove (_spots select _forEachIndex);
                         _retry set [0,(_retry select 0)+1];
                         _retry set [1,_now];
-                        diag_log format ["[WAIT] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5",_group,netId _unit,_drill get "index",_retry select 0,_remaining];
+                        diag_log format ["[WAIT] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,_remaining,currentCommand _unit,expectedDestination _unit,_spots select _forEachIndex,assignedTarget _unit];
                     };
                     if (_now-(_last select 3) > _timeout) then {_stalled = true; _blocked pushBack _unit};
                 };

@@ -1070,7 +1070,9 @@ class CortexOperations(unittest.TestCase):
         bounds=source('cortexFlankStep')
         self.assertIn('&& {[_x] call _actorTaskFree}',bounds)
         self.assertIn('[_actor] call _mayIssueMovement',bounds)
-        self.assertEqual(bounds.count('[_unit] call _mayIssueMovement'),2)
+        self.assertEqual(bounds.count('[_unit] call _mayIssueMovement'),3)
+        cover=bounds.split('forEach (_fit - _units)',1)[0].rsplit('// Cover is a movement command too.',1)[1]
+        self.assertLess(cover.index('[_x] call _mayIssueMovement'),cover.index('doStop _x'))
         self.assertNotIn('{call _mayIssueMovement}',bounds)
         step=source('operationStep')
         temporary=step.split('if (_reserved || {_nativeTask}) then',1)[1].split('if (!_reserved',1)[0]
