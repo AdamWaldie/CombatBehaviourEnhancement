@@ -641,12 +641,31 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 // A long straight look-ahead keeps tracks moving; stop the destination at a bend
                 // so native pathfinding cannot cut across the predecessor's right-angle corner.
                 private _destination = _path select (count _path - 1);
+                private _straightPath=true;
                 if (count _path >= 3) then {
                     for "_j" from 1 to (count _path - 2) do {
                         private _before = (_path select (_j-1)) getDir (_path select _j);
                         private _after = (_path select _j) getDir (_path select (_j+1));
                         private _turn = abs (((_after-_before+540) mod 360)-180);
+                        if (_turn > 5) then {_straightPath=false};
                         if (_turn > 25) exitWith {_destination = _path select _j};
+                    };
+                };
+                // A moving predecessor is not a stopping destination. On an observed
+                // straight MOVE leg, give native planning room beyond that short trail.
+                // Keep bends, holds and waypoint arrival on the actual recorded route.
+                private _routeIndex=currentWaypoint _group;
+                if (_straightPath && {count _path >= 2} && {_frontSpeed > 2}
+                    && {_routeIndex < count waypoints _group}) then {
+                    private _routeWaypoint=[_group,_routeIndex];
+                    private _routeEnd=waypointPosition _routeWaypoint;
+                    private _trailHeading=(_path select 0) getDir _destination;
+                    private _routeHeading=_destination getDir _routeEnd;
+                    private _alignment=abs (((_routeHeading-_trailHeading+540) mod 360)-180);
+                    private _remaining=_destination distance2D _routeEnd;
+                    if (waypointType _routeWaypoint == "MOVE" && {_alignment <= 5}
+                        && {_remaining > (waypointCompletionRadius _routeWaypoint max 20)+40}) then {
+                        _destination=_destination getPos [40 min (_remaining-20),_routeHeading];
                     };
                 };
                 // Native steering does not tolerate a fresh doMove every path-refresh tick: it
