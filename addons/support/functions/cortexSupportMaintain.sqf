@@ -203,11 +203,24 @@ if (_newMove || {!_coordinating}) then {
 if (_coordinating) then {
     if (_moving) then {
         if ((_state getOrDefault ["supportBoundSequence",-1]) != (_role select 1)) then {
+            // Group locality may arrive before member locality. Do not turn that transient
+            // ownership edge into NOT_READY or consume the sequence; the existing server
+            // bound deadline still applies and this allowance lasts at most five seconds.
+            private _settling=_state getOrDefault ["supportBoundSettling",[]];
+            private _settleIdentity=[_token,_role select 1,_group getVariable ["WAIT_AIPass_Epoch",0]];
+            if (count _settling != 2 || {(_settling select 0) isNotEqualTo _settleIdentity}) then {
+                _settling=[_settleIdentity,serverTime+5];
+                _state set ["supportBoundSettling",_settling];
+            };
+            private _localityPending=(units _group) findIf {alive _x && {!local _x}} >= 0;
+            if (!_localityPending || {serverTime >= (_settling select 1)}) then {
             private _started=[_group,_state,_role] call WAIT_fnc_CortexSupportBoundStart;
             if (!_started) then {
                 _state set ["supportBoundSequence",_role select 1];
                 _group setVariable ["WAIT_Cortex_SupportBoundResult",
                     [_token,_role select 1,"NOT_READY"],true];
+            };
+            _state deleteAt "supportBoundSettling";
             };
         };
     } else {
