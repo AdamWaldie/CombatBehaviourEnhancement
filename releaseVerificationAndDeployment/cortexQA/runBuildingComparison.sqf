@@ -146,6 +146,7 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
         } forEach _egressAssignments;
         private _currentOperation=_group getVariable ["WAIT_Operation",createHashMap];
         if ((_group getVariable ["WAIT_AIPass_Epoch",0]) != _entryEpoch
+            || {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "CANCELLED"}
             || {count _currentOperation > 0 && {(_currentOperation getOrDefault ["generation",-1]) != _entryGeneration}}) then {
             _entryOwnerStable=false;
         };
@@ -162,14 +163,16 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
             };
         } forEach _exteriorRooms;
         missionNamespace setVariable ["WAIT_CortexQA_Rooms",[_rooms,_visits],true];
-        ((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE"]
+        ((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]
     },245] call _wait;
+    // Cancellation is terminal, not a successful clearance. Stop sampling promptly; physical
+    // visits and completion assertions below still fail rather than waiting four idle minutes.
     // Preserve the physical sampling budget. Allow only finite controller settlement afterward:
     // a queued owner-local finish may follow the audit deadline by one scheduler interval.
     // This does not count extra visits or force cleanup, and a missing terminal result still fails.
     if (!_settled) then {
         _settled=[{
-            ((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE"]
+            ((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]
         },15] call _wait;
     };
     [format ["CLEAR-fresh-%1-terminal-settlement",_size],_settled,
