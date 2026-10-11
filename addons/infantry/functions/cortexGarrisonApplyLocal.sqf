@@ -12,7 +12,7 @@
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
  * setDestination previously created a second route owner and could leave an actor oscillating or
- * stationary at a threshold. A machine-local, damage-aware building topology cache shares that
+ * stationary at a threshold. A machine-local, damage- and transform-aware building topology cache shares that
  * entrance-anchor lookup between soldiers while refreshing a materially changed structure. Units move
  * upright at assault pace until they reach their post.
  * Nearby units try the interior destination directly, matching the engine path that works on viable
@@ -95,8 +95,12 @@ private _buildingAnchor = {
     if (_cacheKey == "") then {_cacheKey=str _building};
     private _damage=damage _building;
     private _cached=_buildingTopologyCache getOrDefault [_cacheKey,[]];
-    if (_cached isEqualTo [] || {abs ((_cached select 0)-_damage) > 0.05}) then {
-        _cached=[_damage,+(_building buildingPos -1)];
+    // Cached positions are world-space: curator movement invalidates them even
+    // when the building remains undamaged. Old receipts rebuild once on use.
+    private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+    if (count _cached < 3 || {abs ((_cached select 0)-_damage) > 0.05}
+        || {(_cached select 2) isNotEqualTo _transform}) then {
+        _cached=[_damage,+(_building buildingPos -1),_transform];
         _buildingTopologyCache set [_cacheKey,_cached];
         missionNamespace setVariable ["WAIT_Cortex_GarrisonTopology",_buildingTopologyCache];
     };

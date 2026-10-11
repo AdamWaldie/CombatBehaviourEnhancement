@@ -5031,7 +5031,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _buildingTopologyCache=',text)
         self.assertIn('private _cached=_buildingTopologyCache getOrDefault',text)
         self.assertIn('abs ((_cached select 0)-_damage) > 0.05',text)
-        self.assertIn('_cached=[_damage,+(_building buildingPos -1)]',text)
+        self.assertIn('_cached=[_damage,+(_building buildingPos -1),_transform]',text)
         self.assertIn('private _positions=+(_cached select 1)',text)
         self.assertNotIn('if (_openedDoor) then {_route set [3,time]',text)
         self.assertNotIn('unitReady _x',text)
@@ -7490,3 +7490,10 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('private _failureThreshold=(count (_job get "pairs")) min 2',text)
         self.assertIn('private _roomRetryBudget=3*_failureThreshold;',text)
         self.assertIn('serverTime > (_job get "deadline")',text)
+
+    def test_garrison_world_position_cache_invalidates_building_transforms(self):
+        text=source('cortexGarrisonApplyLocal')
+        self.assertIn('private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building]',text)
+        self.assertIn('(_cached select 2) isNotEqualTo _transform',text)
+        self.assertIn('_cached=[_damage,+(_building buildingPos -1),_transform]',text)
+        self.assertIn('count _cached < 3',text)
