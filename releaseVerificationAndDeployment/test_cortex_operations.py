@@ -7,6 +7,22 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'addons/main/functions/Cortex'
 def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encoding='utf-8')
 class CortexOperations(unittest.TestCase):
+    def test_drill_adoption_reuses_destinations_without_cover_replanning(self):
+        step=source('cortexFlankStep')
+        branch=step.split('if (_resumeIndex >= 0) then {',1)[1].split('_spots pushBack _spot;',1)[0]
+        retained,replan=branch.split('} else {',1)
+        self.assertIn('(_resumeSpots select _resumeIndex) select 1',retained)
+        self.assertNotIn('CortexFindCover',retained)
+        self.assertNotIn('surfaceNormal',retained)
+        self.assertIn('CortexFindCover',replan)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text()
+        self.assertIn('_helpers select [0,16]',qa)
+        self.assertIn('true,8,"VIEW","GEOM"',qa)
+        self.assertIn('boundingBoxReal _x',qa)
+        self.assertIn('COORD-requester-view-clear',qa)
+        self.assertIn('_helperViews findIf {!(_x select 3)} < 0',qa)
+
+
     def test_standoff_no_solution_exits_before_releasing_flight(self):
         controller=source('cortexAirAttack')
         failure=controller.split('serverTime > (_job getOrDefault ["attackStartedAt",serverTime])+25}) exitWith {',1)[1].split('if (serverTime > (_job get "deadline"))',1)[0]

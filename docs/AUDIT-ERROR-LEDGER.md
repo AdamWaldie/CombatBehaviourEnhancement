@@ -99,3 +99,6 @@ diagnostic also reports it present. Therefore an absent local base config is not
 supported explanation, and removing the valid required addon is not a demonstrated fix.
 The mission startup deleted-content warning remains unresolved and still invalidates
 strict performance acceptance; inspection of installed files is not live warning clearance.
+
+
+The 89812ab batch's short-screen coordinated-clean comparison failed `CLEAN-COORD-helper-view-blocked` at server RPT 02:51:03. Later prepared-assault dispatch also failed with empty roles. The occlusion failure invalidates isolation of communication-led helper behaviour; it does not identify a production coordination cause. The queued fixture retains its prerequisite and records each helper's eye positions, bounded VIEW/GEOM hits and sampled wall bounds, plus an independent requester sightline check. No reveal, target relocation or forced passing result is added. Physical geometry reassessment remains pending.

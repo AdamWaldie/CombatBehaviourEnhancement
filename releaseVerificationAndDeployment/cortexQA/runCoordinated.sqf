@@ -220,11 +220,19 @@ _enemy setDir (_terrainHeading+180); _enemy disableAI "PATH";
 _enemy setUnitPos "UP";
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
 ["Coordinated assault: rally first","The base squad must see the opponent naturally. Two helper squads start behind a concrete screen; each must physically reach its own separate rear rally area. Coordinated assault is disabled during this stage.",[1500,1460] call _terrainPosition] call _phase;
-private _blocked=_helpers findIf {
-    private _rays=lineIntersectsSurfaces [eyePos _x,eyePos _enemy,_x,_enemy,true,-1,"VIEW","GEOM"];
-    (_rays findIf {(_x select 2) in _walls || {(_x select 3) in _walls}}) < 0
-} < 0;
-["COORD-helper-view-blocked",_blocked] call _check;
+private _helperViews=(_helpers select [0,16]) apply {
+    private _actor=_x;
+    private _rays=lineIntersectsSurfaces [eyePos _actor,eyePos _enemy,_actor,_enemy,true,8,"VIEW","GEOM"];
+    private _screenHit=_rays findIf {(_x select 2) in _walls || {(_x select 3) in _walls}} >= 0;
+    [netId _actor,eyePos _actor,eyePos _enemy,_screenHit,_rays apply {
+        [_x select 0,typeOf (_x select 2),typeOf (_x select 3)]
+    }]
+};
+private _blocked=count _helpers <= 16 && {_helperViews findIf {!(_x select 3)} < 0};
+private _wallGeometry=(_walls select [0,4]) apply {[typeOf _x,getPosATL _x,getDir _x,boundingBoxReal _x]};
+["COORD-helper-view-blocked",_blocked,str [_helperViews,_wallGeometry]] call _check;
+private _requesterRays=lineIntersectsSurfaces [eyePos _observer,eyePos _enemy,_observer,_enemy,true,8,"VIEW","GEOM"];
+["COORD-requester-view-clear",_requesterRays isEqualTo [],str [eyePos _observer,eyePos _enemy,_requesterRays]] call _check;
 private _nearestPlayer=1e9;
 {if (!(_x isKindOf "HeadlessClient_F") && {alive _x}) then {_nearestPlayer=_nearestPlayer min (_observer distance2D _x)}} forEach allPlayers;
 ["COORD-fixture-tactical-range",_nearestPlayer <= (missionNamespace getVariable ["WAIT_AIPass_FarRange",2500]),format ["nearestPlayer=%1 farRange=%2",_nearestPlayer,missionNamespace getVariable ["WAIT_AIPass_FarRange",2500]]] call _check;

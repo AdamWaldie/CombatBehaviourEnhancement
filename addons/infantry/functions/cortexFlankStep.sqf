@@ -510,22 +510,27 @@ private _issue = {
         private _depth = 0;
         if (_teams isNotEqualTo []) then {_lateral = _lateral + ([-8,8] select (_drill get "teamTurn"))};
         private _spot = (_point getPos [_lateral, _direction + 90]) getPos [_depth, _direction];
-        if (surfaceIsWater _spot || {((surfaceNormal _spot) select 2) < 0.55}) then {
-            {
-                private _alternative=(_point getPos [_lateral*_x,_direction+90]) getPos [_depth,_direction];
-                if (!surfaceIsWater _alternative && {((surfaceNormal _alternative) select 2) >= 0.55}) exitWith {
-                    _spot=_alternative;
-                };
-            } forEach [0.65,0.35,0];
-        };
-        if (_kind in ["BOUND", "FINAL", "ASSAULT"]) then {
-            private _cover = ([_spot, _enemyPos, 3, _spots, _group] call WAIT_fnc_CortexFindCover) select 0;
-            // Cover may lie beyond the search radius on a large object. Preserve the formation slot.
-            if (_cover distance2D _spot <= 2 && {_spots findIf {_cover distance2D _x < 2} < 0}) then {_spot = _cover};
-        };
         private _resumeSpots=_drill getOrDefault ["resumeSpots",[]];
         private _resumeIndex=_resumeSpots findIf {(_x select 0) == _unit};
-        if (_resumeIndex >= 0) then {_spot=+((_resumeSpots select _resumeIndex) select 1)};
+        if (_resumeIndex >= 0) then {
+            // Adoption retains the committed actor destination. Do not spend geometry budget
+            // selecting cover that will immediately be discarded or reroll the approach.
+            _spot=+((_resumeSpots select _resumeIndex) select 1);
+        } else {
+            if (surfaceIsWater _spot || {((surfaceNormal _spot) select 2) < 0.55}) then {
+                {
+                    private _alternative=(_point getPos [_lateral*_x,_direction+90]) getPos [_depth,_direction];
+                    if (!surfaceIsWater _alternative && {((surfaceNormal _alternative) select 2) >= 0.55}) exitWith {
+                        _spot=_alternative;
+                    };
+                } forEach [0.65,0.35,0];
+            };
+            if (_kind in ["BOUND", "FINAL", "ASSAULT"]) then {
+                private _cover = ([_spot, _enemyPos, 3, _spots, _group] call WAIT_fnc_CortexFindCover) select 0;
+                // Cover may lie beyond the search radius on a large object. Preserve the formation slot.
+                if (_cover distance2D _spot <= 2 && {_spots findIf {_cover distance2D _x < 2} < 0}) then {_spot = _cover};
+            };
+        };
         _spots pushBack _spot;
         // Preserve native target acquisition, autonomous combat and the actor's current behaviour.
         // WAIT commits a route and role but leaves moment-to-moment combat to the engine.
