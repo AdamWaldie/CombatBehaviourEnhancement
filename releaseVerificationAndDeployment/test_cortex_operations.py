@@ -3936,6 +3936,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_building_replacement_rebases_approach_without_changing_room_sequence(self):
+        text=source('buildingOperationStep')
+        replacement=text.split('private _replacement=_reserves deleteAt 0;',1)[1].split('Clear pair %1 reinforced',1)[0]
+        self.assertIn('_state set [13,1e12]',replacement)
+        self.assertIn('_state set [14,[]]',replacement)
+        self.assertNotIn('_state set [0,',replacement)
+        self.assertNotIn('recoveryAttempts',replacement)
     def test_building_room_retries_preserve_security_partner_and_committed_path(self):
         text=source('buildingOperationStep')
         self.assertNotIn('_issue || {_openedDoor}',text)

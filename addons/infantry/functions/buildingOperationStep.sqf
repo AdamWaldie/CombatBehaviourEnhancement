@@ -267,6 +267,10 @@ private _delay=call {
                 _state set [3,time];
                 _state set [4,0];
                 _state set [5,-1];
+                // A reserve starts at its own physical position. Do not compare its travel
+                // against the removed actor's nearer best-distance baseline.
+                _state set [13,1e12];
+                _state set [14,[]];
                 private _evidence=_group getVariable ["WAIT_Cortex_ClearReinforcements",[]];
                 _evidence pushBack [serverTime,netId _member,netId _replacement,_pairIndex,_slot];
                 _group setVariable ["WAIT_Cortex_ClearReinforcements",_evidence,true];

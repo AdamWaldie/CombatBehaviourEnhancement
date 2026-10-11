@@ -521,3 +521,5 @@ Coordinated bound selection continues through its bounded responder list when an
 A coordinated next-bound geometry rejection permits one retry after eight seconds, without blocking other elements. A second rejection retires that token as NO_SAFE_BOUND. Selecting a viable route clears its geometry-failure count. This is finite failure handling, not proof of route success or physical acceptance.
 
 Building room progression opens usable doors without replacing committed movement solely because a door changed. Interior no-progress retries affect the room mover, retaining the partner's security destination; entrance staging can still retry the pair. Physical room visits remain the only completion evidence.
+
+A CQB reserve replacement rebases best-distance observation at its actual position. The committed room cursor and generation-owned recovery budget remain unchanged; a removed actor's closer baseline must not hide real approach progress by the reserve.
