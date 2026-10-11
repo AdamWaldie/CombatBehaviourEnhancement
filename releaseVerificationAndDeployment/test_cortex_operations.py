@@ -2995,7 +2995,7 @@ class CortexOperations(unittest.TestCase):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text()
         for marker in ['private _movementRoleObserved=false',
                        'private _retiredSince=-1',
-                       'in ["STALLED","TIME_LIMIT"]',
+                       'in ["STALLED","TIME_LIMIT","NOT_READY","RECOVERY_FAILED"]',
                        'COORD-tactical-role-observed',
                        'COORD-movement-window-terminated']:
             self.assertIn(marker,qa)
@@ -3943,6 +3943,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_coordinated_terminal_wait_requires_roles_and_leases_to_end(self):
+        text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')
+        retired=text.split('private _allRetired=',1)[1].split('if (_allRetired)',1)[0]
+        self.assertIn('serverTime < (_lease select 2)',retired)
+        self.assertIn('"NOT_READY","RECOVERY_FAILED"',retired)
+        self.assertIn('count _role == 5',retired)
+        self.assertIn('COORD-both-teams-physical-advance',text)
     def test_combined_arrival_preserves_fire_permissions_and_reports_order_not_effect(self):
         text=source('cortexCombinedGroundStep')
         arrival=text.split('if (_asset distance2D _destination <= 70)',1)[1].split('if (time >=',1)[0]

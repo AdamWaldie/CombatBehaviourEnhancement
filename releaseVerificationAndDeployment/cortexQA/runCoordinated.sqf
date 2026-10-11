@@ -538,7 +538,9 @@ private _movementWindowEnded=[{
             private _g=group (_x select 0);
             private _role=_g getVariable ["WAIT_Cortex_SupportRole",[]];
             private _result=_g getVariable ["WAIT_Cortex_SupportBoundResult",[]];
-            count _role == 5 || {count _result < 3} || {!((_result select 2) in ["STALLED","TIME_LIMIT"])}
+            private _lease=_g getVariable ["WAIT_AIPass_SupportLease",[]];
+            count _role == 5 || {count _lease == 6 && {serverTime < (_lease select 2)}}
+                || {count _result < 3} || {!((_result select 2) in ["STALLED","TIME_LIMIT","NOT_READY","RECOVERY_FAILED"])}
         }) < 0
     };
     if (_allRetired) then {
