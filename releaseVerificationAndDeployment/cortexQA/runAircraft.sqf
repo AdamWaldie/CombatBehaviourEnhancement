@@ -624,6 +624,10 @@ private _observedProfiles=createHashMap;
     private _plannedTargetPosition=_initialPlan param [31,getPosATL _target];
     private _terrainRequiredLift=_initialPlan param [32,0];
     private _terrainViable=_initialPlan param [33,false];
+    if (_id in ["AIR-ATTACK-HELI-OFFSET","AIR-ATTACK-HELI-HOOK"]) then {
+        [_id+"-fixed-rocket-station-prerequisite",_selectedWeaponClass == "ROCKET"
+            && {_selectedTurret isEqualTo [-1]},str [_selectedWeaponClass,_selectedTurret]] call _recordCheck;
+    };
     private _selectedOperator=if (_selectedTurret isEqualTo [-1]) then {driver _aircraft}
         else {_aircraft turretUnit _selectedTurret};
     if (_pattern != "") then {_observedProfiles set [_pattern,[_profilePoints,_profileAltitudes,_profileSpeeds]]};
@@ -666,7 +670,9 @@ private _observedProfiles=createHashMap;
         [_id+"-terrain-scenario-relief",worldName == "VR" || {_terrainRelief >= 30},
             str [worldName,_terrainRelief,_terrainSamples]] call _recordCheck;
     };
-    if (_isPlaneClass && {!_airTarget} && {count _profilePoints == 3}) then {
+    private _fixedHelicopterRun=!_isPlaneClass && {_selectedTurret isEqualTo [-1]}
+        && {_pattern in ["STRAFE","OFFSET","HOOK"]};
+    if ((_isPlaneClass || {_fixedHelicopterRun}) && {!_airTarget} && {count _profilePoints == 3}) then {
         private _deliveryStart=+(_profilePoints select 0);
         private _deliveryEnd=+(_profilePoints select 1);
         private _deliveryVector=_deliveryEnd vectorDiff _deliveryStart;
@@ -683,7 +689,8 @@ private _observedProfiles=createHashMap;
         } else {90};
         private _angleValid=switch _selectedWeaponClass do {
             case "GUN";
-            case "ROCKET": {_descentAngle >= 3 && {_descentAngle <= 9}};
+            case "ROCKET": {if (_isPlaneClass) then {_descentAngle >= 3 && {_descentAngle <= 9}}
+                else {_descentAngle >= 0 && {_descentAngle <= 20}}};
             case "BOMB": {abs _descentAngle <= 4};
             case "GUIDED": {abs _descentAngle <= 8};
             default {false};
@@ -694,9 +701,9 @@ private _observedProfiles=createHashMap;
             _targetAlong > _deliveryLength
         } else {_targetAlong > 0 && {_targetAlong < _deliveryLength}};
         private _geometryCase=["-delivery-axis-crosses-target","-delivery-axis-stays-standoff"] select _standoffGeometry;
-        [_id+_geometryCase,_deliveryLength >= 3000 && {_crossTrack <= 75}
+        [_id+_geometryCase,_deliveryLength >= ([1200,3000] select _isPlaneClass) && {_crossTrack <= 75}
             && {_alongValid}
-            && {_angleValid} && {(_deliveryEnd select 2) >= 220},
+            && {_angleValid} && {(_deliveryEnd select 2) >= ([35,220] select _isPlaneClass)},
             str [_selectedWeaponClass,_descentAngle,_crossTrack,_targetAlong,_deliveryLength,
                 _deliveryStart,_deliveryEnd,_plannedTargetPosition,getPosATL _target,
                 _plannedTargetPosition distance2D _target]] call _recordCheck;
@@ -985,6 +992,8 @@ private _observedProfiles=createHashMap;
     // A full-size soft truck survives incidental acquisition fire but remains a credible one-pass
     // destruction target for the retained lateral turret.
     ["AIR-ATTACK-HELI-LATERAL","B_Heli_Attack_01_dynamicLoadout_F",false,false,"LATERAL",false,"GUN",true,"O_Truck_03_transport_F"],
+    ["AIR-ATTACK-HELI-OFFSET","O_Heli_Attack_02_dynamicLoadout_F",false,false,"OFFSET",false,"ROCKET",true,"B_MRAP_01_F"],
+    ["AIR-ATTACK-HELI-HOOK","O_Heli_Attack_02_dynamicLoadout_F",false,false,"HOOK",false,"ROCKET",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-STRAFE","O_Plane_CAS_02_dynamicLoadout_F",false,false,"STRAFE",false,"GUN",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-OFFSET","O_Plane_CAS_02_dynamicLoadout_F",false,false,"OFFSET",false,"ROCKET",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-HOOK","O_Plane_CAS_02_dynamicLoadout_F",false,false,"HOOK",false,"ROCKET",true,"B_MRAP_01_F"],
