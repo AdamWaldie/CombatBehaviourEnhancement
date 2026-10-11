@@ -9,6 +9,7 @@
  */
 params ["_check","_phase","_wait"];
 private _cases = ["ASSAULT-CLOSE","ASSAULT-MULTI-CONTACT","FLANK-NATIVE-FIRE","FLANK-YELLOW-NATIVE-FIRE","FLANK-YELLOW","FLANK-AWARE","ADVANCE-AWARE","FLANK","ADVANCE","ADVANCE-YELLOW","ADVANCE-CLOSE","ADVANCE-DISTANT","FLANK-ZEUS","ADVANCE-ZEUS","ADVANCE-ZEUS-ATTACK","ADVANCE-HC-HANDOVER","ADVANCE-HC-CONTINUATION","FLANK-ZEUS-ROE","FLANK-BLOCKED","ADVANCE-BLOCKED","FLANK-GRENADE","FLANK-ZEUS-CONSOLIDATE","ADVANCE-GRENADE","ADVANCE-SURVIVOR-PAIR"];
+if (!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])) then {_cases=_cases select {!(_x in ["ADVANCE-HC-HANDOVER","ADVANCE-HC-CONTINUATION"])}};
 private _selected = missionNamespace getVariable ["WAIT_CortexQA_CombatCase",""];
 if (_selected != "" && {!(_selected in _cases)}) exitWith {["COMBAT-invalid-case",false,_selected] call _check};
 if (_selected != "") then {_cases = [_selected]};

@@ -156,13 +156,22 @@ class PackagePipelineTests(unittest.TestCase):
         policy.write_bytes(b'changed optional policy')
         with self.assertRaisesRegex(ValueError,'changed after sealing'):
             verify(self.folder)
+    def test_normal_and_headless_batches_have_distinct_sealed_identity(self):
+        for mode, value in [('normal','false'),('headless','true')]:
+            mission=stage(self.folder,Path(self.temp.name)/('batch-'+mode),'all',batch_mode=mode)
+            manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
+            self.assertEqual(manifest['batch_mode'],mode)
+            self.assertIn('"WAIT_CortexQA_HeadlessBatch",'+value,(mission/'auditIdentity.sqf').read_text())
+        with self.assertRaisesRegex(ValueError,'dedicated headless batch'):
+            stage(self.folder,Path(self.temp.name)/'invalid-normal','lifecycle',headless_provider=Path(self.temp.name))
+
     def test_native_headless_stage_installs_all_machines_and_seals_provider_files(self):
         from stage_headless_provider import REQUIRED
         provider=Path(self.temp.name)/'provider'
         source=provider/'MissionScripts/Headless'; source.mkdir(parents=True)
         for name in REQUIRED:
             (source/name).write_text('/* native provider fixture */\ntrue;')
-        mission=stage(self.folder,Path(self.temp.name)/'native-hc','lifecycle',headless_provider=provider)
+        mission=stage(self.folder,Path(self.temp.name)/'native-hc','lifecycle',headless_provider=provider,batch_mode='headless')
         manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
         self.assertEqual(manifest['headless_provider']['scope'],'EXPLICIT_NATIVE_TRANSFERS_ONLY')
         for name in ('initServer.sqf','initPlayerLocal.sqf','init.sqf'):

@@ -147,6 +147,7 @@ if (local _baseline && {_baselineTarget isNotEqualTo []}) then {doStop _baseline
 ["RETURN"] call _order;
 ["ORD-06-return",!(_group getVariable ["WAIT_AIPass_Exclude",false])] call _check;
 [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 [{count (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) >= 2},90] call _wait;
 ["Headless ownership","The infantry changes owner to each headless client, accepts defence, then returns to the server. See the owner checks below.",[6010,6000,0]] call _phase;
 private _owners = (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
@@ -164,6 +165,7 @@ private _owners = (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) ap
 } forEach (_owners select [0,2]);
 [_group,2] call WAIT_fnc_HeadlessMigrateGroup;
 ["HC-04-return-server",[{local _group},20] call _wait] call _check;
+};
 deleteVehicle _baseline; deleteGroup _baselineGroup;
 {deleteVehicle _x} forEach [_u1,_u2];
 deleteGroup _group;
@@ -276,6 +278,7 @@ private _manualExits = _passengers apply {getPosATL _x};
 _wp setWaypointPosition [(_vehicles select 0) getPos [70,0],0];
 _wp setWaypointCompletionRadius 15;
 ["CNV-07-resume",[_convoy,25,30,true] call WAIT_fnc_SimpleAiConvoy] call _check;
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 private _convoyOwners = (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
 if (_convoyOwners isNotEqualTo []) then {
     private _convoyOwner = _convoyOwners select 0;
@@ -287,6 +290,7 @@ if (_convoyOwners isNotEqualTo []) then {
     [_convoy,_convoyOwner] call WAIT_fnc_HeadlessMigrateGroup;
     ["CNV-07c-headless-transfer",[{groupOwner _convoy == _convoyOwner && {_vehicles findIf {owner _x != _convoyOwner || {owner driver _x != _convoyOwner}} < 0}},25] call _wait] call _check;
 } else {["CNV-07c-headless-transfer",false,"No connected headless owner"] call _check};
+};
 private _nextArrivalLog = 0;
 private _prematureUnload = false;
 private _arrived = [{
@@ -311,8 +315,10 @@ private _arrivalExits = _passengers apply {getPosATL _x};
 ["CNV-10-destination-crew",_operatingCrew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0] call _check;
 [_convoy,0,30,true,true] call WAIT_fnc_SimpleAiConvoy;
 ["CNV-05-release",!(_convoy getVariable ["WAIT_Convoy_Active",false])] call _check;
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 [_convoy,2] call WAIT_fnc_HeadlessMigrateGroup;
 [{local _convoy},20] call _wait;
+};
 // Real enemy fire and a disabled rear vehicle exercise contact drills without writing controller state.
 call {
     private _contactGroup = createGroup [east,true];
@@ -628,12 +634,14 @@ if (_focus in ["all","features","coordinated","supportflows"]) then {
     private _recordContactCheck=_check;
     private _contactCheck={params ["_id","_passed",["_detail",""]]; ["CONTACT-"+_id,_passed,_detail] call _recordContactCheck};
     [_contactCheck,_phase,_wait,[],true] call _coordinated;
+    if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
     private _responderOwners=((missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0}) select [0,2];
     ["COORD-two-headless-owners",count _responderOwners == 2] call _check;
     if (count _responderOwners == 2) then {
         private _recordCoordinatedCheck=_check;
         private _hcCheck={params ["_id","_passed",["_detail",""]]; ["HC-"+_id,_passed,_detail] call _recordCoordinatedCheck};
         [_hcCheck,_phase,_wait,_responderOwners] call _coordinated;
+    };
     };
 };
 // Exercise the public read-only diagnostics path twice; UI report rows are not behaviour passes.

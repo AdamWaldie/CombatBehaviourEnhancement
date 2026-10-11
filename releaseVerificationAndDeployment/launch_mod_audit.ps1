@@ -2,6 +2,7 @@ param(
     [string]$ArmaPath='',
     [string]$Package='',
     [string]$Focus='all',
+    [ValidateSet('normal','headless')][string]$BatchMode='normal',
     [string]$HeadlessProvider='',
     [string[]]$Mods=@(),
     [ValidateSet("turret_aiming")][string[]]$EnginePolicies=@(),
@@ -11,7 +12,7 @@ param(
     [int]$ResolutionHeight=2160,
     [ValidateRange(30,600)][int]$ClientReadyTimeoutSeconds=180,
     [ValidateRange(10,120)][int]$ClientWindowTimeoutSeconds=60,
-    [ValidateRange(0,2)][int]$HeadlessClients=2,
+    [ValidateRange(0,2)][int]$HeadlessClients=0,
     [switch]$WithZen,
     [switch]$NativeBaseline,
     [ValidateSet("infantry","mixed")][string]$PerformanceComposition="infantry",
@@ -23,6 +24,8 @@ param(
 $ErrorActionPreference='Stop'
 $repo=Split-Path $PSScriptRoot -Parent
 if (!$Package) { $Package=Join-Path $repo '.hemttout/build' }
+if ($BatchMode -eq 'normal' -and $HeadlessClients -ne 0) {throw 'Normal batches require zero HCs; use BatchMode headless for migration tests'}
+if ($BatchMode -eq 'headless' -and $HeadlessClients -ne 2) {throw 'Headless batches require two HCs for split-owner acceptance'}
 if ($ServerOnly -and $Focus -ne 'dangerload') {throw 'ServerOnly is restricted to the dangerload loader diagnostic.'}
 if (!$ArmaPath) {
     $ArmaPath=(Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\bohemia interactive\arma 3').main
@@ -46,9 +49,9 @@ if ($HeadlessProvider) {
     $providerArguments=@('--headless-provider',(Resolve-Path -LiteralPath $HeadlessProvider).Path)
 }
 if ($NativeBaseline) {
-    & $Python (Join-Path $PSScriptRoot 'mod_pipeline.py') stage $Package $runtime --focus $Focus --native-baseline --performance-composition $PerformanceComposition @providerArguments
+    & $Python (Join-Path $PSScriptRoot 'mod_pipeline.py') stage $Package $runtime --focus $Focus --batch-mode $BatchMode --native-baseline --performance-composition $PerformanceComposition @providerArguments
 } else {
-    & $Python (Join-Path $PSScriptRoot 'mod_pipeline.py') stage $Package $runtime --focus $Focus --performance-composition $PerformanceComposition @providerArguments
+    & $Python (Join-Path $PSScriptRoot 'mod_pipeline.py') stage $Package $runtime --focus $Focus --batch-mode $BatchMode --performance-composition $PerformanceComposition @providerArguments
 }
 if ($LASTEXITCODE) {throw 'Audit staging failed'}
 $launchMods=$Mods

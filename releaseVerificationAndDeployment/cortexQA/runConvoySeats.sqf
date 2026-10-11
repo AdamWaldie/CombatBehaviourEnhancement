@@ -129,6 +129,7 @@ sleep 60;
 ["SEATS-all-cargo-still-mounted",_passengers findIf {!alive _x || {vehicle _x != _truck}} < 0] call _check;
 ["SEATS-operating-crew-still-mounted",_crew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0] call _check;
 // Split the vehicle controller and the separate passenger squad across real owners.
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 private _owners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
 ["SEATS-two-headless-clients",count _owners >= 2] call _check;
 if (count _owners >= 2) then {
@@ -154,6 +155,7 @@ if (count _owners >= 2) then {
     };
     ["SEATS-split-owner-no-dismount",!_unexpectedExit] call _check;
     ["SEATS-split-owner-real-travel",_truck distance2D _splitStart > 100,str getPosATL _truck] call _check;
+};
 };
 missionNamespace setVariable ["WAIT_CortexQA_SeatPhase","MANUAL HALT",true];
 ["Convoy commanded unload","A deliberate halt now requires all four cargo soldiers to exit and move clear. Driver, gunner and commander must stay aboard. Labels distinguish their roles.",getPosATL _truck] call _phase;

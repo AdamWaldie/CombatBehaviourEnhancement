@@ -12,7 +12,9 @@
  */
 params ["_recordCheck","_phase","_wait"];
 private _owners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 ["LIFE-two-headless-clients",count _owners >= 2] call _recordCheck;
+} else {_owners=[]};
 private _nativeProvider=missionNamespace getVariable ["WAIT_QA_NativeHeadlessInstalled",false];
 private _nativeReady=true;
 if (_nativeProvider) then {

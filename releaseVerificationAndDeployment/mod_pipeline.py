@@ -63,13 +63,17 @@ def supported_focuses(root=ROOT):
     values.add("standaloneperformance")
     return sorted(values)
 
-def stage(package, destination, focus, root=ROOT, native_baseline=False, performance_composition="infantry", headless_provider=None):
+def stage(package, destination, focus, root=ROOT, native_baseline=False, performance_composition="infantry", headless_provider=None, batch_mode="normal"):
     if focus not in supported_focuses(root):
         raise ValueError(f'Unknown audit focus: {focus}')
     if native_baseline and focus != 'standaloneperformance':
         raise ValueError('Native baseline is restricted to standalone performance')
     if performance_composition not in ('infantry','mixed'):
         raise ValueError('Unknown performance composition')
+    if batch_mode not in ('normal', 'headless'):
+        raise ValueError('Unsupported audit batch mode')
+    if headless_provider and batch_mode != 'headless':
+        raise ValueError('Headless providers require a dedicated headless batch')
     if headless_provider and focus == 'standaloneperformance':
         raise ValueError('Native headless integration is separate from server-owned performance')
     record = verify(package)
@@ -97,7 +101,7 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         'diag_log format ["WAIT AUDIT DEPENDENCIES|owner=%1|server=%2|interface=%3|patches=%4|observerClass=%5",clientOwner,isServer,hasInterface,["A3_Characters_F","A3_Characters_F_BLUFOR","A3_Map_VR"] apply {[_x,isClass (configFile >> "CfgPatches" >> _x)]},isClass (configFile >> "CfgVehicles" >> "B_Soldier_F")];\n'
         'diag_log format ["WAIT AUDIT CHARACTER CONFIG|owner=%1|sources=%2|danger=%3|required=%4",clientOwner,["Man","CAManBase","SoldierWB","SoldierEB","SoldierGB","B_Soldier_F"] apply {[_x,configSourceAddonList (configFile >> "CfgVehicles" >> _x)]},getText (configFile >> "CfgVehicles" >> "B_Soldier_F" >> "fsmDanger"),["A3_Characters_F","A3_Characters_F_BLUFOR","WAIT_danger"] apply {[_x,getArray (configFile >> "CfgPatches" >> _x >> "requiredAddons"),count getArray (configFile >> "CfgPatches" >> _x >> "units"),(getArray (configFile >> "CfgPatches" >> _x >> "units")) select [0,8]]}];\n'
         'call {private _activated=activatedAddons apply {toLowerANSI _x}; diag_log format ["WAIT AUDIT ADDON ACTIVATION|owner=%1|patches=%2|observerRequired=%3",clientOwner,["A3_Characters_F","A3_Characters_F_BLUFOR","A3_Map_VR","WAIT_danger"] apply {[_x,(toLowerANSI _x) in _activated]},unitAddons "B_Soldier_F"]};\n'
-        f'if (isServer) then {{missionNamespace setVariable ["WAIT_CortexQA_Focus","{focus}",true]}};\n')
+        f'if (isServer) then {{missionNamespace setVariable ["WAIT_CortexQA_Focus","{focus}",true]; missionNamespace setVariable ["WAIT_CortexQA_HeadlessBatch",{str(batch_mode == "headless").lower()},true]}};\n')
     if focus == 'standaloneperformance':
         for name in ('initServer.sqf', 'initPlayerLocal.sqf', 'mission.sqm'):
             shutil.copyfile(root/'releaseVerificationAndDeployment/standalonePerformance'/name, mission/name)
@@ -129,7 +133,7 @@ call compile preprocessFileLineNumbers "compatibilityHeadlessProvider\init.sqf";
                 missing.append(name)
     if missing:
         raise ValueError(f'Missing audit payloads: {sorted(set(missing))}')
-    (destination/'audit-manifest.json').write_text(json.dumps(dict(package=record, focus=focus, native_baseline=native_baseline, performance_composition=performance_composition, headless_provider=provider_evidence,
+    (destination/'audit-manifest.json').write_text(json.dumps(dict(package=record, focus=focus, batch_mode=batch_mode, native_baseline=native_baseline, performance_composition=performance_composition, headless_provider=provider_evidence,
         mission_files=mission_hashes(mission)), indent=2)+'\n')
     return mission
 
@@ -160,9 +164,10 @@ def main():
     child.add_argument('--native-baseline', action='store_true')
     child.add_argument('--performance-composition', choices=['infantry','mixed'], default='infantry')
     child.add_argument('--headless-provider', type=Path)
+    child.add_argument('--batch-mode', choices=['normal','headless'], default='normal')
     args = parser.parse_args()
     if args.command == 'stage':
-        print(stage(args.package.resolve(), args.destination.resolve(), args.focus, native_baseline=args.native_baseline, performance_composition=args.performance_composition, headless_provider=args.headless_provider))
+        print(stage(args.package.resolve(), args.destination.resolve(), args.focus, native_baseline=args.native_baseline, performance_composition=args.performance_composition, headless_provider=args.headless_provider, batch_mode=args.batch_mode))
     elif args.command == 'seal':
         print(json.dumps(seal(args.package.resolve()), indent=2))
     elif args.command == 'verify':
