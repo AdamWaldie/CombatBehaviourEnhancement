@@ -3936,6 +3936,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_support_operation_records_position_not_coordinate_scalar(self):
+        apply=source('cortexSupportApply')
+        self.assertIn('private _objective=if (_attackAllowed) then {+_attack} else {+_rally};',apply)
+        self.assertIn('_objective,_footFit,[+_objective],"ACCEPTED"',apply)
+        self.assertNotIn('_attack select ((count _attack)-1)',apply)
     def test_assault_preserves_group_attack_setting(self):
         apply=source('cortexSupportApply')
         self.assertNotIn('enableAttack false',apply)

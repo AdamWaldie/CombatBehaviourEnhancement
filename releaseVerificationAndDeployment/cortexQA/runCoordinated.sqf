@@ -321,6 +321,21 @@ private _rolesDispatched=[{
     _teams findIf {count ((group (_x select 0)) getVariable ["WAIT_Cortex_SupportRole",[]]) != 5} < 0
 },30] call _wait;
 ["COORD-security-dispatches-prepared-assault",_rolesDispatched,str (_teams apply {(group (_x select 0)) getVariable ["WAIT_Cortex_SupportRole",[]]})] call _check;
+// A server role alone does not prove that the owner admitted a valid position objective.
+private _positionObjectives=[{
+    _teams findIf {
+        private _g=group (_x select 0);
+        private _lease=_g getVariable ["WAIT_AIPass_SupportLease",[]];
+        private _operation=_g getVariable ["WAIT_Operation",createHashMap];
+        count _lease != 6 || {count _operation == 0}
+            || {(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}
+            || {(_operation getOrDefault ["objective",[]]) isNotEqualTo (_lease select 5)}
+    } < 0
+},5] call _wait;
+["COORD-owner-position-objectives",_positionObjectives,str (_teams apply {
+    private _g=group (_x select 0);
+    (_g getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["objective",[]]
+})] call _check;
 _requester ignoreTarget [_enemy,false];
 _requester reveal [_enemy,4];
 _enemy hideObjectGlobal false;

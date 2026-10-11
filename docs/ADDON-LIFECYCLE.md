@@ -507,3 +507,5 @@ Coordinated admission distinguishes authenticated eligibility from an executing 
 
 
 Coordinated bounds now use the same three-person minimum as responder admission. Three capable dismounts begin with two movers and one coverer; role changes rebalance the moving element before issuing a bound. Transferring a donor removes that actor from the available covering list immediately, preventing duplicate selection and false two-person strength. Fewer than three capable actors retires the coordinated role. Physical three-person movement, casualty replacement and unique-participant acceptance remain queued.
+
+Coordinated support leases store their attack destination as one ATL position. Operation admission retains that complete position as its objective and initial route point; it must not interpret the coordinate array as a route and reduce the objective to altitude. This handoff correction awaits physical acceptance.

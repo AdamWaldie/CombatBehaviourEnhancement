@@ -121,8 +121,9 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     // stale owner callback to recreate it.  The coordinated server will provide the detailed
     // fire-team routes; this entry records only the finite cross-squad intent and live objective.
     private _intent=["SUPPORT_RALLY","COORDINATED_ASSAULT"] select _sharedCoordinated;
-    private _objective=if (_attackAllowed && {count _attack > 0}) then {_attack select ((count _attack)-1)} else {_rally};
-    private _operation=[_group,_intent,_objective,_footFit,[_rally],"ACCEPTED"] call WAIT_fnc_OperationStart;
+    // Lease attack is one ATL position, not an array of route points.
+    private _objective=if (_attackAllowed) then {+_attack} else {+_rally};
+    private _operation=[_group,_intent,_objective,_footFit,[+_objective],"ACCEPTED"] call WAIT_fnc_OperationStart;
     if (count _operation == 0) exitWith {
         _okay=false;
         [_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
