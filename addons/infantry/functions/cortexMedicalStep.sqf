@@ -91,6 +91,16 @@ if (_aid isNotEqualTo []) exitWith {
         || {!([_casualty] call WAIT_fnc_CortexCombatEffective)}) exitWith {
         ["CANCELLED","ACTOR_UNAVAILABLE"] call _finish
     };
+    // A new finite actor task is ownership, even when the group itself remains ordinary.
+    // The medic's own HealSoldier action may report ACTION/HEAL, so those commands are
+    // not treated as unrelated work here. Explicit other services and reservations yield.
+    private _newActorTask=[_medic,_casualty] findIf {
+        private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _reserved=_reservation isNotEqualTo [] && {!(_reservation isEqualType [])
+            || {count _reservation != 3} || {(_reservation param [2,1e12,[0]]) > time}};
+        _reserved || {currentCommand _x in ["GET IN","GET OUT","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+    } >= 0;
+    if (_newActorTask) exitWith {["CANCELLED","ACTOR_TASK_CHANGED"] call _finish};
     if (damage _casualty < (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_DamageThreshold",0.35])) exitWith {
         missionNamespace setVariable ["WAIT_AIPass_MedicalAssists",(missionNamespace getVariable ["WAIT_AIPass_MedicalAssists",0])+1];
         ["COMPLETE","TREATED"] call _finish
