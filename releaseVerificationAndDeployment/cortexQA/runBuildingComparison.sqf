@@ -389,6 +389,9 @@ for "_i" from 0 to 5 do {
 };
 private _contactEnemy=_contactOpposition createUnit ["B_Soldier_F",_contactRoom,[],0,"NONE"];
 _contactEnemy allowDamage false;
+// This contact-to-clear fixture requires a posted interior defender, not a pursuer that
+// leaves the building before the squad acquires it. Native sensing, aiming and fire remain.
+_contactEnemy disableAI "PATH";
 _contactEnemy setDir (_contactEnemy getDir leader _contactGroup);
 _contactEnemy setVariable ["acex_headless_blacklist",true,true];
 _contactEnemy setVariable ["WAIT_CortexQA_Label","INDOOR LIVE HOSTILE",true];
@@ -404,9 +407,12 @@ private _contactSightline=_contactGeometryReady && {_contactMembers findIf {
 } >= 0};
 ["BUILD-CONTACT-visible-fixture",_contactSightline,str [_contactRoom,_contactApproach,_contactGeometryReady]] call _check;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_contactMembers+[_contactEnemy],true];
-["Natural building contact","The six-person squad faces a live hostile physically inside the house. Native knowledge must form first; WAIT should then transition directly from contact into its single building-clear operation and physically enter. The audit injects no reveal, clear order or route.",getPosATL _contactHouse] call _phase;
+["Natural building contact","The six-person squad faces a live hostile physically inside the house. Native knowledge must form first; WAIT should then transition directly from contact into its single building-clear operation and physically enter. The hostile is a posted interior defender with pathfinding disabled; native sensing and fire remain. The audit injects no reveal, clear order or route.",getPosATL _contactHouse] call _phase;
 private _nativeContact=[{(units _contactGroup) findIf {_x knowsAbout _contactEnemy >= 1} >= 0},30] call _wait;
 ["BUILD-CONTACT-native-knowledge",_nativeContact,str (_contactMembers apply {_x knowsAbout _contactEnemy})] call _check;
+private _interiorDefenderHeld=(getPosASL _contactEnemy) vectorDistance (AGLToASL _contactRoom) <= 1.5;
+["BUILD-CONTACT-interior-defender-retained",_interiorDefenderHeld,
+    str [getPosATL _contactEnemy,_contactRoom,currentCommand _contactEnemy]] call _check;
 private _naturalClear=[{_contactGroup getVariable ["WAIT_AIPass_ClearBuilding",false]},20] call _wait;
 ["BUILD-CONTACT-natural-clear-started",_nativeContact && {_naturalClear},str [_contactGroup getVariable ["WAIT_Cortex_ClearStatus",[]],_contactGroup getVariable ["WAIT_OperationResult",[]]]] call _check;
 private _naturalEntry=[{_contactRooms findIf {

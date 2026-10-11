@@ -6946,8 +6946,11 @@ class CortexOperations(unittest.TestCase):
                        'WAIT_AIPass_BuildingCombat_Range','knowsAbout _contactEnemy']:
             self.assertIn(marker,audit)
         natural=audit.split('// Natural building contact acceptance.',1)[1]
-        for forbidden in [' reveal ','WAIT_fnc_CortexClearBuilding','setPos','moveIn','disableAI "PATH"']:
+        for forbidden in [' reveal ','WAIT_fnc_CortexClearBuilding','setPos','moveIn']:
             self.assertNotIn(forbidden,natural)
+        self.assertEqual(natural.count('disableAI "PATH"'),1)
+        self.assertIn('_contactEnemy disableAI "PATH";',natural)
+        self.assertIn('BUILD-CONTACT-interior-defender-retained',natural)
 
     def test_naval_delivery_tracks_crew_and_passenger_generations_separately(self):
         naval=source('cortexNavalAssault')
