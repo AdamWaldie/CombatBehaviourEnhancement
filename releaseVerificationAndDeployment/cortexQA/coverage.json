@@ -726,7 +726,9 @@
       "setup": "Send an AI ground-vehicle group through flat, rolling and steep terrain with the feature disabled and enabled, then replace its waypoint through Zeus and transfer ownership.",
       "expected": "Enabled vehicles retain the same native route and slow only for sampled grades. Convoys remain under their own controller; player, Zeus and external driving ownership release the cap immediately.",
       "settings": [
-        "WAIT_AIPass_DrivingAssist_Enable"
+        "WAIT_AIPass_DrivingAssist_Enable",
+        "WAIT_AIPass_DrivingAssist_MaxSpeed",
+        "WAIT_AIPass_DrivingAssist_Recovery_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],

@@ -173,6 +173,8 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 | Variable | Label | Type | Default | Range / choices | Activation | Purpose |
 | --- | --- | --- | --- | --- | --- | --- |
 | `WAIT_AIPass_DrivingAssist_Enable` | General driving assist | CHECKBOX | true | [] | NEXT_OPERATION | Ordinary AI ground vehicles only: applies sparse terrain-grade safety and one bounded native-route recovery while following an existing waypoint. It never creates routes, bypasses obstacles or changes collision. Convoy driving is configured separately. |
+| `WAIT_AIPass_DrivingAssist_Recovery_Enable` | Physical route recovery | CHECKBOX | true | [] | LIVE | Allows finite native-route refresh and checked rear recovery for ordinary driving. Disabling prevents new attempts without cancelling an already issued native movement leg. No teleportation or collision changes. |
+| `WAIT_AIPass_DrivingAssist_MaxSpeed` | Maximum safety speed | SLIDER | 70 | [15, 120, 0] | LIVE | Ordinary driving safety cap in km/h. Terrain may reduce it further; a lower authored forced-speed cap is preserved. Convoys use their own speed setting. |
 
 ### 02 Combat and withdrawal
 

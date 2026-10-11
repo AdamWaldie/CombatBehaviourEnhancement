@@ -33,7 +33,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | REMOUNT - Contact passenger remount | 1 | 0 | 1 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | WITHDRAW - Damaged vehicle withdrawal | 2 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
 | COVER - Cover selection and clearance | 1 | 0 | 1 | `runCover.sqf` | 1 | implemented_partial |
-| VEH-DRIVING - Ordinary vehicle route safety | 1 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |
+| VEH-DRIVING - Ordinary vehicle route safety | 3 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | CNV-MOVE - Mixed convoy path and spacing | 5 | 0 | 7 | `runServer.sqf`, `runConvoyMatrix.sqf` | 0 | implemented_partial |
 | CNV-FIRE - Convoy weapon crew | 1 | 0 | 1 | `runServer.sqf` | 0 | implemented_partial |
 | CNV-COVER - Convoy dismount positions | 1 | 0 | 0 | `runServer.sqf` | 0 | implemented_partial |
@@ -68,7 +68,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | LIGHTING - Automatic darkness, night vision and illumination | 1 | 0 | 0 | `runProfiles.sqf`, `runLighting.sqf` | 1 | implemented_partial |
 | DRILL-HANDOVER - Moving flank and advance handed to Zeus | 0 | 0 | 1 | `runCombat.sqf` | 2 | implemented_partial |
 | DRILL-RECOVERY - Bound continuation and straggler rejoin | 0 | 0 | 2 | `runCombat.sqf` | 2 | implemented_partial |
-| COMBINED-ARMS - Contact-led combined-arms opportunity | 1 | 0 | 5 | `runCombinedArms.sqf` | 0 | implemented_partial |
+| COMBINED-ARMS - Contact-led combined-arms opportunity | 1 | 0 | 6 | `runCombinedArms.sqf` | 0 | implemented_partial |
 | COMBINED-OPERATION - Dynamic multi-squad combined operation | 0 | 0 | 0 | `runCombinedOperation.sqf` | 0 | implemented_partial |
 | ATTACK-FLARES - Attack-run approach and departure flares | 1 | 0 | 1 | `runAircraft.sqf` | 1 | implemented_partial |
 | AIR-ATTACK - Threat-aware finite aircraft attack patterns | 1 | 0 | 9 | `runAircraft.sqf` | 2 | implemented_partial |

@@ -400,6 +400,8 @@ createHashMapFromArray [
         ["WAIT_AIPass_Hearing_Enable", true], // Nearby gunfire area reports, never target reveals.
         ["WAIT_AIPass_Vehicles_Enable", true], // BOOL: dismount under fire; damaged vehicles smoke and withdraw.
         ["WAIT_AIPass_DrivingAssist_Enable", true], // Sparse terrain-grade speed cap for ordinary AI ground vehicles; preserves native routes.
+        ["WAIT_AIPass_DrivingAssist_MaxSpeed", 70], // General driving cap in km/h; terrain and lower authored caps still apply.
+        ["WAIT_AIPass_DrivingAssist_Recovery_Enable", true], // Allows new finite recovery attempts; does not cancel a native leg already issued.
         ["WAIT_AIPass_NavalAssault_Enable", true], // BOOL: finite coastal approach and passenger landing; yields to player, Zeus and neutral external-control ownership.
         ["WAIT_AIPass_ContactReports_Enable", true], // BOOL: share sightings by radio (jammable) or voice.
         ["WAIT_AIPass_ContactReports_Radius", 500], // METRES: radio report range.

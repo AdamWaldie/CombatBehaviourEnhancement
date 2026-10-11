@@ -87,8 +87,8 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 _maximumGrade=_maximumGrade max (abs ((_sample select 2)-(_last select 2))/_horizontal);
                 _last=_sample;
             } forEach [20,45,70];
-            private _cap=70;
-            if (_maximumGrade > 0.2) then {_cap=18} else {if (_maximumGrade > 0.12) then {_cap=28}};
+            private _cap=(missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_MaxSpeed",70]) max 15 min 120;
+            if (_maximumGrade > 0.2) then {_cap=_cap min 18} else {if (_maximumGrade > 0.12) then {_cap=_cap min 28}};
             private _previous=_vehicle getVariable ["WAIT_DrivingAssist_Restore",[]];
             if (_previous isEqualTo []) then {
                 _previous=[getForcedSpeed _vehicle];
@@ -138,7 +138,8 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _waypointIndex=currentWaypoint _group;
             private _hasRoute=_waypointIndex < count waypoints _group;
             private _inCombat=behaviour leader _group in ["COMBAT","STEALTH"] || {getSuppression _driver > 0.1};
-            if (_hasRoute && {!_inCombat} && {abs speed _vehicle < 1}
+            if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+                && {!_inCombat} && {abs speed _vehicle < 1}
                 && {time-_progressAt >= 12} && {time >= _recoveryUntil} && {call _mayIssueDriving}) then {
                 private _waypoint=[_group,_waypointIndex];
                 private _destination=waypointPosition _waypoint;
