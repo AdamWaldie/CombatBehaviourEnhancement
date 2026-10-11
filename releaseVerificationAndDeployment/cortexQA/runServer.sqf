@@ -101,6 +101,18 @@ sleep 5;
 ["GARRISON",getPosATL _house] call _order;
 private _housePositions=_house buildingPos -1;
 private _atHouse={
+    // Sample only this two-person fixture; never add a production scan or move an actor.
+    if (diag_tickTime >= (missionNamespace getVariable ["WAIT_CortexQA_NextBuildingDiagnostic",0])) then {
+        missionNamespace setVariable ["WAIT_CortexQA_NextBuildingDiagnostic",diag_tickTime+10];
+        diag_log format ["WAIT CORTEX QA BUILDING MOVEMENT|groupOwner=%1|actors=%2|comparison=%3",groupOwner _group,
+            units _group apply {[_x,owner _x,getPosATL _x,currentCommand _x,expectedDestination _x,speed _x,
+                _x checkAIFeature "MOVE",_x checkAIFeature "PATH",getForcedSpeed _x,
+                _x getVariable ["WAIT_Cortex_ActorMove",[]],_x getVariable ["WAIT_Danger_EngineResponse",[]],
+                _x getVariable ["WAIT_AIPass_GarrisonPos",[]],_x getVariable ["WAIT_AIPass_GarrisonFailed",false]]},
+            [owner _baseline,getPosATL _baseline,currentCommand _baseline,expectedDestination _baseline,
+                _baseline checkAIFeature "MOVE",_baseline checkAIFeature "PATH",getForcedSpeed _baseline,
+                _baseline getVariable ["WAIT_Danger_EngineResponse",[]]]];
+    };
     _housePositions isNotEqualTo [] && {units _group findIf {
         private _unit=_x;
         !alive _unit || {_housePositions findIf {_unit distance _x <= 2.5} < 0}
