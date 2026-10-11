@@ -155,7 +155,21 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                             private _blockers=(nearestObjects [_rear,["Man","LandVehicle","StaticWeapon"],10]) select {
                                 _x != _vehicle && {!(_x in crew _vehicle)} && {alive _x}
                             };
-                            if (_blockers isEqualTo []) then {
+                            private _rearSafe=!surfaceIsWater _rear && {((surfaceNormal _rear) select 2) >= 0.7};
+                            private _rearASL=AGLToASL _rear;
+                            _rearASL set [2,(_rearASL select 2)+1];
+                            private _probeOrigin=(getPosASL _vehicle) vectorAdd [0,0,1];
+                            private _probeSide=[-(_direction select 1),_direction select 0,0];
+                            if (_rearSafe) then {
+                                {
+                                    private _probeOffset=_probeSide vectorMultiply _x;
+                                    if ((lineIntersectsSurfaces [_probeOrigin vectorAdd _probeOffset,
+                                        _rearASL vectorAdd _probeOffset,_vehicle,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []) exitWith {
+                                        _rearSafe=false;
+                                    };
+                                } forEach [-1.5,0,1.5];
+                            };
+                            if (_blockers isEqualTo [] && {_rearSafe} && {call _mayIssueDriving}) then {
                                 _driver doMove _rear;
                                 _recoveryResult="CAUTIOUS_REVERSE";
                             } else {
