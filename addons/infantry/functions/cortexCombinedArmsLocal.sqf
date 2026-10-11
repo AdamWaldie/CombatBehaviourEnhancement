@@ -25,6 +25,8 @@ if ((_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isNotEqualTo _opportuni
     || {serverTime >= _expiry} || {isNull _requester} || {isNull _target} || {!alive _target}
     || {side _group != side _requester} || {(side _group) getFriend side _target >= 0.6}
     || {captive _target} || {_target getVariable ["ace_captives_isSurrendering",false]}
+    || {!(_position isEqualType [])} || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0)} >= 0}
     || {!(_role in ["GROUND_FIRE","GROUND_MANOEUVRE","AIR_ATTACK"])}) exitWith {false};
 private _asset=objNull;
 {
@@ -89,7 +91,9 @@ if (_role == "GROUND_FIRE") exitWith {
 };
 if (_role == "GROUND_MANOEUVRE") exitWith {
     private _start=getPosATL _asset;
-    private _targetPosition=getPosATL _target;
+    // Route geometry belongs to the authenticated contact report. An unseen moving enemy
+    // must not silently update this committed firing-area plan through its live coordinates.
+    private _targetPosition=+_position;
     private _supportPosition=if (count _context >= 2) then {+_context} else {getPosATL leader _requester};
     private _axis=_targetPosition vectorDiff _supportPosition;
     _axis set [2,0];
