@@ -36,6 +36,7 @@ if (_state getOrDefault ["ownerSuspended",false]) then {
     _group setVariable ["WAIT_Operation",nil,true];
     _state set ["ownerSuspended",false];
     _state set ["revision",-1];
+    _state set ["reacquire",true];
 };
 private _externalCrew = _registered findIf {(crew _x) findIf {[_x] call WAIT_fnc_CortexExternalOwner != ""} >= 0} >= 0;
 private _paused = [] call WAIT_fnc_CortexIsPaused || {[_group] call WAIT_fnc_CompatibilityExternalControl} || {_externalCrew} || {"ALL" in (_group getVariable ["WAIT_AIPass_DisabledFeatures",[]])};
@@ -53,6 +54,8 @@ if (_paused || {_playerCrew} || {_zeus}) exitWith {
 _group setVariable ["WAIT_Convoy_Suspended", false];
 [_group, _configuration] call WAIT_fnc_ConvoyCrewLocal;
 if (_phase == "HALT") exitWith {
+    _state set ["reacquire",true];
+    _group setVariable ["WAIT_Convoy_LocalState",_state];
     if (local _group) then {
         private _generation = _state getOrDefault ["operationGeneration",-1];
         private _reason = toUpperANSI (_configuration param [8,"MANUAL"]);
@@ -113,11 +116,16 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     // A local halt/resume or speed edit must not discard the predecessor route.
     // Only a changed vehicle order or a new owner needs fresh trail acquisition.
     private _sameLine = _vehicles isEqualTo (_state getOrDefault ["vehicles",[]]);
+    private _reacquire=!_sameLine || {_state getOrDefault ["reacquire",false]};
+    private _resumePathOwners=if (_reacquire) then {createHashMap} else {_state getOrDefault ["pathOwners",createHashMap]};
+    private _resumeSpeedLimits=if (_reacquire) then {createHashMap} else {_state getOrDefault ["speedLimits",createHashMap]};
     private _resumeTrails = if (_sameLine) then {_state getOrDefault ["frontTrails",createHashMap]} else {createHashMap};
     private _resumeFollowers = if (_sameLine) then {_state getOrDefault ["followers",createHashMap]} else {createHashMap};
-    // Revision setup stops/reacquires followers below. Preserve the predecessor trail and cursor,
+    // Only a real restart stops/reacquires followers. Preserve the predecessor trail and cursor,
     // but invalidate command commitments so an unchanged endpoint cannot hide that stopped command.
+    if (_reacquire) then {
     {private _v=_x; private _key=netId _v; private _record=_resumeFollowers getOrDefault [_key,[]]; if (_record isNotEqualTo []) then {_record set [0,getPosATL _v]; _record set [1,time]; _record set [2,-1]; _record set [5,[]]; _record set [6,[]]; _record set [7,false]}} forEach _vehicles;
+    };
     // A revision alone does not relinquish driving authority to native formation.
     if (count _state > 0 && {!_sameLine}) then {[_group, false, _restore, _registered] call WAIT_fnc_ConvoyReleaseLocal};
     private _savedProgress = _group getVariable ["WAIT_Convoy_ContactProgress", []];
@@ -126,7 +134,7 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
         [_group,false,_restore,_registered,"EXTERNAL"] call WAIT_fnc_ConvoyReleaseLocal;
     };
     _state = createHashMapFromArray [["revision", _revision], ["lead", _lead], ["frontTrails", _resumeTrails],
-        ["heading", getDir _lead], ["vehicles", +_vehicles], ["followers", _resumeFollowers], ["speedLimits", createHashMap], ["contactProgress", _progress]];
+        ["heading", getDir _lead], ["vehicles", +_vehicles], ["followers", _resumeFollowers], ["speedLimits", _resumeSpeedLimits], ["contactProgress", _progress]];
     private _objective = if (count waypoints _group > 0) then {waypointPosition [_group,(count waypoints _group)-1]} else {getPosATL _lead};
     private _operation = [_group,"CONVOY",_objective,[],[_objective],"TRAVEL"] call WAIT_fnc_OperationStart;
     _state set ["operationGeneration",_operation getOrDefault ["generation",-1]];
@@ -142,7 +150,7 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     // Vehicle movement remains a convoy task. Mounted gunners can fire without breaking formation.
     _group enableAttack false;
     // Clear a previous HALT doStop on the lead driver without deleting or replacing route waypoints.
-    if (currentWaypoint _group < count waypoints _group) then {
+    if (_reacquire && {currentWaypoint _group < count waypoints _group}) then {
         (driver _lead) doFollow leader _group;
         // Tracked HALT explicitly replaced vehicle movement with a current-position move.
         // Following the commander cannot supersede that vehicle-level destination reliably.
@@ -157,9 +165,10 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
         };
     };
     {_x setUnloadInCombat [false, false]} forEach _vehicles;
-    private _initialPathOwners=createHashMap;
+    private _initialPathOwners=_resumePathOwners;
     {
         if (_forEachIndex > 0) then {
+            if (_reacquire) then {
             if (isAISteeringComponentEnabled _x && {effectiveCommander _x == driver _x}) then {
                 // Relinquish formation before the predecessor has recorded its first trail segment.
                 // Waiting for a large gap lets native formation compress/overtake during startup.
@@ -176,6 +185,7 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
                     [getPosATL _x,time,-1,0,0,[],[]]];
                 _initialProgress set [7,true];
                 _resumeFollowers set [_initialKey,_initialProgress];
+            };
             };
             _x setConvoySeparation _separation;
         };
