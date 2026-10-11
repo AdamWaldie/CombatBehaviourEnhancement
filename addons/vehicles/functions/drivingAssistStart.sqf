@@ -116,7 +116,19 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _recoveryStage=_state param [6,0];
             private _recoveryUntil=_state param [7,-1];
             private _recoveryResult=_state param [8,"IDLE"];
-            if (_vehicle distance2D _progressPosition >= 3) then {
+            private _routeProgress=true;
+            if (_recoveryStage > 0) then {
+                private _progressWaypoint=currentWaypoint _group;
+                _routeProgress=false;
+                if (_progressWaypoint < count waypoints _group) then {
+                    private _progressDestination=waypointPosition [_group,_progressWaypoint];
+                    _routeProgress=(_progressPosition distance2D _progressDestination)
+                        -(_vehicle distance2D _progressDestination) >= 3;
+                };
+            };
+            // Reversing is a recovery leg, not proof that the original route resumed.
+            // Do not reset its finite stages merely because the vehicle moved backwards.
+            if (_vehicle distance2D _progressPosition >= 3 && {_routeProgress}) then {
                 _progressPosition=getPosATL _vehicle;
                 _progressAt=time;
                 _recoveryStage=0;
