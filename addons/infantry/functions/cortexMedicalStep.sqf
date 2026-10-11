@@ -21,10 +21,7 @@ params [
     ["_state",createHashMap,[createHashMap]],
     ["_phase","",[""]]
 ];
-if (isNull _group || {!local _group}
-    || {!([_group,"WAIT_AIPass_MedicalAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
-    || {[_group] call WAIT_fnc_CortexZeusHeld}
-    || {[_group] call WAIT_fnc_CompatibilityExternalControl}) exitWith {false};
+if (isNull _group || {!local _group}) exitWith {false};
 
 private _finish = {
     params ["_result","_reason"];
@@ -39,6 +36,15 @@ private _finish = {
     };
     _group setVariable ["WAIT_Cortex_MedicalAid",nil,true];
     false
+};
+
+private _medicalEnabled=[_group,"WAIT_AIPass_MedicalAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+private _medicalInterrupted=[_group] call WAIT_fnc_CortexZeusHeld
+    || {[_group] call WAIT_fnc_CompatibilityExternalControl};
+if (!_medicalEnabled || {_medicalInterrupted}) exitWith {
+    if ((_group getVariable ["WAIT_Cortex_MedicalAid",[]]) isNotEqualTo []) then {
+        ["CANCELLED",["FEATURE_CLOSED","EXTERNAL"] select _medicalInterrupted] call _finish
+    } else {false}
 };
 
 // Ownership can change after the tick-level eligibility check and immediately before an engine
