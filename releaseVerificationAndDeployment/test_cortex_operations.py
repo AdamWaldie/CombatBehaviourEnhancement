@@ -3936,6 +3936,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_coordinated_fixture_requester_can_initiate_support(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')
+        self.assertIn('_requester setCombatMode "YELLOW";',qa)
+        self.assertLess(qa.index('_requester setCombatMode "YELLOW";'),qa.index('COORD-natural-contact'))
+        tick=source('cortexGroupTick')
+        self.assertIn('private _holdFire=combatMode _group in ["BLUE","GREEN"];',tick)
+        self.assertIn('if (!_holdFire && {_visible isNotEqualTo []} && {!_ordered}',tick)
     def test_coordinator_geometry_retry_is_finite_and_element_scoped(self):
         text=source('cortexSupportCoordinateStep')
         self.assertIn('"routeFailuresByToken",createHashMap',text)
