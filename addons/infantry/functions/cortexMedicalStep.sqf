@@ -114,6 +114,9 @@ if (_aid isNotEqualTo []) exitWith {
     // At treatment range the medic's lack of displacement is expected: the native HealSoldier action can work
     // in place. The shared progress monitor is only meaningful while this finite operation is
     // physically approaching its casualty, otherwise it would incorrectly cancel a working aid.
+    if (!_inTreatmentRange && {!(_medic checkAIFeature "MOVE") || {!(_medic checkAIFeature "PATH")}}) exitWith {
+        ["CANCELLED","MOVEMENT_DISABLED"] call _finish
+    };
     private _cancelReason="";
     if (!_inTreatmentRange) then {
         private _operationState=[_group,_generation,2,12] call WAIT_fnc_OperationStep;
@@ -131,7 +134,8 @@ if (_aid isNotEqualTo []) exitWith {
     };
     if (time-_lastOrderAt >= 8 && {[_medic,_casualty] call _mayIssueMedical}) then {
         if (!_inTreatmentRange) then {
-            if (currentCommand _medic in ["","STOP"] || {time-_lastProgressAt >= 8}) then {
+            if (_medic checkAIFeature "MOVE" && {_medic checkAIFeature "PATH"}
+                && {currentCommand _medic in ["","STOP"] || {time-_lastProgressAt >= 8}}) then {
                 _medic doMove getPosATL _casualty;
                 _aid set [4,time];
             };
@@ -178,7 +182,9 @@ private _best=1e9;
     private _medic=_x;
     {
         private _distance=(getPosASL _medic) vectorDistance (getPosASL _x);
-        if (_medic != _x && {_distance < _best} && {_distance <= (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Range",80])}) then {
+        private _canApproach=(_medic checkAIFeature "MOVE" && {_medic checkAIFeature "PATH"})
+            || {_distance <= 4 && {abs (((getPosASL _medic) select 2)-((getPosASL _x) select 2)) <= 1.5}};
+        if (_medic != _x && {_distance < _best} && {_canApproach} && {_distance <= (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Range",80])}) then {
             _best=_distance;
             _pair=[_medic,_x];
         };
@@ -192,6 +198,10 @@ private _generation=_operation get "generation";
 if !([_medic,_casualty] call _mayIssueMedical) exitWith {
     [_group,_generation,"EXTERNAL"] call WAIT_fnc_OperationCancel;
     false
+};
+if ((_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) > 1.5})
+    && {!(_medic checkAIFeature "MOVE") || {!(_medic checkAIFeature "PATH")}}) exitWith {
+    [_group,_generation,"MOVEMENT_DISABLED"] call WAIT_fnc_OperationCancel; false
 };
 if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) > 1.5}) then {
     _medic doMove getPosATL _casualty;
