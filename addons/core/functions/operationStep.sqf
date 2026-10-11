@@ -61,8 +61,12 @@ private _unavailableCount=count _unavailable;
                 _recovery deleteAt _key;
                 _recoveryChanged=true;
             } else {
-                if (_currentPosition vectorDistance _startPosition >= _minimum) then {
-                    // The isolated actor is still moving. Renew only its observation window; its
+                private _recoveryDestination=+_destination;
+                if (count _recoveryDestination == 2) then {_recoveryDestination pushBack (_startPosition select 2)};
+                private _closer=count _recoveryDestination == 3
+                    && {(_startPosition vectorDistance _recoveryDestination)-(_currentPosition vectorDistance _recoveryDestination) >= _minimum};
+                if (_closer) then {
+                    // The isolated actor is approaching its assigned destination. Lateral travel or circling cannot renew the retry. Renew only its observation window; its
                     // travel cannot mask a stalled manoeuvre element or reset operation progress.
                     _recovery set [_key,[_attempts,time,+_destination,_currentPosition]];
                     _recoveryChanged=true;
