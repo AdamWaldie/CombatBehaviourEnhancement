@@ -106,7 +106,17 @@ if (toUpperANSI _mode == "START") exitWith {
 };
 if (count _record != 9 || {(_record select 0) != _vehicle} || {(_record select 1) != _generation}
     || {(_record select 2) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {"FALLBACK"};
-if (_vehicle distance2D (_record select 3) >= 30) exitWith {["DISTANCE_REACHED"] call _release; "COMPLETE"};
+private _beforeRecord=+_record;
+private _referenceThreat=+(_record select 4);
+if (count _referenceThreat == 2) then {_referenceThreat pushBack 0};
+private _awayAxis=(_record select 3) vectorDiff _referenceThreat;
+_awayAxis set [2,0];
+_awayAxis=vectorNormalized _awayAxis;
+private _rearwardTravel=((getPosATL _vehicle) vectorDiff (_record select 3)) vectorDotProduct _awayAxis;
+private _frontBearing=_vehicle getRelDir _referenceThreat;
+if (_rearwardTravel >= 30 && {_frontBearing <= 35 || {_frontBearing >= 325}}) exitWith {
+    ["DISTANCE_REACHED"] call _release; "COMPLETE"
+};
 if (_vehicle distance2D (_record select 7) >= 2) then {_record set [6,time]; _record set [7,getPosATL _vehicle]};
 if (time >= (_record select 5) || {time-(_record select 6) > 6}) exitWith {[["NO_PROGRESS","TIME_LIMIT"] select (time >= (_record select 5))] call _release; "FALLBACK"};
 private _bearing=_vehicle getRelDir (_record select 4);
@@ -118,5 +128,5 @@ if (_turn != (_record select 8)) then {
     if (_turn == "STOPTURNING") then {_vehicle sendSimpleCommand "BACK"};
     _record set [8,_turn];
 };
-_group setVariable ["WAIT_VehicleReverse",_record,true];
+if (_record isNotEqualTo _beforeRecord) then {_group setVariable ["WAIT_VehicleReverse",_record,true]};
 "REVERSE"
