@@ -334,7 +334,7 @@ private _observedProfiles=createHashMap;
 {
     _x params ["_id","_class","_withAA","_interrupt",["_patternOverride","AUTO"],
         ["_airTarget",false],["_expectedWeaponClass",""],["_mustDestroy",false],
-        ["_targetClassOverride",""]];
+        ["_targetClassOverride",""],["_movingGround",false]];
     [createHashMapFromArray [
         ["WAIT_Cortex_AirAttack_Enable",true],["WAIT_Cortex_AttackRunFlares_Enable",true],
         ["WAIT_AIPass_AircraftFlares_Enable",false],["WAIT_AIPass_AircraftBreak_Enable",false]
@@ -430,8 +430,8 @@ private _observedProfiles=createHashMap;
     private _targetCrew=crew _target;
     private _targetGroup=group driver _target;
     _targetGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-    {_x allowDamage false; if (!_airTarget) then {_x disableAI "PATH"}} forEach _targetCrew;
-    if (!_airTarget) then {
+    {_x allowDamage false; if (!_airTarget && {!_movingGround}) then {_x disableAI "PATH"}} forEach _targetCrew;
+    if (!_airTarget && {!_movingGround}) then {
         // A ground weapon audit requires an immutable aim point. Disabled crew pathfinding alone
         // still allowed the running vehicle to roll after the plan was sampled.
         _target engineOn false;
@@ -439,6 +439,16 @@ private _observedProfiles=createHashMap;
         _target setVelocity [0,0,0];
         _target setPosATL _targetPosition;
         {doStop _x} forEach _targetCrew;
+    };
+    if (_movingGround && {!_airTarget}) then {
+        _target setDir 90;
+        _target engineOn true;
+        _target limitSpeed 20;
+        _targetGroup setCombatMode "BLUE";
+        _targetGroup setBehaviour "CARELESS";
+        private _groundLeg=_targetGroup addWaypoint [_targetPosition vectorAdd [1800,0,0],0];
+        _groundLeg setWaypointType "MOVE";
+        _groundLeg setWaypointSpeed "NORMAL";
     };
     if (_airTarget) then {
         _target setDir 180;
@@ -985,6 +995,10 @@ private _observedProfiles=createHashMap;
             && {_crew findIf {!alive _x || {vehicle _x != _aircraft}} < 0},str [getPosATL _aircraft,_crew apply {vehicle _x == _aircraft}]] call _recordCheck;
     };
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    if (_movingGround) then {
+        [_id+"-target-physical-travel",_target distance2D _targetPosition >= 20,
+            str [getPosATL _target,_target distance2D _targetPosition]] call _recordCheck;
+    };
     {deleteVehicle _x} forEach (_crew+_targetCrew+_aaCrew+[_aircraft,_target,_aa]);
     deleteGroup _group; deleteGroup _targetGroup; if (!isNull _aaGroup) then {deleteGroup _aaGroup};
 } forEach [
@@ -998,6 +1012,7 @@ private _observedProfiles=createHashMap;
     ["AIR-ATTACK-PLANE-OFFSET","O_Plane_CAS_02_dynamicLoadout_F",false,false,"OFFSET",false,"ROCKET",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-HOOK","O_Plane_CAS_02_dynamicLoadout_F",false,false,"HOOK",false,"ROCKET",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-BOMB","O_Plane_CAS_02_dynamicLoadout_F",false,false,"BOMB",false,"BOMB",true,"B_APC_Tracked_01_rcws_F"],
+    ["AIR-ATTACK-PLANE-BOMB-MOVING","O_Plane_CAS_02_dynamicLoadout_F",false,false,"BOMB",false,"BOMB",true,"B_APC_Tracked_01_rcws_F",true],
     ["AIR-ATTACK-PLANE-GUIDED","O_Plane_CAS_02_dynamicLoadout_F",false,false,"STANDOFF",false,"GUIDED",true,"B_APC_Tracked_01_rcws_F"],
     ["AIR-ATTACK-PLANE-AA","O_Plane_CAS_02_dynamicLoadout_F",true,false,"AUTO",false,"GUIDED",true,"B_APC_Tracked_01_rcws_F"],
     ["AIR-ATTACK-PLANE-INTERCEPT","O_Plane_CAS_02_dynamicLoadout_F",false,false,"AUTO",true,"GUIDED",true],
