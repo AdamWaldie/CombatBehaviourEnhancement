@@ -4303,7 +4303,7 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexClearRelease')
         self.assertIn('private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;',release)
         self.assertIn('then {_restore=false}',release)
-        self.assertLess(release.index('then {_restore=false}'),release.index('if (_restore) then {_x doFollow _leader}'))
+        self.assertLess(release.index('then {_restore=false}'),release.index('if (_restore && {_taskFree}) then {_x doFollow _leader}'))
     def test_building_handover_never_restores_or_locks_wait_state_after_takeover(self):
         clear_release=source('cortexClearRelease')
         clear_job=source('cortexClearBuilding')+source('buildingOperationStep')
@@ -4311,10 +4311,12 @@ class CortexOperations(unittest.TestCase):
         garrison_apply=source('cortexGarrisonApplyLocal')
         # Replacement orders may set posture and speed independently. Cleanup only restores either
         # after a normal WAIT release, never after the shared external-ownership boundary fired.
-        self.assertIn('if (_restore && {unitPos _x == "UP"}',clear_release)
-        self.assertIn('if (_restore && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}}',clear_release)
-        self.assertIn('if (_restore && {unitPos _x == "UP"}',clear_job)
-        self.assertIn('if (_restore && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}}',clear_job)
+        self.assertIn('if (_releaseOwnedSettings && {unitPos _x == "UP"}',clear_release)
+        self.assertIn('[_group,true,_x] call WAIT_fnc_CortexExternalTakeover', clear_release)
+        self.assertIn('[_group,true,_x] call WAIT_fnc_CortexExternalTakeover', clear_job)
+        self.assertIn('if (_releaseOwnedSettings && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}}',clear_release)
+        self.assertIn('if (_releaseOwnedSettings && {unitPos _x == "UP"}',clear_job)
+        self.assertIn('if (_releaseOwnedSettings && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}}',clear_job)
         self.assertIn('if (unitPos _x == (_x getVariable ["WAIT_Cortex_GarrisonDuckStance", ""])) then {',garrison_release)
         self.assertIn('if (!_externalTakeover) then {',garrison_release)
         self.assertIn('&& {_reservationFree} && {!_nativeTask} && {isNull objectParent _unit}',garrison_release)

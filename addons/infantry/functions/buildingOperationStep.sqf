@@ -76,12 +76,17 @@ private _delay=call {
             {
                 if (local _x && {!isPlayer _x} && {group _x == _group}) then {
                     if ([_x] call _actorAvailable) then {
-                        // Do not undo a replacement controller's stance or speed. The clear job
-                        // restores temporary movement state only when it is returning to formation.
-                        if (_restore && {unitPos _x == "UP"} && {!isNil {_x getVariable "WAIT_Cortex_ClearStance"}}) then {
+                        // Releasing an unchanged cap is separate from recalling formation.
+                        // A temporary curator hold keeps its new destination; direct player,
+                        // specialist and explicit external ownership still prohibit writes.
+                        private _releaseOwnedSettings=!([_group,true,_x] call WAIT_fnc_CortexExternalTakeover)
+                            && {!(currentCommand _x in ["ACTION","SCRIPTED","HEAL","REARM","REPAIR","REFUEL","SUPPORT","GET IN","GET OUT","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
+
+                        // Preserve edited settings while releasing unchanged WAIT leases.
+                        if (_releaseOwnedSettings && {unitPos _x == "UP"} && {!isNil {_x getVariable "WAIT_Cortex_ClearStance"}}) then {
                             _x setUnitPos (_x getVariable ["WAIT_Cortex_ClearStance","AUTO"]);
                         };
-                        if (_restore && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
+                        if (_releaseOwnedSettings && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
                             _x forceSpeed (_x getVariable ["WAIT_Cortex_ClearForcedSpeed",-1]);
                         };
                         if (_restore) then {

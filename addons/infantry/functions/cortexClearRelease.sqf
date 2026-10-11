@@ -6,7 +6,8 @@
  * Locality/authority: server authenticates dispatch; the current owner executes group commands.
  * Repeat/JIP: request tokens are consumed once; no stale order is replayed for JIP.
  * Arguments: 0: group <GROUP>, default grpNull; 1: restore formation <BOOL>, default true. Pass
- * false when Zeus has already supplied a replacement order so cleanup cannot overwrite it.
+ * false when Zeus has already supplied a replacement order to prevent formation recall.
+ * Unchanged WAIT speed/posture leases are released independently for ordinary local actors.
  * Return Value: Boolean, a clearing order existed.
  * Current callers: AI Orders, replacement orders, Zeus release and stop.
  * Example: [_group] call WAIT_fnc_CortexClearRelease;
@@ -52,20 +53,22 @@ if (isNull _leader) then {_leader=leader _group};
         private _free=_reservation isEqualTo []
             || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
         private _taskFree=!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]);
-        if (_ownedActor && {_free} && {_taskFree}
+        if (_ownedActor && {_free} && {_taskFree || {currentCommand _x == "JOIN"}}
             && {[_x] call WAIT_fnc_CortexCombatEffective}
             && {isNull remoteControlled _x}
             && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
             && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}) then {
-            // A replacement owner receives untouched stance and speed. These values are only
-            // WAIT's lease while the clear release is returning control to the formation.
-            if (_restore && {unitPos _x == "UP"} && {!isNil {_x getVariable "WAIT_Cortex_ClearStance"}}) then {
+            // Release only unchanged WAIT settings; never recall a replacement movement order.
+            private _releaseOwnedSettings=!([_group,true,_x] call WAIT_fnc_CortexExternalTakeover)
+                && {isNull objectParent _x};
+
+            if (_releaseOwnedSettings && {unitPos _x == "UP"} && {!isNil {_x getVariable "WAIT_Cortex_ClearStance"}}) then {
                 _x setUnitPos (_x getVariable ["WAIT_Cortex_ClearStance","AUTO"]);
             };
-            if (_restore && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
+            if (_releaseOwnedSettings && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
                 _x forceSpeed (_x getVariable ["WAIT_Cortex_ClearForcedSpeed",-1]);
             };
-            if (_restore) then {_x doFollow _leader};
+            if (_restore && {_taskFree}) then {_x doFollow _leader};
         };
         _x setVariable ["WAIT_Cortex_ClearStance",nil,true];
         _x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true];
