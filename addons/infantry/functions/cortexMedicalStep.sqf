@@ -89,12 +89,14 @@ if (_aid isNotEqualTo []) exitWith {
     if (_phase in ["CONTACT","RETREAT"] || {time-_startedAt >= (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Timeout",45])}) exitWith {
         ["CANCELLED",["COMBAT_RESUMED","TIMEOUT"] select (time-_startedAt >= (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Timeout",45]))] call _finish
     };
-    private _distance=_medic distance2D _casualty;
+    private _distance=(getPosASL _medic) vectorDistance (getPosASL _casualty);
+    private _inTreatmentRange=_distance <= 4
+        && {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) <= 1.5};
     // At treatment range the medic's lack of displacement is expected: the native HealSoldier action can work
     // in place. The shared progress monitor is only meaningful while this finite operation is
     // physically approaching its casualty, otherwise it would incorrectly cancel a working aid.
     private _cancelReason="";
-    if (_distance > 4) then {
+    if (!_inTreatmentRange) then {
         private _operationState=[_group,_generation,2,12] call WAIT_fnc_OperationStep;
         if (_operationState in ["LOST_OWNER","ZEUS","EXTERNAL","REPLACED"]) then {_cancelReason=_operationState};
         if (_operationState == "STALLED") then {_cancelReason="NO_PROGRESS"};
@@ -105,11 +107,11 @@ if (_aid isNotEqualTo []) exitWith {
         _bestDistance=_distance;
         _lastProgressAt=time;
     };
-    if (_distance > 4 && {time-_lastProgressAt >= 12}) exitWith {
+    if (!_inTreatmentRange && {time-_lastProgressAt >= 12}) exitWith {
         ["CANCELLED","NO_PROGRESS"] call _finish
     };
     if (time-_lastOrderAt >= 8 && {call _mayIssueMedical}) then {
-        if (_distance > 4) then {
+        if (!_inTreatmentRange) then {
             if (currentCommand _medic in ["","STOP"] || {time-_lastProgressAt >= 8}) then {
                 _medic doMove getPosATL _casualty;
                 _aid set [4,time];
@@ -152,7 +154,7 @@ private _best=1e9;
 {
     private _medic=_x;
     {
-        private _distance=_medic distance2D _x;
+        private _distance=(getPosASL _medic) vectorDistance (getPosASL _x);
         if (_medic != _x && {_distance < _best} && {_distance <= (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Range",80])}) then {
             _best=_distance;
             _pair=[_medic,_x];
@@ -168,7 +170,7 @@ if !(call _mayIssueMedical) exitWith {
     [_group,_generation,"EXTERNAL"] call WAIT_fnc_OperationCancel;
     false
 };
-if (_best > 4) then {
+if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) > 1.5}) then {
     _medic doMove getPosATL _casualty;
 } else {
     _medic action ["HealSoldier",_casualty];

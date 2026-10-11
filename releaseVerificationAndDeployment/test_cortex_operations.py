@@ -1440,7 +1440,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_phase in ["CALM","SECURITY"]',medical)
         self.assertIn('COMBAT_RESUMED',medical)
         self.assertIn('NO_PROGRESS',medical)
-        self.assertIn('if (_distance > 4) then {',medical)
+        self.assertIn('if (!_inTreatmentRange) then {',medical)
+        self.assertIn('private _distance=(getPosASL _medic) vectorDistance (getPosASL _casualty);',medical)
         self.assertIn('native HealSoldier action can work',medical)
         for forbidden in ['setDamage', 'setPos', 'joinSilent', 'addWaypoint']:
             self.assertNotIn(forbidden,medical)
