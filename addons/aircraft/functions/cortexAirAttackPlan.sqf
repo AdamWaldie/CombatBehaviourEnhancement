@@ -384,7 +384,8 @@ private _speed=if (_airToAir) then {
 // straight line through the aim point. HOOK uses a larger bearing change and exits across the far
 // side; OFFSET uses a shallower oblique pass.
 private _deliveryAxis=+_axis;
-if (_isPlane && {_pattern in ["OFFSET","HOOK"]}) then {
+private _fixedForwardStation=_selectedTurret isEqualTo [-1];
+if ((_isPlane || {_fixedForwardStation}) && {_pattern in ["OFFSET","HOOK"]}) then {
     private _bearingAngle=[22,38] select (_pattern == "HOOK");
     _deliveryAxis=vectorNormalized (
         (_axis vectorMultiply cos _bearingAngle)
@@ -427,15 +428,15 @@ switch _pattern do {
     };
     case "STRAFE": {
         if (_isPlane) then {_ingress=[-6500,0] call _point; _attack=[900,0] call _point; _egress=[7500,1200] call _point}
-        else {_ingress=[-1900,250] call _point; _attack=[550,0] call _point; _egress=[2200,500] call _point};
+        else {_ingress=[-1900,[250,0] select _fixedForwardStation] call _point; _attack=[550,0] call _point; _egress=[2200,500] call _point};
     };
     case "OFFSET": {
         if (_isPlane) then {_ingress=[-7000,0] call _point; _attack=[1000,0] call _point; _egress=[8000,2400] call _point}
-        else {_ingress=[-2200,750] call _point; _attack=[650,200] call _point; _egress=[2500,900] call _point};
+        else {_ingress=[-2200,[750,0] select _fixedForwardStation] call _point; _attack=[650,[200,0] select _fixedForwardStation] call _point; _egress=[2500,900] call _point};
     };
     case "HOOK": {
         if (_isPlane) then {_ingress=[-7800,0] call _point; _attack=[1200,0] call _point; _egress=[6500,-4800] call _point}
-        else {_ingress=[-2300,900] call _point; _attack=[700,220] call _point; _egress=[2200,-1100] call _point};
+        else {_ingress=[-2300,[900,0] select _fixedForwardStation] call _point; _attack=[700,[220,0] select _fixedForwardStation] call _point; _egress=[2200,-1100] call _point};
     };
     case "BOMB": {
         _ingress=[-8500,0] call _point;
@@ -455,7 +456,7 @@ switch _pattern do {
 // its weapon geometry, but doing that to a fixed-wing run moves the delivery start off the selected
 // axis and guarantees an oblique rocket/missile miss. Planes therefore retain the complete roll-in;
 // the engine may make one broad joining turn, then flies the immutable target-crossing attack line.
-if (!_airToAir && {!_isPlane}) then {
+if (!_airToAir && {!_isPlane} && {!_fixedForwardStation}) then {
     private _toIngress=_ingress vectorDiff _airPos;
     private _toAttack=_attack vectorDiff _airPos;
     private _forwardIngress=(_toIngress vectorDotProduct _deliveryAxis) >= 100;
