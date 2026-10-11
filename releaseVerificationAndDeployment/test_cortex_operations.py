@@ -4996,7 +4996,11 @@ class CortexOperations(unittest.TestCase):
         for case in ['format ["CLEAR-fresh-%1-accepted"','CLEAR-casualty-order-accepted','CLEAR-door-order-accepted']:
             self.assertIn(case,comparison)
         self.assertNotIn('useBuildingBackend',comparison)
-        self.assertNotIn('setPos',comparison)
+        self.assertNotIn('_unit setPos',comparison)
+        self.assertNotIn('_actor setPos',comparison)
+        self.assertEqual(comparison.count('setPosATL'), 1)
+        self.assertIn('_house setPosATL', comparison)
+        self.assertIn('if (_nativeOnly && {worldName == "VR"}) then', comparison)
 
     def test_consolidation_orders_follow_and_does_not_call_timeout_arrival(self):
         text=source('cortexGroupTick')

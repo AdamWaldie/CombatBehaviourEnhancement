@@ -294,3 +294,5 @@ Live normal convoy batch runtime-20261011-175607-317, candidate e6b3f1d: WHEELED
 
 Live candidate e6b3f1d physical subcases: WHEELED-30 and WHEELED-50 each passed all fourteen recorded matrix checks. Average speeds were 28.9209/29.189/29.4464 and 29.0804/29.2803/29.6558 km/h respectively. Both follower gaps stayed in band for all sixty samples; no stopped samples or restarts were recorded. Both halt/resume and no-turnaround checks passed, with crew retained and fixtures cleaned. This evidence is limited to straight flat VR geometry, server ownership, three wheeled vehicles and a 30 km/h request. Tight spacing, tracked/mixed vehicles, speed variants, corners, terrain, casualties, HC migration and the performance budget remain unaccepted. The batch is incomplete and its addon load warning remains open.
 
+
+The native VR diagnostic now compares identical small houses at three placement heights (0, 0.3 and 0.6 metres) using direct movement and replanning, with doors consistently open. It requires physical arrival at both initial nodes and preserves earlier failures. This is queued evidence gathering, not a production height adjustment or accepted CQB repair.

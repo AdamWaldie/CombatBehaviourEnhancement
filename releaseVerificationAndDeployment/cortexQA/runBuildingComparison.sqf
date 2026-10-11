@@ -195,6 +195,67 @@ waitUntil {
 sleep 15;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; if (worldName == "VR") then {deleteVehicle _house}} forEach _cases;
+if (_nativeOnly && {worldName == "VR"}) then {
+    // Controlled diagnostic: same model, direction, flat ground and open doors.
+    // Height is the only placement difference; no production object is repositioned.
+    private _heightCases=[];
+    {
+        private _height=_x;
+        private _row=_forEachIndex;
+        {
+            private _method=_x;
+            private _house=createVehicle ["Land_i_House_Small_01_V1_F",[6250+_forEachIndex*60,6120+_row*60,0],[],0,"NONE"];
+            _house setDir 0;
+            _house setPosATL [6250+_forEachIndex*60,6120+_row*60,_height];
+            private _label=format ["HEIGHT-%1-%2",_height,_method];
+            [_house,_label] call _recordFixture;
+            for "_door" from 1 to 4 do {
+                _house animateSource [format ["Door_%1_sound_source",_door],1,true];
+            };
+            private _group=createGroup [east,true];
+            private _unit=_group createUnit ["O_Soldier_F",_house getPos [25,180],[],0,"NONE"];
+            _unit allowDamage false;
+            _unit setVariable ["WAIT_CortexQA_Label",_label,true];
+            private _nodes=(_house buildingPos -1) select [0,2];
+            private _target=_nodes param [0,[]];
+            _unit setVariable ["WAIT_CortexQA_Target",_target,true];
+            _unit doMove _target;
+            if (_method == "REPLAN") then {_unit setDestination [_target,"LEADER PLANNED",true]};
+            _heightCases pushBack [_group,_unit,_house,_nodes,0,[false,false],time,_method,_label];
+        } forEach ["DIRECT","REPLAN"];
+    } forEach [0,0.3,0.6];
+    missionNamespace setVariable ["WAIT_CortexQA_Actors",_heightCases apply {_x select 1},true];
+    ["Building entry: controlled placement height","Diagnostic only: identical houses at 0, 0.3 and 0.6 metres, all doors open. Each actor must physically visit the first two nodes. Raised houses test access clearance; they are not a production remedy.",[6250,6120,0]] call _phase;
+    private _heightDeadline=time+150;
+    waitUntil {
+        sleep 2;
+        {
+            _x params ["_group","_unit","_house","_nodes","_cursor","_seen","_issued","_method","_label"];
+            if (_cursor < count _nodes) then {
+                private _target=_nodes select _cursor;
+                if ((getPosASL _unit) vectorDistance (AGLToASL _target) <= 1.5) then {
+                    _seen set [_cursor,true];
+                    _cursor=_cursor+1;
+                    _x set [4,_cursor];
+                    if (_cursor < count _nodes) then {
+                        _target=_nodes select _cursor;
+                        _unit doMove _target;
+                        _unit setVariable ["WAIT_CortexQA_Target",_target,true];
+                        if (_method == "REPLAN") then {_unit setDestination [_target,"LEADER PLANNED",true]};
+                    };
+                };
+            };
+        } forEach _heightCases;
+        time >= _heightDeadline || {_heightCases findIf {(_x select 4) < count (_x select 3)} < 0}
+    };
+    {
+        _x params ["_group","_unit","_house","_nodes","_cursor","_seen","_issued","_method","_label"];
+        ["BUILD-PLACEMENT-"+_label,_seen isEqualTo [true,true],str [_nodes,_seen,getPosATL _unit,expectedDestination _unit]] call _check;
+    } forEach _heightCases;
+    sleep 10;
+    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    {_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; deleteVehicle _house} forEach _heightCases;
+};
 if (_nativeOnly) exitWith {};
 
 // Fresh groups distinguish clearance defects from state left by a previous garrison.
