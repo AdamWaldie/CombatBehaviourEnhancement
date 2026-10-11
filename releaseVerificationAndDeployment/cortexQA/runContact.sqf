@@ -850,7 +850,7 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[_observerLeader,_observerW
     _observerSupportThree,_observerSupportFour,_observerSupportFive],true];
 ["Danger FSM: observer cover and squad readiness","A real explosion occurs beside the separated wingman. The native danger record must retain him as its observer, the one bounded cover move must move that same soldier rather than the distant leader, and four ordinary riflemen must lower profile before the squad's loaded AT gunner.",getPosATL _observerWingman] call _phase;
 sleep 2;
-private _observerIdle=[{currentCommand _observerWingman == "" && {_observerWingman checkAIFeature "MOVE"}
+private _observerIdle=[{currentCommand _observerWingman == "" && {abs speed _observerWingman <= 0.5} && {_observerWingman checkAIFeature "MOVE"}
     && {_observerWingman checkAIFeature "PATH"}},25] call _wait;
 ["DANGER-observer-idle-command-prerequisite",_observerIdle,
     str [currentCommand _observerWingman,getPosATL _observerWingman,expectedDestination _observerWingman]] call _check;
@@ -863,27 +863,44 @@ _observerWall setPosATL (_observerStart getPos [4,270]);
 private _observerCoverBefore=(_observerGroup getVariable ["WAIT_Danger_EngineStats",createHashMap]) getOrDefault ["coverMoves",0];
 private _observerEventsBefore=_observerGroup getVariable ["WAIT_Danger_EngineEvents",0];
 private _observerGrenade=[(getPosATL _observerWingman) getPos [7,90]] call _spawnRealGrenade;
-private _observerGroupHide=[{
-    private _leases=_observerGroup getVariable ["WAIT_Danger_GroupHideLeases",[]];
-    private _leasedActors=_leases apply {_x param [0,objNull]};
-    count _leases == 4
-        && {!(_observerSupportOne in _leasedActors)}
-        && {[_observerSupportTwo,_observerSupportThree,_observerSupportFour,_observerSupportFive]
-            findIf {!(_x in _leasedActors)} < 0}
-},8] call _wait;
-private _observerCover=[{
+// Observe finite posture and cover concurrently. Sequential waits could miss a cover
+// lease which physically completed while the group-hide observation was still running.
+private _observerGroupHide=false;
+private _observerCover=false;
+private _observerIdentitySeen=false;
+private _observerHideEvidence=[];
+private _observerCoverEvidence=[];
+private _observerObservationAt=diag_tickTime;
+[{
     private _assessment=_observerGroup getVariable ["WAIT_Danger_LastAssessment",[]];
     private _action=_observerGroup getVariable ["WAIT_Danger_Action",[]];
     private _lease=_observerGroup getVariable ["WAIT_Danger_CoverLease",[]];
-    count _assessment >= 6
-        && {(_assessment select 5) == _observerWingman}
-        && {count _action >= 6}
-        && {(_action select 5) == _observerWingman}
-        && {count _lease >= 4}
-        && {(_lease select 0) == _observerWingman}
+    private _coverEnd=_observerGroup getVariable ["WAIT_Danger_CoverEnd",[]];
+    if (count _assessment >= 6 && {(_assessment select 5) == _observerWingman}
+        && {count _action >= 6} && {(_action select 5) == _observerWingman}) then {
+        _observerIdentitySeen=true;
+        _observerCoverEvidence=[+_assessment,+_action,+_lease];
+    };
+    private _leases=_observerGroup getVariable ["WAIT_Danger_GroupHideLeases",[]];
+    private _leasedActors=_leases apply {_x param [0,objNull]};
+    if (diag_tickTime-_observerObservationAt <= 8 && {count _leases == 4}
+        && {!(_observerSupportOne in _leasedActors)}
+        && {[_observerSupportTwo,_observerSupportThree,_observerSupportFour,_observerSupportFive]
+            findIf {!(_x in _leasedActors)} < 0}) then {
+        _observerGroupHide=true;
+        _observerHideEvidence=+_leases;
+    };
+    private _observerOwnedCover=(count _lease >= 4 && {(_lease select 0) == _observerWingman})
+        || {count _coverEnd >= 4 && {(_coverEnd select 1) == _observerWingman}
+            && {(_coverEnd select 3) == "AT_DESTINATION"}};
+    if (_observerIdentitySeen && {_observerOwnedCover}
         && {((_observerGroup getVariable ["WAIT_Danger_EngineStats",createHashMap]) getOrDefault ["coverMoves",0]) > _observerCoverBefore}
-        && {_observerWingman distance2D _observerStart >= 2}
-},18] call _wait;
+        && {_observerWingman distance2D _observerStart >= 2}) then {_observerCover=true};
+    _observerGroupHide && {_observerCover}
+},26] call _wait;
+diag_log format ["WAIT OBSERVER RESPONSE LATCH: hide=%1 cover=%2 identity=%3 hideEvidence=%4 coverEvidence=%5 end=%6",
+    _observerGroupHide,_observerCover,_observerIdentitySeen,_observerHideEvidence,_observerCoverEvidence,
+    _observerGroup getVariable ["WAIT_Danger_CoverEnd",[]]];
 diag_log format ["WAIT OBSERVER COVER EVIDENCE|beforeEvents=%1|afterEvents=%2|stats=%3|actors=%4",
     _observerEventsBefore,_observerGroup getVariable ["WAIT_Danger_EngineEvents",0],
     _observerGroup getVariable ["WAIT_Danger_EngineStats",createHashMap],
