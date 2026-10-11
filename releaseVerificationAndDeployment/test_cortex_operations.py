@@ -3936,6 +3936,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_movingGroups == 0 && {_infantryShotCount == _lastInfantryShotCount}',operation)
         self.assertIn('longest infantry movement/fire lull=',operation)
 
+    def test_coordinator_geometry_retry_is_finite_and_element_scoped(self):
+        text=source('cortexSupportCoordinateStep')
+        self.assertIn('"routeFailuresByToken",createHashMap',text)
+        self.assertIn('_routeFailuresByToken deleteAt _token',text)
+        self.assertIn('if (_routeFailures >= 2)',text)
+        self.assertIn('"NO_SAFE_BOUND",_routeFailures',text)
+        self.assertIn('_retired pushBackUnique _token',text)
+        self.assertIn('"WAIT_Cortex_SupportRetryAfter",serverTime+8',text)
     def test_coordinator_rejected_route_does_not_starve_other_elements(self):
         text=source('cortexSupportCoordinateStep')
         selection=text.split('for "_offset"',1)[1].split('_job set ["boundCursor"',1)[0]

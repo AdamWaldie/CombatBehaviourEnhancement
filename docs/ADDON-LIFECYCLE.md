@@ -517,3 +517,5 @@ Legacy support PATH holds retire their WAIT marker during calm, support and with
 Support acknowledgements must match the exact six-field lease and current owner. A delayed acceptance becomes rejection when either the lease or request has expired; it cannot publish fresh prepared eligibility. Matching rejection remains valid for cleanup.
 
 Coordinated bound selection continues through its bounded responder list when an eligible element has no safe next route. It stops scoring after the first viable bound. Eligibility alone must not consume a movement slot or prevent another element from progressing.
+
+A coordinated next-bound geometry rejection permits one retry after eight seconds, without blocking other elements. A second rejection retires that token as NO_SAFE_BOUND. Selecting a viable route clears its geometry-failure count. This is finite failure handling, not proof of route success or physical acceptance.
