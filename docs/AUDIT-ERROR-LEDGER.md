@@ -180,3 +180,5 @@ The building handoff additionally requires a member of the retiring pair to be p
 ### Assigned mover entrance staging
 
 Entrance approach formerly ended when either pair member was within three metres of the entry. The security partner deliberately holds at that distance outside, so its arrival could prematurely send a distant mover directly to the interior. Staging now requires the assigned mover within the entry radius and floor band. Doorway arrival still does not establish interior entry or complete a room. Physical retest remains pending.
+
+Artillery smoke request acceptance now includes a bounded prerequisite snapshot: transmitter, requester/battery eligibility, effective gates, battery role, pause state, crew locality/ROE, selected magazine, range and reservation after dispatch. A reservation after successful dispatch is expected, not evidence of a pre-existing conflict. This diagnostic cannot pass delivery or close the historical request failure; the updated fixture remains queued.

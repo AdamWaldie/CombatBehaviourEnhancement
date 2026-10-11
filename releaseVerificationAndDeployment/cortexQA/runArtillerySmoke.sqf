@@ -125,7 +125,22 @@ _batteryGroup setCombatMode "BLUE";
 _batteryGroup setCombatMode "YELLOW";
 {_x setUnitCombatMode "YELLOW"} forEach _crew;
 private _initialAccepted=call _request;
-["ART-SMOKE-request-accepted",_initialAccepted] call _check;
+private _requestEvidence=[
+    ["radio",!isNull ([_requester] call WAIT_fnc_CortexGroupTransmitter)],
+    ["requesterEligible",[_requester] call WAIT_fnc_CortexIsEligible],
+    ["batteryEligible",[_batteryGroup] call WAIT_fnc_CortexIsEligible],
+    ["requesterGates",[_requester,"WAIT_AIPass_Artillery_Enable",false] call WAIT_fnc_CortexFeatureEnabled,
+        [_requester,"WAIT_AIPass_ArtillerySmoke_Enable",true] call WAIT_fnc_CortexFeatureEnabled],
+    ["batteryGate",[_batteryGroup,"WAIT_AIPass_Artillery_Enable",false] call WAIT_fnc_CortexFeatureEnabled],
+    ["role",[_gun,"SUPPORT"] call WAIT_fnc_CortexArtilleryRole],
+    ["paused",[] call WAIT_fnc_CortexIsPaused],
+    ["crew",_crew apply {[alive _x,local _x,unitCombatMode _x,currentCommand _x]}],
+    ["groupMode",combatMode _batteryGroup],
+    ["magazine",_magazine],
+    ["inRange",_target inRangeOfArtillery [[_gun],_magazine]],
+    ["reserved",(netId _gun) in (missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap])]
+];
+["ART-SMOKE-request-accepted",_initialAccepted,str _requestEvidence] call _check;
 ["Artillery smoke delivery","Observe two actual smoke shells reaching the marked area. No HE is permitted. The test measures fired ammunition and smoke payloads arriving below 3 m near the target, then checks that firing stops.",_target] call _phase;
 private _delivered=if (_initialAccepted) then {[{count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) >= 2},150] call _wait} else {false};
 private _positions=_gun getVariable ["WAIT_CortexQA_SmokeGround",[]];
