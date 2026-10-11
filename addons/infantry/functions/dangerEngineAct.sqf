@@ -52,6 +52,24 @@ private _committedMover=count _operation > 0
     && {(_operation getOrDefault ["route",[]]) isNotEqualTo []}
     && {toUpperANSI (_operation getOrDefault ["phase",""]) in ["APPROACH","ENTRY","SWEEP","REPLAN","EGRESS","MANOEUVRE","ASSAULT","MOVING","TRAVEL","WITHDRAW"]};
 
+// A coordinated parent can remain ACCEPTED while its child executes a bound. Read the
+// matching child roster instead of treating its moving actors as idle from the parent phase.
+private _tacticalState=_group getVariable ["WAIT_AIPass_State",createHashMap];
+private _drill=_tacticalState getOrDefault ["drill",createHashMap];
+if (count _operation > 0 && {count _drill > 0}
+    && {(_drill getOrDefault ["operationGeneration",-1]) == (_operation getOrDefault ["generation",-2])}
+    && {(_drill getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+    private _stage=_drill getOrDefault ["stage",""];
+    private _moving=if (_stage == "START") then {
+        private _teams=_drill getOrDefault ["teams",[]];
+        if (_teams isEqualTo []) then {_drill getOrDefault ["units",[]]} else {
+            _teams param [_drill getOrDefault ["teamTurn",0],[]]
+        }
+    } else {if (_stage == "MOVE") then {_drill getOrDefault ["movers",[]]} else {[]}};
+    if (_actor in _moving || {(_drill getOrDefault ["recovery",[]]) findIf {(_x select 0) == _actor} >= 0}) then {
+        _committedMover=true;
+    };
+};
 // Some finite actor-level opportunities compose beside the group operation. Static deployment,
 // packing, cover, grenade evasion and launcher relocation already own an exact destination and deadline; an immediate
 // danger response must not force these movers prone merely because they are not group participants.
