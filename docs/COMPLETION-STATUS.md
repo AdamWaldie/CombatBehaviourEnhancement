@@ -2,7 +2,7 @@
 
 Status checked on 2026-10-11. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
 
-Current live batch: `runtime-20261011-145921-734`, sealed candidate `543880e`, 3840x2160 observer Zeus with two headless clients. It is incomplete and has physical CQB and convoy failures; no final totals are claimed. Later repairs through `a2d6770` have static/package validation only: synchronous tactical brain retirement, convoy owner-epoch adoption before queueing, retained predecessor recovery intent and commander-led movement. The running batch does not contain them. Compatibility expansion is deferred until FSM/driving foundations and individual-to-squad behaviours work.
+Latest stopped batch: `runtime-20261011-145921-734`, candidate `543880e`, 3840x2160 observer Zeus with two HCs. Stopped at user request; all four processes verified absent. Partial report: 823 checks, 266 failed assertions, zero SQF errors, one unresolved load warning; server/client completion markers missing. Repairs after this candidate remain physically unverified. Game audits are on hold until authorized. Compatibility expansion remains deferred behind FSM/driving foundations.
 
 Game audits are authorized in batches. The broad candidate 89812ab batch completed with
 2,375 checks and 462 failed checks. The subsequent coordination candidate b3a9f70 completed

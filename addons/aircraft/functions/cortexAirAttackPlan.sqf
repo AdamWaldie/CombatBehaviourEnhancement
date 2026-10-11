@@ -41,7 +41,7 @@ if (isNull _pilot || {!alive _pilot} || {!local _aircraft}) exitWith {createHash
 private _side=side group _pilot;
 // Logic objects can have a hostile side without being a physical combat target.
 // In particular, curator modules must never become weapon-delivery objectives.
-if (_target isKindOf "Logic" || {_side getFriend side _target >= 0.6} || {captive _target}
+if (_target isKindOf "Logic" || {_target isKindOf "HeadlessClient_F"} || {_side getFriend side _target >= 0.6} || {captive _target}
     || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}) exitWith {createHashMap};
 private _airToAir=_target isKindOf "Air" && {!isTouchingGround _target};
