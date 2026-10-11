@@ -32,9 +32,13 @@ private _navalIntent = _group getVariable ["WAIT_Cortex_NavalOperation",[]];
 // Retire the old owner's common operation before this owner rebuilds any durable semantic intent.
 // Its public order remains available below (for example, a partially completed building clear),
 // but no stale route can survive long enough to compete with the reconstructed operation.
+private _inheritedAttackLease=[];
 if (local _group) then {
     private _previousOperation=_group getVariable ["WAIT_Operation",createHashMap];
     if (count _previousOperation > 0) then {
+        if ((_previousOperation getOrDefault ["generation",-1]) == (_group getVariable ["WAIT_OperationGeneration",-2])) then {
+            _inheritedAttackLease=+((_previousOperation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]]);
+        };
         [_group,_previousOperation getOrDefault ["generation",-1],"OWNERSHIP_LOST"] call WAIT_fnc_OperationCancel;
     };
 };
@@ -101,6 +105,17 @@ private _restore = createHashMapFromArray (_group getVariable ["WAIT_AIPass_Chec
 // old owner's checkpoint is then evidence only: never replay its follow, AI-feature or ROE cleanup
 // into the new owner's task.  Eligible WAIT groups still recover only the values WAIT recorded.
 private _restoreEligible=[_group,false,false,true] call WAIT_fnc_CortexIsEligible;
+// A disabled master is not a new controller. Restore this exact-owned native permission
+// independently of movement eligibility, before a resumed operation captures its baseline.
+// Direct player/specialist ownership still wins; a waypoint-only hold owns no attack flag.
+if (count _inheritedAttackLease == 2 && {count units _group <= 64}
+    && {!([_group,true] call WAIT_fnc_CortexExternalTakeover)}
+    && {(_inheritedAttackLease select 0) isEqualType true}
+    && {(_inheritedAttackLease select 1) isEqualType true}
+    && {attackEnabled _group == (_inheritedAttackLease select 1)}
+    && {(_inheritedAttackLease select 0) != (_inheritedAttackLease select 1)}) then {
+    _group enableAttack (_inheritedAttackLease select 0);
+};
 if (_restoreEligible) then {
     private _restoreActorEligible={
         params ["_unit"];
