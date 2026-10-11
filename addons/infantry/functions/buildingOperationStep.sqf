@@ -89,7 +89,10 @@ private _delay=call {
                         if (_releaseOwnedSettings && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
                             _x forceSpeed (_x getVariable ["WAIT_Cortex_ClearForcedSpeed",-1]);
                         };
-                        if (_restore) then {
+                        // Native tasks keep movement ownership during terminal cleanup too.
+                        // Releasing our unchanged settings must not cancel treatment, boarding
+                        // or a specialist action with a formation recall.
+                        if (_restore && {[_x] call _actorTaskFree}) then {
                             _x doWatch objNull;
                             _x doFollow _leader;
                         };

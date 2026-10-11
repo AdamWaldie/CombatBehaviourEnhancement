@@ -1815,7 +1815,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('!isPlayer _actor',helper)
         self.assertIn('lifeState _unit != "INCAPACITATED"',source('cortexCombatEffective'))
         self.assertIn('_assigned set [_forEachIndex,[]]',release)
-        self.assertIn('if (_restore) then {',text)
+        self.assertIn('if (_restore && {[_x] call _actorTaskFree}) then',text)
         release=source('cortexClearRelease')
         self.assertIn('params [["_group", grpNull, [grpNull]],["_restore",true,[true]]]',release)
         tick=source('cortexGroupTick')
@@ -7461,3 +7461,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_entryEvidence pushBack [netId _actor,_node,getPosASL _actor,time]',text)
         self.assertIn('(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5',text)
         self.assertNotIn('private _doorOpened=[{_doorHouse animationSourcePhase',text)
+
+    def test_clearance_terminal_recall_yields_native_actor_tasks(self):
+        text=source('buildingOperationStep')
+        self.assertIn('if (_restore && {[_x] call _actorTaskFree}) then',text)
+        self.assertLess(text.index('if (_restore && {[_x] call _actorTaskFree}) then'),text.index('_x doFollow _leader;'))
