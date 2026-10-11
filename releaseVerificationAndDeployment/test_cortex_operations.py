@@ -5051,7 +5051,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_committedDestination distance2D _destination > 8',native)
         self.assertNotIn('currentCommand driver _vehicle in ["","STOP"]',native)
         self.assertIn('_progress set [5,+_destination];',native)
-        self.assertEqual(native.count('driver _vehicle doMove _destination;'),1)
+        self.assertEqual(native.count('_movementOperator doMove _destination;'),1)
 
     def test_steering_convoy_follower_keeps_one_committed_path_between_trail_samples(self):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
@@ -5251,7 +5251,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group,false,_restore,_registered,"EXTERNAL"] call WAIT_fnc_ConvoyReleaseLocal;',tick)
         for command in ['_lead forceSpeed _ownedSpeed',
                         '(driver _lead) doMove _watchedPosition',
-                        'driver _vehicle doMove _destination',
+                        '_movementOperator doMove _destination',
                         '_vehicle setDriveOnPath _path']:
             self.assertLess(tick.rindex('[] call _mayIssueDriving',0,tick.index(command)+len(command)),tick.index(command))
 

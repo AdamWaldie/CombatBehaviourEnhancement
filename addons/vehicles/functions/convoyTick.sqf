@@ -158,7 +158,7 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     private _initialPathOwners=createHashMap;
     {
         if (_forEachIndex > 0) then {
-            if (isAISteeringComponentEnabled _x) then {
+            if (isAISteeringComponentEnabled _x && {effectiveCommander _x == driver _x}) then {
                 // Relinquish formation before the predecessor has recorded its first trail segment.
                 // Waiting for a large gap lets native formation compress/overtake during startup.
                 doStop driver _x;
@@ -444,7 +444,12 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _trailBase = _record select 1;
     private _gap = _vehicle distance2D _front;
     private _desiredGap = _gaps select _i;
-    private _native = !isAISteeringComponentEnabled _vehicle;
+    private _movementOperator=effectiveCommander _vehicle;
+    if (isNull _movementOperator) then {_movementOperator=driver _vehicle};
+    // Fixed steering takes a driver out of a separate commander's native movement chain.
+    // Such vehicles retain native planning through the effective commander instead.
+    private _native = !isAISteeringComponentEnabled _vehicle
+        || {_movementOperator != driver _vehicle};
     private _key = netId _vehicle;
     private _tolerance = (_desiredGap * 0.2) max 3;
     private _bodyGap = (((_specs get (netId _vehicle)) select 1) + ((_specs get (netId _front)) select 1))*0.5+5;
@@ -605,7 +610,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 if (count _committedDestination < 2
                     || {_committedDestination distance2D _destination > 8}) then {
                     if ([] call _mayIssueDriving) then {
-                        driver _vehicle doMove _destination;
+                        _movementOperator doMove _destination;
                         _progress set [5,+_destination];
                     };
                 };
