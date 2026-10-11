@@ -510,7 +510,8 @@ private _issue = {
         private _unit = _x;
         // Release only Cortex's matching cover stance when this soldier starts moving.
         // A later mission-maker or Zeus stance remains authoritative.
-        if (_unit getVariable ["WAIT_AIPass_StanceSet",false]
+        if ([_unit] call _mayIssueMovement
+            && {_unit getVariable ["WAIT_AIPass_StanceSet",false]}
             && {toUpperANSI (unitPos _unit) == (_unit getVariable ["WAIT_Cortex_AppliedStance",""])}) then {
             _unit setUnitPos "AUTO";
             _unit setVariable ["WAIT_AIPass_StanceSet",nil,true];
