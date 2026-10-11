@@ -2,7 +2,9 @@
 
 Status checked on 2026-10-11. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
 
-Latest stopped batch: `runtime-20261011-145921-734`, candidate `543880e`, 3840x2160 observer Zeus with two HCs. Stopped at user request; all four processes verified absent. Partial report: 823 checks, 266 failed assertions, zero SQF errors, one unresolved load warning; server/client completion markers missing. Repairs after this candidate remain physically unverified. Game audits are on hold until authorized. Compatibility expansion remains deferred behind FSM/driving foundations.
+Current live batch: `runtime-20261011-175607-317`, sealed candidate `e6b3f1d`, normal convoy matrix at 3840x2160 with observer Zeus and zero HCs. At 85 recorded checks, WHEELED-30 and WHEELED-50 passed all fourteen checks each: continuous travel, spacing, single file, stop fraction, halt/resume, crew retention and cleanup. These are flat-VR subcases at a 30 km/h request, not complete convoy or performance acceptance. WHEELED-15 remains failed; pacing repair `3c631a9` is outside the running candidate. HC tests remain a separate batch. One addon load warning remains unresolved.
+
+Latest stopped batch: `runtime-20261011-145921-734`, candidate `543880e`, 3840x2160 observer Zeus with two HCs. Stopped at user request; all four processes verified absent. Partial report: 823 checks, 266 failed assertions, zero SQF errors, one unresolved load warning; server/client completion markers missing. Repairs after this candidate remain physically unverified. Game audits were subsequently authorized again; the normal convoy batch above is running. Compatibility expansion remains deferred behind FSM/driving foundations.
 
 Game audits are authorized in batches. The broad candidate 89812ab batch completed with
 2,375 checks and 462 failed checks. The subsequent coordination candidate b3a9f70 completed
