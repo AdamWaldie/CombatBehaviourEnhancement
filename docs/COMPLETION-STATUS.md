@@ -6,14 +6,14 @@ Game audits are authorized in batches. The full packaged batch runtime-20261010-
 
 ## Current batch and queued repairs
 
-The ongoing 89812ab batch has reached 1820 recorded checks, with 4231 SQF error trace
+The ongoing 89812ab batch has reached 2047 recorded checks, with 4231 SQF error trace
 lines, no matched fatal runtime failures, one load warning and missing completion markers.
 This is a partial snapshot, not a final result. Repeated bomb-integration exceptions account
 for the new trace volume. The enabled 50-group patrol arm is invalid because its minimum
 managed-group count was zero, even though all groups moved. Its timing cannot establish
 performance acceptance.
 
-Changes through 5fedb57 are committed and statically/package validated, awaiting physical retest:
+Changes through 82e0fc6 are committed and statically/package validated, awaiting physical retest:
 
 - Aircraft: live weapon/launch alignment, lateral turret traverse eligibility, logic-target
   rejection, preserved re-attack holds, moving-contact interception and bounded bomb drag.
@@ -35,13 +35,24 @@ Changes through 5fedb57 are committed and statically/package validated, awaiting
   actor destinations, bound deadlines and spent recovery budgets. New owners rebuild one local
   operation/FSM after authority validation; coordinated bounds keep server-role adoption.
   Physical resumption, interruption and loaded performance remain unaccepted.
+- Coordination repairs: authenticated prepared eligibility can dispatch beside a current local
+  drill; role handover does not return movers to formation. Operation admission retains the full
+  ATL objective. Cover is stationary by design and does not inherit rally no-progress failure;
+  stop commands occur once per role change. Expired acknowledgements reject, and unsafe bounds
+  allow one delayed retry before retiring only that element. Route rejection does not starve
+  other elements. Three capable survivors retain two movers and one coverer with unique donors.
+- Fixture repairs: coordinated handoff explicitly enables Post Contact, roster sampling uses the
+  configured helper size, absent admission fails after thirty seconds and owner objectives must
+  match their lease. These dependencies and assertions remain physically unaccepted.
+- Individual handover: legacy support hold cleanup in calm, withdrawal and support paths does
+  not restore movement over player, remote or specialist ownership.
 - Vehicle repairs: stopped follower command invalidation, tracked lead resume, unsettled HALT
   cadence and finite passenger-owner exit retries remain queued for exact-candidate acceptance.
 
 Physical results from the current old package do not validate these changes. Native companion
 provider integration, specialist coexistence, CQB, combined combat and matched mixed-force
-performance remain open. Clean candidate 5fedb57b88d3ce05a994815e523e2b78ea025a96 is preserved
-with dirty=false and fingerprint 74b1d83c723e52d1123596cca2a7973c0ab0facb4d59c9e0ed45e6878b85b68e.
+performance remain open. Clean candidate 82e0fc63eedffccaee8a0337657c92e94772a9f7 is preserved
+with dirty=false and fingerprint ba42aa4fc0b74b0ec3f732107f2962d14c54133bace2f9a895ea3ed10bb4be15.
 It includes the queued repairs; it has not run physically.
 
 ## Module progress toward completion
