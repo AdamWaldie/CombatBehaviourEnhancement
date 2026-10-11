@@ -74,7 +74,11 @@ private _finish={
         if (_job getOrDefault ["targetDestroyed",false]) then {
             _reason="TARGET_DESTROYED";
         } else {
-            if (_job getOrDefault ["deliveryMissed",false]) then {_reason="DELIVERY_MISSED"};
+            if (_job getOrDefault ["deliveryMissed",false]) then {
+                _reason="DELIVERY_MISSED";
+                private _deliveryFailure=_job getOrDefault ["deliveryFailureReason",""];
+                if (_deliveryFailure != "") then {_reason=_deliveryFailure};
+            };
         };
     };
     private _finishGroup=group driver _aircraft;
@@ -937,7 +941,17 @@ if (_stage == "ATTACK" && {_attackShots > 0} && {(_job getOrDefault ["firstAttac
 if ((_job getOrDefault ["pattern",""]) == "STANDOFF" && {_stage == "ATTACK"} && {_attackShots <= 0}
     && {serverTime > (_job getOrDefault ["attackStartedAt",serverTime])+25}) exitWith {
     _aircraft setVariable ["WAIT_Cortex_AirStandoffBlockedUntil",serverTime+90];
-    ["NO_FIRE_SOLUTION",true] call _finish
+    // Failure to release is not permission to abandon the escape leg over the threat.
+    // Keep the failed-delivery reason, fly the immutable exit, then release native control.
+    _job set ["deliveryMissed",true];
+    _job set ["deliveryFailureReason","NO_FIRE_SOLUTION"];
+    [_group,_job,"EGRESS","NO_FIRE_SOLUTION"] call WAIT_fnc_CortexDrillSetStage;
+    ["EGRESS"] call _setOperationPhase;
+    _job set ["commandedStage",""];
+    _job set ["egressStartPosition",getPosATL _aircraft];
+    _job set ["egressStartedAt",serverTime];
+    _job set ["deadline",serverTime+75];
+    0
 };
 if (serverTime > (_job get "deadline")) exitWith {["STAGE_TIMEOUT"] call _finish};
 private _captureRadii=_job getOrDefault ["captureRadii",[if (_isPlane) then {700} else {450},if (_isPlane) then {700} else {450},if (_isPlane) then {700} else {450}]];

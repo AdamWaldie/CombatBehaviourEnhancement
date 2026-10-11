@@ -495,3 +495,6 @@ Coordinated bounds continue to use their server-role adoption path; this standal
 
 
 Clearance egress retains each actor's exit destination while it makes new best approach progress. Arrived actors receive no additional movement command. One native route refresh is allowed after eight seconds without approach progress; the original 45-second exit deadline remains unchanged. Unlocked-door actions do not repeatedly reset a progressing exit route. Fresh clearance audits independently sample actor position and exit floor band, and record the bounded retry evidence. Physical egress remains unaccepted until the next packaged batch.
+
+
+A stand-off pass without a firing solution enters its existing immutable egress leg before releasing flight ownership. The finite exit has a 75-second deadline and retains `NO_FIRE_SOLUTION` as the failed-delivery result. A physical exit cannot turn the missed attack into success. Zeus, external ownership and safety interruptions still release immediately through their existing guards. Physical no-solution egress is queued for packaged acceptance.

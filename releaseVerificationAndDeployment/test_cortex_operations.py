@@ -7,6 +7,20 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'addons/main/functions/Cortex'
 def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encoding='utf-8')
 class CortexOperations(unittest.TestCase):
+    def test_standoff_no_solution_exits_before_releasing_flight(self):
+        controller=source('cortexAirAttack')
+        failure=controller.split('serverTime > (_job getOrDefault ["attackStartedAt",serverTime])+25}) exitWith {',1)[1].split('if (serverTime > (_job get "deadline"))',1)[0]
+        self.assertIn('["EGRESS","NO_FIRE_SOLUTION"]',failure.replace('_group,_job,',''))
+        self.assertIn('["EGRESS"] call _setOperationPhase',failure)
+        self.assertIn('_job set ["deliveryFailureReason","NO_FIRE_SOLUTION"]',failure)
+        self.assertIn('_job set ["deadline",serverTime+75]',failure)
+        self.assertNotIn('call _finish',failure)
+        self.assertNotIn('setPos',failure)
+        self.assertNotIn('fireAtTarget',failure)
+        finish=controller.split('private _finish={',1)[1].split('private _finishGroup=',1)[0]
+        self.assertIn('_reason=_deliveryFailure',finish)
+
+
     def test_tactical_migration_preserves_intent_and_finite_budgets(self):
         checkpoint=source('cortexCheckpoint')
         resume=source('cortexDrillResume')
