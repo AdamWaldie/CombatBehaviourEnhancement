@@ -200,6 +200,10 @@ private _cover=if (_sameGeometry) then {[_origin,false]} else {
     };
     _result
 };
+private _searchStats=_group getVariable ["WAIT_Danger_EngineStats",createHashMap];
+private _searchCounter=["coverGeometrySearches","coverNegativeCacheHits"] select _sameGeometry;
+_searchStats set [_searchCounter,((_searchStats getOrDefault [_searchCounter,0])+1) min 100000];
+_group setVariable ["WAIT_Danger_EngineStats",_searchStats];
 _cover params ["_spot","_found"];
 // A small valid move can put the actor behind nearby cover. Treat negligible displacement
 // separately; it is not evidence that solid cover failed and should not trigger concealment.
