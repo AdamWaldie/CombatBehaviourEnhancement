@@ -6372,7 +6372,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_jobKey != "") then {',queue)
         self.assertIn('WAIT_AIPass_Jobs',queue)
         self.assertIn('WAIT_AIPass_PendingJobs',queue)
-        self.assertIn('_existingState set ["wakeAt", _dueAt]',queue)
+        self.assertIn('_dueAt min (_existingState getOrDefault ["wakeAt",_dueAt])',queue)
+        self.assertIn('_existingState set ["wakeAt", _wakeAt]',queue)
         self.assertIn('_pending pushBack [_dueAt, _job, _state]',queue)
 
     def test_attack_flare_audit_preserves_missile_cases_and_uses_real_flight(self):

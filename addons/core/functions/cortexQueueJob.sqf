@@ -56,8 +56,9 @@ if (_jobKey != "") then {
 };
 // Function-scope return: an exit inside the key-search block would still append a duplicate.
 if (_found) exitWith {
+    private _wakeAt=_dueAt min (_existingState getOrDefault ["wakeAt",_dueAt]);
     {_existingState set [_x, _y]} forEach _state;
-    _existingState set ["wakeAt", _dueAt];
+    _existingState set ["wakeAt", _wakeAt];
     private _nextDue = missionNamespace getVariable ["WAIT_AIPass_NextJobDue", -1];
     if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _dueAt]};
 };

@@ -24,6 +24,9 @@ private _coalesceState=createHashMapFromArray [["calls",0],["value",1]];
 private _coalesceCallback={params ["_state"]; _state set ["calls",(_state get "calls")+1]; -1};
 [_coalesceCallback,_coalesceState,10,_coalesceKey] call WAIT_fnc_CortexQueueJob;
 [_coalesceCallback,createHashMapFromArray [["value",2]],0,_coalesceKey] call WAIT_fnc_CortexQueueJob;
+private _earlyWake=_coalesceState getOrDefault ["wakeAt",-1];
+[_coalesceCallback,createHashMapFromArray [["value",3]],5,_coalesceKey] call WAIT_fnc_CortexQueueJob;
+["SCHED-keyed-earliest-wake-retained",_earlyWake >= 0 && {(_coalesceState get "wakeAt") == _earlyWake}] call _check;
 private _countMatching={
     ((missionNamespace getVariable ["WAIT_AIPass_Jobs",[]])
         +(missionNamespace getVariable ["WAIT_AIPass_PendingJobs",[]])) select {
@@ -34,7 +37,7 @@ private _countMatching={
 private _coalesceRetired=[{(_coalesceState get "calls") >= 1 && {count (call _countMatching) == 0}},10] call _wait;
 ["SCHED-keyed-callback-retired",_coalesceRetired] call _check;
 ["SCHED-keyed-callback-once",_coalesceRetired && {(_coalesceState get "calls") == 1}
-    && {(_coalesceState get "value") == 2},str [_coalesceState get "calls",_coalesceState get "value"]] call _check;
+    && {(_coalesceState get "value") == 3},str [_coalesceState get "calls",_coalesceState get "value"]] call _check;
 // Isolated owner-epoch admission check: do not change any live mission group's epoch.
 private _epochGroup=createGroup [east,false];
 _epochGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
