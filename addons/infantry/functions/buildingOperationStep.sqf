@@ -323,7 +323,10 @@ private _delay=call {
     // Reassigned units belong to their new commander and must receive no further orders here.
     private _activeWorkers=(_job get "team") select {[_x] call _actorAvailable
         && {!(_x in _rotatedOut)} && {!(_x in _unavailable)}};
-    private _failureThreshold=(count (_job get "pairs")) min 2 max 1;
+    // Every assigned lane gets a chance before a room is declared exhausted.
+    // A fixed two-lane threshold abandoned rooms while a third capable pair existed.
+    // The operation deadline and finite per-room recovery budget still bound retries.
+    private _failureThreshold=(count (_job get "pairs")) max 1;
     {
         if (!([_x] call _actorAvailable) || {_x in _rotatedOut} || {_x in _unavailable}) then {
             _assigned set [_forEachIndex,[]];

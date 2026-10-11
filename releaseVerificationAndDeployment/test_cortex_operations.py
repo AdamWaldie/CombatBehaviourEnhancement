@@ -1948,7 +1948,7 @@ class CortexOperations(unittest.TestCase):
     def test_clearance_rotates_failed_position_between_workers(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('private _failedBy',text)
-        self.assertIn('private _failureThreshold=(count (_job get "pairs")) min 2 max 1',text)
+        self.assertIn('private _failureThreshold=(count (_job get "pairs")) max 1',text)
         self.assertIn('(_job get "pending") pushBackUnique _positionIndex',text)
         self.assertIn('private _pairId=format ["PAIR_%1",_pairIndex]',text)
         self.assertIn('for "_exitIndex" from 0 to 15 do',text)
@@ -1999,7 +1999,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _supportTarget=[]',text)
         self.assertIn('_previousPositionIndex=_positionIndex',text)
         self.assertIn('private _unitTarget=if (_unit == _point',text)
-        self.assertIn('_failureThreshold=(count (_job get "pairs")) min 2 max 1',text)
+        self.assertIn('_failureThreshold=(count (_job get "pairs")) max 1',text)
         self.assertNotIn('"ROTATE"',text)
 
     def test_clearance_reinforces_casualties_from_uncommitted_squad_members(self):
@@ -7483,3 +7483,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_arrived) then {_seen set [_cursor,true]}',revisit)
         self.assertIn('vectorDistance (AGLToASL (_nodes select _cursor)) <= 1.5',revisit)
         self.assertNotIn('setPos',revisit)
+
+    def test_clearance_does_not_abandon_rooms_before_every_lane_attempts(self):
+        text=source('buildingOperationStep')
+        self.assertIn('private _failureThreshold=(count (_job get "pairs")) max 1;',text)
+        self.assertNotIn('private _failureThreshold=(count (_job get "pairs")) min 2',text)
+        self.assertIn('private _roomRetryBudget=3*_failureThreshold;',text)
+        self.assertIn('serverTime > (_job get "deadline")',text)
