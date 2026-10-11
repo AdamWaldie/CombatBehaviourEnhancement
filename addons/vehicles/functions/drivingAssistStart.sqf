@@ -55,8 +55,14 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
     if (_release) then {[_vehicle,_group] call WAIT_fnc_DrivingAssistRelease} else {
         // Terrain sampling is deliberately sparse but may still overlap a newer Zeus or specialist
         // order. Preserve that order at the actual cap/recovery command boundary.
+        private _movementOperator=effectiveCommander _vehicle;
+        if (isNull _movementOperator) then {_movementOperator=_driver};
         private _mayIssueDriving = {
             !([_group] call WAIT_fnc_CortexExternalTakeover)
+                && {local _movementOperator} && {group _movementOperator == _group}
+                && {!isPlayer _movementOperator} && {isNull remoteControlled _movementOperator}
+                && {_driver checkAIFeature "MOVE"} && {_driver checkAIFeature "PATH"}
+                && {_movementOperator checkAIFeature "MOVE"} && {_movementOperator checkAIFeature "PATH"}
         };
         private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
@@ -149,7 +155,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 if (waypointType _waypoint == "MOVE" && {_vehicle distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
                     switch (_recoveryStage) do {
                         case 0: {
-                            _driver doMove _destination;
+                            _movementOperator doMove _destination;
                             _recoveryStage=1;
                             _recoveryUntil=time+8;
                             _recoveryResult="ROUTE_REFRESH";
@@ -174,7 +180,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                                 } forEach [-1.5,0,1.5];
                             };
                             if (_blockers isEqualTo [] && {_rearSafe} && {call _mayIssueDriving}) then {
-                                _driver doMove _rear;
+                                _movementOperator doMove _rear;
                                 _recoveryResult="CAUTIOUS_REVERSE";
                             } else {
                                 _recoveryResult="REAR_BLOCKED";
@@ -183,7 +189,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                             _recoveryUntil=time+6;
                         };
                         case 2: {
-                            _driver doMove _destination;
+                            _movementOperator doMove _destination;
                             _recoveryStage=3;
                             _recoveryUntil=time+60;
                             _recoveryResult="FINAL_ROUTE_RETRY";
