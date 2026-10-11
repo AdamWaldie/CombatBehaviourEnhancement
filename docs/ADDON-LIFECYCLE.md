@@ -563,3 +563,4 @@ The coordination batch now includes scheduler component and physical movement ca
 cases measure one keyed callback, updated state, retirement, rejection without epoch rewriting,
 fresh-owner execution and no old-epoch execution. They supplement physical movement, interruption,
 HC and performance acceptance; they are queued and have not passed in game.
+A keyed callback may request an earlier wake while it is running. The scheduler carries that wake into both the rescheduled job and its cached earliest deadline, so the idle gate cannot postpone immediate reassessment until the callback's normal cadence. The additive scheduler audit checks a self-wake against a twenty-second return delay; physical acceptance remains pending.

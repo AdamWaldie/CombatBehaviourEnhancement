@@ -108,8 +108,10 @@ private _earliest = -1;
             // marker lives on this existing job and expires without another scheduler/loop.
             private _responsive = _now < (_state getOrDefault ["responsiveUntil",-1]);
             if (_slow && {!_jobPaused} && {!_skillsJob} && {!(_subsystem in ["CONVOY", "AIRCRAFT"])} && {!_responsive}) then {_delay = _delay * 2};
-            _rescheduled pushBack [_now + _delay, _job, _state];
-            private _rescheduledAt = _now + _delay;
+            // A callback can wake its own keyed operation while it runs. Include that wake
+            // in the idle cache, otherwise the early-return gate hides it until the long delay.
+            private _rescheduledAt = (_now + _delay) min (_state getOrDefault ["wakeAt",_now + _delay]);
+            _rescheduled pushBack [_rescheduledAt, _job, _state];
             if (_earliest < 0 || {_rescheduledAt < _earliest}) then {_earliest = _rescheduledAt};
         };
     };

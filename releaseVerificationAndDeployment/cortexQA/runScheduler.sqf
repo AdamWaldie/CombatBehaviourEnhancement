@@ -44,6 +44,29 @@ private _coalesceRetired=[{(_coalesceState get "calls") >= 1 && {count (call _co
 ["SCHED-keyed-callback-retired",_coalesceRetired] call _check;
 ["SCHED-keyed-callback-once",_coalesceRetired && {(_coalesceState get "calls") == 1}
     && {(_coalesceState get "value") == 3},str [_coalesceState get "calls",_coalesceState get "value"]] call _check;
+// A running callback wakes its own existing job but returns a longer normal cadence.
+// The real scheduler must observe the immediate wake through its cached deadline.
+private _selfWakeKey="WAIT_QA_SELF_WAKE_"+str diag_tickTime;
+private _selfWakeState=createHashMapFromArray [["calls",0],["firstAt",-1],["secondAt",-1]];
+private _selfWakeCallback={
+    params ["_state"];
+    private _calls=(_state get "calls")+1;
+    _state set ["calls",_calls];
+    if (_calls == 1) exitWith {
+        _state set ["firstAt",time];
+        [WAIT_CortexQA_SelfWakeCallback,_state,0,_state get "jobKey"] call WAIT_fnc_CortexQueueJob;
+        20
+    };
+    _state set ["secondAt",time];
+    -1
+};
+missionNamespace setVariable ["WAIT_CortexQA_SelfWakeCallback",_selfWakeCallback];
+[_selfWakeCallback,_selfWakeState,0,_selfWakeKey] call WAIT_fnc_CortexQueueJob;
+private _selfWakeRan=[{(_selfWakeState get "calls") >= 2},10] call _wait;
+["SCHED-running-key-immediate-wake",_selfWakeRan && {(_selfWakeState get "calls") == 2}
+    && {(_selfWakeState get "secondAt")-(_selfWakeState get "firstAt") < 10},
+    str [_selfWakeState get "calls",_selfWakeState get "firstAt",_selfWakeState get "secondAt"]] call _check;
+missionNamespace setVariable ["WAIT_CortexQA_SelfWakeCallback",nil];
 // Isolated owner-epoch admission check: do not change any live mission group's epoch.
 private _epochGroup=createGroup [east,false];
 _epochGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
