@@ -91,3 +91,11 @@ remain physically unaccepted. The combat trace now includes actor, assigned targ
 attack-target identities at its existing cadence to distinguish hostile pursuit from
 observer/logic contamination. An observer-target cause for the infantry detour is not
 established; the observer already receives captive protection. Original failures remain.
+
+Startup warning follow-up (2026-10-11): extracted only config.bin from the installed
+base characters PBO and derapified it in ignored QA storage. CfgPatches explicitly
+contains A3_Characters_F with its base dependencies. The runtime post-init patch-presence
+diagnostic also reports it present. Therefore an absent local base config is not a
+supported explanation, and removing the valid required addon is not a demonstrated fix.
+The mission startup deleted-content warning remains unresolved and still invalidates
+strict performance acceptance; inspection of installed files is not live warning clearance.
