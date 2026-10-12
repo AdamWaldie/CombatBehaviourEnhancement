@@ -34,7 +34,16 @@ if !([_group,false,false,true] call WAIT_fnc_CortexIsEligible) exitWith {
     _group setVariable ["WAIT_Convoy_Suspended",true];
 };
 if (_state getOrDefault ["ownerSuspended",false]) then {
-    _group setVariable ["WAIT_Operation",nil,true];
+    // Eligibility can return after another explicit operation has claimed the group.
+    // A historical suspended convoy generation cannot erase that successor.
+    private _suspendedGeneration=_state getOrDefault ["operationGeneration",-1];
+    private _liveOperation=_group getVariable ["WAIT_Operation",createHashMap];
+    if (_suspendedGeneration >= 0
+        && {(_liveOperation getOrDefault ["intent",""]) == "CONVOY"}
+        && {(_liveOperation getOrDefault ["generation",-2]) == _suspendedGeneration}
+        && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+        _group setVariable ["WAIT_Operation",nil,true];
+    };
     _state set ["ownerSuspended",false];
     _state set ["revision",-1];
     _state set ["reacquire",true];
