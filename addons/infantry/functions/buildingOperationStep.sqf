@@ -18,6 +18,7 @@
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
  * Stage receipts distinguish REJECTED current-position holds, APPROACH and physical ARRIVED.
  * Rejected selection retries after five seconds, at most three searches per actor with tried targets excluded.
+ * A still-owned approach times out after sixty seconds and yields to an alternate or EXHAUSTED hold.
  * Reserve stage selection processes at most one pending actor per callback; other attempts remain pending.
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
  * never a recurring formation recall around an interior leader. A failed native path's automatic
@@ -575,6 +576,7 @@ private _delay=call {
                         _reserve doMove _target;
                         [_reserve,_target] call _rememberMove;
                         _stage=[+_target,false,"APPROACH"];
+                        _stage set [3,time+60];
                         _reserveStages set [_key,_stage];
                         private _securityActors=_job getOrDefault ["securityActors",[]];
                         _securityActors pushBackUnique _reserve;
@@ -594,6 +596,20 @@ private _delay=call {
             doStop _reserve;
             _stage set [1,true];
             _stage set [2,"ARRIVED"];
+        };
+        // A deadline may retire only the movement request this stage still owns. It does not
+        // renew the clearance lifetime or turn a blocked approach into an arrival receipt.
+        if ((_stage param [2,""]) == "APPROACH" && {time >= (_stage param [3,1e12])}
+            && {[_reserve] call _ownsCurrentMove} && {[_reserve] call _reserveReady}
+            && {call _mayIssueMovement}) then {
+            private _hold=getPosATL _reserve;
+            doStop _reserve;
+            (_job getOrDefault ["movementTargets",createHashMap]) deleteAt _key;
+            _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
+            _stage=[+_hold,true,"REJECTED"];
+            _stage set [3,time+5];
+            if ((_stageSearchCounts getOrDefault [_key,0]) >= 3) then {_stage set [2,"EXHAUSTED"]};
+            _reserveStages set [_key,_stage];
         };
     } forEach (_reserves select [0,8]);
     _job set ["reserveStages",_reserveStages];
