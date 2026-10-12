@@ -453,3 +453,7 @@ Runtime runtime-20261012-075425-503 completed 408 checks with ten retained failu
 ### e817765 clearance: checkpoint changes did not establish repeatability
 
 Runtime runtime-20261012-084533-847 completed 407 checks with 12 retained failures, zero SQF/fatal runtime errors and one unresolved load warning. Missing worker progression affected two-, six- and twelve-person cases; physical handover passed and the twelve-person episode returned INCOMPLETE within its finite settlement observation. Both processes were terminated and verified absent. Reference force-move policy suppresses danger reactions rather than replacing locomotion. Code review found that arrival holds could interrupt a still-active owned MOVE and that new movement left historical room-hold receipts behind. The next staged correction separates visitation from native leg completion and retires old hold receipts; it has no physical acceptance yet.
+
+### ec77100 launch prerequisite failure
+
+Runtime runtime-20261012-162628-287 did not reach confirmed observer mission entry within the launcher's 180-second bound. The client log ended with Steam UGC retrieval messages; the cause is not established. No movement or acceptance result is valid from this launch. The launcher was terminal, both identity-matched processes were terminated and verified absent, and the unchanged sealed candidate was retried in a fresh runtime.
