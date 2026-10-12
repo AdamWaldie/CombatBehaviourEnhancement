@@ -385,6 +385,8 @@ if (!_transformOnly) then {
     private _originalAttack=attackEnabled leader _group;
     private _originalSpeedLimits=_members apply {getForcedSpeed _x};
     private _accepted=[_group,_house] call WAIT_fnc_CortexClearBuilding;
+    private _admissionJob=(_group getVariable ["WAIT_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+    private _admittedMembers=+(_admissionJob getOrDefault ["team",[]]);
     [format ["CLEAR-fresh-%1-accepted",_size],_accepted] call _check;
     [format ["CLEAR-fresh-%1-owned-attack-delegation",_size],_accepted && {!attackEnabled leader _group},
         str [_originalAttack,attackEnabled leader _group]] call _check;
@@ -519,6 +521,11 @@ if (!_transformOnly) then {
     [format ["CLEAR-fresh-%1-result-agrees",_size],_physical && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"}] call _check;
     if (_size == 12) then {["CLEAR-fresh-12-reserve-staging-physical",count _reserveStageVisits > 0,str _reserveStageVisits] call _check};
     [format ["CLEAR-fresh-%1-successive-positions",_size],_memberVisits findIf {count _x >= 2} >= 0,str _memberVisits] call _check;
+    [format ["CLEAR-fresh-%1-all-admitted-progress-through-interior",_size],
+        _admittedMembers isNotEqualTo [] && {_admittedMembers findIf {
+            private _index=_clearingMembers find _x;
+            _index < 0 || {count (_memberVisits select _index) < (2 min count _rooms)}
+        } < 0},str [_admittedMembers apply {netId _x},_memberVisits]] call _check;
     if (_size == 2) then {
         ["CLEAR-fresh-2-both-participate",_memberVisits findIf {_x isEqualTo []} < 0,str _memberVisits] call _check;
         if (count _rooms >= 4) then {

@@ -9,6 +9,9 @@
  * native doMove path request without a second formation-planner destination override.
  * Off-floor mover changes may use one preceding physically visited interior checkpoint;
  * checkpoint arrival never substitutes for visiting the assigned room.
+ * Successful egress additionally requires each active worker's successive physical visits.
+ * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
+ * never a recurring formation recall around an interior leader.
  * Arguments: 0: building brain <HASHMAP> created by WAIT_fnc_BuildingOperationStart.
  * Return Value: Number - always -1 because the FSM schedules each later step separately.
  * Current caller: WAIT_fnc_BuildingOperationQueue through WAIT_fnc_CortexQueueJob.
@@ -191,6 +194,50 @@ private _delay=call {
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };
+    // Before exterior actors commit to their first room, honour wholly locked access.
+    // Native doMove can traverse a closed door without changing its lock variable.
+    // Existing interior occupants are not frozen by this exterior admission barrier.
+    if !(_job getOrDefault ["accessAdmitted",false]) then {
+        private _probe=(_job get "team") param [0,objNull];
+        if (isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}) then {
+            [_probe,_building,["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
+        };
+        private _doors=_building getVariable ["WAIT_Cortex_DoorDefinitions",[]];
+        private _allLocked=_doors isNotEqualTo [] && {_doors findIf {
+            (_building getVariable [format ["bis_disabled_Door_%1",_x select 0],0]) isEqualTo 0
+                || {_building animationSourcePhase (_x select 1) >= 0.8}
+        } < 0};
+        private _bounds=boundingBoxReal _building;
+        private _inside=(_job get "team") findIf {
+            private _position=_building worldToModel (getPosATL _x);
+            private _minimum=_bounds select 0;
+            private _maximum=_bounds select 1;
+            (_position select 0) > (_minimum select 0) && {(_position select 0) < (_maximum select 0)}
+                && {(_position select 1) > (_minimum select 1)} && {(_position select 1) < (_maximum select 1)}
+                && {(_position select 2) > (_minimum select 2)} && {(_position select 2) < (_maximum select 2)}
+        } >= 0;
+        _job set ["accessBlocked",_allLocked && {!_inside} && {(_job getOrDefault ["phase",""]) != "EGRESS"}];
+        if !(_job get "accessBlocked") then {
+            _job set ["accessAdmitted",true];
+            if (_job getOrDefault ["accessReported",false]) then {
+                _group setVariable ["WAIT_Cortex_ClearStatus",["ENTRY",0,0,count (_job get "positions"),count (_job get "pairs"),serverTime],true];
+            };
+        };
+    };
+    if (_job getOrDefault ["accessBlocked",false]) exitWith {
+        if (serverTime > (_job get "deadline")) exitWith {[true,"ACCESS_BLOCKED"] call _finish};
+        private _held=_job getOrDefault ["accessHeld",[]];
+        {
+            if (!(_x in _held) && {[_x] call _actorAvailable} && {[_x] call _actorTaskFree}
+                && {call _mayIssueMovement}) then {doStop _x; _held pushBackUnique _x};
+        } forEach (_job get "team");
+        _job set ["accessHeld",_held];
+        if !(_job getOrDefault ["accessReported",false]) then {
+            _job set ["accessReported",true];
+            _group setVariable ["WAIT_Cortex_ClearStatus",["ACCESS_BLOCKED",0,0,count (_job get "positions"),count (_job get "pairs"),serverTime],true];
+        };
+        1.5
+    };
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
         private _assignments=(_job get "egressAssignments") select {
             _x params ["_unit"];
@@ -274,6 +321,17 @@ private _delay=call {
     private _rotatedOut=_job getOrDefault ["rotatedOut",[]];
     {_rotatedOut pushBackUnique _x} forEach (_reserved select {_x in _unavailable});
     _job set ["rotatedOut",_rotatedOut];
+    // Exhausted ordinary room movers remain owned by this operation until handover.
+    // Retiring their lane must not send them into native formation around an interior leader.
+    private _quarantineHeld=_job getOrDefault ["quarantineHeld",[]];
+    {
+        if (_x in _unavailable && {!(_x in _quarantineHeld)} && {[_x] call _actorAvailable}
+            && {[_x] call _actorTaskFree} && {call _mayIssueMovement}) then {
+            doStop _x;
+            _quarantineHeld pushBackUnique _x;
+        };
+    } forEach (_rotatedOut select [0,16]);
+    _job set ["quarantineHeld",_quarantineHeld];
     private _reserveReady={
         params ["_candidate"];
         private _reservation=_candidate getVariable ["WAIT_Cortex_ActorMove",[]];
@@ -301,6 +359,18 @@ private _delay=call {
         private _stage=_reserveStages getOrDefault [_key,[]];
         if (_stage isEqualTo [] && {!(_key in _stageAttempts)} && {call _mayIssueMovement}) then {
             _stageAttempts pushBackUnique _key;
+            // A rejected staging ray must not leave a reserve following the interior leader.
+            // Hold the actual position first; replace it only with the one validated stage leg.
+            if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
+                private _hold=getPosATL _reserve;
+                doStop _reserve;
+                _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
+                _stage=[+_hold,true];
+                _reserveStages set [_key,_stage];
+                private _securityActors=_job getOrDefault ["securityActors",[]];
+                _securityActors pushBackUnique _reserve;
+                _job set ["securityActors",_securityActors];
+            };
             private _entry=_job get "entry";
             if (_entry isNotEqualTo []) then {
                 private _outward=(getPosATL _building) getDir _entry;
@@ -438,6 +508,11 @@ private _delay=call {
                     private _enteredActors=_job getOrDefault ["enteredActors",[]];
                     _enteredActors pushBackUnique _visitor;
                     _job set ["enteredActors",_enteredActors];
+                    private _actorVisits=_job getOrDefault ["actorVisits",createHashMap];
+                    private _visited=_actorVisits getOrDefault [netId _visitor,[]];
+                    _visited pushBackUnique _positionIndex;
+                    _actorVisits set [netId _visitor,_visited];
+                    _job set ["actorVisits",_actorVisits];
                 };
                 if !(_positionIndex in _cleared) then {
                     if (_actual vectorDistance (AGLToASL (_positions select _positionIndex)) <= 1.5) then {
@@ -882,10 +957,59 @@ private _delay=call {
         _group setVariable ["WAIT_Cortex_ClearStatus",[_job getOrDefault ["phase","SWEEP"],count _cleared,count _unreachable,count (_job get "positions"),count (_job get "pairs"),_job get "lastProgressAt"],true];
     };
     private _allWorkersEntered=_activeWorkers findIf {!(_x in (_job getOrDefault ["enteredActors",[]]))} < 0;
-    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersEntered}) || {serverTime > (_job get "deadline")} || {_activeWorkers isEqualTo []}) exitWith {
+    private _actorVisits=_job getOrDefault ["actorVisits",createHashMap];
+    private _requiredVisits=2 min count _positions;
+    private _allWorkersProgressed=_activeWorkers findIf {
+        count (_actorVisits getOrDefault [netId _x,[]]) < _requiredVisits
+    } < 0;
+    // Shared room coverage must not release a partner still parked at its first node.
+    // Finish each active actor's finite interior follow-through before successful egress.
+    if (count _cleared == count _positions && {_allWorkersEntered} && {!_allWorkersProgressed}
+        && {serverTime <= (_job get "deadline")} && {call _mayIssueMovement}) then {
+        private _follow=_job getOrDefault ["followThrough",createHashMap];
+        {
+            private _unit=_x;
+            private _key=netId _unit;
+            private _visited=_actorVisits getOrDefault [_key,[]];
+            if (count _visited < _requiredVisits && {[_unit] call _actorAvailable}
+                && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
+                private _record=_follow getOrDefault [_key,[]];
+                if (_record isEqualTo [] || {(_record select 0) in _visited}) then {
+                    // Select once per actual visit; native planning still owns the path.
+                    // Prefer the current floor without inventing a building-specific route.
+                    private _candidates=(_cleared select {!(_x in _visited)}) select [0,24];
+                    private _ranked=_candidates apply {
+                        private _position=_positions select _x;
+                        [(_unit distance2D _position)+10*abs (((getPosATL _unit) select 2)-(_position select 2)),_x]
+                    };
+                    _ranked sort true;
+                    if (_ranked isNotEqualTo []) then {
+                        private _index=(_ranked select 0) select 1;
+                        private _target=_positions select _index;
+                        _record=[_index,(getPosASL _unit) vectorDistance (AGLToASL _target),_now,false];
+                        _follow set [_key,_record];
+                        _unit doMove _target;
+                    };
+                } else {
+                    private _target=_positions select (_record select 0);
+                    private _remaining=(getPosASL _unit) vectorDistance (AGLToASL _target);
+                    if ((_record select 1)-_remaining >= 1) then {
+                        _record set [1,_remaining]; _record set [2,_now];
+                    };
+                    if (!(_record select 3) && {_now-(_record select 2) >= 12}) then {
+                        private _recovery=[_group,_operationGeneration,_unit,_target] call WAIT_fnc_RecoveryStep;
+                        if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {_record set [3,true]};
+                        if (_recovery in ["EXHAUSTED","INVALID"]) then {_job set ["entryFailed",true]};
+                    };
+                };
+            };
+        } forEach _activeWorkers;
+        _job set ["followThrough",_follow];
+    };
+    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {_activeWorkers isEqualTo []}) exitWith {
         // Room coverage does not prove that every active clearing actor entered.
         // A deadline may release the operation, but cannot convert missing participation to success.
-        _job set ["entryFailed",!_allWorkersEntered];
+        _job set ["entryFailed",(_job getOrDefault ["entryFailed",false]) || {!_allWorkersEntered} || {!_allWorkersProgressed}];
         private _active=[];
         {_active append _x} forEach (_job get "pairs");
         _active=_active arrayIntersect _active;

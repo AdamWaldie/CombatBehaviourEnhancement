@@ -7550,7 +7550,8 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_deadline_cannot_fabricate_partner_entry_success(self):
         text=source('buildingOperationStep')
-        self.assertIn('_job set ["entryFailed",!_allWorkersEntered]',text)
+        self.assertIn('|| {!_allWorkersEntered} || {!_allWorkersProgressed}',text)
+        self.assertIn('(_job getOrDefault ["entryFailed",false])',text)
         result=text.split('private _result =',1)[1].split('_group setVariable ["WAIT_Cortex_ClearResult"',1)[0]
         self.assertIn('!(_job getOrDefault ["entryFailed",false])',result)
 
@@ -7653,3 +7654,43 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CLEAR-door-locked-no-physical-entry',text)
         self.assertIn('_lockedEntryEvidence pushBack [netId _actor,_node,getPosASL _actor,time]',text)
         self.assertLess(text.index('CLEAR-door-locked-no-physical-entry'),text.index('_doorHouse setVariable ["bis_disabled_Door_1",0,true]'))
+
+    def test_clearance_followthrough_requires_actual_per_actor_visits_and_finite_recovery(self):
+        text=source('buildingOperationStep')
+        self.assertIn('_visited pushBackUnique _positionIndex',text)
+        follow=text.split('private _requiredVisits=',1)[1].split('private _active=[]',1)[0]
+        self.assertIn('count _cleared == count _positions && {_allWorkersEntered}',follow)
+        self.assertIn('select [0,24]',follow)
+        self.assertIn('_unit doMove _target',follow)
+        self.assertIn('call WAIT_fnc_RecoveryStep',follow)
+        self.assertIn('!(_record select 3)',follow)
+        self.assertNotIn('_cleared pushBack',follow)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        self.assertIn('all-admitted-progress-through-interior',qa)
+        self.assertIn('count (_memberVisits select _index) < (2 min count _rooms)',qa)
+
+    def test_clearance_retired_workers_and_rejected_stages_do_not_recall_formation(self):
+        text=source('buildingOperationStep')
+        hold=text.split('private _quarantineHeld=',1)[1].split('private _reserveReady=',1)[0]
+        self.assertIn('!(_x in _quarantineHeld)',hold)
+        self.assertIn('[_x] call _actorAvailable',hold)
+        self.assertIn('[_x] call _actorTaskFree',hold)
+        self.assertIn('call _mayIssueMovement',hold)
+        self.assertIn('doStop _x',hold)
+        stage=text.split('private _reserveStages=',1)[1].split('private _pairRosterChanged=',1)[0]
+        self.assertLess(stage.index('doStop _reserve'),stage.index('lineIntersectsSurfaces'))
+        self.assertIn('_stage=[+_hold,true]',stage)
+        self.assertNotIn('doFollow',hold+stage)
+
+    def test_clearance_wholly_locked_exterior_admission_waits_without_unlock_or_room_credit(self):
+        text=source('buildingOperationStep')
+        gate=text.split('// Before exterior actors commit',1)[1].split('== "EGRESS") exitWith',1)[0]
+        self.assertIn('boundingBoxReal _building',gate)
+        self.assertIn('_allLocked && {!_inside}',gate)
+        self.assertIn('serverTime > (_job get "deadline")',gate)
+        self.assertIn('!(_x in _held)',gate)
+        self.assertIn('[_x] call _actorAvailable',gate)
+        self.assertIn('call _mayIssueMovement',gate)
+        self.assertNotIn('setVariable [format ["bis_disabled',gate)
+        self.assertNotIn('_cleared pushBack',gate)
+        self.assertNotIn('doMove',gate.replace('// Native doMove','// Native movement'))
