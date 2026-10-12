@@ -494,7 +494,13 @@ private _delay=call {
                 };
             };
         };
-        if (_stage isNotEqualTo [] && {!(_stage select 1)} && {_reserve distance2D (_stage select 0) <= 2}
+        // Arrival proximity does not authorize cancelling a different live MOVE.
+        // Preserve floor-aware native commitment just as for interior room holds.
+        if (_stage isNotEqualTo [] && {!(_stage select 1)}
+            && {(getPosASL _reserve) vectorDistance (AGLToASL (_stage select 0)) <= 2}
+            && {abs (((getPosASL _reserve) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}
+            && {currentCommand _reserve in ["", "STOP"] || {[_reserve] call _ownsCurrentMove}}
+            && {!([_reserve] call _activeOwnMove)}
             && {[_reserve] call _reserveReady} && {call _mayIssueMovement}) then {
             doStop _reserve;
             _stage set [1,true];

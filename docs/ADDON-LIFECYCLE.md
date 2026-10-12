@@ -659,3 +659,6 @@ Active clearance workers also retain movement ownership when a failed native pat
 Reserve staging acceptance excludes soldiers promoted into the active clearing roster. Their old staging record is not their current movement assignment.
 
 Geometry-supported raw transit nodes are provisional access candidates. During clearance, a candidate that stalls under the existing observation interval is abandoned once for that actor/room claim. The original room remains the objective and is issued through the same owned movement writer. An abandonment tombstone keeps its arrival flag false and prevents immediate recreation; it neither marks coverage nor renews the progress deadline or resets retries. Covered buddy handoff checkpoints are not abandoned by this path. Physical room recovery and locality migration acceptance remain pending.
+
+
+Reserve staging arrival requires three-dimensional proximity, matching floor height and completion of WAIT's own native movement leg. A different MOVE or FOLLOW cannot be stopped by a stale stage receipt. This uses the existing callback and movement receipts; no recurring controller is added. Physical reserve and newer-order interruption acceptance remains pending while game audits are paused.
