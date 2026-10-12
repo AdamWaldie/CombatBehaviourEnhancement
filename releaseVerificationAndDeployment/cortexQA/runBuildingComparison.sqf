@@ -98,7 +98,7 @@ private _usedTerrainHouses=[];
         } else {createVehicle [_class,[6250+_forEachIndex*60,5800+_row*60,0],[],0,"NONE"]};
         if (isNull _house) exitWith {[format ["BUILD-%1-model-%2-terrain-fixture",_method,_row+1],false,_class] call _check};
         if (worldName == "VR") then {_house enableSimulationGlobal true} else {_usedTerrainHouses pushBack _house};
-        if (worldName == "VR" && {_method in ["PLACED-LEADER","PLACED-FOLLOWER"]}) then {
+        if (worldName == "VR" && {_method in ["PLACED-LEADER","PLACED-FOLLOWER","ROOM-STOP","ROOM-SPEED"]}) then {
             [_house,format ["native-%1-model-%2",_method,_row+1]] call _validateNewFixturePlacement;
         };
         [_house,format ["%1-model-%2",_method,_row+1]] call _recordFixture;
@@ -119,7 +119,7 @@ private _usedTerrainHouses=[];
         private _unit = _group createUnit ["O_Soldier_F",_house getPos [25,180],[],0,"NONE"];
         _unit setVariable ["acex_headless_blacklist",true,true];
         _unit allowDamage false;
-        if (_method == "PLACED-LEADER") then {
+        if (_method in ["PLACED-LEADER","ROOM-STOP","ROOM-SPEED"]) then {
             // Match the follower control's two-member group. Only leader identity
             // differs; a stopped spare actor exists outside in both controls.
             private _spare=_group createUnit ["O_Soldier_F",_house getPos [30,150],[],0,"NONE"];
@@ -135,7 +135,7 @@ private _usedTerrainHouses=[];
         _unit setVariable ["WAIT_CortexQA_Target",_target,true];
         _actors pushBack _unit;
         _cases pushBack [_group,_unit,_house,_target,_method,_label,false];
-    } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN","FORMATION","COMMAND-FSM","PLACED-LEADER","PLACED-FOLLOWER"];
+    } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN","FORMATION","COMMAND-FSM","PLACED-LEADER","PLACED-FOLLOWER","ROOM-STOP","ROOM-SPEED"];
 } forEach ["Land_i_House_Small_03_V1_F","Land_i_House_Small_01_V1_F","Land_i_House_Big_01_V1_F","Land_i_House_Big_02_V1_F"];
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
 private _comparisonPosition=if (_cases isNotEqualTo []) then {getPosATL ((_cases select 0) select 2)} else {[16600,12800,0]};
@@ -143,9 +143,9 @@ private _comparisonPosition=if (_cases isNotEqualTo []) then {getPosATL ((_cases
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
     private _valid = simulationEnabled _house && {simulationEnabled _unit} && {local _unit} && {_target isNotEqualTo []}
-        && {_method != "PLACED-LEADER" || {leader _group == _unit}}
+        && {!(_method in ["PLACED-LEADER","ROOM-STOP","ROOM-SPEED"]) || {leader _group == _unit}}
         && {_method != "PLACED-FOLLOWER" || {leader _group != _unit}}
-        && {!(_method in ["PLACED-LEADER","PLACED-FOLLOWER"]) || {count units _group == 2}};
+        && {!(_method in ["PLACED-LEADER","PLACED-FOLLOWER","ROOM-STOP","ROOM-SPEED"]) || {count units _group == 2}};
     [format ["BUILD-%1-ready",_label],_valid] call _check;
     if (_valid) then {
         if (_method != "HOUSE-WAYPOINT") then {doStop _unit; [_unit,_target,_method] call _issueNativeComparison} else {
@@ -169,7 +169,7 @@ waitUntil {
 {
     _x params ["_group","_unit","_house","_target","_method","_label","_arrived"];
     [format ["BUILD-%1-arrival",_label],_arrived,format ["class=%1 owner=%2 simulation=%3 position=%4 target=%5 command=%6 expected=%7",typeOf _house,groupOwner _group,simulationEnabled _unit,getPosATL _unit,_target,currentCommand _unit,expectedDestination _unit]] call _check;
-    if (_method in ["PLACED-LEADER","PLACED-FOLLOWER"]) then {
+    if (_method in ["PLACED-LEADER","PLACED-FOLLOWER","ROOM-STOP","ROOM-SPEED"]) then {
         diag_log format ["WAIT NATIVE BUILDING ROLE: %1",[_label,netId _unit,netId leader _group,
             getPosASL _unit,getPosASL leader _group,currentCommand leader _group,
             (units _group) apply {[netId _x,getPosASL _x,currentCommand _x]}]];
@@ -183,20 +183,31 @@ private _walkCases=[];
     _x params ["_group","_unit","_house","_target","_method","_label"];
     if (_method != "HOUSE-WAYPOINT") then {
         private _nodes=(_house buildingPos -1) select [0,16];
-        _walkCases pushBack [_unit,_nodes,0,_nodes apply {false},time,_method,_label];
+        _walkCases pushBack [_unit,_nodes,0,_nodes apply {false},time,_method,_label,-1,getForcedSpeed _unit];
     };
 } forEach _cases;
 ["Building traversal: independent comparisons","The same excluded actors now attempt successive model positions. Physical 3D arrival is required for each node. A bounded timeout skips a node only to inspect the next; it never marks that node visited or validates WAIT clearance.",_comparisonPosition] call _phase;
-private _walkDeadline=time+180;
+private _walkDeadline=time+240;
 waitUntil {
     sleep 2;
     {
-        _x params ["_unit","_nodes","_cursor","_seen","_issued","_method","_label"];
+        _x params ["_unit","_nodes","_cursor","_seen","_issued","_method","_label","_holdUntil","_baselineSpeed"];
         if (_cursor < count _nodes) then {
             private _node=_nodes select _cursor;
             private _arrived=(getPosASL _unit) vectorDistance (AGLToASL _node) <= 1.5;
-            if (_arrived || {time-_issued >= 20}) then {
+            if (_arrived || {_holdUntil >= 0} || {time-_issued >= 20}) then {
                 if (_arrived) then {_seen set [_cursor,true]};
+                if (_arrived && {_holdUntil < 0} && {_method in ["ROOM-STOP","ROOM-SPEED"]}) then {
+                    // Isolate the production inter-room hold after actual arrival. No
+                    // timeout or hold receipt can mark a missed node visited.
+                    if (_method == "ROOM-STOP") then {doStop _unit} else {_unit forceSpeed 0};
+                    _x set [7,time+1];
+                    _x set [4,time];
+                    diag_log format ["WAIT NATIVE ROOM HOLD: %1",[_label,_cursor,getPosASL _unit,currentCommand _unit,getUnitState _unit]];
+                } else {
+                if (_holdUntil < 0 || {time >= _holdUntil}) then {
+                if (_method == "ROOM-SPEED") then {_unit forceSpeed _baselineSpeed};
+                _x set [7,-1];
                 _cursor=_cursor+1;
                 _x set [2,_cursor];
                 _x set [4,time];
@@ -206,6 +217,8 @@ waitUntil {
                     _unit setVariable ["WAIT_CortexQA_Target",_next,true];
                     _unit setVariable ["WAIT_CortexQA_Label",format ["%1 / node %2",_label,_cursor],true];
 
+                };
+                };
                 };
             };
         };

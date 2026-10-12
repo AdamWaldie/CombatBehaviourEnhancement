@@ -14,6 +14,7 @@
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
  * never a recurring formation recall around an interior leader. A failed native path's automatic
  * formation fallback is held once per owned request until the existing finite retry or handover.
+ * A stalled optional raw transit candidate yields once to its original room without claiming a visit.
  * Arguments: 0: building brain <HASHMAP> created by WAIT_fnc_BuildingOperationStart.
  * Return Value: Number - always -1 because the FSM schedules each later step separately.
  * Current caller: WAIT_fnc_BuildingOperationQueue through WAIT_fnc_CortexQueueJob.
@@ -946,8 +947,43 @@ private _delay=call {
                             diag_log format ["WAIT CLEAR INTERIOR ACCESS: %1",[_job get "generation",_pairIndex,netId _point,_positionIndex,+_first,+_target,+_chain]];
                         };
                     };
+                    // A supported raw access point is a candidate, not a proven native route.
+                    // Retire one stalled optional raw checkpoint for this actor/room claim,
+                    // then let the original room request use the same movement writer.
+                    // Covered buddy handoffs remain mandatory; no visit or progress lease
+                    // is granted for retirement, and the existing retry count is preserved.
+                    private _checkpointCommand=currentCommand _point;
+                    private _checkpointDelay=[12,4] select (_checkpointCommand == "" || {_checkpointCommand == "STOP"});
+                    private _checkpointCandidate=_approach param [1,[],[[]]];
+                    private _checkpointReached=count _checkpointCandidate == 3
+                        && {(getPosASL _point) vectorDistance (AGLToASL _checkpointCandidate) <= 1.5}
+                        && {abs (((getPosASL _point) select 2)-((AGLToASL _checkpointCandidate) select 2)) <= 0.75}
+                        && {!([_point] call _activeOwnMove)};
+                    private _fallbackHold=(_job getOrDefault ["formationFallbackHolds",createHashMap]) getOrDefault [netId _point,[]];
+                    private _issuedCheckpoint=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _point,[]];
+                    private _ownedCheckpointStop=_checkpointCommand == "STOP" && {count _fallbackHold == 3}
+                        && {_issuedCheckpoint isEqualTo _checkpointCandidate}
+                        && {(getPosASL _point) vectorDistance (AGLToASL _fallbackHold) <= 1.5};
                     if (!_approachingEntry && {count _approach >= 3}
-                        && {(_approach select 0) == _positionIndex} && {!(_approach select 2)}) then {
+                        && {(_approach select 0) == _positionIndex} && {!(_approach select 2)}
+                        && {(_approach select 1) in (_job getOrDefault ["transitPositions",[]])}
+                        && {!_checkpointReached} && {_now-_lastProgress > _checkpointDelay}
+                        && {[_point] call _actorAvailable} && {[_point] call _actorTaskFree}
+                        && {_checkpointCommand == "" || {_checkpointCommand == "MOVE" && {[_point] call _ownsCurrentMove}} || {_ownedCheckpointStop}}
+                        && {!([_group,false,_point] call WAIT_fnc_CortexExternalTakeover)}
+                        && {call _mayIssueMovement}) then {
+                        private _retired=+(_approach select 1);
+                        // This tombstone prevents immediate recreation for the same claim.
+                        // Its arrival flag stays false: an abandoned point was not visited.
+                        _approach=[_positionIndex,[],false,[],"ABANDONED_TRANSIT"];
+                        _approaches set [_approachKey,_approach];
+                        _job set ["interiorApproaches",_approaches];
+                        _lastTarget=-1;
+                        diag_log format ["WAIT CLEAR TRANSIT RETIRED: %1",[_job get "generation",_pairIndex,netId _point,_positionIndex,_retired,+_target]];
+                    };
+                    if (!_approachingEntry && {count _approach >= 3}
+                        && {(_approach select 0) == _positionIndex} && {!(_approach select 2)}
+                        && {count (_approach select 1) == 3}) then {
                         private _checkpoint=_approach select 1;
                         if ((getPosASL _point) vectorDistance (AGLToASL _checkpoint) <= 1.5
                             && {abs (((getPosASL _point) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75}
