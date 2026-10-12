@@ -194,4 +194,4 @@ The `grenades` focus stages twelve fresh server-owned smoke cases: standing/crou
 
 ### Aircraft pilot readiness
 
-Aircraft attack planning, command admission and airborne checks require the shared combat-effective pilot predicate. Alive unconscious, incapacitated or captive pilots cannot start new attack work. Existing locality, player/Zeus and external ownership gates remain in force. Pilot incapacitation/recovery and cleanup across airborne ownership changes still require physical acceptance.
+Aircraft attack planning, command admission and airborne checks require the shared combat-effective pilot predicate. Alive unconscious, incapacitated or captive pilots cannot start new attack work. Native aircraft command boundaries also re-read aircraft survival, current pilot effectiveness, active/pause state and flight-lease validity. Existing locality, player/Zeus and external ownership gates remain in force. Pilot incapacitation/recovery and cleanup across airborne ownership changes still require physical acceptance.

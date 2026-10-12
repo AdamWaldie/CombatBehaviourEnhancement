@@ -286,7 +286,11 @@ private _explicitlyExcluded=[_group] call WAIT_fnc_CompatibilityExternalControl
 // that claims the aircraft during planning receives an immediate release rather than one stale
 // flight, targeting or fire request.
 private _mayControlAircraft = {
-    local _aircraft && {local _group} && {(_job get "group") == group driver _aircraft}
+    private _livePilot=driver _aircraft;
+    local _aircraft && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
+        && {[_livePilot] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
+        && {missionNamespace getVariable ["WAIT_AIPass_Active",false]} && {!([] call WAIT_fnc_CortexIsPaused)}
+        && {[_aircraft,"AIR_ATTACK",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid}
         && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
         && {!([_group] call WAIT_fnc_CortexZeusHeld)}
 };
