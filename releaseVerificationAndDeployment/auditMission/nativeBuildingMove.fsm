@@ -36,7 +36,7 @@ class FSM {
         };
         class Finished {
             name="Finished";
-            init="if (!isNull _actor && {local _actor}) then {_actor setVariable [""WAIT_CortexQA_NativeFsmResult"",[_reason,+_goal,getPosASL _actor,serverTime]];};";
+            init="if (!isNull _actor && {local _actor}) then {private _receipt=[_reason,+_goal,getPosASL _actor,serverTime]; _actor setVariable [""WAIT_CortexQA_NativeFsmResult"",_receipt]; diag_log format [""WAIT NATIVE BUILDING FSM END: %1"",[netId _actor,_receipt]];};";
             precondition="";
             class Links {};
         };

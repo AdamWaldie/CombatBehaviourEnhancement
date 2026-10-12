@@ -184,7 +184,8 @@ waitUntil {
 {
     _x params ["_unit","_nodes","_cursor","_seen","_issued","_method","_label"];
     ["BUILD-TRAVERSE-"+_label,_nodes isNotEqualTo [] && {_seen findIf {!_x} < 0},
-        str [_nodes,_seen,getPosATL _unit,currentCommand _unit,expectedDestination _unit,getUnitState _unit]] call _check;
+        str [_nodes,_seen,getPosATL _unit,currentCommand _unit,expectedDestination _unit,getUnitState _unit,
+            _unit getVariable ["WAIT_CortexQA_NativeFsmResult",[]]]] call _check;
 } forEach _walkCases;
 // Isolate door state after preserving every original traversal failure. This is
 // an explicit native diagnostic, never assistance to the production clearance cases.
