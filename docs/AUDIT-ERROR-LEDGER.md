@@ -457,3 +457,9 @@ Runtime runtime-20261012-084533-847 completed 407 checks with 12 retained failur
 ### ec77100 launch prerequisite failure
 
 Runtime runtime-20261012-162628-287 did not reach confirmed observer mission entry within the launcher's 180-second bound. The client log ended with Steam UGC retrieval messages; the cause is not established. No movement or acceptance result is valid from this launch. The launcher was terminal, both identity-matched processes were terminated and verified absent, and the unchanged sealed candidate was retried in a fresh runtime.
+
+### Clearance formation wedge observation
+
+The user again observed excess soldiers spreading in a wedge around an interior leader. This remains unresolved: room visits and accepted ownership do not establish coherent reserve positioning, entry flow or consolidation. Current source holds reserves and arrived workers, but cancellation still has formation-recall paths; the screenshot does not identify the executed path. Bounded clearance audit samples now report leader identity, native formation positions, worker/security membership, reserve stages, room holds and recall provenance separately from movement receipts. This changes observation only and does not accept the behavior.
+
+The unchanged ec77100 retry in runtime-20261012-163018-304 also failed the 180-second mission-entry prerequisite. Its recorded client/server processes were stopped and absence verified. There is still no valid ec77100 behavior result.

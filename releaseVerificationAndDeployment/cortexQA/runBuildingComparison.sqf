@@ -452,6 +452,17 @@ if (!_transformOnly) then {
                     insideBuilding _actor,_actor getVariable ["WAIT_Cortex_ClearReserve",[]],
                     _actor in (_job getOrDefault ["quarantineHeld",[]]),
                     (_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _actor,[]]]];
+                // Separate short records avoid truncating the movement receipt. These are
+                // observations only: native formation must not masquerade as a CQB role.
+                diag_log format ["WAIT CLEAR ROLE: %1",[_size,_routeTraceCount,netId _actor,
+                    _actor == leader _group,formation _group,formationPosition _actor,
+                    _actor in (_job getOrDefault ["team",[]]),
+                    _actor in (_job getOrDefault ["securityActors",[]]),
+                    (_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _actor,[]],
+                    (_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _actor,[]],
+                    _group getVariable ["WAIT_Cortex_ClearHold",[]],
+                    _job getOrDefault ["finishReason",""],
+                    _actor getVariable ["WAIT_Cortex_ClearRecall",[]]]];
             } forEach (_clearingMembers select [0,16]);
             diag_log format ["WAIT CLEAR LIVE ROUTE: %1",[
                 _size,_routeTraceCount,diag_tickTime,
