@@ -3,6 +3,7 @@
  * Gives capable dismounts one short move clear of vehicles, using cover during contact, then returns them to ordinary AI.
  * Locality/authority: orders execute only on each passenger owner, using the server's frozen halt report.
  * Repeat/JIP: public per-unit deadlines and destinations survive HC migration; release/resume clears this order.
+ * Cover selection excludes only matching, unexpired convoy-revision destinations.
  * New native tasks and live actor reservations retire only convoy bookkeeping; no follow command overrides them.
  * Arguments: 0: convoy group <GROUP>; 1: ordered configuration <ARRAY>; 2: cleanup only <BOOL>, false.
  * Return Value: Nothing. At most two new cover searches per convoy/owner/five-second crew step.
@@ -16,7 +17,8 @@ private _budget = 2;
 private _reserved = [];
 {
     private _job = (_x select 0) getVariable ["WAIT_Convoy_Dismount", []];
-    if (count _job == 4 && {(_job select 3) isNotEqualTo []}) then {_reserved pushBack (_job select 3)};
+    if (count _job == 4 && {(_job select 0) == _group} && {(_job select 1) == _revision}
+        && {serverTime < (_job select 2)} && {(_job select 3) isNotEqualTo []}) then {_reserved pushBack (_job select 3)};
 } forEach _cargo;
 {
     _x params ["_unit", "_vehicle"];

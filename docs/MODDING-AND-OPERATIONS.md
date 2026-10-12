@@ -147,3 +147,7 @@ Explicit clearance release restores formation only when an actor has no live MOV
 ### Combined ground-fire operator readiness
 
 Direct ground-fire support and the ground maneuver arrival firing branch require a combat-effective local gunner, in addition to combat-mode, player/external ownership and clear-fire-lane checks. An incapacitated gunner returns `NO_FIRE_OPERATOR` through the existing provider rejection path. This change requires a live casualty/provider-fallback retest; audits remain paused.
+
+### Passenger cover reservation scope
+
+Passenger dismount cover selection excludes destinations only from the matching convoy group and configuration revision while their deadline is live. Historical destinations cannot consume current cover slots. Existing and newly selected current destinations remain excluded within the bounded two-search step. Concurrent-owner selection and physical spacing still require live validation.
