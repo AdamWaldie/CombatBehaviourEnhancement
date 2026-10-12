@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Executes one finite Cortex aircraft attack as ingress, attack and egress phases. Against an
  * airborne hostile these phases mean intercept, engage and disengage/rejoin: the first two
@@ -294,7 +295,7 @@ if (_job getOrDefault ["flightLeaseLost",false]
     _job set ["releaseDetail",["flightLease",_aircraft getVariable ["WAIT_FlightLease",createHashMap]]];
     ["FLIGHT_OWNER_CHANGED"] call _finish
 };
-private _allowed=local _aircraft && {local _group} && {alive _aircraft} && {!isNull _pilot} && {alive _pilot} && {!isPlayer _pilot}
+private _allowed=local _aircraft && {local _group} && {alive _aircraft} && {!isNull _pilot} && {[_pilot] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _pilot}
     && {!unitIsUAV _aircraft} && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
     && {!([] call WAIT_fnc_CortexIsPaused)}
     && {!([_group] call WAIT_fnc_CortexExternalTakeover)}

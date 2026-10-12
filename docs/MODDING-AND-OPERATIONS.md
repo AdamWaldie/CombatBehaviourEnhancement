@@ -191,3 +191,7 @@ The one-shot native grenade release trace appends actor position, body/view bear
 ### Controlled smoke direction audit
 
 The `grenades` focus stages twelve fresh server-owned smoke cases: standing/crouched/prone and four cardinal target bearings. Each case requires stance, a queued real helper request and an actual nonzero projectile launch vector within thirty degrees of the requested bearing. Missing release/direction fails. Cases use separate origins and delete observed projectiles only after recording launch evidence, limiting cross-case smoke contamination. Flight/impact and smoke delivery are outside this launch-only fixture. This isolated fixture has no hostile actors; it does not validate contact selection, fragmentation, native controls or HC migration. It is unrun while audits are paused.
+
+### Aircraft pilot readiness
+
+Aircraft attack planning, command admission and airborne checks require the shared combat-effective pilot predicate. Alive unconscious, incapacitated or captive pilots cannot start new attack work. Existing locality, player/Zeus and external ownership gates remain in force. Pilot incapacitation/recovery and cleanup across airborne ownership changes still require physical acceptance.

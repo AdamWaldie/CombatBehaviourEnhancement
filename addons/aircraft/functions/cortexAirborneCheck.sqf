@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
  * Airborne insertion: decides when an AI squad riding as cargo in an AI-flown aircraft parachutes
  * onto a known enemy, and starts the drop.
  *
@@ -58,7 +59,7 @@ private _cargo = _riding select {vehicle _x == _aircraft && {_x in _passengers}}
 if (_cargo isEqualTo []) exitWith {-1};
 
 private _pilot = driver _aircraft;
-if (!alive _aircraft || {!alive _pilot} || {isPlayer _pilot} || {isPlayer effectiveCommander _aircraft} || {[group _pilot] call WAIT_fnc_CortexExternalTakeover}) exitWith {[5, -1] select _force};
+if (!alive _aircraft || {!([_pilot] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _pilot} || {isPlayer effectiveCommander _aircraft} || {[group _pilot] call WAIT_fnc_CortexExternalTakeover}) exitWith {[5, -1] select _force};
 if (time < (_aircraft getVariable ["WAIT_AIPass_DropUntil", -1])) exitWith {[5, -1] select _force};
 // The mission maker planned a landing: an unload or get-out still ahead on the pilots' or the squad's
 // own waypoints. Zeus and scripted drops (force) are deliberate and override it.
