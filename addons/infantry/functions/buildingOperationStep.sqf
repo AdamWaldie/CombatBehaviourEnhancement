@@ -122,7 +122,7 @@ private _delay=call {
             _group setVariable ["WAIT_AIPass_ClearApplied", nil];
         };
         if (_reason == "COMPLETE" && {_result == "COMPLETE"} && {_restore}) then {
-            _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_NativeOrderReceipt,+(_job get "team")],true];
+            _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_NativeOrderReceipt,((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]]))],true];
         };
         _group setVariable ["WAIT_Cortex_ClearResult",[_result,count (_job get "cleared"),count (_job get "positions")],true];
         _job set ["finished",true];

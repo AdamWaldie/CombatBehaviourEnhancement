@@ -7617,3 +7617,9 @@ class CortexOperations(unittest.TestCase):
         for guard in ['WAIT_AIPass_ClearGeneration','(_clearHold select 1) == _epoch','WAIT_fnc_NativeOrderReceipt','currentCommand _x == "STOP"','WAIT_fnc_CortexExternalTakeover','WAIT_fnc_CompatibilityExternalControl','WAIT_Cortex_ActorMove','count (_group getVariable ["WAIT_Operation",createHashMap]) == 0']:
             self.assertIn(guard,branch)
         self.assertLess(branch.index('WAIT_Cortex_ClearHold",nil'),branch.index('_x doFollow _leader'))
+    def test_post_clear_hold_shutdown_releases_only_owned_stop(self):
+        text=source('cortexReleaseGroup')
+        branch=text.split('private _clearHold=',1)[1].split('// New curator intent',1)[0]
+        for guard in ['CORTEX_STOPPED','!_externalTakeover','WAIT_AIPass_ClearGeneration','WAIT_AIPass_Epoch','currentCommand _x == "STOP"','WAIT_fnc_CompatibilityExternalControl','WAIT_Cortex_ActorMove']:
+            self.assertIn(guard,branch)
+        self.assertLess(branch.index('WAIT_Cortex_ClearHold",nil'),branch.index('_x doFollow _anchor'))
