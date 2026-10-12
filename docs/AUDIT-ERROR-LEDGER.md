@@ -576,3 +576,6 @@ A queued wheeled 30 m convoy diagnostic now supplies native lead BACK input and 
 
 
 Reverse diagnostic fixture review bounded its stimulus: require the whole column physically stopped, request 5 km/h through the public convoy API, observe the actual applied lead cap, and require body-length-based initial clearance. Stop BACK input at six metres or a shrinking safety margin; an unsafe margin fails the reverse prerequisite. Restore the original requested speed through the public API for recovery. These fixture safeguards do not change production pacing or waive missing physical reverse/yield evidence. No game run has been launched.
+
+
+Tracked reverse admission/continuation requires combat-effective driver and commander, not alive crew alone. Reverse cleanup sends STOPTURNING only when the live LEFT/RIGHT command matches its recorded last turn; a different turn is preserved. Generation, epoch, vehicle marker and external-owner checks remain required. This matching guard cannot distinguish an identical later native command without an ownership/order receipt, so universal successor preservation is not claimed. Reverse distance, timeout and facing limits remain unchanged. Physical crew incapacity and different-turn handover are pending with audits paused.

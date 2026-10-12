@@ -3,6 +3,7 @@
  * Purpose: Own one finite tracked reverse leg while preserving a threat-facing hull and native turret engagement.
  * Locality/authority: Current AI group and vehicle owner only; all command boundaries yield to external ownership.
  * A vehicle-specific external driving marker blocks reverse commands and release STOP/turn writes.
+ * Incapacitated crew cannot drive a leg; cleanup cancels only a matching recorded turn direction.
  * Repeat/JIP: Generation/epoch-bound record; repeated steps retain commands. No worker or JIP command replay.
  * Arguments: 0 group <GROUP>; 1 state <HASHMAP>; 2 vehicle <OBJECT>; 3 threat ATL <ARRAY>;
  * 4 mode <STRING, START>; 5 operation generation <NUMBER, -1>.
@@ -40,7 +41,8 @@ private _release={
                 && {_crewStillOwned} && {(_record select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
                 && {isNil {_ownedVehicle getVariable "WAIT_ExternalDrivingOwner"}}) then {
                 private _info=vehicleMoveInfo _ownedVehicle;
-                if ((_info param [1,""]) in ["LEFT","RIGHT"]) then {_ownedVehicle sendSimpleCommand "STOPTURNING"};
+                if ((_info param [1,""]) in ["LEFT","RIGHT"]
+                    && {(_info param [1,""]) == (_record select 8)}) then {_ownedVehicle sendSimpleCommand "STOPTURNING"};
                 if ((_info param [0,""]) == "BACK") then {_ownedVehicle sendSimpleCommand "STOP"};
             };
             _ownedVehicle setVariable ["WAIT_VehicleReverseOwner",nil,true];
@@ -66,7 +68,10 @@ if (!_eligible) exitWith {["INELIGIBLE"] call _release; "FALLBACK"};
 private _driver=driver _vehicle;
 private _commander=effectiveCommander _vehicle;
 if (isNull _driver || {isNull _commander} || {_driver == _commander}
-    || {!alive _driver} || {!alive _commander} || {!local _driver} || {!local _commander}
+    || {!alive _driver} || {!alive _commander}
+    || {!([_driver] call WAIT_fnc_CortexCombatEffective)}
+    || {!([_commander] call WAIT_fnc_CortexCombatEffective)}
+    || {!local _driver} || {!local _commander}
     || {isPlayer _driver} || {isPlayer _commander} || {group _driver != _group}
     || {group _commander != _group} || {!isNull remoteControlled _driver}
     || {!isNull remoteControlled _commander}) exitWith {["CREW_UNAVAILABLE"] call _release; "FALLBACK"};
