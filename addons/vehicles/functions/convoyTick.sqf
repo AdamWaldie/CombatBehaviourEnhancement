@@ -3,7 +3,8 @@
  * Drives mixed convoys along each predecessor trail, detects arrival and requests a persistent halt after pinned contact.
  * Locality/authority: server owns phase; group owner drives and reports, each cargo/turret owner applies crew work.
  * Spacing uses a size-aware target with a 20 percent tolerance band (at least 3 m).
- * Aligned vehicles use forward separation, so lateral spread cannot satisfy the gap and stabilize a wedge.
+ * Aligned vehicles use unit horizontal bearings for forward separation, so pitch cannot shrink
+ * the measured gap and lateral spread cannot satisfy it or stabilize a wedge.
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
@@ -80,8 +81,8 @@ private _mayIssueDriving = {
 private _classifyStall = {
     params ["_vehicle"];
     private _origin = getPosATL _vehicle;
-    private _forward = vectorDir _vehicle;
-    _forward set [2, 0];
+    private _bearing=getDir _vehicle;
+    private _forward = [sin _bearing,cos _bearing,0];
     private _blocker = (nearestObjects [_vehicle, ["LandVehicle", "Static"], 20, true]) findIf {
         private _candidate = _x;
         !isNull _candidate && {_candidate != _vehicle} && {!(_candidate in _registered)} && {
@@ -340,8 +341,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // forward component instead. Turning pairs retain normal distance so the
     // controller does not mistake a legitimate corner for compression.
     if (_headingDifference <= 25 && {_pairGap <= (_gaps select _i)*1.8}) then {
-        private _direction=vectorDir _front;
-        _direction set [2,0];
+        private _bearing=getDir _front;
+        private _direction=[sin _bearing,cos _bearing,0];
         private _delta=(getPosATL _front) vectorDiff (getPosATL _follower);
         _delta set [2,0];
         _pairGap=(_delta vectorDotProduct _direction) max 0;
@@ -489,8 +490,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _lateralOffset = 0;
     private _headingDifference=abs (((getDir _vehicle-getDir _front+540) mod 360)-180);
     if (_headingDifference <= 25 && {_gap <= _desiredGap*1.8}) then {
-        private _direction=vectorDir _front;
-        _direction set [2,0];
+        private _bearing=getDir _front;
+        private _direction=[sin _bearing,cos _bearing,0];
         private _delta=(getPosATL _front) vectorDiff (getPosATL _vehicle);
         _delta set [2,0];
         _controlGap=(_delta vectorDotProduct _direction) max 0;
@@ -595,7 +596,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
         // Acquire an ahead point in a forward cone, never an old point behind us.
         if (_nearest < 0) then {
             private _origin=getPosATL _vehicle;
-            private _heading=vectorDir _vehicle;
+            private _bearing=getDir _vehicle;
+            private _heading=[sin _bearing,cos _bearing,0];
             private _best=150;
             for "_j" from _start to _frontIndex do {
                 private _point=_trail select _j;

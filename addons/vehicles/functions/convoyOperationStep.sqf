@@ -42,7 +42,7 @@ if ((_configuration param [5,"TRAVEL"]) == "HALT") then {
    private _target=_requested max ((_lv+_lf)*0.5+5);private _tolerance=(_target*0.2) max 3;private _gap=_vehicle distance2D _front;
    private _headingDifference=abs (((getDir _vehicle-getDir _front+540) mod 360)-180);
    if (_headingDifference <= 25 && {_gap <= _target*1.8}) then {
-    private _direction=vectorDir _front;_direction set [2,0];
+    private _bearing=getDir _front;private _direction=[sin _bearing,cos _bearing,0];
     private _delta=(getPosATL _front) vectorDiff (getPosATL _vehicle);_delta set [2,0];
     _gap=(_delta vectorDotProduct _direction) max 0;
    };
