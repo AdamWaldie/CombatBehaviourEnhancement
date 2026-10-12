@@ -636,3 +636,6 @@ A proposed per-actor static class cache was rejected by two existing regression 
 
 
 CQB geometry queries that cannot grant a receipt now return before repeated ownership/config scans when their ray quota is exhausted or the exact callback-local pose/target already has a negative result. Cached positives and new probes still pass current brain/generation/epoch/order/transform and external-ownership checks. No dynamic ownership decision is cached, no query becomes a positive through budget exhaustion, and the sixteen-probe ceiling remains. This reduces avoidable source work without mutating the read-only ownership gate; measured runtime benefit and performance acceptance remain pending with audits paused.
+
+
+Room geometry cache keys also include the engine frame number. If a scheduled callback spans frames, unchanged actor/target coordinates cannot reuse an earlier-frame segment after scene geometry may have changed. The callback's sixteen-probe budget is not replenished on frame change; exhausted queries remain negative. Live ownership gates still protect positive results. Same-frame scene changes and physical door/geometry transitions require explicit retest; no universal snapshot guarantee or performance acceptance is claimed. Audits remain paused.

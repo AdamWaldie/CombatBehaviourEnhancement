@@ -89,7 +89,7 @@ private _delay=call {
     private _roomSegmentClear={
         params ["_actor","_targetASL"];
         private _actual=getPosASL _actor;
-        private _key=str [netId _actor,_actual,_targetASL];
+        private _key=str [diag_frameNo,netId _actor,_actual,_targetASL];
         private _cached=_key in _roomGeometryResults;
         // A negative answer cannot grant a receipt. Avoid group/config ownership
         // scans for exhausted or already-rejected queries; positives remain live-gated.
