@@ -1819,7 +1819,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('!isPlayer _actor',helper)
         self.assertIn('lifeState _unit != "INCAPACITATED"',source('cortexCombatEffective'))
         self.assertIn('_assigned set [_forEachIndex,[]]',release)
-        self.assertIn('if (_restore && {[_x] call _actorTaskFree}) then',text)
+        self.assertIn('if (_restore && {[_x] call _actorTaskFree}',text)
         release=source('cortexClearRelease')
         self.assertIn('params [["_group", grpNull, [grpNull]],["_restore",true,[true]]]',release)
         tick=source('cortexGroupTick')
@@ -2076,6 +2076,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _next=_remaining deleteAt 0',branch)
         self.assertIn('_target=+_next',branch)
         self.assertNotIn('_cleared pushBack',branch)
+
+    def test_clearance_does_not_interrupt_owned_native_leg_at_visit_radius(self):
+        step=source('buildingOperationStep')
+        own=step.split('private _ownsCurrentMove=',1)[1].split('private _roomMovementPoint=',1)[0]
+        self.assertIn('_live vectorDistance _issued <= 0.25',own)
+        self.assertIn('unitReady _actor',own)
+        self.assertIn('vectorDistance (AGLToASL _issued) > 0.4',own)
+        self.assertIn('!([_point] call _activeOwnMove)',step)
+        self.assertIn('!([_unit] call _activeOwnMove)',step)
+        remember=step.split('private _rememberMove=',1)[1].split('private _ownsCurrentMove=',1)[0]
+        self.assertIn('deleteAt (netId _actor)',remember)
+        self.assertIn('"egressAssignments",[]]) select {_x param [2,false,[true]]}',step)
 
     def test_clear_egress_preserves_progressing_routes_and_bounds_retries(self):
         step=source('buildingOperationStep')
@@ -7539,8 +7551,8 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_terminal_recall_yields_native_actor_tasks(self):
         text=source('buildingOperationStep')
-        self.assertIn('if (_restore && {[_x] call _actorTaskFree}) then',text)
-        self.assertLess(text.index('if (_restore && {[_x] call _actorTaskFree}) then'),text.index('_x doFollow _leader;'))
+        self.assertIn('if (_restore && {[_x] call _actorTaskFree}',text)
+        self.assertLess(text.index('if (_restore && {[_x] call _actorTaskFree}'),text.index('_x doFollow _leader;'))
 
     def test_clearance_route_trace_reports_actual_terminal_outcome(self):
         text=source('buildingOperationStep')
@@ -7663,7 +7675,7 @@ class CortexOperations(unittest.TestCase):
         text=source('buildingOperationStep')
         self.assertIn('private _laneEntered=_entered || {_pair findIf {_x in (_job getOrDefault ["enteredActors",[]])} >= 0}',text)
         self.assertIn('in _cleared && {_laneEntered}',text)
-        self.assertIn('if (_positionIndex in _cleared && {_laneEntered}) then {',text)
+        self.assertIn('if (_positionIndex in _cleared && {_laneEntered} && {!([_point] call _activeOwnMove)}) then {',text)
     def test_casualty_pair_snapshot_follows_replacement_loop(self):
         text=source('buildingOperationStep')
         self.assertLess(text.index('private _pairRosterChanged=false'),text.index('if (_pairRosterChanged) then'))

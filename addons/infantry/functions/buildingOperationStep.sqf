@@ -60,6 +60,22 @@ private _delay=call {
         private _targets=_job getOrDefault ["movementTargets",createHashMap];
         _targets set [netId _actor,+_target];
         _job set ["movementTargets",_targets];
+        // A new owned request retires the previous arrival hold, even when the next
+        // leg fails before reaching another node. A historical hold is not a live stop.
+        (_job getOrDefault ["roomHolds",createHashMap]) deleteAt (netId _actor);
+    };
+    private _ownsCurrentMove={
+        params ["_actor"];
+        private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _actor,[]];
+        private _live=(expectedDestination _actor) param [0,[]];
+        currentCommand _actor == "MOVE" && {count _issued == 3} && {count _live == 3}
+            && {_live vectorDistance _issued <= 0.25}
+    };
+    private _activeOwnMove={
+        params ["_actor"];
+        if (!([_actor] call _ownsCurrentMove) || {unitReady _actor}) exitWith {false};
+        private _issued=(_job get "movementTargets") get (netId _actor);
+        (getPosASL _actor) vectorDistance (AGLToASL _issued) > 0.4
     };
     private _roomMovementPoint={
         params ["_index"];
@@ -115,7 +131,8 @@ private _delay=call {
                         // Native tasks keep movement ownership during terminal cleanup too.
                         // Releasing our unchanged settings must not cancel treatment, boarding
                         // or a specialist action with a formation recall.
-                        if (_restore && {[_x] call _actorTaskFree}) then {
+                        if (_restore && {[_x] call _actorTaskFree}
+                            && {currentCommand _x != "MOVE" || {[_x] call _ownsCurrentMove}}) then {
                             _x doWatch objNull;
                             if (_reason == "COMPLETE") then {
                                 // Settlement retains actual positions even when participation failed.
@@ -165,6 +182,7 @@ private _delay=call {
             private _held=(_job getOrDefault ["accessHeld",[]])+(_job getOrDefault ["quarantineHeld",[]])+(_job getOrDefault ["securityActors",[]]);
             private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
             _held append ((_job get "team") select {netId _x in _roomHolds});
+            _held append ((_job getOrDefault ["egressAssignments",[]]) select {_x param [2,false,[true]]} apply {_x select 0});
             _held=(_held arrayIntersect _held) select {
                 local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
                     && {[_x] call _actorAvailable} && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
@@ -632,7 +650,7 @@ private _delay=call {
                 private _route=_pairRoutes select _pairIndex;
                 // Shared coverage may retire work only after this lane has physically entered.
                 private _laneEntered=_entered || {_pair findIf {_x in (_job getOrDefault ["enteredActors",[]])} >= 0};
-                while {_cursor < count _route && {(_route select _cursor) in _unreachable || {(_route select _cursor) in _cleared && {_laneEntered}}}} do {
+                while {_cursor < count _route && {(_route select _cursor) in _unreachable || {(_route select _cursor) in _cleared && {_laneEntered} && {!([_pair select (_moverIndex mod count _pair)] call _activeOwnMove)}}}} do {
                     private _completedRoom=_route select _cursor;
                     // Physical visits are collected before this loop. Apply the room handoff
                     // here before skipping it, otherwise the mover never rotates and its
@@ -928,7 +946,8 @@ private _delay=call {
                         && {(_approach select 0) == _positionIndex} && {!(_approach select 2)}) then {
                         private _checkpoint=_approach select 1;
                         if ((getPosASL _point) vectorDistance (AGLToASL _checkpoint) <= 1.5
-                            && {abs (((getPosASL _point) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75}) then {
+                            && {abs (((getPosASL _point) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75}
+                            && {!([_point] call _activeOwnMove)}) then {
                             private _remaining=_approach param [3,[]];
                             if (_remaining isEqualTo []) then {
                                 _approach set [2,true];
@@ -1029,7 +1048,8 @@ private _delay=call {
                             if (call _mayIssueMovement && {[_unit] call _actorTaskFree}) then {
                                 // An unchanged support hold already satisfies this handoff.
                                 if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo _unitTarget
-                                    || {currentCommand _unit != "STOP"}) then {
+                                    || {currentCommand _unit != "STOP"}
+                                    || {(getPosASL _unit) vectorDistance (AGLToASL _unitTarget) > 1.5}) then {
                                     _unit doMove _unitTarget;
                                     [_unit,_unitTarget] call _rememberMove;
                                 };
@@ -1055,7 +1075,9 @@ private _delay=call {
                             private _holdKey=netId _unit;
                             if ((_roomHolds getOrDefault [_holdKey,[]]) isNotEqualTo _speedTarget
                                 && {(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5}
-                                && {abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75}) then {
+                                && {abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75}
+                                && {currentCommand _unit != "MOVE" || {[_unit] call _ownsCurrentMove}}
+                                && {!([_unit] call _activeOwnMove)}) then {
                                 doStop _unit;
                                 _roomHolds set [_holdKey,+_speedTarget];
                                 _job set ["roomHolds",_roomHolds];
@@ -1089,7 +1111,7 @@ private _delay=call {
                             _job set ["deadline",(_job get "deadline") max (serverTime+120)];
                         };
                     };
-                    if (_positionIndex in _cleared && {_laneEntered}) then {
+                    if (_positionIndex in _cleared && {_laneEntered} && {!([_point] call _activeOwnMove)}) then {
                         _entered=true;
                         _previousPositionIndex=_positionIndex;
                         _cursor=_cursor+1;
@@ -1227,7 +1249,9 @@ private _delay=call {
             private _arrived=_follow getOrDefault [_key,[]];
             if (_arrived isNotEqualTo [] && {(_arrived select 0) in _visited}
                 && {!(_arrived param [4,false,[true]])} && {[_unit] call _actorAvailable}
-                && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
+                && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}
+                && {currentCommand _unit != "MOVE" || {[_unit] call _ownsCurrentMove}}
+                && {!([_unit] call _activeOwnMove)}) then {
                 doStop _unit;
                 _arrived set [4,true];
             };
@@ -1271,7 +1295,8 @@ private _delay=call {
         } forEach _activeWorkers;
         _job set ["followThrough",_follow];
     };
-    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
+    private _allWorkersSettled=_activeWorkers findIf {[_x] call _activeOwnMove} < 0;
+    if (((count _cleared + count _unreachable) >= count _positions && {(_allWorkersProgressed && {_allWorkersSettled}) || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
         // Room coverage does not prove that every active clearing actor entered.
         // A deadline may release the operation, but cannot convert missing participation to success.
         _job set ["entryFailed",(_job getOrDefault ["entryFailed",false]) || {!_allWorkersEntered} || {!_allWorkersProgressed}];
