@@ -4,11 +4,12 @@ Status checked on 2026-10-12. WAIT is not production-ready. All 65 registered fe
 
 Current evidence (2026-10-12):
 
-- Normal 28fb1a6 clearance completed 400 checks with no SQF exceptions/fatal runtime failures, but retained failed twelve-person coverage/settlement and the character-addon load warning. Two-/six-person physical entry, post-clear hold and ordinary waypoint handover passed in these fixtures; repeatability across buildings/combat remains incomplete.
-- Separate two-HC d56396d batch runtime-20261012-032114-708 completed 405 checks with seven twelve-person failures, zero SQF exceptions/fatal runtime failures and one unresolved load warning. All four processes were verified exited. Completed two-person holds were adopted through both HCs, physically followed the successor order under the second HC and returned to server. This does not establish general multiplayer acceptance.
-- All four twelve-person reserves physically reached bounded staging positions in the earlier normal 5c9a4d9 batch. Casualty replacement movement passed. Full reserve roles, progressive admission and tactical security/consolidation remain incomplete.
-- Latest code 192e8ae uses one native CQB path request and adds physical locked-phase observation. All 622 regression tests and full package gates pass; this routing change has no physical acceptance yet.
-- Twelve-person upstairs routing, clean settlement/egress, damage-enabled CQB, placed/native building repeatability, full consolidation, shutdown/migration variants and performance remain blockers. Workshop implementation/driving/FSM foundations remain priority; broader compatibility expansion stays deferred.
+- Current production routing candidate b48a503 passed 632 regression tests, SQF/config/docs/wiki/parity/performance-pattern gates, and nine PBO/nine FSM compilation and sealing. These are static/package gates, not tactical or performance acceptance.
+- Normal c450466 clearance completed 407 checks with 11 retained failures, zero SQF exceptions/fatal runtime errors and one unresolved load warning. Two-person participation and handover passed. Six-person shared room coverage and handover passed but one admitted worker never entered. Twelve-person upper-floor node 3, settlement, egress and physical handover failed. The leader received the correct authored MOVE destination but travelled only 2.36138 metres. Both processes were terminated and verified absent.
+- The fresh sealed b48a503 normal clearance batch is running in runtime-20261012-062721-285 with confirmed observer Zeus mission entry at 3840x2160 and no HCs. It adds bounded checkpoints from physically visited nodes and a visited-anchor retry for an unentered partner. Results remain pending; an accepted command or visited checkpoint cannot pass clearance.
+- Separate two-HC d56396d batch completed 405 checks with seven twelve-person failures and one unresolved load warning. Completed two-person holds were adopted through both HCs, physically followed the successor order under the second HC and returned to server. This narrow result does not establish in-progress clearance migration or general multiplayer acceptance.
+- Earlier reserve staging and casualty-replacement travel passed narrow checks. Full reserve roles, progressive admission beyond eight concurrent workers, security sectors and tactical consolidation remain incomplete.
+- Reliable CQB across placed/native buildings, individual participation, damage-enabled combat, physical handover, driving/convoy/air/support acceptance, required external-controller handovers and the 5% median/10% p95 performance budget remain open. Workshop/driving/FSM foundations remain priority; broad compatibility expansion stays deferred. Audit closure/restarts are authorized without repeated permission requests.
 
 All 65 families remain partial. Completed production feature families: 0/65; this is an acceptance count, not a statement that implementation is zero percent. Source/feature completion estimates below remain estimates and must not be promoted from static wiring or test counts.
 
@@ -49,7 +50,7 @@ now returns before duplicate append, isolates group/owner epochs and retires del
 Additive in-engine cases exercise single execution, epoch rejection, stale callback retirement and
 existing physical movement under the scheduler budget. Those cases have not run in the completed
 package. The HC diagnostic fixture also reapplies its stated damage protection after migration;
-this does not change production or damage-enabled battles. Restart approval remains pending.
+this does not change production or damage-enabled battles. That historical restart request has been superseded by blanket audit closure/restart authorization.
 
 Historical queued repairs below require individual evidence review against later batches:
 Changes through 82e0fc6 are committed and statically/package validated, awaiting physical retest:
@@ -183,7 +184,7 @@ After the behaviour and cross-cutting ownership checks pass, run matched infantr
 
 Evidence contract: [performance validation](PERFORMANCE-VALIDATION.md), [all 65 feature families](../releaseVerificationAndDeployment/cortexQA/FEATURE_STATUS.md), [capability registry](CAPABILITY-REGISTRY.md).
 
-## Latest physical evidence
+## Historical physical evidence through 2026-10-11
 
 - `runtime-20261010-123843-079`, candidate `20fd9d7`: completed broad batch, 755 checks, 62 server findings, zero client findings, no matched SQF/fatal errors, one loader warning. Remains FAIL.
 - `runtime-20261010-143646-413`, candidate `c9f6657`: processes exited without either completion marker. Partial report has 171 checks and 19 failed checks; no matched SQF/fatal errors and one loader warning. Building/vehicle stages did not complete.
@@ -203,7 +204,7 @@ assault-transition passes even when no assault was observed. Queued fixes and co
 physical evidence cannot retroactively turn those runs into acceptance. Notification,
 bomb integration, communication-hook and multi-contact fixture exceptions are recorded
 by cause in the error ledger; repeated trace lines are not separate defects.
-## Follow-up changes awaiting packaged acceptance
+## Historical follow-up changes and acceptance gaps
 
 PR #13 contains the work after merged PR #12. No feature family has gained complete behavioural acceptance from these static changes.
 
