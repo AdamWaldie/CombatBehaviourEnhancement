@@ -9,10 +9,11 @@
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; all required audit callbacks.
  * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
  * Optional fifth argument: skipNative <BOOL>, false; run production acceptance without repeating controls.
+ * Optional sixth argument: transformOnly <BOOL>, false; focused moved-building cancellation/reorder.
  * Return: Nothing. Current callers: cortexQA/runServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
-params ["_check","_phase","_wait",["_nativeOnly",false,[true]],["_skipNative",false,[true]]];
+params ["_check","_phase","_wait",["_nativeOnly",false,[true]],["_skipNative",false,[true]],["_transformOnly",false,[true]]];
 private _recordFixture={
     params ["_house","_label"];
     private _positions=_house buildingPos -1;
@@ -341,6 +342,7 @@ if (_nativeOnly && {worldName == "VR"}) then {
 };
 if (_nativeOnly) exitWith {};
 
+if (!_transformOnly) then {
 // Fresh groups distinguish clearance defects from state left by a previous garrison.
 // Keep all original comparisons above, including their failures.
 {
@@ -555,6 +557,8 @@ if (_nativeOnly) exitWith {};
     deleteVehicle _house;
 } forEach [[2,"Land_i_House_Small_01_V1_F"],[6,"Land_i_House_Big_01_V1_F"],[12,"Land_i_House_Big_02_V1_F"]];
 
+};
+
 // Moving the building is the administrative stimulus; actors are never repositioned.
 private _movedHouse=createVehicle ["Land_i_House_Small_01_V1_F",[7750,5800,0],[],0,"NONE"];
 [_movedHouse,"transform"] call _validateNewFixturePlacement;
@@ -602,6 +606,8 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _transformActors;
 deleteGroup _transformGroup;
 deleteVehicle _movedHouse;
+
+if (_transformOnly) exitWith {};
 
 // A casualty inside the clearing element must not strand the shared room queue. Use ten soldiers
 // so the production room-limited entry element leaves genuine reserves available as replacements.

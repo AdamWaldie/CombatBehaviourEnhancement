@@ -7563,3 +7563,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["GROUP_INELIGIBLE"] call _refuse',text)
         self.assertIn('["OPERATION_REFUSED"] call _refuse',text)
         self.assertIn('currentCommand _x,getUnitState _x',text)
+
+    def test_moved_building_focus_uses_the_shared_physical_case(self):
+        server=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text()
+        self.assertIn('[_check,_phase,_wait,false,true,true]',server)
+        comparison=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        self.assertIn('if (!_transformOnly) then {',comparison)
+        self.assertLess(comparison.index('CLEAR-transform-reorder-physical-entry'),comparison.index('if (_transformOnly) exitWith {}'))

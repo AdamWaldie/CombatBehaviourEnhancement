@@ -583,16 +583,18 @@ if (_focus in ["all","features","scheduler","coordinated"]) then {[_check,_phase
 if (_focus in ["all","features","artillerysmoke"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAArtillerySmoke.sqf"};
 if (_focus in ["all","features","crossing"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACrossing.sqf"};
 if (_focus in ["all","features","contact","dangerparity","dangerbuildings"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAContact.sqf"};
-if (_focus in ["buildings","dangerbuildings","clearance"]) then {
+if (_focus in ["buildings","dangerbuildings","clearance","cleartransform"]) then {
     [createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],["WAIT_AIPass_Regroup_Enable",false]]] call WAIT_fnc_CortexTuning;
     [{missionNamespace getVariable ["WAIT_AIPass_Active",false]},20] call _wait;
     // Focused retests share identical production settings and fixtures.
     // Original controls remain available in buildings and nativebuildings.
-    if (_focus == "clearance") then {
+    if (_focus == "cleartransform") then {
+        [_check,_phase,_wait,false,true,true] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
+    } else {if (_focus == "clearance") then {
         [_check,_phase,_wait,false,true] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
     } else {
         [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
-    };
+    }};
 };
 if (_focus in ["all","features","cover"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACover.sqf"};
 if (_focus in ["all","features","landing"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQALanding.sqf"};
