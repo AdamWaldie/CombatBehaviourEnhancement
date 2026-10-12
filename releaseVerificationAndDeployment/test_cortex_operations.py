@@ -7707,6 +7707,13 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,replay)
         self.assertIn('select [0,64]',replay)
         self.assertIn('(_count max 0) min 3',replay)
+        for command in [' doMove ', ' doFollow ', 'doStop ', ' setDestination ']:
+            self.assertNotIn(command,replay)
+        self.assertIn('_live vectorDistance _target <= 0.25',replay)
+        self.assertIn('currentCommand _actor == "STOP"',replay)
+        self.assertIn('vectorDistance (AGLToASL (_stage select 0)) <= 2',replay)
+        self.assertIn('<= 0.75',replay)
+
         self.assertLess(start.index('_previous param [9,_nativeOrderReceipt'),start.index('// Keep reserve search consumption'))
         step=source('buildingOperationStep')
         publish=step.split('private _budgetRows=',1)[1].split('private _pairRosterChanged=',1)[0]
@@ -7730,6 +7737,10 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_job set ["hardDeadline"',stage)
         self.assertIn('_searchCount < 3',stage)
         self.assertIn('reserveStageTriedTargets',stage)
+        self.assertIn('_stage set [3,serverTime+60]',stage)
+        self.assertIn('serverTime >= (_stage param [3,1e12])',stage)
+        self.assertNotIn('_stage set [3,time+',stage)
+
 
     def test_terminal_clearance_preserves_positions_even_when_result_is_incomplete(self):
         text=source('buildingOperationStep')
