@@ -7702,3 +7702,27 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(marker,branch)
         self.assertNotIn('doMove',branch)
         self.assertNotIn('doFollow',branch)
+
+    def test_clearance_room_arrival_holds_preserve_stranded_worker_failure(self):
+        text=source('buildingOperationStep')
+        retired=text.split('private _quarantineHeld=',1)[1].split('private _reserveReady=',1)[0]
+        self.assertIn('_job set ["entryFailed",true]',retired)
+        arrival=text.split('// Native formation must not reclaim',1)[1].split('_assigned set',1)[0]
+        self.assertIn('isNotEqualTo _speedTarget',arrival)
+        self.assertIn('(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5',arrival)
+        self.assertIn('doStop _unit',arrival)
+        self.assertIn('_roomHolds set [_holdKey,+_speedTarget]',arrival)
+        handover=text.split('if (_reason == "NEW_ORDER"',1)[1].split('_group setVariable ["WAIT_Cortex_ClearResult"',1)[0]
+        self.assertIn('netId _x in _roomHolds',handover)
+
+    def test_clearance_native_path_observer_is_bounded_and_removed_before_actor_cleanup(self):
+        text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        branch=text.split('private _pathHandlers=[]',1)[1].split('private _accepted=',1)[0]
+        self.assertIn('addEventHandler ["PathCalculated"',branch)
+        self.assertIn('>= 24',branch)
+        self.assertIn('time+8',branch)
+        self.assertIn('_path select [0,24]',branch)
+        self.assertNotIn('doMove',branch)
+        self.assertNotIn('calculatePath',branch)
+        remove=text.index('removeEventHandler ["PathCalculated"')
+        self.assertLess(remove,text.index('{deleteVehicle _x} forEach _members',remove))

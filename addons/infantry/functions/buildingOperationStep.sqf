@@ -134,6 +134,8 @@ private _delay=call {
             // Publish the old order receipt; the normal brain releases only unchanged owned
             // STOP actors after this operation retires, without restoring an obsolete route.
             private _held=(_job getOrDefault ["accessHeld",[]])+(_job getOrDefault ["quarantineHeld",[]])+(_job getOrDefault ["securityActors",[]]);
+            private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
+            _held append ((_job get "team") select {netId _x in _roomHolds});
             _held=(_held arrayIntersect _held) select {
                 local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
                     && {[_x] call _actorAvailable} && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
@@ -342,6 +344,8 @@ private _delay=call {
             && {[_x] call _actorTaskFree} && {call _mayIssueMovement}) then {
             doStop _x;
             _quarantineHeld pushBackUnique _x;
+            // Continuing with replacements cannot erase an ordinary stranded worker.
+            _job set ["entryFailed",true];
         };
     } forEach (_rotatedOut select [0,16]);
     _job set ["quarantineHeld",_quarantineHeld];
@@ -808,7 +812,11 @@ private _delay=call {
                             };
                             private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
                             if (call _mayIssueMovement && {[_unit] call _actorTaskFree}) then {
-                                _unit doMove _unitTarget;
+                                // An unchanged support hold already satisfies this handoff.
+                                if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo _unitTarget
+                                    || {currentCommand _unit != "STOP"}) then {
+                                    _unit doMove _unitTarget;
+                                };
                             };
                         };
                         // Slow the final indoor approach without replacing its destination.
@@ -823,6 +831,17 @@ private _delay=call {
                                 && {abs (_desiredSpeed-_applied) > 0.1}) then {
                                 _unit forceSpeed _desiredSpeed;
                                 _unit setVariable ["WAIT_Cortex_ClearAppliedSpeed",_desiredSpeed,true];
+                            };
+                            // Native formation must not reclaim a physically arrived room or
+                            // support actor between pair handoffs. Hold once per target; a new
+                            // room request replaces it through the existing movement writer.
+                            private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
+                            private _holdKey=netId _unit;
+                            if ((_roomHolds getOrDefault [_holdKey,[]]) isNotEqualTo _speedTarget
+                                && {(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5}) then {
+                                doStop _unit;
+                                _roomHolds set [_holdKey,+_speedTarget];
+                                _job set ["roomHolds",_roomHolds];
                             };
                         };
                         _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];
@@ -984,6 +1003,13 @@ private _delay=call {
             private _unit=_x;
             private _key=netId _unit;
             private _visited=_actorVisits getOrDefault [_key,[]];
+            private _arrived=_follow getOrDefault [_key,[]];
+            if (_arrived isNotEqualTo [] && {(_arrived select 0) in _visited}
+                && {!(_arrived param [4,false,[true]])} && {[_unit] call _actorAvailable}
+                && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
+                doStop _unit;
+                _arrived set [4,true];
+            };
             if (count _visited < _requiredVisits && {[_unit] call _actorAvailable}
                 && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                 private _record=_follow getOrDefault [_key,[]];

@@ -6,6 +6,9 @@
  * Clearance acceptance requires covered interior navigation positions; exposed positions remain
  * separately recorded as exterior evidence, rather than being counted as uncleared rooms.
  * Repeat/JIP: disposable actors and houses are removed; observer state is public for joining clients.
+ * Normal-owner clearance records at most 24 native path events per actor, eight seconds apart,
+ * with at most 24 path points plus the final point. Local diagnostic handlers are removed before
+ * actor cleanup; they issue no movement and are not evidence of physical arrival.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; all required audit callbacks.
  * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
  * Optional fifth argument: skipNative <BOOL>, false; run production acceptance without repeating controls.
@@ -384,6 +387,24 @@ if (!_transformOnly) then {
     private _reserveStageVisits=[];
     private _originalAttack=attackEnabled leader _group;
     private _originalSpeedLimits=_members apply {getForcedSpeed _x};
+    // Observe the real actor's native route; do not spawn a predictive agent or alter its path.
+    private _pathHandlers=[];
+    {
+        _x setVariable ["WAIT_CortexQA_PathCount",0];
+        _x setVariable ["WAIT_CortexQA_PathNextAt",0];
+        private _id=_x addEventHandler ["PathCalculated",{
+            params ["_unit","_path"];
+            if (!((group _unit) getVariable ["WAIT_AIPass_ClearBuilding",false])
+                || {time < (_unit getVariable ["WAIT_CortexQA_PathNextAt",0])}
+                || {(_unit getVariable ["WAIT_CortexQA_PathCount",0]) >= 24}) exitWith {};
+            _unit setVariable ["WAIT_CortexQA_PathNextAt",time+8];
+            _unit setVariable ["WAIT_CortexQA_PathCount",(_unit getVariable ["WAIT_CortexQA_PathCount",0])+1];
+            diag_log format ["WAIT CLEAR NATIVE PATH: %1",[serverTime,netId _unit,getPosASL _unit,
+                currentCommand _unit,expectedDestination _unit,count _path,_path select [0,24],
+                _path param [((count _path)-1) max 0,[]],insideBuilding _unit]];
+        }];
+        _pathHandlers pushBack [_x,_id];
+    } forEach (_members select [0,16]);
     private _accepted=[_group,_house] call WAIT_fnc_CortexClearBuilding;
     private _admissionJob=(_group getVariable ["WAIT_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
     private _admittedMembers=+(_admissionJob getOrDefault ["team",[]]);
@@ -425,7 +446,9 @@ if (!_transformOnly) then {
                     getUnitState _actor,unitReady _actor,
                     _actor in (_job getOrDefault ["enteredActors",[]]),
                     _actor in (_operation getOrDefault ["unavailable",[]]),
-                    (_job getOrDefault ["entryRecovery",createHashMap]) getOrDefault [netId _actor,[]]]];
+                    (_job getOrDefault ["entryRecovery",createHashMap]) getOrDefault [netId _actor,[]],
+                    insideBuilding _actor,_actor getVariable ["WAIT_Cortex_ClearReserve",[]],
+                    _actor in (_job getOrDefault ["quarantineHeld",[]])]];
             } forEach (_clearingMembers select [0,16]);
             diag_log format ["WAIT CLEAR LIVE ROUTE: %1",[
                 _size,_routeTraceCount,diag_tickTime,
@@ -618,6 +641,7 @@ if (!_transformOnly) then {
     [_group] call WAIT_fnc_CortexClearRelease;
     missionNamespace setVariable ["WAIT_CortexQA_Rooms",[],true];
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    {_x params ["_actor","_id"]; _actor removeEventHandler ["PathCalculated",_id]} forEach _pathHandlers;
     {deleteVehicle _x} forEach _members;
     deleteGroup _group;
     deleteVehicle _house;
