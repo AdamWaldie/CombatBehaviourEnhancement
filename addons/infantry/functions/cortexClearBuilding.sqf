@@ -322,7 +322,7 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
         _counts set [_key,(_count max 0) min 3];
         _tried set [_key,+_targets];
         private _actor=_actors getOrDefault [_key,objNull];
-        if (count _stage == 4 && {(_stage select 2) == "APPROACH"}
+        if (count _stage == 4 && {(_stage select 2) in ["APPROACH","ARRIVED","REJECTED","EXHAUSTED"]}
             && {!isNull _actor} && {local _actor} && {!isPlayer _actor} && {!(_actor in _team)}
             && {[_actor] call WAIT_fnc_CortexCombatEffective} && {isNull objectParent _actor}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
@@ -330,7 +330,11 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
             && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
             && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
             && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
-            && {currentCommand _actor == "MOVE"}) then {
+            && {((_stage select 2) == "APPROACH" && {currentCommand _actor == "MOVE"})
+                || {(_stage select 2) != "APPROACH" && {currentCommand _actor == "STOP"}
+                    && {count (_stage select 0) == 3}
+                    && {(getPosASL _actor) vectorDistance (AGLToASL (_stage select 0)) <= 2}
+                    && {abs (((getPosASL _actor) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}}}) then {
             private _target=_stage select 0;
             private _live=(expectedDestination _actor) param [0,[]];
             if (count _target == 3 && {count _live == 3} && {_live vectorDistance _target <= 0.25}) then {
