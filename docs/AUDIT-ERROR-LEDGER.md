@@ -600,3 +600,6 @@ Suspended convoy resumption clears common operation state only when its saved op
 
 
 Shared ownership takeover now recognizes the already-supported active curator garrison and suppression actor flags during cleanup/command boundaries as well as admission. Actor-local contexts remain limited to that actor; ordinary group commands retain group-wide protection. Addon presence alone grants no ownership. This closes an admission-versus-restoration discrepancy and supports safer filter reasoning, but does not by itself resolve all convoy eligibility-filter lease release or establish controller handover acceptance. Broad compatibility expansion remains deferred. Physical curator-order interruption/cleanup remains pending while audits are paused.
+
+
+Old convoy cleanup treats a different current movement-operator group as successor ownership, including ordinary AI groups without an external-controller marker. It preserves that vehicle's speed/unload policy and does not recall a driver from another group. Empty vehicles can still release their unchanged old cap; old-group metadata is retired without overwriting a new group's receipt. This closes a group-transfer restoration gap but does not establish all callback/event-handler transfer or filter-only lease cleanup. Physical AI-group reassignment/handback remains pending while audits are paused.

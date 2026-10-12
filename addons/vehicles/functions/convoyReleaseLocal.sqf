@@ -3,6 +3,7 @@
  * Purpose: Restores recorded formation, attack permission, vehicle speed and unload settings; cancels only follower paths. A speed baseline is restored only when the
  * vehicle is leaving WAIT control, WAIT still owns the current cap and no newer controller owns it.
  * Unload policy and attack permission restore only while their convoy-applied values remain current.
+ * A different current movement-operator group preserves the successor vehicle policy and orders.
  * Crew target cleanup also checks actor ownership and combat effectiveness; a newer target owner
  * keeps its command while obsolete convoy target metadata is retired.
  * Locality/authority: server owns registration; driving commands execute only on current owners.
@@ -76,7 +77,11 @@ if (_restore isNotEqualTo []) then {
                 // group remains outside the common Zeus/player/specialist handover boundary.
                 [_crewGroup] call WAIT_fnc_CortexExternalTakeover
             } >= 0;
-            private _externalVehicle=!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}
+            private _movementOperator=effectiveCommander _vehicle;
+            if (isNull _movementOperator) then {_movementOperator=_driver};
+            private _reassignedVehicle=!isNull _movementOperator && {group _movementOperator != _group};
+            private _externalVehicle=_reassignedVehicle
+                || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
                 || {[_group] call WAIT_fnc_CompatibilityExternalControl};
             private _ownedSpeed=_vehicle getVariable ["WAIT_Convoy_OwnedSpeed",[]];
             private _ownsCurrentSpeed=count _ownedSpeed == 3
@@ -98,7 +103,7 @@ if (_restore isNotEqualTo []) then {
             // external vehicle-level owner may likewise leave group ownership unchanged.
             // Neither permits a formation recall during obsolete convoy cleanup.
             if (_mayRestoreGroup && {!isNull _driver} && {!_externalCrew} && {!_externalVehicle}
-                && {!(_vehicle in _keepCrew)} && {local _driver} && {_driver != leader _group}) then {
+                && {!(_vehicle in _keepCrew)} && {local _driver} && {group _driver == _group} && {_driver != leader _group}) then {
                 _driver doFollow leader _group;
             };
         };
