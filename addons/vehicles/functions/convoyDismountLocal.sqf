@@ -6,20 +6,22 @@
  * Cover selection excludes only matching, unexpired convoy-revision destinations.
  * New native tasks and live actor reservations retire only convoy bookkeeping; no follow command overrides them.
  * Arguments: 0: convoy group <GROUP>; 1: ordered configuration <ARRAY>; 2: cleanup only <BOOL>, false.
+ * Arguments: 3: full reservation cargo <ARRAY>, [] uses configuration cargo; read-only exclusion roster.
  * Return Value: Nothing. At most two new cover searches per convoy/owner/five-second crew step.
  * Current callers: ConvoyCrewLocal and ConvoySync cleanup.
  * Example: [_group, _configuration] call WAIT_fnc_ConvoyDismountLocal;
  */
-params ["_group", "_configuration", ["_cleanup", false, [true]]];
+params ["_group", "_configuration", ["_cleanup", false, [true]],["_reservationCargo",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 _configuration params ["_revision", "", "", "", "", "_phase", "_cargo", "", ["_reason", "MANUAL"], ["_threat", []], ["_deadline", 0]];
 private _budget = 2;
 private _reserved = [];
+if (_reservationCargo isEqualTo []) then {_reservationCargo=_cargo};
 {
     private _job = (_x select 0) getVariable ["WAIT_Convoy_Dismount", []];
     if (count _job == 4 && {(_job select 0) == _group} && {(_job select 1) == _revision}
         && {serverTime < (_job select 2)} && {(_job select 3) isNotEqualTo []}) then {_reserved pushBack (_job select 3)};
-} forEach _cargo;
+} forEach _reservationCargo;
 {
     _x params ["_unit", "_vehicle"];
     if (local _unit && {!isPlayer _unit}) then {

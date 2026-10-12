@@ -7,11 +7,12 @@
  * Repeat/JIP: five-second owner checks repair occupied seat assignments and replay a durable halt
  * after transfer. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, speed, gap, push, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
+ * Arguments: 2: full reservation cargo <ARRAY>, [] uses configuration cargo; does not expand actor writes.
  * Return Value: Nothing. Unconscious passengers wait until capable; players and remote-controlled units are skipped.
  * Current callers: ConvoyTick on every AI-owning machine.
  * Example: [_group, _configuration] call WAIT_fnc_ConvoyCrewLocal;
  */
-params ["_group", "_configuration"];
+params ["_group", "_configuration",["_reservationCargo",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 _configuration params ["_revision", "", "", "", "_vehicles", "_phase", "_cargo", "_restore", ["_reason", "MANUAL"], ["_threat", []], ["_deadline", 0]];
 if (time < (_group getVariable ["WAIT_Convoy_CrewDue", -1])) exitWith {};
@@ -19,7 +20,7 @@ _group setVariable ["WAIT_Convoy_CrewDue", time + 5];
 private _externalCrew = _vehicles findIf {(crew _x) findIf {[_x] call WAIT_fnc_CortexExternalOwner != ""} >= 0} >= 0;
 if ([_group] call WAIT_fnc_CortexExternalTakeover || {[_group] call WAIT_fnc_CompatibilityExternalControl} || {"ALL" in (_group getVariable ["WAIT_AIPass_DisabledFeatures",[]])} || {[] call WAIT_fnc_CortexIsPaused}
     || {_externalCrew}
-    || {_vehicles findIf {(crew _x) findIf {isPlayer _x || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}} >= 0} >= 0}) exitWith {[_group, _configuration, true] call WAIT_fnc_ConvoyDismountLocal};
+    || {_vehicles findIf {(crew _x) findIf {isPlayer _x || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}} >= 0} >= 0}) exitWith {[_group, _configuration, true,_reservationCargo] call WAIT_fnc_ConvoyDismountLocal};
 private _seats = createHashMap;
 {
     private _vehicle = _x;
@@ -149,4 +150,4 @@ if (_phase != "HALT") exitWith {};
     };
 } forEach _cargo;
 
-[_group, _configuration] call WAIT_fnc_ConvoyDismountLocal;
+[_group, _configuration,false,_reservationCargo] call WAIT_fnc_ConvoyDismountLocal;

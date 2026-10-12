@@ -103,7 +103,7 @@ if !(missionNamespace getVariable ["WAIT_Convoy_CompatibilityHeadlessHandlerInst
             private _packet=+_configuration;
             private _vehicles=[];{_vehicles pushBackUnique (_x select 1)} forEach _slice;
             _packet set [4,_vehicles];_packet set [6,_slice];
-            if (_slice isNotEqualTo []) then {[_convoy,_packet] call WAIT_fnc_ConvoyCrewLocal};
+            if (_slice isNotEqualTo []) then {[_convoy,_packet,_cargo] call WAIT_fnc_ConvoyCrewLocal};
             5
         },createHashMapFromArray [["subsystem","CONVOY"],["convoy",_group],["configuration",_configuration],
             ["revision",_revision],["deadline",time+90],["cursor",0],["cyclePending",false]],2,

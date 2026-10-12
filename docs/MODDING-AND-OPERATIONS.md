@@ -155,3 +155,7 @@ Passenger dismount cover selection excludes destinations only from the matching 
 ### Passenger-owner post-exit continuation
 
 The finite remote passenger-owner HALT job retains on-foot actors with the matching convoy/revision unload receipt. This lets cover steps continue after physical exit instead of filtering the actor out as soon as boarding ends. New vehicle assignments and external orders remain protected. Separate-HC exit/cover and concurrent-owner spacing retests remain pending.
+
+### Sliced passenger cover exclusions
+
+Separate passenger-owner retries process a bounded actor slice but pass the full cargo roster separately for read-only destination exclusions. Existing live reservations outside the current slice remain visible. This does not serialize simultaneous selection across owners; that race remains unverified and requires a separate design and live audit.
