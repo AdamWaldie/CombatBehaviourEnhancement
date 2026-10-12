@@ -497,11 +497,11 @@ if (!_transformOnly) then {
             || {count _currentOperation > 0 && {(_currentOperation getOrDefault ["generation",-1]) != _entryGeneration}}) then {
             _entryOwnerStable=false;
         };
-        {private _room=_x; private _roomIndex=_forEachIndex; if (_clearingMembers findIf {alive _x && {(getPosASL _x) vectorDistance (AGLToASL _room) <= 1.5}} >= 0) then {_visits set [_roomIndex,true]}} forEach _rooms;
+        {private _room=_x; private _roomIndex=_forEachIndex; if (_clearingMembers findIf {alive _x && {(getPosASL _x) vectorDistance (AGLToASL _room) <= 1.5 && {abs (((getPosASL _x) select 2)-((AGLToASL _room) select 2)) <= 0.75}}} >= 0) then {_visits set [_roomIndex,true]}} forEach _rooms;
         {
             private _worker=_x;
             private _seen=_memberVisits select _forEachIndex;
-            {if (alive _worker && {(getPosASL _worker) vectorDistance (AGLToASL _x) <= 1.5}) then {_seen pushBackUnique _forEachIndex}} forEach _rooms;
+            {if (alive _worker && {(getPosASL _worker) vectorDistance (AGLToASL _x) <= 1.5 && {abs (((getPosASL _worker) select 2)-((AGLToASL _x) select 2)) <= 0.75}}) then {_seen pushBackUnique _forEachIndex}} forEach _rooms;
         } forEach _clearingMembers;
         {
             private _position=_x;
@@ -962,7 +962,7 @@ private _naturalClear=[{_contactGroup getVariable ["WAIT_AIPass_ClearBuilding",f
 ["BUILD-CONTACT-natural-clear-started",_nativeContact && {_naturalClear},str [_contactGroup getVariable ["WAIT_Cortex_ClearStatus",[]],_contactGroup getVariable ["WAIT_OperationResult",[]]]] call _check;
 private _naturalEntry=[{_contactRooms findIf {
     private _room=_x;
-    _contactMembers findIf {alive _x && {(getPosASL _x) vectorDistance (AGLToASL _room) <= 1.5}} >= 0
+    _contactMembers findIf {alive _x && {(getPosASL _x) vectorDistance (AGLToASL _room) <= 1.5 && {abs (((getPosASL _x) select 2)-((AGLToASL _room) select 2)) <= 0.75}}} >= 0
 } >= 0},90] call _wait;
 ["BUILD-CONTACT-physical-entry",_naturalClear && {_naturalEntry},str (_contactMembers apply {[getPosATL _x,currentCommand _x,expectedDestination _x]})] call _check;
 [_contactGroup] call WAIT_fnc_CortexClearRelease;

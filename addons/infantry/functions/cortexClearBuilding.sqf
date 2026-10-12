@@ -293,7 +293,7 @@ private _claimedEntryIndices=[];
 } forEach _pairs;
 _group setVariable ["WAIT_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];
 private _job=createHashMapFromArray [
-    ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
+    ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
     ["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]

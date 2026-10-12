@@ -2027,16 +2027,43 @@ class CortexOperations(unittest.TestCase):
     def test_clear_room_checkpoint_requires_physically_established_floor_and_bounded_shared_access(self):
         step=source('buildingOperationStep')
         branch=step.split('private _approaches=_job',1)[1].split('private _issue=',1)[0]
-        self.assertIn('!_approachingEntry && {_entered}',branch)
+        self.assertIn('!_approachingEntry && {_entered || {abs',branch)
+        self.assertIn('abs (((getPosASL _point) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75',branch)
         self.assertIn('_positions select _previousPositionIndex',branch)
         self.assertIn('_cleared select [0,24]',branch)
         self.assertIn('(_probes getOrDefault [_probeKey,-1]) != count _cleared',branch)
         self.assertIn('count _checkpoint == 3',branch)
-        self.assertIn('abs ((_checkpoint select 2)-(_target select 2)) <= 1.5',branch)
+        self.assertIn('abs (((AGLToASL _checkpoint) select 2)-_targetFloor) <= 1.5',branch)
         self.assertIn('(getPosASL _point) vectorDistance (AGLToASL _checkpoint) <= 1.5',branch)
         self.assertIn('_approach set [2,true]',branch)
         self.assertNotIn('setPos',branch)
         self.assertNotIn('_cleared pushBack',branch)
+
+    def test_clearance_preserves_exposed_navigation_without_counting_it_as_covered_room(self):
+        admission=source('cortexClearBuilding')
+        step=source('buildingOperationStep')
+        self.assertIn('["navigationPositions",+_allPositions]',admission)
+        self.assertIn('["transitPositions",_allPositions select {!(_x in _positions)}]',admission)
+        access=step.split('private _floorKey=str round',1)[1].split('// Pair history may contain',1)[0]
+        self.assertIn('count _accessCache < 8',access)
+        self.assertIn('select [0,32]',access)
+        self.assertIn('(_x select 2) == _building || {(_x select 3) == _building}',access)
+        self.assertIn('_accessCache set [_floorKey,_access]',access)
+        self.assertIn('if (_access isNotEqualTo []) exitWith {}',access)
+        self.assertIn('if (_supported) then {_access=+_x}',access)
+        self.assertNotIn('_cleared pushBack',access)
+        self.assertNotIn('setPos',access)
+
+    def test_clearance_floor_receipts_reject_lower_treads_and_are_shared_with_audit(self):
+        step=source('buildingOperationStep')
+        collector=step.split('private _actual = getPosASL _visitor',1)[1].split('private _pairRosterChanged',1)[0]
+        self.assertIn('abs ((_actual select 2)-(_positionASL select 2)) <= 0.75',collector)
+        self.assertIn('if (_atPosition)',collector)
+        self.assertIn('_completedRoom in ((_job getOrDefault ["actorVisits",createHashMap])',step)
+        self.assertIn('abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75',step)
+        self.assertGreater(step.index('abs (_pointFloor-_targetFloor)'),step.index('private _pointFloor='))
+        audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        self.assertIn('abs (((getPosASL _worker) select 2)-((AGLToASL _x) select 2)) <= 0.75',audit)
 
     def test_clear_egress_preserves_progressing_routes_and_bounds_retries(self):
         step=source('buildingOperationStep')

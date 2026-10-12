@@ -7,7 +7,8 @@
  * generation scoped and reconstructed after locality migration. Each room, entrance and egress
  * leg has one generation-owned movement writer. Entry, room and recovery movement each issue one
  * native doMove path request without a second formation-planner destination override.
- * Off-floor mover changes may use one preceding physically visited interior checkpoint;
+ * Off-floor mover changes may use one visited interior checkpoint or a floor-supported raw
+ * model transit position which is kept separate from the covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
  * Successful egress additionally requires each active worker's successive physical visits.
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
@@ -584,7 +585,10 @@ private _delay=call {
             private _actual = getPosASL _visitor;
             {
                 private _positionIndex=_x;
-                if (_actual vectorDistance (AGLToASL (_positions select _positionIndex)) <= 1.5) then {
+                private _positionASL=AGLToASL (_positions select _positionIndex);
+                private _atPosition=_actual vectorDistance _positionASL <= 1.5
+                    && {abs ((_actual select 2)-(_positionASL select 2)) <= 0.75};
+                if (_atPosition) then {
                     private _enteredActors=_job getOrDefault ["enteredActors",[]];
                     _enteredActors pushBackUnique _visitor;
                     _job set ["enteredActors",_enteredActors];
@@ -595,7 +599,7 @@ private _delay=call {
                     _job set ["actorVisits",_actorVisits];
                 };
                 if !(_positionIndex in _cleared) then {
-                    if (_actual vectorDistance (AGLToASL (_positions select _positionIndex)) <= 1.5) then {
+                    if (_atPosition) then {
                         _cleared pushBackUnique _positionIndex;
                         private _failedIndex = _unreachable find _positionIndex;
                         if (_failedIndex >= 0) then {_unreachable deleteAt _failedIndex};
@@ -636,21 +640,15 @@ private _delay=call {
                     // Shared completion can belong to another lane. Only this pair's
                     // physical arrival proves its entry and interior support handoff.
                     if (_completedRoom in _cleared && {_pair findIf {
-                        (getPosASL _x) vectorDistance (AGLToASL (_positions select _completedRoom)) <= 1.5
+                        _completedRoom in ((_job getOrDefault ["actorVisits",createHashMap]) getOrDefault [netId _x,[]])
                     } >= 0}) then {
                         _entered=true;
                         _previousPositionIndex=_completedRoom;
                         _roomsCleared=_roomsCleared+1;
                         if (count _pair > 1) then {
                             private _nextMover=(_moverIndex+1) mod count _pair;
-                            private _entryRoom=_positions select (_route select 0);
+                            // Entry receipts come only from the floor-aware visit collector above.
                             private _enteredActors=_job getOrDefault ["enteredActors",[]];
-                            {
-                                if ((getPosASL _x) vectorDistance (AGLToASL _entryRoom) <= 1.5) then {
-                                    _enteredActors pushBackUnique _x;
-                                };
-                            } forEach _pair;
-                            _job set ["enteredActors",_enteredActors];
                             // A security partner still outside cannot inherit an interior leg.
                             // Keep the successful entrant moving while its partner follows the
                             // preceding room through the native entrance. Alternate only after
@@ -794,7 +792,7 @@ private _delay=call {
                     if (!_approachingEntry && {_floorTarget isEqualTo []} && {!(_positionIndex in _cleared)}
                         && {!(_positionIndex in _floorProbed)} && {_retries >= 3} && {_now-_lastProgress > 4}
                         && {_point distance2D _target <= 4}
-                        && {abs (((getPosATL _point) select 2)-(_target select 2)) > 1.5}
+                        && {abs (((getPosASL _point) select 2)-((AGLToASL _target) select 2)) > 1.5}
                         && {[_point] call _actorTaskFree}) then {
                         private _probeCounts=_job getOrDefault ["floorProbeCounts",createHashMap];
                         if ((_probeCounts getOrDefault [_floorKey,-1]) != count _cleared) then {
@@ -841,19 +839,51 @@ private _delay=call {
                     private _approaches=_job getOrDefault ["interiorApproaches",createHashMap];
                     private _approachKey=str _pairIndex;
                     private _approach=_approaches getOrDefault [_approachKey,[]];
-                    if (!_approachingEntry && {_entered}
+                    private _targetFloor=(AGLToASL _target) select 2;
+                    private _pointFloor=(getPosASL _point) select 2;
+                    if (!_approachingEntry && {_entered || {abs (_pointFloor-_targetFloor) > 1.5}}
                         && {(_approach param [0,-1]) != _positionIndex}) then {
                         private _checkpoint=if (_previousPositionIndex >= 0 && {_previousPositionIndex != _positionIndex}) then {
                             _positions select _previousPositionIndex
                         } else {[]};
+                        // Exposed balconies/access positions are not rooms, but removing them
+                        // from the coverage set must not erase possible native floor access.
+                        // Prefer one original, floor-supported transit point before falling back
+                        // to another lane's visited interior node. Probe each floor bucket once.
+                        if (abs (_pointFloor-_targetFloor) > 1.5
+                            && {_checkpoint isEqualTo [] || {abs (((AGLToASL _checkpoint) select 2)-_targetFloor) > 1.5}}) then {
+                            private _floorKey=str round (_targetFloor*2);
+                            private _accessCache=_job getOrDefault ["transitAccessCache",createHashMap];
+                            if (!(_floorKey in _accessCache) && {count _accessCache < 8}) then {
+                                private _access=[];
+                                private _transit=(_job getOrDefault ["transitPositions",[]]) select [0,32];
+                                {
+                                    if (_access isNotEqualTo []) exitWith {};
+                                    if (abs (((AGLToASL _x) select 2)-_targetFloor) <= 0.75) then {
+                                        private _origin=AGLToASL _x;
+                                        private _surfaces=lineIntersectsSurfaces [_origin vectorAdd [0,0,0.5],_origin vectorAdd [0,0,-1],_point,objNull,true,4,"GEOM","NONE"];
+                                        private _supported=_surfaces findIf {
+                                            ((_x select 1) select 2) >= 0.7
+                                                && {(_x select 2) == _building || {(_x select 3) == _building}}
+                                                && {abs (((_x select 0) select 2)-(_origin select 2)) <= 0.75}
+                                        } >= 0;
+                                        if (_supported) then {_access=+_x};
+                                    };
+                                } forEach _transit;
+                                _accessCache set [_floorKey,_access];
+                                _job set ["transitAccessCache",_accessCache];
+                            };
+                            private _access=_accessCache getOrDefault [_floorKey,[]];
+                            if (_access isNotEqualTo []) then {_checkpoint=+_access};
+                        };
                         // Pair history may contain only ground-floor nodes although another
                         // lane has physically reached the destination floor. Share that access
                         // evidence instead of repeatedly approaching an upstairs window outside.
                         // Search once per changed coverage snapshot, at most 24 proven nodes.
                         private _probeKey=format ["%1:%2",_pairIndex,_positionIndex];
                         private _probes=_job getOrDefault ["interiorAccessProbes",createHashMap];
-                        if ((_checkpoint isEqualTo [] || {abs ((_checkpoint select 2)-(_target select 2)) > 1.5})
-                            && {abs (((getPosATL _point) select 2)-(_target select 2)) > 1.5}
+                        if ((_checkpoint isEqualTo [] || {abs (((AGLToASL _checkpoint) select 2)-_targetFloor) > 1.5})
+                            && {abs (_pointFloor-_targetFloor) > 1.5}
                             && {(_probes getOrDefault [_probeKey,-1]) != count _cleared}) then {
                             _probes set [_probeKey,count _cleared];
                             _job set ["interiorAccessProbes",_probes];
@@ -862,16 +892,16 @@ private _delay=call {
                             {
                                 private _node=_positions select _x;
                                 private _distance=_node vectorDistance _target;
-                                if (_x != _positionIndex && {abs ((_node select 2)-(_target select 2)) <= 1.5}
+                                if (_x != _positionIndex && {abs (((AGLToASL _node) select 2)-_targetFloor) <= 1.5}
                                     && {_distance < _nearest}) then {
                                     _checkpoint=+_node;
                                     _nearest=_distance;
                                 };
                             } forEach _accessNodes;
                         };
-                        if (abs (((getPosATL _point) select 2)-(_target select 2)) > 1.5
+                        if (abs (_pointFloor-_targetFloor) > 1.5
                             && {count _checkpoint == 3}
-                            && {abs ((_checkpoint select 2)-(_target select 2)) <= 1.5}) then {
+                            && {abs (((AGLToASL _checkpoint) select 2)-_targetFloor) <= 1.5}) then {
                             _approach=[_positionIndex,+_checkpoint,false];
                             _approaches set [_approachKey,_approach];
                             _job set ["interiorApproaches",_approaches];
@@ -881,7 +911,8 @@ private _delay=call {
                     if (!_approachingEntry && {count _approach == 3}
                         && {(_approach select 0) == _positionIndex} && {!(_approach select 2)}) then {
                         private _checkpoint=_approach select 1;
-                        if ((getPosASL _point) vectorDistance (AGLToASL _checkpoint) <= 1.5) then {
+                        if ((getPosASL _point) vectorDistance (AGLToASL _checkpoint) <= 1.5
+                            && {abs (((getPosASL _point) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75}) then {
                             _approach set [2,true];
                             _lastTarget=-1;
                             _retries=0;
@@ -999,7 +1030,8 @@ private _delay=call {
                             private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
                             private _holdKey=netId _unit;
                             if ((_roomHolds getOrDefault [_holdKey,[]]) isNotEqualTo _speedTarget
-                                && {(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5}) then {
+                                && {(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5}
+                                && {abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75}) then {
                                 doStop _unit;
                                 _roomHolds set [_holdKey,+_speedTarget];
                                 _job set ["roomHolds",_roomHolds];
