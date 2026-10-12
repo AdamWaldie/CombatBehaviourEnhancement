@@ -5226,6 +5226,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_controlGap=(_delta vectorDotProduct _direction) max 0;',text)
         self.assertIn('private _lateralOffset = 0;',text)
         self.assertIn('_lateralOffset > _tolerance',text)
+        recovery=text.split('if (_lateralOffset > _tolerance',1)[1].split('// Reverse yield',1)[0]
+        self.assertIn('(_limit max 5) min _closingCap',recovery)
+        self.assertNotIn('then {_limit=_limit max 5}',recovery)
         self.assertIn('_pairGap=(_delta vectorDotProduct _direction) max 0;',text)
 
     def test_convoy_snapshot_preserves_navigation_before_release(self):

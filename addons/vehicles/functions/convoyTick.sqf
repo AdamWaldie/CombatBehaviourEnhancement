@@ -530,8 +530,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
     };
     _limit = ((_limit min ((_previous select 0)+4*_elapsed)) min _closingCap) max 0;
     // Keep enough motion to steer back onto the recorded predecessor track.
-    // A full stop while physically clear but offset would preserve the wedge indefinitely.
-    if (_lateralOffset > _tolerance && {_gap > _gapLow} && {_pathOwners getOrDefault [_key,false]}) then {_limit=_limit max 5};
+    // Recover only within the closing cap: lateral clearance does not authorize
+    // moving past safe longitudinal space beside a stopped predecessor.
+    if (_lateralOffset > _tolerance && {_gap > _gapLow} && {_pathOwners getOrDefault [_key,false]}) then {_limit=(_limit max 5) min _closingCap};
     // Reverse yield overrides smoothing and lateral recapture; neither is
     // permission to advance into a reversing predecessor. Keep route identity.
     if (_frontReversing) then {_limit=0};
