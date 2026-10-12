@@ -116,8 +116,9 @@ private _delay=call {
                         // or a specialist action with a formation recall.
                         if (_restore && {[_x] call _actorTaskFree}) then {
                             _x doWatch objNull;
-                            if (_reason == "COMPLETE" && {_result == "COMPLETE"}) then {
-                                // Successful clearing actors retain their real exit positions.
+                            if (_reason == "COMPLETE") then {
+                                // Settlement retains actual positions even when participation failed.
+                                // Recalling an incomplete team around an interior leader creates a wedge.
                                 // A later native/Zeus order replaces this one-shot hold; no loop rewrites it.
                                 doStop _x;
                             } else {
@@ -137,7 +138,7 @@ private _delay=call {
             _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
             _group setVariable ["WAIT_AIPass_ClearApplied", nil];
         };
-        if (_reason == "COMPLETE" && {_result == "COMPLETE"} && {_restore}) then {
+        if (_reason == "COMPLETE" && {_restore}) then {
             _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_NativeOrderReceipt,((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]]))],true];
         };
         if (_reason == "NEW_ORDER" && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
@@ -202,7 +203,19 @@ private _delay=call {
                     && {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}) then {
                     (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
                     _actor setVariable ["WAIT_Cortex_ClearRecall",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],leader _group,time+5]];
-                    _actor doFollow leader _group;
+                    if (_actor == leader _group) then {
+                        // A stopped leader cannot resume an authored route by following itself.
+                        // Only MOVE has a plain positional handback; other waypoint semantics
+                        // remain with the engine and must not be replaced by a fabricated route.
+                        private _waypointIndex=currentWaypoint _group;
+                        private _waypoint=[_group,_waypointIndex];
+                        if (_waypointIndex > 0 && {_waypointIndex < count waypoints _group}
+                            && {waypointType _waypoint == "MOVE"}) then {
+                            _actor doMove waypointPosition _waypoint;
+                        };
+                    } else {
+                        _actor doFollow leader _group;
+                    };
                 };
             } forEach _handbacks;
         };

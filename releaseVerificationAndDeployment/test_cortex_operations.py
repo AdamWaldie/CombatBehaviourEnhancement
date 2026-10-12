@@ -7622,9 +7622,9 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexClearRelease')
         self.assertIn('WAIT_Cortex_ClearReserve',release)
         self.assertIn('(_stage select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])',release)
-    def test_successful_clearance_holds_actual_exit_positions_without_formation_recall(self):
+    def test_terminal_clearance_preserves_positions_even_when_result_is_incomplete(self):
         text=source('buildingOperationStep')
-        branch=text.split('if (_reason == "COMPLETE" && {_result == "COMPLETE"}) then {',1)[1].split('} else {',1)[0]
+        branch=text.split('if (_reason == "COMPLETE") then {',1)[1].split('} else {',1)[0]
         self.assertIn('doStop _x',branch)
         self.assertNotIn('doFollow',branch)
         self.assertNotIn('setPos',branch)
@@ -7708,6 +7708,9 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(finish.index('WAIT_Cortex_ClearHold",nil'),finish.index('_actor doFollow leader _group'))
         self.assertIn('WAIT_Cortex_ClearRecall',finish)
         self.assertIn('leader _group,time+5',finish)
+        self.assertIn('if (_actor == leader _group)',finish)
+        self.assertIn('waypointType _waypoint == "MOVE"',finish)
+        self.assertIn('_actor doMove waypointPosition _waypoint',finish)
 
     def test_clearance_new_actor_order_audit_requires_ready_route_actual_travel_and_retirement(self):
         text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()

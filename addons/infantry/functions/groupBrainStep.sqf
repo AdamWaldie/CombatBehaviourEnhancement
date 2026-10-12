@@ -54,7 +54,16 @@ if (count _clearHold == 4) then {
                     && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
                     && {(_x getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}
                     && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}) then {
-                    _x doFollow _leader;
+                    if (_x == _leader) then {
+                        private _waypointIndex=currentWaypoint _group;
+                        private _waypoint=[_group,_waypointIndex];
+                        if (_waypointIndex > 0 && {_waypointIndex < count waypoints _group}
+                            && {waypointType _waypoint == "MOVE"}) then {
+                            _x doMove waypointPosition _waypoint;
+                        };
+                    } else {
+                        _x doFollow _leader;
+                    };
                 };
             } forEach (_clearHold select 3);
         };
