@@ -16,6 +16,7 @@
  * Successful egress additionally requires each active worker's successive physical visits.
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
+ * Stage receipts distinguish REJECTED current-position holds, APPROACH and physical ARRIVED.
  * Reserve stage selection processes at most one pending actor per callback; other attempts remain pending.
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
  * never a recurring formation recall around an interior leader. A failed native path's automatic
@@ -521,7 +522,7 @@ private _delay=call {
                 private _hold=getPosATL _reserve;
                 doStop _reserve;
                 _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
-                _stage=[+_hold,true];
+                _stage=[+_hold,true,"REJECTED"];
                 _reserveStages set [_key,_stage];
                 private _securityActors=_job getOrDefault ["securityActors",[]];
                 _securityActors pushBackUnique _reserve;
@@ -560,7 +561,7 @@ private _delay=call {
                         _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
                         _reserve doMove _target;
                         [_reserve,_target] call _rememberMove;
-                        _stage=[+_target,false];
+                        _stage=[+_target,false,"APPROACH"];
                         _reserveStages set [_key,_stage];
                         private _securityActors=_job getOrDefault ["securityActors",[]];
                         _securityActors pushBackUnique _reserve;
@@ -579,6 +580,7 @@ private _delay=call {
             && {[_reserve] call _reserveReady} && {call _mayIssueMovement}) then {
             doStop _reserve;
             _stage set [1,true];
+            _stage set [2,"ARRIVED"];
         };
     } forEach (_reserves select [0,8]);
     _job set ["reserveStages",_reserveStages];

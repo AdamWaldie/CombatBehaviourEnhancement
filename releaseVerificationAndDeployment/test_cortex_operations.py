@@ -7759,7 +7759,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('doStop _x',hold)
         stage=text.split('private _reserveStages=',1)[1].split('private _pairRosterChanged=',1)[0]
         self.assertLess(stage.index('doStop _reserve'),stage.index('lineIntersectsSurfaces'))
-        self.assertIn('_stage=[+_hold,true]',stage)
+        self.assertIn('_stage=[+_hold,true,"REJECTED"]',stage)
+        self.assertIn('_stage=[+_target,false,"APPROACH"]',stage)
+        self.assertIn('_stage set [2,"ARRIVED"]',stage)
         self.assertNotIn('doFollow',hold+stage)
 
     def test_clearance_wholly_locked_exterior_admission_waits_without_unlock_or_room_credit(self):

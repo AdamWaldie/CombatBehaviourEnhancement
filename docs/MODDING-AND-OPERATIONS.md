@@ -167,3 +167,7 @@ Passenger cover cleanup recalls an eligible MOVE/STOP only when the expected des
 ### CQB reserve staging search budget
 
 A building step starts at most one pending reserve stage selection per callback. Other reserves do not consume their attempt until processed; all existing stages retain arrival checks and casualty promotion remains independent. The fixed fan is replaced by bounded nearby cover selection with shared destinations of other currently eligible reserves, exterior bounds and at least three metres of entrance clearance. Rejected candidates retain an explicit current-position hold; alternate searches and stage recovery remain unfinished. Physical staging and runtime performance are unvalidated.
+
+### Reserve stage evidence
+
+Owner-local reserve stage receipts distinguish `REJECTED` current-position holds from `APPROACH` and physically verified `ARRIVED`. The hold flag alone is not stage success. This diagnostic distinction does not add a network polling loop or establish tactical security; stage recovery and live acceptance remain pending.
