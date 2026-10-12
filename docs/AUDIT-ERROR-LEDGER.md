@@ -557,3 +557,10 @@ Source inspection found reserve arrival used two-dimensional distance alone befo
 
 
 A current-generation staged reserve with a different live individual MOVE or FOLLOW is excluded from staging and casualty promotion until that command ends. Its owned stage MOVE remains eligible for promotion. This protects the individual command boundary that the group waypoint receipt does not represent; it adds no scan or movement writer. Staging metadata is not an independent movement controller, so its retention alone does not explain CQB entry delay. Physical replacement-order and casualty acceptance remains pending with audits paused.
+
+
+### Local reference reassessment during audit pause
+
+Local source comparison distinguishes fluid-looking shared actor requests from physical completion. The reviewed reference uses shared remaining building positions, dual native movement interfaces and probabilistic position removal; those rules cannot establish actual room visitation. Our native comparison found no traversal advantage from the extra planner interface, so this review does not justify replacing the production movement writer or weakening receipts. Independent actor admission remains useful, but coherent pairs, reserve participation and consolidation still require implementation and physical evidence.
+
+The previous local inventory was rehashed: 57 files still existed, three changed and eight previously recorded paths were missing. Missing paths are not proof of removal or a mod defect; exhaustive current discovery and changed-package extraction remain outstanding. Reference names, paths, hashes and detailed source observations are retained in the private ignored reassessment file rather than embedded as production authors or dependencies. Game audits remain paused.
