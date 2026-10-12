@@ -665,3 +665,6 @@ Reserve staging arrival requires three-dimensional proximity, matching floor hei
 
 
 A current-generation staged reserve with a different live individual MOVE or FOLLOW is excluded from staging and casualty promotion until that command ends. Its owned stage MOVE remains eligible for promotion. This protects the individual command boundary that the group waypoint receipt does not represent; it adds no scan or movement writer. Staging metadata is not an independent movement controller, so its retention alone does not explain CQB entry delay. Physical replacement-order and casualty acceptance remains pending with audits paused.
+
+
+Standalone driving retires its cap when the vehicle is destroyed/immobilized or its driver is combat-ineffective. Immediately before recovery/cap commands it rechecks vehicle mobility plus driver and effective-commander ability, alongside existing ownership and MOVE/PATH boundaries. It does not repair damage, fuel, relocate vehicles or force seat changes. Crew casualty replacement remains a distinct incomplete capability. This source correction follows local controller review; physical casualty/immobilization acceptance and runtime performance remain pending while audits are paused.

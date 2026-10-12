@@ -7,7 +7,8 @@
  * second required by forceSpeed before the command and ownership lease are recorded.
  * Locality / Authority: Runs only where the vehicle is local. It never creates, replaces or
  * deletes a waypoint and yields to players, Zeus remote control, convoy ownership and specialist
- * driving ownership. An authored zero forced-speed hold is retained without recovery commands.
+ * driving ownership. Ineffective drivers and immobilized vehicles receive no recovery commands.
+ * An authored zero forced-speed hold is retained without recovery commands.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
  * it after a locality change; route changes reset finite recovery; release restores only the forced speed captured by this function.
  * Arguments:
@@ -44,7 +45,8 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
     // cap before it can issue a recovery move; the individual driver checks below retain the
     // vehicle-specific local/remote-control safety boundary.
     private _yieldToOwner=[_group] call WAIT_fnc_CortexExternalTakeover;
-    if (!_enabled || {!local _vehicle} || {isNull _driver} || {isPlayer _driver}
+    if (!_enabled || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
+        || {!([_driver] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _driver}
         || {!isNull (_driver getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         || {[_driver] call WAIT_fnc_CortexExternalOwner != ""}
         || {_yieldToOwner}
@@ -60,6 +62,9 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         if (isNull _movementOperator) then {_movementOperator=_driver};
         private _mayIssueDriving = {
             !([_group] call WAIT_fnc_CortexExternalTakeover)
+                && {alive _vehicle} && {canMove _vehicle}
+                && {[_driver] call WAIT_fnc_CortexCombatEffective}
+                && {[_movementOperator] call WAIT_fnc_CortexCombatEffective}
                 && {local _movementOperator} && {group _movementOperator == _group}
                 && {!isPlayer _movementOperator} && {isNull remoteControlled _movementOperator}
                 && {_driver checkAIFeature "MOVE"} && {_driver checkAIFeature "PATH"}
