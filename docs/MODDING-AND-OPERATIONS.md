@@ -151,3 +151,7 @@ Direct ground-fire support and the ground maneuver arrival firing branch require
 ### Passenger cover reservation scope
 
 Passenger dismount cover selection excludes destinations only from the matching convoy group and configuration revision while their deadline is live. Historical destinations cannot consume current cover slots. Existing and newly selected current destinations remain excluded within the bounded two-search step. Concurrent-owner selection and physical spacing still require live validation.
+
+### Passenger-owner post-exit continuation
+
+The finite remote passenger-owner HALT job retains on-foot actors with the matching convoy/revision unload receipt. This lets cover steps continue after physical exit instead of filtering the actor out as soon as boarding ends. New vehicle assignments and external orders remain protected. Separate-HC exit/cover and concurrent-owner spacing retests remain pending.
