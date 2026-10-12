@@ -7559,7 +7559,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_replacement_updates_shared_pairs_without_restarting_routes(self):
         text=source('buildingOperationStep')
-        update=text.split('if (_pairRosterChanged) then {',1)[1].split('_job set ["rotatedOut"',1)[0]
+        update=text.split('if (_pairRosterChanged) then {',1)[1].split('// Release reservations before selection',1)[0]
         self.assertIn('_group setVariable ["WAIT_CombatPairs",_pairSnapshot,true]',update)
         self.assertIn('_liveOperation set ["pairs",_pairSnapshot]',update)
         self.assertNotIn('_pairRoutes=',update)
@@ -7594,3 +7594,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _laneEntered=_entered || {_pair findIf {_x in (_job getOrDefault ["enteredActors",[]])} >= 0}',text)
         self.assertIn('in _cleared && {_laneEntered}',text)
         self.assertIn('if (_positionIndex in _cleared && {_laneEntered}) then {',text)
+    def test_casualty_pair_snapshot_follows_replacement_loop(self):
+        text=source('buildingOperationStep')
+        self.assertLess(text.index('private _pairRosterChanged=false'),text.index('if (_pairRosterChanged) then'))
+        self.assertLess(text.index('_pair set [_slot,_replacement]'),text.index('if (_pairRosterChanged) then'))
+    def test_clearance_reserves_stage_once_and_release_owned_marker(self):
+        step=source('buildingOperationStep')
+        for marker in ['reserveStageAttempts','(_reserves select [0,8])','_stageAttempts pushBackUnique _key','doStop _reserve','WAIT_Cortex_ClearReserve']:
+            self.assertIn(marker,step)
+        release=source('cortexClearRelease')
+        self.assertIn('WAIT_Cortex_ClearReserve',release)
+        self.assertIn('(_stage select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])',release)

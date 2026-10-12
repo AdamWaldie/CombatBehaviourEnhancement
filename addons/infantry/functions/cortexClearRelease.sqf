@@ -48,7 +48,10 @@ if (isNull _leader) then {_leader=leader _group};
 {
     if (local _x && {!isPlayer _x}) then {
         private _ownedActor=!isNil {_x getVariable "WAIT_Cortex_ClearStance"}
-            || {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}};
+            || {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}}
+            || {private _stage=_x getVariable ["WAIT_Cortex_ClearReserve",[]]; count _stage == 3
+                && {(_stage select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])-1}
+                && {(_stage select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}};
         private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
         private _free=_reservation isEqualTo []
             || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
@@ -76,6 +79,7 @@ if (isNull _leader) then {_leader=leader _group};
         _x setVariable ["WAIT_Cortex_ClearStance",nil,true];
         _x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true];
         _x setVariable ["WAIT_Cortex_ClearAppliedSpeed",nil,true];
+        _x setVariable ["WAIT_Cortex_ClearReserve",nil];
     };
 } forEach units _group;
 true

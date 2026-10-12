@@ -107,8 +107,9 @@ private _delay=call {
                     _x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true];
                     _x setVariable ["WAIT_Cortex_ClearAppliedSpeed",nil,true];
                     _x setVariable ["WAIT_Cortex_ClearStance",nil,true];
+                    _x setVariable ["WAIT_Cortex_ClearReserve",nil];
                 };
-            } forEach (_job get "team");
+            } forEach (((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]])));
             _group setVariable ["WAIT_AIPass_ClearBuilding", nil, true];
             _group setVariable ["WAIT_Cortex_ClearEgress",nil,true];
             _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
@@ -256,17 +257,6 @@ private _delay=call {
     if (isNull _leader) then {_leader=leader _group};
     private _rotatedOut=_job getOrDefault ["rotatedOut",[]];
     {_rotatedOut pushBackUnique _x} forEach (_reserved select {_x in _unavailable});
-    if (_pairRosterChanged) then {
-        // Publish the actual lane partners, without rebuilding an active lane's route.
-        private _pairSnapshot=_pairs apply {+_x};
-        _group setVariable ["WAIT_CombatPairs",_pairSnapshot,true];
-        private _liveOperation=_group getVariable ["WAIT_Operation",createHashMap];
-        if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
-            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
-            _liveOperation set ["pairs",_pairSnapshot];
-            _group setVariable ["WAIT_Operation",_liveOperation,true];
-        };
-    };
     _job set ["rotatedOut",_rotatedOut];
     private _reserveReady={
         params ["_candidate"];
@@ -285,6 +275,42 @@ private _delay=call {
     if (_reserves isEqualTo [] && {[_leader] call _reserveReady}) then {
         _reserves pushBack _leader;
     };
+    // Reserves stage near the entry instead of following the native formation around the house.
+    // This is one destination plus an arrival hold per actor, not a recurring movement rewrite.
+    private _reserveStages=_job getOrDefault ["reserveStages",createHashMap];
+    private _stageAttempts=_job getOrDefault ["reserveStageAttempts",[]];
+    {
+        private _reserve=_x;
+        private _key=netId _reserve;
+        private _stage=_reserveStages getOrDefault [_key,[]];
+        if (_stage isEqualTo [] && {!(_key in _stageAttempts)} && {call _mayIssueMovement}) then {
+            _stageAttempts pushBackUnique _key;
+            private _entry=_job get "entry";
+            if (_entry isNotEqualTo []) then {
+                private _outward=(getPosATL _building) getDir _entry;
+                private _target=_entry getPos [7+2*floor (_forEachIndex/2),_outward+([-25,25] select (_forEachIndex mod 2))];
+                _target set [2,0];
+                if ((lineIntersectsSurfaces [(AGLToASL _entry) vectorAdd [0,0,0.8],(AGLToASL _target) vectorAdd [0,0,0.8],objNull,objNull,true,1,"GEOM","NONE"]) isEqualTo []) then {
+                    if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
+                        _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
+                        _reserve doMove _target;
+                        _stage=[+_target,false];
+                        _reserveStages set [_key,_stage];
+                        private _securityActors=_job getOrDefault ["securityActors",[]];
+                        _securityActors pushBackUnique _reserve;
+                        _job set ["securityActors",_securityActors];
+                    };
+                };
+            };
+        };
+        if (_stage isNotEqualTo [] && {!(_stage select 1)} && {_reserve distance2D (_stage select 0) <= 2}
+            && {[_reserve] call _reserveReady} && {call _mayIssueMovement}) then {
+            doStop _reserve;
+            _stage set [1,true];
+        };
+    } forEach (_reserves select [0,8]);
+    _job set ["reserveStages",_reserveStages];
+    _job set ["reserveStageAttempts",_stageAttempts];
     private _pairRosterChanged=false;
     {
         private _pairIndex=_forEachIndex;
@@ -341,6 +367,17 @@ private _delay=call {
         };
     } forEach _pairs;
     _job set ["rotatedOut",_rotatedOut];
+    if (_pairRosterChanged) then {
+        // Publish the actual lane partners, without rebuilding an active lane's route.
+        private _pairSnapshot=_pairs apply {+_x};
+        _group setVariable ["WAIT_CombatPairs",_pairSnapshot,true];
+        private _liveOperation=_group getVariable ["WAIT_Operation",createHashMap];
+        if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
+            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+            _liveOperation set ["pairs",_pairSnapshot];
+            _group setVariable ["WAIT_Operation",_liveOperation,true];
+        };
+    };
     // Release reservations before selection so another soldier can visit a casualty's room.
     // Reassigned units belong to their new commander and must receive no further orders here.
     private _activeWorkers=(_job get "team") select {[_x] call _actorAvailable

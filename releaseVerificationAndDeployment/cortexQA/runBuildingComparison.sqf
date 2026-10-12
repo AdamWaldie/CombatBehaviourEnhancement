@@ -381,6 +381,7 @@ if (!_transformOnly) then {
     // Audit exactly that set rather than preserving the superseded exterior-leader assumption.
     private _clearingMembers=+_members;
     private _memberVisits=_clearingMembers apply {[]};
+    private _reserveStageVisits=[];
     private _originalAttack=attackEnabled leader _group;
     private _originalSpeedLimits=_members apply {getForcedSpeed _x};
     private _accepted=[_group,_house] call WAIT_fnc_CortexClearBuilding;
@@ -441,6 +442,14 @@ if (!_transformOnly) then {
                 }
             ]];
         };
+        {
+            private _receipt=_x getVariable ["WAIT_Cortex_ClearReserve",[]];
+            if (count _receipt == 3 && {(_receipt select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {_x distance2D (_receipt select 2) <= 2}
+                && {abs (((getPosATL _x) select 2)-((_receipt select 2) select 2)) <= 1.5}) then {
+                _reserveStageVisits pushBackUnique netId _x;
+            };
+        } forEach _members;
         private _exit=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
         if (!_egressSeen && {count _exit == 4} && {(_exit select 0) == "EGRESS"}) then {
             _egressAssignments=+(_exit select 3);
@@ -508,6 +517,7 @@ if (!_transformOnly) then {
     private _egressRetries=_group getVariable ["WAIT_Cortex_ClearEgressRetries",[]];
     [format ["CLEAR-fresh-%1-egress-retry-budget",_size],_egressSeen && {_egressRetries findIf {(_x select 2) > 1} < 0},str _egressRetries] call _check;
     [format ["CLEAR-fresh-%1-result-agrees",_size],_physical && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"}] call _check;
+    if (_size == 12) then {["CLEAR-fresh-12-reserve-staging-physical",count _reserveStageVisits > 0,str _reserveStageVisits] call _check};
     [format ["CLEAR-fresh-%1-successive-positions",_size],_memberVisits findIf {count _x >= 2} >= 0,str _memberVisits] call _check;
     if (_size == 2) then {
         ["CLEAR-fresh-2-both-participate",_memberVisits findIf {_x isEqualTo []} < 0,str _memberVisits] call _check;
