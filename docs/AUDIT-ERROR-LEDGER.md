@@ -495,3 +495,11 @@ The repeated two-soldier leader stall retains an owned LEADER PLANNED destinatio
 ### Completed 26d782d clearance retest
 
 Runtime-20261012-171258-375 completed with 410 checks and 11 retained failures, zero SQF/fatal errors and one unresolved load warning. Twelve-person reserve staging had 39 actual observations and no recorded drift beyond 3 m while those actors remained reserves. This does not validate the active clearing roster or full tactical security. The two-person leader still had only one node; six-person successive participation passed but result agreement failed. Twelve-person original settlement, participation and egress failed; later finite INCOMPLETE termination and ordinary physical handover passed separately. Production clearance is still unaccepted. Processes were stopped and absence verified.
+
+### Command-FSM traversal result and matched role controls
+
+Running native 194c394 runtime-20261012-175429-329 reached the same raw node masks with DIRECT, REPLAN, FORMATION and COMMAND-FSM: model 1 zero of five, model 2 only node 0, model 3 zero of nine, model 4 nodes 0/1/2/3/8. No movement-interface advantage was observed. The open-door COMMAND-FSM retry also failed model 2 node 1. These are different raw placed instances, not universal engine or terrain conclusions; production movement remains unchanged.
+
+The next native comparison adds PLACED-LEADER and PLACED-FOLLOWER, both using the existing bounded new-audit-fixture placement validation before actors spawn. The follower control has a separate real commander held outside, isolating native group role with a single doMove writer per moving actor. Both attempt original model nodes and retain failures; no test receipt supplies visits and no existing world object is repositioned. Group cleanup now deletes the control commander too. Physical matched-role evidence remains pending.
+
+Native 194c394 batch runtime-20261012-175429-329 is now complete: 188 checks, 70 retained failures, zero SQF/fatal errors and one unresolved load warning. Provenance matched. No command-FSM traversal advantage was observed. Its recorded audit processes were stopped and absence verified. The matched-role candidate has full static/build gates only; physical comparison remains pending.

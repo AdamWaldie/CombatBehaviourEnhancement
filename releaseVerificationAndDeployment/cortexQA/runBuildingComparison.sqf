@@ -98,11 +98,24 @@ private _usedTerrainHouses=[];
         } else {createVehicle [_class,[6250+_forEachIndex*60,5800+_row*60,0],[],0,"NONE"]};
         if (isNull _house) exitWith {[format ["BUILD-%1-model-%2-terrain-fixture",_method,_row+1],false,_class] call _check};
         if (worldName == "VR") then {_house enableSimulationGlobal true} else {_usedTerrainHouses pushBack _house};
+        if (worldName == "VR" && {_method in ["PLACED-LEADER","PLACED-FOLLOWER"]}) then {
+            [_house,format ["native-%1-model-%2",_method,_row+1]] call _validateNewFixturePlacement;
+        };
         [_house,format ["%1-model-%2",_method,_row+1]] call _recordFixture;
         private _group = createGroup [east,true];
         _group setVariable ["WAIT_AIPass_Exclude",true,true];
         _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
         _group setVariable ["acex_headless_blacklist",true,true];
+        // Matched validated fixtures isolate the native leader/follower role. A
+        // separate real commander remains outside only in the follower control.
+        if (_method == "PLACED-FOLLOWER") then {
+            private _anchor=_group createUnit ["O_Soldier_F",_house getPos [30,150],[],0,"NONE"];
+            _anchor allowDamage false;
+            _anchor setVariable ["acex_headless_blacklist",true,true];
+            _anchor setVariable ["WAIT_CortexQA_Label",format ["FIXED NATIVE LEADER / model %1",_row+1],true];
+            doStop _anchor;
+            _actors pushBack _anchor;
+        };
         private _unit = _group createUnit ["O_Soldier_F",_house getPos [25,180],[],0,"NONE"];
         _unit setVariable ["acex_headless_blacklist",true,true];
         _unit allowDamage false;
@@ -112,17 +125,19 @@ private _usedTerrainHouses=[];
         _unit setVariable ["WAIT_CortexQA_Target",_target,true];
         _actors pushBack _unit;
         _cases pushBack [_group,_unit,_house,_target,_method,_label,false];
-    } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN","FORMATION","COMMAND-FSM"];
+    } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN","FORMATION","COMMAND-FSM","PLACED-LEADER","PLACED-FOLLOWER"];
 } forEach ["Land_i_House_Small_03_V1_F","Land_i_House_Small_01_V1_F","Land_i_House_Big_01_V1_F","Land_i_House_Big_02_V1_F"];
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
 private _comparisonPosition=if (_cases isNotEqualTo []) then {getPosATL ((_cases select 0) select 2)} else {[16600,12800,0]};
-["Building entry: independent comparisons","Excluded soldiers compare direct movement, a building-attached waypoint, leader-planned and formation-planned path replanning, and a native movement command FSM across small and large, single- and multi-storey houses. Cyan trails show actual movement; targets show remaining distance. Each model reports independently and does not replace the production clearance cases.",_comparisonPosition] call _phase;
+["Building entry: independent comparisons","Excluded soldiers compare direct movement, a building-attached waypoint, leader-planned and formation-planned path replanning, and a native movement command FSM across small and large, single- and multi-storey houses. Cyan trails show actual movement; targets show remaining distance. Matched PLACED controls validate only new audit fixtures before spawning a leader or a follower with a separate stopped commander. Each model reports independently and does not replace the production clearance cases.",_comparisonPosition] call _phase;
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
-    private _valid = simulationEnabled _house && {simulationEnabled _unit} && {local _unit} && {_target isNotEqualTo []};
+    private _valid = simulationEnabled _house && {simulationEnabled _unit} && {local _unit} && {_target isNotEqualTo []}
+        && {_method != "PLACED-LEADER" || {leader _group == _unit}}
+        && {_method != "PLACED-FOLLOWER" || {leader _group != _unit}};
     [format ["BUILD-%1-ready",_label],_valid] call _check;
     if (_valid) then {
-        if (_method in ["DIRECT","REPLAN","FORMATION","COMMAND-FSM"]) then {doStop _unit; [_unit,_target,_method] call _issueNativeComparison} else {
+        if (_method != "HOUSE-WAYPOINT") then {doStop _unit; [_unit,_target,_method] call _issueNativeComparison} else {
             private _wp = _group addWaypoint [getPosATL _house,0];
             _wp setWaypointType "MOVE";
             _wp waypointAttachObject _house;
@@ -143,6 +158,10 @@ waitUntil {
 {
     _x params ["_group","_unit","_house","_target","_method","_label","_arrived"];
     [format ["BUILD-%1-arrival",_label],_arrived,format ["class=%1 owner=%2 simulation=%3 position=%4 target=%5 command=%6 expected=%7",typeOf _house,groupOwner _group,simulationEnabled _unit,getPosATL _unit,_target,currentCommand _unit,expectedDestination _unit]] call _check;
+    if (_method in ["PLACED-LEADER","PLACED-FOLLOWER"]) then {
+        diag_log format ["WAIT NATIVE BUILDING ROLE: %1",[_label,netId _unit,netId leader _group,
+            getPosASL _unit,getPosASL leader _group,currentCommand leader _group]];
+    };
 } forEach _cases;
 // Entry at position zero does not prove that later model nodes are reachable.
 // Reuse the isolated native comparison actors to test successive 3D nodes without
@@ -150,7 +169,7 @@ waitUntil {
 private _walkCases=[];
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
-    if (_method in ["DIRECT","REPLAN","FORMATION","COMMAND-FSM"]) then {
+    if (_method != "HOUSE-WAYPOINT") then {
         private _nodes=(_house buildingPos -1) select [0,16];
         _walkCases pushBack [_unit,_nodes,0,_nodes apply {false},time,_method,_label];
     };
@@ -233,7 +252,7 @@ waitUntil {
 } forEach _doorControls;
 sleep 15;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
-{_x params ["_group","_unit","_house"]; deleteVehicle _unit; deleteGroup _group; if (worldName == "VR") then {deleteVehicle _house}} forEach _cases;
+{_x params ["_group","_unit","_house"]; {deleteVehicle _x} forEach units _group; deleteGroup _group; if (worldName == "VR") then {deleteVehicle _house}} forEach _cases;
 if (_nativeOnly && {worldName == "VR"}) then {
     // Controlled diagnostic: same model, direction, flat ground and open doors.
     // Height is the only placement difference; no production object is repositioned.
