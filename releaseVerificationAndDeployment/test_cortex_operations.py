@@ -7623,3 +7623,12 @@ class CortexOperations(unittest.TestCase):
         for guard in ['CORTEX_STOPPED','!_externalTakeover','WAIT_AIPass_ClearGeneration','WAIT_AIPass_Epoch','currentCommand _x == "STOP"','WAIT_fnc_CompatibilityExternalControl','WAIT_Cortex_ActorMove']:
             self.assertIn(guard,branch)
         self.assertLess(branch.index('WAIT_Cortex_ClearHold",nil'),branch.index('_x doFollow _anchor'))
+    def test_completed_clear_hold_adoption_changes_receipt_without_replaying_movement(self):
+        text=source('cortexLocality')
+        branch=text.split('private _clearHold=',1)[1].split('// Retire inherited simple driving',1)[0]
+        for guard in ['count _actors <= 16','WAIT_Operation','WAIT_AIPass_ClearOrder','WAIT_fnc_CortexExternalTakeover','_adoptedHold set [1','group _x == _group']:
+            self.assertIn(guard,branch)
+        self.assertNotIn('doMove',branch)
+        self.assertNotIn('doStop',branch)
+        self.assertNotIn('doFollow',branch)
+        self.assertLess(text.index('if (!_gained || {!local _group}) exitWith'),text.index('private _clearHold='))

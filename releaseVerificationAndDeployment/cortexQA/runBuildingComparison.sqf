@@ -528,6 +528,28 @@ if (!_transformOnly) then {
     // Exercise natural completion/failure cleanup before invoking any explicit release.
     // A fresh ordinary waypoint must take control even when some rooms were unreachable.
     private _destination=_site vectorAdd [75,-30,0];
+    private _holdHcTransfer=false;
+    if (_size == 2 && {_localResult == "COMPLETE"}
+        && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]}) then {
+        [{count (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) >= 2},30] call _wait;
+        private _holdOwners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+        ["HC-CLEAR-HOLD-two-registered",count _holdOwners >= 2] call _check;
+        _group setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+        {
+            private _owner=_x;
+            private _priorHold=_group getVariable ["WAIT_Cortex_ClearHold",[]];
+            private _priorGeneration=_priorHold param [0,-1];
+            private _requested=[_group,_owner] call WAIT_fnc_HeadlessMigrateGroup;
+            private _adopted=[{
+                private _currentHold=_group getVariable ["WAIT_Cortex_ClearHold",[]];
+                groupOwner _group == _owner && {count _currentHold == 4}
+                    && {(_currentHold select 0) > _priorGeneration}
+            },20] call _wait;
+            [format ["HC-CLEAR-HOLD-adopted-%1",_owner],_requested && {_adopted},
+                str [_priorHold,_group getVariable ["WAIT_Cortex_ClearHold",[]],groupOwner _group]] call _check;
+            _holdHcTransfer=_holdHcTransfer || {_adopted};
+        } forEach (_holdOwners select [0,2]);
+    };
     if (_localResult == "COMPLETE") then {
         private _heldPositions=_clearingMembers apply {getPosASL _x};
         // Observe without issuing orders: successful cleanup must not recall a formation wedge.
@@ -580,6 +602,12 @@ if (!_transformOnly) then {
         str [netId _editedActor,getForcedSpeed _editedActor]] call _check;
 
     sleep 8;
+    if (_holdHcTransfer) then {
+        ["HC-CLEAR-HOLD-successor-physical",_moved] call _check;
+        [_group,2] call WAIT_fnc_HeadlessMigrateGroup;
+        ["HC-CLEAR-HOLD-return-server",[{local _group},20] call _wait] call _check;
+        _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    };
     [_group] call WAIT_fnc_CortexClearRelease;
     missionNamespace setVariable ["WAIT_CortexQA_Rooms",[],true];
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
