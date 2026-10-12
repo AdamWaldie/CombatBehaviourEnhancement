@@ -532,7 +532,14 @@ private _delay=call {
                 private _outward=(getPosATL _building) getDir _entry;
                 private _search=_entry getPos [7,_outward];
                 private _taken=[];
-                {_taken pushBack ((_reserveStages get _x) select 0)} forEach keys _reserveStages;
+                private _liveReserveKeys=_reserves apply {netId _x};
+                // Historical stage receipts remain diagnostic, but promoted/unavailable actors
+                // no longer reserve a destination. Physical occupancy is checked by the selector.
+                {
+                    if (_x != _key && {_x in _liveReserveKeys}) then {
+                        _taken pushBack ((_reserveStages get _x) select 0);
+                    };
+                } forEach keys _reserveStages;
                 private _cover=[_search,getPosATL _building,12,_taken,_group] call WAIT_fnc_CortexFindCover;
                 private _target=_cover select 0;
                 private _model=_building worldToModel _target;
