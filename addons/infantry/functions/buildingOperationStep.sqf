@@ -54,6 +54,12 @@ private _delay=call {
         params ["_actor"];
         !(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
     };
+    private _rememberMove={
+        params ["_actor","_target"];
+        private _targets=_job getOrDefault ["movementTargets",createHashMap];
+        _targets set [netId _actor,+_target];
+        _job set ["movementTargets",_targets];
+    };
     private _finish = {
         params [["_restore",true,[true]],["_reason","CANCELLED",[""]]];
         // Old-owner callbacks may finish their local FSM, but never retire a successor's
@@ -130,6 +136,24 @@ private _delay=call {
             _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_NativeOrderReceipt,((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]]))],true];
         };
         if (_reason == "NEW_ORDER" && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
+            // A native waypoint does not necessarily cancel an actor's explicit movement request.
+            // Release only a MOVE still aimed at the destination this job actually issued.
+            // A newer actor destination, service task or external controller remains untouched.
+            private _targets=_job getOrDefault ["movementTargets",createHashMap];
+            private _movers=(_job get "team")+(_job getOrDefault ["securityActors",[]]);
+            {
+                private _target=_targets getOrDefault [netId _x,[]];
+                private _destination=(expectedDestination _x) param [0,[]];
+                if (currentCommand _x == "MOVE" && {count _target == 3} && {count _destination == 3}
+                    && {_destination vectorDistance _target <= 0.25}
+                    && {[_x] call _actorAvailable} && {[_x] call _actorTaskFree}
+                    && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
+                    && {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}) then {
+                    _targets deleteAt (netId _x);
+                    _x setVariable ["WAIT_Cortex_ClearRecall",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],leader _group,time+5]];
+                    _x doFollow leader _group;
+                };
+            } forEach (_movers arrayIntersect _movers);
             // Native waypoint replacement must also release our finite pre-completion holds.
             // Publish the old order receipt; the normal brain releases only unchanged owned
             // STOP actors after this operation retires, without restoring an obsolete route.
@@ -306,6 +330,7 @@ private _delay=call {
                             if (time-(_record select 2) >= 8 && {(_record select 3) < 1}
                                 && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                                 _unit doMove _target;
+                                [_unit,_target] call _rememberMove;
                                 _record set [3,1];
                                 private _evidence=_group getVariable ["WAIT_Cortex_ClearEgressRetries",[]];
                                 _evidence pushBack [serverTime,netId _unit,1,getPosATL _unit,+_target,_remaining];
@@ -397,6 +422,7 @@ private _delay=call {
                     if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
                         _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
                         _reserve doMove _target;
+                        [_reserve,_target] call _rememberMove;
                         _stage=[+_target,false];
                         _reserveStages set [_key,_stage];
                         private _securityActors=_job getOrDefault ["securityActors",[]];
@@ -620,6 +646,7 @@ private _delay=call {
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
                             && {call _mayIssueMovement}) then {
                             private _recovery=[_group,_operationGeneration,_partner,_entryTarget] call WAIT_fnc_RecoveryStep;
+                            if (_recovery == "RECOVERING") then {[_partner,_entryTarget] call _rememberMove};
                             if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {
                                 _receipt set [2,true];
                             };
@@ -816,6 +843,7 @@ private _delay=call {
                                 if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo _unitTarget
                                     || {currentCommand _unit != "STOP"}) then {
                                     _unit doMove _unitTarget;
+                                    [_unit,_unitTarget] call _rememberMove;
                                 };
                             };
                         };
@@ -898,6 +926,7 @@ private _delay=call {
                                     if ((_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}
                                         && {call _mayIssueMovement} && {[_x] call _actorTaskFree}) then {
                                         _x doMove _unitTarget;
+                                        [_x,_unitTarget] call _rememberMove;
                                     };
                                 } forEach _pair;
                                 _retries=_retries+1;
@@ -936,6 +965,7 @@ private _delay=call {
                                         [_group,_operationGeneration,_point,_target] call WAIT_fnc_RecoveryStep
                                     } else {"EXHAUSTED"};
                                     if (_recovery in ["RECOVERING","YIELDED"]) then {
+                                        if (_recovery == "RECOVERING") then {[_point,_target] call _rememberMove};
                                         _lastProgress=_now;
                                         _lastPositions=_pair apply {getPosATL _x};
                                         // A native task owns movement while yielding. Do not restart
@@ -1028,6 +1058,7 @@ private _delay=call {
                         _record=[_index,(getPosASL _unit) vectorDistance (AGLToASL _target),_now,false];
                         _follow set [_key,_record];
                         _unit doMove _target;
+                        [_unit,_target] call _rememberMove;
                     };
                 } else {
                     private _target=_positions select (_record select 0);
@@ -1037,6 +1068,7 @@ private _delay=call {
                     };
                     if (!(_record select 3) && {_now-(_record select 2) >= 12}) then {
                         private _recovery=[_group,_operationGeneration,_unit,_target] call WAIT_fnc_RecoveryStep;
+                        if (_recovery == "RECOVERING") then {[_unit,_target] call _rememberMove};
                         if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {_record set [3,true]};
                         if (_recovery in ["EXHAUSTED","INVALID"]) then {_job set ["entryFailed",true]};
                     };
@@ -1079,6 +1111,7 @@ private _delay=call {
                 _x params ["_unit","_target"];
                 if (call _mayIssueMovement && {[_unit] call _actorTaskFree}) then {
                     _unit doMove _target;
+                    [_unit,_target] call _rememberMove;
                 };
             } forEach _egressAssignments;
         };

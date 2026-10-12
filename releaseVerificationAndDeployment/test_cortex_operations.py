@@ -7028,7 +7028,7 @@ class CortexOperations(unittest.TestCase):
                        'BUILD-CONTACT-physical-entry','WAIT_AIPass_BuildingCombat_Enable',
                        'WAIT_AIPass_BuildingCombat_Range','knowsAbout _contactEnemy']:
             self.assertIn(marker,audit)
-        natural=audit.split('// Natural building contact acceptance.',1)[1]
+        natural=audit.split('// Natural building contact acceptance.',1)[1].split('// A newer actor destination',1)[0]
         for forbidden in [' reveal ','WAIT_fnc_CortexClearBuilding','setPos','moveIn']:
             self.assertNotIn(forbidden,natural)
         self.assertEqual(natural.count('disableAI "PATH"'),1)
@@ -7701,7 +7701,22 @@ class CortexOperations(unittest.TestCase):
         for marker in ['accessHeld','quarantineHeld','securityActors','currentCommand _x == "STOP"','[_x] call _actorAvailable','CortexExternalTakeover','nativeOrderReceipt']:
             self.assertIn(marker,branch)
         self.assertNotIn('doMove',branch)
-        self.assertNotIn('doFollow',branch)
+        self.assertIn('_destination vectorDistance _target <= 0.25',branch)
+        self.assertIn('call WAIT_fnc_NativeOrderReceipt) isNotEqualTo',branch)
+        self.assertLess(branch.index('_targets deleteAt'),branch.index('_x doFollow leader _group'))
+        self.assertIn('WAIT_Cortex_ClearRecall',branch)
+        self.assertIn('leader _group,time+5',branch)
+
+    def test_clearance_new_actor_order_audit_requires_ready_route_actual_travel_and_retirement(self):
+        text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        case=text.split('// A newer actor destination',1)[1]
+        self.assertIn('movementTargets',case)
+        self.assertIn('currentCommand _overrideActor == "MOVE"',case)
+        self.assertIn('_destination vectorDistance _actorDestination <= 0.25',case)
+        self.assertIn('_overrideActor distance2D _overrideStart >= 8',case)
+        self.assertIn('== "NEW_ORDER"',case)
+        self.assertLess(case.index('CLEAR-native-actor-order-preserved-physical'),case.index('call WAIT_fnc_CortexClearRelease'))
+        self.assertNotIn('setPos',case)
 
     def test_clearance_room_arrival_holds_preserve_stranded_worker_failure(self):
         text=source('buildingOperationStep')

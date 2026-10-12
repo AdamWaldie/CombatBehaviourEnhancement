@@ -949,3 +949,48 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 deleteGroup _contactGroup;
 deleteGroup _contactOpposition;
 deleteVehicle _contactHouse;
+
+// A newer actor destination is distinct from the replaced group room route.
+private _overrideSite=[7950,6100,0];
+private _overrideHouse=createVehicle ["Land_i_House_Small_01_V1_F",_overrideSite,[],0,"NONE"];
+[_overrideHouse,"actor-order"] call _validateNewFixturePlacement;
+private _overrideGroup=createGroup [east,true];
+_overrideGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_overrideGroup setVariable ["acex_headless_blacklist",true,true];
+private _overrideMembers=[];
+for "_index" from 0 to 1 do {
+    private _unit=_overrideGroup createUnit ["O_Soldier_F",_overrideSite vectorAdd [_index*3,-30,0],[],0,"NONE"];
+    _unit setVariable ["WAIT_CortexQA_Label",format ["NATIVE ORDER %1",_index+1],true];
+    _overrideMembers pushBack _unit;
+};
+missionNamespace setVariable ["WAIT_CortexQA_Actors",_overrideMembers,true];
+["Clearance: newer actor movement","After real clearance movement begins, one soldier receives a different native destination and the group receives a new waypoint. The old room operation must retire while that soldier physically follows its own newer destination. No movement reset or completion callback is injected.",getPosATL _overrideHouse] call _phase;
+private _overrideAccepted=[_overrideGroup,_overrideHouse] call WAIT_fnc_CortexClearBuilding;
+private _overrideActor=_overrideMembers select 1;
+private _overrideReady=[{
+    private _job=(_overrideGroup getVariable ["WAIT_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+    netId _overrideActor in (_job getOrDefault ["movementTargets",createHashMap])
+        && {currentCommand _overrideActor == "MOVE"}
+},20] call _wait;
+["CLEAR-native-actor-order-owned-route-ready",_overrideAccepted && {_overrideReady}] call _check;
+private _overrideStart=getPosATL _overrideActor;
+private _actorDestination=_overrideSite vectorAdd [-45,-25,0];
+_overrideActor doMove _actorDestination;
+private _groupWaypoint=_overrideGroup addWaypoint [_overrideSite vectorAdd [75,-25,0],0];
+_groupWaypoint setWaypointType "MOVE";
+_overrideGroup setCurrentWaypoint _groupWaypoint;
+private _overrideMoved=[{
+    private _destination=(expectedDestination _overrideActor) param [0,[]];
+    count _destination == 3 && {_destination vectorDistance _actorDestination <= 0.25}
+        && {_overrideActor distance2D _overrideStart >= 8}
+},30] call _wait;
+["CLEAR-native-actor-order-preserved-physical",_overrideReady && {_overrideMoved},
+    str [getPosATL _overrideActor,_actorDestination,currentCommand _overrideActor,expectedDestination _overrideActor]] call _check;
+["CLEAR-native-actor-order-old-clear-retired",!(_overrideGroup getVariable ["WAIT_AIPass_ClearBuilding",false])
+    && {((_overrideGroup getVariable ["WAIT_OperationResult",[]]) param [4,""]) == "NEW_ORDER"},
+    str (_overrideGroup getVariable ["WAIT_OperationResult",[]])] call _check;
+[_overrideGroup] call WAIT_fnc_CortexClearRelease;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach _overrideMembers;
+deleteGroup _overrideGroup;
+deleteVehicle _overrideHouse;
