@@ -528,6 +528,17 @@ if (!_transformOnly) then {
     // Exercise natural completion/failure cleanup before invoking any explicit release.
     // A fresh ordinary waypoint must take control even when some rooms were unreachable.
     private _destination=_site vectorAdd [75,-30,0];
+    if (_localResult == "COMPLETE") then {
+        private _heldPositions=_clearingMembers apply {getPosASL _x};
+        // Observe without issuing orders: successful cleanup must not recall a formation wedge.
+        sleep 8;
+        private _holdEvidence=[];
+        {
+            _holdEvidence pushBack [netId _x,(getPosASL _x) vectorDistance (_heldPositions select _forEachIndex),currentCommand _x];
+        } forEach _clearingMembers;
+        [format ["CLEAR-fresh-%1-post-clear-hold",_size],
+            _holdEvidence findIf {(_x select 1) > 3 || {(_x select 2) == "JOIN"}} < 0,str _holdEvidence] call _check;
+    };
     private _beforeMove=_members apply {getPosATL _x};
     // One real external edit must survive cancellation; other actors must release
     // their unchanged indoor caps to the pre-operation baseline.

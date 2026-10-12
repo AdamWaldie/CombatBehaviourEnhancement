@@ -7605,3 +7605,9 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexClearRelease')
         self.assertIn('WAIT_Cortex_ClearReserve',release)
         self.assertIn('(_stage select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])',release)
+    def test_successful_clearance_holds_actual_exit_positions_without_formation_recall(self):
+        text=source('buildingOperationStep')
+        branch=text.split('if (_reason == "COMPLETE" && {_result == "COMPLETE"}) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('doStop _x',branch)
+        self.assertNotIn('doFollow',branch)
+        self.assertNotIn('setPos',branch)
