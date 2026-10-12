@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Reports whether a group is currently under player, direct curator remote, specialist or explicitly
- * declared external control. Cleanup uses this narrow question instead of broad eligibility so a
+ * declared external control, including active curator garrison/suppression orders. Cleanup uses this narrow question instead of broad eligibility so a
  * WAIT feature shutdown can restore its own holds without writing into another controller's order.
  * Locality / Authority: Read-only and callable on any machine; callers still issue commands only
  * on the current group owner.
@@ -31,5 +31,8 @@ private _specialistSubjects=if (isNull _actorContext) then {_members} else {[_ac
 || {!_ignoreZeusHold && {[_group] call WAIT_fnc_CortexZeusHeld}}
 || {_members findIf {!isNull (remoteControlled _x)} >= 0}
 || {_members findIf {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])} >= 0}
+|| {_specialistSubjects findIf {
+    (_x getVariable ["zen_ai_garrisoned",false]) || {_x getVariable ["zen_ai_isSuppressing",false]}
+} >= 0}
 || {_specialistSubjects findIf {[_x] call WAIT_fnc_CortexExternalOwner != ""} >= 0}
 || {[_group] call WAIT_fnc_CompatibilityExternalControl}
