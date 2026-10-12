@@ -255,6 +255,17 @@ private _delay=call {
     if (isNull _leader) then {_leader=leader _group};
     private _rotatedOut=_job getOrDefault ["rotatedOut",[]];
     {_rotatedOut pushBackUnique _x} forEach (_reserved select {_x in _unavailable});
+    if (_pairRosterChanged) then {
+        // Publish the actual lane partners, without rebuilding an active lane's route.
+        private _pairSnapshot=_pairs apply {+_x};
+        _group setVariable ["WAIT_CombatPairs",_pairSnapshot,true];
+        private _liveOperation=_group getVariable ["WAIT_Operation",createHashMap];
+        if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
+            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+            _liveOperation set ["pairs",_pairSnapshot];
+            _group setVariable ["WAIT_Operation",_liveOperation,true];
+        };
+    };
     _job set ["rotatedOut",_rotatedOut];
     private _reserveReady={
         params ["_candidate"];
@@ -273,6 +284,7 @@ private _delay=call {
     if (_reserves isEqualTo [] && {[_leader] call _reserveReady}) then {
         _reserves pushBack _leader;
     };
+    private _pairRosterChanged=false;
     {
         private _pairIndex=_forEachIndex;
         private _pair=_x;
@@ -282,6 +294,7 @@ private _delay=call {
             if ((!([_member] call _actorAvailable) || {_member in _unavailable}) && {_reserves isNotEqualTo []}) then {
                 private _replacement=_reserves deleteAt 0;
                 _pair set [_slot,_replacement];
+                _pairRosterChanged=true;
                 _rotatedOut pushBackUnique _member;
                 private _team=_job get "team";
                 _team pushBackUnique _replacement;

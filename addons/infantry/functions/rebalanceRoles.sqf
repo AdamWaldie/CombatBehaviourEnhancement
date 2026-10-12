@@ -47,6 +47,7 @@ if (_current isNotEqualTo (_operation getOrDefault ["participants",[]])) then {
     } forEach _current;
     _operation set ["participantProgress",_progress];
     _operation set ["participants",_current];
+    _operation set ["pairs",[_group,_current] call WAIT_fnc_CombatPairs];
     _group setVariable ["WAIT_Operation",_operation,true];
 };
 _current

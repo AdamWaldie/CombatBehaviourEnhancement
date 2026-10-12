@@ -225,14 +225,7 @@ while {_remaining isNotEqualTo []} do {
 // every other member waits outside. Larger squads still receive several independent lanes, each with
 // a trailing security partner and its own claimed room route. Shared queue and failure evidence prevent
 // lanes from crowding the same room.
-private _pairs=[];
-{
-    if ((_forEachIndex mod 2) == 0) then {
-        _pairs pushBack [_x];
-    } else {
-        (_pairs select ((count _pairs)-1)) pushBack _x;
-    };
-} forEach _team;
+private _pairs=[_group,_team] call WAIT_fnc_CombatPairs;
 private _pairRoutes=_pairs apply {[]};
 private _pending=+_routeOrder;
 private _pairStates=[];

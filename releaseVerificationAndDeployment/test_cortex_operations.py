@@ -1958,8 +1958,8 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('private _allPositions = _building buildingPos -1',text)
         self.assertIn('lineIntersectsSurfaces',text)
-        self.assertIn('private _pairs=[];',text)
-        self.assertIn('if ((_forEachIndex mod 2) == 0) then {',text)
+        self.assertIn('private _pairs=[_group,_team] call WAIT_fnc_CombatPairs;',text)
+        self.assertIn('private _pairs=[];',source('combatPairs'))
         self.assertNotIn('private _pairs=_team apply {[_x]}',text)
         self.assertIn('private _team = +_available',text)
         self.assertIn('private _squadElement = count _available',text)
@@ -7537,3 +7537,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_receipt set [2,true]',block)
         self.assertNotIn('_lastProgress=',block)
         self.assertNotIn('_cursor=',block)
+
+    def test_shared_infantry_pairs_are_owner_local_and_used_by_clearance(self):
+        pairs=source('combatPairs')
+        self.assertIn('!local _group',pairs)
+        self.assertIn('count _actors > 16',pairs)
+        self.assertIn('_pairs isNotEqualTo _previous',pairs)
+        self.assertNotIn('doMove',pairs)
+        self.assertIn('call WAIT_fnc_CombatPairs',source('cortexClearBuilding'))
+        self.assertIn('["pairs",_pairs]',source('operationStart'))
+        self.assertIn('["pairs",[_group,_current] call WAIT_fnc_CombatPairs]',source('rebalanceRoles'))
+
+    def test_clearance_replacement_updates_shared_pairs_without_restarting_routes(self):
+        text=source('buildingOperationStep')
+        update=text.split('if (_pairRosterChanged) then {',1)[1].split('_job set ["rotatedOut"',1)[0]
+        self.assertIn('_group setVariable ["WAIT_CombatPairs",_pairSnapshot,true]',update)
+        self.assertIn('_liveOperation set ["pairs",_pairSnapshot]',update)
+        self.assertNotIn('_pairRoutes=',update)
+        self.assertNotIn('_state set [0',update)
