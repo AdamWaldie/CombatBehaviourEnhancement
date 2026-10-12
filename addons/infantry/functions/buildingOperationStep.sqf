@@ -441,7 +441,16 @@ private _delay=call {
         private _reservation=_candidate getVariable ["WAIT_Cortex_ActorMove",[]];
         private _reservationFree=_reservation isEqualTo []
             || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
-        [_candidate] call WAIT_fnc_CortexCombatEffective && {local _candidate} && {!isPlayer _candidate}
+        // Once staging has claimed this reserve, a different individual MOVE/FOLLOW
+        // is a replacement order. Do not promote it and overwrite that live command.
+        private _stageReceipt=_candidate getVariable ["WAIT_Cortex_ClearReserve",[]];
+        private _stagedHere=count _stageReceipt == 3
+            && {(_stageReceipt select 0) == (_job get "generation")}
+            && {(_stageReceipt select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])};
+        private _stageCommandFree=!_stagedHere
+            || {!(currentCommand _candidate in ["MOVE","FOLLOW"])}
+            || {[_candidate] call _ownsCurrentMove};
+        [_candidate] call WAIT_fnc_CortexCombatEffective && {_stageCommandFree} && {local _candidate} && {!isPlayer _candidate}
             && {isNull objectParent _candidate} && {!(_candidate in _reserved)} && {!(_candidate in _rotatedOut)}
             && {!(_candidate in _unavailable)} && {isNull (remoteControlled _candidate)}
             && {([_candidate] call WAIT_fnc_CortexExternalOwner) == ""}

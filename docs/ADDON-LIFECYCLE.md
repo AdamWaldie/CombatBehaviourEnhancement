@@ -662,3 +662,6 @@ Geometry-supported raw transit nodes are provisional access candidates. During c
 
 
 Reserve staging arrival requires three-dimensional proximity, matching floor height and completion of WAIT's own native movement leg. A different MOVE or FOLLOW cannot be stopped by a stale stage receipt. This uses the existing callback and movement receipts; no recurring controller is added. Physical reserve and newer-order interruption acceptance remains pending while game audits are paused.
+
+
+A current-generation staged reserve with a different live individual MOVE or FOLLOW is excluded from staging and casualty promotion until that command ends. Its owned stage MOVE remains eligible for promotion. This protects the individual command boundary that the group waypoint receipt does not represent; it adds no scan or movement writer. Staging metadata is not an independent movement controller, so its retention alone does not explain CQB entry delay. Physical replacement-order and casualty acceptance remains pending with audits paused.

@@ -554,3 +554,6 @@ Source review confirms casualty replacement already consumes eligible same-group
 ### Reserve arrival ownership mismatch
 
 Source inspection found reserve arrival used two-dimensional distance alone before doStop, unlike owned room movement. A reserve passing near its old stage under another MOVE could be stopped, and another floor could satisfy horizontal arrival. The corrected guard requires 3D distance within two metres, floor difference within 0.75 metres, an empty/STOP command or the exact owned MOVE, and no active owned movement leg. This is a source correction, not a claim that it explains the observed exterior sprawl. Physical interruption and reserve staging retests remain pending; game audits remain paused.
+
+
+A current-generation staged reserve with a different live individual MOVE or FOLLOW is excluded from staging and casualty promotion until that command ends. Its owned stage MOVE remains eligible for promotion. This protects the individual command boundary that the group waypoint receipt does not represent; it adds no scan or movement writer. Staging metadata is not an independent movement controller, so its retention alone does not explain CQB entry delay. Physical replacement-order and casualty acceptance remains pending with audits paused.
