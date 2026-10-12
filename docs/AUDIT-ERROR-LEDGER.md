@@ -628,3 +628,8 @@ Queued observer exterior-wall control scans at most sixteen original house nodes
 
 
 Building command boundaries and room-geometry cache reads now recheck registered brain identity, cancelled/finished flags, locality, owner epoch, clear generation and the bound common-operation generation. Building existence/transform, external takeover and authored native order remain live checks. Thus cached geometry cannot authorize room receipts or movement after a replacement operation or moved/deleted building invalidates ownership. The callback-local cache/budget remains unchanged; no new observer or lifetime extension is added. Physical supersession during work, transform cancellation and performance acceptance remain pending with audits paused.
+
+
+### Ownership-query performance contract
+
+A proposed per-actor static class cache was rejected by two existing regression contracts requiring specialist detection to remain read-only. The proposal was withdrawn; no actor metadata write or classification-rule change remains. Runtime markers and config classification keep their current query semantics. Any future config cache must be populated through an explicit separate setup path and consumed read-only, with lifecycle/type/version correctness and measured cost. Repeated ownership config work and the runtime performance budget remain open. This finding does not justify weakening the read-only contracts or caching final dynamic ownership. Audits remain paused.
