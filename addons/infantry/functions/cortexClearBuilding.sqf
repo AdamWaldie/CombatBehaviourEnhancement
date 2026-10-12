@@ -305,6 +305,22 @@ private _job=createHashMapFromArray [
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
     ["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
+// Keep reserve search consumption across a true resume, independently of local handles.
+private _stageBudget=_group getVariable ["WAIT_Cortex_ClearStageBudget",[]];
+if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearStageBudget",nil,true]};
+if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _building}
+    && {(_stageBudget select 1) == _hardDeadline}
+    && {(_stageBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
+    private _counts=createHashMap;
+    private _tried=createHashMap;
+    {
+        _x params ["_key","_count","_targets"];
+        _counts set [_key,(_count max 0) min 3];
+        _tried set [_key,+_targets];
+    } forEach ((_stageBudget select 3) select [0,64]);
+    _job set ["reserveStageSearchCounts",_counts];
+    _job set ["reserveStageTriedTargets",_tried];
+};
 [_job] call WAIT_fnc_BuildingOperationStart;
 diag_log format ["[WAIT] %1 clearing %2 (%3 positions, %4 soldiers, %5 entrances)", _group, typeOf _building, count _positions, count _team, count _entries];
 true

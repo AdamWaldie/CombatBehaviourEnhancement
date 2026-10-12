@@ -17,6 +17,7 @@
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
  * Stage receipts distinguish REJECTED current-position holds, APPROACH and physical ARRIVED.
+ * A bounded episode/transform-scoped array journal preserves search counts and tried candidates on resume.
  * Rejected selection retries after five seconds, at most three searches per actor with tried targets excluded.
  * A still-owned approach times out after sixty seconds and yields to an alternate or EXHAUSTED hold.
  * Reserve stage selection processes at most one pending actor per callback; other attempts remain pending.
@@ -523,7 +524,7 @@ private _delay=call {
         if (_searchPending && {_stageSearchBudget > 0} && {call _mayIssueMovement}) then {
             _stageSearchBudget=_stageSearchBudget-1;
             _stageAttempts pushBackUnique _key;
-            _stageSearchCounts set [_key,_searchCount+1];
+            _stageSearchCounts set [_key,(_searchCount+1) min 3];
             // A rejected staging ray must not leave a reserve following the interior leader.
             // Hold the actual position first; replace it only with the one validated stage leg.
             if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
@@ -532,13 +533,14 @@ private _delay=call {
                 _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
                 _stage=[+_hold,true,"REJECTED"];
                 _stage set [3,time+5];
+                if (_searchCount >= 3) then {_stage set [2,"EXHAUSTED"]};
                 _reserveStages set [_key,_stage];
                 private _securityActors=_job getOrDefault ["securityActors",[]];
                 _securityActors pushBackUnique _reserve;
                 _job set ["securityActors",_securityActors];
             };
             private _entry=_job get "entry";
-            if (_entry isNotEqualTo []) then {
+            if (_entry isNotEqualTo [] && {_searchCount < 3}) then {
                 private _outward=(getPosATL _building) getDir _entry;
                 private _search=_entry getPos [7,_outward];
                 private _taken=+(_stageTriedTargets getOrDefault [_key,[]]);
@@ -616,6 +618,13 @@ private _delay=call {
     _job set ["reserveStageAttempts",_stageAttempts];
     _job set ["reserveStageSearchCounts",_stageSearchCounts];
     _job set ["reserveStageTriedTargets",_stageTriedTargets];
+    private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
+        [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]])]
+    };
+    private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows];
+    if (call _mayIssueMovement && {(_group getVariable ["WAIT_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget}) then {
+        _group setVariable ["WAIT_Cortex_ClearStageBudget",_stageBudget,true];
+    };
     private _pairRosterChanged=false;
     {
         private _pairIndex=_forEachIndex;

@@ -171,3 +171,7 @@ A building step starts at most one pending reserve stage selection per callback.
 ### Reserve stage evidence
 
 Owner-local reserve stage receipts distinguish `REJECTED` current-position holds from `APPROACH` and physically verified `ARRIVED`. The hold flag alone is not stage success. This diagnostic distinction does not add a network polling loop or establish tactical security; stage recovery and live acceptance remain pending.
+
+### Reserve search budget replay
+
+A bounded public array journal preserves reserve search consumption and tried candidates across a true clearance resume. It is keyed to the target building, original hard deadline and transform; explicit new clearance clears it. Journal publication occurs only when content changes under current movement authority. An exhausted budget cannot start another search after adoption. Active approach destination/deadline adoption remains incomplete and requires separate HC validation.
