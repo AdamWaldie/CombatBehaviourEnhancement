@@ -200,13 +200,18 @@ private _delay=call {
         private _outsideExit={
             params ["_assignment"];
             _assignment params ["_unit","_target"];
-            // Physical exit is monotonic progress for this generation. Native formation
-            // can carry an exited actor away while its partner descends the stairs;
-            // requiring simultaneous arrival would repeatedly pull that actor back.
+            // Physical exit is monotonic progress for this generation. Hold each arrival
+            // once so native formation does not scatter it while partners descend stairs.
             if (_assignment param [2,false,[true]]) exitWith {false};
             private _outside=_unit distance2D _target > 5
                 || {abs (((getPosATL _unit) select 2)-(_target param [2,0])) > 1.5};
-            if (!_outside) then {_assignment set [2,true]};
+            if (!_outside) then {
+                _assignment set [2,true];
+                if ([_unit] call _actorAvailable && {[_unit] call _actorTaskFree}
+                    && {call _mayIssueMovement}) then {
+                    doStop _unit;
+                };
+            };
             _outside
         };
         // Matching a ground exit horizontally is insufficient when still upstairs.
