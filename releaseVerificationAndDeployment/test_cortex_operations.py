@@ -3764,6 +3764,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_requester setVariable ["WAIT_Cortex_SupportResponders",_responders,true]',step)
         self.assertIn('_requester setVariable ["WAIT_Cortex_SupportResponders",nil,true]',step)
 
+    def test_dormant_group_defers_decisions_without_restarting_operations(self):
+        tick=source("cortexGroupTick")
+        gate=tick.split("// Dormancy is not loss of ownership.",1)[1].split("// The generic group loop",1)[0]
+        self.assertIn("simulationEnabled _x && {!isObjectHidden _x}",gate)
+        self.assertIn("exitWith {5}",gate)
+        self.assertNotIn("enableSimulation",gate)
+        self.assertNotIn("setVariable",gate)
+        self.assertNotIn("hardDeadline",gate)
+        self.assertLess(tick.index("if (_alive isEqualTo [])"),tick.index("// Dormancy is not loss of ownership."))
+        self.assertLess(tick.index("// Dormancy is not loss of ownership."),tick.index("call WAIT_fnc_DrivingAssistStart"))
+
     def test_support_request_failure_has_one_bounded_retry(self):
         reinforce=source('cortexReinforce')
         server=source('cortexSupportServer')

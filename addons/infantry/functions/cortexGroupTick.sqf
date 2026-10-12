@@ -138,6 +138,10 @@ if (_alive isEqualTo []) exitWith {
     _group setVariable ["WAIT_AIPass_Managed", nil];
     -1
 };
+// Dormancy is not loss of ownership. Keep the existing decision job, but do not
+// plan or start tactics while every living member is hidden or simulation-disabled.
+// Finite operation jobs retain their original deadlines and handle their own cleanup.
+if (_alive findIf {simulationEnabled _x && {!isObjectHidden _x}} < 0) exitWith {5};
 // The generic group loop owns infantry and ground-vehicle behaviour only. Aircraft occupants retain
 // ordinary eligibility for the dedicated flight systems, but this job must retire immediately if a
 // group boards an aircraft so CONTACT cleanup and tactical jobs cannot fight the pilot controller.
