@@ -592,6 +592,20 @@ if (!_transformOnly) then {
         [format ["CLEAR-fresh-%1-post-clear-hold",_size],
             _holdEvidence findIf {(_x select 1) > 3 || {(_x select 2) == "JOIN"}} < 0,str _holdEvidence] call _check;
     };
+    // Preserve every observation-deadline finding above. Before a new waypoint interrupts
+    // the episode, independently observe its immutable lifetime and finite egress budget.
+    // Late settlement cannot replace missing visits, participation or the recorded outcome.
+    private _episodeBoundary=_admissionJob getOrDefault ["hardDeadline",-1];
+    if (!_settled && {_episodeBoundary >= 0}) then {
+        [format ["Finite clearance episode: %1 soldiers",_size],"The original observation findings remain recorded. Observe whether the controller terminates within its absolute lifetime and finite exit budget. No destination, cleanup or room visit is injected; late settlement cannot pass the original clearance checks.",getPosATL _house] call _phase;
+        private _finite=[{
+            ((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]
+        },(0 max (_episodeBoundary-serverTime+55)) min 955] call _wait;
+        [format ["CLEAR-fresh-%1-finite-episode-terminal",_size],_finite
+            && {serverTime <= _episodeBoundary+55}
+            && {(_admissionJob getOrDefault ["hardDeadline",-1]) == _episodeBoundary},
+            str [_episodeBoundary,serverTime,_group getVariable ["WAIT_Cortex_ClearResult",[]]]] call _check;
+    };
     private _beforeMove=_members apply {getPosATL _x};
     // One real external edit must survive cancellation; other actors must release
     // their unchanged indoor caps to the pre-operation baseline.

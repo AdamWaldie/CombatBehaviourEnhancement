@@ -1880,7 +1880,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(gate,step.index('if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS")'))
         self.assertIn('[false,"NEW_ORDER"] call _finish',step)
         self.assertIn('([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt', step)
-        self.assertIn('_job getOrDefault ["nativeOrderReceipt",[]]], true]',step)
+        self.assertIn('_job getOrDefault ["nativeOrderReceipt",[]],_job getOrDefault ["hardDeadline"',step)
 
     def test_clearance_attempts_one_isolated_recovery_before_abandoning_a_room(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
@@ -2252,6 +2252,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_job set ["deadline",(_job get "deadline") max (serverTime+120)]',text)
         self.assertIn('_job set ["lastProgressAt",serverTime]',text)
         self.assertNotIn('_job set ["deadline",serverTime+120]',text)
+
+    def test_clearance_absolute_lifetime_survives_resume_and_cannot_be_renewed_by_progress(self):
+        admission=source('cortexClearBuilding')
+        step=source('buildingOperationStep')
+        self.assertIn('_previous param [10,_deadline,[0]]',admission)
+        self.assertIn('(240 max (60*count _positions)) min 900',admission)
+        self.assertIn('[_building, _cleared, _deadline',admission)
+        self.assertIn('_nativeOrderReceipt, _hardDeadline], true]',admission)
+        self.assertIn('serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])',step)
+        self.assertNotIn('_job set ["hardDeadline"',step)
+        self.assertIn('|| {!_allWorkersEntered} || {!_allWorkersProgressed}',step)
 
     def test_clearance_preserves_failure_evidence_after_release(self):
         clear=source('cortexClearBuilding')+source('buildingOperationStep')
@@ -7662,7 +7673,9 @@ class CortexOperations(unittest.TestCase):
         text=source('buildingOperationStep')
         self.assertIn('_visited pushBackUnique _positionIndex',text)
         follow=text.split('private _requiredVisits=',1)[1].split('private _active=[]',1)[0]
-        self.assertIn('count _cleared == count _positions && {_allWorkersEntered}',follow)
+        self.assertIn('count _cleared == count _positions && {!_allWorkersProgressed}',follow)
+        self.assertNotIn('&& {_allWorkersEntered}',follow)
+        self.assertIn('_unit in (_job getOrDefault ["enteredActors",[]])',follow)
         self.assertIn('select [0,24]',follow)
         self.assertIn('_unit doMove _target',follow)
         self.assertIn('call WAIT_fnc_RecoveryStep',follow)
@@ -7690,7 +7703,7 @@ class CortexOperations(unittest.TestCase):
         gate=text.split('// Before exterior actors commit',1)[1].split('== "EGRESS") exitWith',1)[0]
         self.assertIn('boundingBoxReal _building',gate)
         self.assertIn('_allLocked && {!_inside}',gate)
-        self.assertIn('serverTime > (_job get "deadline")',gate)
+        self.assertIn('(_job get "deadline") min (_job getOrDefault ["hardDeadline"',gate)
         self.assertIn('!(_x in _held)',gate)
         self.assertIn('[_x] call _actorAvailable',gate)
         self.assertIn('call _mayIssueMovement',gate)

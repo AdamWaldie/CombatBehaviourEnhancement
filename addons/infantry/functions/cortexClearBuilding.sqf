@@ -33,7 +33,7 @@
  * Locality and authority: call where the group is local, or on the server, which forwards to the
  * owner. Non-server, non-owner copies do nothing.
  *
- * Review contract: Local job generations prevent replaced jobs from issuing orders. Eligibility is checked before dispatch and on each step. Public visited and unreachable position indices, retry/failure evidence, progress-renewed deadline and original behaviour survive handover; local movement assignments are rebuilt.
+ * Review contract: Local job generations prevent replaced jobs from issuing orders. Eligibility is checked before dispatch and on each step. Public visited and unreachable position indices, retry/failure evidence, progress-renewed stall deadline, immutable episode deadline and original behaviour survive handover; local movement assignments are rebuilt.
  *
  * Arguments:
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
@@ -147,7 +147,12 @@ private _failedBy = if (_resume) then {+(_previous param [6, _positions apply {[
 if (count _failedBy != count _positions) then {_failedBy = _positions apply {[]}};
 private _lastProgressAt = if (_resume) then {_previous param [7,serverTime]} else {serverTime};
 private _deadline = if (_resume) then {_previous select 2} else {serverTime + 240};
-if (serverTime >= _deadline) exitWith {[_group] call WAIT_fnc_CortexClearRelease; false};
+// Genuine approach progress may renew the stall lease, but never the episode lifetime.
+// Retain the absolute server-clock boundary across HC resume; legacy orders keep their
+// already published deadline rather than gaining a fresh lifetime on each owner.
+private _lifetime = (240 max (60*count _positions)) min 900;
+private _hardDeadline = if (_resume) then {_previous param [10,_deadline,[0]]} else {serverTime+_lifetime};
+if (serverTime >= (_deadline min _hardDeadline)) exitWith {[_group] call WAIT_fnc_CortexClearRelease; false};
 // Replacing a clear must retire its engine movement orders as well as its queued job.
 // Validate the new building/team first; an invalid request must preserve the current order.
 // HC resume keeps the published progress/deadline rather than starting a new episode.
@@ -160,7 +165,7 @@ if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nat
 };
 
 _group setVariable ["WAIT_Cortex_ClearAdmissionFailure",nil,true];
-_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt], true];
+_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline], true];
 _group setVariable ["WAIT_AIPass_ClearApplied", true];
 _group setVariable ["WAIT_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
 _group setVariable ["WAIT_Cortex_ClearEvidence",nil,true];
@@ -290,7 +295,7 @@ _group setVariable ["WAIT_Cortex_ClearStatus",["ENTRY",count _cleared,count _unr
 private _job=createHashMapFromArray [
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
-    ["deadline", _deadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
+    ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
     ["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
 [_job] call WAIT_fnc_BuildingOperationStart;

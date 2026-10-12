@@ -301,7 +301,7 @@ private _delay=call {
         };
     };
     if (_job getOrDefault ["accessBlocked",false]) exitWith {
-        if (serverTime > (_job get "deadline")) exitWith {[true,"ACCESS_BLOCKED"] call _finish};
+        if (serverTime > ((_job get "deadline") min (_job getOrDefault ["hardDeadline",_job get "deadline"]))) exitWith {[true,"ACCESS_BLOCKED"] call _finish};
         private _held=_job getOrDefault ["accessHeld",[]];
         {
             if (!(_x in _held) && {[_x] call _actorAvailable} && {[_x] call _actorTaskFree}
@@ -1148,7 +1148,7 @@ private _delay=call {
         _job set ["deadline",(_job get "deadline") max (serverTime+120)];
     };
     if (_madeProgress || {_retryChanged}) then {
-        _group setVariable ["WAIT_AIPass_ClearOrder", [_job get "building", +_cleared, _job get "deadline", _job get "baseBehaviour", +_unreachable, +_retryCounts, +_failedBy, _job get "lastProgressAt",_job getOrDefault ["baseAttack",true],_job getOrDefault ["nativeOrderReceipt",[]]], true];
+        _group setVariable ["WAIT_AIPass_ClearOrder", [_job get "building", +_cleared, _job get "deadline", _job get "baseBehaviour", +_unreachable, +_retryCounts, +_failedBy, _job get "lastProgressAt",_job getOrDefault ["baseAttack",true],_job getOrDefault ["nativeOrderReceipt",[]],_job getOrDefault ["hardDeadline",_job get "deadline"]], true];
         _group setVariable ["WAIT_Cortex_ClearStatus",[_job getOrDefault ["phase","SWEEP"],count _cleared,count _unreachable,count (_job get "positions"),count (_job get "pairs"),_job get "lastProgressAt"],true];
     };
     private _allWorkersEntered=_activeWorkers findIf {!(_x in (_job getOrDefault ["enteredActors",[]]))} < 0;
@@ -1159,8 +1159,10 @@ private _delay=call {
     } < 0;
     // Shared room coverage must not release a partner still parked at its first node.
     // Finish each active actor's finite interior follow-through before successful egress.
-    if (count _cleared == count _positions && {_allWorkersEntered} && {!_allWorkersProgressed}
-        && {serverTime <= (_job get "deadline")} && {call _mayIssueMovement}) then {
+    if (count _cleared == count _positions && {!_allWorkersProgressed}
+        && {serverTime <= (_job get "deadline")}
+        && {serverTime <= (_job getOrDefault ["hardDeadline",_job get "deadline"])}
+        && {call _mayIssueMovement}) then {
         private _follow=_job getOrDefault ["followThrough",createHashMap];
         {
             private _unit=_x;
@@ -1173,7 +1175,10 @@ private _delay=call {
                 doStop _unit;
                 _arrived set [4,true];
             };
-            if (count _visited < _requiredVisits && {[_unit] call _actorAvailable}
+            // An unentered partner must not freeze workers already inside. Entry recovery
+            // continues to own missing partners; their absence still prevents COMPLETE.
+            if (count _visited < _requiredVisits && {_unit in (_job getOrDefault ["enteredActors",[]])}
+                && {[_unit] call _actorAvailable}
                 && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                 private _record=_follow getOrDefault [_key,[]];
                 if (_record isEqualTo [] || {(_record select 0) in _visited}) then {
@@ -1210,7 +1215,7 @@ private _delay=call {
         } forEach _activeWorkers;
         _job set ["followThrough",_follow];
     };
-    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {_activeWorkers isEqualTo []}) exitWith {
+    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
         // Room coverage does not prove that every active clearing actor entered.
         // A deadline may release the operation, but cannot convert missing participation to success.
         _job set ["entryFailed",(_job getOrDefault ["entryFailed",false]) || {!_allWorkersEntered} || {!_allWorkersProgressed}];
