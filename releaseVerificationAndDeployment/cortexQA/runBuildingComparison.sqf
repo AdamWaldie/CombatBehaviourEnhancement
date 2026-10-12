@@ -414,6 +414,16 @@ if (!_transformOnly) then {
                     [_x select 0,_traceHouse animationSourcePhase (_x select 1),
                         _traceHouse getVariable [format ["bis_disabled_Door_%1",_x select 0],0]]
                 }]];
+            {
+                private _actor=_x;
+                diag_log format ["WAIT CLEAR ACTOR: %1",[_size,_routeTraceCount,netId _actor,
+                    local _actor,getPosASL _actor,currentCommand _actor,expectedDestination _actor,
+                    _actor checkAIFeature "MOVE",_actor checkAIFeature "PATH",getForcedSpeed _actor,
+                    getUnitState _actor,unitReady _actor,
+                    _actor in (_job getOrDefault ["enteredActors",[]]),
+                    _actor in (_operation getOrDefault ["unavailable",[]]),
+                    (_job getOrDefault ["entryRecovery",createHashMap]) getOrDefault [netId _actor,[]]]];
+            } forEach (_clearingMembers select [0,16]);
             diag_log format ["WAIT CLEAR LIVE ROUTE: %1",[
                 _size,_routeTraceCount,diag_tickTime,
                 _group getVariable ["WAIT_AIPass_Epoch",0],
