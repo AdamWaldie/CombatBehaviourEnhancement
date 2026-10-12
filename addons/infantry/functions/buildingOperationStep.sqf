@@ -7,7 +7,8 @@
  * generation scoped and reconstructed after locality migration. Each room, entrance and egress
  * leg has one generation-owned movement writer. Entry, room and recovery movement each issue one
  * native doMove path request without a second formation-planner destination override.
- * Mover handoffs retain a preceding covered checkpoint and at most one floor-access checkpoint.
+ * Entry and floor-changing mover handoffs retain a covered checkpoint and at most one floor-access
+ * checkpoint. Already-entered movers request same-floor rooms without revisiting their buddy.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
  * Successful egress additionally requires each active worker's successive physical visits.
@@ -866,13 +867,15 @@ private _delay=call {
                     private _pointFloor=(getPosASL _point) select 2;
                     if (!_approachingEntry && {_entered || {abs (_pointFloor-_targetFloor) > 1.5}}
                         && {(_approach param [0,-1]) != _positionIndex}) then {
-                        // A new mover must traverse its buddy's preceding room before
-                        // inheriting an upstairs destination. Shared pair progress is not
-                        // this actor's physical route history.
+                        // Retain actor-specific entry and vertical access history. An actor
+                        // already inside on the destination floor need not revisit its buddy's
+                        // occupied security node before requesting the next room.
                         private _chain=[];
                         private _ownVisits=(_job getOrDefault ["actorVisits",createHashMap]) getOrDefault [netId _point,[]];
                         if (_previousPositionIndex >= 0 && {_previousPositionIndex != _positionIndex}
-                            && {!(_previousPositionIndex in _ownVisits)}) then {
+                            && {!(_previousPositionIndex in _ownVisits)}
+                            && {!(_point in (_job getOrDefault ["enteredActors",[]]))
+                                || {abs (_pointFloor-_targetFloor) > 1.5}}) then {
                             _chain pushBack (+(_positions select _previousPositionIndex));
                         };
                         private _checkpoint=if (_previousPositionIndex >= 0 && {_previousPositionIndex != _positionIndex}) then {
