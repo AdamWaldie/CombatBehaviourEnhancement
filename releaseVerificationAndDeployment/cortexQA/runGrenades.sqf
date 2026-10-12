@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Observe real carried smoke-grenade launch direction across cardinal bearings and stances.
  * Locality/authority: scheduled dedicated-server fixture; fresh groups remain server-owned.
- * Repeat/JIP: fresh actors per case; no throw receipts or projectiles are fabricated. Observer phase is public.
+ * Repeat/JIP: fresh actors and cleaned-up public target markers per case; no throw receipts or projectiles are fabricated. Observer phase is public.
  * Arguments: 0: check callback <CODE>; 1: phase callback <CODE>; 2: finite wait callback <CODE>.
  * Return: Nothing. This is a controlled direction fixture, not live-contact or fragmentation acceptance.
  * Current caller: cortexQA/runServer.sqf in the grenades/fire/mechanics batches.
@@ -22,6 +22,10 @@ params ["_check","_phase","_wait"];
         _unit setUnitPos _pose;
         _unit addMagazine "SmokeShell";
         private _target=(getPosATL _unit) getPos [25,_bearing];
+        private _marker=createMarker [_id+"-TARGET",_target];
+        _marker setMarkerType "mil_destroy";
+        _marker setMarkerColor "ColorYellow";
+        _marker setMarkerText (_id+" requested target");
         _unit setVariable ["WAIT_CortexQA_GrenadeTarget",_target];
         _unit setVariable ["WAIT_CortexQA_Label",_id,true];
         missionNamespace setVariable ["WAIT_CortexQA_Actors",[_unit],true];
@@ -44,6 +48,7 @@ params ["_check","_phase","_wait"];
         private _evidence=_unit getVariable ["WAIT_CortexQA_GrenadeLaunch",[]];
         [_id+"-physical-direction",_released && {count _evidence >= 2} && {_evidence select 0} && {(_evidence select 1) <= 30},str _evidence] call _check;
         _unit removeEventHandler ["FiredMan",_handler];
+        deleteMarker _marker;
         deleteVehicle _unit;
         deleteGroup _group;
         missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
