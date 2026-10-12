@@ -579,3 +579,6 @@ Reverse diagnostic fixture review bounded its stimulus: require the whole column
 
 
 Tracked reverse admission/continuation requires combat-effective driver and commander, not alive crew alone. Reverse cleanup sends STOPTURNING only when the live LEFT/RIGHT command matches its recorded last turn; a different turn is preserved. Generation, epoch, vehicle marker and external-owner checks remain required. This matching guard cannot distinguish an identical later native command without an ownership/order receipt, so universal successor preservation is not claimed. Reverse distance, timeout and facing limits remain unchanged. Physical crew incapacity and different-turn handover are pending with audits paused.
+
+
+Convoy mobility eligibility is computed once before locality filtering. The same combat-effective-driver roster is used for split-locality comparison, so an unconscious/incapacitated driver no longer masquerades as an eligible remote vehicle and indefinitely bypasses the tick. Real eligible split locality still defers commands; no effective vehicles still reaches the existing IMMOBILE request. Remaining mobile vehicles retain existing continuation/contact policy. This does not implement seat replacement or prove casualty continuation; physical incapacity, migration and halt acceptance remain pending while audits are paused.

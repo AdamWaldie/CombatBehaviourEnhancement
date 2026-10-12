@@ -97,10 +97,13 @@ private _classifyStall = {
     };
     ["STALLED", "OBSTRUCTION"] select (_blocker >= 0)
 };
-private _vehicles = _registered select {alive _x && {canMove _x} && {local _x} && {alive driver _x} && {local driver _x}
-    && {group driver _x == _group} && {!((driver _x) getVariable ["ACE_isUnconscious", false])} && {lifeState driver _x != "INCAPACITATED"}};
-// Do not treat temporary split locality as damage or arrival.
-if (count _vehicles < count (_registered select {alive _x && {canMove _x} && {alive driver _x} && {group driver _x == _group}})) exitWith {};
+// Eligibility and locality are separate questions. An incapacitated driver must
+// not count as a remotely owned capable vehicle and freeze every convoy step.
+private _mobile = _registered select {alive _x && {canMove _x}
+    && {[driver _x] call WAIT_fnc_CortexCombatEffective} && {group driver _x == _group}};
+private _vehicles = _mobile select {local _x && {local driver _x}};
+// Only a real split among eligible vehicles defers local movement.
+if (count _vehicles < count _mobile) exitWith {};
 if (_vehicles isEqualTo []) exitWith {
     if (time >= (_state getOrDefault ["haltRequest", -1])) then {
         [_group, _revision, "IMMOBILE"] remoteExecCall ["WAIT_fnc_ConvoyHaltServer", 2];
