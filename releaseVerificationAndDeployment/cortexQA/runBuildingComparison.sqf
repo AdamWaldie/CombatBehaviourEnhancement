@@ -732,8 +732,9 @@ waitUntil {
 };
 ["CLEAR-door-lock-preserved",_doorReady && {_doorAccepted} && {_lockHeld}] call _check;
 // Changing the lock is the test stimulus; opening and entry must be performed by production.
-_doorHouse setVariable ["bis_disabled_Door_1",0,true];
 ["Clearance: entry unlocked","The lock is now removed. Watch the same soldiers open the door and physically enter. The audit does not animate the door, teleport actors or reset their movement.",getPosATL _doorHouse] call _phase;
+// The phase callback sleeps for presentation; apply the unlock only after it returns.
+_doorHouse setVariable ["bis_disabled_Door_1",0,true];
 private _doorPositions=_doorHouse buildingPos -1;
 private _doorOpened=false;
 private _entered=false;

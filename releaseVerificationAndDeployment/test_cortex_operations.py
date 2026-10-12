@@ -7466,6 +7466,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_entryEvidence pushBack [netId _actor,_node,getPosASL _actor,time,_doorHouse animationSourcePhase _doorSource]',text)
         self.assertIn('(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5',text)
         self.assertNotIn('private _doorOpened=[{_doorHouse animationSourcePhase',text)
+        self.assertLess(text.index('["Clearance: entry unlocked"'),text.index('_doorHouse setVariable ["bis_disabled_Door_1",0,true]'))
 
     def test_clearance_terminal_recall_yields_native_actor_tasks(self):
         text=source('buildingOperationStep')
