@@ -421,6 +421,8 @@ if (!_transformOnly) then {
     private _egressVisits=[];
     private _nextRouteTrace=diag_tickTime;
     private _routeTraceCount=0;
+    private _reserveHoldViolations=[];
+    private _reserveHoldSamples=0;
     [format ["CLEAR-fresh-%1-owner-established",_size],_accepted && {_entryEpoch > 0}
         && {_group getVariable ["WAIT_AIPass_Adopted",false]} && {_entryGeneration >= 0},
         str [_entryEpoch,_entryGeneration]] call _check;
@@ -452,6 +454,20 @@ if (!_transformOnly) then {
                     insideBuilding _actor,_actor getVariable ["WAIT_Cortex_ClearReserve",[]],
                     _actor in (_job getOrDefault ["quarantineHeld",[]]),
                     (_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _actor,[]]]];
+                private _reserveStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _actor,[]];
+                // A generation-owned arrived reserve must retain its actual staging point.
+                // Externally taken actors and retired jobs are outside this observation.
+                if (count _reserveStage == 2 && {_reserveStage select 1}
+                    && {!(_job getOrDefault ["finished",false])}
+                    && {alive _actor} && {local _actor} && {isNull objectParent _actor}
+                    && {isNull remoteControlled _actor}
+                    && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+                    && {currentCommand _actor in ["STOP","MOVE","FOLLOW",""]}) then {
+                    _reserveHoldSamples=_reserveHoldSamples+1;
+                    if ((getPosASL _actor) vectorDistance (AGLToASL (_reserveStage select 0)) > 3) then {
+                        _reserveHoldViolations pushBackUnique (netId _actor);
+                    };
+                };
                 // Separate short records avoid truncating the movement receipt. These are
                 // observations only: native formation must not masquerade as a CQB role.
                 diag_log format ["WAIT CLEAR ROLE: %1",[_size,_routeTraceCount,netId _actor,
@@ -551,6 +567,9 @@ if (!_transformOnly) then {
         _localResult in ["COMPLETE","INCOMPLETE"] && {attackEnabled leader _group == _originalAttack},
         str [_localResult,_originalAttack,attackEnabled leader _group]] call _check;
     private _physical=_rooms isNotEqualTo [] && {_visits findIf {!_x} < 0};
+    [format ["CLEAR-fresh-%1-reserves-maintain-owned-stage",_size],
+        _reserveHoldViolations isEqualTo [] && {_size <= 8 || {_reserveHoldSamples > 0}},
+        str [_reserveHoldSamples,_reserveHoldViolations]] call _check;
     [format ["CLEAR-fresh-%1-physical-room-visits",_size],_physical,format ["visits=%1 units=%2",_visits,_members apply {[getPosATL _x,currentCommand _x,expectedDestination _x,_x checkAIFeature "PATH",_x checkAIFeature "MOVE",behaviour _x]}]] call _check;
     [format ["CLEAR-fresh-%1-physical-egress",_size],_egressSeen && {_egressVisits findIf {!_x} < 0},str [_egressAssignments,_egressVisits]] call _check;
     private _egressRetries=_group getVariable ["WAIT_Cortex_ClearEgressRetries",[]];
