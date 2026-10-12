@@ -493,7 +493,10 @@ for "_i" from 1 to (count _vehicles - 1) do {
         _controlGap=(_delta vectorDotProduct _direction) max 0;
         _lateralOffset=sqrt ((_gap*_gap-_controlGap*_controlGap) max 0);
     };
-    private _frontSpeed = abs speed _front;
+    // Absolute speed cannot distinguish forward progress from a predecessor
+    // backing into this follower during native obstacle recovery.
+    private _frontReversing=(velocityModelSpace _front select 1) < -0.5;
+    private _frontSpeed = [abs speed _front,0] select _frontReversing;
     private _previous = _speedLimits getOrDefault [_key,[_frontSpeed,time-1]];
     // Match predecessor speed at the requested gap; proportional correction avoids drifting along a band edge.
     // Acceleration remains bounded below, while compression still applies an immediate braking cap.
@@ -513,6 +516,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Keep enough motion to steer back onto the recorded predecessor track.
     // A full stop while physically clear but offset would preserve the wedge indefinitely.
     if (_lateralOffset > _tolerance && {_gap > _gapLow} && {_pathOwners getOrDefault [_key,false]}) then {_limit=_limit max 5};
+    // Reverse yield overrides smoothing and lateral recapture; neither is
+    // permission to advance into a reversing predecessor. Keep route identity.
+    if (_frontReversing) then {_limit=0};
     _limit = [_vehicle,_limit,_group] call WAIT_fnc_CortexInfantrySpeed;
     if ([] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
