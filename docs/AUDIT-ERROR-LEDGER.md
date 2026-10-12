@@ -487,3 +487,11 @@ The completed batch's recorded processes were stopped and absence verified. Clea
 ### 26d782d mission-entry failure
 
 Runtime-20261012-170248-682 failed its 180-second client-entry prerequisite. Server readiness was present, but no observer mission entry occurred. The client was visually confirmed at Arma's main menu without a blocking prompt; UGC retrieval messages alone do not establish the cause. Computer Use was stopped by user Escape and was not resumed. Recorded audit processes were subsequently stopped with the identity-checked audit shutdown script, which verified no matching processes remain. This run provides no behavior or performance acceptance for the formation fallback correction. The clean candidate remains available for a later fresh batch.
+
+### Native command-FSM movement isolation
+
+The repeated two-soldier leader stall retains an owned LEADER PLANNED destination and DELAY state while its partner can traverse the same house. This does not establish a door or coordinate remedy. The native comparison now includes COMMAND-FSM: one excluded local actor uses doFSM with moveTo to each original model position, with a 20-second finite lifetime and no concurrent doMove writer. Native completion, failure and timeout are not physical visits; independent 3D sampling retains failed nodes. No production path controller, room route or object transform is changed. The disposable mission stages the FSM and build gates validate its configuration. Physical comparison remains pending.
+
+### Completed 26d782d clearance retest
+
+Runtime-20261012-171258-375 completed with 410 checks and 11 retained failures, zero SQF/fatal errors and one unresolved load warning. Twelve-person reserve staging had 39 actual observations and no recorded drift beyond 3 m while those actors remained reserves. This does not validate the active clearing roster or full tactical security. The two-person leader still had only one node; six-person successive participation passed but result agreement failed. Twelve-person original settlement, participation and egress failed; later finite INCOMPLETE termination and ordinary physical handover passed separately. Production clearance is still unaccepted. Processes were stopped and absence verified.

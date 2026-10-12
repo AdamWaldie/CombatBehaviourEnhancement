@@ -37,6 +37,8 @@ try {
     if ($LASTEXITCODE) { throw 'Engine danger FSM configuration validation failed' }
     & $Hemtt utils config inspect addons/main/fsm/groupTactics.fsm
     if ($LASTEXITCODE) { throw 'Group tactics FSM configuration validation failed' }
+    & $Hemtt utils config inspect releaseVerificationAndDeployment/auditMission/nativeBuildingMove.fsm
+    if ($LASTEXITCODE) { throw 'Native building comparison FSM configuration validation failed' }
     & $Hemtt utils config inspect addons/main/fsm/buildingOperation.fsm
     if ($LASTEXITCODE) { throw 'Building operation FSM configuration validation failed' }
     & $Hemtt utils config inspect addons/main/fsm/convoyOperation.fsm

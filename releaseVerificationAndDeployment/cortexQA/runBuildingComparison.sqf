@@ -68,6 +68,19 @@ private _validateNewFixturePlacement={
         str [_highestAccess,_fixtureLift,getPosATL _house]] call _check;
 };
 
+// Native command FSMs use moveTo internally; other controls retain doMove.
+// Each excluded actor has one writer and independent physical arrival sampling.
+private _issueNativeComparison={
+    params ["_actor","_goal","_method"];
+    if (_method == "COMMAND-FSM") then {
+        _actor doFSM ["nativeBuildingMove.fsm",_goal,objNull];
+    } else {
+        _actor doMove _goal;
+        if (_method == "REPLAN") then {_actor setDestination [_goal,"LEADER PLANNED",true]};
+        if (_method == "FORMATION") then {_actor setDestination [_goal,"FORMATION PLANNED",true]};
+    };
+};
+
 if (!_skipNative) then {
 private _cases = [];
 private _actors = [];
@@ -99,17 +112,17 @@ private _usedTerrainHouses=[];
         _unit setVariable ["WAIT_CortexQA_Target",_target,true];
         _actors pushBack _unit;
         _cases pushBack [_group,_unit,_house,_target,_method,_label,false];
-    } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN","FORMATION"];
+    } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN","FORMATION","COMMAND-FSM"];
 } forEach ["Land_i_House_Small_03_V1_F","Land_i_House_Small_01_V1_F","Land_i_House_Big_01_V1_F","Land_i_House_Big_02_V1_F"];
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
 private _comparisonPosition=if (_cases isNotEqualTo []) then {getPosATL ((_cases select 0) select 2)} else {[16600,12800,0]};
-["Building entry: independent comparisons","Excluded soldiers compare direct movement, a building-attached waypoint, leader-planned and formation-planned path replanning across small and large, single- and multi-storey houses. Cyan trails show actual movement; targets show remaining distance. Each model reports independently and does not replace the production clearance cases.",_comparisonPosition] call _phase;
+["Building entry: independent comparisons","Excluded soldiers compare direct movement, a building-attached waypoint, leader-planned and formation-planned path replanning, and a native movement command FSM across small and large, single- and multi-storey houses. Cyan trails show actual movement; targets show remaining distance. Each model reports independently and does not replace the production clearance cases.",_comparisonPosition] call _phase;
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
     private _valid = simulationEnabled _house && {simulationEnabled _unit} && {local _unit} && {_target isNotEqualTo []};
     [format ["BUILD-%1-ready",_label],_valid] call _check;
     if (_valid) then {
-        if (_method in ["DIRECT","REPLAN","FORMATION"]) then {doStop _unit; _unit doMove _target; if (_method == "REPLAN") then {_unit setDestination [_target,"LEADER PLANNED",true]}; if (_method == "FORMATION") then {_unit setDestination [_target,"FORMATION PLANNED",true]}} else {
+        if (_method in ["DIRECT","REPLAN","FORMATION","COMMAND-FSM"]) then {doStop _unit; [_unit,_target,_method] call _issueNativeComparison} else {
             private _wp = _group addWaypoint [getPosATL _house,0];
             _wp setWaypointType "MOVE";
             _wp waypointAttachObject _house;
@@ -137,7 +150,7 @@ waitUntil {
 private _walkCases=[];
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
-    if (_method in ["DIRECT","REPLAN","FORMATION"]) then {
+    if (_method in ["DIRECT","REPLAN","FORMATION","COMMAND-FSM"]) then {
         private _nodes=(_house buildingPos -1) select [0,16];
         _walkCases pushBack [_unit,_nodes,0,_nodes apply {false},time,_method,_label];
     };
@@ -158,11 +171,10 @@ waitUntil {
                 _x set [4,time];
                 if (_cursor < count _nodes) then {
                     private _next=_nodes select _cursor;
-                    _unit doMove _next;
+                    [_unit,_next,_method] call _issueNativeComparison;
                     _unit setVariable ["WAIT_CortexQA_Target",_next,true];
                     _unit setVariable ["WAIT_CortexQA_Label",format ["%1 / node %2",_label,_cursor],true];
-                    if (_method == "REPLAN") then {_unit setDestination [_next,"LEADER PLANNED",true]};
-                    if (_method == "FORMATION") then {_unit setDestination [_next,"FORMATION PLANNED",true]};
+
                 };
             };
         };
@@ -179,7 +191,7 @@ waitUntil {
 private _doorControls=[];
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
-    if (typeOf _house == "Land_i_House_Small_01_V1_F" && {_method in ["DIRECT","REPLAN","FORMATION"]}) then {
+    if (typeOf _house == "Land_i_House_Small_01_V1_F" && {_method in ["DIRECT","REPLAN","FORMATION","COMMAND-FSM"]}) then {
         private _node=(_house buildingPos -1) param [1,[]];
         private _doorCount=(getNumber (configOf _house >> "numberOfDoors")) min 16;
         for "_door" from 1 to _doorCount do {
@@ -188,10 +200,9 @@ private _doorControls=[];
             };
         };
         if (_node isNotEqualTo []) then {
-            _unit doMove _node;
+            [_unit,_node,_method] call _issueNativeComparison;
             _unit setVariable ["WAIT_CortexQA_Target",_node,true];
-            if (_method == "REPLAN") then {_unit setDestination [_node,"LEADER PLANNED",true]};
-            if (_method == "FORMATION") then {_unit setDestination [_node,"FORMATION PLANNED",true]};
+
             _doorControls pushBack [_unit,_node,_label,false,_doorCount,_house];
         };
     };

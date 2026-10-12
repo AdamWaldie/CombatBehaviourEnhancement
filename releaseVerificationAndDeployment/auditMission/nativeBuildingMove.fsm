@@ -1,0 +1,44 @@
+/*
+ * Author: WaldoTheWarfighter
+ * Purpose: Isolated native command-FSM building movement comparison; never production clearance.
+ * Locality/authority: Called with doFSM on one local, excluded audit actor.
+ * Repeat/JIP: One original model destination, no retry, and a 20-second finite lifetime.
+ * Arguments: Native _units, _leader, _destination and _target supplied by doFSM.
+ * Return: Native command completion; physical audit sampling remains independent.
+ * Current caller: cortexQABuildingComparison.sqf native comparison method COMMAND-FSM.
+ * Example: _actor doFSM ["nativeBuildingMove.fsm",_house buildingPos 0,objNull];
+ */
+class FSM {
+    fsmName="WAIT native building movement comparison";
+    initState="Start";
+    finalStates[]={"Finished"};
+    class States {
+        class Start {
+            name="Start";
+            init="_actor=_units param [0,objNull]; _goal=+_destination; _until=time+20; _reason=""INVALID""; if (!isNull _actor && {local _actor} && {count _goal == 3}) then {_actor moveTo _goal;};";
+            precondition="";
+            class Links {
+                class Invalid {priority=5;to="Finished";condition="isNull _actor || {!local _actor} || {count _goal != 3}";action="";};
+                class Observe {priority=0;to="Moving";condition="true";action="";};
+            };
+        };
+        class Moving {
+            name="Moving";
+            init="";
+            precondition="";
+            class Links {
+                class Lost {priority=5;to="Finished";condition="isNull _actor || {!local _actor} || {!alive _actor}";action="_reason=""UNAVAILABLE"";";};
+                class Arrived {priority=4;to="Finished";condition="(getPosASL _actor) vectorDistance (AGLToASL _goal) <= 1.5 && {abs (((getPosASL _actor) select 2)-((AGLToASL _goal) select 2)) <= 0.75}";action="_reason=""PHYSICAL_ARRIVAL"";";};
+                class Failed {priority=3;to="Finished";condition="moveToFailed _actor";action="_reason=""NATIVE_FAILED"";";};
+                class Complete {priority=2;to="Finished";condition="moveToCompleted _actor";action="_reason=""NATIVE_COMPLETE"";";};
+                class Timeout {priority=1;to="Finished";condition="time >= _until";action="_reason=""TIMEOUT"";";};
+            };
+        };
+        class Finished {
+            name="Finished";
+            init="if (!isNull _actor && {local _actor}) then {_actor setVariable [""WAIT_CortexQA_NativeFsmResult"",[_reason,+_goal,getPosASL _actor,serverTime]];};";
+            precondition="";
+            class Links {};
+        };
+    };
+};
