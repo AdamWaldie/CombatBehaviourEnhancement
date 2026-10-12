@@ -477,3 +477,9 @@ Normal 841685f runtime-20261012-164451-609 shows active clearers 2:200 and 2:204
 The candidate holds this specific automatic formation fallback once per issued request, in the existing owner-local worker callback. It requires an eligible started worker, no new movement issue in that callback, an empty native command, readiness, the formation planner marker and a recorded owned target. Explicit FOLLOW, newer MOVE and specialist commands are untouched. New owned requests retire the hold; native-order handover includes these stopped actors. The finite room retry remains the only recovery path. This addresses sprawl after failed movement; it does not fix the failed path or establish CQB completion.
 
 The reserve-stage acceptance now excludes promoted workers: stale reserve staging records are not their current assignment. Dynamic admission, coherent security and consolidation remain incomplete.
+
+### Completed 841685f clearance batch
+
+Runtime-20261012-164451-609 completed: 408 checks, 11 retained failures, zero SQF/fatal runtime errors and one unresolved character-addon load warning. Provenance matched. The two-person leader progressed only through node 0 while its partner visited all four; the six-person case had no recorded failures. Twelve-person coverage remained five of six, with original settlement, attack-delegation restoration, participation and egress failures. Its later finite INCOMPLETE termination and physical handover remain separate narrow results. Formation fallback to an interior leader was recorded for active workers, distinct from explicit recall. No CQB repeatability or performance acceptance is established.
+
+The completed batch's recorded processes were stopped and absence verified. Clean candidate 26d782d, fingerprint 9d58ef929be448d52e91e4524f453f52c072421d289898635ee4d1eb4f174db2, is now launched for the correction's fresh normal HC0 clearance test. Results remain pending.
