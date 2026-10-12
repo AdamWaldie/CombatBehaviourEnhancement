@@ -576,14 +576,15 @@ private _delay=call {
                     || {(_model select 1) < (_minimum select 1)-0.5}
                     || {(_model select 1) > (_maximum select 1)+0.5};
                 // Cover geometry is not a native path receipt. Exclude configured same-floor exit vicinity and
-                // admit only an unobstructed short approach; failed candidates stay explicit holds.
+                // validate standing space at the endpoint. Native pathfinding may route around corners.
                 private _blocksExit=(_job getOrDefault ["entries",[]]) findIf {
                     _target distance2D _x < 3 && {abs (((AGLToASL _target) select 2)-((AGLToASL _x) select 2)) <= 1}
                 } >= 0;
                 if ((_cover select 1) && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
-                    && {_target distance2D _entry <= 18}
-                    && {(lineIntersectsSurfaces [(getPosASL _reserve) vectorAdd [0,0,0.8],
-                        (AGLToASL _target) vectorAdd [0,0,0.8],_reserve,objNull,true,1,"GEOM","NONE"]) isEqualTo []}) then {
+                    && {_target distance2D _entry <= 18} && {!surfaceIsWater _target}
+                    && {((surfaceNormal _target) select 2) >= 0.65}
+                    && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,0.15],
+                        (AGLToASL _target) vectorAdd [0,0,1.8],_reserve,objNull,true,1,"GEOM","NONE"]) isEqualTo []}) then {
                     if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
                         _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
                         _reserve doMove _target;

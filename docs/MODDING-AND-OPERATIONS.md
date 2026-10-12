@@ -179,3 +179,7 @@ A bounded public array journal preserves reserve search consumption and tried ca
 ### Terminal reserve evidence
 
 Clearance terminal route evidence includes clearing/security actors, capped at sixteen, and appends up to sixteen reserve stage records with consumed search counts. Existing result/reason indices remain unchanged. This preserves rejected/approaching/arrived/exhausted distinctions alongside actual actor positions before cleanup, without adding geometry work or recurring logging. These records support diagnosis and do not prove tactical security.
+
+### Reserve route reachability
+
+Stage endpoints require dry usable slope, standing-space geometry and exterior/exit clearance. A straight observer-to-endpoint ray is not a route prerequisite: native pathfinding may go around an obstacle. The finite owned approach and physical arrival receipt determine success; timeout can select a bounded alternate. No endpoint check claims native route feasibility. Corner-routing behavior still needs live acceptance.
