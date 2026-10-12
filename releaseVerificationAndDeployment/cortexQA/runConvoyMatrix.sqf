@@ -4,6 +4,8 @@
  * columns separately exercise 15/30/50/75 km/h at a fixed 30 m spacing.
  * One wheeled case applies native reverse input to the lead and observes follower yield/restart;
  * no actor/vehicle relocation or velocity assignment supplies its physical prerequisite.
+ * Native driver incapacity additionally requires automatic IMMOBILE and physical halt, then
+ * continued hold after recovery until an explicit public resume request.
  * Outside VR one bounded scan rotates the 1.8 km route across real relieved terrain; all spacing,
  * heading and order measurements use that selected route axis rather than world X/Y.
  * Locality/authority: scheduled server creates and owns fixtures through the public convoy API.
@@ -356,6 +358,39 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                     && {(velocityModelSpace _reverseLead select 1) > 1}
                     && {(velocityModelSpace _reverseFollower select 1) > 1}
             },60] call _wait,str [_forwardOrigins,getPosATL _reverseLead,getPosATL _reverseFollower]] call _check;
+        };
+        if (!_baseline && {_label == "WHEELED"} && {_spacing == 30}) then {
+            private _drivers=_vehicles apply {driver _x};
+            private _driverStimulusReady=_drivers findIf {isNull _x || {!alive _x} || {!local _x}} < 0;
+            [_id+" driver incapacity","Native unconsciousness is the diagnostic stimulus. The registry must enter IMMOBILE and every vehicle physically stop. Recovering the drivers must not resume the convoy without a new public order.",getPosATL (_vehicles select 0)] call _phase;
+            if (_driverStimulusReady) then {{_x setUnconscious true} forEach _drivers};
+            private _incapacitated=_driverStimulusReady && {[{_drivers findIf {lifeState _x != "INCAPACITATED"} < 0},8] call _wait};
+            [_id+"-driver-incapacity-prerequisite",_incapacitated,str (_drivers apply {[netId _x,lifeState _x,owner _x]})] call _check;
+            private _immobile=[{
+                private _entry=(missionNamespace getVariable ["WAIT_Convoy_Registry",[]]) select {(_x select 0) == _group};
+                _entry isNotEqualTo [] && {private _cfg=(_entry select 0) select 1;
+                    (_cfg select 5) == "HALT" && {(_cfg param [8,""]) == "IMMOBILE"}}
+            },20] call _wait;
+            [_id+"-driver-incapacity-immobile-transition",_incapacitated && {_immobile}] call _check;
+            private _physicallyStopped=[{_vehicles findIf {abs speed _x > 1} < 0},20] call _wait;
+            [_id+"-driver-incapacity-physical-halt",_incapacitated && {_immobile} && {_physicallyStopped},str (_vehicles apply {[speed _x,getPosATL _x]})] call _check;
+            {_x setUnconscious false} forEach (_drivers select {local _x && {alive _x}});
+            private _recovered=[{_drivers findIf {lifeState _x == "INCAPACITATED" || {!alive _x}} < 0},8] call _wait;
+            sleep 3;
+            private _heldRegistry=(missionNamespace getVariable ["WAIT_Convoy_Registry",[]]) select {(_x select 0) == _group};
+            private _remainedHeld=_heldRegistry isNotEqualTo [] && {(((_heldRegistry select 0) select 1) select 5) == "HALT"}
+                && {_vehicles findIf {abs speed _x > 1} < 0};
+            [_id+"-driver-recovery-retains-halt",_incapacitated && {_immobile} && {_recovered} && {_remainedHeld}] call _check;
+            private _recoveryOrigins=_vehicles apply {getPosATL _x};
+            private _resumeRecovered=[_group,_requestedSpeed,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
+            private _recoveryTravel=[{
+                private _allMoving=true;
+                {
+                    if (_x distance2D (_recoveryOrigins select _forEachIndex) < 30 || {abs speed _x < 2}) then {_allMoving=false};
+                } forEach _vehicles;
+                _allMoving
+            },60] call _wait;
+            [_id+"-driver-recovery-explicit-physical-resume",_recovered && {_resumeRecovered} && {_recoveryTravel},str (_vehicles apply {getPosATL _x})] call _check;
         };
         [_id+"-operating-crew-retained",_fixtureCrew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0 && {_vehicles findIf {(_x getVariable ["WAIT_CortexQA_Exits",[]]) isNotEqualTo []} < 0},str (_vehicles apply {_x getVariable ["WAIT_CortexQA_Exits",[]]})] call _check;
         if (!_baseline) then {[_group,0,_spacing,true,true] call WAIT_fnc_SimpleAiConvoy};

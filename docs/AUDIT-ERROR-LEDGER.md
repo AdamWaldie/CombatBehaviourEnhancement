@@ -585,3 +585,6 @@ Convoy mobility eligibility is computed once before locality filtering. The same
 
 
 Convoy horizontal projections now use unit bearings derived from vehicle heading. Zeroing vectorDir's vertical component without renormalizing previously shrank forward distance by the cosine of vehicle pitch and fabricated lateral offset: a straight 30 m gap at 30 degrees pitch appeared about 26 m forward and 15 m lateral. Spacing/phase diagnostics, obstruction classification and forward trail acquisition now share the corrected horizontal metric. Physical gap/speed thresholds and turn handling remain unchanged; the audit retains its independent route-axis observation. This proves a calculation fault, not its contribution to observed mixed-convoy stop/start or physical terrain acceptance. Audits remain paused.
+
+
+Queued convoy driver-incapacity diagnostics use the native setUnconscious stimulus and require independently observed INCAPACITATED life states, automatic IMMOBILE registry transition and actual stops. Waking drivers must preserve the persistent halt; only a subsequent public resume can pass real all-vehicle travel. No registry or solved state is injected. This exercises incapacity classification, not damage-driven casualty replacement, and has not run while audits remain paused. Native command semantics were checked against the engine command reference.
