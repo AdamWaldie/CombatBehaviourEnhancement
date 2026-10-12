@@ -175,3 +175,7 @@ Owner-local reserve stage receipts distinguish `REJECTED` current-position holds
 ### Reserve search budget replay
 
 A bounded public array journal preserves reserve search consumption and tried candidates across a true clearance resume. It is keyed to the target building, original hard deadline and transform; explicit new clearance clears it. Journal publication occurs only when content changes under current movement authority. An exhausted budget cannot start another search after adoption. Active reserve approaches adopt bookkeeping only when the recorded episode/transform and exact live MOVE destination still match. No movement request is reissued. Retry and approach deadlines use serverTime and survive adoption. Held reserve stages additionally require a live STOP with the exact recorded destination and current 3D/floor proximity before bookkeeping adoption. This preserves rejected retry delays and exhausted status without replaying movement. Interior worker reconstruction and physical HC validation remain incomplete.
+
+### Terminal reserve evidence
+
+Clearance terminal route evidence includes clearing/security actors, capped at sixteen, and appends up to sixteen reserve stage records with consumed search counts. Existing result/reason indices remain unchanged. This preserves rejected/approaching/arrived/exhausted distinctions alongside actual actor positions before cleanup, without adding geometry work or recurring logging. These records support diagnosis and do not prove tactical security.

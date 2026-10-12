@@ -7568,7 +7568,9 @@ class CortexOperations(unittest.TestCase):
         text=source('buildingOperationStep')
         self.assertIn('private _routeEvidence=[serverTime,_result,_routeStates',text)
         self.assertLess(text.index('private _result = ["INCOMPLETE","COMPLETE"]'),text.index('private _routeEvidence='))
-        self.assertIn('},_reason];',text)
+        self.assertIn('},_reason,_stageEvidence];',text)
+        self.assertIn('keys _stageRecords select [0,16]',text)
+        self.assertIn('_stageCounts getOrDefault [_x,0]',text)
 
     def test_native_room_revisit_preserves_first_pass_and_requires_arrival(self):
         text=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()

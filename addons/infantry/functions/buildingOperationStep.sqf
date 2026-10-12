@@ -137,14 +137,20 @@ private _delay=call {
         private _handbacks=[];
         // One bounded terminal snapshot preserves the route which actually failed before cleanup
         // clears actors' destinations. No geometry query or recurring trace is added to the hot path.
-        private _routeActors=+(_job getOrDefault ["team",[]]);
+        private _routeActors=(_job getOrDefault ["team",[]])+(_job getOrDefault ["securityActors",[]]);
+        _routeActors=_routeActors arrayIntersect _routeActors;
         _routeActors resize ((count _routeActors) min 16);
         private _routeStates=+(_job getOrDefault ["pairStates",[]]);
         _routeStates resize ((count _routeStates) min 8);
+        private _stageRecords=_job getOrDefault ["reserveStages",createHashMap];
+        private _stageCounts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
+        private _stageEvidence=(keys _stageRecords select [0,16]) apply {
+            [_x,+(_stageRecords get _x),_stageCounts getOrDefault [_x,0]]
+        };
         private _routeEvidence=[serverTime,_result,_routeStates,_routeActors apply {
             [netId _x,getPosATL _x,currentCommand _x,expectedDestination _x,
                 _x checkAIFeature "MOVE",_x checkAIFeature "PATH"]
-        },_reason];
+        },_reason,_stageEvidence];
         _group setVariable ["WAIT_Cortex_ClearRouteEvidence",_routeEvidence,true];
         diag_log format ["WAIT CLEAR ROUTE END: %1",_routeEvidence];
         if (!isNull _group) then {
