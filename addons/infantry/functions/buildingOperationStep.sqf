@@ -749,7 +749,8 @@ private _delay=call {
     _job set ["roomGeometryChecksLast",0];
     {
         private _visitor = _x;
-        if ([_visitor] call WAIT_fnc_CortexCombatEffective && {local _visitor} && {!isPlayer _visitor}
+        if ([_visitor] call WAIT_fnc_CortexCombatEffective && {simulationEnabled _visitor}
+            && {!isObjectHidden _visitor} && {local _visitor} && {!isPlayer _visitor}
             && {isNull (remoteControlled _visitor)}
             && {([_visitor] call WAIT_fnc_CortexExternalOwner) == ""}
             && {!([_visitor] call WAIT_fnc_CompatibilityExternalControl)} && {group _visitor == _group}

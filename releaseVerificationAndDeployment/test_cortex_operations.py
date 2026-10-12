@@ -5251,6 +5251,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_clearance_visit_evidence_requires_visible_simulated_actor(self):
+        step=source("buildingOperationStep")
+        observer=step.split("private _visitor = _x;",1)[1].split("private _actual = getPosASL _visitor;",1)[0]
+        self.assertIn("simulationEnabled _visitor",observer)
+        self.assertIn("!isObjectHidden _visitor",observer)
+        self.assertIn("WAIT_fnc_CortexCombatEffective",observer)
+        self.assertNotIn("enableSimulation",observer)
+
     def test_building_clearance_bounds_topology_arrival_checks(self):
         clear=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('private _visitBudget=(count _positions) min 24;',clear)
