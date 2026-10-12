@@ -17,6 +17,7 @@
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
  * Stage receipts distinguish REJECTED current-position holds, APPROACH and physical ARRIVED.
+ * Rejected selection retries after five seconds, at most three searches per actor with tried targets excluded.
  * Reserve stage selection processes at most one pending actor per callback; other attempts remain pending.
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
  * never a recurring formation recall around an interior leader. A failed native path's automatic
@@ -508,14 +509,20 @@ private _delay=call {
     private _stageAttempts=_job getOrDefault ["reserveStageAttempts",[]];
     // Pending reserves do not consume attempts when another actor used this callback budget.
     private _stageSearchBudget=1;
+    private _stageSearchCounts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
+    private _stageTriedTargets=_job getOrDefault ["reserveStageTriedTargets",createHashMap];
     {
         private _reserve=_x;
         private _key=netId _reserve;
         private _stage=_reserveStages getOrDefault [_key,[]];
-        if (_stage isEqualTo [] && {!(_key in _stageAttempts)} && {_stageSearchBudget > 0}
-            && {call _mayIssueMovement}) then {
+        private _searchCount=_stageSearchCounts getOrDefault [_key,0];
+        private _searchPending=(_stage isEqualTo [] && {!(_key in _stageAttempts)})
+            || {(_stage param [2,""]) == "REJECTED" && {_searchCount < 3}
+                && {time >= (_stage param [3,1e12])}};
+        if (_searchPending && {_stageSearchBudget > 0} && {call _mayIssueMovement}) then {
             _stageSearchBudget=_stageSearchBudget-1;
             _stageAttempts pushBackUnique _key;
+            _stageSearchCounts set [_key,_searchCount+1];
             // A rejected staging ray must not leave a reserve following the interior leader.
             // Hold the actual position first; replace it only with the one validated stage leg.
             if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
@@ -523,6 +530,7 @@ private _delay=call {
                 doStop _reserve;
                 _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
                 _stage=[+_hold,true,"REJECTED"];
+                _stage set [3,time+5];
                 _reserveStages set [_key,_stage];
                 private _securityActors=_job getOrDefault ["securityActors",[]];
                 _securityActors pushBackUnique _reserve;
@@ -532,7 +540,7 @@ private _delay=call {
             if (_entry isNotEqualTo []) then {
                 private _outward=(getPosATL _building) getDir _entry;
                 private _search=_entry getPos [7,_outward];
-                private _taken=[];
+                private _taken=+(_stageTriedTargets getOrDefault [_key,[]]);
                 private _liveReserveKeys=_reserves apply {netId _x};
                 // Historical stage receipts remain diagnostic, but promoted/unavailable actors
                 // no longer reserve a destination. Physical occupancy is checked by the selector.
@@ -543,6 +551,11 @@ private _delay=call {
                 } forEach keys _reserveStages;
                 private _cover=[_search,getPosATL _building,12,_taken,_group] call WAIT_fnc_CortexFindCover;
                 private _target=_cover select 0;
+                if (_cover select 1) then {
+                    private _tried=+(_stageTriedTargets getOrDefault [_key,[]]);
+                    _tried pushBackUnique +_target;
+                    _stageTriedTargets set [_key,_tried];
+                };
                 private _model=_building worldToModel _target;
                 private _bounds=boundingBoxReal _building;
                 private _minimum=_bounds select 0;
@@ -585,6 +598,8 @@ private _delay=call {
     } forEach (_reserves select [0,8]);
     _job set ["reserveStages",_reserveStages];
     _job set ["reserveStageAttempts",_stageAttempts];
+    _job set ["reserveStageSearchCounts",_stageSearchCounts];
+    _job set ["reserveStageTriedTargets",_stageTriedTargets];
     private _pairRosterChanged=false;
     {
         private _pairIndex=_forEachIndex;
