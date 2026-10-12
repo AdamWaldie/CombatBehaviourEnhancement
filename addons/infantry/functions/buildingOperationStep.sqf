@@ -88,6 +88,8 @@ private _delay=call {
     private _roomGeometryBudget=16;
     private _roomSegmentClear={
         params ["_actor","_targetASL"];
+        // A cached segment is evidence only while this operation still owns it.
+        if (!(call _mayIssueMovement)) exitWith {false};
         private _actual=getPosASL _actor;
         private _key=str [netId _actor,_actual,_targetASL];
         if (_key in _roomGeometryResults) exitWith {_roomGeometryResults get _key};
@@ -310,8 +312,17 @@ private _delay=call {
     if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {[false,"EXTERNAL"] call _finish};
     // Check ownership at every local movement write as a Zeus, player or specialist controller
     // can take over during this queued callback after the operation-level eligibility check.
+    private _emptyOperation=createHashMap;
     private _mayIssueMovement = {
-        !([_group] call WAIT_fnc_CortexExternalTakeover)
+        private _currentOperation=_group getVariable ["WAIT_Operation",_emptyOperation];
+        local _group && {!(_brain getOrDefault ["cancelled",false])}
+            && {!(_brain getOrDefault ["finished",false])}
+            && {(_group getVariable ["WAIT_BuildingBrain",_emptyOperation]) isEqualTo _brain}
+            && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {(_job get "generation") == (_group getVariable ["WAIT_AIPass_ClearGeneration",-1])}
+            && {_operationGeneration < 0 || {(_currentOperation getOrDefault ["generation",-2]) == _operationGeneration}}
+            && {!isNull _building} && {alive _building}
+            && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
             && {_buildingTransform isEqualTo []
                 || {_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
             && {_nativeOrderReceipt isEqualTo []
