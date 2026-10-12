@@ -3,6 +3,8 @@
  * Cancels a clearing order immediately and resumes formation after doStop. Clearance does not own
  * group behaviour or combat mode, so release preserves any contact or Zeus change made during it.
  * Individual player, remote-control and external-owner actors never receive restoration commands.
+ * A live MOVE is recalled only when its destination matches this clearance job receipt;
+ * newer individual movement survives release even when the caller requests formation restoration.
  * Locality/authority: server authenticates dispatch; the current owner executes group commands.
  * Repeat/JIP: request tokens are consumed once; no stale order is replayed for JIP.
  * Arguments: 0: group <GROUP>, default grpNull; 1: restore formation <BOOL>, default true. Pass
@@ -22,6 +24,7 @@ if (_order isEqualTo []) exitWith {false};
 private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;
 if (_restore && {_externalTakeover}) then {_restore=false};
 private _buildingBrain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
+private _movementTargets=(_buildingBrain getOrDefault ["job",createHashMap]) getOrDefault ["movementTargets",createHashMap];
 if (count _buildingBrain > 0) then {
     _buildingBrain set ["cancelled",true];
     _buildingBrain set ["cancelReason","CLEAR_RELEASE"];
@@ -71,7 +74,12 @@ if (isNull _leader) then {_leader=leader _group};
             if (_releaseOwnedSettings && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
                 _x forceSpeed (_x getVariable ["WAIT_Cortex_ClearForcedSpeed",-1]);
             };
-            if (_restore && {_taskFree}) then {
+            private _issued=_movementTargets getOrDefault [netId _x,[]];
+            private _destination=(expectedDestination _x) param [0,[]];
+            private _movementOwned=currentCommand _x != "MOVE"
+                || {count _issued == 3 && {count _destination == 3}
+                    && {_destination vectorDistance _issued <= 0.25}};
+            if (_restore && {_taskFree} && {_movementOwned}) then {
                 _x setVariable ["WAIT_Cortex_ClearRecall",[_group getVariable ["WAIT_AIPass_ClearGeneration",0],_group getVariable ["WAIT_AIPass_Epoch",0],_leader,time+5]];
                 _x doFollow _leader;
             };

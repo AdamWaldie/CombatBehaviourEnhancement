@@ -4436,7 +4436,10 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexClearRelease')
         self.assertIn('private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;',release)
         self.assertIn('then {_restore=false}',release)
-        self.assertLess(release.index('then {_restore=false}'),release.index('if (_restore && {_taskFree}) then {'))
+        self.assertLess(release.index('then {_restore=false}'),release.index('if (_restore && {_taskFree} && {_movementOwned}) then {'))
+        self.assertIn('_destination vectorDistance _issued <= 0.25',release)
+        self.assertIn('count _issued == 3 && {count _destination == 3}',release)
+        self.assertLess(release.index('private _movementTargets='),release.index('_group setVariable ["WAIT_BuildingBrain",nil]'))
     def test_building_handover_never_restores_or_locks_wait_state_after_takeover(self):
         clear_release=source('cortexClearRelease')
         clear_job=source('cortexClearBuilding')+source('buildingOperationStep')
