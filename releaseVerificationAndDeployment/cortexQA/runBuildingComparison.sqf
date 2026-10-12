@@ -5,6 +5,8 @@
  * Locality/authority: scheduled dedicated-server audit; all actors are pinned to this owner.
  * Clearance acceptance requires covered interior navigation positions; exposed positions remain
  * separately recorded as exterior evidence, rather than being counted as uncleared rooms.
+ * Fresh-clearance room observations use live pose, house bounds and intervening GEOM checks,
+ * independently of production visit receipts; proximity/audio interior alone cannot pass.
  * Repeat/JIP: disposable actors and houses are removed; observer state is public for joining clients.
  * Normal-owner clearance records at most 24 native path events per actor, eight seconds apart,
  * with at most 24 path points plus the final point. Local diagnostic handlers are removed before
@@ -17,6 +19,25 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
 params ["_check","_phase","_wait",["_nativeOnly",false,[true]],["_skipNative",false,[true]],["_transformOnly",false,[true]]];
+// Independent live-pose observation, never a production receipt or completion flag.
+// Audio interior values remain diagnostic; bounds plus geometry establish this
+// fixture's navigation visit, not hostile room safety or universal building support.
+private _observedRoomVisit={
+    params ["_actor","_house","_room"];
+    if (!alive _actor || {!isNull objectParent _actor}) exitWith {false};
+    private _actual=getPosASL _actor;
+    private _target=AGLToASL _room;
+    if (_actual vectorDistance _target > 1.5 || {abs ((_actual select 2)-(_target select 2)) > 0.75}) exitWith {false};
+    private _bounds=boundingBoxReal _house;
+    private _pose=_house worldToModel (getPosATL _actor);
+    private _low=_bounds select 0;
+    private _high=_bounds select 1;
+    if ((_pose select 0) < (_low select 0) || {(_pose select 0) > (_high select 0)}
+        || {(_pose select 1) < (_low select 1)} || {(_pose select 1) > (_high select 1)}
+        || {(_pose select 2) < (_low select 2)} || {(_pose select 2) > (_high select 2)}) exitWith {false};
+    private _hits=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.6],_target vectorAdd [0,0,0.6],_actor,objNull,true,8,"GEOM","NONE"];
+    count _hits < 8 && {_hits findIf {(_x select 2) == _house || {(_x select 3) == _house}} < 0}
+};
 private _recordFixture={
     params ["_house","_label"];
     private _positions=_house buildingPos -1;
@@ -581,11 +602,11 @@ if (!_transformOnly) then {
             || {count _currentOperation > 0 && {(_currentOperation getOrDefault ["generation",-1]) != _entryGeneration}}) then {
             _entryOwnerStable=false;
         };
-        {private _room=_x; private _roomIndex=_forEachIndex; if (_clearingMembers findIf {alive _x && {(getPosASL _x) vectorDistance (AGLToASL _room) <= 1.5 && {abs (((getPosASL _x) select 2)-((AGLToASL _room) select 2)) <= 0.75}}} >= 0) then {_visits set [_roomIndex,true]}} forEach _rooms;
+        {private _room=_x; private _roomIndex=_forEachIndex; if (_clearingMembers findIf {[_x,_house,_room] call _observedRoomVisit} >= 0) then {_visits set [_roomIndex,true]}} forEach _rooms;
         {
             private _worker=_x;
             private _seen=_memberVisits select _forEachIndex;
-            {if (alive _worker && {(getPosASL _worker) vectorDistance (AGLToASL _x) <= 1.5 && {abs (((getPosASL _worker) select 2)-((AGLToASL _x) select 2)) <= 0.75}}) then {_seen pushBackUnique _forEachIndex}} forEach _rooms;
+            {if ([_worker,_house,_x] call _observedRoomVisit) then {_seen pushBackUnique _forEachIndex}} forEach _rooms;
         } forEach _clearingMembers;
         {
             private _position=_x;

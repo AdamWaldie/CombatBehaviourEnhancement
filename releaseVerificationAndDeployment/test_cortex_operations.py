@@ -2063,7 +2063,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75',step)
         self.assertGreater(step.index('abs (_pointFloor-_targetFloor)'),step.index('private _pointFloor='))
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
-        self.assertIn('abs (((getPosASL _worker) select 2)-((AGLToASL _x) select 2)) <= 0.75',audit)
+        observer=audit.split('private _observedRoomVisit={',1)[1].split('private _recordFixture=',1)[0]
+        self.assertIn('abs ((_actual select 2)-(_target select 2)) > 0.75',observer)
+        self.assertIn('_actual vectorDistance _target > 1.5',observer)
+        self.assertIn('_house worldToModel',observer)
+        self.assertIn('lineIntersectsSurfaces',observer)
+        self.assertNotIn('getVariable',observer)  # No production visit/completion receipts.
+        self.assertIn('[_worker,_house,_x] call _observedRoomVisit',audit)
+        self.assertIn('[_x,_house,_room] call _observedRoomVisit',audit)
 
     def test_clearance_mover_handoff_preserves_ordered_actor_specific_room_history(self):
         step=source('buildingOperationStep')
