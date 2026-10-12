@@ -503,3 +503,9 @@ Running native 194c394 runtime-20261012-175429-329 reached the same raw node mas
 The next native comparison adds PLACED-LEADER and PLACED-FOLLOWER, both using the existing bounded new-audit-fixture placement validation before actors spawn. The follower control has a separate real commander held outside, isolating native group role with a single doMove writer per moving actor. Both attempt original model nodes and retain failures; no test receipt supplies visits and no existing world object is repositioned. Group cleanup now deletes the control commander too. Physical matched-role evidence remains pending.
 
 Native 194c394 batch runtime-20261012-175429-329 is now complete: 188 checks, 70 retained failures, zero SQF/fatal errors and one unresolved load warning. Provenance matched. No command-FSM traversal advantage was observed. Its recorded audit processes were stopped and absence verified. The matched-role candidate has full static/build gates only; physical comparison remains pending.
+
+### Matched-role retry failed before connection
+
+Both 5ab6393 runtimes 181238-442 and 181629-996 failed client mission entry and were stopped with process absence verified. The second had server UDP bindings 24350/24351/24352 and a Steam-ready marker; its running client had no UDP endpoint or logged connection. This does not identify the client-side cause. No matched-role behavioral evidence exists. Computer Use remains unused after the user's earlier stop.
+
+The launcher now requires both mission and Steam network readiness before starting ordinary clients/HCs. Script readiness can precede network readiness; this closes that possible ordering gap without claiming it explains these failures. Server-only loader diagnostics retain their local readiness gate. The initial server process is recorded immediately so a readiness failure is still safely stoppable. Physical startup retest remains pending.

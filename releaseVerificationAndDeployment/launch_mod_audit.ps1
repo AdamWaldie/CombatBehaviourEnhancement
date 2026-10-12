@@ -151,19 +151,24 @@ function Show-AuditClientWindow([System.Diagnostics.Process]$Process,[int]$Timeo
 }
 $serverProfile=Join-Path $runtime 'server'
 $server=Start-AuditProcess 'arma3server_x64.exe' @('-noBattlEye','-autoInit','-netlog',"-port=$Port","-config=$config","-profiles=$serverProfile",$modArg)
+$processes=@($server.Id)
+$auditProcessHandles=@($server)
+# Record the server immediately: even a failed readiness gate must be stoppable
+# through the identity-checked audit shutdown path.
+@{runtime=$runtime; mission=$installedMission; process_ids=$processes; fingerprint=$manifest.package.fingerprint} | ConvertTo-Json | Set-Content (Join-Path $runtime 'launch.json')
 $deadline=(Get-Date).AddSeconds(120)
 $ready=$false
+$networkReady=$false
 while ((Get-Date) -lt $deadline -and !$server.HasExited) {
     $logs=Get-ChildItem $serverProfile -Filter '*.rpt' -Recurse -ErrorAction SilentlyContinue
     foreach ($log in $logs) {
-        if (Select-String -LiteralPath $log.FullName -SimpleMatch 'WAIT AUDIT SERVER READY' -Quiet) {$ready=$true; break}
+        if (Select-String -LiteralPath $log.FullName -SimpleMatch 'WAIT AUDIT SERVER READY' -Quiet) {$ready=$true}
+        if (Select-String -LiteralPath $log.FullName -SimpleMatch 'Connected to Steam servers' -Quiet) {$networkReady=$true}
     }
-    if ($ready) {break}
+    if ($ready -and ($ServerOnly -or $networkReady)) {break}
     Start-Sleep -Seconds 1
 }
-if (!$ready) {throw "Server did not reach WAIT audit readiness. Inspect $runtime; processes have been left available for inspection."}
-$processes=@($server.Id)
-$auditProcessHandles=@($server)
+if (!$ready -or (!$ServerOnly -and !$networkReady)) {throw "Server did not reach mission and network readiness (mission=$ready network=$networkReady). Inspect $runtime; recorded processes have been left available for inspection."}
 if ($ServerOnly) {
     @{runtime=$runtime; mission=$installedMission; process_ids=$processes; fingerprint=$manifest.package.fingerprint} | ConvertTo-Json | Set-Content (Join-Path $runtime 'launch.json')
     Write-Output "WAIT danger loader diagnostic entered WAIT_Audit.VR server-side. Runtime: $runtime"
