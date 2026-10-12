@@ -773,13 +773,23 @@ for "_doorIndex" from 1 to 64 do {
 private _doorAccepted=[_doorGroup,_doorHouse] call WAIT_fnc_CortexClearBuilding;
 ["CLEAR-door-order-accepted",_doorAccepted] call _check;
 private _lockHeld=true;
+private _lockedEntryEvidence=[];
+private _lockedNodes=_doorHouse buildingPos -1;
 private _lockedUntil=time+35;
 waitUntil {
     sleep 1;
     if ((_fixtureDoors findIf {_doorHouse animationSourcePhase (_x select 1) > 0.1 || {(_doorHouse getVariable [format ["bis_disabled_Door_%1",_x select 0],0]) != 1}}) >= 0) then {_lockHeld=false};
+    {
+        private _actor=_x;
+        private _node=_lockedNodes findIf {(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5};
+        if (alive _actor && {_node >= 0} && {_lockedEntryEvidence findIf {(_x select 0) == netId _actor} < 0}) then {
+            _lockedEntryEvidence pushBack [netId _actor,_node,getPosASL _actor,time];
+        };
+    } forEach _doorMembers;
     time >= _lockedUntil
 };
 ["CLEAR-door-lock-preserved",_doorReady && {_doorAccepted} && {_lockHeld}] call _check;
+["CLEAR-door-locked-no-physical-entry",_doorReady && {_doorAccepted} && {_lockedEntryEvidence isEqualTo []},str _lockedEntryEvidence] call _check;
 // Changing the lock is the test stimulus; opening and entry must be performed by production.
 ["Clearance: entry unlocked","The lock is now removed. Watch the same soldiers open the door and physically enter. The audit does not animate the door, teleport actors or reset their movement.",getPosATL _doorHouse] call _phase;
 // The phase callback sleeps for presentation; apply the unlock only after it returns.

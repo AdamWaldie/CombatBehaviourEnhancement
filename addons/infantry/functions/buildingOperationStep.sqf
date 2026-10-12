@@ -5,8 +5,8 @@
  * operation generation, Zeus and external ownership before issuing any movement command.
  * Repeat/JIP: One-shot callback. Durable room progress is public; owner-local actor assignments are
  * generation scoped and reconstructed after locality migration. Each room, entrance and egress
- * leg has one generation-owned movement writer. Interior room movement also supplies the native
- * FORMATION PLANNED destination hint; entrance and exterior security retain ordinary doMove.
+ * leg has one generation-owned movement writer. Entry, room and recovery movement each issue one
+ * native doMove path request without a second formation-planner destination override.
  * Arguments: 0: building brain <HASHMAP> created by WAIT_fnc_BuildingOperationStart.
  * Return Value: Number - always -1 because the FSM schedules each later step separately.
  * Current caller: WAIT_fnc_BuildingOperationQueue through WAIT_fnc_CortexQueueJob.
@@ -684,9 +684,6 @@ private _delay=call {
                             private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
                             if (call _mayIssueMovement && {[_unit] call _actorTaskFree}) then {
                                 _unit doMove _unitTarget;
-                                if (_unit == _point && {!_approachingEntry}) then {
-                                    _unit setDestination [_unitTarget,"FORMATION PLANNED",false];
-                                };
                             };
                         };
                         // Slow the final indoor approach without replacing its destination.
@@ -757,9 +754,6 @@ private _delay=call {
                                     if ((_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}
                                         && {call _mayIssueMovement} && {[_x] call _actorTaskFree}) then {
                                         _x doMove _unitTarget;
-                                        if (_x == _point && {!_approachingEntry}) then {
-                                            _x setDestination [_unitTarget,"FORMATION PLANNED",false];
-                                        };
                                     };
                                 } forEach _pair;
                                 _retries=_retries+1;
