@@ -732,13 +732,14 @@ private _unlockedDeadline=time+90;
 waitUntil {
     sleep 0.25;
     if (_doorHouse animationSourcePhase _doorSource >= 0.8) then {_doorOpened=true};
-    if (_doorOpened && {!_entered}) then {
+    // Sample physical arrival throughout the unlocked phase; animation sources may lag traversal.
+    if (!_entered) then {
         {
             private _actor=_x;
             private _node=_doorPositions findIf {(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5};
             if (alive _actor && {_node >= 0}) then {
                 _entered=true;
-                _entryEvidence pushBack [netId _actor,_node,getPosASL _actor,time];
+                _entryEvidence pushBack [netId _actor,_node,getPosASL _actor,time,_doorHouse animationSourcePhase _doorSource];
             };
         } forEach _doorMembers;
     };

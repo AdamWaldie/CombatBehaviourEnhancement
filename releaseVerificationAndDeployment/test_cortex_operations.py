@@ -7461,8 +7461,9 @@ class CortexOperations(unittest.TestCase):
 
     def test_unlocked_door_audit_observes_entry_concurrently(self):
         text=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
-        self.assertIn('if (_doorOpened && {!_entered}) then',text)
-        self.assertIn('_entryEvidence pushBack [netId _actor,_node,getPosASL _actor,time]',text)
+        self.assertIn('if (!_entered) then',text)
+        self.assertNotIn('if (_doorOpened && {!_entered}) then',text)
+        self.assertIn('_entryEvidence pushBack [netId _actor,_node,getPosASL _actor,time,_doorHouse animationSourcePhase _doorSource]',text)
         self.assertIn('(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5',text)
         self.assertNotIn('private _doorOpened=[{_doorHouse animationSourcePhase',text)
 
