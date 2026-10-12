@@ -541,7 +541,10 @@ private _delay=call {
             };
             private _entry=_job get "entry";
             if (_entry isNotEqualTo [] && {_searchCount < 3}) then {
-                private _outward=(getPosATL _building) getDir _entry;
+                private _bounds=boundingBoxReal _building;
+                private _centre=_building modelToWorld (((_bounds select 0) vectorAdd (_bounds select 1)) vectorMultiply 0.5);
+                _centre set [2,0];
+                private _outward=_centre getDir _entry;
                 private _search=_entry getPos [7,_outward];
                 private _taken=+(_stageTriedTargets getOrDefault [_key,[]]);
                 private _liveReserveKeys=_reserves apply {netId _x};
@@ -552,7 +555,7 @@ private _delay=call {
                         _taken pushBack ((_reserveStages get _x) select 0);
                     };
                 } forEach keys _reserveStages;
-                private _cover=[_search,getPosATL _building,12,_taken,_group] call WAIT_fnc_CortexFindCover;
+                private _cover=[_search,_centre,12,_taken,_group] call WAIT_fnc_CortexFindCover;
                 private _target=_cover select 0;
                 if (_cover select 1) then {
                     private _tried=+(_stageTriedTargets getOrDefault [_key,[]]);
@@ -560,7 +563,6 @@ private _delay=call {
                     _stageTriedTargets set [_key,_tried];
                 };
                 private _model=_building worldToModel _target;
-                private _bounds=boundingBoxReal _building;
                 private _minimum=_bounds select 0;
                 private _maximum=_bounds select 1;
                 private _exterior=(_model select 0) < (_minimum select 0)-0.5
