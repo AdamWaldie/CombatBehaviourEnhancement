@@ -12,7 +12,8 @@
  * checkpoint arrival never substitutes for visiting the assigned room.
  * Successful egress additionally requires each active worker's successive physical visits.
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
- * never a recurring formation recall around an interior leader.
+ * never a recurring formation recall around an interior leader. A failed native path's automatic
+ * formation fallback is held once per owned request until the existing finite retry or handover.
  * Arguments: 0: building brain <HASHMAP> created by WAIT_fnc_BuildingOperationStart.
  * Return Value: Number - always -1 because the FSM schedules each later step separately.
  * Current caller: WAIT_fnc_BuildingOperationQueue through WAIT_fnc_CortexQueueJob.
@@ -63,6 +64,7 @@ private _delay=call {
         // A new owned request retires the previous arrival hold, even when the next
         // leg fails before reaching another node. A historical hold is not a live stop.
         (_job getOrDefault ["roomHolds",createHashMap]) deleteAt (netId _actor);
+        (_job getOrDefault ["formationFallbackHolds",createHashMap]) deleteAt (netId _actor);
     };
     private _ownsCurrentMove={
         params ["_actor"];
@@ -182,6 +184,8 @@ private _delay=call {
             private _held=(_job getOrDefault ["accessHeld",[]])+(_job getOrDefault ["quarantineHeld",[]])+(_job getOrDefault ["securityActors",[]]);
             private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
             _held append ((_job get "team") select {netId _x in _roomHolds});
+            private _fallbackHolds=_job getOrDefault ["formationFallbackHolds",createHashMap];
+            _held append ((_job get "team") select {netId _x in _fallbackHolds});
             _held append ((_job getOrDefault ["egressAssignments",[]]) select {_x param [2,false,[true]]} apply {_x select 0});
             _held=(_held arrayIntersect _held) select {
                 local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
@@ -1067,6 +1071,22 @@ private _delay=call {
                                 && {abs (_desiredSpeed-_applied) > 0.1}) then {
                                 _unit forceSpeed _desiredSpeed;
                                 _unit setVariable ["WAIT_Cortex_ClearAppliedSpeed",_desiredSpeed,true];
+                            };
+                            // A failed native path can silently return a worker to formation:
+                            // command becomes empty, ready is true, and the planner reports its
+                            // formation destination. Arrest that fallback once per owned request;
+                            // the existing finite room retry is still the only recovery writer.
+                            // Do not touch explicit FOLLOW, a newer MOVE or specialist commands.
+                            private _nativeDestination=expectedDestination _unit;
+                            private _fallbackHolds=_job getOrDefault ["formationFallbackHolds",createHashMap];
+                            private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
+                            if (!_issue && {currentCommand _unit == ""} && {unitReady _unit}
+                                && {(_nativeDestination param [1,"",[""]]) == "DoNotPlanFormation"}
+                                && {count _issued == 3} && {!(netId _unit in _fallbackHolds)}) then {
+                                private _hold=getPosATL _unit;
+                                doStop _unit;
+                                _fallbackHolds set [netId _unit,+_hold];
+                                _job set ["formationFallbackHolds",_fallbackHolds];
                             };
                             // Native formation must not reclaim a physically arrived room or
                             // support actor between pair handoffs. Hold once per target; a new

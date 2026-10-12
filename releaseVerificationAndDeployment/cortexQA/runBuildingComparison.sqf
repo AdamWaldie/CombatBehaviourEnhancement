@@ -458,6 +458,7 @@ if (!_transformOnly) then {
                 // A generation-owned arrived reserve must retain its actual staging point.
                 // Externally taken actors and retired jobs are outside this observation.
                 if (count _reserveStage == 2 && {_reserveStage select 1}
+                    && {!(_actor in (_job getOrDefault ["team",[]]))}
                     && {!(_job getOrDefault ["finished",false])}
                     && {alive _actor} && {local _actor} && {isNull objectParent _actor}
                     && {isNull remoteControlled _actor}
