@@ -2024,11 +2024,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _pair=_x select {[_x] call _actorAvailable',text)
         self.assertIn('!(_x in _unavailable)',text)
 
-    def test_clear_room_checkpoint_requires_physically_established_pair_floor(self):
+    def test_clear_room_checkpoint_requires_physically_established_floor_and_bounded_shared_access(self):
         step=source('buildingOperationStep')
         branch=step.split('private _approaches=_job',1)[1].split('private _issue=',1)[0]
         self.assertIn('!_approachingEntry && {_entered}',branch)
-        self.assertIn('[_previousPositionIndex] call _roomMovementPoint',branch)
+        self.assertIn('_positions select _previousPositionIndex',branch)
+        self.assertIn('_cleared select [0,24]',branch)
+        self.assertIn('(_probes getOrDefault [_probeKey,-1]) != count _cleared',branch)
+        self.assertIn('count _checkpoint == 3',branch)
         self.assertIn('abs ((_checkpoint select 2)-(_target select 2)) <= 1.5',branch)
         self.assertIn('(getPosASL _point) vectorDistance (AGLToASL _checkpoint) <= 1.5',branch)
         self.assertIn('_approach set [2,true]',branch)

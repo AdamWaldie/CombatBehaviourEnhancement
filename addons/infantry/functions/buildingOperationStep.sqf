@@ -685,6 +685,18 @@ private _delay=call {
                         if (!(_receipt select 2) && {_now-(_receipt select 1) >= 12}
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
                             && {call _mayIssueMovement}) then {
+                            // A nearby candidate can have clear geometry but still lack a native
+                            // entrance path. Once its lead has physically visited the lane anchor,
+                            // retry the partner through that proven anchor rather than repeating
+                            // the same unvisited candidate. This consumes the existing one-shot
+                            // entry recovery; it cannot retire a room or fabricate partner entry.
+                            private _anchorIndex=_route select 0;
+                            private _anchor=_positions select _anchorIndex;
+                            if (_anchorIndex in _cleared && {_entryTarget isNotEqualTo _anchor}) then {
+                                _entryTarget=+_anchor;
+                                (_job get "pairEntryTargets") set [str _pairIndex,+_anchor];
+                                diag_log format ["WAIT CLEAR PARTNER ACCESS: %1",[_job get "generation",_pairIndex,netId _partner,+_anchor]];
+                            };
                             private _recovery=[_group,_operationGeneration,_partner,_entryTarget] call WAIT_fnc_RecoveryStep;
                             if (_recovery == "RECOVERING") then {[_partner,_entryTarget] call _rememberMove};
                             if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {
@@ -829,15 +841,41 @@ private _delay=call {
                     private _approaches=_job getOrDefault ["interiorApproaches",createHashMap];
                     private _approachKey=str _pairIndex;
                     private _approach=_approaches getOrDefault [_approachKey,[]];
-                    if (!_approachingEntry && {_entered} && {_previousPositionIndex >= 0}
-                        && {_previousPositionIndex != _positionIndex}
+                    if (!_approachingEntry && {_entered}
                         && {(_approach param [0,-1]) != _positionIndex}) then {
-                        private _checkpoint=[_previousPositionIndex] call _roomMovementPoint;
+                        private _checkpoint=if (_previousPositionIndex >= 0 && {_previousPositionIndex != _positionIndex}) then {
+                            _positions select _previousPositionIndex
+                        } else {[]};
+                        // Pair history may contain only ground-floor nodes although another
+                        // lane has physically reached the destination floor. Share that access
+                        // evidence instead of repeatedly approaching an upstairs window outside.
+                        // Search once per changed coverage snapshot, at most 24 proven nodes.
+                        private _probeKey=format ["%1:%2",_pairIndex,_positionIndex];
+                        private _probes=_job getOrDefault ["interiorAccessProbes",createHashMap];
+                        if ((_checkpoint isEqualTo [] || {abs ((_checkpoint select 2)-(_target select 2)) > 1.5})
+                            && {abs (((getPosATL _point) select 2)-(_target select 2)) > 1.5}
+                            && {(_probes getOrDefault [_probeKey,-1]) != count _cleared}) then {
+                            _probes set [_probeKey,count _cleared];
+                            _job set ["interiorAccessProbes",_probes];
+                            private _accessNodes=_cleared select [0,24];
+                            private _nearest=1e12;
+                            {
+                                private _node=_positions select _x;
+                                private _distance=_node vectorDistance _target;
+                                if (_x != _positionIndex && {abs ((_node select 2)-(_target select 2)) <= 1.5}
+                                    && {_distance < _nearest}) then {
+                                    _checkpoint=+_node;
+                                    _nearest=_distance;
+                                };
+                            } forEach _accessNodes;
+                        };
                         if (abs (((getPosATL _point) select 2)-(_target select 2)) > 1.5
+                            && {count _checkpoint == 3}
                             && {abs ((_checkpoint select 2)-(_target select 2)) <= 1.5}) then {
                             _approach=[_positionIndex,+_checkpoint,false];
                             _approaches set [_approachKey,_approach];
                             _job set ["interiorApproaches",_approaches];
+                            diag_log format ["WAIT CLEAR INTERIOR ACCESS: %1",[_job get "generation",_pairIndex,_positionIndex,+_checkpoint,+_target]];
                         };
                     };
                     if (!_approachingEntry && {count _approach == 3}
