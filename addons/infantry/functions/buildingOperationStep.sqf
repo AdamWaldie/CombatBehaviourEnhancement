@@ -88,12 +88,15 @@ private _delay=call {
     private _roomGeometryBudget=16;
     private _roomSegmentClear={
         params ["_actor","_targetASL"];
-        // A cached segment is evidence only while this operation still owns it.
-        if (!(call _mayIssueMovement)) exitWith {false};
         private _actual=getPosASL _actor;
         private _key=str [netId _actor,_actual,_targetASL];
-        if (_key in _roomGeometryResults) exitWith {_roomGeometryResults get _key};
-        if (_roomGeometryBudget <= 0) exitWith {false};
+        private _cached=_key in _roomGeometryResults;
+        // A negative answer cannot grant a receipt. Avoid group/config ownership
+        // scans for exhausted or already-rejected queries; positives remain live-gated.
+        if (!_cached && {_roomGeometryBudget <= 0}) exitWith {false};
+        if (_cached && {!(_roomGeometryResults get _key)}) exitWith {false};
+        if (!(call _mayIssueMovement)) exitWith {false};
+        if (_cached) exitWith {_roomGeometryResults get _key};
         _roomGeometryBudget=_roomGeometryBudget-1;
         private _hits=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.6],
             _targetASL vectorAdd [0,0,0.6],_actor,objNull,true,8,"GEOM","NONE"];
