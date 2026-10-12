@@ -418,7 +418,9 @@ private _delay=call {
             _state params ["_cursor","_approachingEntry","_lastPositions","_lastProgress","_retries","_lastTarget","_startAt","_moverIndex","_previousPositionIndex","_entryIndex","_triedEntries","_roomsCleared","_entered"];
             if (_now >= _startAt) then {
                 private _route=_pairRoutes select _pairIndex;
-                while {_cursor < count _route && {(_route select _cursor) in (_cleared+_unreachable)}} do {
+                // Shared coverage may retire work only after this lane has physically entered.
+                private _laneEntered=_entered || {_pair findIf {_x in (_job getOrDefault ["enteredActors",[]])} >= 0};
+                while {_cursor < count _route && {(_route select _cursor) in _unreachable || {(_route select _cursor) in _cleared && {_laneEntered}}}} do {
                     private _completedRoom=_route select _cursor;
                     // Physical visits are collected before this loop. Apply the room handoff
                     // here before skipping it, otherwise the mover never rotates and its
@@ -663,7 +665,7 @@ private _delay=call {
                             _job set ["deadline",(_job get "deadline") max (serverTime+120)];
                         };
                     };
-                    if (_positionIndex in _cleared) then {
+                    if (_positionIndex in _cleared && {_laneEntered}) then {
                         _entered=true;
                         _previousPositionIndex=_positionIndex;
                         _cursor=_cursor+1;
@@ -740,12 +742,13 @@ private _delay=call {
                                         private _failures=_failedBy select _positionIndex;
                                         _failures pushBackUnique _pairId;
                                         _failedBy set [_positionIndex,_failures];
-                                        if (count _failures >= _failureThreshold) then {
+                                        // A failed entry lane cannot undo another worker's physical room visit.
+                                        if (count _failures >= _failureThreshold && {!(_positionIndex in _cleared)}) then {
                                             _unreachable pushBackUnique _positionIndex;
                                         } else {
                                             // Return the room to the shared queue. Another pair must claim it;
                                             // this pair's failure identity prevents an immediate self-retry loop.
-                                            (_job get "pending") pushBackUnique _positionIndex;
+                                            if !(_positionIndex in _cleared) then {(_job get "pending") pushBackUnique _positionIndex};
                                         };
                                         _cursor=_cursor+1;
                                         _lastTarget=-1;

@@ -7583,3 +7583,9 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(start.index('if (count _operation == 0) exitWith'),start.index('[_x,_generation-1] call _ownedRecall'))
         self.assertIn('WAIT_Cortex_ClearRecall',source('buildingOperationStep'))
         self.assertIn('WAIT_Cortex_ClearRecall',source('cortexClearRelease'))
+
+    def test_shared_room_coverage_does_not_retire_unentered_lane(self):
+        text=source('buildingOperationStep')
+        self.assertIn('private _laneEntered=_entered || {_pair findIf {_x in (_job getOrDefault ["enteredActors",[]])} >= 0}',text)
+        self.assertIn('in _cleared && {_laneEntered}',text)
+        self.assertIn('if (_positionIndex in _cleared && {_laneEntered}) then {',text)
