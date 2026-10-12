@@ -10,6 +10,7 @@ class FSM {
    class Zeus {priority=8;to="Finished";condition="[_group] call WAIT_fnc_CortexZeusHeld";action="_reason=""ZEUS"";";};
    class External {priority=7;to="Finished";condition="[_group] call WAIT_fnc_CortexExternalTakeover";action="_reason=""EXTERNAL_OWNER"";";};
    class Delay {priority=6;to="Delay";condition="time < (_brain getOrDefault [""nextAt"",time])";action="";};
+   class Suspended {priority=5;to="Suspended";condition="_phase == ""SUSPENDED""";action="";};
    class OrderedHold {priority=5;to="OrderedHold";condition="_phase == ""ORDERED_HOLD""";action="";};
    class ContactHold {priority=5;to="ContactHold";condition="_phase == ""CONTACT_HOLD""";action="";};
    class Obstruction {priority=5;to="Obstruction";condition="_phase == ""OBSTRUCTION""";action="";};
@@ -24,6 +25,7 @@ class FSM {
   class Spacing {name="Spacing";init="[_group,_registryRevision,_configuration,_brain,""SPACING""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class Recovery {name="Recovery";init="[_group,_registryRevision,_configuration,_brain,""RECOVERY""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class ContactHold {name="ContactHold";init="[_group,_registryRevision,_configuration,_brain,""CONTACT_HOLD""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+  class Suspended {name="Suspended";init="[_group,_registryRevision,_configuration,_brain,""SUSPENDED""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class OrderedHold {name="OrderedHold";init="[_group,_registryRevision,_configuration,_brain,""ORDERED_HOLD""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class Obstruction {name="Obstruction";init="[_group,_registryRevision,_configuration,_brain,""OBSTRUCTION""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class Immobile {name="Immobile";init="[_group,_registryRevision,_configuration,_brain,""IMMOBILE""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};

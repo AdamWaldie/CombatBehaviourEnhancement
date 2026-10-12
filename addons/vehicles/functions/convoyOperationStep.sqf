@@ -51,6 +51,11 @@ if ((_configuration param [5,"TRAVEL"]) == "HALT") then {
  };
  if (_recoveryActors > 0) then {_phase="RECOVERY"} else {if (_phase != "CONTACT_HOLD" && {_spacingPairs > 0}) then {_phase="SPACING"}};
 };
+// A temporary tactical pause releases local leases but retains this registry brain.
+// Describe suspension explicitly instead of publishing stale spacing/recovery roles.
+if (_group getVariable ["WAIT_Convoy_Suspended",false] || {_state getOrDefault ["ownerSuspended",false]}) then {
+ _phase="SUSPENDED";_delay=5;_spacingPairs=0;_recoveryActors=0;
+};
 _brain set ["phase",_phase];_brain set ["spacingPairs",_spacingPairs];_brain set ["recoveryActors",_recoveryActors];_brain set ["lastStepAt",time];_brain set ["lastDelay",_delay];_brain set ["nextAt",time+_delay];_brain set ["pending",false];_brain set ["completed",true];
 _group setVariable ["WAIT_Convoy_Brain_State",[_phase,_configuration param [0,-1],_registryRevision,serverTime,"",_spacingPairs,_recoveryActors],true];
 -1

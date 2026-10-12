@@ -40,13 +40,16 @@ if (_state getOrDefault ["ownerSuspended",false]) then {
     _state set ["reacquire",true];
 };
 private _externalCrew = _registered findIf {(crew _x) findIf {[_x] call WAIT_fnc_CortexExternalOwner != ""} >= 0} >= 0;
-private _paused = [] call WAIT_fnc_CortexIsPaused || {[_group] call WAIT_fnc_CompatibilityExternalControl} || {_externalCrew} || {"ALL" in (_group getVariable ["WAIT_AIPass_DisabledFeatures",[]])};
+private _globalPaused = [] call WAIT_fnc_CortexIsPaused;
+private _paused = _globalPaused || {[_group] call WAIT_fnc_CompatibilityExternalControl} || {_externalCrew} || {"ALL" in (_group getVariable ["WAIT_AIPass_DisabledFeatures",[]])};
 private _playerCrew = _registered findIf {(crew _x) findIf {isPlayer _x || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}} >= 0} >= 0;
 private _zeus = [_group] call WAIT_fnc_CortexZeusHeld;
 if (_paused || {_playerCrew} || {_zeus}) exitWith {
     [_group,_configuration,true] call WAIT_fnc_ConvoyDismountLocal;
     if (!(_group getVariable ["WAIT_Convoy_Suspended", false])) then {
-        private _reason = if (_zeus) then {"ZEUS"} else {if (_playerCrew) then {"PLAYER"} else {"EXTERNAL_OWNER"}};
+        private _reason = if (_zeus) then {"ZEUS"} else {if (_playerCrew) then {"PLAYER"} else {
+            if (_globalPaused && {!_externalCrew} && {!([_group] call WAIT_fnc_CompatibilityExternalControl)}) then {"PAUSED"} else {"EXTERNAL_OWNER"}
+        }};
         [_group, false, _restore, [], _reason] call WAIT_fnc_ConvoyReleaseLocal;
         _group setVariable ["WAIT_Convoy_Suspended", true];
         if (local _group) then {_group setVariable ["WAIT_Convoy_ContactProgress", nil, true]};
