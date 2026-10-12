@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Compares wheeled, tracked and mixed convoy continuity at four spacings; additive mixed
  * columns separately exercise 15/30/50/75 km/h at a fixed 30 m spacing.
+ * One wheeled case applies native reverse input to the lead and observes follower yield/restart;
+ * no actor/vehicle relocation or velocity assignment supplies its physical prerequisite.
  * Outside VR one bounded scan rotates the 1.8 km route across real relieved terrain; all spacing,
  * heading and order measurements use that selected route axis rather than world X/Y.
  * Locality/authority: scheduled server creates and owns fixtures through the public convoy API.
@@ -293,6 +295,46 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             } forEach _vehicles;
             [_id+"-resume-forward-progress",_resumed,str _resumeEvidence] call _check;
             [_id+"-resume-no-turnaround",!_turned,str [_terrainHeading,_resumeEvidence]] call _check;
+        };
+        if (!_baseline && {_label == "WHEELED"} && {_spacing == 30}) then {
+            private _reverseLead=_vehicles select 0;
+            private _reverseFollower=_vehicles select 1;
+            [_id+" reverse yield","Diagnostic stimulus: native BACK input is applied to the lead. Actual backward travel must occur, then the follower must physically yield and both must resume forward. No velocity or position is assigned.",getPosATL _reverseFollower] call _phase;
+            _reverseLead sendSimpleCommand "STOP";
+            private _leadStopped=[{abs speed _reverseLead < 1},8] call _wait;
+            private _reverseOrigin=getPosATL _reverseLead;
+            private _reverseAxis=vectorDir _reverseLead;
+            _reverseLead sendSimpleCommand "STOPTURNING";
+            _reverseLead sendSimpleCommand "BACK";
+            private _reverseSamples=0;
+            private _yieldSamples=0;
+            private _maximumFollowerSpeed=0;
+            private _reverseSince=-1;
+            private _reverseDeadline=time+8;
+            while {time < _reverseDeadline} do {
+                if ((velocityModelSpace _reverseLead select 1) < -0.5) then {
+                    _reverseSamples=_reverseSamples+1;
+                    if (_reverseSince < 0) then {_reverseSince=time};
+                    if (time-_reverseSince >= 1.5) then {
+                        _yieldSamples=_yieldSamples+1;
+                        _maximumFollowerSpeed=_maximumFollowerSpeed max abs speed _reverseFollower;
+                    };
+                };
+                sleep 0.5;
+            };
+            private _backwardTravel=-(((getPosATL _reverseLead) vectorDiff _reverseOrigin) vectorDotProduct _reverseAxis);
+            private _reverseReal=_leadStopped && {_reverseSamples >= 4} && {_backwardTravel >= 2};
+            [_id+"-reverse-physical-prerequisite",_reverseReal,str [_leadStopped,_reverseSamples,_backwardTravel]] call _check;
+            [_id+"-reverse-follower-physical-yield",_reverseReal && {_yieldSamples >= 4} && {_maximumFollowerSpeed <= 1},str [_yieldSamples,_maximumFollowerSpeed,getPosATL _reverseFollower]] call _check;
+            _reverseLead sendSimpleCommand "STOP";
+            _reverseLead sendSimpleCommand "FORWARD";
+            private _forwardOrigins=[getPosATL _reverseLead,getPosATL _reverseFollower];
+            [_id+"-reverse-forward-recovery",[{
+                ((_reverseLead distance2D (_forwardOrigins select 0)) >= 30)
+                    && {((_reverseFollower distance2D (_forwardOrigins select 1)) >= 30)}
+                    && {(velocityModelSpace _reverseLead select 1) > 1}
+                    && {(velocityModelSpace _reverseFollower select 1) > 1}
+            },60] call _wait,str [_forwardOrigins,getPosATL _reverseLead,getPosATL _reverseFollower]] call _check;
         };
         [_id+"-operating-crew-retained",_fixtureCrew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0 && {_vehicles findIf {(_x getVariable ["WAIT_CortexQA_Exits",[]]) isNotEqualTo []} < 0},str (_vehicles apply {_x getVariable ["WAIT_CortexQA_Exits",[]]})] call _check;
         if (!_baseline) then {[_group,0,_spacing,true,true] call WAIT_fnc_SimpleAiConvoy};

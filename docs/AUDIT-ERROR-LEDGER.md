@@ -570,3 +570,6 @@ Standalone driving retires its cap when the vehicle is destroyed/immobilized or 
 
 
 Convoy follower pacing distinguishes predecessor reverse motion from forward travel using the existing vehicle-local longitudinal velocity sample. Below -0.5 m/s, follower requested speed is zero after smoothing/lateral recapture and before infantry safety limiting. Route commitments remain intact; ordinary pacing resumes when reverse motion ends. No extra sensor loop, waypoint replacement or recovery budget is introduced. The prior absolute-speed input could command forward travel toward a backing predecessor. This source fault is separate from unresolved mixed tracked/wheeled stop/start and spacing observations; physical reverse-yield, restart and convoy acceptance remain pending with audits paused.
+
+
+A queued wheeled 30 m convoy diagnostic now supplies native lead BACK input and independently requires real backward displacement, repeated reverse samples, follower physical stop after a bounded braking interval, then real forward recovery by both vehicles. No assigned velocity/position or cap-only assertion can pass it; absent reverse motion fails the prerequisite and yield result. The original convoy matrix outcomes remain untouched. This stimulus tests follower response, not autonomous obstacle-recovery admission. It has not run; game audits remain paused.
