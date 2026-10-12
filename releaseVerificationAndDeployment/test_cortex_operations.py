@@ -7521,7 +7521,10 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_partner_entry_is_committed_and_doors_require_proximity(self):
         step=source('buildingOperationStep')
-        self.assertIn('_supportTarget=_positions select (_route select 0)',step)
+        self.assertIn('pairEntryTargets',step)
+        self.assertIn('count _pair > 1 && {!_partnerEntered} && {!_approachingEntry}',step)
+        self.assertIn('lineIntersectsSurfaces [_origin',step)
+        self.assertIn('_ranked resize ((count _ranked) min 24)',step)
         self.assertIn('_allWorkersEntered',step)
         self.assertIn('_enteredActors pushBackUnique _visitor',step)
         door=source('cortexBuildingDoor')

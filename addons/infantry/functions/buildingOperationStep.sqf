@@ -459,10 +459,11 @@ private _delay=call {
                 };
                 // Partner entry recovery is independent of the lead's current room.
                 // A finished room queue must not strand an unentered partner with an ended order.
-                if (_entered && {count _pair > 1} && {_route isNotEqualTo []}) then {
+                if (count _pair > 1 && {_route isNotEqualTo []}
+                    && {str _pairIndex in (_job getOrDefault ["pairEntryTargets",createHashMap])}) then {
                     private _partner=_pair select ((_moverIndex+1) mod count _pair);
                     if !(_partner in (_job getOrDefault ["enteredActors",[]])) then {
-                        private _entryTarget=_positions select (_route select 0);
+                        private _entryTarget=(_job getOrDefault ["pairEntryTargets",createHashMap]) getOrDefault [str _pairIndex,_positions select (_route select 0)];
                         private _entryRecovery=_job getOrDefault ["entryRecovery",createHashMap];
                         private _key=netId _partner;
                         private _distance=(getPosASL _partner) vectorDistance (AGLToASL _entryTarget);
@@ -567,10 +568,29 @@ private _delay=call {
                     private _supportTarget=[];
                     private _partner=_pair select ((_moverIndex+1) mod count _pair);
                     private _partnerEntered=_partner in (_job getOrDefault ["enteredActors",[]]);
-                    if (count _pair > 1 && {_entered} && {!_partnerEntered}) then {
-                        // Commit the partner's entry until it physically reaches an interior node.
-                        // Following the lead's changing previous-room target can cancel entry.
-                        _supportTarget=_positions select (_route select 0);
+                    if (count _pair > 1 && {!_partnerEntered} && {!_approachingEntry}) then {
+                        // Commit both actors at initial entry. Select a nearby same-floor node
+                        // connected by clear interior geometry, rather than holding outside until a visit.
+                        private _entryTargets=_job getOrDefault ["pairEntryTargets",createHashMap];
+                        private _entryKey=str _pairIndex;
+                        _supportTarget=_entryTargets getOrDefault [_entryKey,[]];
+                        if (_supportTarget isEqualTo []) then {
+                            private _anchor=_positions select (_route select 0);
+                            private _candidates=_positions select {
+                                _x isNotEqualTo _anchor && {abs ((_x select 2)-(_anchor select 2)) <= 1.5}
+                                    && {_x distance2D _anchor <= 8}
+                            };
+                            private _ranked=_candidates apply {[_x distance2D _anchor,_x]};
+                            _ranked sort true;
+                            _ranked resize ((count _ranked) min 24);
+                            private _origin=(AGLToASL _anchor) vectorAdd [0,0,0.8];
+                            private _connected=_ranked findIf {
+                                (lineIntersectsSurfaces [_origin,(AGLToASL (_x select 1)) vectorAdd [0,0,0.8],objNull,objNull,true,1,"GEOM","NONE"]) isEqualTo []
+                            };
+                            _supportTarget=if (_connected >= 0) then {+((_ranked select _connected) select 1)} else {+_anchor};
+                            _entryTargets set [_entryKey,+_supportTarget];
+                            _job set ["pairEntryTargets",_entryTargets];
+                        };
                     };
                     if (count _pair > 1 && {_supportTarget isEqualTo []}) then {
                         _supportTarget=if (_approachingEntry) then {
