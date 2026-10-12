@@ -448,7 +448,8 @@ if (!_transformOnly) then {
                     _actor in (_operation getOrDefault ["unavailable",[]]),
                     (_job getOrDefault ["entryRecovery",createHashMap]) getOrDefault [netId _actor,[]],
                     insideBuilding _actor,_actor getVariable ["WAIT_Cortex_ClearReserve",[]],
-                    _actor in (_job getOrDefault ["quarantineHeld",[]])]];
+                    _actor in (_job getOrDefault ["quarantineHeld",[]]),
+                    (_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _actor,[]]]];
             } forEach (_clearingMembers select [0,16]);
             diag_log format ["WAIT CLEAR LIVE ROUTE: %1",[
                 _size,_routeTraceCount,diag_tickTime,
@@ -618,6 +619,11 @@ if (!_transformOnly) then {
             _beforeMove select _forEachIndex,_x distance2D (_beforeMove select _forEachIndex),
             _x distance2D _formationPoint,
             abs (((getPosASL _x) select 2)-((AGLToASL _formationPoint) select 2))];
+        diag_log format ["WAIT CLEAR HANDBACK ACTOR: %1",[_size,netId _x,getPosATL _x,currentCommand _x,
+            expectedDestination _x,(_admissionJob getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _x,[]],
+            _x getVariable ["WAIT_Cortex_ClearRecall",[]],groupOwner _group,_entryEpoch,_group getVariable ["WAIT_AIPass_Epoch",0],
+            local _x,lifeState _x,damage _x,_x checkAIFeature "MOVE",_x checkAIFeature "PATH",
+            [_x] call WAIT_fnc_CortexCombatEffective,_x getVariable ["WAIT_Cortex_ActorMove",[]]]];
     } forEach _members;
     [format ["CLEAR-fresh-%1-handover-physical",_size],_moved,str [getPosATL leader _group,formation _group,_handoverEvidence]] call _check;
     private _speedReleased=true;

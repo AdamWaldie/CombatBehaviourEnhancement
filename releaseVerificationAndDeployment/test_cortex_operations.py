@@ -2028,7 +2028,7 @@ class CortexOperations(unittest.TestCase):
         step=source('buildingOperationStep')
         branch=step.split('private _approaches=_job',1)[1].split('private _issue=',1)[0]
         self.assertIn('!_approachingEntry && {_entered}',branch)
-        self.assertIn('_positions select _previousPositionIndex',branch)
+        self.assertIn('[_previousPositionIndex] call _roomMovementPoint',branch)
         self.assertIn('abs ((_checkpoint select 2)-(_target select 2)) <= 1.5',branch)
         self.assertIn('(getPosASL _point) vectorDistance (AGLToASL _checkpoint) <= 1.5',branch)
         self.assertIn('_approach set [2,true]',branch)
@@ -7703,9 +7703,11 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',branch)
         self.assertIn('_destination vectorDistance _target <= 0.25',branch)
         self.assertIn('call WAIT_fnc_NativeOrderReceipt) isNotEqualTo',branch)
-        self.assertLess(branch.index('_targets deleteAt'),branch.index('_x doFollow leader _group'))
-        self.assertIn('WAIT_Cortex_ClearRecall',branch)
-        self.assertIn('leader _group,time+5',branch)
+        finish=text.split('private _finish =',1)[1].split('if (isNull _group || {!local _group} || {!(_group getVariable',1)[0]
+        self.assertLess(finish.index('call WAIT_fnc_OperationCancel'),finish.index('_actor doFollow leader _group'))
+        self.assertLess(finish.index('WAIT_Cortex_ClearHold",nil'),finish.index('_actor doFollow leader _group'))
+        self.assertIn('WAIT_Cortex_ClearRecall',finish)
+        self.assertIn('leader _group,time+5',finish)
 
     def test_clearance_new_actor_order_audit_requires_ready_route_actual_travel_and_retirement(self):
         text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
@@ -7741,3 +7743,23 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('calculatePath',branch)
         remove=text.index('removeEventHandler ["PathCalculated"')
         self.assertLess(remove,text.index('{deleteVehicle _x} forEach _members',remove))
+
+    def test_clearance_wrong_floor_alternative_requires_stall_real_anchor_and_supported_nearby_floor(self):
+        text=source('buildingOperationStep')
+        branch=text.split('private _floorTargets=',1)[1].split('// Preserve a physically established',1)[0]
+        for guard in ['_retries >= 3','_point distance2D _target <= 4','_floorProbed','floorProbeCounts',
+                      'forEach _cleared','lineIntersectsSurfaces','>= 0.7','== _building','<= 0.5','<= 1.25']:
+            self.assertIn(guard,branch)
+        self.assertNotIn('_cleared pushBack',branch)
+        self.assertNotIn('setPos',branch)
+        self.assertIn('[_index] call _roomMovementPoint',text)
+        self.assertIn('[_record select 0] call _roomMovementPoint',text)
+
+    def test_clearance_active_handover_does_not_depend_on_live_group_brain(self):
+        text=source('buildingOperationStep')
+        release=text.split('if (_reason == "NEW_ORDER" && {local _group}',1)[1].split('diag_log format ["[WAIT]',1)[0]
+        for guard in ['WAIT_AIPass_Epoch','WAIT_AIPass_ClearGeneration','isEqualTo _brain',
+                      'currentCommand _actor == _command','_command == "STOP"',
+                      '_destination vectorDistance _target <= 0.25','CortexExternalTakeover','NativeOrderReceipt']:
+            self.assertIn(guard,release)
+        self.assertNotIn('WAIT_GroupBrain',release)

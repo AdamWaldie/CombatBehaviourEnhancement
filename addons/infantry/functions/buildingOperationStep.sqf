@@ -60,6 +60,10 @@ private _delay=call {
         _targets set [netId _actor,+_target];
         _job set ["movementTargets",_targets];
     };
+    private _roomMovementPoint={
+        params ["_index"];
+        (_job getOrDefault ["floorTargets",createHashMap]) getOrDefault [str _index,(_job get "positions") select _index]
+    };
     private _finish = {
         params [["_restore",true,[true]],["_reason","CANCELLED",[""]]];
         // Old-owner callbacks may finish their local FSM, but never retire a successor's
@@ -75,6 +79,7 @@ private _delay=call {
         _group setVariable ["WAIT_Cortex_ClearEvidence",[+(_job get "cleared"),+(_job get "unreachable"),+(_job get "retryCounts"),+(_job get "failedBy"),_job get "deadline",_job get "lastProgressAt"],true];
         private _result = ["INCOMPLETE","COMPLETE"] select (count (_job get "cleared") == count (_job get "positions") && {!(_job getOrDefault ["egressFailed",false])} && {!(_job getOrDefault ["entryFailed",false])});
         if (_reason != "COMPLETE") then {_result="CANCELLED"};
+        private _handbacks=[];
         // One bounded terminal snapshot preserves the route which actually failed before cleanup
         // clears actors' destinations. No geometry query or recurring trace is added to the hot path.
         private _routeActors=+(_job getOrDefault ["team",[]]);
@@ -149,14 +154,12 @@ private _delay=call {
                     && {[_x] call _actorAvailable} && {[_x] call _actorTaskFree}
                     && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
                     && {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}) then {
-                    _targets deleteAt (netId _x);
-                    _x setVariable ["WAIT_Cortex_ClearRecall",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],leader _group,time+5]];
-                    _x doFollow leader _group;
+                    _handbacks pushBack [_x,"MOVE",+_target];
                 };
             } forEach (_movers arrayIntersect _movers);
             // Native waypoint replacement must also release our finite pre-completion holds.
-            // Publish the old order receipt; the normal brain releases only unchanged owned
-            // STOP actors after this operation retires, without restoring an obsolete route.
+            // Release through this owner after cancellation; the ordinary group brain may
+            // already have retired after a failed clearance and cannot be a required consumer.
             private _held=(_job getOrDefault ["accessHeld",[]])+(_job getOrDefault ["quarantineHeld",[]])+(_job getOrDefault ["securityActors",[]]);
             private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
             _held append ((_job get "team") select {netId _x in _roomHolds});
@@ -164,9 +167,7 @@ private _delay=call {
                 local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
                     && {[_x] call _actorAvailable} && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
             };
-            if (_held isNotEqualTo []) then {
-                _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],_job getOrDefault ["nativeOrderReceipt",[]],_held],true];
-            };
+            {_handbacks pushBack [_x,"STOP",[]]} forEach _held;
         };
         _group setVariable ["WAIT_Cortex_ClearResult",[_result,count (_job get "cleared"),count (_job get "positions")],true];
         _job set ["finished",true];
@@ -181,6 +182,29 @@ private _delay=call {
             } else {
                 [_group,_operationGeneration,_reason] call WAIT_fnc_OperationCancel;
             };
+        };
+        if (_reason == "NEW_ORDER" && {local _group}
+            && {(_brain get "ownerEpoch") == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {(_job get "generation") == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])}
+            && {(_group getVariable ["WAIT_BuildingBrain",createHashMap]) isEqualTo _brain}
+            && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}) then {
+            _group setVariable ["WAIT_Cortex_ClearHold",nil,true];
+            {
+                _x params ["_actor","_command","_target"];
+                private _destination=(expectedDestination _actor) param [0,[]];
+                if (local _group && {(_brain get "ownerEpoch") == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                    && {(_job get "generation") == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])}
+                    && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}
+                    && {currentCommand _actor == _command}
+                    && {_command == "STOP" || {count _destination == 3 && {_destination vectorDistance _target <= 0.25}}}
+                    && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
+                    && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+                    && {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}) then {
+                    (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
+                    _actor setVariable ["WAIT_Cortex_ClearRecall",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],leader _group,time+5]];
+                    _actor doFollow leader _group;
+                };
+            } forEach _handbacks;
         };
         diag_log format ["[WAIT] %1 clear building %2 (%3 of %4 positions)",_group,_result,count (_job get "cleared"),count (_job get "positions")];
         diag_log format ["WAIT CLEAR END TRACE: %1",[_reason,_operationGeneration,(_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["generation",-1],_group getVariable ["WAIT_AIPass_Epoch",0],_brain getOrDefault ["ownerEpoch",-1]]];
@@ -635,6 +659,9 @@ private _delay=call {
                     private _partner=_pair select ((_moverIndex+1) mod count _pair);
                     if !(_partner in (_job getOrDefault ["enteredActors",[]])) then {
                         private _entryTarget=(_job getOrDefault ["pairEntryTargets",createHashMap]) getOrDefault [str _pairIndex,_positions select (_route select 0)];
+                        if (_entryTarget isEqualTo (_positions select (_route select 0))) then {
+                            _entryTarget=[_route select 0] call _roomMovementPoint;
+                        };
                         private _entryRecovery=_job getOrDefault ["entryRecovery",createHashMap];
                         private _key=netId _partner;
                         private _distance=(getPosASL _partner) vectorDistance (AGLToASL _entryTarget);
@@ -730,6 +757,58 @@ private _delay=call {
                     };
                     private _target=[_positions select _positionIndex,_entryTarget] select _approachingEntry;
                     private _point=_pair select (_moverIndex mod count _pair);
+                    // Some reported upper-window nodes project onto the ground planner despite
+                    // a valid neighbouring upper-floor route. After measured stalled retries,
+                    // try one nearby floor-supported point toward a physically visited anchor.
+                    // The original node and its physical visit tolerance remain authoritative.
+                    private _floorTargets=_job getOrDefault ["floorTargets",createHashMap];
+                    private _floorKey=str _positionIndex;
+                    private _floorTarget=_floorTargets getOrDefault [_floorKey,[]];
+                    if (!_approachingEntry && {_floorTarget isNotEqualTo []}) then {_target=+_floorTarget};
+                    private _floorProbed=_job getOrDefault ["floorProbed",[]];
+                    if (!_approachingEntry && {_floorTarget isEqualTo []} && {!(_positionIndex in _cleared)}
+                        && {!(_positionIndex in _floorProbed)} && {_retries >= 3} && {_now-_lastProgress > 4}
+                        && {_point distance2D _target <= 4}
+                        && {abs (((getPosATL _point) select 2)-(_target select 2)) > 1.5}
+                        && {[_point] call _actorTaskFree}) then {
+                        private _probeCounts=_job getOrDefault ["floorProbeCounts",createHashMap];
+                        if ((_probeCounts getOrDefault [_floorKey,-1]) != count _cleared) then {
+                            _probeCounts set [_floorKey,count _cleared];
+                            _job set ["floorProbeCounts",_probeCounts];
+                            private _anchorIndex=-1;
+                            private _nearest=1e12;
+                            {
+                                private _anchor=_positions select _x;
+                                private _distance=_anchor distance2D _target;
+                                if (_x != _positionIndex && {abs ((_anchor select 2)-(_target select 2)) <= 0.75}
+                                    && {_distance < _nearest}) then {_anchorIndex=_x; _nearest=_distance};
+                            } forEach _cleared;
+                            if (_anchorIndex >= 0) then {
+                                _floorProbed pushBackUnique _positionIndex;
+                                _job set ["floorProbed",_floorProbed];
+                                private _anchor=_positions select _anchorIndex;
+                                private _candidate=+_target;
+                                private _offset=_target getPos [0.75 min _nearest,_target getDir _anchor];
+                                _candidate set [0,_offset select 0]; _candidate set [1,_offset select 1];
+                                private _origin=AGLToASL _candidate;
+                                private _surfaces=lineIntersectsSurfaces [_origin vectorAdd [0,0,0.5],_origin vectorAdd [0,0,-1],objNull,objNull,true,1,"GEOM","NONE"];
+                                if (_surfaces isNotEqualTo []) then {
+                                    private _surface=_surfaces select 0;
+                                    private _floor=ASLToAGL (_surface select 0);
+                                    if (((_surface select 1) select 2) >= 0.7
+                                        && {(_surface select 2) == _building || {(_surface select 3) == _building}}
+                                        && {abs ((_floor select 2)-(_target select 2)) <= 0.5}
+                                        && {_floor vectorDistance (_positions select _positionIndex) <= 1.25}) then {
+                                        _floorTargets set [_floorKey,+_floor];
+                                        _job set ["floorTargets",_floorTargets];
+                                        diag_log format ["WAIT CLEAR FLOOR TARGET: %1",[_job get "generation",_positionIndex,+_target,+_floor,_anchorIndex]];
+                                        _target=+_floor;
+                                        _lastTarget=-1; _retries=0; _lastProgress=_now;
+                                    };
+                                };
+                            };
+                        };
+                    };
                     // Preserve a physically established interior route across mover changes.
                     // A ground-level partner should regain the pair's visited target-floor node
                     // before requesting its next room, rather than approaching an upstairs window.
@@ -740,7 +819,7 @@ private _delay=call {
                     if (!_approachingEntry && {_entered} && {_previousPositionIndex >= 0}
                         && {_previousPositionIndex != _positionIndex}
                         && {(_approach param [0,-1]) != _positionIndex}) then {
-                        private _checkpoint=_positions select _previousPositionIndex;
+                        private _checkpoint=[_previousPositionIndex] call _roomMovementPoint;
                         if (abs (((getPosATL _point) select 2)-(_target select 2)) > 1.5
                             && {abs ((_checkpoint select 2)-(_target select 2)) <= 1.5}) then {
                             _approach=[_positionIndex,+_checkpoint,false];
@@ -794,12 +873,15 @@ private _delay=call {
                             _job set ["pairEntryTargets",_entryTargets];
                         };
                     };
+                    if (_supportTarget isEqualTo (_positions select (_route select 0))) then {
+                        _supportTarget=[_route select 0] call _roomMovementPoint;
+                    };
                     if (count _pair > 1 && {_supportTarget isEqualTo []}) then {
                         _supportTarget=if (_approachingEntry) then {
                             private _outward=(getPosATL (_job get "building")) getDir _entryTarget;
                             _entryTarget getPos [3,_outward]
                         } else {
-                            if (_previousPositionIndex >= 0) then {_positions select _previousPositionIndex} else {
+                            if (_previousPositionIndex >= 0) then {[_previousPositionIndex] call _roomMovementPoint} else {
                                 if (_entryTarget isEqualTo [] || {_entered}) then {_target} else {
                                     // Keep first-room security clear of the threshold. Standing on
                                     // the entrance can physically block the partner's only path inside.
@@ -1054,14 +1136,14 @@ private _delay=call {
                     _ranked sort true;
                     if (_ranked isNotEqualTo []) then {
                         private _index=(_ranked select 0) select 1;
-                        private _target=_positions select _index;
+                        private _target=[_index] call _roomMovementPoint;
                         _record=[_index,(getPosASL _unit) vectorDistance (AGLToASL _target),_now,false];
                         _follow set [_key,_record];
                         _unit doMove _target;
                         [_unit,_target] call _rememberMove;
                     };
                 } else {
-                    private _target=_positions select (_record select 0);
+                    private _target=[_record select 0] call _roomMovementPoint;
                     private _remaining=(getPosASL _unit) vectorDistance (AGLToASL _target);
                     if ((_record select 1)-_remaining >= 1) then {
                         _record set [1,_remaining]; _record set [2,_now];
