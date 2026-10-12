@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Observe real carried smoke-grenade launch direction across cardinal bearings and stances.
  * Locality/authority: scheduled dedicated-server fixture; fresh groups remain server-owned.
- * Repeat/JIP: fresh actors and cleaned-up public target markers per case; no throw receipts or projectiles are fabricated. Observer phase is public.
+ * Repeat/JIP: spatially separated actors; observed projectiles and public markers cleaned after launch evidence; no throw receipts or projectiles are fabricated. Observer phase is public.
  * Arguments: 0: check callback <CODE>; 1: phase callback <CODE>; 2: finite wait callback <CODE>.
  * Return: Nothing. This is a controlled direction fixture, not live-contact or fragmentation acceptance.
  * Current caller: cortexQA/runServer.sqf in the grenades/fire/mechanics batches.
@@ -11,13 +11,14 @@
 params ["_check","_phase","_wait"];
 {
     private _pose=_x;
+    private _poseIndex=_forEachIndex;
     {
         private _bearing=_x;
         private _id=format ["GRENADE-SMOKE-%1-%2",_pose,_bearing];
         private _group=createGroup [east,true];
         _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
         _group setVariable ["acex_headless_blacklist",true,true];
-        private _unit=_group createUnit ["O_Soldier_F",[6800,6800,0],[],0,"NONE"];
+        private _unit=_group createUnit ["O_Soldier_F",[6800+100*_forEachIndex,6800+100*_poseIndex,0],[],0,"NONE"];
         _unit setDir _bearing;
         _unit setUnitPos _pose;
         _unit addMagazine "SmokeShell";
@@ -35,6 +36,9 @@ params ["_check","_phase","_wait"];
         private _handler=_unit addEventHandler ["FiredMan",{
             params ["_actor","_weapon","_muzzle","_mode","_ammo","_magazine","_projectile"];
             if (_weapon != "Throw" || {_magazine != "SmokeShell"}) exitWith {};
+            private _projectiles=_actor getVariable ["WAIT_CortexQA_GrenadeProjectiles",[]];
+            if (!isNull _projectile) then {_projectiles pushBackUnique _projectile};
+            _actor setVariable ["WAIT_CortexQA_GrenadeProjectiles",_projectiles];
             private _v=velocity _projectile;
             private _valid=!isNull _projectile && {(_v select 0)^2+(_v select 1)^2 > 0.01};
             private _requested=_actor getDir (_actor getVariable ["WAIT_CortexQA_GrenadeTarget",[]]);
@@ -48,6 +52,7 @@ params ["_check","_phase","_wait"];
         private _evidence=_unit getVariable ["WAIT_CortexQA_GrenadeLaunch",[]];
         [_id+"-physical-direction",_released && {count _evidence >= 2} && {_evidence select 0} && {(_evidence select 1) <= 30},str _evidence] call _check;
         _unit removeEventHandler ["FiredMan",_handler];
+        {if (!isNull _x) then {deleteVehicle _x}} forEach (_unit getVariable ["WAIT_CortexQA_GrenadeProjectiles",[]]);
         deleteMarker _marker;
         deleteVehicle _unit;
         deleteGroup _group;
