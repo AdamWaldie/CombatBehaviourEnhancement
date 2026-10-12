@@ -2044,7 +2044,7 @@ class CortexOperations(unittest.TestCase):
         step=source('buildingOperationStep')
         self.assertIn('["navigationPositions",+_allPositions]',admission)
         self.assertIn('["transitPositions",_allPositions select {!(_x in _positions)}]',admission)
-        access=step.split('private _floorKey=str round',1)[1].split('// Pair history may contain',1)[0]
+        access=step.split('private _floorKey=str round',1)[1].split('// At most two legs:',1)[0]
         self.assertIn('count _accessCache < 8',access)
         self.assertIn('select [0,32]',access)
         self.assertIn('(_x select 2) == _building || {(_x select 3) == _building}',access)
@@ -2064,6 +2064,18 @@ class CortexOperations(unittest.TestCase):
         self.assertGreater(step.index('abs (_pointFloor-_targetFloor)'),step.index('private _pointFloor='))
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         self.assertIn('abs (((getPosASL _worker) select 2)-((AGLToASL _x) select 2)) <= 0.75',audit)
+
+    def test_clearance_mover_handoff_preserves_ordered_actor_specific_room_history(self):
+        step=source('buildingOperationStep')
+        branch=step.split('private _approaches=_job',1)[1].split('private _issue=',1)[0]
+        self.assertIn('format ["%1:%2",_pairIndex,netId _point]',branch)
+        self.assertIn('!(_previousPositionIndex in _ownVisits)',branch)
+        self.assertLess(branch.index('_chain pushBack (+(_positions select _previousPositionIndex))'),branch.index('_chain pushBackUnique (+_checkpoint)'))
+        self.assertLess(branch.index('private _accessNodes=_cleared'),branch.index('private _transit='))
+        self.assertIn('_approach=[_positionIndex,+_first,false,_chain]',branch)
+        self.assertIn('private _next=_remaining deleteAt 0',branch)
+        self.assertIn('_target=+_next',branch)
+        self.assertNotIn('_cleared pushBack',branch)
 
     def test_clear_egress_preserves_progressing_routes_and_bounds_retries(self):
         step=source('buildingOperationStep')
