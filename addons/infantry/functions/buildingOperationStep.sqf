@@ -11,6 +11,8 @@
  * checkpoint. Already-entered movers request same-floor rooms without revisiting their buddy.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
+ * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
+ * geometry probes per callback, cached at the current pose and rotating worker observation order.
  * Successful egress additionally requires each active worker's successive physical visits.
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
  * never a recurring formation recall around an interior leader. A failed native path's automatic
@@ -80,6 +82,26 @@ private _delay=call {
         if (!([_actor] call _ownsCurrentMove) || {unitReady _actor}) exitWith {false};
         private _issued=(_job get "movementTargets") get (netId _actor);
         (getPosASL _actor) vectorDistance (AGLToASL _issued) > 0.4
+    };
+    // Callback-local geometry cache and hard ray budget; no persistent observer.
+    private _roomGeometryResults=createHashMap;
+    private _roomGeometryBudget=16;
+    private _roomSegmentClear={
+        params ["_actor","_targetASL"];
+        private _actual=getPosASL _actor;
+        private _key=str [netId _actor,_actual,_targetASL];
+        if (_key in _roomGeometryResults) exitWith {_roomGeometryResults get _key};
+        if (_roomGeometryBudget <= 0) exitWith {false};
+        _roomGeometryBudget=_roomGeometryBudget-1;
+        private _hits=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.6],
+            _targetASL vectorAdd [0,0,0.6],_actor,objNull,true,8,"GEOM","NONE"];
+        // A saturated result cannot prove that the target wall was examined.
+        private _clear=count _hits < 8 && {_hits findIf {
+            (_x select 2) == (_job get "building") || {(_x select 3) == (_job get "building")}
+        } < 0};
+        _roomGeometryResults set [_key,_clear];
+        _job set ["roomGeometryChecksLast",16-_roomGeometryBudget];
+        _clear
     };
     private _roomMovementPoint={
         params ["_index"];
@@ -614,6 +636,11 @@ private _delay=call {
         _visitIndices pushBackUnique ((_visitCursor+_offset) mod (count _positions));
     };
     _job set ["visitCursor",(_visitCursor+_visitBudget) mod (count _positions)];
+    // Rotate first observer so budget exhaustion cannot always prefer one worker.
+    private _actorCursor=(_job getOrDefault ["visitActorCursor",0]) mod ((count _activeWorkers) max 1);
+    private _visitWorkers=(_activeWorkers select [_actorCursor]) + (_activeWorkers select [0,_actorCursor]);
+    _job set ["visitActorCursor",(_actorCursor+1) mod ((count _activeWorkers) max 1)];
+    _job set ["roomGeometryChecksLast",0];
     {
         private _visitor = _x;
         if ([_visitor] call WAIT_fnc_CortexCombatEffective && {local _visitor} && {!isPlayer _visitor}
@@ -626,7 +653,8 @@ private _delay=call {
                 private _positionIndex=_x;
                 private _positionASL=AGLToASL (_positions select _positionIndex);
                 private _atPosition=_actual vectorDistance _positionASL <= 1.5
-                    && {abs ((_actual select 2)-(_positionASL select 2)) <= 0.75};
+                    && {abs ((_actual select 2)-(_positionASL select 2)) <= 0.75}
+                    && {[_visitor,_positionASL] call _roomSegmentClear};
                 if (_atPosition) then {
                     private _enteredActors=_job getOrDefault ["enteredActors",[]];
                     _enteredActors pushBackUnique _visitor;
@@ -649,7 +677,7 @@ private _delay=call {
                 };
             } forEach _visitIndices;
         };
-    } forEach _activeWorkers;
+    } forEach _visitWorkers;
     private _pairRoutes=_job get "pairRoutes";
     {
         private _pairIndex=_forEachIndex;
@@ -1150,6 +1178,7 @@ private _delay=call {
                             if ((_roomHolds getOrDefault [_holdKey,[]]) isNotEqualTo _speedTarget
                                 && {(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5}
                                 && {abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75}
+                                && {[_unit,AGLToASL _speedTarget] call _roomSegmentClear}
                                 && {currentCommand _unit != "MOVE" || {[_unit] call _ownsCurrentMove}}
                                 && {!([_unit] call _activeOwnMove)}) then {
                                 doStop _unit;
