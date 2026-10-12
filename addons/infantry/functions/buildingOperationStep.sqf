@@ -14,6 +14,8 @@
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
  * Successful egress additionally requires each active worker's successive physical visits.
+ * Reserve stages use bounded nearby cover selection with shared destination exclusions,
+ * exterior building bounds and entrance clearance; no fixed fan layout is generated.
  * Reserve stage selection processes at most one pending actor per callback; other attempts remain pending.
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
  * never a recurring formation recall around an interior leader. A failed native path's automatic
@@ -528,9 +530,25 @@ private _delay=call {
             private _entry=_job get "entry";
             if (_entry isNotEqualTo []) then {
                 private _outward=(getPosATL _building) getDir _entry;
-                private _target=_entry getPos [7+2*floor (_forEachIndex/2),_outward+([-25,25] select (_forEachIndex mod 2))];
-                _target set [2,0];
-                if ((lineIntersectsSurfaces [(AGLToASL _entry) vectorAdd [0,0,0.8],(AGLToASL _target) vectorAdd [0,0,0.8],objNull,objNull,true,1,"GEOM","NONE"]) isEqualTo []) then {
+                private _search=_entry getPos [7,_outward];
+                private _taken=[];
+                {_taken pushBack ((_reserveStages get _x) select 0)} forEach keys _reserveStages;
+                private _cover=[_search,getPosATL _building,12,_taken,_group] call WAIT_fnc_CortexFindCover;
+                private _target=_cover select 0;
+                private _model=_building worldToModel _target;
+                private _bounds=boundingBoxReal _building;
+                private _minimum=_bounds select 0;
+                private _maximum=_bounds select 1;
+                private _exterior=(_model select 0) < (_minimum select 0)-0.5
+                    || {(_model select 0) > (_maximum select 0)+0.5}
+                    || {(_model select 1) < (_minimum select 1)-0.5}
+                    || {(_model select 1) > (_maximum select 1)+0.5};
+                // Cover geometry is not a native path receipt. Keep entrance traffic clear and
+                // admit only an unobstructed short approach; failed candidates stay explicit holds.
+                if ((_cover select 1) && {_exterior} && {_target distance2D _entry >= 3}
+                    && {_target distance2D _entry <= 18}
+                    && {(lineIntersectsSurfaces [(getPosASL _reserve) vectorAdd [0,0,0.8],
+                        (AGLToASL _target) vectorAdd [0,0,0.8],_reserve,objNull,true,1,"GEOM","NONE"]) isEqualTo []}) then {
                     if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
                         _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
                         _reserve doMove _target;

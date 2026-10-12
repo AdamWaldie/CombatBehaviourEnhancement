@@ -166,4 +166,4 @@ Passenger cover cleanup recalls an eligible MOVE/STOP only when the expected des
 
 ### CQB reserve staging search budget
 
-A building step starts at most one pending reserve stage selection per callback. Other reserves do not consume their attempt until processed; all existing stages retain arrival checks and casualty promotion remains independent. The current fan candidate and rejected-stage hold remain unchanged pending dynamic candidate selection. Physical staging and runtime performance are unvalidated.
+A building step starts at most one pending reserve stage selection per callback. Other reserves do not consume their attempt until processed; all existing stages retain arrival checks and casualty promotion remains independent. The fixed fan is replaced by bounded nearby cover selection with shared stage destinations, exterior bounds and at least three metres of entrance clearance. Rejected candidates retain an explicit current-position hold; alternate searches and stage recovery remain unfinished. Physical staging and runtime performance are unvalidated.
