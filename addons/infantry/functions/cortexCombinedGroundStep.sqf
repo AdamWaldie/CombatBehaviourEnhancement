@@ -8,6 +8,7 @@
  * bounded route replan; a second stall ends the role so gameplay roadblocks remain meaningful.
  * Locality/authority: runs only where the vehicle group is local after a server-authenticated role.
  * Repeat/JIP: the public role token rejects stale jobs; locality replay queues one replacement job.
+ * Arrival fire requests require a combat-effective local gunner; arrival alone never proves fire effect.
  * Cleanup requires the matching operation generation, so a late role cannot delete a newer route.
  * Arguments: 0: job state <HASHMAP> containing group, asset, target, token, expiry and destination.
  * Return Value: Number of seconds before the next scheduler step, or -1 when complete.
@@ -76,7 +77,7 @@ if (_asset distance2D _destination <= 70) exitWith {
     private _gunner=gunner _asset;
     private _knownTarget=(_group knowsAbout _target) > 0;
     private _fireDecision=["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR"] select _knownTarget;
-    private _fireAllowed=_knownTarget && {!isNull _gunner} && {alive _gunner} && {local _gunner}
+    private _fireAllowed=_knownTarget && {!isNull _gunner} && {[_gunner] call WAIT_fnc_CortexCombatEffective} && {local _gunner}
         && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
         && {([_gunner] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}

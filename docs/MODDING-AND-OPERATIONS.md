@@ -146,4 +146,4 @@ Explicit clearance release restores formation only when an actor has no live MOV
 
 ### Combined ground-fire operator readiness
 
-Direct ground-fire support requires a combat-effective local gunner, in addition to combat-mode, player/external ownership and clear-fire-lane checks. An incapacitated gunner returns `NO_FIRE_OPERATOR` through the existing provider rejection path. This change requires a live casualty/provider-fallback retest; audits remain paused.
+Direct ground-fire support and the ground maneuver arrival firing branch require a combat-effective local gunner, in addition to combat-mode, player/external ownership and clear-fire-lane checks. An incapacitated gunner returns `NO_FIRE_OPERATOR` through the existing provider rejection path. This change requires a live casualty/provider-fallback retest; audits remain paused.
