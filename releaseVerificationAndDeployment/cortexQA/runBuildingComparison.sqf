@@ -425,6 +425,66 @@ if (_nativeOnly && {worldName == "VR"}) then {
 if (_nativeOnly) exitWith {};
 
 if (!_transformOnly) then {
+// Observer negative control: spawn outside, verify the live wall/proximity
+// prerequisite, then query the independent observer. This is not production admission.
+private _wallHouse=createVehicle ["Land_i_House_Small_01_V1_F",[6350,6000,0],[],0,"NONE"];
+_wallHouse enableSimulationGlobal true;
+[_wallHouse,"wall-control"] call _validateNewFixturePlacement;
+private _wallBounds=boundingBoxReal _wallHouse;
+private _wallCandidate=[];
+{
+    if (_wallCandidate isNotEqualTo []) exitWith {};
+    private _room=_x;
+    private _local=_wallHouse worldToModel _room;
+    private _edges=[
+        [((_wallBounds select 0) select 0)-0.2,_local select 1,0],
+        [((_wallBounds select 1) select 0)+0.2,_local select 1,0],
+        [_local select 0,((_wallBounds select 0) select 1)-0.2,0],
+        [_local select 0,((_wallBounds select 1) select 1)+0.2,0]
+    ];
+    {
+        private _outside=_wallHouse modelToWorld _x;
+        _outside set [2,0];
+        private _pose=AGLToASL _outside;
+        private _target=AGLToASL _room;
+        if (_pose vectorDistance _target <= 1.5 && {abs ((_pose select 2)-(_target select 2)) <= 0.75}) then {
+            private _hits=lineIntersectsSurfaces [_pose vectorAdd [0,0,0.6],_target vectorAdd [0,0,0.6],objNull,objNull,true,8,"GEOM","NONE"];
+            if (_hits findIf {(_x select 2) == _wallHouse || {(_x select 3) == _wallHouse}} >= 0) exitWith {_wallCandidate=[_outside,_room]};
+        };
+    } forEach _edges;
+} forEach ((_wallHouse buildingPos -1) select [0,16]);
+private _wallGroup=createGroup [east,true];
+_wallGroup setVariable ["WAIT_AI_Exclude",true,true];
+_wallGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_wallGroup setVariable ["acex_headless_blacklist",true,true];
+private _wallActor=objNull;
+private _wallPrerequisite=false;
+if (_wallCandidate isNotEqualTo []) then {
+    _wallActor=_wallGroup createUnit ["O_Soldier_F",_wallCandidate select 0,[],0,"NONE"];
+    doStop _wallActor;
+    _wallActor setVariable ["WAIT_CortexQA_Label","EXTERIOR WALL OBSERVER CONTROL",true];
+    missionNamespace setVariable ["WAIT_CortexQA_Actors",[_wallActor],true];
+    ["Room observer: exterior-wall control","This excluded actor spawns outside a house. The live pose must be close enough to satisfy the old distance/floor rule with an intervening wall. The independent observer must reject it. This does not validate production movement or room safety.",getPosATL _wallHouse] call _phase;
+    // Allow native spawn/physics settlement; elapsed time grants no prerequisite.
+    sleep 2;
+    private _actual=getPosASL _wallActor;
+    private _target=AGLToASL (_wallCandidate select 1);
+    private _local=_wallHouse worldToModel (getPosATL _wallActor);
+    private _outside=(_local select 0) < ((_wallBounds select 0) select 0)
+        || {(_local select 0) > ((_wallBounds select 1) select 0)}
+        || {(_local select 1) < ((_wallBounds select 0) select 1)}
+        || {(_local select 1) > ((_wallBounds select 1) select 1)};
+    private _hits=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.6],_target vectorAdd [0,0,0.6],_wallActor,objNull,true,8,"GEOM","NONE"];
+    _wallPrerequisite=_outside && {_actual vectorDistance _target <= 1.5}
+        && {abs ((_actual select 2)-(_target select 2)) <= 0.75}
+        && {_hits findIf {(_x select 2) == _wallHouse || {(_x select 3) == _wallHouse}} >= 0};
+};
+["CLEAR-observer-wall-prerequisite",_wallPrerequisite,str [_wallCandidate,getPosATL _wallActor]] call _check;
+["CLEAR-observer-wall-rejected",_wallPrerequisite && {!([_wallActor,_wallHouse,_wallCandidate select 1] call _observedRoomVisit)}] call _check;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+if (!isNull _wallActor) then {deleteVehicle _wallActor};
+deleteGroup _wallGroup;
+deleteVehicle _wallHouse;
 // Fresh groups distinguish clearance defects from state left by a previous garrison.
 // Keep all original comparisons above, including their failures.
 {

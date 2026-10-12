@@ -622,3 +622,6 @@ Production room visit/entry receipts and close room holds now reject intervening
 
 
 Fresh-clearance audit room coverage and per-member visit masks now independently sample live actor/house poses, require house bounds and reject intervening house GEOM surfaces alongside the unchanged proximity/floor bands. They do not read production visit flags to establish a visit. Native command comparisons remain unchanged. Engine insideBuilding is audio-surface-dependent and stays diagnostic, not an acceptance substitute. The new observer has not run; an explicit exterior-wall control, edge models, dense actors and matched production performance still remain open. Historical reports are not rewritten as stronger evidence. Audits remain paused.
+
+
+Queued observer exterior-wall control scans at most sixteen original house nodes/four exterior bounding edges, spawns an excluded actor without relocating it, and rechecks the live pose against the old proximity/floor rule, exterior bounds and an actual intervening house surface. Missing setup fails the prerequisite and rejection assertion; it cannot manufacture a pass. The independent observer must reject only after that prerequisite is established. This negative control does not validate production admission/receipts or room safety; an end-to-end production wall control remains outstanding. No audit has run while paused.
