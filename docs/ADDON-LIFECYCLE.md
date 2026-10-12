@@ -695,3 +695,6 @@ Shared ownership takeover now recognizes the already-supported active curator ga
 
 
 Old convoy cleanup treats a different current movement-operator group as successor ownership, including ordinary AI groups without an external-controller marker. It preserves that vehicle's speed/unload policy and does not recall a driver from another group. Empty vehicles can still release their unchanged old cap; old-group metadata is retired without overwriting a new group's receipt. This closes a group-transfer restoration gap but does not establish all callback/event-handler transfer or filter-only lease cleanup. Physical AI-group reassignment/handback remains pending while audits are paused.
+
+
+Convoy hit-handler IDs now carry a local group/machine ownership receipt. Current crew processing adopts the generic handler for its active convoy without duplicating it; cleanup removes only a matching local receipt and preserves a successor group's adopted handler. Unreceipted legacy handler cleanup is not presumed owned. The existing passenger-HALT follow-up job is also tagged CONVOY, using the registry scheduler gate and its existing revision checks. Neither correction creates a polling loop or completes handover/JIP acceptance. Physical hostile-hit continuity, repeated cleanup, owner migration and suspended passenger processing remain pending with audits paused.

@@ -63,10 +63,12 @@ if (_restore isNotEqualTo []) then {
                 _unit setVariable ["WAIT_Convoy_Target", nil, true];
             };
         } forEach crew _vehicle;
-        if !(_vehicle in _keepCrew) then {
+        if (!(_vehicle in _keepCrew) && {local _vehicle}
+            && {(_vehicle getVariable ["WAIT_Convoy_HitEHOwner",[]]) isEqualTo [_group,clientOwner]}) then {
             private _hitEH = _vehicle getVariable ["WAIT_Convoy_HitEH", -1];
             if (_hitEH >= 0) then {_vehicle removeEventHandler ["Hit", _hitEH]};
             _vehicle setVariable ["WAIT_Convoy_HitEH", nil];
+            _vehicle setVariable ["WAIT_Convoy_HitEHOwner",nil];
         };
         if (local _vehicle) then {
             private _driver = driver _vehicle;

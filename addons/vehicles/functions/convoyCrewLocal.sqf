@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Keeps travelling occupants assigned to their actual seats, directs mounted fire and unloads only snapshotted passengers on halt.
  * Locality/authority: each server/HC acts only on its own vehicles and units from the server registry.
- * Hostile Hit events count as contact even when armour absorbs the damage.
+ * Hostile Hit events count as contact even when armour absorbs the damage. Local handler ownership
+ * records its convoy group/machine so obsolete cleanup cannot remove an adopted handler.
  * Repeat/JIP: five-second owner checks repair occupied seat assignments and replay a durable halt
  * after transfer. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, speed, gap, push, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
@@ -36,6 +37,10 @@ private _seats = createHashMap;
                         _vehicle setVariable ["WAIT_Convoy_HitAt", serverTime, true];
                     };
                 }]];
+            };
+            private _hitOwner=[_group,clientOwner];
+            if ((_vehicle getVariable ["WAIT_Convoy_HitEHOwner",[]]) isNotEqualTo _hitOwner) then {
+                _vehicle setVariable ["WAIT_Convoy_HitEHOwner",_hitOwner];
             };
             // Explicit cargo orders decide unloading; operating turrets never receive a dismount order.
             if (getUnloadInCombat _vehicle isNotEqualTo [false, false]) then {_vehicle setUnloadInCombat [false, false]};

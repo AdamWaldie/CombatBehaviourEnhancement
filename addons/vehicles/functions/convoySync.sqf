@@ -102,7 +102,7 @@ if !(missionNamespace getVariable ["WAIT_Convoy_CompatibilityHeadlessHandlerInst
             _packet set [4,_vehicles];_packet set [6,_slice];
             if (_slice isNotEqualTo []) then {[_convoy,_packet] call WAIT_fnc_ConvoyCrewLocal};
             5
-        },createHashMapFromArray [["convoy",_group],["configuration",_configuration],
+        },createHashMapFromArray [["subsystem","CONVOY"],["convoy",_group],["configuration",_configuration],
             ["revision",_revision],["deadline",time+90],["cursor",0],["cyclePending",false]],2,
             format ["WAIT_CONVOY_PASSENGER_HALT_%1_%2",str _group,clientOwner]] call WAIT_fnc_CortexQueueJob;
     };
