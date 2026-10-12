@@ -4,7 +4,7 @@
  *
  * Reinforcement has a responder cap and requires a
  * transmission path (WAIT_fnc_CortexCanTransmit; jamming blocks it, inventory radios are not required). A request is made on first
- * contact and again if the squad falls below 60% of its peak strength. When known armour appears
+ * contact and again if the squad falls below 60% combat-effective strength relative to its peak living roster. When known armour appears
  * one more request is made that only squads with an anti-tank
  * gunner answer, with one extra responder slot. Candidates are considered by distance. Up to
  * WAIT_AIPass_Reinforce_MaxResponders eligible squads may answer across server and HC owners.
@@ -33,8 +33,8 @@
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]]];
-private _alive = {alive _x} count units _group;
-private _peak = (_group getVariable ["WAIT_AIPass_PeakSize", _alive]) max 1;
+private _effective = {[_x] call WAIT_fnc_CortexCombatEffective} count units _group;
+private _peak = (_group getVariable ["WAIT_AIPass_PeakSize", _effective]) max 1;
 private _requests = _state getOrDefault ["reinforceRequested", 0];
 private _requestState = _group getVariable ["WAIT_Cortex_SupportRequestState",[]];
 private _requestActive = count _requestState == 3 && {(_requestState select 1) == "ACTIVE"}
@@ -45,7 +45,7 @@ private _lastDispatch = _state getOrDefault ["reinforceDispatchedAt",-1e6];
 private _retryable = _requests == 1 && {!_requestActive} && {time >= _lastDispatch+20};
 private _armour = _state getOrDefault ["armourSeen", false];
 private _armourCall = _armour && {!(_state getOrDefault ["armourRequested", false])};
-if (!_armourCall && {_requests >= 2 || {_requests == 1 && {!_retryable} && {_alive / _peak >= 0.6}}}) exitWith {0};
+if (!_armourCall && {_requests >= 2 || {_requests == 1 && {!_retryable} && {_effective / _peak >= 0.6}}}) exitWith {0};
 private _enemyPos = _state getOrDefault ["enemyPos", []];
 if (count _enemyPos < 2 || {isNull ([_group] call WAIT_fnc_CortexGroupTransmitter)}) exitWith {0};
 _state set ["reinforceRequested", _requests + 1];
