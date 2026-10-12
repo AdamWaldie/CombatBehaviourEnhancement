@@ -7700,6 +7700,21 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexClearRelease')
         self.assertIn('WAIT_Cortex_ClearReserve',release)
         self.assertIn('(_stage select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])',release)
+    def test_reserve_budget_replay_is_episode_scoped_and_bounded(self):
+        start=source('cortexClearBuilding')
+        replay=start.split('// Keep reserve search consumption',1)[1].split('call WAIT_fnc_BuildingOperationStart',1)[0]
+        for guard in ['_resume','(_stageBudget select 0) == _building','(_stageBudget select 1) == _hardDeadline','(_stageBudget select 2) isEqualTo (_job get "buildingTransform")']:
+            self.assertIn(guard,replay)
+        self.assertIn('select [0,64]',replay)
+        self.assertIn('(_count max 0) min 3',replay)
+        self.assertLess(start.index('_previous param [9,_nativeOrderReceipt'),start.index('// Keep reserve search consumption'))
+        step=source('buildingOperationStep')
+        publish=step.split('private _budgetRows=',1)[1].split('private _pairRosterChanged=',1)[0]
+        self.assertIn('select [0,64]',publish)
+        self.assertIn('call _mayIssueMovement',publish)
+        self.assertIn('isNotEqualTo _stageBudget',publish)
+        self.assertIn('setVariable ["WAIT_Cortex_ClearStageBudget",_stageBudget,true]',publish)
+
     def test_reserve_recovery_preserves_successor_and_clearance_lifetime(self):
         step=source('buildingOperationStep')
         stage=step.split('private _reserveStages=',1)[1].split('private _pairRosterChanged=',1)[0]
