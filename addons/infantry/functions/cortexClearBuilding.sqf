@@ -90,6 +90,17 @@ private _leader = [_group] call WAIT_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 // Entry selection must use the same capable/task-free contract as casualty reserves.
 // An unavailable actor must not consume a lane until the later callback discovers it.
+// Only a short-lived recall issued by WAIT's own completed/released clear is replaceable.
+// Native JOIN from another task remains protected; locality and leader changes revoke this receipt.
+private _ownedRecall={
+    params ["_actor","_clearGeneration"];
+    private _recall=_actor getVariable ["WAIT_Cortex_ClearRecall",[]];
+    currentCommand _actor == "JOIN" && {count _recall == 4}
+        && {(_recall select 0) == _clearGeneration}
+        && {(_recall select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_recall select 2) == _leader} && {time < (_recall select 3)}
+};
+private _admissionGeneration=_group getVariable ["WAIT_AIPass_ClearGeneration",0];
 private _available = (units _group) select {
     private _canMove=_x checkAIFeature "MOVE" && {_x checkAIFeature "PATH"};
     private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
@@ -100,7 +111,8 @@ private _available = (units _group) select {
         && {isNull (remoteControlled _x)}
         && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
-        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
+            || {[_x,_admissionGeneration] call _ownedRecall}}
 };
 private _team = +_available;
 if (_team isEqualTo []) exitWith {["NO_ELIGIBLE_ACTORS"] call _refuse};
@@ -171,6 +183,15 @@ if (count _operation == 0) exitWith {
     };
     false
 };
+// A valid new operation now owns the selected actors. Retire only its predecessor's
+// matching recall so the initial building step sees STOP instead of protected JOIN.
+{
+    if ([_x,_generation-1] call _ownedRecall && {local _x} && {!isPlayer _x}
+        && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}) then {
+        doStop _x;
+        _x setVariable ["WAIT_Cortex_ClearRecall",nil];
+    };
+} forEach _team;
 // Suppress only competing autonomous group attack assignment during the clear. Native
 // targeting, weapons and suppression remain enabled. Mixed specialist/player groups retain
 // their command policy; only ordinary groups acquire this exact-owned reversible setting.

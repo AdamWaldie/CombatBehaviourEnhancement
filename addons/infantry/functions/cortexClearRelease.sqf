@@ -68,7 +68,10 @@ if (isNull _leader) then {_leader=leader _group};
             if (_releaseOwnedSettings && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
                 _x forceSpeed (_x getVariable ["WAIT_Cortex_ClearForcedSpeed",-1]);
             };
-            if (_restore && {_taskFree}) then {_x doFollow _leader};
+            if (_restore && {_taskFree}) then {
+                _x setVariable ["WAIT_Cortex_ClearRecall",[_group getVariable ["WAIT_AIPass_ClearGeneration",0],_group getVariable ["WAIT_AIPass_Epoch",0],_leader,time+5]];
+                _x doFollow _leader;
+            };
         };
         _x setVariable ["WAIT_Cortex_ClearStance",nil,true];
         _x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true];

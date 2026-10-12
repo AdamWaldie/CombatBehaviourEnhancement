@@ -100,6 +100,7 @@ private _delay=call {
                         // or a specialist action with a formation recall.
                         if (_restore && {[_x] call _actorTaskFree}) then {
                             _x doWatch objNull;
+                            _x setVariable ["WAIT_Cortex_ClearRecall",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],_leader,time+5]];
                             _x doFollow _leader;
                         };
                     };

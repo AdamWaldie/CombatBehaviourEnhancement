@@ -4344,7 +4344,7 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexClearRelease')
         self.assertIn('private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;',release)
         self.assertIn('then {_restore=false}',release)
-        self.assertLess(release.index('then {_restore=false}'),release.index('if (_restore && {_taskFree}) then {_x doFollow _leader}'))
+        self.assertLess(release.index('then {_restore=false}'),release.index('if (_restore && {_taskFree}) then {'))
     def test_building_handover_never_restores_or_locks_wait_state_after_takeover(self):
         clear_release=source('cortexClearRelease')
         clear_job=source('cortexClearBuilding')+source('buildingOperationStep')
@@ -7570,3 +7570,12 @@ class CortexOperations(unittest.TestCase):
         comparison=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         self.assertIn('if (!_transformOnly) then {',comparison)
         self.assertLess(comparison.index('CLEAR-transform-reorder-physical-entry'),comparison.index('if (_transformOnly) exitWith {}'))
+
+    def test_clearance_replaces_only_its_recent_owned_native_recall(self):
+        start=source('cortexClearBuilding')
+        recall=start.split('private _ownedRecall={',1)[1].split('private _admissionGeneration',1)[0]
+        for guard in ['currentCommand _actor == "JOIN"','_clearGeneration','WAIT_AIPass_Epoch','== _leader','time < (_recall select 3)']:
+            self.assertIn(guard,recall)
+        self.assertLess(start.index('if (count _operation == 0) exitWith'),start.index('[_x,_generation-1] call _ownedRecall'))
+        self.assertIn('WAIT_Cortex_ClearRecall',source('buildingOperationStep'))
+        self.assertIn('WAIT_Cortex_ClearRecall',source('cortexClearRelease'))
