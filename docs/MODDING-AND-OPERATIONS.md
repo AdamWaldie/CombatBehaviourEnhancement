@@ -183,3 +183,7 @@ Clearance terminal route evidence includes clearing/security actors, capped at s
 ### Reserve route reachability
 
 Stage endpoints require dry usable slope, standing-space geometry and exterior/exit clearance. A straight observer-to-endpoint ray is not a route prerequisite: native pathfinding may go around an obstacle. The finite owned approach and physical arrival receipt determine success; timeout can select a bounded alternate. No endpoint check claims native route feasibility. Corner-routing behavior still needs live acceptance.
+
+### Grenade release orientation evidence
+
+The one-shot native grenade release trace appends actor position, body/view bearings and target errors, view availability, stance and animation state at FiredMan release. Existing launch/contact fields retain their indices. Command-time alignment and actual release orientation can now be compared; no actor direction or projectile velocity is changed. The reported opposite-contact throws still require live provenance-matched investigation.
