@@ -521,3 +521,9 @@ Launcher failure reporting now distinguishes a client exit, server exit and obse
 Running 0a2b951 native baseline entered normally and passed all eight role readiness checks. On initial Big_01 entry, the follower reached its node while the leader stalled outside. However, PLACED-LEADER had a one-person group and PLACED-FOLLOWER had two, so this is not clean causal evidence of native leader behavior. The running fixture remains unchanged and its evidence is retained.
 
 The next diagnostic gives both role controls two real actors, with the spare held outside at the same relative position. Readiness now requires exactly two members as well as the intended leader identity, and role receipts include both actors' actual positions and commands. Production leadership, group membership and movement are unchanged. Physical equal-size role comparison remains pending.
+
+### Completed unequal-size native role baseline
+
+0a2b951 runtime-20261012-183636-011 completed with 228 checks, 78 retained failures, zero SQF/fatal errors and one unresolved load warning; provenance matched. PLACED roles both reached all four Small_01 nodes, both failed all five Small_03 nodes. Big_01 leader reached none while follower reached eight of nine; Big_02 leader reached 0/1/2/3/8 while follower reached only 0. Different group sizes and separate instances prevent a causal leader-role conclusion. Command-FSM raw masks remained unchanged; native completion far from the target was recorded independently of physical acceptance.
+
+Original findings remain unresolved. Recorded processes were stopped and absence verified. The sealed d753d64 equal-size controls are now launching in a separate normal HC0 native baseline; physical results remain pending.
