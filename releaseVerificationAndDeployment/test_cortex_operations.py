@@ -1766,6 +1766,10 @@ class CortexOperations(unittest.TestCase):
         text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8').split('// Exercise door handling',1)[1]
         self.assertIn('call WAIT_fnc_CortexClearBuilding',text)
         self.assertIn('CLEAR-door-lock-preserved',text)
+        self.assertIn('CLEAR-door-all-entries-locked',text)
+        self.assertIn('for "_doorIndex" from 1 to 64',text)
+        self.assertIn('format ["bis_disabled_Door_%1",_doorIndex],1,true',text)
+        self.assertIn('_fixtureDoors findIf',text)
         self.assertIn('CLEAR-door-unlocked-physical-entry',text)
         self.assertIn('vectorDistance (AGLToASL _x) <= 1.5',text)
         self.assertNotIn('call WAIT_fnc_CortexBuildingDoor',text)

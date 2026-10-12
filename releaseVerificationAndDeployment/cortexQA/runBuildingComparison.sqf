@@ -699,7 +699,17 @@ private _doorReady=isClass (configOf _doorHouse >> "AnimationSources" >> _doorSo
     && {_doorHouse animationSourcePhase _doorSource < 0.1}
     && {(_doorHouse selectionPosition ["Door_1_trigger","Memory"]) isNotEqualTo [0,0,0]};
 ["CLEAR-door-fixture-closed-recognised",_doorReady] call _check;
-_doorHouse setVariable ["bis_disabled_Door_1",1,true];
+// Isolate the entry stimulus: every recognised door stays locked except Door_1 after unlock.
+private _fixtureDoors=[];
+for "_doorIndex" from 1 to 64 do {
+    private _source=format ["Door_%1_sound_source",_doorIndex];
+    if (!isClass (configOf _doorHouse >> "AnimationSources" >> _source)) then {_source=format ["Door_%1_source",_doorIndex]};
+    if (isClass (configOf _doorHouse >> "AnimationSources" >> _source)) then {
+        _fixtureDoors pushBack [_doorIndex,_source];
+        _doorHouse setVariable [format ["bis_disabled_Door_%1",_doorIndex],1,true];
+    };
+};
+["CLEAR-door-all-entries-locked",count _fixtureDoors > 0 && {(_fixtureDoors findIf {_doorHouse animationSourcePhase (_x select 1) > 0.1}) < 0},str _fixtureDoors] call _check;
 ["Clearance: locked entry","The real clearance order must not unlock the front door. This phase checks the actual door phase and lock variable; it does not count an accepted order as entry.",getPosATL _doorHouse] call _phase;
 private _doorAccepted=[_doorGroup,_doorHouse] call WAIT_fnc_CortexClearBuilding;
 ["CLEAR-door-order-accepted",_doorAccepted] call _check;
@@ -707,7 +717,7 @@ private _lockHeld=true;
 private _lockedUntil=time+35;
 waitUntil {
     sleep 1;
-    if (_doorHouse animationSourcePhase _doorSource > 0.1 || {(_doorHouse getVariable ["bis_disabled_Door_1",0]) != 1}) then {_lockHeld=false};
+    if ((_fixtureDoors findIf {_doorHouse animationSourcePhase (_x select 1) > 0.1 || {(_doorHouse getVariable [format ["bis_disabled_Door_%1",_x select 0],0]) != 1}}) >= 0) then {_lockHeld=false};
     time >= _lockedUntil
 };
 ["CLEAR-door-lock-preserved",_doorReady && {_doorAccepted} && {_lockHeld}] call _check;
