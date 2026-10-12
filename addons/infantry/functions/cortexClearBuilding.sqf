@@ -313,13 +313,39 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
     && {(_stageBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
     private _counts=createHashMap;
     private _tried=createHashMap;
+    private _stages=createHashMap;
+    private _moves=createHashMap;
+    private _actors=createHashMap;
+    {_actors set [netId _x,_x]} forEach ((units _group) select [0,64]);
     {
-        _x params ["_key","_count","_targets"];
+        _x params ["_key","_count","_targets",["_stage",[]]];
         _counts set [_key,(_count max 0) min 3];
         _tried set [_key,+_targets];
+        private _actor=_actors getOrDefault [_key,objNull];
+        if (count _stage == 4 && {(_stage select 2) == "APPROACH"}
+            && {!isNull _actor} && {local _actor} && {!isPlayer _actor} && {!(_actor in _team)}
+            && {[_actor] call WAIT_fnc_CortexCombatEffective} && {isNull objectParent _actor}
+            && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+            && {isNull remoteControlled _actor}
+            && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+            && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+            && {currentCommand _actor == "MOVE"}) then {
+            private _target=_stage select 0;
+            private _live=(expectedDestination _actor) param [0,[]];
+            if (count _target == 3 && {count _live == 3} && {_live vectorDistance _target <= 0.25}) then {
+                // Adopt bookkeeping only: the engine retains its original movement request.
+                _stages set [_key,+_stage];
+                _moves set [_key,+_target];
+                _actor setVariable ["WAIT_Cortex_ClearReserve",[_generation,_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
+            };
+        };
     } forEach ((_stageBudget select 3) select [0,64]);
     _job set ["reserveStageSearchCounts",_counts];
     _job set ["reserveStageTriedTargets",_tried];
+    _job set ["reserveStages",_stages];
+    _job set ["movementTargets",_moves];
+    _job set ["securityActors",(units _group) select {netId _x in _stages}];
 };
 [_job] call WAIT_fnc_BuildingOperationStart;
 diag_log format ["[WAIT] %1 clearing %2 (%3 positions, %4 soldiers, %5 entrances)", _group, typeOf _building, count _positions, count _team, count _entries];

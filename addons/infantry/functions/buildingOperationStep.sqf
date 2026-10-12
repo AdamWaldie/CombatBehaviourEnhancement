@@ -520,7 +520,7 @@ private _delay=call {
         private _searchCount=_stageSearchCounts getOrDefault [_key,0];
         private _searchPending=(_stage isEqualTo [] && {!(_key in _stageAttempts)})
             || {(_stage param [2,""]) == "REJECTED" && {_searchCount < 3}
-                && {time >= (_stage param [3,1e12])}};
+                && {serverTime >= (_stage param [3,1e12])}};
         if (_searchPending && {_stageSearchBudget > 0} && {call _mayIssueMovement}) then {
             _stageSearchBudget=_stageSearchBudget-1;
             _stageAttempts pushBackUnique _key;
@@ -532,7 +532,7 @@ private _delay=call {
                 doStop _reserve;
                 _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
                 _stage=[+_hold,true,"REJECTED"];
-                _stage set [3,time+5];
+                _stage set [3,serverTime+5];
                 if (_searchCount >= 3) then {_stage set [2,"EXHAUSTED"]};
                 _reserveStages set [_key,_stage];
                 private _securityActors=_job getOrDefault ["securityActors",[]];
@@ -578,7 +578,7 @@ private _delay=call {
                         _reserve doMove _target;
                         [_reserve,_target] call _rememberMove;
                         _stage=[+_target,false,"APPROACH"];
-                        _stage set [3,time+60];
+                        _stage set [3,serverTime+60];
                         _reserveStages set [_key,_stage];
                         private _securityActors=_job getOrDefault ["securityActors",[]];
                         _securityActors pushBackUnique _reserve;
@@ -601,7 +601,7 @@ private _delay=call {
         };
         // A deadline may retire only the movement request this stage still owns. It does not
         // renew the clearance lifetime or turn a blocked approach into an arrival receipt.
-        if ((_stage param [2,""]) == "APPROACH" && {time >= (_stage param [3,1e12])}
+        if ((_stage param [2,""]) == "APPROACH" && {serverTime >= (_stage param [3,1e12])}
             && {[_reserve] call _ownsCurrentMove} && {[_reserve] call _reserveReady}
             && {call _mayIssueMovement}) then {
             private _hold=getPosATL _reserve;
@@ -609,7 +609,7 @@ private _delay=call {
             (_job getOrDefault ["movementTargets",createHashMap]) deleteAt _key;
             _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
             _stage=[+_hold,true,"REJECTED"];
-            _stage set [3,time+5];
+            _stage set [3,serverTime+5];
             if ((_stageSearchCounts getOrDefault [_key,0]) >= 3) then {_stage set [2,"EXHAUSTED"]};
             _reserveStages set [_key,_stage];
         };
@@ -619,7 +619,7 @@ private _delay=call {
     _job set ["reserveStageSearchCounts",_stageSearchCounts];
     _job set ["reserveStageTriedTargets",_stageTriedTargets];
     private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
-        [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]])]
+        [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]])]
     };
     private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows];
     if (call _mayIssueMovement && {(_group getVariable ["WAIT_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget}) then {
