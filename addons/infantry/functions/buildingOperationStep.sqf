@@ -65,7 +65,8 @@ private _delay=call {
     };
     private _actorTaskFree={
         params ["_actor"];
-        !(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
+        simulationEnabled _actor && {!isObjectHidden _actor}
+            && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
     private _rememberMove={
         params ["_actor","_target"];
@@ -499,7 +500,8 @@ private _delay=call {
         private _stageCommandFree=!_stagedHere
             || {!(currentCommand _candidate in ["MOVE","FOLLOW"])}
             || {[_candidate] call _ownsCurrentMove};
-        [_candidate] call WAIT_fnc_CortexCombatEffective && {_stageCommandFree} && {local _candidate} && {!isPlayer _candidate}
+        [_candidate] call WAIT_fnc_CortexCombatEffective && {simulationEnabled _candidate}
+            && {!isObjectHidden _candidate} && {_stageCommandFree} && {local _candidate} && {!isPlayer _candidate}
             && {isNull objectParent _candidate} && {!(_candidate in _reserved)} && {!(_candidate in _rotatedOut)}
             && {!(_candidate in _unavailable)} && {isNull (remoteControlled _candidate)}
             && {([_candidate] call WAIT_fnc_CortexExternalOwner) == ""}

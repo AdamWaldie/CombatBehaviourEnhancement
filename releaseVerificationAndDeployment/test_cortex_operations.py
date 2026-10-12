@@ -5251,6 +5251,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_clearance_dormancy_blocks_commands_without_erasing_owned_roster(self):
+        step=source("buildingOperationStep")
+        owned=step.split("private _actorAvailable={",1)[1].split("private _actorTaskFree={",1)[0]
+        command=step.split("private _actorTaskFree={",1)[1].split("private _rememberMove=",1)[0]
+        reserve=step.split("private _reserveReady={",1)[1].split("private _reserves=",1)[0]
+        self.assertNotIn("simulationEnabled",owned)
+        self.assertNotIn("isObjectHidden",owned)
+        self.assertIn("simulationEnabled _actor",command)
+        self.assertIn("!isObjectHidden _actor",command)
+        self.assertIn("simulationEnabled _candidate",reserve)
+        self.assertIn("!isObjectHidden _candidate",reserve)
+
     def test_clearance_visit_evidence_requires_visible_simulated_actor(self):
         step=source("buildingOperationStep")
         observer=step.split("private _visitor = _x;",1)[1].split("private _actual = getPosASL _visitor;",1)[0]
