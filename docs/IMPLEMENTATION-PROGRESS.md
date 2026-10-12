@@ -1,6 +1,9 @@
 ## Current acceptance boundary - 2026-10-11
 Current CQB evidence and remaining requirements (2026-10-12):
 
+Recent source changes through 392d458 passed full offline gates but have no fresh physical acceptance: clearance release preserves newer individual MOVE destinations; ground direct/arrival fire requires combat-effective gunners; passenger owner retries continue after exit and retain full-roster cover exclusions; cleanup preserves nearby replacement moves. CQB reserve staging now selects scene cover with exterior/entrance checks, one pending search per callback and exclusions limited to other eligible reserves. Rejected-stage recovery, coherent consolidation and simultaneous cross-owner passenger selection remain unfinished. The strengthened passenger audit requires actual post-exit clearance and an evaluative terrain corridor; flat VR cannot validate its relief-dependent cases. Audits remain paused.
+
+
 Clean 108869a runtime-20261012-020446-964 physically passed two-person deeper progression and six-person room coverage, all-six entry, physical egress and COMPLETE settlement. These are narrow fixture results; repeatability and tactical quality are not established. Twelve-person coverage/settlement still fails. All 65 feature families remain partial. Earlier running-batch references below are historical, not current state.
 
 The player's observed sprawl and post-clear wedge are unacceptable even when navigation-position checks pass. Remaining CLEAR acceptance requires:
