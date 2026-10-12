@@ -569,9 +569,12 @@ private _delay=call {
                     || {(_model select 0) > (_maximum select 0)+0.5}
                     || {(_model select 1) < (_minimum select 1)-0.5}
                     || {(_model select 1) > (_maximum select 1)+0.5};
-                // Cover geometry is not a native path receipt. Keep entrance traffic clear and
+                // Cover geometry is not a native path receipt. Exclude configured same-floor exit vicinity and
                 // admit only an unobstructed short approach; failed candidates stay explicit holds.
-                if ((_cover select 1) && {_exterior} && {_target distance2D _entry >= 3}
+                private _blocksExit=(_job getOrDefault ["entries",[]]) findIf {
+                    _target distance2D _x < 3 && {abs (((AGLToASL _target) select 2)-((AGLToASL _x) select 2)) <= 1}
+                } >= 0;
+                if ((_cover select 1) && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
                     && {_target distance2D _entry <= 18}
                     && {(lineIntersectsSurfaces [(getPosASL _reserve) vectorAdd [0,0,0.8],
                         (AGLToASL _target) vectorAdd [0,0,0.8],_reserve,objNull,true,1,"GEOM","NONE"]) isEqualTo []}) then {
