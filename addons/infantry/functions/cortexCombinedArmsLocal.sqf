@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Applies one expiring combined-arms contact role on the selected asset owner.
+ * Direct fire requires a combat-effective local gunner; incapacitated operators reject the role.
  * A direct-fire ground vehicle receives target knowledge and one gunner fire request without losing
  * its authored route. Manoeuvring vehicles and aircraft receive knowledge only: their finite
  * operation owns later target and weapon commands after movement/release geometry is valid. A second
@@ -68,7 +69,7 @@ if (_role == "GROUND_FIRE") exitWith {
     // native pursuit. GROUND_MANOEUVRE and AIR_ATTACK deliberately skip this block because their
     // operation controllers own the later target/release boundary.
     private _fireRefusal="";
-    if (isNull _gunner || {!alive _gunner} || {!local _gunner}
+    if (isNull _gunner || {!([_gunner] call WAIT_fnc_CortexCombatEffective)} || {!local _gunner}
         || {!(combatMode _group in ["YELLOW","RED"])}
         || {!(unitCombatMode _gunner in ["YELLOW","RED"])}
         || {isPlayer _gunner} || {!isNull remoteControlled _gunner}

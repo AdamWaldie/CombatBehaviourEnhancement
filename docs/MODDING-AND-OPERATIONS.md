@@ -143,3 +143,7 @@ After approval to close a batch, use `stop_mod_audit.ps1 -Runtime <runtime folde
 ### Clearance release and replacement actor movement
 
 Explicit clearance release restores formation only when an actor has no live MOVE or its destination still matches the clearance job receipt within 0.25 m. A newer individual MOVE is preserved; unchanged clearance speed and posture leases can still be released. If the job receipt is missing, a live MOVE is not presumed owned. This guard has static validation only; dedicated normal and headless-client handover retests remain pending while audits are paused.
+
+### Combined ground-fire operator readiness
+
+Direct ground-fire support requires a combat-effective local gunner, in addition to combat-mode, player/external ownership and clear-fire-lane checks. An incapacitated gunner returns `NO_FIRE_OPERATOR` through the existing provider rejection path. This change requires a live casualty/provider-fallback retest; audits remain paused.
