@@ -517,6 +517,7 @@ private _delay=call {
     private _stageAttempts=_job getOrDefault ["reserveStageAttempts",[]];
     // Pending reserves do not consume attempts when another actor used this callback budget.
     private _stageSearchBudget=1;
+    private _stageJournalChanged=false;
     private _stageSearchCounts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
     private _stageTriedTargets=_job getOrDefault ["reserveStageTriedTargets",createHashMap];
     {
@@ -531,6 +532,7 @@ private _delay=call {
             _stageSearchBudget=_stageSearchBudget-1;
             _stageAttempts pushBackUnique _key;
             _stageSearchCounts set [_key,(_searchCount+1) min 3];
+            _stageJournalChanged=true;
             // A rejected staging ray must not leave a reserve following the interior leader.
             // Hold the actual position first; replace it only with the one validated stage leg.
             if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
@@ -610,6 +612,7 @@ private _delay=call {
             doStop _reserve;
             _stage set [1,true];
             _stage set [2,"ARRIVED"];
+            _stageJournalChanged=true;
         };
         // A deadline may retire only the movement request this stage still owns. It does not
         // renew the clearance lifetime or turn a blocked approach into an arrival receipt.
@@ -624,18 +627,23 @@ private _delay=call {
             _stage set [3,serverTime+5];
             if ((_stageSearchCounts getOrDefault [_key,0]) >= 3) then {_stage set [2,"EXHAUSTED"]};
             _reserveStages set [_key,_stage];
+            _stageJournalChanged=true;
         };
     } forEach (_reserves select [0,8]);
     _job set ["reserveStages",_reserveStages];
     _job set ["reserveStageAttempts",_stageAttempts];
     _job set ["reserveStageSearchCounts",_stageSearchCounts];
     _job set ["reserveStageTriedTargets",_stageTriedTargets];
-    private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
-        [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]])]
-    };
-    private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows];
-    if (call _mayIssueMovement && {(_group getVariable ["WAIT_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget}) then {
-        _group setVariable ["WAIT_Cortex_ClearStageBudget",_stageBudget,true];
+    // Build the migration journal only after an owned stage transition. Idle callbacks
+    // retain the published receipt without copying every actor record again.
+    if (_stageJournalChanged && {call _mayIssueMovement}) then {
+        private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
+            [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]])]
+        };
+        private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows];
+        if ((_group getVariable ["WAIT_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget) then {
+            _group setVariable ["WAIT_Cortex_ClearStageBudget",_stageBudget,true];
+        };
     };
     private _pairRosterChanged=false;
     {

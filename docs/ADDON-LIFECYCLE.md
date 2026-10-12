@@ -710,3 +710,5 @@ Building command boundaries and room-geometry cache reads now recheck registered
 
 
 CQB geometry queries that cannot grant a receipt now return before repeated ownership/config scans when their ray quota is exhausted or the exact callback-local pose/target already has a negative result. Cached positives and new probes still pass current brain/generation/epoch/order/transform and external-ownership checks. No dynamic ownership decision is cached, no query becomes a positive through budget exhaustion, and the sixteen-probe ceiling remains. This reduces avoidable source work without mutating the read-only ownership gate; measured runtime benefit and performance acceptance remain pending with audits paused.
+
+Reserve staging constructs its bounded migration journal only when a search is consumed, an approach physically arrives, or an owned approach times out. Unchanged callbacks retain the previous receipt; authority and content comparison still gate publication. This reduces idle allocation work but has not been measured against the live frame-time budget.

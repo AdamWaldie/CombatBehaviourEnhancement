@@ -7720,7 +7720,9 @@ class CortexOperations(unittest.TestCase):
         step=source('buildingOperationStep')
         publish=step.split('private _budgetRows=',1)[1].split('private _pairRosterChanged=',1)[0]
         self.assertIn('select [0,64]',publish)
-        self.assertIn('call _mayIssueMovement',publish)
+        stage=step.split('private _stageSearchBudget=1;',1)[1].split('private _pairRosterChanged=',1)[0]
+        self.assertLess(stage.index('if (_stageJournalChanged && {call _mayIssueMovement})'),stage.index('private _budgetRows='))
+        self.assertEqual(stage.count('_stageJournalChanged=true;'),3)
         self.assertIn('isNotEqualTo _stageBudget',publish)
         self.assertIn('setVariable ["WAIT_Cortex_ClearStageBudget",_stageBudget,true]',publish)
 
