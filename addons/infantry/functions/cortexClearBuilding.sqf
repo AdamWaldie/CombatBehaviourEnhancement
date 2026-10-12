@@ -82,10 +82,17 @@ if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
 private _allPositions = _building buildingPos -1;
 private _positions = _allPositions select {
     private _positionASL=AGLToASL _x;
-    (lineIntersectsSurfaces [_positionASL vectorAdd [0,0,0.5],_positionASL vectorAdd [0,0,10],objNull,objNull,true,1]) isNotEqualTo []
+    private _roofHits=lineIntersectsSurfaces [
+        _positionASL vectorAdd [0,0,0.5],_positionASL vectorAdd [0,0,10],objNull,objNull,true,4,"GEOM","NONE"
+    ];
+    _roofHits findIf {(_x select 2) == _building || {(_x select 3) == _building}} >= 0
 };
-if (_positions isEqualTo []) then {_positions=+_allPositions};
-if (_positions isEqualTo []) exitWith {false};
+// Exposed posts remain garrison/transit candidates. A missing owned roof is not
+// permission to advertise every model position as a verified interior room.
+if (_positions isEqualTo []) exitWith {
+    diag_log format ["[WAIT] %1 clear building refused: no target-owned roofed positions in %2",_group,typeOf _building];
+    false
+};
 private _leader = [_group] call WAIT_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 // Entry selection must use the same capable/task-free contract as casualty reserves.
