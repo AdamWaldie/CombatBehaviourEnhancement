@@ -7700,6 +7700,22 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexClearRelease')
         self.assertIn('WAIT_Cortex_ClearReserve',release)
         self.assertIn('(_stage select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])',release)
+    def test_reserve_recovery_preserves_successor_and_clearance_lifetime(self):
+        step=source('buildingOperationStep')
+        stage=step.split('private _reserveStages=',1)[1].split('private _pairRosterChanged=',1)[0]
+        self.assertLess(stage.index('_stage set [2,"ARRIVED"]'),stage.index('// A deadline may retire only'))
+        recovery=stage.split('// A deadline may retire only',1)[1].split('} forEach (_reserves select [0,8])',1)[0]
+        for guard in ['[_reserve] call _ownsCurrentMove','[_reserve] call _reserveReady','call _mayIssueMovement']:
+            self.assertLess(recovery.index(guard),recovery.index('doStop _reserve'))
+        self.assertIn('_stageSearchCounts getOrDefault [_key,0]',recovery)
+        self.assertIn('"EXHAUSTED"',recovery)
+        self.assertNotIn('doMove',recovery)
+        self.assertNotIn('doFollow',recovery)
+        self.assertNotIn('_job set ["deadline"',stage)
+        self.assertNotIn('_job set ["hardDeadline"',stage)
+        self.assertIn('_searchCount < 3',stage)
+        self.assertIn('reserveStageTriedTargets',stage)
+
     def test_terminal_clearance_preserves_positions_even_when_result_is_incomplete(self):
         text=source('buildingOperationStep')
         branch=text.split('if (_reason == "COMPLETE") then {',1)[1].split('} else {',1)[0]
