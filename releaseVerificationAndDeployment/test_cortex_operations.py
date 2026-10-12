@@ -7694,3 +7694,11 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('setVariable [format ["bis_disabled',gate)
         self.assertNotIn('_cleared pushBack',gate)
         self.assertNotIn('doMove',gate.replace('// Native doMove','// Native movement'))
+
+    def test_clearance_new_native_order_releases_precompletion_holds_through_receipt(self):
+        text=source('buildingOperationStep')
+        branch=text.split('if (_reason == "NEW_ORDER"',1)[1].split('_group setVariable ["WAIT_Cortex_ClearResult"',1)[0]
+        for marker in ['accessHeld','quarantineHeld','securityActors','currentCommand _x == "STOP"','[_x] call _actorAvailable','CortexExternalTakeover','nativeOrderReceipt']:
+            self.assertIn(marker,branch)
+        self.assertNotIn('doMove',branch)
+        self.assertNotIn('doFollow',branch)

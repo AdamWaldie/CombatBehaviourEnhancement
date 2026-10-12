@@ -129,6 +129,19 @@ private _delay=call {
         if (_reason == "COMPLETE" && {_result == "COMPLETE"} && {_restore}) then {
             _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_NativeOrderReceipt,((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]]))],true];
         };
+        if (_reason == "NEW_ORDER" && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
+            // Native waypoint replacement must also release our finite pre-completion holds.
+            // Publish the old order receipt; the normal brain releases only unchanged owned
+            // STOP actors after this operation retires, without restoring an obsolete route.
+            private _held=(_job getOrDefault ["accessHeld",[]])+(_job getOrDefault ["quarantineHeld",[]])+(_job getOrDefault ["securityActors",[]]);
+            _held=(_held arrayIntersect _held) select {
+                local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
+                    && {[_x] call _actorAvailable} && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
+            };
+            if (_held isNotEqualTo []) then {
+                _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],_job getOrDefault ["nativeOrderReceipt",[]],_held],true];
+            };
+        };
         _group setVariable ["WAIT_Cortex_ClearResult",[_result,count (_job get "cleared"),count (_job get "positions")],true];
         _job set ["finished",true];
         _job set ["finishReason",_reason];
