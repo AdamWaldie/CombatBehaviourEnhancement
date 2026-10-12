@@ -7555,3 +7555,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_liveOperation set ["pairs",_pairSnapshot]',update)
         self.assertNotIn('_pairRoutes=',update)
         self.assertNotIn('_state set [0',update)
+
+    def test_clearance_refusal_identifies_bounded_actor_admission_evidence(self):
+        text=source('cortexClearBuilding')
+        self.assertIn('(units _group) select [0,16]',text)
+        self.assertIn('["NO_ELIGIBLE_ACTORS"] call _refuse',text)
+        self.assertIn('["GROUP_INELIGIBLE"] call _refuse',text)
+        self.assertIn('["OPERATION_REFUSED"] call _refuse',text)
+        self.assertIn('currentCommand _x,getUnitState _x',text)

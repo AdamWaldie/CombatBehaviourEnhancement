@@ -59,7 +59,20 @@ if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 if (!local _group) exitWith {
     if (isServer) then {[_group, _target, _options] remoteExecCall ["WAIT_fnc_CortexClearBuilding", groupOwner _group]; true} else {false};
 };
-if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {false};
+private _refuse={
+    params ["_reason"];
+    private _actors=(units _group) select [0,16];
+    private _evidence=[serverTime,_reason,groupOwner _group,_actors apply {
+        [netId _x,currentCommand _x,getUnitState _x,local _x,isPlayer _x,
+            _x checkAIFeature "MOVE",_x checkAIFeature "PATH",
+            _x getVariable ["WAIT_Cortex_ActorMove",[]],
+            [_x] call WAIT_fnc_CortexCombatEffective]
+    }];
+    _group setVariable ["WAIT_Cortex_ClearAdmissionFailure",_evidence,true];
+    diag_log format ["WAIT CLEAR ADMISSION REFUSED: %1",_evidence];
+    false
+};
+if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
 private _building = if (_target isEqualType objNull) then {_target} else {nearestBuilding _target};
 if (isNull _building) exitWith {if (_options getOrDefault ["resume", false]) then {[_group] call WAIT_fnc_CortexClearRelease}; false};
 if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
@@ -90,7 +103,7 @@ private _available = (units _group) select {
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 private _team = +_available;
-if (_team isEqualTo []) exitWith {false};
+if (_team isEqualTo []) exitWith {["NO_ELIGIBLE_ACTORS"] call _refuse};
 // Keep enough distinct lanes for a real squad clear without crowding every reported room node.
 // The roof filter can undercount valid interior lanes on some models, so capacity uses the full
 // engine position set as well as squad strength. Admit the full capable squad within the
@@ -134,6 +147,7 @@ if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nat
     false
 };
 
+_group setVariable ["WAIT_Cortex_ClearAdmissionFailure",nil,true];
 _group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt], true];
 _group setVariable ["WAIT_AIPass_ClearApplied", true];
 _group setVariable ["WAIT_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
@@ -146,6 +160,7 @@ private _generation = (_group getVariable ["WAIT_AIPass_ClearGeneration", 0]) + 
 _group setVariable ["WAIT_AIPass_ClearGeneration", _generation];
 private _operation=[_group,"CLEAR",_building,_team,_positions,"ENTRY"] call WAIT_fnc_OperationStart;
 if (count _operation == 0) exitWith {
+    ["OPERATION_REFUSED"] call _refuse;
     // A refused operation has no worker. Retire only this attempted generation's public
     // order so discovery cannot resurrect it after a newer owner/task has taken over.
     if ((_group getVariable ["WAIT_AIPass_ClearGeneration",-1]) == _generation) then {
