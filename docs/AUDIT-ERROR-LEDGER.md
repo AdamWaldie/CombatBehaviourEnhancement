@@ -542,3 +542,10 @@ Equal-size d753d64 runtime-20261012-185024-552 completed: 228 checks, 80 retaine
 ### Redundant same-floor buddy checkpoint
 
 The interrupted 4871330 native comparison recorded all four Small_01 node holds for both ROOM-STOP and ROOM-SPEED. This weakens the hypothesis that a stop alone explains production's Small_01 stall; it does not complete the batch or prove production recovery. Source inspection found that an already-entered mover inherited its buddy's preceding node even on the same destination floor, while security could hold that node. The source now limits that preceding checkpoint to unentered actors or floor changes. Physical room receipt, entry gates, vertical access, deadlines and movement ownership remain required. Audits are paused at the user's request; coherent buddy movement and recovery remain unverified.
+
+
+### Interrupted native hold comparison retained
+
+User-ended runtime runtime-20261012-191455-274 records 247 checks and 73 failed assertions, zero SQF/fatal errors, one unresolved character-addon load warning and matching provenance. No terminal completion marker exists; the report explicitly retains complete=false. Each failed assertion has an unresolved assessment with its RPT line. ROOM-STOP and ROOM-SPEED produced identical physical masks: Small_03 zero of five, Small_01 four of four, Big_01 seven of nine (nodes 2 through 8), and Big_02 five of nine (nodes 0 through 3 and 8). The hold command change therefore has no demonstrated traversal advantage. These are native diagnostic controls, not production clearance or tactical acceptance. All recorded audit processes were terminated and absence verified. Further game runs remain paused by the user.
+
+Source review confirms casualty replacement already consumes eligible same-group reserves into vacant active pair slots and updates common operation participants/progress. Eligibility excludes dead/ineffective, specialist-controlled, externally owned, quarantined and movement-disabled actors. This is implementation evidence only: casualty replacement under fire, coherent reserve participation and exterior security remain physically unaccepted.
