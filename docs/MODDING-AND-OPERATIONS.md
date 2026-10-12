@@ -163,3 +163,7 @@ Separate passenger-owner retries process a bounded actor slice but pass the full
 ### Passenger cover cleanup ownership
 
 Passenger cover cleanup recalls an eligible MOVE/STOP only when the expected destination matches the recorded cover destination within 0.25 m in 3D. A newer nearby destination is not owned merely because it lies within two horizontal metres of the former cover point. Live nearby-order handover validation remains pending.
+
+### CQB reserve staging search budget
+
+A building step starts at most one pending reserve stage selection per callback. Other reserves do not consume their attempt until processed; all existing stages retain arrival checks and casualty promotion remains independent. The current fan candidate and rejected-stage hold remain unchanged pending dynamic candidate selection. Physical staging and runtime performance are unvalidated.

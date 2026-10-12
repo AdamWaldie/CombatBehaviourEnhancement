@@ -7694,6 +7694,9 @@ class CortexOperations(unittest.TestCase):
         step=source('buildingOperationStep')
         for marker in ['reserveStageAttempts','(_reserves select [0,8])','_stageAttempts pushBackUnique _key','doStop _reserve','WAIT_Cortex_ClearReserve']:
             self.assertIn(marker,step)
+        self.assertIn('private _stageSearchBudget=1',step)
+        self.assertIn('{_stageSearchBudget > 0}',step)
+        self.assertLess(step.index('_stageSearchBudget=_stageSearchBudget-1'),step.index('_stageAttempts pushBackUnique _key'))
         release=source('cortexClearRelease')
         self.assertIn('WAIT_Cortex_ClearReserve',release)
         self.assertIn('(_stage select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])',release)

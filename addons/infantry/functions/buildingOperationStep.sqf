@@ -14,6 +14,7 @@
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
  * Successful egress additionally requires each active worker's successive physical visits.
+ * Reserve stage selection processes at most one pending actor per callback; other attempts remain pending.
  * Retired ordinary movers and reserves with rejected stage geometry receive one hold,
  * never a recurring formation recall around an interior leader. A failed native path's automatic
  * formation fallback is held once per owned request until the existing finite retry or handover.
@@ -502,11 +503,15 @@ private _delay=call {
     // This is one destination plus an arrival hold per actor, not a recurring movement rewrite.
     private _reserveStages=_job getOrDefault ["reserveStages",createHashMap];
     private _stageAttempts=_job getOrDefault ["reserveStageAttempts",[]];
+    // Pending reserves do not consume attempts when another actor used this callback budget.
+    private _stageSearchBudget=1;
     {
         private _reserve=_x;
         private _key=netId _reserve;
         private _stage=_reserveStages getOrDefault [_key,[]];
-        if (_stage isEqualTo [] && {!(_key in _stageAttempts)} && {call _mayIssueMovement}) then {
+        if (_stage isEqualTo [] && {!(_key in _stageAttempts)} && {_stageSearchBudget > 0}
+            && {call _mayIssueMovement}) then {
+            _stageSearchBudget=_stageSearchBudget-1;
             _stageAttempts pushBackUnique _key;
             // A rejected staging ray must not leave a reserve following the interior leader.
             // Hold the actual position first; replace it only with the one validated stage leg.
