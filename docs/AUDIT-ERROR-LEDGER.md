@@ -606,3 +606,10 @@ Old convoy cleanup treats a different current movement-operator group as success
 
 
 Convoy hit-handler IDs now carry a local group/machine ownership receipt. Current crew processing adopts the generic handler for its active convoy without duplicating it; cleanup removes only a matching local receipt and preserves a successor group's adopted handler. Unreceipted legacy handler cleanup is not presumed owned. The existing passenger-HALT follow-up job is also tagged CONVOY, using the registry scheduler gate and its existing revision checks. Neither correction creates a polling loop or completes handover/JIP acceptance. Physical hostile-hit continuity, repeated cleanup, owner migration and suspended passenger processing remain pending with audits paused.
+
+
+### CQB proximity is not a wall-crossing proof
+
+Current source inspection found production buildingOperationStep visit collection and fresh-clearance audit observation both use 1.5 m three-dimensional proximity plus a 0.75 m floor band. Neither tests intervening building geometry before issuing an actor visit/entry receipt. Agreement between those two measurements cannot prove interior entry when a soldier is close to a room point through a wall. Existing physical navigation results remain narrow proximity evidence; no room-safety or reliable CQB acceptance follows.
+
+Resolution remains required: a fixture must independently establish an exterior actor and an intervening wall, preserve MOVE/PATH eligibility, and observe that no interior visit/entry receipt is granted before actual access. Production collection and arrival holds must share a bounded geometric condition while retaining original coordinates, one movement writer and finite deadlines. Geometry work must be capped/fair among workers, and included in matched runtime performance; a global scan, teleport or classname route table is not acceptable. No geometry implementation or physical result is claimed by this source finding. Game audits remain paused.
