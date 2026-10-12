@@ -1,4 +1,18 @@
 ## Current acceptance boundary - 2026-10-11
+Current CQB evidence and remaining requirements (2026-10-12):
+
+Clean 108869a runtime-20261012-020446-964 physically passed two-person deeper progression and six-person room coverage, all-six entry, physical egress and COMPLETE settlement. These are narrow fixture results; repeatability and tactical quality are not established. Twelve-person coverage/settlement still fails. All 65 feature families remain partial. Earlier running-batch references below are historical, not current state.
+
+The player's observed sprawl and post-clear wedge are unacceptable even when navigation-position checks pass. Remaining CLEAR acceptance requires:
+
+- A dynamic connected entrance/floor progression with stable pair routes, bounded local planning and no required authored building setup.
+- Progressive admission and nearby reserve staging with explicit replenishment/security roles; idle exterior actors cannot be counted as covering fire.
+- Physical partner follow-through and casualty reassignment without waiting for global room-visit flags or resetting intact lanes.
+- A generation-owned post-clear consolidation/security state that retains coherent local positions, then immediately yields to new Zeus/native orders or external control. Terminal doFollow/wedge recall alone is insufficient.
+- Physical validation of native and placed buildings, repeated clears, damage-enabled contact, stragglers, casualty replacement, interruption and separate HC migration batches.
+
+No new completion percentage is inferred from static tests, entry flags or these isolated passes. The full performance budget remains unverified.
+
 
 WAIT remains unaccepted. Candidate `61e136b` completed the normal convoy matrix in `runtime-20261011-184243-432`: 567 checks, 58 server findings, zero matched SQF errors, zero fatal failures and one unresolved startup load warning. Both completion markers were recorded. Its processes were terminated with identity and exit verification before the next batch. No failed assertion is waived.
 
