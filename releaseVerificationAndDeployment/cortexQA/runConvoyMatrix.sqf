@@ -300,18 +300,37 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             private _reverseLead=_vehicles select 0;
             private _reverseFollower=_vehicles select 1;
             [_id+" reverse yield","Diagnostic stimulus: native BACK input is applied to the lead. Actual backward travel must occur, then the follower must physically yield and both must resume forward. No velocity or position is assigned.",getPosATL _reverseFollower] call _phase;
+            [_group,0,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
+            private _columnStopped=[{_vehicles findIf {abs speed _x > 1} < 0},20] call _wait;
+            private _slowAccepted=[_group,5,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
+            private _slowRevision=_group getVariable ["WAIT_Convoy_Revision",-1];
+            private _slowApplied=[{
+                private _receipt=_reverseLead getVariable ["WAIT_Convoy_OwnedSpeed",[]];
+                count _receipt == 3 && {(_receipt select 0) == _group}
+                    && {(_receipt select 1) == _slowRevision}
+                    && {getForcedSpeed _reverseLead > 0}
+                    && {getForcedSpeed _reverseLead <= 5/3.6+0.1}
+            },10] call _wait;
             _reverseLead sendSimpleCommand "STOP";
-            private _leadStopped=[{abs speed _reverseLead < 1},8] call _wait;
+            private _leadStopped=_columnStopped && {_slowAccepted} && {_slowApplied}
+                && {[{abs speed _reverseLead < 1},8] call _wait};
+            private _leadBounds=boundingBoxReal _reverseLead;
+            private _followerBounds=boundingBoxReal _reverseFollower;
+            private _bodyClearance=(abs ((_leadBounds select 0) select 1)+abs ((_leadBounds select 1) select 1)
+                +abs ((_followerBounds select 0) select 1)+abs ((_followerBounds select 1) select 1))*0.5+3;
+            private _clearanceSafe=_reverseLead distance2D _reverseFollower > _bodyClearance+8;
             private _reverseOrigin=getPosATL _reverseLead;
             private _reverseAxis=vectorDir _reverseLead;
             _reverseLead sendSimpleCommand "STOPTURNING";
-            _reverseLead sendSimpleCommand "BACK";
+            if (_leadStopped && {_clearanceSafe}) then {_reverseLead sendSimpleCommand "BACK"};
             private _reverseSamples=0;
             private _yieldSamples=0;
             private _maximumFollowerSpeed=0;
             private _reverseSince=-1;
             private _reverseDeadline=time+8;
-            while {time < _reverseDeadline} do {
+            while {time < _reverseDeadline && {_leadStopped} && {_clearanceSafe}} do {
+                if (_reverseLead distance2D _reverseFollower <= _bodyClearance+2) exitWith {_clearanceSafe=false};
+                if (-(((getPosATL _reverseLead) vectorDiff _reverseOrigin) vectorDotProduct _reverseAxis) >= 6) exitWith {};
                 if ((velocityModelSpace _reverseLead select 1) < -0.5) then {
                     _reverseSamples=_reverseSamples+1;
                     if (_reverseSince < 0) then {_reverseSince=time};
@@ -323,10 +342,12 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                 sleep 0.5;
             };
             private _backwardTravel=-(((getPosATL _reverseLead) vectorDiff _reverseOrigin) vectorDotProduct _reverseAxis);
-            private _reverseReal=_leadStopped && {_reverseSamples >= 4} && {_backwardTravel >= 2};
-            [_id+"-reverse-physical-prerequisite",_reverseReal,str [_leadStopped,_reverseSamples,_backwardTravel]] call _check;
+            _reverseLead sendSimpleCommand "STOP";
+            private _reverseReal=_leadStopped && {_clearanceSafe} && {_reverseSamples >= 4} && {_backwardTravel >= 2};
+            [_id+"-reverse-physical-prerequisite",_reverseReal,str [_leadStopped,_slowAccepted,_slowApplied,_clearanceSafe,_reverseSamples,_backwardTravel]] call _check;
             [_id+"-reverse-follower-physical-yield",_reverseReal && {_yieldSamples >= 4} && {_maximumFollowerSpeed <= 1},str [_yieldSamples,_maximumFollowerSpeed,getPosATL _reverseFollower]] call _check;
             _reverseLead sendSimpleCommand "STOP";
+            [_group,_requestedSpeed,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
             _reverseLead sendSimpleCommand "FORWARD";
             private _forwardOrigins=[getPosATL _reverseLead,getPosATL _reverseFollower];
             [_id+"-reverse-forward-recovery",[{

@@ -573,3 +573,6 @@ Convoy follower pacing distinguishes predecessor reverse motion from forward tra
 
 
 A queued wheeled 30 m convoy diagnostic now supplies native lead BACK input and independently requires real backward displacement, repeated reverse samples, follower physical stop after a bounded braking interval, then real forward recovery by both vehicles. No assigned velocity/position or cap-only assertion can pass it; absent reverse motion fails the prerequisite and yield result. The original convoy matrix outcomes remain untouched. This stimulus tests follower response, not autonomous obstacle-recovery admission. It has not run; game audits remain paused.
+
+
+Reverse diagnostic fixture review bounded its stimulus: require the whole column physically stopped, request 5 km/h through the public convoy API, observe the actual applied lead cap, and require body-length-based initial clearance. Stop BACK input at six metres or a shrinking safety margin; an unsafe margin fails the reverse prerequisite. Restore the original requested speed through the public API for recovery. These fixture safeguards do not change production pacing or waive missing physical reverse/yield evidence. No game run has been launched.
