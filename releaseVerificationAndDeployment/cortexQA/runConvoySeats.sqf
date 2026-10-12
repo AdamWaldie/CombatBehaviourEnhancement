@@ -159,9 +159,19 @@ if (count _owners >= 2) then {
 };
 missionNamespace setVariable ["WAIT_CortexQA_SeatPhase","MANUAL HALT",true];
 ["Convoy commanded unload","A deliberate halt now requires all four cargo soldiers to exit and move clear. Driver, gunner and commander must stay aboard. Labels distinguish their roles.",getPosATL _truck] call _phase;
+private _haltPassengerOrigins=_passengers apply {getPosATL _x};
 [_convoy,0,50,true] call WAIT_fnc_SimpleAiConvoy;
 ["SEATS-same-and-separate-cargo-exit",[{_passengers findIf {!alive _x || {vehicle _x != _x}} < 0},40] call _wait] call _check;
 ["SEATS-halt-operating-crew-retained",_crew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)} || {((_x select 0) getVariable ["WAIT_CortexQA_ExitEvents",[]]) isNotEqualTo []}} < 0] call _check;
+// Actor labels and accepted cover records cannot pass: require real post-exit clearance.
+["SEATS-every-passenger-physical-clearance",[{
+    private _clear=true;
+    {
+        if (!alive _x || {vehicle _x != _x} || {_x distance2D _truck < 6}
+            || {(getPosATL _x) distance2D (_haltPassengerOrigins select _forEachIndex) < 6}) then {_clear=false};
+    } forEach _passengers;
+    _clear
+},30] call _wait] call _check;
 sleep 10;
 [_convoy,0,50,true,true] call WAIT_fnc_SimpleAiConvoy;
 {deleteVehicle _x} forEach _actors;
