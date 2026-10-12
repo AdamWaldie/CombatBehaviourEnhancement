@@ -1,17 +1,28 @@
 # WAIT completion status
 
-Status checked on 2026-10-11. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
+Status checked on 2026-10-12. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
 
-Current live batch: `runtime-20261011-175607-317`, sealed candidate `e6b3f1d`, normal convoy matrix at 3840x2160 with observer Zeus and zero HCs. At 85 recorded checks, WHEELED-30 and WHEELED-50 passed all fourteen checks each: continuous travel, spacing, single file, stop fraction, halt/resume, crew retention and cleanup. These are flat-VR subcases at a 30 km/h request, not complete convoy or performance acceptance. WHEELED-15 remains failed; pacing repair `3c631a9` is outside the running candidate. HC tests remain a separate batch. One addon load warning remains unresolved.
+Current evidence (2026-10-12):
 
-Latest stopped batch: `runtime-20261011-145921-734`, candidate `543880e`, 3840x2160 observer Zeus with two HCs. Stopped at user request; all four processes verified absent. Partial report: 823 checks, 266 failed assertions, zero SQF errors, one unresolved load warning; server/client completion markers missing. Repairs after this candidate remain physically unverified. Game audits were subsequently authorized again; the normal convoy batch above is running. Compatibility expansion remains deferred behind FSM/driving foundations.
+- Normal 28fb1a6 clearance completed 400 checks with no SQF exceptions/fatal runtime failures, but retained failed twelve-person coverage/settlement and the character-addon load warning. Two-/six-person physical entry, post-clear hold and ordinary waypoint handover passed in these fixtures; repeatability across buildings/combat remains incomplete.
+- Separate two-HC d56396d batch runtime-20261012-032114-708 is live. Completed two-person holds were adopted through both HCs, physically followed the successor order under the second HC and returned to server. This does not establish general multiplayer acceptance.
+- All four twelve-person reserves physically reached bounded staging positions in the earlier normal 5c9a4d9 batch. Casualty replacement movement passed. Full reserve roles, progressive admission and tactical security/consolidation remain incomplete.
+- Latest code 192e8ae uses one native CQB path request and adds physical locked-phase observation. All 622 regression tests and full package gates pass; this routing change has no physical acceptance yet.
+- Twelve-person upstairs routing, clean settlement/egress, damage-enabled CQB, placed/native building repeatability, full consolidation, shutdown/migration variants and performance remain blockers. Workshop implementation/driving/FSM foundations remain priority; broader compatibility expansion stays deferred.
+
+All 65 families remain partial. Completed production feature families: 0/65; this is an acceptance count, not a statement that implementation is zero percent. Source/feature completion estimates below remain estimates and must not be promoted from static wiring or test counts.
+
+The following batch narrative is historical:
+Historical normal batch (2026-10-11): `runtime-20261011-175607-317`, sealed candidate `e6b3f1d`, normal convoy matrix at 3840x2160 with observer Zeus and zero HCs. At 85 recorded checks, WHEELED-30 and WHEELED-50 passed all fourteen checks each: continuous travel, spacing, single file, stop fraction, halt/resume, crew retention and cleanup. These are flat-VR subcases at a 30 km/h request, not complete convoy or performance acceptance. WHEELED-15 remains failed; pacing repair `3c631a9` is outside the running candidate. HC tests remain a separate batch. One addon load warning remains unresolved.
+
+Historical stopped batch (2026-10-11): `runtime-20261011-145921-734`, candidate `543880e`, 3840x2160 observer Zeus with two HCs. Stopped at user request; all four processes verified absent. Partial report: 823 checks, 266 failed assertions, zero SQF errors, one unresolved load warning; server/client completion markers missing. Repairs after this candidate remain physically unverified. Game audits were subsequently authorized again; the normal convoy batch above is running. Compatibility expansion remains deferred behind FSM/driving foundations.
 
 Game audits are authorized in batches. The broad candidate 89812ab batch completed with
 2,375 checks and 462 failed checks. The subsequent coordination candidate b3a9f70 completed
 with 453 checks and 30 failed checks, zero SQF error lines, zero fatal runtime failures and
 one unresolved load warning. Neither establishes subsystem acceptance.
 
-## Current batch and queued repairs
+## Historical batch and queued repairs
 
 Subsequent repairs through `ae23694` are committed to follow-up PR #13 and remain physically unverified. Garrison and defence commands defer finite actor tasks and reservations; cleanup preserves newer tasks; door requests verify building-order generation. Route watchdogs require three-dimensional approach rather than arbitrary lateral travel. New lifecycle cases require real boarding after hold release. These changes do not close earlier coordination failures or prove building path acceptance.
 
