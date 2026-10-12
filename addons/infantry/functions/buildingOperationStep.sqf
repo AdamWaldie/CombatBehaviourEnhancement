@@ -7,6 +7,8 @@
  * generation scoped and reconstructed after locality migration. Each room, entrance and egress
  * leg has one generation-owned movement writer. Entry, room and recovery movement each issue one
  * native doMove path request without a second formation-planner destination override.
+ * Off-floor mover changes may use one preceding physically visited interior checkpoint;
+ * checkpoint arrival never substitutes for visiting the assigned room.
  * Arguments: 0: building brain <HASHMAP> created by WAIT_fnc_BuildingOperationStart.
  * Return Value: Number - always -1 because the FSM schedules each later step separately.
  * Current caller: WAIT_fnc_BuildingOperationQueue through WAIT_fnc_CortexQueueJob.
@@ -608,8 +610,38 @@ private _delay=call {
                         _retries=0;
                     };
                     private _target=[_positions select _positionIndex,_entryTarget] select _approachingEntry;
-                    private _issue=_lastTarget != _positionIndex;
                     private _point=_pair select (_moverIndex mod count _pair);
+                    // Preserve a physically established interior route across mover changes.
+                    // A ground-level partner should regain the pair's visited target-floor node
+                    // before requesting its next room, rather than approaching an upstairs window.
+                    // One checkpoint per claimed room; ordinary recovery still bounds the leg.
+                    private _approaches=_job getOrDefault ["interiorApproaches",createHashMap];
+                    private _approachKey=str _pairIndex;
+                    private _approach=_approaches getOrDefault [_approachKey,[]];
+                    if (!_approachingEntry && {_entered} && {_previousPositionIndex >= 0}
+                        && {_previousPositionIndex != _positionIndex}
+                        && {(_approach param [0,-1]) != _positionIndex}) then {
+                        private _checkpoint=_positions select _previousPositionIndex;
+                        if (abs (((getPosATL _point) select 2)-(_target select 2)) > 1.5
+                            && {abs ((_checkpoint select 2)-(_target select 2)) <= 1.5}) then {
+                            _approach=[_positionIndex,+_checkpoint,false];
+                            _approaches set [_approachKey,_approach];
+                            _job set ["interiorApproaches",_approaches];
+                        };
+                    };
+                    if (!_approachingEntry && {count _approach == 3}
+                        && {(_approach select 0) == _positionIndex} && {!(_approach select 2)}) then {
+                        private _checkpoint=_approach select 1;
+                        if ((getPosASL _point) vectorDistance (AGLToASL _checkpoint) <= 1.5) then {
+                            _approach set [2,true];
+                            _lastTarget=-1;
+                            _retries=0;
+                            _lastProgress=_now;
+                        } else {
+                            _target=+_checkpoint;
+                        };
+                    };
+                    private _issue=_lastTarget != _positionIndex;
                     private _bestDistance=_state param [13,1e12,[0]];
                     private _bestTarget=_state param [14,[],[[]]];
                     if (_bestTarget isNotEqualTo _target) then {
