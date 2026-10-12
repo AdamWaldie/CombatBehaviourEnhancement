@@ -622,6 +622,7 @@ if (_focus in ["all","features","mechanics","airborne"]) then {
 if (_focus in ["all","features","mechanics","vehicles","stateflows","dangerparity","dangerbuildings"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAVehicles.sqf"};
 if (_focus in ["all","features","mechanics","vehicles","naval"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQANaval.sqf"};
 if (_focus in ["all","features","mechanics","fire"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAFire.sqf"};
+if (_focus in ["all","features","mechanics","fire","grenades"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAGrenades.sqf"};
 // Long multi-squad comparisons run last so they cannot delay unrelated feature coverage.
 if (_focus == "coordinatedbounds") then {[_check,_phase,_wait,[],true] call compile preprocessFileLineNumbers "cortexQACoordinated.sqf"};
 // Additive geometry comparison; do not replace the original long-screen audit.

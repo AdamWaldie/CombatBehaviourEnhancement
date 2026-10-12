@@ -187,3 +187,7 @@ Stage endpoints require dry usable slope, standing-space geometry and exterior/e
 ### Grenade release orientation evidence
 
 The one-shot native grenade release trace appends actor position, body/view bearings and target errors, view availability, stance and animation state at FiredMan release. Existing launch/contact fields retain their indices. Command-time alignment and actual release orientation can now be compared; no actor direction or projectile velocity is changed. The reported opposite-contact throws still require live provenance-matched investigation.
+
+### Controlled smoke direction audit
+
+The `grenades` focus stages twelve fresh server-owned smoke cases: standing/crouched/prone and four cardinal target bearings. Each case requires stance, a queued real helper request and an actual nonzero projectile launch vector within thirty degrees of the requested bearing. Missing release/direction fails. This isolated fixture has no hostile actors; it does not validate contact selection, fragmentation, native controls or HC migration. It is unrun while audits are paused.
