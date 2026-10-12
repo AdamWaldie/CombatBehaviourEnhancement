@@ -159,3 +159,7 @@ The finite remote passenger-owner HALT job retains on-foot actors with the match
 ### Sliced passenger cover exclusions
 
 Separate passenger-owner retries process a bounded actor slice but pass the full cargo roster separately for read-only destination exclusions. Existing live reservations outside the current slice remain visible. This does not serialize simultaneous selection across owners; that race remains unverified and requires a separate design and live audit.
+
+### Passenger cover cleanup ownership
+
+Passenger cover cleanup recalls an eligible MOVE/STOP only when the expected destination matches the recorded cover destination within 0.25 m in 3D. A newer nearby destination is not owned merely because it lies within two horizontal metres of the former cover point. Live nearby-order handover validation remains pending.
