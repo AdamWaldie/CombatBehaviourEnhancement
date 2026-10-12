@@ -515,3 +515,9 @@ The launcher now requires both mission and Steam network readiness before starti
 Ebb7ed5 runtime-20261012-182815-758 reached server mission/network readiness but did not reach observer entry. The client RPT records Shutdown normally at 18:31:01, not a fatal crash; who initiated shutdown is unproven. The launch handle was terminal and the identity-checked shutdown verified no matching processes remain. The added readiness gate has not established reliable autoconnection or provided matched-role evidence.
 
 Launcher failure reporting now distinguishes a client exit, server exit and observation timeout, with a structured entry-status.json; it does not claim a timeout when a process ended early. Each successfully launched HC is immediately added to the process record before the next launch, so a partial HC/client failure retains its cleanup identities. Live interruption/partial-launch validation remains pending.
+
+### Matched-role group-size confound
+
+Running 0a2b951 native baseline entered normally and passed all eight role readiness checks. On initial Big_01 entry, the follower reached its node while the leader stalled outside. However, PLACED-LEADER had a one-person group and PLACED-FOLLOWER had two, so this is not clean causal evidence of native leader behavior. The running fixture remains unchanged and its evidence is retained.
+
+The next diagnostic gives both role controls two real actors, with the spare held outside at the same relative position. Readiness now requires exactly two members as well as the intended leader identity, and role receipts include both actors' actual positions and commands. Production leadership, group membership and movement are unchanged. Physical equal-size role comparison remains pending.

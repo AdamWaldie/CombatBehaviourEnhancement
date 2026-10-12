@@ -119,6 +119,16 @@ private _usedTerrainHouses=[];
         private _unit = _group createUnit ["O_Soldier_F",_house getPos [25,180],[],0,"NONE"];
         _unit setVariable ["acex_headless_blacklist",true,true];
         _unit allowDamage false;
+        if (_method == "PLACED-LEADER") then {
+            // Match the follower control's two-member group. Only leader identity
+            // differs; a stopped spare actor exists outside in both controls.
+            private _spare=_group createUnit ["O_Soldier_F",_house getPos [30,150],[],0,"NONE"];
+            _spare allowDamage false;
+            _spare setVariable ["acex_headless_blacklist",true,true];
+            _spare setVariable ["WAIT_CortexQA_Label",format ["FIXED NATIVE PEER / model %1",_row+1],true];
+            doStop _spare;
+            _actors pushBack _spare;
+        };
         private _target = (_house buildingPos -1) param [0,[]];
         private _label = format ["%1 / model %2",_method,_row+1];
         _unit setVariable ["WAIT_CortexQA_Label",_label,true];
@@ -134,7 +144,8 @@ private _comparisonPosition=if (_cases isNotEqualTo []) then {getPosATL ((_cases
     _x params ["_group","_unit","_house","_target","_method","_label"];
     private _valid = simulationEnabled _house && {simulationEnabled _unit} && {local _unit} && {_target isNotEqualTo []}
         && {_method != "PLACED-LEADER" || {leader _group == _unit}}
-        && {_method != "PLACED-FOLLOWER" || {leader _group != _unit}};
+        && {_method != "PLACED-FOLLOWER" || {leader _group != _unit}}
+        && {!(_method in ["PLACED-LEADER","PLACED-FOLLOWER"]) || {count units _group == 2}};
     [format ["BUILD-%1-ready",_label],_valid] call _check;
     if (_valid) then {
         if (_method != "HOUSE-WAYPOINT") then {doStop _unit; [_unit,_target,_method] call _issueNativeComparison} else {
@@ -160,7 +171,8 @@ waitUntil {
     [format ["BUILD-%1-arrival",_label],_arrived,format ["class=%1 owner=%2 simulation=%3 position=%4 target=%5 command=%6 expected=%7",typeOf _house,groupOwner _group,simulationEnabled _unit,getPosATL _unit,_target,currentCommand _unit,expectedDestination _unit]] call _check;
     if (_method in ["PLACED-LEADER","PLACED-FOLLOWER"]) then {
         diag_log format ["WAIT NATIVE BUILDING ROLE: %1",[_label,netId _unit,netId leader _group,
-            getPosASL _unit,getPosASL leader _group,currentCommand leader _group]];
+            getPosASL _unit,getPosASL leader _group,currentCommand leader _group,
+            (units _group) apply {[netId _x,getPosASL _x,currentCommand _x]}]];
     };
 } forEach _cases;
 // Entry at position zero does not prove that later model nodes are reachable.
