@@ -7611,3 +7611,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('doStop _x',branch)
         self.assertNotIn('doFollow',branch)
         self.assertNotIn('setPos',branch)
+    def test_post_clear_hold_handover_requires_changed_order_and_owner_receipt(self):
+        text=source('groupBrainStep')
+        branch=text.split('private _clearHold=',1)[1].split('private _legacyJob=',1)[0]
+        for guard in ['WAIT_AIPass_ClearGeneration','(_clearHold select 1) == _epoch','WAIT_fnc_NativeOrderReceipt','currentCommand _x == "STOP"','WAIT_fnc_CortexExternalTakeover','WAIT_fnc_CompatibilityExternalControl','WAIT_Cortex_ActorMove','count (_group getVariable ["WAIT_Operation",createHashMap]) == 0']:
+            self.assertIn(guard,branch)
+        self.assertLess(branch.index('WAIT_Cortex_ClearHold",nil'),branch.index('_x doFollow _leader'))

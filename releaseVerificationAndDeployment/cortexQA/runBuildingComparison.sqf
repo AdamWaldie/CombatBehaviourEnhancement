@@ -761,9 +761,21 @@ private _doorOpened=false;
 private _entered=false;
 private _entryEvidence=[];
 private _unlockedDeadline=time+90;
+private _nextDoorTrace=time;
+diag_log format ["WAIT DOOR OBSERVER NODES: %1",_doorPositions apply {AGLToASL _x}];
 waitUntil {
     sleep 0.25;
     if (_doorHouse animationSourcePhase _doorSource >= 0.8) then {_doorOpened=true};
+    if (time >= _nextDoorTrace) then {
+        _nextDoorTrace=time+5;
+        {
+            private _actor=_x;
+            private _nearest=1e12;
+            {_nearest=_nearest min ((getPosASL _actor) vectorDistance (AGLToASL _x))} forEach _doorPositions;
+            diag_log format ["WAIT DOOR OBSERVER ACTOR: %1",[time,netId _actor,alive _actor,getPosASL _actor,
+                _nearest,currentCommand _actor,_doorHouse animationSourcePhase _doorSource]];
+        } forEach _doorMembers;
+    };
     // Sample physical arrival throughout the unlocked phase; animation sources may lag traversal.
     if (!_entered) then {
         {
