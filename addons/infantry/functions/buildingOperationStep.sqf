@@ -533,7 +533,7 @@ private _delay=call {
                 _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
                 _stage=[+_hold,true,"REJECTED"];
                 _stage set [3,serverTime+5];
-                if (_searchCount >= 3) then {_stage set [2,"EXHAUSTED"]};
+                if ((_searchCount+1) >= 3) then {_stage set [2,"EXHAUSTED"]};
                 _reserveStages set [_key,_stage];
                 private _securityActors=_job getOrDefault ["securityActors",[]];
                 _securityActors pushBackUnique _reserve;
