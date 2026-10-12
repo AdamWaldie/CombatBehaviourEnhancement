@@ -509,3 +509,9 @@ Native 194c394 batch runtime-20261012-175429-329 is now complete: 188 checks, 70
 Both 5ab6393 runtimes 181238-442 and 181629-996 failed client mission entry and were stopped with process absence verified. The second had server UDP bindings 24350/24351/24352 and a Steam-ready marker; its running client had no UDP endpoint or logged connection. This does not identify the client-side cause. No matched-role behavioral evidence exists. Computer Use remains unused after the user's earlier stop.
 
 The launcher now requires both mission and Steam network readiness before starting ordinary clients/HCs. Script readiness can precede network readiness; this closes that possible ordering gap without claiming it explains these failures. Server-only loader diagnostics retain their local readiness gate. The initial server process is recorded immediately so a readiness failure is still safely stoppable. Physical startup retest remains pending.
+
+### Network-readiness retest ended without client entry
+
+Ebb7ed5 runtime-20261012-182815-758 reached server mission/network readiness but did not reach observer entry. The client RPT records Shutdown normally at 18:31:01, not a fatal crash; who initiated shutdown is unproven. The launch handle was terminal and the identity-checked shutdown verified no matching processes remain. The added readiness gate has not established reliable autoconnection or provided matched-role evidence.
+
+Launcher failure reporting now distinguishes a client exit, server exit and observation timeout, with a structured entry-status.json; it does not claim a timeout when a process ended early. Each successfully launched HC is immediately added to the process record before the next launch, so a partial HC/client failure retains its cleanup identities. Live interruption/partial-launch validation remains pending.

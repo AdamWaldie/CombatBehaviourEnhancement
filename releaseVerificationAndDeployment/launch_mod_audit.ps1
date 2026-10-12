@@ -178,6 +178,8 @@ for ($i=1; $i -le $HeadlessClients; $i++) {
     $hc=Start-AuditProcess 'arma3server_x64.exe' @('-client','-noBattlEye','-netlog','-connect=127.0.0.1',"-port=$Port",("-profiles="+(Join-Path $runtime "hc$i")),"-name=WAIT_HC$i",$modArg)
     $processes+=$hc.Id
     $auditProcessHandles+=$hc
+    # Preserve each successful partial launch if a later HC/client fails to start.
+    @{runtime=$runtime; mission=$installedMission; process_ids=$processes; fingerprint=$manifest.package.fingerprint} | ConvertTo-Json | Set-Content (Join-Path $runtime 'launch.json')
 }
 $clientProfile=Join-Path $runtime 'client'
 New-Item -ItemType Directory -Force $clientProfile | Out-Null
@@ -207,7 +209,17 @@ while ((Get-Date) -lt $clientDeadline -and !$client.HasExited -and !$server.HasE
     Start-Sleep -Seconds 1
 }
 if (!$observerReady) {
-    throw "Client did not enter WAIT_Audit.$World with observer Zeus within $ClientReadyTimeoutSeconds seconds. Inspect $runtime; this batch is not valid and its processes have been left available for inspection."
+    $entryFailure='ENTRY_TIMEOUT'
+    $entryDetail="No observer entry within $ClientReadyTimeoutSeconds seconds"
+    if ($client.HasExited) {
+        $entryFailure='CLIENT_EXITED_BEFORE_ENTRY'
+        $entryDetail="Client exited before observer entry (exit code $($client.ExitCode))"
+    } elseif ($server.HasExited) {
+        $entryFailure='SERVER_EXITED_BEFORE_ENTRY'
+        $entryDetail="Server exited before observer entry (exit code $($server.ExitCode))"
+    }
+    @{status=$entryFailure; detail=$entryDetail; mission_ready=$ready; network_ready=$networkReady; observer_ready=$false} | ConvertTo-Json | Set-Content (Join-Path $runtime 'entry-status.json')
+    throw "$entryDetail. Inspect $runtime; this batch is not valid and its recorded processes have been left available for inspection."
 }
 $client.Refresh()
 if ($client.MainWindowHandle -eq [IntPtr]::Zero -or !$([WaitAuditWindow]::IsWindowVisible($client.MainWindowHandle))) {
