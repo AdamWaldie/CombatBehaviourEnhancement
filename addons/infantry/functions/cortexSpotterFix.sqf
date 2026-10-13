@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Reads a directly observed target and visibly uses the assigned observer binoculars. No report is extrapolated.
+ * Reads a directly observed target using an active, visible assigned observer and its binoculars. No report is extrapolated.
  * Locality/authority: documented guards enforce server coordination and owner-local execution.
  * Repeat/JIP: mission tokens reject stale work; server state survives HC migration, not restart.
  * Arguments: 0: spotter <OBJECT>; 1: enemy <OBJECT>; 2: previous impact ATL <ARRAY>, default [].
@@ -11,6 +11,7 @@
 params [["_spotter", objNull, [objNull]], ["_enemy", objNull, [objNull]], ["_impact", [], [[]]]];
 if (!local _spotter || {!alive _spotter} || {isPlayer _spotter} || {!alive _enemy}
     || {!(_spotter getVariable ["WAIT_AIPass_Spotter", false])}
+    || {!simulationEnabled _spotter} || {isObjectHidden _spotter}
     || {vehicle _spotter != _spotter} || {binocular _spotter == ""}
     || {_spotter getVariable ["ACE_isUnconscious", false]} || {lifeState _spotter == "INCAPACITATED"}
     || {!([group _spotter] call WAIT_fnc_CortexIsEligible)}) exitWith {[]};
