@@ -25,6 +25,8 @@
  * repeatedly reset a stalled checkpoint leg while retaining its failed target.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
+ * Casualty selection prefers the nearest eligible reserve to a surviving buddy, or the
+ * building when the whole lane is unavailable; no geometry scan or deadline renewal is added.
  * A single exterior replacement follows its healthy original surviving mover through bounded
  * partner entry recovery. Entered survivors have priority; exterior survivors keep approach
  * continuity. Whole-pair replacements still restart exterior entry without inherited receipts.
@@ -830,7 +832,22 @@ private _delay=call {
         for "_slot" from 0 to ((count _pair)-1) do {
             private _member=_pair select _slot;
             if ((!([_member] call _actorAvailable) || {_member in _unavailable}) && {_reserves isNotEqualTo []}) then {
-                private _replacement=_reserves deleteAt 0;
+                // Reinforce the surviving buddy from the nearest eligible reserve rather
+                // than roster order. With no available buddy, approach the building itself.
+                // This rare roster-change scan performs no geometry or movement query.
+                private _buddy=_pair select ((_slot+1) mod count _pair);
+                private _reinforceAnchor=if (_buddy != _member && {[_buddy] call _actorAvailable}
+                    && {!(_buddy in _unavailable)}) then {_buddy} else {_building};
+                private _replacementIndex=0;
+                private _replacementDistance=1e12;
+                {
+                    private _distance=_x distance2D _reinforceAnchor;
+                    if (_distance < _replacementDistance) then {
+                        _replacementIndex=_forEachIndex;
+                        _replacementDistance=_distance;
+                    };
+                } forEach _reserves;
+                private _replacement=_reserves deleteAt _replacementIndex;
                 // Promotion changes this actor's purpose. Retire only the matching
                 // exit watch before an interior movement leg can inherit it.
                 private _exitWatch=_replacement getVariable ["WAIT_Cortex_ClearExitWatch",[]];

@@ -4186,7 +4186,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(release.index('WAIT_fnc_CortexFlankEnd'),release.index('call _finishOperation'))
     def test_building_replacement_rebases_approach_without_changing_room_sequence(self):
         text=source('buildingOperationStep')
-        replacement=text.split('private _replacement=_reserves deleteAt 0;',1)[1].split('Clear pair %1 reinforced',1)[0]
+        replacement=text.split('private _replacement=_reserves deleteAt _replacementIndex;',1)[1].split('Clear pair %1 reinforced',1)[0]
         self.assertIn('_state set [13,1e12]',replacement)
         self.assertIn('_state set [14,[]]',replacement)
         self.assertNotIn('_state set [0,',replacement)
