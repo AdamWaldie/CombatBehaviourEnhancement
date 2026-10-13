@@ -196,8 +196,9 @@ private _delay=call {
         _routeStates resize ((count _routeStates) min 8);
         private _stageRecords=_job getOrDefault ["reserveStages",createHashMap];
         private _stageCounts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
+        private _stageEntries=_job getOrDefault ["reserveStageTriedEntries",createHashMap];
         private _stageEvidence=(keys _stageRecords select [0,16]) apply {
-            [_x,+(_stageRecords get _x),_stageCounts getOrDefault [_x,0]]
+            [_x,+(_stageRecords get _x),_stageCounts getOrDefault [_x,0],+(_stageEntries getOrDefault [_x,[]])]
         };
         private _routeEvidence=[serverTime,_result,_routeStates,_routeActors apply {
             [netId _x,getPosATL _x,currentCommand _x,expectedDestination _x,
