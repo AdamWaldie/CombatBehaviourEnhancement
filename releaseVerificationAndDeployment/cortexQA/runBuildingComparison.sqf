@@ -17,10 +17,12 @@
  * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
  * Optional fifth argument: skipNative <BOOL>, false; run production acceptance without repeating controls.
  * Optional sixth argument: transformOnly <BOOL>, false; focused moved-building cancellation/reorder.
+ * Optional seventh argument: largeOnly <BOOL>, false; run the same four/twelve-person Big02
+ * fixtures and original assertions only. This diagnostic does not replace full CLEAR acceptance.
  * Return: Nothing. Current callers: cortexQA/runServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
-params ["_check","_phase","_wait",["_nativeOnly",false,[true]],["_skipNative",false,[true]],["_transformOnly",false,[true]]];
+params ["_check","_phase","_wait",["_nativeOnly",false,[true]],["_skipNative",false,[true]],["_transformOnly",false,[true]],["_largeOnly",false,[true]]];
 // Independent live-pose observation, never a production receipt or completion flag.
 // Audio interior values remain diagnostic; bounds plus geometry establish this
 // fixture's navigation visit, not hostile room safety or universal building support.
@@ -984,9 +986,14 @@ deleteVehicle _wallHouse;
     {deleteVehicle _x} forEach _members;
     deleteGroup _group;
     deleteVehicle _house;
-} forEach [[2,"Land_i_House_Small_01_V1_F"],[6,"Land_i_House_Big_01_V1_F"],[12,"Land_i_House_Big_02_V1_F"],[4,"Land_i_House_Big_02_V1_F"]];
+} forEach (if (_largeOnly) then {
+    [[4,"Land_i_House_Big_02_V1_F"],[12,"Land_i_House_Big_02_V1_F"]]
+} else {
+    [[2,"Land_i_House_Small_01_V1_F"],[6,"Land_i_House_Big_01_V1_F"],[12,"Land_i_House_Big_02_V1_F"],[4,"Land_i_House_Big_02_V1_F"]]
+});
 
 };
+if (_largeOnly) exitWith {};
 
 // Moving the building is the administrative stimulus; actors are never repositioned.
 private _movedHouse=createVehicle ["Land_i_House_Small_01_V1_F",[7750,5800,0],[],0,"NONE"];
