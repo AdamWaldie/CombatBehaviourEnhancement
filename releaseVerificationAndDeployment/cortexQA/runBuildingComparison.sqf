@@ -609,7 +609,7 @@ deleteVehicle _wallHouse;
                 private _reserveStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _actor,[]];
                 // A generation-owned arrived reserve must retain its actual staging point.
                 // Externally taken actors and retired jobs are outside this observation.
-                if (count _reserveStage == 2 && {_reserveStage select 1}
+                if (count _reserveStage >= 2 && {_reserveStage param [1,false,[true]]}
                     && {!(_actor in (_job getOrDefault ["team",[]]))}
                     && {!(_job getOrDefault ["finished",false])}
                     && {alive _actor} && {local _actor} && {isNull objectParent _actor}
