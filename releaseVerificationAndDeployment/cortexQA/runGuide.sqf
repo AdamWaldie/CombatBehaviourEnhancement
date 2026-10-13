@@ -4,7 +4,8 @@
  * Locality/authority: interface only; reads server-published audit state and protects the local
  * observer so combat cannot invalidate rendered-client measurements; never changes fixture AI.
  * Repeat/JIP: one observer per client; an obsolete respawn handler is removed before installation,
- * the assigned observer opens Zeus once after assignment (closing it is respected thereafter);
+ * the assigned observer opens Zeus and frames its first published fixture once after assignment;
+ * later camera movement or closing Zeus is respected;
  * controls are rebuilt when the game/Zeus display changes, and audit-only tracks are capped at
  * twelve actors and forty-eight samples so the visual aid cannot dominate the measured workload.
  * Arguments: None. Return: Nothing (scheduled script).
@@ -237,6 +238,19 @@ private _controls = [];
 private _last = "";
 private _nextSample = 0;
 private _observerOpened = false;
+private _observerFramed = false;
+// One local camera path serves startup and the explicit inspection control. The
+// callback returns success only with an actual curator camera and a published fixture.
+missionNamespace setVariable ["WAIT_CortexQA_Inspect",{
+    private _phase=missionNamespace getVariable ["WAIT_CortexQA_Phase",[]];
+    private _position=_phase param [2,[]];
+    if (isNull curatorCamera || {count _position < 2}) exitWith {false};
+    private _destination=AGLToASL [(_position select 0),(_position select 1)-35,30];
+    curatorCamera setPosASL _destination;
+    curatorCamera setVectorDirAndUp [[0,cos 35,-sin 35],[0,sin 35,cos 35]];
+    diag_log format ["WAIT AUDIT OBSERVER CAMERA: %1",[_phase param [0,""],_destination,getPosASL curatorCamera]];
+    true
+}];
 while {true} do {
     // Controls added to the gameplay HUD do not acquire a mouse cursor. Start the sole
     // disposable observer in its assigned interface instead of relying on a HUD click.
@@ -268,6 +282,9 @@ while {true} do {
             _tracks set [_key,_track];
         } forEach _actors;
     };
+    if (!_observerFramed && {!isNull findDisplay 312}) then {
+        _observerFramed=[] call (missionNamespace getVariable "WAIT_CortexQA_Inspect");
+    };
     private _next = findDisplay 312;
     if (isNull _next) then {_next = findDisplay 46};
     if (!isNull _next && {_next != _host}) then {
@@ -295,13 +312,7 @@ while {true} do {
             if (isNull curatorCamera) exitWith {
                 if (!isNull getAssignedCuratorLogic player) then {openCuratorInterface};
             };
-            private _phase = missionNamespace getVariable ["WAIT_CortexQA_Phase",[]];
-            private _position = _phase param [2,[]];
-            if (!isNull curatorCamera && {count _position >= 2}) then {
-                curatorCamera setPosASL (AGLToASL [(_position select 0),(_position select 1)-35,30]);
-                curatorCamera setDir 0;
-                [curatorCamera,-35,0] call BIS_fnc_setPitchBank;
-            };
+            [] call (missionNamespace getVariable "WAIT_CortexQA_Inspect");
         }];
         _controls = [_back,_body,_inspect];
         if (!isNil "WAIT_fnc_RegisterUiReservationLocal") then {["CORTEX_QA",_controls,["BOTTOM_CENTER"],true] call WAIT_fnc_RegisterUiReservationLocal};
