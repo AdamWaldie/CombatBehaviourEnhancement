@@ -162,6 +162,25 @@ if (!_generallyEligible) exitWith {
     };
     [20, 5] select ([_group] call WAIT_fnc_CortexZeusHeld)
 };
+// A held garrison arrival job may already have retired. Reconcile individual replacement
+// movement on this existing group job, releasing only that actor and no new route.
+if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {
+    private _diverted=_alive select {
+        private _actor=_x;
+        private _command=currentCommand _actor;
+        private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
+        private _live=(expectedDestination _actor) param [0,[]];
+        private _matching=count _receipt == 4 && {(_receipt select 0) == _group}
+            && {(_receipt select 1) == (_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1])}
+            && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {count _live == 3} && {count (_receipt select 3) == 3}
+            && {_live vectorDistance (_receipt select 3) <= 0.25};
+        local _actor && {!isPlayer _actor}
+            && {(_actor getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}
+            && {_command == "FOLLOW" || {_command == "MOVE" && {!_matching}}}
+    };
+    if (_diverted isNotEqualTo []) then {[_group,false,_diverted] call WAIT_fnc_CortexGarrisonRelease};
+};
 // A group tick can complete bounded assessment and planning after a curator or specialist
 // controller has claimed the group. Check immediately before actor-level commands so old
 // search, rejoin and regroup work cannot overwrite that newer order.

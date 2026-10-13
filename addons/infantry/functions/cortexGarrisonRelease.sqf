@@ -20,6 +20,8 @@
  * Arguments:
  * 0: group <GROUP or OBJECT>
  * 1: restore formation <BOOL> - false when Zeus already supplied replacement movement (default true)
+ * 2: actors <ARRAY of OBJECT>, [] - empty releases the whole group; a non-empty subset retires
+ *    only those members and preserves the group order and other assignments.
  *
  * Return Value:
  * Boolean - true when released or forwarded
@@ -31,18 +33,21 @@
  * Current callers: WAIT_fnc_CortexGroupTick, the AI Orders ZEN module and mission scripts.
  */
 
-params [["_group", grpNull, [grpNull, objNull]],["_restore",true,[true]]];
+params [["_group", grpNull, [grpNull, objNull]],["_restore",true,[true]],["_actors",[],[[]]]];
 if (_group isEqualType objNull) then {_group = group _group};
 if (isNull _group) exitWith {false};
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 if (!local _group) exitWith {
-    if (isServer) then {[_group,_restore] remoteExecCall ["WAIT_fnc_CortexGarrisonRelease", groupOwner _group]; true} else {false};
+    if (isServer) then {[_group,_restore,_actors] remoteExecCall ["WAIT_fnc_CortexGarrisonRelease", groupOwner _group]; true} else {false};
 };
 // No Cortex assignment means there is nothing for this release to restore.
 if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo [] && {units _group findIf {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []} < 0}) exitWith {false};
 // A newer Zeus, player or specialist owner may have replaced this order before this release
 // reaches the group owner. WAIT must still remove only its own state, but a feature gate change
 // is not an external order: it must release the held element back to its formation.
+private _partial=_actors isNotEqualTo [];
+if (!_partial) then {_actors=+units _group};
+_actors=_actors select {_x isEqualType objNull && {!isNull _x} && {group _x == _group}};
 private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;
 private _canRestore = _restore && {!_externalTakeover};
 private _leader = [_group] call WAIT_fnc_CortexGroupAnchor;
@@ -99,9 +104,12 @@ if (isNull _leader) then {_leader=leader _group};
     _x setVariable ["WAIT_AIPass_GarrisonStance", nil, true];
     _x setVariable ["WAIT_Cortex_GarrisonForcedSpeed",nil];
     _x setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",nil];
-} forEach units _group;
-_group setVariable ["WAIT_AIPass_Garrison", nil, true];
-_group setVariable ["WAIT_Cortex_GarrisonCandidates",nil,true];
-_group setVariable ["WAIT_AIPass_GarrisonApplied", nil];
-diag_log format ["[WAIT] %1 garrison released", _group];
+} forEach _actors;
+if (!_partial) then {
+    _group setVariable ["WAIT_AIPass_Garrison", nil, true];
+    _group setVariable ["WAIT_Cortex_GarrisonCandidates",nil,true];
+    _group setVariable ["WAIT_AIPass_GarrisonApplied", nil];
+};
+
+diag_log format ["[WAIT] %1 garrison released actors=%2 partial=%3", _group,count _actors,_partial];
 true

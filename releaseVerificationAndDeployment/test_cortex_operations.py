@@ -5252,6 +5252,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_partial_garrison_release_preserves_other_assignments(self):
+        release=source("cortexGarrisonRelease");tick=source("cortexGroupTick")
+        self.assertIn('["_actors",[],[[]]]',release)
+        self.assertIn("} forEach _actors;",release)
+        self.assertIn('if (!_partial) then {\n    _group setVariable ["WAIT_AIPass_Garrison", nil, true]',release)
+        self.assertIn('[_group,_restore,_actors] remoteExecCall',release)
+        self.assertIn('[_group,false,_diverted] call WAIT_fnc_CortexGarrisonRelease',tick)
+        self.assertIn('_live vectorDistance (_receipt select 3) <= 0.25',tick)
+
     def test_garrison_continuation_requires_exact_owned_move(self):
         apply=source("cortexGarrisonApplyLocal")
         callback=apply.split('params ["_job"];',1)[1]
