@@ -654,12 +654,14 @@ private _delay=call {
         private _pairIndex=_forEachIndex;
         private _pair=_x;
         private _state=_pairStates select _pairIndex;
+        private _laneRosterChanged=false;
         for "_slot" from 0 to ((count _pair)-1) do {
             private _member=_pair select _slot;
             if ((!([_member] call _actorAvailable) || {_member in _unavailable}) && {_reserves isNotEqualTo []}) then {
                 private _replacement=_reserves deleteAt 0;
                 _pair set [_slot,_replacement];
                 _pairRosterChanged=true;
+                _laneRosterChanged=true;
                 _rotatedOut pushBackUnique _member;
                 private _team=_job get "team";
                 _team pushBackUnique _replacement;
@@ -702,6 +704,14 @@ private _delay=call {
                 _group setVariable ["WAIT_Cortex_ClearReinforcements",_evidence,true];
                 diag_log format ["[WAIT] Clear pair %1 reinforced: %2 replaced %3",_pairIndex,_replacement,_member];
             };
+        };
+        // A wholly replaced exterior lane must establish its own physical entry.
+        // Retain the original route, room coverage and deadline; an entered survivor
+        // keeps its current interior progress and is never rallied outside.
+        if (_laneRosterChanged && {_pair findIf {_x in (_job getOrDefault ["enteredActors",[]])} < 0}) then {
+            _state set [0,0];
+            _state set [8,-1];
+            _state set [12,false];
         };
     } forEach _pairs;
     _job set ["rotatedOut",_rotatedOut];
