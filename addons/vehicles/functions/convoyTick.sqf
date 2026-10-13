@@ -523,9 +523,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _closingCap = (_frontSpeed + ((_controlGap-_gapLow) max 0)*0.8) min _maximum;
     private _elapsed = ((time-(_previous select 1)) max 0.1) min 3;
     // Tracks accelerate and brake unevenly. Do not propagate each brief speed dip
-    // into an immediate follower throttle drop while there is safe forward space.
+    // into an immediate follower throttle drop anywhere within the safe tolerance band.
     // Compression, a stopped predecessor and the closing cap still brake immediately.
-    if (_controlGap >= _desiredGap && {_frontSpeed > 2}) then {
+    if (_controlGap >= _gapLow && {_frontSpeed > 2}) then {
         _limit=_limit max (((_previous select 0)-4*_elapsed) max 0);
     };
     _limit = ((_limit min ((_previous select 0)+4*_elapsed)) min _closingCap) max 0;
