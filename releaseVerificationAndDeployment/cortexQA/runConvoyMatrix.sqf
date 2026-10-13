@@ -243,6 +243,12 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                     _group getVariable ["WAIT_AIPass_Epoch",0],_convoyBrain getOrDefault ["ownerEpoch",-1],
                     _convoyBrain getOrDefault ["lastStepAt",-1],_convoyBrain getOrDefault ["pending",false],
                     _convoyBrain getOrDefault ["queuedAt",-1],_convoyBrain getOrDefault ["skippedReason",""]];
+                private _localPacing=if (local _group) then {
+                    private _controller=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
+                    private _limits=_controller getOrDefault ["speedLimits",createHashMap];
+                    _vehicles apply {[netId _x,_limits getOrDefault [netId _x,[]],velocityModelSpace _x]}
+                } else {["UNAVAILABLE_REMOTE_OWNER",groupOwner _group]};
+                diag_log format ["WAIT CORTEX QA CONVOY PACING: case=%1 owner=%2 local=%3 vehicleLimitTimeModelVelocity=%4",_id,groupOwner _group,local _group,_localPacing];
                 diag_log format ["WAIT CORTEX QA CONVOY MATRIX: case=%1 speeds=%2 forced=%3 gaps=%4 motion=%5 formation=%6 steering=%7",_id,_vehicles apply {speed _x},_vehicles apply {getForcedSpeed _x},[(_vehicles select 1) distance2D (_vehicles select 0),(_vehicles select 2) distance2D (_vehicles select 1)],_vehicles apply {[getDir _x,currentCommand driver _x,expectedDestination driver _x,getPosATL _x]},formation _group,_vehicles apply {isAISteeringComponentEnabled _x}];
             };
             sleep 1;
