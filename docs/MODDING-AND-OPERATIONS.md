@@ -209,3 +209,5 @@ Room handoff preserves an exact matching active native movement request: if the 
 The one-time formation fallback hold does not wait for unitReady: a live trace showed an entered actor already following a FORMATION PLANNED route out of the house with an empty command while still busy. The exact owned generation/order checks and per-request hold limit remain. Explicit FOLLOW and MOVE are excluded. Physical validation of this refinement is pending.
 
 A compact terminal CQB diagnostic records entry/egress failure flags, bounded per-actor visit counts and exit receipts before cleanup. It disambiguates an INCOMPLETE result with full shared room coverage without relying on truncated route traces. Diagnostics cannot grant or modify acceptance.
+
+Exit-slot selection rejects destinations already claimed by another worker, wet ground and unusable slopes before standing-clearance geometry. It retains the twelve-candidate cap and identical acceptance constraints, avoiding repeated rays for slots that cannot be selected. This is a source-level cost reduction; the full median/p95 performance budget still needs measured acceptance.

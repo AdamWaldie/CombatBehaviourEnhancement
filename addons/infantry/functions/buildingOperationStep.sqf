@@ -1518,13 +1518,13 @@ private _delay=call {
                 private _row=floor (_slot/3);
                 private _side=(_slot mod 3)-1;
                 private _candidate=(_entry getPos [10+3*_row,_outward]) getPos [3*_side,_outward+90];
-                private _ground=getTerrainHeightASL _candidate;
-                private _foot=[_candidate select 0,_candidate select 1,_ground];
-                private _blocked=lineIntersectsSurfaces [_foot vectorAdd [0,0,0.2],_foot vectorAdd [0,0,1.8],_unit,objNull,true,1,"GEOM","NONE"];
-                if (!surfaceIsWater _candidate && {(surfaceNormal _candidate) select 2 >= 0.85}
-                    && {_blocked isEqualTo []}
-                    && {_claimedExitPoints findIf {_x distance2D _candidate < 3} < 0}) then {
-                    _exitPoint=ASLToAGL _foot;
+                // Claimed/wet/steep slots cannot be selected; reject them before geometry.
+                if (_claimedExitPoints findIf {_x distance2D _candidate < 3} < 0
+                    && {!surfaceIsWater _candidate} && {(surfaceNormal _candidate) select 2 >= 0.85}) then {
+                    private _ground=getTerrainHeightASL _candidate;
+                    private _foot=[_candidate select 0,_candidate select 1,_ground];
+                    private _blocked=lineIntersectsSurfaces [_foot vectorAdd [0,0,0.2],_foot vectorAdd [0,0,1.8],_unit,objNull,true,1,"GEOM","NONE"];
+                    if (_blocked isEqualTo []) then {_exitPoint=ASLToAGL _foot};
                 };
             };
             if (_exitPoint isEqualTo []) then {
