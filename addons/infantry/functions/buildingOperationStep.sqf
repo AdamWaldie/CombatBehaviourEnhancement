@@ -50,6 +50,7 @@
  * A clear observation ray and physical arrival precede one guarded watch command.
  * This establishes exit-approach observation, not complete building isolation.
  * Casualty promotion retires the matching generation/epoch exit watch before interior movement.
+ * Terminal settlement also retires that exact watch metadata; successor leases survive cleanup.
  * Native tasks and newer authority remain protected at that transfer boundary.
  * Arrived exit observation installs once per local owner epoch after physical arrival checks,
  * independently of its public stage receipt; replay issues no new movement.
@@ -239,6 +240,16 @@ private _delay=call {
                     _x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true];
                     _x setVariable ["WAIT_Cortex_ClearAppliedSpeed",nil,true];
                     _x setVariable ["WAIT_Cortex_ClearStance",nil,true];
+                    // A terminal stage is historical evidence, not an active watch lease.
+                    // Retire only this generation/epoch; successor observations remain intact.
+                    private _retiredWatch=_x getVariable ["WAIT_Cortex_ClearExitWatch",[]];
+                    if (count _retiredWatch == 3 && {(_retiredWatch select 0) == (_job get "generation")}
+                        && {(_retiredWatch select 1) == (_brain get "ownerEpoch")}) then {
+                        _x setVariable ["WAIT_Cortex_ClearExitWatch",nil,true];
+                        if ((_x getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _retiredWatch) then {
+                            _x setVariable ["WAIT_Cortex_ClearExitWatchLocal",nil];
+                        };
+                    };
                     _x setVariable ["WAIT_Cortex_ClearReserve",nil];
                 };
             } forEach (((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]])));
