@@ -12,7 +12,8 @@
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
  * An entered security partner yields a colliding mover checkpoint to a nearby physically visited
- * same-floor point. Selection is bounded and cached per partner/target/coverage; no visit is inferred.
+ * same-floor point. Selection is bounded and cached per partner/target/coverage/other destinations;
+ * changed reservations invalidate a failed selection, and no visit is inferred.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
@@ -1267,12 +1268,13 @@ private _delay=call {
                         private _separations=_job getOrDefault ["pairSupportSeparation",createHashMap];
                         private _separationKey=netId _partner;
                         private _separation=_separations getOrDefault [_separationKey,[]];
-                        if (count _separation != 3 || {(_separation select 0) isNotEqualTo _target}
-                            || {(_separation select 1) != count _cleared}) then {
-                            private _otherTargets=[];
-                            {
-                                if (_x != netId _partner) then {_otherTargets pushBack _y};
-                            } forEach (_job getOrDefault ["movementTargets",createHashMap]);
+                        private _otherTargets=[];
+                        {
+                            if (_x != netId _partner) then {_otherTargets pushBack (+_y)};
+                        } forEach (_job getOrDefault ["movementTargets",createHashMap]);
+                        if (count _separation != 4 || {(_separation select 0) isNotEqualTo _target}
+                            || {(_separation select 1) != count _cleared}
+                            || {(_separation select 3) isNotEqualTo _otherTargets}) then {
                             private _partnerPose=getPosASL _partner;
                             private _ranked=[];
                             {
@@ -1288,10 +1290,11 @@ private _delay=call {
                             _ranked sort true;
                             private _separate=if (_ranked isNotEqualTo []) then {+((_ranked select 0) select 1)} else {[]};
                             // A current physical interior hold may already be clear of the mover.
-                            if (_separate isEqualTo [] && {_partnerPose vectorDistance (AGLToASL _target) >= 2.5}) then {
+                            if (_separate isEqualTo [] && {insideBuilding _partner > 0}
+                                && {_partnerPose vectorDistance (AGLToASL _target) >= 2.5}) then {
                                 _separate=getPosATL _partner;
                             };
-                            _separation=[+_target,count _cleared,+_separate];
+                            _separation=[+_target,count _cleared,+_separate,+_otherTargets];
                             _separations set [_separationKey,_separation];
                             _job set ["pairSupportSeparation",_separations];
                             diag_log format ["WAIT CLEAR SUPPORT SEPARATION: %1",[_job get "generation",_pairIndex,netId _point,netId _partner,+_target,+_separate]];
