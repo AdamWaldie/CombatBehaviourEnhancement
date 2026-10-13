@@ -1435,6 +1435,8 @@ private _delay=call {
         && {serverTime <= (_job getOrDefault ["hardDeadline",_job get "deadline"])}
         && {call _mayIssueMovement}) then {
         private _follow=_job getOrDefault ["followThrough",createHashMap];
+        private _followFailures=_job getOrDefault ["followThroughFailures",createHashMap];
+        private _followExhausted=_job getOrDefault ["followThroughExhausted",[]];
         {
             private _unit=_x;
             private _key=netId _unit;
@@ -1450,14 +1452,18 @@ private _delay=call {
             };
             // An unentered partner must not freeze workers already inside. Entry recovery
             // continues to own missing partners; their absence still prevents COMPLETE.
-            if (count _visited < _requiredVisits && {_unit in (_job getOrDefault ["enteredActors",[]])}
+            if (count _visited < _requiredVisits && {!(_unit in _followExhausted)}
+                && {_unit in (_job getOrDefault ["enteredActors",[]])}
                 && {[_unit] call _actorAvailable}
                 && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                 private _record=_follow getOrDefault [_key,[]];
                 if (_record isEqualTo [] || {(_record select 0) in _visited}) then {
                     // Select once per actual visit; native planning still owns the path.
                     // Prefer the current floor without inventing a building-specific route.
-                    private _candidates=(_cleared select {!(_x in _visited)}) select [0,24];
+                    private _failedTargets=_followFailures getOrDefault [_key,[]];
+                    private _candidates=if (count _failedTargets >= 3) then {[]} else {
+                        (_cleared select {!(_x in _visited) && {!(_x in _failedTargets)}}) select [0,24]
+                    };
                     private _ranked=_candidates apply {
                         private _position=_positions select _x;
                         [(_unit distance2D _position)+10*abs (((getPosATL _unit) select 2)-(_position select 2)),_x]
@@ -1470,6 +1476,9 @@ private _delay=call {
                         _follow set [_key,_record];
                         _unit doMove _target;
                         [_unit,_target] call _rememberMove;
+                    } else {
+                        _followExhausted pushBackUnique _unit;
+                        _job set ["entryFailed",true];
                     };
                 } else {
                     private _target=[_record select 0] call _roomMovementPoint;
@@ -1481,12 +1490,21 @@ private _delay=call {
                         private _recovery=[_group,_operationGeneration,_unit,_target] call WAIT_fnc_RecoveryStep;
                         if (_recovery == "RECOVERING") then {[_unit,_target] call _rememberMove};
                         if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {_record set [3,true]};
-                        if (_recovery in ["EXHAUSTED","INVALID"]) then {_job set ["entryFailed",true]};
+                    };
+                    // Retire this actor's failed destination, not the actor or a real visit.
+                    // Changing room does not renew the common generation recovery budget.
+                    if ((_record select 3) && {_now-(_record select 2) >= 24}) then {
+                        private _failedTargets=_followFailures getOrDefault [_key,[]];
+                        _failedTargets pushBackUnique (_record select 0);
+                        _followFailures set [_key,_failedTargets];
+                        _follow set [_key,[]];
                     };
                 };
             };
         } forEach _activeWorkers;
         _job set ["followThrough",_follow];
+        _job set ["followThroughFailures",_followFailures];
+        _job set ["followThroughExhausted",_followExhausted];
     };
     private _allWorkersSettled=_activeWorkers findIf {[_x] call _activeOwnMove} < 0;
     if (((count _cleared + count _unreachable) >= count _positions && {(_allWorkersProgressed && {_allWorkersSettled}) || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
