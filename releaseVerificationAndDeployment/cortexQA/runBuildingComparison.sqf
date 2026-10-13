@@ -270,11 +270,6 @@ private _doorControls=[];
             (_house buildingPos -1) param [_missedIndex,[]]
         } else {[]};
         private _doorCount=if (_node isEqualTo []) then {0} else {(getNumber (configOf _house >> "numberOfDoors")) min 16};
-        for "_door" from 1 to _doorCount do {
-            if ((_house getVariable [format ["bis_disabled_Door_%1",_door],0]) isEqualTo 0) then {
-                [_house,_door,1] call BIS_fnc_door;
-            };
-        };
         if (_node isNotEqualTo []) then {
             [_unit,_node,_method] call _issueNativeComparison;
             _unit setVariable ["WAIT_CortexQA_Target",_node,true];
@@ -283,6 +278,47 @@ private _doorControls=[];
         };
     };
 } forEach _cases;
+// Matched local interaction control precedes the all-open diagnostic. It uses the
+// production proximity/floor envelope, but no WAIT controller or actor relocation.
+private _localDoorSeen=_doorControls apply {false};
+["Building traversal: local door interaction","Native actors retry their first missed point. Only recognized unlocked doors within three metres and on the actor's floor may open. A door opening refreshes that actor's native room request once. Physical arrival remains required; the earlier traversal failures are retained.",_comparisonPosition] call _phase;
+private _localDoorDeadline=time+60;
+waitUntil {
+    sleep 2;
+    {
+        _x params ["_unit","_node","_label","_arrived","_doorCount","_house"];
+        private _opened=false;
+        for "_door" from 1 to _doorCount do {
+            private _source=format ["Door_%1_sound_source",_door];
+            private _memory=_house selectionPosition [format ["Door_%1_trigger",_door],"Memory"];
+            private _position=_house modelToWorldWorld _memory;
+            private _distance=(getPosASL _unit) vectorDistance _position;
+            private _floorDifference=abs (((getPosASL _unit) select 2)-(_position select 2));
+            if (_memory isNotEqualTo [0,0,0] && {_house animationSourcePhase _source < 0.1}
+                && {(_house getVariable [format ["bis_disabled_Door_%1",_door],0]) isEqualTo 0}
+                && {_distance <= 3} && {_floorDifference <= 1.5}) then {
+                [_house,_door,1] call BIS_fnc_door;
+                _opened=true;
+                diag_log format ["WAIT NATIVE LOCAL DOOR: %1",[_label,_door,_distance,_floorDifference,getPosASL _unit,_position]];
+            };
+        };
+        if (_opened) then {
+            private _method=(_cases select (_cases findIf {(_x select 1) == _unit})) select 4;
+            [_unit,_node,_method] call _issueNativeComparison;
+        };
+        if ((getPosASL _unit) vectorDistance (AGLToASL _node) <= 1.5) then {_localDoorSeen set [_forEachIndex,true]};
+    } forEach _doorControls;
+    time >= _localDoorDeadline || {_localDoorSeen findIf {!_x} < 0}
+};
+{
+    _x params ["_unit","_node","_label","_arrived","_doorCount","_house"];
+    ["BUILD-LOCAL-DOORS-"+_label,_localDoorSeen select _forEachIndex,str [getPosASL _unit,_node,currentCommand _unit,expectedDestination _unit]] call _check;
+    for "_door" from 1 to _doorCount do {
+        if ((_house getVariable [format ["bis_disabled_Door_%1",_door],0]) isEqualTo 0) then {[_house,_door,1] call BIS_fnc_door};
+    };
+    private _method=(_cases select (_cases findIf {(_x select 1) == _unit})) select 4;
+    [_unit,_node,_method] call _issueNativeComparison;
+} forEach _doorControls;
 ["Building traversal: native open-door control","Diagnostic only: unlocked doors are explicitly opened on the native comparison houses, then actors retry their first physically missed model node. Original failures remain. Production clearance receives no test-side door assistance.",_comparisonPosition] call _phase;
 private _doorDeadline=time+60;
 waitUntil {
