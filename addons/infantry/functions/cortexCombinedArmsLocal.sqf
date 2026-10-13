@@ -20,7 +20,8 @@
  * Example: [_vehicleGroup,_opportunity] remoteExecCall ["WAIT_fnc_CortexCombinedArmsLocal",groupOwner _vehicleGroup];
  */
 params [["_group",grpNull,[grpNull]],["_opportunity",[],[[]]]];
-if (!local _group || {count _opportunity != 7} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {false};
+if (!local _group || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
+    || {[] call WAIT_fnc_CortexIsPaused} || {count _opportunity != 7} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {false};
 _opportunity params ["_token","_requester","_target","_position","_role","_expiry","_context"];
 if ((_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isNotEqualTo _opportunity
     || {serverTime >= _expiry} || {isNull _requester} || {isNull _target} || {!alive _target}

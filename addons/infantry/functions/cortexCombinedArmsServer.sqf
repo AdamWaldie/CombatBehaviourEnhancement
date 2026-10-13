@@ -30,7 +30,8 @@
  * Example: [_group,_enemy,getPosATL _enemy,serverTime] remoteExecCall ["WAIT_fnc_CortexCombinedArmsServer",2];
  */
 params [["_requester",grpNull,[grpNull]],["_target",objNull,[objNull]],["_position",[],[[]]],["_observedAt",-1,[0]]];
-if (!isServer || {isNull _requester} || {isNull _target} || {!alive _target}
+if (!isServer || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
+    || {[] call WAIT_fnc_CortexIsPaused} || {isNull _requester} || {isNull _target} || {!alive _target}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != groupOwner _requester}}
     || {count _position < 2} || {_position findIf {!(_x isEqualType 0)} >= 0}
     || {!finite _observedAt} || {_observedAt < 0} || {_observedAt > serverTime+1}

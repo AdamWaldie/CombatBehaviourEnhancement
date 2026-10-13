@@ -24,7 +24,8 @@
  * Result: the next viable candidate receives the same finite AIR_ATTACK opportunity.
  */
 params [["_requester",grpNull,[grpNull]],["_rejected",grpNull,[grpNull]],["_token","",[""]]];
-if (!isServer || {isNull _requester} || {isNull _rejected} || {_token == ""}
+if (!isServer || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
+    || {[] call WAIT_fnc_CortexIsPaused} || {isNull _requester} || {isNull _rejected} || {_token == ""}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != groupOwner _rejected}}) exitWith {false};
 private _fallback=_requester getVariable ["WAIT_Cortex_CombinedAirFallback",[]];
 if (count _fallback != 6) exitWith {false};
