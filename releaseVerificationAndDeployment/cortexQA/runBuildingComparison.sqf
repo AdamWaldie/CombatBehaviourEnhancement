@@ -975,6 +975,70 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 deleteGroup _casualtyGroup;
 deleteVehicle _casualtyHouse;
 
+// Whole-lane loss after real entry must not let exterior reserves inherit entry evidence.
+private _pairLossSite=[7150,6000,0];
+private _pairLossHouse=createVehicle ["Land_i_House_Big_01_V1_F",_pairLossSite,[],0,"NONE"];
+_pairLossHouse enableSimulationGlobal true;
+[_pairLossHouse,"pair-loss"] call _validateNewFixturePlacement;
+private _pairLossGroup=createGroup [east,true];
+_pairLossGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_pairLossGroup setVariable ["acex_headless_blacklist",true,true];
+private _pairLossMembers=[];
+for "_i" from 0 to 11 do {
+    private _actor=_pairLossGroup createUnit ["O_Soldier_F",_pairLossSite vectorAdd [-20+(_i mod 4)*4,-40-floor(_i/4)*4,0],[],0,"NONE"];
+    _actor setVariable ["acex_headless_blacklist",true,true];
+    _actor setVariable ["WAIT_CortexQA_Label",format ["PAIR LOSS / soldier %1",_i+1],true];
+    _pairLossMembers pushBack _actor;
+};
+missionNamespace setVariable ["WAIT_CortexQA_Actors",_pairLossMembers,true];
+["CQB whole-pair loss","After a real lane enters, both members become casualties. Both replacements must establish independent interior visits; shared coverage and inherited flags cannot pass.",getPosATL _pairLossHouse] call _phase;
+private _pairLossAccepted=[_pairLossGroup,_pairLossHouse] call WAIT_fnc_CortexClearBuilding;
+["CLEAR-pair-loss-accepted",_pairLossAccepted] call _check;
+private _lostPair=[];
+private _pairLossDeadline=-1;
+private _pairLossReady=[{
+    private _job=(_pairLossGroup getVariable ["WAIT_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+    private _entered=_job getOrDefault ["enteredActors",[]];
+    private _pairs=_job getOrDefault ["pairs",[]];
+    private _index=_pairs findIf {count _x == 2 && {_x findIf {_x in _entered} >= 0} && {_x findIf {!alive _x} < 0}};
+    if (_index >= 0) then {_lostPair=+(_pairs select _index); _pairLossDeadline=_job getOrDefault ["hardDeadline",-1]};
+    _index >= 0 && {_pairLossMembers select {!(_x in (_job getOrDefault ["team",[]]))} isNotEqualTo []}
+},90] call _wait;
+["CLEAR-pair-loss-entered-prerequisite",_pairLossReady && {count _lostPair == 2},str _lostPair] call _check;
+private _pairLossReplacements=[];
+if (_pairLossReady) then {
+    {_x setDamage 1} forEach _lostPair;
+    private _replaced=[{
+        private _events=_pairLossGroup getVariable ["WAIT_Cortex_ClearReinforcements",[]];
+        _pairLossReplacements=[];
+        {
+            private _removed=netId _x;
+            private _index=_events findIf {(_x param [1,""]) == _removed};
+            if (_index >= 0) then {_pairLossReplacements pushBackUnique (objectFromNetId ((_events select _index) select 2))};
+        } forEach _lostPair;
+        count _pairLossReplacements == 2 && {_pairLossReplacements findIf {isNull _x} < 0}
+    },30] call _wait;
+    ["CLEAR-pair-loss-both-replaced",_replaced,str _pairLossReplacements] call _check;
+    private _enteredReplacements=[];
+    private _rooms=(_pairLossHouse buildingPos -1) select {
+        private _origin=AGLToASL _x;
+        private _roof=lineIntersectsSurfaces [_origin vectorAdd [0,0,0.5],_origin vectorAdd [0,0,10],objNull,objNull,true,1,"GEOM","NONE"];
+        _roof isNotEqualTo [] && {((_roof select 0) select 2) == _pairLossHouse || {((_roof select 0) select 3) == _pairLossHouse}}
+    };
+    private _bothEntered=[{
+        {private _actor=_x; if (_rooms findIf {[_actor,_pairLossHouse,_x] call _observedRoomVisit} >= 0) then {_enteredReplacements pushBackUnique _actor}} forEach _pairLossReplacements;
+        count _enteredReplacements == 2
+    },90] call _wait;
+    ["CLEAR-pair-loss-both-physical-entry",_replaced && {_bothEntered},str _enteredReplacements] call _check;
+    private _job=(_pairLossGroup getVariable ["WAIT_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+    ["CLEAR-pair-loss-original-deadline",_pairLossDeadline > 0 && {(_job getOrDefault ["hardDeadline",-2]) == _pairLossDeadline},str [_pairLossDeadline,_job getOrDefault ["hardDeadline",-2]]] call _check;
+};
+[_pairLossGroup] call WAIT_fnc_CortexClearRelease;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach _pairLossMembers;
+deleteGroup _pairLossGroup;
+deleteVehicle _pairLossHouse;
+
 // Exercise door handling through the real clearance job, never by calling its helper directly.
 private _doorSite=[7350,5800,0];
 private _doorHouse=createVehicle ["Land_i_House_Small_01_V1_F",_doorSite,[],0,"NONE"];
