@@ -17,6 +17,8 @@
  * same-floor point. Selection is bounded and cached per partner/target/coverage/other destinations;
  * changed reservations invalidate a failed selection; only owned approaches or physical occupation
  * reserve historical destinations, and no visit is inferred.
+ * Exhausted interior checkpoint recovery retires that checkpoint once before the assigned room
+ * is classified. The room receives a direct attempt within its existing retry and hard deadline.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
@@ -1572,6 +1574,24 @@ private _delay=call {
                                         // its route or mark the room unreachable during that task.
                                         _retries=[0,3] select (_recovery == "YIELDED");
                                     } else {
+                                        private _failedCheckpoint=!_approachingEntry && {count _approach >= 3}
+                                            && {(_approach select 0) == _positionIndex}
+                                            && {count (_approach select 1) == 3}
+                                            && {!(_approach select 2)};
+                                        if (_failedCheckpoint) then {
+                                            // A failed access leg is not a failed room request.
+                                            // Retire it once; this claim-scoped tombstone prevents
+                                            // recreation. Existing room counts and deadlines remain.
+                                            _approach=[_positionIndex,[],false,[],"ABANDONED_ACCESS"];
+                                            _approaches set [_approachKey,_approach];
+                                            _job set ["interiorApproaches",_approaches];
+                                            _lastTarget=-1;
+                                            _retries=0;
+                                            _lastProgress=_now;
+                                            diag_log format ["WAIT CLEAR ACCESS RECOVERY EXHAUSTED: %1",[
+                                                _job get "generation",_pairIndex,netId _point,
+                                                _positionIndex,+_target,+(_positions select _positionIndex)]];
+                                        } else {
                                         private _pairId=format ["PAIR_%1",_pairIndex];
                                         private _failures=_failedBy select _positionIndex;
                                         _failures pushBackUnique _pairId;
@@ -1600,6 +1620,7 @@ private _delay=call {
                                         _lastTarget=-1;
                                         _retries=0;
                                         _triedEntries=[];
+                                        };
                                     };
                                 };
                             };
