@@ -386,7 +386,7 @@ private _featureNotes=createHashMapFromArray [
     ["ContactReports","Requires a deliverable report; jamming/voice range and freshness can prevent delivery. A radio inventory item is not required."],
     ["Reinforce","Requires an eligible idle helper and a report/request; inspect reservation, responding state and physical approach."],
     ["Artillery","Requires an explicitly assigned spotter and eligible same-side battery with range/ammunition. Inspect fire mission phase, warning and confirmed shots."],
-    ["CounterBattery","Requires an enemy artillery emission and eligible counter-role battery. Radar shortens delay but is not required; inspect pending/uncertain missions and friendly clearance."],
+    ["CounterBattery","Requires an enemy artillery emission and eligible counter-role battery. Registered radar or a fresh assigned observer must establish a fix; inspect pending/uncertain missions and friendly clearance."],
     ["Airborne","Requires eligible passengers in a suitable flying aircraft; inspect altitude, chute configuration, operating crew and post-landing orders."],
     ["AttackRunFlares","Assigned hostile target, airborne speed at least 40 km/h, closing within 1500 m then opening past closest approach. Two requests per leg; inspect actual countermeasure fire and finite ammunition. Phase is intent, not proof of release."],
     ["AirAttack","Requires a moving airborne AI aircraft, hostile assigned target and attack ROE. Inspect pattern/stage, observed AA, physical ingress/egress, real weapon fire, clearance, outcome and Zeus handover."],

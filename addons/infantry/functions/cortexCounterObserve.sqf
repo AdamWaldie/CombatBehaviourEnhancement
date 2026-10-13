@@ -5,7 +5,7 @@
  * Repeat/JIP: finite 15-second owner-local scan; execution rechecks pause/activation and per-observer gates. Server per-target/side cooldown deduplicates replies; no JIP replay.
  * Arguments: 0: firing vehicle <OBJECT>, objNull.
  * Return Value: Nothing.
- * Current callers: legacy server-script observation requests; automatic counter-battery uses firing events.
+ * Current callers: CortexCounterBattery after emission acquisition delay and explicit server-script observation requests.
  * Example: [_enemyGun] remoteExecCall ["WAIT_fnc_CortexCounterObserve", 0];
  */
 params [["_enemy", objNull, [objNull]]];

@@ -216,7 +216,7 @@
  * - WAIT_AIPass_Artillery_ShootAndScoot (ADVANCED): mobile batteries move 200-350 m after a support mission.
  * - WAIT_AIPass_Artillery_DefaultRole (MISSION MAKER): missions a battery takes unless you set its own role: SUPPORT (squads' calls only), COUNTER (counter-battery only) or BOTH. Per gun: [this, "COUNTER"] call WAIT_fnc_CortexSetArtilleryRole; or the AI Orders Zeus module.
  * - WAIT_AIPass_CounterBattery_Enable (MISSION MAKER): AI artillery answers enemy artillery whose position is known.
- * - WAIT_AIPass_CounterBattery_Mode (MISSION MAKER): legacy compatibility setting; automatic firing-event acquisition always works, with radar reducing delay.
+ * - WAIT_AIPass_CounterBattery_Mode (MISSION MAKER): legacy compatibility setting; firing events wake fresh observers or registered radar acquisition.
  * - WAIT_AIPass_CounterBattery_RadarRange (ADVANCED): detection range of a registered counter-battery radar.
  * - WAIT_AIPass_CounterBattery_Delay (ADVANCED): acquisition seconds without radar (default 60).
  * - WAIT_AIPass_CounterBattery_Rounds (ADVANCED): rounds per counter-battery burst.
@@ -429,7 +429,7 @@ createHashMapFromArray [
         ["WAIT_AIPass_Artillery_ShootAndScoot", true], // BOOL: mobile batteries relocate after a support mission.
         ["WAIT_AIPass_Artillery_DefaultRole", "BOTH"], // STRING: SUPPORT, COUNTER or BOTH for guns with no role of their own.
         ["WAIT_AIPass_CounterBattery_Enable", false], // BOOL: AI artillery answers enemy artillery whose position is known.
-        ["WAIT_AIPass_CounterBattery_Mode", "AUTO"], // Legacy compatibility: detection is always automatic.
+        ["WAIT_AIPass_CounterBattery_Mode", "AUTO"], // Legacy compatibility: automatic wakeup still requires radar or fresh observer detection.
         ["WAIT_AIPass_CounterBattery_RadarRange", 8000], // METRES: radar detection range.
         ["WAIT_AIPass_CounterBattery_Delay", 60], // SECONDS: before counter-battery fire.
         ["WAIT_AIPass_CounterBattery_Rounds", 4], // COUNT: rounds per counter-battery burst.
