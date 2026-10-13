@@ -13,6 +13,8 @@
  * Normal-owner clearance records at most 24 native path events per actor, eight seconds apart,
  * with at most 24 path points plus the final point. Local diagnostic handlers are removed before
  * actor cleanup; they issue no movement and are not evidence of physical arrival.
+ * Existing bounded actor samples include native movement failure/completion and canMove flags;
+ * none grants a physical visit or changes a retry budget.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; all required audit callbacks.
  * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
  * Optional fifth argument: skipNative <BOOL>, false; run production acceptance without repeating controls.
@@ -656,7 +658,8 @@ deleteVehicle _wallHouse;
                     (_job getOrDefault ["entryRecovery",createHashMap]) getOrDefault [netId _actor,[]],
                     insideBuilding _actor,_actor getVariable ["WAIT_Cortex_ClearReserve",[]],
                     _actor in (_job getOrDefault ["quarantineHeld",[]]),
-                    (_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _actor,[]]]];
+                    (_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _actor,[]],
+                    ["NATIVE_MOVE",moveToFailed _actor,moveToCompleted _actor,canMove _actor]]];
                 private _reserveStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _actor,[]];
                 // A generation-owned arrived reserve must retain its actual staging point.
                 // Externally taken actors and retired jobs are outside this observation.
