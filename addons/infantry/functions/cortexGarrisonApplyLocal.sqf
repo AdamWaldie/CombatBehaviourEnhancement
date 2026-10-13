@@ -14,7 +14,8 @@
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
  * setDestination previously created a second route owner and could leave an actor oscillating or
  * stationary at a threshold. A machine-local, damage- and transform-aware building topology cache shares that
- * entrance-anchor lookup between soldiers while refreshing a materially changed structure. Units move
+ * entrance-anchor lookup between soldiers while refreshing a materially changed structure. The queued
+ * callback restores this cache from its job payload before invoking deferred anchor recovery. Units move
  * upright at assault pace until they reach their post.
  * Nearby units try the interior destination directly, matching the engine path that works on viable
  * building models, then try up to four usable entrances nearest-first as bounded recovery.
@@ -181,6 +182,7 @@ private _buildingAnchor = {
     params ["_job"];
     private _group = _job get "group";
     private _rememberMove = _job get "rememberMove";
+    private _buildingTopologyCache = _job get "buildingTopologyCache";
     if (isNull _group || {!local _group} || {(_group getVariable ["WAIT_AIPass_Garrison", []]) isEqualTo []}) exitWith {-1};
     if ((_group getVariable ["WAIT_AIPass_GarrisonGeneration", -1]) != (_job get "generation")) exitWith {-1};
     // Retire the hold immediately when a player, Zeus or specialist controller owns the group.
@@ -345,5 +347,5 @@ private _buildingAnchor = {
         };
     } forEach units _group;
     [2, -1] select (_pending == 0)
-}, createHashMapFromArray [["group", _group], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", time + 240], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
+}, createHashMapFromArray [["group", _group], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", time + 240], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
 
