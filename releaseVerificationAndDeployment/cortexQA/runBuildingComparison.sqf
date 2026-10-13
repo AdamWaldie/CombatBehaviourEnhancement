@@ -855,7 +855,33 @@ deleteVehicle _wallHouse;
             && {(_group getVariable ["WAIT_AIPass_ClearGeneration",-1]) > _priorGeneration}] call _check;
         private _repeatVisits=_rooms apply {false};
         private _repeatActors=[];
+        private _repeatTraceAt=diag_tickTime;
+        private _repeatTraceCount=0;
         private _repeatEnded=[{
+            // Observe before cleanup; shared coverage cannot explain an absent actor.
+            // Separate bounded actor records keep RPT lines below truncation limits.
+            if (diag_tickTime >= _repeatTraceAt && {_repeatTraceCount < 30}) then {
+                _repeatTraceAt=diag_tickTime+8;
+                _repeatTraceCount=_repeatTraceCount+1;
+                private _repeatBrain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
+                private _repeatJob=_repeatBrain getOrDefault ["job",createHashMap];
+                private _repeatOperation=_group getVariable ["WAIT_Operation",createHashMap];
+                diag_log format ["WAIT CLEAR REPEAT STATE: %1",[_size,_repeatTraceCount,
+                    _repeatJob getOrDefault ["generation",-1],_repeatJob getOrDefault ["phase",""],
+                    _repeatJob getOrDefault ["deadline",-1],_repeatJob getOrDefault ["hardDeadline",-1],
+                    _repeatJob getOrDefault ["pairStates",[]],_repeatJob getOrDefault ["pairRoutes",[]]]];
+                {
+                    private _key=netId _x;
+                    diag_log format ["WAIT CLEAR REPEAT ACTOR: %1",[_size,_repeatTraceCount,_key,
+                        getPosATL _x,currentCommand _x,expectedDestination _x,
+                        (_repeatJob getOrDefault ["actorVisits",createHashMap]) getOrDefault [_key,[]],
+                        _x in (_repeatJob getOrDefault ["enteredActors",[]]),
+                        (_repeatJob getOrDefault ["entryRecovery",createHashMap]) getOrDefault [_key,[]],
+                        (_repeatJob getOrDefault ["movementTargets",createHashMap]) getOrDefault [_key,[]],
+                        (_repeatJob getOrDefault ["followThrough",createHashMap]) getOrDefault [_key,[]],
+                        (_repeatOperation getOrDefault ["recoveryAttempts",createHashMap]) getOrDefault [_key,0]]];
+                } forEach (_members select [0,16]);
+            };
             {
                 private _actor=_x;
                 {
