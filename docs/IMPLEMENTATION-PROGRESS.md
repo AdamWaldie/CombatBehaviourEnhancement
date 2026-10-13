@@ -1,6 +1,8 @@
 ## Current acceptance boundary - 2026-10-13
 
-All 65 feature families remain partial. Source through 19e3821 passed 654 tests and mandatory build gates. No feature family has complete production acceptance across the required behavior, locality and performance scope. Implementation presence, source review and narrow fixture success do not establish completion.
+Offline follow-up through 406b0ed adds unresolved artillery parking, observer rejection retry, exact CQB watch retirement, protected-target and believed-position vehicle responses, finite convoy timing evidence and ASL aircraft ingress projection. All passed offline gates; none has fresh physical acceptance. All 65 feature families remain partial; audits remain paused.
+
+All 65 feature families remain partial. Source through 406b0ed passed 660 tests and mandatory build gates. No feature family has complete production acceptance across the required behavior, locality and performance scope. Implementation presence, source review and narrow fixture success do not establish completion.
 
 The last completed normal clearance batch, 25f5845 in runtime-20261013-181626-771, retained 18 findings. Six- and twelve-person cases completed late, preserving their original deadline findings. Whole-pair casualty replacement entry also failed. The subsequent normal 4891e90 batch in runtime-20261013-184724-978 was stopped early at the user's request, retaining eight findings. Its first six-person clear ended INCOMPLETE: one admitted actor had zero interior visits after finite follow-through attempts despite full shared point coverage and eventual egress. The two-person first/repeat cases and six-person repeat completed. Remaining interrupted cases are unvalidated. Both audit processes were killed and verified exited. Further audit launches remain paused.
 

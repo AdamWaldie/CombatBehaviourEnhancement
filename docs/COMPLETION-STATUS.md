@@ -1,6 +1,8 @@
 ## Latest evidence boundary - 2026-10-13
 
-Source through 19e3821 passed 654 tests and full build gates. All 65 feature families remain partial. Latest completed normal clearance retained 18 findings; the next normal run was stopped early with eight findings and a first-six-person INCOMPLETE result. Subsequent entry-search, exterior observation, promotion/replay and driving-release fixes have no fresh physical acceptance. Audit launches are paused at the user's request. See [the current implementation ledger](IMPLEMENTATION-PROGRESS.md) for exact runtime boundaries and remaining scope.
+Offline follow-up through 406b0ed adds unresolved artillery parking, observer rejection retry, exact CQB watch retirement, protected-target and believed-position vehicle responses, finite convoy timing evidence and ASL aircraft ingress projection. All passed offline gates; none has fresh physical acceptance. All 65 feature families remain partial; audits remain paused.
+
+Source through 406b0ed passed 660 tests and full build gates. All 65 feature families remain partial. Latest completed normal clearance retained 18 findings; the next normal run was stopped early with eight findings and a first-six-person INCOMPLETE result. Subsequent entry-search, exterior observation, promotion/replay and driving-release fixes have no fresh physical acceptance. Audit launches are paused at the user's request. See [the current implementation ledger](IMPLEMENTATION-PROGRESS.md) for exact runtime boundaries and remaining scope.
 
 Earlier evidence follows and must not be treated as current launch state.
 
