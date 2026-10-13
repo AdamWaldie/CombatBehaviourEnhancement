@@ -23,6 +23,8 @@
  * is classified. The room receives a direct attempt within its existing retry and hard deadline.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
+ * The first entry-failure cause is recorded once per operation, with physical participation
+ * at the failure boundary; terminal diagnostics retain it without changing acceptance.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
  * Egress assigns bounded distinct supported exterior slots and holds arrivals within one metre.
@@ -161,7 +163,8 @@ private _delay=call {
         diag_log format ["WAIT CLEAR TERMINAL CAUSES: %1",[_job get "generation",_result,_reason,
             _job getOrDefault ["entryFailed",false],_job getOrDefault ["egressFailed",false],
             _routeActors apply {[netId _x,count (_terminalVisits getOrDefault [netId _x,[]]),_x in _terminalEntered]},
-            (_job getOrDefault ["egressAssignments",[]]) apply {[netId (_x select 0),_x param [2,false]]}]];
+            (_job getOrDefault ["egressAssignments",[]]) apply {[netId (_x select 0),_x param [2,false]]},
+            _job getOrDefault ["entryFailureCause",[]]]];
         private _routeStates=+(_job getOrDefault ["pairStates",[]]);
         _routeStates resize ((count _routeStates) min 8);
         private _stageRecords=_job getOrDefault ["reserveStages",createHashMap];
@@ -567,6 +570,11 @@ private _delay=call {
             doStop _x;
             _quarantineHeld pushBackUnique _x;
             // Continuing with replacements cannot erase an ordinary stranded worker.
+            if !(_job getOrDefault ["entryFailed",false]) then {
+                private _cause=["STRANDED_WORKER",netId _x,serverTime,getPosASL _x];
+                _job set ["entryFailureCause",_cause];
+                diag_log format ["WAIT CLEAR ENTRY FAILURE: %1",[_job get "generation",_cause]];
+            };
             _job set ["entryFailed",true];
         };
     } forEach (_rotatedOut select [0,16]);
@@ -1741,6 +1749,11 @@ private _delay=call {
                         _followExhausted pushBackUnique _unit;
                         _followFailures set [_key,+_failedTargets];
                         _followBudgetChanged=true;
+                        if !(_job getOrDefault ["entryFailed",false]) then {
+                            private _cause=["FOLLOW_THROUGH_EXHAUSTED",_key,serverTime,+_visited,+_failedTargets];
+                            _job set ["entryFailureCause",_cause];
+                            diag_log format ["WAIT CLEAR ENTRY FAILURE: %1",[_job get "generation",_cause]];
+                        };
                         _job set ["entryFailed",true];
                     };
                 } else {
@@ -1795,6 +1808,12 @@ private _delay=call {
     if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
         // Room coverage does not prove that every active clearing actor entered.
         // A deadline may release the operation, but cannot convert missing participation to success.
+        if (!(_job getOrDefault ["entryFailed",false]) && {!_allWorkersEntered || {!_allWorkersProgressed}}) then {
+            private _cause=["SWEEP_PARTICIPATION",serverTime,_job get "deadline",_job get "hardDeadline",
+                (_activeWorkers select [0,16]) apply {[netId _x,_x in (_job getOrDefault ["enteredActors",[]]),count (_actorVisits getOrDefault [netId _x,[]])]}];
+            _job set ["entryFailureCause",_cause];
+            diag_log format ["WAIT CLEAR ENTRY FAILURE: %1",[_job get "generation",_cause]];
+        };
         _job set ["entryFailed",(_job getOrDefault ["entryFailed",false]) || {!_allWorkersEntered} || {!_allWorkersProgressed}];
         private _active=[];
         {_active append _x} forEach (_job get "pairs");
