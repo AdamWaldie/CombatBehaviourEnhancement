@@ -8,8 +8,8 @@
  * not rejected for a momentary low-speed sample; the finite attack controller owns acceleration,
  * progress and stuck detection after accepting an aircraft that is physically off the ground. Each
  * role is dispatched immediately; infantry never waits for acceptance and no shared assembly state exists.
- * Vehicle discovery accepts either the effective commander's or driver's group so turret ownership
- * cannot hide an otherwise valid aircraft, while passenger-only groups remain ineligible.
+ * Aircraft discovery requires the pilot's group, matching the flight controller's authority.
+ * Ground assets accept the effective commander's or driver's group; passenger-only groups remain ineligible.
  * Locality/authority: server validates the sender, target, hostility, range, communications and role
  * feature gates; the current asset owner applies targeting through WAIT_fnc_CortexCombinedArmsLocal.
  * Vehicle and aircraft cooperation depends on contact communication and each asset's own feature
@@ -88,8 +88,12 @@ private _orderedGroups=[];
             private _commander=effectiveCommander _vehicle;
             private _driver=driver _vehicle;
             if (_vehicle != _x && {alive _vehicle}
-                && {(!isNull _commander && {group _commander == _candidateGroup})
-                    || {!isNull _driver && {group _driver == _candidateGroup}}}) exitWith {_candidateAsset=_vehicle};
+                && {if (_vehicle isKindOf "Air") then {
+                    !isNull _driver && {group _driver == _candidateGroup}
+                } else {
+                    (!isNull _commander && {group _commander == _candidateGroup})
+                        || {!isNull _driver && {group _driver == _candidateGroup}}
+                }}) exitWith {_candidateAsset=_vehicle};
         } forEach units _candidateGroup;
         private _damagingMagazine=-1;
         if (!isNull _candidateAsset) then {
@@ -128,8 +132,13 @@ _orderedGroups sort true;
         if (!isNull _asset) then {
             private _commander=effectiveCommander _asset;
             private _driver=driver _asset;
-            if (!alive _asset || {!((!isNull _commander && {group _commander == _candidate})
-                || {!isNull _driver && {group _driver == _candidate}})}) then {_asset=objNull};
+            private _operatingGroupMatches=if (_asset isKindOf "Air") then {
+                !isNull _driver && {group _driver == _candidate}
+            } else {
+                (!isNull _commander && {group _commander == _candidate})
+                    || {!isNull _driver && {group _driver == _candidate}}
+            };
+            if (!alive _asset || {!_operatingGroupMatches}) then {_asset=objNull};
         };
         private _role="";
         // Preserve a bounded ordered fallback list. Local ownership is the only safe place to

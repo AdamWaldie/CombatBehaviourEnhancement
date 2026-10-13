@@ -11,7 +11,7 @@
  * same target and may start their existing finite attack-run job;
  * its controller, rather than a single instantaneous speed sample, proves progress or handles a stall.
  * Locality/authority: current group owner only; server-issued public token must still match. Asset
- * discovery accepts the effective commander's or driver's group but never a passenger-only group.
+ * aircraft discovery requires the pilot's group; ground discovery accepts the commander's or driver's group.
  * Repeat/JIP: duplicate roles are harmless; expiry, Zeus takeover, feature closure and token replacement reject stale calls.
  * Arguments: 0: asset group <GROUP>; 1: opportunity <ARRAY>
  * [token,requester,target,position,role,expiry,ground-fire anchor].
@@ -37,8 +37,12 @@ private _asset=objNull;
     private _commander=effectiveCommander _vehicle;
     private _driver=driver _vehicle;
     if (_vehicle != _x && {alive _vehicle}
-        && {(!isNull _commander && {group _commander == _group})
-            || {!isNull _driver && {group _driver == _group}}}) exitWith {_asset=_vehicle};
+        && {if (_vehicle isKindOf "Air") then {
+            !isNull _driver && {group _driver == _group}
+        } else {
+            (!isNull _commander && {group _commander == _group})
+                || {!isNull _driver && {group _driver == _group}}
+        }}) exitWith {_asset=_vehicle};
 } forEach units _group;
 if (isNull _asset) exitWith {false};
 if (_role in ["GROUND_FIRE","GROUND_MANOEUVRE"] && {

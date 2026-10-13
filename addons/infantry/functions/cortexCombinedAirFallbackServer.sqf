@@ -5,7 +5,8 @@
  * an airframe, changes locality, changes player orders or assumes a remote loadout is usable.
  *
  * Locality / Authority: Server-only. The rejected group owner must be the remote sender. The next
- * candidate applies the role only on its current group owner through CortexCombinedArmsLocal.
+ * candidate must still contain the live pilot; it applies the role on its current group owner
+ * through CortexCombinedArmsLocal. A changed passenger/commander group cannot inherit flight authority.
  *
  * Repeat/JIP: The requester holds one expiring public fallback record. Duplicate rejection notices
  * consume no extra candidate after the cursor advances. The record is cleared with its opportunity.
@@ -56,7 +57,9 @@ while {_cursor < count _candidates && {isNull _replacement}} do {
             count _role != 7 || {serverTime >= (_role select 5)} || {(_role select 0) == _token}}
         && {((units _candidate) findIf {
             private _vehicle=vehicle _x;
-            _vehicle != _x && {_vehicle isKindOf "Air"} && {!(_vehicle getVariable ["WAIT_Cortex_AirAttackJob",false])}
+            _vehicle != _x && {_vehicle isKindOf "Air"} && {alive _vehicle}
+                && {!isNull driver _vehicle} && {group driver _vehicle == _candidate}
+                && {!(_vehicle getVariable ["WAIT_Cortex_AirAttackJob",false])}
         }) >= 0}) then {
         _replacement=_candidate;
     };
