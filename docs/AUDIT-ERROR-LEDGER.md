@@ -639,3 +639,5 @@ CQB geometry queries that cannot grant a receipt now return before repeated owne
 
 
 Room geometry cache keys also include the engine frame number. If a scheduled callback spans frames, unchanged actor/target coordinates cannot reuse an earlier-frame segment after scene geometry may have changed. The callback's sixteen-probe budget is not replenished on frame change; exhausted queries remain negative. Live ownership gates still protect positive results. Same-frame scene changes and physical door/geometry transitions require explicit retest; no universal snapshot guarantee or performance acceptance is claimed. Audits remain paused.
+
+CQB diagnostic candidate d73f3b1 retained an adjusted-target mismatch: actor 2:191 at 04:48:32 requested AGL [6949.81,5803.27,3.62], converted expected ASL [6949.81,5803.27,8.62], while the native path ended at ASL [6949.81,5803.27,5]. The geometry-only floor adjustment is removed. Earlier original-target ground-floor failures remain unresolved; removal is not evidence that upper-floor routing is fixed. The planned-formation fallback guard requires its own physical retest.

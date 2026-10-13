@@ -118,7 +118,7 @@ private _delay=call {
     };
     private _roomMovementPoint={
         params ["_index"];
-        (_job getOrDefault ["floorTargets",createHashMap]) getOrDefault [str _index,(_job get "positions") select _index]
+        (_job get "positions") select _index
     };
     private _finish = {
         params [["_restore",true,[true]],["_reason","CANCELLED",[""]]];
@@ -968,58 +968,8 @@ private _delay=call {
                     };
                     private _target=[_positions select _positionIndex,_entryTarget] select _approachingEntry;
                     private _point=_pair select (_moverIndex mod count _pair);
-                    // Some reported upper-window nodes project onto the ground planner despite
-                    // a valid neighbouring upper-floor route. After measured stalled retries,
-                    // try one nearby floor-supported point toward a physically visited anchor.
-                    // The original node and its physical visit tolerance remain authoritative.
-                    private _floorTargets=_job getOrDefault ["floorTargets",createHashMap];
-                    private _floorKey=str _positionIndex;
-                    private _floorTarget=_floorTargets getOrDefault [_floorKey,[]];
-                    if (!_approachingEntry && {_floorTarget isNotEqualTo []}) then {_target=+_floorTarget};
-                    private _floorProbed=_job getOrDefault ["floorProbed",[]];
-                    if (!_approachingEntry && {_floorTarget isEqualTo []} && {!(_positionIndex in _cleared)}
-                        && {!(_positionIndex in _floorProbed)} && {_retries >= 3} && {_now-_lastProgress > 4}
-                        && {_point distance2D _target <= 4}
-                        && {abs (((getPosASL _point) select 2)-((AGLToASL _target) select 2)) > 1.5}
-                        && {[_point] call _actorTaskFree}) then {
-                        private _probeCounts=_job getOrDefault ["floorProbeCounts",createHashMap];
-                        if ((_probeCounts getOrDefault [_floorKey,-1]) != count _cleared) then {
-                            _probeCounts set [_floorKey,count _cleared];
-                            _job set ["floorProbeCounts",_probeCounts];
-                            private _anchorIndex=-1;
-                            private _nearest=1e12;
-                            {
-                                private _anchor=_positions select _x;
-                                private _distance=_anchor distance2D _target;
-                                if (_x != _positionIndex && {abs ((_anchor select 2)-(_target select 2)) <= 0.75}
-                                    && {_distance < _nearest}) then {_anchorIndex=_x; _nearest=_distance};
-                            } forEach _cleared;
-                            if (_anchorIndex >= 0) then {
-                                _floorProbed pushBackUnique _positionIndex;
-                                _job set ["floorProbed",_floorProbed];
-                                private _anchor=_positions select _anchorIndex;
-                                private _candidate=+_target;
-                                private _offset=_target getPos [0.75 min _nearest,_target getDir _anchor];
-                                _candidate set [0,_offset select 0]; _candidate set [1,_offset select 1];
-                                private _origin=AGLToASL _candidate;
-                                private _surfaces=lineIntersectsSurfaces [_origin vectorAdd [0,0,0.5],_origin vectorAdd [0,0,-1],objNull,objNull,true,1,"GEOM","NONE"];
-                                if (_surfaces isNotEqualTo []) then {
-                                    private _surface=_surfaces select 0;
-                                    private _floor=ASLToAGL (_surface select 0);
-                                    if (((_surface select 1) select 2) >= 0.7
-                                        && {(_surface select 2) == _building || {(_surface select 3) == _building}}
-                                        && {abs ((_floor select 2)-(_target select 2)) <= 0.5}
-                                        && {_floor vectorDistance (_positions select _positionIndex) <= 1.25}) then {
-                                        _floorTargets set [_floorKey,+_floor];
-                                        _job set ["floorTargets",_floorTargets];
-                                        diag_log format ["WAIT CLEAR FLOOR TARGET: %1",[_job get "generation",_positionIndex,+_target,+_floor,_anchorIndex]];
-                                        _target=+_floor;
-                                        _lastTarget=-1; _retries=0; _lastProgress=_now;
-                                    };
-                                };
-                            };
-                        };
-                    };
+                    // Native building positions remain the room destinations. A geometry-supported
+                    // offset can project onto another navigation floor; do not cache it as a route.
                     // Preserve a physically established interior route across mover changes.
                     // A ground-level partner should regain the pair's visited target-floor node
                     // before requesting its next room, rather than approaching an upstairs window.

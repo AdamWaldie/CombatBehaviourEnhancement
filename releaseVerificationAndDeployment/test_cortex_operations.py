@@ -8031,14 +8031,13 @@ class CortexOperations(unittest.TestCase):
         remove=text.index('removeEventHandler ["PathCalculated"')
         self.assertLess(remove,text.index('{deleteVehicle _x} forEach _members',remove))
 
-    def test_clearance_wrong_floor_alternative_requires_stall_real_anchor_and_supported_nearby_floor(self):
+    def test_clearance_keeps_native_room_destinations_without_geometry_offset_cache(self):
         text=source('buildingOperationStep')
-        branch=text.split('private _floorTargets=',1)[1].split('// Preserve a physically established',1)[0]
-        for guard in ['_retries >= 3','_point distance2D _target <= 4','_floorProbed','floorProbeCounts',
-                      'forEach _cleared','lineIntersectsSurfaces','>= 0.7','== _building','<= 0.5','<= 1.25']:
-            self.assertIn(guard,branch)
-        self.assertNotIn('_cleared pushBack',branch)
-        self.assertNotIn('setPos',branch)
+        self.assertNotIn('floorTargets',text)
+        self.assertNotIn('floorProbed',text)
+        movement=text.split('private _roomMovementPoint={',1)[1].split('};',1)[0]
+        self.assertIn('(_job get "positions") select _index',movement)
+        self.assertNotIn('getPos',movement)
         self.assertIn('[_index] call _roomMovementPoint',text)
         self.assertIn('[_record select 0] call _roomMovementPoint',text)
 
