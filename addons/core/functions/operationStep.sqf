@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Maintains three-dimensional physical progress for one existing operation and identifies
  * bounded recovery needs. Vertical travel counts; recovery arrival requires the destination floor band.
+ * CLEAR destination failures retire the recovery observation without quarantining a capable actor;
+ * its building worker retains per-room failure evidence and the generation retry budget stays spent.
  * Locality/authority: Current group owner only; it never creates a replacement route or issues a movement order.
  * Repeat/JIP: Updates the current generation only. Changed progress, roster and recovery state are public; unchanged no-progress observations are not rebroadcast. Cadence is local and rebuilt after migration.
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 minimum progress <NUMBER, 3>; 3 stale seconds <NUMBER, 12>; 4 allow own WAIT feature <BOOL, false>.
@@ -71,8 +73,14 @@ private _unavailableCount=count _unavailable;
                     _recovery set [_key,[_attempts,time,+_destination,_currentPosition]];
                     _recoveryChanged=true;
                 } else {
-                    _unavailable pushBackUnique _actor;
-                    // Quarantine ends this observation, not its generation's retry budget.
+                    // A failed CLEAR destination may be an inaccessible model node, not
+                    // an incapable soldier. The building worker retires that room attempt
+                    // through failedBy/unreachable and can use this actor in another room.
+                    // Keep the generation's retry budget; no recovery attempt is renewed.
+                    if ((_operation getOrDefault ["intent",""]) != "CLEAR") then {
+                        _unavailable pushBackUnique _actor;
+                    };
+                    // End this observation without forgetting its generation retry budget.
                     _recovery deleteAt _key;
                     _recoveryChanged=true;
                 };
