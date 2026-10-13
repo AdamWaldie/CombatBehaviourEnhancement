@@ -193,8 +193,18 @@ private _buildingAnchor = {
         private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
         private _free=_reservation isEqualTo []
             || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+        private _command=currentCommand _actor;
+        private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
+        private _live=(expectedDestination _actor) param [0,[]];
+        private _commandOwned=!(_command in ["MOVE","FOLLOW"])
+            || {_command == "MOVE" && {count _receipt == 4}
+                && {(_receipt select 0) == _group}
+                && {(_receipt select 1) == (_job get "generation")}
+                && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {count _live == 3} && {count (_receipt select 3) == 3}
+                && {_live vectorDistance (_receipt select 3) <= 0.25}};
         !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
-            && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
+            && {_commandOwned} && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
             && {[_actor] call WAIT_fnc_CortexCombatEffective}
             && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}

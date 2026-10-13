@@ -5252,6 +5252,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_garrison_continuation_requires_exact_owned_move(self):
+        apply=source("cortexGarrisonApplyLocal")
+        callback=apply.split('params ["_job"];',1)[1]
+        gate=callback.split("private _mayIssueMovement = {",1)[1].split("private _pending =",1)[0]
+        self.assertIn('_command in ["MOVE","FOLLOW"]',gate)
+        self.assertIn('_command == "MOVE" && {count _receipt == 4}',gate)
+        self.assertIn('_live vectorDistance (_receipt select 3) <= 0.25',gate)
+        self.assertIn('(_receipt select 1) == (_job get "generation")',gate)
+        self.assertIn("&& {_commandOwned}",gate)
+
     def test_garrison_release_preserves_replacement_move_and_follow(self):
         apply=source("cortexGarrisonApplyLocal"); release=source("cortexGarrisonRelease")
         self.assertEqual(apply.count("call _rememberMove;"),7)
