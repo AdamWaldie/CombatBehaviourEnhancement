@@ -432,6 +432,20 @@ private _delay=call {
             if (!_arrived && {_assignments isNotEqualTo []}) then {
                 _job set ["egressFailed",true];
                 diag_log format ["[WAIT] %1 clear egress incomplete (%2 still inside)",_group,{[_x] call _outsideExit} count _assignments];
+                // Preserve the last owned exit request before terminal cleanup erases it.
+                // One compact record per missing receipt, bounded by the admitted worker cap.
+                {
+                    _x params ["_actor","_target"];
+                    if !(_x param [2,false,[true]]) then {
+                        private _key=netId _actor;
+                        private _progress=(_job get "egressProgress") select {(_x select 0) == _actor};
+                        diag_log format ["WAIT CLEAR EGRESS STALL: %1",[_job get "generation",_key,
+                            getPosATL _actor,+_target,currentCommand _actor,expectedDestination _actor,
+                            unitReady _actor,getUnitState _actor,simulationEnabled _actor,isObjectHidden _actor,
+                            (_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [_key,[]],
+                            _progress apply {[_x select 1,_x select 2,_x select 3]}]];
+                    };
+                } forEach (_assignments select [0,8]);
             };
             [true,"COMPLETE"] call _finish
         } else {
