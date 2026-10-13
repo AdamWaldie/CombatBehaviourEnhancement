@@ -898,6 +898,28 @@ deleteVehicle _wallHouse;
         [format ["CLEAR-repeat-%1-complete-terminal",_size],_repeatAccepted && {_repeatEnded}
             && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"},
             str (_group getVariable ["WAIT_Cortex_ClearResult",[]])] call _check;
+        // Repeated use also needs a second real handback, without injected cleanup.
+        // A prior repeat failure remains recorded even if a new authored order cancels it.
+        private _repeatDeparture=_members apply {getPosATL _x};
+        private _repeatDestination=(getPosATL _house) getPos [75,270];
+        private _repeatWaypoint=_group addWaypoint [_repeatDestination,0];
+        _repeatWaypoint setWaypointType "MOVE";
+        _group setCurrentWaypoint _repeatWaypoint;
+        [format ["Repeated clearance handover: %1 soldiers",_size],"The same squad must leave on a fresh ordinary waypoint after its second clearance episode. No cleanup or movement reset is injected. Every original actor must physically travel and regain its normal formation; the external speed edit remains authoritative.",_repeatDestination] call _phase;
+        private _repeatHandedBack=[{
+            private _allMoved=alive leader _group && {leader _group distance2D _repeatDestination <= 18};
+            {
+                private _formationPoint=formationPosition _x;
+                if (!alive _x || {_x distance2D (_repeatDeparture select _forEachIndex) < 25}
+                    || {_formationPoint isEqualTo [0,0,0]} || {_x distance2D _formationPoint > 18}
+                    || {abs (((getPosASL _x) select 2)-((AGLToASL _formationPoint) select 2)) > 1.5}) then {_allMoved=false};
+            } forEach _members;
+            _allMoved
+        },90] call _wait;
+        [format ["CLEAR-repeat-%1-handover-physical",_size],_repeatHandedBack,
+            str (_members apply {[netId _x,getPosATL _x,currentCommand _x,formationPosition _x]})] call _check;
+        [format ["CLEAR-repeat-%1-handover-external-speed-preserved",_size],abs ((getForcedSpeed _editedActor)-8) <= 0.1,
+            str [netId _editedActor,getForcedSpeed _editedActor]] call _check;
     };
     sleep 8;
     if (_holdHcTransfer) then {
