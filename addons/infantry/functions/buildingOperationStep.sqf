@@ -34,6 +34,9 @@
  * entry point before full room coverage. A public episode/transform receipt bounds replay;
  * the same guarded clearance callback records the shared pair target and issues movement;
  * later pair steps preserve that active path and no progress deadline is renewed.
+ * Empty partner alternative searches can be reconsidered only when physical coverage grows,
+ * at most three searches per episode. Successful movement alternatives remain one-shot.
+ * Public receipts retain the search count and coverage across owner replay.
  * The first entry-failure cause is recorded once per operation, with physical participation
  * at the failure boundary; terminal diagnostics retain it without changing acceptance.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
@@ -1022,10 +1025,24 @@ private _delay=call {
                         // shared pair target before issuing it, even if this lane's room queue
                         // has ended. Later pair steps recognize and preserve the active path.
                         private _alternativeReceipt=_partner getVariable ["WAIT_Cortex_ClearEntryAlternative",[]];
-                        private _alternativeUsed=count _alternativeReceipt == 4
+                        private _sameAlternativeEpisode=count _alternativeReceipt >= 4
                             && {(_alternativeReceipt select 0) == _building}
                             && {(_alternativeReceipt select 1) == (_job get "hardDeadline")}
                             && {(_alternativeReceipt select 2) isEqualTo (_job get "buildingTransform")};
+                        private _alternativeSearches=if (_sameAlternativeEpisode) then {
+                            _alternativeReceipt param [4,1,[0]]
+                        } else {0};
+                        private _alternativeCoverage=if (_sameAlternativeEpisode) then {
+                            _alternativeReceipt param [5,count _cleared,[0]]
+                        } else {-1};
+                        // A failed selection can become useful after another lane proves a
+                        // new point. Reassess only on increased coverage, at most three times.
+                        // A successful alternative still consumes the one movement alternative.
+                        private _alternativeUsed=_sameAlternativeEpisode && {
+                            (_alternativeReceipt select 3) isNotEqualTo []
+                                || {_alternativeSearches >= 3}
+                                || {_alternativeCoverage >= count _cleared}
+                        };
                         if ((_receipt select 2) && {_now-(_receipt select 1) >= 24}
                             && {!_alternativeUsed} && {_cleared isNotEqualTo []}
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
@@ -1044,7 +1061,11 @@ private _delay=call {
                             _alternatives sort true;
                             private _alternative=if (_alternatives isNotEqualTo []) then {+((_alternatives select 0) select 1)} else {[]};
                             _partner setVariable ["WAIT_Cortex_ClearEntryAlternative",[
-                                _building,_job get "hardDeadline",_job get "buildingTransform",+_alternative],true];
+                                _building,_job get "hardDeadline",_job get "buildingTransform",
+                                +_alternative,_alternativeSearches+1,count _cleared],true];
+                            diag_log format ["WAIT CLEAR PARTNER ENTRY SEARCH: %1",[
+                                _job get "generation",_pairIndex,netId _partner,
+                                _alternativeSearches+1,count _cleared,+_alternative]];
                             if (_alternative isNotEqualTo []) then {
                                 (_job get "pairEntryTargets") set [str _pairIndex,+_alternative];
                                 _receipt set [0,_pose vectorDistance (AGLToASL _alternative)];
