@@ -27,6 +27,7 @@ params [["_requester",grpNull,[grpNull]],["_target",objNull,[objNull]],["_positi
 if (!isServer || {isNull _requester} || {isNull _target} || {!alive _target}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != groupOwner _requester}}
     || {count _position < 2} || {_position findIf {!(_x isEqualType 0)} >= 0}
+    || {!finite _observedAt} || {_observedAt < 0} || {_observedAt > serverTime+1}
     || {serverTime-_observedAt > 10} || {_target distance2D _position > 75}
     || {(side _requester) getFriend side _target >= 0.6}
     || {!([_requester] call WAIT_fnc_CortexIsEligible)}

@@ -16,7 +16,7 @@ private _contact=_visible select 0;
 private _target=_contact param [0,objNull,[objNull]];
 private _position=_contact param [1,[],[[]]];
 private _age=_contact param [2,1e6,[0]];
-if (isNull _target || {!alive _target} || {_age > 5} || {count _position < 2}) exitWith {false};
+if (isNull _target || {!alive _target} || {!finite _age} || {_age < 0} || {_age > 5} || {count _position < 2}) exitWith {false};
 _state set ["combinedArmsDue",serverTime+20+random 8];
-[_group,_target,+_position,serverTime] remoteExecCall ["WAIT_fnc_CortexCombinedArmsServer",2];
+[_group,_target,+_position,serverTime-_age] remoteExecCall ["WAIT_fnc_CortexCombinedArmsServer",2];
 true
