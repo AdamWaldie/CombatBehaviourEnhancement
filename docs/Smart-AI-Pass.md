@@ -175,3 +175,7 @@ is public for owner migration; a new owner validates live eligibility before com
 Stationary separate-group boarding and replacement-vehicle boarding have physical audit
 evidence. Moving-vehicle boarding, interruption and migration of this handshake remain
 queued for physical acceptance.
+
+### Interior access recovery priority
+
+A stalled interior access checkpoint uses its existing finite recovery before the controller searches alternate exterior entrances. This prevents entrance cycling from retaining the failed checkpoint while repeatedly resetting its local retry clock. Recovery can retire the checkpoint once and request the assigned room directly. Room retry counts, physical visit requirements, operation ownership and the hard deadline remain intact. No new settings or dependencies are introduced. Static gates passed for this change; fresh packaged normal and headless-client physical acceptance remains outstanding.

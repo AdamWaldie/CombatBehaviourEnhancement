@@ -21,6 +21,8 @@
  * reserve historical destinations, and no visit is inferred.
  * Exhausted interior checkpoint recovery retires that checkpoint once before the assigned room
  * is classified. The room receives a direct attempt within its existing retry and hard deadline.
+ * Interior access recovery precedes exterior entrance cycling, so changing entrances cannot
+ * repeatedly reset a stalled checkpoint leg while retaining its failed target.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
  * A single exterior replacement follows its healthy original surviving mover through bounded
@@ -1630,8 +1632,16 @@ private _delay=call {
                                 _lastProgress=_now;
                                 _retryCounts set [_positionIndex,(_retryCounts param [_positionIndex,0])+1];
                             } else {
+                                // An interior access leg already owns this destination. Exterior
+                                // entrance cycling would retain the same failed checkpoint while
+                                // resetting its local retry clock. Exhaust its existing recovery
+                                // first, then retire it once and request the assigned room directly.
+                                private _recoverAccess=!_approachingEntry && {count _approach >= 3}
+                                    && {(_approach select 0) == _positionIndex}
+                                    && {count (_approach select 1) == 3} && {!(_approach select 2)};
                                 private _changedEntry=false;
-                                if (!(_point in (_job getOrDefault ["enteredActors",[]])) && {(_job get "entries") isNotEqualTo []}) then {
+                                if (!_recoverAccess && {!(_point in (_job getOrDefault ["enteredActors",[]]))}
+                                    && {(_job get "entries") isNotEqualTo []}) then {
                                     if (_approachingEntry) then {_triedEntries pushBackUnique _entryIndex};
                                     private _entryRanks=[];
                                     {
