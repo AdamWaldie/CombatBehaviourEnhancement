@@ -11,6 +11,8 @@
  * checkpoint. Already-entered movers request same-floor rooms without revisiting their buddy.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
+ * Exhausted room retries emit one compact record per classification, including the native target,
+ * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
  * Egress assigns bounded distinct supported exterior slots and holds arrivals within one metre.
@@ -1451,6 +1453,18 @@ private _delay=call {
                                         _failedBy set [_positionIndex,_failures];
                                         // A failed entry lane cannot undo another worker's physical room visit.
                                         if (count _failures >= _failureThreshold && {!(_positionIndex in _cleared)}) then {
+                                            if !(_positionIndex in _unreachable) then {
+                                                // A configured building point is only a candidate. Preserve the
+                                                // actual failed request without calling it physically cleared or
+                                                // claiming that controller/path failure proves bad model geometry.
+                                                diag_log format ["WAIT CLEAR ROOM RETRY EXHAUSTED: %1",[
+                                                    _job get "generation",typeOf (_job get "building"),
+                                                    netId (_job get "building"),_positionIndex,+_target,
+                                                    _retryCounts param [_positionIndex,0],+_failures,
+                                                    netId _point,getPosASL _point,currentCommand _point,
+                                                    expectedDestination _point,unitReady _point,
+                                                    _point checkAIFeature "MOVE",_point checkAIFeature "PATH"]];
+                                            };
                                             _unreachable pushBackUnique _positionIndex;
                                         } else {
                                             // Return the room to the shared queue. Another pair must claim it;
