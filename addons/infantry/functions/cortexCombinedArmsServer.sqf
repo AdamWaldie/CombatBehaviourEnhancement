@@ -19,7 +19,9 @@
  * Repeat/JIP: requester rate limit and expiring public role tokens replace older opportunities safely.
  * Expiry preserves matching terminal outcomes; only dispatched/applied roles become EXPIRED.
  * Candidate membership uses a request-local keyed set, preserving discovery order without
- * repeated linear array membership searches. This does not bound total discovery population.
+ * repeated linear array membership searches. Ranking retains the discovered asset; dispatch
+ * rechecks its live commander/driver ownership without another full unit scan. A unique rank
+ * tie-breaker avoids comparing group objects. This does not bound total discovery population.
  * Arguments: 0: requester <GROUP>; 1: observed hostile <OBJECT>; 2: believed ATL <ARRAY>;
  * 3: observation server time <NUMBER>.
  * Return Value: Number of asset roles dispatched.
@@ -98,7 +100,7 @@ private _orderedGroups=[];
         // keeps support local without inventing a fixed assembly position or formation.
         private _kind=if (!isNull _candidateAsset && {_candidateAsset isKindOf "Air"} && {_damagingMagazine >= 0}) then {0}
             else {if (!isNull _candidateAsset && {_damagingMagazine >= 0}) then {1} else {2}};
-        _orderedGroups pushBack [[_kind,_candidateAnchor distance2D _requesterAnchor],_candidateGroup];
+        _orderedGroups pushBack [[_kind,_candidateAnchor distance2D _requesterAnchor,count _orderedGroups],_candidateGroup,_candidateAsset];
         };
     };
 } forEach _candidateGroups;
@@ -116,15 +118,15 @@ _orderedGroups sort true;
         && {private _existingRole=_candidate getVariable ["WAIT_Cortex_CombinedRole",[]];
             count _existingRole != 7 || {serverTime >= (_existingRole select 5)} || {(_existingRole select 0) == _token}}
         && {_distance <= _voiceRange || {_senderRadio && {_candidateRadio}}}) then {
-        private _asset=objNull;
-        {
-            private _vehicle=vehicle _x;
-            private _commander=effectiveCommander _vehicle;
-            private _driver=driver _vehicle;
-            if (_vehicle != _x && {alive _vehicle}
-                && {(!isNull _commander && {group _commander == _candidate})
-                    || {!isNull _driver && {group _driver == _candidate}}}) exitWith {_asset=_vehicle};
-        } forEach units _candidate;
+        // Reuse this request's discovery, then validate live operating ownership.
+        // A stale asset is refused rather than rescanning or dispatching to passengers.
+        private _asset=_x select 2;
+        if (!isNull _asset) then {
+            private _commander=effectiveCommander _asset;
+            private _driver=driver _asset;
+            if (!alive _asset || {!((!isNull _commander && {group _commander == _candidate})
+                || {!isNull _driver && {group _driver == _candidate}})}) then {_asset=objNull};
+        };
         private _role="";
         // Preserve a bounded ordered fallback list. Local ownership is the only safe place to
         // verify actual pylon/weapon pairing, so an owner may still reject this candidate.
