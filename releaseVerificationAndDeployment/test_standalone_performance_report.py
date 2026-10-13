@@ -10,7 +10,7 @@ class StandalonePerformanceReportTests(unittest.TestCase):
     def fixture(self,folder,loaded):
         folder.mkdir()
         (folder/'server').mkdir()
-        manifest=dict(focus='standaloneperformance',native_baseline=not loaded,resolution=[3840,2160],
+        manifest=dict(focus='standaloneperformance',world='VR',batch_mode='normal',headless_provider=None,native_baseline=not loaded,resolution=[3840,2160],
                       headlessClients=0,performance_composition='infantry',dependencySources=['cba'],package=dict(dirty=False,fingerprint='same'),
                       mission_files={'mission.sqm':'same','cortexQAStandalonePerformance.sqf':'same'})
         (folder/'audit-manifest.json').write_text(json.dumps(manifest))
@@ -41,6 +41,12 @@ class StandalonePerformanceReportTests(unittest.TestCase):
             for key,value in [('headlessClients',2),('resolution',[1920,1080]),('dependencySources',['different'])]:
                 changed=copy.deepcopy(wait)
                 changed['manifest'][key]=value
+                with self.assertRaises(ValueError): compare(native,changed)
+            for key,value in [('world','Altis'),('batch_mode','headless'),('headless_provider',{'id':'different'})]:
+                changed=copy.deepcopy(wait)
+                changed['manifest'][key]=value
+                with self.assertRaises(ValueError): compare(native,changed)
+                del changed['manifest'][key]
                 with self.assertRaises(ValueError): compare(native,changed)
             wait['manifest']['package']['dirty']=True
             with self.assertRaises(ValueError): compare(native,wait)

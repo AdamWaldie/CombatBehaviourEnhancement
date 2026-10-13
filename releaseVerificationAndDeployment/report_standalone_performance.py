@@ -51,9 +51,11 @@ def compare(native,wait):
     a,b=native['manifest'],wait['manifest']
     if a.get('native_baseline') is not True or b.get('native_baseline') is not False:
         raise ValueError('Native and WAIT run roles must differ')
-    for key in ('focus','resolution','headlessClients','dependencySources','performance_composition'):
-        if key not in a or a[key] != b.get(key):
+    for key in ('focus','world','batch_mode','headless_provider','resolution','headlessClients','dependencySources','performance_composition'):
+        if key not in a or key not in b or a[key] != b[key]:
             raise ValueError(f'Unmatched launch field: {key}')
+    if a['world'] != 'VR':
+        raise ValueError('Standalone patrol benchmark requires VR terrain')
     if a['focus'] != 'standaloneperformance':
         raise ValueError('Wrong benchmark scope')
     if a['package']['dirty'] or b['package']['dirty'] or a['package']['fingerprint'] != b['package']['fingerprint']:
