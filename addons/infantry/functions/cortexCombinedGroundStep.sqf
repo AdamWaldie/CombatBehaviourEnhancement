@@ -85,6 +85,9 @@ if (_asset distance2D _destination <= 70) exitWith {
         && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}
         && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
         && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+    if (_fireAllowed && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
+        _fireAllowed=false; _fireDecision="NO_STATION_AMMO";
+    };
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";
         if ([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear) then {

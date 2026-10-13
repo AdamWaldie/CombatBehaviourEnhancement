@@ -78,6 +78,7 @@ if (_role == "GROUND_FIRE") exitWith {
         || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
         || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
         || {[_group] call WAIT_fnc_CortexExternalTakeover}) then {_fireRefusal="NO_FIRE_OPERATOR"};
+    if (_fireRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_STATION_AMMO"};
     if (_fireRefusal == "" && {!([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear)}) then {
         _fireRefusal="BLOCKED_FIRE_LANE";
     };
