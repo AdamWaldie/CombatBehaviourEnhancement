@@ -12,10 +12,12 @@ params [["_vehicle", objNull, [objNull]], ["_gunner", objNull, [objNull]]];
 if (!isServer || {isNull _vehicle} || {!(missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Enable", false])}
     || {[] call WAIT_fnc_CortexIsPaused}) exitWith {false};
 private _position = getPosATL _vehicle;
-// Update even while a response is active: a new emission may reveal relocation before the next burst.
+// Private raw event evidence is not actionable relocation knowledge; qualified side receipts below are.
 _vehicle setVariable ["WAIT_AIPass_LastEmission", [time, +_position]];
-if (time < (_vehicle getVariable ["WAIT_AIPass_CounterEventAt", -1])) exitWith {false};
-_vehicle setVariable ["WAIT_AIPass_CounterEventAt", time + ((missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Interval", 60]) max 10)];
+private _eventDue=time >= (_vehicle getVariable ["WAIT_AIPass_CounterEventAt", -1]);
+if (_eventDue) then {
+    _vehicle setVariable ["WAIT_AIPass_CounterEventAt", time + ((missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Interval", 60]) max 10)];
+};
 private _enemySide = side group _gunner;
 private _sides = [];
 {
@@ -25,12 +27,17 @@ private _sides = [];
 {
     private _side = _x;
     private _pendingKey = "WAIT_AIPass_CounterPending_" + str _side;
-    if (time >= (_vehicle getVariable [_pendingKey, -1]) && {time >= (_vehicle getVariable ["WAIT_AIPass_CounterUntil_" + str _side, -1])}) then {
         private _sideKey = switch (_side) do {case west: {"WEST"}; case east: {"EAST"}; case independent: {"GUER"}; default {"CIV"}};
         private _radar = (missionNamespace getVariable ["WAIT_AIPass_CounterBatteryRadars", []]) findIf {
             _x params ["_object", "_radarSide"];
             alive _object && {_radarSide == _sideKey} && {_object distance2D _position <= (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_RadarRange", 8000])}
         } >= 0;
+        if (_radar) then {
+            _vehicle setVariable ["WAIT_AIPass_DetectedEmission_" + str _side,[serverTime,+_position,30,"RADAR"]];
+        };
+    // Observation remains available while a response is active; only admission is cooled down.
+    if (_eventDue && {time >= (_vehicle getVariable [_pendingKey, -1])}
+        && {time >= (_vehicle getVariable ["WAIT_AIPass_CounterUntil_" + str _side, -1])}) then {
         private _normalDelay = (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Delay", 60]) max 1;
         private _delay = if (_radar) then {((missionNamespace getVariable ["WAIT_AIPass_CounterBattery_RadarDelay", 20]) max 1) min _normalDelay} else {_normalDelay};
         _vehicle setVariable [_pendingKey, time + _delay + 1];
