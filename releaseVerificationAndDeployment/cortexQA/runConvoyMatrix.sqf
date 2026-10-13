@@ -10,6 +10,8 @@
  * heading and order measurements use that selected route axis rather than world X/Y.
  * Locality/authority: scheduled server creates and owns fixtures through the public convoy API.
  * Repeat/JIP: fresh groups per case; public observer vehicles; release and delete each case.
+ * Local controller limits, progress age, recovery count and retained route targets accompany each
+ * timing row; remote owner state is explicitly unavailable rather than inferred from public pose.
  * The existing finite 80-second window logs one compact timing sample per second, including
  * effective-commander destinations, physical longitudinal gap and applied speed cap.
  * These diagnostics are audit-only and cannot pass physical acceptance or performance budgets.
@@ -240,6 +242,10 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             } forEach _vehicles;
             // Audit-only bounded timing, aligned with the controller cadence. The existing
             // five-second aggregate can miss a complete start/stop cycle between samples.
+            private _timingOwnerLocal=local _group;
+            private _timingController=if (_timingOwnerLocal) then {_group getVariable ["WAIT_Convoy_LocalState",createHashMap]} else {createHashMap};
+            private _timingLimits=_timingController getOrDefault ["speedLimits",createHashMap];
+            private _timingFollowers=_timingController getOrDefault ["followers",createHashMap];
             private _timing=_vehicles apply {
                 private _index=_forEachIndex;
                 private _operator=effectiveCommander _x;
@@ -252,8 +258,18 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                     _delta set [2,0];
                     _longitudinal=_delta vectorDotProduct [sin _bearing,cos _bearing,0];
                 };
+                private _controllerEvidence=if (_timingOwnerLocal) then {
+                    private _key=netId _x;
+                    private _progress=_timingFollowers getOrDefault [_key,[]];
+                    ["LOCAL",_timingLimits getOrDefault [_key,[]],
+                        _timingController getOrDefault ["leadSpeedLimit",[]],
+                        _progress param [1,-1],_progress param [4,0],
+                        _progress param [5,[]],_progress param [6,[]],
+                        isAISteeringComponentEnabled _x]
+                } else {["UNAVAILABLE_REMOTE_OWNER",groupOwner _group]};
                 [netId _x,speed _x,getForcedSpeed _x,velocityModelSpace _x,
-                    _longitudinal,netId _operator,currentCommand _operator,expectedDestination _operator]
+                    _longitudinal,netId _operator,currentCommand _operator,expectedDestination _operator,
+                    _controllerEvidence]
             };
             diag_log format ["WAIT CORTEX QA CONVOY TIMING: %1",[_id,serverTime,diag_tickTime-_start,_timing]];
             _count=_count+1;
