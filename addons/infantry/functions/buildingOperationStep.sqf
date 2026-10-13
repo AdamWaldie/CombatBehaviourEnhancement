@@ -49,6 +49,8 @@
  * Validated exposed standing points are allowed when cover is unavailable and recorded as exposed.
  * A clear observation ray and physical arrival precede one guarded watch command.
  * This establishes exit-approach observation, not complete building isolation.
+ * Casualty promotion retires the matching generation/epoch exit watch before interior movement.
+ * Native tasks and newer authority remain protected at that transfer boundary.
  * Stage receipts distinguish REJECTED current-position holds, APPROACH and physical ARRIVED.
  * A bounded episode/transform-scoped array journal preserves search counts and tried candidates on resume.
  * Rejected selection retries after five seconds, at most three searches per actor with tried targets excluded.
@@ -758,6 +760,8 @@ private _delay=call {
             private _watch=_stage param [4,[],[[]]];
             if (count _watch == 3) then {
                 _reserve doWatch _watch;
+                _reserve setVariable ["WAIT_Cortex_ClearExitWatch",[
+                    _job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_watch],true];
                 diag_log format ["WAIT CLEAR EXIT OBSERVATION: %1",[
                     _job get "generation",netId _reserve,+(_stage select 0),+_watch,
                     _stage param [6,false,[true]]]];
@@ -806,6 +810,17 @@ private _delay=call {
             private _member=_pair select _slot;
             if ((!([_member] call _actorAvailable) || {_member in _unavailable}) && {_reserves isNotEqualTo []}) then {
                 private _replacement=_reserves deleteAt 0;
+                // Promotion changes this actor's purpose. Retire only the matching
+                // exit watch before an interior movement leg can inherit it.
+                private _exitWatch=_replacement getVariable ["WAIT_Cortex_ClearExitWatch",[]];
+                if (count _exitWatch == 3
+                    && {(_exitWatch select 0) == (_job get "generation")}
+                    && {(_exitWatch select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                    && {[_replacement] call _actorTaskFree} && {call _mayIssueMovement}) then {
+                    _replacement doWatch objNull;
+                    _replacement setVariable ["WAIT_Cortex_ClearExitWatch",nil,true];
+                    _replacement setVariable ["WAIT_Cortex_ClearReserve",nil];
+                };
                 _pair set [_slot,_replacement];
                 _laneReplacements pushBack _replacement;
                 _pairRosterChanged=true;
