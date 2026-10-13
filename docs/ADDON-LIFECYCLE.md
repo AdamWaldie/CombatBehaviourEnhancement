@@ -782,3 +782,5 @@ CQB exterior observation retries prefer real exits not yet attempted by that act
 Terminal CQB route evidence includes each exterior actor's attempted exits after its stage and search count. Existing evidence indices remain unchanged. This records finite recovery choices without adding geometry queries or claiming physical isolation.
 
 Convoy audit timing rows retain their original eight fields and append local controller evidence: follower limit/timestamp, lead limit/timestamp, last progress time, recovery count, retained native and steering targets, and steering mode. Remote owner state is explicitly unavailable. Sampling remains within the existing finite audit window and does not change driving or acceptance thresholds.
+
+Garrison owner adoption preserves exhausted-route failure flags and does not restart those positions. Fresh explicit garrison orders still clear old assignments through release before admitting new routes. This prevents locality migration from renewing a failed position's recovery budget. Physical inaccessible-position and repeated-HC acceptance remain pending.

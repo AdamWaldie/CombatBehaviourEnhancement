@@ -11,6 +11,8 @@
  * Arrival and failure release only an unchanged WAIT approach speed cap; newer speed commands survive.
  * Transform-bound assignments are checked before initial/deferred commands and alternate-slot selection.
  * Moved or deleted buildings release affected actors through the existing partial cleanup path.
+ * Owner adoption preserves published exhausted-route failures; only a fresh explicit order, whose
+ * release clears old assignments and failures, admits another attempt at the same position.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -134,8 +136,8 @@ private _buildingAnchor = {
     private _assignment = _unit getVariable ["WAIT_AIPass_GarrisonPos", []];
     if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
         && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
-        && {_assignment isNotEqualTo []} && {[_unit] call _mayIssueMovement}) then {
-        _unit setVariable ["WAIT_AIPass_GarrisonFailed",nil,true];
+        && {_assignment isNotEqualTo []} && {!(_unit getVariable ["WAIT_AIPass_GarrisonFailed",false])}
+        && {[_unit] call _mayIssueMovement}) then {
         if (isNil {_unit getVariable "WAIT_AIPass_GarrisonStance"}) then {_unit setVariable ["WAIT_AIPass_GarrisonStance", unitPos _unit, true]};
         if (isNil {_unit getVariable "WAIT_Cortex_GarrisonForcedSpeed"}) then {
             _unit setVariable ["WAIT_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit];
