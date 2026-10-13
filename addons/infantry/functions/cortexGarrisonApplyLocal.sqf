@@ -8,6 +8,7 @@
  * owner and again on any new owner (WAIT_fnc_CortexDiscover). Soldiers more than 2 m from their
  * position are sent there. Only three-dimensional arrival locks PATH; a fixed safety deadline records
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
+ * Arrival and failure release only an unchanged WAIT approach speed cap; newer speed commands survive.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -230,13 +231,21 @@ private _buildingAnchor = {
                 // whose group changed owner while this bounded callback was already running.
                 if ([_x] call _mayIssueMovement) then {
                     doStop _x;
-                    _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+                    if (!isNil {_x getVariable "WAIT_Cortex_GarrisonForcedSpeed"}
+                        && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
+                        _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+                    };
                     _x setVariable ["WAIT_AIPass_GarrisonDisabledPath", true, true];
                     _x disableAI "PATH";
                     _x doWatch ((_assignment select 0) getPos [50, _assignment select 1]);
                 };
             } else {
                 if (time > (_job get "deadline")) then {
+                    if ([_x] call _mayIssueMovement
+                        && {!isNil {_x getVariable "WAIT_Cortex_GarrisonForcedSpeed"}}
+                        && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
+                        _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+                    };
                     _x setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
                     diag_log format ["[WAIT] Garrison arrival failed unit=%1 remaining=%2",_x,_x distance (_assignment select 0)];
                 } else {
@@ -316,7 +325,12 @@ private _buildingAnchor = {
                                         _x doMove _replacementTarget; [_x,_replacementTarget] call _rememberMove;
                                         diag_log format ["[WAIT] Garrison reassigned unit=%1 remaining=%2 alternative=%3",_x,_x distance (_assignment select 0),_replacementDestination];
                                     } else {
-                                        _x setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
+                                        if ([_x] call _mayIssueMovement
+                        && {!isNil {_x getVariable "WAIT_Cortex_GarrisonForcedSpeed"}}
+                        && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
+                        _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+                    };
+                    _x setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
                                         diag_log format ["[WAIT] Garrison arrival failed unit=%1 attempted=%2 remaining=%3",_x,count _attempted,_x distance (_assignment select 0)];
                                     };
                                     };
