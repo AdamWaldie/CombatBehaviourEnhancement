@@ -43,6 +43,7 @@ if ((_operation getOrDefault ["intent",""]) == "CLEAR") then {
 _group setVariable ["WAIT_Cortex_ClearResult",["CANCELLED",count (_order select 1),count ((_order select 0) buildingPos -1)],true];
 _group setVariable ["WAIT_Cortex_ClearEvidence",[+(_order param [1,[]]),+(_order param [4,[]]),+(_order param [5,[]]),+(_order param [6,[]]),_order param [2,serverTime],_order param [7,serverTime]],true];
 _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
+_group setVariable ["WAIT_Cortex_ClearFollowBudget",nil,true];
 _group setVariable ["WAIT_AIPass_ClearBuilding", nil, true];
 _group setVariable ["WAIT_Cortex_ClearEgress",nil,true];
 _group setVariable ["WAIT_AIPass_ClearApplied", nil];

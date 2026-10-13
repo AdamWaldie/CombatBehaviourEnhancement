@@ -306,6 +306,35 @@ private _job=createHashMapFromArray [
     ["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
 // Keep reserve search consumption across a true resume, independently of local handles.
+// Durable failed follow-through targets are bookkeeping, never movement/entry receipts.
+private _followBudget=_group getVariable ["WAIT_Cortex_ClearFollowBudget",[]];
+if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearFollowBudget",nil,true]};
+if (_resume && {count _followBudget == 4} && {(_followBudget select 0) == _building}
+    && {(_followBudget select 1) == _hardDeadline}
+    && {(_followBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
+    private _failures=createHashMap;
+    private _exhausted=[];
+    private _actors=createHashMap;
+    {_actors set [netId _x,_x]} forEach ((units _group) select [0,64]);
+    {
+        private _row=_x;
+        if (_row isEqualType [] && {count _row == 3}
+            && {(_row select 0) isEqualType ""} && {(_row select 1) isEqualType []}
+            && {(_row select 2) isEqualType true}) then {
+            private _key=_row select 0;
+            private _indices=_row select 1;
+            private _actor=_actors getOrDefault [_key,objNull];
+            if (!isNull _actor && {count _indices <= 3}
+                && {_indices findIf {!(_x isEqualType 0) || {!finite _x}
+                    || {_x < 0} || {_x >= count _positions} || {_x != floor _x}} < 0}) then {
+                _failures set [_key,+_indices];
+                if (_row select 2) then {_exhausted pushBackUnique _actor};
+            };
+        };
+    } forEach ((_followBudget select 3) select [0,64]);
+    _job set ["followThroughFailures",_failures];
+    _job set ["followThroughExhausted",_exhausted];
+};
 private _stageBudget=_group getVariable ["WAIT_Cortex_ClearStageBudget",[]];
 if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearStageBudget",nil,true]};
 if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _building}

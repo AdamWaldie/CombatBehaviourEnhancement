@@ -208,6 +208,7 @@ private _delay=call {
             _group setVariable ["WAIT_AIPass_ClearBuilding", nil, true];
             _group setVariable ["WAIT_Cortex_ClearEgress",nil,true];
             _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
+            _group setVariable ["WAIT_Cortex_ClearFollowBudget",nil,true];
             _group setVariable ["WAIT_AIPass_ClearApplied", nil];
         };
         if (_reason == "COMPLETE" && {_restore}) then {
@@ -1444,6 +1445,7 @@ private _delay=call {
         private _follow=_job getOrDefault ["followThrough",createHashMap];
         private _followFailures=_job getOrDefault ["followThroughFailures",createHashMap];
         private _followExhausted=_job getOrDefault ["followThroughExhausted",[]];
+        private _followBudgetChanged=false;
         {
             private _unit=_x;
             private _key=netId _unit;
@@ -1485,6 +1487,8 @@ private _delay=call {
                         [_unit,_target] call _rememberMove;
                     } else {
                         _followExhausted pushBackUnique _unit;
+                        _followFailures set [_key,+_failedTargets];
+                        _followBudgetChanged=true;
                         _job set ["entryFailed",true];
                     };
                 } else {
@@ -1504,6 +1508,7 @@ private _delay=call {
                         private _failedTargets=_followFailures getOrDefault [_key,[]];
                         _failedTargets pushBackUnique (_record select 0);
                         _followFailures set [_key,_failedTargets];
+                        _followBudgetChanged=true;
                         _follow set [_key,[]];
                     };
                 };
@@ -1512,6 +1517,14 @@ private _delay=call {
         _job set ["followThrough",_follow];
         _job set ["followThroughFailures",_followFailures];
         _job set ["followThroughExhausted",_followExhausted];
+        if (_followBudgetChanged && {call _mayIssueMovement}) then {
+            private _exhaustedIds=_followExhausted apply {netId _x};
+            private _rows=(keys _followFailures select [0,64]) apply {
+                [_x,+(_followFailures get _x),_x in _exhaustedIds]
+            };
+            _group setVariable ["WAIT_Cortex_ClearFollowBudget",[
+                _building,_job get "hardDeadline",_job get "buildingTransform",_rows],true];
+        };
     };
     private _allWorkersSettled=_activeWorkers findIf {[_x] call _activeOwnMove} < 0;
     if (((count _cleared + count _unreachable) >= count _positions && {(_allWorkersProgressed && {_allWorkersSettled}) || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
