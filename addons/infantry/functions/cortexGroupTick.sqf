@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Contact-loss cleanup waits for a matching owner/generation CLEAR FSM to finish or cancel;
+ * its independent finite deadlines and newer mission/Zeus orders retain authority.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Group-wide contact posture yields to native boarding, actions, treatment, rearming and joining.
  * Pending remounts yield to a replacement vehicle assignment; cleanup only cancels the original seat order.
@@ -1138,9 +1140,23 @@ switch (_state get "phase") do {
         // Smoke, terrain and buildings can briefly hide a target while a bounded manoeuvre is still
         // making physical progress. Post-contact may take ownership only after that manoeuvre has
         // completed or explicitly aborted; each drill/support lease already has its own finite timeout.
+        // CLEAR has its own finite owner-local FSM. Loss of sight must not run
+        // contact cleanup over its attack policy, holds or interior movement.
+        private _clearOperation=_group getVariable ["WAIT_Operation",createHashMap];
+        private _clearBrain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
+        private _clearJob=_clearBrain getOrDefault ["job",createHashMap];
+        private _clearContinuing=(_clearOperation getOrDefault ["intent",""]) == "CLEAR"
+            && {_group getVariable ["WAIT_AIPass_ClearBuilding",false]}
+            && {(_clearOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {(_clearJob getOrDefault ["operationGeneration",-2]) == (_clearOperation getOrDefault ["generation",-1])}
+            && {!(_clearBrain getOrDefault ["cancelled",false])}
+            && {!(_clearBrain getOrDefault ["finished",false])}
+            && {(_clearBrain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {(_clearBrain getOrDefault ["generation",-2]) == (_group getVariable ["WAIT_AIPass_ClearGeneration",-1])};
         private _manoeuvreActive = count (_state getOrDefault ["drill",createHashMap]) > 0
             || {_state getOrDefault ["assaulting",false]}
-            || {_state getOrDefault ["responding",false]};
+            || {_state getOrDefault ["responding",false]}
+            || {_clearContinuing};
         // A hit, explosion or suppression event is useful immediate safety information, but it is
         // not a thirty-second contact. Release the temporary COMBAT posture as soon as the finite
         // danger context ends unless native knowledge or an already-committed manoeuvre justifies it.
