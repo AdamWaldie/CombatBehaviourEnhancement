@@ -4,7 +4,7 @@
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Executes one finite Cortex aircraft attack as ingress, attack and egress phases. Against an
  * airborne hostile these phases mean intercept, engage and disengage/rejoin: the first two
- * destinations lead the contact's measured velocity while egress remains finite and returns the
+ * destinations lead motion estimated from native believed contact positions while egress remains finite and returns the
  * aircraft to its unchanged authored route. This provides responsive air-to-air contact handling
  * without pretending that fixed script geometry implements full basic fighter manoeuvring.
  * It flies physical route legs, presents the live target only to the retained weapon operator, records real
@@ -579,11 +579,33 @@ private _stageIndex=["INGRESS","ATTACK","EGRESS"] find _stage;
 if (_stageIndex < 0) exitWith {["BAD_STAGE"] call _finish};
 private _destination=_points select _stageIndex;
 // Air contacts do not remain at the point captured when the plan was built. Refresh only the
-// intercept and engagement points from current target velocity; disengagement stays immutable so
+// intercept and engagement points from successive native believed positions; disengagement stays immutable so
 // the lease has a real end and cannot orbit indefinitely.
 if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) then {
     private _leadSeconds=[16,5] select (_stage == "ATTACK");
-    private _predictedASL=(getPosASL _target) vectorAdd ((velocity _target) vectorMultiply _leadSeconds);
+    private _knowers=((units _group) select [0,8]) select {
+        local _x && {[_x] call WAIT_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
+    };
+    private _knower=_knowers param [0,objNull,[objNull]];
+    if (isNull _knower) exitWith {_job set ["interceptEstimateLost",true]};
+    private _believed=_knower getHideFrom _target;
+    if (_believed isEqualTo [0,0,0]) exitWith {_job set ["interceptEstimateLost",true]};
+    private _believedASL=ATLToASL _believed;
+    private _previousEstimate=_job getOrDefault ["interceptEstimate",[]];
+    private _estimatedVelocity=[0,0,0];
+    if (count _previousEstimate == 4 && {(_previousEstimate select 0) == _target}
+        && {(_previousEstimate select 1) == _knower}) then {
+        private _elapsed=serverTime-(_previousEstimate select 2);
+        if (_elapsed >= 0.25 && {_elapsed <= 5}) then {
+            _estimatedVelocity=(_believedASL vectorDiff (_previousEstimate select 3)) vectorMultiply (1/_elapsed);
+            // A changed native estimate can jump. Bound extrapolation rather than turn
+            // that correction into a fictitious high-speed contact trajectory.
+            private _estimateSpeed=vectorMagnitude _estimatedVelocity;
+            if (_estimateSpeed > 350) then {_estimatedVelocity=_estimatedVelocity vectorMultiply (350/_estimateSpeed)};
+        };
+    };
+    _job set ["interceptEstimate",[_target,_knower,serverTime,+_believedASL]];
+    private _predictedASL=_believedASL vectorAdd (_estimatedVelocity vectorMultiply _leadSeconds);
     _destination=ASLToATL _predictedASL;
     // Match the moving contact's predicted altitude across terrain cells, with a safety floor.
     // Surface attack profiles remain independent of this interception-only height.
@@ -594,6 +616,7 @@ if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) th
     _points set [_stageIndex,_destination];
     _job set ["points",_points];
 };
+if (_job getOrDefault ["interceptEstimateLost",false]) exitWith {["TARGET_ESTIMATE_UNAVAILABLE",true] call _finish};
 // Fixed guns, rockets and bombs cross the objective, so a target-attached DESTROY waypoint gives
 // the native flight controller a useful roll-in. Guided stand-off weapons instead retain their
 // inbound release point: attaching that phase to the target overwrites its safe launch distance and
