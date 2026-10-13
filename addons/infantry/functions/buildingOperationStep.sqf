@@ -1180,6 +1180,11 @@ private _delay=call {
                     };
                     {
                         private _unit=_x;
+                        // Alternate entrance recovery belongs to exterior actors only. A
+                        // physically entered buddy retains its current interior order and hold.
+                        private _entryWorkerAllowed=!_approachingEntry || {_unit == _point}
+                            || {!(_unit in (_job getOrDefault ["enteredActors",[]]))};
+                        if (_entryWorkerAllowed) then {
                         // Opening a door does not replace an already committed native path.
                         [_unit,_job get "building",["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
                         if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
@@ -1259,6 +1264,7 @@ private _delay=call {
                             };
                         };
                         _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];
+                        };
                     } forEach _pair;
                     if (_issue) then {_lastTarget=_positionIndex; _lastProgress=_now; _lastPositions=_pair apply {getPosATL _x}};
                     // Once inside, only the assigned room mover proves progress toward this room.
@@ -1309,7 +1315,7 @@ private _delay=call {
                                     private _unitTarget=if (_x == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
                                     // Interior recovery belongs to the room mover. Keep the security
                                     // partner at its committed position instead of restarting its path.
-                                    if ((_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}
+                                    if ((_x == _point || {_approachingEntry && {!(_x in (_job getOrDefault ["enteredActors",[]]))}}) && {[_x] call _actorAvailable}
                                         && {call _mayIssueMovement} && {[_x] call _actorTaskFree}) then {
                                         _x doMove _unitTarget;
                                         [_x,_unitTarget] call _rememberMove;
@@ -1320,12 +1326,12 @@ private _delay=call {
                                 _retryCounts set [_positionIndex,(_retryCounts param [_positionIndex,0])+1];
                             } else {
                                 private _changedEntry=false;
-                                if (!_entered && {(_job get "entries") isNotEqualTo []}) then {
+                                if (!(_point in (_job getOrDefault ["enteredActors",[]])) && {(_job get "entries") isNotEqualTo []}) then {
                                     if (_approachingEntry) then {_triedEntries pushBackUnique _entryIndex};
                                     private _entryRanks=[];
                                     {
                                         if !(_forEachIndex in _triedEntries) then {
-                                            _entryRanks pushBack [(_pair select 0) distance2D _x,_forEachIndex];
+                                            _entryRanks pushBack [_point distance2D _x,_forEachIndex];
                                         };
                                     } forEach (_job get "entries");
                                     if (_entryRanks isNotEqualTo []) then {

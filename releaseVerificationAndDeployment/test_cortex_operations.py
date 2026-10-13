@@ -1982,7 +1982,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_approachingEntry=false;',text)
         self.assertNotIn('_unit setDestination',text)
         self.assertIn('_entryIndex >= count (_job get "entries")',text)
-        self.assertIn('if (!_entered && {(_job get "entries") isNotEqualTo []})',text)
+        self.assertIn('if (!(_point in (_job getOrDefault ["enteredActors",[]])) && {(_job get "entries") isNotEqualTo []})',text)
         self.assertIn('_unit setUnitPos "UP"',text)
         self.assertIn('_unit forceSpeed _clearSpeed',text)
         self.assertIn('WAIT_Cortex_ClearAppliedSpeed',text)
@@ -4192,7 +4192,7 @@ class CortexOperations(unittest.TestCase):
         text=source('buildingOperationStep')
         self.assertNotIn('_issue || {_openedDoor}',text)
         self.assertIn('if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree})',text)
-        self.assertIn('(_approachingEntry || {_x == _point}) && {[_x] call _actorAvailable}',text)
+        self.assertIn('(_x == _point || {_approachingEntry && {!(_x in (_job getOrDefault ["enteredActors",[]]))}}) && {[_x] call _actorAvailable}',text)
     def test_coordinated_fixture_requester_can_initiate_support(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')
         self.assertIn('_requester setCombatMode "YELLOW";',qa)
