@@ -963,6 +963,13 @@ private _delay=call {
                         (_job get "entries") select _entryIndex
                     } else {[]};
                     private _entryMover=_pair select (_moverIndex mod count _pair);
+                    // Pair handoff may change the mover while an exterior approach is pending.
+                    // A physically entered successor must retain interior progression, not
+                    // inherit its buddy's entrance staging leg.
+                    if (_approachingEntry && {_entryMover in (_job getOrDefault ["enteredActors",[]])}) then {
+                        _approachingEntry=false;
+                        _lastTarget=-1;
+                    };
                     // The security partner deliberately holds outside the doorway. Its
                     // proximity cannot complete the assigned mover's physical approach.
                     if (_approachingEntry && {_entryTarget isNotEqualTo []}
