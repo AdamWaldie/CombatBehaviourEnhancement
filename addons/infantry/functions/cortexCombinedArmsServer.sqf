@@ -17,6 +17,7 @@
  * operational support radius rather than the short squad-to-squad report radius; both ends must
  * still be able to transmit, so jamming continues to prevent long-range composition.
  * Repeat/JIP: requester rate limit and expiring public role tokens replace older opportunities safely.
+ * Expiry preserves matching terminal outcomes; only dispatched/applied roles become EXPIRED.
  * Arguments: 0: requester <GROUP>; 1: observed hostile <OBJECT>; 2: believed ATL <ARRAY>;
  * 3: observation server time <NUMBER>.
  * Return Value: Number of asset roles dispatched.
@@ -167,7 +168,12 @@ _requester setVariable ["WAIT_Cortex_CombinedAirFallback",[_token,_target,+_posi
         if (!isNull _x && {((_x getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
             private _role=(_x getVariable ["WAIT_Cortex_CombinedRole",[]]) param [4,""];
             private _target=(_x getVariable ["WAIT_Cortex_CombinedRole",[]]) param [2,objNull];
-            _x setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
+            // Expiry retires the reservation, not a completed/refused physical outcome.
+            private _result=_x getVariable ["WAIT_Cortex_CombinedResult",[]];
+            if ((_result param [0,""]) == _token
+                && {(_result param [2,""]) in ["DISPATCHED","APPLIED"]}) then {
+                _x setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
+            };
             _x setVariable ["WAIT_Cortex_CombinedRole",nil,true];
             _x setVariable ["WAIT_Cortex_CombinedApplied",nil,true];
         };
