@@ -78,6 +78,8 @@ if (_asset distance2D _destination <= 70) exitWith {
     private _knownTarget=(_group knowsAbout _target) > 0;
     private _fireDecision=["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR"] select _knownTarget;
     private _fireAllowed=_knownTarget && {!isNull _gunner} && {[_gunner] call WAIT_fnc_CortexCombatEffective} && {local _gunner}
+        && {simulationEnabled _asset} && {!isObjectHidden _asset}
+        && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
         && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
         && {([_gunner] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}
