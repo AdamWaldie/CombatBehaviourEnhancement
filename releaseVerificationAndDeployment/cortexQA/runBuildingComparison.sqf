@@ -906,7 +906,7 @@ for "_i" from 0 to 9 do {
     _casualtyMembers pushBack _unit;
 };
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_casualtyMembers,true];
-["CQB casualty reinforcement","The ten-person squad starts with a room-limited clearing element and remaining reserves. One clearing soldier becomes a real casualty. A surviving reserve must join the clear and physically move toward the building; the remaining room queue must stay active.",getPosATL _casualtyHouse] call _phase;
+["CQB casualty reinforcement","The ten-person squad starts with a room-limited clearing element and remaining reserves. One clearing soldier becomes a real casualty. A surviving reserve must join the clear, physically move toward the building and establish its own wall-aware interior visit; the remaining room queue must stay active.",getPosATL _casualtyHouse] call _phase;
 private _casualtyAccepted=[_casualtyGroup,_casualtyHouse] call WAIT_fnc_CortexClearBuilding;
 ["CLEAR-casualty-order-accepted",_casualtyAccepted] call _check;
 private _jobStarted=[{_casualtyGroup getVariable ["WAIT_AIPass_ClearBuilding",false]},15] call _wait;
@@ -949,6 +949,23 @@ private _replacementMoved=[{
             || {(_casualtyHouse buildingPos -1) findIf {(getPosASL _reserve) vectorDistance (AGLToASL _x) <= 1.5} >= 0}}
 },60] call _wait;
 ["CLEAR-casualty-reserve-physical-movement",_replacementMoved,format ["start=%1 actual=%2 command=%3 expected=%4",_reserveStart,getPosATL _reserve,currentCommand _reserve,expectedDestination _reserve]] call _check;
+// Movement toward a house is not replacement entry; use independent wall-aware evidence.
+private _replacementEntry=false;
+private _replacementRooms=(_casualtyHouse buildingPos -1) select {
+    private _origin=AGLToASL _x;
+    private _roof=lineIntersectsSurfaces [_origin vectorAdd [0,0,0.5],_origin vectorAdd [0,0,10],objNull,objNull,true,1,"GEOM","NONE"];
+    _roof isNotEqualTo [] && {((_roof select 0) select 2) == _casualtyHouse || {((_roof select 0) select 3) == _casualtyHouse}}
+};
+private _replacementEntered=[{
+    if (!isNull _reserve && {alive _reserve}) then {
+        _replacementEntry=_replacementEntry || {_replacementRooms findIf {
+            [_reserve,_casualtyHouse,_x] call _observedRoomVisit
+        } >= 0};
+    };
+    _replacementEntry
+},60] call _wait;
+["CLEAR-casualty-reserve-physical-entry",_reinforced && {_replacementEntered},
+    format ["replacement=%1 actual=%2 command=%3",_reserve,getPosATL _reserve,currentCommand _reserve]] call _check;
 private _continuing=(_casualtyGroup getVariable ["WAIT_AIPass_ClearBuilding",false])
     || {((_casualtyGroup getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE"]};
 ["CLEAR-casualty-controller-continues",_continuing] call _check;
