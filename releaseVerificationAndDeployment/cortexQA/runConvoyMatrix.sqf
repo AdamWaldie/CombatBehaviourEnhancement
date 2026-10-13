@@ -10,6 +10,9 @@
  * heading and order measurements use that selected route axis rather than world X/Y.
  * Locality/authority: scheduled server creates and owns fixtures through the public convoy API.
  * Repeat/JIP: fresh groups per case; public observer vehicles; release and delete each case.
+ * The existing finite 80-second window logs one compact timing sample per second, including
+ * effective-commander destinations, physical longitudinal gap and applied speed cap.
+ * These diagnostics are audit-only and cannot pass physical acceptance or performance budgets.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; required audit callbacks.
  * Return: Nothing. Current caller: cortexQAServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAConvoyMatrix.sqf";
@@ -235,6 +238,24 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                 if (!_stopped && {_wasStopped select _i}) then {_restartCounts set [_i,(_restartCounts select _i)+1]};
                 _wasStopped set [_i,_stopped];
             } forEach _vehicles;
+            // Audit-only bounded timing, aligned with the controller cadence. The existing
+            // five-second aggregate can miss a complete start/stop cycle between samples.
+            private _timing=_vehicles apply {
+                private _index=_forEachIndex;
+                private _operator=effectiveCommander _x;
+                if (isNull _operator) then {_operator=driver _x};
+                private _longitudinal=-1;
+                if (_index > 0) then {
+                    private _front=_vehicles select (_index-1);
+                    private _bearing=getDir _front;
+                    private _delta=(getPosATL _front) vectorDiff (getPosATL _x);
+                    _delta set [2,0];
+                    _longitudinal=_delta vectorDotProduct [sin _bearing,cos _bearing,0];
+                };
+                [netId _x,speed _x,getForcedSpeed _x,velocityModelSpace _x,
+                    _longitudinal,netId _operator,currentCommand _operator,expectedDestination _operator]
+            };
+            diag_log format ["WAIT CORTEX QA CONVOY TIMING: %1",[_id,serverTime,diag_tickTime-_start,_timing]];
             _count=_count+1;
             if (diag_tickTime >= _nextLog) then {
                 _nextLog=diag_tickTime+5;
