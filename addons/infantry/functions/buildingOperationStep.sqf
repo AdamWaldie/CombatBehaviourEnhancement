@@ -9,7 +9,8 @@
  * native doMove path request without a second formation-planner destination override.
  * Entry and floor-changing mover handoffs retain a covered checkpoint and at most one floor-access
  * checkpoint. Candidate native floor connectors retain a current-floor access leg before the
- * destination-floor landing. Already-entered movers request same-floor rooms without revisiting their buddy.
+ * destination-floor landing only when no physically visited destination-floor access is available.
+ * Already-entered movers request same-floor rooms without revisiting their buddy.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
  * An entered security partner yields a colliding mover checkpoint to a nearby physically visited
@@ -1107,7 +1108,13 @@ private _delay=call {
                         // connectors start at an existing current-floor transit node, then
                         // the nearest native landing on the requested floor. No model map,
                         // synthetic coordinate or geometry-only room receipt is introduced.
-                        if (abs (_pointFloor-_targetFloor) > 1.5) then {
+                        // Preserve a physically visited destination-floor checkpoint selected
+                        // above. A cached geometry candidate must not replace that evidence
+                        // and send an entered actor back through an exterior source node.
+                        private _provenFloorAccess=count _checkpoint == 3 && {
+                            _cleared findIf {(_positions select _x) isEqualTo _checkpoint} >= 0
+                        } && {abs (((AGLToASL _checkpoint) select 2)-_targetFloor) <= 1.5};
+                        if (abs (_pointFloor-_targetFloor) > 1.5 && {!_provenFloorAccess}) then {
                             private _bridges=_job getOrDefault ["nativeFloorBridges",createHashMap];
                             private _bridgeKey=str [_entryIndex,round (_pointFloor/1.5),round (_targetFloor/1.5)];
                             if (_targetFloor > _pointFloor+1.5 && {!(_bridgeKey in _bridges)} && {count _bridges < 8}) then {
