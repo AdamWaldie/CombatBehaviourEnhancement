@@ -60,6 +60,7 @@
  * enabled behaviour runs: fire control, stance, anti-armour, vehicles, flanking (with final assault),
  * bounding advance, contact reports, ammo sharing, artillery, reinforcement and coordinated assault.
  * Garrison and defence orders run their own break and reserve logic instead of flanking or retreating.
+ * Held garrison assignments also retire when their bound building moves or is deleted.
  * Soldiers left holding ground by a drill rejoin when the leader comes within 30 m. Reinforcement
  * rallies are optional fallback positions; an acknowledged responder with a safe shared-contact
  * approach may enter a coordinated assault immediately.
@@ -167,6 +168,16 @@ if (!_generallyEligible) exitWith {
 // A held garrison arrival job may already have retired. Reconcile individual replacement
 // movement on this existing group job, releasing only that actor and no new route.
 if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {
+    // Arrival jobs retire once everyone is held. Keep transform invalidation on this existing
+    // group tick so a curator-moved/deleted building cannot retain old world-space PATH locks.
+    private _invalidBuildingActors=(units _group) select {
+        private _assignment=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
+        private _transform=_assignment param [3,[]];
+        private _building=_assignment param [2,objNull];
+        local _x && {_transform isNotEqualTo []}
+            && {isNull _building || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+    };
+    if (_invalidBuildingActors isNotEqualTo []) then {[_group,true,_invalidBuildingActors] call WAIT_fnc_CortexGarrisonRelease};
     private _diverted=_alive select {
         private _actor=_x;
         private _command=currentCommand _actor;

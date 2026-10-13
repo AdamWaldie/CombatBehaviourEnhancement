@@ -9,6 +9,8 @@
  * position are sent there. Only three-dimensional arrival locks PATH; a fixed safety deadline records
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
  * Arrival and failure release only an unchanged WAIT approach speed cap; newer speed commands survive.
+ * Transform-bound assignments are checked before initial/deferred commands and alternate-slot selection.
+ * Moved or deleted buildings release affected actors through the existing partial cleanup path.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -52,6 +54,18 @@
 
 params [["_group", grpNull, [grpNull]]];
 if (isNull _group || {!local _group} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {};
+private _assignmentValid = {
+    params ["_assignment"];
+    private _transform=_assignment param [3,[]];
+    if (_transform isEqualTo []) exitWith {true};
+    private _building=_assignment param [2,objNull];
+    !isNull _building && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+};
+private _invalidActors=(units _group) select {
+    local _x && {!([_x getVariable ["WAIT_AIPass_GarrisonPos",[]]] call _assignmentValid)}
+};
+if (_invalidActors isNotEqualTo []) then {[_group,true,_invalidActors] call WAIT_fnc_CortexGarrisonRelease};
+if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []) exitWith {};
 private _generation = (_group getVariable ["WAIT_AIPass_GarrisonGeneration", 0]) + 1;
 _group setVariable ["WAIT_AIPass_GarrisonGeneration", _generation];
 _group setVariable ["WAIT_AIPass_GarrisonApplied", true];
@@ -191,6 +205,12 @@ private _buildingAnchor = {
         [_group,false] call WAIT_fnc_CortexGarrisonRelease;
         -1
     };
+    private _assignmentValid=_job get "assignmentValid";
+    private _invalidActors=(units _group) select {
+        local _x && {!([_x getVariable ["WAIT_AIPass_GarrisonPos",[]]] call _assignmentValid)}
+    };
+    if (_invalidActors isNotEqualTo []) then {[_group,true,_invalidActors] call WAIT_fnc_CortexGarrisonRelease};
+    if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []) exitWith {-1};
     private _mayIssueMovement = {
         params ["_actor"];
         private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
@@ -306,7 +326,7 @@ private _buildingAnchor = {
                                     };
                                     private _alternatives=(_group getVariable ["WAIT_Cortex_GarrisonCandidates",[]]) select {
                                         private _key=str (_x select 0);
-                                        !(_key in _attempted) && {!(_key in _occupied)}
+                                        !(_key in _attempted) && {!(_key in _occupied)} && {[_x] call _assignmentValid}
                                     };
                                     if (_reassignments < 2 && {_alternatives isNotEqualTo []} && {[_x] call _mayIssueMovement}) then {
                                         private _routeUnit=_x;
@@ -347,5 +367,5 @@ private _buildingAnchor = {
         };
     } forEach units _group;
     [2, -1] select (_pending == 0)
-}, createHashMapFromArray [["group", _group], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", time + 240], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
+}, createHashMapFromArray [["group", _group], ["assignmentValid",_assignmentValid], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", time + 240], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
 
