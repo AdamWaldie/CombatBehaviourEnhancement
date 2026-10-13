@@ -4,6 +4,7 @@
  * Locality/authority: interface only; reads server-published audit state and protects the local
  * observer so combat cannot invalidate rendered-client measurements; never changes fixture AI.
  * Repeat/JIP: one observer per client; an obsolete respawn handler is removed before installation,
+ * the assigned observer opens Zeus once after assignment (closing it is respected thereafter);
  * controls are rebuilt when the game/Zeus display changes, and audit-only tracks are capped at
  * twelve actors and forty-eight samples so the visual aid cannot dominate the measured workload.
  * Arguments: None. Return: Nothing (scheduled script).
@@ -235,7 +236,17 @@ private _host = displayNull;
 private _controls = [];
 private _last = "";
 private _nextSample = 0;
+private _observerOpened = false;
 while {true} do {
+    // Controls added to the gameplay HUD do not acquire a mouse cursor. Start the sole
+    // disposable observer in its assigned interface instead of relying on a HUD click.
+    // This is client camera/UI setup only; it neither routes nor reveals fixture AI.
+    if (!_observerOpened && {!isNull getAssignedCuratorLogic player}
+        && {!dialog} && {!visibleMap}) then {
+        _observerOpened = true;
+        if (isNull findDisplay 312) then {openCuratorInterface};
+        diag_log "WAIT AUDIT OBSERVER ZEUS OPEN REQUESTED";
+    };
     if (diag_tickTime >= _nextSample) then {
         _nextSample=diag_tickTime+1;
         private _combat = missionNamespace getVariable ["WAIT_CortexQA_Combat",[]];
@@ -277,8 +288,8 @@ while {true} do {
         _body ctrlSetPosition [_x+_w*0.025,_y+_h*0.03,_w*0.95,_h*0.72]; _body ctrlSetTextColor (_theme get "text"); _body ctrlCommit 0;
         private _inZeus=!isNull findDisplay 312;
         _inspect ctrlSetPosition [_x+_w*0.025,_y+_h*0.79,_w*0.95,_h*0.17];
-        _inspect ctrlSetText (["Open Zeus for current test","Inspect current test in Zeus"] select _inZeus);
-        _inspect ctrlEnable (_inZeus || {!isNull getAssignedCuratorLogic player});
+        _inspect ctrlSetText (["Open Zeus with your curator key","Inspect current test in Zeus"] select _inZeus);
+        _inspect ctrlEnable _inZeus;
         _inspect ctrlCommit 0;
         _inspect ctrlAddEventHandler ["ButtonClick",{
             if (isNull curatorCamera) exitWith {
@@ -302,7 +313,7 @@ while {true} do {
     private _text = format ["<t size='1.1'>CORTEX AUDIT [%8]: %1</t><br/>LOOK FOR: %2<br/>Live settings: %7<br/>Completed checks: %3 | Failures: %4<br/>%5<br/>%6",_phase select 0,_phase select 1,count _results,_failed,(_results select [((count _results)-3) max 0,3] apply {format ["%1: %2",_x select 0,_x select 1]}) joinString "<br/>",if (missionNamespace getVariable ["WAIT_CortexQA_ClientDone",false]) then {"RUN FINISHED. Review completion results."} else {format ["RUNNING: %1 seconds in this stage. Pending checks have not passed.",floor (serverTime-(_phase param [3,serverTime]))]},if ((missionNamespace getVariable ["WAIT_CortexQA_Focus",""]) == "nativebuildings") then {"WAIT addon absent | Native engine control"} else {format ["Cortex %1 | Contact %2 | Regroup %3",["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Enable",false]),["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Contact_Enable",true]),["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Regroup_Enable",true])]},missionNamespace getVariable ["WAIT_CortexQA_Focus","all"]];
     if (_text != _last && {count _controls > 0}) then {(_controls select 1) ctrlSetStructuredText parseText _text; _last = _text};
     if (count _controls == 3) then {
-        (_controls select 2) ctrlEnable (!isNull curatorCamera || {!isNull getAssignedCuratorLogic player});
+        (_controls select 2) ctrlEnable (!isNull findDisplay 312);
     };
     uiSleep 0.5;
 };
