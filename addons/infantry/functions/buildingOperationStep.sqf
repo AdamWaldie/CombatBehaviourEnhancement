@@ -10,6 +10,8 @@
  * Entry and floor-changing mover handoffs retain a covered checkpoint and at most one floor-access
  * checkpoint. Candidate native floor connectors retain a current-floor access leg before the
  * destination-floor landing only when no physically visited destination-floor access is available.
+ * Connector sources prefer at most 24 physically visited current-floor room points before
+ * at most 32 raw transit candidates; eight source-specific connector records bound geometry cost.
  * Already-entered movers request same-floor rooms without revisiting their buddy.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
@@ -1118,15 +1120,27 @@ private _delay=call {
                         } && {abs (((AGLToASL _checkpoint) select 2)-_targetFloor) <= 1.5};
                         if (abs (_pointFloor-_targetFloor) > 1.5 && {!_provenFloorAccess}) then {
                             private _bridges=_job getOrDefault ["nativeFloorBridges",createHashMap];
-                            private _bridgeKey=str [_entryIndex,round (_pointFloor/1.5),round (_targetFloor/1.5)];
+                            // This runs only while constructing a changed room approach.
+                            // A proven interior source prevents unnecessary exterior backtracking.
+                            // Physical source access does not prove the next floor connection.
+                            private _sourceRanks=[];
+                            {
+                                private _node=_positions select _x;
+                                if (abs (((AGLToASL _node) select 2)-_pointFloor) <= 0.75) then {
+                                    _sourceRanks pushBack [0,(getPosASL _point) vectorDistance (AGLToASL _node),+_node];
+                                };
+                            } forEach (_cleared select [0,24]);
+                            {
+                                if (abs (((AGLToASL _x) select 2)-_pointFloor) <= 0.75) then {
+                                    _sourceRanks pushBack [1,(getPosASL _point) vectorDistance (AGLToASL _x),+_x];
+                                };
+                            } forEach ((_job getOrDefault ["transitPositions",[]]) select [0,32]);
+                            _sourceRanks sort true;
+                            private _sourceNode=if (_sourceRanks isNotEqualTo []) then {+((_sourceRanks select 0) select 2)} else {[]};
+                            private _bridgeKey=str [_entryIndex,round (_pointFloor/1.5),round (_targetFloor/1.5),_sourceNode];
                             if (_targetFloor > _pointFloor+1.5 && {!(_bridgeKey in _bridges)} && {count _bridges < 8}) then {
-                                private _sourceNodes=(_job getOrDefault ["transitPositions",[]]) select [0,32];
-                                _sourceNodes=_sourceNodes select {abs (((AGLToASL _x) select 2)-_pointFloor) <= 0.75};
-                                private _sourceRanks=_sourceNodes apply {[(getPosASL _point) vectorDistance (AGLToASL _x),_x]};
-                                _sourceRanks sort true;
                                 private _bridge=[];
-                                if (_sourceRanks isNotEqualTo []) then {
-                                    private _sourceNode=+((_sourceRanks select 0) select 1);
+                                if (_sourceNode isNotEqualTo []) then {
                                     private _landingNodes=(_job getOrDefault ["navigationPositions",[]]) select [0,32];
                                     _landingNodes=_landingNodes select {abs (((AGLToASL _x) select 2)-_targetFloor) <= 0.75};
                                     private _landingRanks=_landingNodes apply {[_sourceNode vectorDistance _x,_x]};
