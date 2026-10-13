@@ -11,6 +11,8 @@
  * checkpoint. Already-entered movers request same-floor rooms without revisiting their buddy.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
+ * An entered security partner yields a colliding mover checkpoint to a nearby physically visited
+ * same-floor point. Selection is bounded and cached per partner/target/coverage; no visit is inferred.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
@@ -1255,6 +1257,49 @@ private _delay=call {
                         if (_supportTarget isEqualTo []) then {
                             private _outward=(getPosATL (_job get "building")) getDir _target;
                             _supportTarget=_target getPos [2.5,_outward];
+                        };
+                    };
+                    // A covered handoff cannot ask the mover to occupy the stationary
+                    // buddy's exact checkpoint. Keep security on a distinct proven node,
+                    // without inventing offsets inside walls or recalling exterior actors.
+                    if (count _pair > 1 && {_partnerEntered} && {!_approachingEntry}
+                        && {count _supportTarget == 3} && {_supportTarget vectorDistance _target < 2.5}) then {
+                        private _separations=_job getOrDefault ["pairSupportSeparation",createHashMap];
+                        private _separationKey=netId _partner;
+                        private _separation=_separations getOrDefault [_separationKey,[]];
+                        if (count _separation != 3 || {(_separation select 0) isNotEqualTo _target}
+                            || {(_separation select 1) != count _cleared}) then {
+                            private _otherTargets=[];
+                            {
+                                if (_x != netId _partner) then {_otherTargets pushBack _y};
+                            } forEach (_job getOrDefault ["movementTargets",createHashMap]);
+                            private _partnerPose=getPosASL _partner;
+                            private _ranked=[];
+                            {
+                                private _candidate=_positions select _x;
+                                private _candidateASL=AGLToASL _candidate;
+                                if (_candidate vectorDistance _target >= 2.5
+                                    && {abs ((_candidateASL select 2)-(_partnerPose select 2)) <= 0.75}
+                                    && {_candidateASL vectorDistance _partnerPose <= 8}
+                                    && {_otherTargets findIf {count _x == 3 && {_x vectorDistance _candidate < 2.5}} < 0}) then {
+                                    _ranked pushBack [_candidateASL vectorDistance _partnerPose,+_candidate];
+                                };
+                            } forEach (_cleared select [0,24]);
+                            _ranked sort true;
+                            private _separate=if (_ranked isNotEqualTo []) then {+((_ranked select 0) select 1)} else {[]};
+                            // A current physical interior hold may already be clear of the mover.
+                            if (_separate isEqualTo [] && {_partnerPose vectorDistance (AGLToASL _target) >= 2.5}) then {
+                                _separate=getPosATL _partner;
+                            };
+                            _separation=[+_target,count _cleared,+_separate];
+                            _separations set [_separationKey,_separation];
+                            _job set ["pairSupportSeparation",_separations];
+                            diag_log format ["WAIT CLEAR SUPPORT SEPARATION: %1",[_job get "generation",_pairIndex,netId _point,netId _partner,+_target,+_separate]];
+                        };
+                        if ((_separation select 2) isNotEqualTo []) then {
+                            _supportTarget=+(_separation select 2);
+                            private _partnerCommitted=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _partner,[]];
+                            if (_partnerCommitted isNotEqualTo _supportTarget) then {_issue=true};
                         };
                     };
                     {
