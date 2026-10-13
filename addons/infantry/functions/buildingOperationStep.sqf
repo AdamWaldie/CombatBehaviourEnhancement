@@ -1208,8 +1208,12 @@ private _delay=call {
                                 _started pushBack _unit;
                             };
                             private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
-                            if (call _mayIssueMovement && {[_unit] call _actorTaskFree}) then {
-                                // An unchanged support hold already satisfies this handoff.
+                            private _committedTarget=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
+                            private _sameActiveTarget=count _committedTarget == 3
+                                && {_committedTarget vectorDistance _unitTarget <= 0.25}
+                                && {[_unit] call _activeOwnMove};
+                            if (!_sameActiveTarget && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
+                                // An unchanged active path or support hold already satisfies this handoff.
                                 if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo _unitTarget
                                     || {currentCommand _unit != "STOP"}
                                     || {(getPosASL _unit) vectorDistance (AGLToASL _unitTarget) > 1.5}) then {
