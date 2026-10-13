@@ -11,4 +11,9 @@
 params ["_battery", "_token", "_spotter", "_enemy", "_impact"];
 if (remoteExecutedOwner != 2 || {!local _spotter}) exitWith {};
 private _fix = [_spotter, _enemy, _impact] call WAIT_fnc_CortexSpotterFix;
-[_battery, _token, _spotter, _fix, clientOwner] remoteExecCall ["WAIT_fnc_CortexArtilleryReport", 2];
+private _observedAt=-1;
+if (_fix isNotEqualTo []) then {
+    private _knowledge=_spotter targetKnowledge _enemy;
+    _observedAt=serverTime-((time-(_knowledge select 2)) max 0);
+};
+[_battery, _token, _spotter, _fix, clientOwner, _observedAt] remoteExecCall ["WAIT_fnc_CortexArtilleryReport", 2];
