@@ -99,7 +99,8 @@ private _progressActor=objNull;
     _x params ["_actor","_lastPosition"];
     if (_actor in _participants) then {
         private _currentPosition=getPosATL _actor;
-        private _actorProgressed=_currentPosition vectorDistance _lastPosition >= _minimum;
+        private _actorProgressed=simulationEnabled _actor && {!isObjectHidden _actor}
+            && {_currentPosition vectorDistance _lastPosition >= _minimum};
         if (_actorProgressed) then {
             _progressed=true;
             _progressActor=_actor;
@@ -122,7 +123,8 @@ private _progressActor=objNull;
 if (_participants isEqualTo [] && {!_participantsRequired}) then {
     private _leader=leader _group;
     private _position=getPosATL _leader;
-    if (_position distance2D (_operation getOrDefault ["lastProgressPosition",_position]) >= _minimum) then {
+    if (simulationEnabled _leader && {!isObjectHidden _leader}
+        && {_position distance2D (_operation getOrDefault ["lastProgressPosition",_position]) >= _minimum}) then {
         _progressed=true;
         _progressActor=_leader;
         _operation set ["lastProgressPosition",_position];

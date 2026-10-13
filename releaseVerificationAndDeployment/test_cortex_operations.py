@@ -1257,7 +1257,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('WAIT_fnc_CortexZeusHeld',step)
         self.assertIn('participantProgress',start)
         self.assertIn('participantProgress',step)
-        self.assertIn('private _actorProgressed=_currentPosition vectorDistance _lastPosition >= _minimum',step)
+        self.assertIn('private _actorProgressed=simulationEnabled _actor && {!isObjectHidden _actor}',step)
+        self.assertIn('&& {_currentPosition vectorDistance _lastPosition >= _minimum}',step)
         self.assertIn('[_lastPosition,_currentPosition] select _actorProgressed',step)
         self.assertNotIn('_updated pushBack [_actor,_currentPosition];',step)
         clear=source('cortexClearBuilding')+source('buildingOperationStep')
@@ -5250,6 +5251,16 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('private _navigation ='),text.index('[_group, true, _configuration select 7'))
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
+
+    def test_operation_progress_requires_active_observer_and_preserves_baseline(self):
+        step=source("operationStep")
+        actor=step.split("private _actorProgressed=",1)[1].split("if (_actorProgressed)",1)[0]
+        self.assertIn("simulationEnabled _actor",actor)
+        self.assertIn("!isObjectHidden _actor",actor)
+        self.assertIn("[_lastPosition,_currentPosition] select _actorProgressed",step)
+        leader=step.split("if (_participants isEqualTo [] && {!_participantsRequired})",1)[1].split("if (_progressed)",1)[0]
+        self.assertIn("simulationEnabled _leader",leader)
+        self.assertIn("!isObjectHidden _leader",leader)
 
     def test_recovery_dormancy_yields_before_retry_commit(self):
         recovery=source("recoveryStep")
