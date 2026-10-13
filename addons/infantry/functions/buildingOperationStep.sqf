@@ -1569,8 +1569,9 @@ private _delay=call {
                 _building,_job get "hardDeadline",_job get "buildingTransform",_rows],true];
         };
     };
-    private _allWorkersSettled=_activeWorkers findIf {[_x] call _activeOwnMove} < 0;
-    if (((count _cleared + count _unreachable) >= count _positions && {(_allWorkersProgressed && {_allWorkersSettled}) || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
+    // Complete physical coverage and participation retire obsolete owned room legs.
+    // Egress is the next generation-owned request; native planner BUSY is not extra clearance evidence.
+    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
         // Room coverage does not prove that every active clearing actor entered.
         // A deadline may release the operation, but cannot convert missing participation to success.
         _job set ["entryFailed",(_job getOrDefault ["entryFailed",false]) || {!_allWorkersEntered} || {!_allWorkersProgressed}];
