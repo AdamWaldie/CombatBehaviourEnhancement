@@ -520,7 +520,7 @@ deleteVehicle _wallHouse;
         _members pushBack _unit;
     };
     missionNamespace setVariable ["WAIT_CortexQA_Actors",_members,true];
-    [format ["Fresh clearance: %1 soldiers / %2",_size,_class],"This new audit house has bounded placement validation before actors spawn. This fresh group has never garrisoned. Watch clearing pairs physically enter and continue through their assigned sector. The 2/6/12-person cases use progressively larger building models. Markers are navigation positions, not proof that a hostile room is safe. No test-side teleport, door opening or forced completion is applied.",getPosATL _house] call _phase;
+    [format ["Fresh clearance: %1 soldiers / %2",_size,_class],"This new audit house has bounded placement validation before actors spawn. This fresh group has never garrisoned. Watch clearing pairs physically enter and continue through their assigned sector. The 2/6/12-person cases use progressively larger building models; a separate four-person case uses the same large model as the twelve-person case to distinguish building routing from concurrency. Markers are navigation positions, not proof that a hostile room is safe. No test-side teleport, door opening or forced completion is applied.",getPosATL _house] call _phase;
     private _allRooms=_house buildingPos -1;
     private _rooms=_allRooms select {
         private _origin=AGLToASL _x;
@@ -935,7 +935,7 @@ deleteVehicle _wallHouse;
     {deleteVehicle _x} forEach _members;
     deleteGroup _group;
     deleteVehicle _house;
-} forEach [[2,"Land_i_House_Small_01_V1_F"],[6,"Land_i_House_Big_01_V1_F"],[12,"Land_i_House_Big_02_V1_F"]];
+} forEach [[2,"Land_i_House_Small_01_V1_F"],[6,"Land_i_House_Big_01_V1_F"],[12,"Land_i_House_Big_02_V1_F"],[4,"Land_i_House_Big_02_V1_F"]];
 
 };
 
