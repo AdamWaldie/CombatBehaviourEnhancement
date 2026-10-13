@@ -7,6 +7,8 @@
  * separately recorded as exterior evidence, rather than being counted as uncleared rooms.
  * Fresh-clearance room observations use live pose, house bounds and intervening GEOM checks,
  * independently of production visit receipts; proximity/audio interior alone cannot pass.
+ * Native door diagnostics retry each method/model's first physically missed node with all unlocked
+ * doors open; original failures remain, and no production clearance receives door assistance.
  * Repeat/JIP: disposable actors and houses are removed; observer state is public for joining clients.
  * Normal-owner clearance records at most 24 native path events per actor, eight seconds apart,
  * with at most 24 path points plus the final point. Local diagnostic handlers are removed before
@@ -257,9 +259,17 @@ waitUntil {
 private _doorControls=[];
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
-    if (typeOf _house == "Land_i_House_Small_01_V1_F" && {_method in ["DIRECT","REPLAN","FORMATION","COMMAND-FSM"]}) then {
-        private _node=(_house buildingPos -1) param [1,[]];
-        private _doorCount=(getNumber (configOf _house >> "numberOfDoors")) min 16;
+    if (_method in ["DIRECT","REPLAN","FORMATION","COMMAND-FSM"]) then {
+        private _walkIndex=_walkCases findIf {(_x select 0) == _unit};
+        private _missedIndex=if (_walkIndex >= 0) then {
+            ((_walkCases select _walkIndex) select 3) findIf {!_x}
+        } else {-1};
+        // Select the recorded miss, not a hard-coded room/floor. A fully traversed
+        // model has no failure to diagnose and is left unchanged.
+        private _node=if (_missedIndex >= 0) then {
+            (_house buildingPos -1) param [_missedIndex,[]]
+        } else {[]};
+        private _doorCount=if (_node isEqualTo []) then {0} else {(getNumber (configOf _house >> "numberOfDoors")) min 16};
         for "_door" from 1 to _doorCount do {
             if ((_house getVariable [format ["bis_disabled_Door_%1",_door],0]) isEqualTo 0) then {
                 [_house,_door,1] call BIS_fnc_door;
@@ -273,7 +283,7 @@ private _doorControls=[];
         };
     };
 } forEach _cases;
-["Building traversal: native open-door control","Diagnostic only: unlocked doors are explicitly opened on the native comparison houses, then actors retry the previously failed room index 1. Original failures remain. Production clearance receives no test-side door assistance.",_comparisonPosition] call _phase;
+["Building traversal: native open-door control","Diagnostic only: unlocked doors are explicitly opened on the native comparison houses, then actors retry their first physically missed model node. Original failures remain. Production clearance receives no test-side door assistance.",_comparisonPosition] call _phase;
 private _doorDeadline=time+60;
 waitUntil {
     sleep 2;
