@@ -2275,7 +2275,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_nextEntry < count _entries && {[_x] call _mayIssueMovement}) then',apply)
         self.assertNotIn('doStop _x; _x doMove',apply)
         self.assertIn('if ([_unit] call _mayIssueMovement) then {doStop _unit}',apply)
-        self.assertIn('["deadline", time + 240]',apply)
+        self.assertIn('["deadline", _deadline]',apply)
+        self.assertIn('getVariable ["WAIT_Cortex_GarrisonDeadline",-1]',apply)
+        self.assertIn('serverTime > (_job get "deadline")',apply)
+        self.assertIn('setVariable ["WAIT_Cortex_GarrisonDeadline",serverTime+240,true]',source('cortexGarrison'))
+        self.assertIn('setVariable ["WAIT_Cortex_GarrisonDeadline",nil,true]',source('cortexGarrisonRelease'))
         self.assertNotIn('_job set ["deadline",(_job get "deadline") max (time+60)]',apply)
 
     def test_defence_recovery_uses_per_unit_physical_progress(self):

@@ -13,6 +13,8 @@
  * Moved or deleted buildings release affected actors through the existing partial cleanup path.
  * Owner adoption preserves published exhausted-route failures; only a fresh explicit order, whose
  * release clears old assignments and failures, admits another attempt at the same position.
+ * The original server-time approach deadline is public and survives owner adoption; held posts
+ * remain valid after it expires, but unfinished routes cannot acquire another 240 seconds.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -68,6 +70,11 @@ private _invalidActors=(units _group) select {
 };
 if (_invalidActors isNotEqualTo []) then {[_group,true,_invalidActors] call WAIT_fnc_CortexGarrisonRelease};
 if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []) exitWith {};
+private _deadline=_group getVariable ["WAIT_Cortex_GarrisonDeadline",-1];
+if (_deadline < 0) then {
+    _deadline=serverTime+240;
+    _group setVariable ["WAIT_Cortex_GarrisonDeadline",_deadline,true];
+};
 private _generation = (_group getVariable ["WAIT_AIPass_GarrisonGeneration", 0]) + 1;
 _group setVariable ["WAIT_AIPass_GarrisonGeneration", _generation];
 _group setVariable ["WAIT_AIPass_GarrisonApplied", true];
@@ -134,6 +141,10 @@ private _buildingAnchor = {
 {
     private _unit = _x;
     private _assignment = _unit getVariable ["WAIT_AIPass_GarrisonPos", []];
+    if (_assignment isNotEqualTo [] && {serverTime > _deadline}
+        && {_unit distance (_assignment select 0) > 2}) then {
+        _unit setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
+    };
     if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
         && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
         && {_assignment isNotEqualTo []} && {!(_unit getVariable ["WAIT_AIPass_GarrisonFailed",false])}
@@ -241,7 +252,7 @@ private _buildingAnchor = {
         // A temporarily unconscious member keeps a pending route until the order deadline.
         // Recovery before then resumes naturally without issuing movement while incapacitated.
         if (alive _x && {local _x} && {!isPlayer _x} && {lifeState _x == "INCAPACITATED"}
-            && {_assignment isNotEqualTo []} && {time <= (_job get "deadline")}) then {
+            && {_assignment isNotEqualTo []} && {serverTime <= (_job get "deadline")}) then {
             _pending=_pending+1;
         };
         if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
@@ -264,7 +275,7 @@ private _buildingAnchor = {
                     _x doWatch ((_assignment select 0) getPos [50, _assignment select 1]);
                 };
             } else {
-                if (time > (_job get "deadline")) then {
+                if (serverTime > (_job get "deadline")) then {
                     if ([_x] call _mayIssueMovement
                         && {!isNil {_x getVariable "WAIT_Cortex_GarrisonForcedSpeed"}}
                         && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
@@ -369,5 +380,5 @@ private _buildingAnchor = {
         };
     } forEach units _group;
     [2, -1] select (_pending == 0)
-}, createHashMapFromArray [["group", _group], ["assignmentValid",_assignmentValid], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", time + 240], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
+}, createHashMapFromArray [["group", _group], ["assignmentValid",_assignmentValid], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", _deadline], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
 
