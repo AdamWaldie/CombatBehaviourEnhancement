@@ -15,6 +15,9 @@
  * actor cleanup; they issue no movement and are not evidence of physical arrival.
  * Existing bounded actor samples include native movement failure/completion and canMove flags;
  * none grants a physical visit or changes a retry budget.
+ * Exterior reserve observation requires live physical arrival, heading within 75 degrees of
+ * the assigned watch point and an unobstructed actual eye-to-watch ray. All living exterior
+ * participants in the twelve-person fixture must be observed; stage labels alone cannot pass.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; all required audit callbacks.
  * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
  * Optional fifth argument: skipNative <BOOL>, false; run production acceptance without repeating controls.
@@ -594,6 +597,7 @@ deleteVehicle _wallHouse;
     private _clearingMembers=+_members;
     private _memberVisits=_clearingMembers apply {[]};
     private _reserveStageVisits=[];
+    private _reserveObservationVisits=[];
     private _originalAttack=attackEnabled leader _group;
     private _originalSpeedLimits=_members apply {getForcedSpeed _x};
     // Observe the real actor's native route; do not spawn a predictive agent or alter its path.
@@ -677,6 +681,28 @@ deleteVehicle _wallHouse;
                     _reserveHoldSamples=_reserveHoldSamples+1;
                     if ((getPosASL _actor) vectorDistance (AGLToASL (_reserveStage select 0)) > 3) then {
                         _reserveHoldViolations pushBackUnique (netId _actor);
+                    };
+                };
+                // Observe actual exit watching only after physical stage arrival. A label,
+                // rejected hold, or a watch destination alone cannot pass this behavior.
+                if (count _reserveStage >= 6 && {(_reserveStage param [2,""]) == "ARRIVED"}
+                    && {!(_actor in (_job getOrDefault ["team",[]]))}
+                    && {!(_job getOrDefault ["finished",false])} && {alive _actor} && {local _actor}
+                    && {isNull objectParent _actor} && {isNull remoteControlled _actor}
+                    && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}) then {
+                    private _watch=_reserveStage param [4,[],[[]]];
+                    if (count _watch == 3) then {
+                        private _arrived=(getPosASL _actor) vectorDistance (AGLToASL (_reserveStage select 0)) <= 2;
+                        private _headingError=abs (((getDir _actor-(_actor getDir _watch)+540) mod 360)-180);
+                        private _visible=!terrainIntersectASL [eyePos _actor,AGLToASL _watch]
+                            && {(lineIntersectsSurfaces [eyePos _actor,AGLToASL _watch,
+                                _actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+                        if (_arrived && {_headingError <= 75} && {_visible}) then {
+                            _reserveObservationVisits pushBackUnique netId _actor;
+                        };
+                        diag_log format ["WAIT CLEAR EXIT OBSERVATION AUDIT: %1",[
+                            _size,netId _actor,_arrived,_headingError,_visible,+_watch,
+                            _reserveStage param [6,false,[true]]]];
                     };
                 };
                 // Separate short records avoid truncating the movement receipt. These are
@@ -796,6 +822,13 @@ deleteVehicle _wallHouse;
     [format ["CLEAR-fresh-%1-egress-retry-budget",_size],_egressSeen && {_egressRetries findIf {(_x select 2) > 1} < 0},str _egressRetries] call _check;
     [format ["CLEAR-fresh-%1-result-agrees",_size],_physical && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"}] call _check;
     if (_size == 12) then {["CLEAR-fresh-12-reserve-staging-physical",count _reserveStageVisits > 0,str _reserveStageVisits] call _check};
+    if (_size == 12) then {
+        private _exteriorMembers=_members select {!(_x in _admittedMembers) && {alive _x}};
+        ["CLEAR-fresh-12-exterior-exit-observation-physical",
+            _exteriorMembers isNotEqualTo [] && {_exteriorMembers findIf {
+                !(netId _x in _reserveObservationVisits)
+            } < 0},str [_exteriorMembers apply {netId _x},_reserveObservationVisits]] call _check;
+    };
     [format ["CLEAR-fresh-%1-successive-positions",_size],_memberVisits findIf {count _x >= 2} >= 0,str _memberVisits] call _check;
     [format ["CLEAR-fresh-%1-all-admitted-progress-through-interior",_size],
         _admittedMembers isNotEqualTo [] && {_admittedMembers findIf {
