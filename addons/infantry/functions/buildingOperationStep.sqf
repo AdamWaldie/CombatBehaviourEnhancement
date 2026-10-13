@@ -45,6 +45,10 @@
  * Successful egress additionally requires each active worker's successive physical visits.
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
+ * Reserves distribute observation across at most sixteen real exits using live assignment counts.
+ * Validated exposed standing points are allowed when cover is unavailable and recorded as exposed.
+ * A clear observation ray and physical arrival precede one guarded watch command.
+ * This establishes exit-approach observation, not complete building isolation.
  * Stage receipts distinguish REJECTED current-position holds, APPROACH and physical ARRIVED.
  * A bounded episode/transform-scoped array journal preserves search counts and tried candidates on resume.
  * Rejected selection retries after five seconds, at most three searches per actor with tried targets excluded.
@@ -657,12 +661,33 @@ private _delay=call {
                 _job set ["securityActors",_securityActors];
             };
             private _entry=_job get "entry";
+            // Distribute observation among real exits using current live assignments.
+            // This is capacity-aware selection, not a fixed ring or formation fan.
+            private _entryRanks=[];
+            private _observationReserveKeys=_reserves apply {netId _x};
+            {
+                private _candidateEntry=_x;
+                private _assignedCount=0;
+                {
+                    private _otherStage=_reserveStages get _x;
+                    if (_x != _key && {_x in _observationReserveKeys}
+                        && {(_otherStage param [2,""]) in ["APPROACH","ARRIVED"]}
+                        && {(_otherStage param [5,[],[[]]]) isEqualTo _candidateEntry}) then {
+                        _assignedCount=_assignedCount+1;
+                    };
+                } forEach keys _reserveStages;
+                _entryRanks pushBack [_assignedCount,_reserve distance2D _candidateEntry,+_candidateEntry];
+            } forEach ((_job getOrDefault ["entries",[]]) select [0,16]);
+            _entryRanks sort true;
+            if (_entryRanks isNotEqualTo []) then {_entry=+((_entryRanks select 0) select 2)};
             if (_entry isNotEqualTo [] && {_searchCount < 3}) then {
                 private _bounds=boundingBoxReal _building;
                 private _centre=_building modelToWorld (((_bounds select 0) vectorAdd (_bounds select 1)) vectorMultiply 0.5);
                 _centre set [2,0];
                 private _outward=_centre getDir _entry;
                 private _search=_entry getPos [7,_outward];
+                private _watch=_entry getPos [2,_outward];
+                _watch set [2,(_entry select 2)+1.2];
                 private _taken=+(_stageTriedTargets getOrDefault [_key,[]]);
                 private _liveReserveKeys=_reserves apply {netId _x};
                 // Historical stage receipts remain diagnostic, but promoted/unavailable actors
@@ -691,7 +716,13 @@ private _delay=call {
                 private _blocksExit=(_job getOrDefault ["entries",[]]) findIf {
                     _target distance2D _x < 3 && {abs (((AGLToASL _target) select 2)-((AGLToASL _x) select 2)) <= 1}
                 } >= 0;
-                if ((_cover select 1) && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
+                private _observationClear=!terrainIntersectASL [
+                    (AGLToASL _target) vectorAdd [0,0,1.6],AGLToASL _watch]
+                    && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,1.6],
+                        AGLToASL _watch,_reserve,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+                private _separated=_taken findIf {_target distance2D _x < 3} < 0
+                    && {(_target nearEntities ["CAManBase",1.2]) select {_x != _reserve} isEqualTo []};
+                if (_observationClear && {_separated} && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
                     && {_target distance2D _entry <= 18} && {!surfaceIsWater _target}
                     && {((surfaceNormal _target) select 2) >= 0.65}
                     && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,0.15],
@@ -702,6 +733,9 @@ private _delay=call {
                         [_reserve,_target] call _rememberMove;
                         _stage=[+_target,false,"APPROACH"];
                         _stage set [3,serverTime+60];
+                        _stage set [4,+_watch];
+                        _stage set [5,+_entry];
+                        _stage set [6,_cover select 1];
                         _reserveStages set [_key,_stage];
                         private _securityActors=_job getOrDefault ["securityActors",[]];
                         _securityActors pushBackUnique _reserve;
@@ -721,6 +755,13 @@ private _delay=call {
             doStop _reserve;
             _stage set [1,true];
             _stage set [2,"ARRIVED"];
+            private _watch=_stage param [4,[],[[]]];
+            if (count _watch == 3) then {
+                _reserve doWatch _watch;
+                diag_log format ["WAIT CLEAR EXIT OBSERVATION: %1",[
+                    _job get "generation",netId _reserve,+(_stage select 0),+_watch,
+                    _stage param [6,false,[true]]]];
+            };
             _stageJournalChanged=true;
         };
         // A deadline may retire only the movement request this stage still owns. It does not
