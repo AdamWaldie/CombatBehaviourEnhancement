@@ -26,6 +26,7 @@
  * (RETREAT phase, through an inserted waypoint). Each vehicle withdraws once per engagement.
  * Gunnery (WAIT_AIPass_VehicleGunnery_Enable): a fresh mounted danger event may orient the exact
  * affected armed platform and request one safe suppression response against an already known hostile.
+ * Captive, surrendering and handcuffed sources cannot authorize targeted danger responses.
  * A stopped or slow armed vehicle whose primary gunner has been lost may ask an existing dedicated
  * AI commander to change to that seat once for the exact DETECTED generation. The driver never moves.
  * An intact armed or armoured platform may also request its own smoke countermeasure once for a
@@ -367,6 +368,9 @@ if (_dangerDismount isNotEqualTo []) then {
         if (time < _dangerExpiry && {!isNull _dangerVehicle} && {_dangerVehicle in _vehicles}) then {
             private _affectedVehicles=[_dangerVehicle];
             private _dangerHostile=!isNull _dangerSource && {alive _dangerSource}
+                && {!captive _dangerSource}
+                && {!(_dangerSource getVariable ["ace_captives_isSurrendering",false])}
+                && {!(_dangerSource getVariable ["ace_captives_isHandcuffed",false])}
                 && {(side _group) getFriend (side _dangerSource) < 0.6}
                 && {(units _group) findIf {_x knowsAbout _dangerSource > 0} >= 0};
             // Targetless damage and incoming rounds justify passenger safety. Other vehicle danger
