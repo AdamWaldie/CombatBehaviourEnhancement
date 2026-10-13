@@ -1,3 +1,9 @@
+## Latest evidence boundary - 2026-10-13
+
+Source through 19e3821 passed 654 tests and full build gates. All 65 feature families remain partial. Latest completed normal clearance retained 18 findings; the next normal run was stopped early with eight findings and a first-six-person INCOMPLETE result. Subsequent entry-search, exterior observation, promotion/replay and driving-release fixes have no fresh physical acceptance. Audit launches are paused at the user's request. See [the current implementation ledger](IMPLEMENTATION-PROGRESS.md) for exact runtime boundaries and remaining scope.
+
+Earlier evidence follows and must not be treated as current launch state.
+
 # WAIT completion status
 
 Current evidence - 2026-10-13: all 65 feature families remain partial. Source through 8c7d7c7 passed 654 tests and full build gates. Normal CQB candidate 8c7d7c7 is running in runtime-20261013-045724-829 with zero HCs. Two prior resumed normal batches retained 13 and 12 findings respectively: twelve-person clearance remained incomplete, and whole-pair casualty entry failed. Narrow two/six-person cases passed; single-casualty entry varied between runs. This does not establish repeatability. Recent corrections cover planned formation fallback and removal of geometry-only room offsets; their physical acceptance is pending. The wall negative-control fixture still fails after spawn displacement and is being repaired. Later historical statements that audits are paused do not describe current authorization or runtime state. Counter-battery source now uses qualified delayed native observers and side-specific radar receipts; physical acceptance remains pending.
