@@ -4579,9 +4579,11 @@ class CortexOperations(unittest.TestCase):
     def test_garrison_restores_only_the_speed_lease_it_applied(self):
         apply=source('cortexGarrisonApplyLocal')
         release=source('cortexGarrisonRelease')
-        self.assertIn('setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4]',apply)
+        self.assertIn('setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4,true]',apply)
         self.assertIn('getForcedSpeed _x == (_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",-2])',release)
-        self.assertIn('setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",nil]',release)
+        self.assertIn('setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",nil,true]',release)
+        self.assertIn('setVariable ["WAIT_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit,true]',apply)
+        self.assertIn('setVariable ["WAIT_Cortex_GarrisonForcedSpeed",nil,true]',release)
 
     def test_vehicle_movement_owns_its_waypoint_until_physical_completion(self):
         vehicles=source('cortexVehicles')

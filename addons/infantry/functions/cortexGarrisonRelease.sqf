@@ -102,8 +102,8 @@ if (isNull _leader) then {_leader=leader _group};
     _x setVariable ["WAIT_AIPass_GarrisonPos", nil, true];
     _x setVariable ["WAIT_AIPass_GarrisonFailed",nil,true];
     _x setVariable ["WAIT_AIPass_GarrisonStance", nil, true];
-    _x setVariable ["WAIT_Cortex_GarrisonForcedSpeed",nil];
-    _x setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",nil];
+    _x setVariable ["WAIT_Cortex_GarrisonForcedSpeed",nil,true];
+    _x setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",nil,true];
 } forEach _actors;
 private _hasAssignments=units _group findIf {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []} >= 0;
 if (!_partial || {!_hasAssignments}) then {

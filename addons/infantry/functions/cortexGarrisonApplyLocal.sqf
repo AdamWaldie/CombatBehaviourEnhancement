@@ -9,6 +9,7 @@
  * position are sent there. Only three-dimensional arrival locks PATH; a fixed safety deadline records
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
  * Arrival and failure release only an unchanged WAIT approach speed cap; newer speed commands survive.
+ * Saved and applied speed values are published with the actor so owner adoption preserves restoration.
  * Transform-bound assignments are checked before initial/deferred commands and alternate-slot selection.
  * Moved or deleted buildings release affected actors through the existing partial cleanup path.
  * Owner adoption preserves published exhausted-route failures; only a fresh explicit order, whose
@@ -151,7 +152,7 @@ private _buildingAnchor = {
         && {[_unit] call _mayIssueMovement}) then {
         if (isNil {_unit getVariable "WAIT_AIPass_GarrisonStance"}) then {_unit setVariable ["WAIT_AIPass_GarrisonStance", unitPos _unit, true]};
         if (isNil {_unit getVariable "WAIT_Cortex_GarrisonForcedSpeed"}) then {
-            _unit setVariable ["WAIT_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit];
+            _unit setVariable ["WAIT_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit,true];
         };
         if (_unit getVariable ["WAIT_AIPass_GarrisonDisabledPath", false]) then {_unit enableAI "PATH"};
         if !(_unit getVariable ["WAIT_AIPass_GarrisonHandlers", false]) then {
@@ -200,7 +201,7 @@ private _buildingAnchor = {
             _unit forceSpeed 4;
             // Record the exact value WAIT applied.  Release restores the previous value only
             // while this lease is still intact, so a later controller's forced speed survives.
-            _unit setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4];
+            _unit setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4,true];
             _unit doMove _target; [_unit,_target] call _rememberMove;
         };
     };
