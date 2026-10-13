@@ -23,6 +23,8 @@
  * is classified. The room receives a direct attempt within its existing retry and hard deadline.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
+ * A single exterior replacement follows an entered surviving mover through bounded partner
+ * entry recovery rather than inheriting the removed actor's current interior movement leg.
  * Partner entry recovery initializes its lane target when the entry cache is absent, so
  * initial entrance handling cannot silently suppress the finite recovery receipt.
  * The first entry-failure cause is recorded once per operation, with physical participation
@@ -801,10 +803,25 @@ private _delay=call {
         // A wholly replaced exterior lane must establish its own physical entry.
         // Retain the original route, room coverage and deadline; an entered survivor
         // keeps its current interior progress and is never rallied outside.
-        if (_laneRosterChanged && {_pair findIf {_x in (_job getOrDefault ["enteredActors",[]])} < 0}) then {
-            _state set [0,0];
-            _state set [8,-1];
-            _state set [12,false];
+        if (_laneRosterChanged) then {
+            private _enteredActors=_job getOrDefault ["enteredActors",[]];
+            private _survivorIndex=_pair findIf {_x in _enteredActors};
+            if (_survivorIndex < 0) then {
+                _state set [0,0];
+                _state set [8,-1];
+                _state set [12,false];
+            } else {
+                private _currentMover=_pair select ((_state select 7) mod count _pair);
+                if !(_currentMover in _enteredActors) then {
+                    // The exterior replacement has no entry receipt for the old interior
+                    // leg. Keep the entered survivor progressing; the replacement receives
+                    // this lane's bounded partner entry handling without resetting coverage.
+                    _state set [7,_survivorIndex];
+                    _state set [5,-1];
+                    diag_log format ["WAIT CLEAR REPLACEMENT ENTRY HANDOFF: %1",[
+                        _job get "generation",_pairIndex,netId _currentMover,netId (_pair select _survivorIndex)]];
+                };
+            };
         };
     } forEach _pairs;
     _job set ["rotatedOut",_rotatedOut];
