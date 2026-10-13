@@ -432,6 +432,7 @@ _wallHouse enableSimulationGlobal true;
 [_wallHouse,"wall-control"] call _validateNewFixturePlacement;
 private _wallBounds=boundingBoxReal _wallHouse;
 private _wallCandidate=[];
+private _wallSearch=[0,0,0,0,1e12,1e12]; // samples, distance rejects, floor rejects, clear rays, closest, floor delta
 {
     if (_wallCandidate isNotEqualTo []) exitWith {};
     private _room=_x;
@@ -447,12 +448,21 @@ private _wallCandidate=[];
         _outside set [2,0];
         private _pose=AGLToASL _outside;
         private _target=AGLToASL _room;
-        if (_pose vectorDistance _target <= 1.5 && {abs ((_pose select 2)-(_target select 2)) <= 0.75}) then {
+        private _distance=_pose vectorDistance _target;
+        private _floorDelta=abs ((_pose select 2)-(_target select 2));
+        _wallSearch set [0,(_wallSearch select 0)+1];
+        _wallSearch set [4,(_wallSearch select 4) min _distance];
+        _wallSearch set [5,(_wallSearch select 5) min _floorDelta];
+        if (_distance > 1.5) then {_wallSearch set [1,(_wallSearch select 1)+1]};
+        if (_floorDelta > 0.75) then {_wallSearch set [2,(_wallSearch select 2)+1]};
+        if (_distance <= 1.5 && {_floorDelta <= 0.75}) then {
             private _hits=lineIntersectsSurfaces [_pose vectorAdd [0,0,0.6],_target vectorAdd [0,0,0.6],objNull,objNull,true,8,"GEOM","NONE"];
             if (_hits findIf {(_x select 2) == _wallHouse || {(_x select 3) == _wallHouse}} >= 0) exitWith {_wallCandidate=[_outside,_room]};
+            _wallSearch set [3,(_wallSearch select 3)+1];
         };
     } forEach _edges;
 } forEach ((_wallHouse buildingPos -1) select [0,16]);
+diag_log format ["WAIT WALL CONTROL SEARCH: model=%1 bounds=%2 rooms=%3 search=%4 candidate=%5",typeOf _wallHouse,_wallBounds,_wallHouse buildingPos -1,_wallSearch,_wallCandidate];
 private _wallGroup=createGroup [east,true];
 _wallGroup setVariable ["WAIT_AI_Exclude",true,true];
 _wallGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
