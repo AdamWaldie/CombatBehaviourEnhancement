@@ -1459,10 +1459,15 @@ private _delay=call {
                 doStop _unit;
                 _arrived set [4,true];
             };
-            // An unentered partner must not freeze workers already inside. Entry recovery
-            // continues to own missing partners; their absence still prevents COMPLETE.
+            // Keep an unentered actor's useful entry path intact. Once its one-shot entry
+            // recovery has made no progress for 24 seconds, shared physical coverage offers
+            // alternative native anchors. These use the same durable three-target budget;
+            // choosing another destination never invents entry or renews common recovery.
+            private _entryReceipt=(_job getOrDefault ["entryRecovery",createHashMap]) getOrDefault [_key,[]];
+            private _entryExhausted=count _entryReceipt >= 3 && {_entryReceipt select 2}
+                && {_now-(_entryReceipt select 1) >= 24};
             if (count _visited < _requiredVisits && {!(_unit in _followExhausted)}
-                && {_unit in (_job getOrDefault ["enteredActors",[]])}
+                && {_unit in (_job getOrDefault ["enteredActors",[]]) || {_entryExhausted}}
                 && {[_unit] call _actorAvailable}
                 && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                 private _record=_follow getOrDefault [_key,[]];
