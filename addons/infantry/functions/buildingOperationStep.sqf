@@ -457,13 +457,22 @@ private _delay=call {
                         private _recordIndex=_records findIf {(_x select 0) == _unit};
                         if (_recordIndex >= 0) then {
                             private _record=_records select _recordIndex;
+                            // Stair and corridor detours can initially increase straight-line
+                            // exit distance. Preserve a moving native path within the hard budget.
+                            private _motionPose=_record param [6,getPosASL _unit,[[]]];
+                            if (count _record < 7) then {_record set [5,time]; _record set [6,+_motionPose]};
+                            if ((getPosASL _unit) vectorDistance _motionPose >= 1) then {
+                                _record set [5,time];
+                                _record set [6,getPosASL _unit];
+                            };
+                            private _motionStalled=time-(_record select 5) >= 8;
                             private _checkpoint=_record param [4,[],[[]]];
                             if (_checkpoint isNotEqualTo [] && {[_unit] call _actorAvailable}
                                 && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                                 private _atCheckpoint=(getPosASL _unit) vectorDistance (AGLToASL _checkpoint) <= 1.5
                                     && {abs (((getPosASL _unit) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75}
                                     && {[_unit,AGLToASL _checkpoint] call _roomSegmentClear};
-                                if (_atCheckpoint || {time-(_record select 2) >= 8}) then {
+                                if (_atCheckpoint || {time-(_record select 2) >= 8 && {_motionStalled}}) then {
                                     // A failed checkpoint also yields once to the original exit slot.
                                     // Neither case creates an exit receipt or renews the 45-second budget.
                                     _record set [4,[]];
@@ -483,7 +492,7 @@ private _delay=call {
                             // Opening an unlocked door does not replace a moving route. The engine
                             // observes the opened door; only measured no-progress permits one retry.
                             [_unit,_job get "building",["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
-                            if (time-(_record select 2) >= 8 && {(_record select 3) < 1}
+                            if (time-(_record select 2) >= 8 && {_motionStalled} && {(_record select 3) < 1}
                                 && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                                 // Try one physically visited current-floor point nearer the exit.
                                 // Native room points remain candidates; selection itself proves no path.
