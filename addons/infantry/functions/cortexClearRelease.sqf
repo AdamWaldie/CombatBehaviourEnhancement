@@ -5,6 +5,8 @@
  * Individual player, remote-control and external-owner actors never receive restoration commands.
  * A live MOVE is recalled only when its destination matches this clearance job receipt;
  * newer individual movement survives release even when the caller requests formation restoration.
+ * Exact exterior observation leases are retired; watching is cleared only for free native actors
+ * under unchanged WAIT authority, never a player, external takeover or replacement task.
  * Locality/authority: server authenticates dispatch; the current owner executes group commands.
  * Repeat/JIP: request tokens are consumed once; no stale order is replayed for JIP.
  * Arguments: 0: group <GROUP>, default grpNull; 1: restore formation <BOOL>, default true. Pass
@@ -69,6 +71,14 @@ if (isNull _leader) then {_leader=leader _group};
             private _releaseOwnedSettings=!([_group,true,_x] call WAIT_fnc_CortexExternalTakeover)
                 && {isNull objectParent _x};
 
+            private _exitWatch=_x getVariable ["WAIT_Cortex_ClearExitWatch",[]];
+            if (_releaseOwnedSettings && {_taskFree} && {currentCommand _x in ["","STOP"]}
+                && {count _exitWatch == 3}
+                && {(_exitWatch select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])-1}
+                && {(_exitWatch select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_x getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _exitWatch}) then {
+                _x doWatch objNull;
+            };
             if (_releaseOwnedSettings && {unitPos _x == "UP"} && {!isNil {_x getVariable "WAIT_Cortex_ClearStance"}}) then {
                 _x setUnitPos (_x getVariable ["WAIT_Cortex_ClearStance","AUTO"]);
             };
@@ -88,6 +98,15 @@ if (isNull _leader) then {_leader=leader _group};
         _x setVariable ["WAIT_Cortex_ClearStance",nil,true];
         _x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true];
         _x setVariable ["WAIT_Cortex_ClearAppliedSpeed",nil,true];
+        private _retiredWatch=_x getVariable ["WAIT_Cortex_ClearExitWatch",[]];
+        if (count _retiredWatch == 3
+            && {(_retiredWatch select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])-1}
+            && {(_retiredWatch select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+            _x setVariable ["WAIT_Cortex_ClearExitWatch",nil,true];
+            if ((_x getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _retiredWatch) then {
+                _x setVariable ["WAIT_Cortex_ClearExitWatchLocal",nil];
+            };
+        };
         _x setVariable ["WAIT_Cortex_ClearReserve",nil];
     };
 } forEach units _group;
