@@ -457,7 +457,25 @@ private _delay=call {
                         private _recordIndex=_records findIf {(_x select 0) == _unit};
                         if (_recordIndex >= 0) then {
                             private _record=_records select _recordIndex;
-                            private _remaining=(getPosATL _unit) vectorDistance _target;
+                            private _checkpoint=_record param [4,[],[[]]];
+                            if (_checkpoint isNotEqualTo [] && {[_unit] call _actorAvailable}
+                                && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
+                                private _atCheckpoint=(getPosASL _unit) vectorDistance (AGLToASL _checkpoint) <= 1.5
+                                    && {abs (((getPosASL _unit) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75}
+                                    && {[_unit,AGLToASL _checkpoint] call _roomSegmentClear};
+                                if (_atCheckpoint || {time-(_record select 2) >= 8}) then {
+                                    // A failed checkpoint also yields once to the original exit slot.
+                                    // Neither case creates an exit receipt or renews the 45-second budget.
+                                    _record set [4,[]];
+                                    _unit doMove _target;
+                                    [_unit,_target] call _rememberMove;
+                                    _record set [1,(getPosATL _unit) vectorDistance _target];
+                                    _record set [2,time];
+                                    _checkpoint=[];
+                                };
+                            };
+                            private _progressTarget=if (_checkpoint isEqualTo []) then {_target} else {_checkpoint};
+                            private _remaining=(getPosATL _unit) vectorDistance _progressTarget;
                             if ((_record select 1)-_remaining >= 0.5) then {
                                 _record set [1,_remaining];
                                 _record set [2,time];
@@ -467,8 +485,28 @@ private _delay=call {
                             [_unit,_job get "building",["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
                             if (time-(_record select 2) >= 8 && {(_record select 3) < 1}
                                 && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
-                                _unit doMove _target;
-                                [_unit,_target] call _rememberMove;
+                                // Try one physically visited current-floor point nearer the exit.
+                                // Native room points remain candidates; selection itself proves no path.
+                                private _exitRooms=_job get "positions";
+                                private _candidates=if (insideBuilding _unit <= 0) then {[]} else {((_job get "cleared") select [0,24]) select {
+                                    private _point=_exitRooms select _x;
+                                    abs (((getPosATL _unit) select 2)-(_point select 2)) <= 0.75
+                                        && {_unit distance2D _point > 2}
+                                }};
+                                private _ranked=_candidates apply {
+                                    private _point=_exitRooms select _x;
+                                    [(_point distance2D _target)+0.25*(_unit distance2D _point),_x]
+                                };
+                                _ranked sort true;
+                                private _retryTarget=+_target;
+                                if (_ranked isNotEqualTo []) then {
+                                    _retryTarget=+(_exitRooms select ((_ranked select 0) select 1));
+                                    _record set [4,+_retryTarget];
+                                    _record set [1,(getPosATL _unit) vectorDistance _retryTarget];
+                                    _record set [2,time];
+                                };
+                                _unit doMove _retryTarget;
+                                [_unit,_retryTarget] call _rememberMove;
                                 _record set [3,1];
                                 private _evidence=_group getVariable ["WAIT_Cortex_ClearEgressRetries",[]];
                                 _evidence pushBack [serverTime,netId _unit,1,getPosATL _unit,+_target,_remaining];
