@@ -26,7 +26,8 @@
 params [["_requester",grpNull,[grpNull]],["_enemy",[],[[]]],["_replyOwner",-1,[0]],["_confirmedAt",-1,[0]]];
 private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;
 if (!isServer || {isNull _requester} || {([_replyOwner,groupOwner _requester] call WAIT_fnc_HeadlessResolveSender) < 0}
-    || {!(missionNamespace getVariable ["WAIT_AIPass_Enable",false])} || {[] call WAIT_fnc_CortexIsPaused}
+    || {!(missionNamespace getVariable ["WAIT_AIPass_Enable",false])}
+    || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])} || {[] call WAIT_fnc_CortexIsPaused}
     || {!([_requester] call WAIT_fnc_CortexIsEligible)}
     || {!([_requester,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
     || {isNull _requesterTransmitter}
