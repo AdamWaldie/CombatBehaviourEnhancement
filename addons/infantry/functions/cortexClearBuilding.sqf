@@ -121,6 +121,7 @@ private _available = (units _group) select {
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
             || {[_x,_admissionGeneration] call _ownedRecall}}
 };
+// Existing intact eligible pairs retain admission priority; remaining actors fill capacity.
 private _team = +_available;
 if (_team isEqualTo []) exitWith {["NO_ELIGIBLE_ACTORS"] call _refuse};
 // Keep enough distinct lanes for a real squad clear without crowding every reported room node.
@@ -131,7 +132,20 @@ private _squadElement = count _available;
 private _topologyElement = ((count _allPositions) max 2) min 8;
 private _entryCapacity = ((2 max _squadElement) min _topologyElement) min 8;
 _entryCapacity = _entryCapacity min (count _team);
-_team = _team select [0,_entryCapacity];
+// Prefer intact eligible buddies before applying concurrency capacity. Selection is
+// read-only here; a refused start must not publish a new pairing receipt.
+private _pairedAdmission=[];
+private _remainingAdmission=+_team;
+{
+    if (_x isEqualType [] && {count _x == 2}) then {
+        private _pair=(_x arrayIntersect _x) select {_x in _remainingAdmission};
+        if (count _pair == 2) then {
+            _pairedAdmission append _pair;
+            _remainingAdmission=_remainingAdmission-_pair;
+        };
+    };
+} forEach ((_group getVariable ["WAIT_CombatPairs",[]]) select [0,16]);
+_team = (_pairedAdmission+_remainingAdmission) select [0,_entryCapacity];
 private _preserveBrain=_options getOrDefault ["preserveBrain",false];
 if (_preserveBrain) then {
     private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
