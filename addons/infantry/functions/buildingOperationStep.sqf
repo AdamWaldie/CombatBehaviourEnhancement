@@ -28,6 +28,10 @@
  * continuity. Whole-pair replacements still restart exterior entry without inherited receipts.
  * Partner entry recovery initializes its lane target when the entry cache is absent, so
  * initial entrance handling cannot silently suppress the finite recovery receipt.
+ * A stalled recovered partner may select one alternate physically visited current-floor
+ * entry point before full room coverage. A public episode/transform receipt bounds replay;
+ * the same guarded clearance callback records the shared pair target and issues movement;
+ * later pair steps preserve that active path and no progress deadline is renewed.
  * The first entry-failure cause is recorded once per operation, with physical participation
  * at the failure boundary; terminal diagnostics retain it without changing acceptance.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
@@ -1009,6 +1013,44 @@ private _delay=call {
                             if (_recovery == "RECOVERING") then {[_partner,_entryTarget] call _rememberMove};
                             if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {
                                 _receipt set [2,true];
+                            };
+                        };
+                        // Do not wait for an unrelated final room before giving an exterior
+                        // partner one alternative. The same owner-local callback records the
+                        // shared pair target before issuing it, even if this lane's room queue
+                        // has ended. Later pair steps recognize and preserve the active path.
+                        private _alternativeReceipt=_partner getVariable ["WAIT_Cortex_ClearEntryAlternative",[]];
+                        private _alternativeUsed=count _alternativeReceipt == 4
+                            && {(_alternativeReceipt select 0) == _building}
+                            && {(_alternativeReceipt select 1) == (_job get "hardDeadline")}
+                            && {(_alternativeReceipt select 2) isEqualTo (_job get "buildingTransform")};
+                        if ((_receipt select 2) && {_now-(_receipt select 1) >= 24}
+                            && {!_alternativeUsed} && {_cleared isNotEqualTo []}
+                            && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
+                            && {call _mayIssueMovement}) then {
+                            private _pose=getPosASL _partner;
+                            private _alternatives=[];
+                            {
+                                private _candidate=_positions select _x;
+                                private _candidateASL=AGLToASL _candidate;
+                                if (_candidate vectorDistance _entryTarget >= 2.5
+                                    && {abs ((_candidateASL select 2)-(_pose select 2)) <= 0.75}
+                                    && {_candidateASL vectorDistance _pose <= 30}) then {
+                                    _alternatives pushBack [_candidateASL vectorDistance _pose,+_candidate];
+                                };
+                            } forEach (_cleared select [0,24]);
+                            _alternatives sort true;
+                            private _alternative=if (_alternatives isNotEqualTo []) then {+((_alternatives select 0) select 1)} else {[]};
+                            _partner setVariable ["WAIT_Cortex_ClearEntryAlternative",[
+                                _building,_job get "hardDeadline",_job get "buildingTransform",+_alternative],true];
+                            if (_alternative isNotEqualTo []) then {
+                                (_job get "pairEntryTargets") set [str _pairIndex,+_alternative];
+                                _receipt set [0,_pose vectorDistance (AGLToASL _alternative)];
+                                _partner doMove _alternative;
+                                [_partner,_alternative] call _rememberMove;
+                                _lastTarget=-1;
+                                diag_log format ["WAIT CLEAR PARTNER ENTRY ALTERNATIVE: %1",[
+                                    _job get "generation",_pairIndex,netId _partner,+_entryTarget,+_alternative]];
                             };
                         };
                         _entryRecovery set [_key,_receipt];
