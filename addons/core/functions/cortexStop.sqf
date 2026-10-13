@@ -75,6 +75,9 @@ if (isServer) then {
         _battery setVariable ["WAIT_AIPass_BusyUntil", nil, true];
     } forEach (missionNamespace getVariable ["WAIT_AIPass_FireMissions", createHashMap]);
     missionNamespace setVariable ["WAIT_AIPass_FireMissions", createHashMap];
+    private _artilleryDeletedEH=missionNamespace getVariable ["WAIT_Artillery_DeletedEH",-1];
+    if (_artilleryDeletedEH >= 0) then {removeMissionEventHandler ["EntityDeleted",_artilleryDeletedEH]};
+    missionNamespace setVariable ["WAIT_Artillery_DeletedEH",nil];
     // Stop is a rare administrative action, so one bounded-by-world vehicle pass is preferable to
     // maintaining another runtime registry. Clearing the public token makes every already queued
     // shoot-and-scoot callback fail its first identity check, including after Cortex restarts.

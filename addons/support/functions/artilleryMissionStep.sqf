@@ -54,7 +54,8 @@ if (_semantic == "RELOCATING") then {
             _delay=1;
         } else {
             _brain set ["finished",true];
-            _brain set ["cancelReason","COMPLETE"];
+            _brain set ["cancelReason",["COMPLETE","UNCERTAINTY_PARKED"] select (_mission getOrDefault ["parked",false])];
+            if (_mission getOrDefault ["parked",false]) then {_semantic="QUARANTINED"};
         };
     };
 };

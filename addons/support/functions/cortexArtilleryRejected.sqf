@@ -6,6 +6,7 @@
  * Arguments: 0: battery <OBJECT>; 1: token <STRING>.
  * 2: reply owner <NUMBER>, default -1; HC callers supply clientOwner.
  * Return Value: Nothing.
+ * Qualified replies wake a parked exact mission for finite settlement; no new shot is issued.
  * Current callers: ArtilleryShot rejection paths.
  * Example: [_gun, _token, clientOwner] remoteExecCall ["WAIT_fnc_CortexArtilleryRejected", 2];
  */
@@ -20,3 +21,11 @@ _mission set ["burstsLeft", 0];
 _mission set ["phase", "WAIT"];
 _mission set ["due", time];
 _mission set ["scoot", false];
+
+// A parked unresolved request has no active scheduler. Its qualified reply
+// wakes the exact registered mission for finite settlement, never another shot.
+if (_mission getOrDefault ["parked",false]) then {
+    _mission set ["parked",false];
+    _mission set ["deadline",(_mission get "due")+30];
+    [_mission,0] call WAIT_fnc_ArtilleryMissionStart;
+};
