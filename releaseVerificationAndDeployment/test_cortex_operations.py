@@ -5252,6 +5252,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_support_drill_handover_uses_believed_contact_geometry(self):
+        apply=source("cortexSupportApply")
+        match=apply.split("private _localBelief=",1)[1].split("private _replaceLocalDrill",1)[0]
+        self.assertIn('getOrDefault ["enemyPos",[]]',match)
+        self.assertIn("_localBelief isEqualType []",match)
+        self.assertIn("count _localBelief in [2,3]",match)
+        self.assertIn("_localBelief findIf {!(_x isEqualType 0)} < 0",match)
+        self.assertIn("{_beliefValid} && {_localBelief distance2D _requestContact <= 75}",match)
+        self.assertNotIn("_localTarget distance2D",apply)
+
     def test_garrison_native_task_handover_uses_no_replacement_commands(self):
         tick=source("cortexGroupTick")
         handover=tick.split("// A held garrison arrival job",1)[1].split("// A group tick can complete",1)[0]

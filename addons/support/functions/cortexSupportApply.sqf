@@ -90,8 +90,11 @@ private _requestContact=if (count _contactReceipt == 2 && {(_contactReceipt sele
 if (_attackAllowed && {_movementOwner == "TACTICAL_DRILL"} && {!isNull _localTarget}
     && {alive _localTarget} && {count _requestContact != 3}
     && {serverTime < (_job get "waitUntil")}) exitWith {0.25};
+private _localBelief=_localDrill getOrDefault ["enemyPos",[]];
+private _beliefValid=_localBelief isEqualType [] && {count _localBelief in [2,3]}
+    && {_localBelief findIf {!(_x isEqualType 0)} < 0};
 private _sharedDrillContact = isNull _localTarget || {!alive _localTarget}
-    || {count _requestContact == 3 && {_localTarget distance2D _requestContact <= 75}};
+    || {count _requestContact == 3 && {_beliefValid} && {_localBelief distance2D _requestContact <= 75}};
 private _replaceLocalDrill = _attackAllowed && {_sharedDrillContact} && {_movementOwner == "TACTICAL_DRILL"}
     && {count (_state getOrDefault ["drill",createHashMap]) > 0};
 private _prepareAlongsideDrill=_directCoordinationPending && {_movementOwner == "TACTICAL_DRILL"}
