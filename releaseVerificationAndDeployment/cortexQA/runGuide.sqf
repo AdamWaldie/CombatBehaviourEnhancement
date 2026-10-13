@@ -277,10 +277,13 @@ while {true} do {
         _body ctrlSetPosition [_x+_w*0.025,_y+_h*0.03,_w*0.95,_h*0.72]; _body ctrlSetTextColor (_theme get "text"); _body ctrlCommit 0;
         private _inZeus=!isNull findDisplay 312;
         _inspect ctrlSetPosition [_x+_w*0.025,_y+_h*0.79,_w*0.95,_h*0.17];
-        _inspect ctrlSetText (["Open Zeus, then inspect the current test","Inspect current test in Zeus"] select _inZeus);
-        _inspect ctrlEnable _inZeus;
+        _inspect ctrlSetText (["Open Zeus for current test","Inspect current test in Zeus"] select _inZeus);
+        _inspect ctrlEnable (_inZeus || {!isNull getAssignedCuratorLogic player});
         _inspect ctrlCommit 0;
         _inspect ctrlAddEventHandler ["ButtonClick",{
+            if (isNull curatorCamera) exitWith {
+                if (!isNull getAssignedCuratorLogic player) then {openCuratorInterface};
+            };
             private _phase = missionNamespace getVariable ["WAIT_CortexQA_Phase",[]];
             private _position = _phase param [2,[]];
             if (!isNull curatorCamera && {count _position >= 2}) then {
@@ -298,6 +301,9 @@ while {true} do {
     private _failed = {(_x select 1) == "FAIL"} count _results;
     private _text = format ["<t size='1.1'>CORTEX AUDIT [%8]: %1</t><br/>LOOK FOR: %2<br/>Live settings: %7<br/>Completed checks: %3 | Failures: %4<br/>%5<br/>%6",_phase select 0,_phase select 1,count _results,_failed,(_results select [((count _results)-3) max 0,3] apply {format ["%1: %2",_x select 0,_x select 1]}) joinString "<br/>",if (missionNamespace getVariable ["WAIT_CortexQA_ClientDone",false]) then {"RUN FINISHED. Review completion results."} else {format ["RUNNING: %1 seconds in this stage. Pending checks have not passed.",floor (serverTime-(_phase param [3,serverTime]))]},if ((missionNamespace getVariable ["WAIT_CortexQA_Focus",""]) == "nativebuildings") then {"WAIT addon absent | Native engine control"} else {format ["Cortex %1 | Contact %2 | Regroup %3",["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Enable",false]),["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Contact_Enable",true]),["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Regroup_Enable",true])]},missionNamespace getVariable ["WAIT_CortexQA_Focus","all"]];
     if (_text != _last && {count _controls > 0}) then {(_controls select 1) ctrlSetStructuredText parseText _text; _last = _text};
+    if (count _controls == 3) then {
+        (_controls select 2) ctrlEnable (!isNull curatorCamera || {!isNull getAssignedCuratorLogic player});
+    };
     uiSleep 0.5;
 };
 
