@@ -550,7 +550,9 @@ deleteVehicle _wallHouse;
             _unit setVariable ["WAIT_CortexQA_PathCount",(_unit getVariable ["WAIT_CortexQA_PathCount",0])+1];
             diag_log format ["WAIT CLEAR NATIVE PATH: %1",[serverTime,netId _unit,getPosASL _unit,
                 currentCommand _unit,expectedDestination _unit,count _path,_path select [0,24],
-                _path param [((count _path)-1) max 0,[]],insideBuilding _unit]];
+                _path param [((count _path)-1) max 0,[]],insideBuilding _unit,
+                ["ACTOR_ATL",getPosATL _unit,"EXPECTED_ASL",AGLToASL ((expectedDestination _unit) select 0),
+                    "TERRAIN_ASL",getTerrainHeightASL (getPosATL _unit)]]];
         }];
         _pathHandlers pushBack [_x,_id];
     } forEach (_members select [0,16]);
@@ -966,7 +968,22 @@ private _replacementRooms=(_casualtyHouse buildingPos -1) select {
     private _roof=lineIntersectsSurfaces [_origin vectorAdd [0,0,0.5],_origin vectorAdd [0,0,10],objNull,objNull,true,1,"GEOM","NONE"];
     _roof isNotEqualTo [] && {((_roof select 0) select 2) == _casualtyHouse || {((_roof select 0) select 3) == _casualtyHouse}}
 };
+// Observe replacement ownership without issuing movement or changing retry budgets.
+private _replacementTraceNext=0;
+private _replacementTraceCount=0;
 private _replacementEntered=[{
+    if (serverTime >= _replacementTraceNext && {_replacementTraceCount < 16}) then {
+        _replacementTraceNext=serverTime+8;
+        _replacementTraceCount=_replacementTraceCount+1;
+        private _job=(_casualtyGroup getVariable ["WAIT_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+        private _operation=_casualtyGroup getVariable ["WAIT_Operation",createHashMap];
+        diag_log format ["WAIT CLEAR REPLACEMENT TRACE: %1",[serverTime,netId _reserve,
+            getPosATL _reserve,getPosASL _reserve,currentCommand _reserve,expectedDestination _reserve,
+            _job getOrDefault ["pairs",[]],_job getOrDefault ["pairStates",[]],
+            _job getOrDefault ["enteredActors",[]],_operation getOrDefault ["phase",""],
+            _operation getOrDefault ["recovery",createHashMap],
+            _casualtyGroup getVariable ["WAIT_Cortex_ClearReinforcements",[]]]];
+    };
     if (!isNull _reserve && {alive _reserve}) then {
         _replacementEntry=_replacementEntry || {_replacementRooms findIf {
             [_reserve,_casualtyHouse,_x] call _observedRoomVisit
