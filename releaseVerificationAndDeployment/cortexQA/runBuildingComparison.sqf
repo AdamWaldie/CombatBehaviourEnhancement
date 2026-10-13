@@ -427,7 +427,7 @@ if (_nativeOnly) exitWith {};
 if (!_transformOnly) then {
 // Observer negative control: spawn outside, verify the live wall/proximity
 // prerequisite, then query the independent observer. This is not production admission.
-private _wallHouse=createVehicle ["Land_i_House_Small_01_V1_F",[6350,6000,0],[],0,"NONE"];
+private _wallHouse=createVehicle ["Land_i_House_Big_02_V1_F",[6350,6000,0],[],0,"NONE"];
 _wallHouse enableSimulationGlobal true;
 [_wallHouse,"wall-control"] call _validateNewFixturePlacement;
 private _wallBounds=boundingBoxReal _wallHouse;
@@ -436,17 +436,19 @@ private _wallSearch=[0,0,0,0,1e12,1e12]; // samples, distance rejects, floor rej
 {
     if (_wallCandidate isNotEqualTo []) exitWith {};
     private _room=_x;
-    private _local=_wallHouse worldToModel _room;
-    private _edges=[
-        [((_wallBounds select 0) select 0)-0.2,_local select 1,0],
-        [((_wallBounds select 1) select 0)+0.2,_local select 1,0],
-        [_local select 0,((_wallBounds select 0) select 1)-0.2,0],
-        [_local select 0,((_wallBounds select 1) select 1)+0.2,0]
-    ];
+    // Bound the search around real room nodes. Model bounds include roofs/steps
+    // and cannot establish whether a nearby supported point lies beyond a wall.
+    private _edges=[];
+    for "_bearing" from 0 to 330 step 30 do {_edges pushBack (_room getPos [1.25,_bearing])};
     {
-        private _outside=_wallHouse modelToWorld _x;
-        _outside set [2,0];
-        private _pose=AGLToASL _outside;
+        private _outside=+_x;
+        private _targetASL=AGLToASL _room;
+        private _probe=AGLToASL _outside;
+        private _support=lineIntersectsSurfaces [_probe vectorAdd [0,0,1],_probe vectorAdd [0,0,-2],objNull,objNull,true,1,"GEOM","NONE"];
+        private _pose=if (_support isNotEqualTo [] && {(((_support select 0) select 1) select 2) >= 0.7}) then {
+            +((_support select 0) select 0)
+        } else {[_probe select 0,_probe select 1,getTerrainHeightASL _outside]};
+        _outside=ASLToAGL _pose;
         private _target=AGLToASL _room;
         private _distance=_pose vectorDistance _target;
         private _floorDelta=abs ((_pose select 2)-(_target select 2));
@@ -479,11 +481,9 @@ if (_wallCandidate isNotEqualTo []) then {
     sleep 2;
     private _actual=getPosASL _wallActor;
     private _target=AGLToASL (_wallCandidate select 1);
-    private _local=_wallHouse worldToModel (getPosATL _wallActor);
-    private _outside=(_local select 0) < ((_wallBounds select 0) select 0)
-        || {(_local select 0) > ((_wallBounds select 1) select 0)}
-        || {(_local select 1) < ((_wallBounds select 0) select 1)}
-        || {(_local select 1) > ((_wallBounds select 1) select 1)};
+    // The settled actor must actually be outside; the wall ray below independently
+    // proves separation from the room rather than treating proximity as entry.
+    private _outside=insideBuilding _wallActor == 0;
     private _hits=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.6],_target vectorAdd [0,0,0.6],_wallActor,objNull,true,8,"GEOM","NONE"];
     _wallPrerequisite=_outside && {_actual vectorDistance _target <= 1.5}
         && {abs ((_actual select 2)-(_target select 2)) <= 0.75}
