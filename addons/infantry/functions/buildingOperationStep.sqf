@@ -1277,14 +1277,14 @@ private _delay=call {
                             };
                             // A failed native path can silently return a worker to formation:
                             // command becomes empty, ready is true, and the planner reports its
-                            // formation destination. Arrest that fallback once per owned request;
+                            // formation destination (planned or direct formation mode). Arrest that fallback once per owned request;
                             // the existing finite room retry is still the only recovery writer.
                             // Do not touch explicit FOLLOW, a newer MOVE or specialist commands.
                             private _nativeDestination=expectedDestination _unit;
                             private _fallbackHolds=_job getOrDefault ["formationFallbackHolds",createHashMap];
                             private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
                             if (!_issue && {currentCommand _unit == ""} && {unitReady _unit}
-                                && {(_nativeDestination param [1,"",[""]]) == "DoNotPlanFormation"}
+                                && {(_nativeDestination param [1,"",[""]]) in ["DoNotPlanFormation","FORMATION PLANNED"]}
                                 && {count _issued == 3} && {!(netId _unit in _fallbackHolds)}) then {
                                 private _hold=getPosATL _unit;
                                 doStop _unit;
