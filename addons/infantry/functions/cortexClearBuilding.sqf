@@ -356,14 +356,16 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
     && {(_stageBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
     private _counts=createHashMap;
     private _tried=createHashMap;
+    private _triedEntries=createHashMap;
     private _stages=createHashMap;
     private _moves=createHashMap;
     private _actors=createHashMap;
     {_actors set [netId _x,_x]} forEach ((units _group) select [0,64]);
     {
-        _x params ["_key","_count","_targets",["_stage",[]]];
+        _x params ["_key","_count","_targets",["_stage",[]],["_entryHistory",[]]];
         _counts set [_key,(_count max 0) min 3];
         _tried set [_key,+_targets];
+        _triedEntries set [_key,+(_entryHistory select [0,3])];
         private _actor=_actors getOrDefault [_key,objNull];
         if (count _stage in [4,7] && {(_stage select 2) in ["APPROACH","ARRIVED","REJECTED","EXHAUSTED"]}
             && {!isNull _actor} && {local _actor} && {!isPlayer _actor} && {!(_actor in _team)}
@@ -394,6 +396,7 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
     } forEach ((_stageBudget select 3) select [0,64]);
     _job set ["reserveStageSearchCounts",_counts];
     _job set ["reserveStageTriedTargets",_tried];
+    _job set ["reserveStageTriedEntries",_triedEntries];
     _job set ["reserveStages",_stages];
     _job set ["movementTargets",_moves];
     _job set ["securityActors",(units _group) select {netId _x in _stages}];

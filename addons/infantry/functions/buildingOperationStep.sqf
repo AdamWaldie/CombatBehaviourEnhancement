@@ -47,6 +47,8 @@
  * Successful egress additionally requires each active worker's successive physical visits.
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
+ * Exterior retries prefer untried real exits within the existing three-search budget; exit history
+ * follows the transform-bound migration journal without renewing the operation deadline.
  * Reserves distribute observation across at most sixteen real exits using live assignment counts.
  * Validated exposed standing points are allowed when cover is unavailable and recorded as exposed.
  * A clear observation ray and physical arrival precede one guarded watch command.
@@ -650,6 +652,7 @@ private _delay=call {
     private _stageJournalChanged=false;
     private _stageSearchCounts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
     private _stageTriedTargets=_job getOrDefault ["reserveStageTriedTargets",createHashMap];
+    private _stageTriedEntries=_job getOrDefault ["reserveStageTriedEntries",createHashMap];
     {
         private _reserve=_x;
         private _key=netId _reserve;
@@ -681,6 +684,7 @@ private _delay=call {
             // Distribute observation among real exits using current live assignments.
             // This is capacity-aware selection, not a fixed ring or formation fan.
             private _entryRanks=[];
+            private _triedEntries=+(_stageTriedEntries getOrDefault [_key,[]]);
             private _observationReserveKeys=_reserves apply {netId _x};
             {
                 private _candidateEntry=_x;
@@ -693,11 +697,13 @@ private _delay=call {
                         _assignedCount=_assignedCount+1;
                     };
                 } forEach keys _reserveStages;
-                _entryRanks pushBack [_assignedCount,_reserve distance2D _candidateEntry,+_candidateEntry];
+                _entryRanks pushBack [[0,1] select (_candidateEntry in _triedEntries),_assignedCount,_reserve distance2D _candidateEntry,+_candidateEntry];
             } forEach ((_job getOrDefault ["entries",[]]) select [0,16]);
             _entryRanks sort true;
-            if (_entryRanks isNotEqualTo []) then {_entry=+((_entryRanks select 0) select 2)};
+            if (_entryRanks isNotEqualTo []) then {_entry=+((_entryRanks select 0) select 3)};
             if (_entry isNotEqualTo [] && {_searchCount < 3}) then {
+                _triedEntries pushBackUnique +_entry;
+                _stageTriedEntries set [_key,_triedEntries];
                 private _bounds=boundingBoxReal _building;
                 private _centre=_building modelToWorld (((_bounds select 0) vectorAdd (_bounds select 1)) vectorMultiply 0.5);
                 _centre set [2,0];
@@ -790,11 +796,12 @@ private _delay=call {
     _job set ["reserveStageAttempts",_stageAttempts];
     _job set ["reserveStageSearchCounts",_stageSearchCounts];
     _job set ["reserveStageTriedTargets",_stageTriedTargets];
+    _job set ["reserveStageTriedEntries",_stageTriedEntries];
     // Build the migration journal only after an owned stage transition. Idle callbacks
     // retain the published receipt without copying every actor record again.
     if (_stageJournalChanged && {call _mayIssueMovement}) then {
         private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
-            [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]])]
+            [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]]),+(_stageTriedEntries getOrDefault [_x,[]])]
         };
         private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows];
         if ((_group getVariable ["WAIT_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget) then {
@@ -1197,6 +1204,7 @@ private _delay=call {
                         if ((_entryIndex < 0 || {_entryIndex >= count (_job get "entries")})
                             && {(_job get "entries") isNotEqualTo []}) then {
                             private _entryRanks=[];
+
                             {
                                 _entryRanks pushBack [_point distance2D _x,_forEachIndex];
                             } forEach (_job get "entries");
@@ -1739,6 +1747,7 @@ private _delay=call {
                                     && {(_job get "entries") isNotEqualTo []}) then {
                                     if (_approachingEntry) then {_triedEntries pushBackUnique _entryIndex};
                                     private _entryRanks=[];
+
                                     {
                                         if !(_forEachIndex in _triedEntries) then {
                                             _entryRanks pushBack [_point distance2D _x,_forEachIndex];
