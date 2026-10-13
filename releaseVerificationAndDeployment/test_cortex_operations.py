@@ -5252,6 +5252,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_artillery_shot_requires_same_combat_effective_operator(self):
+        shot=source("cortexArtilleryShot")
+        self.assertEqual(shot.count("[_operator] call WAIT_fnc_CortexCombatEffective"),2)
+        boundary=shot.split("// Safety/munition checks",1)[1].split("_battery doArtilleryFire",1)[0]
+        self.assertIn("gunner _battery != _operator",boundary)
+        self.assertIn("!local _battery",boundary)
+        self.assertIn("WAIT_AIPass_FireToken",boundary)
+        self.assertIn("CortexIsEligible",boundary)
+
     def test_committed_support_adoption_does_not_reauthorize_contact(self):
         apply=source("cortexSupportApply")
         receipt=apply.split("private _committedAttack=",1)[1].split("if (_attackAllowed",1)[0]
