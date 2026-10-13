@@ -84,7 +84,13 @@ private _directCoordinationPending = _attack isEqualTo [] && {_sharedCoordinated
 private _localDrill = _state getOrDefault ["drill",createHashMap];
 private _localTarget = _localDrill getOrDefault ["target",objNull];
 private _contactReceipt=_group getVariable ["WAIT_Cortex_SupportContact",[]];
-private _requestContact=if (count _contactReceipt == 2 && {(_contactReceipt select 0) == _token}) then {_contactReceipt select 1} else {[]};
+private _requestContact=if (count _contactReceipt in [2,3] && {(_contactReceipt select 0) == _token}) then {_contactReceipt select 1} else {[]};
+private _contactConfirmedAt=_contactReceipt param [2,-1,[0]];
+private _contactFresh=count _requestContact == 3 && {count _contactReceipt == 3}
+    && {_contactConfirmedAt >= 0} && {_contactConfirmedAt <= serverTime+1}
+    && {serverTime-_contactConfirmedAt <= 60};
+if (_attackAllowed && {count _requestContact != 3 || {count _contactReceipt != 3}}
+    && {serverTime < (_job get "waitUntil")}) exitWith {0.25};
 // Public contact and lease state can arrive separately during delivery or HC adoption.
 // Wait only inside the original finite delivery window; acquire no controls while waiting.
 if (_attackAllowed && {_movementOwner == "TACTICAL_DRILL"} && {!isNull _localTarget}
@@ -107,7 +113,7 @@ private _okay = missionNamespace getVariable ["WAIT_AIPass_Active",false] && {!(
     && {serverTime < _expiry} && {!isNull _requester} && {side _requester == side _group}
     && {!isNull _groupTransmitter} && {!isNull _requesterTransmitter}
     && {[_group] call WAIT_fnc_CortexIsEligible} && {[_group,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-    && {_supportEnabled}
+    && {_supportEnabled} && {!_attackAllowed || {_contactFresh}}
     && {!_operatingCrew} && {count _footFit >= 3} && {!isNull _anchor} && {behaviour _anchor != "CARELESS"} && {!fleeing _anchor}
     && {_same || {getSuppression _anchor <= ([0.2,0.65] select _contactPeer)}}
     && {_groupTransmitter distance2D _requesterTransmitter <= (missionNamespace getVariable ["WAIT_AIPass_Reinforce_Radius",600])}

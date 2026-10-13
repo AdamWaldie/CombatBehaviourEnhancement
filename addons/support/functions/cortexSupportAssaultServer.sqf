@@ -18,11 +18,12 @@
  * Repeat/JIP: one assault per request; the updated durable lease revalidates on HC migration.
  * Arguments: 0: requester <GROUP>, grpNull; 1: believed enemy ATL <ARRAY>, [].
  * 2: reply owner <NUMBER>, default -1; HC callers supply clientOwner.
+ * 3: confirmed contact time <NUMBER>, default -1, serverTime clock; missing/stale contact declines attack.
  * Return Value: Nothing.
  * Current callers: CoordinatedAssault.
- * Example: [_group,_enemyPos,clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAssaultServer",2];
+ * Example: [_group,_enemyPos,clientOwner,_confirmedAt] remoteExecCall ["WAIT_fnc_CortexSupportAssaultServer",2];
  */
-params [["_requester",grpNull,[grpNull]],["_enemy",[],[[]]],["_replyOwner",-1,[0]]];
+params [["_requester",grpNull,[grpNull]],["_enemy",[],[[]]],["_replyOwner",-1,[0]],["_confirmedAt",-1,[0]]];
 private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;
 if (!isServer || {isNull _requester} || {([_replyOwner,groupOwner _requester] call WAIT_fnc_HeadlessResolveSender) < 0}
     || {!(missionNamespace getVariable ["WAIT_AIPass_Enable",false])} || {[] call WAIT_fnc_CortexIsPaused}
@@ -30,6 +31,7 @@ if (!isServer || {isNull _requester} || {([_replyOwner,groupOwner _requester] ca
     || {!([_requester,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
     || {isNull _requesterTransmitter}
     || {count _enemy != 3} || {_enemy findIf {!(_x isEqualType 0)} >= 0} || {_requesterTransmitter distance2D _enemy > 400}) exitWith {};
+if (_confirmedAt < 0 || {_confirmedAt > serverTime+1} || {serverTime-_confirmedAt > 60}) exitWith {};
 private _requests = missionNamespace getVariable ["WAIT_AIPass_SupportRequests",createHashMap];
 private _job = _requests getOrDefault [netId _requester,createHashMap];
 if (count _job == 0 || {_job getOrDefault ["assaultIssued",false]} || {serverTime >= (_job get "expiry")}) exitWith {};
@@ -89,7 +91,7 @@ private _dispatched=[];
         if (_attack isNotEqualTo []) then {
             _approaches pushBack +_attack;
             _lease = +_lease; _lease set [2,_job get "expiry"]; _lease set [5,_attack];
-            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+_enemy],true];
+            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+_enemy,_confirmedAt],true];
             _helper setVariable ["WAIT_AIPass_SupportLease",_lease,true];
             [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",groupOwner _helper];
             _dispatched pushBack _x;

@@ -5252,6 +5252,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_coordination_confirmed_contact_age_survives_dispatch(self):
+        caller=source("cortexCoordinatedAssault");server=source("cortexSupportAssaultServer");apply=source("cortexSupportApply")
+        self.assertIn("clientOwner,_contactConfirmedAt] remoteExecCall",caller)
+        self.assertIn("serverTime-_confirmedAt > 60",server)
+        self.assertIn('[_token,+_enemy,_confirmedAt],true',server)
+        self.assertIn('_contactReceipt param [2,-1,[0]]',apply)
+        self.assertIn("serverTime-_contactConfirmedAt <= 60",apply)
+        self.assertIn("!_attackAllowed || {_contactFresh}",apply)
+        self.assertIn("count _requestContact == 3 && {count _contactReceipt == 3}",apply)
+        wait=apply.split("if (_attackAllowed && {count _requestContact != 3",1)[1].split("// Public contact",1)[0]
+        self.assertIn('serverTime < (_job get "waitUntil")',wait)
+        self.assertIn("exitWith {0.25}",wait)
+
     def test_support_drill_handover_uses_believed_contact_geometry(self):
         apply=source("cortexSupportApply")
         match=apply.split("private _localBelief=",1)[1].split("private _replaceLocalDrill",1)[0]
