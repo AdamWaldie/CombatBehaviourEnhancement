@@ -51,6 +51,8 @@
  * This establishes exit-approach observation, not complete building isolation.
  * Casualty promotion retires the matching generation/epoch exit watch before interior movement.
  * Native tasks and newer authority remain protected at that transfer boundary.
+ * Arrived exit observation installs once per local owner epoch after physical arrival checks,
+ * independently of its public stage receipt; replay issues no new movement.
  * Stage receipts distinguish REJECTED current-position holds, APPROACH and physical ARRIVED.
  * A bounded episode/transform-scoped array journal preserves search counts and tried candidates on resume.
  * Rejected selection retries after five seconds, at most three searches per actor with tried targets excluded.
@@ -757,16 +759,24 @@ private _delay=call {
             doStop _reserve;
             _stage set [1,true];
             _stage set [2,"ARRIVED"];
-            private _watch=_stage param [4,[],[[]]];
-            if (count _watch == 3) then {
-                _reserve doWatch _watch;
-                _reserve setVariable ["WAIT_Cortex_ClearExitWatch",[
-                    _job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_watch],true];
-                diag_log format ["WAIT CLEAR EXIT OBSERVATION: %1",[
-                    _job get "generation",netId _reserve,+(_stage select 0),+_watch,
-                    _stage param [6,false,[true]]]];
-            };
             _stageJournalChanged=true;
+        };
+        // Public arrival does not replay owner-local watching. Install once on
+        // this owner epoch after physical arrival, preserving native task authority.
+        private _watch=_stage param [4,[],[[]]];
+        private _watchLease=[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_watch];
+        if ((_stage param [2,""]) == "ARRIVED" && {count _watch == 3}
+            && {(_reserve getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isNotEqualTo _watchLease}
+            && {(getPosASL _reserve) vectorDistance (AGLToASL (_stage select 0)) <= 2}
+            && {abs (((getPosASL _reserve) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}
+            && {currentCommand _reserve in ["","STOP"]}
+            && {[_reserve] call _reserveReady} && {call _mayIssueMovement}) then {
+            _reserve doWatch _watch;
+            _reserve setVariable ["WAIT_Cortex_ClearExitWatch",_watchLease,true];
+            _reserve setVariable ["WAIT_Cortex_ClearExitWatchLocal",_watchLease];
+            diag_log format ["WAIT CLEAR EXIT OBSERVATION: %1",[
+                _job get "generation",netId _reserve,+(_stage select 0),+_watch,
+                _stage param [6,false,[true]]]];
         };
         // A deadline may retire only the movement request this stage still owns. It does not
         // renew the clearance lifetime or turn a blocked approach into an arrival receipt.
@@ -819,6 +829,7 @@ private _delay=call {
                     && {[_replacement] call _actorTaskFree} && {call _mayIssueMovement}) then {
                     _replacement doWatch objNull;
                     _replacement setVariable ["WAIT_Cortex_ClearExitWatch",nil,true];
+                    _replacement setVariable ["WAIT_Cortex_ClearExitWatchLocal",nil];
                     _replacement setVariable ["WAIT_Cortex_ClearReserve",nil];
                 };
                 _pair set [_slot,_replacement];
