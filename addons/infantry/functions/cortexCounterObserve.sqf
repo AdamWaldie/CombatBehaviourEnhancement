@@ -25,8 +25,10 @@ if (remoteExecutedOwner != 2 || {hasInterface && {!isServer}}
         [_x, _enemy] call WAIT_fnc_CortexSpotterFix
     } else {[]};
     if (_fix isNotEqualTo [] && {(_fix select 1) <= (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_MaxError", 100])}) then {
+        private _knowledge=_x targetKnowledge _enemy;
+        private _observedAt=serverTime-((time-(_knowledge select 2)) max 0);
         [objNull, _fix select 0, _fix select 1, "HE", missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Rounds", 4],
-            missionNamespace getVariable ["WAIT_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", _x, _enemy] call WAIT_fnc_CortexArtilleryFire;
+            missionNamespace getVariable ["WAIT_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", _x, _enemy, grpNull, _observedAt] call WAIT_fnc_CortexArtilleryFire;
     };
 } forEach (_spotters select [_cursor, 4]);
     _cursor = _cursor + 4;

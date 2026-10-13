@@ -13,13 +13,13 @@
  * which its effective commander already knows. It uses the same token, safety, warning and shot
  * confirmation path as other fire missions, but does not require the optional support-artillery
  * feature. Danger, Vehicles and Vehicle Gunnery are its three live gates.
- * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only).
+ * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only); 10: counter observer server time <NUMBER>, -1 (local legacy calls derive native last-seen time; remote observer calls require it).
  * Return Value: Boolean, request queued or accepted.
  * Current callers: ArtilleryRequest, CounterBattery, Retreat and server mission scripts.
  * Example: [_gun, _reportedPosition, 40] call WAIT_fnc_CortexArtilleryFire;
  */
 params [["_battery", objNull, [objNull]], ["_target", [], [[]]], ["_error", 0, [0]], ["_mode", "HE", [""]],
-    ["_rounds", -1, [0]], ["_scoot", -1, [0, true]], ["_purpose", "SUPPORT", [""]], ["_spotter", objNull, [objNull]], ["_enemy", objNull, [objNull]], ["_requester", grpNull, [grpNull]]];
+    ["_rounds", -1, [0]], ["_scoot", -1, [0, true]], ["_purpose", "SUPPORT", [""]], ["_spotter", objNull, [objNull]], ["_enemy", objNull, [objNull]], ["_requester", grpNull, [grpNull]], ["_observedAt",-1,[0]]];
 if (!isServer) exitWith {_this remoteExecCall ["WAIT_fnc_CortexArtilleryFire", 2]; true};
 private _retreatSmoke = !isNull _requester;
 private _danger = _purpose == "DANGER";
@@ -37,6 +37,16 @@ if (_retreatSmoke && {isNull ([_requester] call WAIT_fnc_CortexGroupTransmitter)
     || {!([_requester,"WAIT_AIPass_ArtillerySmoke_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}}) exitWith {false};
 private _requestSide = if (_retreatSmoke) then {side _requester} else {side group _spotter};
 private _counter = _purpose == "COUNTER";
+// Preserve observation age across owner/server delivery, before reserving any battery.
+if (_counter && {!isNull _spotter}) then {
+    if (_observedAt == -1 && {local _spotter} && {!isNull _enemy}) then {
+        private _knowledge=_spotter targetKnowledge _enemy;
+        if (_knowledge select 1) then {_observedAt=serverTime-((time-(_knowledge select 2)) max 0)};
+    };
+    if (!finite _observedAt || {_observedAt < 0} || {_observedAt > serverTime+1}
+        || {serverTime-_observedAt > 10}) then {_purpose=""};
+};
+if (_purpose == "") exitWith {false};
 private _feature = if (_danger) then {"WAIT_AIPass_VehicleGunnery_Enable"} else {["WAIT_AIPass_Artillery_Enable", "WAIT_AIPass_CounterBattery_Enable"] select _counter};
 if (!isNull _spotter && {!([group _spotter,_feature,false] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {false};
 if (!_danger && {!(missionNamespace getVariable [["WAIT_AIPass_Artillery_Enable", "WAIT_AIPass_CounterBattery_Enable"] select _counter, false])}) exitWith {false};
