@@ -1324,7 +1324,30 @@ private _interiorDefenderHeld=(getPosASL _contactEnemy) vectorDistance (AGLToASL
     str [getPosATL _contactEnemy,_contactRoom,currentCommand _contactEnemy]] call _check;
 private _naturalClear=[{_contactGroup getVariable ["WAIT_AIPass_ClearBuilding",false]},20] call _wait;
 ["BUILD-CONTACT-natural-clear-started",_nativeContact && {_naturalClear},str [_contactGroup getVariable ["WAIT_Cortex_ClearStatus",[]],_contactGroup getVariable ["WAIT_OperationResult",[]]]] call _check;
-private _naturalEntry=[{_contactRooms findIf {
+private _contactTraceAt=diag_tickTime;
+private _contactTraceCount=0;
+private _naturalEntry=[{
+    if (diag_tickTime >= _contactTraceAt && {_contactTraceCount < 12}) then {
+        _contactTraceAt=diag_tickTime+8;
+        _contactTraceCount=_contactTraceCount+1;
+        private _brain=_contactGroup getVariable ["WAIT_BuildingBrain",createHashMap];
+        private _job=_brain getOrDefault ["job",createHashMap];
+        private _operation=_contactGroup getVariable ["WAIT_Operation",createHashMap];
+        diag_log format ["WAIT BUILD CONTACT OWNER: %1",[_contactTraceCount,
+            _operation getOrDefault ["intent",""],_operation getOrDefault ["generation",-1],
+            _job getOrDefault ["phase",""],_brain getOrDefault ["lastStepAt",-1],
+            attackEnabled leader _contactGroup,_contactGroup getVariable ["WAIT_Cortex_ClearStatus",[]]]];
+        {
+            private _key=netId _x;
+            diag_log format ["WAIT BUILD CONTACT ACTOR: %1",[_contactTraceCount,_key,alive _x,
+                getPosATL _x,currentCommand _x,expectedDestination _x,
+                _x in (_job getOrDefault ["team",[]]),
+                (_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [_key,[]],
+                (_job getOrDefault ["actorVisits",createHashMap]) getOrDefault [_key,[]],
+                _x getVariable ["WAIT_Cortex_ActorMove",[]],getUnitState _x]];
+        } forEach (_contactMembers select [0,16]);
+    };
+    _contactRooms findIf {
     private _room=_x;
     _contactMembers findIf {alive _x && {(getPosASL _x) vectorDistance (AGLToASL _room) <= 1.5 && {abs (((getPosASL _x) select 2)-((AGLToASL _room) select 2)) <= 0.75}}} >= 0
 } >= 0},90] call _wait;
