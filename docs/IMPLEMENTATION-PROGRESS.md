@@ -1,5 +1,7 @@
 ## Current acceptance boundary - 2026-10-11
 
+Current offline follow-up through c4f8606 passed 654 tests and the full build gates. Artillery fire checks operating-gunner readiness at the command boundary; assigned observers reject hidden/simulation-disabled actors before observation commands. Counter-battery acquisition still lacks qualified non-radar detection, and later global emissions can retarget active missions without side-specific detection. These faults remain open. No new physical acceptance; audits remain paused.
+
 Source update 2026-10-13 through 4023e01: 653 tests and full offline build gates passed. Recent changes cover finite reserve staging/replay, dormant command and evidence guards, recovery yielding, aggregate progress readiness, convoy closing-cap protection, reinforcement effective strength and pilot readiness. Additional repairs cover defence floor arrival, exact garrison movement receipts and actor-only service handover, empty-order retirement, believed contact matching, and finite confirmed-contact transport with committed assault adoption. None has fresh physical acceptance. The two newly requested Workshop references are being evaluated across their entire source trees; indexing and selected reviews are not implementation acceptance. Audits remain paused.
 Current CQB evidence and remaining requirements (2026-10-12):
 
