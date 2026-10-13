@@ -5,7 +5,8 @@
  * Locality / Authority: Runs only where the vehicle is local; does not alter waypoints, route
  * selection, collision, damage, fuel, simulation or any external driving controller.
  * Repeat/JIP: Safe when called repeatedly or after ownership changes; only a locally stored WAIT
- * restore record can be applied.
+ * restore record can be applied. Player, remote-controlled or specialist effective commanders
+ * preserve their newer cap even when an ordinary AI driver belongs to another group.
  * Arguments:
  * 0: vehicle <OBJECT> - ground vehicle to release.
  * 1: expected group <GROUP, grpNull> - group-scoped cleanup; grpNull permits subsystem shutdown.
@@ -22,9 +23,17 @@ if (!isNull _expectedGroup && {(_state param [3,grpNull]) != _expectedGroup}) ex
 private _ownedCap=_state param [0,-1];
 private _ownerGroup=_state param [3,grpNull];
 private _driver=driver _vehicle;
+private _commander=effectiveCommander _vehicle;
+private _commanderTaken=!isNull _commander && {
+    isPlayer _commander || {!isNull remoteControlled _commander}
+        || {!isNull (_commander getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {[_commander] call WAIT_fnc_CortexExternalOwner != ""}
+        || {[_commander] call WAIT_fnc_CompatibilityExternalControl}
+};
 private _externalControl=(!isNull _ownerGroup && {[_ownerGroup] call WAIT_fnc_CortexExternalTakeover})
     || {!isNull _driver && {isPlayer _driver || {!isNull remoteControlled _driver}
         || {[_driver] call WAIT_fnc_CortexExternalOwner != ""}}}
+    || {_commanderTaken}
     || {_vehicle getVariable ["WAIT_Convoy_Active",false]};
 // Restore only the cap that this driving lease still owns. If another controller changed it,
 // clear our state and leave that newer value untouched.
