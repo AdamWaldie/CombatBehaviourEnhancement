@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Converts a verified fresh contact into finite, independent combined-arms roles.
+ * Protected captives, surrendering and handcuffed actors cannot reserve support assets.
  * The server ranks nearby capable ground-vehicle groups and airborne assets by live loaded ordnance and proximity, then selects at most two ground groups and one airborne group. The first
  * capable ground asset supplies direct fire; a second receives a distinct, finite manoeuvre role
  * whose route is kept on one side of the support-to-target fire lane. Aircraft are
@@ -35,6 +36,8 @@ if (!isServer || {isNull _requester} || {isNull _target} || {!alive _target}
     || {!finite _observedAt} || {_observedAt < 0} || {_observedAt > serverTime+1}
     || {serverTime-_observedAt > 10} || {_target distance2D _position > 75}
     || {(side _requester) getFriend side _target >= 0.6}
+    || {captive _target} || {_target getVariable ["ace_captives_isSurrendering",false]}
+    || {_target getVariable ["ace_captives_isHandcuffed",false]}
     || {!([_requester] call WAIT_fnc_CortexIsEligible)}
     || {!([_requester,"WAIT_AIPass_ContactReports_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {0};
 if (serverTime < (_requester getVariable ["WAIT_Cortex_CombinedDue",0])) exitWith {0};

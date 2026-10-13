@@ -9,6 +9,7 @@
  *
  * Repeat/JIP: The requester holds one expiring public fallback record. Duplicate rejection notices
  * consume no extra candidate after the cursor advances. The record is cleared with its opportunity.
+ * Role expiry preserves matching terminal outcomes; only active dispatch/application becomes EXPIRED.
  *
  * Arguments:
  * 0: requester group <GROUP>; 1: rejected aircraft group <GROUP>; 2: opportunity token <STRING>.
@@ -69,7 +70,11 @@ _replacement setVariable ["WAIT_Cortex_CombinedResult",[_token,"AIR_ATTACK","FAL
 [{
     params ["_replacement","_token","_target"];
     if (!isNull _replacement && {((_replacement getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
-        _replacement setVariable ["WAIT_Cortex_CombinedResult",[_token,"AIR_ATTACK","EXPIRED",serverTime,_target],true];
+        private _result=_replacement getVariable ["WAIT_Cortex_CombinedResult",[]];
+        if ((_result param [0,""]) == _token
+            && {(_result param [2,""]) in ["FALLBACK_DISPATCHED","DISPATCHED","APPLIED"]}) then {
+            _replacement setVariable ["WAIT_Cortex_CombinedResult",[_token,"AIR_ATTACK","EXPIRED",serverTime,_target],true];
+        };
         _replacement setVariable ["WAIT_Cortex_CombinedRole",nil,true];
         _replacement setVariable ["WAIT_Cortex_CombinedApplied",nil,true];
     };
