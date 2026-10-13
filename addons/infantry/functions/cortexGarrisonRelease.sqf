@@ -78,11 +78,20 @@ if (isNull _leader) then {_leader=leader _group};
                 _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
             };
             private _command = toUpperANSI currentCommand _x;
-            if (_canRestore || {!_externalTakeover && {_ownedHold && {_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]}}}) then {
+            private _move=_unit getVariable ["WAIT_Cortex_GarrisonMove",[]];
+            private _live=(expectedDestination _unit) param [0,[]];
+            private _ownedMove=count _move == 4 && {(_move select 0) == _group}
+                && {(_move select 1) == (_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1])}
+                && {(_move select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {count _live == 3} && {count (_move select 3) == 3}
+                && {_live vectorDistance (_move select 3) <= 0.25};
+            private _recallCommand= !(_command in ["MOVE","FOLLOW"]) || {_command == "MOVE" && {_ownedMove}};
+            if (_recallCommand && {_canRestore || {!_externalTakeover && {_ownedHold && {_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]}}}}) then {
                 _x doFollow _leader
             };
         };
     };
+    _x setVariable ["WAIT_Cortex_GarrisonMove",nil,true];
     _x setVariable ["WAIT_Cortex_GarrisonDuckStance",nil,true];
     _x setVariable ["WAIT_AIPass_GarrisonDisabledPath", nil, true];
     _x setVariable ["WAIT_AIPass_GarrisonPos", nil, true];

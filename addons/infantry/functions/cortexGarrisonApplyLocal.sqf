@@ -69,6 +69,10 @@ private _mayIssueMovement = {
         && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
+private _rememberMove = {
+    params ["_actor","_target"];
+    _actor setVariable ["WAIT_Cortex_GarrisonMove",[_group,_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1],_group getVariable ["WAIT_AIPass_Epoch",0],+_target],true];
+};
 private _buildingEntries = {
     params ["_building","_unit","_destination"];
     if (isNull _building) exitWith {[]};
@@ -168,13 +172,14 @@ private _buildingAnchor = {
             // Record the exact value WAIT applied.  Release restores the previous value only
             // while this lease is still intact, so a later controller's forced speed survives.
             _unit setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4];
-            _unit doMove _target;
+            _unit doMove _target; [_unit,_target] call _rememberMove;
         };
     };
 } forEach units _group;
 [{
     params ["_job"];
     private _group = _job get "group";
+    private _rememberMove = _job get "rememberMove";
     if (isNull _group || {!local _group} || {(_group getVariable ["WAIT_AIPass_Garrison", []]) isEqualTo []}) exitWith {-1};
     if ((_group getVariable ["WAIT_AIPass_GarrisonGeneration", -1]) != (_job get "generation")) exitWith {-1};
     // Retire the hold immediately when a player, Zeus or specialist controller owns the group.
@@ -230,7 +235,7 @@ private _buildingAnchor = {
                     _route params ["_target","_approach","_lastPosition","_lastProgress","_retries","_attempted","_reassignments","_entries","_entryIndex","_anchor","_crossing"];
                     // Door requests can repeat on multi-door buildings. Reissue the current move, but
                     // only measured travel renews progress so an actor at a threshold cannot wait forever.
-                    if (_openedDoor && {[_x] call _mayIssueMovement}) then {_x doMove _target};
+                    if (_openedDoor && {[_x] call _mayIssueMovement}) then {_x doMove _target; [_x,_target] call _rememberMove;};
                     if (_approach && {_x distance2D _target <= 5} && {[_x] call _mayIssueMovement}) then {
                         // Some building models expose an exterior entry but no usable interior
                         // crossing anchor. Proceed toward the assigned building position instead of
@@ -241,12 +246,12 @@ private _buildingAnchor = {
                         _route set [10,count _anchor >= 3];
                         _route set [2,getPosATL _x];
                         _route set [3,time];
-                        _x doMove _crossTarget;
+                        _x doMove _crossTarget; [_x,_crossTarget] call _rememberMove;
                     } else {
                         if (_crossing && {count _anchor >= 3} && {_x distance _anchor <= 2} && {[_x] call _mayIssueMovement}) then {
                             _route set [0,_assignment select 0]; _route set [2,getPosATL _x];
                             _route set [3,time]; _route set [4,0]; _route set [10,false];
-                            _x doMove (_assignment select 0);
+                            _x doMove (_assignment select 0); [_x,(_assignment select 0)] call _rememberMove;
                         } else {
                         // Lateral wandering does not renew a stalled interior route. Include floor height.
                         if ((_lastPosition vectorDistance _target)-((getPosATL _x) vectorDistance _target) >= 2) then {
@@ -254,7 +259,7 @@ private _buildingAnchor = {
                         } else {
                             if (time-_lastProgress >= 12) then {
                                 if (_retries < 2 && {[_x] call _mayIssueMovement}) then {
-                                    _x doMove _target;
+                                    _x doMove _target; [_x,_target] call _rememberMove;
                                     _route set [3,time]; _route set [4,_retries+1];
                                 } else {
                                     // Alternate exterior entrances recover a failed approach. Once an
@@ -271,7 +276,7 @@ private _buildingAnchor = {
                                         _route set [8,_nextEntry];
                                         _route set [9,[_assignment param [2,objNull],_nextTarget,_assignment select 0] call (_job get "buildingAnchor")];
                                         _route set [10,false];
-                                        _x doMove _nextTarget;
+                                        _x doMove _nextTarget; [_x,_nextTarget] call _rememberMove;
                                         diag_log format ["[WAIT] Garrison trying alternate entrance unit=%1 entrance=%2/%3 remaining=%4",_x,_nextEntry+1,count _entries,_x distance (_assignment select 0)];
                                     } else {
                                     private _occupied=(units _group) apply {
@@ -298,7 +303,7 @@ private _buildingAnchor = {
                                         _attempted pushBackUnique (str _replacementDestination);
                                         _x setVariable ["WAIT_AIPass_GarrisonPos",_replacement,true];
                                         _route=[_replacementTarget,_replacementApproach,getPosATL _x,time,0,_attempted,_reassignments+1,_replacementEntries,_replacementEntryIndex,_replacementAnchor,false];
-                                        _x doMove _replacementTarget;
+                                        _x doMove _replacementTarget; [_x,_replacementTarget] call _rememberMove;
                                         diag_log format ["[WAIT] Garrison reassigned unit=%1 remaining=%2 alternative=%3",_x,_x distance (_assignment select 0),_replacementDestination];
                                     } else {
                                         _x setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
@@ -316,5 +321,5 @@ private _buildingAnchor = {
         };
     } forEach units _group;
     [2, -1] select (_pending == 0)
-}, createHashMapFromArray [["group", _group], ["routes",_routes], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", time + 240], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
+}, createHashMapFromArray [["group", _group], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", time + 240], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
 

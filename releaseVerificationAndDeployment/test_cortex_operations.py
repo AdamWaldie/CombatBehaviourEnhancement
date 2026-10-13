@@ -4562,7 +4562,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('_canRestore || {!_externalTakeover && {_ownedHold',code)
             self.assertIn('WAIT_Cortex_ActorMove',code)
             self.assertIn('&& {_reservationFree} && {!_nativeTask}',code)
-            restore_condition=code.split('if (_canRestore ||',1)[1].split('then {',1)[0]
+            restore_condition=code.split('_canRestore ||',1)[1].split('then {',1)[0]
             for external in ['MOVE','GET IN','GET OUT','ACTION','SCRIPTED']:
                 self.assertNotIn(f'"{external}"',restore_condition)
 
@@ -5251,6 +5251,15 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('private _navigation ='),text.index('[_group, true, _configuration select 7'))
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
+
+    def test_garrison_release_preserves_replacement_move_and_follow(self):
+        apply=source("cortexGarrisonApplyLocal"); release=source("cortexGarrisonRelease")
+        self.assertEqual(apply.count("call _rememberMove;"),7)
+        self.assertIn('["rememberMove",_rememberMove]',apply)
+        self.assertIn('_live vectorDistance (_move select 3) <= 0.25',release)
+        self.assertIn('_command == "MOVE" && {_ownedMove}',release)
+        self.assertIn('if (_recallCommand &&',release)
+        self.assertIn('setVariable ["WAIT_Cortex_GarrisonMove",nil,true]',release)
 
     def test_defence_arrival_requires_destination_floor(self):
         defend=source("cortexDefendApplyLocal")
