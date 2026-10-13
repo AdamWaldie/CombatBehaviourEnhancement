@@ -104,6 +104,9 @@ private _issueNativeComparison={
     } else {
         _actor doMove _goal;
         if (_method == "REPLAN") then {_actor setDestination [_goal,"LEADER PLANNED",true]};
+        // Isolate native DirectGo planning from full path/formation planning.
+        // This excluded control still requires physical arrival; it is not production steering.
+        if (_method == "DIRECT-GO") then {_actor setDestination [_goal,"LEADER DIRECT",true]};
         if (_method == "FORMATION") then {_actor setDestination [_goal,"FORMATION PLANNED",true]};
         // Isolate the upstream CQB destination hint from its random position offset:
         // original node coordinates, existing native request, no forced replan.
@@ -165,11 +168,11 @@ private _usedTerrainHouses=[];
         _unit setVariable ["WAIT_CortexQA_Target",_target,true];
         _actors pushBack _unit;
         _cases pushBack [_group,_unit,_house,_target,_method,_label,false];
-    } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN","FORMATION","FORMATION-HINT","COMMAND-FSM","PLACED-LEADER","PLACED-FOLLOWER","ROOM-STOP","ROOM-SPEED"];
+    } forEach ["DIRECT","HOUSE-WAYPOINT","REPLAN","DIRECT-GO","FORMATION","FORMATION-HINT","COMMAND-FSM","PLACED-LEADER","PLACED-FOLLOWER","ROOM-STOP","ROOM-SPEED"];
 } forEach ["Land_i_House_Small_03_V1_F","Land_i_House_Small_01_V1_F","Land_i_House_Big_01_V1_F","Land_i_House_Big_02_V1_F"];
 missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
 private _comparisonPosition=if (_cases isNotEqualTo []) then {getPosATL ((_cases select 0) select 2)} else {[16600,12800,0]};
-["Building entry: independent comparisons","Excluded soldiers compare direct movement, a building-attached waypoint, leader-planned and formation-planned path replanning, a formation destination hint without replanning, and a native movement command FSM across small and large, single- and multi-storey houses. Cyan trails show actual movement; targets show remaining distance. Matched PLACED controls validate only new audit fixtures before spawning a leader or a follower with a separate stopped commander. Each model reports independently and does not replace the production clearance cases.",_comparisonPosition] call _phase;
+["Building entry: independent comparisons","Excluded soldiers compare direct movement, a building-attached waypoint, leader-planned and formation-planned path replanning, native DirectGo planning, a formation destination hint without replanning, and a native movement command FSM across small and large, single- and multi-storey houses. Cyan trails show actual movement; targets show remaining distance. Matched PLACED controls validate only new audit fixtures before spawning a leader or a follower with a separate stopped commander. Each model reports independently and does not replace the production clearance cases.",_comparisonPosition] call _phase;
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
     private _valid = simulationEnabled _house && {simulationEnabled _unit} && {local _unit} && {_target isNotEqualTo []}
@@ -259,14 +262,15 @@ waitUntil {
     _x params ["_unit","_nodes","_cursor","_seen","_issued","_method","_label"];
     ["BUILD-TRAVERSE-"+_label,_nodes isNotEqualTo [] && {_seen findIf {!_x} < 0},
         str [_nodes,_seen,getPosATL _unit,currentCommand _unit,expectedDestination _unit,getUnitState _unit,
-            _unit getVariable ["WAIT_CortexQA_NativeFsmResult",[]]]] call _check;
+            _unit getVariable ["WAIT_CortexQA_NativeFsmResult",[]],
+            ["NATIVE_MOVE",moveToFailed _unit,moveToCompleted _unit,canMove _unit]]] call _check;
 } forEach _walkCases;
 // Isolate door state after preserving every original traversal failure. This is
 // an explicit native diagnostic, never assistance to the production clearance cases.
 private _doorControls=[];
 {
     _x params ["_group","_unit","_house","_target","_method","_label"];
-    if (_method in ["DIRECT","REPLAN","FORMATION","FORMATION-HINT","COMMAND-FSM"]) then {
+    if (_method in ["DIRECT","REPLAN","DIRECT-GO","FORMATION","FORMATION-HINT","COMMAND-FSM"]) then {
         private _walkIndex=_walkCases findIf {(_x select 0) == _unit};
         private _missedIndex=if (_walkIndex >= 0) then {
             ((_walkCases select _walkIndex) select 3) findIf {!_x}
