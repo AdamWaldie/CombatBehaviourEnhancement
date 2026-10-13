@@ -18,6 +18,8 @@
  * still be able to transmit, so jamming continues to prevent long-range composition.
  * Repeat/JIP: requester rate limit and expiring public role tokens replace older opportunities safely.
  * Expiry preserves matching terminal outcomes; only dispatched/applied roles become EXPIRED.
+ * Candidate membership uses a request-local keyed set, preserving discovery order without
+ * repeated linear array membership searches. This does not bound total discovery population.
  * Arguments: 0: requester <GROUP>; 1: observed hostile <OBJECT>; 2: believed ATL <ARRAY>;
  * 3: observation server time <NUMBER>.
  * Return Value: Number of asset roles dispatched.
@@ -56,10 +58,15 @@ private _senderRadio=!isNull _requesterTransmitter;
 // contact opens a combined-arms opportunity. The owner still performs the authoritative
 // weapon/turret preflight before it starts a run.
 private _candidateGroups=[];
+private _candidateSeen=createHashMap;
 {
     private _candidateGroup=group _x;
-    if (!isNull _candidateGroup && {!(_candidateGroup in _candidateGroups)}) then {
-        _candidateGroups pushBack _candidateGroup;
+    if (!isNull _candidateGroup) then {
+        private _candidateKey=netId _candidateGroup;
+        if !(_candidateKey in _candidateSeen) then {
+            _candidateSeen set [_candidateKey,true];
+            _candidateGroups pushBack _candidateGroup;
+        };
     };
 } forEach (_requesterAnchor nearEntities ["Man",_airRange max _groundRange]);
 private _orderedGroups=[];
