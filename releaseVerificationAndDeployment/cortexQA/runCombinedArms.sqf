@@ -171,6 +171,9 @@ private _manoeuvreIndex=_groundEntries findIf {((_x select 0) getVariable ["WAIT
 private _fireEntry=if (_fireIndex >= 0) then {_groundEntries select _fireIndex} else {_groundEntries select 0};
 private _manoeuvreEntry=if (_manoeuvreIndex >= 0) then {_groundEntries select _manoeuvreIndex} else {_groundEntries select 1};
 _fireEntry params ["_fireGroup","_fireAsset","_fireRouteTarget","_fireRouteStart","_fireStart"];
+// Capture role identity before other bounded observation waits can outlive it.
+private _fireToken=(_fireGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""];
+private _fireOperator=gunner _fireAsset;
 _manoeuvreEntry params ["_manoeuvreGroup","_manoeuvreAsset","_manoeuvreRouteTarget","_manoeuvreRouteStart","_manoeuvreStart"];
 private _airRole=[{((_heliGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) param [4,""]) == "AIR_ATTACK"},20] call _wait;
 ["COMBINED-ground-role",_groundRoles,str (_groundEntries apply {(_x select 0) getVariable ["WAIT_Cortex_CombinedRole",[]]})] call _check;
@@ -200,8 +203,6 @@ private _groundwaitWaypoint=(waypoints _fireGroup) findIf {waypointDescription _
         _fireRouteTarget,round _fireRouteStart,round _groundRemaining,_groundLease,currentCommand driver _fireAsset,expectedDestination driver _fireAsset]] call _check;
 ["COMBINED-ground-target-shared",[{_fireGroup knowsAbout _enemy >= 2 || {!isNull assignedTarget gunner _fireAsset}},15] call _wait,
     format ["knowledge=%1 target=%2",_fireGroup knowsAbout _enemy,assignedTarget gunner _fireAsset]] call _check;
-private _fireToken=(_fireGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""];
-private _fireOperator=gunner _fireAsset;
 ["COMBINED-ground-actual-fire",[{
     _fireToken != "" && {_fireAsset getVariable ["WAIT_CortexQA_StationShots",[]] findIf {
         private _ammo=configFile >> "CfgAmmo" >> (_x select 4);
