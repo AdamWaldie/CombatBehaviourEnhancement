@@ -5252,6 +5252,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_defence_arrival_requires_destination_floor(self):
+        defend=source("cortexDefendApplyLocal")
+        self.assertIn("(getPosATL _x) vectorDistance (_assignment select 0) > 2",defend)
+        self.assertIn("(getPosATL _unit) vectorDistance (_assignment select 0) <= 3",defend)
+        self.assertIn("abs (((getPosATL _unit) select 2)-((_assignment select 0) select 2)) <= 1.5",defend)
+        self.assertNotIn("if (_unit distance2D (_assignment select 0) <= 3",defend)
+
     def test_operation_progress_requires_active_observer_and_preserves_baseline(self):
         step=source("operationStep")
         actor=step.split("private _actorProgressed=",1)[1].split("if (_actorProgressed)",1)[0]

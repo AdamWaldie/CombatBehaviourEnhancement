@@ -70,7 +70,7 @@ private _mayIssueMovement = {
     if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}) then {
         _routes pushBack [_x,getPosATL _x,time,0,_routeGeneration];
-        if (_x distance2D (_assignment select 0) > 2 && {[_x] call _mayIssueMovement}) then {
+        if ((getPosATL _x) vectorDistance (_assignment select 0) > 2 && {[_x] call _mayIssueMovement}) then {
             _x doMove (_assignment select 0);
         };
     };
@@ -110,7 +110,9 @@ private _mayIssueMovement = {
             && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}
             && {!(_unit getVariable ["WAIT_AIPass_DefendHolding", false])}
             && {!(_unit getVariable ["WAIT_AIPass_DefendFailed",false])} && {[_unit] call _mayIssueMovement}) then {
-            if (_unit distance2D (_assignment select 0) <= 3 && {[_unit] call _mayIssueMovement}) then {
+            if ((getPosATL _unit) vectorDistance (_assignment select 0) <= 3
+                && {abs (((getPosATL _unit) select 2)-((_assignment select 0) select 2)) <= 1.5}
+                && {[_unit] call _mayIssueMovement}) then {
                 doStop _unit;
                 _unit doWatch ((_assignment select 0) getPos [60, _assignment select 1]);
                 _unit setVariable ["WAIT_AIPass_DefendHolding", true];
