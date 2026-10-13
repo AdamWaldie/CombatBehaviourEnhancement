@@ -21,7 +21,7 @@
  * 0: group <GROUP or OBJECT>
  * 1: restore formation <BOOL> - false when Zeus already supplied replacement movement (default true)
  * 2: actors <ARRAY of OBJECT>, [] - empty releases the whole group; a non-empty subset retires
- *    only those members and preserves the group order and other assignments.
+ *    only those members and preserves other assignments. The group order retires once no assignments remain.
  *
  * Return Value:
  * Boolean - true when released or forwarded
@@ -105,7 +105,8 @@ if (isNull _leader) then {_leader=leader _group};
     _x setVariable ["WAIT_Cortex_GarrisonForcedSpeed",nil];
     _x setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",nil];
 } forEach _actors;
-if (!_partial) then {
+private _hasAssignments=units _group findIf {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []} >= 0;
+if (!_partial || {!_hasAssignments}) then {
     _group setVariable ["WAIT_AIPass_Garrison", nil, true];
     _group setVariable ["WAIT_Cortex_GarrisonCandidates",nil,true];
     _group setVariable ["WAIT_AIPass_GarrisonApplied", nil];
