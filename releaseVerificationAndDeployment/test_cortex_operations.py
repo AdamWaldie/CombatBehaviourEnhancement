@@ -5251,6 +5251,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_recovery_dormancy_yields_before_retry_commit(self):
+        recovery=source("recoveryStep")
+        guard='if (!(simulationEnabled _actor) || {isObjectHidden _actor}) exitWith {"YIELDED"};'
+        self.assertEqual(recovery.count(guard),2)
+        self.assertLess(recovery.index(guard),recovery.index("private _recovery="))
+        self.assertLess(recovery.rindex(guard),recovery.index("_used set [_key,_attempts+1]"))
+        self.assertLess(recovery.rindex(guard),recovery.index("_actor doMove _destination"))
+        self.assertNotIn("enableSimulation",recovery)
+
     def test_clearance_dormant_exit_remains_unresolved_without_retry_consumption(self):
         step=source("buildingOperationStep")
         exit_check=step.split("private _outsideExit={",1)[1].split("// Matching a ground exit",1)[0]
