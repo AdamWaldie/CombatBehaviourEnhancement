@@ -1,5 +1,9 @@
 # WAIT completion status
 
+Current evidence - 2026-10-13: all 65 feature families remain partial. Source through 8c7d7c7 passed 654 tests and full build gates. Normal CQB candidate 8c7d7c7 is running in runtime-20261013-045724-829 with zero HCs. Two prior resumed normal batches retained 13 and 12 findings respectively: twelve-person clearance remained incomplete, and whole-pair casualty entry failed. Narrow two/six-person cases passed; single-casualty entry varied between runs. This does not establish repeatability. Recent corrections cover planned formation fallback and removal of geometry-only room offsets; their physical acceptance is pending. The wall negative-control fixture still fails after spawn displacement and is being repaired. Later historical statements that audits are paused do not describe current authorization or runtime state. Counter-battery source now uses qualified delayed native observers and side-specific radar receipts; physical acceptance remains pending.
+
+Historical source and acceptance notes follow.
+
 Current offline follow-up through c4f8606 passed 654 tests and the full build gates. Artillery fire checks operating-gunner readiness at the command boundary; assigned observers reject hidden/simulation-disabled actors before observation commands. Counter-battery acquisition still lacks qualified non-radar detection, and later global emissions can retarget active missions without side-specific detection. These faults remain open. No new physical acceptance; audits remain paused.
 
 

@@ -13,6 +13,7 @@
  * checkpoint arrival never substitutes for visiting the assigned room.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
+ * Egress assigns bounded distinct supported exterior slots and holds arrivals within one metre.
  * Successful egress additionally requires each active worker's successive physical visits.
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
@@ -405,7 +406,7 @@ private _delay=call {
             if (_assignment param [2,false,[true]]) exitWith {false};
             // Retain observed arrivals, but frozen/hidden positions cannot establish a new exit.
             if (!(simulationEnabled _unit) || {isObjectHidden _unit}) exitWith {true};
-            private _outside=_unit distance2D _target > 5
+            private _outside=_unit distance2D _target > 1
                 || {abs (((getPosATL _unit) select 2)-(_target param [2,0])) > 1.5};
             if (!_outside) then {
                 _assignment set [2,true];
@@ -1480,6 +1481,7 @@ private _delay=call {
         _active=_active select {[_x] call _actorAvailable && {!(_x in _unavailable)}};
         private _entries=_job get "entries";
         private _buildingPos=getPosATL (_job get "building");
+        private _claimedExitPoints=[];
         private _egressAssignments=_active apply {
             private _unit=_x;
             private _entry=_job get "entry";
@@ -1490,7 +1492,29 @@ private _delay=call {
             };
             if (_entry isEqualTo []) then {_entry=_buildingPos};
             private _outward=_buildingPos getDir _entry;
-            [_unit,_entry getPos [10,_outward],false]
+            // Each worker receives its own nearby exterior slot. An exit lane is shared,
+            // but its consolidation destination is not; broad arrival radii caused piles.
+            private _exitPoint=[];
+            for "_slot" from 0 to 11 do {
+                if (_exitPoint isNotEqualTo []) exitWith {};
+                private _row=floor (_slot/3);
+                private _side=(_slot mod 3)-1;
+                private _candidate=(_entry getPos [10+3*_row,_outward]) getPos [3*_side,_outward+90];
+                private _ground=getTerrainHeightASL _candidate;
+                private _foot=[_candidate select 0,_candidate select 1,_ground];
+                private _blocked=lineIntersectsSurfaces [_foot vectorAdd [0,0,0.2],_foot vectorAdd [0,0,1.8],_unit,objNull,true,1,"GEOM","NONE"];
+                if (!surfaceIsWater _candidate && {(surfaceNormal _candidate) select 2 >= 0.85}
+                    && {_blocked isEqualTo []}
+                    && {_claimedExitPoints findIf {_x distance2D _candidate < 3} < 0}) then {
+                    _exitPoint=ASLToAGL _foot;
+                };
+            };
+            if (_exitPoint isEqualTo []) then {
+                // No usable distinct slot is a failed consolidation, never a shared success.
+                _job set ["egressFailed",true];
+                _exitPoint=getPosATL _unit;
+            } else {_claimedExitPoints pushBack +_exitPoint};
+            [_unit,_exitPoint,false]
         };
         _job set ["phase","EGRESS"];
         _job set ["egressAssignments",_egressAssignments];

@@ -473,6 +473,9 @@ private _wallActor=objNull;
 private _wallPrerequisite=false;
 if (_wallCandidate isNotEqualTo []) then {
     _wallActor=_wallGroup createUnit ["O_Soldier_F",_wallCandidate select 0,[],0,"NONE"];
+    // Initial placement of an excluded negative-control actor only. Native spawn grid
+    // snapping can move it outside the proximity prerequisite; settlement is checked below.
+    _wallActor setPosASL (AGLToASL (_wallCandidate select 0));
     doStop _wallActor;
     _wallActor setVariable ["WAIT_CortexQA_Label","EXTERIOR WALL OBSERVER CONTROL",true];
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[_wallActor],true];
@@ -722,6 +725,15 @@ deleteVehicle _wallHouse;
         str [_reserveHoldSamples,_reserveHoldViolations]] call _check;
     [format ["CLEAR-fresh-%1-physical-room-visits",_size],_physical,format ["visits=%1 units=%2",_visits,_members apply {[getPosATL _x,currentCommand _x,expectedDestination _x,_x checkAIFeature "PATH",_x checkAIFeature "MOVE",behaviour _x]}]] call _check;
     [format ["CLEAR-fresh-%1-physical-egress",_size],_egressSeen && {_egressVisits findIf {!_x} < 0},str [_egressAssignments,_egressVisits]] call _check;
+    private _egressActors=_egressAssignments apply {_x select 0};
+    private _crowded=[];
+    {
+        private _actor=_x;
+        private _partners=_egressActors select {_x != _actor && {alive _x} && {_actor distance2D _x < 1.5}};
+        if (_partners isNotEqualTo []) then {_crowded pushBack [netId _actor,_partners apply {netId _x}]};
+    } forEach _egressActors;
+    [format ["CLEAR-fresh-%1-egress-physical-separation",_size],_egressSeen && {_egressVisits findIf {!_x} < 0} && {_crowded isEqualTo []},str _crowded] call _check;
+
     private _egressRetries=_group getVariable ["WAIT_Cortex_ClearEgressRetries",[]];
     [format ["CLEAR-fresh-%1-egress-retry-budget",_size],_egressSeen && {_egressRetries findIf {(_x select 2) > 1} < 0},str _egressRetries] call _check;
     [format ["CLEAR-fresh-%1-result-agrees",_size],_physical && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"}] call _check;

@@ -2125,7 +2125,10 @@ class CortexOperations(unittest.TestCase):
     def test_clearance_egresses_before_terminal_handover(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('(_job getOrDefault ["phase","CLEAR"]) == "EGRESS"',text)
-        self.assertIn('[_unit,_entry getPos [10,_outward],false]',text)
+        self.assertIn('[_unit,_exitPoint,false]',text)
+        self.assertIn('_claimedExitPoints findIf {_x distance2D _candidate < 3}',text)
+        self.assertIn('from 0 to 11',text)
+        self.assertIn('_unit distance2D _target > 1',text)
         self.assertIn('_job set ["phase","EGRESS"]',text)
         self.assertIn('_job set ["egressAssignments",_egressAssignments]',text)
         self.assertIn('_job set ["egressFailed",true]',text)
