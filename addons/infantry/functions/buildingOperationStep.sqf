@@ -142,6 +142,14 @@ private _delay=call {
         private _routeActors=(_job getOrDefault ["team",[]])+(_job getOrDefault ["securityActors",[]]);
         _routeActors=_routeActors arrayIntersect _routeActors;
         _routeActors resize ((count _routeActors) min 16);
+        // Compact terminal causes remain readable when the longer route trace is truncated.
+        // Counts are diagnostic only; they cannot add visits or clear failure flags.
+        private _terminalVisits=_job getOrDefault ["actorVisits",createHashMap];
+        private _terminalEntered=_job getOrDefault ["enteredActors",[]];
+        diag_log format ["WAIT CLEAR TERMINAL CAUSES: %1",[_job get "generation",_result,_reason,
+            _job getOrDefault ["entryFailed",false],_job getOrDefault ["egressFailed",false],
+            _routeActors apply {[netId _x,count (_terminalVisits getOrDefault [netId _x,[]]),_x in _terminalEntered]},
+            (_job getOrDefault ["egressAssignments",[]]) apply {[netId (_x select 0),_x param [2,false]]}]];
         private _routeStates=+(_job getOrDefault ["pairStates",[]]);
         _routeStates resize ((count _routeStates) min 8);
         private _stageRecords=_job getOrDefault ["reserveStages",createHashMap];
