@@ -1019,10 +1019,12 @@ private _stagePassed=_stageClosest <= _captureRadius && {_stageDistance >= _stag
 // Discovery can acquire a fast jet after it has already flown past the nominal ingress point.
 // Continue into the firing leg when that point is physically behind the jet; ordering a turn back
 // creates the observed pre-run loop and can never improve a fixed-wing attack solution.
+// Project world velocity against ASL displacement; ATL heights at different terrain cells
+// do not share a vertical origin and can misclassify a climbing or descending approach.
 private _ingressBehind=_isPlane && {_stage == "INGRESS"}
-    && {(velocity _aircraft) vectorDotProduct (_destination vectorDiff getPosATL _aircraft) <= 0}
+    && {(velocity _aircraft) vectorDotProduct ((ATLToASL _destination) vectorDiff getPosASL _aircraft) <= 0}
     && {_aircraft distance2D _target <= 9500}
-    && {(velocity _aircraft) vectorDotProduct ((getPosATL _target) vectorDiff getPosATL _aircraft) > 0};
+    && {(velocity _aircraft) vectorDotProduct ((getPosASL _target) vectorDiff getPosASL _aircraft) > 0};
 // A lateral helicopter ingress is complete when the live aircraft enters its turret's practical
 // engagement range. Native rotary-wing combat flight does not reliably capture an arbitrary offset
 // point while a gunner is tracking a contact; waiting for that coordinate caused useful flight and
