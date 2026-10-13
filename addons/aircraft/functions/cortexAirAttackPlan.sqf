@@ -5,7 +5,8 @@
  * An airborne hostile receives an intercept plan; a surface target receives a gun strafe, fixed-rocket
  * offset/hook run, guided standoff, bomb run or helicopter lateral gun pass from aircraft type, live
  * ammunition and a bounded
- * sample of targets already known to the pilot. Intercept geometry leads the target's measured velocity,
+ * sample of targets already known to the pilot. Initial intercept geometry uses native believed
+ * position without an exact velocity lead; the live job derives motion from successive estimates,
  * varies height inside a platform-safe envelope and retains a real loaded air-to-air weapon when present.
  * This is an intercept/engage/disengage controller, not a scripted claim to full BFM. A standoff
  * plan retains the real loaded weapon/turret pair. Every surface pattern retains a loaded damaging
@@ -240,6 +241,14 @@ missionNamespace setVariable ["WAIT_Cortex_AirAmmoFacts",_ammoCache];
 
 private _airPos=getPosATL _aircraft;
 private _targetPos=getPosATL _target;
+if (_airToAir) then {
+    private _knowers=((units group _pilot) select [0,8]) select {
+        local _x && {[_x] call WAIT_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
+    };
+    private _knower=_knowers param [0,objNull,[objNull]];
+    _targetPos=if (isNull _knower) then {[]} else {_knower getHideFrom _target};
+};
+if (_targetPos isEqualTo [] || {_targetPos isEqualTo [0,0,0]}) exitWith {createHashMap};
 private _axis=_targetPos vectorDiff _airPos;
 _axis set [2,0];
 if (vectorMagnitude _axis < 1) then {_axis=[sin getDir _aircraft,cos getDir _aircraft,0]};
@@ -359,7 +368,7 @@ private _selectedMagazine=if (_airToAir) then {_airMagazine} else {
 // Sample once per finite plan. Bounded variation avoids identical attack profiles without adding
 // per-frame work or accepting unsafe arbitrary heights.
 private _altitude=if (_airToAir) then {
-    private _targetHeight=(getPosATL _target) select 2;
+    private _targetHeight=_targetPos select 2;
     if (_isPlane) then {((_targetHeight+500+random 1800) max 500) min 4500}
     else {((_targetHeight+80+random 420) max 80) min 900}
 } else {
@@ -400,7 +409,9 @@ private _attack=[];
 private _egress=[];
 switch _pattern do {
     case "INTERCEPT": {
-        private _targetVelocity=velocity _target;
+        // No script-exact unseen velocity. The live job derives motion after two
+        // native believed samples; this first estimate deliberately has no lead velocity.
+        private _targetVelocity=[0,0,0];
         private _lead=if (_isPlane) then {18+random 10} else {8+random 6};
         private _predicted=_targetPos vectorAdd (_targetVelocity vectorMultiply _lead);
         _predicted set [2,_altitude];
