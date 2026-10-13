@@ -845,6 +845,34 @@ deleteVehicle _wallHouse;
     [format ["CLEAR-fresh-%1-handover-external-speed-preserved",_size],abs ((getForcedSpeed _editedActor)-8) <= 0.1,
         str [netId _editedActor,getForcedSpeed _editedActor]] call _check;
 
+    // Repeat real clearance after ordinary movement, without resetting the surviving squad.
+    // HC lifecycle is covered separately; this case retains the normal owner throughout.
+    if (_size in [2,6] && {local _group} && {!_holdHcTransfer}) then {
+        private _priorGeneration=_group getVariable ["WAIT_AIPass_ClearGeneration",-1];
+        [format ["Repeated clearance: %1 soldiers",_size],"The same squad returns after ordinary movement. No cleanup, actor relocation or state reset occurs between episodes. Require new physical interior visits and a complete terminal result.",getPosATL _house] call _phase;
+        private _repeatAccepted=[_group,_house] call WAIT_fnc_CortexClearBuilding;
+        [format ["CLEAR-repeat-%1-accepted-new-generation",_size],_repeatAccepted
+            && {(_group getVariable ["WAIT_AIPass_ClearGeneration",-1]) > _priorGeneration}] call _check;
+        private _repeatVisits=_rooms apply {false};
+        private _repeatActors=[];
+        private _repeatEnded=[{
+            {
+                private _actor=_x;
+                {
+                    if ([_actor,_house,_x] call _observedRoomVisit) then {
+                        _repeatVisits set [_forEachIndex,true];
+                        _repeatActors pushBackUnique _actor;
+                    };
+                } forEach _rooms;
+            } forEach _members;
+            !(_group getVariable ["WAIT_AIPass_ClearBuilding",false])
+        },240] call _wait;
+        [format ["CLEAR-repeat-%1-new-physical-visits",_size],_repeatAccepted
+            && {_repeatVisits findIf {!_x} < 0} && {count _repeatActors == count _members},str [_repeatVisits,_repeatActors]] call _check;
+        [format ["CLEAR-repeat-%1-complete-terminal",_size],_repeatAccepted && {_repeatEnded}
+            && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"},
+            str (_group getVariable ["WAIT_Cortex_ClearResult",[]])] call _check;
+    };
     sleep 8;
     if (_holdHcTransfer) then {
         ["HC-CLEAR-HOLD-successor-physical",_moved] call _check;
