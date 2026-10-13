@@ -8,7 +8,8 @@
  * leg has one generation-owned movement writer. Entry, room and recovery movement each issue one
  * native doMove path request without a second formation-planner destination override.
  * Entry and floor-changing mover handoffs retain a covered checkpoint and at most one floor-access
- * checkpoint. Already-entered movers request same-floor rooms without revisiting their buddy.
+ * checkpoint. Candidate native floor connectors retain a current-floor access leg before the
+ * destination-floor landing. Already-entered movers request same-floor rooms without revisiting their buddy.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
  * An entered security partner yields a colliding mover checkpoint to a nearby physically visited
@@ -1101,6 +1102,65 @@ private _delay=call {
                                     _nearest=_distance;
                                 };
                             } forEach _accessNodes;
+                        };
+                        // A target-floor balcony alone is not an access route. Candidate
+                        // connectors start at an existing current-floor transit node, then
+                        // the nearest native landing on the requested floor. No model map,
+                        // synthetic coordinate or geometry-only room receipt is introduced.
+                        if (abs (_pointFloor-_targetFloor) > 1.5) then {
+                            private _bridges=_job getOrDefault ["nativeFloorBridges",createHashMap];
+                            private _bridgeKey=str [_entryIndex,round (_pointFloor/1.5),round (_targetFloor/1.5)];
+                            if (_targetFloor > _pointFloor+1.5 && {!(_bridgeKey in _bridges)} && {count _bridges < 8}) then {
+                                private _sourceNodes=(_job getOrDefault ["transitPositions",[]]) select [0,32];
+                                _sourceNodes=_sourceNodes select {abs (((AGLToASL _x) select 2)-_pointFloor) <= 0.75};
+                                private _sourceRanks=_sourceNodes apply {[(getPosASL _point) vectorDistance (AGLToASL _x),_x]};
+                                _sourceRanks sort true;
+                                private _bridge=[];
+                                if (_sourceRanks isNotEqualTo []) then {
+                                    private _sourceNode=+((_sourceRanks select 0) select 1);
+                                    private _landingNodes=(_job getOrDefault ["navigationPositions",[]]) select [0,32];
+                                    _landingNodes=_landingNodes select {abs (((AGLToASL _x) select 2)-_targetFloor) <= 0.75};
+                                    private _landingRanks=_landingNodes apply {[_sourceNode vectorDistance _x,_x]};
+                                    _landingRanks sort true;
+                                    if (_landingRanks isNotEqualTo []) then {
+                                        private _landing=+((_landingRanks select 0) select 1);
+                                        // At most two support probes per new connector; eight
+                                        // cached entrance/floor pairs per operation. Support is
+                                        // only a candidate filter, never proof of a native route.
+                                        private _supported={
+                                            params ["_node"];
+                                            private _origin=AGLToASL _node;
+                                            private _surfaces=lineIntersectsSurfaces [_origin vectorAdd [0,0,0.5],_origin vectorAdd [0,0,-1],_point,objNull,true,4,"GEOM","NONE"];
+                                            _surfaces findIf {((_x select 1) select 2) >= 0.7
+                                                && {(_x select 2) == _building || {(_x select 3) == _building}}
+                                                && {abs (((_x select 0) select 2)-(_origin select 2)) <= 0.75}} >= 0
+                                        };
+                                        if ([_sourceNode] call _supported && {[_landing] call _supported}) then {_bridge=[_sourceNode,_landing]};
+                                    };
+                                };
+                                _bridges set [_bridgeKey,_bridge];
+                                _job set ["nativeFloorBridges",_bridges];
+                            };
+                            private _bridge=_bridges getOrDefault [_bridgeKey,[]];
+                            // Reuse a candidate connector in reverse for descent, rather than
+                            // deriving a different route from an arbitrary upper balcony.
+                            if (_targetFloor < _pointFloor-1.5) then {
+                                private _reverseRanks=[];
+                                {
+                                    if (count _y == 2
+                                        && {abs (((AGLToASL (_y select 1)) select 2)-_pointFloor) <= 0.75}
+                                        && {abs (((AGLToASL (_y select 0)) select 2)-_targetFloor) <= 0.75}) then {
+                                        _reverseRanks pushBack [(getPosASL _point) vectorDistance (AGLToASL (_y select 1)),[_y select 1,_y select 0]];
+                                    };
+                                } forEach _bridges;
+                                _reverseRanks sort true;
+                                if (_reverseRanks isNotEqualTo []) then {_bridge=+((_reverseRanks select 0) select 1)};
+                            };
+                            if (count _bridge == 2) then {
+                                _chain=[+(_bridge select 0)];
+                                _checkpoint=+(_bridge select 1);
+                                diag_log format ["WAIT CLEAR FLOOR CONNECTOR CANDIDATE: %1",[_job get "generation",_pairIndex,netId _point,_positionIndex,+_bridge]];
+                            };
                         };
                         // Exposed balconies/access positions are not rooms, but removing them
                         // from the coverage set must not erase possible native floor access.
