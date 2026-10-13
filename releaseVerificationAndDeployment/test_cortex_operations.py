@@ -2103,7 +2103,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_record select 1)-_remaining >= 0.5',egress)
         self.assertIn('time-(_record select 2) >= 8',egress)
         self.assertIn('(_record select 3) < 1',egress)
-        self.assertIn('if ([_x] call _outsideExit)',egress)
+        self.assertIn('if ([_x] call _outsideExit && {simulationEnabled _unit} && {!isObjectHidden _unit})',egress)
         self.assertIn('if (_assignment param [2,false,[true]]) exitWith {false}', egress)
         self.assertIn('_assignment set [2,true]', egress)
         arrival=egress.split('if (!_outside) then {',1)[1].split('_outside\n',1)[0]
@@ -5250,6 +5250,16 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('private _navigation ='),text.index('[_group, true, _configuration select 7'))
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
+
+    def test_clearance_dormant_exit_remains_unresolved_without_retry_consumption(self):
+        step=source("buildingOperationStep")
+        exit_check=step.split("private _outsideExit={",1)[1].split("// Matching a ground exit",1)[0]
+        self.assertLess(exit_check.index("_assignment param [2"),exit_check.index("simulationEnabled _unit"))
+        self.assertLess(exit_check.index("simulationEnabled _unit"),exit_check.index("private _outside="))
+        self.assertIn("isObjectHidden _unit}) exitWith {true}",exit_check)
+        retry=step.split("if ([_x] call _outsideExit &&",1)[1].split("private _records=",1)[0]
+        self.assertIn("simulationEnabled _unit",retry)
+        self.assertIn("!isObjectHidden _unit",retry)
 
     def test_clearance_dormancy_blocks_commands_without_erasing_owned_roster(self):
         step=source("buildingOperationStep")

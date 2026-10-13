@@ -403,6 +403,8 @@ private _delay=call {
             // Physical exit is monotonic progress for this generation. Hold each arrival
             // once so native formation does not scatter it while partners descend stairs.
             if (_assignment param [2,false,[true]]) exitWith {false};
+            // Retain observed arrivals, but frozen/hidden positions cannot establish a new exit.
+            if (!(simulationEnabled _unit) || {isObjectHidden _unit}) exitWith {true};
             private _outside=_unit distance2D _target > 5
                 || {abs (((getPosATL _unit) select 2)-(_target param [2,0])) > 1.5};
             if (!_outside) then {
@@ -426,7 +428,7 @@ private _delay=call {
             if (call _mayIssueMovement) then {
                 {
                     _x params ["_unit","_target"];
-                    if ([_x] call _outsideExit) then {
+                    if ([_x] call _outsideExit && {simulationEnabled _unit} && {!isObjectHidden _unit}) then {
                         private _records=_job get "egressProgress";
                         private _recordIndex=_records findIf {(_x select 0) == _unit};
                         if (_recordIndex >= 0) then {
