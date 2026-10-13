@@ -23,6 +23,8 @@
  * is classified. The room receives a direct attempt within its existing retry and hard deadline.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
+ * Partner entry recovery initializes its lane target when the entry cache is absent, so
+ * initial entrance handling cannot silently suppress the finite recovery receipt.
  * The first entry-failure cause is recorded once per operation, with physical participation
  * at the failure boundary; terminal diagnostics retain it without changing acceptance.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
@@ -944,11 +946,16 @@ private _delay=call {
                 };
                 // Partner entry recovery is independent of the lead's current room.
                 // A finished room queue must not strand an unentered partner with an ended order.
-                if (count _pair > 1 && {_route isNotEqualTo []}
-                    && {str _pairIndex in (_job getOrDefault ["pairEntryTargets",createHashMap])}) then {
+                if (count _pair > 1 && {_route isNotEqualTo []}) then {
                     private _partner=_pair select ((_moverIndex+1) mod count _pair);
                     if !(_partner in (_job getOrDefault ["enteredActors",[]])) then {
-                        private _entryTarget=(_job getOrDefault ["pairEntryTargets",createHashMap]) getOrDefault [str _pairIndex,_positions select (_route select 0)];
+                        // Entry handling can precede support-target cache creation.
+                        // A missing cache must not suppress this actor's finite recovery.
+                        private _entryTargets=_job getOrDefault ["pairEntryTargets",createHashMap];
+                        private _entryKey=str _pairIndex;
+                        private _entryTarget=_entryTargets getOrDefault [_entryKey,_positions select (_route select 0)];
+                        _entryTargets set [_entryKey,+_entryTarget];
+                        _job set ["pairEntryTargets",_entryTargets];
                         if (_entryTarget isEqualTo (_positions select (_route select 0))) then {
                             _entryTarget=[_route select 0] call _roomMovementPoint;
                         };
