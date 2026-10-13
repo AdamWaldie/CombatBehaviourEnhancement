@@ -1500,7 +1500,19 @@ private _delay=call {
                     if (_ranked isNotEqualTo []) then {
                         private _index=(_ranked select 0) select 1;
                         private _target=[_index] call _roomMovementPoint;
-                        _record=[_index,(getPosASL _unit) vectorDistance (AGLToASL _target),_now,false];
+                        private _accessPoint=[];
+                        if (!(_unit in (_job getOrDefault ["enteredActors",[]])) && {_failedTargets isNotEqualTo []}) then {
+                            // Changing room alone may keep native planning on the same blocked door.
+                            // Stage a later attempt at another existing entrance before its room leg.
+                            // This is transit only, never an entry or room-clearance receipt.
+                            private _entryRanks=(_job get "entries") apply {[_unit distance2D _x,_x]};
+                            _entryRanks sort true;
+                            if (count _entryRanks > 1) then {
+                                _accessPoint=+((_entryRanks select ((count _failedTargets) mod count _entryRanks)) select 1);
+                                _target=+_accessPoint;
+                            };
+                        };
+                        _record=[_index,(getPosASL _unit) vectorDistance (AGLToASL _target),_now,false,false,_accessPoint];
                         _follow set [_key,_record];
                         _unit doMove _target;
                         [_unit,_target] call _rememberMove;
@@ -1512,6 +1524,18 @@ private _delay=call {
                     };
                 } else {
                     private _target=[_record select 0] call _roomMovementPoint;
+                    private _accessPoint=_record param [5,[],[[]]];
+                    if (_accessPoint isNotEqualTo []) then {
+                        if (_unit distance2D _accessPoint <= 3
+                            && {abs (((getPosATL _unit) select 2)-(_accessPoint select 2)) <= 1.5}) then {
+                            // Arrival at an entrance only releases the real interior movement leg.
+                            _record set [5,[]];
+                            _record set [1,(getPosASL _unit) vectorDistance (AGLToASL _target)];
+                            _record set [2,_now];
+                            _unit doMove _target;
+                            [_unit,_target] call _rememberMove;
+                        } else {_target=+_accessPoint};
+                    };
                     private _remaining=(getPosASL _unit) vectorDistance (AGLToASL _target);
                     if ((_record select 1)-_remaining >= 1) then {
                         _record set [1,_remaining]; _record set [2,_now];
