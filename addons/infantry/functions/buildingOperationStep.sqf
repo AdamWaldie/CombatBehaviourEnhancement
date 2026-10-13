@@ -721,29 +721,8 @@ private _delay=call {
                     _tried pushBackUnique +_target;
                     _stageTriedTargets set [_key,_tried];
                 };
-                private _model=_building worldToModel _target;
-                private _minimum=_bounds select 0;
-                private _maximum=_bounds select 1;
-                private _exterior=(_model select 0) < (_minimum select 0)-0.5
-                    || {(_model select 0) > (_maximum select 0)+0.5}
-                    || {(_model select 1) < (_minimum select 1)-0.5}
-                    || {(_model select 1) > (_maximum select 1)+0.5};
-                // Cover geometry is not a native path receipt. Exclude configured same-floor exit vicinity and
-                // validate standing space at the endpoint. Native pathfinding may route around corners.
-                private _blocksExit=(_job getOrDefault ["entries",[]]) findIf {
-                    _target distance2D _x < 3 && {abs (((AGLToASL _target) select 2)-((AGLToASL _x) select 2)) <= 1}
-                } >= 0;
-                private _observationClear=!terrainIntersectASL [
-                    (AGLToASL _target) vectorAdd [0,0,1.6],AGLToASL _watch]
-                    && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,1.6],
-                        AGLToASL _watch,_reserve,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
-                private _separated=_taken findIf {_target distance2D _x < 3} < 0
-                    && {(_target nearEntities ["CAManBase",1.2]) select {_x != _reserve} isEqualTo []};
-                if (_observationClear && {_separated} && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
-                    && {_target distance2D _entry <= 18} && {!surfaceIsWater _target}
-                    && {((surfaceNormal _target) select 2) >= 0.65}
-                    && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,0.15],
-                        (AGLToASL _target) vectorAdd [0,0,1.8],_reserve,objNull,true,1,"GEOM","NONE"]) isEqualTo []}) then {
+                if ([_reserve,_building,_target,_entry,_watch,
+                    _job getOrDefault ["entries",[]],_taken] call WAIT_fnc_BuildingExteriorCandidate) then {
                     if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
                         _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
                         _reserve doMove _target;

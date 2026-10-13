@@ -7968,7 +7968,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('call _mayIssueMovement',hold)
         self.assertIn('doStop _x',hold)
         stage=text.split('private _reserveStages=',1)[1].split('private _pairRosterChanged=',1)[0]
-        self.assertLess(stage.index('doStop _reserve'),stage.index('lineIntersectsSurfaces'))
+        self.assertLess(stage.index('doStop _reserve'),stage.index('call WAIT_fnc_BuildingExteriorCandidate'))
+        geometry=source('buildingExteriorCandidate')
+        self.assertIn('lineIntersectsSurfaces',geometry)
+        self.assertNotIn('doMove',geometry)
         self.assertIn('_stage=[+_hold,true,"REJECTED"]',stage)
         self.assertIn('_stage=[+_target,false,"APPROACH"]',stage)
         self.assertIn('_stage set [2,"ARRIVED"]',stage)
