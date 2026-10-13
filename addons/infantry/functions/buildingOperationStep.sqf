@@ -23,8 +23,9 @@
  * is classified. The room receives a direct attempt within its existing retry and hard deadline.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
- * A single exterior replacement follows an entered surviving mover through bounded partner
- * entry recovery rather than inheriting the removed actor's current interior movement leg.
+ * A single exterior replacement follows its healthy original surviving mover through bounded
+ * partner entry recovery. Entered survivors have priority; exterior survivors keep approach
+ * continuity. Whole-pair replacements still restart exterior entry without inherited receipts.
  * Partner entry recovery initializes its lane target when the entry cache is absent, so
  * initial entrance handling cannot silently suppress the finite recovery receipt.
  * The first entry-failure cause is recorded once per operation, with physical participation
@@ -750,11 +751,13 @@ private _delay=call {
         private _pair=_x;
         private _state=_pairStates select _pairIndex;
         private _laneRosterChanged=false;
+        private _laneReplacements=[];
         for "_slot" from 0 to ((count _pair)-1) do {
             private _member=_pair select _slot;
             if ((!([_member] call _actorAvailable) || {_member in _unavailable}) && {_reserves isNotEqualTo []}) then {
                 private _replacement=_reserves deleteAt 0;
                 _pair set [_slot,_replacement];
+                _laneReplacements pushBack _replacement;
                 _pairRosterChanged=true;
                 _laneRosterChanged=true;
                 _rotatedOut pushBackUnique _member;
@@ -810,12 +813,16 @@ private _delay=call {
                 _state set [0,0];
                 _state set [8,-1];
                 _state set [12,false];
-            } else {
+            };
+            // Early casualties may occur before either actor enters. Preserve the
+            // healthy original buddy's approach rather than making the distant reserve
+            // inherit the mover slot. A wholly replaced lane has no original survivor.
+            if (_survivorIndex < 0) then {
+                _survivorIndex=_pair findIf {!(_x in _laneReplacements) && {[_x] call _actorAvailable} && {!(_x in _unavailable)}};
+            };
+            if (_survivorIndex >= 0) then {
                 private _currentMover=_pair select ((_state select 7) mod count _pair);
-                if !(_currentMover in _enteredActors) then {
-                    // The exterior replacement has no entry receipt for the old interior
-                    // leg. Keep the entered survivor progressing; the replacement receives
-                    // this lane's bounded partner entry handling without resetting coverage.
+                if (_currentMover in _laneReplacements && {!(_currentMover in _enteredActors)}) then {
                     _state set [7,_survivorIndex];
                     _state set [5,-1];
                     diag_log format ["WAIT CLEAR REPLACEMENT ENTRY HANDOFF: %1",[
