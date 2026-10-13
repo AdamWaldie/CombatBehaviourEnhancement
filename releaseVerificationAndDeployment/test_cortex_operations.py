@@ -5252,6 +5252,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_keepCrew isEqualTo (_configuration select 4)',text)
         self.assertIn('setVariable ["WAIT_Convoy_LocalState",_navigation]',text)
 
+    def test_garrison_native_task_handover_uses_no_replacement_commands(self):
+        tick=source("cortexGroupTick")
+        handover=tick.split("// A held garrison arrival job",1)[1].split("// A group tick can complete",1)[0]
+        for task in ["GET IN","HEAL","REARM","REPAIR","SCRIPTED","CARRY SOLDIER","ASSEMBLE"]:
+            self.assertIn(f'"{task}"',handover)
+        self.assertIn("_nativeTask ||",handover)
+        self.assertIn('[_group,false,_diverted]',handover)
+        for command in ["doMove","doFollow","doStop","setUnitPos","forceSpeed"]:
+            self.assertNotIn(command,handover)
+
     def test_partial_garrison_release_preserves_other_assignments(self):
         release=source("cortexGarrisonRelease");tick=source("cortexGroupTick")
         self.assertIn('["_actors",[],[[]]]',release)

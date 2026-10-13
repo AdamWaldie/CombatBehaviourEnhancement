@@ -168,6 +168,7 @@ if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {
     private _diverted=_alive select {
         private _actor=_x;
         private _command=currentCommand _actor;
+        private _nativeTask=_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
         private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
         private _live=(expectedDestination _actor) param [0,[]];
         private _matching=count _receipt == 4 && {(_receipt select 0) == _group}
@@ -177,7 +178,7 @@ if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {
             && {_live vectorDistance (_receipt select 3) <= 0.25};
         local _actor && {!isPlayer _actor}
             && {(_actor getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}
-            && {_command == "FOLLOW" || {_command == "MOVE" && {!_matching}}}
+            && {_nativeTask || {_command == "FOLLOW"} || {_command == "MOVE" && {!_matching}}}
     };
     if (_diverted isNotEqualTo []) then {[_group,false,_diverted] call WAIT_fnc_CortexGarrisonRelease};
 };
