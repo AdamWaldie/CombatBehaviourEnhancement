@@ -13,7 +13,8 @@
  * checkpoint arrival never substitutes for visiting the assigned room.
  * An entered security partner yields a colliding mover checkpoint to a nearby physically visited
  * same-floor point. Selection is bounded and cached per partner/target/coverage/other destinations;
- * changed reservations invalidate a failed selection, and no visit is inferred.
+ * changed reservations invalidate a failed selection; only owned approaches or physical occupation
+ * reserve historical destinations, and no visit is inferred.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
@@ -1270,7 +1271,16 @@ private _delay=call {
                         private _separation=_separations getOrDefault [_separationKey,[]];
                         private _otherTargets=[];
                         {
-                            if (_x != netId _partner) then {_otherTargets pushBack (+_y)};
+                            private _otherActor=objectFromNetId _x;
+                            // Issued destinations are history, not permanent reservations.
+                            // Keep an actual owned approach or physically occupied node; a
+                            // dead, removed or handed-over actor cannot lock it indefinitely.
+                            if (_x != netId _partner && {!isNull _otherActor} && {alive _otherActor}
+                                && {group _otherActor == _group} && {count _y == 3}
+                                && {[_otherActor] call _ownsCurrentMove
+                                    || {(getPosASL _otherActor) vectorDistance (AGLToASL _y) < 2.5}}) then {
+                                _otherTargets pushBack (+_y);
+                            };
                         } forEach (_job getOrDefault ["movementTargets",createHashMap]);
                         if (count _separation != 4 || {(_separation select 0) isNotEqualTo _target}
                             || {(_separation select 1) != count _cleared}
