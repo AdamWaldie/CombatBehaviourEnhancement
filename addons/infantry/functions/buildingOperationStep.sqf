@@ -1613,8 +1613,29 @@ private _delay=call {
                     // A covered handoff cannot ask the mover to occupy the stationary
                     // buddy's exact checkpoint. Keep security on a distinct proven node,
                     // without inventing offsets inside walls or recalling exterior actors.
+                    private _legStart=getPosASL _point;
+                    private _legEnd=AGLToASL _target;
+                    private _supportPose=getPosASL _partner;
+                    private _blocksLeg={
+                        params ["_pose"];
+                        private _axis=_legEnd vectorDiff _legStart;
+                        private _lengthSquared=_axis vectorDotProduct _axis;
+                        if (_lengthSquared < 0.01) exitWith {false};
+                        private _fraction=((_pose vectorDiff _legStart) vectorDotProduct _axis)/_lengthSquared;
+                        _fraction > 0 && {_fraction < 1}
+                            && {_pose vectorDistance (_legStart vectorAdd (_axis vectorMultiply _fraction)) < 1.2}
+                    };
+                    // Actual stationary bodies can obstruct a visible approach even when
+                    // their destination is far from the mover's target. Wall-crossing straight
+                    // lines are not native-route evidence and cannot authorize this yield.
+                    private _partnerBlocksApproach=count _pair > 1 && {_partnerEntered} && {!_approachingEntry}
+                        && {currentCommand _partner == "STOP"}
+                        && {[_supportPose] call _blocksLeg}
+                        && {[_point,_legEnd] call _roomSegmentClear};
+                    private _routeContext=[+_legStart,+_supportPose];
                     if (count _pair > 1 && {_partnerEntered} && {!_approachingEntry}
-                        && {count _supportTarget == 3} && {_supportTarget vectorDistance _target < 2.5}) then {
+                        && {count _supportTarget == 3}
+                        && {_supportTarget vectorDistance _target < 2.5 || {_partnerBlocksApproach}}) then {
                         private _separations=_job getOrDefault ["pairSupportSeparation",createHashMap];
                         private _separationKey=netId _partner;
                         private _separation=_separations getOrDefault [_separationKey,[]];
@@ -1631,9 +1652,11 @@ private _delay=call {
                                 _otherTargets pushBack (+_y);
                             };
                         } forEach (_job getOrDefault ["movementTargets",createHashMap]);
-                        if (count _separation != 4 || {(_separation select 0) isNotEqualTo _target}
+                        if (count _separation != 5 || {(_separation select 0) isNotEqualTo _target}
                             || {(_separation select 1) != count _cleared}
-                            || {(_separation select 3) isNotEqualTo _otherTargets}) then {
+                            || {(_separation select 3) isNotEqualTo _otherTargets}
+                            || {(_separation select 2) isEqualTo [] && {(_separation select 4) isNotEqualTo _routeContext}}
+                            || {(_separation select 2) isNotEqualTo [] && {[AGLToASL (_separation select 2)] call _blocksLeg}}) then {
                             private _partnerPose=getPosASL _partner;
                             private _ranked=[];
                             {
@@ -1642,6 +1665,7 @@ private _delay=call {
                                 if (_candidate vectorDistance _target >= 2.5
                                     && {abs ((_candidateASL select 2)-(_partnerPose select 2)) <= 0.75}
                                     && {_candidateASL vectorDistance _partnerPose <= 8}
+                                    && {!([_candidateASL] call _blocksLeg)}
                                     && {_otherTargets findIf {count _x == 3 && {_x vectorDistance _candidate < 2.5}} < 0}) then {
                                     _ranked pushBack [_candidateASL vectorDistance _partnerPose,+_candidate];
                                 };
@@ -1650,10 +1674,11 @@ private _delay=call {
                             private _separate=if (_ranked isNotEqualTo []) then {+((_ranked select 0) select 1)} else {[]};
                             // A current physical interior hold may already be clear of the mover.
                             if (_separate isEqualTo [] && {insideBuilding _partner > 0}
-                                && {_partnerPose vectorDistance (AGLToASL _target) >= 2.5}) then {
+                                && {_partnerPose vectorDistance (AGLToASL _target) >= 2.5}
+                                && {!([_partnerPose] call _blocksLeg)}) then {
                                 _separate=getPosATL _partner;
                             };
-                            _separation=[+_target,count _cleared,+_separate,+_otherTargets];
+                            _separation=[+_target,count _cleared,+_separate,+_otherTargets,+_routeContext];
                             _separations set [_separationKey,_separation];
                             _job set ["pairSupportSeparation",_separations];
                             diag_log format ["WAIT CLEAR SUPPORT SEPARATION: %1",[_job get "generation",_pairIndex,netId _point,netId _partner,+_target,+_separate]];
