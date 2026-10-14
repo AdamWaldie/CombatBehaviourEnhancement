@@ -404,3 +404,5 @@ controller, scan, or setting is introduced. This removes a source-level pacing d
 it does not establish smoother actual movement or safe braking. Mixed tracked/wheeled step-off,
 brief/permanent stops, compressed spacing, restart, turns, reversing, convoy authority and measured
 performance require fresh live acceptance when audits resume.
+
+The prepared normal-owner vehicles audit includes a stopped tracked predecessor and ordinary truck follower. It requires physical approach, sustained separated hold, absence of queue-induced recovery, actual departure/resume, a repeated stop/resume and disabled observation cleanup. No controller callback, relocation or successful state is injected. This fixture has not been run; collision/damage/gap sampling is not a universal collision guarantee. HC migration, road curves, crossing and dense congestion need separate variants.

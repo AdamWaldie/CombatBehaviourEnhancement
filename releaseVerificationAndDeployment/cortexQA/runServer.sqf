@@ -620,6 +620,7 @@ if (_focus in ["all","features","mechanics","airborne"]) then {
     [_fallbackCheck,_fallbackPhase,_wait,"B_Parachute"] call compile preprocessFileLineNumbers "cortexQAAirborne.sqf";
 };
 if (_focus in ["all","features","mechanics","vehicles","stateflows","dangerparity","dangerbuildings"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAVehicles.sqf"};
+if (_focus in ["all","features","mechanics","vehicles"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQADrivingTraffic.sqf"};
 if (_focus in ["all","features","mechanics","vehicles","naval"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQANaval.sqf"};
 if (_focus in ["all","features","mechanics","fire"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAFire.sqf"};
 if (_focus in ["all","features","mechanics","fire","grenades"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAGrenades.sqf"};

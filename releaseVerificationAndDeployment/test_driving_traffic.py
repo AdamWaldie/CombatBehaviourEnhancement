@@ -47,4 +47,16 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('_allowed=_allowed min (_otherForward+_closingAllowance)',s)
         self.assertLess(s.index('_allowed=_allowed min'),s.index('if (_allowed < _cap)'))
         self.assertNotIn('setMass',s)
+    def test_prepared_traffic_audit_requires_physical_repeat_outcomes(self):
+        audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text()
+        for case in ('physical-approach','physical-separated-hold','release-physical-resume','repeat-physical-stop','repeat-physical-resume','disabled-observation-cleanup'):
+            self.assertIn('DRIVING-traffic-'+case,audit)
+        self.assertNotIn('call WAIT_fnc_DrivingAssistStart',audit)
+        self.assertNotIn('call WAIT_fnc_DrivingOperationStep',audit)
+        self.assertNotIn('setVariable ["WAIT_DrivingAssist_State"',audit)
+        self.assertNotIn('setPosATL',audit)
+        self.assertNotIn('setVelocity',audit)
+        self.assertIn('_stableSamples >= 12',audit)
+        self.assertIn('_follower distance2D _resumeStart >= 45',audit)
+        self.assertIn('_follower distance2D _repeatStart >= 35',audit)
 if __name__=='__main__': unittest.main()
