@@ -51,6 +51,8 @@
  * Successful egress additionally requires each active worker's successive physical visits.
  * Interior follow-through recovery requires both stalled target distance and eight seconds without
  * actual motion; native corridor/stair detours retain their path within the original episode budget.
+ * Follow-through prefers free current-floor native points using one lazy snapshot of at most eight
+ * admitted actors and their still-owned destinations. Occupancy ranks proposals; it proves no visit.
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
  * Exterior retries prefer untried real exits within the existing three-search budget; exit history
@@ -2023,6 +2025,8 @@ private _delay=call {
         private _followFailures=_job getOrDefault ["followThroughFailures",createHashMap];
         private _followExhausted=_job getOrDefault ["followThroughExhausted",[]];
         private _followBudgetChanged=false;
+        private _followReservations=[];
+        private _followReservationsReady=false;
         {
             private _unit=_x;
             private _key=netId _unit;
@@ -2055,13 +2059,37 @@ private _delay=call {
                     private _candidates=if (count _failedTargets >= 3) then {[]} else {
                         (_cleared select {!(_x in _visited) && {!(_x in _failedTargets)}}) select [0,24]
                     };
+                    // Snapshot only when an actor actually needs a new target. Physical
+                    // bodies remain obstacles; historical destinations reserve nothing unless
+                    // their native MOVE still belongs to this operation.
+                    if (_candidates isNotEqualTo [] && {!_followReservationsReady}) then {
+                        {
+                            private _actor=_x;
+                            private _ownedTarget=[];
+                            if ([_actor] call _ownsCurrentMove) then {
+                                _ownedTarget=AGLToASL ((_job get "movementTargets") get (netId _actor));
+                            };
+                            _followReservations pushBack [netId _actor,getPosASL _actor,_ownedTarget];
+                        } forEach (_activeWorkers select [0,8]);
+                        _followReservationsReady=true;
+                    };
+                    private _unitFloor=(getPosASL _unit) select 2;
                     private _ranked=_candidates apply {
                         private _position=_positions select _x;
-                        [(_unit distance2D _position)+10*abs (((getPosATL _unit) select 2)-(_position select 2)),_x]
+                        private _positionASL=AGLToASL _position;
+                        private _occupied=_followReservations findIf {
+                            (_x select 0) != _key && {
+                                (_x select 1) vectorDistance _positionASL < 1.5
+                                || {(_x select 2) isNotEqualTo []
+                                    && {(_x select 2) vectorDistance _positionASL < 1.5}}
+                            }
+                        } >= 0;
+                        [[0,1] select (abs (_unitFloor-(_positionASL select 2)) > 1.5),
+                            [0,1] select _occupied,(getPosASL _unit) vectorDistance _positionASL,_x]
                     };
                     _ranked sort true;
                     if (_ranked isNotEqualTo []) then {
-                        private _index=(_ranked select 0) select 1;
+                        private _index=(_ranked select 0) select 3;
                         private _target=[_index] call _roomMovementPoint;
                         private _accessPoint=[];
                         if (!(_unit in (_job getOrDefault ["enteredActors",[]])) && {_failedTargets isNotEqualTo []}) then {
@@ -2079,6 +2107,10 @@ private _delay=call {
                         _follow set [_key,_record];
                         _unit doMove _target;
                         [_unit,_target] call _rememberMove;
+                        private _reservationIndex=_followReservations findIf {(_x select 0) == _key};
+                        if (_reservationIndex >= 0) then {
+                            (_followReservations select _reservationIndex) set [2,AGLToASL _target];
+                        };
                     } else {
                         _followExhausted pushBackUnique _unit;
                         _followFailures set [_key,+_failedTargets];
