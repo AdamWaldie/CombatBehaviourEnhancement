@@ -2121,7 +2121,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_record set [3,1]',egress)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         self.assertIn('physical-egress',qa)
-        self.assertIn('_actor distance2D _exitTarget <= 5',qa)
+        self.assertIn('_actor distance2D _exitTarget > 1.5',qa)
+        self.assertIn('[_actor,_house,_exitTarget] call _observedExit',qa)
+        self.assertIn('[_house worldToModel _exitTarget] call _outside',qa)
         self.assertIn('abs (((getPosATL _actor) select 2)',qa)
         self.assertIn('egress-retry-budget',qa)
 
@@ -4517,9 +4519,15 @@ class CortexOperations(unittest.TestCase):
         # ownership before its arrival hold or first individual move can mutate a unit.
         self.assertIn('[_group,false] call WAIT_fnc_CortexGarrisonRelease;',garrison_apply)
         self.assertIn('if ([_unit] call _mayIssueMovement) then {doStop _unit};',garrison_apply)
-        arrival=garrison_apply.split('if (_x distance (_assignment select 0) <= 2) then {',1)[1].split('} else {',1)[0]
+        arrival=garrison_apply.split('if ([_x,_assignment] call _assignmentArrived) then {',1)[1].split('} else {',1)[0]
         self.assertIn('if ([_x] call _mayIssueMovement) then {',arrival)
         self.assertLess(arrival.index('if ([_x] call _mayIssueMovement) then {'),arrival.index('_x disableAI "PATH"'))
+        self.assertIn('["assignmentArrived",_assignmentArrived]',garrison_apply)
+        self.assertIn('_assignmentArrived=_job get "assignmentArrived"',garrison_apply)
+        physical=garrison_apply.split('private _assignmentArrived=',1)[1].split('private _buildingAnchor',1)[0]
+        for guard in ['vectorDistance _target > _radius','> 0.75','worldToModel',
+                      'lineIntersectsSurfaces','(_x select 2) == _building']:
+            self.assertIn(guard,physical)
     def test_locality_handover_uses_a_surviving_anchor_for_restoration_and_search(self):
         """A handoff during leader succession must restore only toward a viable local actor."""
         locality=source('cortexLocality')

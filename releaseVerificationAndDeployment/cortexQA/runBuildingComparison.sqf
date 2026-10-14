@@ -50,6 +50,23 @@ private _observedRoomVisit={
     private _hits=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.6],_target vectorAdd [0,0,0.6],_actor,objNull,true,8,"GEOM","NONE"];
     count _hits < 8 && {_hits findIf {(_x select 2) == _house || {(_x select 3) == _house}} < 0}
 };
+// Independent physical exit observation. An interior fallback hold cannot pass.
+private _observedExit={
+    params ["_actor","_house","_exitTarget"];
+    if (!alive _actor || {!isNull objectParent _actor} || {count _exitTarget != 3}) exitWith {false};
+    if (_actor distance2D _exitTarget > 1.5
+        || {abs (((getPosATL _actor) select 2)-(_exitTarget select 2)) > 0.75}) exitWith {false};
+    private _bounds=boundingBoxReal _house;
+    private _low=_bounds select 0;
+    private _high=_bounds select 1;
+    private _outside={
+        params ["_pose"];
+        (_pose select 0) < (_low select 0)-0.5 || {(_pose select 0) > (_high select 0)+0.5}
+            || {(_pose select 1) < (_low select 1)-0.5} || {(_pose select 1) > (_high select 1)+0.5}
+    };
+    [_house worldToModel (getPosATL _actor)] call _outside
+        && {[_house worldToModel _exitTarget] call _outside}
+};
 private _recordFixture={
     params ["_house","_label"];
     private _positions=_house buildingPos -1;
@@ -619,6 +636,11 @@ if (!_largeOnly && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch
             _valid && {_exterior == 2}
         };
         private _occupied=[{call _observedAll},150] call _wait;
+        {
+            private _assignment=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
+            diag_log format ["WAIT GARRISON SURPLUS ACTOR: %1",[netId _x,getPosASL _x,currentCommand _x,
+                _x checkAIFeature "PATH",_x getVariable ["WAIT_AIPass_GarrisonFailed",false],_assignment]];
+        } forEach _members;
         ["GARRISON-surplus-all-physical-roles",_occupied,str (_members apply {[netId _x,getPosATL _x,_x getVariable ["WAIT_AIPass_GarrisonPos",[]],_x getVariable ["WAIT_AIPass_GarrisonFailed",false]]})] call _check;
         private _poses=_members apply {getPosATL _x};
         sleep 5;
@@ -726,8 +748,7 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
                 };
                 {
                     _x params ["_actor","_target"];
-                    if (alive _actor && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1.5}
-                        && {abs (((getPosATL _actor) select 2)-(_target select 2)) <= 1.5}) then {
+                    if ([_actor,_house,_target] call _observedExit) then {
                         _exitVisits set [_forEachIndex,true];
                     };
                 } forEach _targets;
@@ -958,8 +979,7 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
         };
         {
             _x params ["_actor","_exitTarget"];
-            if (alive _actor && {_actor distance2D _exitTarget <= 5}
-                && {abs (((getPosATL _actor) select 2)-(_exitTarget param [2,0])) <= 1.5}) then {
+            if ([_actor,_house,_exitTarget] call _observedExit) then {
                 _egressVisits set [_forEachIndex,true];
             };
         } forEach _egressAssignments;
