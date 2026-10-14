@@ -49,6 +49,8 @@
  * preserving distinct supported exterior
  * destinations and live security observation lanes; arrivals hold within one metre.
  * Successful egress additionally requires each active worker's successive physical visits.
+ * Interior follow-through recovery requires both stalled target distance and eight seconds without
+ * actual motion; native corridor/stair detours retain their path within the original episode budget.
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
  * Exterior retries prefer untried real exits within the existing three-search budget; exit history
@@ -2073,7 +2075,7 @@ private _delay=call {
                                 _target=+_accessPoint;
                             };
                         };
-                        _record=[_index,(getPosASL _unit) vectorDistance (AGLToASL _target),_now,false,false,_accessPoint];
+                        _record=[_index,(getPosASL _unit) vectorDistance (AGLToASL _target),_now,false,false,_accessPoint,_now,getPosASL _unit];
                         _follow set [_key,_record];
                         _unit doMove _target;
                         [_unit,_target] call _rememberMove;
@@ -2102,18 +2104,29 @@ private _delay=call {
                             [_unit,_target] call _rememberMove;
                         } else {_target=+_accessPoint};
                     };
+                    // A native stair/corridor detour may increase direct room distance.
+                    // Observe motion separately before retiring a still-useful owned leg.
+                    // Older local records receive only a bounded observation grace; neither
+                    // the actor recovery budget nor either operation deadline is renewed.
+                    private _motionPose=_record param [7,getPosASL _unit,[[]]];
+                    if (count _record < 8) then {_record set [6,_now]; _record set [7,+_motionPose]};
+                    if ((getPosASL _unit) vectorDistance _motionPose >= 1) then {
+                        _record set [6,_now];
+                        _record set [7,getPosASL _unit];
+                    };
+                    private _motionStalled=_now-(_record select 6) >= 8;
                     private _remaining=(getPosASL _unit) vectorDistance (AGLToASL _target);
                     if ((_record select 1)-_remaining >= 1) then {
                         _record set [1,_remaining]; _record set [2,_now];
                     };
-                    if (!(_record select 3) && {_now-(_record select 2) >= 12}) then {
+                    if (!(_record select 3) && {_now-(_record select 2) >= 12} && {_motionStalled}) then {
                         private _recovery=[_group,_operationGeneration,_unit,_target] call WAIT_fnc_RecoveryStep;
                         if (_recovery == "RECOVERING") then {[_unit,_target] call _rememberMove};
                         if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {_record set [3,true]};
                     };
                     // Retire this actor's failed destination, not the actor or a real visit.
                     // Changing room does not renew the common generation recovery budget.
-                    if ((_record select 3) && {_now-(_record select 2) >= 24}) then {
+                    if ((_record select 3) && {_now-(_record select 2) >= 24} && {_motionStalled}) then {
                         private _failedTargets=_followFailures getOrDefault [_key,[]];
                         _failedTargets pushBackUnique (_record select 0);
                         _followFailures set [_key,_failedTargets];
