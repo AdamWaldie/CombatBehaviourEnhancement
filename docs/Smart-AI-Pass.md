@@ -136,6 +136,28 @@ actual driver/commander seat identities. This does not cancel an already-issued 
 command by issuing a competing stop. Physical tests must cover formation waits, leader replacement
 while recovering, seat changes during observation and subsequent valid leader recovery.
 
+Ordinary driving now has a route-scoped owner-local operation FSM. Group decisions admit or
+reuse it; the existing shared scheduler executes its cruise, deliberate-wait and recovery samples.
+Epoch, current-brain identity and the authored route receipt fence callbacks. A newer route retires
+old speed leases before fresh admission. Group release, disablement, Zeus/external takeover,
+locality loss or loss of eligible vehicles ends the operation. Exhausted recovery retains a terminal
+receipt for that exact order so discovery cannot restart the same attempts. A changed order or an
+explicit group handback can admit fresh work.
+
+A stationary native-ready vehicle within the completion radius plus 50 metres is treated
+conservatively as waiting when its waypoint is HOLD, has an inactive synchronized trigger, a
+positive timeout or a nontrivial condition. The condition is read as text and never executed by
+WAIT. The guard resets recovery observation while waiting; native waypoint processing still decides
+when movement resumes. This envelope is a recovery guard, not proof of arrival, condition truth or
+successful navigation. Terrain speed assistance remains separate from route recovery.
+
+No new settings, dependencies or vehicle polling loops are added. The FSM queues one coalesced
+sample every four seconds and yields to the existing tactical pause. It reports its semantic state
+in `WAIT_Driving_State`; this is observation, not physical acceptance. Predictive traffic, gate
+execution, yielding and overtaking remain open work. Required physical retests include trigger,
+condition and timeout waits near and far from the waypoint; same-order exhaustion; newer orders;
+repeat use; disabled/re-enabled control; and owner migration. Audits are held, so these are unrun.
+
 Convoys measure forward predecessor gaps to remain single-file; they do not use
 formation wedge offsets. Target spacing uses a size-aware minimum/maximum band
 with damped speed correction. A meaningful stop is classified as ordered,

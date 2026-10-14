@@ -1,3 +1,14 @@
+## Ordinary driving operation lifecycle
+
+Ordinary driving admission now starts/reuses an owner-local route-scoped FSM. Its phase nodes
+queue the established physical executor through the existing shared scheduler. Epoch, brain and
+route identity prevent stale execution; matching cleanup releases tracked speed leases. Cruise,
+intentional native wait, recovery and handback are separate states. Exhausted attempts retain a
+terminal receipt until a changed order or explicit group release. This is implementation work,
+not driving completion. Full offline gates and all physical wait/repeat/migration cases remain
+required; audits are still held. Predictive traffic, gate actions and yield/overtake execution remain
+incomplete.
+
 ## Driving continuation after merged follow-up
 
 The prior follow-up is merged. The next branch expands ordinary-driving waypoint identity to include

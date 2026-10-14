@@ -16,29 +16,30 @@
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
  * Only the current leader vehicle can refresh/reverse the shared route. Followers keep native
  * formation movement; a leader/seat/locality change invalidates delayed recovery commands.
+ * Deliberate native waits near the completion envelope suppress recovery without evaluating
+ * waypoint statement code. One group driving FSM admits the existing executor through the shared
+ * scheduler; group decisions never issue these commands directly.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
  * it after a locality change; route changes reset finite recovery; release restores only the forced speed captured by this function.
  * Arguments:
  * 0: group <GROUP> - local AI group commanding the vehicle.
+ * 1: operation brain <HASHMAP, empty> - internal current-owner executor receipt.
  * Return Value: Nothing.
- * Current callers: WAIT_fnc_CortexGroupTick.
+ * Current callers: WAIT_fnc_CortexGroupTick (admission), DrivingOperationStep (execution).
  * Example: [group driver truck1] call WAIT_fnc_DrivingAssistStart;
  */
 
-params [["_group",grpNull,[grpNull]]];
+params [["_group",grpNull,[grpNull]],["_brain",createHashMap,[createHashMap]]];
 if (isNull _group || {!local _group}) exitWith {};
+// Normal group decisions admit/reuse the FSM; only its current queued callback writes commands.
+if (count _brain == 0) exitWith {[_group] call WAIT_fnc_DrivingOperationStart};
+if ((_group getVariable ["WAIT_Driving_Brain",createHashMap]) isNotEqualTo _brain
+    || {_brain getOrDefault ["cancelled",false]}
+    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {};
 private _enabled=[_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
 // Read only the current authored waypoint. Conditions and trigger identities belong to the order,
 // just as its position does. A same-index edit must not inherit a reverse request for the old order.
-private _readRouteIdentity={
-    private _index=currentWaypoint _group;
-    if (_index <= 0 || {_index >= count waypoints _group}) exitWith {[]};
-    private _waypoint=[_group,_index];
-    [_index,waypointType _waypoint,waypointPosition _waypoint,
-        waypointCompletionRadius _waypoint,waypointBehaviour _waypoint,
-        waypointSpeed _waypoint,waypointCombatMode _waypoint,waypointFormation _waypoint,
-        waypointStatements _waypoint,waypointTimeout _waypoint,synchronizedTriggers _waypoint]
-};
+private _readRouteIdentity={[_group] call WAIT_fnc_DrivingRouteReceipt};
 private _vehicles=[];
 {
     private _vehicle=vehicle _x;
@@ -111,8 +112,20 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         // A shared group waypoint authorizes the leader vehicle's route, not independent
         // follower manoeuvres. Keep this separate from the safety cap: followers can still
         // receive a terrain cap while their formation movement stays native.
+        private _nativeWaiting = {
+            private _index=currentWaypoint _group;
+            if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
+            private _waypoint=[_group,_index];
+            if (abs speed _vehicle >= 1 || {!unitReady _vehicle}
+                || {_vehicle distance2D (waypointPosition _waypoint) > ((waypointCompletionRadius _waypoint max 0)+50)}) exitWith {false};
+            private _condition=toLowerANSI (((waypointStatements _waypoint) param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
+            waypointType _waypoint == "HOLD"
+                || {(synchronizedTriggers _waypoint) findIf {!isNull _x && {!triggerActivated _x}} >= 0}
+                || {(waypointTimeout _waypoint param [2,0]) > 0}
+                || {_condition != "true"}
+        };
         private _mayRecoverRoute = {
-            call _mayIssueDriving && {vehicle leader _group isEqualTo _vehicle}
+            call _mayIssueDriving && {vehicle leader _group isEqualTo _vehicle} && {!(call _nativeWaiting)}
         };
         private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
@@ -148,6 +161,10 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 _state set [6,0];
                 _state set [7,-1];
                 _state set [8,"NATIVE_FOLLOWER"];
+            };
+            if (_state isNotEqualTo [] && {call _nativeWaiting}) then {
+                _state set [4,getPosATL _vehicle];_state set [5,time];
+                _state set [6,0];_state set [7,-1];_state set [8,"INTENTIONAL_WAIT"];
             };
             private _origin=getPosASL _vehicle;
             private _direction=vectorDir _vehicle;
@@ -197,6 +214,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _recoveryStage=_state param [6,0];
             private _recoveryUntil=_state param [7,-1];
             private _recoveryResult=_state param [8,"IDLE"];
+            if (call _nativeWaiting) then {_recoveryResult="INTENTIONAL_WAIT"};
             private _routeProgress=true;
             if (_recoveryStage > 0) then {
                 private _progressWaypoint=currentWaypoint _group;

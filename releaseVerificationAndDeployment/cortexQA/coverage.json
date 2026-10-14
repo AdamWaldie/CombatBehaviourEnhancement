@@ -742,7 +742,12 @@
       ],
       "production_sources": [
         "addons/vehicles/functions/drivingAssistStart.sqf",
-        "addons/vehicles/functions/drivingAssistRelease.sqf"
+        "addons/vehicles/functions/drivingAssistRelease.sqf",
+        "addons/vehicles/functions/drivingRouteReceipt.sqf",
+        "addons/vehicles/functions/drivingOperationStart.sqf",
+        "addons/vehicles/functions/drivingOperationQueue.sqf",
+        "addons/vehicles/functions/drivingOperationStep.sqf",
+        "addons/vehicles/functions/drivingOperationFinish.sqf"
       ]
     },
     {

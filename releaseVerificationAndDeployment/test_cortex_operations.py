@@ -7396,10 +7396,51 @@ class CortexOperations(unittest.TestCase):
 
 
 
+    def test_ordinary_driving_fsm_owns_queued_execution_and_terminal_receipts(self):
+        """Old/replaced/retired driving work cannot enter the movement executor."""
+        fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text(encoding='utf-8')
+        start=(ROOT/'addons/vehicles/functions/drivingOperationStart.sqf').read_text(encoding='utf-8')
+        queue=(ROOT/'addons/vehicles/functions/drivingOperationQueue.sqf').read_text(encoding='utf-8')
+        step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text(encoding='utf-8')
+        finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text(encoding='utf-8')
+        execute=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        for phase in ['Cruise','IntentionalWait','Recovery','Finished','SchedulerWatchdog']:
+            self.assertIn('class '+phase,fsm)
+        self.assertIn('drivingOperation.fsm',start)
+        self.assertIn('WAIT_fnc_CortexQueueJob',queue)
+        self.assertIn('WAIT_DRIVING_%1_%2_%3',queue)
+        self.assertIn('if (count _brain == 0) exitWith {[_group] call WAIT_fnc_DrivingOperationStart}',execute)
+        self.assertIn('[_group,_brain] call WAIT_fnc_DrivingAssistStart',step)
+        for text in [queue,step,finish,execute]:
+            self.assertIn('WAIT_Driving_Brain',text)
+            self.assertIn('ownerEpoch',text)
+        self.assertIn('EXHAUSTED',start+step+finish)
+        self.assertIn('if (_reason != "EXHAUSTED")',finish)
+        self.assertIn('WAIT_fnc_DrivingOperationFinish',source('cortexReleaseGroup'))
+        self.assertNotIn('sleep',step)
+        self.assertNotIn('forceSpeed',queue)
+        self.assertNotIn('doMove',fsm)
+        locality=source('cortexLocality')
+        self.assertLess(locality.index('WAIT_fnc_DrivingOperationFinish'),locality.index('_group setVariable ["WAIT_AIPass_Epoch"'))
+        self.assertIn('WAIT_fnc_DrivingOperationFinish',source('cortexStop'))
+        self.assertLess(start.index('call WAIT_fnc_CortexLocality'),start.index('private _epoch='))
+
+
+    def test_driving_native_wait_never_executes_condition_or_starts_recovery(self):
+        text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        wait=text.split('private _nativeWaiting = {',1)[1].split('private _mayRecoverRoute',1)[0]
+        for proof in ['!unitReady _vehicle','waypointCompletionRadius','triggerActivated',
+                      'waypointTimeout','waypointStatements','"HOLD"']:
+            self.assertIn(proof,wait)
+        self.assertNotIn('compile',wait)
+        self.assertNotIn('call _condition',wait)
+        self.assertIn('&& {!(call _nativeWaiting)}',text)
+        self.assertIn('_state set [8,"INTENTIONAL_WAIT"]',text)
+
     def test_driving_same_index_order_edits_invalidate_recovery_before_every_write(self):
         """A condition/trigger/speed edit must fence a stale reverse, even with unchanged position."""
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
-        receipt=start.split('private _readRouteIdentity={',1)[1].split('private _vehicles=[];',1)[0]
+        receipt=(ROOT/'addons/vehicles/functions/drivingRouteReceipt.sqf').read_text(encoding='utf-8')
         for command in ['waypointStatements','waypointTimeout','synchronizedTriggers',
                         'waypointSpeed','waypointCombatMode','waypointFormation']:
             self.assertIn(command,receipt)
