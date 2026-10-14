@@ -951,7 +951,7 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
             };
         } forEach _members;
         private _exit=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
-        if (!_egressSeen && {count _exit == 4} && {(_exit select 0) == "EGRESS"}) then {
+        if (!_egressSeen && {count _exit in [4,10]} && {(_exit select 0) == "EGRESS"}) then {
             _egressAssignments=+(_exit select 3);
             _egressVisits=_egressAssignments apply {false};
             _egressSeen=_egressAssignments isNotEqualTo [];

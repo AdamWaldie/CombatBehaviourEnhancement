@@ -2144,6 +2144,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('isNotEqualTo _journal',publish)
         self.assertIn('_record param [3,0]',publish)
         self.assertIn('_job get "egressDeadlineServer"',publish)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        observe=qa.split('private _exit=_group getVariable ["WAIT_Cortex_ClearEgress",[]];',1)[1].split('forEach _egressAssignments;',1)[0]
+        self.assertIn('count _exit in [4,10]',observe)
+        self.assertIn('_egressAssignments=+(_exit select 3)',observe)
+        self.assertIn('_egressVisits set [_forEachIndex,true]',observe)
 
     def test_clearance_egresses_before_terminal_handover(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
