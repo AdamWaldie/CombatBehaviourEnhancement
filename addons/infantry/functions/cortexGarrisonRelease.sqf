@@ -12,7 +12,7 @@
  *
  * Review contract: Repeated release restores PATH only for soldiers marked as disabled by this garrison. Mission-maker PATH restrictions remain in place; public assignments are cleared for JIP.
  *
- * Restores only an unchanged Cortex duck stance; preserves later Zeus/script stance choices.
+ * Restores only unchanged Cortex duck or approach stances; preserves later Zeus/script stance choices.
  * Posture, watch, speed and formation restoration also require a combat-effective actor
  * without actor-specific external ownership, an active reservation or a finite native task.
  * Owned PATH locks and metadata are still retired, allowing replacement tasks to move.
@@ -78,6 +78,9 @@ if (isNull _leader) then {_leader=leader _group};
                     _x setUnitPos (_x getVariable ["WAIT_AIPass_GarrisonStance", "AUTO"]);
                 };
             };
+            if (!_externalTakeover && {unitPos _x == (_x getVariable ["WAIT_Cortex_GarrisonAppliedStance",""])}) then {
+                _x setUnitPos (_x getVariable ["WAIT_AIPass_GarrisonStance","AUTO"]);
+            };
             if (!_externalTakeover) then {_x doWatch objNull;};
             if (!_externalTakeover && {getForcedSpeed _x == (_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",-2])} && {!isNil {_x getVariable "WAIT_Cortex_GarrisonForcedSpeed"}}) then {
                 _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
@@ -98,6 +101,7 @@ if (isNull _leader) then {_leader=leader _group};
     };
     _x setVariable ["WAIT_Cortex_GarrisonMove",nil,true];
     _x setVariable ["WAIT_Cortex_GarrisonDuckStance",nil,true];
+    _x setVariable ["WAIT_Cortex_GarrisonAppliedStance",nil,true];
     _x setVariable ["WAIT_AIPass_GarrisonDisabledPath", nil, true];
     _x setVariable ["WAIT_AIPass_GarrisonPos", nil, true];
     _x setVariable ["WAIT_AIPass_GarrisonFailed",nil,true];

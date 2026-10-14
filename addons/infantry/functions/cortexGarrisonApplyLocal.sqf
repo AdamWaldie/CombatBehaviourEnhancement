@@ -10,6 +10,7 @@
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
  * Arrival and failure release only an unchanged WAIT approach speed cap; newer speed commands survive.
  * Saved and applied speed values are published with the actor so owner adoption preserves restoration.
+ * Approach stance also has a public applied-value lease for unchanged-stance restoration on release.
  * Transform-bound assignments are checked before initial/deferred commands and alternate-slot selection.
  * Moved or deleted buildings release affected actors through the existing partial cleanup path.
  * Owner adoption preserves published exhausted-route failures; only a fresh explicit order, whose
@@ -206,6 +207,7 @@ private _buildingAnchor = {
         private _anchor=if (_approach) then {[_building,_target,_destination] call _buildingAnchor} else {[]};
         _routes set [netId _unit,[_target,_approach,getPosATL _unit,time,0,[str _destination],0,_entries,_entryIndex,_anchor,false]];
         if (_unit distance _destination > 2 && {[_unit] call _mayIssueMovement}) then {
+            _unit setVariable ["WAIT_Cortex_GarrisonAppliedStance","UP",true];
             _unit setUnitPos "UP";
             _unit forceSpeed 4;
             // Record the exact value WAIT applied.  Release restores the previous value only
