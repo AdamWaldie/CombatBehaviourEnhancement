@@ -120,3 +120,35 @@ class CortexReportTests(unittest.TestCase):
         self.assertEqual('a'*64,report['source_fingerprint'])
         self.assertEqual([],report['provenance_issues'])
         self.assertIn('`'+('a'*64)+'`','\n'.join(render_markdown(report)))
+
+    def test_documented_character_warning_requires_positive_same_process_runtime_evidence(self):
+        warning=r'18:00:00 Warning Message: You cannot play/edit this mission; it is dependent on downloadable content that has been deleted.\na3_characters_f'
+        present='WAIT AUDIT DEPENDENCIES|owner=2|patches=[[""A3_Characters_F"",true]]|observerClass=true\n'
+        activated='WAIT AUDIT ADDON ACTIVATION|owner=2|patches=[[""A3_Characters_F"",true]]\n'
+        ready='WAIT AUDIT OBSERVER ZEUS READY\n'
+        done='WAIT CORTEX QA|case|PASS|\nWAIT CORTEX QA SERVER COMPLETE: 0 finding(s) []\nWAIT CORTEX QA CLIENT COMPLETE: 0 finding(s) []'
+        report=summarize({'server.rpt':self.SOURCE+warning+'\n'+present+activated+ready+done})
+        self.assertEqual('PASS',report['status'])
+        self.assertEqual([],report['load_errors'])
+        self.assertEqual(warning,report['known_engine_warnings'][0]['message'])
+        self.assertIn('Known engine warnings', '\n'.join(render_markdown(report)))
+        for evidence in [present+ready,activated+ready,present+activated]:
+            with self.subTest(evidence=evidence):
+                report=summarize({'server.rpt':self.SOURCE+warning+'\n'+evidence+done})
+                self.assertEqual('FAIL',report['status'])
+                self.assertEqual([],report['known_engine_warnings'])
+        report=summarize({'server.rpt':warning,'client.rpt':present+activated+ready})
+        self.assertEqual('FAIL',report['status'])
+        self.assertEqual([],report['known_engine_warnings'])
+
+    def test_character_warning_exception_cannot_hide_other_addons_or_real_failures(self):
+        evidence='WAIT AUDIT DEPENDENCIES|patches=[["A3_Characters_F",true]]|observerClass=true\nWAIT AUDIT ADDON ACTIVATION|patches=[["A3_Characters_F",true]]\nWAIT AUDIT OBSERVER ZEUS READY\n'
+        prefix=r'Warning Message: You cannot play/edit this mission; it is dependent on downloadable content that has been deleted.\n'
+        for addon in ['other_addon','a3_characters_f,other_addon','a3_characters_f other_addon']:
+            report=summarize({'server.rpt':evidence+prefix+addon})
+            self.assertEqual('FAIL',report['status'])
+            self.assertEqual(1,len(report['load_errors']))
+            self.assertEqual([],report['known_engine_warnings'])
+        report=summarize({'server.rpt':evidence+prefix+'a3_characters_f\nWAIT CORTEX QA|case|FAIL|'})
+        self.assertEqual('FAIL',report['status'])
+        self.assertEqual(1,len(report['known_engine_warnings']))
