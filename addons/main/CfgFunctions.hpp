@@ -100,6 +100,7 @@ class CfgFunctions {
             class BuildingOperationQueue {file = "\z\waldo_ai_tweaks\addons\infantry\functions\buildingOperationQueue.sqf";};
             class BuildingOperationStep {file = "\z\waldo_ai_tweaks\addons\infantry\functions\buildingOperationStep.sqf";};
             class OperationStart {file = "\z\waldo_ai_tweaks\addons\core\functions\operationStart.sqf";};
+            class AuthoredRouteReceipt {file = "\z\waldo_ai_tweaks\addons\core\functions\authoredRouteReceipt.sqf";};
             class NativeOrderReceipt {file = "\z\waldo_ai_tweaks\addons\core\functions\nativeOrderReceipt.sqf";};
             class OperationStep {file = "\z\waldo_ai_tweaks\addons\core\functions\operationStep.sqf";};
             class OperationCancel {file = "\z\waldo_ai_tweaks\addons\core\functions\operationCancel.sqf";};

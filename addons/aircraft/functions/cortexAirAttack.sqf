@@ -347,7 +347,7 @@ if (_stage == "") then {
     if (_waypointIndex >= 0 && {_waypointIndex < count waypoints _group}) then {_resumePosition=waypointPosition [_group,_waypointIndex]};
     // Capture authored route content rather than currentWaypoint. The engine advances that index as
     // an aircraft flies, which previously looked like a replacement order and cancelled valid runs.
-    private _routeSignature=waypoints _group apply {[waypointPosition _x,waypointType _x]};
+    private _routeSignature=[_group] call WAIT_fnc_AuthoredRouteReceipt;
     _job set ["target",_target]; _job set ["points",_plan get "points"];
     _job set ["pattern",_plan get "pattern"]; _job set ["token",_plan get "token"];
     if ((_plan get "pattern") == "LATERAL") then {
@@ -490,9 +490,7 @@ if (_stage == "") then {
 };
 if (_startFailure != "") exitWith {[_startFailure] call _finish};
 private _ownedWaypointName=_job getOrDefault ["ownedWaypointName",""];
-private _currentRoute=(waypoints _group select {waypointName _x != _ownedWaypointName}) apply {
-    [waypointPosition _x,waypointType _x]
-};
+private _currentRoute=[_group,_ownedWaypointName] call WAIT_fnc_AuthoredRouteReceipt;
 if (_currentRoute isNotEqualTo (_job getOrDefault ["routeSignature",_currentRoute])) exitWith {["AUTHORED_ROUTE_CHANGED"] call _finish};
 private _target=_job getOrDefault ["target",objNull];
 if (!isNull _target && {alive _target} && {captive _target
@@ -685,9 +683,10 @@ if (_commandedStage != _stage) then {
         _created
     } else {(waypoints _group) select _ownedWaypointIndex};
     _ownedWaypoint setWaypointPosition [_destination,0];
-    // Object-attached DESTROY is the supported native attack association for both air and surface
-    // targets. It lets the aircraft FSM form the actual attack angle instead of Cortex forcing an
-    // attitude that is only safe over flat VR terrain.
+    // Object-attached DESTROY is this controller's current native association, not a documented
+    // guarantee for every aircraft: the engine command documents GETIN support and warns that
+    // other types may not work. Keep this path pending physical attack/flight acceptance;
+    // Cortex never forces an attitude to hide a failed native association.
     if (_nativeAttackWaypoint) then {
         _ownedWaypoint setWaypointPosition [getPosATL _target,0];
         _ownedWaypoint setWaypointType "DESTROY";

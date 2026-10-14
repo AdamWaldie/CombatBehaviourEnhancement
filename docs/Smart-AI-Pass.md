@@ -445,3 +445,26 @@ checks remain. No new scan, reveal, sensor capability or scripted turn is added.
 intercept departure on uneven terrain, target deletion, climbing/descending exits and real weapon
 release remain pending physical acceptance. Broader native route receipts, detection reliability,
 turning/energy limits and intercept geometry still need further review and live evidence.
+
+
+## Aircraft authored-route replacement
+
+Air attack admission and active callbacks now use the same authored-route receipt. It includes
+position/type/name/description, completion radius, condition/activation text, timeouts, speed,
+behaviour/combat/formation, waypoint script, object/vehicle attachment identities, synchronized
+triggers/waypoints, house position and loiter parameters. The receipt reads text without executing
+it. Natural current-waypoint progression is excluded. WAIT's named temporary attack leg is also
+excluded so its own phase changes do not look like an authored replacement. For an attached
+waypoint, the object identity replaces its moving world position in the receipt.
+
+A changed receipt uses the existing AUTHORED_ROUTE_CHANGED handback, which removes WAIT's owned
+leg without restoring an old route or issuing a competing resume order. This adds fixed metadata
+reads per authored waypoint, proportional to route size, at the existing active callback cadence;
+there is no new world scan or worker. Long-route cost and same-index/attachment changes need
+live validation. This does not yet prove detection of every possible edit to WAIT's own leg.
+
+The existing DESTROY association uses waypointAttachVehicle experimentally. The engine documents
+that command for GETIN transport association and cautions that other waypoint types may not work:
+[waypointAttachVehicle documentation](https://community.bistudio.com/wiki/waypointAttachVehicle).
+Native attack association, detection/radar, roll-in, true weapon release and finite egress remain
+unverified across aircraft classes. A registered target or plan cannot pass those physical cases.
