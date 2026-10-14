@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Purpose: Proposes one uncovered exterior ground position around an actual building exit.
  * Locality/authority: Read-only query on the actor owner; never issues movement or changes state.
- * Repeat/JIP: One native query per call; callers retain attempt/deadline budgets and public history.
+ * Repeat/JIP: At most one native query per call; callers retain attempt/deadline budgets and public history.
+ * The query envelope preserves supplied post and observation-corridor exclusions after native snapping.
+ * Computing that envelope adds no world scans, geometry rays, commands or persistent state.
  * Arguments: 0 actor <OBJECT, objNull>; 1 search ATL <ARRAY, []>; 2 exit ATL <ARRAY, []>;
  * 3 reserved ATL points <ARRAY, []>; 4 observer lanes <ARRAY, []>, each [post ATL, watch ATL].
  * Refuses more than 128 reservations or 64 lanes; validates every supplied coordinate.
@@ -60,6 +62,34 @@ private _emptyCentre=+_search;
         };
     };
 } forEach _observerLanes;
-if (_emptyCentre distance2D _entry <= 16) then {
-    _emptyCentre findEmptyPosition [0.75,8,typeOf _actor]
-} else {[]}
+// Native search can move its result away from the corrected centre. Its whole
+// search disc must fit inside the remaining reservation/corridor clearance;
+// otherwise the search can undo the correction and repeatedly return a rejected post.
+private _exitDistance=_emptyCentre distance2D _entry;
+if (_exitDistance > 16) exitWith {[]};
+private _searchRadius=8 min (_exitDistance-3.05) min (17.95-_exitDistance);
+{
+    _searchRadius=_searchRadius min ((_emptyCentre distance2D _x)-3.05);
+} forEach _taken;
+{
+    private _start=+(_x select 0);
+    private _axis=(_x select 1) vectorDiff _start;
+    _axis set [2,0];
+    private _lengthSquared=_axis vectorDotProduct _axis;
+    if (_lengthSquared > 0.01) then {
+        private _offset=_emptyCentre vectorDiff _start;
+        _offset set [2,0];
+        private _fraction=(((_offset vectorDotProduct _axis)/_lengthSquared) max 0) min 1;
+        private _closest=_start vectorAdd (_axis vectorMultiply _fraction);
+        // A 2D corridor envelope is conservative on sloping ground. The caller
+        // still checks actual 3D standing space, terrain and both observation directions.
+        _searchRadius=_searchRadius min ((_emptyCentre distance2D _closest)-1.25);
+    };
+} forEach _observerLanes;
+if (_searchRadius < 0) exitWith {[]};
+// areaRadius=0 ensures the native search does not silently add another 0.75 m
+// beyond this envelope. Zero available radius becomes the documented exact-position query.
+private _proposal=_emptyCentre findEmptyPosition [0,_searchRadius,typeOf _actor];
+if (!([_proposal] call _positionValid)
+    || {_proposal distance2D _emptyCentre > _searchRadius+0.01}) exitWith {[]};
+_proposal
