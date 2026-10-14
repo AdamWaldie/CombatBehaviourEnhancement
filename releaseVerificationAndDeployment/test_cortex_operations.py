@@ -4190,6 +4190,17 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doFollow',text)
         local=source('cortexCombinedArmsLocal')
         self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),6)
+    def test_combined_ground_refusal_producer_reasons_reach_server_retirement(self):
+        local=source('cortexCombinedArmsLocal')
+        server=source('cortexCombinedRejectServer')
+        emitted=set(re.findall(r'_fireRefusal\s*=\s*"([^"\n]+)"',local))
+        emitted.update(re.findall(r'\[_group,_opportunity,"([^"\n]+)",clientOwner\] remoteExecCall \["WAIT_fnc_CortexCombinedRejectServer",2\]',local))
+        accepted=re.search(r'_reason in \[(.*?)\]',server)
+        self.assertIsNotNone(accepted)
+        allowed=set(re.findall(r'"([^"\n]+)"',accepted.group(1)))
+        self.assertIn('NO_STATION_AMMO',emitted)
+        self.assertLessEqual(emitted,allowed)
+
     def test_combined_ground_admission_preserves_other_live_intents(self):
         text=source('cortexCombinedArmsLocal')
         self.assertIn('_role == "GROUND_MANOEUVRE" && {count _existingOperation > 0}',text)
