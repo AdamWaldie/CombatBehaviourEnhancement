@@ -21,6 +21,8 @@
  * releases the failed garrison rather than retaining an empty stationary tactical intent.
  * Surplus exterior security searches at most one actor per callback and three times per actor.
  * Valid slots observe real exits, retain distinct destinations and use the original order deadline.
+ * Each search counts live reservations once; failed/incapacitated actors do not claim exit coverage.
+ * Physical occupants remain excluded by the shared geometry validator.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -282,18 +284,28 @@ private _buildingAnchor = {
                         private _building=_x param [2,objNull];
                         if (!isNull _building && {[_x] call _assignmentValid}) then {_buildings pushBackUnique _building};
                     } forEach ((_group getVariable ["WAIT_Cortex_GarrisonCandidates",[]]) select [0,64]);
+                    private _exitCounts=createHashMap;
+                    private _taken=[];
+                    {
+                        private _other=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
+                        if (_x != _actor && {[_x] call WAIT_fnc_CortexCombatEffective}
+                            && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}
+                            && {_other isNotEqualTo []}) then {
+                            _taken pushBack (_other select 0);
+                            if ((_other param [4,"INTERIOR"]) == "EXTERIOR") then {
+                                private _exitKey=str [_other param [2,objNull],_other param [6,[]]];
+                                _exitCounts set [_exitKey,(_exitCounts getOrDefault [_exitKey,0])+1];
+                            };
+                        };
+                    } forEach units _group;
                     private _ranks=[];
                     {
                         private _building=_x;
                         private _entries=[_building,_actor,getPosATL _building] call (_job get "buildingEntries");
                         {
                             private _entry=_x;
-                            private _used=(units _group) select {
-                                private _other=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
-                                (_other param [4,"INTERIOR"]) == "EXTERIOR"
-                                    && {(_other param [2,objNull]) == _building} && {(_other param [6,[]]) isEqualTo _entry}
-                            };
-                            _ranks pushBack [[0,1] select ([_building,_entry] in _history),count _used,
+                            private _used=_exitCounts getOrDefault [str [_building,_entry],0];
+                            _ranks pushBack [[0,1] select ([_building,_entry] in _history),_used,
                                 _actor distance2D _entry,count _ranks,_building,+_entry];
                         } forEach _entries;
                     } forEach (_buildings select [0,16]);
@@ -310,8 +322,6 @@ private _buildingAnchor = {
                         private _search=_entry getPos [7,_outward];
                         private _watch=_entry getPos [2,_outward];
                         _watch set [2,(_entry select 2)+1.2];
-                        private _taken=(units _group) select {_x != _actor && {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}};
-                        _taken=_taken apply {(_x getVariable "WAIT_AIPass_GarrisonPos") select 0};
                         private _cover=[_search,_centre,12,_taken,_group] call WAIT_fnc_CortexFindCover;
                         private _target=_cover select 0;
                         private _entries=[];
