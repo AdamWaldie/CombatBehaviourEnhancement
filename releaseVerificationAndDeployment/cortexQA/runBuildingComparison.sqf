@@ -18,6 +18,8 @@
  * Exterior reserve observation requires live physical arrival, heading within 75 degrees of
  * the assigned watch point and an unobstructed actual eye-to-watch ray. All living exterior
  * participants in the twelve-person fixture must be observed; stage labels alone cannot pass.
+ * An additive garrison overflow case requires all interior posts and two distinct exterior observers,
+ * then physical ordinary-order handover. This is navigation/occupation, not combat-effectiveness proof.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; all required audit callbacks.
  * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
  * Optional fifth argument: skipNative <BOOL>, false; run production acceptance without repeating controls.
@@ -558,6 +560,84 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 if (!isNull _wallActor) then {deleteVehicle _wallActor};
 deleteGroup _wallGroup;
 deleteVehicle _wallHouse;
+// Additive normal-owner overflow acceptance; connected HCs cannot masquerade as owner coverage.
+if (!_largeOnly && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])}) then {
+    private _site=[6350,5500,0];
+    private _securityHouse=createVehicle ["Land_i_House_Small_01_V1_F",_site,[],0,"NONE"];
+    _securityHouse enableSimulationGlobal true;
+    [_securityHouse,"garrison-surplus"] call _validateNewFixturePlacement;
+    [_securityHouse,"garrison-surplus"] call _recordFixture;
+    private _capacity=count (_securityHouse buildingPos -1);
+    private _fixtureReady=_capacity > 0 && {_capacity <= 8}
+        && {((nearestObjects [_site,["House"],50,true])-[_securityHouse]) isEqualTo []};
+    ["GARRISON-surplus-capacity-prerequisite",_fixtureReady,str [_capacity,getPosATL _securityHouse]] call _check;
+    if (_fixtureReady) then {
+        private _securityGroup=createGroup [east,true];
+        _securityGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+        _securityGroup setVariable ["acex_headless_blacklist",true,true];
+        private _members=[];
+        for "_index" from 0 to (_capacity+1) do {
+            private _actor=_securityGroup createUnit ["O_Soldier_F",_site vectorAdd [-12+(_index mod 4)*4,-35-floor(_index/4)*4,0],[],0,"NONE"];
+            _actor setVariable ["WAIT_CortexQA_Label",format ["GARRISON / soldier %1",_index+1],true];
+            _members pushBack _actor;
+        };
+        missionNamespace setVariable ["WAIT_CortexQA_Actors",_members,true];
+        ["Garrison surplus security","This navigation/occupation case has two more soldiers than interior positions. Interior actors must physically occupy their posts; both surplus actors must reach distinct exterior positions and actually observe an exit approach. Labels and accepted assignments do not pass. No actor relocation, door assistance or completion injection is applied.",getPosATL _securityHouse] call _phase;
+        private _accepted=[_securityGroup,getPosATL _securityHouse,20] call WAIT_fnc_CortexGarrison;
+        ["GARRISON-surplus-order-accepted",_accepted] call _check;
+        private _observedAll={
+            private _exterior=0;
+            private _valid=true;
+            {
+                private _actor=_x;
+                private _assignment=_actor getVariable ["WAIT_AIPass_GarrisonPos",[]];
+                private _purpose=_assignment param [4,"INTERIOR"];
+                if (_assignment isEqualTo [] || {_actor getVariable ["WAIT_AIPass_GarrisonFailed",false]}) then {_valid=false} else {
+                    if (_purpose == "INTERIOR") then {
+                        if !([_actor,_securityHouse,_assignment select 0] call _observedRoomVisit) then {_valid=false};
+                    } else {
+                        if (_purpose != "EXTERIOR" || {count _assignment < 7}) then {_valid=false} else {
+                            _exterior=_exterior+1;
+                            private _watch=_assignment select 5;
+                            private _bounds=boundingBoxReal _securityHouse;
+                            private _pose=_securityHouse worldToModel (getPosATL _actor);
+                            private _low=_bounds select 0;
+                            private _high=_bounds select 1;
+                            private _outside=(_pose select 0) < (_low select 0)-0.5 || {(_pose select 0) > (_high select 0)+0.5}
+                                || {(_pose select 1) < (_low select 1)-0.5} || {(_pose select 1) > (_high select 1)+0.5};
+                            private _heading=abs (((getDir _actor-(_actor getDir _watch)+540) mod 360)-180);
+                            private _visible=!terrainIntersectASL [eyePos _actor,AGLToASL _watch]
+                                && {(lineIntersectsSurfaces [eyePos _actor,AGLToASL _watch,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+                            if (!_outside || {(getPosASL _actor) vectorDistance (AGLToASL (_assignment select 0)) > 2}
+                                || {_heading > 75} || {!_visible} || {_actor distance2D (_assignment select 6) < 3}
+                                || {_members findIf {_x != _actor && {_x distance2D _actor < 2.5}} >= 0}) then {_valid=false};
+                        };
+                    };
+                };
+            } forEach _members;
+            _valid && {_exterior == 2}
+        };
+        private _occupied=[{call _observedAll},150] call _wait;
+        ["GARRISON-surplus-all-physical-roles",_occupied,str (_members apply {[netId _x,getPosATL _x,_x getVariable ["WAIT_AIPass_GarrisonPos",[]],_x getVariable ["WAIT_AIPass_GarrisonFailed",false]]})] call _check;
+        private _poses=_members apply {getPosATL _x};
+        sleep 5;
+        private _held=true;
+        {if (_x distance (_poses select _forEachIndex) > 1) then {_held=false}} forEach _members;
+        ["GARRISON-surplus-stable-observation",_occupied && {call _observedAll} && {_held}] call _check;
+        ["GARRISON-surplus-finite-search",_members findIf {(_x getVariable ["WAIT_Cortex_GarrisonExteriorAttempts",0]) > 3} < 0] call _check;
+        [_securityGroup] call WAIT_fnc_CortexGarrisonRelease;
+        private _origins=_members apply {getPosATL _x};
+        private _wp=_securityGroup addWaypoint [_site vectorAdd [75,-35,0],0];
+        _wp setWaypointType "MOVE";
+        private _departed=[{_members findIf {_x distance2D (_origins select (_members find _x)) < 20} < 0},60] call _wait;
+        ["GARRISON-surplus-ordinary-handover",_departed && {_members findIf {!(_x checkAIFeature "PATH")
+            || {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}} < 0}] call _check;
+        missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+        {deleteVehicle _x} forEach _members;
+        deleteGroup _securityGroup;
+    };
+    deleteVehicle _securityHouse;
+};
 // Fresh groups distinguish clearance defects from state left by a previous garrison.
 // Keep all original comparisons above, including their failures.
 {
