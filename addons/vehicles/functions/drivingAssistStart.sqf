@@ -11,6 +11,9 @@
  * An authored zero forced-speed hold is retained without recovery commands.
  * Native boarding, service, medical and assembly tasks release the exact speed lease;
  * both driver and effective commander are rechecked at each cap/recovery command boundary.
+ * The authored waypoint identity includes conditions, timeouts, synchronized triggers, speed,
+ * combat mode and formation. Same-index edits retire the old recovery stage. Every cap/recovery
+ * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
  * it after a locality change; route changes reset finite recovery; release restores only the forced speed captured by this function.
  * Arguments:
@@ -23,6 +26,17 @@
 params [["_group",grpNull,[grpNull]]];
 if (isNull _group || {!local _group}) exitWith {};
 private _enabled=[_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+// Read only the current authored waypoint. Conditions and trigger identities belong to the order,
+// just as its position does. A same-index edit must not inherit a reverse request for the old order.
+private _readRouteIdentity={
+    private _index=currentWaypoint _group;
+    if (_index <= 0 || {_index >= count waypoints _group}) exitWith {[]};
+    private _waypoint=[_group,_index];
+    [_index,waypointType _waypoint,waypointPosition _waypoint,
+        waypointCompletionRadius _waypoint,waypointBehaviour _waypoint,
+        waypointSpeed _waypoint,waypointCombatMode _waypoint,waypointFormation _waypoint,
+        waypointStatements _waypoint,waypointTimeout _waypoint,synchronizedTriggers _waypoint]
+};
 private _vehicles=[];
 {
     private _vehicle=vehicle _x;
@@ -51,6 +65,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             "ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"
         ])}
     };
+    private _routeIdentity=call _readRouteIdentity;
     private _release=false;
     // Driving must make the same ownership decision as every other delayed controller. A group
     // member becoming player-controlled or specialist-owned is enough to retire the sparse speed
@@ -68,7 +83,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
         || {behaviour leader _group == "CARELESS"}
-        || {currentWaypoint _group >= count waypoints _group}) then {_release=true};
+        || {_routeIdentity isEqualTo []}) then {_release=true};
     if (_release) then {[_vehicle,_group] call WAIT_fnc_DrivingAssistRelease} else {
         // Terrain sampling is deliberately sparse but may still overlap a newer Zeus or specialist
         // order. Preserve that order at the actual cap/recovery command boundary.
@@ -82,6 +97,8 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 && {_driver checkAIFeature "MOVE"} && {_driver checkAIFeature "PATH"}
                 && {_movementOperator checkAIFeature "MOVE"} && {_movementOperator checkAIFeature "PATH"}
                 && {[_driver] call _nativeTaskFree} && {[_movementOperator] call _nativeTaskFree}
+                && {_routeIdentity isNotEqualTo []}
+                && {(call _readRouteIdentity) isEqualTo _routeIdentity}
         };
         private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
@@ -101,10 +118,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             // Recovery belongs to this authored route, not merely to this vehicle.
             // Same-index waypoint replacement must not inherit an old reverse stage
             // or exhausted timer, nor receive an immediate recovery command.
-            private _routeWaypoint=[_group,currentWaypoint _group];
-            private _routeIdentity=[_routeWaypoint select 1,waypointType _routeWaypoint,
-                waypointPosition _routeWaypoint,waypointCompletionRadius _routeWaypoint,
-                waypointBehaviour _routeWaypoint];
+            _routeIdentity=call _readRouteIdentity;
             if (_state isNotEqualTo [] && {(_state param [9,[]]) isNotEqualTo _routeIdentity}) then {
                 _state set [4,getPosATL _vehicle];
                 _state set [5,time];
@@ -143,7 +157,9 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
             if !(call _mayIssueDriving) then {
-                // Do not retain a restore record or claim a lease that WAIT never applied.
+                // An initial admission has not applied a cap or created an owning state yet.
+                // Discard only that unapplied snapshot; established leases use normal release.
+                if (_state isEqualTo []) then {_vehicle setVariable ["WAIT_DrivingAssist_Restore",nil]};
                 [_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;
             } else {
             _vehicle forceSpeed _capMps;

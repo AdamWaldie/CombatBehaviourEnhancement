@@ -121,6 +121,13 @@ driving retains native waypoints and applies sparse speed/terrain observation
 plus one bounded physical recovery. Convoys add an ordered vehicle column,
 predecessor-trail spacing and contact/passenger policy.
 
+Driving assistance requires a real authored waypoint. The implicit spawn waypoint does not admit it.
+The recovery identity includes waypoint conditions, timeouts, synchronized triggers, speed, combat
+mode and formation. A same-index edit resets recovery observation before another attempt. Every
+speed or recovery write rechecks that the waypoint identity is still current. An initial refusal
+clears an unapplied speed snapshot. This source guard has no fresh physical acceptance. Retests must
+include condition/trigger edits during reverse recovery and a valid new route after the change.
+
 Convoys measure forward predecessor gaps to remain single-file; they do not use
 formation wedge offsets. Target spacing uses a size-aware minimum/maximum band
 with damped speed correction. A meaningful stop is classified as ordered,

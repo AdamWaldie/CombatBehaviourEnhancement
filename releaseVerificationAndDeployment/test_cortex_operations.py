@@ -7396,6 +7396,23 @@ class CortexOperations(unittest.TestCase):
 
 
 
+    def test_driving_same_index_order_edits_invalidate_recovery_before_every_write(self):
+        """A condition/trigger/speed edit must fence a stale reverse, even with unchanged position."""
+        start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        receipt=start.split('private _readRouteIdentity={',1)[1].split('private _vehicles=[];',1)[0]
+        for command in ['waypointStatements','waypointTimeout','synchronizedTriggers',
+                        'waypointSpeed','waypointCombatMode','waypointFormation']:
+            self.assertIn(command,receipt)
+        self.assertIn('_index <= 0',receipt)
+        guard=start.split('private _mayIssueDriving = {',1)[1].split('};',1)[0]
+        self.assertIn('(call _readRouteIdentity) isEqualTo _routeIdentity',guard)
+        self.assertIn('(_state param [9,[]]) isNotEqualTo _routeIdentity',start)
+        self.assertIn('_state set [6,0]',start)
+        writes=re.findall(r'([^;{}]*)(?:_vehicle forceSpeed|_movementOperator doMove)',start)
+        self.assertEqual(len(writes),4)
+        self.assertGreaterEqual(start.count('call _mayIssueDriving'),3)
+        self.assertIn('if (_state isEqualTo []) then {_vehicle setVariable ["WAIT_DrivingAssist_Restore",nil]}',start)
+
     def test_general_driving_assist_is_separate_from_convoys_and_preserves_native_routes(self):
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
