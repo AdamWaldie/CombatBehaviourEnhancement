@@ -1530,6 +1530,7 @@
         "addons/infantry/functions/cortexCombinedArmsRequest.sqf",
         "addons/infantry/functions/cortexCombinedArmsServer.sqf",
         "addons/infantry/functions/cortexCombinedAirFallbackServer.sqf",
+        "addons/infantry/functions/cortexCombinedGroundFallbackServer.sqf",
         "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
         "addons/infantry/functions/cortexCombinedRejectServer.sqf",
         "addons/infantry/functions/cortexCombinedGroundStep.sqf",

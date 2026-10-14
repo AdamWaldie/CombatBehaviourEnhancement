@@ -113,6 +113,15 @@ private _orderedGroups=[];
     };
 } forEach _candidateGroups;
 _orderedGroups sort true;
+// Retain a bounded ranked ground pool before dispatch. Replacements use this
+// discovery snapshot, but their owners must still prove current weapon suitability.
+private _groundCandidates=(_orderedGroups select {
+    private _asset=_x select 2;
+    !isNull _asset && {_asset isKindOf "LandVehicle"} && {!(_asset isKindOf "StaticWeapon")}
+        && {alive _asset} && {canFire _asset}
+}) apply {[_x select 1,_x select 2]};
+_groundCandidates resize ((count _groundCandidates) min 32);
+_requester setVariable ["WAIT_Cortex_CombinedGroundFallback",[_token,_target,+_position,_expiry,_groundCandidates,0],true];
 {
     private _candidate=_x select 1;
     private _candidateTransmitter=[_candidate] call WAIT_fnc_CortexGroupTransmitter;
@@ -185,6 +194,7 @@ _requester setVariable ["WAIT_Cortex_CombinedAirFallback",[_token,_target,+_posi
     if (!isNull _requester && {((_requester getVariable ["WAIT_Cortex_CombinedOpportunity",[]]) param [0,""]) == _token}) then {
         _requester setVariable ["WAIT_Cortex_CombinedOpportunity",nil,true];
         _requester setVariable ["WAIT_Cortex_CombinedAirFallback",nil,true];
+        _requester setVariable ["WAIT_Cortex_CombinedGroundFallback",nil,true];
     };
     {
         if (!isNull _x && {((_x getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {

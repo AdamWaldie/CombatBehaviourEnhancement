@@ -5,6 +5,8 @@
  * Repeat/JIP: A consumed or replaced snapshot is a no-op; only durable role metadata is cleared.
  * An owner refusal for missing loaded station ammunition retires the same exact reservation,
  * so unusable armament cannot keep an asset reserved until the opportunity expires.
+ * After exact retirement, one bounded ground fallback may replace this slot on another asset;
+ * it preserves the original reported contact and expiry and leaves movement to that asset owner.
  * Arguments: 0 group <GROUP, grpNull>; 1 opportunity <ARRAY, []>; 2 reason <STRING, REFUSED>;
  * 3 reply owner <NUMBER, -1>. No movement, target, skill or operation state is restored.
  * Return: BOOL indicating whether this exact ground reservation was retired.
@@ -20,4 +22,5 @@ if (_current isNotEqualTo _snapshot || {!((_current select 4) in ["GROUND_FIRE",
 _group setVariable ["WAIT_Cortex_CombinedResult",[_current select 0,_current select 4,_reason,serverTime,_current select 2],true];
 _group setVariable ["WAIT_Cortex_CombinedRole",nil,true];
 _group setVariable ["WAIT_Cortex_CombinedApplied",nil,true];
+[_group,_current] call WAIT_fnc_CortexCombinedGroundFallbackServer;
 true

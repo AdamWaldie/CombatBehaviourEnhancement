@@ -4201,6 +4201,38 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('NO_STATION_AMMO',emitted)
         self.assertLessEqual(emitted,allowed)
 
+    def test_combined_ground_fallback_consumes_exact_refusal_without_new_lifetime(self):
+        reject=source('cortexCombinedRejectServer')
+        fallback=source('cortexCombinedGroundFallbackServer')
+        self.assertLess(reject.index('WAIT_fnc_HeadlessResolveSender'),reject.index('call WAIT_fnc_CortexCombinedGroundFallbackServer'))
+        self.assertLess(reject.index('_current isNotEqualTo _snapshot'),reject.index('call WAIT_fnc_CortexCombinedGroundFallbackServer'))
+        self.assertLess(reject.index('"WAIT_Cortex_CombinedRole",nil'),reject.index('call WAIT_fnc_CortexCombinedGroundFallbackServer'))
+        for guard in ('_storedToken != _token','_storedTarget != _target','_storedPosition isNotEqualTo _position',
+                      '_storedExpiry != _expiry','WAIT_Cortex_CombinedGroundConsumed','count _candidates > 32'):
+            self.assertIn(guard,fallback)
+        self.assertIn('_cursor=_cursor+1',fallback)
+        self.assertIn('_role,_expiry,+_context',fallback)
+        self.assertIn('(_expiry-serverTime) max 0',fallback)
+        self.assertNotIn('serverTime+',fallback)
+        for command in ('doMove','doFollow','forceSpeed','reveal','CortexGroupMove','OperationCancel'):
+            self.assertNotIn(command,fallback)
+
+    def test_combined_ground_fallback_pool_is_ready_before_dispatch_and_preserves_live_roles(self):
+        server=source('cortexCombinedArmsServer')
+        fallback=source('cortexCombinedGroundFallbackServer')
+        self.assertLess(server.index('"WAIT_Cortex_CombinedGroundFallback"'),server.index('remoteExecCall ["WAIT_fnc_CortexCombinedArmsLocal"'))
+        self.assertIn('((count _groundCandidates) min 32)',server)
+        self.assertIn('"WAIT_Cortex_CombinedGroundFallback",nil',server)
+        self.assertIn('count _live != 7 || {serverTime >= (_live select 5)}',fallback)
+        self.assertNotIn('(_live select 0) == _token',fallback)
+        self.assertIn('_target distance2D _position > 75',fallback)
+        self.assertIn('group _commander == _candidate',fallback)
+        self.assertIn('group _driver == _candidate',fallback)
+        self.assertIn('WAIT_Convoy_Active',fallback)
+        self.assertIn('WAIT_fnc_CortexGroupTransmitter',fallback)
+        self.assertNotIn('nearEntities',fallback)
+        self.assertIn('groupOwner _replacement',fallback)
+
     def test_combined_ground_admission_preserves_other_live_intents(self):
         text=source('cortexCombinedArmsLocal')
         self.assertIn('_role == "GROUND_MANOEUVRE" && {count _existingOperation > 0}',text)
