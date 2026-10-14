@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Maintains one finite ground-vehicle manoeuvre issued by a combined-arms contact opportunity.
+ * Arrival fire rechecks actual loaded gunner-station ammunition against the target platform class.
  * The vehicle uses one temporary Cortex waypoint to move to a safe-side firing position. It does
  * not wait for another arm, teleport, repeatedly replace the route or force progress through an
  * obstruction. Arrival, target loss, expiry, locality migration, feature closure or direct Zeus
@@ -87,6 +88,9 @@ if (_asset distance2D _destination <= 70) exitWith {
         && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
     if (_fireAllowed && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
         _fireAllowed=false; _fireDecision="NO_STATION_AMMO";
+    };
+    if (_fireAllowed && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {
+        _fireAllowed=false; _fireDecision="NO_TARGET_AMMO";
     };
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";

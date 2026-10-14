@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Applies one expiring combined-arms contact role on the selected asset owner.
- * Direct fire requires a combat-effective local gunner; incapacitated operators reject the role.
+ * Direct fire requires a combat-effective local gunner and target-suitable loaded station ammo;
+ * incapacitated operators or incompatible target classes reject the exact reservation.
  * A direct-fire ground vehicle receives target knowledge and one gunner fire request without losing
  * its authored route. Manoeuvring vehicles and aircraft receive knowledge only: their finite
  * operation owns later target and weapon commands after movement/release geometry is valid. A second
@@ -85,6 +86,7 @@ if (_role == "GROUND_FIRE") exitWith {
         || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
         || {[_group] call WAIT_fnc_CortexExternalTakeover}) then {_fireRefusal="NO_FIRE_OPERATOR"};
     if (_fireRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_STATION_AMMO"};
+    if (_fireRefusal == "" && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_TARGET_AMMO"};
     if (_fireRefusal == "" && {!([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear)}) then {
         _fireRefusal="BLOCKED_FIRE_LANE";
     };

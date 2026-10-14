@@ -16,7 +16,7 @@ if (!isServer || {isNull _group} || {count _snapshot != 7}
     || {([_replyOwner,groupOwner _group] call WAIT_fnc_HeadlessResolveSender) < 0}) exitWith {false};
 private _current=_group getVariable ["WAIT_Cortex_CombinedRole",[]];
 if (_current isNotEqualTo _snapshot || {!((_current select 4) in ["GROUND_FIRE","GROUND_MANOEUVRE"])}
-    || {!(_reason in ["NO_FIRE_OPERATOR","NO_STATION_AMMO","BLOCKED_FIRE_LANE","OTHER_INTENT_ACTIVE","NO_SAFE_ROUTE","EXTERNAL_BUSY","OWNER_LOST","MOVEMENT_REJECTED"])}) exitWith {false};
+    || {!(_reason in ["NO_FIRE_OPERATOR","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","OTHER_INTENT_ACTIVE","NO_SAFE_ROUTE","EXTERNAL_BUSY","OWNER_LOST","MOVEMENT_REJECTED"])}) exitWith {false};
 _group setVariable ["WAIT_Cortex_CombinedResult",[_current select 0,_current select 4,_reason,serverTime,_current select 2],true];
 _group setVariable ["WAIT_Cortex_CombinedRole",nil,true];
 _group setVariable ["WAIT_Cortex_CombinedApplied",nil,true];
