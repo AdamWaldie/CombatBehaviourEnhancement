@@ -432,3 +432,16 @@ performance still require physical acceptance. This source implementation is not
 reinforcement feature and does not claim reserves from other squads.
 
 Garrison refill now requires both the promoted exterior actor and its remaining duplicate observer to be physically at their posts (within 2 m and 0.75 m vertically) with an actual local PATH hold. A published role/hold flag alone is insufficient. Reapplication preserves already arrived, locally held defenders without reenabling PATH or issuing another stop; a new owner still installs its own hold. Dynamic visibility/cover changes, casualty flow and actual movement stability remain unverified.
+
+
+## Aircraft egress over uneven terrain
+
+Air attack departure now compares world velocity against an ASL displacement from the retained
+last target position. The previous comparison subtracted ATL heights from different terrain cells;
+that can invert the direction test when a plane climbs over elevated ground. Retaining the target
+position in ASL also keeps departure meaningful after its object disappears. The existing physical
+travel thresholds, finite egress deadline, native flight controller and forward-weapon alignment
+checks remain. No new scan, reveal, sensor capability or scripted turn is added. Surface and air
+intercept departure on uneven terrain, target deletion, climbing/descending exits and real weapon
+release remain pending physical acceptance. Broader native route receipts, detection reliability,
+turning/energy limits and intercept geometry still need further review and live evidence.

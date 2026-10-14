@@ -501,7 +501,7 @@ if (!isNull _target && {alive _target} && {captive _target
     || {(side _group) getFriend side _target >= 0.6}}) exitWith {["TARGET_NO_LONGER_HOSTILE",true] call _finish};
 if (!isNull _target && {alive _target} && {_stage in ["INGRESS","ATTACK"]}
     && {(_group knowsAbout _target) <= 0}) exitWith {["TARGET_KNOWLEDGE_LOST",true] call _finish};
-if (!isNull _target) then {_job set ["lastTargetPosition",getPosATL _target]};
+if (!isNull _target) then {_job set ["lastTargetPositionASL",getPosASL _target]};
 // Destroying the target must not strand the aircraft at the firing point. Complete the full
 // INGRESS -> ATTACK -> EGRESS contract, using the wreck's stable position for departure geometry.
 // A target lost before an actual attack remains a failed run and hands native control back at once.
@@ -1060,8 +1060,10 @@ if (_stage == "EGRESS" && {(_stageDistance <= _effectiveCapture || {_stagePassed
 private _egressTravel=if (_stage == "EGRESS") then {
     _aircraft distance2D (_job getOrDefault ["egressStartPosition",getPosATL _aircraft])
 } else {0};
-private _awayFromTarget=(velocity _aircraft) vectorDotProduct ((getPosATL _aircraft) vectorDiff
-    (_job getOrDefault ["lastTargetPosition",getPosATL _aircraft])) > 0;
+// World velocity and displacement must share an absolute vertical origin. ATL values from
+// different terrain cells can invert the departure test when the aircraft climbs over relief.
+private _awayFromTarget=(velocity _aircraft) vectorDotProduct ((getPosASL _aircraft) vectorDiff
+    (_job getOrDefault ["lastTargetPositionASL",getPosASL _aircraft])) > 0;
 // Fast fixed-wing aircraft do not reliably capture an exact doMove point after a weapon release.
 // Physical travel away from the target is an equally valid egress and avoids holding the aircraft
 // under Cortex until a timeout after the attack has already succeeded.
