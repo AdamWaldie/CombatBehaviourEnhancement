@@ -342,43 +342,7 @@ private _buildingAnchor = {
                         };
                         private _valid=[_actor,_building,_target,_entry,_watch,_entries,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate;
                         if (!_valid) then {
-                            // A bare exit approach still supports observation. Correct this query's
-                            // centre away from live reservations; do not invent a formation fan.
-                            private _emptyCentre=+_search;
-                            {
-                                private _delta=_emptyCentre vectorDiff _x;
-                                _delta set [2,0];
-                                private _distance=vectorMagnitude _delta;
-                                if (_distance < 3.5) then {
-                                    if (_distance < 0.01) then {
-                                        private _bearing=_actor getDir _emptyCentre;
-                                        _delta=[sin _bearing,cos _bearing,0];
-                                    };
-                                    _emptyCentre=_emptyCentre vectorAdd ((vectorNormalized _delta) vectorMultiply (3.5-_distance));
-                                };
-                            } forEach (_taken select [0,64]);
-                            // Correct laterally around committed observation corridors using their
-                            // live direction and this actor's side, not a predefined placement pattern.
-                            {
-                                private _start=+(_x select 0);
-                                private _axis=(_x select 1) vectorDiff _start;
-                                _axis set [2,0];
-                                private _length=vectorMagnitude _axis;
-                                if (_length > 0.1) then {
-                                    _axis=vectorNormalized _axis;
-                                    private _normal=[_axis select 1,-(_axis select 0),0];
-                                    private _offset=_emptyCentre vectorDiff _start;
-                                    private _along=_offset vectorDotProduct _axis;
-                                    private _lateral=_offset vectorDotProduct _normal;
-                                    if (_along > 0 && {_along < _length} && {abs _lateral < 1.8}) then {
-                                        private _side=[-1,1] select (((getPosATL _actor) vectorDiff _start) vectorDotProduct _normal >= 0);
-                                        _emptyCentre=_emptyCentre vectorAdd (_normal vectorMultiply (1.8*_side-_lateral));
-                                    };
-                                };
-                            } forEach (_observerLanes select [0,64]);
-                            private _empty=if (_emptyCentre distance2D _entry <= 16) then {
-                                _emptyCentre findEmptyPosition [0.75,8,typeOf _actor]
-                            } else {[]};
+                            private _empty=[_actor,_search,_entry,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorProposal;
                             if (count _empty == 3) then {
                                 // This is a ground exterior proposal, never a fabricated interior node.
                                 _empty set [2,0];

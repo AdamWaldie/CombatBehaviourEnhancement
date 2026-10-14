@@ -364,7 +364,7 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
     {
         _x params ["_key","_count","_targets",["_stage",[]],["_entryHistory",[]]];
         _counts set [_key,(_count max 0) min 3];
-        _tried set [_key,+_targets];
+        _tried set [_key,+(_targets select [0,6])];
         _triedEntries set [_key,+(_entryHistory select [0,3])];
         private _actor=_actors getOrDefault [_key,objNull];
         if (count _stage in [4,7] && {(_stage select 2) in ["APPROACH","ARRIVED","REJECTED","EXHAUSTED"]}

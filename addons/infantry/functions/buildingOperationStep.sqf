@@ -730,13 +730,25 @@ private _delay=call {
                 } forEach keys _reserveStages;
                 private _cover=[_search,_centre,12,_taken,_group] call WAIT_fnc_CortexFindCover;
                 private _target=_cover select 0;
-                if (_cover select 1) then {
-                    private _tried=+(_stageTriedTargets getOrDefault [_key,[]]);
-                    _tried pushBackUnique +_target;
-                    _stageTriedTargets set [_key,_tried];
+                private _covered=_cover select 1;
+                private _tried=+(_stageTriedTargets getOrDefault [_key,[]]);
+                if (_covered) then {_tried pushBackUnique +_target};
+                private _valid=[_reserve,_building,_target,_entry,_watch,
+                    _job getOrDefault ["entries",[]],_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate;
+                if (!_valid) then {
+                    private _empty=[_reserve,_search,_entry,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorProposal;
+                    if (count _empty == 3) then {
+                        _empty set [2,0];
+                        _tried pushBackUnique +_empty;
+                        if ([_reserve,_building,_empty,_entry,_watch,
+                            _job getOrDefault ["entries",[]],_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate) then {
+                            _target=+_empty; _valid=true; _covered=false;
+                        };
+                    };
                 };
-                if ([_reserve,_building,_target,_entry,_watch,
-                    _job getOrDefault ["entries",[]],_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate) then {
+                // Two proposals per search, three searches; migration must not renew history.
+                _stageTriedTargets set [_key,_tried select [0,6]];
+                if (_valid) then {
                     if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
                         _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
                         _reserve doMove _target;
@@ -745,7 +757,7 @@ private _delay=call {
                         _stage set [3,serverTime+60];
                         _stage set [4,+_watch];
                         _stage set [5,+_entry];
-                        _stage set [6,_cover select 1];
+                        _stage set [6,_covered];
                         _reserveStages set [_key,_stage];
                         private _securityActors=_job getOrDefault ["securityActors",[]];
                         _securityActors pushBackUnique _reserve;

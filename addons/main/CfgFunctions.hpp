@@ -180,6 +180,7 @@ class CfgFunctions {
             class CortexAircraftEligible {file = "\z\waldo_ai_tweaks\addons\aircraft\functions\cortexAircraftEligible.sqf";};
             class CortexDiscover {file = "\z\waldo_ai_tweaks\addons\core\functions\cortexDiscover.sqf";};
             class BuildingExteriorCandidate {file = "\z\waldo_ai_tweaks\addons\infantry\functions\buildingExteriorCandidate.sqf";};
+            class BuildingExteriorProposal {file = "\z\waldo_ai_tweaks\addons\infantry\functions\buildingExteriorProposal.sqf";};
             class CortexFindCover {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexFindCover.sqf";};
             class CortexFireControl {file = "\z\waldo_ai_tweaks\addons\core\functions\cortexFireControl.sqf";};
             class CortexFireCountermeasure {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexFireCountermeasure.sqf";};
