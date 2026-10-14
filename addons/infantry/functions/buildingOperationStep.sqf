@@ -714,11 +714,18 @@ private _delay=call {
                 _watch set [2,(_entry select 2)+1.2];
                 private _taken=+(_stageTriedTargets getOrDefault [_key,[]]);
                 private _liveReserveKeys=_reserves apply {netId _x};
+                private _observerLanes=[];
                 // Historical stage receipts remain diagnostic, but promoted/unavailable actors
                 // no longer reserve a destination. Physical occupancy is checked by the selector.
                 {
                     if (_x != _key && {_x in _liveReserveKeys}) then {
-                        _taken pushBack ((_reserveStages get _x) select 0);
+                        private _otherStage=_reserveStages get _x;
+                        _taken pushBack (_otherStage select 0);
+                        private _otherWatch=_otherStage param [4,[],[[]]];
+                        if ((_otherStage param [2,""]) in ["APPROACH","ARRIVED"]
+                            && {count _otherWatch == 3}) then {
+                            _observerLanes pushBack [+(_otherStage select 0),+_otherWatch];
+                        };
                     };
                 } forEach keys _reserveStages;
                 private _cover=[_search,_centre,12,_taken,_group] call WAIT_fnc_CortexFindCover;
@@ -729,7 +736,7 @@ private _delay=call {
                     _stageTriedTargets set [_key,_tried];
                 };
                 if ([_reserve,_building,_target,_entry,_watch,
-                    _job getOrDefault ["entries",[]],_taken] call WAIT_fnc_BuildingExteriorCandidate) then {
+                    _job getOrDefault ["entries",[]],_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate) then {
                     if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
                         _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
                         _reserve doMove _target;

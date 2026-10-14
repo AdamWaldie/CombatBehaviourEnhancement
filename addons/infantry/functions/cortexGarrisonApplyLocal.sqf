@@ -289,6 +289,7 @@ private _buildingAnchor = {
                         if (!isNull _building && {[_x] call _assignmentValid}) then {_buildings pushBackUnique _building};
                     } forEach ((_group getVariable ["WAIT_Cortex_GarrisonCandidates",[]]) select [0,64]);
                     private _exitCounts=createHashMap;
+                    private _observerLanes=[];
                     private _taken=+_targetHistory;
                     {
                         private _other=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
@@ -297,6 +298,7 @@ private _buildingAnchor = {
                             && {_other isNotEqualTo []}) then {
                             _taken pushBack (_other select 0);
                             if ((_other param [4,"INTERIOR"]) == "EXTERIOR") then {
+                                _observerLanes pushBack [+(_other select 0),+(_other select 5)];
                                 private _exitKey=str [_other param [2,objNull],_other param [6,[]]];
                                 _exitCounts set [_exitKey,(_exitCounts getOrDefault [_exitKey,0])+1];
                             };
@@ -338,7 +340,7 @@ private _buildingAnchor = {
                                 _entries pushBackUnique _exit;
                             };
                         };
-                        private _valid=[_actor,_building,_target,_entry,_watch,_entries,_taken] call WAIT_fnc_BuildingExteriorCandidate;
+                        private _valid=[_actor,_building,_target,_entry,_watch,_entries,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate;
                         if (!_valid) then {
                             // A bare exit approach still supports observation. Correct this query's
                             // centre away from live reservations; do not invent a formation fan.
@@ -355,6 +357,25 @@ private _buildingAnchor = {
                                     _emptyCentre=_emptyCentre vectorAdd ((vectorNormalized _delta) vectorMultiply (3.5-_distance));
                                 };
                             } forEach (_taken select [0,64]);
+                            // Correct laterally around committed observation corridors using their
+                            // live direction and this actor's side, not a predefined placement pattern.
+                            {
+                                private _start=+(_x select 0);
+                                private _axis=(_x select 1) vectorDiff _start;
+                                _axis set [2,0];
+                                private _length=vectorMagnitude _axis;
+                                if (_length > 0.1) then {
+                                    _axis=vectorNormalized _axis;
+                                    private _normal=[_axis select 1,-(_axis select 0),0];
+                                    private _offset=_emptyCentre vectorDiff _start;
+                                    private _along=_offset vectorDotProduct _axis;
+                                    private _lateral=_offset vectorDotProduct _normal;
+                                    if (_along > 0 && {_along < _length} && {abs _lateral < 1.8}) then {
+                                        private _side=[-1,1] select (((getPosATL _actor) vectorDiff _start) vectorDotProduct _normal >= 0);
+                                        _emptyCentre=_emptyCentre vectorAdd (_normal vectorMultiply (1.8*_side-_lateral));
+                                    };
+                                };
+                            } forEach (_observerLanes select [0,64]);
                             private _empty=if (_emptyCentre distance2D _entry <= 16) then {
                                 _emptyCentre findEmptyPosition [0.75,8,typeOf _actor]
                             } else {[]};
@@ -362,7 +383,7 @@ private _buildingAnchor = {
                                 // This is a ground exterior proposal, never a fabricated interior node.
                                 _empty set [2,0];
                                 _targetHistory pushBackUnique +_empty;
-                                if ([_actor,_building,_empty,_entry,_watch,_entries,_taken] call WAIT_fnc_BuildingExteriorCandidate) then {
+                                if ([_actor,_building,_empty,_entry,_watch,_entries,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate) then {
                                     _target=+_empty; _valid=true; _covered=false;
                                 };
                             };

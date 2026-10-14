@@ -5,16 +5,17 @@
  * Repeat/JIP: Recomputes current geometry and occupancy; publishes nothing and installs no handles.
  * Arguments: 0 actor <OBJECT, objNull>; 1 building <OBJECT, objNull>; 2 candidate ATL <ARRAY, []>;
  * 3 selected exit ATL <ARRAY, []>; 4 watch ATL <ARRAY, []>; 5 exits <ARRAY, []>;
- * 6 reserved ATL positions <ARRAY, []>.
+ * 6 reserved ATL positions <ARRAY, []>; 7 committed observer lanes <ARRAY, []>,
+ * each [post ATL, watch ATL]. More than 64 lanes is refused rather than partially examined.
  * Return Value: BOOL, supported exterior observation geometry; never path arrival or room safety.
  * Current callers: WAIT_fnc_BuildingOperationStep and WAIT_fnc_CortexGarrisonApplyLocal.
  * Example: [_unit,_house,_spot,_exit,_watch,[_exit],[]] call WAIT_fnc_BuildingExteriorCandidate;
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
     ["_target",[],[[]]],["_entry",[],[[]]],["_watch",[],[[]]],
-    ["_entries",[],[[]]],["_taken",[],[[]]]];
+    ["_entries",[],[[]]],["_taken",[],[[]]],["_observerLanes",[],[[]]]];
 if (isNull _actor || {isNull _building} || {count _target != 3}
-    || {count _entry != 3} || {count _watch != 3}) exitWith {false};
+    || {count _entry != 3} || {count _watch != 3} || {count _observerLanes > 64}) exitWith {false};
 private _bounds=boundingBoxReal _building;
 private _model=_building worldToModel _target;
 private _minimum=_bounds select 0;
@@ -32,9 +33,32 @@ private _observationClear=!terrainIntersectASL [
     (AGLToASL _target) vectorAdd [0,0,1.6],AGLToASL _watch]
     && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,1.6],
         AGLToASL _watch,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+// Prospective posts must not occlude another committed observer or have their own view
+// blocked by that future actor. Actual terrain/object visibility is still checked above.
+private _blocksSegment = {
+    params ["_point","_start","_end"];
+    private _axis=_end vectorDiff _start;
+    private _lengthSquared=_axis vectorDotProduct _axis;
+    if (_lengthSquared < 0.01) exitWith {false};
+    private _fraction=((_point vectorDiff _start) vectorDotProduct _axis)/_lengthSquared;
+    _fraction > 0 && {_fraction < 1}
+        && {_point vectorDistance (_start vectorAdd (_axis vectorMultiply _fraction)) < 1.2}
+};
+private _candidateBody=(AGLToASL _target) vectorAdd [0,0,1.1];
+private _candidateEye=(AGLToASL _target) vectorAdd [0,0,1.6];
+private _laneBlocked=_observerLanes findIf {
+    if (!(_x isEqualType []) || {count _x != 2}
+        || {!((_x select 0) isEqualType [])} || {!((_x select 1) isEqualType [])}
+        || {count (_x select 0) != 3} || {count (_x select 1) != 3}
+        || {(_x select 0) findIf {!(_x isEqualType 0)} >= 0}
+        || {(_x select 1) findIf {!(_x isEqualType 0)} >= 0}) exitWith {true};
+    private _postASL=AGLToASL (_x select 0);
+    [_candidateBody,_postASL vectorAdd [0,0,1.6],AGLToASL (_x select 1)] call _blocksSegment
+        || {[_postASL vectorAdd [0,0,1.1],_candidateEye,AGLToASL _watch] call _blocksSegment}
+} >= 0;
 private _separated=_taken findIf {_target distance2D _x < 3} < 0
     && {(_target nearEntities ["CAManBase",1.2]) select {_x != _actor} isEqualTo []};
-_observationClear && {_separated} && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
+_observationClear && {!_laneBlocked} && {_separated} && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
 && {_target distance2D _entry <= 18} && {!surfaceIsWater _target}
 && {((surfaceNormal _target) select 2) >= 0.65}
 && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,0.15],
