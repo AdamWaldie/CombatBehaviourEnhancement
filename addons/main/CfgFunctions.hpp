@@ -38,11 +38,6 @@ class CfgFunctions {
             class ConvoyReleaseLocal {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\convoyReleaseLocal.sqf";};
             class ConvoyTick {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\convoyTick.sqf";};
             class DrivingAssistStart {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingAssistStart.sqf";};
-            class DrivingControlRequest {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingControlRequest.sqf";};
-            class DrivingControlLocal {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingControlLocal.sqf";};
-            class DrivingControlResult {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingControlResult.sqf";};
-            class ModuleDriving {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\moduleDriving.sqf";};
-            class ZenDrivingModule {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\zenDrivingModule.sqf";};
             class DrivingMovementAvailable {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingMovementAvailable.sqf";};
             class DrivingRearClear {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingRearClear.sqf";};
             class DrivingRouteReceipt {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingRouteReceipt.sqf";};

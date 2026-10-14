@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "WAIT_core", "WAIT_danger", "WAIT_infantry", "WAIT_vehicles", "WAIT_aircraft", "WAIT_support", "WAIT_compatibility"};
-        units[] = {"WAIT_ModuleConvoyStart", "WAIT_ModuleConvoyHold", "WAIT_ModuleConvoyRelease", "WAIT_ModuleDrivingEnable", "WAIT_ModuleDrivingRelease", "WAIT_ModuleDrivingInspect"};
+        units[] = {"WAIT_ModuleConvoyStart", "WAIT_ModuleConvoyHold", "WAIT_ModuleConvoyRelease"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -57,19 +57,6 @@ class CfgVehicles {
     class WAIT_ModuleConvoyRelease: WAIT_ModuleConvoyStart {
         displayName = "Convoy: release control";
         WAIT_operation = "RELEASE";
-    };
-    class WAIT_ModuleDrivingEnable: WAIT_ModuleConvoyStart {
-        displayName = "Driving: enable for group";
-        function = "WAIT_fnc_ModuleDriving";
-        WAIT_operation = "ENABLE";
-    };
-    class WAIT_ModuleDrivingRelease: WAIT_ModuleDrivingEnable {
-        displayName = "Driving: release for group";
-        WAIT_operation = "RELEASE";
-    };
-    class WAIT_ModuleDrivingInspect: WAIT_ModuleDrivingEnable {
-        displayName = "Driving: inspect current state";
-        WAIT_operation = "INSPECT";
     };
 };
 class Extended_DisplayLoad_EventHandlers {

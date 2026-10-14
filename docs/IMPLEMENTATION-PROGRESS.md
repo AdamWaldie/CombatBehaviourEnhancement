@@ -1,10 +1,10 @@
-## Targeted ordinary-driving operator controls
+## Corrected module scope
 
-Native Zeus and optional ZEN now request enable/release/inspect through one curator-authenticated
-server boundary. Revisioned exclusions travel with the owner request before activation; expected
-owner acknowledgement and finite timeout report the result. These use the production driving FSM,
-retain global/tactical/specialist gates and persist group exclusion for JIP/owner discovery. Placement,
-transport, owner migration, repeat and physical behaviour remain unrun while audits are held.
+The ordinary-driving enable/release/inspect native and ZEN modules, their settings transport and
+associated coverage claims were removed. CBA retains settings ownership. Modules must dispatch
+scoped behaviours through production task executors; task-specific destinations/radii remain valid
+parameters. The driving FSM, shared clearance and tactical handover changes remain in place.
+Audits remain held; no new behaviour-module acceptance is claimed.
 
 ## Shared reverse clearance observation
 

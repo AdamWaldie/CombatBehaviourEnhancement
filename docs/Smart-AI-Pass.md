@@ -294,32 +294,13 @@ Live air-contact intercept refresh uses a combat-effective local native knower's
 
 Initial air-contact plan geometry and altitude use a local native knower's believed position. Initial motion is zero until live refresh has successive samples; no exact unseen velocity supplies the startup lead. Missing estimates refuse the plan. Surface plan perception and complete sensor freshness remain outstanding; physical interception is unvalidated.
 
-## Ordinary driving controls in Zeus
+## Settings and behaviour modules
 
-Native Zeus provides **Driving: enable for group**, **Driving: release for group** and
-**Driving: inspect current state**. Place each directly on a crewed AI land vehicle. With ZEN,
-**Ordinary AI Driving** presents the same labelled operations in one dialog. No nearest vehicle
-is guessed. The selected vehicle identifies its driver's group; these controls do not register a
-convoy, create a route or bypass global settings, tactical ownership or specialist exclusion.
-
-Enable removes only this group's ordinary-driving exclusion and requests the real FSM. Release
-adds that exclusion, retires the matching FSM and releases unchanged speed leases. Inspect reads
-the current owner's phase, reason and resolved gate. Server validation authenticates the curator,
-validates the named operation and target, then sends exclusions before activation in one ordered
-payload to the current owner. The acknowledgement must match that dispatched owner and request
-revision. A ten-second timeout reports missing acknowledgement without replaying the old command.
-A changing owner/crew can reject a request; inspect and retry against the current target.
-
-Group exclusion state is public for JIP and later owner discovery; command effects and FSM handles
-are not JIP-replayed. Global disable or ALL/specialist exclusions remain authoritative. The modules
-require CBA and native Zeus; the dialog additionally requires ZEN. For trusted server scripts:
-
-```sqf
-[truck1, [["operation", "ENABLE"]]] call WAIT_fnc_DrivingControlRequest;
-[truck1, [["operation", "INSPECT"]]] call WAIT_fnc_DrivingControlRequest;
-[truck1, [["operation", "RELEASE"]]] call WAIT_fnc_DrivingControlRequest;
-```
-
-Feedback distinguishes dispatch/admission from physical movement. Native placement, dialog values,
-server/HC execution, invalid requests, missing acknowledgements, JIP, owner changes, release and
-repeat enable need in-engine validation. Audits remain held; none of these operator cases is accepted.
+CBA owns addon settings, feature switches and tuning. Zeus/ZEN modules issue scoped behaviour
+orders to explicitly selected groups and destinations or areas. Dialog parameters describe the
+requested task, such as its destination or radius; they do not duplicate CBA configuration.
+The ordinary-driving enable/release/inspect modules were withdrawn because they crossed this
+boundary. Ordinary driving remains automatic under the existing CBA gates and native waypoint
+orders. The convoy module remains a convoy task entry point. Future building, support and optional
+navigation-corridor modules must use their real production task executor and retain owner authority,
+interruption and cleanup. No replacement behaviour module is claimed complete here.
