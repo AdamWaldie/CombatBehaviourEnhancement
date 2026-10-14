@@ -67,6 +67,11 @@ if (_order in ["SPOTTER_ON", "SPOTTER_OFF"]) exitWith {
 // Serialize the validated named map, so clients cannot forge execution metadata.
 _settings set ["requestSerial",_serial];
 _settings set ["nativeReceipt",[_group] call WAIT_fnc_NativeOrderReceipt];
+_settings set ["controlReceipt",[
+    _group getVariable ["WAIT_AIPass_ZeusHold",[]],
+    _group getVariable ["WAIT_AIPass_ZeusWaypoints",false],
+    _group getVariable ["WAIT_AIPass_ZeusControlKind",""]
+]];
 _settings set ["radius",(_radius max 15) min 150];
 _pairs = (keys _settings) apply {[_x,_settings get _x]};
 [_token, _pairs] remoteExecCall ["WAIT_fnc_CortexOrderLocal", groupOwner _group];

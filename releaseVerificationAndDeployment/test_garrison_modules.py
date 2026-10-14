@@ -28,4 +28,17 @@ class GarrisonModuleTests(unittest.TestCase):
         for text in (native,zen):
             self.assertNotIn('CBA_fnc_addSetting',text)
             self.assertNotIn('CBA_settings_fnc_set',text)
+    def test_receipts_include_authored_waits_and_zeus_replacement(self):
+        receipt=(ROOT/'addons/core/functions/nativeOrderReceipt.sqf').read_text()
+        for command in ('waypointCompletionRadius','waypointStatements','waypointTimeout','synchronizedTriggers'):
+            self.assertIn(command+' _waypoint',receipt)
+        self.assertNotIn('call compile',receipt)
+        self.assertNotIn('execVM',receipt)
+        dispatch=src('cortexOrderDispatch'); local=src('cortexOrderLocal')
+        self.assertIn('_settings set ["controlReceipt",[',dispatch)
+        for key in ('WAIT_AIPass_ZeusHold','WAIT_AIPass_ZeusWaypoints','WAIT_AIPass_ZeusControlKind'):
+            self.assertIn(key,dispatch)
+            self.assertIn(key,local)
+        self.assertLess(local.index('_controlReceipt isNotEqualTo _currentControl'),local.index('setVariable ["WAIT_Cortex_LastTaskSerial"'))
+        self.assertLess(local.index('_controlReceipt isNotEqualTo _currentControl'),local.index('setVariable ["WAIT_AIPass_ZeusHold"'))
 if __name__=='__main__': unittest.main()

@@ -336,8 +336,11 @@ role registrations through this path. At most 64 owner acknowledgements can be p
 
 The owner rejects repeated/older task serials and changed native waypoint receipts before
 altering the squad's orders. Receipt comparison covers waypoint count/index, position, type,
-description, speed, behaviour, combat mode and formation. It does not yet cover conditions,
-timeouts or synchronized triggers. A settings/feature refusal preserves existing order state.
+description, speed, behaviour, combat mode, formation, completion radius, authored conditions/
+statements, timeouts and synchronized trigger identities. Conditions/statements are read but never
+evaluated or executed by the receipt. A separate Zeus receipt compares the hold token, waypoint
+control flag and control kind before the task may clear an older hold. Newer control refuses the
+delayed task. Natural trigger activation is not treated as a new authored order. A settings/feature refusal preserves existing order state.
 A notification reports owner acceptance or refusal; acceptance is not physical occupation.
 Task commands are not replayed to JIP; existing garrison assignments support owner adoption.
 Instant placement only occurs on fresh admission. It does not replay on migration or discovery.
