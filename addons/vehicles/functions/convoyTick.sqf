@@ -8,6 +8,8 @@
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
  * Excess stretch beyond the upper band adds a nonlinear catch-up correction capped at 8 km/h.
  * Native acceleration, shared cruise/terrain limits, immediate closing caps and reverse yields remain authoritative.
+ * Follower curve/grade caps persist between path refreshes until fresh trail geometry replaces them;
+ * disabling convoy driving assist clears that local cap without changing native route ownership.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
@@ -480,6 +482,7 @@ _state set ["leadProgress", _leadProgress];
 private _followers = _state get "followers";
 private _speedLimits = _state get "speedLimits";
 private _pathOwners = _state getOrDefault ["pathOwners",createHashMap];
+private _pathAssistEnabled=[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
 _state set ["pathOwners",_pathOwners];
 for "_i" from 1 to (count _vehicles - 1) do {
     private _vehicle = _vehicles select _i;
@@ -496,6 +499,11 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _native = !isAISteeringComponentEnabled _vehicle
         || {_movementOperator != driver _vehicle};
     private _key = netId _vehicle;
+    private _progress = _followers getOrDefault [_key, [getPosATL _vehicle, time, -1, _trailBase, 0, [], []]];
+    // Field 7 remains the existing one-shot native hold receipt. Field 8 is a
+    // local speed constraint; older records have no retained path cap.
+    private _retainedPathCap=_progress param [8,-1,[0]];
+    if (!_pathAssistEnabled) then {_retainedPathCap=-1; _progress set [8,-1]};
     private _tolerance = (_desiredGap * 0.2) max 3;
     private _bodyGap = (((_specs get (netId _vehicle)) select 1) + ((_specs get (netId _front)) select 1))*0.5+5;
     private _gapLow = (_desiredGap - _tolerance) max _bodyGap;
@@ -546,6 +554,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Reverse yield overrides smoothing and lateral recapture; neither is
     // permission to advance into a reversing predecessor. Keep route identity.
     if (_frontReversing) then {_limit=0};
+    if (_retainedPathCap >= 0) then {_limit=_limit min _retainedPathCap};
     _limit = [_vehicle,_limit,_group] call WAIT_fnc_CortexInfantrySpeed;
     if ([] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
@@ -556,7 +565,6 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Keep the committed native and steering-path destinations when progress is made. Rebuilding
     // this record as the former four-field array erased both commitments every few metres, so the
     // next one-second trail sample looked like a new order and restarted engine planning.
-    private _progress = _followers getOrDefault [_key, [getPosATL _vehicle, time, -1, _trailBase, 0, [], []]];
     if (_vehicle distance2D (_progress select 0) > 3) then {
         _progress set [0,getPosATL _vehicle];
         _progress set [1,time];
@@ -644,8 +652,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 _path pushBack _point;
             };
             // The predecessor trail is already available, so followers can anticipate its curve
-            // without another road/object query. This cap affects the current refresh only.
-            if ([_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled && {count _path >= 3}) then {
+            // without another road/object query. Retain this cap across spacing-only ticks.
+            if (_pathAssistEnabled && {count _path >= 3}) then {
                 private _pathTurn=0;
                 private _pathGrade=0;
                 for "_j" from 1 to (count _path-2) do {
@@ -662,6 +670,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 };
                 private _pathCap=if (_pathTurn > 70) then {18} else {if (_pathTurn > 45) then {25} else {if (_pathTurn > 25) then {35} else {_maximum}}};
                 if (_pathGrade > 0.2) then {_pathCap=_pathCap min 18} else {if (_pathGrade > 0.12) then {_pathCap=_pathCap min 25}};
+                _progress set [8,_pathCap];
                 _limit=_limit min _pathCap;
                 if ([] call _mayIssueDriving) then {
                     private _ownedSpeed=_limit/3.6;
