@@ -14,6 +14,8 @@
  * Saved and applied speed values are published with the actor so owner adoption preserves restoration.
  * Approach stance also has a public applied-value lease for unchanged-stance restoration on release.
  * Transform-bound assignments are checked before initial/deferred commands and alternate-slot selection.
+ * Reapplication preserves an already local, physically arrived PATH hold without reenabling
+ * movement or issuing another stop. New owners still install their actual local hold normally.
  * Moved or deleted buildings release affected actors through the existing partial cleanup path.
  * Owner adoption preserves published exhausted-route failures; only a fresh explicit order, whose
  * release clears old assignments and failures, admits another attempt at the same position.
@@ -203,7 +205,11 @@ private _buildingAnchor = {
         if (isNil {_unit getVariable "WAIT_Cortex_GarrisonForcedSpeed"}) then {
             _unit setVariable ["WAIT_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit,true];
         };
-        if (_unit getVariable ["WAIT_AIPass_GarrisonDisabledPath", false]) then {_unit enableAI "PATH"};
+        private _heldInPlace=(_unit getVariable ["WAIT_AIPass_GarrisonDisabledPath",false])
+            && {!(_unit checkAIFeature "PATH")}
+            && {!(currentCommand _unit in ["MOVE","FOLLOW"])}
+            && {[_unit,_assignment] call _assignmentArrived};
+        if (_unit getVariable ["WAIT_AIPass_GarrisonDisabledPath", false] && {!_heldInPlace}) then {_unit enableAI "PATH"};
         if !(_unit getVariable ["WAIT_AIPass_GarrisonHandlers", false]) then {
             _unit setVariable ["WAIT_AIPass_GarrisonHandlers", true];
             private _duck = {
@@ -236,7 +242,7 @@ private _buildingAnchor = {
         };
         // Release the former formation task only while WAIT still owns movement. A curator or
         // specialist can take over between setup and this first individual building command.
-        if ([_unit] call _mayIssueMovement) then {doStop _unit};
+        if (!_heldInPlace && {[_unit] call _mayIssueMovement}) then {doStop _unit};
         private _destination = _assignment select 0;
         private _building = _assignment param [2,objNull];
         private _entries=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {[]} else {[_building,_unit,_destination] call _buildingEntries;};

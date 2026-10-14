@@ -2305,7 +2305,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_entries resize ((count _entries) min 4)',apply)
         self.assertIn('if (_nextEntry < count _entries && {[_x] call _mayIssueMovement}) then',apply)
         self.assertNotIn('doStop _x; _x doMove',apply)
-        self.assertIn('if ([_unit] call _mayIssueMovement) then {doStop _unit}',apply)
+        self.assertIn('if (!_heldInPlace && {[_unit] call _mayIssueMovement}) then {doStop _unit}',apply)
         self.assertIn('["deadline", _deadline]',apply)
         self.assertIn('getVariable ["WAIT_Cortex_GarrisonDeadline",-1]',apply)
         self.assertIn('serverTime > (_job get "deadline")',apply)
@@ -4566,7 +4566,7 @@ class CortexOperations(unittest.TestCase):
         # The garrison job must release its own PATH lock at loss of eligibility and recheck
         # ownership before its arrival hold or first individual move can mutate a unit.
         self.assertIn('[_group,false] call WAIT_fnc_CortexGarrisonRelease;',garrison_apply)
-        self.assertIn('if ([_unit] call _mayIssueMovement) then {doStop _unit};',garrison_apply)
+        self.assertIn('if (!_heldInPlace && {[_unit] call _mayIssueMovement}) then {doStop _unit};',garrison_apply)
         arrival=garrison_apply.split('if ([_x,_assignment] call _assignmentArrived) then {',1)[1].split('} else {',1)[0]
         self.assertIn('if ([_x] call _mayIssueMovement) then {',arrival)
         self.assertLess(arrival.index('if ([_x] call _mayIssueMovement) then {'),arrival.index('_x disableAI "PATH"'))

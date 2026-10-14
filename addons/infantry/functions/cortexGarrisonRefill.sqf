@@ -48,14 +48,18 @@ private _eligible=_living select {
         && {(_reservation param [2,1e12,[0]]) <= time}};
     // A previously enrolled actor handed to a newer native task is not a new reinforcement.
     private _spare=_assignment isEqualTo [] && {!(_actor in _roster)};
-    if ((_assignment param [4,""]) == "EXTERIOR" && {_actor getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]}) then {
+    if ((_assignment param [4,""]) == "EXTERIOR" && {_actor getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]}
+        && {!(_actor checkAIFeature "PATH")} && {_actor distance2D (_assignment select 0) <= 2}
+        && {abs ((getPosATL _actor select 2)-(_assignment select 0 select 2)) <= 0.75}) then {
         // Never vacate the sole assigned observation post for this building exit.
         _spare=_living findIf {
             _x != _actor && {local _x} && {!isPlayer _x}
                 && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)} && {[_x] call WAIT_fnc_CortexCombatEffective}
-                && {_x getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]}
+                && {_x getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]} && {!(_x checkAIFeature "PATH")}
                 && {private _other=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
                     (_other param [4,""]) == "EXTERIOR"
+                        && {_x distance2D (_other select 0) <= 2}
+                        && {abs ((getPosATL _x select 2)-(_other select 0 select 2)) <= 0.75}
                         && {(_other param [2,objNull]) == (_assignment param [2,objNull])}
                         && {(_other param [6,[]]) isEqualTo (_assignment param [6,[]])}}
         } >= 0;

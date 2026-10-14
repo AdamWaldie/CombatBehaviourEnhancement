@@ -430,3 +430,5 @@ the shared executor; possible movement churn, coverage geometry, actual casualty
 failed/blocked destinations, repeat promotion, late casualties, Zeus handover, owner migration and
 performance still require physical acceptance. This source implementation is not an accepted
 reinforcement feature and does not claim reserves from other squads.
+
+Garrison refill now requires both the promoted exterior actor and its remaining duplicate observer to be physically at their posts (within 2 m and 0.75 m vertically) with an actual local PATH hold. A published role/hold flag alone is insufficient. Reapplication preserves already arrived, locally held defenders without reenabling PATH or issuing another stop; a new owner still installs its own hold. Dynamic visibility/cover changes, casualty flow and actual movement stability remain unverified.
