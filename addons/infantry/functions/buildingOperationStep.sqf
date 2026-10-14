@@ -43,7 +43,8 @@
  * at the failure boundary; terminal diagnostics retain it without changing acceptance.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
- * Egress assigns bounded distinct supported exterior slots and holds arrivals within one metre.
+ * Egress uses one native proposal per admitted worker, preserving distinct supported exterior
+ * destinations and live security observation lanes; arrivals hold within one metre.
  * Successful egress additionally requires each active worker's successive physical visits.
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
  * exterior building bounds and entrance clearance; no fixed fan layout is generated.
@@ -2087,6 +2088,19 @@ private _delay=call {
         private _entries=_job get "entries";
         private _buildingPos=getPosATL (_job get "building");
         private _claimedExitPoints=[];
+        private _securityPoints=[];
+        private _securityLanes=[];
+        // An egress slot must preserve live exterior security, not only other exit slots.
+        {
+            private _security=_x;
+            private _securityStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _security,[]];
+            if (!(_security in _active) && {[_security] call _reserveReady}
+                && {(_securityStage param [2,""]) in ["APPROACH","ARRIVED"]}
+                && {count (_securityStage param [4,[],[[]]]) == 3}) then {
+                _securityPoints pushBack +(_securityStage select 0);
+                _securityLanes pushBack [+(_securityStage select 0),+(_securityStage select 4)];
+            };
+        } forEach ((_job getOrDefault ["securityActors",[]]) select [0,64]);
         private _egressAssignments=_active apply {
             private _unit=_x;
             private _entry=_job get "entry";
@@ -2097,21 +2111,18 @@ private _delay=call {
             };
             if (_entry isEqualTo []) then {_entry=_buildingPos};
             private _outward=_buildingPos getDir _entry;
-            // Each worker receives its own nearby exterior slot. An exit lane is shared,
-            // but its consolidation destination is not; broad arrival radii caused piles.
+            // Use one bounded native proposal per admitted worker, corrected around live
+            // destinations. A predefined grid cannot account for cover or security observers.
+            private _search=_entry getPos [10,_outward];
+            private _watch=_entry getPos [2,_outward];
+            _watch set [2,(_entry select 2)+1.2];
+            private _taken=_claimedExitPoints+_securityPoints;
+            private _candidate=[_unit,_search,_entry,_taken,_securityLanes] call WAIT_fnc_BuildingExteriorProposal;
             private _exitPoint=[];
-            for "_slot" from 0 to 11 do {
-                if (_exitPoint isNotEqualTo []) exitWith {};
-                private _row=floor (_slot/3);
-                private _side=(_slot mod 3)-1;
-                private _candidate=(_entry getPos [10+3*_row,_outward]) getPos [3*_side,_outward+90];
-                // Claimed/wet/steep slots cannot be selected; reject them before geometry.
-                if (_claimedExitPoints findIf {_x distance2D _candidate < 3} < 0
-                    && {!surfaceIsWater _candidate} && {(surfaceNormal _candidate) select 2 >= 0.85}) then {
-                    private _ground=getTerrainHeightASL _candidate;
-                    private _foot=[_candidate select 0,_candidate select 1,_ground];
-                    private _blocked=lineIntersectsSurfaces [_foot vectorAdd [0,0,0.2],_foot vectorAdd [0,0,1.8],_unit,objNull,true,1,"GEOM","NONE"];
-                    if (_blocked isEqualTo []) then {_exitPoint=ASLToAGL _foot};
+            if (count _candidate == 3) then {
+                _candidate set [2,0];
+                if ([_unit,_building,_candidate,_entry,_watch,_entries,_taken,_securityLanes] call WAIT_fnc_BuildingExteriorCandidate) then {
+                    _exitPoint=+_candidate;
                 };
             };
             if (_exitPoint isEqualTo []) then {
