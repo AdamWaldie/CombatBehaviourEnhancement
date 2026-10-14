@@ -750,17 +750,23 @@ private _delay=call {
                 private _covered=_cover select 1;
                 private _tried=+(_stageTriedTargets getOrDefault [_key,[]]);
                 if (_covered) then {_tried pushBackUnique +_target};
-                private _valid=[_reserve,_building,_target,_entry,_watch,
-                    _job getOrDefault ["entries",[]],_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate;
+                private _assessment=[_reserve,_building,_target,_entry,_watch,
+                    _job getOrDefault ["entries",[]],_taken,_observerLanes,true] call WAIT_fnc_BuildingExteriorCandidate;
+                private _valid=_assessment select 0;
+                diag_log format ["WAIT CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,["SEARCH","COVER"] select _covered,+_target,+_entry,_valid,_assessment select 1]];
                 if (!_valid) then {
                     private _empty=[_reserve,_search,_entry,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorProposal;
                     if (count _empty == 3) then {
                         _empty set [2,0];
                         _tried pushBackUnique +_empty;
-                        if ([_reserve,_building,_empty,_entry,_watch,
-                            _job getOrDefault ["entries",[]],_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate) then {
+                        private _emptyAssessment=[_reserve,_building,_empty,_entry,_watch,
+                            _job getOrDefault ["entries",[]],_taken,_observerLanes,true] call WAIT_fnc_BuildingExteriorCandidate;
+                        diag_log format ["WAIT CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,"UNCOVERED",+_empty,+_entry,_emptyAssessment select 0,_emptyAssessment select 1]];
+                        if (_emptyAssessment select 0) then {
                             _target=+_empty; _valid=true; _covered=false;
                         };
+                    } else {
+                        diag_log format ["WAIT CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,"NO_NATIVE_PROPOSAL",[],+_entry,false,[]]];
                     };
                 };
                 // Two proposals per search, three searches; migration must not renew history.

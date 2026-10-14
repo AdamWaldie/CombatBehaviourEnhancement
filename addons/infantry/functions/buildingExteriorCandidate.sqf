@@ -6,16 +6,20 @@
  * Arguments: 0 actor <OBJECT, objNull>; 1 building <OBJECT, objNull>; 2 candidate ATL <ARRAY, []>;
  * 3 selected exit ATL <ARRAY, []>; 4 watch ATL <ARRAY, []>; 5 exits <ARRAY, []>;
  * 6 reserved ATL positions <ARRAY, []>; 7 committed observer lanes <ARRAY, []>,
- * each [post ATL, watch ATL]. More than 64 lanes is refused rather than partially examined.
- * Return Value: BOOL, supported exterior observation geometry; never path arrival or room safety.
+ * each [post ATL, watch ATL]; 8 diagnostics <BOOL, false>. More than 64 lanes is refused.
+ * Diagnostic mode returns the same acceptance result with read-only check measurements.
+ * Return Value: BOOL by default; diagnostic mode returns [BOOL, named check pairs ARRAY].
+ * Supported observation geometry never establishes path arrival or room safety.
  * Current callers: WAIT_fnc_BuildingOperationStep and WAIT_fnc_CortexGarrisonApplyLocal.
  * Example: [_unit,_house,_spot,_exit,_watch,[_exit],[]] call WAIT_fnc_BuildingExteriorCandidate;
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
     ["_target",[],[[]]],["_entry",[],[[]]],["_watch",[],[[]]],
-    ["_entries",[],[[]]],["_taken",[],[[]]],["_observerLanes",[],[[]]]];
+    ["_entries",[],[[]]],["_taken",[],[[]]],["_observerLanes",[],[[]]],["_diagnostics",false,[true]]];
 if (isNull _actor || {isNull _building} || {count _target != 3}
-    || {count _entry != 3} || {count _watch != 3} || {count _observerLanes > 64}) exitWith {false};
+    || {count _entry != 3} || {count _watch != 3} || {count _observerLanes > 64}) exitWith {
+    if (_diagnostics) then {[false,[["inputs",false]]]} else {false}
+};
 private _bounds=boundingBoxReal _building;
 private _model=_building worldToModel _target;
 private _minimum=_bounds select 0;
@@ -58,8 +62,24 @@ private _laneBlocked=_observerLanes findIf {
 } >= 0;
 private _separated=_taken findIf {_target distance2D _x < 3} < 0
     && {(_target nearEntities ["CAManBase",1.2]) select {_x != _actor} isEqualTo []};
-_observationClear && {!_laneBlocked} && {_separated} && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
-&& {_target distance2D _entry <= 18} && {!surfaceIsWater _target}
-&& {((surfaceNormal _target) select 2) >= 0.65}
-&& {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,0.15],
-    (AGLToASL _target) vectorAdd [0,0,1.8],_actor,objNull,true,1,"GEOM","NONE"]) isEqualTo []}
+private _dry="NOT_CHECKED";
+private _slopeZ="NOT_CHECKED";
+private _standingChecked=false;
+private _standingClear=false;
+private _valid=_observationClear && {!_laneBlocked} && {_separated} && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
+&& {_target distance2D _entry <= 18} && {_dry=!surfaceIsWater _target; _dry}
+&& {_slopeZ=(surfaceNormal _target) select 2; _slopeZ >= 0.65}
+&& {
+    _standingChecked=true;
+    _standingClear=(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,0.15],
+        (AGLToASL _target) vectorAdd [0,0,1.8],_actor,objNull,true,1,"GEOM","NONE"]) isEqualTo [];
+    _standingClear
+};
+if (_diagnostics) exitWith {[_valid,[
+    ["outside",_exterior],["exitClear",!_blocksExit],["view",_observationClear],
+    ["plannedLanesClear",!_laneBlocked],["separated",_separated],
+    ["exitDistance",_target distance2D _entry],["dry",_dry],
+    ["slopeZ",_slopeZ],
+    ["standing",if (_standingChecked) then {_standingClear} else {"NOT_CHECKED"}]
+]]};
+_valid
