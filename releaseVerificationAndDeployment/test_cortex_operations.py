@@ -2158,7 +2158,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('currentCommand _actor in [',text)
             self.assertGreaterEqual(text.count('_actor checkAIFeature "MOVE"'),2)
         self.assertIn('if ([_x] call _mayIssueMovement) then {',garrison)
-        self.assertIn('private _openedDoor = if ([_x] call _mayIssueMovement)',garrison)
+        self.assertIn('private _openedDoor = if ((_assignment param [4,"INTERIOR"]) != "EXTERIOR" && {[_x] call _mayIssueMovement})',garrison)
         self.assertIn('WAIT_Cortex_ActorMove',garrison)
         self.assertIn('currentCommand _actor in [',garrison)
         self.assertIn('!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)',garrison)
@@ -5339,7 +5339,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_garrison_release_preserves_replacement_move_and_follow(self):
         apply=source("cortexGarrisonApplyLocal"); release=source("cortexGarrisonRelease")
-        self.assertEqual(apply.count("call _rememberMove;"),7)
+        self.assertEqual(apply.count("call _rememberMove;"),8)
         self.assertIn('["rememberMove",_rememberMove]',apply)
         self.assertIn('_live vectorDistance (_move select 3) <= 0.25',release)
         self.assertIn('_command == "MOVE" && {_ownedMove}',release)

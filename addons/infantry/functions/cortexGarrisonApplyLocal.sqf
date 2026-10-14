@@ -19,6 +19,8 @@
  * remain valid after it expires, but unfinished routes cannot acquire another 240 seconds.
  * When every surviving assigned actor exhausted its route, the job records INCOMPLETE and
  * releases the failed garrison rather than retaining an empty stationary tactical intent.
+ * Surplus exterior security searches at most one actor per callback and three times per actor.
+ * Valid slots observe real exits, retain distinct destinations and use the original order deadline.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -200,7 +202,7 @@ private _buildingAnchor = {
         if ([_unit] call _mayIssueMovement) then {doStop _unit};
         private _destination = _assignment select 0;
         private _building = _assignment param [2,objNull];
-        private _entries=[_building,_unit,_destination] call _buildingEntries;
+        private _entries=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {[]} else {[_building,_unit,_destination] call _buildingEntries;};
         private _approach = _entries isNotEqualTo [] && {_unit distance2D _destination > 30};
         private _entryIndex = [-1,0] select _approach;
         private _target = if (_approach) then {_entries select 0} else {_destination};
@@ -259,8 +261,83 @@ private _buildingAnchor = {
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
     private _pending = 0;
+    private _exteriorSearchBudget=1;
     {
         private _assignment = _x getVariable ["WAIT_AIPass_GarrisonPos", []];
+        if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR_PENDING"
+            && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}) then {
+            private _actor=_x;
+            private _attempts=_actor getVariable ["WAIT_Cortex_GarrisonExteriorAttempts",0];
+            if (serverTime > (_job get "deadline") || {_attempts >= 3}) then {
+                _actor setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
+                diag_log format ["[WAIT] Garrison exterior selection failed unit=%1 attempts=%2",_actor,_attempts];
+            } else {
+                _pending=_pending+1;
+                if (_exteriorSearchBudget > 0 && {_actor checkAIFeature "PATH"} && {[_actor] call _mayIssueMovement}) then {
+                    _exteriorSearchBudget=0;
+                    _actor setVariable ["WAIT_Cortex_GarrisonExteriorAttempts",_attempts+1,true];
+                    private _history=+(_actor getVariable ["WAIT_Cortex_GarrisonExteriorTried",[]]);
+                    private _buildings=[];
+                    {
+                        private _building=_x param [2,objNull];
+                        if (!isNull _building && {[_x] call _assignmentValid}) then {_buildings pushBackUnique _building};
+                    } forEach ((_group getVariable ["WAIT_Cortex_GarrisonCandidates",[]]) select [0,64]);
+                    private _ranks=[];
+                    {
+                        private _building=_x;
+                        private _entries=[_building,_actor,getPosATL _building] call (_job get "buildingEntries");
+                        {
+                            private _entry=_x;
+                            private _used=(units _group) select {
+                                private _other=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
+                                (_other param [4,"INTERIOR"]) == "EXTERIOR"
+                                    && {(_other param [2,objNull]) == _building} && {(_other param [6,[]]) isEqualTo _entry}
+                            };
+                            _ranks pushBack [[0,1] select ([_building,_entry] in _history),count _used,
+                                _actor distance2D _entry,count _ranks,_building,+_entry];
+                        } forEach _entries;
+                    } forEach (_buildings select [0,16]);
+                    _ranks sort true;
+                    if (_ranks isNotEqualTo []) then {
+                        private _row=_ranks select 0;
+                        private _building=_row select 4;
+                        private _entry=_row select 5;
+                        _history pushBackUnique [_building,+_entry];
+                        _actor setVariable ["WAIT_Cortex_GarrisonExteriorTried",_history,true];
+                        private _bounds=boundingBoxReal _building;
+                        private _centre=_building modelToWorld (((_bounds select 0) vectorAdd (_bounds select 1)) vectorMultiply 0.5);
+                        private _outward=_centre getDir _entry;
+                        private _search=_entry getPos [7,_outward];
+                        private _watch=_entry getPos [2,_outward];
+                        _watch set [2,(_entry select 2)+1.2];
+                        private _taken=(units _group) select {_x != _actor && {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}};
+                        _taken=_taken apply {(_x getVariable "WAIT_AIPass_GarrisonPos") select 0};
+                        private _cover=[_search,_centre,12,_taken,_group] call WAIT_fnc_CortexFindCover;
+                        private _target=_cover select 0;
+                        private _entries=[];
+                        for "_exitIndex" from 0 to 31 do {
+                            private _exit=_building buildingExit _exitIndex;
+                            if (count _exit == 3 && {_exit isNotEqualTo [0,0,0]}
+                                && {((AGLToASL _exit) select 2) >= (getTerrainHeightASL _exit)-0.05}) then {
+                                _entries pushBackUnique _exit;
+                            };
+                        };
+                        if ([_actor,_building,_target,_entry,_watch,_entries,_taken] call WAIT_fnc_BuildingExteriorCandidate
+                            && {[_actor] call _mayIssueMovement}) then {
+                            _assignment=[+_target,_target getDir _watch,_building,
+                                [getPosWorld _building,vectorDir _building,vectorUp _building],"EXTERIOR",+_watch,+_entry,_cover select 1];
+                            _actor setVariable ["WAIT_AIPass_GarrisonPos",_assignment,true];
+                            (_job get "routes") set [netId _actor,[+_target,false,getPosATL _actor,time,0,[str _target],0,[],-1,[],false]];
+                            _actor setVariable ["WAIT_Cortex_GarrisonAppliedStance","UP",true];
+                            _actor setUnitPos "UP";
+                            _actor setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4,true];
+                            _actor forceSpeed 4;
+                            _actor doMove _target; [_actor,_target] call _rememberMove;
+                        };
+                    };
+                };
+            };
+        };
         // A temporarily unconscious member keeps a pending route until the order deadline.
         // Recovery before then resumes naturally without issuing movement while incapacitated.
         if (alive _x && {local _x} && {!isPlayer _x} && {lifeState _x == "INCAPACITATED"}
@@ -269,8 +346,9 @@ private _buildingAnchor = {
         };
         if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
             && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
-            && {_assignment isNotEqualTo []} && {_x checkAIFeature "PATH"} && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}) then {
-            private _openedDoor = if ([_x] call _mayIssueMovement) then {
+            && {_assignment isNotEqualTo []} && {(_assignment param [4,"INTERIOR"]) != "EXTERIOR_PENDING"}
+            && {_x checkAIFeature "PATH"} && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}) then {
+            private _openedDoor = if ((_assignment param [4,"INTERIOR"]) != "EXTERIOR" && {[_x] call _mayIssueMovement}) then {
                 [_x,_assignment param [2,objNull],["GARRISON",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor
             } else {false};
             if (_x distance (_assignment select 0) <= 2) then {
@@ -284,7 +362,8 @@ private _buildingAnchor = {
                     };
                     _x setVariable ["WAIT_AIPass_GarrisonDisabledPath", true, true];
                     _x disableAI "PATH";
-                    _x doWatch ((_assignment select 0) getPos [50, _assignment select 1]);
+                    private _watch=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {_assignment select 5} else {(_assignment select 0) getPos [50,_assignment select 1]};
+                    _x doWatch _watch;
                 };
             } else {
                 if (serverTime > (_job get "deadline")) then {
@@ -352,6 +431,7 @@ private _buildingAnchor = {
                                     private _alternatives=(_group getVariable ["WAIT_Cortex_GarrisonCandidates",[]]) select {
                                         private _key=str (_x select 0);
                                         !(_key in _attempted) && {!(_key in _occupied)} && {[_x] call _assignmentValid}
+                                            && {(_x param [4,"INTERIOR"]) == (_assignment param [4,"INTERIOR"])}
                                     };
                                     if (_reassignments < 2 && {_alternatives isNotEqualTo []} && {[_x] call _mayIssueMovement}) then {
                                         private _routeUnit=_x;

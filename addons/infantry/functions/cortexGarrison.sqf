@@ -8,6 +8,7 @@
  * Positions: building positions within the radius, roofed positions first, then highest first.
  * Each soldier is sent to his own position, then held there with PATH disabled, watching outward.
  * Building assignments include their admission transform; moved/deleted structures retire stale slots.
+ * Surplus actors receive pending exterior security, selected finitely by the existing garrison job.
  * Only local, combat-effective ordinary actors receive slots; protected actors cannot consume
  * an interior assignment or inflate the order's capable starting strength.
  * Suppressed or hit, he drops to a lower stance for a few seconds, then stands back up. The order
@@ -91,8 +92,10 @@ if (_options getOrDefault ["inPlace", false]) then {
     private _candidateAssignments=_candidates apply {[_x select 3,(_x select 4) getDir (_x select 3),_x select 5,[getPosWorld (_x select 5),vectorDir (_x select 5),vectorUp (_x select 5)]]};
     _group setVariable ["WAIT_Cortex_GarrisonCandidates",_candidateAssignments,true];
     {
-        if (_forEachIndex >= count _candidateAssignments) exitWith {};
-        _x setVariable ["WAIT_AIPass_GarrisonPos", _candidateAssignments select _forEachIndex, true];
+        private _assignment=if (_forEachIndex < count _candidateAssignments) then {
+            _candidateAssignments select _forEachIndex
+        } else {[getPosATL _x,0,objNull,[],"EXTERIOR_PENDING"]};
+        _x setVariable ["WAIT_AIPass_GarrisonPos",_assignment,true];
     } forEach _units;
 };
 _group setVariable ["WAIT_Cortex_GarrisonResult",nil,true];

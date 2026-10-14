@@ -7,7 +7,7 @@
  * 3 selected exit ATL <ARRAY, []>; 4 watch ATL <ARRAY, []>; 5 exits <ARRAY, []>;
  * 6 reserved ATL positions <ARRAY, []>.
  * Return Value: BOOL, supported exterior observation geometry; never path arrival or room safety.
- * Current callers: WAIT_fnc_BuildingOperationStep.
+ * Current callers: WAIT_fnc_BuildingOperationStep and WAIT_fnc_CortexGarrisonApplyLocal.
  * Example: [_unit,_house,_spot,_exit,_watch,[_exit],[]] call WAIT_fnc_BuildingExteriorCandidate;
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],

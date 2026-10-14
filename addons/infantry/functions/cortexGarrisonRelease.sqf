@@ -105,6 +105,8 @@ if (isNull _leader) then {_leader=leader _group};
     _x setVariable ["WAIT_AIPass_GarrisonDisabledPath", nil, true];
     _x setVariable ["WAIT_AIPass_GarrisonPos", nil, true];
     _x setVariable ["WAIT_AIPass_GarrisonFailed",nil,true];
+    _x setVariable ["WAIT_Cortex_GarrisonExteriorAttempts",nil,true];
+    _x setVariable ["WAIT_Cortex_GarrisonExteriorTried",nil,true];
     _x setVariable ["WAIT_AIPass_GarrisonStance", nil, true];
     _x setVariable ["WAIT_Cortex_GarrisonForcedSpeed",nil,true];
     _x setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",nil,true];
