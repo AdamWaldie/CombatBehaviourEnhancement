@@ -4,7 +4,9 @@
  * Locality/authority: requester owner asks; server validates its existing leases; helper owners execute.
  * Each helper keeps the side of the support-to-enemy axis on which it rallied. A responder inside
  * the centre corridor receives a deterministic alternating side rather than permission to cross
- * the support line. Candidate approach points remain separated by 60 m, then
+ * the support line. Approach radii scale from live requester/contact and responder/contact
+ * distances, bounded to 45-250 m with six candidates per responder and no additional scans.
+ * Candidate approach points remain separated by 60 m, then
  * WAIT_fnc_CortexSelectAvenue rejects routes entering the requester's
  * 30 m firing corridor or changing sides. The shared bounded scorer distinguishes terrain/solid
  * ballistic screening from visual concealment. It runs once per dispatch, not per tick or soldier.
@@ -74,6 +76,12 @@ private _dispatched=[];
         } else {
             [1,-1] select ((count _dispatched) mod 2 == 1)
         };
+        // Scale the front from this actual opportunity, not from the compact audit fixture.
+        // A bounded pair of radial depths gives same-side squads distinct avenues;
+        // the existing terrain/fire-lane scorer still decides whether any is usable.
+        private _approachRadius=((_laneLength*0.3) max ((_routeOrigin distance2D _enemy)*0.2)) max 45 min 180;
+        private _outerRadius=(_approachRadius+70) min 250;
+        private _obliqueRadius=(_approachRadius*1.4) min 250;
         private _candidateRoutes=[];
         {
             _x params ["_radius","_offset"];
@@ -86,7 +94,8 @@ private _dispatched=[];
             if (_sameSide && {!surfaceIsWater _candidate} && {_separated}) then {
                 _candidateRoutes pushBack [_candidate];
             };
-        } forEach [[45,90],[85,90],[65,135],[45,-90],[85,-90],[65,-135]];
+        } forEach [[_approachRadius,90],[_outerRadius,90],[_obliqueRadius,135],
+            [_approachRadius,-90],[_outerRadius,-90],[_obliqueRadius,-135]];
         private _selected=[_routeOrigin,_candidateRoutes,_enemy,[_supportOrigin]] call WAIT_fnc_CortexSelectAvenue;
         private _attack=if (_selected isEqualTo []) then {[]} else {+(_selected select ((count _selected)-1))};
         if (_attack isNotEqualTo []) then {
