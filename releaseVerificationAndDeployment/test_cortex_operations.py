@@ -7396,6 +7396,39 @@ class CortexOperations(unittest.TestCase):
 
 
 
+    def test_tactical_movement_hands_back_ordinary_driving_before_acquisition(self):
+        lease=source('cortexOwnershipLease')
+        available=(ROOT/'addons/vehicles/functions/drivingMovementAvailable.sqf').read_text(encoding='utf-8')
+        self.assertLess(lease.index('WAIT_fnc_DrivingOperationFinish'),lease.index('_group setVariable ["WAIT_Cortex_MovementLease"'))
+        self.assertIn('serverTime < (_lease select 1)',available)
+        self.assertIn('WAIT_VehicleReverse',available)
+        self.assertIn('WAIT_AIPass_Epoch',available)
+        for name in ['drivingAssistStart','drivingAssistRelease','drivingOperationStart','drivingOperationStep']:
+            self.assertIn('WAIT_fnc_DrivingMovementAvailable',(ROOT/('addons/vehicles/functions/'+name+'.sqf')).read_text(encoding='utf-8'))
+        self.assertNotIn('setVariable',available)
+
+    def test_reverse_clearance_is_shared_body_sized_and_read_only(self):
+        """Both native recovery paths must use fresh hull-width actor and geometry evidence."""
+        observer=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text(encoding='utf-8')
+        ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        tracked=source('cortexVehicleReverseStep')
+        self.assertIn('boundingBoxReal _vehicle',observer)
+        self.assertIn('boundingBoxReal _x',observer)
+        self.assertIn('count _actors > 64',observer)
+        self.assertIn('forEach [0.45,0.9]',observer)
+        self.assertIn('forEach [_left,(_left+_right)*0.5,_right]',observer)
+        self.assertIn('_maxX >= _left',observer)
+        self.assertIn('_minY <= _rear+0.5',observer)
+        self.assertIn('"GEOM","NONE"',observer)
+        self.assertIn('call WAIT_fnc_DrivingRearClear',ordinary)
+        self.assertIn('call WAIT_fnc_DrivingRearClear',tracked)
+        self.assertLess(ordinary.index('call WAIT_fnc_DrivingRearClear'),ordinary.index('_movementOperator doMove _rear'))
+        self.assertLess(tracked.index('call WAIT_fnc_DrivingRearClear'),tracked.index('_vehicle sendSimpleCommand "BACK"'))
+        for write in ['forceSpeed','sendSimpleCommand','doMove','setPos','setVelocity','disableCollisionWith']:
+            self.assertNotIn(write,observer)
+        self.assertNotIn('allVehicles',observer)
+        self.assertNotIn('allUnits',observer)
+
     def test_ordinary_driving_fsm_owns_queued_execution_and_terminal_receipts(self):
         """Old/replaced/retired driving work cannot enter the movement executor."""
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text(encoding='utf-8')

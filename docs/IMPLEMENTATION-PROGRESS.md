@@ -1,3 +1,14 @@
+## Shared reverse clearance observation
+
+Ordinary recovery and tracked withdrawal now consume the same body-sized rear actor/geometry
+observer. It projects actor footprints, refuses dense candidate sets and uses at most six solid
+geometry rays. Consumers retain movement authority, existing terrain/avenue checks and finite
+recovery semantics. This replaces fixed-width ordinary probes and centre-only tracked solid checks;
+it does not establish collision avoidance or driving completion. Physical cases are pending and
+audits remain held. Finite tactical movement now retires ordinary driving before acquisition;
+admission, queued execution, commands and late restoration preserve the successor lease. Physical
+handover and post-expiry resumption remain pending.
+
 ## Ordinary driving operation lifecycle
 
 Ordinary driving admission now starts/reuses an owner-local route-scoped FSM. Its phase nodes

@@ -747,7 +747,9 @@
         "addons/vehicles/functions/drivingOperationStart.sqf",
         "addons/vehicles/functions/drivingOperationQueue.sqf",
         "addons/vehicles/functions/drivingOperationStep.sqf",
-        "addons/vehicles/functions/drivingOperationFinish.sqf"
+        "addons/vehicles/functions/drivingOperationFinish.sqf",
+        "addons/vehicles/functions/drivingRearClear.sqf",
+        "addons/vehicles/functions/drivingMovementAvailable.sqf"
       ]
     },
     {

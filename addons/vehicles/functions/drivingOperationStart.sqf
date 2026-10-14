@@ -12,6 +12,7 @@
 params [["_group",grpNull,[grpNull]]];
 if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
     || {!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
+    || {!([_group] call WAIT_fnc_DrivingMovementAvailable)}
     || {[_group] call WAIT_fnc_CortexZeusHeld} || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
 private _route=[_group] call WAIT_fnc_DrivingRouteReceipt;
 if (_route isEqualTo []) exitWith {false};

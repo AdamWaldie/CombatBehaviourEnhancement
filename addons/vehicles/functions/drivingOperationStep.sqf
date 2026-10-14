@@ -17,6 +17,7 @@ if (isNull _group || {!local _group} || {_brain getOrDefault ["cancelled",false]
     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {["OWNER_CHANGED"] call _reject};
 if ([_group] call WAIT_fnc_CortexZeusHeld || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {["TAKEOVER"] call _reject};
 if (!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)) exitWith {["DISABLED"] call _reject};
+if (!([_group] call WAIT_fnc_DrivingMovementAvailable)) exitWith {["TACTICAL_OWNER"] call _reject};
 if (([_group] call WAIT_fnc_DrivingRouteReceipt) isNotEqualTo (_brain get "route")) exitWith {["ORDER_CHANGED"] call _reject};
 [_group,_brain] call WAIT_fnc_DrivingAssistStart;
 private _phase="HANDBACK";private _owned=0;private _recovery=false;private _waiting=false;private _exhausted=false;

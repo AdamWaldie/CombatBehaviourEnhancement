@@ -14,6 +14,8 @@
  * The authored waypoint identity includes conditions, timeouts, synchronized triggers, speed,
  * combat mode and formation. Same-index edits retire the old recovery stage. Every cap/recovery
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
+ * Reverse admission uses a fresh body-sized rear corridor observation shared with tracked
+ * withdrawal. Actor and solid-geometry clearance does not prove native reverse execution.
  * Only the current leader vehicle can refresh/reverse the shared route. Followers keep native
  * formation movement; a leader/seat/locality change invalidates delayed recovery commands.
  * Deliberate native waits near the completion envelope suppress recovery without evaluating
@@ -92,6 +94,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         // order. Preserve that order at the actual cap/recovery command boundary.
         private _mayIssueDriving = {
             local _group && {local _vehicle}
+                && {[_group] call WAIT_fnc_DrivingMovementAvailable}
                 && {driver _vehicle isEqualTo _driver}
                 && {(effectiveCommander _vehicle) in [_movementOperator,objNull]}
                 && {vehicle _movementOperator isEqualTo _vehicle}
@@ -256,24 +259,11 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                         };
                         case 1: {
                             private _rear=_vehicle getPos [8,(getDir _vehicle)+180];
-                            private _blockers=(nearestObjects [_rear,["Man","LandVehicle","StaticWeapon"],10]) select {
-                                _x != _vehicle && {!(_x in crew _vehicle)} && {alive _x}
-                            };
-                            private _rearSafe=!surfaceIsWater _rear && {((surfaceNormal _rear) select 2) >= 0.7};
-                            private _rearASL=AGLToASL _rear;
-                            _rearASL set [2,(_rearASL select 2)+1];
-                            private _probeOrigin=(getPosASL _vehicle) vectorAdd [0,0,1];
-                            private _probeSide=[-(_direction select 1),_direction select 0,0];
-                            if (_rearSafe) then {
-                                {
-                                    private _probeOffset=_probeSide vectorMultiply _x;
-                                    if ((lineIntersectsSurfaces [_probeOrigin vectorAdd _probeOffset,
-                                        _rearASL vectorAdd _probeOffset,_vehicle,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []) exitWith {
-                                        _rearSafe=false;
-                                    };
-                                } forEach [-1.5,0,1.5];
-                            };
-                            if (_blockers isEqualTo [] && {_rearSafe} && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
+                            // Fresh shared body-width observation; no fixed-width centre probe.
+                            private _clearance=[_vehicle,8] call WAIT_fnc_DrivingRearClear;
+                            private _rearSafe=(_clearance select 0) && {!surfaceIsWater _rear}
+                                && {((surfaceNormal _rear) select 2) >= 0.7};
+                            if (_rearSafe && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
                                 _movementOperator doMove _rear;
                                 _recoveryResult="CAUTIOUS_REVERSE";
                             } else {

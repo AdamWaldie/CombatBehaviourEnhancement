@@ -158,6 +158,27 @@ execution, yielding and overtaking remain open work. Required physical retests i
 condition and timeout waits near and far from the waypoint; same-order exhaustion; newer orders;
 repeat use; disabled/re-enabled control; and owner migration. Audits are held, so these are unrun.
 
+Ordinary recovery and tracked withdrawal now share a fresh rear-clearance observer. It samples
+three positions across the real hull width at two body-relative heights, from the rear body edge.
+Nearby actor footprints are projected into that corridor, so a long or angled vehicle can block a
+reverse even when its centre sits outside it. More than 64 nearby actors refuses clearance rather
+than dropping unexamined candidates. Each call returns the clearance reason, observation time and
+ray count; it issues no movement or physics commands and retains no reusable clearance cache.
+
+Ordinary recovery checks its eight-metre leg before the native command. Tracked withdrawal checks
+its speed-dependent rear distance at each existing reverse step. The ordinary terrain/water guard
+and tracked avenue/facing/deadline gates remain. Six sampled rays are not a complete navigation or
+collision guarantee; native movement remains responsible for steering. No new settings or loops
+are added. Physical wide-hull, angled-truck, pedestrian, wreck, low barrier, pitch/slope and dense
+traffic cases remain unrun while audits are held. Convoy traffic prediction is separate open work.
+
+Finite tactical movement acquisition now retires the ordinary driving FSM and its unchanged
+speed leases before publishing the successor owner. Ordinary admission, queued execution and each
+command reject an unexpired movement lease or a current tracked reverse. Late cleanup preserves
+the successor's speed policy. Expired leases do not permanently exclude ordinary driving. This
+handover has no new controls; withdrawal/standoff/jink/orientation and post-expiry resumption need
+physical testing, including an acquisition while an ordinary callback is pending.
+
 Convoys measure forward predecessor gaps to remain single-file; they do not use
 formation wedge offsets. Target spacing uses a size-aware minimum/maximum band
 with damped speed correction. A meaningful stop is classified as ordered,

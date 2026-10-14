@@ -7,6 +7,7 @@
  * Repeat/JIP: Safe when called repeatedly or after ownership changes; only a locally stored WAIT
  * restore record can be applied. Player, remote-controlled or specialist effective commanders
  * preserve their newer cap even when an ordinary AI driver belongs to another group.
+ * A newer finite WAIT movement lease also prevents restoration over its tactical speed policy.
  * Arguments:
  * 0: vehicle <OBJECT> - ground vehicle to release.
  * 1: expected group <GROUP, grpNull> - group-scoped cleanup; grpNull permits subsystem shutdown.
@@ -34,6 +35,7 @@ private _externalControl=(!isNull _ownerGroup && {[_ownerGroup] call WAIT_fnc_Co
     || {!isNull _driver && {isPlayer _driver || {!isNull remoteControlled _driver}
         || {[_driver] call WAIT_fnc_CortexExternalOwner != ""}}}
     || {_commanderTaken}
+    || {!isNull _ownerGroup && {!([_ownerGroup] call WAIT_fnc_DrivingMovementAvailable)}}
     || {_vehicle getVariable ["WAIT_Convoy_Active",false]};
 // Restore only the cap that this driving lease still owns. If another controller changed it,
 // clear our state and leave that newer value untouched.
