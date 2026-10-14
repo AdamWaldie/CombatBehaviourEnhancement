@@ -118,8 +118,7 @@ Players, remote-controlled/protected actors, movement reservations and native se
 from instant placement. `inPlace` and `teleport` cannot be combined. Instant placement is not evidence
 of accessible interiors or physical CQB entry and must remain excluded from physical routing acceptance.
 The executor option has offline checks only; fresh engine placement, repeat, casualty and migration
-acceptance remains pending. A future module should label walking and instant placement distinctly;
-no garrison module is exposed by this change.
+acceptance remains pending. The Garrison area module labels walking and instant placement distinctly; module controls are described below.
 **Traverse** enters through one viable side and leaves through an actual exit
 on the onward side. Casualties and stalls can rotate capable reserve actors into
 the entry element without forcing a group merge.
@@ -314,3 +313,38 @@ boundary. Ordinary driving remains automatic under the existing CBA gates and na
 orders. The convoy module remains a convoy task entry point. Future building, support and optional
 navigation-corridor modules must use their real production task executor and retain owner authority,
 interruption and cleanup. No replacement behaviour module is claimed complete here.
+
+
+## Garrison behaviour module
+
+Native Zeus lists **Waldos AI Tweaks > Garrison area**. Place it on an AI soldier in the intended
+squad; it tasks that squad around the module position. Without ZEN it uses walking and a 50 m
+radius. With optional ZEN it opens the same task dialog as the **Garrison area** custom module.
+The ZEN dialog explicitly selects a squad, area radius (15–150 m, default 50) and placement
+(walk by default or instant interior placement). Its group list is capped at 128 initial groups;
+placing it on a soldier includes that squad even outside the initial list. Dropping the ZEN
+module on a building or empty ground uses that position as the area centre, not an automatically
+selected squad. The native module requires a soldier attachment and refuses an absent target.
+
+These are per-task parameters, not addon settings. CBA still owns feature enablement. Enabled
+Cortex must be ready on the current owner; players, excluded squads and other controllers remain
+subject to the existing executor gates. The server authenticates remote requesters as assigned
+curators, takes reply identity from the network sender, validates named task parameters and routes
+the order to the current owner. Remote requests cannot change addon configuration or artillery
+role registrations through this path. At most 64 owner acknowledgements can be pending, each for
+12 seconds. Reaching that limit refuses another request rather than queuing unbounded work.
+
+The owner rejects repeated/older task serials and changed native waypoint receipts before
+altering the squad's orders. Receipt comparison covers waypoint count/index, position, type,
+description, speed, behaviour, combat mode and formation. It does not yet cover conditions,
+timeouts or synchronized triggers. A settings/feature refusal preserves existing order state.
+A notification reports owner acceptance or refusal; acceptance is not physical occupation.
+Task commands are not replayed to JIP; existing garrison assignments support owner adoption.
+Instant placement only occurs on fresh admission. It does not replay on migration or discovery.
+
+The selected task uses the existing interior assignments, exterior security, casualty/morale break,
+stuck-route deadlines and transform invalidation. Existing release/new-task/Zeus handover paths
+still apply; this module adds no per-frame controller or world scan. Source-level and offline
+validation are available; native and ZEN dialog interaction, spoof rejection, duplicate/delayed
+requests, terrain/placed/modded buildings, placement, real walking, casualties, repeated tasks,
+release, JIP, HC migration and measured performance all remain pending live acceptance.
