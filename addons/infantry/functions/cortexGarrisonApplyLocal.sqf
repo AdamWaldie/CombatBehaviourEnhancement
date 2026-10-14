@@ -24,6 +24,8 @@
  * Each search counts live reservations once; failed/incapacitated actors do not claim exit coverage.
  * Physical occupants remain excluded by the shared geometry validator. Rejected-point history
  * also survives adoption so a one-exit building does not repeat the same failed cover candidate.
+ * One short-range engine empty-space query can propose an uncovered alternate after rejection.
+ * It must pass the same live geometry/observation checks; neither proposal proves path arrival.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -280,7 +282,7 @@ private _buildingAnchor = {
                     _exteriorSearchBudget=0;
                     _actor setVariable ["WAIT_Cortex_GarrisonExteriorAttempts",_attempts+1,true];
                     private _history=+((_actor getVariable ["WAIT_Cortex_GarrisonExteriorTried",[]]) select [0,3]);
-                    private _targetHistory=+((_actor getVariable ["WAIT_Cortex_GarrisonExteriorTargets",[]]) select [0,3]);
+                    private _targetHistory=+((_actor getVariable ["WAIT_Cortex_GarrisonExteriorTargets",[]]) select [0,6]);
                     private _buildings=[];
                     {
                         private _building=_x param [2,objNull];
@@ -327,7 +329,7 @@ private _buildingAnchor = {
                         private _cover=[_search,_centre,12,_taken,_group] call WAIT_fnc_CortexFindCover;
                         private _target=_cover select 0;
                         _targetHistory pushBackUnique +_target;
-                        _actor setVariable ["WAIT_Cortex_GarrisonExteriorTargets",_targetHistory,true];
+                        private _covered=_cover select 1;
                         private _entries=[];
                         for "_exitIndex" from 0 to 31 do {
                             private _exit=_building buildingExit _exitIndex;
@@ -336,10 +338,39 @@ private _buildingAnchor = {
                                 _entries pushBackUnique _exit;
                             };
                         };
-                        if ([_actor,_building,_target,_entry,_watch,_entries,_taken] call WAIT_fnc_BuildingExteriorCandidate
-                            && {[_actor] call _mayIssueMovement}) then {
+                        private _valid=[_actor,_building,_target,_entry,_watch,_entries,_taken] call WAIT_fnc_BuildingExteriorCandidate;
+                        if (!_valid) then {
+                            // A bare exit approach still supports observation. Correct this query's
+                            // centre away from live reservations; do not invent a formation fan.
+                            private _emptyCentre=+_search;
+                            {
+                                private _delta=_emptyCentre vectorDiff _x;
+                                _delta set [2,0];
+                                private _distance=vectorMagnitude _delta;
+                                if (_distance < 3.5) then {
+                                    if (_distance < 0.01) then {
+                                        private _bearing=_actor getDir _emptyCentre;
+                                        _delta=[sin _bearing,cos _bearing,0];
+                                    };
+                                    _emptyCentre=_emptyCentre vectorAdd ((vectorNormalized _delta) vectorMultiply (3.5-_distance));
+                                };
+                            } forEach (_taken select [0,64]);
+                            private _empty=if (_emptyCentre distance2D _entry <= 16) then {
+                                _emptyCentre findEmptyPosition [0.75,8,typeOf _actor]
+                            } else {[]};
+                            if (count _empty == 3) then {
+                                // This is a ground exterior proposal, never a fabricated interior node.
+                                _empty set [2,0];
+                                _targetHistory pushBackUnique +_empty;
+                                if ([_actor,_building,_empty,_entry,_watch,_entries,_taken] call WAIT_fnc_BuildingExteriorCandidate) then {
+                                    _target=+_empty; _valid=true; _covered=false;
+                                };
+                            };
+                        };
+                        _actor setVariable ["WAIT_Cortex_GarrisonExteriorTargets",_targetHistory,true];
+                        if (_valid && {[_actor] call _mayIssueMovement}) then {
                             _assignment=[+_target,_target getDir _watch,_building,
-                                [getPosWorld _building,vectorDir _building,vectorUp _building],"EXTERIOR",+_watch,+_entry,_cover select 1];
+                                [getPosWorld _building,vectorDir _building,vectorUp _building],"EXTERIOR",+_watch,+_entry,_covered];
                             _actor setVariable ["WAIT_AIPass_GarrisonPos",_assignment,true];
                             (_job get "routes") set [netId _actor,[+_target,false,getPosATL _actor,time,0,[str _target],0,[],-1,[],false]];
                             _actor setVariable ["WAIT_Cortex_GarrisonAppliedStance","UP",true];
