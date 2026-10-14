@@ -4,6 +4,8 @@
  * Locality/authority: interface only; reads server-published audit state and protects the local
  * observer so combat cannot invalidate rendered-client measurements; never changes fixture AI.
  * Repeat/JIP: one observer per client; an obsolete respawn handler is removed before installation,
+ * the assigned observer opens Zeus and frames its first published fixture once after assignment;
+ * later camera movement or closing Zeus is respected;
  * controls are rebuilt when the game/Zeus display changes, and audit-only tracks are capped at
  * twelve actors and forty-eight samples so the visual aid cannot dominate the measured workload.
  * Arguments: None. Return: Nothing (scheduled script).
@@ -235,7 +237,30 @@ private _host = displayNull;
 private _controls = [];
 private _last = "";
 private _nextSample = 0;
+private _observerOpened = false;
+private _observerFramed = false;
+// One local camera path serves startup and the explicit inspection control. The
+// callback returns success only with an actual curator camera and a published fixture.
+missionNamespace setVariable ["WAIT_CortexQA_Inspect",{
+    private _phase=missionNamespace getVariable ["WAIT_CortexQA_Phase",[]];
+    private _position=_phase param [2,[]];
+    if (isNull curatorCamera || {count _position < 2}) exitWith {false};
+    private _destination=AGLToASL [(_position select 0),(_position select 1)-35,30];
+    curatorCamera setPosASL _destination;
+    curatorCamera setVectorDirAndUp [[0,cos 35,-sin 35],[0,sin 35,cos 35]];
+    diag_log format ["WAIT AUDIT OBSERVER CAMERA: %1",[_phase param [0,""],_destination,getPosASL curatorCamera]];
+    true
+}];
 while {true} do {
+    // Controls added to the gameplay HUD do not acquire a mouse cursor. Start the sole
+    // disposable observer in its assigned interface instead of relying on a HUD click.
+    // This is client camera/UI setup only; it neither routes nor reveals fixture AI.
+    if (!_observerOpened && {!isNull getAssignedCuratorLogic player}
+        && {!dialog} && {!visibleMap}) then {
+        _observerOpened = true;
+        if (isNull findDisplay 312) then {openCuratorInterface};
+        diag_log "WAIT AUDIT OBSERVER ZEUS OPEN REQUESTED";
+    };
     if (diag_tickTime >= _nextSample) then {
         _nextSample=diag_tickTime+1;
         private _combat = missionNamespace getVariable ["WAIT_CortexQA_Combat",[]];
@@ -257,13 +282,18 @@ while {true} do {
             _tracks set [_key,_track];
         } forEach _actors;
     };
+    if (!_observerFramed && {!isNull findDisplay 312}) then {
+        _observerFramed=[] call (missionNamespace getVariable "WAIT_CortexQA_Inspect");
+    };
     private _next = findDisplay 312;
     if (isNull _next) then {_next = findDisplay 46};
     if (!isNull _next && {_next != _host}) then {
         {ctrlDelete _x} forEach _controls;
         if (!isNil "WAIT_fnc_UnregisterUiReservationLocal") then {["CORTEX_QA"] call WAIT_fnc_UnregisterUiReservationLocal};
         _host = _next;
-        private _theme = [] call WAIT_fnc_AITweaksUiTheme;
+        private _theme = if (isNil "WAIT_fnc_AITweaksUiTheme") then {
+            createHashMapFromArray [["panel",[0.02,0.025,0.03,0.95]],["text",[1,1,1,1]]]
+        } else {[] call WAIT_fnc_AITweaksUiTheme};
         private _back = _host ctrlCreate ["RscText",-1];
         private _body = _host ctrlCreate ["RscStructuredText",-1];
         private _inspect = _host ctrlCreate ["RscButton",-1];
@@ -275,17 +305,14 @@ while {true} do {
         _body ctrlSetPosition [_x+_w*0.025,_y+_h*0.03,_w*0.95,_h*0.72]; _body ctrlSetTextColor (_theme get "text"); _body ctrlCommit 0;
         private _inZeus=!isNull findDisplay 312;
         _inspect ctrlSetPosition [_x+_w*0.025,_y+_h*0.79,_w*0.95,_h*0.17];
-        _inspect ctrlSetText (["Open Zeus, then inspect the current test","Inspect current test in Zeus"] select _inZeus);
+        _inspect ctrlSetText (["Open Zeus with your curator key","Inspect current test in Zeus"] select _inZeus);
         _inspect ctrlEnable _inZeus;
         _inspect ctrlCommit 0;
         _inspect ctrlAddEventHandler ["ButtonClick",{
-            private _phase = missionNamespace getVariable ["WAIT_CortexQA_Phase",[]];
-            private _position = _phase param [2,[]];
-            if (!isNull curatorCamera && {count _position >= 2}) then {
-                curatorCamera setPosASL (AGLToASL [(_position select 0),(_position select 1)-35,30]);
-                curatorCamera setDir 0;
-                [curatorCamera,-35,0] call BIS_fnc_setPitchBank;
+            if (isNull curatorCamera) exitWith {
+                if (!isNull getAssignedCuratorLogic player) then {openCuratorInterface};
             };
+            [] call (missionNamespace getVariable "WAIT_CortexQA_Inspect");
         }];
         _controls = [_back,_body,_inspect];
         if (!isNil "WAIT_fnc_RegisterUiReservationLocal") then {["CORTEX_QA",_controls,["BOTTOM_CENTER"],true] call WAIT_fnc_RegisterUiReservationLocal};
@@ -294,7 +321,11 @@ while {true} do {
     private _phase = missionNamespace getVariable ["WAIT_CortexQA_Phase",["Preparing","Waiting for the client and both headless clients.",[]]];
     private _results = missionNamespace getVariable ["WAIT_CortexQA_Results",[]];
     private _failed = {(_x select 1) == "FAIL"} count _results;
-    private _text = format ["<t size='1.1'>CORTEX AUDIT [%8]: %1</t><br/>LOOK FOR: %2<br/>Live settings: %7<br/>Completed checks: %3 | Failures: %4<br/>%5<br/>%6",_phase select 0,_phase select 1,count _results,_failed,(_results select [((count _results)-3) max 0,3] apply {format ["%1: %2",_x select 0,_x select 1]}) joinString "<br/>",if (missionNamespace getVariable ["WAIT_CortexQA_ClientDone",false]) then {"RUN FINISHED. Review completion results."} else {format ["RUNNING: %1 seconds in this stage. Pending checks have not passed.",floor (serverTime-(_phase param [3,serverTime]))]},format ["Cortex %1 | Contact %2 | Regroup %3",["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Enable",false]),["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Contact_Enable",true]),["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Regroup_Enable",true])],missionNamespace getVariable ["WAIT_CortexQA_Focus","all"]];
+    private _text = format ["<t size='1.1'>CORTEX AUDIT [%8]: %1</t><br/>LOOK FOR: %2<br/>Live settings: %7<br/>Completed checks: %3 | Failures: %4<br/>%5<br/>%6",_phase select 0,_phase select 1,count _results,_failed,(_results select [((count _results)-3) max 0,3] apply {format ["%1: %2",_x select 0,_x select 1]}) joinString "<br/>",if (missionNamespace getVariable ["WAIT_CortexQA_ClientDone",false]) then {"RUN FINISHED. Review completion results."} else {format ["RUNNING: %1 seconds in this stage. Pending checks have not passed.",floor (serverTime-(_phase param [3,serverTime]))]},if ((missionNamespace getVariable ["WAIT_CortexQA_Focus",""]) == "nativebuildings") then {"WAIT addon absent | Native engine control"} else {format ["Cortex %1 | Contact %2 | Regroup %3",["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Enable",false]),["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Contact_Enable",true]),["OFF","ON"] select (missionNamespace getVariable ["WAIT_AIPass_Regroup_Enable",true])]},missionNamespace getVariable ["WAIT_CortexQA_Focus","all"]];
     if (_text != _last && {count _controls > 0}) then {(_controls select 1) ctrlSetStructuredText parseText _text; _last = _text};
+    if (count _controls == 3) then {
+        (_controls select 2) ctrlEnable (!isNull findDisplay 312);
+    };
     uiSleep 0.5;
 };
+

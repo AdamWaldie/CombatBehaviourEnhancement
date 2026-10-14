@@ -101,6 +101,28 @@ _group setVariable ["WAIT_AIPass_Managed", nil];
 {_group setVariable [_x, nil]} forEach ["WAIT_AIPass_GarrisonApplied", "WAIT_AIPass_DefendApplied", "WAIT_AIPass_ClearApplied"];
 _group setVariable ["WAIT_AIPass_Adopted", _gained];
 if (!_gained || {!local _group}) exitWith {};
+// Completed clearance has no active operation/order, but native STOP survives migration.
+// Adopt the public hold receipt into this owner's generation without replaying movement.
+private _clearHold=_group getVariable ["WAIT_Cortex_ClearHold",[]];
+if (count _clearHold == 4) then {
+    private _actors=_clearHold select 3;
+    private _canAdopt=_actors isEqualType [] && {count _actors <= 16}
+        && {(_clearHold select 0) isEqualType 0}
+        && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}
+        && {(_group getVariable ["WAIT_AIPass_ClearOrder",[]]) isEqualTo []}
+        && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+    if (_canAdopt) then {
+        private _holdGeneration=((_group getVariable ["WAIT_AIPass_ClearGeneration",0]) max (_clearHold select 0))+1;
+        _group setVariable ["WAIT_AIPass_ClearGeneration",_holdGeneration];
+        private _adoptedHold=+_clearHold;
+        _adoptedHold set [0,_holdGeneration];
+        _adoptedHold set [1,_group getVariable ["WAIT_AIPass_Epoch",0]];
+        _adoptedHold set [3,_actors select {group _x == _group}];
+        _group setVariable ["WAIT_Cortex_ClearHold",_adoptedHold,true];
+    } else {
+        _group setVariable ["WAIT_Cortex_ClearHold",nil,true];
+    };
+};
 // Retire inherited simple driving before the new owner resumes the durable escape route.
 private _reverseCleanup=_group getVariable ["WAIT_VehicleReverse",[]];
 if (count _reverseCleanup == 9) then {

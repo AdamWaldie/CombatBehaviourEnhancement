@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Maintains three-dimensional physical progress for one existing operation and identifies
  * bounded recovery needs. Vertical travel counts; recovery arrival requires the destination floor band.
+ * CLEAR destination failures retire the recovery observation without quarantining a capable actor;
+ * its building worker retains per-room failure evidence and the generation retry budget stays spent.
  * Locality/authority: Current group owner only; it never creates a replacement route or issues a movement order.
  * Repeat/JIP: Updates the current generation only. Changed progress, roster and recovery state are public; unchanged no-progress observations are not rebroadcast. Cadence is local and rebuilt after migration.
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 minimum progress <NUMBER, 3>; 3 stale seconds <NUMBER, 12>; 4 allow own WAIT feature <BOOL, false>.
@@ -61,14 +63,24 @@ private _unavailableCount=count _unavailable;
                 _recovery deleteAt _key;
                 _recoveryChanged=true;
             } else {
-                if (_currentPosition vectorDistance _startPosition >= _minimum) then {
-                    // The isolated actor is still moving. Renew only its observation window; its
+                private _recoveryDestination=+_destination;
+                if (count _recoveryDestination == 2) then {_recoveryDestination pushBack (_startPosition select 2)};
+                private _closer=count _recoveryDestination == 3
+                    && {(_startPosition vectorDistance _recoveryDestination)-(_currentPosition vectorDistance _recoveryDestination) >= _minimum};
+                if (_closer) then {
+                    // The isolated actor is approaching its assigned destination. Lateral travel or circling cannot renew the retry. Renew only its observation window; its
                     // travel cannot mask a stalled manoeuvre element or reset operation progress.
                     _recovery set [_key,[_attempts,time,+_destination,_currentPosition]];
                     _recoveryChanged=true;
                 } else {
-                    _unavailable pushBackUnique _actor;
-                    // Quarantine ends this observation, not its generation's retry budget.
+                    // A failed CLEAR destination may be an inaccessible model node, not
+                    // an incapable soldier. The building worker retires that room attempt
+                    // through failedBy/unreachable and can use this actor in another room.
+                    // Keep the generation's retry budget; no recovery attempt is renewed.
+                    if ((_operation getOrDefault ["intent",""]) != "CLEAR") then {
+                        _unavailable pushBackUnique _actor;
+                    };
+                    // End this observation without forgetting its generation retry budget.
                     _recovery deleteAt _key;
                     _recoveryChanged=true;
                 };
@@ -95,7 +107,8 @@ private _progressActor=objNull;
     _x params ["_actor","_lastPosition"];
     if (_actor in _participants) then {
         private _currentPosition=getPosATL _actor;
-        private _actorProgressed=_currentPosition vectorDistance _lastPosition >= _minimum;
+        private _actorProgressed=simulationEnabled _actor && {!isObjectHidden _actor}
+            && {_currentPosition vectorDistance _lastPosition >= _minimum};
         if (_actorProgressed) then {
             _progressed=true;
             _progressActor=_actor;
@@ -118,7 +131,8 @@ private _progressActor=objNull;
 if (_participants isEqualTo [] && {!_participantsRequired}) then {
     private _leader=leader _group;
     private _position=getPosATL _leader;
-    if (_position distance2D (_operation getOrDefault ["lastProgressPosition",_position]) >= _minimum) then {
+    if (simulationEnabled _leader && {!isObjectHidden _leader}
+        && {_position distance2D (_operation getOrDefault ["lastProgressPosition",_position]) >= _minimum}) then {
         _progressed=true;
         _progressActor=_leader;
         _operation set ["lastProgressPosition",_position];
@@ -141,7 +155,16 @@ if (_progressed) then {
     _operation set ["recovery",_recovery];
     _operation set ["unavailable",_unavailable];
     if (_changed) then {_group setVariable ["WAIT_Operation",_operation,true]};
-    if (_participantsRequired && {_participants isEqualTo []}) then {"STALLED"} else {
+    if (_participantsRequired && {_participants isEqualTo []}) then {
+        // An isolated retry owns one bounded observation window. An empty aggregate
+        // roster must not cancel that fresh attempt before it can physically execute.
+        // No progress timestamp is renewed, and another stationary element still stalls.
+        private _pendingRecovery=_recovering findIf {
+            private _record=_recovery getOrDefault [netId _x,[]];
+            count _record >= 2 && {time-(_record select 1) < _staleSeconds}
+        } >= 0;
+        ["STALLED","ACTIVE"] select _pendingRecovery
+    } else {
         if (time-(_operation getOrDefault ["lastProgressAt",time]) >= _staleSeconds) then {"STALLED"} else {"ACTIVE"}
     }
 }

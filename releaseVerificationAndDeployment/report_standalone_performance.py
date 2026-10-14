@@ -24,11 +24,15 @@ def read_run(folder):
         return json.loads(raw)
     identity=row('WAIT STANDALONE PERF IDENTITY: ')
     result=row('WAIT STANDALONE PERF RESULT: ')
+    composition=row('WAIT STANDALONE PERF COMPOSITION: ')
     if len(identity) != 6 or len(result) != 11 or identity[2] != 50 or identity[4] not in ('INFANTRY_PATROL','MIXED_PATROL'):
         raise ValueError('Unexpected fixture or result schema')
     scenario={'infantry':'INFANTRY_PATROL','mixed':'MIXED_PATROL'}.get(manifest.get('performance_composition'))
     if scenario != identity[4] or identity[3] <= 0 or (scenario == 'INFANTRY_PATROL' and identity[3] != 300):
         raise ValueError('Scenario declaration or actor count mismatch')
+    expected_composition=[50,50,0,0,0,0] if scenario == 'INFANTRY_PATROL' else [50,25,7,8,5,5]
+    if composition != expected_composition:
+        raise ValueError('Physical vehicle composition mismatch')
     expected=not manifest.get('native_baseline',False)
     if identity[0] is not expected or result[0] is not expected or result[1] is not True:
         raise ValueError('Addon identity or physical fixture failed')
@@ -40,16 +44,18 @@ def read_run(folder):
         raise ValueError('Invalid frame-time measurement')
     if not result[3] <= result[4] <= result[5]:
         raise ValueError('Invalid quantile ordering')
-    return dict(manifest=manifest,identity=identity,result=result)
+    return dict(manifest=manifest,identity=identity,result=result,composition=composition)
 
 
 def compare(native,wait):
     a,b=native['manifest'],wait['manifest']
     if a.get('native_baseline') is not True or b.get('native_baseline') is not False:
         raise ValueError('Native and WAIT run roles must differ')
-    for key in ('focus','resolution','headlessClients','dependencySources','performance_composition'):
-        if key not in a or a[key] != b.get(key):
+    for key in ('focus','world','batch_mode','headless_provider','resolution','headlessClients','dependencySources','performance_composition'):
+        if key not in a or key not in b or a[key] != b[key]:
             raise ValueError(f'Unmatched launch field: {key}')
+    if a['world'] != 'VR':
+        raise ValueError('Standalone patrol benchmark requires VR terrain')
     if a['focus'] != 'standaloneperformance':
         raise ValueError('Wrong benchmark scope')
     if a['package']['dirty'] or b['package']['dirty'] or a['package']['fingerprint'] != b['package']['fingerprint']:

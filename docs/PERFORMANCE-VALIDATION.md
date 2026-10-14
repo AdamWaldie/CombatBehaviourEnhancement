@@ -22,8 +22,10 @@ The report rejects incomplete/erroring runs, inconsistent addon/FSM identity, di
 
 ## Native headless integration
 
-Use `launch_mod_audit.ps1 -Focus lifecycle -HeadlessClients 2 -HeadlessProvider <local companion repository>` for the explicit native transfer/adoption matrix. The launcher copies the actual headless provider into the disposable mission, records hashes for every copied and generated file, and loads it on the server, observer and headless machines. These scripts are audit dependencies and are not included in WAIT PBOs.
+Use `launch_mod_audit.ps1 -Focus lifecycle -BatchMode headless -HeadlessClients 2 -HeadlessProvider <local companion repository>` for the explicit native transfer/adoption matrix. The launcher copies the actual headless provider into the disposable mission, records hashes for every copied and generated file, and loads it on the server, observer and headless machines. These scripts are audit dependencies and are not included in WAIT PBOs.
 
 This fixture tests native registration, transfer, refusal policy and destination adoption. Automatic distribution is deliberately delayed by the fixture's one-hour minimum group age; balancing and disconnect recovery require separate acceptance. Skill rebalancing stays disabled in this fixture. Existing ordinary engine-only migration tests remain available without the provider option and do not prove native integration.
 
 Native refusal excludes the group from the management registry while retaining its current engine owner. The integration case verifies that policy and the actual adoption result. Do not fabricate registry entries to satisfy the standalone expectation. Integration remains pending physical validation.
+
+Normal audit batches default to zero headless clients. Run HC ownership and migration acceptance separately with `-BatchMode headless -HeadlessClients 2`; embedded migration cases are omitted from normal results, never reported as passes. Both batches require their own packaged-candidate evidence.

@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Maintains one finite ground-vehicle manoeuvre issued by a combined-arms contact opportunity.
+ * Arrival fire rechecks actual loaded gunner-station ammunition against the target platform class.
  * The vehicle uses one temporary Cortex waypoint to move to a safe-side firing position. It does
  * not wait for another arm, teleport, repeatedly replace the route or force progress through an
  * obstruction. Arrival, target loss, expiry, locality migration, feature closure or direct Zeus
@@ -8,6 +9,7 @@
  * bounded route replan; a second stall ends the role so gameplay roadblocks remain meaningful.
  * Locality/authority: runs only where the vehicle group is local after a server-authenticated role.
  * Repeat/JIP: the public role token rejects stale jobs; locality replay queues one replacement job.
+ * Arrival fire requests require a combat-effective local gunner; arrival alone never proves fire effect.
  * Cleanup requires the matching operation generation, so a late role cannot delete a newer route.
  * Arguments: 0: job state <HASHMAP> containing group, asset, target, token, expiry and destination.
  * Return Value: Number of seconds before the next scheduler step, or -1 when complete.
@@ -71,15 +73,25 @@ if (captive _target || {_target getVariable ["ace_captives_isSurrendering",false
     || {(side _group) getFriend (side _target) >= 0.6}) exitWith {["TARGET_NO_LONGER_HOSTILE"] call _finish};
 if (serverTime >= (_job getOrDefault ["expiry",serverTime])) exitWith {["EXPIRED"] call _finish};
 if (_asset distance2D _destination <= 70) exitWith {
-    _group reveal [_target,3];
+    // Arrival grants no new observation. Preserve native/shared knowledge; do not refresh
+    // an unseen moving target merely because the vehicle reached its firing position.
     private _gunner=gunner _asset;
-    private _fireDecision="NO_FIRE_OPERATOR";
-    private _fireAllowed=!isNull _gunner && {alive _gunner} && {local _gunner}
+    private _knownTarget=(_group knowsAbout _target) > 0;
+    private _fireDecision=["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR"] select _knownTarget;
+    private _fireAllowed=_knownTarget && {!isNull _gunner} && {[_gunner] call WAIT_fnc_CortexCombatEffective} && {local _gunner}
+        && {simulationEnabled _asset} && {!isObjectHidden _asset}
+        && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
         && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
         && {([_gunner] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}
         && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
         && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+    if (_fireAllowed && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
+        _fireAllowed=false; _fireDecision="NO_STATION_AMMO";
+    };
+    if (_fireAllowed && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {
+        _fireAllowed=false; _fireDecision="NO_TARGET_AMMO";
+    };
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";
         if ([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear) then {

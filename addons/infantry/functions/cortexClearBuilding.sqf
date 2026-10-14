@@ -33,7 +33,7 @@
  * Locality and authority: call where the group is local, or on the server, which forwards to the
  * owner. Non-server, non-owner copies do nothing.
  *
- * Review contract: Local job generations prevent replaced jobs from issuing orders. Eligibility is checked before dispatch and on each step. Public visited and unreachable position indices, retry/failure evidence, progress-renewed deadline and original behaviour survive handover; local movement assignments are rebuilt.
+ * Review contract: Local job generations prevent replaced jobs from issuing orders. Eligibility is checked before dispatch and on each step. Public visited and unreachable position indices, retry/failure evidence, progress-renewed stall deadline, immutable episode deadline and original behaviour survive handover; local movement assignments are rebuilt.
  *
  * Arguments:
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
@@ -59,7 +59,20 @@ if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 if (!local _group) exitWith {
     if (isServer) then {[_group, _target, _options] remoteExecCall ["WAIT_fnc_CortexClearBuilding", groupOwner _group]; true} else {false};
 };
-if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {false};
+private _refuse={
+    params ["_reason"];
+    private _actors=(units _group) select [0,16];
+    private _evidence=[serverTime,_reason,groupOwner _group,_actors apply {
+        [netId _x,currentCommand _x,getUnitState _x,local _x,isPlayer _x,
+            _x checkAIFeature "MOVE",_x checkAIFeature "PATH",
+            _x getVariable ["WAIT_Cortex_ActorMove",[]],
+            [_x] call WAIT_fnc_CortexCombatEffective]
+    }];
+    _group setVariable ["WAIT_Cortex_ClearAdmissionFailure",_evidence,true];
+    diag_log format ["WAIT CLEAR ADMISSION REFUSED: %1",_evidence];
+    false
+};
+if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
 private _building = if (_target isEqualType objNull) then {_target} else {nearestBuilding _target};
 if (isNull _building) exitWith {if (_options getOrDefault ["resume", false]) then {[_group] call WAIT_fnc_CortexClearRelease}; false};
 if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
@@ -69,14 +82,32 @@ if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
 private _allPositions = _building buildingPos -1;
 private _positions = _allPositions select {
     private _positionASL=AGLToASL _x;
-    (lineIntersectsSurfaces [_positionASL vectorAdd [0,0,0.5],_positionASL vectorAdd [0,0,10],objNull,objNull,true,1]) isNotEqualTo []
+    private _roofHits=lineIntersectsSurfaces [
+        _positionASL vectorAdd [0,0,0.5],_positionASL vectorAdd [0,0,10],objNull,objNull,true,4,"GEOM","NONE"
+    ];
+    _roofHits findIf {(_x select 2) == _building || {(_x select 3) == _building}} >= 0
 };
-if (_positions isEqualTo []) then {_positions=+_allPositions};
-if (_positions isEqualTo []) exitWith {false};
+// Exposed posts remain garrison/transit candidates. A missing owned roof is not
+// permission to advertise every model position as a verified interior room.
+if (_positions isEqualTo []) exitWith {
+    diag_log format ["[WAIT] %1 clear building refused: no target-owned roofed positions in %2",_group,typeOf _building];
+    false
+};
 private _leader = [_group] call WAIT_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 // Entry selection must use the same capable/task-free contract as casualty reserves.
 // An unavailable actor must not consume a lane until the later callback discovers it.
+// Only a short-lived recall issued by WAIT's own completed/released clear is replaceable.
+// Native JOIN from another task remains protected; locality and leader changes revoke this receipt.
+private _ownedRecall={
+    params ["_actor","_clearGeneration"];
+    private _recall=_actor getVariable ["WAIT_Cortex_ClearRecall",[]];
+    currentCommand _actor == "JOIN" && {count _recall == 4}
+        && {(_recall select 0) == _clearGeneration}
+        && {(_recall select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_recall select 2) == _leader} && {time < (_recall select 3)}
+};
+private _admissionGeneration=_group getVariable ["WAIT_AIPass_ClearGeneration",0];
 private _available = (units _group) select {
     private _canMove=_x checkAIFeature "MOVE" && {_x checkAIFeature "PATH"};
     private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
@@ -87,18 +118,34 @@ private _available = (units _group) select {
         && {isNull (remoteControlled _x)}
         && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
-        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
+            || {[_x,_admissionGeneration] call _ownedRecall}}
 };
+// Existing intact eligible pairs retain admission priority; remaining actors fill capacity.
 private _team = +_available;
-if (_team isEqualTo []) exitWith {false};
+if (_team isEqualTo []) exitWith {["NO_ELIGIBLE_ACTORS"] call _refuse};
 // Keep enough distinct lanes for a real squad clear without crowding every reported room node.
 // The roof filter can undercount valid interior lanes on some models, so capacity uses the full
-// engine position set as well as squad strength. The remainder stays available as a casualty reserve.
-private _squadElement = ceil ((count _available) / 2);
+// engine position set as well as squad strength. Admit the full capable squad within the
+// eight-actor concurrent limit; do not silently reserve half of a clearing squad outside.
+private _squadElement = count _available;
 private _topologyElement = ((count _allPositions) max 2) min 8;
 private _entryCapacity = ((2 max _squadElement) min _topologyElement) min 8;
 _entryCapacity = _entryCapacity min (count _team);
-_team = _team select [0,_entryCapacity];
+// Prefer intact eligible buddies before applying concurrency capacity. Selection is
+// read-only here; a refused start must not publish a new pairing receipt.
+private _pairedAdmission=[];
+private _remainingAdmission=+_team;
+{
+    if (_x isEqualType [] && {count _x == 2}) then {
+        private _pair=(_x arrayIntersect _x) select {_x in _remainingAdmission};
+        if (count _pair == 2) then {
+            _pairedAdmission append _pair;
+            _remainingAdmission=_remainingAdmission-_pair;
+        };
+    };
+} forEach ((_group getVariable ["WAIT_CombatPairs",[]]) select [0,16]);
+_team = (_pairedAdmission+_remainingAdmission) select [0,_entryCapacity];
 private _preserveBrain=_options getOrDefault ["preserveBrain",false];
 if (_preserveBrain) then {
     private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
@@ -121,13 +168,25 @@ private _failedBy = if (_resume) then {+(_previous param [6, _positions apply {[
 if (count _failedBy != count _positions) then {_failedBy = _positions apply {[]}};
 private _lastProgressAt = if (_resume) then {_previous param [7,serverTime]} else {serverTime};
 private _deadline = if (_resume) then {_previous select 2} else {serverTime + 240};
-if (serverTime >= _deadline) exitWith {[_group] call WAIT_fnc_CortexClearRelease; false};
+// Genuine approach progress may renew the stall lease, but never the episode lifetime.
+// Retain the absolute server-clock boundary across HC resume; legacy orders keep their
+// already published deadline rather than gaining a fresh lifetime on each owner.
+private _lifetime = (240 max (60*count _positions)) min 900;
+private _hardDeadline = if (_resume) then {_previous param [10,_deadline,[0]]} else {serverTime+_lifetime};
+if (serverTime >= (_deadline min _hardDeadline)) exitWith {[_group] call WAIT_fnc_CortexClearRelease; false};
 // Replacing a clear must retire its engine movement orders as well as its queued job.
 // Validate the new building/team first; an invalid request must preserve the current order.
 // HC resume keeps the published progress/deadline rather than starting a new episode.
 if (!_resume && {_previous isNotEqualTo []}) then {[_group] call WAIT_fnc_CortexClearRelease};
 private _baseAttack=if (_resume) then {_previous param [8,attackEnabled _leader,[true]]} else {attackEnabled _leader};
-_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack], true];
+private _nativeOrderReceipt=[_group] call WAIT_fnc_NativeOrderReceipt;
+if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nativeOrderReceipt}) exitWith {
+    [_group,false] call WAIT_fnc_CortexClearRelease;
+    false
+};
+
+_group setVariable ["WAIT_Cortex_ClearAdmissionFailure",nil,true];
+_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline], true];
 _group setVariable ["WAIT_AIPass_ClearApplied", true];
 _group setVariable ["WAIT_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
 _group setVariable ["WAIT_Cortex_ClearEvidence",nil,true];
@@ -139,6 +198,7 @@ private _generation = (_group getVariable ["WAIT_AIPass_ClearGeneration", 0]) + 
 _group setVariable ["WAIT_AIPass_ClearGeneration", _generation];
 private _operation=[_group,"CLEAR",_building,_team,_positions,"ENTRY"] call WAIT_fnc_OperationStart;
 if (count _operation == 0) exitWith {
+    ["OPERATION_REFUSED"] call _refuse;
     // A refused operation has no worker. Retire only this attempted generation's public
     // order so discovery cannot resurrect it after a newer owner/task has taken over.
     if ((_group getVariable ["WAIT_AIPass_ClearGeneration",-1]) == _generation) then {
@@ -149,6 +209,15 @@ if (count _operation == 0) exitWith {
     };
     false
 };
+// A valid new operation now owns the selected actors. Retire only its predecessor's
+// matching recall so the initial building step sees STOP instead of protected JOIN.
+{
+    if ([_x,_generation-1] call _ownedRecall && {local _x} && {!isPlayer _x}
+        && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}) then {
+        doStop _x;
+        _x setVariable ["WAIT_Cortex_ClearRecall",nil];
+    };
+} forEach _team;
 // Suppress only competing autonomous group attack assignment during the clear. Native
 // targeting, weapons and suppression remain enabled. Mixed specialist/player groups retain
 // their command policy; only ordinary groups acquire this exact-owned reversible setting.
@@ -169,7 +238,12 @@ _group setVariable ["WAIT_AIPass_ClearBuilding", true, true];
 private _entries=[];
 for "_exitIndex" from 0 to 15 do {
     private _candidate=_building buildingExit _exitIndex;
+    // Model exit nodes can be buried below terrain after placement. Do not
+    // make one an obligatory recovery destination or flatten it into a fake exit.
+    private _candidateASL=AGLToASL _candidate;
+    private _aboveTerrain=(_candidateASL select 2) >= (getTerrainHeightASL _candidate)-0.05;
     if (_candidate isNotEqualTo [0,0,0] && {_candidate distance2D _building < 50}
+        && {_aboveTerrain}
         && {_entries findIf {_x distance2D _candidate < 1} < 0}) then {
         _entries pushBack _candidate;
     };
@@ -213,14 +287,7 @@ while {_remaining isNotEqualTo []} do {
 // every other member waits outside. Larger squads still receive several independent lanes, each with
 // a trailing security partner and its own claimed room route. Shared queue and failure evidence prevent
 // lanes from crowding the same room.
-private _pairs=[];
-{
-    if ((_forEachIndex mod 2) == 0) then {
-        _pairs pushBack [_x];
-    } else {
-        (_pairs select ((count _pairs)-1)) pushBack _x;
-    };
-} forEach _team;
+private _pairs=[_group,_team] call WAIT_fnc_CombatPairs;
 private _pairRoutes=_pairs apply {[]};
 private _pending=+_routeOrder;
 private _pairStates=[];
@@ -234,7 +301,8 @@ private _claimedEntryIndices=[];
     private _pairLead=_pair select 0;
     private _entryIndex=-1;
     if (_entries isNotEqualTo []) then {
-        private _ranked=_entries apply {[_pairLead distance2D _x,_forEachIndex]};
+        private _ranked=[];
+        {_ranked pushBack [_pairLead distance2D _x,_forEachIndex]} forEach _entries;
         _ranked sort true;
         private _unclaimed=_ranked select {!((_x select 1) in _claimedEntryIndices)};
         private _choice=if (_unclaimed isEqualTo []) then {_ranked} else {_unclaimed};
@@ -246,11 +314,147 @@ private _claimedEntryIndices=[];
 } forEach _pairs;
 _group setVariable ["WAIT_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];
 private _job=createHashMapFromArray [
-    ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
+    ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
-    ["deadline", _deadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
-    ["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
+    ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
+    ["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
+// Adopt a transform/episode-bound exit journal without issuing movement. A different
+// native destination owns the actor now and must not inherit an old exit receipt.
+private _egressJournal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
+if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearEgress",nil,true]};
+if (_resume && {count _egressJournal == 10} && {(_egressJournal select 0) == "EGRESS"}
+    && {(_egressJournal select 4) == _building}
+    && {(_egressJournal select 5) isEqualTo (_job get "buildingTransform")}
+    && {(_egressJournal select 6) == _hardDeadline}
+    && {(_egressJournal select 7) isEqualType 0} && {finite (_egressJournal select 7)}
+    && {count (_egressJournal select 3) <= 8}) then {
+    private _assignments=[];
+    private _records=[];
+    private _moves=createHashMap;
+    private _failed=_egressJournal select 8;
+    {
+        if (_x isEqualType [] && {count _x == 6}) then {
+            _x params ["_actor","_target","_arrived","_leg","_retries","_checkpoint"];
+            private _live=(expectedDestination _actor) param [0,[]];
+            private _atTarget=count _target == 3
+                && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1}
+                && {abs (((getPosATL _actor) select 2)-(_target select 2)) <= 1.5};
+            private _ownsLeg=currentCommand _actor == "MOVE" && {count _leg == 3}
+                && {count _live == 3} && {_live vectorDistance _leg <= 0.25};
+            private _holdsArrival=_arrived && {_atTarget} && {currentCommand _actor in ["","STOP"]};
+            if (_actor in _available && {group _actor == _group}
+                && {(_assignments apply {_x select 0}) findIf {_x == _actor} < 0}
+                && {count _target == 3} && {_ownsLeg || {_holdsArrival}}) then {
+                _assignments pushBack [_actor,+_target,_holdsArrival];
+                _moves set [netId _actor,+_leg];
+                private _routeTarget=if (_checkpoint isEqualTo []) then {_target} else {_checkpoint};
+                _records pushBack [_actor,(getPosATL _actor) vectorDistance _routeTarget,time,
+                    (_retries max 0) min 1,+_checkpoint,time,getPosASL _actor];
+            } else {_failed=true};
+        } else {_failed=true};
+    } forEach (_egressJournal select 3);
+    if (_assignments isEqualTo []) then {_failed=true};
+    _job set ["phase","EGRESS"];
+    _team=_assignments apply {_x select 0};
+    _job set ["team",_team];
+    _job set ["egressAssignments",_assignments];
+    _job set ["egressProgress",_records];
+    _job set ["movementTargets",_moves];
+    _job set ["egressDeadlineServer",_egressJournal select 7];
+    _job set ["egressStartedServer",_egressJournal select 2];
+    _job set ["egressDeadline",time+(((_egressJournal select 7)-serverTime) max 0)];
+    _job set ["egressFailed",_failed];
+    _job set ["entryFailed",_egressJournal select 9];
+    _operation set ["participants",_assignments apply {_x select 0}];
+    _operation set ["participantProgress",_assignments apply {[_x select 0,getPosATL (_x select 0)]}];
+    _operation set ["phase","EGRESS"];
+    _group setVariable ["WAIT_Operation",_operation,true];
+    _group setVariable ["WAIT_Cortex_ClearStatus",["EGRESS",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];
+    diag_log format ["WAIT CLEAR EGRESS ADOPTED: %1",[_generation,count _assignments,_failed,_egressJournal select 7]];
+};
+// Keep reserve search consumption across a true resume, independently of local handles.
+// Durable failed follow-through targets are bookkeeping, never movement/entry receipts.
+private _followBudget=_group getVariable ["WAIT_Cortex_ClearFollowBudget",[]];
+if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearFollowBudget",nil,true]};
+if (_resume && {count _followBudget == 4} && {(_followBudget select 0) == _building}
+    && {(_followBudget select 1) == _hardDeadline}
+    && {(_followBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
+    private _failures=createHashMap;
+    private _exhausted=[];
+    private _actors=createHashMap;
+    {_actors set [netId _x,_x]} forEach ((units _group) select [0,64]);
+    {
+        private _row=_x;
+        if (_row isEqualType [] && {count _row == 3}
+            && {(_row select 0) isEqualType ""} && {(_row select 1) isEqualType []}
+            && {(_row select 2) isEqualType true}) then {
+            private _key=_row select 0;
+            private _indices=_row select 1;
+            private _actor=_actors getOrDefault [_key,objNull];
+            if (!isNull _actor && {count _indices <= 3}
+                && {_indices findIf {!(_x isEqualType 0) || {!finite _x}
+                    || {_x < 0} || {_x >= count _positions} || {_x != floor _x}} < 0}) then {
+                _failures set [_key,+_indices];
+                if (_row select 2) then {_exhausted pushBackUnique _actor};
+            };
+        };
+    } forEach ((_followBudget select 3) select [0,64]);
+    _job set ["followThroughFailures",_failures];
+    _job set ["followThroughExhausted",_exhausted];
+};
+private _stageBudget=_group getVariable ["WAIT_Cortex_ClearStageBudget",[]];
+if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearStageBudget",nil,true]};
+if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _building}
+    && {(_stageBudget select 1) == _hardDeadline}
+    && {(_stageBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
+    private _counts=createHashMap;
+    private _tried=createHashMap;
+    private _triedEntries=createHashMap;
+    private _stages=createHashMap;
+    private _moves=_job getOrDefault ["movementTargets",createHashMap];
+    private _actors=createHashMap;
+    {_actors set [netId _x,_x]} forEach ((units _group) select [0,64]);
+    {
+        _x params ["_key","_count","_targets",["_stage",[]],["_entryHistory",[]]];
+        _counts set [_key,(_count max 0) min 3];
+        _tried set [_key,+(_targets select [0,6])];
+        _triedEntries set [_key,+(_entryHistory select [0,3])];
+        private _actor=_actors getOrDefault [_key,objNull];
+        if (count _stage in [4,7] && {(_stage select 2) in ["APPROACH","ARRIVED","REJECTED","EXHAUSTED"]}
+            && {!isNull _actor} && {local _actor} && {!isPlayer _actor} && {!(_actor in _team)}
+            && {[_actor] call WAIT_fnc_CortexCombatEffective} && {isNull objectParent _actor}
+            && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+            && {isNull remoteControlled _actor}
+            && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+            && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+            && {((_stage select 2) == "APPROACH" && {currentCommand _actor == "MOVE"})
+                || {(_stage select 2) != "APPROACH" && {currentCommand _actor == "STOP"}
+                    && {count (_stage select 0) == 3}
+                    && {(getPosASL _actor) vectorDistance (AGLToASL (_stage select 0)) <= 2}
+                    && {abs (((getPosASL _actor) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}}}) then {
+            private _target=_stage select 0;
+            private _live=(expectedDestination _actor) param [0,[]];
+            if (count _target == 3 && {
+                (_stage select 2) != "APPROACH"
+                    || {count _live == 3 && {_live vectorDistance _target <= 0.25}}
+            }) then {
+                // Adopt bookkeeping only: an approach retains its exact engine route.
+                // A stopped physical arrival has no live MOVE endpoint to compare.
+                _stages set [_key,+_stage];
+                _moves set [_key,+_target];
+                _actor setVariable ["WAIT_Cortex_ClearReserve",[_generation,_group getVariable ["WAIT_AIPass_Epoch",0],+_target]];
+            };
+        };
+    } forEach ((_stageBudget select 3) select [0,64]);
+    _job set ["reserveStageSearchCounts",_counts];
+    _job set ["reserveStageTriedTargets",_tried];
+    _job set ["reserveStageTriedEntries",_triedEntries];
+    _job set ["reserveStages",_stages];
+    _job set ["movementTargets",_moves];
+    _job set ["securityActors",(units _group) select {netId _x in _stages}];
+};
 [_job] call WAIT_fnc_BuildingOperationStart;
 diag_log format ["[WAIT] %1 clearing %2 (%3 positions, %4 soldiers, %5 entrances)", _group, typeOf _building, count _positions, count _team, count _entries];
 true

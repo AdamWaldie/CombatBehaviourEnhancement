@@ -4,7 +4,8 @@
  * order release clears Cortex state and releases only a still-owned combat-labelled hold, so a
  * new group waypoint can move the soldier without overwriting a newer direct unit command.
  * Watch and formation restoration require combat-effective, local actors without player or
- * specialist ownership. Metadata cleanup still retires assignments for every member.
+ * specialist ownership, active actor reservations or finite native tasks. Metadata cleanup
+ * still retires assignments for every member without cancelling replacement tasks.
  *
  * Clears each soldier's spot and watch direction and the published order, so no machine re-applies
  * it. Called automatically when a defence breaks (losses or broken morale) or Zeus gives the group
@@ -45,7 +46,13 @@ if (isNull _leader) then {_leader=leader _group};
 {
     private _ownedHold = (_x getVariable ["WAIT_AIPass_DefendHolding",false])
         || {(_x getVariable ["WAIT_AIPass_DefendPos",[]]) isNotEqualTo []};
+    private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _reservationFree=_reservation isEqualTo []
+        || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+    private _nativeTask=currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
     if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
+        && {_reservationFree} && {!_nativeTask} && {isNull objectParent _x}
+        && {isNull remoteControlled _x}
         && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}) then {
         if (!_externalTakeover) then {_x doWatch objNull;};
         private _command = toUpperANSI currentCommand _x;

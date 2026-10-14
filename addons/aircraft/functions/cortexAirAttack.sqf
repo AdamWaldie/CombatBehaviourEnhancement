@@ -1,9 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Executes one finite Cortex aircraft attack as ingress, attack and egress phases. Against an
  * airborne hostile these phases mean intercept, engage and disengage/rejoin: the first two
- * destinations lead the contact's measured velocity while egress remains finite and returns the
+ * destinations lead motion estimated from native believed contact positions while egress remains finite and returns the
  * aircraft to its unchanged authored route. This provides responsive air-to-air contact handling
  * without pretending that fixed script geometry implements full basic fighter manoeuvring.
  * It flies physical route legs, presents the live target only to the retained weapon operator, records real
@@ -81,14 +82,15 @@ private _finish={
             };
         };
     };
-    private _finishGroup=group driver _aircraft;
+    private _finishGroup=_job getOrDefault ["group",grpNull];
     if (!isNull _finishGroup && {"token" in _job}) then {[_finishGroup,_job,"ENDED",_reason] call WAIT_fnc_CortexDrillSetStage};
     private _handler=_job getOrDefault ["firedHandler",-1];
     if (_handler >= 0) then {_aircraft removeEventHandler ["Fired",_handler]};
     private _guidanceTarget=_job getOrDefault ["guidanceTarget",objNull];
     if (!isNull _guidanceTarget) then {deleteVehicle _guidanceTarget};
     if (local _aircraft) then {
-        private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid;
+        private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid
+            && {group driver _aircraft == _finishGroup};
         // A newer flight controller owns speed and pilot features. Retire only our bookkeeping.
         if (_ownsFlight) then {_aircraft limitSpeed (2 * getNumber (configOf _aircraft >> "maxSpeed"))};
         // Remove exactly the lease-owned waypoint before selecting any authored route. Searching
@@ -182,9 +184,9 @@ private _finish={
             private _ownedTarget=_job getOrDefault ["fireTarget",objNull];
             private _cleanupExternal=[_finishGroup] call WAIT_fnc_CortexExternalTakeover
                 || {[_finishGroup] call WAIT_fnc_CortexZeusHeld};
-            if (!_cleanupExternal && {!isNull _ownedTarget}) then {
+            if (_ownsFlight && {!_cleanupExternal} && {!isNull _ownedTarget}) then {
                 {
-                    if (alive _x && {local _x} && {!isPlayer _x} && {isNull (remoteControlled _x)}
+                    if (alive _x && {local _x} && {!isPlayer _x} && {group _x == _finishGroup} && {isNull (remoteControlled _x)}
                         && {!([group _x,false,_x] call WAIT_fnc_CortexExternalTakeover)}
                         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
                         && {assignedTarget _x isEqualTo _ownedTarget}) then {
@@ -251,6 +253,10 @@ private _finish={
 };
 private _pilot=driver _aircraft;
 private _group=group _pilot;
+// Bind direct callers once as well as FSM-created jobs. Cleanup uses this original
+// group so a pilot reassignment cannot cancel a different group's matching generation.
+if (isNil {_job get "group"}) then {_job set ["group",_group]};
+if ((_job get "group") != _group) exitWith {["PILOT_GROUP_CHANGED"] call _finish};
 private _stage=_job getOrDefault ["stage",""];
 private _flightLeaseToken=_job getOrDefault ["flightLeaseToken",""];
 // Air operations share the same generation contract as ground operations, but retain their own
@@ -280,7 +286,12 @@ private _explicitlyExcluded=[_group] call WAIT_fnc_CompatibilityExternalControl
 // that claims the aircraft during planning receives an immediate release rather than one stale
 // flight, targeting or fire request.
 private _mayControlAircraft = {
-    local _aircraft && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
+    private _livePilot=driver _aircraft;
+    local _aircraft && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
+        && {[_livePilot] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
+        && {missionNamespace getVariable ["WAIT_AIPass_Active",false]} && {!([] call WAIT_fnc_CortexIsPaused)}
+        && {[_aircraft,"AIR_ATTACK",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid}
+        && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
         && {!([_group] call WAIT_fnc_CortexZeusHeld)}
 };
 if (_job getOrDefault ["flightLeaseLost",false]
@@ -288,7 +299,7 @@ if (_job getOrDefault ["flightLeaseLost",false]
     _job set ["releaseDetail",["flightLease",_aircraft getVariable ["WAIT_FlightLease",createHashMap]]];
     ["FLIGHT_OWNER_CHANGED"] call _finish
 };
-private _allowed=local _aircraft && {alive _aircraft} && {!isNull _pilot} && {alive _pilot} && {!isPlayer _pilot}
+private _allowed=local _aircraft && {local _group} && {alive _aircraft} && {!isNull _pilot} && {[_pilot] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _pilot}
     && {!unitIsUAV _aircraft} && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
     && {!([] call WAIT_fnc_CortexIsPaused)}
     && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
@@ -317,14 +328,16 @@ if (isTouchingGround _aircraft || {_isPlane && {speed _aircraft < 40}} || {comba
 private _startFailure="";
 if (_stage == "") then {
     private _target=_job getOrDefault ["target",objNull];
-    if (isNull _target || {_target isKindOf "Logic"} || {!alive _target} || {(side _group) getFriend side _target >= 0.6}) then {
+    if (isNull _target || {_target isKindOf "Logic"} || {_target isKindOf "HeadlessClient_F"} || {!alive _target} || {(side _group) getFriend side _target >= 0.6}) then {
         _target=objNull;
         {
             private _candidate=assignedTarget _x;
-            if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}) exitWith {_target=_candidate};
+            if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {!(_candidate isKindOf "HeadlessClient_F")} && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}
+                && {(_group knowsAbout _candidate) > 0}) exitWith {_target=_candidate};
         } forEach ([effectiveCommander _aircraft,driver _aircraft,gunner _aircraft,commander _aircraft]+crew _aircraft);
     };
     if (isNull _target) then {_startFailure="NO_TARGET"};
+    if (_startFailure == "" && {(_group knowsAbout _target) <= 0}) then {_startFailure="NO_KNOWN_TARGET"};
     private _plan=if (_startFailure == "") then {[_aircraft,_target] call WAIT_fnc_CortexAirAttackPlan} else {createHashMap};
     if (_startFailure == "" && {count _plan == 0}) then {_startFailure="NO_PLAN"};
     if (_startFailure == "" && {!([] call _mayControlAircraft)}) then {_startFailure="CONTROL_RELEASED"};
@@ -416,28 +429,55 @@ if (_stage == "") then {
     _aircraft setVariable ["WAIT_Cortex_AirAttackSelectedWeapon",_plan getOrDefault ["selectedWeapon",""]];
     _aircraft setVariable ["WAIT_Cortex_AirAttackSelectedMagazine",_plan getOrDefault ["selectedMagazine",""]];
     private _handler=_aircraft addEventHandler ["Fired",{
-        params ["_aircraft","_weapon","","","","_magazine","_projectile"];
+        params ["_aircraft","_weapon","","","","_magazine","_projectile",["_operator",objNull]];
+        if (isNull _operator) then {_operator=currentPilot _aircraft};
         private _selectedWeapon=_aircraft getVariable ["WAIT_Cortex_AirAttackSelectedWeapon",""];
         private _selectedMagazine=_aircraft getVariable ["WAIT_Cortex_AirAttackSelectedMagazine",""];
         private _selectedRelease=_weapon == _selectedWeapon
             && {_selectedMagazine != ""} && {_magazine == _selectedMagazine};
-        if (_selectedRelease) then {
+        private _brain=_aircraft getVariable ["WAIT_AirAttack_Brain",createHashMap];
+        private _liveJob=_brain getOrDefault ["job",createHashMap];
+        private _fireGroup=_liveJob getOrDefault ["group",grpNull];
+        if (isNull _fireGroup) then {_fireGroup=group currentPilot _aircraft};
+        private _ownsRelease=(_liveJob getOrDefault ["firedHandler",-1]) == _thisEventHandler
+            && {!(_brain getOrDefault ["finished",false])}
+            && {!(_brain getOrDefault ["cancelled",false])}
+            && {!isNull _operator} && {local _operator} && {!isPlayer _operator}
+            && {isNull remoteControlled _operator}
+            && {([_operator] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_operator] call WAIT_fnc_CompatibilityExternalControl)}
+            && {[_aircraft,"AIR_ATTACK",_liveJob getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid}
+            && {!isNull _fireGroup} && {!([_fireGroup] call WAIT_fnc_CortexZeusHeld)}
+            && {!([_fireGroup] call WAIT_fnc_CortexExternalTakeover)};
+        if (_selectedRelease && {_ownsRelease}) then {
             _aircraft setVariable ["WAIT_Cortex_AirAttackShots",(_aircraft getVariable ["WAIT_Cortex_AirAttackShots",0])+1];
             // Preserve native ballistics and seeker behaviour, but give the projectile the hostile
             // already selected by its operator. fireAtTarget alone can launch a guided pylon round
             // without a missile target, producing the observed straight-line ground and A2A misses.
             private _guidedWeapon=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidedWeapon",""];
             private _guidedTarget=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidanceTarget",objNull];
-            if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}) then {
-                private _targetAccepted=_projectile setMissileTarget [_guidedTarget,true];
-                // Air seekers track the object directly. Ground seekers also need one immutable
-                // aim point when their ammo explicitly supports manual point guidance. This is one
-                // release-time assignment, not a scripted homing loop or an airframe correction.
-                if (!(_guidedTarget isKindOf "Air")) then {
-                    _projectile setMissileTargetPos (aimPos _guidedTarget);
+            if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}
+                && {(_liveJob getOrDefault ["stage",""]) in ["INGRESS","ATTACK"]}
+                && {!captive _guidedTarget} && {(side _fireGroup) getFriend side _guidedTarget < 0.6}
+                && {(_fireGroup knowsAbout _guidedTarget) > 0}) then {
+                private _nativeTarget=missileTarget _projectile;
+                private _nativePoint=missileTargetPos _projectile;
+                private _hasNativePoint=count _nativePoint == 3 && {vectorMagnitude _nativePoint > 1};
+                private _targetAccepted=_nativeTarget == _guidedTarget;
+                private _guidanceDecision="NATIVE_GUIDANCE_RETAINED";
+                // A valid native seeker/laser/countermeasure target takes priority. Only fill
+                // missing guidance; never replace an existing target with the planned object.
+                if (isNull _nativeTarget && {!_hasNativePoint}) then {
+                    _targetAccepted=_projectile setMissileTarget _guidedTarget;
+                    _guidanceDecision=["SEEKER_REFUSED","SEEKER_TARGET_ACCEPTED"] select _targetAccepted;
+                    if (!_targetAccepted && {!(_guidedTarget isKindOf "Air")}
+                        && {getNumber (configFile >> "CfgAmmo" >> typeOf _projectile >> "manualControl") > 0}) then {
+                        _projectile setMissileTargetPos (ASLToATL (aimPos _guidedTarget));
+                        _guidanceDecision="MANUAL_POINT_REQUESTED";
+                    };
                 };
                 _aircraft setVariable ["WAIT_Cortex_AirGuidanceAssignment",[
-                    serverTime,_weapon,_targetAccepted,missileTarget _projectile,missileTargetPos _projectile
+                    serverTime,_weapon,_targetAccepted,missileTarget _projectile,missileTargetPos _projectile,_guidanceDecision
                 ],true];
             };
         };
@@ -459,6 +499,8 @@ if (!isNull _target && {alive _target} && {captive _target
     || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
     || {(side _group) getFriend side _target >= 0.6}}) exitWith {["TARGET_NO_LONGER_HOSTILE",true] call _finish};
+if (!isNull _target && {alive _target} && {_stage in ["INGRESS","ATTACK"]}
+    && {(_group knowsAbout _target) <= 0}) exitWith {["TARGET_KNOWLEDGE_LOST",true] call _finish};
 if (!isNull _target) then {_job set ["lastTargetPosition",getPosATL _target]};
 // Destroying the target must not strand the aircraft at the firing point. Complete the full
 // INGRESS -> ATTACK -> EGRESS contract, using the wreck's stable position for departure geometry.
@@ -537,11 +579,33 @@ private _stageIndex=["INGRESS","ATTACK","EGRESS"] find _stage;
 if (_stageIndex < 0) exitWith {["BAD_STAGE"] call _finish};
 private _destination=_points select _stageIndex;
 // Air contacts do not remain at the point captured when the plan was built. Refresh only the
-// intercept and engagement points from current target velocity; disengagement stays immutable so
+// intercept and engagement points from successive native believed positions; disengagement stays immutable so
 // the lease has a real end and cannot orbit indefinitely.
 if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) then {
     private _leadSeconds=[16,5] select (_stage == "ATTACK");
-    private _predictedASL=(getPosASL _target) vectorAdd ((velocity _target) vectorMultiply _leadSeconds);
+    private _knowers=((units _group) select [0,8]) select {
+        local _x && {[_x] call WAIT_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
+    };
+    private _knower=_knowers param [0,objNull,[objNull]];
+    if (isNull _knower) exitWith {_job set ["interceptEstimateLost",true]};
+    private _believed=_knower getHideFrom _target;
+    if (_believed isEqualTo [0,0,0]) exitWith {_job set ["interceptEstimateLost",true]};
+    private _believedASL=ATLToASL _believed;
+    private _previousEstimate=_job getOrDefault ["interceptEstimate",[]];
+    private _estimatedVelocity=[0,0,0];
+    if (count _previousEstimate == 4 && {(_previousEstimate select 0) == _target}
+        && {(_previousEstimate select 1) == _knower}) then {
+        private _elapsed=serverTime-(_previousEstimate select 2);
+        if (_elapsed >= 0.25 && {_elapsed <= 5}) then {
+            _estimatedVelocity=(_believedASL vectorDiff (_previousEstimate select 3)) vectorMultiply (1/_elapsed);
+            // A changed native estimate can jump. Bound extrapolation rather than turn
+            // that correction into a fictitious high-speed contact trajectory.
+            private _estimateSpeed=vectorMagnitude _estimatedVelocity;
+            if (_estimateSpeed > 350) then {_estimatedVelocity=_estimatedVelocity vectorMultiply (350/_estimateSpeed)};
+        };
+    };
+    _job set ["interceptEstimate",[_target,_knower,serverTime,+_believedASL]];
+    private _predictedASL=_believedASL vectorAdd (_estimatedVelocity vectorMultiply _leadSeconds);
     _destination=ASLToATL _predictedASL;
     // Match the moving contact's predicted altitude across terrain cells, with a safety floor.
     // Surface attack profiles remain independent of this interception-only height.
@@ -552,6 +616,7 @@ if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) th
     _points set [_stageIndex,_destination];
     _job set ["points",_points];
 };
+if (_job getOrDefault ["interceptEstimateLost",false]) exitWith {["TARGET_ESTIMATE_UNAVAILABLE",true] call _finish};
 // Fixed guns, rockets and bombs cross the objective, so a target-attached DESTROY waypoint gives
 // the native flight controller a useful roll-in. Guided stand-off weapons instead retain their
 // inbound release point: attaching that phase to the target overwrites its safe launch distance and
@@ -707,19 +772,28 @@ if (_stage == "ATTACK") then {
     } else {-1};
     private _aimed=if (_weapon == "") then {0} else {_aircraft aimedAtTarget [_target,_weapon]};
     private _selectedMagazine=_job getOrDefault ["selectedMagazine",""];
-    private _magazineConfig=configFile >> "CfgMagazines" >> _selectedMagazine;
-    private _ammoClass=getText (_magazineConfig >> "ammo");
-    private _muzzleSpeed=getNumber (_magazineConfig >> "initSpeed");
-    if (_muzzleSpeed <= 0 && {_ammoClass != ""}) then {
-        _muzzleSpeed=getNumber (configFile >> "CfgAmmo" >> _ammoClass >> "typicalSpeed");
-    };
-    if (_muzzleSpeed <= 0) then {
-        _muzzleSpeed=switch _weaponClass do {
-            case "ROCKET": {180};
-            case "BOMB": {0};
-            default {900};
+    private _ballisticFacts=_job getOrDefault ["ballisticFacts",[]];
+    if (count _ballisticFacts != 4 || {(_ballisticFacts select 0) != _selectedMagazine}) then {
+        private _magazineConfig=configFile >> "CfgMagazines" >> _selectedMagazine;
+        private _ammoClass=getText (_magazineConfig >> "ammo");
+        private _muzzleSpeed=getNumber (_magazineConfig >> "initSpeed");
+        if (_muzzleSpeed <= 0 && {_ammoClass != ""}) then {
+            _muzzleSpeed=getNumber (configFile >> "CfgAmmo" >> _ammoClass >> "typicalSpeed");
         };
+        if (_muzzleSpeed <= 0) then {
+            _muzzleSpeed=switch _weaponClass do {
+                case "ROCKET": {180};
+                case "BOMB": {0};
+                default {900};
+            };
+        };
+        private _airFriction=getNumber (configFile >> "CfgAmmo" >> _ammoClass >> "airFriction");
+        _ballisticFacts=[_selectedMagazine,_ammoClass,_muzzleSpeed,_airFriction];
+        _job set ["ballisticFacts",_ballisticFacts];
     };
+    // Parse cached facts in the consuming scope. Live loading, aim, velocity and terrain still
+    // determine whether this specific operation can release its selected station.
+    _ballisticFacts params ["_factsMagazine","_ammoClass","_muzzleSpeed","_airFriction"];
     private _predictedLaunchVelocity=((vectorNormalized _weaponVector) vectorMultiply _muzzleSpeed)
         vectorAdd (velocity _aircraft);
     private _launchAlignment=if (vectorMagnitude _predictedLaunchVelocity > 0.01
@@ -781,11 +855,11 @@ if (_stage == "ATTACK") then {
         if (_muzzleSpeed > 0) then {
             _integrationVelocity=_integrationVelocity vectorAdd ((vectorDir _aircraft) vectorMultiply _muzzleSpeed);
         };
-        private _airFriction=getNumber (configFile >> "CfgAmmo" >> _ammoClass >> "airFriction");
         private _targetAltitude=aimPos _target select 2;
         private _integrationTime=0;
         private _integrationStep=0.2;
         for "_integrationIndex" from 0 to 119 do {
+            if ((_integrationPosition select 2) <= _targetAltitude) exitWith {};
             if ((_integrationPosition select 2) > _targetAltitude) then {
                 // Drag must dissipate energy. Bound the discrete damping factor so a large
                 // configured drag cannot reverse velocity and explode the Euler integration.
@@ -800,7 +874,11 @@ if (_stage == "ATTACK") then {
         _predictedBombImpact=_integrationPosition;
         _bombReleaseDistance=(getPosASL _aircraft) distance2D _predictedBombImpact;
     };
-    private _bombImpactError=_predictedBombImpact distance2D getPosASL _target;
+    // A moving target will not remain under its current coordinates during the fall.
+    // This bounded linear estimate only vetoes an unsuitable release; native aiming and the
+    // real projectile remain untouched, and later acceleration can still defeat this estimate.
+    private _bombTargetPosition=(getPosASL _target) vectorAdd ((velocity _target) vectorMultiply _fallTime);
+    private _bombImpactError=_predictedBombImpact distance2D _bombTargetPosition;
     private _bombWindow=_bombImpactError <= 55 && {_forwardAlignment >= 0.92};
     // A nose-mounted weapon needs forward closure. A retained lateral turret is specifically
     // selected to fire abeam, so forcing the helicopter nose onto the target defeats that pattern.
@@ -964,10 +1042,12 @@ private _stagePassed=_stageClosest <= _captureRadius && {_stageDistance >= _stag
 // Discovery can acquire a fast jet after it has already flown past the nominal ingress point.
 // Continue into the firing leg when that point is physically behind the jet; ordering a turn back
 // creates the observed pre-run loop and can never improve a fixed-wing attack solution.
+// Project world velocity against ASL displacement; ATL heights at different terrain cells
+// do not share a vertical origin and can misclassify a climbing or descending approach.
 private _ingressBehind=_isPlane && {_stage == "INGRESS"}
-    && {(velocity _aircraft) vectorDotProduct (_destination vectorDiff getPosATL _aircraft) <= 0}
+    && {(velocity _aircraft) vectorDotProduct ((ATLToASL _destination) vectorDiff getPosASL _aircraft) <= 0}
     && {_aircraft distance2D _target <= 9500}
-    && {(velocity _aircraft) vectorDotProduct ((getPosATL _target) vectorDiff getPosATL _aircraft) > 0};
+    && {(velocity _aircraft) vectorDotProduct ((getPosASL _target) vectorDiff getPosASL _aircraft) > 0};
 // A lateral helicopter ingress is complete when the live aircraft enters its turret's practical
 // engagement range. Native rotary-wing combat flight does not reliably capture an arbitrary offset
 // point while a gunner is tracking a contact; waiting for that coordinate caused useful flight and

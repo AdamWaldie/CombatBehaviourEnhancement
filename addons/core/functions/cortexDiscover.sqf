@@ -167,10 +167,11 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
             if (_airAttackEligible) then {
                 {
                     private _candidate=assignedTarget _x;
-                    if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {alive _candidate} && {!captive _candidate}
+                    if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {!(_candidate isKindOf "HeadlessClient_F")} && {alive _candidate} && {!captive _candidate}
                         && {!(_candidate getVariable ["ace_captives_isSurrendering",false])}
                         && {!(_candidate getVariable ["ace_captives_isHandcuffed",false])}
-                        && {(side group _pilot) getFriend side _candidate < 0.6}) exitWith {_airAttackTarget=_candidate};
+                        && {(side group _pilot) getFriend side _candidate < 0.6}
+                        && {(group _pilot knowsAbout _candidate) > 0}) exitWith {_airAttackTarget=_candidate};
                 } forEach ([effectiveCommander _vehicle,driver _vehicle,gunner _vehicle,commander _vehicle]+crew _vehicle);
                 // A contact can be detected and shared before the engine assigns it to a particular
                 // seat. Requiring assignedTarget or the pilot's transient current-target list made
@@ -181,10 +182,11 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
                     private _knownTargets=(_pilot nearTargets ([8000,5000] select !(_vehicle isKindOf "Plane"))) select [0,16];
                     private _knownIndex=_knownTargets findIf {
                         private _knownObject=_x param [4,objNull];
-                        !isNull _knownObject && {!(_knownObject isKindOf "Logic")} && {alive _knownObject} && {!captive _knownObject}
+                        !isNull _knownObject && {!(_knownObject isKindOf "Logic")} && {!(_knownObject isKindOf "HeadlessClient_F")} && {alive _knownObject} && {!captive _knownObject}
                             && {!(_knownObject getVariable ["ace_captives_isSurrendering",false])}
                             && {!(_knownObject getVariable ["ace_captives_isHandcuffed",false])}
                             && {(side group _pilot) getFriend side _knownObject < 0.6}
+                            && {(group _pilot knowsAbout _knownObject) > 0}
                     };
                     if (_knownIndex >= 0) then {_airAttackTarget=(_knownTargets select _knownIndex) param [4,objNull]};
                 };

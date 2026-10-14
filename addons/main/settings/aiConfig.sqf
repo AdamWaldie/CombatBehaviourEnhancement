@@ -216,7 +216,7 @@
  * - WAIT_AIPass_Artillery_ShootAndScoot (ADVANCED): mobile batteries move 200-350 m after a support mission.
  * - WAIT_AIPass_Artillery_DefaultRole (MISSION MAKER): missions a battery takes unless you set its own role: SUPPORT (squads' calls only), COUNTER (counter-battery only) or BOTH. Per gun: [this, "COUNTER"] call WAIT_fnc_CortexSetArtilleryRole; or the AI Orders Zeus module.
  * - WAIT_AIPass_CounterBattery_Enable (MISSION MAKER): AI artillery answers enemy artillery whose position is known.
- * - WAIT_AIPass_CounterBattery_Mode (MISSION MAKER): legacy compatibility setting; automatic firing-event acquisition always works, with radar reducing delay.
+ * - WAIT_AIPass_CounterBattery_Mode (MISSION MAKER): legacy compatibility setting; firing events wake fresh observers or registered radar acquisition.
  * - WAIT_AIPass_CounterBattery_RadarRange (ADVANCED): detection range of a registered counter-battery radar.
  * - WAIT_AIPass_CounterBattery_Delay (ADVANCED): acquisition seconds without radar (default 60).
  * - WAIT_AIPass_CounterBattery_Rounds (ADVANCED): rounds per counter-battery burst.
@@ -377,6 +377,9 @@ createHashMapFromArray [
         ["WAIT_AIPass_VehicleDismount_Enable", true], // Unloads capable passengers only when safely stopped on dry ground.
         ["WAIT_AIPass_VehicleRemount_Enable", true], // Allows safe conscious passengers to reboard after Smart AI contact. Convoy resume stays explicit.
         ["WAIT_AIPass_VehicleReverse_Enable", true], // Tracked armour attempts one bounded threat-facing reverse leg.
+        ["WAIT_AIPass_VehicleReverse_Distance", 30],
+        ["WAIT_AIPass_VehicleReverse_Timeout", 20],
+        ["WAIT_AIPass_VehicleReverse_FacingTolerance", 35],
         ["WAIT_AIPass_VehicleWithdraw_Enable", true], // Allows damaged vehicles to withdraw and use existing smoke.
         ["WAIT_AIPass_VehicleJink_Enable", true], // One bounded escape by an eligible intact fighting vehicle.
         ["WAIT_AIPass_CoverValidation_Enable", true], // Adds bounded slope and body clearance checks to shared cover selection.
@@ -400,6 +403,8 @@ createHashMapFromArray [
         ["WAIT_AIPass_Hearing_Enable", true], // Nearby gunfire area reports, never target reveals.
         ["WAIT_AIPass_Vehicles_Enable", true], // BOOL: dismount under fire; damaged vehicles smoke and withdraw.
         ["WAIT_AIPass_DrivingAssist_Enable", true], // Sparse terrain-grade speed cap for ordinary AI ground vehicles; preserves native routes.
+        ["WAIT_AIPass_DrivingAssist_MaxSpeed", 70], // General driving cap in km/h; terrain and lower authored caps still apply.
+        ["WAIT_AIPass_DrivingAssist_Recovery_Enable", true], // Allows new finite recovery attempts; does not cancel a native leg already issued.
         ["WAIT_AIPass_NavalAssault_Enable", true], // BOOL: finite coastal approach and passenger landing; yields to player, Zeus and neutral external-control ownership.
         ["WAIT_AIPass_ContactReports_Enable", true], // BOOL: share sightings by radio (jammable) or voice.
         ["WAIT_AIPass_ContactReports_Radius", 500], // METRES: radio report range.
@@ -424,7 +429,7 @@ createHashMapFromArray [
         ["WAIT_AIPass_Artillery_ShootAndScoot", true], // BOOL: mobile batteries relocate after a support mission.
         ["WAIT_AIPass_Artillery_DefaultRole", "BOTH"], // STRING: SUPPORT, COUNTER or BOTH for guns with no role of their own.
         ["WAIT_AIPass_CounterBattery_Enable", false], // BOOL: AI artillery answers enemy artillery whose position is known.
-        ["WAIT_AIPass_CounterBattery_Mode", "AUTO"], // Legacy compatibility: detection is always automatic.
+        ["WAIT_AIPass_CounterBattery_Mode", "AUTO"], // Legacy compatibility: automatic wakeup still requires radar or fresh observer detection.
         ["WAIT_AIPass_CounterBattery_RadarRange", 8000], // METRES: radar detection range.
         ["WAIT_AIPass_CounterBattery_Delay", 60], // SECONDS: before counter-battery fire.
         ["WAIT_AIPass_CounterBattery_Rounds", 4], // COUNT: rounds per counter-battery burst.
@@ -462,6 +467,7 @@ createHashMapFromArray [
         ["WAIT_AIPass_Advance_MinContactSeconds", 0], // SECONDS: optional confirmed-contact delay before an advance is considered.
         ["WAIT_AIPass_Advance_Cooldown", 20], // SECONDS: after an advance ends before the squad may start another.
         ["WAIT_AIPass_CoordinatedAssault_Enable", true], // BOOL: reinforcing squads assault together while the first squad fires.
+        ["WAIT_AIPass_CoordinatedAssault_MaxMovers", 2], // Per-operation concurrent mover cap; safe distinct corridors remain required.
         ["WAIT_AIPass_Stance_Enable", true], // BOOL: stance chosen from the height of the cover in front.
         ["WAIT_AIPass_AmmoShare_Enable", true], // BOOL: soldiers low on magazines get one from a squad-mate.
         ["WAIT_AIPass_AmmoShare_Distance", 10], // METRES: how close the squad-mate must be.

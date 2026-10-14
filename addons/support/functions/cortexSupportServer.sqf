@@ -27,7 +27,8 @@ private _requesterCoordinated = !isNull _requester && {[_requester,"WAIT_AIPass_
 private _supportEnabled = _requesterReinforce || {_requesterCoordinated};
 private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;
 if (!isServer || {isNull _requester} || {remoteExecutedOwner > 0 && {remoteExecutedOwner != groupOwner _requester}}
-    || {!(missionNamespace getVariable ["WAIT_AIPass_Enable",false])} || {[] call WAIT_fnc_CortexIsPaused}
+    || {!(missionNamespace getVariable ["WAIT_AIPass_Enable",false])}
+    || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])} || {[] call WAIT_fnc_CortexIsPaused}
     || {!([_requester,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
     || {!_supportEnabled}
     || {!([_requester] call WAIT_fnc_CortexIsEligible)} || {isNull _requesterTransmitter}

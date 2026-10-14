@@ -6,7 +6,7 @@
  * Cleanup may restore its exact weak posture during ordinary movement or a WAIT cover route;
  * it does not change that route. Starting a new group posture requires a stationary actor; native combat remains available.
  * Repeat/JIP: One generation-owned group lease records each actor's prior and applied weak stance, operation generation and owner epoch. Repeated calls retain that lease; release restores only an unchanged WAIT-applied stance. Zeus, player, specialist, locality and newer-generation handover discard the lease without writing over the new owner.
- * Arguments: 0: group <GROUP>, grpNull; 1: danger generation <NUMBER>, -1; 2: active <BOOL>, false; 3: cause <STRING>, "".
+ * Arguments: 0: group <GROUP>, grpNull; 1: danger generation <NUMBER>, -1; 2: active <BOOL>, false; 3: cause <STRING>, ""; 4: immediate observer <OBJECT>, objNull, excluded from new support posture leases.
  * Return Value: Boolean - true while one or more exact-owned squad stance leases remain active.
  * Current callers: WAIT_fnc_CortexGroupTick, WAIT_fnc_CortexReleaseGroup and WAIT_fnc_DangerSetup.
  * Example: [group player,group player getVariable ["WAIT_Danger_Generation",0],true,"HIT"] call WAIT_fnc_DangerGroupHideStep;
@@ -16,7 +16,8 @@ params [
     ["_group",grpNull,[grpNull]],
     ["_generation",-1,[0]],
     ["_active",false,[true]],
-    ["_cause","",[""]]
+    ["_cause","",[""]],
+    ["_observer",objNull,[objNull]]
 ];
 if (isNull _group) exitWith {false};
 
@@ -100,7 +101,7 @@ private _reserved=if (count _operation > 0) then {
 } else {[]};
 private _members=(units _group) select [0,64];
 private _candidates=_members select {
-    local _x && {alive _x} && {!isPlayer _x} && {isNull remoteControlled _x} && {isNull objectParent _x}
+    _x != _observer && {local _x} && {alive _x} && {!isPlayer _x} && {isNull remoteControlled _x} && {isNull objectParent _x}
         && {[_x] call WAIT_fnc_CortexCombatEffective}
         && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!(_x in _reserved)}

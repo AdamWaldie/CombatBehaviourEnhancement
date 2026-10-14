@@ -19,16 +19,34 @@ LOAD_ERROR = re.compile(
     re.I,
 )
 
+# Bohemia documents only this exact native warning as a false error:
+# https://community.bistudio.com/wiki/Crash_Files
+# Require positive same-process addon/activation and actual mission-entry evidence.
+KNOWN_CHARACTER_WARNING = re.compile(
+    r"^\s*(?:\d{1,2}:\d{2}:\d{2}\s+)?Warning Message:\s*"
+    r"You cannot play/edit this mission; it is dependent on downloadable content "
+    r"that has been deleted\.(?:\\n|\s+)?a3_characters_f\s*$", re.I,
+)
+CHARACTER_PRESENT = re.compile(
+    r'WAIT AUDIT DEPENDENCIES\|[^\r\n]*\["A3_Characters_F",true\][^\r\n]*\|observerClass=true', re.I,
+)
+CHARACTER_ACTIVATED = re.compile(
+    r'WAIT AUDIT ADDON ACTIVATION\|[^\r\n]*\["A3_Characters_F",true\]', re.I,
+)
+
 def summarize(logs):
     cases = []
     completed = {}
     errors = []
     runtime_errors = []
     load_errors = []
+    known_engine_warnings = []
     runtime_error_kinds = set()
     source_fingerprints = {}
     evidence_logs = set()
     for name, content in logs.items():
+        normalized = content.replace('""', '"')
+        character_ready = bool(CHARACTER_PRESENT.search(normalized)) and bool(CHARACTER_ACTIVATED.search(normalized)) and 'WAIT AUDIT OBSERVER ZEUS READY' in content
         fingerprints = {match.group(1).lower() for match in SOURCE.finditer(content)}
         if fingerprints:
             source_fingerprints[name] = sorted(fingerprints)
@@ -52,7 +70,13 @@ def summarize(logs):
                     runtime_error_kinds.add(kind)
                     runtime_errors.append(dict(log=name, line=number, message=line))
             if LOAD_ERROR.search(line):
-                load_errors.append(dict(log=name, line=number, message=line))
+                finding = dict(log=name, line=number, message=line)
+                if character_ready and KNOWN_CHARACTER_WARNING.fullmatch(line):
+                    finding.update(reason='Exact Bohemia-documented false warning; same-process addon, activation and observer mission-entry evidence present',
+                                   reference='https://community.bistudio.com/wiki/Crash_Files')
+                    known_engine_warnings.append(finding)
+                else:
+                    load_errors.append(finding)
     observed_fingerprints = sorted({value for values in source_fingerprints.values() for value in values})
     provenance_issues = []
     missing_source_logs = sorted(evidence_logs - set(source_fingerprints))
@@ -78,6 +102,7 @@ def summarize(logs):
         errors=errors,
         runtime_errors=runtime_errors,
         load_errors=load_errors,
+        known_engine_warnings=known_engine_warnings,
         source_fingerprint=observed_fingerprints[0] if len(observed_fingerprints) == 1 else None,
         source_fingerprints=source_fingerprints,
         provenance_issues=provenance_issues,
@@ -150,11 +175,27 @@ def render_markdown(report):
             f"- {error['log']}:{error['line']}: {error['message']}"
             for error in report['load_errors']
         ]
+    if report.get('known_engine_warnings'):
+        lines += ['', 'Known engine warnings (raw evidence retained; not behavioural acceptance):', ''] + [
+            f"- {warning['log']}:{warning['line']}: {warning['message']}  -  {warning['reason']}. [Bohemia reference]({warning['reference']})"
+            for warning in report['known_engine_warnings']
+        ]
     if report.get('provenance_issues'):
         lines += ['', 'Source provenance failures:', ''] + [
             f"- {issue}" for issue in report['provenance_issues']
         ]
     return lines
+
+def staged_mission_path(root, manifest):
+    """Resolve only supported staged worlds; retain legacy VR manifest support."""
+    world = manifest.get('world', 'VR')
+    if world not in ('VR', 'Altis'):
+        raise ValueError('Unsupported audit world in manifest')
+    mission = root / ('WAIT_Audit.' + world)
+    if not mission.is_dir():
+        raise ValueError('Staged audit mission directory is missing')
+    return mission
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -174,7 +215,7 @@ def main():
             identity=verify(root/'@WaldosAITweaks')
             if identity['fingerprint'] != manifest['package']['fingerprint'] or identity['fingerprint'] != report['source_fingerprint']:
                 raise ValueError('RPT, package and audit manifest identity disagree')
-            mission=root/'WAIT_Audit.VR'
+            mission=staged_mission_path(root, manifest)
             if mission_hashes(mission) != manifest['mission_files']:
                 raise ValueError('Audit scripts changed after staging')
         except (ValueError, OSError) as error:

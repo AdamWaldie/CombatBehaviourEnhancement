@@ -5,6 +5,9 @@
  * Smoke is globally created by the server and deleted after sixty seconds; no per-unit polling is added.
  * Locality/authority: documented guards enforce server coordination and owner-local execution.
  * Repeat/JIP: mission tokens reject stale work; server state survives HC migration, not restart.
+ * An unconfirmed native shot reaches the original deadline without renewal, then parks its
+ * registry/token reservation with no recurring scheduler work or duplicate fire request.
+ * Qualified event/rejection callbacks restart settlement only; parking is not completion.
  * Arguments: 0: mission <HASHMAP>, created by ArtilleryFire.
  * Return Value: Number next delay, or -1 to finish.
  * Current caller: WAIT_fnc_ArtilleryMissionStep as one bounded action under the artillery mission FSM.
@@ -25,9 +28,17 @@ private _finish = {
     _battery setVariable ["WAIT_AIPass_BusyUntil", nil, true];
     -1
 };
-if ((_mission get "phase") in ["PENDING", "UNCERTAIN"] && {alive _battery}) then {
-    // The engine may still hold this one firing order. Retain its lock until an event or explicit stop.
-    _mission set ["deadline", time + 900];
+if ((_mission get "phase") in ["PENDING", "UNCERTAIN"] && {alive _battery}
+    && {time > (_mission get "deadline")}) exitWith {
+    // Retire polling, not the unresolved native command. Keep registry/token
+    // reservation until a qualified firing event or owner rejection settles it.
+    _mission set ["phase","UNCERTAIN"];
+    _mission set ["remaining",0];
+    _mission set ["burstsLeft",0];
+    _mission set ["scoot",false];
+    _mission set ["parked",true];
+    diag_log format ["[WAIT] Artillery uncertainty parked token=%1; battery remains reserved",_mission get "token"];
+    -1
 };
 private _requester=_mission getOrDefault ["requester",grpNull];
 private _danger=(_mission get "purpose") == "DANGER";
@@ -62,7 +73,6 @@ if (_phase in ["PENDING", "UNCERTAIN"]) exitWith {
     _mission set ["phase", "UNCERTAIN"];
     _mission set ["remaining", 0];
     _mission set ["burstsLeft", 0];
-    _mission set ["deadline", time + 900];
     _mission set ["due", time + 10];
     10
 };
@@ -79,16 +89,18 @@ if ((_mission get "burstsLeft") <= 0) exitWith {
 if (_phase == "WAIT") then {
     _mission set ["remaining", _mission get "burstSize"];
     private _spotter = _mission get "spotter";
-    if ((_mission get "purpose") != "COUNTER" && {alive _spotter} && {_spotter getVariable ["WAIT_AIPass_Spotter", false]}) then {
+    if (alive _spotter && {_spotter getVariable ["WAIT_AIPass_Spotter", false]}) then {
         _mission set ["phase", "OBSERVE"];
         _mission set ["observerOwner", owner _spotter];
         _mission set ["due", time + 3];
         [_battery, _mission get "token", _spotter, _mission get "enemy", _mission getOrDefault ["aim", []]] remoteExecCall ["WAIT_fnc_CortexArtilleryObserve", owner _spotter];
     } else {
         if ((_mission get "purpose") == "COUNTER") then {
-            // Only firing-event snapshots supply new enemy positions, never its live transform.
-            private _emission = (_mission get "enemy") getVariable ["WAIT_AIPass_LastEmission", []];
-            if (_emission isNotEqualTo [] && {(_emission select 1) distance2D (_mission get "location") >= (missionNamespace getVariable ["WAIT_AIPass_Artillery_LocationResetDistance", 150])}) then {
+            // Relocation needs this side's qualified radar receipt, never a global emission or live transform.
+            private _emission = (_mission get "enemy") getVariable ["WAIT_AIPass_DetectedEmission_" + str (_mission get "side"), []];
+            if (count _emission == 4 && {(_emission select 3) == "RADAR"}
+                && {serverTime >= (_emission select 0)} && {serverTime-(_emission select 0) <= 120}
+                && {(_emission select 1) distance2D (_mission get "location") >= (missionNamespace getVariable ["WAIT_AIPass_Artillery_LocationResetDistance", 150])}) then {
                 _mission set ["fix", [+(_emission select 1), 30]];
                 _mission set ["location", +(_emission select 1)];
                 _mission set ["offset", 300];

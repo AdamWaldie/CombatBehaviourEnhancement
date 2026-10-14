@@ -156,6 +156,7 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 | --- | --- | --- | --- | --- | --- | --- |
 | `WAIT_AIPass_Reinforce_Enable` | Reinforcement | CHECKBOX | true | [] | NEXT_OPERATION | Idle nearby squads move up behind a squad in contact. |
 | `WAIT_AIPass_CoordinatedAssault_Enable` | Coordinated assault | CHECKBOX | true | [] | NEXT_OPERATION | Reinforcing squads assault from both sides while the squad in contact fires. |
+| `WAIT_AIPass_CoordinatedAssault_MaxMovers` | Concurrent manoeuvre squads | SLIDER | 2 | [1, 4, 0] | NEXT_OPERATION | Maximum simultaneous manoeuvre elements in one communicating support opportunity. Distinct safe corridors are still required; the requester supplies support. Higher values increase planning work. Captured when the assault begins. |
 | `WAIT_Cortex_CombinedArms_AirRange` | Aircraft support range (m) | SLIDER | 4000 | [500, 10000, 0] | NEXT_OPERATION | How far a radio-linked aircraft may accept a fresh combined-arms opportunity. This is independent of the shorter squad report radius. |
 | `WAIT_AIPass_Reinforce_Radius` | Reinforcement radius (m) | SLIDER | 600 | [100, 2000, 0] | NEXT_OPERATION | How far away idle squads may be sent to help. |
 | `WAIT_AIPass_Reinforce_MaxResponders` | Reinforcing squads | SLIDER | 2 | [0, 5, 0] | NEXT_OPERATION | Squads sent to help one squad in contact. |
@@ -173,6 +174,8 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 | Variable | Label | Type | Default | Range / choices | Activation | Purpose |
 | --- | --- | --- | --- | --- | --- | --- |
 | `WAIT_AIPass_DrivingAssist_Enable` | General driving assist | CHECKBOX | true | [] | NEXT_OPERATION | Ordinary AI ground vehicles only: applies sparse terrain-grade safety and one bounded native-route recovery while following an existing waypoint. It never creates routes, bypasses obstacles or changes collision. Convoy driving is configured separately. |
+| `WAIT_AIPass_DrivingAssist_Recovery_Enable` | Physical route recovery | CHECKBOX | true | [] | LIVE | Allows finite native-route refresh and checked rear recovery for ordinary driving. Disabling prevents new attempts without cancelling an already issued native movement leg. No teleportation or collision changes. |
+| `WAIT_AIPass_DrivingAssist_MaxSpeed` | Maximum safety speed | SLIDER | 70 | [15, 120, 0] | LIVE | Ordinary driving safety cap in km/h. Terrain may reduce it further; a lower authored forced-speed cap is preserved. Convoys use their own speed setting. |
 
 ### 02 Combat and withdrawal
 
@@ -183,6 +186,9 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 | `WAIT_AIPass_VehicleWithdraw_Enable` | Damage: withdraw mobile vehicle | CHECKBOX | true | [] | NEXT_OPERATION | Under Enable Cortex vehicle tactics, allows a damaged mobile vehicle to withdraw and use existing smoke. |
 | `WAIT_AIPass_VehicleReverse_Enable` | Withdrawal: tracked reverse leg | CHECKBOX | true | [] | LIVE | Under damaged vehicle withdrawal, tracked armour attempts a short threat-facing reverse before native escape. Disabling releases the reverse command and retains the escape route. Wheeled vehicles retain forward escape. |
 | `WAIT_AIPass_VehicleJink_Enable` | Danger: short vehicle escape | CHECKBOX | true | [] | NEXT_OPERATION | Allows one intact crewed fighting vehicle to make a short terrain-checked escape from a close hostile, hit or explosion. Convoys, passenger loads and existing movement owners are excluded. |
+| `WAIT_AIPass_VehicleReverse_Distance` | Tracked reverse distance (m) | SLIDER | 30 | [10, 60, 0] | NEXT_OPERATION | Distance away from the saved threat required before native forward escape. Captured when a reverse leg starts; its rear route is validated once. |
+| `WAIT_AIPass_VehicleReverse_Timeout` | Tracked reverse time limit (s) | SLIDER | 20 | [5, 45, 0] | NEXT_OPERATION | Maximum duration of one reverse attempt before finite native escape fallback. Captured when the leg starts; rear obstruction and no-progress checks remain active. |
+| `WAIT_AIPass_VehicleReverse_FacingTolerance` | Tracked reverse hull tolerance (degrees) | SLIDER | 35 | [10, 60, 0] | NEXT_OPERATION | Maximum angular separation between the hull front and saved contact direction for entry and completion. Captured per reverse leg; steering deadband remains inside this limit. |
 
 ### 03 Passengers
 

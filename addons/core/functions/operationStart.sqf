@@ -55,9 +55,10 @@ private _capable=_participants select {
         && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
 };
+private _pairs=if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) then {[_group,_capable] call WAIT_fnc_CombatPairs} else {[]};
 private _operation=createHashMapFromArray [
     ["intent",toUpperANSI _intent], ["generation",_generation], ["ownerEpoch",_group getVariable ["WAIT_AIPass_Epoch",0]],
-    ["objective",_objective], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],
+    ["pairs",_pairs], ["objective",_objective], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],
     ["startedAt",time], ["lastProgressAt",time], ["lastProgressPosition",getPosATL _operationAnchor],
     ["participantProgress",_capable apply {[_x,getPosATL _x]}], ["lastProgressActor",objNull],
     ["replans",0], ["recovery",createHashMap], ["recoveryAttempts",createHashMap], ["unavailable",[]], ["restore",createHashMap],

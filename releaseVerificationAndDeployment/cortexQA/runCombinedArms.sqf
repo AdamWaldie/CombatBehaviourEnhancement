@@ -119,7 +119,7 @@ _apc setDir (_terrainHeading+90); createVehicleCrew _apc; private _apcGroup=grou
 _apcGroup setGroupIdGlobal ["Cortex QA ground support"];
 _apcGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _apcGroup setCombatMode "RED"; _apc allowDamage false;
 _apc setVariable ["WAIT_CortexQA_Label","APC / independent fire support",true]; _apc setVariable ["WAIT_CortexQA_Shots",[],true];
-_apc addEventHandler ["Fired",{params ["_vehicle"]; private _shots=_vehicle getVariable ["WAIT_CortexQA_Shots",[]]; _shots pushBack serverTime; _vehicle setVariable ["WAIT_CortexQA_Shots",_shots,true]}]; _objects pushBack _apc; _objects append crew _apc;
+_apc addEventHandler ["Fired",{params ["_vehicle","_weapon","_muzzle","","_ammo","_magazine","","_operator"]; private _shots=_vehicle getVariable ["WAIT_CortexQA_Shots",[]]; _shots pushBack serverTime; if (count _shots > 128) then {_shots deleteAt 0}; _vehicle setVariable ["WAIT_CortexQA_Shots",_shots,true]; private _records=_vehicle getVariable ["WAIT_CortexQA_StationShots",[]]; private _role=(group _operator) getVariable ["WAIT_Cortex_CombinedRole",[]]; _records pushBack [serverTime,_operator,_weapon,_muzzle,_ammo,_magazine,_role param [0,""]]; if (count _records > 128) then {_records deleteAt 0}; _vehicle setVariable ["WAIT_CortexQA_StationShots",_records,true]}]; _objects pushBack _apc; _objects append crew _apc;
 private _groundRouteTarget=[4000,3600] call _terrainPosition;
 private _groundRouteStart=_apc distance2D _groundRouteTarget;
 _apc limitSpeed 30;
@@ -129,7 +129,7 @@ _ifv setDir (_terrainHeading+90); createVehicleCrew _ifv; private _ifvGroup=grou
 _ifvGroup setGroupIdGlobal ["Cortex QA ground manoeuvre"];
 _ifvGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _ifvGroup setCombatMode "RED"; _ifv allowDamage false;
 _ifv setVariable ["WAIT_CortexQA_Label","IFV / safe-side manoeuvre",true]; _ifv setVariable ["WAIT_CortexQA_Shots",[],true];
-_ifv addEventHandler ["Fired",{params ["_vehicle"]; private _shots=_vehicle getVariable ["WAIT_CortexQA_Shots",[]]; _shots pushBack serverTime; _vehicle setVariable ["WAIT_CortexQA_Shots",_shots,true]}];
+_ifv addEventHandler ["Fired",{params ["_vehicle","_weapon","_muzzle","","_ammo","_magazine","","_operator"]; private _shots=_vehicle getVariable ["WAIT_CortexQA_Shots",[]]; _shots pushBack serverTime; if (count _shots > 128) then {_shots deleteAt 0}; _vehicle setVariable ["WAIT_CortexQA_Shots",_shots,true]; private _records=_vehicle getVariable ["WAIT_CortexQA_StationShots",[]]; private _role=(group _operator) getVariable ["WAIT_Cortex_CombinedRole",[]]; _records pushBack [serverTime,_operator,_weapon,_muzzle,_ammo,_magazine,_role param [0,""]]; if (count _records > 128) then {_records deleteAt 0}; _vehicle setVariable ["WAIT_CortexQA_StationShots",_records,true]}];
 private _ifvStart=getPosATL _ifv;
 private _ifvRouteTarget=[4000,3480] call _terrainPosition;
 private _ifvRouteStart=_ifv distance2D _ifvRouteTarget;
@@ -171,6 +171,9 @@ private _manoeuvreIndex=_groundEntries findIf {((_x select 0) getVariable ["WAIT
 private _fireEntry=if (_fireIndex >= 0) then {_groundEntries select _fireIndex} else {_groundEntries select 0};
 private _manoeuvreEntry=if (_manoeuvreIndex >= 0) then {_groundEntries select _manoeuvreIndex} else {_groundEntries select 1};
 _fireEntry params ["_fireGroup","_fireAsset","_fireRouteTarget","_fireRouteStart","_fireStart"];
+// Capture role identity before other bounded observation waits can outlive it.
+private _fireToken=(_fireGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""];
+private _fireOperator=gunner _fireAsset;
 _manoeuvreEntry params ["_manoeuvreGroup","_manoeuvreAsset","_manoeuvreRouteTarget","_manoeuvreRouteStart","_manoeuvreStart"];
 private _airRole=[{((_heliGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) param [4,""]) == "AIR_ATTACK"},20] call _wait;
 ["COMBINED-ground-role",_groundRoles,str (_groundEntries apply {(_x select 0) getVariable ["WAIT_Cortex_CombinedRole",[]]})] call _check;
@@ -200,8 +203,14 @@ private _groundwaitWaypoint=(waypoints _fireGroup) findIf {waypointDescription _
         _fireRouteTarget,round _fireRouteStart,round _groundRemaining,_groundLease,currentCommand driver _fireAsset,expectedDestination driver _fireAsset]] call _check;
 ["COMBINED-ground-target-shared",[{_fireGroup knowsAbout _enemy >= 2 || {!isNull assignedTarget gunner _fireAsset}},15] call _wait,
     format ["knowledge=%1 target=%2",_fireGroup knowsAbout _enemy,assignedTarget gunner _fireAsset]] call _check;
-["COMBINED-ground-actual-fire",[{count (_fireAsset getVariable ["WAIT_CortexQA_Shots",[]]) > 0},20] call _wait,
-    str (_fireAsset getVariable ["WAIT_CortexQA_Shots",[]])] call _check;
+["COMBINED-ground-actual-fire",[{
+    _fireToken != "" && {_fireAsset getVariable ["WAIT_CortexQA_StationShots",[]] findIf {
+        private _ammo=configFile >> "CfgAmmo" >> (_x select 4);
+        (_x select 1) == _fireOperator && {(_x select 6) == _fireToken}
+            && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
+    } >= 0}
+},20] call _wait,
+    str (_fireAsset getVariable ["WAIT_CortexQA_StationShots",[]])] call _check;
 ["COMBINED-ground-manoeuvre-physical-travel",[{_manoeuvreAsset distance2D _manoeuvreStart >= 60},35] call _wait,
     format ["travel=%1m result=%2 command=%3 expected=%4",round (_manoeuvreAsset distance2D _manoeuvreStart),
         _manoeuvreGroup getVariable ["WAIT_Cortex_CombinedResult",[]],currentCommand driver _manoeuvreAsset,expectedDestination driver _manoeuvreAsset]] call _check;

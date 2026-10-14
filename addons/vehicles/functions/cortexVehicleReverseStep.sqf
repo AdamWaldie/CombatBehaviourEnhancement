@@ -3,6 +3,7 @@
  * Purpose: Own one finite tracked reverse leg while preserving a threat-facing hull and native turret engagement.
  * Locality/authority: Current AI group and vehicle owner only; all command boundaries yield to external ownership.
  * A vehicle-specific external driving marker blocks reverse commands and release STOP/turn writes.
+ * Incapacitated crew cannot drive a leg; cleanup cancels only a matching recorded turn direction.
  * Repeat/JIP: Generation/epoch-bound record; repeated steps retain commands. No worker or JIP command replay.
  * Arguments: 0 group <GROUP>; 1 state <HASHMAP>; 2 vehicle <OBJECT>; 3 threat ATL <ARRAY>;
  * 4 mode <STRING, START>; 5 operation generation <NUMBER, -1>.
@@ -29,10 +30,19 @@ private _release={
             && {(_ownedVehicle getVariable ["WAIT_VehicleReverseOwner",[]]) isEqualTo [_group,_generation]}) then {
             // Matching markers prove the old lease, not authority over a newer external order.
             // Clear those markers on handover without sending driving commands into its owner.
+            private _currentDriver=driver _ownedVehicle;
+            private _currentCommander=effectiveCommander _ownedVehicle;
+            private _crewStillOwned=[_currentDriver,_currentCommander] findIf {
+                isNull _x || {isPlayer _x} || {!local _x} || {!isNull remoteControlled _x}
+                    || {group _x != _group} || {([_x] call WAIT_fnc_CortexExternalOwner) != ""}
+                    || {[_x] call WAIT_fnc_CompatibilityExternalControl}
+            } < 0;
             if (!([_group] call WAIT_fnc_CortexExternalTakeover)
+                && {_crewStillOwned} && {(_record select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
                 && {isNil {_ownedVehicle getVariable "WAIT_ExternalDrivingOwner"}}) then {
                 private _info=vehicleMoveInfo _ownedVehicle;
-                if ((_info param [1,""]) in ["LEFT","RIGHT"]) then {_ownedVehicle sendSimpleCommand "STOPTURNING"};
+                if ((_info param [1,""]) in ["LEFT","RIGHT"]
+                    && {(_info param [1,""]) == (_record select 8)}) then {_ownedVehicle sendSimpleCommand "STOPTURNING"};
                 if ((_info param [0,""]) == "BACK") then {_ownedVehicle sendSimpleCommand "STOP"};
             };
             _ownedVehicle setVariable ["WAIT_VehicleReverseOwner",nil,true];
@@ -43,6 +53,7 @@ private _release={
 };
 if (toUpperANSI _mode == "RELEASE") exitWith {["RELEASE"] call _release};
 private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+private _limits=_operation getOrDefault ["reverseLimits",[30,20,35]];
 private _eligible=(missionNamespace getVariable ["WAIT_AIPass_Active",false])
     && {[_group,"WAIT_AIPass_VehicleWithdraw_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
     && {[_group,"WAIT_AIPass_VehicleReverse_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
@@ -57,7 +68,10 @@ if (!_eligible) exitWith {["INELIGIBLE"] call _release; "FALLBACK"};
 private _driver=driver _vehicle;
 private _commander=effectiveCommander _vehicle;
 if (isNull _driver || {isNull _commander} || {_driver == _commander}
-    || {!alive _driver} || {!alive _commander} || {!local _driver} || {!local _commander}
+    || {!alive _driver} || {!alive _commander}
+    || {!([_driver] call WAIT_fnc_CortexCombatEffective)}
+    || {!([_commander] call WAIT_fnc_CortexCombatEffective)}
+    || {!local _driver} || {!local _commander}
     || {isPlayer _driver} || {isPlayer _commander} || {group _driver != _group}
     || {group _commander != _group} || {!isNull remoteControlled _driver}
     || {!isNull remoteControlled _commander}) exitWith {["CREW_UNAVAILABLE"] call _release; "FALLBACK"};
@@ -88,16 +102,23 @@ if (toUpperANSI _mode == "START") exitWith {
         if ((_record select 1) == _generation && {(_record select 0) == _vehicle}) then {"REVERSE"} else {"FALLBACK"}
     };
     if (count _threat < 2 || {abs speed _vehicle > 10}) exitWith {"FALLBACK"};
+    _limits=[
+        (missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Distance",30]) max 10 min 60,
+        (missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Timeout",20]) max 5 min 45,
+        (missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_FacingTolerance",35]) max 10 min 60
+    ];
     private _relative=_vehicle getRelDir _threat;
-    if (_relative > 30 && {_relative < 330}) exitWith {"FALLBACK"};
+    if (_relative > (_limits select 2) && {_relative < 360-(_limits select 2)}) exitWith {"FALLBACK"};
     private _origin=getPosATL _vehicle;
-    private _rear=_vehicle getRelPos [35,180];
+    private _rear=_vehicle getRelPos [(_limits select 0)+5,180];
     if (_rear distance2D _threat <= _origin distance2D _threat) exitWith {"FALLBACK"};
     private _route=[_origin,[[_rear]],_threat,[],objNull,"VEHICLE"] call WAIT_fnc_CortexSelectAvenue;
     if (_route isEqualTo [] || {lineIntersectsSurfaces [AGLToASL (_origin vectorAdd [0,0,1]),
         AGLToASL (_rear vectorAdd [0,0,1]),_vehicle,objNull,true,1,"GEOM","NONE"] isNotEqualTo []}) exitWith {"FALLBACK"};
+    _operation set ["reverseLimits",+_limits];
+    _group setVariable ["WAIT_Operation",_operation,true];
     _record=[_vehicle,_generation,_group getVariable ["WAIT_AIPass_Epoch",0],+_origin,+_threat,
-        time+20,time,+_origin,"BACK"];
+        time+(_limits select 1),time,+_origin,"BACK"];
     _group setVariable ["WAIT_VehicleReverse",_record,true];
     _vehicle setVariable ["WAIT_VehicleReverseOwner",[_group,_generation],true];
     _vehicle sendSimpleCommand "STOPTURNING";
@@ -106,11 +127,22 @@ if (toUpperANSI _mode == "START") exitWith {
 };
 if (count _record != 9 || {(_record select 0) != _vehicle} || {(_record select 1) != _generation}
     || {(_record select 2) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {"FALLBACK"};
-if (_vehicle distance2D (_record select 3) >= 30) exitWith {["DISTANCE_REACHED"] call _release; "COMPLETE"};
+private _beforeRecord=+_record;
+private _referenceThreat=+(_record select 4);
+if (count _referenceThreat == 2) then {_referenceThreat pushBack 0};
+private _awayAxis=(_record select 3) vectorDiff _referenceThreat;
+_awayAxis set [2,0];
+_awayAxis=vectorNormalized _awayAxis;
+private _rearwardTravel=((getPosATL _vehicle) vectorDiff (_record select 3)) vectorDotProduct _awayAxis;
+private _frontBearing=_vehicle getRelDir _referenceThreat;
+if (_rearwardTravel >= (_limits select 0) && {_frontBearing <= (_limits select 2) || {_frontBearing >= 360-(_limits select 2)}}) exitWith {
+    ["DISTANCE_REACHED"] call _release; "COMPLETE"
+};
 if (_vehicle distance2D (_record select 7) >= 2) then {_record set [6,time]; _record set [7,getPosATL _vehicle]};
 if (time >= (_record select 5) || {time-(_record select 6) > 6}) exitWith {[["NO_PROGRESS","TIME_LIMIT"] select (time >= (_record select 5))] call _release; "FALLBACK"};
 private _bearing=_vehicle getRelDir (_record select 4);
-private _turn=if (_bearing <= 20 || {_bearing >= 340}) then {"STOPTURNING"} else {["LEFT","RIGHT"] select (_bearing < 180)};
+private _deadband=20 min ((_limits select 2)*0.6);
+private _turn=if (_bearing <= _deadband || {_bearing >= 360-_deadband}) then {"STOPTURNING"} else {["LEFT","RIGHT"] select (_bearing < 180)};
 if (_turn != (_record select 8)) then {
     _vehicle sendSimpleCommand _turn;
     // Native steering can cancel or lock the longitudinal command during a turn.
@@ -118,5 +150,5 @@ if (_turn != (_record select 8)) then {
     if (_turn == "STOPTURNING") then {_vehicle sendSimpleCommand "BACK"};
     _record set [8,_turn];
 };
-_group setVariable ["WAIT_VehicleReverse",_record,true];
+if (_record isNotEqualTo _beforeRecord) then {_group setVariable ["WAIT_VehicleReverse",_record,true]};
 "REVERSE"

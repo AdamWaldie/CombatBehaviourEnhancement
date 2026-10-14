@@ -60,6 +60,7 @@ class CfgFunctions {
             class AIApplyProfile {
                 file = "\z\waldo_ai_tweaks\addons\core\functions\aiApplyProfile.sqf";
             };
+            class AIRestoreProfile {file = "\z\waldo_ai_tweaks\addons\core\functions\aiRestoreProfile.sqf";};
             class AIRebalanceStop {
                 file = "\z\waldo_ai_tweaks\addons\core\functions\aiRebalanceStop.sqf";
             };
@@ -91,10 +92,12 @@ class CfgFunctions {
             class BuildingOperationQueue {file = "\z\waldo_ai_tweaks\addons\infantry\functions\buildingOperationQueue.sqf";};
             class BuildingOperationStep {file = "\z\waldo_ai_tweaks\addons\infantry\functions\buildingOperationStep.sqf";};
             class OperationStart {file = "\z\waldo_ai_tweaks\addons\core\functions\operationStart.sqf";};
+            class NativeOrderReceipt {file = "\z\waldo_ai_tweaks\addons\core\functions\nativeOrderReceipt.sqf";};
             class OperationStep {file = "\z\waldo_ai_tweaks\addons\core\functions\operationStep.sqf";};
             class OperationCancel {file = "\z\waldo_ai_tweaks\addons\core\functions\operationCancel.sqf";};
             class OperationRelease {file = "\z\waldo_ai_tweaks\addons\core\functions\operationRelease.sqf";};
             class OperationRestore {file = "\z\waldo_ai_tweaks\addons\core\functions\operationRestore.sqf";};
+            class CombatPairs {file = "\z\waldo_ai_tweaks\addons\infantry\functions\combatPairs.sqf";};
             class RebalanceRoles {file = "\z\waldo_ai_tweaks\addons\infantry\functions\rebalanceRoles.sqf";};
             class RecoveryStep {file = "\z\waldo_ai_tweaks\addons\infantry\functions\recoveryStep.sqf";};
             class CortexDrillInterrupt {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexDrillInterrupt.sqf";};
@@ -158,8 +161,10 @@ class CfgFunctions {
             class CortexCombinedArmsRequest {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedArmsRequest.sqf";};
             class CortexCombinedArmsServer {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedArmsServer.sqf";};
             class CortexCombinedAirFallbackServer {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedAirFallbackServer.sqf";};
+            class CortexCombinedGroundFallbackServer {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedGroundFallbackServer.sqf";};
             class CortexCombinedRejectServer {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedRejectServer.sqf";};
             class CortexCombinedArmsLocal {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedArmsLocal.sqf";};
+            class CortexGroundFireReady {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexGroundFireReady.sqf";};
             class CortexCombinedGroundStep {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedGroundStep.sqf";};
             class CortexCooldown {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCooldown.sqf";};
             class CortexCounterBattery {file = "\z\waldo_ai_tweaks\addons\support\functions\cortexCounterBattery.sqf";};
@@ -175,6 +180,8 @@ class CfgFunctions {
             class CortexAirHandoverRestoreLocal {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexAirHandoverRestoreLocal.sqf";};
             class CortexAircraftEligible {file = "\z\waldo_ai_tweaks\addons\aircraft\functions\cortexAircraftEligible.sqf";};
             class CortexDiscover {file = "\z\waldo_ai_tweaks\addons\core\functions\cortexDiscover.sqf";};
+            class BuildingExteriorCandidate {file = "\z\waldo_ai_tweaks\addons\infantry\functions\buildingExteriorCandidate.sqf";};
+            class BuildingExteriorProposal {file = "\z\waldo_ai_tweaks\addons\infantry\functions\buildingExteriorProposal.sqf";};
             class CortexFindCover {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexFindCover.sqf";};
             class CortexFireControl {file = "\z\waldo_ai_tweaks\addons\core\functions\cortexFireControl.sqf";};
             class CortexFireCountermeasure {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexFireCountermeasure.sqf";};

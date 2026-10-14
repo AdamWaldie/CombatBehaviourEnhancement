@@ -4,7 +4,7 @@
  * Locality / Authority: Runs where the AI soldier is local when the engine danger FSM finishes.
  * Repeat/JIP: Repeat-safe and machine-local. Always clears the completed response marker. Restores
  * the recorded prior stance only while the actor still has WAIT's exact applied stance and no player,
- * Zeus or specialist controller has taken ownership. New leases also bind operation generation, owner epoch and group; replacement work cannot inherit the restoration.
+ * Zeus, specialist controller or finite actor reservation has taken ownership. New leases also bind operation generation, owner epoch and group; replacement work cannot inherit the restoration.
  * Arguments: 0: soldier <OBJECT>, objNull.
  * Return Value: Boolean - true when WAIT restored its exact owned stance, otherwise false.
  * Current callers: Engine-loaded infantry danger FSM Finished state.
@@ -34,6 +34,10 @@ if (isNull _group || {!local _group} || {[_group,false,_actor] call WAIT_fnc_Cor
 if (count _lease >= 6 && {(_lease select 3) != (_group getVariable ["WAIT_OperationGeneration",0])
     || {(_lease select 4) != (_group getVariable ["WAIT_AIPass_Epoch",0])}
     || {(_lease select 5) != _group}}) exitWith {["NEW_OPERATION_OR_OWNER"] call _evidence};
+private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+if (count _reservation == 3 && {(_reservation param [2,-1,[0]]) > time}) exitWith {
+    ["ACTOR_RESERVATION"] call _evidence
+};
 if (!([_actor] call WAIT_fnc_CortexCombatEffective)
     || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {["NATIVE_TASK_OR_MEDICAL"] call _evidence};
 

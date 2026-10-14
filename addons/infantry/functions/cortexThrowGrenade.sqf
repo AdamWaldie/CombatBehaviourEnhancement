@@ -20,6 +20,8 @@
  * zero horizontal velocity is marked unavailable, not interpreted as an observed bearing. Locality
  * changes retire the listener. Release evidence also records retained contact and launch error
  * against that contact, separating a wrong requested target from a wrong native release direction.
+ * Actual FiredMan release additionally records body/view alignment, stance and animation;
+ * command-time alignment alone is not treated as release-time proof.
  * Neither listener changes the projectile or creates recurring work.
  * Arguments:
  * 0: unit <OBJECT>
@@ -158,6 +160,18 @@ private _thrown = false;
                         [_retry,+_this,0.25] call CBA_fnc_waitAndExecute;
                     };
                 };
+                private _unsafeRelease=false;
+                if (_kind == "FRAG") then {
+                    private _distance=_unit distance2D _towards;
+                    private _side=side _group;
+                    _unsafeRelease=_distance < 8 || {_distance > 40}
+                        || {(_towards nearEntities ["CAManBase",12]) findIf {
+                            alive _x && {captive _x || {_x getVariable ["ace_captives_isSurrendering",false]}
+                                || {_x getVariable ["ace_captives_isHandcuffed",false]}
+                                || {side group _x == civilian} || {_side getFriend (side group _x) >= 0.6}}
+                        } >= 0};
+                };
+                if (_unsafeRelease) exitWith {["UNSAFE_RELEASE",[_unit distance2D _towards]] call _cancel};
                 _unit setVariable ["WAIT_Cortex_ThrowDecision",[time,"ALIGNED",_kind,_throwGeneration,[_bodyError,_aimError,_muzzle]]];
                 // Observe the native release once; never steer or replace the projectile.
                 private _oldTrace=_unit getVariable ["WAIT_Cortex_ThrowTraceHandler",-1];
@@ -182,6 +196,14 @@ private _thrown = false;
                             abs (((_launchBearing-_contactBearing+540) % 360)-180)
                         } else {-1};
                         _trace append [_contactAvailable,_contact,_contactBearing,_contactError];
+                        private _releaseBody=getDir _actor;
+                        private _releaseView=eyeDirection _actor;
+                        private _releaseViewAvailable=(_releaseView select 0)^2+(_releaseView select 1)^2 > 0.01;
+                        private _releaseViewBearing=if (_releaseViewAvailable) then {(_releaseView select 0) atan2 (_releaseView select 1)} else {-1};
+                        private _releaseBodyError=abs (((_releaseBody-_bearing+540) % 360)-180);
+                        private _releaseViewError=if (_releaseViewAvailable) then {abs (((_releaseViewBearing-_bearing+540) % 360)-180)} else {-1};
+                        _trace append [[getPosATL _actor,_releaseBody,_releaseViewBearing,_releaseViewAvailable,
+                            _releaseBodyError,_releaseViewError,stance _actor,animationState _actor]];
                         _actor setVariable ["WAIT_Cortex_ThrowReleaseTrace",_trace];
                         diag_log format ["WAIT GRENADE RELEASE TRACE: %1 %2",netId _actor,_trace];
                         _actor removeEventHandler ["FiredMan",_thisEventHandler];
@@ -199,15 +221,6 @@ private _thrown = false;
                     };
                 },[_unit,_traceHandler],3] call CBA_fnc_waitAndExecute;
                 if (_kind == "FRAG") then {
-                    private _distance=_unit distance2D _towards;
-                    private _side=side _group;
-                    if (_distance < 8 || {_distance > 40} || {
-                        (_towards nearEntities ["CAManBase",12]) findIf {
-                            alive _x && {captive _x || {_x getVariable ["ace_captives_isSurrendering",false]}
-                                || {_x getVariable ["ace_captives_isHandcuffed",false]}
-                                || {side group _x == civilian} || {_side getFriend (side group _x) >= 0.6}}
-                        } >= 0
-                    }) exitWith {[] call _cancel};
                     private _old = _unit getVariable ["WAIT_Cortex_FragHandler",-1];
                     if (_old >= 0) then {_unit removeEventHandler ["FiredMan",_old]};
                     _unit setVariable ["WAIT_Cortex_FragFlight",[_drillToken,objNull,false,_magazine,-1]];

@@ -72,7 +72,9 @@ private _plainSpot=_observer skill "spotDistance";
 // Ownership migration must reapply from the original public snapshot instead of capturing already
 // modified night skills as a new baseline.
 private _hcOwners=((missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0}) select [0,1];
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 ["LIGHTING-headless-prerequisite",count _hcOwners == 1,str _hcOwners] call _check;
+} else {_hcOwners=[]};
 if (count _hcOwners == 1) then {
     if (_nvgClass != "") then {_observer unlinkItem hmd _observer; _observer linkItem _nvgClass; [_observer] call WAIT_fnc_AIApplyProfile};
     private _beforeSkills=(_observer getVariable ["WAIT_AI_OriginalSkills",createHashMap]) getOrDefault ["spotDistance",-1];

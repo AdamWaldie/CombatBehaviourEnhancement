@@ -5,10 +5,12 @@
  * an airframe, changes locality, changes player orders or assumes a remote loadout is usable.
  *
  * Locality / Authority: Server-only. The rejected group owner must be the remote sender. The next
- * candidate applies the role only on its current group owner through CortexCombinedArmsLocal.
+ * candidate must still contain the live pilot; it applies the role on its current group owner
+ * through CortexCombinedArmsLocal. A changed passenger/commander group cannot inherit flight authority.
  *
  * Repeat/JIP: The requester holds one expiring public fallback record. Duplicate rejection notices
  * consume no extra candidate after the cursor advances. The record is cleared with its opportunity.
+ * Role expiry preserves matching terminal outcomes; only active dispatch/application becomes EXPIRED.
  *
  * Arguments:
  * 0: requester group <GROUP>; 1: rejected aircraft group <GROUP>; 2: opportunity token <STRING>.
@@ -23,7 +25,8 @@
  * Result: the next viable candidate receives the same finite AIR_ATTACK opportunity.
  */
 params [["_requester",grpNull,[grpNull]],["_rejected",grpNull,[grpNull]],["_token","",[""]]];
-if (!isServer || {isNull _requester} || {isNull _rejected} || {_token == ""}
+if (!isServer || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
+    || {[] call WAIT_fnc_CortexIsPaused} || {isNull _requester} || {isNull _rejected} || {_token == ""}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != groupOwner _rejected}}) exitWith {false};
 private _fallback=_requester getVariable ["WAIT_Cortex_CombinedAirFallback",[]];
 if (count _fallback != 6) exitWith {false};
@@ -54,7 +57,9 @@ while {_cursor < count _candidates && {isNull _replacement}} do {
             count _role != 7 || {serverTime >= (_role select 5)} || {(_role select 0) == _token}}
         && {((units _candidate) findIf {
             private _vehicle=vehicle _x;
-            _vehicle != _x && {_vehicle isKindOf "Air"} && {!(_vehicle getVariable ["WAIT_Cortex_AirAttackJob",false])}
+            _vehicle != _x && {_vehicle isKindOf "Air"} && {alive _vehicle}
+                && {!isNull driver _vehicle} && {group driver _vehicle == _candidate}
+                && {!(_vehicle getVariable ["WAIT_Cortex_AirAttackJob",false])}
         }) >= 0}) then {
         _replacement=_candidate;
     };
@@ -69,7 +74,11 @@ _replacement setVariable ["WAIT_Cortex_CombinedResult",[_token,"AIR_ATTACK","FAL
 [{
     params ["_replacement","_token","_target"];
     if (!isNull _replacement && {((_replacement getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
-        _replacement setVariable ["WAIT_Cortex_CombinedResult",[_token,"AIR_ATTACK","EXPIRED",serverTime,_target],true];
+        private _result=_replacement getVariable ["WAIT_Cortex_CombinedResult",[]];
+        if ((_result param [0,""]) == _token
+            && {(_result param [2,""]) in ["FALLBACK_DISPATCHED","DISPATCHED","APPLIED"]}) then {
+            _replacement setVariable ["WAIT_Cortex_CombinedResult",[_token,"AIR_ATTACK","EXPIRED",serverTime,_target],true];
+        };
         _replacement setVariable ["WAIT_Cortex_CombinedRole",nil,true];
         _replacement setVariable ["WAIT_Cortex_CombinedApplied",nil,true];
     };

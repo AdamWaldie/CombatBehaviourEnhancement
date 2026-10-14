@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Contact-loss cleanup waits for a matching owner/generation CLEAR FSM to finish or cancel;
+ * its independent finite deadlines and newer mission/Zeus orders retain authority.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Group-wide contact posture yields to native boarding, actions, treatment, rearming and joining.
  * Pending remounts yield to a replacement vehicle assignment; cleanup only cancels the original seat order.
@@ -58,6 +60,7 @@
  * enabled behaviour runs: fire control, stance, anti-armour, vehicles, flanking (with final assault),
  * bounding advance, contact reports, ammo sharing, artillery, reinforcement and coordinated assault.
  * Garrison and defence orders run their own break and reserve logic instead of flanking or retreating.
+ * Held garrison assignments also retire when their bound building moves or is deleted.
  * Soldiers left holding ground by a drill rejoin when the leader comes within 30 m. Reinforcement
  * rallies are optional fallback positions; an acknowledged responder with a safe shared-contact
  * approach may enter a coordinated assault immediately.
@@ -138,6 +141,10 @@ if (_alive isEqualTo []) exitWith {
     _group setVariable ["WAIT_AIPass_Managed", nil];
     -1
 };
+// Dormancy is not loss of ownership. Keep the existing decision job, but do not
+// plan or start tactics while every living member is hidden or simulation-disabled.
+// Finite operation jobs retain their original deadlines and handle their own cleanup.
+if (_alive findIf {simulationEnabled _x && {!isObjectHidden _x}} < 0) exitWith {5};
 // The generic group loop owns infantry and ground-vehicle behaviour only. Aircraft occupants retain
 // ordinary eligibility for the dedicated flight systems, but this job must retire immediately if a
 // group boards an aircraft so CONTACT cleanup and tactical jobs cannot fight the pilot controller.
@@ -157,6 +164,36 @@ if (!_generallyEligible) exitWith {
         if (_group getVariable ["WAIT_AIPass_ClearBuilding", false]) then {[_group,false] call WAIT_fnc_CortexClearRelease};
     };
     [20, 5] select ([_group] call WAIT_fnc_CortexZeusHeld)
+};
+// A held garrison arrival job may already have retired. Reconcile individual replacement
+// movement on this existing group job, releasing only that actor and no new route.
+if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {
+    // Arrival jobs retire once everyone is held. Keep transform invalidation on this existing
+    // group tick so a curator-moved/deleted building cannot retain old world-space PATH locks.
+    private _invalidBuildingActors=(units _group) select {
+        private _assignment=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
+        private _transform=_assignment param [3,[]];
+        private _building=_assignment param [2,objNull];
+        local _x && {_transform isNotEqualTo []}
+            && {isNull _building || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+    };
+    if (_invalidBuildingActors isNotEqualTo []) then {[_group,true,_invalidBuildingActors] call WAIT_fnc_CortexGarrisonRelease};
+    private _diverted=_alive select {
+        private _actor=_x;
+        private _command=currentCommand _actor;
+        private _nativeTask=_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
+        private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
+        private _live=(expectedDestination _actor) param [0,[]];
+        private _matching=count _receipt == 4 && {(_receipt select 0) == _group}
+            && {(_receipt select 1) == (_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1])}
+            && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {count _live == 3} && {count (_receipt select 3) == 3}
+            && {_live vectorDistance (_receipt select 3) <= 0.25};
+        local _actor && {!isPlayer _actor}
+            && {(_actor getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}
+            && {_nativeTask || {_command == "FOLLOW"} || {_command == "MOVE" && {!_matching}}}
+    };
+    if (_diverted isNotEqualTo []) then {[_group,false,_diverted] call WAIT_fnc_CortexGarrisonRelease};
 };
 // A group tick can complete bounded assessment and planning after a curator or specialist
 // controller has claimed the group. Check immediately before actor-level commands so old
@@ -281,7 +318,7 @@ private _dangerVehicleSafety=_dangerActive && {_dangerActionName == "VEHICLE"};
 private _physicalCoverCause=(_dangerResponse param [0,"",[""]]) in ["HIT","EXPLOSION","SUPPRESSED","GUNFIRE"];
 if (_dangerActive && {_dangerActionName == "HIDE"} && {_physicalCoverCause}) then {
     [_group,_dangerCoverActor,_dangerResponse select 1,_dangerResponse select 4] call WAIT_fnc_DangerCoverStep;
-    [_group,_dangerResponse select 4,true,_dangerResponse select 0] call WAIT_fnc_DangerGroupHideStep;
+    [_group,_dangerResponse select 4,true,_dangerResponse select 0,_dangerCoverActor] call WAIT_fnc_DangerGroupHideStep;
 } else {
     private _coverLease=_group getVariable ["WAIT_Danger_CoverLease",[]];
     if (count _coverLease >= 2) then {
@@ -1114,9 +1151,23 @@ switch (_state get "phase") do {
         // Smoke, terrain and buildings can briefly hide a target while a bounded manoeuvre is still
         // making physical progress. Post-contact may take ownership only after that manoeuvre has
         // completed or explicitly aborted; each drill/support lease already has its own finite timeout.
+        // CLEAR has its own finite owner-local FSM. Loss of sight must not run
+        // contact cleanup over its attack policy, holds or interior movement.
+        private _clearOperation=_group getVariable ["WAIT_Operation",createHashMap];
+        private _clearBrain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
+        private _clearJob=_clearBrain getOrDefault ["job",createHashMap];
+        private _clearContinuing=(_clearOperation getOrDefault ["intent",""]) == "CLEAR"
+            && {_group getVariable ["WAIT_AIPass_ClearBuilding",false]}
+            && {(_clearOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {(_clearJob getOrDefault ["operationGeneration",-2]) == (_clearOperation getOrDefault ["generation",-1])}
+            && {!(_clearBrain getOrDefault ["cancelled",false])}
+            && {!(_clearBrain getOrDefault ["finished",false])}
+            && {(_clearBrain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {(_clearBrain getOrDefault ["generation",-2]) == (_group getVariable ["WAIT_AIPass_ClearGeneration",-1])};
         private _manoeuvreActive = count (_state getOrDefault ["drill",createHashMap]) > 0
             || {_state getOrDefault ["assaulting",false]}
-            || {_state getOrDefault ["responding",false]};
+            || {_state getOrDefault ["responding",false]}
+            || {_clearContinuing};
         // A hit, explosion or suppression event is useful immediate safety information, but it is
         // not a thirty-second contact. Release the temporary COMBAT posture as soon as the finite
         // danger context ends unless native knowledge or an already-committed manoeuvre justifies it.

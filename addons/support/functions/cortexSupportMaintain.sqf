@@ -113,7 +113,7 @@ private _releaseSupport={
     ["CANCELLED",_reason] call _finishOperation;
     [_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
     call _restoreAttack;
-    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting"];
+    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling"];
 };
 // The cached operation step is intentionally infrequent. A curator or specialist can claim this
 // group between those steps, so retire the matching support lease before any covering hold or bound
@@ -203,18 +203,39 @@ if (_newMove || {!_coordinating}) then {
 if (_coordinating) then {
     if (_moving) then {
         if ((_state getOrDefault ["supportBoundSequence",-1]) != (_role select 1)) then {
+            // Group locality may arrive before member locality. Do not turn that transient
+            // ownership edge into NOT_READY or consume the sequence; the existing server
+            // bound deadline still applies and this allowance lasts at most five seconds.
+            private _settling=_state getOrDefault ["supportBoundSettling",[]];
+            private _settleIdentity=[_token,_role select 1,_group getVariable ["WAIT_AIPass_Epoch",0]];
+            if (count _settling != 2 || {(_settling select 0) isNotEqualTo _settleIdentity}) then {
+                _settling=[_settleIdentity,serverTime+5];
+                _state set ["supportBoundSettling",_settling];
+            };
+            private _localityPending=(units _group) findIf {alive _x && {!local _x}} >= 0;
+            if (!_localityPending || {serverTime >= (_settling select 1)}) then {
             private _started=[_group,_state,_role] call WAIT_fnc_CortexSupportBoundStart;
             if (!_started) then {
                 _state set ["supportBoundSequence",_role select 1];
                 _group setVariable ["WAIT_Cortex_SupportBoundResult",
                     [_token,_role select 1,"NOT_READY"],true];
             };
+            _state deleteAt "supportBoundSettling";
+            };
         };
     } else {
+        _state deleteAt "supportBoundSettling";
         private _drill=_state getOrDefault ["drill",createHashMap];
         if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd};
         private _coverIdentity=[_token,_role select 1];
         if ((_state getOrDefault ["supportCoverIdentity",[]]) isNotEqualTo _coverIdentity) then {
+            private _coverOperation=_group getVariable ["WAIT_Operation",createHashMap];
+            if ((_coverOperation getOrDefault ["generation",-2]) == _operationGeneration
+                && {(_coverOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_coverOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}) then {
+                _coverOperation set ["phase","SUPPORT"];
+                _group setVariable ["WAIT_Operation",_coverOperation,true];
+            };
             {
                 private _actorMove=_x getVariable ["WAIT_Cortex_ActorMove",[]];
                 if (local _x && {group _x == _group} && {isNull objectParent _x}

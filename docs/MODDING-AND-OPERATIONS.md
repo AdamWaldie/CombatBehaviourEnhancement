@@ -137,3 +137,103 @@ The local build and both build/candidate workflows enforce SQF validation for pr
 See [contribution requirements](../CONTRIBUTING.md) for feature guides, PR evidence and multiplayer acceptance. [The settings reference](SETTINGS-REFERENCE.md) is generated from the live tuning specification. Run `python releaseVerificationAndDeployment/zeus_script_parity_checker.py --write-reference` after editing that specification. CI rejects a stale reference, duplicate keys, invalid defaults or missing function exports.
 
 The GitHub wiki is generated from `docs/` by `releaseVerificationAndDeployment/wiki_sync.py`. Each guide becomes a page of the same name, the README becomes **Overview**, and [`docs/wiki/Home.md`](wiki/Home.md) is the custom wiki home page. Local links are rewritten to wiki pages, or to repository files the wiki does not carry. The build gates run `wiki_sync.py check`, which fails on a broken wiki-internal link and warns about absolute wiki links to pages that do not exist. After a push to `main` that changes the docs, the **Publish wiki** workflow replaces the wiki contents, so direct wiki edits are overwritten. Add a new guide to the sidebar sections in `wiki_sync.py`; until then it is listed under **More guides**.
+
+After approval to close a batch, use `stop_mod_audit.ps1 -Runtime <runtime folder>`. It validates every recorded process against the selected batch, force-terminates matching client/server/HC processes, waits for exit and writes `shutdown.json` only after no matching process remains. Do not treat closing a window or a completed report as process termination. The launcher already refuses a new live batch while any Arma process is running.
+
+### Clearance release and replacement actor movement
+
+Explicit clearance release restores formation only when an actor has no live MOVE or its destination still matches the clearance job receipt within 0.25 m. A newer individual MOVE is preserved; unchanged clearance speed and posture leases can still be released. If the job receipt is missing, a live MOVE is not presumed owned. This guard has static validation only; dedicated normal and headless-client handover retests remain pending while audits are paused.
+
+### Combined ground-fire operator readiness
+
+Direct ground-fire support and the ground maneuver arrival firing branch require a combat-effective local gunner, in addition to combat-mode, player/external ownership and clear-fire-lane checks. An incapacitated gunner returns `NO_FIRE_OPERATOR` through the existing provider rejection path. This change requires a live casualty/provider-fallback retest; audits remain paused.
+
+### Passenger cover reservation scope
+
+Passenger dismount cover selection excludes destinations only from the matching convoy group and configuration revision while their deadline is live. Historical destinations cannot consume current cover slots. Existing and newly selected current destinations remain excluded within the bounded two-search step. Concurrent-owner selection and physical spacing still require live validation.
+
+### Passenger-owner post-exit continuation
+
+The finite remote passenger-owner HALT job retains on-foot actors with the matching convoy/revision unload receipt. This lets cover steps continue after physical exit instead of filtering the actor out as soon as boarding ends. New vehicle assignments and external orders remain protected. Separate-HC exit/cover and concurrent-owner spacing retests remain pending.
+
+### Sliced passenger cover exclusions
+
+Separate passenger-owner retries process a bounded actor slice but pass the full cargo roster separately for read-only destination exclusions. Existing live reservations outside the current slice remain visible. This does not serialize simultaneous selection across owners; that race remains unverified and requires a separate design and live audit.
+
+### Passenger cover cleanup ownership
+
+Passenger cover cleanup recalls an eligible MOVE/STOP only when the expected destination matches the recorded cover destination within 0.25 m in 3D. A newer nearby destination is not owned merely because it lies within two horizontal metres of the former cover point. Live nearby-order handover validation remains pending.
+
+### CQB reserve staging search budget
+
+A building step starts at most one pending reserve stage selection per callback. Other reserves do not consume their attempt until processed; all existing stages retain arrival checks and casualty promotion remains independent. Staging search direction and screening use the building horizontal bounds centre, avoiding assumptions about model origins. The fixed fan is replaced by bounded nearby cover selection with shared destinations of other currently eligible reserves, exterior bounds and at least three metres of primary-entry clearance plus proximity exclusion around every configured same-floor exit. This is not proof of clear route traffic. Rejected candidates retain an explicit current-position hold; rejected selection retries after five seconds with at most three searches per reserve and previously selected candidates excluded. A still-owned native approach retires after sixty seconds without arrival and may select an alternate within the same three-search cap. Exhausted approaches retain a safe hold; local path recovery beyond alternate selection remains unfinished. Physical staging and runtime performance are unvalidated.
+
+### Reserve stage evidence
+
+Owner-local reserve stage receipts distinguish `REJECTED` current-position holds from `APPROACH` and physically verified `ARRIVED`. The hold flag alone is not stage success. This diagnostic distinction does not add a network polling loop or establish tactical security; stage recovery and live acceptance remain pending.
+
+### Reserve search budget replay
+
+A bounded public array journal preserves reserve search consumption and tried candidates across a true clearance resume. It is keyed to the target building, original hard deadline and transform; explicit new clearance clears it. Journal publication occurs only when content changes under current movement authority. An exhausted budget cannot start another search after adoption. Active reserve approaches adopt bookkeeping only when the recorded episode/transform and exact live MOVE destination still match. No movement request is reissued. Retry and approach deadlines use serverTime and survive adoption. Held reserve stages additionally require a live STOP with the exact recorded destination and current 3D/floor proximity before bookkeeping adoption. This preserves rejected retry delays and exhausted status without replaying movement. Interior worker reconstruction and physical HC validation remain incomplete.
+
+### Terminal reserve evidence
+
+Clearance terminal route evidence includes clearing/security actors, capped at sixteen, and appends up to sixteen reserve stage records with consumed search counts. Existing result/reason indices remain unchanged. This preserves rejected/approaching/arrived/exhausted distinctions alongside actual actor positions before cleanup, without adding geometry work or recurring logging. These records support diagnosis and do not prove tactical security.
+
+### Reserve route reachability
+
+Stage endpoints require dry usable slope, standing-space geometry and exterior/exit clearance. A straight observer-to-endpoint ray is not a route prerequisite: native pathfinding may go around an obstacle. The finite owned approach and physical arrival receipt determine success; timeout can select a bounded alternate. No endpoint check claims native route feasibility. Corner-routing behavior still needs live acceptance.
+
+### Grenade release orientation evidence
+
+The one-shot native grenade release trace appends actor position, body/view bearings and target errors, view availability, stance and animation state at FiredMan release. Existing launch/contact fields retain their indices. Command-time alignment and actual release orientation can now be compared; no actor direction or projectile velocity is changed. The reported opposite-contact throws still require live provenance-matched investigation.
+
+### Controlled smoke direction audit
+
+The `grenades` focus stages twelve fresh server-owned smoke cases: standing/crouched/prone and four cardinal target bearings. Each case requires stance, a queued real helper request and an actual nonzero projectile launch vector within thirty degrees of the requested bearing. Missing release/direction fails. Cases use separate origins and delete observed projectiles only after recording launch evidence, limiting cross-case smoke contamination. Flight/impact and smoke delivery are outside this launch-only fixture. This isolated fixture has no hostile actors; it does not validate contact selection, fragmentation, native controls or HC migration. It is unrun while audits are paused.
+
+### Aircraft pilot readiness
+
+Aircraft attack planning, command admission and airborne checks require the shared combat-effective pilot predicate. Alive unconscious, incapacitated or captive pilots cannot start new attack work. Native aircraft command boundaries also re-read aircraft survival, current pilot effectiveness, active/pause state and flight-lease validity. Existing locality, player/Zeus and external ownership gates remain in force. Pilot incapacitation/recovery and cleanup across airborne ownership changes still require physical acceptance.
+
+Active clearance arrests native formation fallback once per committed actor request when the command is empty. Both `DoNotPlanFormation` and `FORMATION PLANNED` are recognized. Current generation, owner and order checks remain in force; explicit FOLLOW, newer MOVE and specialist tasks are preserved. This hold neither grants a room visit nor resets retry budgets. The existing finite room recovery supplies subsequent movement. A normal live audit exposed the previously missed planned formation state; physical validation of this correction and HC validation remain pending.
+
+Clearance egress assigns distinct exterior destinations rather than one shared endpoint per exit. Each actor considers at most twelve nearby slots, separated by at least three metres, requiring dry ground, usable slope and standing clearance. Arrival requires one metre horizontal proximity on the destination floor. Missing slots retain an incomplete result. This removes the shared-endpoint cause of the reported post-CQB pile; physical separation, obstacle routing and HC acceptance remain pending.
+
+Normal-owner repeatability acceptance now repeats clearance with the same two- and six-person squads after ordinary waypoint movement. No cleanup, teleport or actor reset precedes the second episode. A new generation, fresh independently observed room visits by every member and COMPLETE settlement are required. This case is added but unrun; sustained multi-building flow, live combat and separate HC repeatability remain outstanding.
+
+Alternate entrance recovery checks the assigned actor's own physical entry receipt instead of the pair-wide entry flag. An exterior mover can therefore try remaining native entrances even after its buddy entered. During that approach, already-entered partners retain their interior movement/hold; recovery never rallies them outside. Existing entrance history, finite retries and episode deadline remain. The six-person repeat exposed this admission gap; physical validation of the correction is pending.
+
+Room handoff preserves an exact matching active native movement request: if the actor's current MOVE still matches its owned destination and that destination is unchanged, the next pair room claim does not resend it. This especially protects a partner still approaching the same entry point while its lead advances. A changed target and the existing finite no-progress recovery still issue normally. No visit is inferred from planning or movement; physical validation remains pending.
+
+The one-time formation fallback hold does not wait for unitReady: a live trace showed an entered actor already following a FORMATION PLANNED route out of the house with an empty command while still busy. The exact owned generation/order checks and per-request hold limit remain. Explicit FOLLOW and MOVE are excluded. Physical validation of this refinement is pending.
+
+A compact terminal CQB diagnostic records entry/egress failure flags, bounded per-actor visit counts and exit receipts before cleanup. It disambiguates an INCOMPLETE result with full shared room coverage without relying on truncated route traces. Diagnostics cannot grant or modify acceptance.
+
+Exit-slot selection rejects destinations already claimed by another worker, wet ground and unusable slopes before standing-clearance geometry. It retains the twelve-candidate cap and identical acceptance constraints, avoiding repeated rays for slots that cannot be selected. This is a source-level cost reduction; the full median/p95 performance budget still needs measured acceptance.
+
+A modded building's reported interior position may lack a native accessible route. Finite lane/entrance retries retain room-specific failedBy/unreachable evidence and unresolved coverage remains INCOMPLETE. Common CLEAR recovery therefore expires a failed destination observation without quarantining the otherwise capable soldier: it can attempt another room through normal bounded commands. Its generation-wide recovery budget is not renewed. Casualty and external-owner exclusions remain active. No model blacklist, teleport, invented point or inaccessible-room success is introduced; physical invalid-node and mixed reachable/unreachable building acceptance remain pending.
+
+Interior follow-through can retire a failed native room target after its measured no-progress recovery window and try another reported room point. Each actor retains failed target indices and may retire at most three; candidate ranking is capped at twenty-four. Real visits and the common generation-wide recovery budget are preserved. Exhausted alternatives or the immutable episode deadline retain INCOMPLETE; changing targets cannot manufacture progression. Physical inaccessible-point and repeat-clearance validation remain pending.
+
+A room handoff that changes the mover to an already-entered buddy cancels the pair's pending entrance staging leg. The successor continues interior progression instead of inheriting an exterior actor's approach. Only a prior physical room receipt permits this cancellation; entrance proximity grants no entry. Physical handoff and locality replay acceptance remain pending.
+
+Failed follow-through target limits survive true ownership resume in a compact public journal updated only on target retirement or exhaustion. Replay requires the same building, transform and original hard deadline, accepts at most sixty-four actor rows with up to three valid room indices, and restores only failure bookkeeping for the same actor IDs. It grants no visits and issues no movement. New clearance, explicit release and terminal cleanup discard the journal. Separate two-HC physical replay acceptance remains pending.
+
+Physically visited destination-floor access takes priority over cached geometry-only floor connectors. The connector fallback no longer replaces an established access checkpoint with an exterior current-floor detour. This uses existing bounded room coverage, introduces no extra geometry scans or movement writer, and preserves finite retries, unresolved-point INCOMPLETE results and immediate newer-order cancellation. Physical multi-storey retest remains pending.
+
+When bounded recovery exhausts an interior access checkpoint, CLEAR retires that checkpoint once and attempts the assigned room directly before recording a pair failure for that room. A claim-scoped tombstone prevents rebuilding the failed leg. Durable retry counts, recovery budgets and hard deadlines remain unchanged; no visit is inferred. This addresses observed room classification while the actual failed request was a different access node. Physical retest remains pending.
+
+Floor connector source selection now ranks up to twenty-four physically visited current-floor room points ahead of thirty-two raw transit candidates. Source-specific cache keys prevent reusing an exterior source after interior access is established. The eight-record geometry budget remains unchanged; this selection runs only when constructing a changed room approach. Destination-floor access already physically visited still has priority. A proven source does not prove the floor connection, and all arrival, finite recovery and incomplete-result gates remain. Physical retest pending.
+
+CLEAR records its first entry-failure cause once per operation: stranded worker, exhausted follow-through or missing sweep participation. The record includes the actor or bounded sixteen-actor physical participation snapshot at the decision boundary and is appended to terminal diagnostics. It adds no geometry query or recurring log and does not clear failure history or alter completion. This is needed to diagnose an observed repeated six-person INCOMPLETE result despite later full coverage, participation and egress. Fresh physical diagnostic replay pending.
+
+Partner entry recovery no longer requires a previously cached support-entry target. It initializes a missing target from the lane anchor before tracking the unentered partner. This removes a gate that could leave an exterior partner without any recovery receipt when entrance handling preceded support selection. Existing owner/service guards, measured no-progress window, one-shot recovery and shared deadline remain. Fresh physical replay is pending; the observed missing receipts do not alone prove this was the only entry failure cause.
+
+When a single casualty replacement is still outside and its surviving buddy has physically entered, the survivor retains the mover role. The replacement joins through existing bounded partner-entry recovery rather than inheriting the removed actor's current interior leg. Whole-pair exterior reset, shared room coverage, retry counts, hard deadlines and newer-order authority remain unchanged. Selection uses the existing pair roster only. Repeated single-replacement entry failures motivated this correction; fresh physical validation remains pending.
+
+The single-replacement role rule also covers casualties before entry: if neither actor has entered, a healthy original buddy retains the mover role while the reserve follows partner entry. Entered survivors remain preferred. A wholly replaced lane has no original survivor and keeps its exterior reset. This extends the earlier entered-survivor correction to the actual early-casualty audit trigger; fresh physical acceptance remains pending.
+
+CONTACT continuation now includes the matching live owner/generation CLEAR operation and uncancelled building brain. Loss of sight therefore cannot advance contact cleanup over clearance's movement and autonomous-attack lease. CLEAR still ends through its existing finite deadlines, physical result or immediate replacement/Zeus cancellation; contact cleanup resumes after that owner is gone. This closes a source-level continuation gap found while diagnosing native ATTACK diversion. Physical causality and repair remain pending.
+
+An exterior partner whose one-shot entry recovery has made no approach progress for twenty-four seconds may select one different physically visited current-floor point before full shared room coverage. Selection examines at most twenty-four proven points within thirty metres and stores one public building/hard-deadline/transform receipt per actor, including failed selection, so locality replay cannot replenish this alternative. The same guarded owner-local clearance callback records the shared pair target before issuing movement, including when that pair's room queue has ended. Later pair steps preserve the matching active path; no independent movement worker is added. Changing the target resets its distance baseline but does not renew the progress timestamp, deadline or common recovery budget. No visit is inferred. This addresses partners waiting outside while one unrelated room blocks the later full-coverage follow-through stage; fresh physical validation is pending.

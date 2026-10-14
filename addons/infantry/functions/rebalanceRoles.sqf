@@ -36,7 +36,18 @@ if (_capable isEqualTo [] || {[_group,false,_capable select 0] call WAIT_fnc_Cor
 private _current=(_operation getOrDefault ["participants",[]]) select {_x in _capable};
 {if (count _current < _desired && {!(_x in _current)}) then {_current pushBack _x}} forEach _capable;
 if (_current isNotEqualTo (_operation getOrDefault ["participants",[]])) then {
+    // Start measuring replacements at commitment, not at a later scheduler callback.
+    // Recruitment itself is not physical progress and must not renew the operation timer.
+    private _progress=(_operation getOrDefault ["participantProgress",[]]) select {(_x select 0) in _current};
+    {
+        private _actor=_x;
+        if (_progress findIf {(_x select 0) == _actor} < 0) then {
+            _progress pushBack [_actor,getPosATL _actor];
+        };
+    } forEach _current;
+    _operation set ["participantProgress",_progress];
     _operation set ["participants",_current];
+    _operation set ["pairs",[_group,_current] call WAIT_fnc_CombatPairs];
     _group setVariable ["WAIT_Operation",_operation,true];
 };
 _current

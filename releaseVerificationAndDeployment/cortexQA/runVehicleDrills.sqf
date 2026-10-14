@@ -757,21 +757,52 @@ for "_sample" from 1 to 15 do {
 ["WITHDRAW-disabled-holds",_withdrawContact && {_disabledTravel <= 5} && {_disabledCrewRetained},str _disabledTravel] call _check;
 ["WITHDRAW-disabled-no-smoke",(_armour getVariable ["WAIT_CortexQA_SmokeShots",0]) == 0] call _check;
 _origin=getPosATL _armour;
-[createHashMapFromArray [["WAIT_AIPass_VehicleWithdraw_Enable",true]]] call WAIT_fnc_CortexTuning;
+private _savedReverseLimits=createHashMapFromArray [
+    ["WAIT_AIPass_VehicleReverse_Enable",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Enable",true]],
+    ["WAIT_AIPass_VehicleReverse_Distance",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Distance",30]],
+    ["WAIT_AIPass_VehicleReverse_Timeout",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Timeout",20]],
+    ["WAIT_AIPass_VehicleReverse_FacingTolerance",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_FacingTolerance",35]]
+];
+[createHashMapFromArray [["WAIT_AIPass_VehicleWithdraw_Enable",true],
+    ["WAIT_AIPass_VehicleReverse_Enable",true],["WAIT_AIPass_VehicleReverse_Distance",20],
+    ["WAIT_AIPass_VehicleReverse_Timeout",25],["WAIT_AIPass_VehicleReverse_FacingTolerance",30]]] call WAIT_fnc_CortexTuning;
 ["Damaged armour withdrawal","Withdrawal is now enabled on the same APC. It must fire actual defensive smoke and drive at least 40 m away from the visible threat, retaining all operating crew.",[1900,1100,0]] call _phase;
 private _reversePhysical=false;
 private _reverseFacing=false;
+private _reverseLimitsObserved=false;
+private _reverseLimitsStable=true;
+private _reverseDeadline=-1;
+private _reverseEditSent=false;
 private _withdrawn=[{
     private _reverse=_group getVariable ["WAIT_VehicleReverse",[]];
+    if (count _reverse == 9 && {(_reverse select 0) == _armour}) then {
+        private _limits=(_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["reverseLimits",[]];
+        _reverseLimitsObserved=_reverseLimitsObserved || {_limits isEqualTo [20,25,30]};
+        _reverseLimitsStable=_reverseLimitsStable && {_limits isEqualTo [20,25,30]};
+        if (!_reverseEditSent) then {
+            _reverseDeadline=_reverse select 5;
+            _reverseEditSent=true;
+            [createHashMapFromArray [["WAIT_AIPass_VehicleReverse_Distance",50],
+                ["WAIT_AIPass_VehicleReverse_Timeout",5],["WAIT_AIPass_VehicleReverse_FacingTolerance",60]]] call WAIT_fnc_CortexTuning;
+        } else {
+            _reverseLimitsStable=_reverseLimitsStable && {(_reverse select 5) == _reverseDeadline};
+        };
+    };
     if (count _reverse == 9 && {(_reverse select 0) == _armour}
         && {(_armour distance2D _origin) >= 8}
         && {(velocityModelSpace _armour select 1) < -0.5}) then {
         _reversePhysical=true;
         private _bearing=_armour getRelDir (getPosATL _enemy);
-        _reverseFacing=_reverseFacing || {_bearing <= 45 || {_bearing >= 315}};
+        _reverseFacing=_reverseFacing || {_bearing <= 30 || {_bearing >= 330}};
     };
     _armour distance2D _origin > 40 && {_armour distance2D _enemy > (_origin distance2D _enemy)+30}
 },100] call _wait;
+["WITHDRAW-tracked-captured-limits",_reverseLimitsObserved] call _check;
+["WITHDRAW-tracked-next-operation-edit",_reverseEditSent && {_reverseLimitsStable}
+    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Distance",-1]) == 50}
+    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Timeout",-1]) == 5}
+    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_FacingTolerance",-1]) == 60}] call _check;
+[_savedReverseLimits] call WAIT_fnc_CortexTuning;
 ["WITHDRAW-tracked-physical-reverse",_withdrawContact && {_reversePhysical},str [getPosATL _armour,vehicleMoveInfo _armour,
     _group getVariable ["WAIT_VehicleReverseEnd",[]],
     _group getVariable ["WAIT_VehicleReverseFallback",[]],
@@ -788,7 +819,9 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 // Keeping it independent preserves the original disabled/enabled comparison and prevents a failed
 // migration precondition from consuming that result.
 private _hcOwners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 ["WITHDRAW-MIGRATION-headless-prerequisite",_hcOwners isNotEqualTo [],str _hcOwners] call _check;
+} else {_hcOwners=[]};
 if (_hcOwners isNotEqualTo []) then {
     private _hcOwner=_hcOwners select 0;
     [createHashMapFromArray [
@@ -1023,6 +1056,7 @@ _driveGroup setVariable ["acex_headless_blacklist",true,true];
 _driveGroup setBehaviour "SAFE";
 _driveGroup setSpeedMode "FULL";
 private _driveOrigin=getPosATL _driveVehicle;
+_driveVehicle forceSpeed 0;
 private _driveGate=[3580,1700,0];
 private _driveOnward=[3580,1780,0];
 private _driveWP=_driveGroup addWaypoint [_driveGate,0];
@@ -1040,11 +1074,56 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[_driveDriver,_driveVehicle
 private _driveReady=!isNull _driveDriver && {local _driveVehicle} && {simulationEnabled _driveVehicle}
     && {count crew _driveVehicle == 1} && {!(_driveVehicle getVariable ["WAIT_Convoy_Active",false])};
 ["DRIVING-native-fixture-ready",_driveReady] call _check;
+["Standalone driving: authored zero-speed hold","The truck has a real MOVE waypoint but an authored zero-speed hold. WAIT must retain that hold, claim no speed lease and issue no recovery that moves it. Releasing the hold then exercises the existing native travel case.",_driveOrigin] call _phase;
+private _driveHoldStable=true;
+for "_sample" from 1 to 6 do {
+    sleep 3;
+    if (getForcedSpeed _driveVehicle != 0 || {_driveVehicle distance2D _driveOrigin > 2}
+        || {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo []}) then {_driveHoldStable=false};
+};
+["DRIVING-authored-zero-hold-retained",_driveReady && {_driveHoldStable}
+    && {_driveGroup getVariable ["WAIT_AIPass_Adopted",false]},
+    str [getForcedSpeed _driveVehicle,getPosATL _driveVehicle,_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]]] call _check;
+_driveVehicle forceSpeed -1;
+
 private _driveArrived=[{_driveVehicle distance2D _driveGate <= 12
     && {_driveVehicle distance2D _driveOrigin >= 60}},100] call _wait;
 ["DRIVING-native-physical-travel",_driveReady && {_driveArrived},str getPosATL _driveVehicle] call _check;
 private _driveManaged=(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo [];
 ["DRIVING-contact-disabled-independent-assistance",_driveArrived && {_driveManaged}] call _check;
+// Ownership boundary checks beside the native movement case: a separate cargo group
+// cannot adopt the driver's cap or release it through stale group-scoped cleanup.
+private _cargoGroup=createGroup [east,true];
+_cargoGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+private _cargoActor=_cargoGroup createUnit ["O_Soldier_F",getPosATL _driveVehicle,[],0,"NONE"];
+_cargoActor moveInCargo _driveVehicle;
+private _cargoReady=objectParent _cargoActor == _driveVehicle && {_cargoGroup != _driveGroup};
+["DRIVING-passenger-fixture-ready",_cargoReady] call _check;
+private _driverCapBefore=getForcedSpeed _driveVehicle;
+[_cargoGroup] call WAIT_fnc_DrivingAssistStart;
+["DRIVING-passenger-no-driving-owner",_driveManaged && {_cargoReady}
+    && {(_cargoGroup getVariable ["WAIT_DrivingAssist_Vehicles",[]]) isEqualTo []}
+    && {((_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull]) == _driveGroup}] call _check;
+[_driveVehicle,_cargoGroup] call WAIT_fnc_DrivingAssistRelease;
+["DRIVING-stale-group-release-preserves-driver",_driveManaged && {_cargoReady}
+    && {getForcedSpeed _driveVehicle == _driverCapBefore}
+    && {((_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull]) == _driveGroup}] call _check;
+deleteVehicle _cargoActor;
+deleteGroup _cargoGroup;
+
+private _driveSavedMaxSpeed=missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_MaxSpeed",70];
+[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_MaxSpeed",15]]] call WAIT_fnc_CortexTuning;
+private _driveLiveCap=[{
+    private _state=_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]];
+    (_state param [0,-1]) > 0 && {(_state param [0,1e6]) <= 15/3.6+0.01}
+        && {getForcedSpeed _driveVehicle > 0} && {getForcedSpeed _driveVehicle <= 15/3.6+0.01}
+},15] call _wait;
+["DRIVING-live-speed-cap-applied",_driveManaged && {_driveLiveCap},
+    str [getForcedSpeed _driveVehicle,_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]]] call _check;
+["DRIVING-live-speed-edit-retains-route",_driveLiveCap
+    && {currentWaypoint _driveGroup == (_driveWP select 1)}
+    && {waypointPosition _driveWP distance2D _driveGate <= 1}] call _check;
+[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_MaxSpeed",_driveSavedMaxSpeed]]] call WAIT_fnc_CortexTuning;
 private _driveHeld=true;
 for "_driveSample" from 1 to 20 do {
     sleep 1;

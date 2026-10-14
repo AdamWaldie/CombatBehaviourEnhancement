@@ -9,7 +9,7 @@
  * Example: [_group,4,_configuration,_brain,"SPACING"] call WAIT_fnc_ConvoyOperationQueue;
  */
 params [["_group",grpNull,[grpNull]],["_registryRevision",-1,[0]],["_configuration",[],[[]]],["_brain",createHashMap,[createHashMap]],["_expectedPhase","CRUISE",[""]]];
-if (isNull _group || {!local _group} || {count _brain == 0} || {_registryRevision != (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2])} || {(_brain getOrDefault ["jobToken",""]) isNotEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])} || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}) exitWith {false};
+if (isNull _group || {!local _group} || {count _brain == 0} || {_registryRevision != (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2])} || {(_brain getOrDefault ["jobToken",""]) isNotEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])} || {(_group getVariable ["WAIT_Convoy_Brain",createHashMap]) isNotEqualTo _brain} || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}) exitWith {false};
 if (_brain getOrDefault ["pending",false]) exitWith {true};
 _brain set ["pending",true];_brain set ["completed",false];_brain set ["expectedPhase",_expectedPhase];
 _brain set ["queuedAt",time];

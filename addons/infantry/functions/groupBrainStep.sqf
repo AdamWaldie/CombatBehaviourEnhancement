@@ -30,11 +30,45 @@ if (_brain getOrDefault ["cancelled",false]) exitWith {
 };
 if (!local _group) exitWith {["OWNERSHIP_LOST"] call _cancel};
 if (_epoch != (_group getVariable ["WAIT_AIPass_Epoch",0])) exitWith {["OWNER_EPOCH"] call _cancel};
-if (_generation != (_group getVariable ["WAIT_GroupBrain_Generation",0])) exitWith {["SUPERSEDED"] call _cancel};
+if (_generation != (_group getVariable ["WAIT_GroupBrain_Generation",0])
+    || {(_group getVariable ["WAIT_GroupBrain",createHashMap]) isNotEqualTo _brain}) exitWith {["SUPERSEDED"] call _cancel};
 if (!(missionNamespace getVariable ["WAIT_AIPass_Active",false])) exitWith {["DISABLED"] call _cancel};
 if ([_group] call WAIT_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
 if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};
 
+// A native STOP survives a new waypoint. Release only our matching post-clear hold
+// when its author order changes, before ordinary tactical processing resumes.
+private _clearHold=_group getVariable ["WAIT_Cortex_ClearHold",[]];
+if (count _clearHold == 4) then {
+    private _owned=(_clearHold select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])
+        && {(_clearHold select 1) == _epoch};
+    if (!_owned || {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_clearHold select 2)}) then {
+        _group setVariable ["WAIT_Cortex_ClearHold",nil,true];
+        if (_owned && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}) then {
+            private _leader=leader _group;
+            {
+                if (local _x && {group _x == _group} && {!isPlayer _x}
+                    && {currentCommand _x == "STOP"} && {isNull remoteControlled _x}
+                    && {[_x] call WAIT_fnc_CortexCombatEffective}
+                    && {isNull objectParent _x} && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+                    && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+                    && {(_x getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}
+                    && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}) then {
+                    if (_x == _leader) then {
+                        private _waypointIndex=currentWaypoint _group;
+                        private _waypoint=[_group,_waypointIndex];
+                        if (_waypointIndex > 0 && {_waypointIndex < count waypoints _group}
+                            && {waypointType _waypoint == "MOVE"}) then {
+                            _x doMove waypointPosition _waypoint;
+                        };
+                    } else {
+                        _x doFollow _leader;
+                    };
+                };
+            } forEach (_clearHold select 3);
+        };
+    };
+};
 private _legacyJob=createHashMapFromArray [["group",_group]];
 private _responsiveUntil=_brain getOrDefault ["responsiveUntil",0];
 if (_responsiveUntil > time) then {_legacyJob set ["responsiveUntil",_responsiveUntil]};

@@ -3,10 +3,15 @@
  * Cancels a clearing order immediately and resumes formation after doStop. Clearance does not own
  * group behaviour or combat mode, so release preserves any contact or Zeus change made during it.
  * Individual player, remote-control and external-owner actors never receive restoration commands.
+ * A live MOVE is recalled only when its destination matches this clearance job receipt;
+ * newer individual movement survives release even when the caller requests formation restoration.
+ * Exact exterior observation leases are retired; watching is cleared only for free native actors
+ * under unchanged WAIT authority, never a player, external takeover or replacement task.
  * Locality/authority: server authenticates dispatch; the current owner executes group commands.
  * Repeat/JIP: request tokens are consumed once; no stale order is replayed for JIP.
  * Arguments: 0: group <GROUP>, default grpNull; 1: restore formation <BOOL>, default true. Pass
- * false when Zeus has already supplied a replacement order so cleanup cannot overwrite it.
+ * false when Zeus has already supplied a replacement order to prevent formation recall.
+ * Unchanged WAIT speed/posture leases are released independently for ordinary local actors.
  * Return Value: Boolean, a clearing order existed.
  * Current callers: AI Orders, replacement orders, Zeus release and stop.
  * Example: [_group] call WAIT_fnc_CortexClearRelease;
@@ -21,6 +26,7 @@ if (_order isEqualTo []) exitWith {false};
 private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;
 if (_restore && {_externalTakeover}) then {_restore=false};
 private _buildingBrain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
+private _movementTargets=(_buildingBrain getOrDefault ["job",createHashMap]) getOrDefault ["movementTargets",createHashMap];
 if (count _buildingBrain > 0) then {
     _buildingBrain set ["cancelled",true];
     _buildingBrain set ["cancelReason","CLEAR_RELEASE"];
@@ -39,6 +45,7 @@ if ((_operation getOrDefault ["intent",""]) == "CLEAR") then {
 _group setVariable ["WAIT_Cortex_ClearResult",["CANCELLED",count (_order select 1),count ((_order select 0) buildingPos -1)],true];
 _group setVariable ["WAIT_Cortex_ClearEvidence",[+(_order param [1,[]]),+(_order param [4,[]]),+(_order param [5,[]]),+(_order param [6,[]]),_order param [2,serverTime],_order param [7,serverTime]],true];
 _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
+_group setVariable ["WAIT_Cortex_ClearFollowBudget",nil,true];
 _group setVariable ["WAIT_AIPass_ClearBuilding", nil, true];
 _group setVariable ["WAIT_Cortex_ClearEgress",nil,true];
 _group setVariable ["WAIT_AIPass_ClearApplied", nil];
@@ -47,29 +54,60 @@ if (isNull _leader) then {_leader=leader _group};
 {
     if (local _x && {!isPlayer _x}) then {
         private _ownedActor=!isNil {_x getVariable "WAIT_Cortex_ClearStance"}
-            || {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}};
+            || {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}}
+            || {private _stage=_x getVariable ["WAIT_Cortex_ClearReserve",[]]; count _stage == 3
+                && {(_stage select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])-1}
+                && {(_stage select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}};
         private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
         private _free=_reservation isEqualTo []
             || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
         private _taskFree=!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]);
-        if (_ownedActor && {_free} && {_taskFree}
+        if (_ownedActor && {_free} && {_taskFree || {currentCommand _x == "JOIN"}}
             && {[_x] call WAIT_fnc_CortexCombatEffective}
             && {isNull remoteControlled _x}
             && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
             && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}) then {
-            // A replacement owner receives untouched stance and speed. These values are only
-            // WAIT's lease while the clear release is returning control to the formation.
-            if (_restore && {unitPos _x == "UP"} && {!isNil {_x getVariable "WAIT_Cortex_ClearStance"}}) then {
+            // Release only unchanged WAIT settings; never recall a replacement movement order.
+            private _releaseOwnedSettings=!([_group,true,_x] call WAIT_fnc_CortexExternalTakeover)
+                && {isNull objectParent _x};
+
+            private _exitWatch=_x getVariable ["WAIT_Cortex_ClearExitWatch",[]];
+            if (_releaseOwnedSettings && {_taskFree} && {currentCommand _x in ["","STOP"]}
+                && {count _exitWatch == 3}
+                && {(_exitWatch select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])-1}
+                && {(_exitWatch select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_x getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _exitWatch}) then {
+                _x doWatch objNull;
+            };
+            if (_releaseOwnedSettings && {unitPos _x == "UP"} && {!isNil {_x getVariable "WAIT_Cortex_ClearStance"}}) then {
                 _x setUnitPos (_x getVariable ["WAIT_Cortex_ClearStance","AUTO"]);
             };
-            if (_restore && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
+            if (_releaseOwnedSettings && {!isNil {_x getVariable "WAIT_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
                 _x forceSpeed (_x getVariable ["WAIT_Cortex_ClearForcedSpeed",-1]);
             };
-            if (_restore) then {_x doFollow _leader};
+            private _issued=_movementTargets getOrDefault [netId _x,[]];
+            private _destination=(expectedDestination _x) param [0,[]];
+            private _movementOwned=currentCommand _x != "MOVE"
+                || {count _issued == 3 && {count _destination == 3}
+                    && {_destination vectorDistance _issued <= 0.25}};
+            if (_restore && {_taskFree} && {_movementOwned}) then {
+                _x setVariable ["WAIT_Cortex_ClearRecall",[_group getVariable ["WAIT_AIPass_ClearGeneration",0],_group getVariable ["WAIT_AIPass_Epoch",0],_leader,time+5]];
+                _x doFollow _leader;
+            };
         };
         _x setVariable ["WAIT_Cortex_ClearStance",nil,true];
         _x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true];
         _x setVariable ["WAIT_Cortex_ClearAppliedSpeed",nil,true];
+        private _retiredWatch=_x getVariable ["WAIT_Cortex_ClearExitWatch",[]];
+        if (count _retiredWatch == 3
+            && {(_retiredWatch select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])-1}
+            && {(_retiredWatch select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+            _x setVariable ["WAIT_Cortex_ClearExitWatch",nil,true];
+            if ((_x getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _retiredWatch) then {
+                _x setVariable ["WAIT_Cortex_ClearExitWatchLocal",nil];
+            };
+        };
+        _x setVariable ["WAIT_Cortex_ClearReserve",nil];
     };
 } forEach units _group;
 true

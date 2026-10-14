@@ -20,7 +20,7 @@ private _failures = [];
 private _focus = missionNamespace getVariable ["WAIT_CortexQA_Focus","all"];
 missionNamespace setVariable ["WAIT_CortexQA_Results",[],true];
 private _phase = {
-    params ["_title","_expected","_position"];
+    params ["_title","_expected",["_position",[],[[]]]];
     // Zeus camera travel does not move the player used by production distance tiers.
     // Relocate only the protected audit observer, never fixture AI or their targets.
     if (count _position >= 2) then {
@@ -101,6 +101,18 @@ sleep 5;
 ["GARRISON",getPosATL _house] call _order;
 private _housePositions=_house buildingPos -1;
 private _atHouse={
+    // Sample only this two-person fixture; never add a production scan or move an actor.
+    if (diag_tickTime >= (missionNamespace getVariable ["WAIT_CortexQA_NextBuildingDiagnostic",0])) then {
+        missionNamespace setVariable ["WAIT_CortexQA_NextBuildingDiagnostic",diag_tickTime+10];
+        diag_log format ["WAIT CORTEX QA BUILDING MOVEMENT|groupOwner=%1|actors=%2|comparison=%3",groupOwner _group,
+            units _group apply {[_x,owner _x,getPosATL _x,currentCommand _x,expectedDestination _x,speed _x,
+                _x checkAIFeature "MOVE",_x checkAIFeature "PATH",getForcedSpeed _x,
+                _x getVariable ["WAIT_Cortex_ActorMove",[]],_x getVariable ["WAIT_Danger_EngineResponse",[]],
+                _x getVariable ["WAIT_AIPass_GarrisonPos",[]],_x getVariable ["WAIT_AIPass_GarrisonFailed",false]]},
+            [owner _baseline,getPosATL _baseline,currentCommand _baseline,expectedDestination _baseline,
+                _baseline checkAIFeature "MOVE",_baseline checkAIFeature "PATH",getForcedSpeed _baseline,
+                _baseline getVariable ["WAIT_Danger_EngineResponse",[]]]];
+    };
     _housePositions isNotEqualTo [] && {units _group findIf {
         private _unit=_x;
         !alive _unit || {_housePositions findIf {_unit distance _x <= 2.5} < 0}
@@ -135,6 +147,7 @@ if (local _baseline && {_baselineTarget isNotEqualTo []}) then {doStop _baseline
 ["RETURN"] call _order;
 ["ORD-06-return",!(_group getVariable ["WAIT_AIPass_Exclude",false])] call _check;
 [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 [{count (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) >= 2},90] call _wait;
 ["Headless ownership","The infantry changes owner to each headless client, accepts defence, then returns to the server. See the owner checks below.",[6010,6000,0]] call _phase;
 private _owners = (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
@@ -152,6 +165,7 @@ private _owners = (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) ap
 } forEach (_owners select [0,2]);
 [_group,2] call WAIT_fnc_HeadlessMigrateGroup;
 ["HC-04-return-server",[{local _group},20] call _wait] call _check;
+};
 deleteVehicle _baseline; deleteGroup _baselineGroup;
 {deleteVehicle _x} forEach [_u1,_u2];
 deleteGroup _group;
@@ -264,6 +278,7 @@ private _manualExits = _passengers apply {getPosATL _x};
 _wp setWaypointPosition [(_vehicles select 0) getPos [70,0],0];
 _wp setWaypointCompletionRadius 15;
 ["CNV-07-resume",[_convoy,25,30,true] call WAIT_fnc_SimpleAiConvoy] call _check;
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 private _convoyOwners = (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
 if (_convoyOwners isNotEqualTo []) then {
     private _convoyOwner = _convoyOwners select 0;
@@ -275,6 +290,7 @@ if (_convoyOwners isNotEqualTo []) then {
     [_convoy,_convoyOwner] call WAIT_fnc_HeadlessMigrateGroup;
     ["CNV-07c-headless-transfer",[{groupOwner _convoy == _convoyOwner && {_vehicles findIf {owner _x != _convoyOwner || {owner driver _x != _convoyOwner}} < 0}},25] call _wait] call _check;
 } else {["CNV-07c-headless-transfer",false,"No connected headless owner"] call _check};
+};
 private _nextArrivalLog = 0;
 private _prematureUnload = false;
 private _arrived = [{
@@ -299,8 +315,10 @@ private _arrivalExits = _passengers apply {getPosATL _x};
 ["CNV-10-destination-crew",_operatingCrew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0] call _check;
 [_convoy,0,30,true,true] call WAIT_fnc_SimpleAiConvoy;
 ["CNV-05-release",!(_convoy getVariable ["WAIT_Convoy_Active",false])] call _check;
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 [_convoy,2] call WAIT_fnc_HeadlessMigrateGroup;
 [{local _convoy},20] call _wait;
+};
 // Real enemy fire and a disabled rear vehicle exercise contact drills without writing controller state.
 call {
     private _contactGroup = createGroup [east,true];
@@ -462,11 +480,21 @@ private _dangerShotHandler=_gun addEventHandler ["Fired",{
 }];
 _gun setVariable ["WAIT_CortexQA_DangerFirstShot",-1,true];
 ["Danger mortar: finite self-defence","The hostile fires naturally at the useful mortar. The crew must retain the emplacement, acquire the attacker, enter one finite DANGER mission, receive the lethal-burst red warning, fire one real HE round and release without enabling optional artillery support.",[6500,6000,0]] call _phase;
+private _dangerSightline=(lineIntersectsSurfaces [eyePos _dangerEnemy,aimPos _gun,_dangerEnemy,_gun,true,1,"VIEW","NONE"]) isEqualTo [];
+private _dangerHE=[_gun,false] call WAIT_fnc_CortexArtilleryAmmo;
+private _dangerRange=_dangerHE != "" && {(getPosATL _dangerEnemy) inRangeOfArtillery [[_gun],_dangerHE]};
+["DANGER-MORTAR-contact-fixture",_dangerSightline && {_dangerRange}
+    && {primaryWeapon _dangerEnemy != ""} && {magazines _dangerEnemy isNotEqualTo []}
+    && {!isNull gunner _gun} && {alive gunner _gun},
+    str [getPosATL _dangerEnemy,getPosATL _gun,_dangerSightline,primaryWeapon _dangerEnemy,
+        magazines _dangerEnemy,_dangerEnemy distance2D _gun,_dangerHE,_dangerRange]] call _check;
 private _dangerFireUntil=time+12;
 while {time < _dangerFireUntil && {alive _dangerEnemy}} do {
-    _dangerEnemy doWatch gunner _gun;
-    _dangerEnemy doTarget gunner _gun;
-    _dangerEnemy doFire gunner _gun;
+    // The seated operator can be occluded by the emplacement. Fire at the occupied
+    // static weapon; WAIT's crew still has to acquire the real attacker natively.
+    _dangerEnemy doWatch _gun;
+    _dangerEnemy doTarget _gun;
+    _dangerEnemy doFire _gun;
     sleep 1;
 };
 private _dangerEnemyFired=(_dangerEnemy getVariable ["WAIT_CortexQA_Shots",0]) > 0;
@@ -551,14 +579,22 @@ if (_focus == "performancemixed") then {
 };
 if (_focus in ["all","features","profiles"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAProfiles.sqf"};
 if (_focus in ["all","features","lighting"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQALighting.sqf"};
-if (_focus in ["all","features","scheduler"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAScheduler.sqf"};
+if (_focus in ["all","features","scheduler","coordinated"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAScheduler.sqf"};
 if (_focus in ["all","features","artillerysmoke"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAArtillerySmoke.sqf"};
 if (_focus in ["all","features","crossing"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACrossing.sqf"};
 if (_focus in ["all","features","contact","dangerparity","dangerbuildings"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAContact.sqf"};
-if (_focus in ["buildings","dangerbuildings"]) then {
+if (_focus in ["buildings","dangerbuildings","clearance","clearlarge","cleartransform"]) then {
     [createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],["WAIT_AIPass_Regroup_Enable",false]]] call WAIT_fnc_CortexTuning;
     [{missionNamespace getVariable ["WAIT_AIPass_Active",false]},20] call _wait;
-    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
+    // Focused retests share identical production settings and fixtures.
+    // Original controls remain available in buildings and nativebuildings.
+    if (_focus == "cleartransform") then {
+        [_check,_phase,_wait,false,true,true] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
+    } else {if (_focus in ["clearance","clearlarge"]) then {
+        [_check,_phase,_wait,false,true,false,_focus == "clearlarge"] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
+    } else {
+        [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
+    }};
 };
 if (_focus in ["all","features","cover"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACover.sqf"};
 if (_focus in ["all","features","landing"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQALanding.sqf"};
@@ -586,6 +622,7 @@ if (_focus in ["all","features","mechanics","airborne"]) then {
 if (_focus in ["all","features","mechanics","vehicles","stateflows","dangerparity","dangerbuildings"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAVehicles.sqf"};
 if (_focus in ["all","features","mechanics","vehicles","naval"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQANaval.sqf"};
 if (_focus in ["all","features","mechanics","fire"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAFire.sqf"};
+if (_focus in ["all","features","mechanics","fire","grenades"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAGrenades.sqf"};
 // Long multi-squad comparisons run last so they cannot delay unrelated feature coverage.
 if (_focus == "coordinatedbounds") then {[_check,_phase,_wait,[],true] call compile preprocessFileLineNumbers "cortexQACoordinated.sqf"};
 // Additive geometry comparison; do not replace the original long-screen audit.
@@ -606,12 +643,14 @@ if (_focus in ["all","features","coordinated","supportflows"]) then {
     private _recordContactCheck=_check;
     private _contactCheck={params ["_id","_passed",["_detail",""]]; ["CONTACT-"+_id,_passed,_detail] call _recordContactCheck};
     [_contactCheck,_phase,_wait,[],true] call _coordinated;
+    if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
     private _responderOwners=((missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0}) select [0,2];
     ["COORD-two-headless-owners",count _responderOwners == 2] call _check;
     if (count _responderOwners == 2) then {
         private _recordCoordinatedCheck=_check;
         private _hcCheck={params ["_id","_passed",["_detail",""]]; ["HC-"+_id,_passed,_detail] call _recordCoordinatedCheck};
         [_hcCheck,_phase,_wait,_responderOwners] call _coordinated;
+    };
     };
 };
 // Exercise the public read-only diagnostics path twice; UI report rows are not behaviour passes.

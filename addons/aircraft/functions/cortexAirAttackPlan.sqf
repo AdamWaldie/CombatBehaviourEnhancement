@@ -1,10 +1,12 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
  * Builds one finite, threat-aware Cortex attack plan for an AI aircraft and its assigned target.
  * An airborne hostile receives an intercept plan; a surface target receives a gun strafe, fixed-rocket
  * offset/hook run, guided standoff, bomb run or helicopter lateral gun pass from aircraft type, live
  * ammunition and a bounded
- * sample of targets already known to the pilot. Intercept geometry leads the target's measured velocity,
+ * sample of targets already known to the pilot. Initial intercept geometry uses native believed
+ * position without an exact velocity lead; the live job derives motion from successive estimates,
  * varies height inside a platform-safe envelope and retains a real loaded air-to-air weapon when present.
  * This is an intercept/engage/disengage controller, not a scripted claim to full BFM. A standoff
  * plan retains the real loaded weapon/turret pair. Every surface pattern retains a loaded damaging
@@ -37,11 +39,11 @@
 params [["_aircraft",objNull,[objNull]],["_target",objNull,[objNull]]];
 if (isNull _aircraft || {isNull _target} || {!alive _aircraft} || {!alive _target}) exitWith {createHashMap};
 private _pilot=driver _aircraft;
-if (isNull _pilot || {!alive _pilot} || {!local _aircraft}) exitWith {createHashMap};
+if (isNull _pilot || {!([_pilot] call WAIT_fnc_CortexCombatEffective)} || {!local _aircraft}) exitWith {createHashMap};
 private _side=side group _pilot;
 // Logic objects can have a hostile side without being a physical combat target.
 // In particular, curator modules must never become weapon-delivery objectives.
-if (_target isKindOf "Logic" || {_side getFriend side _target >= 0.6} || {captive _target}
+if (_target isKindOf "Logic" || {_target isKindOf "HeadlessClient_F"} || {_side getFriend side _target >= 0.6} || {captive _target}
     || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}) exitWith {createHashMap};
 private _airToAir=_target isKindOf "Air" && {!isTouchingGround _target};
@@ -239,6 +241,14 @@ missionNamespace setVariable ["WAIT_Cortex_AirAmmoFacts",_ammoCache];
 
 private _airPos=getPosATL _aircraft;
 private _targetPos=getPosATL _target;
+if (_airToAir) then {
+    private _knowers=((units group _pilot) select [0,8]) select {
+        local _x && {[_x] call WAIT_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
+    };
+    private _knower=_knowers param [0,objNull,[objNull]];
+    _targetPos=if (isNull _knower) then {[]} else {_knower getHideFrom _target};
+};
+if (_targetPos isEqualTo [] || {_targetPos isEqualTo [0,0,0]}) exitWith {createHashMap};
 private _axis=_targetPos vectorDiff _airPos;
 _axis set [2,0];
 if (vectorMagnitude _axis < 1) then {_axis=[sin getDir _aircraft,cos getDir _aircraft,0]};
@@ -358,7 +368,7 @@ private _selectedMagazine=if (_airToAir) then {_airMagazine} else {
 // Sample once per finite plan. Bounded variation avoids identical attack profiles without adding
 // per-frame work or accepting unsafe arbitrary heights.
 private _altitude=if (_airToAir) then {
-    private _targetHeight=(getPosATL _target) select 2;
+    private _targetHeight=_targetPos select 2;
     if (_isPlane) then {((_targetHeight+500+random 1800) max 500) min 4500}
     else {((_targetHeight+80+random 420) max 80) min 900}
 } else {
@@ -384,7 +394,8 @@ private _speed=if (_airToAir) then {
 // straight line through the aim point. HOOK uses a larger bearing change and exits across the far
 // side; OFFSET uses a shallower oblique pass.
 private _deliveryAxis=+_axis;
-if (_isPlane && {_pattern in ["OFFSET","HOOK"]}) then {
+private _fixedForwardStation=_selectedTurret isEqualTo [-1];
+if ((_isPlane || {_fixedForwardStation}) && {_pattern in ["OFFSET","HOOK"]}) then {
     private _bearingAngle=[22,38] select (_pattern == "HOOK");
     _deliveryAxis=vectorNormalized (
         (_axis vectorMultiply cos _bearingAngle)
@@ -398,7 +409,9 @@ private _attack=[];
 private _egress=[];
 switch _pattern do {
     case "INTERCEPT": {
-        private _targetVelocity=velocity _target;
+        // No script-exact unseen velocity. The live job derives motion after two
+        // native believed samples; this first estimate deliberately has no lead velocity.
+        private _targetVelocity=[0,0,0];
         private _lead=if (_isPlane) then {18+random 10} else {8+random 6};
         private _predicted=_targetPos vectorAdd (_targetVelocity vectorMultiply _lead);
         _predicted set [2,_altitude];
@@ -427,15 +440,15 @@ switch _pattern do {
     };
     case "STRAFE": {
         if (_isPlane) then {_ingress=[-6500,0] call _point; _attack=[900,0] call _point; _egress=[7500,1200] call _point}
-        else {_ingress=[-1900,250] call _point; _attack=[550,0] call _point; _egress=[2200,500] call _point};
+        else {_ingress=[-1900,[250,0] select _fixedForwardStation] call _point; _attack=[550,0] call _point; _egress=[2200,500] call _point};
     };
     case "OFFSET": {
         if (_isPlane) then {_ingress=[-7000,0] call _point; _attack=[1000,0] call _point; _egress=[8000,2400] call _point}
-        else {_ingress=[-2200,750] call _point; _attack=[650,200] call _point; _egress=[2500,900] call _point};
+        else {_ingress=[-2200,[750,0] select _fixedForwardStation] call _point; _attack=[650,[200,0] select _fixedForwardStation] call _point; _egress=[2500,900] call _point};
     };
     case "HOOK": {
         if (_isPlane) then {_ingress=[-7800,0] call _point; _attack=[1200,0] call _point; _egress=[6500,-4800] call _point}
-        else {_ingress=[-2300,900] call _point; _attack=[700,220] call _point; _egress=[2200,-1100] call _point};
+        else {_ingress=[-2300,[900,0] select _fixedForwardStation] call _point; _attack=[700,[220,0] select _fixedForwardStation] call _point; _egress=[2200,-1100] call _point};
     };
     case "BOMB": {
         _ingress=[-8500,0] call _point;
@@ -455,7 +468,7 @@ switch _pattern do {
 // its weapon geometry, but doing that to a fixed-wing run moves the delivery start off the selected
 // axis and guarantees an oblique rocket/missile miss. Planes therefore retain the complete roll-in;
 // the engine may make one broad joining turn, then flies the immutable target-crossing attack line.
-if (!_airToAir && {!_isPlane}) then {
+if (!_airToAir && {!_isPlane} && {!_fixedForwardStation}) then {
     private _toIngress=_ingress vectorDiff _airPos;
     private _toAttack=_attack vectorDiff _airPos;
     private _forwardIngress=(_toIngress vectorDotProduct _deliveryAxis) >= 100;

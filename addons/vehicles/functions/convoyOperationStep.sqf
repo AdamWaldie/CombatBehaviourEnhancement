@@ -14,7 +14,8 @@ private _group=_brain getOrDefault ["group",grpNull];private _configuration=_bra
 private _cancel={params ["_reason"];_brain set ["pending",false];_brain set ["completed",true];_brain set ["cancelled",true];_brain set ["cancelReason",_reason];-1};
 if (_brain getOrDefault ["cancelled",false] || {_brain getOrDefault ["finished",false]}) exitWith {[_brain getOrDefault ["cancelReason","CANCELLED"]] call _cancel};
 if (isNull _group || {!local _group}) exitWith {["OWNERSHIP_LOST"] call _cancel};
-if (_registryRevision != (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2]) || {_token isNotEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])}) exitWith {["REPLACED"] call _cancel};
+if (_registryRevision != (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2]) || {_token isNotEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])}
+    || {(_group getVariable ["WAIT_Convoy_Brain",createHashMap]) isNotEqualTo _brain}) exitWith {["REPLACED"] call _cancel};
 private _entry=(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {(_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}};
 if (_entry < 0) exitWith {["REPLACED"] call _cancel};
 if ([_group] call WAIT_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
@@ -41,7 +42,7 @@ if ((_configuration param [5,"TRAVEL"]) == "HALT") then {
    private _target=_requested max ((_lv+_lf)*0.5+5);private _tolerance=(_target*0.2) max 3;private _gap=_vehicle distance2D _front;
    private _headingDifference=abs (((getDir _vehicle-getDir _front+540) mod 360)-180);
    if (_headingDifference <= 25 && {_gap <= _target*1.8}) then {
-    private _direction=vectorDir _front;_direction set [2,0];
+    private _bearing=getDir _front;private _direction=[sin _bearing,cos _bearing,0];
     private _delta=(getPosATL _front) vectorDiff (getPosATL _vehicle);_delta set [2,0];
     _gap=(_delta vectorDotProduct _direction) max 0;
    };
@@ -49,6 +50,11 @@ if ((_configuration param [5,"TRAVEL"]) == "HALT") then {
   };
  };
  if (_recoveryActors > 0) then {_phase="RECOVERY"} else {if (_phase != "CONTACT_HOLD" && {_spacingPairs > 0}) then {_phase="SPACING"}};
+};
+// A temporary tactical pause releases local leases but retains this registry brain.
+// Describe suspension explicitly instead of publishing stale spacing/recovery roles.
+if (_group getVariable ["WAIT_Convoy_Suspended",false] || {_state getOrDefault ["ownerSuspended",false]}) then {
+ _phase="SUSPENDED";_delay=5;_spacingPairs=0;_recoveryActors=0;
 };
 _brain set ["phase",_phase];_brain set ["spacingPairs",_spacingPairs];_brain set ["recoveryActors",_recoveryActors];_brain set ["lastStepAt",time];_brain set ["lastDelay",_delay];_brain set ["nextAt",time+_delay];_brain set ["pending",false];_brain set ["completed",true];
 _group setVariable ["WAIT_Convoy_Brain_State",[_phase,_configuration param [0,-1],_registryRevision,serverTime,"",_spacingPairs,_recoveryActors],true];

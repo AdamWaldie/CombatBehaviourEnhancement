@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Makes one bounded native recovery attempt for a stalled participant without enabling disabled AI features, duplicating route commands or delaying the rest of its operation.
  * Locality/authority: Current group owner and current local participant only.
- * Native service/medical/assembly tasks, live finite actor reservations and actors no longer in the roster yield without a recovery command or consuming the retry budget.
+ * Hidden/simulation-disabled actors, native service/medical/assembly tasks and live finite actor reservations yield without a recovery command or consuming the retry budget. Actors outside the roster are invalid.
  * Repeat/JIP: Each actor receives one attempt per operation generation and owner epoch. The final command boundary rechecks takeover; actors with MOVE or PATH disabled are left untouched.
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 actor <OBJECT>; 3 destination <ARRAY, two or three numeric coordinates>.
  * Return Value: STRING - RECOVERING, EXHAUSTED, YIELDED or INVALID.
@@ -19,6 +19,7 @@ if ([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover
     || {[_actor] call WAIT_fnc_CompatibilityExternalControl}) exitWith {"YIELDED"};
 if (group _actor != _group || {vehicle _actor != _actor} || {!([_actor] call WAIT_fnc_CortexCombatEffective)}
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}) exitWith {"INVALID"};
+if (!(simulationEnabled _actor) || {isObjectHidden _actor}) exitWith {"YIELDED"};
 private _operation=_group getVariable ["WAIT_Operation",createHashMap];
 if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _generation}) exitWith {"INVALID"};
 if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])
@@ -51,6 +52,8 @@ if (count _currentOperation == 0
 if (_actor in (_currentOperation getOrDefault ["unavailable",[]])) exitWith {"EXHAUSTED"};
 if (currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]) exitWith {"YIELDED"};
 if (call _reserved) exitWith {"YIELDED"};
+// Dormancy may change during the preceding checks. Yield before committing the retry.
+if (!(simulationEnabled _actor) || {isObjectHidden _actor}) exitWith {"YIELDED"};
 // Progress can retire an observation record, but must not forget the generation's retry budget.
 _used set [_key,_attempts+1];
 _recovery set [_key,[_attempts+1,time,+_destination,getPosATL _actor]];

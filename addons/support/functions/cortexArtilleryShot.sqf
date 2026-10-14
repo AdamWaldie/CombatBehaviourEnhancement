@@ -15,8 +15,9 @@ private _reject = {
     false
 };
 private _danger=_purpose == "DANGER";
+private _operator=gunner _battery;
 private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner _battery};
-if (!local _battery || {!alive _battery} || {!alive gunner _battery}
+if (!local _battery || {!alive _battery} || {!([_operator] call WAIT_fnc_CortexCombatEffective)}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}
     || {(_battery getVariable ["WAIT_AIPass_FireToken", ""]) != _token}
     || {!(missionNamespace getVariable ["WAIT_AIPass_Active", false])} || {[] call WAIT_fnc_CortexIsPaused}
@@ -38,5 +39,10 @@ if ((_aim nearEntities [["CAManBase", "LandVehicle", "Air", "Ship"], _minimum]) 
 } >= 0) exitWith {call _reject};
 if (!(_magazine in getArtilleryAmmo [_battery]) || {(magazinesAllTurrets [_battery,true]) findIf {(_x select 0) == _magazine && {(_x select 2) > 0}} < 0} || {!(_aim inRangeOfArtillery [[_battery], _magazine])}
     || {_battery getArtilleryETA [_aim, _magazine] < 0}) exitWith {call _reject};
+// Safety/munition checks are not a lease over the operating crew or mission token.
+if (!local _battery || {gunner _battery != _operator}
+    || {!([_operator] call WAIT_fnc_CortexCombatEffective)}
+    || {(_battery getVariable ["WAIT_AIPass_FireToken",""]) != _token}
+    || {!([group _operator] call WAIT_fnc_CortexIsEligible)}) exitWith {call _reject};
 _battery doArtilleryFire [_aim, _magazine, 1];
 true

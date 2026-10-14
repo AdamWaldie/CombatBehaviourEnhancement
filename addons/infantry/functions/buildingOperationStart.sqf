@@ -40,7 +40,7 @@ private _brain=createHashMapFromArray [
     ["watchdogCount",0]
 ];
 _group setVariable ["WAIT_BuildingBrain",_brain];
-_group setVariable ["WAIT_BuildingBrain_State",["ENTRY",_generation,_epoch,serverTime,"STARTED",0,0,count (_job getOrDefault ["positions",[]])],true];
+_group setVariable ["WAIT_BuildingBrain_State",[_brain get "phase",_generation,_epoch,serverTime,"STARTED",0,0,count (_job getOrDefault ["positions",[]])],true];
 private _handle=[_group,_epoch,_generation,_brain] execFSM "\z\waldo_ai_tweaks\addons\main\fsm\buildingOperation.fsm";
 _group setVariable ["WAIT_BuildingBrain_FSM",_handle];
 true

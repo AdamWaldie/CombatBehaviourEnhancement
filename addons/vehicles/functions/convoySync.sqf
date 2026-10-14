@@ -4,6 +4,7 @@
  * Locality/authority: server owns registration; driving commands execute only on current owners.
  * Repeat/JIP: ordered registry snapshots replace old settings; owner-local paths rebuild on migration.
  * Separate passenger owners receive a finite, revision-scoped HALT retry on the shared scheduler.
+ * Matching unloaded actors remain in that retry so their owner can execute post-exit cover steps.
  * Each retry handles at most sixteen cargo records and retains the existing safety/task gates.
  * Arguments: 0: revision <NUMBER>; 1: registry <ARRAY> of [group, configuration].
  * Return Value: Nothing.
@@ -89,7 +90,9 @@ if !(missionNamespace getVariable ["WAIT_Convoy_CompatibilityHeadlessHandlerInst
             private _slice=_records select {
                 _x params ["_unit","_vehicle"];
                 local _unit && {[_unit] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _unit}
-                    && {vehicle _unit == _vehicle} && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
+                    && {vehicle _unit == _vehicle || {isNull objectParent _unit
+                        && {(_unit getVariable ["WAIT_Convoy_Unloaded",[]]) isEqualTo [_convoy,_job get "revision"]}}}
+                    && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
             };
             if (_slice isNotEqualTo []) then {_job set ["cyclePending",true]};
             private _nextCursor=_cursor+count _records;
@@ -100,9 +103,9 @@ if !(missionNamespace getVariable ["WAIT_Convoy_CompatibilityHeadlessHandlerInst
             private _packet=+_configuration;
             private _vehicles=[];{_vehicles pushBackUnique (_x select 1)} forEach _slice;
             _packet set [4,_vehicles];_packet set [6,_slice];
-            if (_slice isNotEqualTo []) then {[_convoy,_packet] call WAIT_fnc_ConvoyCrewLocal};
+            if (_slice isNotEqualTo []) then {[_convoy,_packet,_cargo] call WAIT_fnc_ConvoyCrewLocal};
             5
-        },createHashMapFromArray [["convoy",_group],["configuration",_configuration],
+        },createHashMapFromArray [["subsystem","CONVOY"],["convoy",_group],["configuration",_configuration],
             ["revision",_revision],["deadline",time+90],["cursor",0],["cyclePending",false]],2,
             format ["WAIT_CONVOY_PASSENGER_HALT_%1_%2",str _group,clientOwner]] call WAIT_fnc_CortexQueueJob;
     };

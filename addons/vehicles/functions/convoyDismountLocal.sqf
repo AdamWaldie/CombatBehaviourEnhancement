@@ -3,21 +3,26 @@
  * Gives capable dismounts one short move clear of vehicles, using cover during contact, then returns them to ordinary AI.
  * Locality/authority: orders execute only on each passenger owner, using the server's frozen halt report.
  * Repeat/JIP: public per-unit deadlines and destinations survive HC migration; release/resume clears this order.
+ * Cover selection excludes only matching, unexpired convoy-revision destinations.
+ * Release recalls only a matching 3D destination receipt; nearby successor destinations survive.
  * New native tasks and live actor reservations retire only convoy bookkeeping; no follow command overrides them.
  * Arguments: 0: convoy group <GROUP>; 1: ordered configuration <ARRAY>; 2: cleanup only <BOOL>, false.
+ * Arguments: 3: full reservation cargo <ARRAY>, [] uses configuration cargo; read-only exclusion roster.
  * Return Value: Nothing. At most two new cover searches per convoy/owner/five-second crew step.
  * Current callers: ConvoyCrewLocal and ConvoySync cleanup.
  * Example: [_group, _configuration] call WAIT_fnc_ConvoyDismountLocal;
  */
-params ["_group", "_configuration", ["_cleanup", false, [true]]];
+params ["_group", "_configuration", ["_cleanup", false, [true]],["_reservationCargo",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 _configuration params ["_revision", "", "", "", "", "_phase", "_cargo", "", ["_reason", "MANUAL"], ["_threat", []], ["_deadline", 0]];
 private _budget = 2;
 private _reserved = [];
+if (_reservationCargo isEqualTo []) then {_reservationCargo=_cargo};
 {
     private _job = (_x select 0) getVariable ["WAIT_Convoy_Dismount", []];
-    if (count _job == 4 && {(_job select 3) isNotEqualTo []}) then {_reserved pushBack (_job select 3)};
-} forEach _cargo;
+    if (count _job == 4 && {(_job select 0) == _group} && {(_job select 1) == _revision}
+        && {serverTime < (_job select 2)} && {(_job select 3) isNotEqualTo []}) then {_reserved pushBack (_job select 3)};
+} forEach _reservationCargo;
 {
     _x params ["_unit", "_vehicle"];
     if (local _unit && {!isPlayer _unit}) then {
@@ -42,7 +47,9 @@ private _reserved = [];
             if (_ours) then {
                 private _destination = _job select 3;
                 if (!_operator && {_capable} && {vehicle _unit == _unit} && {_destination isNotEqualTo []}
-                    && {((expectedDestination _unit) select 0) distance2D _destination < 2}) then {_unit doFollow leader group _unit};
+                    && {currentCommand _unit in ["MOVE","STOP",""]}
+                    && {private _live=(expectedDestination _unit) param [0,[]];
+                        count _live == 3 && {count _destination == 3} && {_live vectorDistance _destination <= 0.25}}) then {_unit doFollow leader group _unit};
                 _unit setVariable ["WAIT_Convoy_Dismount", nil, true];
                 _unit setVariable ["WAIT_Convoy_DismountApplied", nil];
             };

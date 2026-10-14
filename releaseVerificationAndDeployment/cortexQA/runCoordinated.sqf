@@ -103,6 +103,10 @@ WAIT_fnc_CortexQAInstallShotCounter = {
     {
         private _unit = _x;
         if (local _unit) then {
+            // This fixture is explicitly invulnerable; allowDamage must be reapplied after
+            // locality transfer. Damage-enabled battle fixtures never call this installer.
+            _unit allowDamage false;
+            _unit setVariable ["WAIT_CortexQA_ProtectionOwner",[clientOwner,serverTime,isDamageAllowed _unit],true];
             private _old = _unit getVariable ["WAIT_CortexQA_FiredManEH",-1];
             if (_old >= 0) then {_unit removeEventHandler ["FiredMan",_old]};
             private _handler = _unit addEventHandler ["FiredMan",{
@@ -210,6 +214,11 @@ private _migrateTeam={
         private _receipt=_x getVariable ["WAIT_CortexQA_FiredManOwner",[]];
         count _receipt != 2 || {(_receipt select 0) != _owner}
     }) < 0},10] call _wait;
+    private _protected=_sampled && {_members findIf {
+        private _receipt=_x getVariable ["WAIT_CortexQA_ProtectionOwner",[]];
+        !alive _x || {count _receipt != 3} || {(_receipt select 0) != _owner} || {_receipt select 2}
+    } < 0};
+    ["COORD-protection-owner-"+_stage,_protected,str (_members apply {[_x,alive _x,_x getVariable ["WAIT_CortexQA_ProtectionOwner",[]]]})] call _check;
     ["COORD-owner-"+_stage,_requested && {_adopted},str [groupOwner _g,_members apply {owner _x}]] call _check;
     ["COORD-shot-sampler-"+_stage,_sampled,str (_members apply {_x getVariable ["WAIT_CortexQA_FiredManOwner",[]]})] call _check;
     _g setVariable ["WAIT_Headless_ExcludeGroup",true,true];
@@ -608,8 +617,19 @@ private _baseHeld=true;
 {
     [format ["COORD-team-%1-actual-fire",_forEachIndex+1],(_x findIf {(_x getVariable ["WAIT_CortexQA_Shots",0]) > 0}) >= 0,str (_x apply {_x getVariable ["WAIT_CortexQA_Shots",0]})] call _check;
 } forEach _teams;
-[createHashMapFromArray [["WAIT_AIPass_CoordinatedAssault_Enable",false],["WAIT_AIPass_Reinforce_Enable",false]]] call WAIT_fnc_CortexTuning;
-["Coordinated assault: disable and hand back","Support is now disabled. Both squads must release their support assignments and temporary orders, then physically follow fresh ordinary movement orders. The cyan trails show real travel.",[1500,1580] call _terrainPosition] call _phase;
+private _attackReleaseBefore=_teams apply {
+    private _group=group (_x select 0);
+    private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    [netId _group,groupOwner _group,_operation getOrDefault ["generation",-1],
+        (_operation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]],
+        attackEnabled _group,_group getVariable ["WAIT_Cortex_SupportRole",[]]]
+};
+// Isolate administrative hand-back from an independent close-contact assault opportunity.
+// Flank/Advance were already disabled for this fixture; restore this additional gate at cleanup.
+private _cleanupAssaultGate=missionNamespace getVariable ["WAIT_AIPass_Assault_Enable",true];
+[createHashMapFromArray [["WAIT_AIPass_CoordinatedAssault_Enable",false],["WAIT_AIPass_Reinforce_Enable",false],
+    ["WAIT_AIPass_Assault_Enable",false]]] call WAIT_fnc_CortexTuning;
+["Coordinated assault: disable and hand back","Support and independent scripted manoeuvres are now disabled for this hand-back comparison. Both squads must release their support assignments and temporary orders, then physically follow fresh ordinary movement orders. The cyan trails show real travel.",[1500,1580] call _terrainPosition] call _phase;
 private _released=[{
     _teams findIf {
         private _g=group (_x select 0);
@@ -625,7 +645,17 @@ if (count _responderOwners == 2) then {
 };
 private _attackRestored=true;
 {if (attackEnabled (group (_x select 0)) != (_attackBaseline select _forEachIndex)) then {_attackRestored=false}} forEach _teams;
-["COORD-autonomous-attack-restored",_attackRestored,str (_teams apply {attackEnabled (group (_x select 0))})] call _check;
+private _attackReleaseAfter=_teams apply {
+    private _group=group (_x select 0);
+    [netId _group,groupOwner _group,attackEnabled _group,
+        _group getVariable ["WAIT_OperationRestoreResult",[]],
+        _group getVariable ["WAIT_OperationResult",[]],
+        _group getVariable ["WAIT_OperationGeneration",-1],
+        (_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["intent","NONE"],
+        (_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["phase","NONE"],
+        _group getVariable ["WAIT_Cortex_DrillTransition",[]]]
+};
+["COORD-autonomous-attack-restored",_attackRestored,str [_attackBaseline,_attackReleaseBefore,_attackReleaseAfter]] call _check;
 private _restoredFeatures=_helpers apply {[_x checkAIFeature "TARGET",_x checkAIFeature "AUTOTARGET",_x checkAIFeature "AUTOCOMBAT",_x checkAIFeature "PATH"]};
 ["COORD-movement-features-restored",_restoredFeatures isEqualTo _featureBaseline,str [_featureBaseline,_restoredFeatures]] call _check;
 private _releaseOrigins=_helpers apply {getPosATL _x};
@@ -744,3 +774,4 @@ private _unopposedTravel=[{
 
 {deleteVehicle _x} forEach (_actors+_walls); {deleteGroup _x} forEach _groups;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+[createHashMapFromArray [["WAIT_AIPass_Assault_Enable",_cleanupAssaultGate]]] call WAIT_fnc_CortexTuning;

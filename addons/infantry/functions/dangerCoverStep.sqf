@@ -182,7 +182,28 @@ private _screenMode=if (_sameSearch && {(_decision select 0) == "NO_VALID_COVER"
     && {[_group,"WAIT_AIPass_DangerConcealment_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) then {
     "CONCEALMENT"
 } else {"COVER"};
-private _cover=[_origin,_threat,18,[],_group,_screenMode] call WAIT_fnc_CortexFindCover;
+// Continuous rounds can change the danger generation without changing useful geometry.
+// Cache only failure, never a successful destination: destructible/movable cover is retried
+// after three seconds, or immediately when the actor/threat materially changes position.
+private _failedSearches=_actor getVariable ["WAIT_Danger_CoverFailedSearches",createHashMap];
+private _failedSearch=_failedSearches getOrDefault [_screenMode,[]];
+private _sameGeometry=count _failedSearch == 3 && {time < (_failedSearch select 0)}
+    && {_origin vectorDistance (_failedSearch select 1) <= 2}
+    && {_threat vectorDistance (_failedSearch select 2) <= 3};
+private _cover=if (_sameGeometry) then {[_origin,false]} else {
+    private _result=[_origin,_threat,18,[],_group,_screenMode] call WAIT_fnc_CortexFindCover;
+    if !(_result select 1) then {
+        _failedSearches set [_screenMode,[time+3,+_origin,+_threat]];
+        _actor setVariable ["WAIT_Danger_CoverFailedSearches",_failedSearches];
+    } else {
+        _failedSearches deleteAt _screenMode;
+    };
+    _result
+};
+private _searchStats=_group getVariable ["WAIT_Danger_EngineStats",createHashMap];
+private _searchCounter=["coverGeometrySearches","coverNegativeCacheHits"] select _sameGeometry;
+_searchStats set [_searchCounter,((_searchStats getOrDefault [_searchCounter,0])+1) min 100000];
+_group setVariable ["WAIT_Danger_EngineStats",_searchStats];
 _cover params ["_spot","_found"];
 // A small valid move can put the actor behind nearby cover. Treat negligible displacement
 // separately; it is not evidence that solid cover failed and should not trigger concealment.

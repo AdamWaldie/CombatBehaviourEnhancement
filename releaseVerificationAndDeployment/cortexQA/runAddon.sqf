@@ -25,3 +25,12 @@ private _probeGroup=createGroup [civilian,true];
 private _takeoverResult=[_probeGroup] call WAIT_fnc_CortexExternalTakeover;
 deleteGroup _probeGroup;
 ["ADDON-command-boundary-boolean",_takeoverResult isEqualType true,typeName _takeoverResult] call _check;
+
+// Configuration visibility only; this does not establish weapon lethality or player accuracy.
+private _policyLoaded=isClass (configFile >> "CfgPatches" >> "WAIT_policy_turret_aiming");
+private _policyReport=[] call WAIT_fnc_AIGetDiagnostics;
+private _policyRows=(_policyReport getOrDefault ["checks",[]]) select {(_x param [1,""]) == "engine-policy-turret-aiming"};
+["ADDON-engine-policy-diagnostic-visible",count _policyRows == 1] call _check;
+["ADDON-engine-policy-diagnostic-effective",count _policyRows == 1 && {
+    (_policyRows select 0) param [2,""] == (["DISABLED","LOADED"] select _policyLoaded)
+},str _policyRows] call _check;

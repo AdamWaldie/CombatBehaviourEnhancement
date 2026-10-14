@@ -7,6 +7,36 @@ from unittest.mock import patch
 from mod_pipeline import ROOT, seal, stage, verify, release_gate, supported_focuses
 
 class PackagePipelineTests(unittest.TestCase):
+    def test_terrain_building_baseline_uses_altis_mission_identity(self):
+        mission=stage(self.folder,Path(self.temp.name)/'terrain-buildings','nativebuildings',native_baseline=True,world='Altis')
+        self.assertEqual(mission.name,'WAIT_Audit.Altis')
+        sqm=(mission/'mission.sqm').read_text()
+        self.assertIn('A3_Map_Altis',sqm)
+        self.assertNotIn('A3_Map_VR',sqm)
+        self.assertIn('position[]={16600,0,12800}',sqm)
+        self.assertEqual(json.loads((mission.parent/'audit-manifest.json').read_text())['world'],'Altis')
+        with self.assertRaises(ValueError):
+            stage(self.folder,Path(self.temp.name)/'invalid-terrain','all',world='Altis')
+
+    def test_native_building_diagnostics_cannot_promote_wait(self):
+        evidence=Path(self.temp.name)/'native-report.json'
+        evidence.write_text(json.dumps({'focus':'nativebuildings','status':'PASS','complete':True}))
+        with self.assertRaisesRegex(ValueError,'Native building diagnostics'):
+            release_gate(self.folder,evidence)
+
+    def test_native_buildings_does_not_start_addon_dependent_runner(self):
+        mission=stage(self.folder,Path(self.temp.name)/'native-buildings','nativebuildings',native_baseline=True)
+        server=(mission/'initServer.sqf').read_text()
+        self.assertIn('cortexQANativeBuildings.sqf',server)
+        self.assertNotIn('cortexQAServer.sqf',server)
+        runner=(mission/'cortexQANativeBuildings.sqf').read_text()
+        self.assertIn('BUILD-NATIVE-addon-absent',runner)
+        self.assertIn('[_check,_phase,_wait,true]',runner)
+        self.assertIn('cortexQAGuide.sqf',(mission/'initPlayerLocal.sqf').read_text())
+        self.assertTrue(json.loads((mission.parent/'audit-manifest.json').read_text())['native_baseline'])
+        with self.assertRaises(ValueError):
+            stage(self.folder,Path(self.temp.name)/'loaded-buildings','nativebuildings')
+
     def setUp(self):
         (ROOT/'.test-tmp').mkdir(exist_ok=True)
         self.temp = tempfile.TemporaryDirectory(dir=ROOT/'.test-tmp')
@@ -78,6 +108,12 @@ class PackagePipelineTests(unittest.TestCase):
             self.assertIn(expected, launcher)
         self.assertNotIn('Stop-Process', launcher)
         self.assertNotIn('-filePatching', launcher)
+        self.assertIn('$manifest.package.dirty -ne $false', launcher)
+        self.assertIn("$manifest.package.commit -notmatch '^[0-9a-f]{40}$'", launcher)
+        gate=launcher.index('Audit launch requires a clean committed package')
+        self.assertGreater(gate, launcher.index('if ($StageOnly)'))
+        self.assertLess(gate, launcher.index("$server=Start-AuditProcess"))
+
         self.assertIn("if ($Interactive) {'Normal'} else {'Hidden'}", launcher)
         self.assertIn("'-name=WAIT_Audit',$modArg) -Interactive", launcher)
         self.assertIn('"-name=WAIT_HC$i"', launcher)
@@ -130,13 +166,48 @@ class PackagePipelineTests(unittest.TestCase):
         (self.folder/'wait-build.json').write_text(json.dumps(record))
         with self.assertRaises(ValueError): release_gate(self.folder,evidence)
 
+    def test_optional_policy_is_sealed_staged_and_requires_its_own_signature(self):
+        policy=self.folder/'optionals/@waldo_ai_tweaks_turret_aiming/addons/policy.pbo'
+        policy.parent.mkdir(parents=True)
+        policy.write_bytes(b'optional policy fixture')
+        (self.folder/'addons/main.pbo.fixture.bisign').write_bytes(b'core signature fixture')
+        (self.folder/'keys').mkdir()
+        (self.folder/'keys/fixture.bikey').write_bytes(b'public key fixture')
+        evidence=Path(self.temp.name)/'optional-evidence.json'
+        def reseal():
+            with patch('mod_pipeline.subprocess.check_output', side_effect=['a'*40+'\n','']):
+                record=seal(self.folder)
+            evidence.write_text(json.dumps(dict(status='PASS',complete=True,source_fingerprint=record['fingerprint'])))
+            return record
+        record=reseal()
+        self.assertIn(policy.relative_to(self.folder).as_posix(),record['files'])
+        with self.assertRaisesRegex(ValueError,'signed PBOs'):
+            release_gate(self.folder,evidence)
+        policy.with_name(policy.name+'.fixture.bisign').write_bytes(b'optional signature fixture')
+        reseal()
+        release_gate(self.folder,evidence)
+        mission=stage(self.folder,Path(self.temp.name)/'optional-stage','all')
+        staged=mission.parent/'@WaldosAITweaks'/policy.relative_to(self.folder)
+        self.assertEqual(staged.read_bytes(),policy.read_bytes())
+        policy.write_bytes(b'changed optional policy')
+        with self.assertRaisesRegex(ValueError,'changed after sealing'):
+            verify(self.folder)
+    def test_normal_and_headless_batches_have_distinct_sealed_identity(self):
+        for mode, value in [('normal','false'),('headless','true')]:
+            mission=stage(self.folder,Path(self.temp.name)/('batch-'+mode),'all',batch_mode=mode)
+            manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
+            self.assertEqual(manifest['batch_mode'],mode)
+            self.assertIn('"WAIT_CortexQA_HeadlessBatch",'+value,(mission/'auditIdentity.sqf').read_text())
+        with self.assertRaisesRegex(ValueError,'dedicated headless batch'):
+            stage(self.folder,Path(self.temp.name)/'invalid-normal','lifecycle',headless_provider=Path(self.temp.name))
+
     def test_native_headless_stage_installs_all_machines_and_seals_provider_files(self):
         from stage_headless_provider import REQUIRED
         provider=Path(self.temp.name)/'provider'
         source=provider/'MissionScripts/Headless'; source.mkdir(parents=True)
         for name in REQUIRED:
             (source/name).write_text('/* native provider fixture */\ntrue;')
-        mission=stage(self.folder,Path(self.temp.name)/'native-hc','lifecycle',headless_provider=provider)
+        mission=stage(self.folder,Path(self.temp.name)/'native-hc','lifecycle',headless_provider=provider,batch_mode='headless')
         manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
         self.assertEqual(manifest['headless_provider']['scope'],'EXPLICIT_NATIVE_TRANSFERS_ONLY')
         for name in ('initServer.sqf','initPlayerLocal.sqf','init.sqf'):

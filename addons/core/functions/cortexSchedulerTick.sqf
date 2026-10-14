@@ -87,7 +87,7 @@ private _earliest = -1;
         private _jobPaused = _paused && {!_skillsJob};
         if (_subsystem in ["CONVOY", "AIRCRAFT"]) then {_jobPaused=false};
         private _group = _state getOrDefault ["group", grpNull];
-        private _stale = !_enabled || {!isNull _group && {!local _group || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["WAIT_AIPass_Epoch", 0])}}};
+        private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["WAIT_AIPass_Epoch", 0])}}};
         private _callbackStarted=diag_tickTime;
         private _delay = if (_stale) then {-1} else {if (_jobPaused) then {5} else {[_state] call _job}};
         _state set ["lastCallbackMs",(diag_tickTime-_callbackStarted)*1000];
@@ -97,7 +97,17 @@ private _earliest = -1;
         // remains intentionally queued, while a later successful callback clears its previous
         // pause marker before it is reported as healthy again.
         if (_stale) then {
-            _state set ["skippedReason",if (!_enabled) then {"DISABLED"} else {"LOCALITY"}]
+            private _discardReason=if (!_enabled) then {"DISABLED"} else {"LOCALITY"};
+            _state set ["skippedReason",_discardReason];
+            // A finite FSM must observe terminal rejection, not wait for its watchdog
+            // to retry a callback which this scheduler has already discarded. Retire
+            // only this queued brain; its guarded FSM cleanup owns any restoration.
+            if ("pending" in _state && {"completed" in _state}) then {
+                _state set ["pending",false];
+                _state set ["completed",true];
+                _state set ["cancelled",true];
+                _state set ["cancelReason",_discardReason];
+            }
         } else {
             if (_jobPaused) then {_state set ["skippedReason","PAUSED"]} else {_state deleteAt "skippedReason"};
         };
@@ -108,8 +118,10 @@ private _earliest = -1;
             // marker lives on this existing job and expires without another scheduler/loop.
             private _responsive = _now < (_state getOrDefault ["responsiveUntil",-1]);
             if (_slow && {!_jobPaused} && {!_skillsJob} && {!(_subsystem in ["CONVOY", "AIRCRAFT"])} && {!_responsive}) then {_delay = _delay * 2};
-            _rescheduled pushBack [_now + _delay, _job, _state];
-            private _rescheduledAt = _now + _delay;
+            // A callback can wake its own keyed operation while it runs. Include that wake
+            // in the idle cache, otherwise the early-return gate hides it until the long delay.
+            private _rescheduledAt = (_now + _delay) min (_state getOrDefault ["wakeAt",_now + _delay]);
+            _rescheduled pushBack [_rescheduledAt, _job, _state];
             if (_earliest < 0 || {_rescheduledAt < _earliest}) then {_earliest = _rescheduledAt};
         };
     };

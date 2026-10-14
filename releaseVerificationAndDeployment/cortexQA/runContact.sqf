@@ -317,7 +317,9 @@ private _enabledReady=[{missionNamespace getVariable ["WAIT_AIPass_Danger_Enable
     private _probeExplosion=[{
         private _response=_probeActor getVariable ["WAIT_Danger_EngineResponse",[]];
         // The engine may deliver blast damage as HIT, which correctly outranks EXPLOSION.
-        if (count _response == 4 && {(_response select 1) in [2,4]}) then {
+        if (count _response == 7 && {(_response select 1) in [2,4]}
+            && {(_response select 6) == _probeGroup}
+            && {(_response select 5) == (_probeGroup getVariable ["WAIT_AIPass_Epoch",0])}) then {
             _probeEvidence=+_response;
             true
         } else {false}
@@ -1086,7 +1088,7 @@ private _evasionNativeEvidence=[];
 private _evasionEligibility=[];
 private _evasionNative=[{
     private _response=_reflexUnit getVariable ["WAIT_Danger_EngineResponse",[]];
-    if (count _response == 4 && {(_response select 0) == "IMMEDIATE"}
+    if (count _response == 7 && {(_response select 0) == "IMMEDIATE"}
         && {(_response select 1) in [2,9]}) then {
         _evasionNativeEvidence=+_response;
         _evasionEligibility=[stance _reflexUnit,speed _reflexUnit,currentCommand _reflexUnit,
@@ -1789,4 +1791,36 @@ sleep 1;
 {deleteVehicle _x} forEach [_hearingActor,_hearingEnemy];
 deleteGroup _hearingGroup;
 deleteGroup _hearingEnemyGroup;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+
+// Real engine stimulus precedes this reservation handover; no stance lease or completion is seeded.
+[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Danger_Enable",true],
+    ["WAIT_AIPass_Contact_Enable",false],["WAIT_AIPass_Regroup_Enable",false]]] call WAIT_fnc_CortexTuning;
+private _reservationGroup=createGroup [east,true];
+_reservationGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_reservationGroup setVariable ["acex_headless_blacklist",true,true];
+private _reservationActor=_reservationGroup createUnit ["O_Soldier_F",[3200,2400,0],[],0,"NONE"];
+_reservationActor setVariable ["acex_headless_blacklist",true,true];
+_reservationActor allowDamage false;
+_reservationActor setUnitPos "AUTO";
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[_reservationActor],true];
+["Danger stance to actor reservation","A real explosion must first create a temporary danger stance lease. A later finite actor reservation must retire that lease without restoring posture over the new owner.",getPosATL _reservationActor] call _phase;
+private _reservationGrenade=createVehicle ["GrenadeHand",(getPosATL _reservationActor) getPos [7,90],[],0,"CAN_COLLIDE"];
+private _leaseReady=[{count (_reservationActor getVariable ["WAIT_Danger_EngineStanceLease",[]]) == 6},15] call _wait;
+["DANGER-reservation-live-lease-prerequisite",_leaseReady,
+    str [_reservationActor getVariable ["WAIT_Danger_EngineResponse",[]],_reservationActor getVariable ["WAIT_Danger_EngineStanceLease",[]]]] call _check;
+if (_leaseReady) then {
+    private _reservedStance=unitPos _reservationActor;
+    private _reservation=["STATIC_DEPLOY",(getPosATL _reservationActor) vectorAdd [10,0,0],time+20];
+    _reservationActor setVariable ["WAIT_Cortex_ActorMove",_reservation];
+    private _retired=[{(_reservationActor getVariable ["WAIT_Danger_EngineStanceLease",[]]) isEqualTo []
+        && {(_reservationActor getVariable ["WAIT_Danger_EngineReleaseEvidence",[]]) param [1,""] == "ACTOR_RESERVATION"}},10] call _wait;
+    ["DANGER-reservation-engine-release",_retired,str (_reservationActor getVariable ["WAIT_Danger_EngineReleaseEvidence",[]])] call _check;
+    ["DANGER-reservation-posture-owner-preserved",_retired && {unitPos _reservationActor == _reservedStance}
+        && {(_reservationActor getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo _reservation},
+        str [_reservedStance,unitPos _reservationActor,_reservationActor getVariable ["WAIT_Cortex_ActorMove",[]]]] call _check;
+};
+deleteVehicle _reservationGrenade;
+deleteVehicle _reservationActor;
+deleteGroup _reservationGroup;
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];

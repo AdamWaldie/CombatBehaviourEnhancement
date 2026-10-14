@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Applies one expiring combined-arms contact role on the selected asset owner.
+ * Direct fire requires a combat-effective local gunner and target-suitable loaded station ammo;
+ * incapacitated operators or incompatible target classes reject the exact reservation.
  * A direct-fire ground vehicle receives target knowledge and one gunner fire request without losing
  * its authored route. Manoeuvring vehicles and aircraft receive knowledge only: their finite
  * operation owns later target and weapon commands after movement/release geometry is valid. A second
@@ -10,7 +12,7 @@
  * same target and may start their existing finite attack-run job;
  * its controller, rather than a single instantaneous speed sample, proves progress or handles a stall.
  * Locality/authority: current group owner only; server-issued public token must still match. Asset
- * discovery accepts the effective commander's or driver's group but never a passenger-only group.
+ * aircraft discovery requires the pilot's group; ground discovery accepts the commander's or driver's group.
  * Repeat/JIP: duplicate roles are harmless; expiry, Zeus takeover, feature closure and token replacement reject stale calls.
  * Arguments: 0: asset group <GROUP>; 1: opportunity <ARRAY>
  * [token,requester,target,position,role,expiry,ground-fire anchor].
@@ -19,12 +21,16 @@
  * Example: [_vehicleGroup,_opportunity] remoteExecCall ["WAIT_fnc_CortexCombinedArmsLocal",groupOwner _vehicleGroup];
  */
 params [["_group",grpNull,[grpNull]],["_opportunity",[],[[]]]];
-if (!local _group || {count _opportunity != 7} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {false};
+if (!local _group || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
+    || {[] call WAIT_fnc_CortexIsPaused} || {count _opportunity != 7} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {false};
 _opportunity params ["_token","_requester","_target","_position","_role","_expiry","_context"];
 if ((_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isNotEqualTo _opportunity
     || {serverTime >= _expiry} || {isNull _requester} || {isNull _target} || {!alive _target}
     || {side _group != side _requester} || {(side _group) getFriend side _target >= 0.6}
     || {captive _target} || {_target getVariable ["ace_captives_isSurrendering",false]}
+    || {_target getVariable ["ace_captives_isHandcuffed",false]}
+    || {!(_position isEqualType [])} || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0)} >= 0}
     || {!(_role in ["GROUND_FIRE","GROUND_MANOEUVRE","AIR_ATTACK"])}) exitWith {false};
 private _asset=objNull;
 {
@@ -32,8 +38,12 @@ private _asset=objNull;
     private _commander=effectiveCommander _vehicle;
     private _driver=driver _vehicle;
     if (_vehicle != _x && {alive _vehicle}
-        && {(!isNull _commander && {group _commander == _group})
-            || {!isNull _driver && {group _driver == _group}}}) exitWith {_asset=_vehicle};
+        && {if (_vehicle isKindOf "Air") then {
+            !isNull _driver && {group _driver == _group}
+        } else {
+            (!isNull _commander && {group _commander == _group})
+                || {!isNull _driver && {group _driver == _group}}
+        }}) exitWith {_asset=_vehicle};
 } forEach units _group;
 if (isNull _asset) exitWith {false};
 if (_role in ["GROUND_FIRE","GROUND_MANOEUVRE"] && {
@@ -66,13 +76,17 @@ if (_role == "GROUND_FIRE") exitWith {
     // native pursuit. GROUND_MANOEUVRE and AIR_ATTACK deliberately skip this block because their
     // operation controllers own the later target/release boundary.
     private _fireRefusal="";
-    if (isNull _gunner || {!alive _gunner} || {!local _gunner}
+    if (isNull _gunner || {!([_gunner] call WAIT_fnc_CortexCombatEffective)} || {!local _gunner}
+        || {!simulationEnabled _asset} || {isObjectHidden _asset}
+        || {!simulationEnabled _gunner} || {isObjectHidden _gunner}
         || {!(combatMode _group in ["YELLOW","RED"])}
         || {!(unitCombatMode _gunner in ["YELLOW","RED"])}
         || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
         || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
         || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
         || {[_group] call WAIT_fnc_CortexExternalTakeover}) then {_fireRefusal="NO_FIRE_OPERATOR"};
+    if (_fireRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_STATION_AMMO"};
+    if (_fireRefusal == "" && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_TARGET_AMMO"};
     if (_fireRefusal == "" && {!([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear)}) then {
         _fireRefusal="BLOCKED_FIRE_LANE";
     };
@@ -89,7 +103,9 @@ if (_role == "GROUND_FIRE") exitWith {
 };
 if (_role == "GROUND_MANOEUVRE") exitWith {
     private _start=getPosATL _asset;
-    private _targetPosition=getPosATL _target;
+    // Route geometry belongs to the authenticated contact report. An unseen moving enemy
+    // must not silently update this committed firing-area plan through its live coordinates.
+    private _targetPosition=+_position;
     private _supportPosition=if (count _context >= 2) then {+_context} else {getPosATL leader _requester};
     private _axis=_targetPosition vectorDiff _supportPosition;
     _axis set [2,0];

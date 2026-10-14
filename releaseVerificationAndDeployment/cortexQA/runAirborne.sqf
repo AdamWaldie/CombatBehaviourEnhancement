@@ -63,7 +63,7 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",_jumpers+_crew,true];
 sleep 8;
 ["AIRBORNE-disabled-passengers-retained",_jumpers findIf {vehicle _x != _aircraft} < 0] call _check;
 private _owners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
-if (_owners isNotEqualTo []) then {
+if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false] && {_owners isNotEqualTo []}) then {
     [_cargo,_owners select 0] call WAIT_fnc_HeadlessMigrateGroup;
     ["AIRBORNE-flight-owner-preserved",groupOwner _cargo == 2 && {owner _aircraft == 2},"WAIT intentionally refuses migration of helicopter occupants during flight"] call _check;
 };

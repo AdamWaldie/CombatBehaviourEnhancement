@@ -10,13 +10,14 @@ class StandalonePerformanceReportTests(unittest.TestCase):
     def fixture(self,folder,loaded):
         folder.mkdir()
         (folder/'server').mkdir()
-        manifest=dict(focus='standaloneperformance',native_baseline=not loaded,resolution=[3840,2160],
+        manifest=dict(focus='standaloneperformance',world='VR',batch_mode='normal',headless_provider=None,native_baseline=not loaded,resolution=[3840,2160],
                       headlessClients=0,performance_composition='infantry',dependencySources=['cba'],package=dict(dirty=False,fingerprint='same'),
                       mission_files={'mission.sqm':'same','cortexQAStandalonePerformance.sqf':'same'})
         (folder/'audit-manifest.json').write_text(json.dumps(manifest))
         identity=[loaded,'z/wait/danger/danger.fsm' if loaded else 'native.fsm',50,300,'INFANTRY_PATROL',2]
         result=[loaded,True,1000,10,20,30,50,300,50,1,True]
         text='WAIT STANDALONE PERF IDENTITY: '+json.dumps(identity)+'\n'
+        text+='WAIT STANDALONE PERF COMPOSITION: [50,50,0,0,0,0]\n'
         text+='WAIT STANDALONE PERF RESULT: '+json.dumps(result)+'\nWAIT STANDALONE PERF COMPLETE\n'
         (folder/'server/run.rpt').write_text(text)
         return read_run(folder)
@@ -40,6 +41,12 @@ class StandalonePerformanceReportTests(unittest.TestCase):
             for key,value in [('headlessClients',2),('resolution',[1920,1080]),('dependencySources',['different'])]:
                 changed=copy.deepcopy(wait)
                 changed['manifest'][key]=value
+                with self.assertRaises(ValueError): compare(native,changed)
+            for key,value in [('world','Altis'),('batch_mode','headless'),('headless_provider',{'id':'different'})]:
+                changed=copy.deepcopy(wait)
+                changed['manifest'][key]=value
+                with self.assertRaises(ValueError): compare(native,changed)
+                del changed['manifest'][key]
                 with self.assertRaises(ValueError): compare(native,changed)
             wait['manifest']['package']['dirty']=True
             with self.assertRaises(ValueError): compare(native,wait)
@@ -78,3 +85,29 @@ class StandalonePerformanceReportTests(unittest.TestCase):
             self.assertEqual(report['status'],'INVALID')
             self.assertIn('invalidate',report['reason'])
             self.assertNotIn('median_overhead_percent',report)
+
+    def test_missing_or_wrong_physical_composition_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder=Path(directory)/'native'
+            self.fixture(folder,False)
+            log=folder/'server/run.rpt'
+            original=log.read_text()
+            marker='WAIT STANDALONE PERF COMPOSITION: [50,50,0,0,0,0]\n'
+            for replacement in ['', 'WAIT STANDALONE PERF COMPOSITION: [50,49,1,0,0,0]\n']:
+                log.write_text(original.replace(marker,replacement))
+                with self.assertRaises(ValueError): read_run(folder)
+
+    def test_mixed_composition_requires_exact_vehicle_classes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder=Path(directory)/'native'
+            self.fixture(folder,False)
+            manifest=json.loads((folder/'audit-manifest.json').read_text())
+            manifest['performance_composition']='mixed'
+            (folder/'audit-manifest.json').write_text(json.dumps(manifest))
+            log=folder/'server/run.rpt'
+            original=log.read_text().replace('INFANTRY_PATROL','MIXED_PATROL')
+            original=original.replace('[50,50,0,0,0,0]','[50,25,7,8,5,5]')
+            log.write_text(original)
+            self.assertEqual(read_run(folder)['composition'],[50,25,7,8,5,5])
+            log.write_text(original.replace('[50,25,7,8,5,5]','[50,25,8,7,5,5]'))
+            with self.assertRaises(ValueError): read_run(folder)

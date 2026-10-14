@@ -334,7 +334,7 @@ private _observedProfiles=createHashMap;
 {
     _x params ["_id","_class","_withAA","_interrupt",["_patternOverride","AUTO"],
         ["_airTarget",false],["_expectedWeaponClass",""],["_mustDestroy",false],
-        ["_targetClassOverride",""]];
+        ["_targetClassOverride",""],["_movingGround",false]];
     [createHashMapFromArray [
         ["WAIT_Cortex_AirAttack_Enable",true],["WAIT_Cortex_AttackRunFlares_Enable",true],
         ["WAIT_AIPass_AircraftFlares_Enable",false],["WAIT_AIPass_AircraftBreak_Enable",false]
@@ -430,8 +430,8 @@ private _observedProfiles=createHashMap;
     private _targetCrew=crew _target;
     private _targetGroup=group driver _target;
     _targetGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-    {_x allowDamage false; if (!_airTarget) then {_x disableAI "PATH"}} forEach _targetCrew;
-    if (!_airTarget) then {
+    {_x allowDamage false; if (!_airTarget && {!_movingGround}) then {_x disableAI "PATH"}} forEach _targetCrew;
+    if (!_airTarget && {!_movingGround}) then {
         // A ground weapon audit requires an immutable aim point. Disabled crew pathfinding alone
         // still allowed the running vehicle to roll after the plan was sampled.
         _target engineOn false;
@@ -439,6 +439,16 @@ private _observedProfiles=createHashMap;
         _target setVelocity [0,0,0];
         _target setPosATL _targetPosition;
         {doStop _x} forEach _targetCrew;
+    };
+    if (_movingGround && {!_airTarget}) then {
+        _target setDir 90;
+        _target engineOn true;
+        _target limitSpeed 20;
+        _targetGroup setCombatMode "BLUE";
+        _targetGroup setBehaviour "CARELESS";
+        private _groundLeg=_targetGroup addWaypoint [_targetPosition vectorAdd [1800,0,0],0];
+        _groundLeg setWaypointType "MOVE";
+        _groundLeg setWaypointSpeed "NORMAL";
     };
     if (_airTarget) then {
         _target setDir 180;
@@ -624,6 +634,10 @@ private _observedProfiles=createHashMap;
     private _plannedTargetPosition=_initialPlan param [31,getPosATL _target];
     private _terrainRequiredLift=_initialPlan param [32,0];
     private _terrainViable=_initialPlan param [33,false];
+    if (_id in ["AIR-ATTACK-HELI-OFFSET","AIR-ATTACK-HELI-HOOK"]) then {
+        [_id+"-fixed-rocket-station-prerequisite",_selectedWeaponClass == "ROCKET"
+            && {_selectedTurret isEqualTo [-1]},str [_selectedWeaponClass,_selectedTurret]] call _recordCheck;
+    };
     private _selectedOperator=if (_selectedTurret isEqualTo [-1]) then {driver _aircraft}
         else {_aircraft turretUnit _selectedTurret};
     if (_pattern != "") then {_observedProfiles set [_pattern,[_profilePoints,_profileAltitudes,_profileSpeeds]]};
@@ -666,7 +680,9 @@ private _observedProfiles=createHashMap;
         [_id+"-terrain-scenario-relief",worldName == "VR" || {_terrainRelief >= 30},
             str [worldName,_terrainRelief,_terrainSamples]] call _recordCheck;
     };
-    if (_isPlaneClass && {!_airTarget} && {count _profilePoints == 3}) then {
+    private _fixedHelicopterRun=!_isPlaneClass && {_selectedTurret isEqualTo [-1]}
+        && {_pattern in ["STRAFE","OFFSET","HOOK"]};
+    if ((_isPlaneClass || {_fixedHelicopterRun}) && {!_airTarget} && {count _profilePoints == 3}) then {
         private _deliveryStart=+(_profilePoints select 0);
         private _deliveryEnd=+(_profilePoints select 1);
         private _deliveryVector=_deliveryEnd vectorDiff _deliveryStart;
@@ -683,14 +699,21 @@ private _observedProfiles=createHashMap;
         } else {90};
         private _angleValid=switch _selectedWeaponClass do {
             case "GUN";
-            case "ROCKET": {_descentAngle >= 3 && {_descentAngle <= 9}};
+            case "ROCKET": {if (_isPlaneClass) then {_descentAngle >= 3 && {_descentAngle <= 9}}
+                else {_descentAngle >= 0 && {_descentAngle <= 20}}};
             case "BOMB": {abs _descentAngle <= 4};
             case "GUIDED": {abs _descentAngle <= 8};
             default {false};
         };
-        [_id+"-delivery-axis-crosses-target",_deliveryLength >= 3000 && {_crossTrack <= 75}
-            && {_targetAlong > 0} && {_targetAlong < _deliveryLength}
-            && {_angleValid} && {(_deliveryEnd select 2) >= 220},
+        private _standoffGeometry=_pattern == "STANDOFF";
+        private _alongValid=if (_standoffGeometry) then {
+            // A stand-off release ends on the inbound side; crossing is a direct-run test.
+            _targetAlong > _deliveryLength
+        } else {_targetAlong > 0 && {_targetAlong < _deliveryLength}};
+        private _geometryCase=["-delivery-axis-crosses-target","-delivery-axis-stays-standoff"] select _standoffGeometry;
+        [_id+_geometryCase,_deliveryLength >= ([1200,3000] select _isPlaneClass) && {_crossTrack <= 75}
+            && {_alongValid}
+            && {_angleValid} && {(_deliveryEnd select 2) >= ([35,220] select _isPlaneClass)},
             str [_selectedWeaponClass,_descentAngle,_crossTrack,_targetAlong,_deliveryLength,
                 _deliveryStart,_deliveryEnd,_plannedTargetPosition,getPosATL _target,
                 _plannedTargetPosition distance2D _target]] call _recordCheck;
@@ -972,6 +995,10 @@ private _observedProfiles=createHashMap;
             && {_crew findIf {!alive _x || {vehicle _x != _aircraft}} < 0},str [getPosATL _aircraft,_crew apply {vehicle _x == _aircraft}]] call _recordCheck;
     };
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    if (_movingGround) then {
+        [_id+"-target-physical-travel",_target distance2D _targetPosition >= 20,
+            str [getPosATL _target,_target distance2D _targetPosition]] call _recordCheck;
+    };
     {deleteVehicle _x} forEach (_crew+_targetCrew+_aaCrew+[_aircraft,_target,_aa]);
     deleteGroup _group; deleteGroup _targetGroup; if (!isNull _aaGroup) then {deleteGroup _aaGroup};
 } forEach [
@@ -979,10 +1006,13 @@ private _observedProfiles=createHashMap;
     // A full-size soft truck survives incidental acquisition fire but remains a credible one-pass
     // destruction target for the retained lateral turret.
     ["AIR-ATTACK-HELI-LATERAL","B_Heli_Attack_01_dynamicLoadout_F",false,false,"LATERAL",false,"GUN",true,"O_Truck_03_transport_F"],
+    ["AIR-ATTACK-HELI-OFFSET","O_Heli_Attack_02_dynamicLoadout_F",false,false,"OFFSET",false,"ROCKET",true,"B_MRAP_01_F"],
+    ["AIR-ATTACK-HELI-HOOK","O_Heli_Attack_02_dynamicLoadout_F",false,false,"HOOK",false,"ROCKET",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-STRAFE","O_Plane_CAS_02_dynamicLoadout_F",false,false,"STRAFE",false,"GUN",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-OFFSET","O_Plane_CAS_02_dynamicLoadout_F",false,false,"OFFSET",false,"ROCKET",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-HOOK","O_Plane_CAS_02_dynamicLoadout_F",false,false,"HOOK",false,"ROCKET",true,"B_MRAP_01_F"],
     ["AIR-ATTACK-PLANE-BOMB","O_Plane_CAS_02_dynamicLoadout_F",false,false,"BOMB",false,"BOMB",true,"B_APC_Tracked_01_rcws_F"],
+    ["AIR-ATTACK-PLANE-BOMB-MOVING","O_Plane_CAS_02_dynamicLoadout_F",false,false,"BOMB",false,"BOMB",true,"B_APC_Tracked_01_rcws_F",true],
     ["AIR-ATTACK-PLANE-GUIDED","O_Plane_CAS_02_dynamicLoadout_F",false,false,"STANDOFF",false,"GUIDED",true,"B_APC_Tracked_01_rcws_F"],
     ["AIR-ATTACK-PLANE-AA","O_Plane_CAS_02_dynamicLoadout_F",true,false,"AUTO",false,"GUIDED",true,"B_APC_Tracked_01_rcws_F"],
     ["AIR-ATTACK-PLANE-INTERCEPT","O_Plane_CAS_02_dynamicLoadout_F",false,false,"AUTO",true,"GUIDED",true],
@@ -999,6 +1029,46 @@ private _hookProfile=_observedProfiles getOrDefault ["HOOK",[]];
         && {(_offsetProfile select 2) isNotEqualTo (_hookProfile select 2)},
     str _observedProfiles] call _recordCheck;
 
+// Negative execution boundary, separate from physical attack acceptance. Forgetting the
+// contact is an explicit fixture input; no reveal, target order or successful release is injected.
+[createHashMapFromArray [["WAIT_Cortex_AirAttack_Enable",true]]] call WAIT_fnc_CortexTuning;
+private _unknownAircraft=objNull;
+private _unknownTarget=objNull;
+private _unknownCrew=[];
+private _unknownTargetCrew=[];
+private _unknownTargetGroup=grpNull;
+private _unknownGroup=grpNull;
+private _unknownReady=false;
+private _unknownOutcome=[];
+isNil {
+    _unknownAircraft=createVehicle ["O_Heli_Attack_02_dynamicLoadout_F",[9800,4000,140],[],0,"FLY"];
+    createVehicleCrew _unknownAircraft;
+    _unknownCrew=crew _unknownAircraft;
+    _unknownGroup=group driver _unknownAircraft;
+    _unknownGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _unknownGroup setVariable ["acex_headless_blacklist",true,true];
+    _unknownGroup setCombatMode "RED";
+    _unknownAircraft setVelocityModelSpace [0,55,0];
+    _unknownTarget=createVehicle ["B_APC_Tracked_01_rcws_F",[9800,5200,0],[],0,"NONE"];
+    createVehicleCrew _unknownTarget;
+    _unknownTargetCrew=crew _unknownTarget;
+    _unknownTargetGroup=group driver _unknownTarget;
+    private _capability=[_unknownAircraft,_unknownTarget] call WAIT_fnc_CortexAirAttackPlan;
+    _unknownGroup forgetTarget _unknownTarget;
+    private _token="QA_UNKNOWN_CONTACT";
+    private _lease=[_unknownAircraft,"AIR_ATTACK",_token,300] call WAIT_fnc_FlightLeaseAcquire;
+    _unknownReady=_lease && {(_unknownGroup knowsAbout _unknownTarget) == 0}
+        && {count _capability > 0} && {(_capability getOrDefault ["selectedWeapon",""]) != ""};
+    private _job=createHashMapFromArray [["aircraft",_unknownAircraft],["target",_unknownTarget],
+        ["flightLeaseToken",_token],["stage",""]];
+    [_job] call WAIT_fnc_CortexAirAttack;
+    _unknownOutcome=_unknownAircraft getVariable ["WAIT_Cortex_AirAttackOutcome",[]];
+};
+["AIR-ATTACK-unknown-contact-prerequisite",_unknownReady,str _unknownOutcome] call _recordCheck;
+["AIR-ATTACK-unknown-contact-refused",_unknownReady && {_unknownOutcome param [0,""] == "NO_KNOWN_TARGET"}
+    && {(_unknownAircraft getVariable ["WAIT_Cortex_AirAttackPlan",[]]) isEqualTo []},str _unknownOutcome] call _recordCheck;
+{deleteVehicle _x} forEach (_unknownCrew+_unknownTargetCrew+[_unknownAircraft,_unknownTarget]);
+deleteGroup _unknownGroup; deleteGroup _unknownTargetGroup;
 // The adaptive controller's disabled boundary must preserve an ordinary authored flight. This is a
 // physical comparison rather than an absence-only assertion: the aircraft must keep moving while no
 // Cortex plan or AIR_ATTACK transition appears.

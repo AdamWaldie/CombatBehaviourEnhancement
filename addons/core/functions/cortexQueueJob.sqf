@@ -28,6 +28,20 @@
 
 params [["_job", {}, [{}]], ["_state", createHashMap, [createHashMap]], ["_delay", 0, [0]], ["_jobKey", "", [""]]];
 private _group = _state getOrDefault ["group", grpNull];
+private _rejectFiniteBrain={
+    if ("pending" in _state && {"completed" in _state}) then {
+        _state set ["pending",false];
+        _state set ["completed",true];
+        _state set ["cancelled",true];
+        _state set ["cancelReason","STALE_QUEUE_OWNER"];
+    };
+};
+if ("group" in _state && {isNull _group}) exitWith {call _rejectFiniteBrain};
+// A queue is not an ownership-adoption boundary. Preserve supplied authority proof:
+// stamping today's epoch onto an old brain would make stale work appear current.
+if (!isNull _group && {!local _group
+    || {(_state getOrDefault ["ownerEpoch",_group getVariable ["WAIT_AIPass_Epoch",0]])
+        != (_group getVariable ["WAIT_AIPass_Epoch",0])}}) exitWith {call _rejectFiniteBrain};
 if (!isNull _group) then {_state set ["ownerEpoch", _group getVariable ["WAIT_AIPass_Epoch", 0]]};
 if (_jobKey == "") then {_jobKey = _state getOrDefault ["jobKey", ""]};
 if (_jobKey != "") then {_state set ["jobKey", _jobKey]};
@@ -35,22 +49,30 @@ private _dueAt = time + (_delay max 0);
 // Only callers with a deliberate, stable key are coalesced. This keeps independent grenade,
 // artillery and group operations separate while a burst of updates for the same owner wakes its
 // existing finite callback immediately.
+private _existingState = createHashMap;
+private _found = false;
 if (_jobKey != "") then {
-    private _existingState = createHashMap;
-    private _found = false;
     {
         private _candidateState = _x param [2, createHashMap, [createHashMap]];
-        if ((_candidateState getOrDefault ["jobKey", ""]) == _jobKey) exitWith {
+        if ((_candidateState getOrDefault ["jobKey", ""]) == _jobKey
+            && {!(_candidateState getOrDefault ["cancelled",false])}
+            && {!(_candidateState getOrDefault ["finished",false])}
+            && {!(_candidateState getOrDefault ["done",false])}
+            && {(_candidateState getOrDefault ["generation",-1]) == (_state getOrDefault ["generation",-1])}
+            && {(_candidateState getOrDefault ["group",grpNull]) == _group}
+            && {isNull _group || {(_candidateState getOrDefault ["ownerEpoch",-1]) == (_state get "ownerEpoch")}}) exitWith {
             _existingState = _candidateState;
             _found = true;
         };
     } forEach ((missionNamespace getVariable ["WAIT_AIPass_Jobs", []]) + (missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []]));
-    if (_found) exitWith {
-        {_existingState set [_x, _y]} forEach _state;
-        _existingState set ["wakeAt", _dueAt];
-        private _nextDue = missionNamespace getVariable ["WAIT_AIPass_NextJobDue", -1];
-        if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _dueAt]};
-    };
+};
+// Function-scope return: an exit inside the key-search block would still append a duplicate.
+if (_found) exitWith {
+    private _wakeAt=_dueAt min (_existingState getOrDefault ["wakeAt",_dueAt]);
+    {_existingState set [_x, _y]} forEach _state;
+    _existingState set ["wakeAt", _wakeAt];
+    private _nextDue = missionNamespace getVariable ["WAIT_AIPass_NextJobDue", -1];
+    if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _dueAt]};
 };
 private _pending = missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []];
 _pending pushBack [_dueAt, _job, _state];

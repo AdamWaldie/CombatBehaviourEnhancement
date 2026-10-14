@@ -108,7 +108,8 @@ if (_acknowledged) exitWith {
     true
 };
 if (_responders isEqualTo []) exitWith {false};
-[_group,_enemyPos,clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAssaultServer",2];
+private _contactConfirmedAt=serverTime-((time-(_state getOrDefault ["lastSeen",-1e6])) max 0);
+[_group,_enemyPos,clientOwner,_contactConfirmedAt] remoteExecCall ["WAIT_fnc_CortexSupportAssaultServer",2];
 [_state,"coordinated",10] call WAIT_fnc_CortexCooldown;
 // Suppress duplicate network dispatches for a bounded interval without claiming movement. The
 // requester keeps native combat or its local drill until a helper owner acknowledges the assault.

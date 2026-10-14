@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
- * Checks that no friendly or civilian is inside a narrow cone between a shooter and a target.
+ * Checks that no friendly, civilian or protected captive is inside the bounded firing cone.
+ * The shooter's own firing platform is excluded; other friendly vehicles still block fire.
  *
  * Every friendly-side or civilian soldier and land
  * vehicle within range of the shooter is projected onto the line of fire. Anyone between 2 m in front
@@ -29,10 +30,15 @@ private _from = eyePos _shooter;
 private _length = _from vectorDistance _target;
 private _direction = _from vectorFromTo _target;
 private _side = side group _shooter;
+private _platform=vehicle _shooter;
 (_shooter nearEntities [["CAManBase", "LandVehicle"], (_length + 10) min 600]) findIf {
     private _other = _x;
     private _otherSide = side group _other;
-    if (_other == _shooter || {!alive _other} || {!(_otherSide == civilian || {_side getFriend _otherSide >= 0.6})}) then {
+    private _protected=captive _other || {_other getVariable ["ace_captives_isSurrendering",false]}
+        || {_other getVariable ["ace_captives_isHandcuffed",false]};
+    // The mounted muzzle's own platform is not another friendly blocking its shot.
+    if (_other == _shooter || {_other == _platform} || {!alive _other}
+        || {!(_protected || {_otherSide == civilian} || {_side getFriend _otherSide >= 0.6})}) then {
         false
     } else {
         private _offset = (getPosASL _other vectorAdd [0, 0, 1]) vectorDiff _from;

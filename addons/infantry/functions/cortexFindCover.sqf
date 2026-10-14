@@ -26,7 +26,7 @@
  * ([_boundPoint, _enemyPos, 12, _taken] call WAIT_fnc_CortexFindCover) params ["_spot", "_found"];
  * Result: a nearby spot with solid cover between it and the enemy, if one exists.
  *
- * Current callers: WAIT_fnc_CortexFlankStep, WAIT_fnc_CortexGrenadeCheck, WAIT_fnc_CortexAntiArmour and WAIT_fnc_DangerCoverStep.
+ * Current callers: WAIT_fnc_CortexFlankStep, WAIT_fnc_CortexGrenadeCheck, WAIT_fnc_CortexAntiArmour WAIT_fnc_DangerCoverStep and WAIT_fnc_BuildingOperationStep.
  */
 
 params [["_position", [], [[]]], ["_threat", [], [[]]], ["_radius", 12, [0]], ["_reserved", [], [[]]], ["_group",grpNull,[grpNull]],["_mode","COVER",[""]]];
@@ -46,7 +46,8 @@ private _placed=if (_mode == "COVER") then {
 {_objects pushBackUnique _x} forEach _placed;
 // Rank both sources together before the geometry budget. Appending placed cover after terrain
 // and truncating immediately could discard a nearby wall behind ten more distant trees.
-private _ranked=_objects apply {[_x distance2D _position,_forEachIndex,_x]};
+private _ranked=[];
+{_ranked pushBack [_x distance2D _position,_forEachIndex,_x]} forEach _objects;
 _ranked sort true;
 _objects=(_ranked select [0,10]) apply {_x select 2};
 private _threatASL = (AGLToASL _threat) vectorAdd [0, 0, 1.6];

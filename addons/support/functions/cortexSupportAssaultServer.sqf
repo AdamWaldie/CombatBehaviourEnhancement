@@ -4,7 +4,9 @@
  * Locality/authority: requester owner asks; server validates its existing leases; helper owners execute.
  * Each helper keeps the side of the support-to-enemy axis on which it rallied. A responder inside
  * the centre corridor receives a deterministic alternating side rather than permission to cross
- * the support line. Candidate approach points remain separated by 60 m, then
+ * the support line. Approach radii scale from live requester/contact and responder/contact
+ * distances, bounded to 45-250 m with six candidates per responder and no additional scans.
+ * Candidate approach points remain separated by 60 m, then
  * WAIT_fnc_CortexSelectAvenue rejects routes entering the requester's
  * 30 m firing corridor or changing sides. The shared bounded scorer distinguishes terrain/solid
  * ballistic screening from visual concealment. It runs once per dispatch, not per tick or soldier.
@@ -18,18 +20,21 @@
  * Repeat/JIP: one assault per request; the updated durable lease revalidates on HC migration.
  * Arguments: 0: requester <GROUP>, grpNull; 1: believed enemy ATL <ARRAY>, [].
  * 2: reply owner <NUMBER>, default -1; HC callers supply clientOwner.
+ * 3: confirmed contact time <NUMBER>, default -1, serverTime clock; missing/stale contact declines attack.
  * Return Value: Nothing.
  * Current callers: CoordinatedAssault.
- * Example: [_group,_enemyPos,clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAssaultServer",2];
+ * Example: [_group,_enemyPos,clientOwner,_confirmedAt] remoteExecCall ["WAIT_fnc_CortexSupportAssaultServer",2];
  */
-params [["_requester",grpNull,[grpNull]],["_enemy",[],[[]]],["_replyOwner",-1,[0]]];
+params [["_requester",grpNull,[grpNull]],["_enemy",[],[[]]],["_replyOwner",-1,[0]],["_confirmedAt",-1,[0]]];
 private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;
 if (!isServer || {isNull _requester} || {([_replyOwner,groupOwner _requester] call WAIT_fnc_HeadlessResolveSender) < 0}
-    || {!(missionNamespace getVariable ["WAIT_AIPass_Enable",false])} || {[] call WAIT_fnc_CortexIsPaused}
+    || {!(missionNamespace getVariable ["WAIT_AIPass_Enable",false])}
+    || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])} || {[] call WAIT_fnc_CortexIsPaused}
     || {!([_requester] call WAIT_fnc_CortexIsEligible)}
     || {!([_requester,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
     || {isNull _requesterTransmitter}
     || {count _enemy != 3} || {_enemy findIf {!(_x isEqualType 0)} >= 0} || {_requesterTransmitter distance2D _enemy > 400}) exitWith {};
+if (_confirmedAt < 0 || {_confirmedAt > serverTime+1} || {serverTime-_confirmedAt > 60}) exitWith {};
 private _requests = missionNamespace getVariable ["WAIT_AIPass_SupportRequests",createHashMap];
 private _job = _requests getOrDefault [netId _requester,createHashMap];
 if (count _job == 0 || {_job getOrDefault ["assaultIssued",false]} || {serverTime >= (_job get "expiry")}) exitWith {};
@@ -71,6 +76,12 @@ private _dispatched=[];
         } else {
             [1,-1] select ((count _dispatched) mod 2 == 1)
         };
+        // Scale the front from this actual opportunity, not from the compact audit fixture.
+        // A bounded pair of radial depths gives same-side squads distinct avenues;
+        // the existing terrain/fire-lane scorer still decides whether any is usable.
+        private _approachRadius=((_laneLength*0.3) max ((_routeOrigin distance2D _enemy)*0.2)) max 45 min 180;
+        private _outerRadius=(_approachRadius+70) min 250;
+        private _obliqueRadius=(_approachRadius*1.4) min 250;
         private _candidateRoutes=[];
         {
             _x params ["_radius","_offset"];
@@ -83,13 +94,14 @@ private _dispatched=[];
             if (_sameSide && {!surfaceIsWater _candidate} && {_separated}) then {
                 _candidateRoutes pushBack [_candidate];
             };
-        } forEach [[45,90],[85,90],[65,135],[45,-90],[85,-90],[65,-135]];
+        } forEach [[_approachRadius,90],[_outerRadius,90],[_obliqueRadius,135],
+            [_approachRadius,-90],[_outerRadius,-90],[_obliqueRadius,-135]];
         private _selected=[_routeOrigin,_candidateRoutes,_enemy,[_supportOrigin]] call WAIT_fnc_CortexSelectAvenue;
         private _attack=if (_selected isEqualTo []) then {[]} else {+(_selected select ((count _selected)-1))};
         if (_attack isNotEqualTo []) then {
             _approaches pushBack +_attack;
             _lease = +_lease; _lease set [2,_job get "expiry"]; _lease set [5,_attack];
-            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+_enemy],true];
+            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+_enemy,_confirmedAt],true];
             _helper setVariable ["WAIT_AIPass_SupportLease",_lease,true];
             [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",groupOwner _helper];
             _dispatched pushBack _x;
@@ -115,6 +127,7 @@ if (_sent > 0) then {
     _job set ["leases",_dispatched];
     _requester setVariable ["WAIT_Cortex_SupportResponders",_dispatched apply {[_x select 0,_x select 1]},true];
     _requester setVariable ["WAIT_Cortex_SupportRequestState",[_job get "serial","ACTIVE",_job get "expiry"],true];
+    _job set ["boundMaxConcurrent",(round (missionNamespace getVariable ["WAIT_AIPass_CoordinatedAssault_MaxMovers",2])) max 1 min 4];
     _job set ["assaultIssued",true];
     [_job,_dispatched] call WAIT_fnc_CortexSupportCoordinateStep;
 } else {

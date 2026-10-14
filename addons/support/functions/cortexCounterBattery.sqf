@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Acquires a firing-event location for finite counter-battery bursts; radar shortens acquisition.
+ * Acquires finite counter-battery fixes through registered radar coverage or fresh owner-local observers.
  * Locality/authority: server consumes the global firing event; guns execute on their owners.
  * Repeat/JIP: server event cooldown and per-side request cooldown prevent duplicate responses across HCs.
  * Arguments: 0: firing vehicle <OBJECT>, objNull; 1: gunner <OBJECT>, objNull.
@@ -12,10 +12,12 @@ params [["_vehicle", objNull, [objNull]], ["_gunner", objNull, [objNull]]];
 if (!isServer || {isNull _vehicle} || {!(missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Enable", false])}
     || {[] call WAIT_fnc_CortexIsPaused}) exitWith {false};
 private _position = getPosATL _vehicle;
-// Update even while a response is active: a new emission may reveal relocation before the next burst.
+// Private raw event evidence is not actionable relocation knowledge; qualified side receipts below are.
 _vehicle setVariable ["WAIT_AIPass_LastEmission", [time, +_position]];
-if (time < (_vehicle getVariable ["WAIT_AIPass_CounterEventAt", -1])) exitWith {false};
-_vehicle setVariable ["WAIT_AIPass_CounterEventAt", time + ((missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Interval", 60]) max 10)];
+private _eventDue=time >= (_vehicle getVariable ["WAIT_AIPass_CounterEventAt", -1]);
+if (_eventDue) then {
+    _vehicle setVariable ["WAIT_AIPass_CounterEventAt", time + ((missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Interval", 60]) max 10)];
+};
 private _enemySide = side group _gunner;
 private _sides = [];
 {
@@ -25,12 +27,17 @@ private _sides = [];
 {
     private _side = _x;
     private _pendingKey = "WAIT_AIPass_CounterPending_" + str _side;
-    if (time >= (_vehicle getVariable [_pendingKey, -1]) && {time >= (_vehicle getVariable ["WAIT_AIPass_CounterUntil_" + str _side, -1])}) then {
         private _sideKey = switch (_side) do {case west: {"WEST"}; case east: {"EAST"}; case independent: {"GUER"}; default {"CIV"}};
         private _radar = (missionNamespace getVariable ["WAIT_AIPass_CounterBatteryRadars", []]) findIf {
             _x params ["_object", "_radarSide"];
             alive _object && {_radarSide == _sideKey} && {_object distance2D _position <= (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_RadarRange", 8000])}
         } >= 0;
+        if (_radar) then {
+            _vehicle setVariable ["WAIT_AIPass_DetectedEmission_" + str _side,[serverTime,+_position,30,"RADAR"]];
+        };
+    // Observation remains available while a response is active; only admission is cooled down.
+    if (_eventDue && {_radar} && {time >= (_vehicle getVariable [_pendingKey, -1])}
+        && {time >= (_vehicle getVariable ["WAIT_AIPass_CounterUntil_" + str _side, -1])}) then {
         private _normalDelay = (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Delay", 60]) max 1;
         private _delay = if (_radar) then {((missionNamespace getVariable ["WAIT_AIPass_CounterBattery_RadarDelay", 20]) max 1) min _normalDelay} else {_normalDelay};
         _vehicle setVariable [_pendingKey, time + _delay + 1];
@@ -49,4 +56,18 @@ private _sides = [];
         }, [_vehicle, _side, +_position, missionNamespace getVariable ["WAIT_AIPass_CounterGeneration", 0]], _delay] call CBA_fnc_waitAndExecute;
     };
 } forEach _sides;
+// An uncovered emission wakes observers; it never grants them the hidden gun position.
+// Their cached local roster and native knowledge/visibility/transmission gates establish the fix.
+if (_eventDue && {_sides isNotEqualTo []}) then {
+    [{
+        params ["_vehicle","_generation"];
+        if (_generation != (missionNamespace getVariable ["WAIT_AIPass_CounterGeneration",0])
+            || {isNull _vehicle} || {!alive _vehicle}
+            || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
+            || {!(missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Enable",false])}
+            || {[] call WAIT_fnc_CortexIsPaused}) exitWith {};
+        [_vehicle] remoteExecCall ["WAIT_fnc_CortexCounterObserve",0];
+    },[_vehicle,missionNamespace getVariable ["WAIT_AIPass_CounterGeneration",0]],
+        (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Delay",60]) max 1] call CBA_fnc_waitAndExecute;
+};
 true

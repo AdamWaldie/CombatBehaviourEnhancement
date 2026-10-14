@@ -26,6 +26,9 @@
  * (RETREAT phase, through an inserted waypoint). Each vehicle withdraws once per engagement.
  * Gunnery (WAIT_AIPass_VehicleGunnery_Enable): a fresh mounted danger event may orient the exact
  * affected armed platform and request one safe suppression response against an already known hostile.
+ * Captive, surrendering and handcuffed sources cannot authorize targeted danger responses.
+ * Danger suppression uses the effective commander's native believed contact position, never
+ * the hidden enemy's exact aim position. An unavailable estimate cannot authorize suppression.
  * A stopped or slow armed vehicle whose primary gunner has been lost may ask an existing dedicated
  * AI commander to change to that seat once for the exact DETECTED generation. The driver never moves.
  * An intact armed or armoured platform may also request its own smoke countermeasure once for a
@@ -367,6 +370,9 @@ if (_dangerDismount isNotEqualTo []) then {
         if (time < _dangerExpiry && {!isNull _dangerVehicle} && {_dangerVehicle in _vehicles}) then {
             private _affectedVehicles=[_dangerVehicle];
             private _dangerHostile=!isNull _dangerSource && {alive _dangerSource}
+                && {!captive _dangerSource}
+                && {!(_dangerSource getVariable ["ace_captives_isSurrendering",false])}
+                && {!(_dangerSource getVariable ["ace_captives_isHandcuffed",false])}
                 && {(side _group) getFriend (side _dangerSource) < 0.6}
                 && {(units _group) findIf {_x knowsAbout _dangerSource > 0} >= 0};
             // Targetless damage and incoming rounds justify passenger safety. Other vehicle danger
@@ -497,9 +503,13 @@ if (_dangerDismount isNotEqualTo []) then {
                     && {unitCombatMode _gunner in ["YELLOW","RED"]}
                     && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
                     && {[] call _mayIssueVehicle}) then {
-                    private _aimPosition=aimPos _dangerSource;
-                    if ([_gunner,_aimPosition] call WAIT_fnc_CortexLineOfFireClear) then {
-                        _gunner doWatch _dangerSource;
+                    // Knowledge authorizes an estimate, not the hidden object's exact pose.
+                    // Use the same native believed ATL contract as CortexKnowledge.
+                    private _believed=(effectiveCommander _vehicle) getHideFrom _dangerSource;
+                    private _aimPosition=(ATLToASL _believed) vectorAdd [0,0,1];
+                    if (_believed isNotEqualTo [0,0,0]
+                        && {[_gunner,_aimPosition] call WAIT_fnc_CortexLineOfFireClear}) then {
+                        _gunner doWatch _aimPosition;
                         _gunner doSuppressiveFire _aimPosition;
                         _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
                         _vehicle setVariable ["WAIT_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];

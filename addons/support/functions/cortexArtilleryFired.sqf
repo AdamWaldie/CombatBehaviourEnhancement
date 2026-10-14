@@ -5,6 +5,7 @@
  * Repeat/JIP: mission tokens reject stale work; server state survives HC migration, not restart.
  * Arguments: ArtilleryShellFired event payload, documented by Bohemia.
  * Return Value: Nothing.
+ * Qualified replies wake a parked exact mission for finite settlement; no new shot is issued.
  * Current callers: ArtilleryShellFired mission handler.
  * Example: _this call WAIT_fnc_CortexArtilleryFired;
  */
@@ -31,3 +32,11 @@ if ((_mission get "remaining") > 0) then {
     _mission set ["due", time + _eta + ((missionNamespace getVariable ["WAIT_AIPass_Artillery_WarningInterval", 20]) max 10)];
 };
 diag_log format ["[WAIT] Burst shot confirmed token=%1 total=%2 burstRemaining=%3 burstsLeft=%4 aim=%5", _mission get "token", _mission get "fired", _mission get "remaining", _mission get "burstsLeft", _position];
+
+// A parked unresolved request has no active scheduler. Its qualified reply
+// wakes the exact registered mission for finite settlement, never another shot.
+if (_mission getOrDefault ["parked",false]) then {
+    _mission set ["parked",false];
+    _mission set ["deadline",(_mission get "due")+30];
+    [_mission,0] call WAIT_fnc_ArtilleryMissionStart;
+};

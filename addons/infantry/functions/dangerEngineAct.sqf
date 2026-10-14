@@ -66,9 +66,8 @@ if (count _operation > 0 && {count _drill > 0}
             _teams param [_drill getOrDefault ["teamTurn",0],[]]
         }
     } else {if (_stage == "MOVE") then {_drill getOrDefault ["movers",[]]} else {[]}};
-    if (_actor in _moving || {(_drill getOrDefault ["recovery",[]]) findIf {(_x select 0) == _actor} >= 0}) then {
-        _committedMover=true;
-    };
+    _committedMover=_actor in _moving
+        || {(_drill getOrDefault ["recovery",[]]) findIf {(_x select 0) == _actor} >= 0};
 };
 // Some finite actor-level opportunities compose beside the group operation. Static deployment,
 // packing, cover, grenade evasion and launcher relocation already own an exact destination and deadline; an immediate

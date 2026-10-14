@@ -11,7 +11,8 @@
  * actors; established line soldiers retain their hold and route generation. A job stops each selected
  * soldier only on arrival and points him at
  * his sector. Each route leg has one native doMove owner. Each soldier has an independent
- * physical-progress watchdog: measured travel renews the lease, inactivity causes a bounded route
+ * physical-progress watchdog: measured three-dimensional approach renews the lease; lateral
+ * wandering does not. Inactivity causes a bounded route
  * refresh, and only exhausted refreshes record failure.
  * Scheduler delay and temporary Zeus ownership do not consume recovery attempts.
  * Locality and authority: call where the group is local.
@@ -49,7 +50,16 @@ private _routes=[];
 // Recheck immediately before individual movement writes; scheduler eligibility is not a
 // lease over a later Zeus, player or specialist takeover in the same callback.
 private _mayIssueMovement = {
-    !([_group] call WAIT_fnc_CortexExternalTakeover)
+    params ["_actor"];
+    private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _free=_reservation isEqualTo []
+        || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+    !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group}
+        && {isNull objectParent _actor} && {_free} && {!isPlayer _actor}
+        && {isNull remoteControlled _actor} && {[_actor] call WAIT_fnc_CortexCombatEffective}
+        && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+        && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+        && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 {
     _x setVariable ["WAIT_AIPass_DefendHolding", nil];
@@ -60,7 +70,7 @@ private _mayIssueMovement = {
     if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}) then {
         _routes pushBack [_x,getPosATL _x,time,0,_routeGeneration];
-        if (_x distance2D (_assignment select 0) > 2 && {call _mayIssueMovement}) then {
+        if ((getPosATL _x) vectorDistance (_assignment select 0) > 2 && {[_x] call _mayIssueMovement}) then {
             _x doMove (_assignment select 0);
         };
     };
@@ -76,7 +86,16 @@ private _mayIssueMovement = {
         -1
     };
     private _mayIssueMovement = {
-        !([_group] call WAIT_fnc_CortexExternalTakeover)
+        params ["_actor"];
+        private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _free=_reservation isEqualTo []
+            || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+        !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group}
+            && {isNull objectParent _actor} && {_free} && {!isPlayer _actor}
+            && {isNull remoteControlled _actor} && {[_actor] call WAIT_fnc_CortexCombatEffective}
+            && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+            && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+            && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
     private _pending = 0;
     private _routes=_job get "routes";
@@ -90,8 +109,10 @@ private _mayIssueMovement = {
             && {[_unit] call WAIT_fnc_CortexCombatEffective} && {local _unit} && {!isPlayer _unit}
             && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}
             && {!(_unit getVariable ["WAIT_AIPass_DefendHolding", false])}
-            && {!(_unit getVariable ["WAIT_AIPass_DefendFailed",false])}) then {
-            if (_unit distance2D (_assignment select 0) <= 3) then {
+            && {!(_unit getVariable ["WAIT_AIPass_DefendFailed",false])} && {[_unit] call _mayIssueMovement}) then {
+            if ((getPosATL _unit) vectorDistance (_assignment select 0) <= 3
+                && {abs (((getPosATL _unit) select 2)-((_assignment select 0) select 2)) <= 1.5}
+                && {[_unit] call _mayIssueMovement}) then {
                 doStop _unit;
                 _unit doWatch ((_assignment select 0) getPos [60, _assignment select 1]);
                 _unit setVariable ["WAIT_AIPass_DefendHolding", true];
@@ -99,12 +120,14 @@ private _mayIssueMovement = {
                 _pending = _pending + 1;
                 private _route=_routes select _routeIndex;
                 _route params ["_routeUnit","_lastPosition","_lastProgress","_retries","_actorGeneration"];
-                if (_unit distance2D _lastPosition >= 1) then {
+                private _destination=_assignment select 0;
+                // Only approach to the committed post renews progress, not circles around it.
+                if ((_lastPosition vectorDistance _destination)-((getPosATL _unit) vectorDistance _destination) >= 1) then {
                     _route set [1,getPosATL _unit];
                     _route set [2,time];
                 } else {
                     if (time-_lastProgress >= 15) then {
-                        if (_retries < 3 && {call _mayIssueMovement}) then {
+                        if (_retries < 3 && {[_unit] call _mayIssueMovement}) then {
                             _unit doMove (_assignment select 0);
                             _route set [2,time];
                             _route set [3,_retries+1];

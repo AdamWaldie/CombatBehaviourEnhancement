@@ -51,7 +51,7 @@
  * assaultChance controls optional grenade preparation, not whether an enabled, successful manoeuvre
  * arbitrarily abandons its assault transition. One member may throw a fragmentation grenade
  * (WAIT_fnc_CortexThrowGrenade, never near friendlies). The approach uses a covered spot
- * 20 m short of the reported enemy and clears 20 m beyond that fixed objective, while the base of fire keeps suppressing. Formation commitment issues the covered approach immediately. Arrival without a queued grenade issues the clear-through immediately; a queued throw retains a two-second reservation pending physical grenade-safety acceptance. A queued frag is an opportunistic action: its own next-frame safety check may cancel it, but deployment never gates the assault or aborts movement. The assault axis stays fixed through the crossing; water destinations are rejected.
+ * 20 m short of the reported enemy and clears 20 m beyond that fixed objective, while the base of fire keeps suppressing. Formation commitment issues the covered approach immediately. Arrival issues the clear-through immediately, whether or not a grenade throw was queued. A queued frag is an opportunistic action: its own next-frame safety check may cancel it, but deployment never gates the assault or aborts movement. The assault axis stays fixed through the crossing; water destinations are rejected.
  * Consolidation: a flank brings its covering element forward even when no final assault
  * is selected; the manoeuvre element holds its gained position. After clearing through,
  * its surviving on-foot covering element moves
@@ -318,6 +318,9 @@ if (_operationGeneration >= 0) then {
 if (_reinforcements isNotEqualTo []) then {
     private _history=_group getVariable ["WAIT_Cortex_DrillReinforcements",[]];
     _history pushBack [serverTime,_drill getOrDefault ["type",""],_drill getOrDefault ["index",-1],_reinforcements];
+    // Diagnostics must not grow the public payload for a long-lived casualty/recovery operation.
+    // Current participants remain authoritative; retain only the latest replacement transitions.
+    if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
     _group setVariable ["WAIT_Cortex_DrillReinforcements",_history,true];
     if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
         [_group,_drill,"START","CASUALTY_REINFORCEMENT"] call WAIT_fnc_CortexDrillSetStage;
@@ -325,7 +328,12 @@ if (_reinforcements isNotEqualTo []) then {
         _drill set ["boundStart",time];
     };
 };
-if (count _units < ((ceil (_desiredStrength / 2)) max 1)) exitWith {"LOSSES" call _end};
+// Two ordinary survivors can still alternate a covered movement pair. Loss of half the
+// original roster alone is not a reason to discard their committed route; morale owns retreat.
+// Reserved multi-squad roles retain their existing three-person admission contract.
+private _minimumStrength=[2,3] select _support;
+if (count _units < _minimumStrength) exitWith {"LOSSES" call _end};
+private _minimumMovers=[2,1] select (!_support && {count _units == 2});
 // Recovery stays in this existing bounded group job; no per-soldier loop is spawned.
 private _recovery = (_drill getOrDefault ["recovery",[]]) select {(_x select 0) in _units};
 private _recovering = _recovery apply {_x select 0};
@@ -390,8 +398,19 @@ private _ensureMovingTeam={
     private _otherTurn=1-_turn;
     private _movingAvailable=(_teams select _turn) select {_x in _available};
     private _coverAvailable=(_teams select _otherTurn) select {_x in _available};
-    while {count _movingAvailable < 2 && {count _coverAvailable > 2
-        || {count _movingAvailable == 1 && {count _coverAvailable == 2}}}} do {
+    if (!_support && {count _available == 2} && {_coverAvailable isEqualTo []}
+        && {count _movingAvailable == 2}) then {
+        private _coverer=_movingAvailable deleteAt 1;
+        (_teams select _turn) deleteAt ((_teams select _turn) find _coverer);
+        (_teams select _otherTurn) pushBack _coverer;
+        _coverAvailable pushBack _coverer;
+        _drill set ["teams",_teams];
+        if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
+            [_group,_drill,"START","SURVIVOR_PAIR_REBALANCE"] call WAIT_fnc_CortexDrillSetStage;
+            _drill set ["spots",[]];
+        };
+    };
+    while {count _movingAvailable < _minimumMovers && {count _coverAvailable > 1}} do {
         private _replacement=_coverAvailable deleteAt ((count _coverAvailable)-1);
         (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _replacement);
         (_teams select _turn) pushBack _replacement;
@@ -405,6 +424,7 @@ private _ensureMovingTeam={
         private _history=_group getVariable ["WAIT_Cortex_DrillReinforcements",[]];
         _history pushBack [serverTime,_drill getOrDefault ["type",""],_drill getOrDefault ["index",-1],
             [[format ["TEAM_%1_RECOVERY",_turn+1],netId _replacement]]];
+        if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
         _group setVariable ["WAIT_Cortex_DrillReinforcements",_history,true];
     };
     [_movingAvailable,_coverAvailable]
@@ -413,7 +433,7 @@ if (_teams isNotEqualTo []) then {
     private _turn=_drill getOrDefault ["teamTurn",0];
     private _roster=[_turn,_units] call _ensureMovingTeam;
     _roster params ["_movingAvailable","_coverAvailable"];
-    if (count _movingAvailable < 2) then {
+    if (count _movingAvailable < _minimumMovers) then {
         private _pendingRecovery=_recovery select {(_x select 0) in (_teams select _turn)};
         private _exhausted=_pendingRecovery isEqualTo [] || {_pendingRecovery findIf {
             (_x select 1) >= 1 && {time >= (_x select 2)}
@@ -485,7 +505,7 @@ private _issue = {
         // movers before any destination write, not one scheduler interval afterward.
         private _roster=[_drill get "teamTurn",_fit] call _ensureMovingTeam;
         _units=_roster select 0;
-        _viable=count _units >= 2 && {count (_roster select 1) >= 1};
+        _viable=count _units >= _minimumMovers && {count (_roster select 1) >= 1};
     };
     if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
@@ -557,8 +577,28 @@ private _issue = {
                 _combatModes pushBack [_unit,"RED","YELLOW"];
                 _unit setUnitCombatMode "YELLOW";
             };
-            _unit doWatch _enemyPos;
-            _unit doMove _spot;
+            private _handoff=[serverTime,netId _unit,_drill get "index",
+                currentCommand _unit,expectedDestination _unit,+_spot,attackEnabled _group];
+            // A previous covering role may have received a WAIT target assignment. Retire
+            // only that exact local receipt before the actor becomes a mover; native knowledge
+            // and a newer external assignment remain available to ordinary engine aiming.
+            private _fireTarget=_unit getVariable ["WAIT_Cortex_FireTarget",[]];
+            if (count _fireTarget == 3 && {(_fireTarget select 0) == _group}
+                && {(_fireTarget select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {!isNull (_fireTarget select 2)} && {assignedTarget _unit == (_fireTarget select 2)}) then {
+                _unit doTarget objNull;
+            };
+            _unit setVariable ["WAIT_Cortex_FireTarget",nil];
+            if ([_unit] call _mayIssueMovement) then {
+                _unit doWatch _enemyPos;
+                _unit doMove _spot;
+            };
+            // Keep a bounded pre-command record; native aiming remains untouched.
+            private _handoffs=_drill getOrDefault ["movementHandoffs",[]];
+            if (count _handoffs < 16) then {
+                _handoffs pushBack _handoff;
+                _drill set ["movementHandoffs",_handoffs];
+            };
         };
     } forEach _units;
     private _waypointIndex = currentWaypoint _group;
@@ -568,6 +608,9 @@ private _issue = {
     };
     _drill set ["boundWaypoint",_waypointSnapshot];
     _drill set ["spots", _spots];
+    _group setVariable ["WAIT_Cortex_DrillMovementHandoffs",[
+        _operationGeneration,_token,+(_drill getOrDefault ["movementHandoffs",[]])
+    ],true];
     _drill set ["movers", +_units];
     _drill set ["arrivedUnits",[]];
     private _progress = [];

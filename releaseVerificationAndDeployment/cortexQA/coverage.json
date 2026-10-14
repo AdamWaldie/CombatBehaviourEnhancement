@@ -224,6 +224,7 @@
       ],
       "production_sources": [
         "addons/core/functions/aiApplyProfile.sqf",
+        "addons/core/functions/aiRestoreProfile.sqf",
         "addons/core/functions/aiRebalanceInit.sqf",
         "addons/core/functions/aiRebalanceStop.sqf",
         "addons/core/functions/AISkillAdjustmentSystem.sqf"
@@ -686,6 +687,9 @@
       "expected": "Vehicle physically withdraws, uses only available smoke and restores controls; immobilized or deleted vehicles terminate safely.",
       "settings": [
         "WAIT_AIPass_VehicleReverse_Enable",
+        "WAIT_AIPass_VehicleReverse_Distance",
+        "WAIT_AIPass_VehicleReverse_Timeout",
+        "WAIT_AIPass_VehicleReverse_FacingTolerance",
         "WAIT_AIPass_VehicleWithdraw_Enable"
       ],
       "status": "implemented_partial",
@@ -726,7 +730,9 @@
       "setup": "Send an AI ground-vehicle group through flat, rolling and steep terrain with the feature disabled and enabled, then replace its waypoint through Zeus and transfer ownership.",
       "expected": "Enabled vehicles retain the same native route and slow only for sampled grades. Convoys remain under their own controller; player, Zeus and external driving ownership release the cap immediately.",
       "settings": [
-        "WAIT_AIPass_DrivingAssist_Enable"
+        "WAIT_AIPass_DrivingAssist_Enable",
+        "WAIT_AIPass_DrivingAssist_MaxSpeed",
+        "WAIT_AIPass_DrivingAssist_Recovery_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -1146,7 +1152,8 @@
       "setup": "Use two eligible responders on separate owners and a supported squad in real contact.",
       "expected": "Responders accept communicated contact and begin separated approaches from their live positions without an intermediate assembly or all-responder readiness gate; rejection, loss and disable release every affected lease independently.",
       "settings": [
-        "WAIT_AIPass_CoordinatedAssault_Enable"
+        "WAIT_AIPass_CoordinatedAssault_Enable",
+        "WAIT_AIPass_CoordinatedAssault_MaxMovers"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1305,7 +1312,8 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [
-        "20260929-184640: only one of four room positions visited; clearance incomplete. Outside-start prerequisite also failed, so fresh-group cases are required."
+        "20260929-184640: only one of four room positions visited; clearance incomplete. Outside-start prerequisite also failed, so fresh-group cases are required.",
+        "20261011-231043-192: 2/6-person clearance and handover pass; active 12-person native replacement order remains unaccepted."
       ],
       "automation": "runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete.",
       "executable_sources": [
@@ -1318,7 +1326,11 @@
         "addons/infantry/functions/buildingOperationStart.sqf",
         "addons/infantry/functions/buildingOperationQueue.sqf",
         "addons/infantry/functions/buildingOperationStep.sqf",
-        "addons/infantry/functions/cortexClearRelease.sqf"
+        "addons/infantry/functions/buildingExteriorCandidate.sqf",
+        "addons/infantry/functions/buildingExteriorProposal.sqf",
+        "addons/infantry/functions/cortexClearRelease.sqf",
+        "addons/core/functions/nativeOrderReceipt.sqf",
+        "addons/infantry/functions/combatPairs.sqf"
       ]
     },
     {
@@ -1518,9 +1530,11 @@
         "addons/infantry/functions/cortexCombinedArmsRequest.sqf",
         "addons/infantry/functions/cortexCombinedArmsServer.sqf",
         "addons/infantry/functions/cortexCombinedAirFallbackServer.sqf",
+        "addons/infantry/functions/cortexCombinedGroundFallbackServer.sqf",
         "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
         "addons/infantry/functions/cortexCombinedRejectServer.sqf",
-        "addons/infantry/functions/cortexCombinedGroundStep.sqf"
+        "addons/infantry/functions/cortexCombinedGroundStep.sqf",
+        "addons/infantry/functions/cortexGroundFireReady.sqf"
       ]
     },
     {

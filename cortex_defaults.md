@@ -127,9 +127,14 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `WAIT_AIPass_VehicleDismount_Enable` | `true` | Unloads capable passengers only when safely stopped on dry ground. |
 | `WAIT_AIPass_VehicleRemount_Enable` | `true` | Allows safe conscious passengers to reboard after Smart AI contact. Convoy resume stays explicit. |
 | `WAIT_AIPass_VehicleReverse_Enable` | `true` | Tracked armour attempts one bounded threat-facing reverse leg; wheeled escape remains forward. |
+| `WAIT_AIPass_VehicleReverse_Distance` | `30` | Required projected reverse travel in metres; captured per leg. |
+| `WAIT_AIPass_VehicleReverse_Timeout` | `20` | Maximum reverse leg duration in seconds; captured per leg. |
+| `WAIT_AIPass_VehicleReverse_FacingTolerance` | `35` | Hull/contact tolerance in degrees; captured per leg. |
 | `WAIT_AIPass_VehicleWithdraw_Enable` | `true` | Allows damaged vehicles to withdraw and use existing smoke. |
 | `WAIT_AIPass_VehicleJink_Enable` | `true` | Allows one short terrain-checked escape by an eligible intact fighting vehicle under close or severe danger. |
 | `WAIT_AIPass_DrivingAssist_Enable` | `true` | Applies a sparse terrain-grade speed cap to ordinary AI ground vehicles while preserving their native waypoint and route. Convoys use separate driving controls. |
+| `WAIT_AIPass_DrivingAssist_MaxSpeed` | `70` | General driving safety cap in km/h; terrain and lower authored caps still apply. |
+| `WAIT_AIPass_DrivingAssist_Recovery_Enable` | `true` | Permit new finite ordinary-driving recovery attempts. |
 | `WAIT_AIPass_CoverValidation_Enable` | `true` | Adds bounded slope and body clearance checks to shared cover selection. |
 | `WAIT_Convoy_MountedFire_Enable` | `true` | WAIT assigns targets to weapon crew under existing ROE. Disable to leave targeting to another AI mod. |
 | `WAIT_Convoy_Cover_Enable` | `true` | Moves dismounted passengers clear of vehicles; seeks cover during contact. |
@@ -203,6 +208,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `WAIT_AIPass_Advance_MinContactSeconds` | `0` | SECONDS: optional confirmed-contact delay before an advance is considered. |
 | `WAIT_AIPass_Advance_Cooldown` | `20` | SECONDS: after an advance ends before the squad may start another. |
 | `WAIT_AIPass_CoordinatedAssault_Enable` | `true` | BOOL: reinforcing squads assault together while the first squad fires. |
+| `WAIT_AIPass_CoordinatedAssault_MaxMovers` | `2` | Concurrent manoeuvre cap per opportunity; one to four safe distinct corridors. |
 | `WAIT_AIPass_Stance_Enable` | `true` | BOOL: stance chosen from the height of the cover in front. |
 | `WAIT_AIPass_AmmoShare_Enable` | `true` | BOOL: soldiers low on magazines get one from a squad-mate. |
 | `WAIT_AIPass_AmmoShare_Distance` | `10` | METRES: how close the squad-mate must be. |

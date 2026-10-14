@@ -58,6 +58,12 @@ if (count _brain > 0 && {!_keepBrain}) then {
     _brain set ["cancelled",true];
     _brain set ["cancelReason",if (_reason == "") then {"RELEASED"} else {_reason}];
     _brain set ["wakeAt",time];
+    // Retire this FSM's identity synchronously. Its later Finished state must not
+    // release a replacement CLEAR or other operation started in this same frame.
+    _group setVariable ["WAIT_GroupBrain_Generation",(_group getVariable ["WAIT_GroupBrain_Generation",0])+1];
+    _group setVariable ["WAIT_GroupBrain",nil];
+    _group setVariable ["WAIT_GroupBrain_FSM",nil];
+    _group setVariable ["WAIT_Cortex_GroupJob",nil];
 };
 private _yieldToZeus=local _group && {[_group] call WAIT_fnc_CortexZeusHeld};
 // The helper covers player members, curator possession, specialist ownership and explicit
@@ -68,6 +74,27 @@ if (_reason == "") then {
     _reason=if (_yieldToZeus) then {"ZEUS_TAKEOVER"} else {if (_yieldToExternal) then {"EXTERNAL_TAKEOVER"} else {"RELEASED"}};
 };
 private _externalTakeover=_yieldToZeus || {_yieldToExternal} || {_reason in ["ZEUS_TAKEOVER","EXTERNAL_TAKEOVER"]};
+// Full shutdown must release a native STOP acquired after a successful clear.
+// Ordinary contact-state cleanup does not undo the explicit post-clear hold.
+private _clearHold=_group getVariable ["WAIT_Cortex_ClearHold",[]];
+if (local _group && {count _clearHold == 4} && {_externalTakeover || {_reason == "CORTEX_STOPPED"}}) then {
+    _group setVariable ["WAIT_Cortex_ClearHold",nil,true];
+    if (!_externalTakeover && {(_clearHold select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])}
+        && {(_clearHold select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}) then {
+        private _anchor=leader _group;
+        {
+            if (local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
+                && {isNull objectParent _x} && {isNull remoteControlled _x}
+                && {[_x] call WAIT_fnc_CortexCombatEffective}
+                && {!([_group,true,_x] call WAIT_fnc_CortexExternalTakeover)}
+                && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+                && {(_x getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}) then {
+                _x doFollow _anchor;
+            };
+        } forEach (_clearHold select 3);
+    };
+};
 // New curator intent invalidates pending operation work even when no common record
 // is active. Advance on the owner once per token; repeated cleanup is a no-op here.
 if (local _group && {_reason == "ZEUS_TAKEOVER"}) then {
@@ -152,7 +179,7 @@ if (local _group && {!_keepBrain}) then {
 // local set as well as currently occupied vehicles.
 if (local _group) then {
     if (!_keepBrain) then {
-        {[_x] call WAIT_fnc_DrivingAssistRelease} forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
+        {[_x,_group] call WAIT_fnc_DrivingAssistRelease} forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
         _group setVariable ["WAIT_DrivingAssist_Vehicles",nil];
     };
     {

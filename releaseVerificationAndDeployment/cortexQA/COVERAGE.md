@@ -13,7 +13,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | COMPAT - Specialist ownership and alternative-controller handover | 0 | 0 | 8 | `runCompatibility.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | SCHED - Scheduler and distance tiers | 11 | 0 | 6 | `runScheduler.sqf`, `runPerformance.sqf`, `runPerformanceContact.sqf` | 3 | implemented_partial |
 | PROFILE - Behaviour profiles and aggression | 4 | 1 | 1 | `runProfiles.sqf` | 1 | implemented_partial |
-| SKILL - AI skill rebalance | 14 | 0 | 4 | `runMechanics.sqf` | 0 | implemented_partial |
+| SKILL - AI skill rebalance | 14 | 0 | 5 | `runMechanics.sqf` | 0 | implemented_partial |
 | LAND - Helicopter landing | 21 | 0 | 7 | `runLanding.sqf` | 1 | implemented_partial |
 | DECEL - Helicopter braking | 14 | 1 | 3 | `runDeceleration.sqf` | 0 | implemented_partial |
 | REGROUP - Survivor regroup | 9 | 0 | 2 | `runMechanics.sqf` | 0 | implemented_partial |
@@ -31,9 +31,9 @@ Feature cases: **65**. Required variant categories: **14**.
 | VEH - Vehicle engagement | 4 | 0 | 8 | `runGunnery.sqf`, `runNaval.sqf`, `runVehicleDrills.sqf` | 1 | implemented_partial |
 | DISMOUNT - Contact passenger dismount | 1 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | REMOUNT - Contact passenger remount | 1 | 0 | 1 | `runVehicleDrills.sqf` | 0 | implemented_partial |
-| WITHDRAW - Damaged vehicle withdrawal | 2 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
+| WITHDRAW - Damaged vehicle withdrawal | 5 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
 | COVER - Cover selection and clearance | 1 | 0 | 1 | `runCover.sqf` | 1 | implemented_partial |
-| VEH-DRIVING - Ordinary vehicle route safety | 1 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |
+| VEH-DRIVING - Ordinary vehicle route safety | 3 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | CNV-MOVE - Mixed convoy path and spacing | 5 | 0 | 7 | `runServer.sqf`, `runConvoyMatrix.sqf` | 0 | implemented_partial |
 | CNV-FIRE - Convoy weapon crew | 1 | 0 | 1 | `runServer.sqf` | 0 | implemented_partial |
 | CNV-COVER - Convoy dismount positions | 1 | 0 | 0 | `runServer.sqf` | 0 | implemented_partial |
@@ -51,7 +51,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | INVESTIGATE - Known-area investigation | 3 | 0 | 2 | `runSupport.sqf` | 0 | implemented_partial |
 | ASSAULT - Final assault | 2 | 0 | 1 | `runCombat.sqf` | 3 | implemented_partial |
 | ADVANCE - Bounding advance | 3 | 0 | 4 | `runCombat.sqf` | 2 | implemented_partial |
-| COORD - Coordinated assault | 1 | 0 | 13 | `runCoordinated.sqf` | 10 | implemented_partial |
+| COORD - Coordinated assault | 2 | 0 | 13 | `runCoordinated.sqf` | 10 | implemented_partial |
 | STANCE - Cover stance | 1 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
 | AMMO - Magazine sharing | 2 | 0 | 3 | `runMechanics.sqf` | 0 | implemented_partial |
 | GUNNERY - Vehicle threat priority | 1 | 0 | 0 | `runGunnery.sqf` | 1 | implemented_partial |
@@ -68,7 +68,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | LIGHTING - Automatic darkness, night vision and illumination | 1 | 0 | 0 | `runProfiles.sqf`, `runLighting.sqf` | 1 | implemented_partial |
 | DRILL-HANDOVER - Moving flank and advance handed to Zeus | 0 | 0 | 1 | `runCombat.sqf` | 2 | implemented_partial |
 | DRILL-RECOVERY - Bound continuation and straggler rejoin | 0 | 0 | 2 | `runCombat.sqf` | 2 | implemented_partial |
-| COMBINED-ARMS - Contact-led combined-arms opportunity | 1 | 0 | 5 | `runCombinedArms.sqf` | 0 | implemented_partial |
+| COMBINED-ARMS - Contact-led combined-arms opportunity | 1 | 0 | 6 | `runCombinedArms.sqf` | 0 | implemented_partial |
 | COMBINED-OPERATION - Dynamic multi-squad combined operation | 0 | 0 | 0 | `runCombinedOperation.sqf` | 0 | implemented_partial |
 | ATTACK-FLARES - Attack-run approach and departure flares | 1 | 0 | 1 | `runAircraft.sqf` | 1 | implemented_partial |
 | AIR-ATTACK - Threat-aware finite aircraft attack patterns | 1 | 0 | 9 | `runAircraft.sqf` | 2 | implemented_partial |

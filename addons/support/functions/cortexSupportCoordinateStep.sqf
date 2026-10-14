@@ -14,7 +14,7 @@
  * remaining distance to avoid slow fixed-step movement. Each new bound chooses once among the direct
  * line and two shallow alternatives through the shared terrain/fire-lane selector, so a valid overall
  * approach does not place the next bound in water, on a cliff-like slope or across supporting fire.
- * Up to two squads on separated approaches
+ * The configured number of squads on separated approaches
  * may bound concurrently; each still alternates its own moving and covering fire teams. This removes
  * the former four-deep serial queue without turning the whole force into one unsupported rush.
  * Arguments: 0: request <HASHMAP>; 1: accepted leases <ARRAY>, required.
@@ -81,7 +81,15 @@ private _routeFailuresByToken=_job getOrDefault ["routeFailuresByToken",createHa
 // Retire it here so it cannot be reconsidered every two seconds until the lease ends.
 {
     _x params ["_group","_token"];
-    private _fit=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}};
+    private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    private _unavailable=_operation getOrDefault ["unavailable",[]];
+    private _fit=(units _group) select {
+        [_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}
+            && {!(_x in _unavailable)} && {!isPlayer _x} && {isNull remoteControlled _x}
+            && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
+            && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+    };
     if (count _fit < 3 && {!(_token in _completed)} && {!(_token in _retired)}) then {
         _retired pushBackUnique _token;
         _group setVariable ["WAIT_Cortex_SupportAbort",
@@ -91,7 +99,7 @@ private _routeFailuresByToken=_job getOrDefault ["routeFailuresByToken",createHa
 _job set ["boundRetired",_retired];
 
 private _cursor=_job getOrDefault ["boundCursor",0];
-private _maxConcurrent=(count _teams) min 2;
+private _maxConcurrent=(count _teams) min (_job getOrDefault ["boundMaxConcurrent",2]);
 for "_slot" from count _active to (_maxConcurrent-1) do {
     private _next=grpNull;
     private _point=[];
@@ -102,7 +110,21 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
         if (!isNull _next) exitWith {};
         private _index=(_cursor+_offset) mod count _teams;
         (_teams select _index) params ["_group","_token","_goal"];
-        private _fit=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}};
+        private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    private _unavailable=_operation getOrDefault ["unavailable",[]];
+    private _fit=(units _group) select {
+        [_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}
+            && {!(_x in _unavailable)} && {!isPlayer _x} && {isNull remoteControlled _x}
+            && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
+            && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+    };
+        _fit=_fit select {
+            private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+            private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
+                && {(_reservation param [2,1e12,[0]]) <= time}};
+            _free && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        };
         if (count _fit >= 3 && {serverTime >= (_group getVariable ["WAIT_Cortex_SupportRetryAfter",0])}
             && {!(_token in _completed)} && {!(_token in _retired)}
             && {_active findIf {(_x select 4) == _token} < 0}
@@ -127,6 +149,19 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
             private _requester=_job getOrDefault ["requester",grpNull];
             private _requesterTransmitter=[_requester] call WAIT_fnc_CortexGroupTransmitter;
             private _supportOrigins=if (isNull _requesterTransmitter) then {[]} else {[getPosATL _requesterTransmitter]};
+            // Other covering elements also own live fire lanes. Reuse this operation's
+            // bounded responder list; do not scan nearby groups or moving elements.
+            {
+                _x params ["_coverGroup","_coverToken"];
+                if (_coverGroup != _group && {!(_coverToken in _completed)}
+                    && {!(_coverToken in _retired)}
+                    && {_active findIf {(_x select 0) == _coverGroup} < 0}) then {
+                    private _coverTransmitter=[_coverGroup] call WAIT_fnc_CortexGroupTransmitter;
+                    if (!isNull _coverTransmitter) then {
+                        _supportOrigins pushBackUnique (getPosATL _coverTransmitter);
+                    };
+                };
+            } forEach (_teams select [0,6]);
             private _selected=[_centre,_candidateRoutes,_job get "assaultEnemy",_supportOrigins]
                 call WAIT_fnc_CortexSelectAvenue;
             if (_selected isNotEqualTo []) then {
