@@ -38,4 +38,13 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertLess(smoothing.index('_previous select 0)-4*_elapsed'),smoothing.index('min _closingCap'))
         self.assertIn('if (_frontReversing) then {_limit=0}',smoothing)
         self.assertIn('_limit=_limit min _retainedPathCap',smoothing)
+    def test_closing_cap_accounts_for_mass_and_cruise_reaction(self):
+        s=src('drivingFollowingCap')
+        self.assertIn('getMass _vehicle',s)
+        self.assertIn('private _deceleration=4/_massFactor;',s)
+        self.assertIn('private _reaction=4;',s)
+        self.assertIn('2*_deceleration*_room',s)
+        self.assertIn('_allowed=_allowed min (_otherForward+_closingAllowance)',s)
+        self.assertLess(s.index('_allowed=_allowed min'),s.index('if (_allowed < _cap)'))
+        self.assertNotIn('setMass',s)
 if __name__=='__main__': unittest.main()

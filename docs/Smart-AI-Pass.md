@@ -360,8 +360,13 @@ ordinary speed cap. It projects the other vehicle's eight hull corners into the 
 body frame, checks lateral and vertical overlap, and uses actual forward velocity and hull-to-hull
 gap rather than centre distance alone. The desired gap combines six metres and 1.8 seconds of
 predecessor travel; a continuous correction adjusts the cap instead of alternating between fixed
-start/stop bands. A short closing-distance reaction can request zero speed. This is a provisional
-policy, not a measured braking guarantee for every vehicle class.
+start/stop bands. A second cap estimates available closing distance after allowing four seconds
+for cruise sampling. Nominal deceleration is 4 m/s² divided by a mass factor from 1 to 2.5;
+heavier vehicles therefore approach a slower predecessor more cautiously. The quadratic distance
+model limits speed relative to the predecessor's currently observed forward velocity. It does not
+predict a predecessor's future braking. A short closing-distance reaction can request zero speed.
+These are provisional policy assumptions, not measured braking guarantees for every vehicle class.
+The four-second allowance does not bound actual scheduler latency, particularly under load.
 
 The observer processes at most 64 candidates from a single speed-dependent query capped at
 250 m; dense sets request a congestion hold. Engine query cost itself is not bounded by that

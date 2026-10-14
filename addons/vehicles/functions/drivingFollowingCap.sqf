@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Observes same-direction vehicles ahead and derives a continuous following speed cap.
+ * A mass-adjusted closing-speed envelope adds provisional braking and cruise-sampling headroom;
+ * neither nominal deceleration nor scheduler response is physically guaranteed by this policy.
  * Locality/authority: read-only on the current vehicle owner. The driving operation owns all
  * speed commands and rechecks its driver, route and movement lease before applying this result.
  * Repeat/JIP: no handlers or cached clearance. Each sample uses actual velocity and current hull
@@ -22,6 +24,11 @@ private _forward=vectorDir _vehicle;_forward set [2,0];
 if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0]};
 _forward=vectorNormalized _forward;
 private _ownForward=((velocity _vehicle) vectorDotProduct _forward) max 0;
+// Heavy vehicles get a lower nominal deceleration. Account for the ordinary four-second
+// cruise sampling interval even though a constrained phase requests work more frequently.
+private _massFactor=((1+(((getMass _vehicle)-3000)/7000)) max 1) min 2.5;
+private _deceleration=4/_massFactor;
+private _reaction=4;
 private _radius=((_ownForward max _requested)*6+20+(abs _front)) min 250;
 private _candidates=_vehicle nearEntities [["LandVehicle"],_radius];
 if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates]};
@@ -59,6 +66,13 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
             // Desired six-metre gap plus 1.8 seconds of predecessor travel. Continuous correction
             // avoids binary distance-band starts/stops. Closing-distance reaction only lowers it.
             private _allowed=(_otherForward+((_hullGap-6-(_otherForward*1.8))/3)) max 0;
+            // Solve closing distance = reaction*relative speed + relative speed^2/(2*a).
+            // This limits approach toward the currently measured predecessor speed; it does
+            // not assume that a predecessor's future braking or native steering is known.
+            private _room=(_hullGap-6) max 0;
+            private _reactionSpeed=_deceleration*_reaction;
+            private _closingAllowance=(sqrt ((_reactionSpeed*_reactionSpeed)+2*_deceleration*_room)-_reactionSpeed) max 0;
+            _allowed=_allowed min (_otherForward+_closingAllowance);
             private _closing=(_ownForward-_otherForward) max 0;
             if (_closing > 0.5 && {_hullGap < 2+(_closing*0.5)}) then {_allowed=0};
             if (_allowed < _cap) then {_cap=_allowed;_limiting=_other;_gap=_hullGap};
