@@ -319,6 +319,60 @@ private _job=createHashMapFromArray [
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
     ["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
+// Adopt a transform/episode-bound exit journal without issuing movement. A different
+// native destination owns the actor now and must not inherit an old exit receipt.
+private _egressJournal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
+if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearEgress",nil,true]};
+if (_resume && {count _egressJournal == 10} && {(_egressJournal select 0) == "EGRESS"}
+    && {(_egressJournal select 4) == _building}
+    && {(_egressJournal select 5) isEqualTo (_job get "buildingTransform")}
+    && {(_egressJournal select 6) == _hardDeadline}
+    && {(_egressJournal select 7) isEqualType 0} && {finite (_egressJournal select 7)}
+    && {count (_egressJournal select 3) <= 8}) then {
+    private _assignments=[];
+    private _records=[];
+    private _moves=createHashMap;
+    private _failed=_egressJournal select 8;
+    {
+        if (_x isEqualType [] && {count _x == 6}) then {
+            _x params ["_actor","_target","_arrived","_leg","_retries","_checkpoint"];
+            private _live=(expectedDestination _actor) param [0,[]];
+            private _atTarget=count _target == 3
+                && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1}
+                && {abs (((getPosATL _actor) select 2)-(_target select 2)) <= 1.5};
+            private _ownsLeg=currentCommand _actor == "MOVE" && {count _leg == 3}
+                && {count _live == 3} && {_live vectorDistance _leg <= 0.25};
+            private _holdsArrival=_arrived && {_atTarget} && {currentCommand _actor in ["","STOP"]};
+            if (_actor in _available && {group _actor == _group}
+                && {(_assignments apply {_x select 0}) findIf {_x == _actor} < 0}
+                && {count _target == 3} && {_ownsLeg || {_holdsArrival}}) then {
+                _assignments pushBack [_actor,+_target,_holdsArrival];
+                _moves set [netId _actor,+_leg];
+                private _routeTarget=if (_checkpoint isEqualTo []) then {_target} else {_checkpoint};
+                _records pushBack [_actor,(getPosATL _actor) vectorDistance _routeTarget,time,
+                    (_retries max 0) min 1,+_checkpoint,time,getPosASL _actor];
+            } else {_failed=true};
+        } else {_failed=true};
+    } forEach (_egressJournal select 3);
+    if (_assignments isEqualTo []) then {_failed=true};
+    _job set ["phase","EGRESS"];
+    _team=_assignments apply {_x select 0};
+    _job set ["team",_team];
+    _job set ["egressAssignments",_assignments];
+    _job set ["egressProgress",_records];
+    _job set ["movementTargets",_moves];
+    _job set ["egressDeadlineServer",_egressJournal select 7];
+    _job set ["egressStartedServer",_egressJournal select 2];
+    _job set ["egressDeadline",time+(((_egressJournal select 7)-serverTime) max 0)];
+    _job set ["egressFailed",_failed];
+    _job set ["entryFailed",_egressJournal select 9];
+    _operation set ["participants",_assignments apply {_x select 0}];
+    _operation set ["participantProgress",_assignments apply {[_x select 0,getPosATL (_x select 0)]}];
+    _operation set ["phase","EGRESS"];
+    _group setVariable ["WAIT_Operation",_operation,true];
+    _group setVariable ["WAIT_Cortex_ClearStatus",["EGRESS",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];
+    diag_log format ["WAIT CLEAR EGRESS ADOPTED: %1",[_generation,count _assignments,_failed,_egressJournal select 7]];
+};
 // Keep reserve search consumption across a true resume, independently of local handles.
 // Durable failed follow-through targets are bookkeeping, never movement/entry receipts.
 private _followBudget=_group getVariable ["WAIT_Cortex_ClearFollowBudget",[]];
@@ -358,7 +412,7 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
     private _tried=createHashMap;
     private _triedEntries=createHashMap;
     private _stages=createHashMap;
-    private _moves=createHashMap;
+    private _moves=_job getOrDefault ["movementTargets",createHashMap];
     private _actors=createHashMap;
     {_actors set [netId _x,_x]} forEach ((units _group) select [0,64]);
     {

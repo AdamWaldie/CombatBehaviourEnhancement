@@ -2125,6 +2125,26 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('abs (((getPosATL _actor) select 2)',qa)
         self.assertIn('egress-retry-budget',qa)
 
+    def test_egress_owner_adoption_preserves_routes_and_consumed_exit_budget(self):
+        start=source('cortexClearBuilding')
+        replay=start.split('// Adopt a transform/episode-bound exit journal',1)[1].split('// Keep reserve search consumption',1)[0]
+        for command in ['doMove','doFollow','doStop','setDestination']:
+            self.assertNotIn(command,replay)
+        for binding in ['(_egressJournal select 4) == _building',
+                        '(_egressJournal select 5) isEqualTo (_job get "buildingTransform")',
+                        '(_egressJournal select 6) == _hardDeadline',
+                        '_live vectorDistance _leg <= 0.25',
+                        '(_retries max 0) min 1',
+                        '((_egressJournal select 7)-serverTime) max 0']:
+            self.assertIn(binding,replay)
+        stage=start.split('private _stageBudget=',1)[1]
+        self.assertIn('private _moves=_job getOrDefault ["movementTargets",createHashMap]',stage)
+        self.assertNotIn('private _moves=createHashMap',stage)
+        publish=source('buildingOperationStep').split('// Publish only material egress changes.',1)[1].split('_brain set ["phase"',1)[0]
+        self.assertIn('isNotEqualTo _journal',publish)
+        self.assertIn('_record param [3,0]',publish)
+        self.assertIn('_job get "egressDeadlineServer"',publish)
+
     def test_clearance_egresses_before_terminal_handover(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('(_job getOrDefault ["phase","CLEAR"]) == "EGRESS"',text)
