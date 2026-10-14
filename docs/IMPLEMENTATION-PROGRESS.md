@@ -1,4 +1,14 @@
-## Current acceptance boundary - 2026-10-13
+## Current acceptance boundary - 2026-10-14
+
+All 65 feature families remain partial. Source through 3cb1c9d passed 663 tests and the full build gates. The consolidated CQB changes address unfinished-floor claim order, exterior query displacement, moving follow-through paths and live destination occupancy. Physical effectiveness across larger forces, casualties, modded buildings, HC migration and performance remains incomplete.
+
+Focused clean normal candidate 3cb1c9d in runtime-20261014-195342-594 was stopped at the user's request after 20 checks, with no recorded SQF, fatal or genuine load failures. Neither comparison case completed, so this run supplies no completion evidence for the new repairs. Server 62344 and client 16192 were terminated by identity and verified gone; partial JSON/RPT results remain preserved. Further audits are held at the user's request. Implementation proceeds first: danger/operation FSMs and driving foundations, individuals, squad coordination and combined arms; broader compatibility last.
+
+The completed earlier a422403 focused comparison retained seven twelve-person failures; its later finite terminal result was INCOMPLETE. The completed 67d29d9 normal batch retained six failures, including an unexercised casualty prerequisite. Smaller fixture passes do not establish feature completion. Historical notes below remain evidence records, not current runtime status.
+
+Ordinary-driving task protection is implemented: driver/commander native service, boarding, medical and assembly tasks must release WAIT's unchanged speed lease and block recovery commands. This passed the mandatory offline gates; physical task handover remains pending. No performance-budget acceptance is inferred.
+
+## Historical acceptance notes - 2026-10-13
 
 Offline follow-up through 406b0ed adds unresolved artillery parking, observer rejection retry, exact CQB watch retirement, protected-target and believed-position vehicle responses, finite convoy timing evidence and ASL aircraft ingress projection. All passed offline gates; none has fresh physical acceptance. All 65 feature families remain partial; audits remain paused.
 

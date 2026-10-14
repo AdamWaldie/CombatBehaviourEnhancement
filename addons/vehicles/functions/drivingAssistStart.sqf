@@ -9,6 +9,8 @@
  * deletes a waypoint and yields to players, Zeus remote control, convoy ownership and specialist
  * driving ownership. Ineffective drivers and immobilized vehicles receive no recovery commands.
  * An authored zero forced-speed hold is retained without recovery commands.
+ * Native boarding, service, medical and assembly tasks release the exact speed lease;
+ * both driver and effective commander are rechecked at each cap/recovery command boundary.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
  * it after a locality change; route changes reset finite recovery; release restores only the forced speed captured by this function.
  * Arguments:
@@ -39,6 +41,16 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
 {
     private _vehicle=_x;
     private _driver=driver _vehicle;
+    private _movementOperator=effectiveCommander _vehicle;
+    if (isNull _movementOperator) then {_movementOperator=_driver};
+    private _nativeTaskFree={
+        params ["_actor"];
+        !isNull _actor && {!(currentCommand _actor in [
+            "GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED",
+            "ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"
+        ])}
+    };
     private _release=false;
     // Driving must make the same ownership decision as every other delayed controller. A group
     // member becoming player-controlled or specialist-owned is enough to retire the sparse speed
@@ -50,6 +62,8 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         || {!isNull (_driver getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         || {[_driver] call WAIT_fnc_CortexExternalOwner != ""}
         || {_yieldToOwner}
+        || {!([_driver] call _nativeTaskFree)}
+        || {!([_movementOperator] call _nativeTaskFree)}
         || {getForcedSpeed _vehicle == 0}
         || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
@@ -58,8 +72,6 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
     if (_release) then {[_vehicle,_group] call WAIT_fnc_DrivingAssistRelease} else {
         // Terrain sampling is deliberately sparse but may still overlap a newer Zeus or specialist
         // order. Preserve that order at the actual cap/recovery command boundary.
-        private _movementOperator=effectiveCommander _vehicle;
-        if (isNull _movementOperator) then {_movementOperator=_driver};
         private _mayIssueDriving = {
             !([_group] call WAIT_fnc_CortexExternalTakeover)
                 && {alive _vehicle} && {canMove _vehicle}
@@ -69,6 +81,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 && {!isPlayer _movementOperator} && {isNull remoteControlled _movementOperator}
                 && {_driver checkAIFeature "MOVE"} && {_driver checkAIFeature "PATH"}
                 && {_movementOperator checkAIFeature "MOVE"} && {_movementOperator checkAIFeature "PATH"}
+                && {[_driver] call _nativeTaskFree} && {[_movementOperator] call _nativeTaskFree}
         };
         private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
