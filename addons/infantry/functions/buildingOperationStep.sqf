@@ -43,7 +43,8 @@
  * at the failure boundary; terminal diagnostics retain it without changing acceptance.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
- * Egress uses one native proposal per admitted worker, preserving distinct supported exterior
+ * Egress uses at most three native proposals per admitted worker across real entrances,
+ * preserving distinct supported exterior
  * destinations and live security observation lanes; arrivals hold within one metre.
  * Successful egress additionally requires each active worker's successive physical visits.
  * Reserve stages use bounded nearby cover selection with shared destination exclusions,
@@ -2101,29 +2102,45 @@ private _delay=call {
                 _securityLanes pushBack [+(_securityStage select 0),+(_securityStage select 4)];
             };
         } forEach ((_job getOrDefault ["securityActors",[]]) select [0,64]);
+        private _exitUses=createHashMap;
         private _egressAssignments=_active apply {
             private _unit=_x;
-            private _entry=_job get "entry";
-            if (_entries isNotEqualTo []) then {
-                private _ranked=_entries apply {[_unit distance2D _x,_x]};
-                _ranked sort true;
-                _entry=+((_ranked select 0) select 1);
+            private _ranked=[];
+            {
+                _ranked pushBack [_exitUses getOrDefault [str _x,0],_unit distance2D _x,_forEachIndex,+_x];
+            } forEach (_entries select [0,4]);
+            _ranked sort true;
+            // The fallback still receives geometry validation and cannot imply model access.
+            if (_ranked isEqualTo []) then {
+                _ranked pushBack [0,0,0,+_buildingPos];
             };
-            if (_entry isEqualTo []) then {_entry=_buildingPos};
-            private _outward=_buildingPos getDir _entry;
-            // Use one bounded native proposal per admitted worker, corrected around live
-            // destinations. A predefined grid cannot account for cover or security observers.
-            private _search=_entry getPos [10,_outward];
-            private _watch=_entry getPos [2,_outward];
-            _watch set [2,(_entry select 2)+1.2];
             private _taken=_claimedExitPoints+_securityPoints;
-            private _candidate=[_unit,_search,_entry,_taken,_securityLanes] call WAIT_fnc_BuildingExteriorProposal;
+            private _tried=[];
             private _exitPoint=[];
-            if (count _candidate == 3) then {
-                _candidate set [2,0];
-                if ([_unit,_building,_candidate,_entry,_watch,_entries,_taken,_securityLanes] call WAIT_fnc_BuildingExteriorCandidate) then {
-                    _exitPoint=+_candidate;
+            private _selectedEntry=[];
+            // At most three proposals per worker (eight admitted workers). Alternate real
+            // entrances precede another proposal at the first entrance; no fixed grid/fan.
+            for "_proposalIndex" from 0 to 2 do {
+                if (_exitPoint isNotEqualTo []) exitWith {};
+                private _entry=+((_ranked select (_proposalIndex mod count _ranked)) select 3);
+                private _outward=_buildingPos getDir _entry;
+                private _search=_entry getPos [10,_outward];
+                private _watch=_entry getPos [2,_outward];
+                _watch set [2,(_entry select 2)+1.2];
+                private _reservations=_taken+_tried;
+                private _candidate=[_unit,_search,_entry,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorProposal;
+                private _valid=false;
+                if (count _candidate == 3) then {
+                    _candidate set [2,0];
+                    _valid=[_unit,_building,_candidate,_entry,_watch,_entries,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorCandidate;
+                    _tried pushBackUnique +_candidate;
+                    if (_valid) then {_exitPoint=+_candidate; _selectedEntry=+_entry};
                 };
+                diag_log format ["WAIT CLEAR EGRESS PROPOSAL: %1",[_job get "generation",netId _unit,_proposalIndex,+_entry,+_candidate,_valid]];
+            };
+            if (_selectedEntry isNotEqualTo []) then {
+                private _exitKey=str _selectedEntry;
+                _exitUses set [_exitKey,(_exitUses getOrDefault [_exitKey,0])+1];
             };
             if (_exitPoint isEqualTo []) then {
                 // No usable distinct slot is a failed consolidation, never a shared success.
