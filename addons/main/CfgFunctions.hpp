@@ -39,6 +39,7 @@ class CfgFunctions {
             class ConvoyTick {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\convoyTick.sqf";};
             class DrivingAssistStart {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingAssistStart.sqf";};
             class DrivingMovementAvailable {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingMovementAvailable.sqf";};
+            class DrivingFollowingCap {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingFollowingCap.sqf";};
             class DrivingRearClear {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingRearClear.sqf";};
             class DrivingRouteReceipt {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingRouteReceipt.sqf";};
             class DrivingOperationStart {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingOperationStart.sqf";};

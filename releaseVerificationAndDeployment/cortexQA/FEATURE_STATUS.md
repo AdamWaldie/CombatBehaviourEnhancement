@@ -33,7 +33,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | REMOUNT - Contact passenger remount | 1 | 0 | 1 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | WITHDRAW - Damaged vehicle withdrawal | 5 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
 | COVER - Cover selection and clearance | 1 | 0 | 1 | `runCover.sqf` | 1 | implemented_partial |
-| VEH-DRIVING - Ordinary vehicle route safety | 3 | 0 | 9 | `runVehicleDrills.sqf` | 0 | implemented_partial |
+| VEH-DRIVING - Ordinary vehicle route safety | 3 | 0 | 10 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | CNV-MOVE - Mixed convoy path and spacing | 5 | 0 | 7 | `runServer.sqf`, `runConvoyMatrix.sqf` | 0 | implemented_partial |
 | CNV-FIRE - Convoy weapon crew | 1 | 0 | 1 | `runServer.sqf` | 0 | implemented_partial |
 | CNV-COVER - Convoy dismount positions | 1 | 0 | 0 | `runServer.sqf` | 0 | implemented_partial |
@@ -252,7 +252,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Enabled vehicles retain the same native route and slow only for sampled grades. Convoys remain under their own controller; player, Zeus and external driving ownership release the cap immediately.
 
-**Automation and open work:** Queued: compare native waypoint identity and physical progress across terrain with disabled/enabled state, then validate Zeus replacement, locality migration and exact forced-speed restoration. No live acceptance claimed.
+**Automation and open work:** Queued: compare native waypoint identity and physical progress across terrain with disabled/enabled state, then validate Zeus replacement, locality migration and exact forced-speed restoration. No live acceptance claimed. Ordinary traffic following now uses actual velocity, projected hull gaps and a TrafficFollowing FSM phase to suppress queue-induced recovery. Physical headway, curved roads, congestion, mixed sizes, owner handover and performance remain unverified.
 
 ### CNV-MOVE - Mixed convoy path and spacing
 

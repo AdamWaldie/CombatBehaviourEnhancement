@@ -14,6 +14,9 @@
  * The authored waypoint identity includes conditions, timeouts, synchronized triggers, speed,
  * combat mode and formation. Same-index edits retire the old recovery stage. Every cap/recovery
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
+ * Same-direction traffic uses current hull gaps and actual velocity for continuous following caps.
+ * Owned traffic stops remain sampled; congestion suppresses route refresh/reverse rather than
+ * treating a queue as navigation failure. No crossing priority or passing is inferred here.
  * Reverse admission uses a fresh body-sized rear corridor observation shared with tracked
  * withdrawal. Actor and solid-geometry clearance does not prove native reverse execution.
  * Only the current leader vehicle can refresh/reverse the shared route. Followers keep native
@@ -84,7 +87,11 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         || {_yieldToOwner}
         || {!([_driver] call _nativeTaskFree)}
         || {!([_movementOperator] call _nativeTaskFree)}
-        || {getForcedSpeed _vehicle == 0}
+        || {getForcedSpeed _vehicle == 0 && {
+            private _heldState=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
+            !((_heldState param [0,-1]) == 0 && {(_heldState param [3,grpNull]) == _group}
+                && {!isNull ((_vehicle getVariable ["WAIT_DrivingAssist_Traffic",[]]) param [1,objNull])})
+        }}
         || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
         || {behaviour leader _group == "CARELESS"}
@@ -199,6 +206,11 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             // cap is detected and the pre-WAIT value can be restored exactly.
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
+            private _traffic=if ((_state param [6,0]) != 2) then {
+                [_vehicle,_capMps] call WAIT_fnc_DrivingFollowingCap
+            } else {[_capMps,objNull,-1,time,0]};
+            private _trafficLimited=!isNull (_traffic select 1);
+            _capMps=_capMps min (_traffic select 0);
             if !(call _mayIssueDriving) then {
                 // An initial admission has not applied a cap or created an owning state yet.
                 // Discard only that unapplied snapshot; established leases use normal release.
@@ -206,6 +218,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 [_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;
             } else {
             _vehicle forceSpeed _capMps;
+            _vehicle setVariable ["WAIT_DrivingAssist_Traffic",_traffic];
             // Retain the owning group for diagnostics only. The lease remains the forced-speed
             // value: this reference never grants route or movement ownership to WAIT.
             // Native vehicles can abandon an otherwise valid MOVE command after a small collision
@@ -218,6 +231,12 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _recoveryUntil=_state param [7,-1];
             private _recoveryResult=_state param [8,"IDLE"];
             if (call _nativeWaiting) then {_recoveryResult="INTENTIONAL_WAIT"};
+            // Waiting behind traffic is not a route fault. Keep the last progress sample current so
+            // clearing the queue does not immediately inherit a stale reverse deadline.
+            if (_trafficLimited) then {
+                _progressPosition=getPosATL _vehicle;_progressAt=time;
+                _recoveryStage=0;_recoveryUntil=-1;_recoveryResult="TRAFFIC_FOLLOW";
+            };
             private _routeProgress=true;
             if (_recoveryStage > 0) then {
                 private _progressWaypoint=currentWaypoint _group;
@@ -244,7 +263,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             // route even while still moving; the ordinary stall timer is not another hold.
             private _reverseComplete=_recoveryStage == 2 && {time >= _recoveryUntil};
             if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-                && {!_inCombat} && {abs speed _vehicle < 1 || {_reverseComplete}}
+                && {!_inCombat} && {!_trafficLimited} && {abs speed _vehicle < 1 || {_reverseComplete}}
                 && {time-_progressAt >= 12 || {_reverseComplete}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
                 private _waypoint=[_group,_waypointIndex];
@@ -289,7 +308,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             };
             _vehicle setVariable ["WAIT_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
                 _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity]];
-            _vehicle setVariable ["WAIT_DrivingAssist_Next",time+4];
+            _vehicle setVariable ["WAIT_DrivingAssist_Next",time+([4,1] select _trafficLimited)];
             };
             };
         };

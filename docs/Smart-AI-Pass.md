@@ -351,3 +351,37 @@ still apply; this module adds no per-frame controller or world scan. Source-leve
 validation are available; native and ZEN dialog interaction, spoof rejection, duplicate/delayed
 requests, terrain/placed/modded buildings, placement, real walking, casualties, repeated tasks,
 release, JIP, HC migration and measured performance all remain pending live acceptance.
+
+
+## Ordinary driving traffic following
+
+The owner-local driving FSM now observes same-direction vehicles ahead before applying its
+ordinary speed cap. It projects the other vehicle's eight hull corners into the current vehicle's
+body frame, checks lateral and vertical overlap, and uses actual forward velocity and hull-to-hull
+gap rather than centre distance alone. The desired gap combines six metres and 1.8 seconds of
+predecessor travel; a continuous correction adjusts the cap instead of alternating between fixed
+start/stop bands. A short closing-distance reaction can request zero speed. This is a provisional
+policy, not a measured braking guarantee for every vehicle class.
+
+The observer processes at most 64 candidates from a single speed-dependent query capped at
+250 m; dense sets request a congestion hold. Engine query cost itself is not bounded by that
+processing cap. It installs no handlers, physics helpers or movement controller. Terrain, saved
+mission speed and traffic caps combine by taking the minimum. Registered convoys retain their
+own controller and do not acquire this ordinary driving lease.
+
+A WAIT-owned traffic zero remains eligible for observation and can resume when the queue clears.
+A sampled traffic constraint suppresses route-refresh/reverse recovery and refreshes the stall
+observation; clearing traffic therefore starts a fresh progress interval. The FSM's TrafficFollowing
+phase requests another coalesced callback in one second; normal cruise remains four seconds.
+These are shared scheduler requests, not deadline guarantees under load. A reverse leg uses its
+existing rear clearance path rather than a forward following constraint. Cleanup clears observations
+and restores an unchanged owned cap using the existing ownership checks. Unmarked external writes
+of exactly the same forced-speed value cannot be distinguished by value comparison alone.
+
+Crossing/oncoming priority, overtaking, obstacle/gate geometry, deterministic jam arbitration,
+measured vehicle-specific braking and registered-convoy integration remain incomplete. Congestion
+never becomes permission to ignore traffic after a timer. Native pathfinding still owns steering.
+The straight body corridor can constrain unrelated same-direction vehicles on curved roads; native
+routing and future path-aware prediction need physical testing before this is accepted. Offline
+checks cannot establish safe headway, smoother motion, recovery, repeat behaviour, HC migration or
+the 5% median/10% p95 performance budget. All remain pending live acceptance while audits are held.

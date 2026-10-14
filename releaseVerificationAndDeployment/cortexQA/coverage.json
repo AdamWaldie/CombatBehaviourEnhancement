@@ -736,7 +736,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "Queued: compare native waypoint identity and physical progress across terrain with disabled/enabled state, then validate Zeus replacement, locality migration and exact forced-speed restoration. No live acceptance claimed.",
+      "automation": "Queued: compare native waypoint identity and physical progress across terrain with disabled/enabled state, then validate Zeus replacement, locality migration and exact forced-speed restoration. No live acceptance claimed. Ordinary traffic following now uses actual velocity, projected hull gaps and a TrafficFollowing FSM phase to suppress queue-induced recovery. Physical headway, curved roads, congestion, mixed sizes, owner handover and performance remain unverified.",
       "executable_sources": [
         "runVehicleDrills.sqf"
       ],
@@ -749,7 +749,8 @@
         "addons/vehicles/functions/drivingOperationStep.sqf",
         "addons/vehicles/functions/drivingOperationFinish.sqf",
         "addons/vehicles/functions/drivingRearClear.sqf",
-        "addons/vehicles/functions/drivingMovementAvailable.sqf"
+        "addons/vehicles/functions/drivingMovementAvailable.sqf",
+        "addons/vehicles/functions/drivingFollowingCap.sqf"
       ]
     },
     {

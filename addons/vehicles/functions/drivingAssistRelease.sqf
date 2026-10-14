@@ -48,3 +48,4 @@ if (_restore isNotEqualTo [] && {_ownedCap >= 0}
 _vehicle setVariable ["WAIT_DrivingAssist_Restore",nil];
 _vehicle setVariable ["WAIT_DrivingAssist_Next",nil];
 _vehicle setVariable ["WAIT_DrivingAssist_State",nil];
+_vehicle setVariable ["WAIT_DrivingAssist_Traffic",nil];
