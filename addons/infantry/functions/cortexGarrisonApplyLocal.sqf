@@ -22,7 +22,8 @@
  * Surplus exterior security searches at most one actor per callback and three times per actor.
  * Valid slots observe real exits, retain distinct destinations and use the original order deadline.
  * Each search counts live reservations once; failed/incapacitated actors do not claim exit coverage.
- * Physical occupants remain excluded by the shared geometry validator.
+ * Physical occupants remain excluded by the shared geometry validator. Rejected-point history
+ * also survives adoption so a one-exit building does not repeat the same failed cover candidate.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -278,14 +279,15 @@ private _buildingAnchor = {
                 if (_exteriorSearchBudget > 0 && {_actor checkAIFeature "PATH"} && {[_actor] call _mayIssueMovement}) then {
                     _exteriorSearchBudget=0;
                     _actor setVariable ["WAIT_Cortex_GarrisonExteriorAttempts",_attempts+1,true];
-                    private _history=+(_actor getVariable ["WAIT_Cortex_GarrisonExteriorTried",[]]);
+                    private _history=+((_actor getVariable ["WAIT_Cortex_GarrisonExteriorTried",[]]) select [0,3]);
+                    private _targetHistory=+((_actor getVariable ["WAIT_Cortex_GarrisonExteriorTargets",[]]) select [0,3]);
                     private _buildings=[];
                     {
                         private _building=_x param [2,objNull];
                         if (!isNull _building && {[_x] call _assignmentValid}) then {_buildings pushBackUnique _building};
                     } forEach ((_group getVariable ["WAIT_Cortex_GarrisonCandidates",[]]) select [0,64]);
                     private _exitCounts=createHashMap;
-                    private _taken=[];
+                    private _taken=+_targetHistory;
                     {
                         private _other=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
                         if (_x != _actor && {[_x] call WAIT_fnc_CortexCombatEffective}
@@ -324,6 +326,8 @@ private _buildingAnchor = {
                         _watch set [2,(_entry select 2)+1.2];
                         private _cover=[_search,_centre,12,_taken,_group] call WAIT_fnc_CortexFindCover;
                         private _target=_cover select 0;
+                        _targetHistory pushBackUnique +_target;
+                        _actor setVariable ["WAIT_Cortex_GarrisonExteriorTargets",_targetHistory,true];
                         private _entries=[];
                         for "_exitIndex" from 0 to 31 do {
                             private _exit=_building buildingExit _exitIndex;
