@@ -385,3 +385,17 @@ The straight body corridor can constrain unrelated same-direction vehicles on cu
 routing and future path-aware prediction need physical testing before this is accepted. Offline
 checks cannot establish safe headway, smoother motion, recovery, repeat behaviour, HC migration or
 the 5% median/10% p95 performance budget. All remain pending live acceptance while audits are held.
+
+
+## Mixed-convoy low-speed pacing
+
+Follower smoothing no longer switches off when a predecessor drops below 2 km/h. Inside the
+spacing tolerance band, spare longitudinal room permits the existing gradual cap reduction even
+through a brief tracked-vehicle speed dip. The result remains bounded by the raw predecessor-speed
+closing-distance cap on the same callback. At the lower gap boundary a stationary predecessor
+still produces zero; reversing predecessors, retained path limits, pedestrian safety and ordered
+halts retain immediate priority. No minimum forward speed bypasses these limits and no new
+controller, scan, or setting is introduced. This removes a source-level pacing discontinuity;
+it does not establish smoother actual movement or safe braking. Mixed tracked/wheeled step-off,
+brief/permanent stops, compressed spacing, restart, turns, reversing, convoy authority and measured
+performance require fresh live acceptance when audits resume.

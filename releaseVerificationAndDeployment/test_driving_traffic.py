@@ -29,4 +29,13 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('class TrafficFollowing',fsm)
         self.assertIn('to="TrafficFollowing"',fsm)
         self.assertIn('setVariable ["WAIT_DrivingAssist_Traffic",nil]',src('drivingAssistRelease'))
+    def test_convoy_low_speed_smoothing_retains_raw_safety_caps(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        smoothing=s.split('// Tracks accelerate and brake unevenly.',1)[1].split('_limit = [_vehicle',1)[0]
+        self.assertNotIn('_frontSpeed > 2',smoothing)
+        self.assertIn('_controlGap >= _gapLow && {_closingCap > 0} && {!_frontReversing}',smoothing)
+        self.assertIn('min _closingCap',smoothing)
+        self.assertLess(smoothing.index('_previous select 0)-4*_elapsed'),smoothing.index('min _closingCap'))
+        self.assertIn('if (_frontReversing) then {_limit=0}',smoothing)
+        self.assertIn('_limit=_limit min _retainedPathCap',smoothing)
 if __name__=='__main__': unittest.main()

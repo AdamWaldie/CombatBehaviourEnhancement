@@ -14,6 +14,8 @@
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
  * accelerate gradually while safety, contact, arrival and close-gap braking remain immediate.
+ * Brief predecessor dips below 2 km/h do not disable smoothing when longitudinal room remains;
+ * raw closing-distance limits and reverse/ordered/pedestrian stops remain authoritative.
  * The route watchdog remembers only the unchanged final MOVE waypoint. If the engine marks it complete
  * more than 75 m early, the same waypoint is selected again; no waypoint is synthesized or rewritten.
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
@@ -542,8 +544,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _elapsed = ((time-(_previous select 1)) max 0.1) min 3;
     // Tracks accelerate and brake unevenly. Do not propagate each brief speed dip
     // into an immediate follower throttle drop anywhere within the safe tolerance band.
-    // Compression, a stopped predecessor and the closing cap still brake immediately.
-    if (_controlGap >= _gapLow && {_frontSpeed > 2}) then {
+    // Compression and the raw closing cap still brake immediately. A brief predecessor
+    // dip below 2 km/h must not flip the pacing policy while spare longitudinal room remains.
+    if (_controlGap >= _gapLow && {_closingCap > 0} && {!_frontReversing}) then {
         _limit=_limit max (((_previous select 0)-4*_elapsed) max 0);
     };
     _limit = ((_limit min ((_previous select 0)+4*_elapsed)) min _closingCap) max 0;
