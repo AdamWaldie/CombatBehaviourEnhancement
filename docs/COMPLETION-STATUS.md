@@ -1,19 +1,12 @@
-## Current measured status - 2026-10-14
+# Current delivery status
 
-The latest offline candidate includes the ground combined-arms fallback and passes 666 tests plus the full build gates. Audits are held by user request; no new physical acceptance is claimed.
+Status checked on 14 October 2026. The previous percentage table is withdrawn as a measure of implementation completion. It counted registry entries, source classifications, audit wiring and selected reviews. Those counts do not measure whether AI delivers the intended behaviour.
 
-| Measure | Current result | Meaning |
-| --- | --- | --- |
-| Registered feature families | 65/65 partial (100%) | Coverage of intended areas, not completed behaviour |
-| Production SQF source classification | 245/245 (100%) | Every production SQF belongs to an acceptance family; not source-method parity |
-| Families with directly assigned sources | 52/65 (80%) | The registry assigns shared sources once; 13 cross-cutting/variant cases have no exclusive source list |
-| Families with runnable audit wiring | 65/65 (100%) | Runnable checks, not physical passes |
-| Families with registered runtime evidence | 32/65 (49.2%) | Evidence includes failures and partial cases; recent raw audit evidence also remains in the ledger |
-| Fully accepted feature families | 0/65 (0%) | Full intent, authority, locality and performance acceptance remains open |
-| AIZeus/MRPH indexed SQF files | 272/272 (100%) | Entire captured local source trees indexed |
-| AIZeus/MRPH files with selected semantic review | 35/272 (12.9%) | AIZeus 34/252 (13.5%); MRPH 1/20 (5%); selected ranges are not whole-mod implementation |
+All 65 registered feature families remain partial. Some narrow physical cases have succeeded, and others have failed or varied across repeated runs. No family has complete intent, authority, locality and performance acceptance. This does not mean that every existing behaviour is absent. No reliable overall completion percentage can currently be assigned.
 
-An overall intent-completion or Workshop method-adoption percentage is not currently measured. File presence, source association, review counts and test counts cannot substitute for a complete method/intent denominator with implemented and physically accepted outcomes. LAMBS, Better Convoy and Pinned Down have selected reviewed/adapted methods, but broad parity remains incomplete and no reliable adoption percentage is recorded. All earlier numerical/batch notes below are historical unless backed by later exact-candidate evidence.
+The current offline candidate passes 666 tests and the full build gates. Audits are held by user request. The ongoing source comparison distinguishes actual called mechanisms, missing methods, changed intent, retained failures and outcomes that remain unproven. File presence and accepted orders receive no physical completion credit.
+
+Historical evidence below retains its original candidate and scope. It must not override this current status or be read as acceptance of later changes.
 
 ## Latest evidence boundary - 2026-10-13
 
