@@ -654,6 +654,21 @@ private _delay=call {
     private _stageSearchCounts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
     private _stageTriedTargets=_job getOrDefault ["reserveStageTriedTargets",createHashMap];
     private _stageTriedEntries=_job getOrDefault ["reserveStageTriedEntries",createHashMap];
+    private _stageViewChecks=_job getOrDefault ["reserveStageViewChecks",createHashMap];
+    private _stageViewBudget=1;
+    private _stageViewKey="";
+    private _earliestView=1e12;
+    // Oldest due post wins; roster-first sampling would starve later observers.
+    {
+        private _candidateKey=netId _x;
+        private _candidateStage=_reserveStages getOrDefault [_candidateKey,[]];
+        if ((_candidateStage param [2,""]) == "ARRIVED"
+            && {count (_candidateStage param [4,[],[[]]]) == 3}
+            && {currentCommand _x in ["","STOP"]} && {[_x] call _reserveReady}) then {
+            private _due=(_stageViewChecks getOrDefault [_candidateKey,[0,-1]]) select 0;
+            if (_due < _earliestView) then {_earliestView=_due; _stageViewKey=_candidateKey};
+        };
+    } forEach (_reserves select [0,8]);
     {
         private _reserve=_x;
         private _key=netId _reserve;
@@ -779,6 +794,48 @@ private _delay=call {
             _stage set [2,"ARRIVED"];
             _stageJournalChanged=true;
         };
+        // Revalidate one actual eye ray per callback, at most once per actor every two
+        // seconds. A transient passing teammate cannot immediately cause another route.
+        private _viewWatch=_stage param [4,[],[[]]];
+        private _viewCheck=_stageViewChecks getOrDefault [_key,[0,-1]];
+        if ((_stage param [2,""]) == "ARRIVED" && {count _viewWatch == 3}
+            && {_key == _stageViewKey} && {_stageViewBudget > 0} && {serverTime >= (_viewCheck select 0)}
+            && {currentCommand _reserve in ["","STOP"]}
+            && {[_reserve] call _reserveReady} && {call _mayIssueMovement}) then {
+            _stageViewBudget=_stageViewBudget-1;
+            private _eye=eyePos _reserve;
+            private _watchASL=AGLToASL _viewWatch;
+            private _viewValid=(getPosASL _reserve) vectorDistance (AGLToASL (_stage select 0)) <= 2
+                && {!terrainIntersectASL [_eye,_watchASL]}
+                && {(lineIntersectsSurfaces [_eye,_watchASL,_reserve,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+            private _blockedSince=_viewCheck select 1;
+            if (_viewValid) then {_blockedSince=-1} else {
+                if (_blockedSince < 0) then {_blockedSince=serverTime};
+            };
+            _stageViewChecks set [_key,[serverTime+2,_blockedSince]];
+            if (!_viewValid && {_blockedSince >= 0} && {serverTime-_blockedSince >= 3}
+                && {[_reserve] call _reserveReady} && {call _mayIssueMovement}
+                && {currentCommand _reserve in ["","STOP"]}) then {
+                private _ownedWatch=[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_viewWatch];
+                if ((_reserve getVariable ["WAIT_Cortex_ClearExitWatch",[]]) isEqualTo _ownedWatch) then {
+                    _reserve doWatch objNull;
+                    _reserve setVariable ["WAIT_Cortex_ClearExitWatch",nil,true];
+                    if ((_reserve getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _ownedWatch) then {
+                        _reserve setVariable ["WAIT_Cortex_ClearExitWatchLocal",nil];
+                    };
+                };
+                private _hold=getPosATL _reserve;
+                // The actor already holds here; retire bookkeeping without a fresh move/stop.
+                (_job getOrDefault ["movementTargets",createHashMap]) deleteAt _key;
+                _reserve setVariable ["WAIT_Cortex_ClearReserve",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_hold]];
+                _stage=[+_hold,true,"REJECTED",serverTime+5];
+                if ((_stageSearchCounts getOrDefault [_key,0]) >= 3) then {_stage set [2,"EXHAUSTED"]};
+                _reserveStages set [_key,_stage];
+                _stageViewChecks deleteAt _key;
+                _stageJournalChanged=true;
+                diag_log format ["WAIT CLEAR EXIT VIEW LOST: %1",[_job get "generation",_key,_hold,_viewWatch,_blockedSince,_stage select 2]];
+            };
+        };
         // Public arrival does not replay owner-local watching. Install once on
         // this owner epoch after physical arrival, preserving native task authority.
         private _watch=_stage param [4,[],[[]]];
@@ -813,6 +870,7 @@ private _delay=call {
         };
     } forEach (_reserves select [0,8]);
     _job set ["reserveStages",_reserveStages];
+    _job set ["reserveStageViewChecks",_stageViewChecks];
     _job set ["reserveStageAttempts",_stageAttempts];
     _job set ["reserveStageSearchCounts",_stageSearchCounts];
     _job set ["reserveStageTriedTargets",_stageTriedTargets];
