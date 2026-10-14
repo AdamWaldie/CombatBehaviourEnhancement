@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Compares physical building entry using independent engine commands across small and large,
  * single- and multi-storey house models, then exercises production garrison and clearance.
- * Locality/authority: scheduled dedicated-server audit; all actors are pinned to this owner.
+ * Locality/authority: scheduled dedicated-server audit; normal fixtures are server-pinned.
+ * The HC batch adds an explicit mid-egress transfer through the real migration provider.
  * Clearance acceptance requires covered interior navigation positions; exposed positions remain
  * separately recorded as exterior evidence, rather than being counted as uncleared rooms.
  * Fresh-clearance room observations use live pose, house bounds and intervening GEOM checks,
@@ -638,6 +639,133 @@ if (!_largeOnly && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch
     };
     deleteVehicle _securityHouse;
 };
+// Separate headless-batch acceptance: a real owner transfer during physical egress.
+// Normal-owner fixtures below retain their original server-local assertions.
+if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]}) then {
+    [{count (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) >= 2},30] call _wait;
+    private _owners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+    ["HC-CLEAR-EGRESS-two-registered",count _owners >= 2] call _check;
+    if (count _owners >= 2) then {
+        private _site=[6400,5400,0];
+        private _house=createVehicle ["Land_i_House_Big_02_V1_F",_site,[],0,"NONE"];
+        _house enableSimulationGlobal true;
+        [_house,"hc-egress"] call _validateNewFixturePlacement;
+        [_house,"hc-egress"] call _recordFixture;
+        private _group=createGroup [east,true];
+        _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+        _group setVariable ["acex_headless_blacklist",true,true];
+        private _members=[];
+        for "_i" from 0 to 3 do {
+            private _unit=_group createUnit ["O_Soldier_F",_site vectorAdd [-12+4*_i,-35,0],[],0,"NONE"];
+            _unit setVariable ["acex_headless_blacklist",true,true];
+            _unit setVariable ["WAIT_CortexQA_Label",format ["HC EXIT TRANSFER / soldier %1",_i+1],true];
+            _members pushBack _unit;
+        };
+        missionNamespace setVariable ["WAIT_CortexQA_Actors",_members,true];
+        ["HC clearance: owner transfer during exit","A fresh four-soldier group clears a multi-storey house. Ownership transfers to a real HC while an actor is still inside and exiting. Original exit destinations, deadline and consumed retries must survive, followed by actual exit and ordinary movement. No actor relocation, door assistance, freezing or completion injection is applied.",_site] call _phase;
+        private _accepted=[_group,_house] call WAIT_fnc_CortexClearBuilding;
+        ["HC-CLEAR-EGRESS-order-accepted",_accepted] call _check;
+        private _rooms=_house buildingPos -1;
+        private _visits=_members apply {[]};
+        private _before=[];
+        private _midExit=[{
+            {
+                private _actor=_x;
+                private _visited=_visits select _forEachIndex;
+                {if ([_actor,_house,_x] call _observedRoomVisit) then {_visited pushBackUnique _forEachIndex}} forEach _rooms;
+            } forEach _members;
+            private _journal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
+            private _inside=false;
+            if (count _journal == 10) then {
+                private _bounds=boundingBoxReal _house;
+                {
+                    private _actor=_x select 0;
+                    private _pose=_house worldToModel (getPosATL _actor);
+                    private _low=_bounds select 0;
+                    private _high=_bounds select 1;
+                    if (!(_x select 2) && {currentCommand _actor == "MOVE"}
+                        && {(_pose select 0) > (_low select 0)} && {(_pose select 0) < (_high select 0)}
+                        && {(_pose select 1) > (_low select 1)} && {(_pose select 1) < (_high select 1)}
+                        && {(_pose select 2) > (_low select 2)} && {(_pose select 2) < (_high select 2)}) then {_inside=true};
+                } forEach (_journal select 3);
+                if (_inside) then {_before=+_journal};
+            };
+            _inside || {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]}
+        },300] call _wait;
+        ["HC-CLEAR-EGRESS-physical-mid-exit",_midExit && {count _before == 10},str [_before,_visits]] call _check;
+        if (count _before == 10) then {
+            private _targets=(_before select 3) apply {[_x select 0,+(_x select 1),_x select 4]};
+            private _exitVisits=_targets apply {false};
+            private _transferAt=serverTime;
+            private _owner=_owners select 0;
+            _group setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+            private _requested=[_group,_owner] call WAIT_fnc_HeadlessMigrateGroup;
+            private _adopted=[{
+                private _state=_group getVariable ["WAIT_BuildingBrain_State",[]];
+                groupOwner _group == _owner && {count _state >= 4}
+                    && {(_state select 0) == "EGRESS"} && {(_state select 3) > _transferAt}
+            },20] call _wait;
+            ["HC-CLEAR-EGRESS-owner-adopted",_requested && {_adopted},str [groupOwner _group,_owner,_group getVariable ["WAIT_BuildingBrain_State",[]]]] call _check;
+            private _preserved=true;
+            private _seenReplay=false;
+            private _terminal=[{
+                private _journal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
+                if (count _journal == 10 && {groupOwner _group == _owner}) then {
+                    _seenReplay=true;
+                    if ((_journal select 7) != (_before select 7) || {(_journal select 6) != (_before select 6)}
+                        || {(_journal select 5) isNotEqualTo (_before select 5)}) then {_preserved=false};
+                    {
+                        _x params ["_actor","_target","_retries"];
+                        private _rows=(_journal select 3) select {(_x select 0) == _actor};
+                        if (count _rows != 1) then {_preserved=false} else {
+                            private _row=_rows select 0;
+                            if ((_row select 1) isNotEqualTo _target || {(_row select 4) < _retries}
+                                || {(_row select 4) > 1}) then {_preserved=false};
+                        };
+                    } forEach _targets;
+                };
+                {
+                    _x params ["_actor","_target"];
+                    if (alive _actor && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1.5}
+                        && {abs (((getPosATL _actor) select 2)-(_target select 2)) <= 1.5}) then {
+                        _exitVisits set [_forEachIndex,true];
+                    };
+                } forEach _targets;
+                ((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]
+            },(((_before select 7)-serverTime+8) max 0) min 55] call _wait;
+            ["HC-CLEAR-EGRESS-journal-preserved",_seenReplay && {_preserved},str [_before,_group getVariable ["WAIT_Cortex_ClearEgress",[]]]] call _check;
+            ["HC-CLEAR-EGRESS-physical-complete",_terminal && {_exitVisits findIf {!_x} < 0}
+                && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"}
+                && {_visits findIf {count _x < 2} < 0},str [_exitVisits,_visits,_group getVariable ["WAIT_Cortex_ClearResult",[]]]] call _check;
+            [_group,2] call WAIT_fnc_HeadlessMigrateGroup;
+            private _returned=[{local _group},20] call _wait;
+            ["HC-CLEAR-EGRESS-return-server",_returned] call _check;
+            if (_returned) then {
+                _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+                private _departure=_members apply {getPosATL _x};
+                private _destination=_site vectorAdd [75,-35,0];
+                private _waypoint=_group addWaypoint [_destination,0];
+                _waypoint setWaypointType "MOVE";
+                _group setCurrentWaypoint _waypoint;
+                private _handedBack=[{
+                    private _allMoved=leader _group distance2D _destination <= 20;
+                    {
+                        if (!alive _x || {_x distance2D (_departure select _forEachIndex) < 20}) then {_allMoved=false};
+                    } forEach _members;
+                    _allMoved
+                },75] call _wait;
+                ["HC-CLEAR-EGRESS-successor-physical",_handedBack,
+                    str (_members apply {[netId _x,getPosATL _x,currentCommand _x]})] call _check;
+            };
+        };
+        if (local _group) then {[_group] call WAIT_fnc_CortexClearRelease};
+        missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+        {deleteVehicle _x} forEach _members;
+        deleteGroup _group;
+        deleteVehicle _house;
+    };
+};
+
 // Fresh groups distinguish clearance defects from state left by a previous garrison.
 // Keep all original comparisons above, including their failures.
 {
