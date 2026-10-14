@@ -13,6 +13,8 @@
  * Connector sources prefer at most 24 physically visited current-floor room points before
  * at most 32 raw transit candidates; eight source-specific connector records bound geometry cost.
  * Already-entered movers request same-floor rooms without revisiting their buddy.
+ * New claims wait for the lowest unfinished ASL room band, including rooms claimed by other lanes.
+ * Idle waiting pairs retain owned current-position holds; waiting never renews the finite episode.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
  * An entered security partner yields a colliding mover checkpoint to a nearby physically visited
@@ -1092,6 +1094,20 @@ private _delay=call {
             } forEach _visitIndices;
         };
     } forEach _visitWorkers;
+    // Claimed rooms are still unfinished. Floor priority must include them until a
+    // physical visit or bounded failure, rather than advancing when the queue removes a claim.
+    private _floorWave=_job getOrDefault ["unfinishedFloorWave",[-1,-1,1e12]];
+    if ((_floorWave select 0) != count _cleared || {(_floorWave select 1) != count _unreachable}) then {
+        private _lowestUnfinished=1e12;
+        for "_roomIndex" from 0 to ((count _positions)-1) do {
+            if !(_roomIndex in (_cleared+_unreachable)) then {
+                _lowestUnfinished=_lowestUnfinished min ((AGLToASL (_positions select _roomIndex)) select 2);
+            };
+        };
+        _floorWave=[count _cleared,count _unreachable,_lowestUnfinished];
+        _job set ["unfinishedFloorWave",_floorWave];
+    };
+    private _lowestUnfinishedFloor=_floorWave select 2;
     private _pairRoutes=_job get "pairRoutes";
     {
         private _pairIndex=_forEachIndex;
@@ -1257,17 +1273,35 @@ private _delay=call {
                 if (_cursor >= count _route) then {
                     private _pending=_job get "pending";
                     private _pairId=format ["PAIR_%1",_pairIndex];
-                    private _candidates=_pending select {!(_pairId in (_failedBy select _x))};
+                    private _availableCandidates=_pending select {!(_pairId in (_failedBy select _x))};
+                    private _candidates=_availableCandidates select {
+                        abs (((AGLToASL (_positions select _x)) select 2)-_lowestUnfinishedFloor) < 1.8
+                    };
+                    private _waitingForFloor=_availableCandidates isNotEqualTo [] && {_candidates isEqualTo []};
+                    if (_waitingForFloor) then {
+                        // Hold idle admitted actors once while another lane resolves lower rooms.
+                        // Existing active native legs and newer tasks remain authoritative.
+                        private _holds=_job getOrDefault ["roomHolds",createHashMap];
+                        {
+                            private _waitingActor=_x;
+                            private _key=netId _waitingActor;
+                            if ([_waitingActor] call _actorAvailable && {[_waitingActor] call _actorTaskFree}
+                                && {call _mayIssueMovement} && {!([_waitingActor] call _activeOwnMove)}
+                                && {currentCommand _waitingActor in ["","STOP","FOLLOW"]}
+                                && {!(_key in _holds) || {currentCommand _waitingActor != "STOP"}}) then {
+                                private _hold=getPosATL _waitingActor;
+                                doStop _waitingActor;
+                                _holds set [_key,+_hold];
+                                diag_log format ["WAIT CLEAR FLOOR QUEUE HOLD: %1",[_job get "generation",_pairIndex,_key,_lowestUnfinishedFloor,+_hold]];
+                            };
+                        } forEach _pair;
+                        _job set ["roomHolds",_holds];
+                    };
                     if (_candidates isNotEqualTo []) then {
-                        // The shared queue's floor ordering must survive each actor's nearest-room
-                        // ranking. Otherwise a close upstairs window can win before ground entry.
-                        private _lowestFloor=1e12;
-                        {_lowestFloor=_lowestFloor min ((_positions select _x) select 2)} forEach _candidates;
-                        _candidates=_candidates select {abs (((_positions select _x) select 2)-_lowestFloor) < 1.8};
                         private _point=_pair select (_moverIndex mod count _pair);
                         private _ranked=_candidates apply {
                             private _candidate=_positions select _x;
-                            [(_point distance2D _candidate)+(abs (((getPosATL _point) select 2)-(_candidate select 2))*2.5),_x]
+                            [(_point distance2D _candidate)+(abs (((getPosASL _point) select 2)-((AGLToASL _candidate) select 2))*2.5),_x]
                         };
                         _ranked sort true;
                         // Start an unentered lane in the model's interior-position order.
