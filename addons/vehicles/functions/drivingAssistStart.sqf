@@ -14,6 +14,8 @@
  * The authored waypoint identity includes conditions, timeouts, synchronized triggers, speed,
  * combat mode and formation. Same-index edits retire the old recovery stage. Every cap/recovery
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
+ * Only the current leader vehicle can refresh/reverse the shared route. Followers keep native
+ * formation movement; a leader/seat/locality change invalidates delayed recovery commands.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
  * it after a locality change; route changes reset finite recovery; release restores only the forced speed captured by this function.
  * Arguments:
@@ -88,7 +90,13 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
         // Terrain sampling is deliberately sparse but may still overlap a newer Zeus or specialist
         // order. Preserve that order at the actual cap/recovery command boundary.
         private _mayIssueDriving = {
-            !([_group] call WAIT_fnc_CortexExternalTakeover)
+            local _group && {local _vehicle}
+                && {driver _vehicle isEqualTo _driver}
+                && {(effectiveCommander _vehicle) in [_movementOperator,objNull]}
+                && {vehicle _movementOperator isEqualTo _vehicle}
+                && {local _driver} && {group _driver == _group}
+                && {!isPlayer _driver} && {isNull remoteControlled _driver}
+                && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
                 && {alive _vehicle} && {canMove _vehicle}
                 && {[_driver] call WAIT_fnc_CortexCombatEffective}
                 && {[_movementOperator] call WAIT_fnc_CortexCombatEffective}
@@ -99,6 +107,12 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 && {[_driver] call _nativeTaskFree} && {[_movementOperator] call _nativeTaskFree}
                 && {_routeIdentity isNotEqualTo []}
                 && {(call _readRouteIdentity) isEqualTo _routeIdentity}
+        };
+        // A shared group waypoint authorizes the leader vehicle's route, not independent
+        // follower manoeuvres. Keep this separate from the safety cap: followers can still
+        // receive a terrain cap while their formation movement stays native.
+        private _mayRecoverRoute = {
+            call _mayIssueDriving && {vehicle leader _group isEqualTo _vehicle}
         };
         private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
@@ -125,6 +139,15 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 _state set [6,0];
                 _state set [7,-1];
                 _state set [8,"NEW_ROUTE"];
+            };
+            // A follower must not retain the cautious-reverse stage of a former leader.
+            // Start a fresh observation interval if it later becomes the leader again.
+            if (_state isNotEqualTo [] && {vehicle leader _group isNotEqualTo _vehicle}) then {
+                _state set [4,getPosATL _vehicle];
+                _state set [5,time];
+                _state set [6,0];
+                _state set [7,-1];
+                _state set [8,"NATIVE_FOLLOWER"];
             };
             private _origin=getPosASL _vehicle;
             private _direction=vectorDir _vehicle;
@@ -201,7 +224,8 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _reverseComplete=_recoveryStage == 2 && {time >= _recoveryUntil};
             if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
                 && {!_inCombat} && {abs speed _vehicle < 1 || {_reverseComplete}}
-                && {time-_progressAt >= 12 || {_reverseComplete}} && {time >= _recoveryUntil} && {call _mayIssueDriving}) then {
+                && {time-_progressAt >= 12 || {_reverseComplete}} && {time >= _recoveryUntil}
+                && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
                 private _waypoint=[_group,_waypointIndex];
                 private _destination=waypointPosition _waypoint;
                 if (waypointType _waypoint == "MOVE" && {_vehicle distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
@@ -231,7 +255,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                                     };
                                 } forEach [-1.5,0,1.5];
                             };
-                            if (_blockers isEqualTo [] && {_rearSafe} && {call _mayIssueDriving}) then {
+                            if (_blockers isEqualTo [] && {_rearSafe} && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
                                 _movementOperator doMove _rear;
                                 _recoveryResult="CAUTIOUS_REVERSE";
                             } else {

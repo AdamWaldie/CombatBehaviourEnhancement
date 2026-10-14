@@ -128,6 +128,14 @@ speed or recovery write rechecks that the waypoint identity is still current. An
 clears an unapplied speed snapshot. This source guard has no fresh physical acceptance. Retests must
 include condition/trigger edits during reverse recovery and a valid new route after the change.
 
+Only the vehicle currently carrying the group leader may refresh or reverse the shared native
+route. Other group vehicles retain native formation movement and can still receive terrain speed
+caps. Losing the leader role resets an existing recovery stage and its observation timer before
+any reverse-speed cap is selected. Each command also checks current vehicle/group locality and the
+actual driver/commander seat identities. This does not cancel an already-issued native movement
+command by issuing a competing stop. Physical tests must cover formation waits, leader replacement
+while recovering, seat changes during observation and subsequent valid leader recovery.
+
 Convoys measure forward predecessor gaps to remain single-file; they do not use
 formation wedge offsets. Target spacing uses a size-aware minimum/maximum band
 with damped speed correction. A meaningful stop is classified as ordered,

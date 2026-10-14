@@ -4,7 +4,9 @@ The prior follow-up is merged. The next branch expands ordinary-driving waypoint
 conditions, timeouts, synchronized triggers, speed, combat mode and formation. Every speed/recovery
 write rechecks the captured identity. Same-index edits reset finite recovery observation, and the
 implicit spawn waypoint cannot admit driving assistance. Initial refusal clears an unapplied speed
-snapshot. Source checks and a full offline build are required. Physical recovery/order-edit and
+snapshot. Shared-route recovery is limited to the current leader vehicle; followers retain native
+formation movement. Command admission rechecks actual seat identities and vehicle/group locality.
+Source checks and a full offline build are required. Physical follower/leader-change, recovery/order-edit and
 performance acceptance remain open. Audits stay held.
 
 ## Current acceptance boundary - 2026-10-14

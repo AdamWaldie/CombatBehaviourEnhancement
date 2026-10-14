@@ -7413,6 +7413,25 @@ class CortexOperations(unittest.TestCase):
         self.assertGreaterEqual(start.count('call _mayIssueDriving'),3)
         self.assertIn('if (_state isEqualTo []) then {_vehicle setVariable ["WAIT_DrivingAssist_Restore",nil]}',start)
 
+    def test_driving_followers_cannot_recover_the_leaders_shared_route(self):
+        """Stationary formation followers must never become independent reverse controllers."""
+        start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        for check in ['local _group && {local _vehicle}',
+                      'driver _vehicle isEqualTo _driver',
+                      '(effectiveCommander _vehicle) in [_movementOperator,objNull]',
+                      'vehicle _movementOperator isEqualTo _vehicle',
+                      'local _driver', 'group _driver == _group']:
+            self.assertIn(check,start)
+        guard=start.split('private _mayRecoverRoute = {',1)[1].split('};',1)[0]
+        self.assertIn('call _mayIssueDriving',guard)
+        self.assertIn('vehicle leader _group isEqualTo _vehicle',guard)
+        self.assertGreaterEqual(start.count('{call _mayRecoverRoute}'),2)
+        follower=start.split('if (_state isNotEqualTo [] && {vehicle leader _group isNotEqualTo _vehicle}) then {',1)[1].split('};',1)[0]
+        self.assertIn('_state set [5,time]',follower)
+        self.assertIn('_state set [6,0]',follower)
+        self.assertIn('"NATIVE_FOLLOWER"',follower)
+        self.assertLess(start.index('"NATIVE_FOLLOWER"'),start.index('private _cap='))
+
     def test_general_driving_assist_is_separate_from_convoys_and_preserves_native_routes(self):
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
