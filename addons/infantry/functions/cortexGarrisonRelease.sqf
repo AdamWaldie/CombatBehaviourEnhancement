@@ -116,6 +116,7 @@ private _hasAssignments=units _group findIf {(_x getVariable ["WAIT_AIPass_Garri
 if (!_partial || {!_hasAssignments}) then {
     _group setVariable ["WAIT_AIPass_Garrison", nil, true];
     _group setVariable ["WAIT_Cortex_GarrisonDeadline",nil,true];
+    _group setVariable ["WAIT_Cortex_GarrisonPlacement",nil,true];
     _group setVariable ["WAIT_Cortex_GarrisonCandidates",nil,true];
     _group setVariable ["WAIT_AIPass_GarrisonApplied", nil];
 };

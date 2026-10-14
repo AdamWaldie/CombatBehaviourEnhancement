@@ -109,7 +109,17 @@ Cortex building actions use a finite physical progression:
    fabricated success.
 
 **Clear** sweeps reachable interior positions then establishes security.
-**Garrison** occupies defensible interior positions with exterior security.
+**Garrison** occupies defensible interior positions with exterior security. Walking is the default.
+Mission scripts can explicitly request instant interior placement with
+`[group soldier1, getPosATL house1, 40, createHashMapFromArray [["teleport",true]]] call WAIT_fnc_CortexGarrison;`.
+This option runs once on the group owner during a fresh order, using the same interior slot selection;
+owner adoption and JIP do not replay it. Surplus actors still approach exterior security normally.
+Players, remote-controlled/protected actors, movement reservations and native service tasks are excluded
+from instant placement. `inPlace` and `teleport` cannot be combined. Instant placement is not evidence
+of accessible interiors or physical CQB entry and must remain excluded from physical routing acceptance.
+The executor option has offline checks only; fresh engine placement, repeat, casualty and migration
+acceptance remains pending. A future module should label walking and instant placement distinctly;
+no garrison module is exposed by this change.
 **Traverse** enters through one viable side and leaves through an actual exit
 on the onward side. Casualties and stalls can rotate capable reserve actors into
 the entry element without forcing a group merge.

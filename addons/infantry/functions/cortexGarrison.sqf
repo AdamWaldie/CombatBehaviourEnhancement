@@ -29,7 +29,12 @@
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
  * 1: centre <ARRAY or OBJECT> - ATL position or object (optional, default: leader position)
  * 2: radius <NUMBER> - search radius in metres (optional, default: 50)
- * 3: options <HASHMAP> (optional) - inPlace (default false)
+ * 3: options <HASHMAP> (optional) - inPlace (default false), teleport (default false).
+ * Explicit teleport places eligible assigned interior actors once when this order starts;
+ * surplus exterior actors still walk. Adoption/JIP never repeats placement. This is scenario
+ * placement, not evidence of building entry, clearance or accessible navigation.
+ * Example instant placement: [group soldier1, getPosATL house1, 40,
+ *     createHashMapFromArray [["teleport",true]]] call WAIT_fnc_CortexGarrison;
  *
  * Return Value:
  * Boolean - true when the order was applied or forwarded
@@ -38,12 +43,15 @@
  * [group this, getPosATL this, 40] call WAIT_fnc_CortexGarrison;
  * Result: the squad occupies the nearby buildings and holds them.
  *
- * Current callers: mission scripts and init fields, the AI Orders ZEN module and WAIT_fnc_CortexDiscover.
+ * Current callers: mission scripts/init fields, WAIT_fnc_CortexOrderLocal and WAIT_fnc_CortexDiscover.
  */
 
 params [["_group", grpNull, [grpNull, objNull]], ["_centre", [], [[], objNull]], ["_radius", 50, [0]], ["_options", createHashMap, [createHashMap]]];
 if (_group isEqualType objNull) then {_group = group _group};
 if (isNull _group) exitWith {false};
+private _teleport = _options getOrDefault ["teleport",false];
+private _inPlace = _options getOrDefault ["inPlace",false];
+if (!(_teleport isEqualType true) || {!(_inPlace isEqualType true)} || {_teleport && {_inPlace}}) exitWith {false};
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 if (!local _group) exitWith {
     if (isServer) then {[_group, _centre, _radius, _options] remoteExecCall ["WAIT_fnc_CortexGarrison", groupOwner _group]; true} else {false};
@@ -98,6 +106,29 @@ if (_options getOrDefault ["inPlace", false]) then {
         _x setVariable ["WAIT_AIPass_GarrisonPos",_assignment,true];
     } forEach _units;
 };
+// Instant placement is an explicit one-shot order option, never an approach recovery.
+// It is deliberately absent from ApplyLocal, so migration and repeated discovery cannot teleport.
+if (_teleport) then {
+    {
+        private _unit = _x;
+        private _assignment = _unit getVariable ["WAIT_AIPass_GarrisonPos",[]];
+        private _building = _assignment param [2,objNull];
+        private _transform = _assignment param [3,[]];
+        private _reservation = _unit getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _free = _reservation isEqualTo [] || {_reservation isEqualType []
+            && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+        if (local _group && {local _unit} && {group _unit == _group} && {!isPlayer _unit}
+            && {isNull remoteControlled _unit} && {isNull objectParent _unit}
+            && {[_unit] call WAIT_fnc_CortexCombatEffective} && {_unit checkAIFeature "MOVE"}
+            && {_free} && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
+            && {!(currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+            && {!isNull _building} && {alive _building}
+            && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}) then {
+            _unit setPosATL (_assignment select 0);
+        };
+    } forEach _units;
+};
+_group setVariable ["WAIT_Cortex_GarrisonPlacement",if (_inPlace) then {"IN_PLACE"} else {["WALK","INSTANT"] select _teleport},true];
 _group setVariable ["WAIT_Cortex_GarrisonResult",nil,true];
 _group setVariable ["WAIT_Cortex_GarrisonDeadline",serverTime+240,true];
 _group setVariable ["WAIT_AIPass_Garrison", [_centre, _radius, count _units], true];
