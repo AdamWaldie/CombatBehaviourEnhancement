@@ -46,7 +46,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | ART - Spotted artillery bursts | 13 | 0 | 18 | `runServer.sqf` | 0 | implemented_partial |
 | CB - Counter-battery | 10 | 0 | 3 | `runServer.sqf` | 0 | implemented_partial |
 | AIRBORNE - Parachute passengers | 6 | 0 | 4 | `runAirborne.sqf` | 0 | implemented_partial |
-| GARRISON - Garrison and dynamic AO | 1 | 0 | 3 | `runServer.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
+| GARRISON - Garrison and dynamic AO | 1 | 0 | 4 | `runServer.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | FLARES - Aircraft countermeasures | 1 | 0 | 2 | `runAircraft.sqf` | 2 | implemented_partial |
 | INVESTIGATE - Known-area investigation | 3 | 0 | 2 | `runSupport.sqf` | 0 | implemented_partial |
 | ASSAULT - Final assault | 2 | 0 | 1 | `runCombat.sqf` | 3 | implemented_partial |
@@ -330,7 +330,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Every assigned soldier physically reaches the correct slot/floor and holds; timeout reports failure, break/release restores only owned restrictions.
 
-**Automation and open work:** runServer.sqf ORD-04* now validates the public COMPAT backend plus physical arrival and hold. runBuildingComparison.sqf retains native fallback across multiple models. Earlier native physical arrival failed; rebuilt primary and fallback acceptance is pending.
+**Automation and open work:** runServer.sqf ORD-04* now validates the public COMPAT backend plus physical arrival and hold. runBuildingComparison.sqf retains native fallback across multiple models. Earlier native physical arrival failed; rebuilt primary and fallback acceptance is pending. Settled garrison jobs now permit one owner-local interior vacancy refill from an available reinforcement or duplicate exterior exit post, preserving sole exit coverage and walking to the new slot. Physical casualty/refill, coverage retention, native handover and HC replay remain unverified.
 
 ### FLARES - Aircraft countermeasures
 

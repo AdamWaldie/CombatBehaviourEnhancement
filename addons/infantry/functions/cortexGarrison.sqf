@@ -129,6 +129,7 @@ if (_teleport) then {
     } forEach _units;
 };
 _group setVariable ["WAIT_Cortex_GarrisonPlacement",if (_inPlace) then {"IN_PLACE"} else {["WALK","INSTANT"] select _teleport},true];
+_group setVariable ["WAIT_Cortex_GarrisonRoster",+_units,true];
 _group setVariable ["WAIT_Cortex_GarrisonResult",nil,true];
 _group setVariable ["WAIT_Cortex_GarrisonDeadline",serverTime+240,true];
 _group setVariable ["WAIT_AIPass_Garrison", [_centre, _radius, count _units], true];

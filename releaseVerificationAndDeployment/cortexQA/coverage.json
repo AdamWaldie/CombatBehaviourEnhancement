@@ -1052,7 +1052,7 @@
       "live_evidence": [
         "20260929-184640: physical garrison arrival and hold failed on model 2; independent direct/replan entry reached its first slot. Model 1 failed all independent methods. Unresolved."
       ],
-      "automation": "runServer.sqf ORD-04* now validates the public COMPAT backend plus physical arrival and hold. runBuildingComparison.sqf retains native fallback across multiple models. Earlier native physical arrival failed; rebuilt primary and fallback acceptance is pending.",
+      "automation": "runServer.sqf ORD-04* now validates the public COMPAT backend plus physical arrival and hold. runBuildingComparison.sqf retains native fallback across multiple models. Earlier native physical arrival failed; rebuilt primary and fallback acceptance is pending. Settled garrison jobs now permit one owner-local interior vacancy refill from an available reinforcement or duplicate exterior exit post, preserving sole exit coverage and walking to the new slot. Physical casualty/refill, coverage retention, native handover and HC replay remain unverified.",
       "executable_sources": [
         "runServer.sqf",
         "runBuildingComparison.sqf"
@@ -1060,7 +1060,8 @@
       "production_sources": [
         "addons/infantry/functions/cortexGarrison.sqf",
         "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
-        "addons/infantry/functions/cortexGarrisonRelease.sqf"
+        "addons/infantry/functions/cortexGarrisonRelease.sqf",
+        "addons/infantry/functions/cortexGarrisonRefill.sqf"
       ]
     },
     {

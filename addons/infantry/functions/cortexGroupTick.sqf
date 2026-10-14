@@ -194,6 +194,7 @@ if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {
             && {_nativeTask || {_command == "FOLLOW"} || {_command == "MOVE" && {!_matching}}}
     };
     if (_diverted isNotEqualTo []) then {[_group,false,_diverted] call WAIT_fnc_CortexGarrisonRelease};
+    [_group] call WAIT_fnc_CortexGarrisonRefill;
 };
 // A group tick can complete bounded assessment and planning after a curator or specialist
 // controller has claimed the group. Check immediately before actor-level commands so old

@@ -406,3 +406,27 @@ brief/permanent stops, compressed spacing, restart, turns, reversing, convoy aut
 performance require fresh live acceptance when audits resume.
 
 The prepared normal-owner vehicles audit includes a stopped tracked predecessor and ordinary truck follower. It requires physical approach, sustained separated hold, absence of queue-induced recovery, actual departure/resume, a repeated stop/resume and disabled observation cleanup. No controller callback, relocation or successful state is injected. This fixture has not been run; collision/damage/gap sampling is not a universal collision guarantee. HC migration, road curves, crossing and dense congestion need separate variants.
+
+
+## Garrison vacancy refill
+
+After the arrival job settles, the existing group scheduler can refill one vacant interior post.
+Living assignments, including unconscious soldiers, retain their reservations. An available new
+reinforcement without an assignment is preferred by distance; an exterior defender may move only
+when another capable held defender covers the same building exit. Sole exit coverage is preserved.
+Player/specialist actors, active movement reservations, native movement/service tasks and failed
+routes are excluded. The task roster distinguishes newly joined reinforcements from original
+actors released to a newer native task; completion of that task does not permit silently reclaiming
+them. Refill also waits for local garrison adoption to complete. Selection processes at most 64 group members and 64 stored interior candidates.
+Moved/deleted buildings cannot supply a slot. The casualty break fraction still prevents refill of
+a broken group. Vacancy selection does not mean that the selected position is physically reachable.
+
+The replacement walks through the existing garrison approach/arrival path even if the initial
+order used instant placement. Reapplication creates a new owner-local generation and a 90-second
+approach window only after the previous job settled. Failed actors retain their failures; pending
+old routes cannot renew the deadline this way. Adoption marks progression pending before its
+job runs. Full release clears refill/pending metadata. Existing held actors are reapplied through
+the shared executor; possible movement churn, coverage geometry, actual casualty replacement,
+failed/blocked destinations, repeat promotion, late casualties, Zeus handover, owner migration and
+performance still require physical acceptance. This source implementation is not an accepted
+reinforcement feature and does not claim reserves from other squads.

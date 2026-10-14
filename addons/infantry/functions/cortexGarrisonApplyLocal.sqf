@@ -91,6 +91,7 @@ if (_deadline < 0) then {
 private _generation = (_group getVariable ["WAIT_AIPass_GarrisonGeneration", 0]) + 1;
 _group setVariable ["WAIT_AIPass_GarrisonGeneration", _generation];
 _group setVariable ["WAIT_AIPass_GarrisonApplied", true];
+_group setVariable ["WAIT_Cortex_GarrisonPending",-1,true];
 private _routes = createHashMap;
 private _buildingTopologyCache=missionNamespace getVariable ["WAIT_Cortex_GarrisonTopology",createHashMap];
 // Every later movement write is guarded again because an external controller can take
@@ -533,6 +534,7 @@ private _buildingAnchor = {
             };
         };
     } forEach units _group;
+    _group setVariable ["WAIT_Cortex_GarrisonPending",_pending,true];
     if (_pending == 0) then {
         private _assigned=(units _group) select {
             alive _x && {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}
