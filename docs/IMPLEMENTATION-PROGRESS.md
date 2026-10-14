@@ -8,6 +8,8 @@ The completed earlier a422403 focused comparison retained seven twelve-person fa
 
 Ordinary-driving task protection is implemented: driver/commander native service, boarding, medical and assembly tasks must release WAIT's unchanged speed lease and block recovery commands. This passed the mandatory offline gates; physical task handover remains pending. No performance-budget acceptance is inferred.
 
+Workshop-informed convoy catch-up: the locally archived Better Convoy 2801179774 lead/link speed functions separate leader pacing from nonlinear follower gap correction. WAIT retains its owner-local FSM/shared scheduler and linear normal-band control, adding only an outer-band excess-gap correction proportional to excess^1.5 and capped at 8 km/h. The existing acceleration limit, shared vehicle cruise/terrain maximum, closing cap, immediate compressed-gap braking, stopped/reversing predecessor protection and infantry safety still constrain the result. No authored speed mode, road preference, independent loop, waypoint or tight stopping band is added. This aims to restore large gaps after mixed-vehicle step-off/path acquisition; convoy gap convergence, stop/start behaviour and performance remain physically unvalidated. The archived local code is a method reference, not proof of current Workshop parity.
+
 ## Historical acceptance notes - 2026-10-13
 
 Offline follow-up through 406b0ed adds unresolved artillery parking, observer rejection retry, exact CQB watch retirement, protected-target and believed-position vehicle responses, finite convoy timing evidence and ASL aircraft ingress projection. All passed offline gates; none has fresh physical acceptance. All 65 feature families remain partial; audits remain paused.

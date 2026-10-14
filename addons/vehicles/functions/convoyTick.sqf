@@ -6,6 +6,8 @@
  * Aligned vehicles use unit horizontal bearings for forward separation, so pitch cannot shrink
  * the measured gap and lateral spread cannot satisfy it or stabilize a wedge.
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
+ * Excess stretch beyond the upper band adds a nonlinear catch-up correction capped at 8 km/h.
+ * Native acceleration, shared cruise/terrain limits, immediate closing caps and reverse yields remain authoritative.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
@@ -517,7 +519,15 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Match predecessor speed at the requested gap; proportional correction avoids drifting along a band edge.
     // Acceleration remains bounded below, while compression still applies an immediate braking cap.
     private _limit = (_frontSpeed + (_controlGap-_desiredGap)*0.4) max 0;
-    if (_controlGap > _gapHigh) then {_limit = _limit max 5};
+    if (_controlGap > _gapHigh) then {
+        // Restore the column after a slow step-off or path-acquisition gap. A
+        // bounded nonlinear outer-band correction gives a stretched follower
+        // more convergence than a small linear correction, without tightening
+        // the normal band or adding another stop/start threshold.
+        private _excess=_controlGap-_gapHigh;
+        private _catchupBoost=((_excess*sqrt _excess)*0.15) min 8;
+        _limit=(_limit+_catchupBoost) max 5;
+    };
     if (_controlGap < _gapLow) then {_limit = _limit min ((_frontSpeed-(_gapLow-_controlGap)*1.2) max 0)};
     // A stationary/braking predecessor must still constrain us inside the tolerance band.
     private _closingCap = (_frontSpeed + ((_controlGap-_gapLow) max 0)*0.8) min _maximum;
