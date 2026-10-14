@@ -95,6 +95,7 @@ if (_options getOrDefault ["inPlace", false]) then {
         _x setVariable ["WAIT_AIPass_GarrisonPos", _candidateAssignments select _forEachIndex, true];
     } forEach _units;
 };
+_group setVariable ["WAIT_Cortex_GarrisonResult",nil,true];
 _group setVariable ["WAIT_Cortex_GarrisonDeadline",serverTime+240,true];
 _group setVariable ["WAIT_AIPass_Garrison", [_centre, _radius, count _units], true];
 _group setVariable ["WAIT_AIPass_GarrisonApplied", false];

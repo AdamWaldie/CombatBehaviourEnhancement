@@ -16,6 +16,8 @@
  * release clears old assignments and failures, admits another attempt at the same position.
  * The original server-time approach deadline is public and survives owner adoption; held posts
  * remain valid after it expires, but unfinished routes cannot acquire another 240 seconds.
+ * When every surviving assigned actor exhausted its route, the job records INCOMPLETE and
+ * releases the failed garrison rather than retaining an empty stationary tactical intent.
  * Routes stage at a real entrance when approaching from more than 30 m, then commit directly to the
  * interior destination. The initial route releases formation once with doStop; recovery, alternate
  * entrance and reassignment legs use only one native doMove destination. Pairing a repeated stop with
@@ -387,6 +389,17 @@ private _buildingAnchor = {
             };
         };
     } forEach units _group;
+    if (_pending == 0) then {
+        private _assigned=(units _group) select {
+            alive _x && {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}
+        };
+        if (_assigned isNotEqualTo [] && {_assigned findIf {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])} < 0}) then {
+            private _evidence=(_assigned select [0,16]) apply {[netId _x,getPosATL _x,+(_x getVariable ["WAIT_AIPass_GarrisonPos",[]])]};
+            _group setVariable ["WAIT_Cortex_GarrisonResult",[_job get "generation","INCOMPLETE","ALL_ROUTES_FAILED",serverTime,_evidence],true];
+            diag_log format ["[WAIT] Garrison incomplete: all routes failed group=%1 evidence=%2",_group,_evidence];
+            [_group] call WAIT_fnc_CortexGarrisonRelease;
+        };
+    };
     [2, -1] select (_pending == 0)
 }, createHashMapFromArray [["group", _group], ["assignmentValid",_assignmentValid], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", _deadline], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
 
