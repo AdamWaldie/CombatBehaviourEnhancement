@@ -142,8 +142,15 @@ private _buildingAnchor = {
 {
     private _unit = _x;
     private _assignment = _unit getVariable ["WAIT_AIPass_GarrisonPos", []];
-    if (_assignment isNotEqualTo [] && {serverTime > _deadline}
+    if (local _unit && {!isPlayer _unit} && {_assignment isNotEqualTo []} && {serverTime > _deadline}
         && {_unit distance (_assignment select 0) > 2}) then {
+        // Expired adoption does not enter the ordinary route callback. Retire an unchanged
+        // approach cap here, using the same actor-authority guard before any speed write.
+        if ([_unit] call _mayIssueMovement
+            && {!isNil {_unit getVariable "WAIT_Cortex_GarrisonForcedSpeed"}}
+            && {abs ((getForcedSpeed _unit)-(_unit getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",-2])) <= 0.1}) then {
+            _unit forceSpeed (_unit getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+        };
         _unit setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
     };
     if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
