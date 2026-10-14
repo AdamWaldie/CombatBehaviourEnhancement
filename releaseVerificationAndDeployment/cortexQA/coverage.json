@@ -749,7 +749,12 @@
         "addons/vehicles/functions/drivingOperationStep.sqf",
         "addons/vehicles/functions/drivingOperationFinish.sqf",
         "addons/vehicles/functions/drivingRearClear.sqf",
-        "addons/vehicles/functions/drivingMovementAvailable.sqf"
+        "addons/vehicles/functions/drivingMovementAvailable.sqf",
+        "addons/vehicles/functions/drivingControlRequest.sqf",
+        "addons/vehicles/functions/drivingControlLocal.sqf",
+        "addons/vehicles/functions/drivingControlResult.sqf",
+        "addons/vehicles/functions/moduleDriving.sqf",
+        "addons/vehicles/functions/zenDrivingModule.sqf"
       ]
     },
     {

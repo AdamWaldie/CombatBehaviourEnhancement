@@ -7396,6 +7396,34 @@ class CortexOperations(unittest.TestCase):
 
 
 
+    def test_driving_operator_controls_use_authenticated_ordered_owner_dispatch(self):
+        request=(ROOT/'addons/vehicles/functions/drivingControlRequest.sqf').read_text(encoding='utf-8')
+        local=(ROOT/'addons/vehicles/functions/drivingControlLocal.sqf').read_text(encoding='utf-8')
+        result=(ROOT/'addons/vehicles/functions/drivingControlResult.sqf').read_text(encoding='utf-8')
+        module=(ROOT/'addons/vehicles/functions/moduleDriving.sqf').read_text(encoding='utf-8')
+        zen=(ROOT/'addons/vehicles/functions/zenDrivingModule.sqf').read_text(encoding='utf-8')
+        config=(ROOT/'addons/main/config.cpp').read_text(encoding='utf-8')
+        for operation in ['ENABLE','RELEASE','INSPECT']:
+            self.assertIn('"'+operation+'"',request)
+        self.assertIn('getAssignedCuratorUnit',request)
+        self.assertIn('owner _unit == _sender',request)
+        self.assertIn('createHashMapFromArray _settings',request)
+        self.assertIn('_operation isEqualType ""',request)
+        self.assertIn('groupOwner _group',request)
+        self.assertIn('CBA_fnc_waitAndExecute',request)
+        self.assertIn('remoteExecutedOwner != 2',local)
+        self.assertLess(local.index('setVariable ["WAIT_AIPass_DisabledFeatures"'),local.index('call WAIT_fnc_DrivingOperationStart'))
+        self.assertIn('_revision <= _seen',local)
+        self.assertIn('WAIT_Driving_ControlRevision',local)
+        self.assertIn('_sender != (_pending select 2)',result)
+        self.assertIn('(_pending select 0) != _revision',result)
+        self.assertIn('attachedTo _logic',module)
+        self.assertNotIn('nearestObjects',module+zen+request)
+        self.assertIn('"COMBO"',zen)
+        for name in ['WAIT_ModuleDrivingEnable','WAIT_ModuleDrivingRelease','WAIT_ModuleDrivingInspect']:
+            self.assertIn(name,config)
+        self.assertIn('WAIT_fnc_ZenDrivingModule',(ROOT/'addons/main/bootstrap/zenRegister.sqf').read_text(encoding='utf-8'))
+
     def test_tactical_movement_hands_back_ordinary_driving_before_acquisition(self):
         lease=source('cortexOwnershipLease')
         available=(ROOT/'addons/vehicles/functions/drivingMovementAvailable.sqf').read_text(encoding='utf-8')

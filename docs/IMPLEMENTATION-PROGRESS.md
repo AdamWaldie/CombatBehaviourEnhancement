@@ -1,3 +1,11 @@
+## Targeted ordinary-driving operator controls
+
+Native Zeus and optional ZEN now request enable/release/inspect through one curator-authenticated
+server boundary. Revisioned exclusions travel with the owner request before activation; expected
+owner acknowledgement and finite timeout report the result. These use the production driving FSM,
+retain global/tactical/specialist gates and persist group exclusion for JIP/owner discovery. Placement,
+transport, owner migration, repeat and physical behaviour remain unrun while audits are held.
+
 ## Shared reverse clearance observation
 
 Ordinary recovery and tracked withdrawal now consume the same body-sized rear actor/geometry
