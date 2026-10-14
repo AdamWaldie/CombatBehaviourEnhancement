@@ -45,14 +45,16 @@ The release candidate is successful only when it provides the following in real 
 
 ## Current execution order
 
-1. Stabilise danger FSMs, operation identity, scheduler admission and synchronous retirement.
-2. Rebuild and physically prove General Driving and Convoy as separate use cases on shared safe primitives.
-3. Prove individual combat response, cover, recovery and building movement.
-4. Compose those working primitives into paired movement and squad tactics.
-5. Expand to communicating squads, independent contacts and combined arms.
-6. Complete specialist compatibility expansion and companion integration acceptance.
+1. Stabilise danger and operation FSM decisions, native-order ownership, scheduling and synchronous retirement. Trace the real action writers behind each FSM state.
+2. Examine the complete driving reference and build its suitable methods into shared bounded primitives. Include predictive obstacles, gates, traffic, navigation areas, jam negotiation, crew policy, recovery, diagnostics and controls. Give every method an explicit adaptation, redesign or rejection decision.
+3. Prove ordinary driving and registered convoy behaviour separately. Mixed vehicle response and physical roadblocks must be part of the design.
+4. Complete individual combat response, cover, recovery and dynamic building movement, then compose paired and squad behaviour.
+5. Expand communicating squads, independent contacts and combined arms through suitable effects and finite ownership.
+6. Complete specialist compatibility expansion after the behavioural foundations. Custom melee, droid and zombie controllers are compatibility-only and earn no general tactical completion credit.
 
-This order changes delivery priority, not product scope. Existing Zeus, player, external-owner and locality safeguards remain mandatory at every stage. Assessment of local behavioural methods feeds each stage; packaging and detection do not establish implementation parity. Run physical retests in consolidated batches against a sealed candidate.
+Zeus controls are part of these work packages. Reuse the production executor and authoritative request path. Operator controls need clear selection, current-state feedback and safe interruption. Do not expose unavailable behaviour as a working control.
+
+This order changes priority, not product scope. Existing Zeus, player, external-owner and locality safeguards remain mandatory. Source comparison must examine called mechanisms and changed intent. Physical acceptance remains separate from offline checks. Audits are held until the user resumes them.
 
 ## Work packages and exit criteria
 
@@ -77,18 +79,3 @@ This order changes delivery priority, not product scope. Existing Zeus, player, 
 - **Promoted:** all required physical and performance gates for the package have passed.
 
 No work package may skip directly from **implemented** or **statically checked** to **promoted**.
-
-## Current execution order
-
-1. Complete the danger FSM and common lifecycle, then prove it in a single batch when game testing
-   resumes.
-2. Finish infantry continuity, multi-squad coordination and CQB using that common lifecycle.
-3. Consolidate driving and convoy behaviour on the shared scheduler.
-4. Complete aircraft, vehicle and support operations only where capability and geometry make them
-   viable.
-5. Validate compatibility handovers, locality/JIP/headless behaviour and the measured performance
-   budget.
-6. Seal and test the release candidate in the four physical acceptance batches.
-
-Game testing is intentionally paused until explicitly re-enabled. Static validation and package builds
-continue; their results remain separate from physical acceptance.
