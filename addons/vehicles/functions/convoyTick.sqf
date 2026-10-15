@@ -13,6 +13,8 @@
  * Follower curve/grade caps persist between path refreshes until fresh trail geometry replaces them;
  * disabling convoy driving assist clears that local cap without changing native route ownership.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
+ * Lead catch-up pacing reuses the same aligned longitudinal gap as stretch assessment, so
+ * lateral drift alone does not create a false rearward gap or feed acceleration lag forward.
  * The lead alone uses registered corridor approach/crossing through this same callback. Active
  * corridors suppress lead route recovery; followers keep measured predecessor trails and spacing.
  * Finite static-obstacle bypass shares this lead writer. Followers yield only the exact source
@@ -446,7 +448,7 @@ private _frontTrails = _state get "frontTrails";
 } forEach _vehicles;
 private _turn = abs (((getDir _lead - (_state get "heading") + 540) mod 360) - 180);
 _state set ["heading", getDir _lead];
-private _stretch = 0;
+private _stretch = 0;private _spacingGaps=[0];
 for "_i" from 1 to (count _vehicles - 1) do {
     private _follower=_vehicles select _i;
     private _front=_vehicles select (_i-1);
@@ -463,6 +465,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
         _delta set [2,0];
         _pairGap=(_delta vectorDotProduct _direction) max 0;
     };
+    _spacingGaps pushBack _pairGap;
     _stretch = _stretch max (_pairGap / (_gaps select _i));
 };
 // One bounded road walk per convoy every three seconds is enough to anticipate geometry without
@@ -488,7 +491,7 @@ private _leadLimit = ((_maximum - ((_stretch - 1.2) max 0) * 5 - (_turn min 60) 
 if (!_contact) then {
     for "_i" from 1 to (count _vehicles - 1) do {
         private _follower=_vehicles select _i;
-        private _gap=_follower distance2D (_vehicles select (_i-1));
+        private _gap=_spacingGaps select _i;
         private _target=_gaps select _i;
         private _catchupThreshold=_target+((_target*0.05) max 1);
         // Followers share the cruise speed cap. Waiting until the outer band before

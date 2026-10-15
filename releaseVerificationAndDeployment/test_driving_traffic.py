@@ -184,3 +184,26 @@ class CrossingUnacknowledgedPeerTests(unittest.TestCase):
         self.assertIn('_otherIn < _ownOut+1',prediction)
         self.assertIn('if (_room <= _stoppingRoom) then {_allowed=0}',prediction)
         self.assertEqual(source.count('nearEntities'),1)
+
+
+class ConvoyLeadGapMetricTests(unittest.TestCase):
+    def test_lateral_drift_does_not_reserve_cruise_speed_as_rearward_gap(self):
+        import math
+        def gap(along,side,heading_difference,target):
+            raw=math.hypot(along,side)
+            return max(along,0) if heading_difference <= 25 and raw <= target*1.8 else raw
+        self.assertEqual(gap(40,30,0,40),40)
+        self.assertGreater(math.hypot(40,30),42)
+        self.assertEqual(gap(50,0,0,40),50)
+        self.assertEqual(gap(40,30,90,40),50)
+        self.assertEqual(gap(80,0,0,40),80)
+
+    def test_lead_pacing_reuses_bounded_stretch_sample(self):
+        source=src('convoyTick')
+        self.assertIn('private _spacingGaps=[0]',source)
+        self.assertIn('_spacingGaps pushBack _pairGap',source)
+        pacing=source.split('private _catchupThreshold=',1)[0].rsplit('for "_i"',1)[1]
+        self.assertIn('private _gap=_spacingGaps select _i',pacing)
+        self.assertNotIn('distance2D',pacing)
+        self.assertIn('if (_gap > _target*2)',source)
+        self.assertIn('_limit = ((_limit min ((_previous select 0)+4*_elapsed)) min _closingCap) max 0',source)
