@@ -605,3 +605,9 @@ A local per-building cursor advances past each tested door, preventing earlier o
 entries from permanently hiding a usable later entry. It carries no movement authority and
 needs no network/JIP replay. Empty door sets refuse before indexing; the 64-definition cap remains.
 Dense multi-door approach and multiple-owner fairness remain physically unverified.
+
+Exterior-post validation rejects nonfinite/non-numeric coordinate triples and malformed observer
+lanes before geometry queries. Input work is capped at 64 exits, 128 reserved positions and 64
+observer lanes, matching the bounded proposal path. Diagnostic refusals report inputs=false.
+This protects CQB security, egress and garrison replanning from malformed data; it does not prove
+post accessibility, full building isolation or stable physical positioning.
