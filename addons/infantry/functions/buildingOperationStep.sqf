@@ -2364,6 +2364,19 @@ private _delay=call {
         {_active append _x} forEach (_job get "pairs");
         _active=_active arrayIntersect _active;
         _active=_active select {[_x] call _actorAvailable && {!(_x in _unavailable)}};
+        // Admission must honour replacement orders before the first exit leg is issued.
+        // The EGRESS callback cannot detect an order that this transition already overwrote.
+        private _diverted=_job getOrDefault ["egressDiverted",[]];
+        _active=_active select {
+            private _actor=_x;
+            if (currentCommand _actor == "MOVE" && {!([_actor] call _ownsCurrentMove)}) then {
+                _diverted pushBackUnique _actor;
+                (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
+            };
+            !(_actor in _diverted)
+        };
+        if (_diverted isNotEqualTo []) then {_job set ["egressFailed",true]};
+        _job set ["egressDiverted",_diverted];
         private _entries=_job get "entries";
         private _buildingPos=getPosATL (_job get "building");
         private _claimedExitPoints=[];
