@@ -28,7 +28,8 @@
  * one rotating check per callback maintains the watch without another scheduler or movement.
  * Later exterior assignments preserve these observation lanes and prefer uncovered exits.
  * New reserve posts spread across native exit bearings after failed/duplicate-exit ranking;
- * only unchanged owned approaches or physically retained posts influence that allocation.
+ * only task-ready, available actors with unchanged owned approaches or physically retained
+ * posts influence allocation; dormant/quarantined actors never reserve an observation sector.
  * Terminal cleanup clears only matching generation/owner exit watches; actors without an owned
  * watch receipt retain their current observation command. Unchanged settings release independently
  * of movement diversion, and cleanup journals
@@ -964,7 +965,8 @@ private _delay=call {
                 private _row=_earlyExits get _x;
                 private _actor=objectFromNetId _x;
                 private _postEntry=_row param [5,[],[[]]];
-                if (count _postEntry == 3 && {[_actor] call _actorAvailable}
+                if (count _postEntry == 3 && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
+                    && {!(_actor in _rotatedOut)} && {!(_actor in _unavailable)}
                     && {((_row select 3) == "MOVING" && {[_actor] call _ownsCurrentMove})
                         || {(_row select 3) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
                             && {(getPosASL _actor) vectorDistance (AGLToASL (_row select 1)) <= 2}}}) then {
@@ -976,7 +978,8 @@ private _delay=call {
                 private _actor=objectFromNetId _x;
                 private _postEntry=_otherStage param [5,[],[[]]];
                 if (_x != _key && {_x in _observationReserveKeys} && {count _postEntry == 3}
-                    && {[_actor] call _actorAvailable}
+                    && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
+                    && {!(_actor in _rotatedOut)} && {!(_actor in _unavailable)}
                     && {((_otherStage param [2,""]) == "APPROACH" && {[_actor] call _ownsCurrentMove})
                         || {(_otherStage param [2,""]) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
                             && {(getPosASL _actor) vectorDistance (AGLToASL (_otherStage select 0)) <= 2}}}) then {
