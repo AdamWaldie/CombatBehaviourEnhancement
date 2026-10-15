@@ -932,3 +932,10 @@ The ranking creates a plan, not proof of isolation. Actual geometry validation, 
 
 
 CQB observation distribution also requires the existing simulation/visibility/task-readiness predicate and rejects quarantined/unavailable actors. A combat-effective but hidden or simulation-disabled worker cannot influence assignment counts or bearing spread through an old arrived receipt. This changes new-post allocation only; no dormant actor receives a command and no existing post is recalled. Actual hide/disable/reactivation and owner-migration cases remain unrun.
+
+
+### Ordered convoy trail capture (15 October 2026)
+
+Follower refreshes now inspect only the contiguous route prefix beginning at their retained cursor. A later nearby return leg cannot compete after an intervening point lies outside the capture corridor. A local pose/time sample permits capture near the observed movement segment between refreshes, bounded to three seconds and 100 metres; older samples use the current pose alone. Capture requires less than 18 metres horizontally and no more than 1.5 metres vertical separation from the interpolated sweep. Initial 30/50-metre-gap joining approaches only the next retained forward point, requiring relative terrain heights within 1.5 metres so ordinary uphill ground starts remain eligible. This initial test cannot distinguish separate decks with similar relative terrain heights. No future nearest-point search, query, timer or additional movement writer is added.
+
+This removes the reproduced future-loop cursor jump; it does not prove continuous swept-path tracking, collision clearance or complete loop support. Tight route folds entirely inside the capture corridor remain ambiguous. Lost observations, evicted history and steep initial joining can refuse acquisition and reach existing bounded recovery rather than skip route sections. Mixed-speed convoys, crossings/overpasses, halt/resume and HC adoption need physical validation; audits remain held.

@@ -133,3 +133,47 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertEqual(runs([(0,1,0),(0,5,0),(5,5,0),(0,0,0)]),2)
         self.assertEqual(runs([(0,1,0),(0,2,0),(0,5,0)]),1)
         self.assertEqual(runs([(0,0,5),(0,1,5)]),0)
+
+
+class ConvoyOrderedCaptureTests(unittest.TestCase):
+    """Arithmetic route cases, not native steering or physical acceptance."""
+    @staticmethod
+    def capture(trail, pose, previous=None):
+        import math
+        previous=pose if previous is None else previous
+        sweep=[b-a for a,b in zip(previous,pose)]
+        squared=sweep[0]**2+sweep[1]**2
+        candidates=[]
+        for i,point in enumerate(trail):
+            t=max(0,min(1,sum((point[k]-previous[k])*sweep[k] for k in (0,1))/squared)) if squared>.01 else 1
+            near=[previous[k]+t*sweep[k] for k in range(3)]
+            if math.dist(near[:2],point[:2])>=18 or abs(near[2]-point[2])>1.5:
+                break
+            candidates.append((math.dist(pose[:2],point[:2]),i))
+        return min(candidates)[1] if candidates else -1
+
+    def test_loop_return_does_not_skip_untravelled_middle(self):
+        trail=[(0,5,0),(0,10,0),(0,15,0),(10,15,0),(10,0,0),(1,0,0),(1,-10,0)]
+        self.assertEqual(self.capture(trail,(0,0,0)),0)
+        # A nearer return point must remain unavailable beyond an uncaptured bend.
+        self.assertEqual(self.capture([(0,5,0),(0,25,0),(1,0,0)],(0,0,0)),0)
+
+    def test_observed_straight_travel_can_pass_multiple_samples(self):
+        trail=[(0,y,0) for y in range(0,61,5)]
+        self.assertEqual(self.capture(trail,(0,30,0),(0,0,0)),6)
+        # A missing sweep cannot justify skipping the first now-distant point.
+        self.assertEqual(self.capture(trail,(0,30,0)),-1)
+
+    def test_height_separates_overpass_and_interpolates_observed_grade(self):
+        self.assertEqual(self.capture([(0,0,6),(0,5,6)],(0,0,0)),-1)
+        self.assertEqual(self.capture([(0,y,y/5) for y in range(0,31,5)],(0,30,6),(0,0,0)),6)
+
+    def test_production_uses_contiguous_capture_and_only_next_join_point(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        gate=s.split('// Advance only through a contiguous prefix',1)[1].split('if (_nearest >= 0)',1)[0]
+        for marker in ('time-(_sample select 1) <= 3','vectorDistance _pose <= 100',
+                       '_capture distance2D _pointASL >= 18','> 1.5}) exitWith {}',
+                       '_progress set [11,[+_pose,time]]',
+                       'for "_j" from _start to (_start min _frontIndex)',
+                       'abs ((_point select 2)-(_origin select 2)) <= 1.5'):
+            self.assertIn(marker,gate)

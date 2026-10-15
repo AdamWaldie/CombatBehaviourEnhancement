@@ -19,6 +19,8 @@
  * cap after fresh committed-trail leg validation (at most 15 rays per affected follower/tick).
  * That relaxation requires exactly one same-floor capture cluster among at most eleven points;
  * ambiguous self-near trails retain the obstacle constraint without changing the path.
+ * Follower cursors advance through a contiguous same-floor route prefix near the latest
+ * at-most-three-second observed sweep; initial joining approaches only the next retained point.
  * Whole-column checkpoint/tail evidence retains the original deadline; lead success is insufficient.
  * Fixed follower paths retain a driver/operator/epoch/native-command receipt for guarded handback.
  * The receipt is ownership evidence only; it cannot establish actual path travel.
@@ -804,10 +806,32 @@ for "_i" from 1 to (count _vehicles - 1) do {
         private _distance = 18;
         private _frontIndex = count _trail - 1;
         private _start = ((_progress select 3) - _trailBase) max 0;
-        for "_j" from _start to (_frontIndex min (count _trail - 1)) do {
-            private _d = _vehicle distance2D (_trail select _j);
-            if (_d < _distance) then {_distance = _d; _nearest = _j};
+        // Advance only through a contiguous prefix of the recorded route. A later
+        // return leg near the vehicle is not evidence that intervening bends were travelled.
+        // The short observed sweep allows normal one-second travel past several samples.
+        private _pose=getPosASL _vehicle;
+        private _sample=_progress param [11,[],[[]]];
+        private _previous=+_pose;
+        if (count _sample == 2 && {time-(_sample select 1) <= 3}
+            && {time >= (_sample select 1)} && {(_sample select 0) vectorDistance _pose <= 100}) then {
+            _previous=+(_sample select 0);
         };
+        private _sweep=_pose vectorDiff _previous;
+        private _sweepXY=+_sweep;_sweepXY set [2,0];
+        private _sweepSquared=_sweepXY vectorDotProduct _sweepXY;
+        for "_j" from _start to _frontIndex do {
+            private _pointASL=ATLToASL (_trail select _j);
+            private _offset=_pointASL vectorDiff _previous;_offset set [2,0];
+            private _fraction=if (_sweepSquared > 0.01) then {
+                ((_offset vectorDotProduct _sweepXY)/_sweepSquared) max 0 min 1
+            } else {1};
+            private _capture=_previous vectorAdd (_sweep vectorMultiply _fraction);
+            if (_capture distance2D _pointASL >= 18
+                || {abs ((_capture select 2)-(_pointASL select 2)) > 1.5}) exitWith {};
+            private _d=_pose distance2D _pointASL;
+            if (_nearest < 0 || {_d < _distance}) then {_distance=_d;_nearest=_j};
+        };
+        _progress set [11,[+_pose,time]];
         private _joining = false;
         // The first recorded predecessor point starts a full gap ahead. A fixed
         // 18 m capture circle strands 30/50 m starts in native formation forever.
@@ -817,12 +841,17 @@ for "_i" from 1 to (count _vehicles - 1) do {
             private _bearing=getDir _vehicle;
             private _heading=[sin _bearing,cos _bearing,0];
             private _best=150;
-            for "_j" from _start to _frontIndex do {
+            // Joining may approach only the next retained route point. Searching
+            // farther ahead here would bypass the ordered capture guard at crossings.
+            // Relative terrain height permits an uphill ground start while refusing
+            // a first point on a substantially different elevated deck.
+            for "_j" from _start to (_start min _frontIndex) do {
                 private _point=_trail select _j;
                 private _delta=_point vectorDiff _origin;
                 _delta set [2,0];
                 private _length=vectorMagnitude _delta;
-                if (_length > 3 && {_length < _best} && {(_delta vectorDotProduct _heading) > _length*0.5}) then {
+                if (_length > 3 && {_length < _best} && {(_delta vectorDotProduct _heading) > _length*0.5}
+                    && {abs ((_point select 2)-(_origin select 2)) <= 1.5}) then {
                     _nearest=_j; _best=_length; _joining=true;
                 };
             };
