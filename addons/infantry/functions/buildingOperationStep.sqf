@@ -95,6 +95,8 @@
  * This establishes exit-approach observation, not complete building isolation.
  * Casualty promotion retires the matching generation/epoch exit watch before interior movement.
  * Terminal settlement also retires that exact watch metadata; successor leases survive cleanup.
+ * New room visits require the actual observer inside target bounds under target-owned roof,
+ * plus a clear solid segment. Observer roof checks share the existing16-ray callback budget.
  * Egress admission, continued exit work and terminal movement require idle/STOP or a matching
  * owned MOVE; newer FOLLOW/ATTACK/WAIT tasks divert actors rather than authorizing recall.
  * Native tasks and newer authority remain protected at that transfer boundary.
@@ -216,6 +218,32 @@ private _delay=call {
     // Callback-local geometry cache and hard ray budget; no persistent observer.
     private _roomGeometryResults=createHashMap;
     private _roomGeometryBudget=16;
+    _job set ["roomGeometryChecksLast",0];
+    private _interiorObservers=createHashMap;
+    private _observerInside={
+        params ["_actor"];
+        private _actual=getPosASL _actor;
+        private _key=str [netId _actor,_actual];
+        if (_key in _interiorObservers) exitWith {_interiorObservers get _key};
+        private _house=_job get "building";
+        private _bounds=boundingBoxReal _house;
+        private _model=_house worldToModel (getPosATL _actor);
+        private _low=_bounds select 0;private _high=_bounds select 1;
+        private _inside=(_model select 0) >= (_low select 0) && {(_model select 0) <= (_high select 0)}
+            && {(_model select 1) >= (_low select 1)} && {(_model select 1) <= (_high select 1)}
+            && {(_model select 2) >= (_low select 2)-0.5} && {(_model select 2) <= (_high select 2)};
+        if (!_inside || {_roomGeometryBudget <= 0} || {!call _mayIssueMovement}) exitWith {false};
+        _roomGeometryBudget=_roomGeometryBudget-1;
+        private _roof=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.5],
+            _actual vectorAdd [0,0,10],_actor,objNull,true,4,"GEOM","NONE"];
+        private _ownedRoof=_roof isNotEqualTo [] && {
+            private _nearest=_roof select 0;
+            (_nearest select 2) == _house || {(_nearest select 3) == _house}
+        };
+        _interiorObservers set [_key,_ownedRoof];
+        _job set ["roomGeometryChecksLast",16-_roomGeometryBudget];
+        _ownedRoof
+    };
     private _roomSegmentClear={
         params ["_actor","_targetASL"];
         private _actual=getPosASL _actor;
@@ -231,9 +259,7 @@ private _delay=call {
         private _hits=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.6],
             _targetASL vectorAdd [0,0,0.6],_actor,objNull,true,8,"GEOM","NONE"];
         // A saturated result cannot prove that the target wall was examined.
-        private _clear=count _hits < 8 && {_hits findIf {
-            (_x select 2) == (_job get "building") || {(_x select 3) == (_job get "building")}
-        } < 0};
+        private _clear=_hits isEqualTo [];
         _roomGeometryResults set [_key,_clear];
         _job set ["roomGeometryChecksLast",16-_roomGeometryBudget];
         _clear
@@ -1437,7 +1463,6 @@ private _delay=call {
     private _actorCursor=(_job getOrDefault ["visitActorCursor",0]) mod ((count _activeWorkers) max 1);
     private _visitWorkers=(_activeWorkers select [_actorCursor]) + (_activeWorkers select [0,_actorCursor]);
     _job set ["visitActorCursor",(_actorCursor+1) mod ((count _activeWorkers) max 1)];
-    _job set ["roomGeometryChecksLast",0];
     private _visitChangedActors=[];
     {
         private _visitor = _x;
@@ -1453,6 +1478,7 @@ private _delay=call {
                 private _positionASL=AGLToASL (_positions select _positionIndex);
                 private _atPosition=_actual vectorDistance _positionASL <= 1.5
                     && {abs ((_actual select 2)-(_positionASL select 2)) <= 0.75}
+                    && {[_visitor] call _observerInside}
                     && {[_visitor,_positionASL] call _roomSegmentClear};
                 if (_atPosition) then {
                     private _enteredActors=_job getOrDefault ["enteredActors",[]];

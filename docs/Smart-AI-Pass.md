@@ -1009,3 +1009,6 @@ Anti-armour selection and movement/fire boundaries now reject actor-specific ext
 
 
 Anti-armour relocation no longer accepts arbitrary individual MOVE destinations. Current MOVE must address the plain authored group waypoint within3m; scripted, conditional, timed, attached and synchronized routes refuse. Idle actors without an authored route remain eligible, while an authored non-MOVE/gated route prevents relocation. The full native-order receipt and actor/command checks repeat after cover selection before doMove. Safe stationary engagement remains separate. Identical replacement destinations remain indistinguishable; route/task propagation and physical launcher outcomes are unverified.
+
+
+New clearance room-visit receipts now require the actual observer inside the target building bounds under its owned roof, not only proximity to a configured node. The actor-to-node segment rejects any GEOM hit, including another building or prop. Per-callback actor/pose caching shares the existing16geometry-query budget with room segments; no new timer or discovery scan. This strengthens navigation evidence, not hostile-room safety. Porches/complex models, limited-budget visit latency and physical repeatability remain unverified.
