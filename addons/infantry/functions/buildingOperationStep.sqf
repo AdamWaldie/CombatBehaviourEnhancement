@@ -78,7 +78,8 @@
  * follows the transform-bound migration journal without renewing the operation deadline.
  * Reserves distribute observation across at most sixteen real exits using live assignment counts.
  * Validated exposed standing points are allowed when cover is unavailable and recorded as exposed.
- * A clear observation ray and physical arrival precede one guarded watch command.
+ * A successful current-callback actual-eye ray and physical arrival precede a reserve watch.
+ * A proposal ray alone cannot install observation; owner adoption waits for the rotating check.
  * This establishes exit-approach observation, not complete building isolation.
  * Casualty promotion retires the matching generation/epoch exit watch before interior movement.
  * Terminal settlement also retires that exact watch metadata; successor leases survive cleanup.
@@ -977,6 +978,9 @@ private _delay=call {
         // Revalidate one actual eye ray per callback, at most once per actor every two
         // seconds. A transient passing teammate cannot immediately cause another route.
         private _viewWatch=_stage param [4,[],[[]]];
+        // Grant watch installation only to the reserve whose actual eye ray succeeds now.
+        // Arrival/proposal geometry and a historical check are not current observation proof.
+        private _viewConfirmed=false;
         private _viewCheck=_stageViewChecks getOrDefault [_key,[0,-1]];
         if ((_stage param [2,""]) == "ARRIVED" && {count _viewWatch == 3}
             && {_key == _stageViewKey} && {_stageViewBudget > 0} && {serverTime >= (_viewCheck select 0)}
@@ -988,6 +992,7 @@ private _delay=call {
             private _viewValid=(getPosASL _reserve) vectorDistance (AGLToASL (_stage select 0)) <= 2
                 && {!terrainIntersectASL [_eye,_watchASL]}
                 && {(lineIntersectsSurfaces [_eye,_watchASL,_reserve,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+            _viewConfirmed=_viewValid;
             private _blockedSince=_viewCheck select 1;
             if (_viewValid) then {_blockedSince=-1} else {
                 if (_blockedSince < 0) then {_blockedSince=serverTime};
@@ -1020,7 +1025,7 @@ private _delay=call {
         // this owner epoch after physical arrival, preserving native task authority.
         private _watch=_stage param [4,[],[[]]];
         private _watchLease=[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_watch];
-        if ((_stage param [2,""]) == "ARRIVED" && {count _watch == 3}
+        if ((_stage param [2,""]) == "ARRIVED" && {count _watch == 3} && {_viewConfirmed}
             && {(_reserve getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isNotEqualTo _watchLease}
             && {(getPosASL _reserve) vectorDistance (AGLToASL (_stage select 0)) <= 2}
             && {abs (((getPosASL _reserve) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}
