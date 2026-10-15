@@ -6,21 +6,55 @@ class DrivingGateCapTests(unittest.TestCase):
     def test_observation_is_bounded_live_and_has_no_world_mutation(self):
         s=(ROOT/'addons/vehicles/functions/drivingGateCap.sqf').read_text()
         for gate in ['modelToWorldWorld', 'true,4,"GEOM","NONE"',
-                     '[_left,(_left+_right)*0.5,_right]', 'forEach [0.45,0.9]',
+                     '[_left,(_left+_right)*0.5,_right]', 'forEach _heights',
                      'max 25 min 600', '_nearest-6', '_deceleration=4/_massFactor']:
             self.assertIn(gate,s)
         for command in ['animateSource','animateDoor','forceSpeed','setVelocity','doMove','remoteExec','animationSourcePhase']:
             self.assertNotIn(command,s)
         self.assertNotIn('alive _object',s)
         self.assertNotIn('damage _object',s)
+        self.assertIn('[_bottom,(_bottom+_top)*0.5,_top]',s)
+        self.assertIn('(_high select 2)-0.2',s)
     def test_existing_executors_combine_gate_before_speed_and_recovery(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
         self.assertLess(ordinary.index('call WAIT_fnc_DrivingGateCap'),ordinary.index('_vehicle forceSpeed _capMps'))
         self.assertIn('if (!_reverseLeg) then {',ordinary)
         self.assertEqual(convoy.count('call WAIT_fnc_DrivingGateCap'),2)
-        self.assertIn('then {_leadTraffic=_gate}',convoy)
-        self.assertIn('then {_traffic=_gate}',convoy)
+        self.assertIn('then {_leadTraffic=_leadGate}',convoy)
+        self.assertIn('then {_traffic=_vehicleGate}',convoy)
         self.assertIn('!_leadTrafficBlocked',convoy)
         self.assertIn('!_trafficBlocked',convoy)
+    def test_opening_request_has_server_authority_and_complete_named_payload(self):
+        owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        for key in ['group','vehicle','gate','route','transform','convoyRevision','expires']:
+            self.assertIn('["'+key+'",',owner)
+            self.assertIn('getOrDefault ["'+key+'",',server)
+        for guard in ['!isServer', 'remoteExecutedOwner', 'groupOwner _group', 'owner _vehicle',
+                      'owner driver _vehicle', 'call WAIT_fnc_CortexIsEligible', 'call WAIT_fnc_CortexIsPaused',
+                      '_expires <= serverTime', '_expires > serverTime+5',
+                      'call WAIT_fnc_DrivingRouteReceipt', '_transform isNotEqualTo',
+                      'call WAIT_fnc_DrivingGateCap', '(_observed select 1) != _gate',
+                      '(_observed select 2) > 12', 'abs speed _vehicle > 8',
+                      'WAIT_AIPass_Active', '!simulationEnabled _vehicle', 'isObjectHidden _vehicle']:
+            self.assertIn(guard,server)
+        mutation=server.split('// Final mutation boundary:',1)[1]
+        self.assertLess(mutation.index('call _locked'),mutation.index('animateSource'))
+        self.assertLess(mutation.index('driver _vehicle != _driver'),mutation.index('animateSource'))
+        self.assertNotIn('animateSource',owner)
+        self.assertIn('remoteExecCall ["WAIT_fnc_DrivingGateOpenServer",2]',owner)
+
+    def test_gate_attempts_are_finite_and_do_not_create_passage_or_closure(self):
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        for guard in ['(_receipt select 0) == _group', '(_receipt select 1) isEqualTo _route',
+                      '_key in _attempts', 'count _attempts >= 16', 'count _definitions <= 64',
+                      '_index <= 8', 'bis_disabled_Door', 'SHARED_OPENING',
+                      'ALREADY_OPEN_OR_MOVING', '[_x select 1,1]']:
+            self.assertIn(guard,server)
+        for command in ['doMove','forceSpeed','setVelocity','setDir','setPos','spawn','execFSM','CBA_fnc_waitAndExecute']:
+            self.assertNotIn(command,server)
+        self.assertNotIn('animateSource [_x select 1,0]',server)
+        self.assertNotIn('setVariable ["bis_disabled',server)
+
 if __name__=='__main__': unittest.main()

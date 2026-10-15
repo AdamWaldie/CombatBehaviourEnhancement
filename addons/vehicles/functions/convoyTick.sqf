@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Gate approach: current forward gate/barrier geometry contributes to the existing safety cap;
- * it suppresses queue recovery without opening, closing or ignoring the gate.
+ * it suppresses queue recovery; nearby opening requests are server-validated and never grant passage.
  * Drives mixed convoys along each predecessor trail, detects arrival and requests a persistent halt after pinned contact.
  * Locality/authority: server owns phase; group owner drives and reports, each cargo/turret owner applies crew work.
  * Spacing uses a size-aware target with a 20 percent tolerance band (at least 3 m).
@@ -447,10 +447,8 @@ if (!_routeDone && {_leadLimit > (_leadSpeedState select 0)}) then {
 private _leadTraffic=if (_trafficAssistEnabled) then {
     [_lead,_leadLimit/3.6] call WAIT_fnc_DrivingFollowingCap
 } else {[_leadLimit/3.6,objNull,-1,time,0]};
-if (_trafficAssistEnabled) then {
-    private _gate=[_lead,_leadLimit/3.6] call WAIT_fnc_DrivingGateCap;
-    if ((_gate select 0) < (_leadTraffic select 0)) then {_leadTraffic=_gate};
-};
+private _leadGate=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6] call WAIT_fnc_DrivingGateCap} else {[]};
+if (_leadGate isNotEqualTo [] && {(_leadGate select 0) < (_leadTraffic select 0)}) then {_leadTraffic=_leadGate};
 private _leadTrafficBlocked=!isNull (_leadTraffic select 1);
 _leadLimit=_leadLimit min ((_leadTraffic select 0)*3.6);
 _leadLimit = [_lead,_leadLimit,_group] call WAIT_fnc_CortexInfantrySpeed;
@@ -458,6 +456,7 @@ _state set ["leadSpeedLimit",[_leadLimit,time]];
 if ([] call _mayIssueDriving) then {
     private _ownedSpeed=_leadLimit/3.6;
     _lead forceSpeed _ownedSpeed;
+    if (_leadGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_lead,_leadGate,_revision] call WAIT_fnc_DrivingGateRequest};
     _lead setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
 };
 // Speed limits cannot restart an engine movement order that stopped short. Retry only
@@ -575,16 +574,15 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _traffic=if (_trafficAssistEnabled) then {
         [_vehicle,_limit/3.6,_front] call WAIT_fnc_DrivingFollowingCap
     } else {[_limit/3.6,objNull,-1,time,0]};
-    if (_trafficAssistEnabled) then {
-        private _gate=[_vehicle,_limit/3.6] call WAIT_fnc_DrivingGateCap;
-        if ((_gate select 0) < (_traffic select 0)) then {_traffic=_gate};
-    };
+    private _vehicleGate=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6] call WAIT_fnc_DrivingGateCap} else {[]};
+    if (_vehicleGate isNotEqualTo [] && {(_vehicleGate select 0) < (_traffic select 0)}) then {_traffic=_vehicleGate};
     private _trafficBlocked=!isNull (_traffic select 1);
     _limit=_limit min ((_traffic select 0)*3.6);
     _limit = [_vehicle,_limit,_group] call WAIT_fnc_CortexInfantrySpeed;
     if ([] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
         _vehicle forceSpeed _ownedSpeed;
+        if (_vehicleGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_vehicle,_vehicleGate,_revision] call WAIT_fnc_DrivingGateRequest};
         _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
     };
     _speedLimits set [_key,[_limit,time]];

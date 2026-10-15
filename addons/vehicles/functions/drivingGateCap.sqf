@@ -3,13 +3,15 @@
  * Purpose: Observe recognised gate/barrier geometry in the forward body corridor and derive
  * a stationary-obstacle approach cap. A fully open animation is never a passability receipt.
  * Locality/authority: Read-only geometry on the local vehicle owner. The ordinary driving or
- * convoy executor retains the sole speed writer and rechecks its existing movement authority.
+ * Server authority may independently resample a remote vehicle without issuing movement.
+ * The convoy executor retains the sole speed writer and rechecks its existing movement authority.
  * Repeat/JIP: No handlers, mutation, leases or retained clearance. Live object transforms and
  * collision geometry are sampled each call, including damaged or Zeus-moved gates.
- * Arguments: 0 vehicle <OBJECT, objNull>; 1 requested cap m/s <NUMBER, 20>, clamped 0..35.
+ * Arguments: 0 vehicle <OBJECT, objNull>; 1 requested cap m/s <NUMBER, 20>, clamped 0..35;
+ * 2 authoritative server recheck <BOOL, false> permits read-only remote-vehicle geometry on server.
  * Return Value: ARRAY [cap m/s NUMBER, limiting gate OBJECT, hull gap m NUMBER,
  * sampledAt NUMBER, ray count NUMBER]. No hit means no recognised gate constraint, not a clear path.
- * Six body-edge GEOM rays inspect at most four hits each, over a mass-adjusted nominal stopping
+ * Up to nine body-edge GEOM rays inspect at most four hits each, over a mass-adjusted nominal stopping
  * horizon capped at 600 m. Terrain and unrecognised objects remain native navigation concerns.
  * Recognition is limited to gate/barrier model or class names (including common legacy names);
  * unknown conventions, opening, locks, shared passage ownership and closure are not implemented here.
@@ -18,10 +20,10 @@
  * Current callers: DrivingAssistStart and ConvoyTick under their existing feature gates.
  * Example: private _gate = [truck1,15] call WAIT_fnc_DrivingGateCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]]];
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]]];
 if (!finite _requested) then {_requested=0};
 _requested=(_requested max 0) min 35;
-if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0]};
+if (isNull _vehicle || {!local _vehicle && {!(_serverCheck && {isServer})}} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0]};
 private _box=boundingBoxReal _vehicle;
 private _low=_box select 0;private _high=_box select 1;
 private _front=(_high select 1)+0.2;
@@ -33,8 +35,12 @@ private _velocity=((velocity _vehicle) vectorDotProduct (vectorDir _vehicle)) ma
 private _speed=_velocity max _requested;
 private _horizon=((_speed*_reaction)+((_speed*_speed)/(2*_deceleration))+6) max 25 min 600;
 private _nearest=1e9;private _gate=objNull;private _rays=0;
+private _bottom=(_low select 2)+0.45;
+private _top=((_high select 2)-0.2) max _bottom;
+private _heights=[_bottom,(_bottom+_top)*0.5,_top];
+_heights=_heights arrayIntersect _heights;
 {
-    private _height=(_low select 2)+_x;
+    private _height=_x;
     {
         private _from=_vehicle modelToWorldWorld [_x,_front,_height];
         private _to=_vehicle modelToWorldWorld [_x,_front+_horizon,_height];
@@ -52,7 +58,7 @@ private _nearest=1e9;private _gate=objNull;private _rays=0;
             };
         } forEach _hits;
     } forEach [_left,(_left+_right)*0.5,_right];
-} forEach [0.45,0.9];
+} forEach _heights;
 if (isNull _gate) exitWith {[_requested,objNull,-1,time,_rays]};
 private _room=(_nearest-6) max 0;
 private _reactionSpeed=_deceleration*_reaction;
