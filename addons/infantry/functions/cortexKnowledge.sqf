@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Native contact records append bounded reporter confidence at index5; existing first five fields remain unchanged.
+ * Native contact records append group confidence at index5; existing first five fields remain unchanged.
+ * Confidence requires one owner-local group knowsAbout read per evaluated contact (at most eight).
  * Purpose: Summarises bounded, engine-confirmed enemy knowledge for one local AI group without
  * creating or sharing target knowledge.
  * Locality/authority: Read-only; call where the group is local. It reads native AI knowledge and
@@ -34,6 +35,7 @@
  */
 
 params [["_group", grpNull, [grpNull]], ["_range", -1, [0]]];
+if (isNull _group || {!local _group}) exitWith {[[],0]};
 if (_range < 0) then {_range = missionNamespace getVariable ["WAIT_AIPass_EngageRange", 800]};
 private _leader = leader _group;
 if (!([_leader] call WAIT_fnc_CortexCombatEffective)) then {
@@ -101,10 +103,10 @@ private _seenCount = 0;
     private _newest = -1;
     private _knownByGroup = false;
     private _error = 1000;
-    private _confidence=0;
+    // knowsAbout is group-level even for a unit operand; do not repeat it per member.
+    private _confidence=_group knowsAbout _enemy;
     {
         private _knowledge = _x targetKnowledge _enemy;
-        _confidence=_confidence max (_x knowsAbout _enemy);
         if (_knowledge select 0) then {_knownByGroup = true};
         _newest = _newest max ((_knowledge select 2) max (_knowledge select 3));
         _error = _error min (_knowledge select 5);
