@@ -944,3 +944,10 @@ This removes the reproduced future-loop cursor jump; it does not prove continuou
 ### Fair exterior reserve service (15 October 2026)
 
 Exterior staging and due view checks now use the same rotating window of at most eight eligible reserves. Stable larger rosters receive service across successive existing callbacks instead of leaving every actor beyond the first eight unprocessed. Rosters of eight or fewer retain their existing order. One search and one view check per callback, three search attempts per actor, original deadlines, task eligibility and movement ownership remain unchanged. This fixes a scheduler starvation path; it does not make rejected posts safe or prove building isolation. Changing rosters, casualty replacement, large groups, physical exterior positioning and performance remain unverified while audits are held.
+
+
+### Ordinary gate opening command intent (15 October 2026)
+
+Ordinary gate requests and their final server mutation require the unchanged plain authored MOVE and both seat actors idle or moving to its destination. Native STOP, unowned WAIT, FOLLOW/ATTACK and replacement MOVE destinations cannot authorize opening. Scripted, timed, attached or synchronized routes refuse. An unchanged finite ordinary bypass FOLLOW or corridor CROSS can retain its deliberately acquired STOP only with matching group, route, seats, controller, deadline and both native destination receipts. Corridor APPROACH retains its exact owned operator MOVE/arrival wait; a separate driver still needs idle/plain-route intent and STOP cannot authorize it. A later STOP identical to an acquired FOLLOW/CROSS receipt remains indistinguishable. Convoy requests retain their separate registry/crew contract.
+
+The guard reads two bounded journals and current route metadata, with no timer, world query or movement writer. It does not grant gate clearance, cancel an opening already issued, add legacy-model support or prove external-controller handover. Native command propagation, separate commanders, queued replacement orders, normal/HC migration and actual gate behaviour remain physically unverified while audits are held.

@@ -7,6 +7,7 @@
  * Public pending context preserves the delivery count/deadline across owner migration;
  * a matching server acknowledgement suppresses later requests. Pending state grants no authority.
  * No JIP command replay or asynchronous callback; native animation state is separate.
+ * Ordinary route intent is rechecked before delivery; convoy acquired STOP retains its own contract.
  * Opening receipt is diagnostic only. Existing geometry cap owns approach/wait and never times out
  * into clearance. Server retains a finite per-route attempt budget across owner migration.
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 observation <ARRAY, []>
@@ -25,7 +26,7 @@ if (isNull _group || {isNull _vehicle} || {!local _group} || {!local _vehicle}
     || {!simulationEnabled driver _vehicle} || {isObjectHidden driver _vehicle}
     || {abs speed _vehicle > 8} || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
 private _route=[_group] call WAIT_fnc_DrivingRouteReceipt;
-if (_route isEqualTo []) exitWith {false};
+if (_route isEqualTo [] || {_revision < 0 && {!([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent)}}) exitWith {false};
 private _gate=_observation select 1;
 private _driver=driver _vehicle;
 private _commander=effectiveCommander _vehicle;

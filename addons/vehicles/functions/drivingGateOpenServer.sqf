@@ -3,6 +3,8 @@
  * Purpose: Serialise one finite, current-owner request to open a recognised unlocked gate.
  * Locality/authority: Server only. Authenticating the vehicle/group owner is followed by live
  * route, driver, feature, gate-transform, lock and forward-geometry validation before mutation.
+ * Ordinary native route intent is rechecked at admission and mutation; owned alternate STOP
+ * requires its unchanged finite journal. Convoy gate requests retain their registry contract.
  * animateSource has global effect; native animation state supplies JIP, without replay commands.
  * Repeat/JIP: At most one request per gate/transform in the current vehicle route/revision,
  * with sixteen gate attempts per route. A gate-wide twelve-second opening receipt coalesces
@@ -73,7 +75,7 @@ if (_revision >= 0) then {
         || {count _lease == 2 && {serverTime < (_lease select 1)}}
         || {!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 };
-if (_revision == -2) exitWith {false};
+if (_revision == -2 || {_revision < 0 && {!([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent)}}) exitWith {false};
 // Check the server-local attempt history before geometry/config work. A delivery retry
 // receives the original outcome; it never becomes another animation or geometry scan.
 private _receipt=_vehicle getVariable ["WAIT_DrivingGate_ServerAttempts",[]];
@@ -139,7 +141,8 @@ if (_sources findIf {(_x select 2) < 0.1} < 0) exitWith {
     false
 };
 // Final mutation boundary: no delayed opening or stale transform survives a new order/lock.
-if (call _locked || {!alive _gate} || {driver _vehicle != _driver}
+if ((_revision < 0 && {!([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent)})
+    || {call _locked} || {!alive _gate} || {driver _vehicle != _driver}
     || {(effectiveCommander _vehicle) isNotEqualTo _requestedCommander && {!isNull effectiveCommander _vehicle}}
     || {group _driver != _group} || {isPlayer _driver} || {!isNull remoteControlled _driver}
     || {_sender > 0 && {_sender != 2} && {_sender != groupOwner _group || {_sender != owner _vehicle}}}

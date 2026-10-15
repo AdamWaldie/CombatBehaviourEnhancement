@@ -71,4 +71,35 @@ class DrivingGateCapTests(unittest.TestCase):
         self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform]',server)
         self.assertNotIn('animateSource',owner)
 
+class DrivingGateIntentTests(unittest.TestCase):
+    def test_gate_intent_is_checked_before_request_and_authoritative_mutation(self):
+        owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        self.assertLess(owner.index('call WAIT_fnc_DrivingGateIntent'),owner.index('WAIT_DrivingGate_Pending'))
+        self.assertEqual(server.count('call WAIT_fnc_DrivingGateIntent'),2)
+        mutation=server.split('// Final mutation boundary:',1)[1]
+        self.assertLess(mutation.index('call WAIT_fnc_DrivingGateIntent'),mutation.index('animateSource'))
+        self.assertIn('_revision < 0',mutation)
+
+    def test_plain_and_owned_alternate_intent_have_distinct_stop_contracts(self):
+        s=(ROOT/'addons/vehicles/functions/drivingGateIntent.sqf').read_text()
+        for marker in ('waypointType _waypoint != "MOVE"','synchronizedWaypoints',
+                       'synchronizedTriggers','waypointAttachedObject','waypointTimeout',
+                       'WAIT_DrivingBypass_Work","FOLLOW"','WAIT_DrivingCorridor_Work","CROSS"',
+                       'expectedDestination _driver','expectedDestination _operator',
+                       'serverTime <','"controller",[]','"phase",""]) == "APPROACH"',
+                       '_driverTarget distance2D _destination <= 3'):
+            self.assertIn(marker,s)
+        # Plain route action requires idle or the original MOVE, not a later task.
+        def plain(command, target_matches=True):
+            return command=='' or command=='MOVE' and target_matches
+        for command in ('STOP','WAIT','ATTACK','FOLLOW','FIRE','REARM'):
+            self.assertFalse(plain(command))
+        self.assertFalse(plain('MOVE',False))
+        self.assertTrue(plain('MOVE'))
+        self.assertTrue(plain(''))
+        body=s.split('params [[',1)[1]
+        for forbidden in ('setVariable','animateSource','doMove','doStop','forceSpeed','spawn','nearEntities'):
+            self.assertNotIn(forbidden,body)
+
 if __name__=='__main__': unittest.main()
