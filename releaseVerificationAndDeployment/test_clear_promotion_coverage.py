@@ -32,4 +32,20 @@ class ClearPromotionCoverageTests(unittest.TestCase):
         self.assertTrue(can_promote('a'))
         reserves.remove('a')
         self.assertFalse(can_promote('b'))
+    def test_early_exit_worker_can_supply_current_cover_without_becoming_a_reserve(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        pool=s.split('private _promotionObservers=',1)[1].split('private _pairRosterChanged=',1)[0]
+        for marker in ('keys _earlyExits select [0,8]', 'pushBackUnique',
+                       'promotionObserverCursor', 'forEach _promotionObservers',
+                       '_earlyExits getOrDefault [netId _observer,[]]',
+                       '(_row param [0,objNull]) == _observer',
+                       '(_row param [3,""]) == "ARRIVED"',
+                       '[_observer] call _actorAvailable', '[_observer] call _actorTaskFree',
+                       '!(_observer in _unavailable)'):
+            self.assertIn(marker,pool)
+        self.assertEqual(pool.count('lineIntersectsSurfaces'),1)
+        self.assertNotIn('doMove',pool)
+        self.assertNotIn('doFollow',pool)
+        self.assertNotIn('hardDeadline',pool)
+
 if __name__=='__main__':unittest.main()

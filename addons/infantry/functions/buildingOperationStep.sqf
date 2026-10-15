@@ -43,7 +43,9 @@
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
  * Casualty promotion retains established exit coverage unless another capable local observer
- * physically holds the same exit and passes a fresh VIEW check. One promotion ray per callback
+ * physically holds the same exit and passes a fresh VIEW check. Settled early-exit workers count
+ * alongside reserves; rotated observer order prevents a blocked first post starving substitutes.
+ * One promotion ray per callback
  * and sixteen reserve candidates bound this check; deferral never renews the episode deadline.
  * Casualty selection prefers the nearest eligible reserve to a surviving buddy, or the
  * building when the whole lane is unavailable; no geometry scan or deadline renewal is added.
@@ -1081,6 +1083,20 @@ private _delay=call {
         _promotionCandidates=(_promotionCandidates select [_cursor])+(_promotionCandidates select [0,_cursor]);
         _job set ["promotionCandidateCursor",(_cursor+1) mod count _promotionCandidates];
     };
+    // Completed interior workers can hold the same exit as a reserve. Their real watch is
+    // a valid substitute, even though they remain in the original lane roster, not _reserves.
+    private _promotionObservers=+(_reserves select [0,16]);
+    {
+        private _row=_earlyExits get _x;
+        if ((_row param [3,""]) == "ARRIVED") then {
+            _promotionObservers pushBackUnique (_row param [0,objNull]);
+        };
+    } forEach (keys _earlyExits select [0,8]);
+    if (_promotionObservers isNotEqualTo []) then {
+        private _cursor=(_job getOrDefault ["promotionObserverCursor",0]) mod count _promotionObservers;
+        _promotionObservers=(_promotionObservers select [_cursor])+(_promotionObservers select [0,_cursor]);
+        _job set ["promotionObserverCursor",(_cursor+1) mod count _promotionObservers];
+    };
     private _mayPromoteReserve={
         params ["_candidate"];
         if (!(_candidate in _reserves) || {!([_candidate] call _reserveReady)}) exitWith {false};
@@ -1093,10 +1109,20 @@ private _delay=call {
         {
             private _observer=_x;
             private _otherStage=_reserveStages getOrDefault [netId _observer,[]];
+            private _observerReady=_observer in _reserves && {[_observer] call _reserveReady};
+            if (!(_observer in _reserves)) then {
+                private _row=_earlyExits getOrDefault [netId _observer,[]];
+                _observerReady=(_row param [0,objNull]) == _observer
+                    && {(_row param [3,""]) == "ARRIVED"}
+                    && {[_observer] call _actorAvailable} && {[_observer] call _actorTaskFree}
+                    && {!(_observer in _unavailable)};
+                _otherStage=[_row param [1,[]],true,_row param [3,""],0,
+                    _row param [6,[]],_row param [5,[]]];
+            };
             private _watch=_otherStage param [4,[],[[]]];
             private _post=_otherStage param [0,[],[[]]];
             private _watchLease=[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_watch];
-            if (_observer != _candidate && {[_observer] call _reserveReady}
+            if (_observer != _candidate && {_observerReady}
                 && {(_otherStage param [2,""]) == "ARRIVED"}
                 && {(_otherStage param [5,[],[[]]]) isEqualTo _exit}
                 && {count _post == 3} && {count _watch == 3}
@@ -1113,7 +1139,7 @@ private _delay=call {
                     && {(lineIntersectsSurfaces [_eye,_watchASL,_observer,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
             };
             if (_covered) exitWith {};
-        } forEach (_reserves select [0,16]);
+        } forEach _promotionObservers;
         _covered
     };
     private _pairRosterChanged=false;
