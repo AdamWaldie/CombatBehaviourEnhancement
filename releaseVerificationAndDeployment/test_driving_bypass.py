@@ -74,3 +74,20 @@ class DrivingBypassTests(unittest.TestCase):
             self.assertIn(marker,s)
         for forbidden in ('setPos','setVelocity','enableAI','addWaypoint','deleteWaypoint','spawn','waitUntil'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
+
+    def test_executor_rechecks_plain_order_and_both_crew_tasks_before_writes(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
+        gate=s.split('private _plainRoute={',1)[1].split('private _work=',1)[0]
+        for marker in ('waypointType _waypoint == "MOVE"','waypointScript _waypoint == ""',
+                       'waypointTimeout','waypointAttachedVehicle','waypointAttachedObject',
+                       'synchronizedWaypoints','synchronizedTriggers','call _plainRoute',
+                       'DrivingMovementAvailable','CortexExternalTakeover','CortexZeusHeld',
+                       'WAIT_ExternalDrivingOwner','WAIT_Convoy_Active','vehicle leader _group == _vehicle'):
+            self.assertIn(marker,gate)
+        seats=s.split('private _seatsAvailable={',1)[1].split('private _plainRoute={',1)[0]
+        self.assertIn('[_driver,_operator] findIf',seats)
+        for task in ('"GET IN"','"SCRIPTED"','"REPAIR"','"CARRY SOLDIER"'):
+            self.assertIn(task,seats)
+        # Admission and the final path-write boundary both re-evaluate the same predicate.
+        self.assertGreaterEqual(s.count('call _mayWrite'),2)
+        self.assertLess(s.rindex('call _mayWrite'),s.index('_vehicle setDriveOnPath'))

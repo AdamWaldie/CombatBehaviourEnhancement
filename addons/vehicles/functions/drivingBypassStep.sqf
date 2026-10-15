@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Runs one finite ordinary-lead bypass PLAN/FOLLOW step through the existing controller.
  * Locality / Authority: Internal synchronous owner callback only. Current driving brain and the
- * caller's fresh plain-route authority predicate protect every movement command. Never remote.
+ * caller's fresh authority predicate and internal plain-route/crew gates protect every command. Never remote.
  * Repeat/JIP: Public serializable work stores original 90-second deadline, two-side attempt budget,
  * path/checkpoint/seat/route receipts. New owners adopt without command replay or clock renewal.
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 brain <HASHMAP, empty>;
@@ -30,7 +30,22 @@ private _seatsAvailable={
             || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
             || {!simulationEnabled _x} || {isObjectHidden _x}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+            || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
+                "REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID",
+                "HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
     } < 0
+};
+// This executor must enforce authored intent itself before it can be shared by another controller.
+private _plainRoute={
+    private _index=currentWaypoint _group;
+    if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
+    private _waypoint=[_group,_index];private _statements=waypointStatements _waypoint;
+    private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
+    waypointType _waypoint == "MOVE" && {_condition == "true"}
+        && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
+        && {waypointScript _waypoint == ""} && {(waypointTimeout _waypoint param [2,0]) <= 0}
+        && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
+        && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []}
 };
 private _mayWrite={
     !isNull _group && {local _group} && {!isNull _vehicle} && {local _vehicle}
@@ -38,7 +53,12 @@ private _mayWrite={
         && {!(_brain getOrDefault ["cancelled",false])}
         && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
         && {_route isNotEqualTo []} && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
-        && {call _authority} && {call _seatsAvailable} && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+        && {call _plainRoute} && {call _authority} && {call _seatsAvailable}
+        && {vehicle leader _group == _vehicle} && {[_group] call WAIT_fnc_DrivingMovementAvailable}
+        && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
+        && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
+        && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
+        && {alive _vehicle} && {canMove _vehicle} && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
         && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
         && {isAISteeringComponentEnabled _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {isNil {_vehicle getVariable "WAIT_DrivingCorridor_Work"}}
