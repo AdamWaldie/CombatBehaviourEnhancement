@@ -82,7 +82,7 @@ class DrivingBypassTests(unittest.TestCase):
                        'waypointTimeout','waypointAttachedVehicle','waypointAttachedObject',
                        'synchronizedWaypoints','synchronizedTriggers','call _plainRoute',
                        'DrivingMovementAvailable','CortexExternalTakeover','CortexZeusHeld',
-                       'WAIT_ExternalDrivingOwner','WAIT_Convoy_Active','vehicle leader _group == _vehicle'):
+                       'WAIT_ExternalDrivingOwner','WAIT_Convoy_Active','vehicle leader _group isEqualTo _vehicle'):
             self.assertIn(marker,gate)
         seats=s.split('private _seatsAvailable={',1)[1].split('private _plainRoute={',1)[0]
         self.assertIn('[_driver,_operator] findIf',seats)
@@ -91,3 +91,51 @@ class DrivingBypassTests(unittest.TestCase):
         # Admission and the final path-write boundary both re-evaluate the same predicate.
         self.assertGreaterEqual(s.count('call _mayWrite'),2)
         self.assertLess(s.rindex('call _mayWrite'),s.index('_vehicle setDriveOnPath'))
+
+    def test_convoy_lead_requires_its_own_registry_and_feature_gates(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
+        for marker in ('WAIT_Convoy_Brain','WAIT_Convoy_ReceivedRevision','WAIT_Convoy_LocalJobToken',
+                       'WAIT_Convoy_LocalRegistry','WAIT_Convoy_RouteRecovery_Enable',
+                       'WAIT_Convoy_DrivingAssist_Enable','_mobile select 0','_controllerReceipt',
+                       '_columnLength','_envelope','"tailDeadline"'):
+            self.assertIn(marker,s)
+        self.assertEqual(s.count('call WAIT_fnc_DrivingBypassPlan'),1)
+        tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        self.assertEqual(tick.count('call WAIT_fnc_DrivingBypassStep'),1)
+        self.assertIn('"CONVOY"] call WAIT_fnc_DrivingBypassStep',tick)
+        self.assertIn('!_bypassPassageActive',tick)
+        self.assertIn('!_hadBypass',tick)
+        self.assertIn('!_bypassActive',tick)
+        self.assertIn('if (!_bypassPassageActive && {!_hadBypassPassage})',tick)
+        self.assertIn('CONVOY_PASSAGE_ENDED',tick)
+    def test_follower_cannot_yield_source_from_lead_success_alone(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        leg=s.split('private _bypassLegClear=false;',1)[1].split('private _trafficBlocked=',1)[0]
+        for marker in ('_episode get "obstacle"','_episode get "transform"','_progress param [10,[]]',
+                       'expectedDestination driver _vehicle','expectedDestination _movementOperator',
+                       '_nearest+1 < count _committed','vectorDotProduct _forward',
+                       'call WAIT_fnc_DrivingPathGeometry','!_bypassLegClear'):
+            self.assertIn(marker,leg)
+        self.assertNotIn('forceSpeed',leg)
+        self.assertNotIn('setDriveOnPath',leg)
+    def test_column_passage_is_passive_finite_and_requires_every_vehicle(self):
+        s=(ROOT/'addons/vehicles/functions/convoyBypassStep.sqf').read_text()
+        for marker in ('"tailDeadline"','count _rows > 20','count _points > 24',
+                       'for "_i" from 1 to 4','modelToWorldWorld','_checkpoint >= count _points',
+                       '_passedCount == count _rows','"ALL_VEHICLES_PHYSICALLY_PASSED"',
+                       '"ORDER_CHANGED"','"OBSTACLE_CHANGED"','"TAIL_TIMEOUT"','"VEHICLE_UNAVAILABLE"'):
+            self.assertIn(marker,s)
+        for forbidden in ('doStop','doMove','forceSpeed','setDriveOnPath','spawn','waitUntil','lineIntersectsSurfaces'):
+            self.assertNotIn(forbidden,s.split('params [[',1)[1])
+        for phase in ('BYPASS_PLAN','BYPASS_FOLLOW','BYPASS_TAIL'):
+            self.assertIn(phase,(ROOT/'addons/main/fsm/convoyOperation.fsm').read_text())
+    def test_convoy_cleanup_cannot_claim_ordinary_or_successor_work(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        for marker in ('_expectedRevision','_successor','_stopOnly','_haltCleanup','WAIT_Convoy_LocalRegistry'):
+            self.assertIn(marker,s)
+        ordinary=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
+        self.assertIn('_bypass getOrDefault ["controller",["ORDINARY",-1]]',ordinary)
+        for filename in ('convoyReleaseLocal','convoyCrewLocal'):
+            body=(ROOT/f'addons/vehicles/functions/{filename}.sqf').read_text()
+            self.assertIn('WAIT_fnc_DrivingBypassRelease',body)
+            self.assertIn('WAIT_fnc_ConvoyBypassStep',body)

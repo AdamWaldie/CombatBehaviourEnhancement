@@ -45,6 +45,7 @@ class CfgFunctions {
             class DrivingCorridorDispatch {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingCorridorDispatch.sqf";};
             class ZenDrivingCorridorModule {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\zenDrivingCorridorModule.sqf";};
             class ModuleDrivingCorridor {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\moduleDrivingCorridor.sqf";};
+            class ConvoyBypassStep {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\convoyBypassStep.sqf";};
             class ConvoyCorridorStep {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\convoyCorridorStep.sqf";};
             class DrivingCorridorStep {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingCorridorStep.sqf";};
             class DrivingCorridorRelease {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingCorridorRelease.sqf";};

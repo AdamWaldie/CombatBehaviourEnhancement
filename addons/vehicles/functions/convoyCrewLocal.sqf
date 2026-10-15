@@ -132,6 +132,11 @@ private _seats = createHashMap;
                 if (((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY") then {
                     [_vehicle,_group,"CONVOY_HALT",false] call WAIT_fnc_DrivingCorridorRelease;
                 };
+                private _bypass=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
+                private _bypassController=_bypass getOrDefault ["controller",[]];
+                if ((_bypassController param [0,""]) == "CONVOY" && {_revision >= (_bypassController param [1,1e9])}) then {
+                    [_vehicle,_group,"CONVOY_HALT",false,false,_bypassController select 1] call WAIT_fnc_DrivingBypassRelease;
+                };
                 private _pathLease=_vehicle getVariable ["WAIT_Convoy_PathLease",[]];
                 if (count _pathLease == 7 && {(_pathLease select 0) == _group}
                     && {(_pathLease select 1) == _revision}) then {_vehicle setVariable ["WAIT_Convoy_PathLease",nil,true]};
@@ -141,6 +146,11 @@ private _seats = createHashMap;
 } forEach _vehicles;
 if (_phase != "HALT") exitWith {};
 if (local _group) then {
+    private _bypassPassage=_group getVariable ["WAIT_Convoy_BypassPassage",createHashMap];
+    if (count _bypassPassage > 0 && {_revision >= (_bypassPassage get "revision")}
+        && {(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {
+            (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+        } >= 0}) then {[_group,[_bypassPassage get "revision"],"CONVOY_HALT"] call WAIT_fnc_ConvoyBypassStep};
     private _passage=_group getVariable ["WAIT_Convoy_CorridorPassage",createHashMap];
     // HALT is a new explicit revision; retire the original passage only after the existing stops.
     if (count _passage > 0 && {_revision >= (_passage get "revision")}

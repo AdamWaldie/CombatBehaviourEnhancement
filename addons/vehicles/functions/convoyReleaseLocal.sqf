@@ -24,6 +24,7 @@ if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 private _navigation=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
 if (_keepCrew isEqualTo [] && {local _group}) then {
     [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call WAIT_fnc_ConvoyCorridorStep;
+    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call WAIT_fnc_ConvoyBypassStep;
 };
 private _brain=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
 if (count _brain > 0 && {_forget || {toUpperANSI _reason in ["ZEUS","PLAYER","EXTERNAL","EXTERNAL_OWNER","OWNERSHIP_LOST"]}}) then {
@@ -113,6 +114,10 @@ if (_restore isNotEqualTo []) then {
             if (!(_vehicle in _keepCrew)
                 && {((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY"}) then {
                 [_vehicle,_group,"CONVOY_RELEASED"] call WAIT_fnc_DrivingCorridorRelease;
+            };
+            private _bypass=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
+            if (!(_vehicle in _keepCrew) && {((_bypass getOrDefault ["controller",[]]) param [0,""]) == "CONVOY"}) then {
+                [_vehicle,_group,"CONVOY_RELEASED",true,false,_navigation getOrDefault ["revision",-1]] call WAIT_fnc_DrivingBypassRelease;
             };
             // Retire an exact-owned steering path before native handback. Readiness is
             // insufficient: the engine can report unitReady while a fixed path still runs.

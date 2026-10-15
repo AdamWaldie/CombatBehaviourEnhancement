@@ -47,7 +47,7 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertEqual(s.count('call WAIT_fnc_DrivingFollowingCap'),2)
         self.assertIn('_other != _predecessor',src('drivingFollowingCap'))
         self.assertIn('private _leadTrafficBlocked=!isNull (_leadTraffic select 1)',s)
-        self.assertIn('if (!_routeDone && {!_corridorActive} && {!_hadCorridor} && {!_leadTrafficBlocked}',s)
+        self.assertIn('if (!_routeDone && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_leadTrafficBlocked}',s)
         self.assertIn('if (!_trafficBlocked && {time - (_progress select 1) > 20}',s)
         self.assertIn('|| {_trafficBlocked} || {_limit <= 0}',s)
         self.assertLess(s.index('_limit=_limit min ((_traffic select 0)*3.6)'),s.index('private _ownedSpeed=_limit/3.6'))

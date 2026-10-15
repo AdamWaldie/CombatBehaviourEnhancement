@@ -162,7 +162,7 @@ class CorridorFoundationTests(unittest.TestCase):
     def test_tail_caps_and_settlement_use_existing_convoy_callback(self):
         tick = (ROOT / 'addons/vehicles/functions/convoyTick.sqf').read_text()
         self.assertEqual(tick.count('call WAIT_fnc_ConvoyCorridorStep'), 1)
-        self.assertIn('private _settled = !_passageActive && {_routeDone}', tick)
+        self.assertIn('private _settled = !_passageActive && {!_bypassPassageActive} && {_routeDone}', tick)
         self.assertLess(tick.index('_limit=_limit min ((_passageCaps'), tick.index('_vehicle forceSpeed _ownedSpeed'))
         self.assertIn('"CORRIDOR_TAIL"', (ROOT / 'addons/main/fsm/convoyOperation.fsm').read_text())
     def test_tail_cleanup_matches_original_revision_and_preserves_authored_progression(self):
