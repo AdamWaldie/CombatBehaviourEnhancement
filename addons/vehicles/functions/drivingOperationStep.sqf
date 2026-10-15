@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Executes one route-owned driving sample and derives its next FSM phase from actual vehicle state.
  * Locality / Authority: Owner-local group only; no ownership transfer or second scheduler.
+ * Public diagnostics publish on state changes and a ten-second heartbeat using this same callback.
  * Repeat/JIP: Epoch, generation and current-brain identity reject stale work. New owners start
  * their own execution; local jobs and FSM handles are never replayed to JIP.
  * Arguments: 0 brain <HASHMAP, empty>.
@@ -45,5 +46,14 @@ if (_owned == 0 && {!_crewPending}) then {_brain set ["cancelReason","NO_ELIGIBL
 if (_exhausted) then {_phase="HANDBACK";_brain set ["cancelReason","EXHAUSTED"]};
 if (_crewPending) then {_phase="CREW_HANDOVER"};
 _brain set ["phase",_phase];_brain set ["nextAt",time+([4,1] select (_crewPending || {_traffic} || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""}))];_brain set ["pending",false];_brain set ["completed",true];
-_group setVariable ["WAIT_Driving_State",[_phase,_brain get "generation",serverTime,_brain get "cancelReason"],true];
+// Publish transitions immediately, plus a sparse heartbeat at existing callback cadence.
+// The local brain owns this receipt: a new owner/brain publishes its first sample even if
+// its phase/generation happens to match the previous owner's public diagnostic packet.
+private _statusKey=[_phase,_brain get "generation",_brain get "cancelReason"];
+private _lastStatusAt=_brain getOrDefault ["lastStatusAt",-1e9];
+if (_statusKey isNotEqualTo (_brain getOrDefault ["lastStatus",[]])
+    || {serverTime-_lastStatusAt >= 10} || {serverTime < _lastStatusAt}) then {
+    _group setVariable ["WAIT_Driving_State",[_phase,_brain get "generation",serverTime,_brain get "cancelReason"],true];
+    _brain set ["lastStatus",_statusKey];_brain set ["lastStatusAt",serverTime];
+};
 -1
