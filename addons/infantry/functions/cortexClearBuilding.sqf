@@ -436,6 +436,45 @@ if (_resume) then {
 };
 _job set ["actorVisits",_actorVisits];
 _job set ["enteredActors",_enteredActors];
+// Early exits remain part of this episode even while other workers sweep.
+// Adopt bookkeeping only when the exact native leg or a physical arrival is still ours.
+private _earlyReceipt=_group getVariable ["WAIT_Cortex_ClearEarlyExits",[]];
+if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearEarlyExits",nil,true]};
+if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
+    && {(_earlyReceipt select 0) isEqualTo _visitContext}
+    && {(_earlyReceipt select 1) isEqualType []} && {count (_earlyReceipt select 1) <= 8}) then {
+    private _early=createHashMap;
+    private _moves=_job getOrDefault ["movementTargets",createHashMap];
+    private _diverted=[];
+    {
+        if (_x isEqualType [] && {count _x == 4}) then {
+            _x params ["_actor","_target","_until","_state"];
+            if (_actor isEqualType objNull && {!isNull _actor} && {_actor in _team}
+                && {_target isEqualType []} && {count _target == 3}
+                && {_target findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {_until isEqualType 0} && {finite _until}
+                && {_state in ["MOVING","ARRIVED","FAILED","DIVERTED"]}) then {
+                private _live=(expectedDestination _actor) param [0,[]];
+                private _owned=currentCommand _actor == "MOVE" && {count _live == 3} && {_live vectorDistance _target <= 0.25};
+                private _held=currentCommand _actor in ["","STOP"]
+                    && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1};
+                if (_state == "DIVERTED" || {!(_owned || {_held})}) then {
+                    _state="DIVERTED";
+                    _diverted pushBackUnique _actor;
+                    _job set ["egressFailed",true];
+                } else {
+                    _moves set [netId _actor,+_target];
+                    if (_state == "ARRIVED" && {!_held}) then {_state="MOVING"};
+                    if (_state == "FAILED") then {_job set ["egressFailed",true]};
+                };
+                _early set [netId _actor,[_actor,+_target,_until,_state]];
+            };
+        };
+    } forEach (_earlyReceipt select 1);
+    _job set ["earlyExits",_early];
+    _job set ["movementTargets",_moves];
+    _job set ["egressDiverted",_diverted];
+};
 // Adopt a transform/episode-bound exit journal without issuing movement. A different
 // native destination owns the actor now and must not inherit an old exit receipt.
 private _egressJournal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
@@ -449,7 +488,7 @@ if (_resume && {count _egressJournal == 10} && {(_egressJournal select 0) == "EG
     private _assignments=[];
     private _records=[];
     private _moves=createHashMap;
-    private _failed=_egressJournal select 8;
+    private _failed=(_egressJournal select 8) || {_job getOrDefault ["egressFailed",false]};
     {
         if (_x isEqualType [] && {count _x == 6}) then {
             _x params ["_actor","_target","_arrived","_leg","_retries","_checkpoint"];

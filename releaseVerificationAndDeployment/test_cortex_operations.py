@@ -2155,7 +2155,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_record select 1)-_remaining >= 0.5',egress)
         self.assertIn('time-(_record select 2) >= 8',egress)
         self.assertIn('(_record select 3) < 1',egress)
-        self.assertIn('if ([_x] call _outsideExit && {simulationEnabled _unit} && {!isObjectHidden _unit})',egress)
+        self.assertIn('if ([_x] call _outsideExit && {simulationEnabled _unit} && {!isObjectHidden _unit}',egress)
+        self.assertIn('&& {!(netId _unit in _earlyExits)}',egress)
         self.assertIn('if (_assignment param [2,false,[true]]) exitWith {false}', egress)
         self.assertIn('_assignment set [2,true]', egress)
         arrival=egress.split('if (!_outside) then {',1)[1].split('_outside\n',1)[0]
@@ -2205,10 +2206,12 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('(_job getOrDefault ["phase","CLEAR"]) == "EGRESS"',text)
         self.assertIn('[_unit,_exitPoint,false]',text)
-        egress=text.split('private _claimedExitPoints=[];',1)[1].split('_job set ["phase","EGRESS"]',1)[0]
+        egress=text.split('private _claimedExitPoints=',1)[1].split('_job set ["phase","EGRESS"]',1)[0]
+        planner=text.split('private _chooseExteriorExit={',1)[1].split('// Shared room coverage',1)[0]
         self.assertIn('_claimedExitPoints+_securityPoints',egress)
-        self.assertIn('call WAIT_fnc_BuildingExteriorProposal',egress)
-        self.assertIn('call WAIT_fnc_BuildingExteriorCandidate',egress)
+        self.assertIn('call _chooseExteriorExit',egress)
+        self.assertIn('call WAIT_fnc_BuildingExteriorProposal',planner)
+        self.assertIn('call WAIT_fnc_BuildingExteriorCandidate',planner)
         self.assertNotIn('from 0 to 11',egress)
         self.assertIn('_claimedExitPoints pushBack +_exitPoint',egress)
         self.assertIn('_unit distance2D _target > 1',text)
