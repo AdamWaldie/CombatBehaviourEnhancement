@@ -30,12 +30,13 @@ if (_groups isEqualTo []) exitWith {
     [
         ["COMBO",["Squad","Explicit squad to occupy buildings within this task area. The selector shows up to 128 groups; place on a soldier to include its squad."],[_groups,_groups apply {format ["%1 / %2 / %3 soldiers",side _x,groupId _x,count units _x]},0]],
         ["SLIDER",["Area radius (m)","Search buildings around the module position. Surplus soldiers receive exterior security assignments."],[15,150,50,0]],
-        ["COMBO",["Placement","Walk approaches assigned positions normally. Instant placement moves eligible interior defenders once; exterior security still walks. This does not clear hostile rooms."],[[false,true],["Walk into positions","Instant interior placement"],0]]
+        ["COMBO",["Placement","Walk approaches assigned positions normally. Instant placement moves eligible interior defenders once; exterior security still walks. This does not clear hostile rooms."],[[false,true],["Walk into positions","Instant interior placement"],0]],
+        ["CHECKBOX",["Prefer higher positions","When enabled, select higher roofed posts first. When disabled, distribute posts randomly within the roofed-first candidate list. This does not establish route accessibility."],true]
     ],
     {
         params ["_values","_position"];
-        _values params ["_group","_radius","_teleport"];
-        [[["order","GARRISON"],["group",_group],["position",_position],["radius",round _radius],["teleport",_teleport]],clientOwner] call WAIT_fnc_CortexOrderDispatch;
+        _values params ["_group","_radius","_teleport","_sortByHeight"];
+        [[["order","GARRISON"],["group",_group],["position",_position],["radius",round _radius],["teleport",_teleport],["sortByHeight",_sortByHeight]],clientOwner] call WAIT_fnc_CortexOrderDispatch;
     },{},+_position
 ] call zen_dialog_fnc_create;
 true

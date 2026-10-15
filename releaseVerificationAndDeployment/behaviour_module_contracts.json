@@ -38,7 +38,8 @@
       "target": "Explicit AI squad and area centre; native module attaches to an AI soldier",
       "parameters": [
         "radius",
-        "walking or instant interior placement"
+        "walking or instant interior placement",
+        "higher positions or randomized roofed-first distribution"
       ],
       "handlers": [
         "addons/infantry/functions/moduleGarrison.sqf",

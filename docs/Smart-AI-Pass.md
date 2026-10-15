@@ -321,7 +321,11 @@ Native Zeus lists **Waldos AI Tweaks > Garrison area**. Place it on an AI soldie
 squad; it tasks that squad around the module position. Without ZEN it uses walking and a 50 m
 radius. With optional ZEN it opens the same task dialog as the **Garrison area** custom module.
 The ZEN dialog explicitly selects a squad, area radius (15–150 m, default 50) and placement
-(walk by default or instant interior placement). Its group list is capped at 128 initial groups;
+(walk by default or instant interior placement), and **Prefer higher positions** (default on).
+Turning height preference off distributes positions randomly while retaining roofed-first priority.
+Sorting happens once at admission; published assignments and vacancy refill retain that selection
+through owner migration. The script option is `sortByHeight` (Boolean, default true).
+Neither mode establishes physical accessibility. Its group list is capped at 128 initial groups;
 placing it on a soldier includes that squad even outside the initial list. Dropping the ZEN
 module on a building or empty ground uses that position as the area centre, not an automatically
 selected squad. The native module requires a soldier attachment and refuses an absent target.

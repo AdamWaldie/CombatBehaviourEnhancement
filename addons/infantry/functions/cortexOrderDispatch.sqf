@@ -28,6 +28,8 @@ private _width = _settings getOrDefault ["width",_radius];
 private _building = _settings getOrDefault ["building", objNull];
 private _unit = _settings getOrDefault ["unit", objNull];
 if (!(_radius isEqualType 0) || {!(_facing isEqualType 0)} || {!(_width isEqualType 0)} || {!(_building isEqualType objNull)} || {!(_unit isEqualType objNull)}) exitWith {false};
+private _sortByHeight = _settings getOrDefault ["sortByHeight",true];
+if !(_sortByHeight isEqualType true) exitWith {false};
 private _teleport = _settings getOrDefault ["teleport",false];
 if !(_teleport isEqualType true) exitWith {false};
 // Remote module requests cannot change addon configuration or artillery role registration.

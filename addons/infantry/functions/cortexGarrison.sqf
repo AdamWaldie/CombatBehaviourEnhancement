@@ -5,7 +5,7 @@
  *
  * Uses height-sorted, roofed positions and outward watch sectors. PATH locks only after arrival.
  * Defenders duck under fire; local handlers and assignments replay after ownership changes.
- * Positions: building positions within the radius, roofed positions first, then highest first.
+ * Positions: building positions within the radius, roofed positions first, then highest first by default or one-time randomized distribution.
  * Each soldier is sent to his own position, then held there with PATH disabled, watching outward.
  * Building assignments include their admission transform; moved/deleted structures retire stale slots.
  * Surplus actors receive pending exterior security, selected finitely by the existing garrison job.
@@ -29,7 +29,7 @@
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
  * 1: centre <ARRAY or OBJECT> - ATL position or object (optional, default: leader position)
  * 2: radius <NUMBER> - search radius in metres (optional, default: 50)
- * 3: options <HASHMAP> (optional) - inPlace (default false), teleport (default false).
+ * 3: options <HASHMAP> (optional) - inPlace (default false), teleport (default false), sortByHeight <BOOL> (default true).
  * Explicit teleport places eligible assigned interior actors once when this order starts;
  * surplus exterior actors still walk. Adoption/JIP never repeats placement. This is scenario
  * placement, not evidence of building entry, clearance or accessible navigation.
@@ -50,8 +50,9 @@ params [["_group", grpNull, [grpNull, objNull]], ["_centre", [], [[], objNull]],
 if (_group isEqualType objNull) then {_group = group _group};
 if (isNull _group) exitWith {false};
 private _teleport = _options getOrDefault ["teleport",false];
+private _sortByHeight = _options getOrDefault ["sortByHeight",true];
 private _inPlace = _options getOrDefault ["inPlace",false];
-if (!(_teleport isEqualType true) || {!(_inPlace isEqualType true)} || {_teleport && {_inPlace}}) exitWith {false};
+if (!(_sortByHeight isEqualType true) || {!(_teleport isEqualType true)} || {!(_inPlace isEqualType true)} || {_teleport && {_inPlace}}) exitWith {false};
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 if (!local _group) exitWith {
     if (isServer) then {[_group, _centre, _radius, _options] remoteExecCall ["WAIT_fnc_CortexGarrison", groupOwner _group]; true} else {false};
@@ -93,7 +94,7 @@ if (_options getOrDefault ["inPlace", false]) then {
         {
             private _positionASL = AGLToASL _x;
             private _roofed = (lineIntersectsSurfaces [_positionASL vectorAdd [0, 0, 1], _positionASL vectorAdd [0, 0, 15], objNull, objNull, true, 1]) isNotEqualTo [];
-            _candidates pushBack [[1, 0] select _roofed, -(_x select 2), count _candidates, _x, getPosATL _building, _building];
+            _candidates pushBack [[1, 0] select _roofed, if (_sortByHeight) then {-(_x select 2)} else {random 1}, count _candidates, _x, getPosATL _building, _building];
         } forEach (_building buildingPos -1);
     } forEach (nearestObjects [_centre, ["House", "Building"], _radius, true]);
     _candidates sort true;

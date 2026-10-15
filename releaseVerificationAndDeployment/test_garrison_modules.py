@@ -16,7 +16,7 @@ class GarrisonModuleTests(unittest.TestCase):
         local=src('cortexOrderLocal')
         for required in ('remoteExecutedOwner != 2','WAIT_Cortex_LastTaskSerial','WAIT_fnc_NativeOrderReceipt','_token != str _serial'):
             self.assertLess(local.index(required),local.index('setVariable ["WAIT_AIPass_ZeusWaypoints"'))
-        self.assertIn('createHashMapFromArray [["teleport",_teleport]]',local)
+        self.assertIn('createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]',local)
     def test_garrison_controls_are_explicit_scoped_tasks(self):
         native=src('moduleGarrison'); zen=src('zenGarrisonModule')
         self.assertIn('attachedTo _logic',native)
@@ -28,6 +28,14 @@ class GarrisonModuleTests(unittest.TestCase):
         for text in (native,zen):
             self.assertNotIn('CBA_fnc_addSetting',text)
             self.assertNotIn('CBA_settings_fnc_set',text)
+    def test_height_choice_reaches_executor_and_is_not_rerolled_on_adoption(self):
+        zen=src('zenGarrisonModule'); dispatch=src('cortexOrderDispatch'); local=src('cortexOrderLocal'); execute=src('cortexGarrison')
+        self.assertIn('["sortByHeight",_sortByHeight]',zen)
+        for text in (dispatch,local,execute):
+            self.assertIn('_sortByHeight isEqualType true',text)
+        self.assertIn('["sortByHeight",_sortByHeight]',local)
+        self.assertIn('if (_sortByHeight) then {-(_x select 2)} else {random 1}',execute)
+        self.assertNotIn('sortByHeight',src('cortexGarrisonApplyLocal'))
     def test_receipts_include_authored_waits_and_zeus_replacement(self):
         receipt=(ROOT/'addons/core/functions/nativeOrderReceipt.sqf').read_text()
         for command in ('waypointCompletionRadius','waypointStatements','waypointTimeout','synchronizedTriggers'):
