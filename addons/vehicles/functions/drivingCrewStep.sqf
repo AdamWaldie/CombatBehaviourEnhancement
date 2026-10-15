@@ -3,8 +3,9 @@
  * Purpose: Executes one finite native internal-seat replacement for an ordinary leader vehicle.
  * A dead driver receives one native Eject action; only a confirmed vacant seat permits MoveToDriver.
  * Living incapacitated drivers are never displaced. Cargo crew are preferred to weapon operators.
- * Locality / Authority: Internal current group/vehicle/crew owner only, exact driving brain and
- * authored plain MOVE. Player, Zeus, specialist, convoy, service and newer native orders win.
+ * Locality / Authority: Internal current group/crew owner only, exact driving brain and
+ * unit-local native actions. Vehicle may still belong to another owner; no vehicle command is issued.
+ * An authored plain MOVE is required. Player, Zeus, specialist, convoy, service and newer orders win.
  * Repeat/JIP: Public original deadline and issued phases survive transfer without replaying actions.
  * Terminal receipts suppress repeated attempts for the same driver and route. No forced seating,
  * physics movement, repair, AI-feature reset, waypoint rewrite or second scheduler is used.
@@ -23,8 +24,7 @@ if (!_release && {!isNull _previousVehicle} && {_previousVehicle != vehicle lead
     [_group,_brain,true] call WAIT_fnc_DrivingCrewStep;
 };
 private _vehicle=if (_release) then {_brain getOrDefault ["crewVehicle",objNull]} else {vehicle leader _group};
-if (isNull _vehicle || {_vehicle == leader _group} || {!(_vehicle isKindOf "LandVehicle")} || {_vehicle isKindOf "StaticWeapon"}
-    || {!local _vehicle}) exitWith {false};
+if (isNull _vehicle || {_vehicle == leader _group} || {!(_vehicle isKindOf "LandVehicle")} || {_vehicle isKindOf "StaticWeapon"}) exitWith {false};
 private _work=_vehicle getVariable ["WAIT_DrivingCrew_Work",createHashMap];
 private _driver=driver _vehicle;
 // Normal healthy drivers incur no route snapshot or crew enumeration here.
@@ -61,7 +61,7 @@ private _available={
     // Physical vacancy alone does not release a mission-assigned incoming driver.
     private _driverSeat=(fullCrew [_vehicle,"driver",true]) param [0,[]];
     private _assignedDriver=_driverSeat param [5,objNull];
-    local _group && {local _vehicle} && {alive _vehicle} && {canMove _vehicle} && {abs speed _vehicle < 1}
+    local _group && {alive _vehicle} && {canMove _vehicle} && {abs speed _vehicle < 1}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle} && {!lockedDriver _vehicle}
         && {vehicle leader _group == _vehicle}
         && {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain}

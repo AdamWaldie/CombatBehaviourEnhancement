@@ -81,3 +81,16 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertLess(s.index('moveInCargo'),s.index('_driver setDamage 1'))
         self.assertIn('WAIT_CortexQA_HeadlessBatch',s)
         self.assertIn('WAIT_Headless_ExcludeGroup',s)
+
+    def test_seat_actions_do_not_require_remote_vehicle_movement_authority(self):
+        s=self.source().split('params [[',1)[1]
+        self.assertNotIn('local _vehicle',s)
+        for proof in ('!local _group','local _actor','!local _candidate','local _driver','call _commandsOwned'):
+            self.assertIn(proof,s)
+        start=(ROOT/'addons/vehicles/functions/drivingOperationStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('(local _vehicle && {!isNull driver _vehicle}',start)
+        self.assertIn('vehicle leader _group == _vehicle',start)
+        driving=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('!local _vehicle',driving)
+        for forbidden in ('setOwner','setGroupOwner','forceSpeed','setDriveOnPath','setVelocity','moveInDriver'):
+            self.assertNotIn(forbidden,s)

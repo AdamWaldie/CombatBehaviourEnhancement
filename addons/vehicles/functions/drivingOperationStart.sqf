@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Starts one route-scoped ordinary driving FSM; registered convoys retain their own writer.
+ * Seat-only casualty handover can start for local crew in a remote vehicle. Driving still requires
+ * vehicle locality; native unit seat actions never acquire its speed/path authority.
  * Locality / Authority: Owner-local group only; no ownership transfer or second scheduler.
  * Repeat/JIP: Epoch, generation and current-brain identity reject stale work. New owners start
  * their own execution; local jobs and FSM handles are never replayed to JIP.
@@ -34,8 +36,8 @@ if (count _current > 0) then {[_current,"REPLACED"] call WAIT_fnc_DrivingOperati
 private _hasVehicle=(units _group) findIf {
     private _vehicle=vehicle _x;
     _vehicle != _x && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")}
-        && {local _vehicle} && {alive _vehicle} && {canMove _vehicle}
-        && {(!isNull driver _vehicle && {group driver _vehicle == _group})
+        && {alive _vehicle} && {canMove _vehicle}
+        && {(local _vehicle && {!isNull driver _vehicle} && {group driver _vehicle == _group})
             || {vehicle leader _group == _vehicle && {[_x] call WAIT_fnc_CortexCombatEffective}
                 && {(isNull driver _vehicle || {!alive driver _vehicle})}
                 && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}}}
