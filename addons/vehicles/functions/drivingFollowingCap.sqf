@@ -16,7 +16,8 @@
  * Repeat/JIP: no handlers or cached clearance. Each sample uses actual velocity and current hull
  * corners; results must not be replayed after movement, route replacement or locality change.
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap m/s <NUMBER>, 20 (0..35);
- * 2 registered predecessor <OBJECT>, objNull, whose gap is owned by the convoy spacing controller.
+ * 2 registered predecessor <OBJECT>, objNull. Only its alive, aligned, non-reversing
+ * longitudinal spacing is delegated to the convoy; crossing and close hull occupancy remain checked.
  * Return: ARRAY [cap m/s NUMBER, limiting vehicle OBJECT, hull gap m NUMBER,
  * sampledAt NUMBER, candidate count NUMBER]. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
  * a congestion sentinel; at most 64 candidate hulls are evaluated, eight corners each.
@@ -53,11 +54,16 @@ if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates]};
 private _cap=_requested;private _limiting=objNull;private _gap=-1;
 {
     private _other=_x;
-    if (_other != _vehicle && {_other != _predecessor} && {!isNull _other}) then {
+    if (_other != _vehicle && {!isNull _other}) then {
         // Heading selects only the following-speed allowance, never obstacle admission.
         // An angled parked hull or a reversing/oncoming vehicle still occupies this lane.
         private _following=((vectorDir _other) vectorDotProduct _forward) > 0.7
             && {((velocity _other) vectorDotProduct _forward) >= -0.5};
+        // A registered predecessor is not permission to omit its physical hull.
+        // Convoy centre-distance spacing applies only while the pair remains aligned.
+        private _spacingOwned=_other == _predecessor && {alive _other}
+            && {_following} && {((vectorDir _other) vectorDotProduct _forward) >= cos 25};
+        if (_other == _predecessor && {!_spacingOwned}) then {_following=false};
         private _otherForward=if (_following) then {
             ((velocity _other) vectorDotProduct _forward) max 0
         } else {0};
@@ -115,6 +121,11 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
         };
         if (_ahead && {_sameLane} && {_sameHeight}) then {
             private _hullGap=(_minY-_front) max 0;
+            if (_spacingOwned) then {
+                // Normal convoy gaps keep their own pacing model. Even an aligned
+                // predecessor cannot exempt contact-range body overlap from braking.
+                if (_hullGap < 2 && {_cap > 0}) then {_cap=0;_limiting=_other;_gap=_hullGap};
+            } else {
             // Desired six-metre gap plus 1.8 seconds of predecessor travel. Continuous correction
             // avoids binary distance-band starts/stops. Closing-distance reaction only lowers it.
             private _allowed=(_otherForward+((_hullGap-6-(_otherForward*1.8))/3)) max 0;
@@ -128,6 +139,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
             private _closing=(_ownForward-_otherForward) max 0;
             if (_closing > 0.5 && {_hullGap < 2+(_closing*0.5)}) then {_allowed=0};
             if (_allowed < _cap) then {_cap=_allowed;_limiting=_other;_gap=_hullGap};
+            };
         };
     };
 } forEach _candidates;

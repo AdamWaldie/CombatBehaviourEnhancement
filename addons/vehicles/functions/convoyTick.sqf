@@ -678,8 +678,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // permission to advance into a reversing predecessor. Keep route identity.
     if (_frontReversing) then {_limit=0};
     if (_retainedPathCap >= 0) then {_limit=_limit min _retainedPathCap};
-    // Preserve the configured convoy gap; only the immediate registered predecessor's
-    // spacing is exempt. Other convoy members, unrelated traffic and wrecks still constrain us.
+    // Preserve normal aligned predecessor spacing. Its turning/reversing hull and
+    // contact-range occupancy still constrain us, as do all other occupied vehicles.
     private _traffic=if (_trafficAssistEnabled) then {
         [_vehicle,_limit/3.6,_front] call WAIT_fnc_DrivingFollowingCap
     } else {[_limit/3.6,objNull,-1,time,0]};
