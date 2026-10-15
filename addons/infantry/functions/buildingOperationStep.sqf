@@ -2152,8 +2152,11 @@ private _delay=call {
                                     && {(_x select 2) vectorDistance _positionASL < 1.5}}
                             }
                         } >= 0;
-                        [[0,1] select (abs (_unitFloor-(_positionASL select 2)) > 1.5),
-                            [0,1] select _occupied,(getPosASL _unit) vectorDistance _positionASL,_x]
+                        // A free visited destination outranks a blocked same-floor node.
+                        // Floor preference only breaks ties after live occupancy/reservations.
+                        [[0,1] select _occupied,
+                            [0,1] select (abs (_unitFloor-(_positionASL select 2)) > 1.5),
+                            (getPosASL _unit) vectorDistance _positionASL,_x]
                     };
                     _ranked sort true;
                     if (_ranked isNotEqualTo []) then {
