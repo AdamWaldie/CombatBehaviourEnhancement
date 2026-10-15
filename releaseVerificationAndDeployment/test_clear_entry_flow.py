@@ -65,4 +65,21 @@ class ClearEntryFlowTests(unittest.TestCase):
         self.assertNotIn((0,20),interior)
         self.assertIn((0,20),security)
         self.assertEqual(len(interior),4)
+    def test_new_security_posts_prefer_angular_spread_without_historical_coverage_credit(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        rank=s.split('// Distribute observation among real exits',1)[1].split('if (_entry isNotEqualTo []',1)[0]
+        for gate in ('call _actorAvailable','call _ownsCurrentMove','vectorDistance (AGLToASL','_plannedBearings','-_minimumBearingGap','select 4'):
+            self.assertIn(gate,rank)
+        self.assertIn('(keys _earlyExits) select [0,8]',rank)
+        self.assertIn('_observationReserveKeys select [0,8]',rank)
+        self.assertNotIn('doMove',rank)
+        self.assertNotIn('lineIntersectsSurfaces',rank)
+        def gap(a,b):return abs((a-b+540)%360-180)
+        self.assertEqual(gap(359,1),2)
+        # Both exits are unassigned/untried: opposite face beats a closer adjacent door.
+        options=[(0,0,-gap(5,0),4,'front'),(0,0,-gap(180,0),30,'rear')]
+        self.assertEqual(min(options)[-1],'rear')
+        # Actual failed proposal remains lower priority, despite its attractive bearing.
+        options[1]=(1,0,-180,30,'rear')
+        self.assertEqual(min(options)[-1],'front')
 if __name__=='__main__': unittest.main()

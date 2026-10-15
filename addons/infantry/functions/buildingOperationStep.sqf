@@ -27,6 +27,8 @@
  * Physically arrived early exits observe their selected doorway only after a fresh eye ray;
  * one rotating check per callback maintains the watch without another scheduler or movement.
  * Later exterior assignments preserve these observation lanes and prefer uncovered exits.
+ * New reserve posts spread across native exit bearings after failed/duplicate-exit ranking;
+ * only unchanged owned approaches or physically retained posts influence that allocation.
  * Terminal cleanup clears only matching generation/owner exit watches; actors without an owned
  * watch receipt retain their current observation command. Unchanged settings release independently
  * of movement diversion, and cleanup journals
@@ -952,30 +954,51 @@ private _delay=call {
             private _entryRanks=[];
             private _triedEntries=+(_stageTriedEntries getOrDefault [_key,[]]);
             private _observationReserveKeys=_reserves apply {netId _x};
+            private _bounds=boundingBoxReal _building;
+            private _centre=_building modelToWorld (((_bounds select 0) vectorAdd (_bounds select 1)) vectorMultiply 0.5);
+            _centre set [2,0];
+            // Planned assignments guide distribution; they are never coverage proof.
+            // Retired, diverted or physically departed posts must not bias a new choice.
+            private _plannedEntries=[];
+            {
+                private _row=_earlyExits get _x;
+                private _actor=objectFromNetId _x;
+                private _postEntry=_row param [5,[],[[]]];
+                if (count _postEntry == 3 && {[_actor] call _actorAvailable}
+                    && {((_row select 3) == "MOVING" && {[_actor] call _ownsCurrentMove})
+                        || {(_row select 3) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
+                            && {(getPosASL _actor) vectorDistance (AGLToASL (_row select 1)) <= 2}}}) then {
+                    _plannedEntries pushBack (+_postEntry);
+                };
+            } forEach ((keys _earlyExits) select [0,8]);
+            {
+                private _otherStage=_reserveStages getOrDefault [_x,[]];
+                private _actor=objectFromNetId _x;
+                private _postEntry=_otherStage param [5,[],[[]]];
+                if (_x != _key && {_x in _observationReserveKeys} && {count _postEntry == 3}
+                    && {[_actor] call _actorAvailable}
+                    && {((_otherStage param [2,""]) == "APPROACH" && {[_actor] call _ownsCurrentMove})
+                        || {(_otherStage param [2,""]) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
+                            && {(getPosASL _actor) vectorDistance (AGLToASL (_otherStage select 0)) <= 2}}}) then {
+                    _plannedEntries pushBack (+_postEntry);
+                };
+            } forEach (_observationReserveKeys select [0,8]);
+            private _plannedBearings=_plannedEntries apply {_centre getDir _x};
             {
                 private _candidateEntry=_x;
-                private _assignedCount={
-                    private _row=_earlyExits get _x;
-                    (_row select 3) in ["MOVING","ARRIVED"] && {(_row param [5,[]]) isEqualTo _candidateEntry}
-                } count keys _earlyExits;
-                {
-                    private _otherStage=_reserveStages get _x;
-                    if (_x != _key && {_x in _observationReserveKeys}
-                        && {(_otherStage param [2,""]) in ["APPROACH","ARRIVED"]}
-                        && {(_otherStage param [5,[],[[]]]) isEqualTo _candidateEntry}) then {
-                        _assignedCount=_assignedCount+1;
-                    };
-                } forEach keys _reserveStages;
-                _entryRanks pushBack [[0,1] select (_candidateEntry in _triedEntries),_assignedCount,_reserve distance2D _candidateEntry,+_candidateEntry];
+                private _assignedCount={_x isEqualTo _candidateEntry} count _plannedEntries;
+                private _bearing=_centre getDir _candidateEntry;
+                private _minimumBearingGap=180;
+                {_minimumBearingGap=_minimumBearingGap min (abs (((_bearing-_x+540) mod 360)-180))} forEach _plannedBearings;
+                // After failed/duplicate exits, prefer a different building face before distance.
+                _entryRanks pushBack [[0,1] select (_candidateEntry in _triedEntries),_assignedCount,
+                    -_minimumBearingGap,_reserve distance2D _candidateEntry,+_candidateEntry];
             } forEach ((_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]]) select [0,16]);
             _entryRanks sort true;
-            if (_entryRanks isNotEqualTo []) then {_entry=+((_entryRanks select 0) select 3)};
+            if (_entryRanks isNotEqualTo []) then {_entry=+((_entryRanks select 0) select 4)};
             if (_entry isNotEqualTo [] && {_searchCount < 3}) then {
                 _triedEntries pushBackUnique +_entry;
                 _stageTriedEntries set [_key,_triedEntries];
-                private _bounds=boundingBoxReal _building;
-                private _centre=_building modelToWorld (((_bounds select 0) vectorAdd (_bounds select 1)) vectorMultiply 0.5);
-                _centre set [2,0];
                 private _outward=_centre getDir _entry;
                 private _search=_entry getPos [7,_outward];
                 private _watch=_entry getPos [2,_outward];
