@@ -18,7 +18,9 @@ class ClearEarlyExitTests(unittest.TestCase):
                          '_follow deleteAt _blockerKey', 'call _rememberMove', 'call _publishEarlyExits']:
             self.assertIn(required,block)
         planner = s.split('private _chooseExteriorExit={',1)[1].split('// Shared room coverage',1)[0]
-        self.assertIn('from 0 to 2',planner)
+        self.assertIn('private _proposalCount=3 max count _ranked;',planner)
+        self.assertIn('from 0 to (_proposalCount-1)',planner)
+        self.assertIn('_entries select [0,4]',planner)
         self.assertIn('_entries select [0,4]',planner)
         self.assertIn('call WAIT_fnc_BuildingExteriorCandidate',planner)
         self.assertNotIn('doMove',planner)
@@ -76,3 +78,15 @@ class ClearEarlyExitTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ExteriorEntranceCoverageTests(unittest.TestCase):
+    def test_fourth_ranked_exit_is_reachable_with_finite_proposal_budget(self):
+        for entrances in range(1,5):
+            proposals=max(3,entrances)
+            visited=[i%entrances for i in range(proposals)]
+            self.assertEqual(set(visited),set(range(entrances)))
+            self.assertLessEqual(proposals,4)
+        viable=[False,False,False,True]
+        self.assertFalse(any(viable[i] for i in range(3)))
+        self.assertTrue(any(viable[i] for i in range(max(3,len(viable)))))

@@ -75,7 +75,7 @@
  * at the failure boundary; terminal diagnostics retain it without changing acceptance.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
- * Egress uses at most three native proposals per admitted worker across real entrances,
+ * Egress uses at most four native proposals per admitted worker across real entrances,
  * preserving distinct supported exterior
  * destinations and live security observation lanes; arrivals hold within one metre.
  * Successful egress additionally requires each active worker's successive physical visits.
@@ -2436,7 +2436,7 @@ private _delay=call {
     private _allWorkersProgressed=_activeWorkers findIf {
         count (_actorVisits getOrDefault [netId _x,[]]) < _requiredVisits
     } < 0;
-    // Shared bounded planner: three proposals, four entrances, existing geometry checks.
+    // Shared bounded planner: at most four proposals/entrances, existing geometry checks.
     // Selection grants no movement authority or physical arrival receipt.
     private _chooseExteriorExit={
         params ["_unit","_reservationsIn","_securityLanes","_exitUses",["_observation",false]];
@@ -2456,9 +2456,11 @@ private _delay=call {
         private _exitPoint=[];
         private _selectedEntry=[];
         private _selectedWatch=[];
-        // At most three proposals per worker (eight admitted workers). Alternate real
-        // entrances precede another proposal at the first entrance; no fixed grid/fan.
-        for "_proposalIndex" from 0 to 2 do {
+        // Cover every retained entrance before rejecting: the old three-slot prefix
+        // could never examine a fourth viable exit when the first three failed.
+        // Keep three proposals for smaller sets; at most four for eight workers.
+        private _proposalCount=3 max count _ranked;
+        for "_proposalIndex" from 0 to (_proposalCount-1) do {
             if (_exitPoint isNotEqualTo []) exitWith {};
             private _entry=+((_ranked select (_proposalIndex mod count _ranked)) select 3);
             private _outward=_buildingPos getDir _entry;
