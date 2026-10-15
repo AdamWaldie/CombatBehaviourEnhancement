@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Physically exercises ordinary traffic following behind a stopped tracked predecessor,
  * then departure, repeated stop/restart and a newer direct MOVE during blockage.
+ * A separate fresh pair exercises sub-1km/h predecessor creep without stationary retry credit.
  * No controller callbacks or success state are injected.
  * Locality/authority: scheduled server creates separate disposable driver groups. Predecessor
  * native waypoint/speed holds are fixture inputs; the follower is discovered and driven by WAIT.
@@ -125,4 +126,69 @@ private _released=[{(_follower getVariable ["WAIT_DrivingAssist_State",[]]) isEq
 missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 {private _vehicle=_x;{deleteVehicle _x} forEach crew _vehicle;deleteVehicle _vehicle} forEach [_front,_follower];
 {deleteGroup _x} forEach [_frontGroup,_followerGroup];
+// Fresh actors are required: the preceding episode may already have exhausted its
+// original retry deadline. Never reset production state to manufacture this prerequisite.
+[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_Enable",true]]] call WAIT_fnc_CortexTuning;
+private _creepFront=createVehicle ["O_APC_Tracked_02_cannon_F",[4200,2150,0],[],0,"NONE"];
+private _creepFollower=createVehicle ["O_Truck_03_transport_F",[4200,2090,0],[],0,"NONE"];
+_creepFront setDir 0;_creepFollower setDir 0;
+createVehicleCrew _creepFront;createVehicleCrew _creepFollower;
+private _creepFrontGroup=group driver _creepFront;
+private _creepFollowerGroup=group driver _creepFollower;
+{
+    _x setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _x setVariable ["acex_headless_blacklist",true,true];
+    _x setBehaviour "SAFE";_x setCombatMode "BLUE";_x setSpeedMode "FULL";
+    private _wp=_x addWaypoint [[4200,2500,0],0];
+    _wp setWaypointType "MOVE";_wp setWaypointCompletionRadius 5;
+    _x setCurrentWaypoint _wp;
+} forEach [_creepFrontGroup,_creepFollowerGroup];
+_creepFrontGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+_creepFront forceSpeed 0;
+(driver _creepFront) setVariable ["WAIT_CortexQA_Label","CREEPING PREDECESSOR: ACTUAL MOTION REQUIRED",true];
+(driver _creepFollower) setVariable ["WAIT_CortexQA_Label","CREEP FOLLOWER: NO STATIONARY RETRY",true];
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[_creepFront,_creepFollower,driver _creepFront,driver _creepFollower],true];
+["Ordinary driving: creeping queue","A fresh tracked predecessor moves using its native waypoint at a requested0.2m/s. Actual sustained motion below1km/h and an active traffic-limited follower are prerequisites. Requested speed alone cannot pass. Neither vehicle may collide, and stationary retry attempts must not increase during the qualifying motion.",[4200,2150,0]] call _phase;
+private _creepReady=[{
+    private _retry=_creepFollower getVariable ["WAIT_DrivingTrafficRetry",createHashMap];
+    private _traffic=_creepFollower getVariable ["WAIT_DrivingAssist_Traffic",[]];
+    count _retry > 0 && {(_retry getOrDefault ["attempts",-1]) == 0}
+        && {(_retry getOrDefault ["deadline",0])-serverTime > 45}
+        && {(_traffic param [1,objNull]) == _creepFront}
+        && {abs speed _creepFront < 1} && {abs speed _creepFollower < 1}
+        && {local _creepFront} && {local _creepFollower}
+},45] call _wait;
+["DRIVING-creep-fresh-live-episode",_creepReady] call _check;
+_creepFront forceSpeed 0.2;
+private _creepQualified=false;private _creepNoRetry=true;private _creepNoCollision=true;
+private _creepWindow=-1;private _creepWindowPosition=getPosASL _creepFront;
+private _creepDamage=[damage _creepFront,damage _creepFollower];
+private _creepUntil=time+40;
+while {time < _creepUntil} do {
+    sleep 0.5;
+    private _frontSpeed=abs speed _creepFront;
+    private _followerSpeed=abs speed _creepFollower;
+    private _traffic=_creepFollower getVariable ["WAIT_DrivingAssist_Traffic",[]];
+    private _retry=_creepFollower getVariable ["WAIT_DrivingTrafficRetry",createHashMap];
+    private _qualifying=_frontSpeed > 0.35 && {_frontSpeed < 1} && {_followerSpeed < 1}
+        && {(_traffic param [1,objNull]) == _creepFront}
+        && {count _retry > 0} && {(_retry getOrDefault ["deadline",0]) > serverTime};
+    if (_qualifying) then {
+        if (_creepWindow < 0) then {_creepWindow=time;_creepWindowPosition=getPosASL _creepFront};
+        if (time-_creepWindow >= 24 && {(getPosASL _creepFront) vectorDistance _creepWindowPosition >= 3}) then {_creepQualified=true};
+        if ((_retry getOrDefault ["attempts",0]) > 0) then {_creepNoRetry=false};
+    } else {_creepWindow=-1};
+    private _relative=_creepFront worldToModel (getPosATL _creepFollower);
+    private _room=-(_relative select 1)-_bodyDistance;
+    if (_room < 1 || {damage _creepFront > (_creepDamage select 0)+0.01}
+        || {damage _creepFollower > (_creepDamage select 1)+0.01}) then {_creepNoCollision=false};
+    diag_log format ["WAIT DRIVING CREEP: t=%1 frontASL=%2 followerASL=%3 speeds=%4 room=%5 qualifying=%6 window=%7 retry=%8",
+        time,getPosASL _creepFront,getPosASL _creepFollower,[_frontSpeed,_followerSpeed],_room,_qualifying,_creepWindow,_retry];
+};
+["DRIVING-creep-actual-low-speed-motion",_creepReady && {_creepQualified}] call _check;
+["DRIVING-creep-no-stationary-retry",_creepReady && {_creepQualified} && {_creepNoRetry}] call _check;
+["DRIVING-creep-separated-no-damage",_creepReady && {_creepQualified} && {_creepNoCollision}] call _check;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+{private _vehicle=_x;{deleteVehicle _x} forEach crew _vehicle;deleteVehicle _vehicle} forEach [_creepFront,_creepFollower];
+{deleteGroup _x} forEach [_creepFrontGroup,_creepFollowerGroup];
 [_previous] call WAIT_fnc_CortexTuning;
