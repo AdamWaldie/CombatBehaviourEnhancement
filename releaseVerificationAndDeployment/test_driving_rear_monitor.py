@@ -67,4 +67,22 @@ class DrivingRearMonitorTests(unittest.TestCase):
         group=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text(encoding='utf-8')
         self.assertIn('_reverseResult in ["COMPLETE","FALLBACK"]',group)
 
+
+
+    def test_ordinary_recovery_has_owned_cleanup_and_original_stage_schedule(self):
+        s=src('drivingAssistStart')
+        for marker in ('WAIT_DrivingRecovery_Work','WAIT_DrivingRecovery_Yield',
+                       'serverTime+96','_hard-66','_hard-60','["REFRESH"] call _recordRecovery',
+                       '["FINAL"] call _recordRecovery','ADOPTED_RECOVERY','_recoveryStage != 2 &&'):
+            self.assertIn(marker,s)
+        release=src('drivingRecoveryRelease')
+        for marker in ('expectedDestination _driver','expectedDestination _operator',
+                       'DrivingRouteReceipt','DrivingMovementAvailable','CortexExternalTakeover',
+                       'isEqualTo _work','(_work get "kind") == "REVERSE"'):
+            self.assertIn(marker,release)
+        for forbidden in ('addWaypoint','deleteWaypoint','enableAI','setVelocity','setPos','spawn','waitUntil'):
+            self.assertNotIn(forbidden,release.split('params [[',1)[1])
+        self.assertIn('call WAIT_fnc_DrivingRecoveryRelease',src('drivingAssistRelease'))
+        self.assertIn('WAIT_DrivingRecovery_Yield',src('drivingOperationStart'))
+
 if __name__=='__main__':unittest.main()

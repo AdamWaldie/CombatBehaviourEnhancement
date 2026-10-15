@@ -16,6 +16,8 @@ if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["WAIT_A
     || {[_group] call WAIT_fnc_CortexZeusHeld} || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
 private _route=[_group] call WAIT_fnc_DrivingRouteReceipt;
 if (_route isEqualTo []) exitWith {false};
+if ((_group getVariable ["WAIT_DrivingRecovery_Yield",[]]) isEqualTo _route) exitWith {false};
+_group setVariable ["WAIT_DrivingRecovery_Yield",nil,true];
 // Direct script admission uses the same locality establishment as ordinary group discovery.
 if (!(_group getVariable ["WAIT_AIPass_Adopted",false])) then {
     if ([_group] call WAIT_fnc_CortexIsEligible) then {[_group,true] call WAIT_fnc_CortexLocality};

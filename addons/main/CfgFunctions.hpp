@@ -66,6 +66,7 @@ class CfgFunctions {
             class DrivingOperationQueue {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingOperationQueue.sqf";};
             class DrivingOperationStep {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingOperationStep.sqf";};
             class DrivingOperationFinish {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingOperationFinish.sqf";};
+            class DrivingRecoveryRelease {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingRecoveryRelease.sqf";};
             class DrivingAssistRelease {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingAssistRelease.sqf";};
             class ModuleConvoy {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\moduleConvoy.sqf";};
             class ZenConvoyModule {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\zenConvoyModule.sqf";};

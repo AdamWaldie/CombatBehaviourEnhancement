@@ -97,7 +97,21 @@ _brain set ["geometryTracks",_geometryTracks];
         ])}
     };
     private _routeIdentity=call _readRouteIdentity;
-    private _release=false;
+    private _recoveryWork=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+    private _recoveryOwned=count _recoveryWork > 0 && {(_recoveryWork get "group") == _group}
+        && {(_recoveryWork get "route") isEqualTo _routeIdentity}
+        && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
+        && {(expectedDestination _driver) isEqualTo (_recoveryWork get "driverCommand")}
+        && {(expectedDestination _movementOperator) isEqualTo (_recoveryWork get "command")};
+    if (count _recoveryWork > 0 && {(_recoveryWork get "group") == _group} && {!_recoveryOwned}) then {
+        if ((_recoveryWork get "route") isEqualTo _routeIdentity) then {
+            _group setVariable ["WAIT_DrivingRecovery_Yield",_routeIdentity,true];
+        };
+        [_vehicle,_group,"ORDER_OR_SEATS_CHANGED",false] call WAIT_fnc_DrivingRecoveryRelease;
+        _recoveryWork=createHashMap;
+    };
+    private _release=(_group getVariable ["WAIT_DrivingRecovery_Yield",[]]) isEqualTo _routeIdentity;
+
     // Driving must make the same ownership decision as every other delayed controller. A group
     // member becoming player-controlled or specialist-owned is enough to retire the sparse speed
     // cap before it can issue a recovery move; the individual driver checks below retain the
@@ -112,8 +126,8 @@ _brain set ["geometryTracks",_geometryTracks];
         || {!([_movementOperator] call _nativeTaskFree)}
         || {getForcedSpeed _vehicle == 0 && {
             private _heldState=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
-            !((_heldState param [0,-1]) == 0 && {(_heldState param [3,grpNull]) == _group}
-                && {!isNull ((_vehicle getVariable ["WAIT_DrivingAssist_Traffic",[]]) param [1,objNull])})
+            !((_recoveryOwned && {(_recoveryWork get "cap") == 0}) || {(_heldState param [0,-1]) == 0 && {(_heldState param [3,grpNull]) == _group}
+                && {!isNull ((_vehicle getVariable ["WAIT_DrivingAssist_Traffic",[]]) param [1,objNull])}})
         }}
         || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
@@ -188,6 +202,18 @@ _brain set ["geometryTracks",_geometryTracks];
             // value replaces it, release without restoring the stale pre-WAIT value.
             private _previous=_vehicle getVariable ["WAIT_DrivingAssist_Restore",[]];
             private _state=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
+            if (_state isEqualTo [] && {_recoveryOwned}
+                && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}) then {
+                private _kind=_recoveryWork get "kind";
+                private _stage=switch (_kind) do {case "REFRESH":{1};case "FINAL":{3};default {2}};
+                private _deadline=_recoveryWork get "deadline";
+                if (_stage == 1 && {serverTime >= (_recoveryWork get "hardDeadline")-60}) then {_stage=2};
+                _state=[_recoveryWork get "cap",0,time,_group,+(_recoveryWork get "origin"),
+                    time-(serverTime-(_recoveryWork get "started")),_stage,time+(_deadline-serverTime),
+                    "ADOPTED_RECOVERY",_routeIdentity,_kind == "REVERSE"];
+                _previous=+(_recoveryWork get "baseline");
+                _vehicle setVariable ["WAIT_DrivingAssist_Restore",_previous];
+            };
             private _ownedCap=_state param [0,-1];
             if (_previous isNotEqualTo [] && {_ownedCap >= 0} && {abs ((getForcedSpeed _vehicle)-_ownedCap) > 0.1}) then {
                 [_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;
@@ -206,6 +232,9 @@ _brain set ["geometryTracks",_geometryTracks];
             // A follower must not retain the cautious-reverse stage of a former leader.
             // Start a fresh observation interval if it later becomes the leader again.
             if (_state isNotEqualTo [] && {vehicle leader _group isNotEqualTo _vehicle}) then {
+                // Retire the former leader's exact rear command before returning to formation.
+                // Clearing only the stage would leave that native destination running.
+                [_vehicle,_group,"NATIVE_FOLLOWER"] call WAIT_fnc_DrivingRecoveryRelease;
                 _state set [4,getPosATL _vehicle];
                 _state set [5,time];
                 _state set [6,0];
@@ -250,6 +279,20 @@ _brain set ["geometryTracks",_geometryTracks];
             // cap is detected and the pre-WAIT value can be restored exactly.
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
+            private _recordRecovery={
+                params ["_kind"];
+                private _old=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+                private _hard=if (count _old > 0 && {(_old get "group") == _group} && {(_old get "route") isEqualTo _routeIdentity}) then {
+                    _old get "hardDeadline"
+                } else {serverTime+96};
+                private _deadline=switch (_kind) do {case "REFRESH":{_hard-66};case "FINAL":{_hard};default {_hard-60}};
+                private _work=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
+                    ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
+                    ["kind",_kind],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
+                    ["origin",getPosATL _vehicle],["baseline",+_previous],["cap",_capMps]];
+                _vehicle setVariable ["WAIT_DrivingRecovery_Work",_work,true];
+                time+(_deadline-serverTime)
+            };
             private _reverseIssued=_state param [10,(_state param [8,""]) == "CAUTIOUS_REVERSE"];
             private _reverseLeg=(_state param [6,0]) == 2 && {_reverseIssued}
                 && {time < (_state param [7,-1])};
@@ -362,7 +405,10 @@ _brain set ["geometryTracks",_geometryTracks];
                 // Keep an already-issued rear leg finite. After the pedestrian clears,
                 // its expired deadline returns to the authored route instead of losing
                 // the rear-leg receipt and treating backward travel as ordinary progress.
-                if (_recoveryStage != 2) then {_recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false};
+                if (_recoveryStage != 2) then {
+                    [_vehicle,_group,"RECOVERY_PAUSED",false] call WAIT_fnc_DrivingRecoveryRelease;
+                    _recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false
+                };
                 _recoveryResult=if (_bypassActive) then {_bypass select 2} else {if (_corridorActive) then {_corridor select 2} else {
                     if (_obstacleLimited) then {["OBSTACLE_WAIT","OBSTACLE_APPROACH"] select (abs speed _vehicle >= 1)} else {
                         ["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited
@@ -381,18 +427,27 @@ _brain set ["geometryTracks",_geometryTracks];
             };
             // Reversing is a recovery leg, not proof that the original route resumed.
             // Do not reset its finite stages merely because the vehicle moved backwards.
-            if (!_trafficLimited && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {_vehicle distance2D _progressPosition >= 3} && {_routeProgress}) then {
+            if (_recoveryStage != 2 && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {_vehicle distance2D _progressPosition >= 3} && {_routeProgress}) then {
                 _progressPosition=getPosATL _vehicle;
                 _progressAt=time;
                 _recoveryStage=0;
                 _recoveryUntil=-1;
                 _recoveryResult="PROGRESS";_reverseIssued=false;
+                [_vehicle,_group,"ROUTE_PROGRESS",false] call WAIT_fnc_DrivingRecoveryRelease;
             };
             private _waypointIndex=currentWaypoint _group;
             private _hasRoute=_waypointIndex < count waypoints _group;
             private _inCombat=behaviour leader _group in ["COMBAT","STEALTH"] || {getSuppression _driver > 0.1};
             // A reverse leg has its own finite deadline. It must return to the authored
             // route even while still moving; the ordinary stall timer is not another hold.
+            private _scheduledRecovery=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+            // A delayed callback must not start an already-expired rear window.
+            if (_recoveryStage == 1 && {count _scheduledRecovery > 0}
+                && {serverTime >= (_scheduledRecovery get "hardDeadline")-60}) then {
+                _recoveryStage=2;_recoveryUntil=time;_reverseIssued=false;
+            };
+            private _finalExpired=_recoveryStage == 3 && {count _scheduledRecovery > 0}
+                && {serverTime >= (_scheduledRecovery get "hardDeadline")};
             private _reverseComplete=_recoveryStage == 2 && {time >= _recoveryUntil};
             // Preserve native planning time rather than repeatedly restarting a difficult route.
             // Real progress, a replaced order, follower ownership or an intentional wait already
@@ -400,7 +455,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _observationWindow=[20,30,0,60] param [_recoveryStage,60];
             if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
                 && {!_inCombat} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {abs speed _vehicle < 1 || {_reverseComplete}}
-                && {time-_progressAt >= _observationWindow || {_reverseComplete}} && {time >= _recoveryUntil}
+                && {time-_progressAt >= _observationWindow || {_reverseComplete} || {_finalExpired}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
                 private _waypoint=[_group,_waypointIndex];
                 private _destination=waypointPosition _waypoint;
@@ -409,7 +464,7 @@ _brain set ["geometryTracks",_geometryTracks];
                         case 0: {
                             _movementOperator doMove _destination;
                             _recoveryStage=1;
-                            _recoveryUntil=time+30;
+                            _recoveryUntil=["REFRESH"] call _recordRecovery;
                             _recoveryResult="ROUTE_REFRESH";_reverseIssued=false;
                         };
                         case 1: {
@@ -425,12 +480,12 @@ _brain set ["geometryTracks",_geometryTracks];
                                 _recoveryResult="REAR_BLOCKED";_reverseIssued=false;
                             };
                             _recoveryStage=2;
-                            _recoveryUntil=time+6;
+                            _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued] call _recordRecovery;
                         };
                         case 2: {
                             _movementOperator doMove _destination;
                             _recoveryStage=3;
-                            _recoveryUntil=time+60;
+                            _recoveryUntil=["FINAL"] call _recordRecovery;
                             _recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false;
                         };
                         default {
@@ -441,6 +496,11 @@ _brain set ["geometryTracks",_geometryTracks];
                     _progressPosition=getPosATL _vehicle;
                     _progressAt=time;
                 };
+            };
+            private _liveRecovery=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+            if (count _liveRecovery > 0 && {(_liveRecovery get "group") == _group}
+                && {(_liveRecovery get "cap") != _capMps}) then {
+                _liveRecovery set ["cap",_capMps];_vehicle setVariable ["WAIT_DrivingRecovery_Work",_liveRecovery,true];
             };
             _vehicle setVariable ["WAIT_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
                 _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued]];

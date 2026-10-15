@@ -19,6 +19,15 @@
 
 params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
+private _recovery=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+if (count _recovery > 0 && {isNull _expectedGroup || {(_recovery get "group") == _expectedGroup}}) then {
+    if ((_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) isEqualTo []
+        && {abs ((getForcedSpeed _vehicle)-(_recovery get "cap")) <= 0.1}) then {
+        _vehicle setVariable ["WAIT_DrivingAssist_State",[_recovery get "cap",0,time,_recovery get "group"]];
+        _vehicle setVariable ["WAIT_DrivingAssist_Restore",+(_recovery get "baseline")];
+    };
+    [_vehicle,_recovery get "group","DRIVING_RELEASED"] call WAIT_fnc_DrivingRecoveryRelease;
+};
 [_vehicle,_expectedGroup,["ORDINARY"],true] call WAIT_fnc_DrivingNativePathWatch;
 private _corridor=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
 private _corridorGroup=_corridor getOrDefault ["group",grpNull];
