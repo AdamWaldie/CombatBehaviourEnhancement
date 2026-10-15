@@ -979,3 +979,7 @@ Normal crossing approach still yields to traffic on the right. When predicted oc
 #### Consistent convoy lead spacing
 
 Lead catch-up pacing now reuses the gap already computed for convoy stretch. Aligned pairs within the existing near-column envelope use longitudinal separation, so lateral drift by itself does not reserve cruise speed as though a follower had fallen behind. Turning or distant pairs retain the existing distance metric. Genuine rearward gaps, follower lateral recapture, closing-distance caps, reversing predecessors and independent obstacle/pedestrian constraints are unchanged. The existing pair loop stores at most twenty scalar gap values; no additional query, timer or movement writer is introduced. Mixed tracked/wheeled flow, turns, lateral recovery and performance still require physical acceptance.
+
+#### Scheduler wake-up cache
+
+The scheduler now preserves keyed wake requests raised during another callback after the target job has already been skipped in that tick. It clears the old idle cache before traversal and merges newly raised due times at the end. Previously, the final cache write could hide that wake until the original future deadline. Existing queue rotation, one-pass traversal, soft callback budget and finite operation deadlines remain; a wake does not cause another execution in the same tick. This adds no world query, scheduler, queue traversal or network publication. Cross-job wake timing and runtime cost still need owner-local in-engine acceptance.

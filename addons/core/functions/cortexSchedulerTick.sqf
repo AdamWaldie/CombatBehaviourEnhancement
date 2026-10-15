@@ -11,7 +11,9 @@
  * WAIT_AIPass_TickBudgetMs remains. Jobs that do not fit wait for the next tick, which keeps
  * new jobs from starting after the budget is spent. A running job cannot be pre-empted and can
  * exceed the budget. An earliest-due cache makes idle callbacks constant-time instead of traversing
- * the complete group queue. Due processing still traverses the queue once and
+ * the complete group queue. Wake requests raised during a callback are merged after traversal,
+ * including earlier jobs already skipped; the cache never hides their updated due time.
+ * Due processing still traverses the queue once and
  * jobs move to the back, so no group is starved when the budget is always spent. When the machine's FPS is below
  * WAIT_AIPass_LowFpsThreshold, rescheduling delays are doubled. While ENDEX or SafeStart is
  * active, due jobs are postponed by five seconds and never run. The pause refreshes a one-minute
@@ -54,6 +56,9 @@ if (_jobs isEqualTo []) exitWith {
     missionNamespace setVariable ["WAIT_AIPass_NextJobDue", -1];
 };
 
+// Isolate wake requests raised during this traversal from the previous idle cache.
+// QueueJob may update a previously skipped state after its old due time was sampled.
+missionNamespace setVariable ["WAIT_AIPass_NextJobDue", -1];
 private _start = diag_tickTime;
 private _budget = ((missionNamespace getVariable ["WAIT_AIPass_TickBudgetMs", 1]) max 0.2) / 1000;
 private _slow = diag_fps < (missionNamespace getVariable ["WAIT_AIPass_LowFpsThreshold", 25]);
@@ -145,6 +150,8 @@ private _earliest = -1;
 // Jobs that just ran move behind those still waiting, so a full budget rotates fairly.
 _next append _rescheduled;
 missionNamespace setVariable ["WAIT_AIPass_Jobs", _next];
+private _raisedDue=missionNamespace getVariable ["WAIT_AIPass_NextJobDue",-1];
+if (_raisedDue >= 0 && {_earliest < 0 || {_raisedDue < _earliest}}) then {_earliest=_raisedDue};
 missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _earliest];
 // Aircraft observers activate the scheduler only on machines which currently own eligible
 // aircraft. When the final generation-scoped job retires, release that runtime; class/locality
