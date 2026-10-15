@@ -71,7 +71,7 @@ class DrivingGeometryTests(unittest.TestCase):
         for marker in ('"PathCalculated"','_path select [0,64]','_thisEventHandler',
                        'removeEventHandler','_expectedRevision','time-(_segment select 1) > 5',
                        'expectedDestination _driver','expectedDestination _operator',
-                       '_distance <= _nearDistance','_distance >= 3','_best=12','(_local select 1) > 1','_nearIndex+3','_oldBinding select 3'):
+                       '_distance < _nearDistance','_distance >= 3','_best=12','(_local select 1) > 1','_nearIndex+3','_oldBinding select 3'):
             self.assertIn(marker,s)
         for forbidden in ('doMove','setDriveOnPath','forceSpeed','calculatePath','createAgent','spawn','waitUntil'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
@@ -93,3 +93,28 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertIn('["CONVOY"],true] call WAIT_fnc_DrivingNativePathWatch',tick)
         release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         self.assertIn('["CONVOY"],true,_navigation getOrDefault ["revision",-1]',release)
+
+    def test_native_path_crossing_refuses_disconnected_near_stretches(self):
+        source=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text(encoding='utf-8')
+        for marker in ('_nearRuns=0','_inNearRun=false','_distance <= 3',
+                       'if (!_inNearRun) then {_nearRuns=_nearRuns+1}',
+                       '_nearIndex < 0 || {_distance < _nearDistance}',
+                       '_nearIndex < 0 || {_nearRuns > 1}'):
+            self.assertIn(marker,source)
+        # Dense consecutive near segments are one stretch; leaving and returning is ambiguous.
+        def stretches(flags):
+            return sum(flag and (i==0 or not flags[i-1]) for i,flag in enumerate(flags))
+        self.assertEqual(stretches([False,True,True,True,False]),1)
+        self.assertEqual(stretches([True,True,False,False,True]),2)
+        self.assertEqual(stretches([False]*63),0)
+        # A self-crossing polyline has two separate stretches near the origin.
+        # Its later northbound return must not replace the first northeast approach.
+        import math
+        def distance_to_segment(a,b):
+            dx,dy=b[0]-a[0],b[1]-a[1]
+            fraction=max(0,min(1,-(a[0]*dx+a[1]*dy)/(dx*dx+dy*dy)))
+            return math.hypot(a[0]+fraction*dx,a[1]+fraction*dy)
+        crossing=[(-10,-5),(8,4),(20,20),(0,-10),(0,8)]
+        flags=[distance_to_segment(a,b)<=3 for a,b in zip(crossing,crossing[1:])]
+        self.assertEqual(flags,[True,False,False,True])
+        self.assertEqual(stretches(flags),2)

@@ -13,7 +13,9 @@
  * Return Value: ARRAY [] without usable evidence, otherwise [curvature NUMBER, allowStopped BOOL].
  * Bounds: native events retain at most 64 ASL nodes; owner callbacks inspect at most 63 segments.
  * Five-second evidence age, exact both-seat destinations, current proximity/floor and forward
- * lookahead 3..12 m protect use. A captured path grants neither movement nor physical completion.
+ * lookahead 3..12 m protect use. Multiple disconnected nearby path stretches refuse a hint;
+ * equal-distance ties within one stretch retain the first segment rather than jumping ahead.
+ * A captured path grants neither movement nor physical completion.
  * Current callers: DrivingAssistStart, ConvoyTick, DrivingAssistRelease and ConvoyReleaseLocal.
  * Example: private _hint=[truck1,_group,["ORDINARY",_route,_epoch]] call WAIT_fnc_DrivingNativePathWatch;
  */
@@ -109,7 +111,7 @@ private _segment=_vehicle getVariable ["WAIT_DrivingNativePath_Segment",[]];
 if (count _segment != 5 || {(_segment select 0) isNotEqualTo _identity} || {time-(_segment select 1) > 5}
     || {time < (_segment select 1)} || {(expectedDestination _driver) isNotEqualTo (_segment select 2)}
     || {(expectedDestination _operator) isNotEqualTo (_segment select 3)}) exitWith {[]};
-private _nodes=_segment select 4;private _origin=getPosASL _vehicle;private _nearIndex=-1;private _nearDistance=3;private _target=[];private _best=12;
+private _nodes=_segment select 4;private _origin=getPosASL _vehicle;private _nearIndex=-1;private _nearDistance=3;private _nearRuns=0;private _inNearRun=false;private _target=[];private _best=12;
 for "_i" from 0 to (count _nodes-2) do {
     private _a=_nodes select _i;private _b=_nodes select (_i+1);private _line=_b vectorDiff _a;_line set [2,0];
     private _lengthSquared=_line vectorDotProduct _line;
@@ -117,10 +119,16 @@ for "_i" from 0 to (count _nodes-2) do {
         private _fraction=(((_origin vectorDiff _a) vectorDotProduct _line)/_lengthSquared) max 0 min 1;
         private _closest=_a vectorAdd ((_b vectorDiff _a) vectorMultiply _fraction);
         private _distance=_origin distance2D _closest;
-        if (_distance <= _nearDistance && {abs ((_origin select 2)-(_closest select 2)) <= 2}) then {_nearIndex=_i;_nearDistance=_distance};
+        private _near=_distance <= 3 && {abs ((_origin select 2)-(_closest select 2)) <= 2};
+        if (_near) then {
+            if (!_inNearRun) then {_nearRuns=_nearRuns+1};
+            if (_nearIndex < 0 || {_distance < _nearDistance}) then {_nearIndex=_i;_nearDistance=_distance};
+        };
+        // Zero-length duplicate nodes do not break a contiguous path stretch.
+        _inNearRun=_near;
     };
 };
-if (_nearIndex < 0) exitWith {[]};
+if (_nearIndex < 0 || {_nearRuns > 1}) exitWith {[]};
 for "_i" from (_nearIndex+1) to ((_nearIndex+3) min (count _nodes-1)) do {
     private _point=_nodes select _i;
     private _distance=_origin distance2D _point;
