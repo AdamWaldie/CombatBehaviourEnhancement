@@ -32,8 +32,9 @@
  * A single exterior replacement follows its healthy original surviving mover through bounded
  * partner entry recovery. Entered survivors have priority; exterior survivors keep approach
  * continuity. Whole-pair replacements still restart exterior entry without inherited receipts.
- * Partner entry recovery initializes its lane target when the entry cache is absent, so
- * initial entrance handling cannot silently suppress the finite recovery receipt.
+ * Partner entry recovery reads a provisional target when its cache is absent, without
+ * committing the lead room before the distinct support-point planner can run. The finite
+ * recovery receipt remains active even before a support target is selected.
  * A stalled recovered partner may select one alternate physically visited current-floor
  * entry point before full room coverage. A public episode/transform receipt bounds replay;
  * the same guarded clearance callback records the shared pair target and issues movement;
@@ -1174,7 +1175,8 @@ private _delay=call {
                         private _entryTargets=_job getOrDefault ["pairEntryTargets",createHashMap];
                         private _entryKey=str _pairIndex;
                         private _entryTarget=_entryTargets getOrDefault [_entryKey,_positions select (_route select 0)];
-                        _entryTargets set [_entryKey,+_entryTarget];
+                        // Publish the map, but not this provisional fallback: initial support
+                        // planning still needs to choose its separate connected interior point.
                         _job set ["pairEntryTargets",_entryTargets];
                         if (_entryTarget isEqualTo (_positions select (_route select 0))) then {
                             _entryTarget=[_route select 0] call _roomMovementPoint;
@@ -1618,7 +1620,7 @@ private _delay=call {
                             private _anchor=_positions select (_route select 0);
                             private _candidates=_positions select {
                                 _x isNotEqualTo _anchor && {abs ((_x select 2)-(_anchor select 2)) <= 1.5}
-                                    && {_x distance2D _anchor <= 8}
+                                    && {_x distance2D _anchor >= 2.5} && {_x distance2D _anchor <= 8}
                             };
                             private _ranked=_candidates apply {[_x distance2D _anchor,_x]};
                             _ranked sort true;
