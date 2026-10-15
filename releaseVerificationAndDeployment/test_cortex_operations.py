@@ -2115,7 +2115,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_unit] call _actorAvailable',arrival)
         self.assertIn('[_unit] call _actorTaskFree',arrival)
         self.assertIn('call _mayIssueMovement',arrival)
-        self.assertIn('abs (((getPosATL _unit) select 2)', egress)
+        self.assertIn('abs (((getPosASL _unit) select 2)', egress)
+        self.assertIn('(AGLToASL _target) select 2',egress)
 
         self.assertIn('[_unit] call _actorAvailable',egress)
         self.assertIn('_record set [3,1]',egress)

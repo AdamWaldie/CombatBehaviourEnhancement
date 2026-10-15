@@ -14,6 +14,8 @@
  * at most 32 raw transit candidates; eight source-specific connector records bound geometry cost.
  * Already-entered movers request same-floor rooms without revisiting their buddy.
  * New claims wait for the lowest unfinished ASL room band, including rooms claimed by other lanes.
+ * Entry/support/egress floor comparisons use absolute ASL elevation, never differences
+ * between heights relative to separate terrain cells. Native movement destinations remain ATL.
  * Idle waiting pairs retain owned current-position holds; waiting never renews the finite episode.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
@@ -478,7 +480,7 @@ private _delay=call {
             // Retain observed arrivals, but frozen/hidden positions cannot establish a new exit.
             if (!(simulationEnabled _unit) || {isObjectHidden _unit}) exitWith {true};
             private _outside=_unit distance2D _target > 1
-                || {abs (((getPosATL _unit) select 2)-(_target param [2,0])) > 1.5};
+                || {abs (((getPosASL _unit) select 2)-((AGLToASL _target) select 2)) > 1.5};
             if (!_outside) then {
                 _assignment set [2,true];
                 if ([_unit] call _actorAvailable && {[_unit] call _actorTaskFree}
@@ -561,7 +563,7 @@ private _delay=call {
                                 private _exitRooms=_job get "positions";
                                 private _candidates=if (insideBuilding _unit <= 0) then {[]} else {((_job get "cleared") select [0,24]) select {
                                     private _point=_exitRooms select _x;
-                                    abs (((getPosATL _unit) select 2)-(_point select 2)) <= 0.75
+                                    abs (((getPosASL _unit) select 2)-((AGLToASL _point) select 2)) <= 0.75
                                         && {_unit distance2D _point > 2}
                                 }};
                                 private _ranked=_candidates apply {
@@ -1360,7 +1362,7 @@ private _delay=call {
                     // proximity cannot complete the assigned mover's physical approach.
                     if (_approachingEntry && {_entryTarget isNotEqualTo []}
                         && {_entryMover distance2D _entryTarget <= 3}
-                        && {abs (((getPosATL _entryMover) select 2)-(_entryTarget select 2)) <= 1.5}) then {
+                        && {abs (((getPosASL _entryMover) select 2)-((AGLToASL _entryTarget) select 2)) <= 1.5}) then {
                         _approachingEntry=false;
                         // Reaching the entrance only completes approach staging. Interior entry
                         // is established by a physically visited room below, never doorway proximity.
@@ -1619,7 +1621,7 @@ private _delay=call {
                         if (_supportTarget isEqualTo []) then {
                             private _anchor=_positions select (_route select 0);
                             private _candidates=_positions select {
-                                _x isNotEqualTo _anchor && {abs ((_x select 2)-(_anchor select 2)) <= 1.5}
+                                _x isNotEqualTo _anchor && {abs (((AGLToASL _x) select 2)-((AGLToASL _anchor) select 2)) <= 1.5}
                                     && {_x distance2D _anchor >= 2.5} && {_x distance2D _anchor <= 8}
                             };
                             private _ranked=_candidates apply {[_x distance2D _anchor,_x]};
@@ -2129,7 +2131,7 @@ private _delay=call {
                     private _accessPoint=_record param [5,[],[[]]];
                     if (_accessPoint isNotEqualTo []) then {
                         if (_unit distance2D _accessPoint <= 3
-                            && {abs (((getPosATL _unit) select 2)-(_accessPoint select 2)) <= 1.5}) then {
+                            && {abs (((getPosASL _unit) select 2)-((AGLToASL _accessPoint) select 2)) <= 1.5}) then {
                             // Arrival at an entrance only releases the real interior movement leg.
                             _record set [5,[]];
                             _record set [1,(getPosASL _unit) vectorDistance (AGLToASL _target)];
