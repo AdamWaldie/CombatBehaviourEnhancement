@@ -4,6 +4,7 @@
  * Locality/authority: each server/HC acts only on its own vehicles and units from the server registry.
  * Hostile Hit events count as contact even when armour absorbs the damage. Local handler ownership
  * records its convoy group/machine so obsolete cleanup cannot remove an adopted handler.
+ * Unload policy uses an exact public lease; an external value change blocks reacquisition until release.
  * Repeat/JIP: five-second owner checks repair occupied seat assignments and replay a durable halt
  * after transfer. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, speed, gap, push, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
@@ -44,7 +45,7 @@ private _seats = createHashMap;
                 _vehicle setVariable ["WAIT_Convoy_HitEHOwner",_hitOwner];
             };
             // Explicit cargo orders decide unloading; operating turrets never receive a dismount order.
-            if (getUnloadInCombat _vehicle isNotEqualTo [false, false]) then {_vehicle setUnloadInCombat [false, false]};
+            [_vehicle,_group,"ACQUIRE",_revision] call WAIT_fnc_ConvoyUnloadPolicy;
 
         };
         {

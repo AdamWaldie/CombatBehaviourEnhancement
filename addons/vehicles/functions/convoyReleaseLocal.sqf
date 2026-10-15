@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Purpose: Restores recorded formation, attack permission, vehicle speed and unload settings; cancels only follower paths. A speed baseline is restored only when the
  * vehicle is leaving WAIT control, WAIT still owns the current cap and no newer controller owns it.
- * Unload policy and attack permission restore only while their convoy-applied values remain current.
+ * Unload policy restores from its exact lease only while its applied value remains current;
+ * missing leases never authorize a guessed baseline restoration. Retained successor vehicles
+ * keep their leases. Attack permission restores only while its convoy-applied value remains current.
  * A different current movement-operator group preserves the successor vehicle policy and orders.
  * Crew target cleanup also checks actor ownership and combat effectiveness; a newer target owner
  * keeps its command while obsolete convoy target metadata is retired.
@@ -96,10 +98,8 @@ if (_restore isNotEqualTo []) then {
                 if (count _ownedSpeed >= 1 && {(_ownedSpeed select 0) isEqualTo _group}) then {
                     _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",nil];
                 };
-                if (!_externalTakeover && {!_externalCrew} && {!_externalVehicle}
-                    && {getUnloadInCombat _vehicle isEqualTo [false,false]}) then {
-                    _vehicle setUnloadInCombat _unload;
-                };
+                private _restoreUnload=!_externalTakeover && {!_externalCrew} && {!_externalVehicle};
+                [_vehicle,_group,"RELEASE",-1,_restoreUnload] call WAIT_fnc_ConvoyUnloadPolicy;
             };
             // A vehicle retained by the successor convoy still owns its route. An
             // external vehicle-level owner may likewise leave group ownership unchanged.

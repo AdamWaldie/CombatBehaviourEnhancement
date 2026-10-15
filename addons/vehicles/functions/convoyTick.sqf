@@ -205,7 +205,7 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
             _lead setVariable ["WAIT_Convoy_HaltOwner",nil];
         };
     };
-    {_x setUnloadInCombat [false, false]} forEach _vehicles;
+    {[_x,_group,"ACQUIRE",_revision] call WAIT_fnc_ConvoyUnloadPolicy} forEach _vehicles;
     private _initialPathOwners=_resumePathOwners;
     {
         if (_forEachIndex > 0) then {

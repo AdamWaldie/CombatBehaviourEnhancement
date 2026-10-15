@@ -781,7 +781,8 @@
         "addons/vehicles/functions/convoyOperationStart.sqf",
         "addons/vehicles/functions/convoyOperationQueue.sqf",
         "addons/vehicles/functions/convoyOperationStep.sqf",
-        "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf"
+        "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf",
+        "addons/vehicles/functions/convoyUnloadPolicy.sqf"
       ]
     },
     {
