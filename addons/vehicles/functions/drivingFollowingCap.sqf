@@ -3,6 +3,10 @@
  * Purpose: Observes vehicle hulls occupying the forward lane and derives a continuous speed cap.
  * Aligned moving predecessors retain measured forward speed. Other intersecting hulls are treated
  * as occupied space without assuming that crossing or oncoming traffic will yield or move away.
+ * Moving crossing traffic on the right also constrains approach when projected hull occupancy
+ * windows overlap within six seconds. Current measured velocity defines the other course;
+ * desired/actual forward speed defines our approach. Current vertical overlap is required.
+ * Time-window yielding never clears an occupied hull or expires into permission to drive through it.
  * Empty live vehicles and destroyed vehicle entities at any heading remain obstacles;
  * destruction alone never removes their hull from this observation. No bypass route is planned.
  * A mass-adjusted closing-speed envelope adds provisional braking and cruise-sampling headroom;
@@ -14,7 +18,7 @@
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap m/s <NUMBER>, 20 (0..35);
  * 2 registered predecessor <OBJECT>, objNull, whose gap is owned by the convoy spacing controller.
  * Return: ARRAY [cap m/s NUMBER, limiting vehicle OBJECT, hull gap m NUMBER,
- * sampledAt NUMBER, candidate count NUMBER]. Dense sets return zero and the vehicle itself as
+ * sampledAt NUMBER, candidate count NUMBER]. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
  * a congestion sentinel; at most 64 candidate hulls are evaluated, eight corners each.
  * Current callers: DrivingAssistStart and ConvoyTick through their finite operation schedulers.
  * Example: private _traffic = [truck1,20] call WAIT_fnc_DrivingFollowingCap;
@@ -28,12 +32,18 @@ private _front=_high select 1;
 private _forward=vectorDir _vehicle;_forward set [2,0];
 if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0]};
 _forward=vectorNormalized _forward;
+private _right=[_forward select 1,-(_forward select 0),0];
+private _halfWidth=((_high select 0)-(_low select 0))*0.5;
+private _halfLength=((_high select 1)-(_low select 1))*0.5;
+private _ownCentre=_vehicle modelToWorldWorld ((_low vectorAdd _high) vectorMultiply 0.5);
+private _plannedSpeed=0;
 private _ownForward=((velocity _vehicle) vectorDotProduct _forward) max 0;
 // Heavy vehicles get a lower nominal deceleration. Account for the ordinary four-second
 // cruise sampling interval even though a constrained phase requests work more frequently.
 private _massFactor=((1+(((getMass _vehicle)-3000)/7000)) max 1) min 2.5;
 private _deceleration=4/_massFactor;
 private _reaction=4;
+_plannedSpeed=(_ownForward max _requested) max 0.5;
 private _radius=((_ownForward max _requested)*6+20+(abs _front)) min 250;
 // Arma 2.18 area syntax explicitly includes dead vehicle entities. The default
 // radius syntax omits them; removing only the alive predicate would not fix discovery.
@@ -71,6 +81,38 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
         private _ahead=_maxY > _front-0.25;
         private _sameLane=_maxX >= (_low select 0)-0.25 && {_minX <= (_high select 0)+0.25};
         private _sameHeight=_maxZ >= (_low select 2)-0.25 && {_minZ <= (_high select 2)+0.25};
+        // Project crossing occupancy on measured courses rather than stopping merely for
+        // closeness. Only the right-hand approach yields; current lane occupancy below always
+        // retains priority, independent of this prediction or who is expected to give way.
+        private _otherVelocity=velocity _other;_otherVelocity set [2,0];
+        private _otherSpeed=vectorMagnitude _otherVelocity;
+        private _otherCentre=_other modelToWorldWorld ((_otherLow vectorAdd _otherHigh) vectorMultiply 0.5);
+        private _relative=_otherCentre vectorDiff _ownCentre;_relative set [2,0];
+        if (_sameHeight && {_otherSpeed > 0.8} && {_relative vectorDotProduct _right > 0.25}) then {
+            private _course=vectorNormalized _otherVelocity;
+            private _denominator=(_forward select 0)*(_course select 1)-(_forward select 1)*(_course select 0);
+            if (abs _denominator > 0.2) then {
+                private _alongOwn=((_relative select 0)*(_course select 1)-(_relative select 1)*(_course select 0))/_denominator;
+                private _alongOther=((_relative select 0)*(_forward select 1)-(_relative select 1)*(_forward select 0))/_denominator;
+                private _otherHalfLength=((_maxX-_minX)*(abs (_course vectorDotProduct _right))+(_maxY-_minY)*(abs (_course vectorDotProduct _forward)))*0.5;
+                private _ownWindow=_halfLength+(_maxY-_minY)*0.5+2.5;
+                private _alignment=abs (_forward vectorDotProduct _course);
+                private _otherWindow=_otherHalfLength+_halfLength*_alignment+_halfWidth*(abs _denominator)+2.5;
+                private _ownIn=(_alongOwn-_ownWindow)/_plannedSpeed;private _ownOut=(_alongOwn+_ownWindow)/_plannedSpeed;
+                private _otherIn=(_alongOther-_otherWindow)/_otherSpeed;private _otherOut=(_alongOther+_otherWindow)/_otherSpeed;
+                if (_ownIn < 6 && {_otherIn < 6} && {_ownOut > 0} && {_otherOut > 0}
+                    && {_ownIn < _otherOut+1} && {_otherIn < _ownOut+1}) then {
+                    private _room=(_alongOwn-_ownWindow) max 0;
+                    private _arrivalCap=_room/((_otherOut+1) max 0.5);
+                    private _reactionSpeed=_deceleration*_reaction;
+                    private _brakingCap=(sqrt ((_reactionSpeed^2)+2*_deceleration*_room)-_reactionSpeed) max 0;
+                    private _allowed=_arrivalCap min _brakingCap;
+                    private _stoppingRoom=_ownForward*_reaction+(_ownForward^2)/(2*_deceleration);
+                    if (_room <= _stoppingRoom) then {_allowed=0};
+                    if (_allowed < _cap) then {_cap=_allowed;_limiting=_other;_gap=_room};
+                };
+            };
+        };
         if (_ahead && {_sameLane} && {_sameHeight}) then {
             private _hullGap=(_minY-_front) max 0;
             // Desired six-metre gap plus 1.8 seconds of predecessor travel. Continuous correction

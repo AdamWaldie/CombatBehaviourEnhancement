@@ -94,7 +94,8 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('private _reaction=4;',s)
         self.assertIn('2*_deceleration*_room',s)
         self.assertIn('_allowed=_allowed min (_otherForward+_closingAllowance)',s)
-        self.assertLess(s.index('_allowed=_allowed min'),s.index('if (_allowed < _cap)'))
+        occupied=s.split('if (_ahead && {_sameLane} && {_sameHeight})',1)[1]
+        self.assertLess(occupied.index('_allowed=_allowed min'),occupied.index('if (_allowed < _cap)'))
         self.assertNotIn('setMass',s)
     def test_convoy_closing_envelope_uses_mass_and_forward_velocity(self):
         import math
@@ -127,4 +128,20 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('_stableSamples >= 12',audit)
         self.assertIn('_follower distance2D _resumeStart >= 45',audit)
         self.assertIn('_follower distance2D _repeatStart >= 35',audit)
+
+    def test_crossing_prediction_preserves_physical_occupancy_and_bounded_query(self):
+        s=src('drivingFollowingCap')
+        self.assertEqual(s.count('nearEntities'),1)
+        prediction=s.split('// Project crossing occupancy',1)[1].split('if (_ahead && {_sameLane}',1)[0]
+        for marker in ('_sameHeight','_otherSpeed > 0.8','vectorDotProduct _right > 0.25',
+                       'abs _denominator > 0.2','_ownIn < 6','_otherIn < 6',
+                       '_ownOut > 0','_otherOut > 0','_ownIn < _otherOut+1',
+                       '_otherIn < _ownOut+1','_arrivalCap min _brakingCap',
+                       '_room <= _stoppingRoom','_allowed=0'):
+            self.assertIn(marker,prediction)
+        self.assertIn('if (_ahead && {_sameLane} && {_sameHeight})',s)
+        self.assertNotIn('setVariable',prediction)
+        self.assertNotIn('lineIntersectsSurfaces',prediction)
+        self.assertNotIn('forceSpeed',prediction)
+
 if __name__=='__main__': unittest.main()
