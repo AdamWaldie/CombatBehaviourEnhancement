@@ -958,3 +958,10 @@ The guard reads two bounded journals and current route metadata, with no timer, 
 The completed-drill holder list now relinquishes actors claimed by an explicit building/defence/garrison or authored stationary order, a current generation/owner operation, or an unchanged generation/owner/native-order post-clear hold. Previously the reunion filter excluded only a replacement drill roster, leaving old bound holders eligible for doFollow during or after clearance. Transfer removes old metadata without issuing movement; the current executor retains its destinations and physical posts. Actors outside successor ownership keep the existing reunion behaviour.
 
 This closes a source-level competing recall path, not proof of the reported wedge's complete cause. Changed orders, casualty succession, repeated clears, actor tasks, native formation response and normal/HC transfer remain physically unverified while audits are held. No extra world query, timer or movement writer is added; the existing callback reads current task and authored-order receipts.
+
+
+### Replacement-worker destination occupancy (15 October 2026)
+
+Room-destination preference now reads the current four pair rosters, at most two actors each, instead of the historical team list's first eight entries. Casualties remain in the historical list for cleanup/evidence and replacements are appended, so the old prefix omitted replacement workers' current issued or physically occupied points. Actor availability, exact movement ownership, visibility/simulation and same-floor checks remain. Active paths and room queues are unchanged; the preference adds no world query, ray, timer or movement command.
+
+This closes a destination-allocation omission after casualties. It does not prove doorway flow, corpse avoidance, successful replacement entry or collision-free movement. Single/whole-pair casualties, repeated replacement, normal/HC migration and physical clearing remain unverified while audits are held.

@@ -179,6 +179,12 @@ private _delay=call {
         params ["_excluded"];
         private _occupied=[];
         private _moves=_job getOrDefault ["movementTargets",createHashMap];
+        // The team list retains casualties for cleanup/evidence and appends replacements.
+        // Its first eight entries are not the current eight workers after reinforcement.
+        private _workers=[];
+        {
+            {_workers pushBackUnique _x} forEach (_x select [0,2]);
+        } forEach ((_job getOrDefault ["pairs",[]]) select [0,4]);
         {
             private _actor=_x;
             private _issued=_moves getOrDefault [netId _actor,[]];
@@ -188,7 +194,7 @@ private _delay=call {
                     || {(getPosASL _actor) vectorDistance (AGLToASL _issued) < 2.5}}) then {
                 _occupied pushBack (+_issued);
             };
-        } forEach ((_job get "team") select [0,8]);
+        } forEach (_workers select [0,8]);
         _occupied
     };
     private _roomTargetOccupied={

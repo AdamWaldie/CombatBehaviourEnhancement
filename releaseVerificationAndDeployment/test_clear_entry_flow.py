@@ -125,4 +125,26 @@ class ClearHolderOwnershipTests(unittest.TestCase):
         self.assertEqual(holders-holders,set())
         self.assertEqual(holders-set(),holders)
 
+class ClearReplacementOccupancyTests(unittest.TestCase):
+    def test_replacement_destinations_use_current_pairs_not_historical_prefix(self):
+        source=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        helper=source.split('private _occupiedRoomTargets={',1)[1].split('// Callback-local geometry',1)[0]
+        self.assertIn('getOrDefault ["pairs",[]]) select [0,4]',helper)
+        self.assertIn('_workers pushBackUnique _x',helper)
+        self.assertIn('_workers select [0,8]',helper)
+        self.assertNotIn('get "team"',helper)
+        # After one casualty, the replacement is ninth in the historical journal.
+        historical=list(range(8))+['replacement']
+        pairs=[['replacement',1],[2,3],[4,5],[6,7]]
+        current=list(dict.fromkeys(actor for pair in pairs[:4] for actor in pair[:2]))[:8]
+        self.assertNotIn('replacement',historical[:8])
+        self.assertIn('replacement',current)
+        self.assertNotIn(0,current)
+        self.assertEqual(len(current),8)
+        # Replacing both members preserves the same concurrent capacity.
+        pairs[0]=['second','third']
+        current=list(dict.fromkeys(actor for pair in pairs[:4] for actor in pair[:2]))[:8]
+        self.assertEqual(len(current),8)
+        self.assertEqual(current[:2],['second','third'])
+
 if __name__=='__main__': unittest.main()
