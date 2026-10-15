@@ -11,6 +11,10 @@
  * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
  * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and six
  * geometry rays are processed. Vertical overlap uses real hull extents rather than centre height.
+ * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
+ * overlap policy; the solid-geometry rays remain independent and can still find obstructions.
+ * Discovery uses one live-infantry and one dead-inclusive vehicle query; native query cost
+ * remains engine-dependent even though subsequent hull evaluation is capped.
  * Current callers: DrivingAssistStart and CortexVehicleReverseStep.
  * Example: private _clearance = [truck1,8] call WAIT_fnc_DrivingRearClear;
  */
@@ -23,11 +27,16 @@ private _rear=_low select 1;
 private _left=(_low select 0)-0.3;private _right=(_high select 0)+0.3;
 private _halfWidth=((abs _left) max (abs _right))+4;
 private _radius=sqrt (((abs _rear+_distance+4)^2)+(_halfWidth^2));
-private _actors=_vehicle nearEntities [["CAManBase","LandVehicle"],_radius];
+private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
+// Keep corpse density out of the live-person budget without dropping wrecked vehicles.
+// These are two bounded-envelope native queries only when reverse admission is sampled.
+private _actors=(_vehicle nearEntities ["CAManBase",_radius])
+    +(_area nearEntities [["LandVehicle"],false,false,false]);
 if (count _actors > 64) exitWith {[false,"DENSE_REAR_TRAFFIC",time,0]};
 private _occupied=_actors findIf {
     private _thisActor=_x;
-    _thisActor != _vehicle && {!(_thisActor in crew _vehicle)} && {alive _thisActor}
+    _thisActor != _vehicle && {!(_thisActor in crew _vehicle)}
+        && {alive _thisActor || {_thisActor isKindOf "LandVehicle"}}
     && {private _otherBox=boundingBoxReal _thisActor;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
         // Full projected hulls preserve overlap on slopes and separate stacked roads.

@@ -23,6 +23,15 @@ class DrivingTrafficTests(unittest.TestCase):
         config=(ROOT/'addons/main/config.cpp').read_text()
         self.assertIn('requiredVersion = 2.18',config)
 
+    def test_reverse_overlap_includes_destroyed_vehicles_without_treating_dead_infantry_as_live(self):
+        s=src('drivingRearClear')
+        self.assertIn('_area nearEntities [["LandVehicle"],false,false,false]',s)
+        self.assertIn('_vehicle nearEntities ["CAManBase",_radius]',s)
+        self.assertIn('alive _thisActor || {_thisActor isKindOf "LandVehicle"}',s)
+        self.assertIn('count _actors > 64',s)
+        self.assertIn('forEach [_otherLow select 2,_otherHigh select 2]',s)
+        self.assertLess(s.index('private _occupied='),s.index('private _clear=true'))
+
     def test_traffic_wait_does_not_enter_route_recovery(self):
         s=src('drivingAssistStart')
         self.assertIn('&& {!_trafficLimited} && {abs speed _vehicle < 1',s)

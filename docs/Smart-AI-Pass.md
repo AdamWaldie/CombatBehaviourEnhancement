@@ -624,3 +624,14 @@ live vehicles were already included. Existing heading, projected hull/height, 64
 250 m limits remain. Destruction is not evidence of free space. This does not discover every
 static/classless wreck or create a route around a blockage; angled obstacles, jam resolution,
 physical braking and dense wreck scenes remain pending. No extra scan or controller is added.
+
+Rear-clearance actor discovery also uses the dead-inclusive area query. Destroyed vehicle
+entities participate in full-hull overlap before the independent geometry rays, so sparse
+rays are not their only guard. Dead infantry do not count as live actor occupancy; solid
+obstruction checks still apply. Both ordinary recovery and tracked withdrawal consume this
+shared observer. Classless/static wrecks still depend on geometry; actual wrecked hulls,
+slopes and reverse execution require physical validation. Existing 64-candidate limits remain.
+
+Rear discovery splits live infantry from dead-inclusive vehicle entities into two local-envelope
+queries, avoiding corpse density in the person occupancy budget. Combined hull processing remains
+capped at 64; the extra query occurs at reverse admission, not through another polling loop.
