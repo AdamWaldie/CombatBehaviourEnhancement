@@ -1,10 +1,12 @@
 # Current delivery status
 
-Status checked on 14 October 2026. The previous percentage table is withdrawn as a measure of implementation completion. It counted registry entries, source classifications, audit wiring and selected reviews. Those counts do not measure whether AI delivers the intended behaviour.
+Status checked on 15 October 2026. The previous percentage table is withdrawn as a measure of implementation completion. It counted registry entries, source classifications, audit wiring and selected reviews. Those counts do not measure whether AI delivers the intended behaviour.
 
 All 65 registered feature families remain partial. Some narrow physical cases have succeeded, and others have failed or varied across repeated runs. No family has complete intent, authority, locality and performance acceptance. This does not mean that every existing behaviour is absent. No reliable overall completion percentage can currently be assigned.
 
-The current offline candidate passes 666 tests and the full build gates. Audits are held by user request. The ongoing source comparison distinguishes actual called mechanisms, missing methods, changed intent, retained failures and outcomes that remain unproven. File presence and accepted orders receive no physical completion credit.
+The current offline source passes 853 tests and the full build gates. Audits are held by user request. The ongoing source comparison distinguishes actual called mechanisms, missing methods, changed intent, retained failures and outcomes that remain unproven. File presence and accepted orders receive no physical completion credit.
+
+Recent offline changes cover native-task driving recovery guards, crew-seat locality, CQB observer visibility and casualty promotion, successful natural-clearance route continuation, generation-scoped watch cleanup, and reported AA threat geometry. These changes have no fresh physical acceptance. A natural-clearance continuation case is prepared but unrun. The full driving-source semantic review and required controller handovers remain incomplete.
 
 Historical evidence below retains its original candidate and scope. It must not override this current status or be read as acceptance of later changes.
 
