@@ -87,6 +87,7 @@
  * Validated exposed standing points are allowed when cover is unavailable and recorded as exposed.
  * A successful current-callback actual-eye ray and physical arrival precede a reserve watch.
  * A proposal ray alone cannot install observation; owner adoption waits for the rotating check.
+ * Reserve selection retains up to sixteen native security exits; interior entry stays bounded to four.
  * This establishes exit-approach observation, not complete building isolation.
  * Casualty promotion retires the matching generation/epoch exit watch before interior movement.
  * Terminal settlement also retires that exact watch metadata; successor leases survive cleanup.
@@ -966,7 +967,7 @@ private _delay=call {
                     };
                 } forEach keys _reserveStages;
                 _entryRanks pushBack [[0,1] select (_candidateEntry in _triedEntries),_assignedCount,_reserve distance2D _candidateEntry,+_candidateEntry];
-            } forEach ((_job getOrDefault ["entries",[]]) select [0,16]);
+            } forEach ((_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]]) select [0,16]);
             _entryRanks sort true;
             if (_entryRanks isNotEqualTo []) then {_entry=+((_entryRanks select 0) select 3)};
             if (_entry isNotEqualTo [] && {_searchCount < 3}) then {
@@ -1008,7 +1009,7 @@ private _delay=call {
                 private _tried=+(_stageTriedTargets getOrDefault [_key,[]]);
                 if (_covered) then {_tried pushBackUnique +_target};
                 private _assessment=[_reserve,_building,_target,_entry,_watch,
-                    _job getOrDefault ["entries",[]],_taken,_observerLanes,true] call WAIT_fnc_BuildingExteriorCandidate;
+                    _job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]],_taken,_observerLanes,true] call WAIT_fnc_BuildingExteriorCandidate;
                 private _valid=_assessment select 0;
                 diag_log format ["WAIT CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,["SEARCH","COVER"] select _covered,+_target,+_entry,_valid,_assessment select 1]];
                 if (!_valid) then {
@@ -1017,7 +1018,7 @@ private _delay=call {
                         _empty set [2,0];
                         _tried pushBackUnique +_empty;
                         private _emptyAssessment=[_reserve,_building,_empty,_entry,_watch,
-                            _job getOrDefault ["entries",[]],_taken,_observerLanes,true] call WAIT_fnc_BuildingExteriorCandidate;
+                            _job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]],_taken,_observerLanes,true] call WAIT_fnc_BuildingExteriorCandidate;
                         diag_log format ["WAIT CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,"UNCOVERED",+_empty,+_entry,_emptyAssessment select 0,_emptyAssessment select 1]];
                         if (_emptyAssessment select 0) then {
                             _target=+_empty; _valid=true; _covered=false;

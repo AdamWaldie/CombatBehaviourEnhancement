@@ -908,3 +908,10 @@ This does not make native `reveal` a historical-position API: the engine still o
 
 
 The knowledge summary now refuses nonlocal groups before reading or pruning their observation cache. Native `knowsAbout` is group-level even with a unit operand, so confidence is sampled once per evaluated contact rather than redundantly for up to eight members. Member-specific `targetKnowledge` sighting/threat times and error margins remain unchanged. This removes up to56 redundant confidence lookups per full eight-contact pass; it is an operation-count reduction, not a measured frame-time result. See [the command contract](https://community.bistudio.com/wiki/knowsAbout). Normal/HC belief propagation and the5%median/10%p95budget remain unverified.
+
+
+### CQB exterior exit inventory (15 October 2026)
+
+Exterior reserve selection now retains up to sixteen distinct, above-terrain native exits already discovered during clearance admission. Interior entry and egress routing keep their existing four-nearest-entry bound. Previously that truncation also removed farther exits from the reserve selector, even when those exits had no observer. New reserve proposals rank the complete bounded security list by attempted exit, current assignment count and distance; existing posts and active native paths are unchanged. Both covered and uncovered proposal validation use the security list to keep entrances clear. Legacy jobs without the new list retain their existing entries.
+
+No discovery query, scheduler or geometry budget is added: reserve selection still permits one search per callback, three attempts per actor and fresh arrival/eye-ray checks. Extra exits mean up to sixteen rather than four arithmetic candidates. Native exit metadata, missing windows, scarce observers and blocked posts can still leave coverage incomplete; this is not a complete building-isolation or tactical acceptance claim. Normal/HC migration, modded multi-exit models and actual perimeter coverage remain unverified while audits are held.

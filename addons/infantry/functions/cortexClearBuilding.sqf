@@ -14,6 +14,8 @@
  * shared low-floor-first queue. Only roofed interior positions are clearance objectives; exposed
  * balconies and roof posts belong to garrisoning. This avoids a support partner waiting outside while only one soldier
  * attempts every room, and makes a large squad flow through the building instead of parking around it.
+ * Exterior reserves consider up to sixteen already-discovered native exits independently of
+ * the four nearest interior entry choices; this does not establish complete building isolation.
  * Spare members above the entry capacity remain an actual reserve and replace unavailable interior
  * workers without pausing the other lanes. In a two-person entry lane, exterior security remains at the entry until the lead has physically crossed it, then follows into the first reached room and trails subsequent rooms. A worker tries its room directly
  * first, then uses a bounded set of alternate real entrances only after the direct route stalls. A
@@ -308,6 +310,7 @@ _group setVariable ["WAIT_AIPass_ClearApplied",true];
 private _operationGeneration=_operation get "generation";
 _group setVariable ["WAIT_AIPass_ClearBuilding", true, true];
 private _entries=[];
+private _securityEntries=[];
 for "_exitIndex" from 0 to 15 do {
     private _candidate=_building buildingExit _exitIndex;
     // Model exit nodes can be buried below terrain after placement. Do not
@@ -323,6 +326,9 @@ for "_exitIndex" from 0 to 15 do {
 if (_entries isNotEqualTo []) then {
     private _entryOrigin=getPosATL _leader;
     _entries=[_entries,[],{_x distance2D _entryOrigin},"ASCEND"] call BIS_fnc_sortBy;
+    // Interior entry remains bounded to four nearby choices. Exterior observation must
+    // retain the other native exits already discovered, rather than silently dropping them.
+    _securityEntries=+_entries;
     _entries resize ((count _entries) min 4);
 };
 private _entryRoute=if (_entries isEqualTo []) then {[]} else {
@@ -399,7 +405,7 @@ private _claimedEntryIndices=[];
 _group setVariable ["WAIT_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];
 private _job=createHashMapFromArray [
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
-    ["entry",_entryRoute], ["entries",_entries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
+    ["entry",_entryRoute], ["entries",_entries], ["securityEntries",_securityEntries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
     ["continueRoute",_continueRoute],["contactBelief",_contactBelief],["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];

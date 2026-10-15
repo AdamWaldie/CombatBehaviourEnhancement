@@ -50,4 +50,19 @@ class ClearEntryFlowTests(unittest.TestCase):
         relative_height=1
         self.assertEqual(abs(relative_height-relative_height),0)
         self.assertGreater(abs((terrain_actor+relative_height)-(terrain_target+relative_height)),1.5)
+    def test_security_exit_inventory_is_not_truncated_with_interior_entry_choices(self):
+        admission=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        self.assertLess(admission.index('_securityEntries=+_entries'),admission.index('_entries resize ((count _entries) min 4)'))
+        self.assertIn('["securityEntries",_securityEntries]',admission)
+        reserve=step.split('// Distribute observation among real exits',1)[1].split('// Public arrival does not replay',1)[0]
+        self.assertEqual(reserve.count('_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]]'),3)
+        self.assertIn('select [0,16]',reserve)
+        # A rear exit must remain selectable even when four closer exits precede it.
+        native_exits=[(0,1),(1,1),(2,1),(3,1),(0,20)]
+        security=list(native_exits)
+        interior=native_exits[:4]
+        self.assertNotIn((0,20),interior)
+        self.assertIn((0,20),security)
+        self.assertEqual(len(interior),4)
 if __name__=='__main__': unittest.main()
