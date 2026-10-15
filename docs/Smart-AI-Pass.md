@@ -884,3 +884,10 @@ This bounds observed displacement, not continuous motion between samples. Stop/s
 
 
 The normal-owner traffic audit now includes a separate fresh tracked/truck creep pair. It requires a live, unexhausted production retry episode and24seconds of observed predecessor speed between0.35and1km/h, follower speed below1km/h, and at least3metres of actual predecessor displacement. Missing motion fails the prerequisite; a speed request cannot pass. Retry attempts, sampled separation and damage are recorded without assigning production state or calling controllers. This case is prepared and unrun; it is not an HC or performance result.
+
+
+### Rear solid geometry on tall vehicles (15 October 2026)
+
+Rear clearance retains its0.45m/0.9m knee and bumper rows and adds actual hull middle/top rows. Three lateral rays per distinct row mean at most twelve geometry rays, replacing the earlier six-ray bound. Existing actor queries,64-actor/full-hull projection, two-second relative-motion prediction, owner checks and finite reverse command boundaries are unchanged. Ordinary recovery and tracked withdrawal share this observer; no setting, timer or movement writer is added.
+
+These beams reduce the tall-hull blind spot but do not establish continuous swept-volume clearance. Thin obstacles between rows, attachments outside reported bounds, steep surfaces, actual reverse paths and runtime cost remain unverified. Audits remain held.

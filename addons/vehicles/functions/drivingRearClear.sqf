@@ -11,7 +11,7 @@
  * 0 vehicle <OBJECT, objNull> - local ground vehicle.
  * 1 distance <NUMBER, 8> - metres behind the rear body edge, clamped to 1..60.
  * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
- * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and six
+ * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and at most twelve
  * geometry rays are processed. The query includes a 35 m/s two-second approach envelope,
  * capped at 250 m; oversized envelopes refuse rather than silently truncating the rear area. Vertical overlap uses real hull extents rather than centre height.
  * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
@@ -92,6 +92,11 @@ private _occupied=_actors findIf {
     }
 } >= 0;
 if (_occupied) exitWith {[false,["REAR_OCCUPIED","REAR_APPROACHING"] select _predicted,time,0]};
+// Retain knee/bumper observations and sample the actual middle/top of taller hulls.
+// These discrete beams still cannot certify a continuously swept body volume.
+private _bodyHeight=((_high select 2)-(_low select 2)) max 0.9;
+private _heights=[0.45,0.9,(_bodyHeight+0.45)*0.5,_bodyHeight];
+_heights=_heights arrayIntersect _heights;
 private _clear=true;private _rays=0;
 {
     private _height=(_low select 2)+_x;
@@ -103,5 +108,5 @@ private _clear=true;private _rays=0;
         if ((lineIntersectsSurfaces [_from,_to,_vehicle,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []) exitWith {_clear=false};
     } forEach [_left,(_left+_right)*0.5,_right];
     if (!_clear) exitWith {};
-} forEach [0.45,0.9];
+} forEach _heights;
 [_clear,["REAR_GEOMETRY","CLEAR"] select _clear,time,_rays]

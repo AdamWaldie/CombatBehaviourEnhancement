@@ -104,4 +104,18 @@ class DrivingRearMonitorTests(unittest.TestCase):
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
         self.assertIn('setVariable ["WAIT_DrivingSolidSeen",nil]',release)
 
+    def test_rear_solid_beams_include_tall_hull_height_with_fixed_bound(self):
+        s=src('drivingRearClear')
+        self.assertIn('(_high select 2)-(_low select 2)',s)
+        self.assertIn('_heights=_heights arrayIntersect _heights',s)
+        self.assertIn('forEach _heights',s)
+        # A beam at the3m hull top is not observed by the old knee/bumper rows.
+        height=3
+        old=[0.45,0.9]
+        new=list(dict.fromkeys(old+[(height+0.45)*0.5,height]))
+        self.assertNotIn(height,old)
+        self.assertIn(height,new)
+        self.assertLessEqual(len(new)*3,12)
+        self.assertTrue(all(h<=height for h in new))
+
 if __name__=='__main__':unittest.main()
