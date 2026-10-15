@@ -2157,7 +2157,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_record select 3) < 1',egress)
         self.assertIn('if ([_x] call _outsideExit && {simulationEnabled _unit} && {!isObjectHidden _unit}',egress)
         self.assertIn('&& {!(netId _unit in _earlyExits)}',egress)
-        self.assertIn('if (_assignment param [2,false,[true]]) exitWith {false}', egress)
+        self.assertIn('if (_assignment param [2,false,[true]] && {_stillAtPost}) exitWith {false}', egress)
+        self.assertIn('if (_assignment param [2,false,[true]]) then {_assignment set [2,false]}',egress)
         self.assertIn('_assignment set [2,true]', egress)
         arrival=egress.split('if (!_outside) then {',1)[1].split('_outside\n',1)[0]
         self.assertIn('doStop _unit',arrival)

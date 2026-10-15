@@ -751,9 +751,14 @@ private _delay=call {
         private _outsideExit={
             params ["_assignment"];
             _assignment params ["_unit","_target"];
-            // Physical exit is monotonic progress for this generation. Hold each arrival
-            // once so native formation does not scatter it while partners descend stairs.
-            if (_assignment param [2,false,[true]]) exitWith {false};
+            // An earlier visit is historical progress, not current settlement. A collision,
+            // native displacement or later movement can remove the actor from its post.
+            // Retain STOP only while physically settled; displaced actors keep the original
+            // exit/retry deadline and must arrive again before the group can finish.
+            private _stillAtPost=_unit distance2D _target <= 1
+                && {abs (((getPosASL _unit) select 2)-((AGLToASL _target) select 2)) <= 1.5};
+            if (_assignment param [2,false,[true]] && {_stillAtPost}) exitWith {false};
+            if (_assignment param [2,false,[true]]) then {_assignment set [2,false]};
             private _early=_earlyExits getOrDefault [netId _unit,[]];
             if ((_early param [3,""]) in ["FAILED","DIVERTED"]) exitWith {
                 _job set ["egressFailed",true];

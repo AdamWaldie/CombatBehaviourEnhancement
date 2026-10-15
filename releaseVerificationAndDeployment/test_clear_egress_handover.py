@@ -92,3 +92,24 @@ class ClearEgressHandoverTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ClearSettlementPresenceTests(unittest.TestCase):
+    def test_historical_arrival_is_not_current_settlement(self):
+        arrived=True
+        def retained(arrived,distance,height):
+            return arrived and distance<=1 and abs(height)<=1.5
+        self.assertTrue(retained(arrived,0.5,0.2))
+        self.assertFalse(retained(arrived,4,0.2))
+        self.assertFalse(retained(arrived,0.5,3))
+        self.assertFalse(retained(False,0.5,0.2))
+
+    def test_displacement_retires_arrival_without_renewing_budget(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        check=s.split('private _outsideExit={',1)[1].split('private _early=',1)[0]
+        self.assertIn('private _stillAtPost=',check)
+        self.assertIn('_unit distance2D _target <= 1',check)
+        self.assertIn('&& {_stillAtPost}) exitWith {false}',check)
+        self.assertIn('_assignment set [2,false]',check)
+        self.assertNotIn('egressDeadline',check)
+        self.assertNotIn('doMove',check)
