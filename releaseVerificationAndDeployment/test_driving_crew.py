@@ -64,3 +64,20 @@ class DrivingCrewTests(unittest.TestCase):
         source=self.source()
         self.assertLess(source.index('Normal healthy drivers'),source.index('call WAIT_fnc_DrivingRouteReceipt'))
         self.assertLess(source.index('Normal healthy drivers'),source.index('fullCrew'))
+
+    def test_physical_fixture_uses_discovery_and_measured_results(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingCrew.sqf').read_text(encoding='utf-8')
+        self.assertNotIn('call WAIT_fnc_DrivingCrewStep',s)
+        self.assertNotIn('setVariable ["WAIT_DrivingCrew_Work"',s)
+        self.assertNotIn(' action [',s)
+        self.assertIn('_vehicle distance2D _routeStart >= 35',s)
+        self.assertIn('driver _vehicle == _replacement',s)
+        self.assertIn('vehicle _driver != _vehicle',s)
+        self.assertIn('private _moved=if (_seated) then {',s)
+        self.assertLess(s.index('_driver setDamage 1'),s.index('_vehicle forceSpeed -1'))
+        for case in ('"REPLACE"','"UNCONSCIOUS"','"LOCKED"','"ASSIGNED"'):
+            self.assertIn(case,s)
+        self.assertEqual(s.count('moveInCargo'),1)
+        self.assertLess(s.index('moveInCargo'),s.index('_driver setDamage 1'))
+        self.assertIn('WAIT_CortexQA_HeadlessBatch',s)
+        self.assertIn('WAIT_Headless_ExcludeGroup',s)
