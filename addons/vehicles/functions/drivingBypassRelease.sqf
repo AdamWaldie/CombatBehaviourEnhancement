@@ -3,7 +3,6 @@
  * Purpose: Retires an controller-owned bypass and only its exact owned fixed path/native handback.
  * Locality / Authority: Current vehicle/group owner. Both seats, route, command receipts and
  * external/tactical ownership protect cleanup; a newer command is never recalled.
- * A native STOP overrides an unchanged destination receipt and forbids movement cleanup.
  * Repeat/JIP: Public episode retires once; bounded 32-entry object/route cooldown lasts 120 s.
  * PLAN owns no movement and cannot stop native actors. Local handles/code are never published.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
@@ -53,7 +52,6 @@ private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly}}
         && {simulationEnabled _x} && {!isObjectHidden _x}
         && {[_x] call WAIT_fnc_CortexExternalOwner == ""}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
-        && {currentCommand _x != "STOP"}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
 } forEach [_driver,_operator];

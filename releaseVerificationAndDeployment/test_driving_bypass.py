@@ -176,16 +176,16 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('if (_reason != "") exitWith',s)
         self.assertEqual(s.count('lineIntersectsSurfaces'),2)
 
-    def test_native_stop_prevents_all_driving_release_movement(self):
-        for name, actor in (("drivingBypassRelease", "_x"),
-                            ("drivingCorridorRelease", "_actor"),
-                            ("drivingRecoveryRelease", "_x")):
-            with self.subTest(release=name):
-                s=(ROOT / "addons/vehicles/functions" / (name+".sqf")).read_text(encoding="utf-8")
-                guard='currentCommand '+actor+' != "STOP"'
-                self.assertIn(guard, s)
-                self.assertLess(s.index(guard), s.index('doStop _driver'))
-                self.assertIn('expectedDestination _driver', s)
-                self.assertIn('expectedDestination _operator', s)
-                self.assertIn('WAIT_fnc_CortexZeusHeld', s)
-                self.assertIn('WAIT_fnc_CortexExternalTakeover', s)
+    def test_stop_guard_distinguishes_reverse_from_fixed_path_acquisition(self):
+        release=(ROOT / "addons/vehicles/functions/drivingRecoveryRelease.sqf").read_text(encoding="utf-8")
+        self.assertIn('currentCommand _x != "STOP"', release)
+        self.assertLess(release.index('currentCommand _x != "STOP"'), release.index('doStop _driver'))
+        for name, actor in (("drivingBypass", "_x"), ("drivingCorridor", "_actor")):
+            with self.subTest(controller=name):
+                step=(ROOT / "addons/vehicles/functions" / (name+"Step.sqf")).read_text(encoding="utf-8")
+                release=(ROOT / "addons/vehicles/functions" / (name+"Release.sqf")).read_text(encoding="utf-8")
+                self.assertLess(step.index('doStop _driver'), step.index('_vehicle setDriveOnPath _points'))
+                self.assertNotIn('currentCommand '+actor+' != "STOP"', release)
+                for guard in ('expectedDestination _driver', 'expectedDestination _operator',
+                              'WAIT_fnc_CortexZeusHeld', 'WAIT_fnc_CortexExternalTakeover'):
+                    self.assertIn(guard, release)
