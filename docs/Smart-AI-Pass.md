@@ -994,3 +994,6 @@ Shared rear clearance retains its straight corridor and adds a measured reverse-
 
 
 The prepared normal-owner `REAR-TURN-LEFT/RIGHT` sensor diagnostics use excluded tracked crews with native BACK/turn inputs. Each requires at least three backward samples, one metre actual travel, three degrees observed heading change, two measured yaw/heading-sign comparisons and two observations executing more than12 but no more than60rays. They run separately from production withdrawal and straight convoy reverse; HC batches omit them. No WAIT brain/result is assigned. These cases remain unrun and do not establish obstacle rejection, physical stopping or performance acceptance.
+
+
+Explicit clearance release recalls formation only for idle/STOP actors or a current MOVE whose destination matches that clearance's recorded movement target within0.25m. FOLLOW, ATTACK, WAIT, fire/suppression, JOIN and unknown native commands cannot authorize doFollow. Existing current-owner, external-control, task/reservation and restore=false guards remain; unchanged settings still release independently. This closes an overwrite boundary, not proof that every exterior cluster is caused by release. Identical later STOP commands remain indistinguishable; physical replacement-task propagation, repeat clearance and separate HC handover remain unverified.
