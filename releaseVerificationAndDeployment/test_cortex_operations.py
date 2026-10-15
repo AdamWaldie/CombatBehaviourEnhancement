@@ -4430,7 +4430,7 @@ class CortexOperations(unittest.TestCase):
     def test_queued_grenade_rechecks_takeover_and_frag_safety(self):
         text=source('cortexThrowGrenade')
         callback=text.split('params ["_unit", "_muzzle", "_magazine"')[1]
-        for guard in ['WAIT_fnc_CortexCombatEffective','WAIT_fnc_CortexIsEligible','WAIT_AIPass_ZeusHold','_magazine in magazines _unit','_distance < 8','_distance > 40','nearEntities ["CAManBase",12]']:
+        for guard in ['WAIT_fnc_CortexCombatEffective','WAIT_fnc_CortexIsEligible','WAIT_AIPass_ZeusHold','_magazine in magazines _unit','_distance < 8','_distance > 40','nearEntities ["CAManBase",_safetyRadius]']:
             self.assertIn(guard,callback)
         self.assertLess(callback.index('WAIT_AIPass_ZeusHold'),callback.index('forceWeaponFire'))
         self.assertLess(callback.index('!= _drillToken'),callback.index('forceWeaponFire'))
@@ -6287,7 +6287,7 @@ class CortexOperations(unittest.TestCase):
         step=source('cortexFlankStep')
         self.assertIn('_enemyPos getPos [20,_crossingDirection+180]',step)
         grenade=source('cortexThrowGrenade')
-        self.assertIn('nearEntities ["CAManBase",12]',grenade)
+        self.assertIn('nearEntities ["CAManBase",_safetyRadius]',grenade)
 
     def test_assault_checks_carriers_across_both_arrived_elements(self):
         step=source('cortexFlankStep')
