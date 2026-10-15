@@ -85,4 +85,23 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('call WAIT_fnc_DrivingRecoveryRelease',src('drivingAssistRelease'))
         self.assertIn('WAIT_DrivingRecovery_Yield',src('drivingOperationStart'))
 
+
+    def test_close_static_blockage_uses_fresh_dwell_and_existing_rear_executor(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        contact=s.split('private _solidCandidate=',1)[1].split('_capMps=_capMps min (_traffic select 0);',1)[0]
+        for guard in ('_obstacleLimited','count _obstacleObservation == 9','== "STATIC"','<= 8',
+                      '(_withoutObstacle select 0) > 0','_pedestrianCap > 0',
+                      'serverTime-(_solidSeen select 2) <= 6','serverTime-_since >= 3',
+                      'ownerEpoch','_routeIdentity','_obstacleObservation select 8'):
+            self.assertIn(guard,contact)
+        self.assertNotIn('lineIntersectsSurfaces',contact)
+        self.assertNotIn('nearEntities',contact)
+        self.assertNotIn(',true]',next(line for line in contact.splitlines() if 'setVariable ["WAIT_DrivingSolidSeen",[' in line))
+        self.assertIn('_trafficLimited && {!_solidCandidate}',s)
+        self.assertIn('!_trafficLimited || {_solidReady} || {_reverseHandback}',s)
+        self.assertIn('private _reverseHandback=_reverseComplete && {_reverseIssued}',s)
+        self.assertIn('[_vehicle,8] call WAIT_fnc_DrivingRearClear',s)
+        release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
+        self.assertIn('setVariable ["WAIT_DrivingSolidSeen",nil]',release)
+
 if __name__=='__main__':unittest.main()

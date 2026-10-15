@@ -29,6 +29,8 @@
  * receive no assumed forward-speed allowance. This does not establish crossing right-of-way.
  * Recognised forward gate/barrier geometry also constrains approach at the existing cadence.
  * Gate animation or damage does not grant passage; nearby openings use server validation, and no closing command is issued.
+ * Close stable static blockage may use the same finite rear recovery after fresh dwell;
+ * independent traffic, gate and pedestrian constraints still suppress its admission.
  * Owned traffic stops remain sampled; congestion suppresses reverse. Only bounded native-route
  * retries may reconsider persistent blockage. No crossing priority or passing is inferred here.
  * The owned rear leg resamples its body corridor once per second on the existing scheduler,
@@ -397,6 +399,25 @@ _brain set ["geometryTracks",_geometryTracks];
             // A closer pedestrian/rear constraint can supersede the solid-obstacle sample.
             _obstacleLimited=_obstacleLimited && {abs ((_traffic select 0)-(_obstacleObservation select 0)) <= 0.001};
             private _trafficLimited=!isNull (_traffic select 1);
+            // A close static body can stop us before there is room for a bypass proposal.
+            // It is not a traffic queue: permit the existing finite rear recovery only after
+            // continuous fresh observation, with independent vehicle/gate/pedestrian caps clear.
+            private _solidCandidate=_obstacleLimited && {count _obstacleObservation == 9}
+                && {(_obstacleObservation select 5) == "STATIC"} && {(_obstacleObservation select 2) <= 8}
+                && {!isNull (_obstacleObservation select 1)} && {abs speed _vehicle < 1}
+                && {(_withoutObstacle select 0) > 0} && {_pedestrianCap > 0}
+                && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass};
+            private _solidSeen=_vehicle getVariable ["WAIT_DrivingSolidSeen",[]];
+            private _solidObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity];
+            private _solidReady=false;
+            if (_solidCandidate) then {
+                private _contact=[_obstacleObservation select 1,_obstacleObservation select 8,_solidObserver];
+                private _continuous=count _solidSeen == 3 && {(_solidSeen select 0) isEqualTo _contact}
+                    && {serverTime >= (_solidSeen select 2)} && {serverTime-(_solidSeen select 2) <= 6};
+                private _since=if (_continuous) then {_solidSeen select 1} else {serverTime};
+                _solidReady=serverTime-_since >= 3;
+                _vehicle setVariable ["WAIT_DrivingSolidSeen",[_contact,_since,serverTime]];
+            } else {_vehicle setVariable ["WAIT_DrivingSolidSeen",nil]};
             _capMps=_capMps min (_traffic select 0);
             if !(call _mayIssueDriving) then {
                 // An initial admission has not applied a cap or created an owning state yet.
@@ -480,7 +501,7 @@ _brain set ["geometryTracks",_geometryTracks];
 
             // Waiting behind traffic is not a route fault. Keep the last progress sample current so
             // clearing the queue does not immediately inherit a stale reverse deadline.
-            if (_trafficLimited || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass}) then {
+            if ((_trafficLimited && {!_solidCandidate}) || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass}) then {
                 _progressPosition=getPosATL _vehicle;_progressAt=time;
                 // Keep an already-issued rear leg finite. After the pedestrian clears,
                 // its expired deadline returns to the authored route instead of losing
@@ -529,12 +550,15 @@ _brain set ["geometryTracks",_geometryTracks];
             private _finalExpired=_recoveryStage == 3 && {count _scheduledRecovery > 0}
                 && {serverTime >= (_scheduledRecovery get "hardDeadline")};
             private _reverseComplete=_recoveryStage == 2 && {time >= _recoveryUntil};
+            // Retiring an expired exact rear command does not grant movement through the
+            // blocked forward lane: its already-applied current safety cap remains intact.
+            private _reverseHandback=_reverseComplete && {_reverseIssued};
             // Preserve native planning time rather than repeatedly restarting a difficult route.
             // Real progress, a replaced order, follower ownership or an intentional wait already
             // resets this stage and its progress clock above. A rear leg keeps its finite expiry.
             private _observationWindow=[20,30,0,60] param [_recoveryStage,60];
             if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-                && {!_inCombat} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {abs speed _vehicle < 1 || {_reverseComplete}}
+                && {!_inCombat} && {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {abs speed _vehicle < 1 || {_reverseComplete}}
                 && {time-_progressAt >= _observationWindow || {_reverseComplete} || {_finalExpired}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
                 private _waypoint=[_group,_waypointIndex];

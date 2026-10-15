@@ -21,7 +21,7 @@ class PedestrianSpeedTests(unittest.TestCase):
         self.assertIn('[_vehicle,_capMps*3.6,_group,true,_travelIntent] call WAIT_fnc_CortexInfantrySpeed',s)
         self.assertLess(s.index('private _pedestrianCap='),s.index('_vehicle forceSpeed _capMps'))
         self.assertIn('_traffic=[_pedestrianCap/3.6,_vehicle,-1,time,0]',s)
-        self.assertIn('if (_trafficLimited || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass}) then {',s)
+        self.assertIn('if ((_trafficLimited && {!_solidCandidate}) || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass}) then {',s)
         self.assertIn('if (_recoveryStage != 2) then {',s)
         self.assertIn('RECOVERY_PAUSED',s)
         self.assertIn('if (_recoveryStage != 2 && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {_vehicle distance2D',s)
