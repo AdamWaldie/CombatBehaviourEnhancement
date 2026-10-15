@@ -131,11 +131,18 @@ plus one bounded physical recovery. Convoys add an ordered vehicle column,
 predecessor-trail spacing and contact/passenger policy.
 
 Driving assistance requires a real authored waypoint. The implicit spawn waypoint does not admit it.
-The recovery identity includes waypoint conditions, timeouts, synchronized triggers, speed, combat
-mode and formation. A same-index edit resets recovery observation before another attempt. Every
+The recovery identity uses the shared full waypoint receipt: conditions, timeouts, synchronized
+triggers/waypoints, script, attachment, house position, loiter parameters, speed, combat mode and
+formation. Attached target motion retains object identity rather than resetting recovery on each
+position update. A same-index edit resets recovery observation before another attempt. Every
 speed or recovery write rechecks that the waypoint identity is still current. An initial refusal
 clears an unapplied speed snapshot. This source guard has no fresh physical acceptance. Retests must
 include condition/trigger edits during reverse recovery and a valid new route after the change.
+Recovery refresh/reverse is limited to plain MOVE orders with no activation code, waypoint script,
+timeout, attached target, waypoint synchronization or inactive trigger. This applies at every
+distance, including far outside the native waiting envelope. Safety speed caps and native order
+execution remain available; WAIT does not evaluate authored code or bypass synchronization.
+Distant scripted/timed/attached orders require physical retesting alongside ordinary recovery.
 
 Only the vehicle currently carrying the group leader may refresh or reverse the shared native
 route. Other group vehicles retain native formation movement and can still receive terrain speed

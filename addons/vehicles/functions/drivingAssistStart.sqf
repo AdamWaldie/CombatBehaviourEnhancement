@@ -22,7 +22,9 @@
  * Only the current leader vehicle can refresh/reverse the shared route. Followers keep native
  * formation movement; a leader/seat/locality change invalidates delayed recovery commands.
  * Deliberate native waits near the completion envelope suppress recovery without evaluating
- * waypoint statement code. One group driving FSM admits the existing executor through the shared
+ * waypoint statement code. Recovery also refuses distant scripted, timed, synchronized or
+ * object-attached MOVE orders; native execution and ordinary safety caps remain available.
+ * One group driving FSM admits the existing executor through the shared
  * scheduler; group decisions never issue these commands directly.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
  * it after a locality change; route changes reset finite recovery; release restores only the forced speed captured by this function.
@@ -134,8 +136,25 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 || {(waypointTimeout _waypoint param [2,0]) > 0}
                 || {_condition != "true"}
         };
+        // A distant script/timer/synchronization gate is still authored intent. Recovery
+        // may refresh only a plain MOVE, never bypass a gate merely because it is far away.
+        private _recoveryOrderFree = {
+            private _index=currentWaypoint _group;
+            if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
+            private _waypoint=[_group,_index];
+            private _statements=waypointStatements _waypoint;
+            private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
+            waypointType _waypoint == "MOVE" && {_condition == "true"}
+                && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
+                && {waypointScript _waypoint == ""}
+                && {(waypointTimeout _waypoint param [2,0]) <= 0}
+                && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
+                && {(synchronizedWaypoints _waypoint) isEqualTo []}
+                && {(synchronizedTriggers _waypoint) findIf {!isNull _x && {!triggerActivated _x}} < 0}
+        };
         private _mayRecoverRoute = {
             call _mayIssueDriving && {vehicle leader _group isEqualTo _vehicle} && {!(call _nativeWaiting)}
+                && {call _recoveryOrderFree}
         };
         private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {

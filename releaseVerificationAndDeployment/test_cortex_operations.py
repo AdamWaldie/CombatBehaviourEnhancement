@@ -7472,13 +7472,30 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('&& {!(call _nativeWaiting)}',text)
         self.assertIn('_state set [8,"INTENTIONAL_WAIT"]',text)
 
+    def test_driving_recovery_cannot_bypass_a_distant_authored_gate(self):
+        text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        policy=text.split('private _recoveryOrderFree = {',1)[1].split('private _mayRecoverRoute',1)[0]
+        for proof in ['_index <= 0','waypointType _waypoint == "MOVE"',
+                      '_condition == "true"','_statements param [1,""]',
+                      'waypointScript','waypointTimeout','waypointAttachedVehicle',
+                      'waypointAttachedObject','synchronizedWaypoints','triggerActivated']:
+            self.assertIn(proof,policy)
+        self.assertNotIn('distance2D',policy)
+        self.assertNotIn('compile',policy)
+        self.assertIn('&& {call _recoveryOrderFree}',text)
+
     def test_driving_same_index_order_edits_invalidate_recovery_before_every_write(self):
         """A condition/trigger/speed edit must fence a stale reverse, even with unchanged position."""
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         receipt=(ROOT/'addons/vehicles/functions/drivingRouteReceipt.sqf').read_text(encoding='utf-8')
+        metadata=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text(encoding='utf-8')
+        self.assertIn('[_group,"",false,_index] call WAIT_fnc_AuthoredRouteReceipt',receipt)
         for command in ['waypointStatements','waypointTimeout','synchronizedTriggers',
-                        'waypointSpeed','waypointCombatMode','waypointFormation']:
-            self.assertIn(command,receipt)
+                        'waypointSpeed','waypointCombatMode','waypointFormation',
+                        'waypointScript','waypointAttachedVehicle','waypointAttachedObject',
+                        'synchronizedWaypoints','waypointHousePosition','waypointLoiterAltitude']:
+            self.assertIn(command,metadata)
+        self.assertIn('if (isNull _vehicle && {isNull _object}) then {waypointPosition _waypoint} else {[]}',metadata)
         self.assertIn('_index <= 0',receipt)
         guard=start.split('private _mayIssueDriving = {',1)[1].split('};',1)[0]
         self.assertIn('(call _readRouteIdentity) isEqualTo _routeIdentity',guard)
