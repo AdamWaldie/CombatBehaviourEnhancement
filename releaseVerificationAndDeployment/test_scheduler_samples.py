@@ -27,4 +27,15 @@ class SchedulerSampleTests(unittest.TestCase):
         self.assertIn('_ranked select [0,8]',s)
         self.assertIn('not matched frame-time overhead',s)
         self.assertIn('ceil (_sampleCount*0.95)-1',s)
+    def test_distributed_sampler_reads_retired_callback_ring_in_matching_clock_window(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runPerformanceOwner.sqf').read_text(encoding='utf-8')
+        sample=s.split('while {diag_tickTime < _until',1)[1].split('sleep 1;',1)[0]
+        self.assertIn('WAIT_AIPass_CallbackSamples', sample)
+        self.assertIn('(_completed select [0,256])', sample)
+        self.assertIn('(_x select 4) >= _sampleStartedTick', sample)
+        self.assertIn('(_x select 4) <= _observedAt', sample)
+        self.assertNotIn('lastRunAt', sample)
+        self.assertIn('private _sampleStartedTick=diag_tickTime;', s)
+        self.assertIn('overwritten between samples', s)
+
 if __name__=='__main__':unittest.main()
