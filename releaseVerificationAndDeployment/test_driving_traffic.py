@@ -151,4 +151,15 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertNotIn('lineIntersectsSurfaces',prediction)
         self.assertNotIn('forceSpeed',prediction)
 
+    def test_corner_physical_acceptance_requires_real_encounter_braking_and_travel(self):
+        source=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text(encoding='utf-8')
+        block=source.split('// Normal-only physical observation:',1)[1].split('["CNV-02b-travel-cargo-mounted"',1)[0]
+        for marker in ('WAIT_CortexQA_HeadlessBatch','diag_tickTime+150','_angle > 25','_closing > 0.5',
+                       '_actualSpeed > 1.5','_event isEqualTo []','diag_tickTime-(_event select 1) <= 8',
+                       '_actualSpeed <= (_event select 0)-1','_room < 0','damage _x >',
+                       'CNV-corner-turning-predecessor-prerequisite','CNV-corner-physical-onward-travel'):
+            self.assertIn(marker,block)
+        for forbidden in ('forceSpeed','doMove','setPos','setVelocity','call WAIT_fnc_ConvoyTick','call WAIT_fnc_DrivingFollowingCap'):
+            self.assertNotIn(forbidden,block)
+
 if __name__=='__main__': unittest.main()
