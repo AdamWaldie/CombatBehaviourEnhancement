@@ -1,6 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
- * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
+ * Repeat/JIP: A fresh task replaces the prior episode only after admission checks. A matching
+ * owner resume retains original deadlines, shared room coverage and validated individual visit
+ * receipts. Fresh-task tokens reject historical participation from earlier clearances. JIP
+ * receives public progress; movement remains with the current group owner.
  * Orders an AI group to clear a building room by room.
  *
  * Admission validates finite, distinct model positions with a 512-position budget before
@@ -395,6 +398,44 @@ private _job=createHashMapFromArray [
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
     ["contactBelief",_contactBelief],["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
+// Historical individual visits survive owner adoption. A fresh task gets a new token,
+// even if it targets the same building in the same server frame. No movement is replayed.
+private _visitContext=_group getVariable ["WAIT_Cortex_ClearVisitContext",[]];
+private _visitBase=[_building,_job get "buildingTransform",_hardDeadline];
+if (!_resume || {!(_visitContext isEqualType [])} || {count _visitContext != 4} || {(_visitContext select [0,3]) isNotEqualTo _visitBase}) then {
+    _visitContext=_visitBase+[format ["%1:%2:%3",clientOwner,diag_tickTime,_generation]];
+    _group setVariable ["WAIT_Cortex_ClearVisitContext",_visitContext,true];
+};
+_job set ["visitContext",+_visitContext];
+private _actorVisits=createHashMap;
+private _enteredActors=[];
+if (_resume) then {
+    {
+        private _actor=_x;
+        private _receipt=_actor getVariable ["WAIT_Cortex_ClearVisits",[]];
+        if (_receipt isEqualType [] && {count _receipt == 3} && {(_receipt select 0) isEqualTo _group}
+            && {(_receipt select 1) isEqualTo _visitContext}
+            && {(_receipt select 2) isEqualType []} && {count (_receipt select 2) <= 512}) then {
+            private _visited=[];
+            {
+                if (_x isEqualType [] && {count _x == 2}) then {
+                    private _index=_x select 0;
+                    if (_index isEqualType 0 && {finite _index} && {_index == floor _index}
+                        && {_index >= 0} && {_index < count _positions} && {_index in _cleared}
+                        && {(_x select 1) isEqualTo (_positions select _index)}) then {
+                        _visited pushBackUnique _index;
+                    };
+                };
+            } forEach (_receipt select 2);
+            if (_visited isNotEqualTo []) then {
+                _actorVisits set [netId _actor,_visited];
+                _enteredActors pushBack _actor;
+            };
+        };
+    } forEach (_team select [0,8]);
+};
+_job set ["actorVisits",_actorVisits];
+_job set ["enteredActors",_enteredActors];
 // Adopt a transform/episode-bound exit journal without issuing movement. A different
 // native destination owns the actor now and must not inherit an old exit receipt.
 private _egressJournal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];

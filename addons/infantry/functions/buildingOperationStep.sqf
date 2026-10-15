@@ -3,7 +3,7 @@
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
  * Locality / Authority: Runs through WAIT's shared scheduler where the group is local. It checks the
  * operation generation, Zeus and external ownership before issuing any movement command.
- * Repeat/JIP: One-shot callback. Durable room progress is public; owner-local actor assignments are
+ * Repeat/JIP: One-shot callback. Shared and individual physical room progress is public; owner-local actor assignments are
  * generation scoped and reconstructed after locality migration. Each room, entrance and egress
  * leg has one generation-owned movement writer. Entry, room and recovery movement each issue one
  * native doMove path request without a second formation-planner destination override.
@@ -1129,6 +1129,7 @@ private _delay=call {
     private _visitWorkers=(_activeWorkers select [_actorCursor]) + (_activeWorkers select [0,_actorCursor]);
     _job set ["visitActorCursor",(_actorCursor+1) mod ((count _activeWorkers) max 1)];
     _job set ["roomGeometryChecksLast",0];
+    private _visitChangedActors=[];
     {
         private _visitor = _x;
         if ([_visitor] call WAIT_fnc_CortexCombatEffective && {simulationEnabled _visitor}
@@ -1150,7 +1151,10 @@ private _delay=call {
                     _job set ["enteredActors",_enteredActors];
                     private _actorVisits=_job getOrDefault ["actorVisits",createHashMap];
                     private _visited=_actorVisits getOrDefault [netId _visitor,[]];
-                    _visited pushBackUnique _positionIndex;
+                    if !(_positionIndex in _visited) then {
+                        _visited pushBackUnique _positionIndex;
+                        _visitChangedActors pushBackUnique _visitor;
+                    };
                     _actorVisits set [netId _visitor,_visited];
                     _job set ["actorVisits",_actorVisits];
                 };
@@ -1167,6 +1171,22 @@ private _delay=call {
             } forEach _visitIndices;
         };
     } forEach _visitWorkers;
+    // Coalesce physical observations to one public receipt per changed actor per callback.
+    // Index plus exact native position prevents replay against a reordered topology.
+    // This is historical participation only, never current arrival or movement authority.
+    if (_visitChangedActors isNotEqualTo [] && {call _mayIssueMovement}) then {
+        private _visitContext=_job getOrDefault ["visitContext",[]];
+        if (count _visitContext == 4) then {
+            {
+                private _actor=_x;
+                if (local _actor && {group _actor == _group}) then {
+                    private _visits=(_job get "actorVisits") getOrDefault [netId _actor,[]];
+                    private _rows=(_visits select [0,512]) apply {[_x,+(_positions select _x)]};
+                    _actor setVariable ["WAIT_Cortex_ClearVisits",[_group,+_visitContext,_rows],true];
+                };
+            } forEach (_visitChangedActors select [0,8]);
+        };
+    };
     // Claimed rooms are still unfinished. Floor priority must include them until a
     // physical visit or bounded failure, rather than advancing when the queue removes a claim.
     private _floorWave=_job getOrDefault ["unfinishedFloorWave",[-1,-1,1e12]];
