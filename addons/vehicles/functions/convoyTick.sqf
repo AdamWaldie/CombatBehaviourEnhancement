@@ -13,6 +13,8 @@
  * Follower curve/grade caps persist between path refreshes until fresh trail geometry replaces them;
  * disabling convoy driving assist clears that local cap without changing native route ownership.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
+ * Fixed follower paths retain a driver/operator/epoch/native-command receipt for guarded handback.
+ * The receipt is ownership evidence only; it cannot establish actual path travel.
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
  * accelerate gradually while safety, contact, arrival and close-gap braking remain immediate.
@@ -768,6 +770,12 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         || {_committedPathDestination distance2D _pathDestination > 8}) then {
                         if ([] call _mayIssueDriving) then {
                             _vehicle setDriveOnPath _path;
+                            // This is movement ownership evidence, never proof the path executed.
+                            // Capture the native command state after the sole path write so release
+                            // cannot cancel a later native destination or a changed driver/operator.
+                            _vehicle setVariable ["WAIT_Convoy_PathLease",[_group,_revision,
+                                _group getVariable ["WAIT_AIPass_Epoch",0],driver _vehicle,_movementOperator,
+                                +(expectedDestination _movementOperator),+_pathDestination],true];
                             _progress set [6,+_pathDestination];
                         };
                     };

@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Restores recorded formation, attack permission, vehicle speed and unload settings; cancels only follower paths. A speed baseline is restored only when the
+ * Purpose: Restores recorded formation, attack permission, vehicle speed and unload settings;
+ * retires only exact-owned follower paths before guarded native handback. A speed baseline is restored only when the
  * vehicle is leaving WAIT control, WAIT still owns the current cap and no newer controller owns it.
  * Unload policy restores from its exact lease only while its applied value remains current;
  * missing leases never authorize a guessed baseline restoration. Retained successor vehicles
@@ -10,6 +11,9 @@
  * keeps its command while obsolete convoy target metadata is retired.
  * Locality/authority: server owns registration; driving commands execute only on current owners.
  * Repeat/JIP: ordered registry snapshots replace old settings; owner-local paths rebuild on migration.
+ * Public path receipts bind revision, epoch, seats and native command state; they grant no travel
+ * credit. Service tasks, new native destinations and successor vehicles receive no path cancellation.
+ * A mounted crew is never recalled toward an on-foot leader. Authored waypoint metadata is retained.
  * Arguments: 0: group <GROUP>, grpNull; 1: forget baseline <BOOL>, true; 2: baseline <ARRAY>, [] reads the locally received baseline; 3: still-controlled vehicles <ARRAY>, []; 4: cancellation reason <STRING, RELEASED>.
  * Return Value: Nothing.
  * Current callers: WAIT_fnc_ConvoySync, WAIT_fnc_ConvoyTick and the convoy operation FSM.
@@ -17,6 +21,7 @@
  */
 params [["_group", grpNull, [grpNull]], ["_forget", true, [true]], ["_restore", [], [[]]], ["_keepCrew", [], [[]]], ["_reason", "RELEASED", [""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
+private _navigation=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
 private _brain=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
 if (count _brain > 0 && {_forget || {toUpperANSI _reason in ["ZEUS","PLAYER","EXTERNAL","EXTERNAL_OWNER","OWNERSHIP_LOST"]}}) then {
     _brain set ["cancelled",true];
@@ -101,12 +106,70 @@ if (_restore isNotEqualTo []) then {
                 private _restoreUnload=!_externalTakeover && {!_externalCrew} && {!_externalVehicle};
                 [_vehicle,_group,"RELEASE",-1,_restoreUnload] call WAIT_fnc_ConvoyUnloadPolicy;
             };
-            // A vehicle retained by the successor convoy still owns its route. An
-            // external vehicle-level owner may likewise leave group ownership unchanged.
-            // Neither permits a formation recall during obsolete convoy cleanup.
-            if (_mayRestoreGroup && {!isNull _driver} && {!_externalCrew} && {!_externalVehicle}
-                && {!(_vehicle in _keepCrew)} && {local _driver} && {group _driver == _group} && {_driver != leader _group}) then {
-                _driver doFollow leader _group;
+            // Retire an exact-owned steering path before native handback. Readiness is
+            // insufficient: the engine can report unitReady while a fixed path still runs.
+            private _pathLease=_vehicle getVariable ["WAIT_Convoy_PathLease",[]];
+            private _pathOwned=!isNull _driver && {!isNull _movementOperator} && {count _pathLease == 7}
+                && {(_pathLease select 0) == _group}
+                && {(_pathLease select 1) == (_navigation getOrDefault ["revision",-1])}
+                && {(_pathLease select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_pathLease select 3) == _driver} && {(_pathLease select 4) == _movementOperator}
+                && {(expectedDestination _movementOperator) isEqualTo (_pathLease select 5)};
+            private _taskFree=[_driver,_movementOperator] findIf {
+                isNull _x || {!local _x} || {isPlayer _x} || {!isNull remoteControlled _x}
+                    || {!([_x] call WAIT_fnc_CortexCombatEffective)}
+                    || {!simulationEnabled _x} || {isObjectHidden _x}
+                    || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+                    || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+            } < 0;
+            private _mayHandBack=_mayRestoreGroup && {!_externalCrew} && {!_externalVehicle}
+                && {!(_vehicle in _keepCrew)} && {_taskFree}
+                && {group _driver == _group} && {group _movementOperator == _group}
+                && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+            private _endedPath=false;
+            if (_mayHandBack && {_pathOwned}) then {
+                doStop _driver;
+                _endedPath=true;
+            };
+            if (!(_vehicle in _keepCrew) && {count _pathLease == 7} && {(_pathLease select 0) == _group}
+                && {(_vehicle getVariable ["WAIT_Convoy_PathLease",[]]) isEqualTo _pathLease}) then {
+                _vehicle setVariable ["WAIT_Convoy_PathLease",nil,true];
+            };
+            // A newer native MOVE is independent of the old convoy path. Do not turn it
+            // into a formation recall merely because group/vehicle ownership stayed the same.
+            private _record=(_navigation getOrDefault ["followers",createHashMap]) getOrDefault [netId _vehicle,[]];
+            private _committed=_record param [5,[],[[]]];
+            private _live=if (isNull _movementOperator) then {[]} else {(expectedDestination _movementOperator) param [0,[]]};
+            private _nativeFree=currentCommand _movementOperator != "MOVE"
+                || {count _committed == 3 && {count _live == 3} && {_live vectorDistance _committed <= 0.25}};
+            if (_mayRestoreGroup && {!isNull _driver} && {_mayHandBack} && {_nativeFree || {_endedPath}}) then {
+                private _leader=leader _group;
+                private _leaderVehicle=vehicle _leader;
+                if (_driver != _leader && {_movementOperator == _driver}
+                    && {_leaderVehicle != _leader} && {_leaderVehicle isKindOf "LandVehicle"}) then {
+                    // An on-foot leader must not pull a released mounted crew out of its vehicle.
+                    _driver doFollow leader _group;
+                } else {
+                    if (_endedPath) then {
+                        // Wake only a plain current MOVE through its effective commander.
+                        // Do not recreate waypoints, replay scripts or bypass a mission wait.
+                        private _index=currentWaypoint _group;
+                        if (_index > 0 && {_index < count waypoints _group}) then {
+                            private _waypoint=[_group,_index];
+                            private _statements=waypointStatements _waypoint;
+                            private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
+                            if (waypointType _waypoint == "MOVE" && {_condition == "true"}
+                                && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
+                                && {waypointScript _waypoint == ""} && {(waypointTimeout _waypoint param [2,0]) <= 0}
+                                && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
+                                && {(synchronizedTriggers _waypoint) isEqualTo []}
+                                && {(synchronizedWaypoints _waypoint) isEqualTo []}
+                                && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
+                                _movementOperator doMove waypointPosition _waypoint;
+                            };
+                        };
+                    };
+                };
             };
         };
     } forEach _vehicles;

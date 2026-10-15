@@ -126,7 +126,12 @@ private _seats = createHashMap;
             };
             _vehicle forceSpeed 0;
             _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,0]];
-            if (local driver _vehicle && {!isNull driver _vehicle}) then {doStop driver _vehicle};
+            if (local driver _vehicle && {!isNull driver _vehicle}) then {
+                doStop driver _vehicle;
+                private _pathLease=_vehicle getVariable ["WAIT_Convoy_PathLease",[]];
+                if (count _pathLease == 7 && {(_pathLease select 0) == _group}
+                    && {(_pathLease select 1) == _revision}) then {_vehicle setVariable ["WAIT_Convoy_PathLease",nil,true]};
+            };
         };
     };
 } forEach _vehicles;
