@@ -5146,7 +5146,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('WAIT_fnc_Cortex'+name,text)
     def test_no_building_garrison_cannot_report_success(self):
         text=source('cortexGarrison')
-        self.assertLess(text.index('Refuse an empty search'),text.index('call WAIT_fnc_CortexClearRelease'))
+        self.assertLess(text.index('_candidateAssignments isEqualTo []'),text.index('call WAIT_fnc_CortexClearRelease'))
     def test_explicit_native_order_dispatch_has_no_distance_or_module_selection_gate(self):
         dispatch = source('cortexOrderDispatch')
         local = source('cortexOrderLocal')

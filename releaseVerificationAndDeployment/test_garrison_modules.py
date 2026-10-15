@@ -34,7 +34,7 @@ class GarrisonModuleTests(unittest.TestCase):
         for text in (dispatch,local,execute):
             self.assertIn('_sortByHeight isEqualType true',text)
         self.assertIn('["sortByHeight",_sortByHeight]',local)
-        self.assertIn('if (_sortByHeight) then {-(_x select 2)} else {random 1}',execute)
+        self.assertIn('if (_sortByHeight) then {-(_position select 2)} else {random 1}',execute)
         self.assertNotIn('sortByHeight',src('cortexGarrisonApplyLocal'))
     def test_receipts_include_authored_waits_and_zeus_replacement(self):
         receipt=(ROOT/'addons/core/functions/nativeOrderReceipt.sqf').read_text()

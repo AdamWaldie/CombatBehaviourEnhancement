@@ -27,7 +27,7 @@ private _facing = _settings getOrDefault ["facing", 0];
 private _width = _settings getOrDefault ["width",_radius];
 private _building = _settings getOrDefault ["building", objNull];
 private _unit = _settings getOrDefault ["unit", objNull];
-if (!(_radius isEqualType 0) || {!(_facing isEqualType 0)} || {!(_width isEqualType 0)} || {!(_building isEqualType objNull)} || {!(_unit isEqualType objNull)}) exitWith {false};
+if (!(_radius isEqualType 0) || {!(_facing isEqualType 0)} || {!(_width isEqualType 0)} || {!finite _radius} || {!finite _facing} || {!finite _width} || {!(_building isEqualType objNull)} || {!(_unit isEqualType objNull)}) exitWith {false};
 private _sortByHeight = _settings getOrDefault ["sortByHeight",true];
 if !(_sortByHeight isEqualType true) exitWith {false};
 private _teleport = _settings getOrDefault ["teleport",false];
@@ -48,7 +48,7 @@ private _valid = !isNull _group && {(units _group) findIf {isPlayer _x} < 0}
     && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
 if (_order in ["GARRISON", "DEFEND"]) then {
     private _pos = _settings getOrDefault ["position", []];
-    _valid = _valid && {_pos isEqualType []} && {count _pos == 3} && {_pos findIf {!(_x isEqualType 0) || {abs _x > 1e6}} < 0};
+    _valid = _valid && {_pos isEqualType []} && {count _pos == 3} && {_pos findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0};
 };
 if (_order == "CLEAR") then {_valid = _valid && {!isNull (_settings getOrDefault ["building", objNull])}};
 if (!_valid) exitWith {

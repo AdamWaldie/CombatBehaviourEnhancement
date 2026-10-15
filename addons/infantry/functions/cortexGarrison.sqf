@@ -23,7 +23,7 @@
  * Locality and authority: call where the group is local, or on the server, which forwards to the
  * owner. Non-server, non-owner copies (for example an Eden init field on a client) do nothing.
  *
- * Review contract: Repeated placement releases previous WAIT garrison/defence assignments first. The shared eligibility gate rejects player and feature-owned groups before side effects.
+ * Review contract: Plan and validate candidates before replacing existing assignments. Invalid input, empty valid geometry or exhausted planning budget preserves the previous task. The shared eligibility gate rejects player and feature-owned groups before side effects.
  *
  * Arguments:
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
@@ -58,55 +58,74 @@ if (!local _group) exitWith {
     if (isServer) then {[_group, _centre, _radius, _options] remoteExecCall ["WAIT_fnc_CortexGarrison", groupOwner _group]; true} else {false};
 };
 if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {false};
-if (_centre isEqualType objNull) then {_centre = getPosATL _centre};
+if (_centre isEqualType objNull) then {if (isNull _centre) then {_centre=[]} else {_centre = getPosATL _centre}};
 private _anchor=[_group] call WAIT_fnc_CortexGroupAnchor;
 if (isNull _anchor) then {_anchor=leader _group};
 if (count _centre < 2) then {_centre = getPosATL _anchor};
+_centre=+_centre;
+if (count _centre == 2) then {_centre pushBack 0};
+if (count _centre != 3 || {_centre findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+    || {!finite _radius} || {_radius <= 0}) exitWith {false};
 private _units = (units _group) select {
     [_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {vehicle _x == _x} && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
 };
-if (_units isEqualTo []) exitWith {false};
-// Refuse an empty search before releasing the existing order or claiming success.
-if (!(_options getOrDefault ["inPlace",false]) && {(nearestObjects [_centre,["House","Building"],_radius,true]) findIf {(_x buildingPos -1) isNotEqualTo []} < 0}) exitWith {false};
+if (_units isEqualTo [] || {count _units > 64}) exitWith {false};
 
 if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
     diag_log format ["[WAIT] %1 garrison refused: the Smart AI Pass is not running on this machine.", _group];
     false
 };
 
+// One bounded admission plan. No assignment or old-task cleanup happens during geometry reads.
+private _candidateAssignments=[];
+private _planningValid=true;
+if (_inPlace) then {
+    {_candidateAssignments pushBack [getPosATL _x,_centre getDir _x,objNull]} forEach _units;
+} else {
+    private _buildings=nearestObjects [_centre,["House","Building"],_radius,true];
+    if (count _buildings > 64) then {_planningValid=false};
+    private _candidates=[];
+    private _positionsSeen=0;
+    private _taken=[];
+    {
+        if (!_planningValid) exitWith {};
+        private _building=_x;
+        private _positions=_building buildingPos -1;
+        _positionsSeen=_positionsSeen+count _positions;
+        if (_positionsSeen > 512) exitWith {_planningValid=false};
+        if (alive _building) then {
+            {
+                private _position=_x;
+                if (count _position == 3 && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {!surfaceIsWater _position} && {_taken findIf {_x distance _position < 1} < 0}) then {
+                    private _positionASL=AGLToASL _position;
+                    private _roofed=(lineIntersectsSurfaces [_positionASL vectorAdd [0,0,1],_positionASL vectorAdd [0,0,15],objNull,objNull,true,1]) isNotEqualTo [];
+                    _candidates pushBack [[1,0] select _roofed,if (_sortByHeight) then {-(_position select 2)} else {random 1},count _candidates,_position,getPosATL _building,_building];
+                    _taken pushBack _position;
+                };
+            } forEach _positions;
+        };
+    } forEach (_buildings select [0,64]);
+    _candidates sort true;
+    _candidateAssignments=_candidates apply {[_x select 3,(_x select 4) getDir (_x select 3),_x select 5,[getPosWorld (_x select 5),vectorDir (_x select 5),vectorUp (_x select 5)]]};
+};
+if (!_planningValid || {_candidateAssignments isEqualTo []} || {!local _group}
+    || {!([_group] call WAIT_fnc_CortexIsEligible)} || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {
+    diag_log format ["[WAIT] Garrison refused group=%1 reason=INVALID_OR_OVER_BUDGET_PLAN; prior task retained",_group];
+    false
+};
 [_group,false] call WAIT_fnc_CortexReleaseGroup;
 [_group] call WAIT_fnc_CortexClearRelease;
-if ((_group getVariable ["WAIT_AIPass_Garrison", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexGarrisonRelease};
-if ((_group getVariable ["WAIT_AIPass_Defend", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexDefendRelease};
-if (_options getOrDefault ["inPlace", false]) then {
-    private _candidateAssignments=[];
-    {
-        private _assignment=[getPosATL _x, _centre getDir _x, objNull];
-        _candidateAssignments pushBack _assignment;
-        _x setVariable ["WAIT_AIPass_GarrisonPos", _assignment, true];
-    } forEach _units;
-    _group setVariable ["WAIT_Cortex_GarrisonCandidates",_candidateAssignments,true];
-} else {
-    private _candidates = [];
-    {
-        private _building = _x;
-        {
-            private _positionASL = AGLToASL _x;
-            private _roofed = (lineIntersectsSurfaces [_positionASL vectorAdd [0, 0, 1], _positionASL vectorAdd [0, 0, 15], objNull, objNull, true, 1]) isNotEqualTo [];
-            _candidates pushBack [[1, 0] select _roofed, if (_sortByHeight) then {-(_x select 2)} else {random 1}, count _candidates, _x, getPosATL _building, _building];
-        } forEach (_building buildingPos -1);
-    } forEach (nearestObjects [_centre, ["House", "Building"], _radius, true]);
-    _candidates sort true;
-    private _candidateAssignments=_candidates apply {[_x select 3,(_x select 4) getDir (_x select 3),_x select 5,[getPosWorld (_x select 5),vectorDir (_x select 5),vectorUp (_x select 5)]]};
-    _group setVariable ["WAIT_Cortex_GarrisonCandidates",_candidateAssignments,true];
-    {
-        private _assignment=if (_forEachIndex < count _candidateAssignments) then {
-            _candidateAssignments select _forEachIndex
-        } else {[getPosATL _x,0,objNull,[],"EXTERIOR_PENDING"]};
-        _x setVariable ["WAIT_AIPass_GarrisonPos",_assignment,true];
-    } forEach _units;
-};
+if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexGarrisonRelease};
+if ((_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexDefendRelease};
+_group setVariable ["WAIT_Cortex_GarrisonCandidates",_candidateAssignments,true];
+{
+    private _assignment=if (_forEachIndex < count _candidateAssignments) then {
+        _candidateAssignments select _forEachIndex
+    } else {[getPosATL _x,0,objNull,[],"EXTERIOR_PENDING"]};
+    _x setVariable ["WAIT_AIPass_GarrisonPos",_assignment,true];
+} forEach _units;
 // Instant placement is an explicit one-shot order option, never an approach recovery.
 // It is deliberately absent from ApplyLocal, so migration and repeated discovery cannot teleport.
 if (_teleport) then {
