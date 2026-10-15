@@ -106,6 +106,11 @@ if (_restore isNotEqualTo []) then {
                 private _restoreUnload=!_externalTakeover && {!_externalCrew} && {!_externalVehicle};
                 [_vehicle,_group,"RELEASE",-1,_restoreUnload] call WAIT_fnc_ConvoyUnloadPolicy;
             };
+            private _corridor=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
+            if (!(_vehicle in _keepCrew)
+                && {((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY"}) then {
+                [_vehicle,_group,"CONVOY_RELEASED"] call WAIT_fnc_DrivingCorridorRelease;
+            };
             // Retire an exact-owned steering path before native handback. Readiness is
             // insufficient: the engine can report unitReady while a fixed path still runs.
             private _pathLease=_vehicle getVariable ["WAIT_Convoy_PathLease",[]];

@@ -1,40 +1,68 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Executes a finite ordinary-driver APPROACH/CROSS episode through a registered area.
- * Locality / Authority: Called only by the current ordinary driving brain, for its leader vehicle.
+ * Purpose: Executes a finite current-controller APPROACH/CROSS episode through a registered area.
+ * Locality / Authority: Called only by the current ordinary/convoy brain, for its lead vehicle.
  * Shares existing speed/traffic writers; never edits waypoints, transfers locality or enables AI.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
  * or deadline renewal. Original 120-second approach and half-length+45-second crossing budgets
  * remain finite. Area edits, new orders, changed seats and external ownership retire old work.
- * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 brain <HASHMAP, empty>.
+ * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 brain <HASHMAP, empty>;
+ * 3 controller <STRING, ORDINARY> - ORDINARY or CONVOY; never admits convoy followers.
  * Return Value: ARRAY [active BOOL, taskCapMps NUMBER, phase STRING]. False grants no movement.
  * Cost: At most 32 passive area rows per admission; one geometry proposal per eligible area after
  * metadata selection, bounded to 174 rays. Failed proposals and terminal episodes cool down for
  * 120 seconds by exact area revision/transform/route context. No added scheduler or global scan.
- * Current callers: DrivingAssistStart. Convoy integration and behaviour modules remain pending.
+ * Current callers: DrivingAssistStart and ConvoyTick; behaviour modules remain pending.
  * Example: private _corridor=[_group,_vehicle,_brain] call WAIT_fnc_DrivingCorridorStep;
  */
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],
-    ["_brain",createHashMap,[createHashMap]]];
+    ["_brain",createHashMap,[createHashMap]],["_controller","ORDINARY",[""]]];
 private _inactive=[false,1e6,""];
-if (isRemoteExecuted) exitWith {_inactive};
+if (isRemoteExecuted || {!(_controller in ["ORDINARY","CONVOY"])}) exitWith {_inactive};
+private _convoy=_controller == "CONVOY";
+private _configuration=_brain getOrDefault ["configuration",[]];
+private _controllerReceipt=[_controller,if (_convoy) then {_configuration param [0,-1]} else {-1}];
 private _route=[_group] call WAIT_fnc_DrivingRouteReceipt;
 private _driver=driver _vehicle;
 private _operator=effectiveCommander _vehicle;
-private _mayWrite={
-    !isNull _group && {local _group} && {!isNull _vehicle} && {local _vehicle}
-        && {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain}
-        && {count _brain > 0} && {!(_brain getOrDefault ["cancelled",false])}
+private _controllerCurrent={
+    if (_convoy) exitWith {
+        private _mobile=(_configuration param [4,[]]) select {
+            alive _x && {canMove _x} && {[driver _x] call WAIT_fnc_CortexCombatEffective}
+                && {group driver _x == _group}
+        };
+        (_group getVariable ["WAIT_Convoy_Brain",createHashMap]) isEqualTo _brain
+            && {(_brain getOrDefault ["registryRevision",-1]) == (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2])}
+            && {(_brain getOrDefault ["jobToken",""]) isEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])}
+            && {(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {
+                (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+            } >= 0}
+            && {(_configuration param [5,""]) == "TRAVEL"}
+            && {count (_configuration param [4,[]]) <= 20}
+            && {_mobile isNotEqualTo []} && {(_mobile select 0) isEqualTo _vehicle}
+            && {_mobile findIf {!local _x || {!local driver _x}} < 0}
+            && {_vehicle getVariable ["WAIT_Convoy_Active",false]}
+            && {(_vehicle getVariable ["WAIT_Convoy_Group",grpNull]) == _group}
+            && {[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+            && {[_group,false,false,true] call WAIT_fnc_CortexIsEligible}
+    };
+    (_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain
         && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
-        && {(_brain getOrDefault ["route",[]]) isEqualTo _route} && {_route isNotEqualTo []}
-        && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
-        && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
+        && {(_brain getOrDefault ["route",[]]) isEqualTo _route}
         && {[_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
         && {[_group] call WAIT_fnc_DrivingMovementAvailable}
-        && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
         && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
+        && {vehicle leader _group isEqualTo _vehicle}
+};
+private _mayWrite={
+    !isNull _group && {local _group} && {!isNull _vehicle} && {local _vehicle}
+        && {count _brain > 0} && {!(_brain getOrDefault ["cancelled",false])}
+        && {call _controllerCurrent} && {_route isNotEqualTo []}
+        && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
+        && {_convoy || {missionNamespace getVariable ["WAIT_AIPass_Active",false]}}
+        && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
         && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
-        && {vehicle leader _group isEqualTo _vehicle} && {alive _vehicle} && {canMove _vehicle}
+        && {alive _vehicle} && {canMove _vehicle}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {!isNull _driver} && {_driver isEqualTo _operator}
         && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
@@ -75,6 +103,9 @@ if (count _work > 0) exitWith {
     if ((_work get "group") != _group || {(_work get "route") isNotEqualTo _route}
         || {(_work get "driver") != _driver} || {(_work get "operator") != _operator}
         || {(expectedDestination _operator) isNotEqualTo (_work get "command")}) then {_reason="COMMAND_CHANGED"};
+    if (_reason isEqualTo "" && {(_work getOrDefault ["controller",[]]) isNotEqualTo _controllerReceipt}) then {
+        _reason="CONTROLLER_CHANGED";
+    };
     if (_reason isEqualTo "" && {isNull _area || {
         (_area getVariable ["WAIT_DrivingCorridor_Task",[]]) isNotEqualTo _definition
         || {[getPosWorld _area,vectorDir _area,vectorUp _area] isNotEqualTo (_work get "transform")}
@@ -158,7 +189,7 @@ private _selected=[];private _best=1e9;
     if (!isNull _area && {count _definition == 4}
         && {(_area getVariable ["WAIT_DrivingCorridor_Task",[]]) isEqualTo _definition}) then {
         private _transform=[getPosWorld _area,vectorDir _area,vectorUp _area];
-        private _context=[_area,_definition,_transform,_route];
+        private _context=[_area,_definition,_transform,_route,_controllerReceipt];
         if (_cooldown findIf {(_x select 0) isEqualTo _context} < 0) then {
             private _axis=vectorDir _area;_axis set [2,0];_axis=vectorNormalized _axis;
             private _centre=getPosASL _area;private _origin=getPosASL _vehicle;
@@ -182,7 +213,21 @@ private _selected=[];private _best=1e9;
 } forEach _records;
 if (_selected isEqualTo []) exitWith {_inactive};
 _selected params ["_area","_definition","_transform","_context","_side","_axis"];
-private _proposal=[_vehicle,_area,_definition,_side] call WAIT_fnc_DrivingCorridorGeometry;
+// A narrow lead must not admit a wide/tall follower into a corridor it cannot fit.
+// Reuse one worst-case solid-support proposal rather than multiplying raycasts per vehicle.
+private _envelope=[];
+if (_convoy) then {
+    _envelope=[0,0,0];
+    {
+        if (!isNull _x && {alive _x}) then {
+            private _bounds=boundingBoxReal _x;private _low=_bounds select 0;private _high=_bounds select 1;
+            _envelope set [0,(_envelope select 0) max ((abs (_low select 0)) max (abs (_high select 0)))];
+            _envelope set [1,(_envelope select 1) max ((abs (_low select 1)) max (abs (_high select 1)))];
+            _envelope set [2,(_envelope select 2) max ((_high select 2)-(_low select 2))];
+        };
+    } forEach (_configuration param [4,[]]);
+};
+private _proposal=[_vehicle,_area,_definition,_side,_envelope] call WAIT_fnc_DrivingCorridorGeometry;
 if (!(_proposal select 0)) exitWith {
     if (count _cooldown >= 32) then {_cooldown deleteAt 0};
     _cooldown pushBack [_context,serverTime+120];
@@ -194,7 +239,7 @@ if (!(call _mayWrite) || {(expectedDestination _operator) isNotEqualTo _native}
     || {(_proposal select 4) isNotEqualTo _transform}) exitWith {_inactive};
 private _points=_proposal select 2;private _asl=_proposal select 3;
 _operator doMove (_points select 0);
-_work=createHashMapFromArray [["group",_group],["driver",_driver],["operator",_operator],
+_work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
     ["route",_route],["area",_area],["definition",_definition],["transform",_transform],
     ["context",_context],["epoch",_group getVariable ["WAIT_AIPass_Epoch",0]],
     ["points",_points],["asl",_asl],["travel",_axis vectorMultiply (-_side)],

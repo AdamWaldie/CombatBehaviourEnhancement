@@ -21,7 +21,8 @@ params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
 private _corridor=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
 private _corridorGroup=_corridor getOrDefault ["group",grpNull];
-if (!isNull _corridorGroup && {isNull _expectedGroup || {_expectedGroup == _corridorGroup}}) then {
+if (!isNull _corridorGroup && {isNull _expectedGroup || {_expectedGroup == _corridorGroup}}
+    && {((_corridor getOrDefault ["controller",["ORDINARY",-1]]) param [0,""]) == "ORDINARY"}) then {
     [_vehicle,_corridorGroup,"DRIVING_RELEASED"] call WAIT_fnc_DrivingCorridorRelease;
 };
 private _restore=_vehicle getVariable ["WAIT_DrivingAssist_Restore",[]];

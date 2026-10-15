@@ -58,3 +58,46 @@ class CorridorFoundationTests(unittest.TestCase):
             extension = max(10, math.hypot(half_length, 2) + 6)
             self.assertGreaterEqual(extension - half_length, 5)
         self.assertLess(10 - 16, 5)
+
+    def test_convoy_lead_keeps_one_executor_and_predecessor_followers(self):
+        tick = (ROOT / 'addons/vehicles/functions/convoyTick.sqf').read_text()
+        step = (ROOT / 'addons/vehicles/functions/drivingCorridorStep.sqf').read_text()
+        call = '[_group,_lead,_group getVariable ["WAIT_Convoy_Brain",createHashMap],"CONVOY"]'
+        self.assertEqual(tick.count(call), 1)
+        self.assertLess(tick.index(call), tick.index('private _routeWatch='))
+        self.assertIn('if (!_corridorActive && {!_hadCorridor}', tick)
+        self.assertIn('if (!_routeDone && {!_corridorActive} && {!_hadCorridor}', tick)
+        self.assertIn('_leadLimit=_leadLimit min ((_corridor select 1)*3.6)', tick)
+        for guard in ('WAIT_Convoy_LocalRegistry', 'WAIT_Convoy_LocalJobToken',
+                      'WAIT_Convoy_ReceivedRevision', '(_mobile select 0) isEqualTo _vehicle',
+                      'WAIT_Convoy_DrivingAssist_Enable'):
+            self.assertIn(guard, step)
+        self.assertIn('_convoy || {missionNamespace getVariable ["WAIT_AIPass_Active",false]}', step)
+    def test_convoy_halt_release_and_lead_replacement_retire_only_matching_work(self):
+        crew = (ROOT / 'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
+        release = (ROOT / 'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
+        tick = (ROOT / 'addons/vehicles/functions/convoyTick.sqf').read_text()
+        halt = crew.split('if (_phase == "HALT"', 1)[1]
+        self.assertLess(halt.index('doStop driver _vehicle;'), halt.index('"CONVOY_HALT",false'))
+        self.assertIn('if (!(_vehicle in _keepCrew)', release)
+        self.assertIn('"CONVOY_RELEASED"] call WAIT_fnc_DrivingCorridorRelease', release)
+        self.assertIn('"CONVOY_LEAD_CHANGED",false,true', tick)
+        fsm = (ROOT / 'addons/main/fsm/convoyOperation.fsm').read_text()
+        for phase in ('CORRIDOR_APPROACH', 'CORRIDOR_CROSS'):
+            self.assertIn(phase, fsm)
+
+    def test_ordinary_cleanup_cannot_retire_a_convoy_corridor(self):
+        release = (ROOT / 'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
+        guard = release.split('private _corridor=', 1)[1].split('private _restore=', 1)[0]
+        self.assertIn('param [0,""]) == "ORDINARY"', guard)
+        self.assertLess(guard.index('== "ORDINARY"'), guard.index('call WAIT_fnc_DrivingCorridorRelease'))
+
+    def test_convoy_uses_worst_hull_without_multiplying_geometry_probes(self):
+        step = (ROOT / 'addons/vehicles/functions/drivingCorridorStep.sqf').read_text()
+        geometry = (ROOT / 'addons/vehicles/functions/drivingCorridorGeometry.sqf').read_text()
+        self.assertEqual(step.count('call WAIT_fnc_DrivingCorridorGeometry'), 1)
+        self.assertIn('count (_configuration param [4,[]]) <= 20', step)
+        for dimension in range(3):
+            self.assertIn(f'_envelope set [{dimension}', step)
+            self.assertIn(f'_envelope param [{dimension},0]', geometry)
+        self.assertIn('"INVALID_ENVELOPE"', geometry)

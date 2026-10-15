@@ -9,6 +9,8 @@
  * 1 area <OBJECT, objNull> - registered Logic, whose world elevation selects the support layer.
  * 2 definition <ARRAY, []> - exact public [revision, halfLength, halfWidth, speedKmh].
  * 3 side <NUMBER, 1> - entry end, exactly -1 or 1 along the area's forward axis.
+ * 4 envelope <ARRAY, []> - optional convoy [halfWidth, halfLength, height] metres;
+ *   expands the measured lead hull only, never shrinks it. At most three finite scalars.
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY,
  *   transform ARRAY, rayCount NUMBER]. Maximum 20 support stations, 60 support rays and
  *   114 body rays (174 total). Samples are a proposal, not proof of swept-volume passability.
@@ -17,7 +19,7 @@
  *   call WAIT_fnc_DrivingCorridorGeometry;
  */
 params [["_vehicle",objNull,[objNull]],["_area",objNull,[objNull]],
-    ["_definition",[],[[]]],["_side",1,[0]]];
+    ["_definition",[],[[]]],["_side",1,[0]],["_envelope",[],[[]]]];
 private _failure={params ["_reason",["_rays",0]];[false,_reason,[],[],[],_rays]};
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}
     || {!(_vehicle isKindOf "LandVehicle")} || {isNull _area}) exitWith {["OWNER_UNAVAILABLE"] call _failure};
@@ -35,13 +37,17 @@ private _axis=vectorDir _area;_axis set [2,0];_axis=vectorNormalized _axis;
 private _right=[_axis select 1,-(_axis select 0),0];
 private _box=boundingBoxReal _vehicle;
 private _low=_box select 0;private _high=_box select 1;
-private _hullWidth=((abs (_low select 0)) max (abs (_high select 0)))+0.5;
+if (_envelope isNotEqualTo [] && {count _envelope != 3 || {
+    _envelope findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x > 100}} >= 0
+}}) exitWith {["INVALID_ENVELOPE"] call _failure};
+private _hullWidth=(((abs (_low select 0)) max (abs (_high select 0)))
+    max (_envelope param [0,0]))+0.5;
 if (_hullWidth > _halfWidth) exitWith {["HULL_TOO_WIDE"] call _failure};
-private _height=((_high select 2)-(_low select 2)) max 1;
+private _height=(((_high select 2)-(_low select 2)) max 1) max (_envelope param [2,0]);
 // Preserve the selected world layer. A deck above water is valid solid support; an empty
 // water surface is not. Do not silently substitute terrain below an unsupported bridge.
 private _centre=getPosASL _area;
-private _halfBodyLength=(abs (_low select 1)) max (abs (_high select 1));
+private _halfBodyLength=((abs (_low select 1)) max (abs (_high select 1))) max (_envelope param [1,0]);
 // The tail must clear the far plane too. A fixed ten-metre endpoint strands long hulls.
 private _extension=(sqrt ((_halfBodyLength^2)+(_hullWidth^2))+6) max 10;
 if (_extension > 30) exitWith {["HULL_TOO_LONG"] call _failure};

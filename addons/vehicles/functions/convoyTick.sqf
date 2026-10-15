@@ -13,6 +13,8 @@
  * Follower curve/grade caps persist between path refreshes until fresh trail geometry replaces them;
  * disabling convoy driving assist clears that local cap without changing native route ownership.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
+ * The lead alone uses registered corridor approach/crossing through this same callback. Active
+ * corridors suppress lead route recovery; followers keep measured predecessor trails and spacing.
  * Fixed follower paths retain a driver/operator/epoch/native-command receipt for guarded handback.
  * The receipt is ownership evidence only; it cannot establish actual path travel.
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
@@ -151,6 +153,11 @@ if (_vehicles isEqualTo []) exitWith {
     };
 };
 private _lead = _vehicles select 0;
+private _previousLead=_state getOrDefault ["lead",objNull];
+if (!isNull _previousLead && {_previousLead != _lead} && {local _previousLead}) then {
+    // Stop only the old lead's exact-owned corridor; its replacement/follower acquires its own path.
+    [_previousLead,_group,"CONVOY_LEAD_CHANGED",false,true] call WAIT_fnc_DrivingCorridorRelease;
+};
 private _leadOperator=effectiveCommander _lead;
 if (isNull _leadOperator) then {_leadOperator=driver _lead};
 if (!(vehicle leader _group in _vehicles)) then {_group selectLeader driver _lead};
@@ -314,6 +321,16 @@ for "_i" from 0 to (count _vehicles - 1) do {
         _gaps pushBack (_separation max (_lengths * 0.5 + 5));
     };
 };
+private _corridor=[false,1e6,""];
+private _hadCorridor=!isNil {_lead getVariable "WAIT_DrivingCorridor_Work"};
+if ([_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled
+    && {[] call _mayIssueDriving}) then {
+    _corridor=[_group,_lead,_group getVariable ["WAIT_Convoy_Brain",createHashMap],"CONVOY"] call WAIT_fnc_DrivingCorridorStep;
+} else {
+    if (_hadCorridor) then {[_lead,_group,"CONVOY_ASSIST_RELEASED"] call WAIT_fnc_DrivingCorridorRelease};
+};
+private _corridorActive=_corridor select 0;
+_state set ["corridorPhase",_corridor select 2];
 private _lastWaypoint = [_group, (count waypoints _group) - 1];
 if (count waypoints _group > 1 && {currentWaypoint _group < count waypoints _group}
     && {waypointType _lastWaypoint == "MOVE"}) then {
@@ -321,7 +338,7 @@ if (count waypoints _group > 1 && {currentWaypoint _group < count waypoints _gro
         [_group,"",false,_lastWaypoint select 1] call WAIT_fnc_AuthoredRouteReceipt]];
 };
 private _routeWatch=_state getOrDefault ["routeWatch",[]];
-if ([_group,"WAIT_Convoy_RouteRecovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled
+if (!_corridorActive && {!_hadCorridor} && {[_group,"WAIT_Convoy_RouteRecovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
     && {_routeWatch isNotEqualTo []} && {currentWaypoint _group >= count waypoints _group}
     && {time >= (_state getOrDefault ["routeRecoveryAt",-1])}) then {
     _routeWatch params ["_watchedIndex","_watchedPosition","_watchedRadius",["_watchedReceipt",[]]];
@@ -345,7 +362,7 @@ if ([_group,"WAIT_Convoy_RouteRecovery_Enable",true] call WAIT_fnc_CortexFeature
         };
     };
 };
-private _routeDone = count waypoints _group > 1 && {currentWaypoint _group >= count waypoints _group}
+private _routeDone = !_corridorActive && {count waypoints _group > 1} && {currentWaypoint _group >= count waypoints _group}
     && {_lead distance2D waypointPosition _lastWaypoint <= (waypointCompletionRadius _lastWaypoint max 20)};
 private _settled = _routeDone && {_vehicles findIf {abs speed _x >= 1} < 0};
 for "_i" from 1 to (count _vehicles - 1) do {
@@ -438,6 +455,7 @@ if (!_contact) then {
         };
     };
 };
+_leadLimit=_leadLimit min ((_corridor select 1)*3.6);
 if (_routeDone) then {_leadLimit = 0};
 // Avoid converting small one-second spacing corrections into a visible throttle pulse. Acceleration
 // is gradual; arrival remains an immediate stop and the infantry corridor below can still stop now.
@@ -470,8 +488,8 @@ if (_leadRouteReceipt isNotEqualTo (_state getOrDefault ["leadRouteReceipt",[]])
     _leadProgress=[getPosATL _lead,time,0];
     _state set ["leadRouteReceipt",_leadRouteReceipt];
 };
-if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0} || {_leadTrafficBlocked}) then {_leadProgress = [getPosATL _lead, time, 0]};
-if (!_routeDone && {!_leadTrafficBlocked} && {_leadLimit > 0} && {_waypointIndex > 0} && {_waypointIndex < count waypoints _group}
+if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0} || {_leadTrafficBlocked} || {_corridorActive} || {_hadCorridor}) then {_leadProgress = [getPosATL _lead, time, 0]};
+if (!_routeDone && {!_corridorActive} && {!_hadCorridor} && {!_leadTrafficBlocked} && {_leadLimit > 0} && {_waypointIndex > 0} && {_waypointIndex < count waypoints _group}
     && {time - (_leadProgress select 1) >= 10} && {abs speed _lead < 1}) then {
     private _waypoint = [_group, _waypointIndex];
     private _destination = waypointPosition _waypoint;
