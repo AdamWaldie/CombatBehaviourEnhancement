@@ -33,6 +33,13 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('_previousVehicle != vehicle leader _group',s)
         self.assertIn('toLowerANSI (_x select 1) == "cargo"',s)
         self.assertEqual(s.count('call _available'),3)
+    def test_vacant_seat_does_not_override_incoming_assignment(self):
+        s=self.source()
+        available=s.split('private _available={',1)[1].split('private _finish=',1)[0]
+        self.assertIn('fullCrew [_vehicle,"driver",true]',available)
+        self.assertIn('_driverSeat param [5,objNull]',available)
+        self.assertIn('count _driverSeat >= 6',available)
+        self.assertIn('isNull _assignedDriver || {!alive _assignedDriver} || {_assignedDriver == _candidate}',available)
     def test_deadlines_success_and_cancellation_are_not_synthetic(self):
         s=self.source()
         self.assertEqual(s.count('serverTime+25'),1)

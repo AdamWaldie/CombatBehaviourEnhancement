@@ -58,6 +58,9 @@ private _tasks=["GET IN","GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPP
     "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
 private _available={
     _crew=fullCrew [_vehicle,"",false];
+    // Physical vacancy alone does not release a mission-assigned incoming driver.
+    private _driverSeat=(fullCrew [_vehicle,"driver",true]) param [0,[]];
+    private _assignedDriver=_driverSeat param [5,objNull];
     local _group && {local _vehicle} && {alive _vehicle} && {canMove _vehicle} && {abs speed _vehicle < 1}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle} && {!lockedDriver _vehicle}
         && {vehicle leader _group == _vehicle}
@@ -70,7 +73,9 @@ private _available={
         && {!([_group] call WAIT_fnc_CortexZeusHeld)} && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
         && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
         && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
-        && {count _crew <= 20} && {_route isNotEqualTo []}
+        && {count _crew <= 20} && {count _driverSeat >= 6}
+        && {isNull _assignedDriver || {!alive _assignedDriver} || {_assignedDriver == _candidate}}
+        && {_route isNotEqualTo []}
         && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
         && {_crew findIf {
             private _actor=_x select 0;
