@@ -13,4 +13,12 @@ class ClearModuleTests(unittest.TestCase):
         self.assertIn('_buildings=[_target]+(_buildings-[_target])',s)
         self.assertIn('_groups=[_selected]+(_groups-[_selected])',s)
         self.assertLess(s.index('_buildings isEqualTo []'),s.index('call zen_dialog_fnc_create'))
+    def test_invalid_geometry_refuses_before_old_task_cleanup_and_reports_fresh_reason(self):
+        s=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        cleanup=s.index('// Replacing a clear must retire')
+        for gate in ('INVALID_TARGET_POSITION','TARGET_DESTROYED','count _allPositions > 512','!finite _x','_seenPositions findIf','NO_VALID_ROOFED_POSITIONS'):
+            self.assertLess(s.index(gate),cleanup)
+        owner=(ROOT/'addons/infantry/functions/cortexOrderLocal.sqf').read_text(encoding='utf-8')
+        self.assertIn('_failure isNotEqualTo _previousClearFailure',owner)
+        self.assertIn('Clearance refused: %1',owner)
 if __name__=='__main__': unittest.main()

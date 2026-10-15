@@ -51,6 +51,7 @@ if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE"]) then {
     _group setVariable ["WAIT_AIPass_ZeusHold", [random 1e6, 0], true];
 };
 
+private _previousClearFailure=_group getVariable ["WAIT_Cortex_ClearAdmissionFailure",[]];
     private _accepted = switch (_order) do {
         case "GARRISON": {[_group, _position, (_radius max 15) min 150, createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]] call WAIT_fnc_CortexGarrison};
         case "DEFEND": {[_group, _position, _facing, (_width max 15) min 150] call WAIT_fnc_CortexDefend};
@@ -88,4 +89,20 @@ if (!_accepted && {_order in ["GARRISON","DEFEND","CLEAR","AIRBORNE"]}) then {
     _group setVariable ["WAIT_AIPass_ZeusHold",_oldHold,true];
     _group setVariable ["WAIT_AIPass_ZeusWaypoints",_oldWaypoints,true];
 };
-[_token, _accepted, false, clientOwner, if (_accepted) then {""} else {"No valid positions or eligible passengers were available. The order was not started."}] remoteExecCall ["WAIT_fnc_CortexOrderResult", 2];
+private _executionReason="No valid positions or eligible passengers were available. The order was not started.";
+if (!_accepted && {_order == "CLEAR"}) then {
+    private _failure=_group getVariable ["WAIT_Cortex_ClearAdmissionFailure",[]];
+    _executionReason="Clearance was refused by the current owner; inspect the selected squad and building.";
+    if (count _failure >= 2 && {_failure isNotEqualTo _previousClearFailure}) then {
+        _executionReason=switch (_failure select 1) do {
+            case "TARGET_ABSENT": {"The selected building no longer exists."};
+            case "TARGET_DESTROYED": {"The selected building is destroyed."};
+            case "POSITION_BUDGET_EXCEEDED": {"The building reports too many positions for this bounded clearance task."};
+            case "NO_VALID_ROOFED_POSITIONS": {"The building has no valid roofed internal positions to attempt."};
+            case "NO_ELIGIBLE_ACTORS": {"No task-free, capable infantry are available to enter the building."};
+            case "INVALID_TARGET_POSITION": {"The clearance target coordinates are invalid."};
+            default {format ["Clearance refused: %1. No clearance was started.",_failure select 1]};
+        };
+    };
+};
+[_token, _accepted, false, clientOwner, if (_accepted) then {""} else {_executionReason}] remoteExecCall ["WAIT_fnc_CortexOrderResult", 2];

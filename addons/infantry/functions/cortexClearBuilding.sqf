@@ -3,6 +3,8 @@
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
  * Orders an AI group to clear a building room by room.
  *
+ * Admission validates finite, distinct model positions with a 512-position budget before
+ * geometry queries and replacement cleanup. Reported points still do not prove native access.
  * A squad-aware interior element, including the leader when needed, joins the clear up to a bounded
  * capacity. Each interior lane has a lead and security partner, receives a distinct viable entrance
  * where the topology provides one, then draws the nearest unclaimed room from a
@@ -73,15 +75,26 @@ private _refuse={
     false
 };
 if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
+if (_target isEqualType [] && {!(count _target in [2,3])
+    || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {["INVALID_TARGET_POSITION"] call _refuse};
 private _building = if (_target isEqualType objNull) then {_target} else {nearestBuilding _target};
-if (isNull _building) exitWith {if (_options getOrDefault ["resume", false]) then {[_group] call WAIT_fnc_CortexClearRelease}; false};
+if (isNull _building) exitWith {if (_options getOrDefault ["resume", false]) then {[_group] call WAIT_fnc_CortexClearRelease}; ["TARGET_ABSENT"] call _refuse};
+if (!alive _building) exitWith {["TARGET_DESTROYED"] call _refuse};
 if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
     diag_log format ["[WAIT] %1 clear building refused: the Smart AI Pass is not running on this machine.", _group];
     false
 };
 private _allPositions = _building buildingPos -1;
+if (count _allPositions > 512) exitWith {["POSITION_BUDGET_EXCEEDED"] call _refuse};
+private _seenPositions=[];
 private _positions = _allPositions select {
-    private _positionASL=AGLToASL _x;
+    private _position=_x;
+    private _valid=_position isEqualType [] && {count _position == 3}
+        && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {_seenPositions findIf {_x vectorDistance _position < 0.5} < 0};
+    if (!_valid) exitWith {false};
+    _seenPositions pushBack _position;
+    private _positionASL=AGLToASL _position;
     private _roofHits=lineIntersectsSurfaces [
         _positionASL vectorAdd [0,0,0.5],_positionASL vectorAdd [0,0,10],objNull,objNull,true,4,"GEOM","NONE"
     ];
@@ -90,8 +103,7 @@ private _positions = _allPositions select {
 // Exposed posts remain garrison/transit candidates. A missing owned roof is not
 // permission to advertise every model position as a verified interior room.
 if (_positions isEqualTo []) exitWith {
-    diag_log format ["[WAIT] %1 clear building refused: no target-owned roofed positions in %2",_group,typeOf _building];
-    false
+    ["NO_VALID_ROOFED_POSITIONS"] call _refuse
 };
 private _leader = [_group] call WAIT_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
