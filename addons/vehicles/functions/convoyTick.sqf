@@ -16,6 +16,10 @@
  * accelerate gradually while safety, contact, arrival and close-gap braking remain immediate.
  * Brief predecessor dips below 2 km/h do not disable smoothing when longitudinal room remains;
  * raw closing-distance limits and reverse/ordered/pedestrian stops remain authoritative.
+ * With convoy driving assist enabled, each vehicle samples unrelated forward-lane hulls once per
+ * tick (64 candidates, eight corners each). Only its exact registered predecessor is excluded
+ * from this observer because size-aware convoy spacing already owns that gap. Up to 20 vehicles
+ * are admitted; dense observations stop rather than authorize a recovery through unseen traffic.
  * The route watchdog remembers only the unchanged final MOVE waypoint. If the engine marks it complete
  * more than 75 m early, the same metadata-checked ungated waypoint is selected again; no waypoint is synthesized or rewritten.
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
@@ -390,7 +394,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
 // multiplying raycasts or schedulers per vehicle. It influences speed only: Arma retains route
 // choice, collision handling and the ability to remain stopped behind a deliberate roadblock.
 private _roadCap = _maximum;
-if ([_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled) then {
+private _trafficAssistEnabled=[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+if (_trafficAssistEnabled) then {
     if (time >= (_state getOrDefault ["roadLookAt",-1])) then {
         private _roadObservation=[_lead,_maximum] call WAIT_fnc_DrivingRoadCap;
         _roadCap=_roadObservation select 0;
@@ -437,6 +442,11 @@ private _leadElapsed=((time-(_leadSpeedState select 1)) max 0.1) min 3;
 if (!_routeDone && {_leadLimit > (_leadSpeedState select 0)}) then {
     _leadLimit=_leadLimit min ((_leadSpeedState select 0)+6*_leadElapsed);
 };
+private _leadTraffic=if (_trafficAssistEnabled) then {
+    [_lead,_leadLimit/3.6] call WAIT_fnc_DrivingFollowingCap
+} else {[_leadLimit/3.6,objNull,-1,time,0]};
+private _leadTrafficBlocked=!isNull (_leadTraffic select 1);
+_leadLimit=_leadLimit min ((_leadTraffic select 0)*3.6);
 _leadLimit = [_lead,_leadLimit,_group] call WAIT_fnc_CortexInfantrySpeed;
 _state set ["leadSpeedLimit",[_leadLimit,time]];
 if ([] call _mayIssueDriving) then {
@@ -453,8 +463,8 @@ if (_leadRouteReceipt isNotEqualTo (_state getOrDefault ["leadRouteReceipt",[]])
     _leadProgress=[getPosATL _lead,time,0];
     _state set ["leadRouteReceipt",_leadRouteReceipt];
 };
-if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0}) then {_leadProgress = [getPosATL _lead, time, 0]};
-if (!_routeDone && {_leadLimit > 0} && {_waypointIndex > 0} && {_waypointIndex < count waypoints _group}
+if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0} || {_leadTrafficBlocked}) then {_leadProgress = [getPosATL _lead, time, 0]};
+if (!_routeDone && {!_leadTrafficBlocked} && {_leadLimit > 0} && {_waypointIndex > 0} && {_waypointIndex < count waypoints _group}
     && {time - (_leadProgress select 1) >= 10} && {abs speed _lead < 1}) then {
     private _waypoint = [_group, _waypointIndex];
     private _destination = waypointPosition _waypoint;
@@ -554,6 +564,13 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // permission to advance into a reversing predecessor. Keep route identity.
     if (_frontReversing) then {_limit=0};
     if (_retainedPathCap >= 0) then {_limit=_limit min _retainedPathCap};
+    // Preserve the configured convoy gap; only the immediate registered predecessor's
+    // spacing is exempt. Other convoy members, unrelated traffic and wrecks still constrain us.
+    private _traffic=if (_trafficAssistEnabled) then {
+        [_vehicle,_limit/3.6,_front] call WAIT_fnc_DrivingFollowingCap
+    } else {[_limit/3.6,objNull,-1,time,0]};
+    private _trafficBlocked=!isNull (_traffic select 1);
+    _limit=_limit min ((_traffic select 0)*3.6);
     _limit = [_vehicle,_limit,_group] call WAIT_fnc_CortexInfantrySpeed;
     if ([] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
@@ -564,13 +581,13 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Keep the committed native and steering-path destinations when progress is made. Rebuilding
     // this record as the former four-field array erased both commitments every few metres, so the
     // next one-second trail sample looked like a new order and restarted engine planning.
-    if (_vehicle distance2D (_progress select 0) > 3) then {
+    if (_vehicle distance2D (_progress select 0) > 3 || {_trafficBlocked} || {_limit <= 0}) then {
         _progress set [0,getPosATL _vehicle];
         _progress set [1,time];
         _progress set [4,0];
     };
     // Let the normal engine route around an obstruction after a bounded timeout. Never teleport.
-    if (time - (_progress select 1) > 20 && {_limit > 2} && {_gap > _gapLow+3}
+    if (!_trafficBlocked && {time - (_progress select 1) > 20} && {_limit > 2} && {_gap > _gapLow+3}
         && {_frontSpeed > 1 || {_gap > _gapHigh}}) then {
         private _attempts=(_progress param [4,0])+1;
         if (_attempts > 3) then {

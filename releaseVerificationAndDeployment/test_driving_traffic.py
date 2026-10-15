@@ -40,6 +40,18 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertFalse(occupied(3,5,8,0,2))
         self.assertFalse(occupied(-2,2,8,5,7))
 
+    def test_convoy_observes_external_hulls_without_replacing_predecessor_spacing(self):
+        s=src('convoyTick')
+        self.assertIn('[_lead,_leadLimit/3.6] call WAIT_fnc_DrivingFollowingCap',s)
+        self.assertIn('[_vehicle,_limit/3.6,_front] call WAIT_fnc_DrivingFollowingCap',s)
+        self.assertEqual(s.count('call WAIT_fnc_DrivingFollowingCap'),2)
+        self.assertIn('_other != _predecessor',src('drivingFollowingCap'))
+        self.assertIn('private _leadTrafficBlocked=!isNull (_leadTraffic select 1)',s)
+        self.assertIn('if (!_routeDone && {!_leadTrafficBlocked}',s)
+        self.assertIn('if (!_trafficBlocked && {time - (_progress select 1) > 20}',s)
+        self.assertIn('|| {_trafficBlocked} || {_limit <= 0}',s)
+        self.assertLess(s.index('_limit=_limit min ((_traffic select 0)*3.6)'),s.index('private _ownedSpeed=_limit/3.6'))
+
     def test_reverse_overlap_includes_destroyed_vehicles_without_treating_dead_infantry_as_live(self):
         s=src('drivingRearClear')
         self.assertIn('_area nearEntities [["LandVehicle"],false,false,false]',s)

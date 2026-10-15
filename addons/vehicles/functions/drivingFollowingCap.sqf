@@ -11,14 +11,15 @@
  * speed commands and rechecks its driver, route and movement lease before applying this result.
  * Repeat/JIP: no handlers or cached clearance. Each sample uses actual velocity and current hull
  * corners; results must not be replayed after movement, route replacement or locality change.
- * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap m/s <NUMBER>, 20 (0..35).
+ * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap m/s <NUMBER>, 20 (0..35);
+ * 2 registered predecessor <OBJECT>, objNull, whose gap is owned by the convoy spacing controller.
  * Return: ARRAY [cap m/s NUMBER, limiting vehicle OBJECT, hull gap m NUMBER,
  * sampledAt NUMBER, candidate count NUMBER]. Dense sets return zero and the vehicle itself as
  * a congestion sentinel; at most 64 candidate hulls are evaluated, eight corners each.
- * Current callers: WAIT_fnc_DrivingAssistStart, through its finite operation scheduler.
+ * Current callers: DrivingAssistStart and ConvoyTick through their finite operation schedulers.
  * Example: private _traffic = [truck1,20] call WAIT_fnc_DrivingFollowingCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]]];
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]]];
 _requested=(_requested max 0) min 35;
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0]};
 private _box=boundingBoxReal _vehicle;
@@ -42,7 +43,7 @@ if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates]};
 private _cap=_requested;private _limiting=objNull;private _gap=-1;
 {
     private _other=_x;
-    if (_other != _vehicle && {!isNull _other}) then {
+    if (_other != _vehicle && {_other != _predecessor} && {!isNull _other}) then {
         // Heading selects only the following-speed allowance, never obstacle admission.
         // An angled parked hull or a reversing/oncoming vehicle still occupies this lane.
         private _following=((vectorDir _other) vectorDotProduct _forward) > 0.7
