@@ -118,3 +118,18 @@ class DrivingGeometryTests(unittest.TestCase):
         flags=[distance_to_segment(a,b)<=3 for a,b in zip(crossing,crossing[1:])]
         self.assertEqual(flags,[True,False,False,True])
         self.assertEqual(stretches(flags),2)
+    def test_convoy_bypass_relaxation_rejects_multiple_capture_clusters_and_wrong_floor(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        gate=s.split('private _bypassLegClear=false',1)[1].split('if (!_bypassLegClear',1)[0]
+        self.assertIn('count _committed <= 11',gate)
+        self.assertIn('abs ((_origin select 2)-(_pointASL select 2)) <= 1.5',gate)
+        self.assertIn('if (_captureRuns != 1) then {_nearest=-1}',gate)
+        self.assertLess(gate.index('_captureRuns != 1'),gate.index('call WAIT_fnc_DrivingPathGeometry'))
+        self.assertNotIn('doMove',gate)
+        self.assertNotIn('setDriveOnPath',gate)
+        def runs(points):
+            flags=[(x*x+y*y)**0.5<4 and abs(z)<=1.5 for x,y,z in points]
+            return sum(value and (i==0 or not flags[i-1]) for i,value in enumerate(flags))
+        self.assertEqual(runs([(0,1,0),(0,5,0),(5,5,0),(0,0,0)]),2)
+        self.assertEqual(runs([(0,1,0),(0,2,0),(0,5,0)]),1)
+        self.assertEqual(runs([(0,0,5),(0,1,5)]),0)

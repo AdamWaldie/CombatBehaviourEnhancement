@@ -17,6 +17,8 @@
  * corridors suppress lead route recovery; followers keep measured predecessor trails and spacing.
  * Finite static-obstacle bypass shares this lead writer. Followers yield only the exact source
  * cap after fresh committed-trail leg validation (at most 15 rays per affected follower/tick).
+ * That relaxation requires exactly one same-floor capture cluster among at most eleven points;
+ * ambiguous self-near trails retain the obstacle constraint without changing the path.
  * Whole-column checkpoint/tail evidence retains the original deadline; lead success is insufficient.
  * Fixed follower paths retain a driver/operator/epoch/native-command receipt for guarded handback.
  * The receipt is ownership evidence only; it cannot establish actual path travel.
@@ -705,7 +707,18 @@ for "_i" from 1 to (count _vehicles - 1) do {
             && {(expectedDestination driver _vehicle) isEqualTo (_receipt select 2)}
             && {(expectedDestination _movementOperator) isEqualTo (_receipt select 3)}) then {
             private _origin=getPosASL _vehicle;private _nearest=-1;private _distance=4;
-            {private _d=_origin distance2D (ATLToASL _x);if (_d < _distance) then {_nearest=_forEachIndex;_distance=_d}} forEach _committed;
+            private _captureRuns=0;private _inCapture=false;
+            {
+                private _pointASL=ATLToASL _x;
+                private _d=_origin distance2D _pointASL;
+                private _captured=_d < 4 && {abs ((_origin select 2)-(_pointASL select 2)) <= 1.5};
+                if (_captured && {!_inCapture}) then {_captureRuns=_captureRuns+1};
+                if (_captured && {_d < _distance}) then {_nearest=_forEachIndex;_distance=_d};
+                _inCapture=_captured;
+            } forEach _committed;
+            // A self-near trail can offer more than one unrelated next leg. A nearby
+            // point alone cannot identify the native path's current leg or waive safety.
+            if (_captureRuns != 1) then {_nearest=-1};
             if (_nearest >= 0 && {_nearest+1 < count _committed}) then {
                 private _next=ATLToASL (_committed select (_nearest+1));private _delta=_next vectorDiff _origin;_delta set [2,0];
                 private _forward=vectorDir _vehicle;_forward set [2,0];_forward=vectorNormalized _forward;
