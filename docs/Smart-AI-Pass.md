@@ -1018,3 +1018,6 @@ Egress arrival is retained only while the actor remains within1m horizontally an
 
 
 Early-exit observer arrival/recovery uses the same idle/STOP-or-owned-MOVE gate as final egress. Other native tasks mark the record DIVERTED and retain egress failure before any stop/recovery request; newer tasks receive no return movement. Existing deadlines, search/retry limits and observation budgets remain. Natural combat command propagation and explicit task takeover still require physical comparison; this does not establish complete isolation or flow.
+
+
+Initial buddy entry still prefers connected native nodes at least2.5m from the lead's first node, but can now try distinct nodes1.2..2.5m away in compact interiors before reusing the lead node. Existing free/busy occupancy priority, same-floor range,8m maximum,24candidate limit and GEOM connection checks remain. No synthetic room offsets or new query budget is added. Node spacing is not body/path clearance proof: close actor avoidance, entry flow, modded interiors and performance remain physically unverified.

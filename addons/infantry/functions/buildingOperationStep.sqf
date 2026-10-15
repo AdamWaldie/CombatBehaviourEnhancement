@@ -2060,7 +2060,7 @@ private _delay=call {
                             private _anchor=_positions select (_route select 0);
                             private _candidates=_positions select {
                                 _x isNotEqualTo _anchor && {abs (((AGLToASL _x) select 2)-((AGLToASL _anchor) select 2)) <= 1.5}
-                                    && {_x distance2D _anchor >= 2.5} && {_x distance2D _anchor <= 8}
+                                    && {_x distance2D _anchor >= 1.2} && {_x distance2D _anchor <= 8}
                             };
                             private _occupied=[[_partner]] call _occupiedRoomTargets;
                             // Prefer non-conflicting native nodes, but keep blocked alternatives
@@ -2069,8 +2069,16 @@ private _delay=call {
                                 !([_x,_occupied] call _roomTargetOccupied)
                             };
                             private _busyCandidates=_candidates-_freeCandidates;
-                            private _freeRanks=_freeCandidates apply {[_x distance2D _anchor,_x]};
-                            private _busyRanks=_busyCandidates apply {[_x distance2D _anchor,_x]};
+                            // Wider native nodes remain preferred. A compact interior may have no
+                            // 2.5m-separated point; try its distinct >=1.2m native nodes before
+                            // falling back to the lead's exact entry destination. No offsets.
+                            private _entryRank={
+                                params ["_node"];
+                                private _distance=_node distance2D _anchor;
+                                [_distance+([10,0] select (_distance >= 2.5)),_node]
+                            };
+                            private _freeRanks=_freeCandidates apply {[_x] call _entryRank};
+                            private _busyRanks=_busyCandidates apply {[_x] call _entryRank};
                             _freeRanks sort true;
                             _busyRanks sort true;
                             private _ranked=_freeRanks+_busyRanks;
