@@ -7,7 +7,8 @@
  * on every call; deletion, movement, rotation and damage do not rely on a mission-object grid.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 requested m/s <NUMBER, 20>, clamped 0..35;
  * 2 server recheck <BOOL, false> - read-only remote-vehicle sampling allowed on server;
- * 3 measured curvature <ARRAY, []> optional single finite inverse-metre value from local track.
+ * 3 measured curvature <ARRAY, []> optional finite inverse-metre value from local track;
+ * optional second BOOL permits stopped prediction only for fresh native-path evidence.
  * Empty retains instantaneous native-yaw fallback for independent server/script rechecks.
  * Return Value: ARRAY [gate observation ARRAY, solid observation ARRAY]. Gate observation retains
  * [cap m/s, gate OBJECT, gap metres, time, rays]. Solid is empty without a sampled blocker, else
@@ -44,8 +45,8 @@ private _yaw=(angularVelocityModelSpace _vehicle) param [2,0];
 if (!finite _yaw || {_velocity <= 1}) then {_yaw=0};
 private _bendLength=(_velocity*2.5) max 8 min _horizon;
 private _curvature=if (_velocity > 1) then {_yaw/_velocity} else {0};
-if (count _measured == 1 && {(_measured select 0) isEqualType 0} && {finite (_measured select 0)}) then {
-    _curvature=if (_velocity > 1) then {_measured select 0} else {0};
+if (count _measured in [1,2] && {(_measured select 0) isEqualType 0} && {finite (_measured select 0)}) then {
+    _curvature=if (_velocity > 1 || {_measured param [1,false,[true]]}) then {_measured select 0} else {0};
 };
 private _maxCurvature=(70/57.2957795)/_bendLength;
 _curvature=(_curvature max -_maxCurvature) min _maxCurvature;

@@ -124,6 +124,9 @@ if (_restore isNotEqualTo []) then {
             };
             // Retire an exact-owned steering path before native handback. Readiness is
             // insufficient: the engine can report unitReady while a fixed path still runs.
+            if (!(_vehicle in _keepCrew)) then {
+                [_vehicle,_group,["CONVOY"],true,_navigation getOrDefault ["revision",-1]] call WAIT_fnc_DrivingNativePathWatch;
+            };
             private _movementReceipt=_vehicle getVariable ["WAIT_Convoy_MovementReceipt",[]];
             if (!(_vehicle in _keepCrew) && {count _movementReceipt == 5}
                 && {(_movementReceipt select 0) == _group}

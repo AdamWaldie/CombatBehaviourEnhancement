@@ -19,6 +19,7 @@
 
 params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
+[_vehicle,_expectedGroup,["ORDINARY"],true] call WAIT_fnc_DrivingNativePathWatch;
 private _corridor=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
 private _corridorGroup=_corridor getOrDefault ["group",grpNull];
 if (!isNull _corridorGroup && {isNull _expectedGroup || {_expectedGroup == _corridorGroup}}

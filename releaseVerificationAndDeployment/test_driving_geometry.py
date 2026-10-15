@@ -65,3 +65,16 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertIn('_geometryTracks getOrDefault [netId _vehicle,[]]',s)
         self.assertIn('_geometryTracks set [netId _vehicle,_turn select 1]',s)
         self.assertNotIn('getOrDefault ["geometryTrack",[]]',s)
+
+    def test_native_path_hint_is_fresh_local_bounded_and_not_a_movement_writer(self):
+        s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text()
+        for marker in ('"PathCalculated"','_path select [0,64]','_thisEventHandler',
+                       'removeEventHandler','_expectedRevision','time-(_segment select 1) > 5',
+                       'expectedDestination _driver','expectedDestination _operator',
+                       '_distance <= _nearDistance','_distance >= 3','_best=12','(_local select 1) > 1','_nearIndex+3','_oldBinding select 3'):
+            self.assertIn(marker,s)
+        for forbidden in ('doMove','setDriveOnPath','forceSpeed','calculatePath','createAgent','spawn','waitUntil'):
+            self.assertNotIn(forbidden,s.split('params [[',1)[1])
+        self.assertNotRegex(s.split('params [[',1)[1],r'setVariable\s*\[[^\n]*,\s*true\s*\]')
+        for name in ('drivingAssistRelease','convoyReleaseLocal'):
+            self.assertIn('call WAIT_fnc_DrivingNativePathWatch',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
