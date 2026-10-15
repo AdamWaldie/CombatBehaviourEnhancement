@@ -20,6 +20,16 @@ class ClearActorMinimumTests(unittest.TestCase):
         self.assertIn('INSUFFICIENT_ELIGIBLE_ACTORS',s)
         self.assertIn('["minimumActors",1]',s)
         self.assertIn('_minimumActors != floor _minimumActors',s)
+    def test_fresh_admission_excludes_dormant_actors_but_resume_keeps_ownership(self):
+        s=src('cortexClearBuilding')
+        roster=s.split('private _available =',1)[1].split('// Natural contact',1)[0]
+        self.assertIn('_resume || {simulationEnabled _x && {!isObjectHidden _x}}',roster)
+        self.assertLess(s.index('private _resume ='),s.index('private _available ='))
+        self.assertIn('(_previous select 0) == _building',s)
+        natural=src('cortexBuildingContact').split('private _capable=',1)[1].split('// A natural entry',1)[0]
+        self.assertIn('simulationEnabled _x',natural)
+        self.assertIn('!isObjectHidden _x',natural)
+
     def test_nominal_squad_does_not_satisfy_strict_minimum(self):
         # Two protected actors among four living actors leave only two eligible.
         alive=[True]*4;task_free=[True,True,False,False]

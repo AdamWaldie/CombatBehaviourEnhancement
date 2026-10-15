@@ -37,10 +37,10 @@ if (isNull _anchor) then {_anchor=leader _group};
 if (isNull _anchor) exitWith {false};
 private _capable=(units _group) select {
     [_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
-        && {isNull objectParent _x}
+        && {isNull objectParent _x} && {simulationEnabled _x} && {!isObjectHidden _x}
 };
 // A natural entry needs a viable clearing pair plus exterior/reserve strength. Explicit CLEAR
-// orders retain their existing two-person acceptance for mission-authored special cases.
+// orders retain their existing executor minimum for mission-authored special cases.
 if (count _capable < 4) exitWith {false};
 
 private _records=_enemies select {

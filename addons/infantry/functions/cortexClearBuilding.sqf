@@ -128,6 +128,8 @@ private _ownedRecall={
         && {(_recall select 2) == _leader} && {time < (_recall select 3)}
 };
 private _admissionGeneration=_group getVariable ["WAIT_AIPass_ClearGeneration",0];
+private _previous = _group getVariable ["WAIT_AIPass_ClearOrder", []];
+private _resume = _options getOrDefault ["resume", false] && {_previous isNotEqualTo []} && {(_previous select 0) == _building};
 private _available = (units _group) select {
     private _posted=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
     private _ownedPost=(_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []
@@ -142,6 +144,7 @@ private _available = (units _group) select {
         || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
     _canMove && {[_x] call WAIT_fnc_CortexCombatEffective} && {local _x} && {!isPlayer _x}
         && {isNull objectParent _x} && {_reservationFree}
+        && {_resume || {simulationEnabled _x && {!isObjectHidden _x}}}
         && {isNull (remoteControlled _x)}
         && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
@@ -182,8 +185,6 @@ private _remainingAdmission=+_team;
     };
 } forEach ((_group getVariable ["WAIT_CombatPairs",[]]) select [0,16]);
 _team = (_pairedAdmission+_remainingAdmission) select [0,_entryCapacity];
-private _previous = _group getVariable ["WAIT_AIPass_ClearOrder", []];
-private _resume = _options getOrDefault ["resume", false] && {_previous isNotEqualTo []} && {(_previous select 0) == _building};
 // A one-time native belief may seed a floor's route, never track an unseen live target.
 // Preserve the original timestamp across owner adoption; a stale hint is not renewed.
 private _contactBelief=if (_resume) then {+(_previous param [11,[],[[]]])} else {_options getOrDefault ["contactBelief",[]]};
