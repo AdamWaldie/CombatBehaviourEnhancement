@@ -570,3 +570,11 @@ is retained. Attached target motion is not a replacement order; changing the att
 This closes same-index edit gaps in delayed owner dispatch, clearance continuation and held
 post-clear state. It reads current-node metadata only, without running authored code or adding
 world scans. Same-index edits, moving attachments, JIP/HC and overhead remain physically unverified.
+
+Natural building contact now identifies the house and checks its bounds/roof using the stored
+native believed position, rather than reading the hostile's live transform after knowledge was
+sampled. It accepts only finite three-coordinate beliefs with nonnegative finite age and keeps
+the existing five-second freshness and three-contact geometry limits. This prevents unseen enemy
+movement from selecting a different house through live position reads. Belief inside a roofed
+house is not proof the enemy remains there. Threat-prioritized interior routing is still missing;
+physical contact/entry, lost sight, false beliefs and HC continuity remain unverified.

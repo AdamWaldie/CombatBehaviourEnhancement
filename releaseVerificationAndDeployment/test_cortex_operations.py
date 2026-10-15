@@ -7358,6 +7358,19 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(tick.index('WAIT_fnc_CortexCoordinatedAssault'),tick.index('WAIT_fnc_CortexBuildingContact'))
         self.assertLess(tick.index('WAIT_fnc_CortexBuildingContact'),tick.index('WAIT_fnc_CortexTacticalStart'))
 
+    def test_natural_building_admission_uses_belief_not_unseen_enemy_transform(self):
+        text=source('cortexBuildingContact')
+        for marker in ('_x param [1,[],[[]]]','count _belief == 3','!finite _x',
+                       'finite _age','_age >= 0','private _candidatePosition=+(_x select 1)',
+                       'nearestBuilding _candidatePosition',
+                       '_candidateBuilding worldToModelVisual _candidatePosition',
+                       'AGLToASL _candidatePosition'):
+            self.assertIn(marker,text)
+        for forbidden in ('getPosATL _candidateEnemy','getPosWorld _candidateEnemy','getPosASL _candidateEnemy'):
+            self.assertNotIn(forbidden,text)
+        self.assertIn('if (count _records > 3) then {_records resize 3}',text)
+        self.assertIn('(_x param [2,1e6,[0]]) <= 5',text)
+
     def test_natural_building_contact_has_physical_audit(self):
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')
         for marker in ['BUILD-CONTACT-native-knowledge','BUILD-CONTACT-natural-clear-started',
