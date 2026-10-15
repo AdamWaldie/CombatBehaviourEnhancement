@@ -8181,7 +8181,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('_pair set [_slot,_replacement]'),text.index('if (_pairRosterChanged) then'))
     def test_clearance_reserves_stage_once_and_release_owned_marker(self):
         step=source('buildingOperationStep')
-        for marker in ['reserveStageAttempts','(_reserves select [0,8])','_stageAttempts pushBackUnique _key','doStop _reserve','WAIT_Cortex_ClearReserve']:
+        for marker in ['reserveStageAttempts','_stageReserves select [0,8]','_stageAttempts pushBackUnique _key','doStop _reserve','WAIT_Cortex_ClearReserve']:
             self.assertIn(marker,step)
         self.assertIn('private _stageSearchBudget=1',step)
         self.assertIn('{_stageSearchBudget > 0}',step)
@@ -8217,7 +8217,7 @@ class CortexOperations(unittest.TestCase):
         step=source('buildingOperationStep')
         stage=step.split('private _reserveStages=',1)[1].split('private _pairRosterChanged=',1)[0]
         self.assertLess(stage.index('_stage set [2,"ARRIVED"]'),stage.index('// A deadline may retire only'))
-        recovery=stage.split('// A deadline may retire only',1)[1].split('} forEach (_reserves select [0,8])',1)[0]
+        recovery=stage.split('// A deadline may retire only',1)[1].split('} forEach _stageReserves',1)[0]
         for guard in ['[_reserve] call _ownsCurrentMove','[_reserve] call _reserveReady','call _mayIssueMovement']:
             self.assertLess(recovery.index(guard),recovery.index('doStop _reserve'))
         self.assertIn('_stageSearchCounts getOrDefault [_key,0]',recovery)

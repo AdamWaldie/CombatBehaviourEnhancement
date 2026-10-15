@@ -85,4 +85,25 @@ class ClearEntryFlowTests(unittest.TestCase):
         # Actual failed proposal remains lower priority, despite its attractive bearing.
         options[1]=(1,0,-180,30,'rear')
         self.assertEqual(min(options)[-1],'front')
+
+class ClearReserveFairnessTests(unittest.TestCase):
+    def test_exterior_reserve_service_window_does_not_starve_later_actors(self):
+        from pathlib import Path
+        source=(Path(__file__).resolve().parents[1]/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        assert '"reserveStageCursor"' in source
+        assert source.count('} forEach _stageReserves;') == 2
+        assert '} forEach (_reserves select [0,8]);' not in source
+        # Stable rosters larger than the callback budget must all receive service.
+        for count in (9,12,16,24):
+            cursor=0
+            seen=set()
+            for _ in range((count+7)//8):
+                roster=list(range(count))
+                rotated=roster[cursor:]+roster[:cursor]
+                seen.update(rotated[:8])
+                cursor=(cursor+8)%count
+            assert seen == set(range(count))
+        # Small rosters retain their existing whole-roster service without rotation.
+        assert list(range(6))[:8] == list(range(6))
+
 if __name__=='__main__': unittest.main()

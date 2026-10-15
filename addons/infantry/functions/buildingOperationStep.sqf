@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
+ * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
  * Locality / Authority: Runs through WAIT's shared scheduler where the group is local. It checks the
  * operation generation, Zeus and external ownership before issuing any movement command.
  * Repeat/JIP: One-shot callback. Shared and individual physical room progress is public; owner-local actor assignments are
@@ -897,6 +898,15 @@ private _delay=call {
     if (_reserves isEqualTo [] && {[_leader] call _reserveReady}) then {
         _reserves pushBack _leader;
     };
+    // Rotate the bounded service window: a small building can leave more than eight
+    // eligible reserves, and a fixed prefix would never stage or recheck later actors.
+    private _stageReserves=+_reserves;
+    if (count _stageReserves > 8) then {
+        private _cursor=(_job getOrDefault ["reserveStageCursor",0]) mod count _stageReserves;
+        _stageReserves=(_stageReserves select [_cursor])+(_stageReserves select [0,_cursor]);
+        _job set ["reserveStageCursor",(_cursor+8) mod count _stageReserves];
+    };
+    _stageReserves=_stageReserves select [0,8];
     // Reserves stage near the entry instead of following the native formation around the house.
     // This is one destination plus an arrival hold per actor, not a recurring movement rewrite.
     private _reserveStages=_job getOrDefault ["reserveStages",createHashMap];
@@ -921,7 +931,7 @@ private _delay=call {
             private _due=(_stageViewChecks getOrDefault [_candidateKey,[0,-1]]) select 0;
             if (_due < _earliestView) then {_earliestView=_due; _stageViewKey=_candidateKey};
         };
-    } forEach (_reserves select [0,8]);
+    } forEach _stageReserves;
     {
         private _reserve=_x;
         private _key=netId _reserve;
@@ -1164,7 +1174,7 @@ private _delay=call {
             _reserveStages set [_key,_stage];
             _stageJournalChanged=true;
         };
-    } forEach (_reserves select [0,8]);
+    } forEach _stageReserves;
     _job set ["reserveStages",_reserveStages];
     _job set ["reserveStageViewChecks",_stageViewChecks];
     _job set ["reserveStageAttempts",_stageAttempts];
