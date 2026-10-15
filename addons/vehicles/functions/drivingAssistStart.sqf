@@ -418,6 +418,14 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
                 && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
                 && {call _mayRecoverRoute};
+            private _jamObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity,_driver,_movementOperator];
+            private _jamSeen=_vehicle getVariable ["WAIT_DrivingTrafficSeen",[]];
+            private _jamContinuous=count _jamSeen == 3 && {(_jamSeen select 0) isEqualTo _jamObserver}
+                && {(_jamSeen select 1) == _jamPeer} && {serverTime >= (_jamSeen select 2)}
+                && {serverTime-(_jamSeen select 2) <= 6};
+            // This local observation receipt is not replayed or broadcast. Migration/gaps
+            // restart only stationary dwell, never the public attempt count or hard deadline.
+            _vehicle setVariable ["WAIT_DrivingTrafficSeen",if (_jamEligible) then {[_jamObserver,_jamPeer,serverTime]} else {nil}];
             if (_jamEligible) then {
                 if (count _jam == 0) then {
                     _jam=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
@@ -431,7 +439,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     || {(expectedDestination _movementOperator) isNotEqualTo (_jam get "command")}) then {
                     if !(_jam get "yielded") then {_jam set ["yielded",true];_jamChanged=true};
                 };
-                if ((_jam get "peer") != _jamPeer || {(_jam get "since") < 0}) then {
+                if (!_jamContinuous || {(_jam get "peer") != _jamPeer} || {(_jam get "since") < 0}) then {
                     _jam set ["peer",_jamPeer];_jam set ["since",serverTime];_jamChanged=true;
                 };
                 if (!(_jam get "yielded") && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}

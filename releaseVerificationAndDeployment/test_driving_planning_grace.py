@@ -45,6 +45,20 @@ class DrivingPlanningGraceTests(unittest.TestCase):
             self.assertNotIn(forbidden,jam)
         self.assertEqual(jam.count(' doMove '),1)
         self.assertLess(s.index('_vehicle forceSpeed _capMps'),s.index('// Bounded traffic replan:'))
+    def test_traffic_dwell_requires_current_owner_and_fresh_samples(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        jam=s.split('// Bounded traffic replan:',1)[1].split('// Waiting behind traffic',1)[0]
+        self.assertIn('[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity,_driver,_movementOperator]',jam)
+        self.assertIn('serverTime-(_jamSeen select 2) <= 6',jam)
+        self.assertIn('serverTime >= (_jamSeen select 2)',jam)
+        self.assertIn('if (!_jamContinuous ||',jam)
+        seen=next(line for line in jam.splitlines() if 'setVariable ["WAIT_DrivingTrafficSeen"' in line)
+        self.assertNotIn(',true]',seen)
+        reset=jam.split('if (!_jamContinuous ||',1)[1].split('};',1)[0]
+        self.assertNotIn('"deadline"',reset)
+        self.assertNotIn('"attempts"',reset)
+        release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
+        self.assertIn('setVariable ["WAIT_DrivingTrafficSeen",nil]',release)
     def test_timing_model_never_escalates_before_required_observation(self):
         windows=(20,30,0,60)
         def due(stage,elapsed,deadline_elapsed,traffic=False):
