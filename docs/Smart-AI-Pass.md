@@ -611,3 +611,9 @@ lanes before geometry queries. Input work is capped at 64 exits, 128 reserved po
 observer lanes, matching the bounded proposal path. Diagnostic refusals report inputs=false.
 This protects CQB security, egress and garrison replanning from malformed data; it does not prove
 post accessibility, full building isolation or stable physical positioning.
+
+Clearance route setup snapshots absolute node heights once (up to 512 conversions plus one
+belief conversion). Remaining-node floor searches reuse that local snapshot instead of repeating
+terrain-frame conversions at every route step. Retired-index construction is also performed once.
+The nearest-neighbour search itself remains quadratic and bounded by admission; no engine frame
+or total addon overhead claim follows from this reduction. Physical profiling remains outstanding.

@@ -24,10 +24,19 @@ class ClearContactBeliefTests(unittest.TestCase):
         self.assertIn('_beliefSeeded=true',plan)
         self.assertIn('_selectionOrigin=_contactBelief select 0',plan)
         self.assertIn('_selectionOrigin=_routeCursor',plan)
-        self.assertIn('AGLToASL (_positions select _x)',plan)
+        self.assertIn('_positionHeights=_positions apply {(AGLToASL _x) select 2}',plan)
         self.assertNotIn('_cleared pushBack',plan)
         for forbidden in ('getPosATL _enemy','getPosASL _enemy','setPos','reveal'):
             self.assertNotIn(forbidden,plan)
+    def test_height_conversion_work_is_linear_not_repeated_per_remaining_node(self):
+        plan=source('cortexClearBuilding').split('private _routeOrder=[];',1)[1].split('private _pairs=',1)[0]
+        loop=plan.split('while {_remaining isNotEqualTo []} do {',1)[1]
+        self.assertNotIn('AGLToASL',loop)
+        self.assertIn('_positionHeights select _x',loop)
+        self.assertIn('_beliefHeight',loop)
+        self.assertIn('private _retiredIndices=_cleared+_unreachable',plan)
+        self.assertNotIn('_cleared+_unreachable',loop)
+
     def test_reference_route_preserves_floor_order_and_every_node(self):
         def route(points,origin,belief=None):
             remaining=list(range(len(points)));result=[];seeded=False

@@ -316,20 +316,24 @@ private _entryRoute=if (_entries isEqualTo []) then {[]} else {
 // Build a stable continuous route rather than repeatedly choosing whichever marker is nearest
 // to each individual. This prevents criss-crossing and gives every pair a clear-through sector.
 private _routeOrder=[];
+// Snapshot absolute heights once. Repeated remaining-node scans are array arithmetic,
+// not repeated terrain-frame engine conversions for every route step (up to 512 nodes).
+private _positionHeights=_positions apply {(AGLToASL _x) select 2};
+private _beliefHeight=if (_contactBelief isEqualTo []) then {0} else {(AGLToASL (_contactBelief select 0)) select 2};
 private _beliefSeeded=false;
+private _retiredIndices=_cleared+_unreachable;
 private _remaining=[];
 for "_index" from 0 to ((count _positions)-1) do {
-    if !(_index in (_cleared+_unreachable)) then {_remaining pushBack _index};
+    if !(_index in _retiredIndices) then {_remaining pushBack _index};
 };
 private _routeCursor=if (_entryRoute isEqualTo []) then {getPosATL _building} else {_entryRoute};
 while {_remaining isNotEqualTo []} do {
     private _lowest=1e9;
-    {private _height=(AGLToASL (_positions select _x)) select 2; if (_height < _lowest) then {_lowest=_height}} forEach _remaining;
-    private _floorCandidates=_remaining select {abs (((AGLToASL (_positions select _x)) select 2)-_lowest) < 1.8};
+    {private _height=_positionHeights select _x; if (_height < _lowest) then {_lowest=_height}} forEach _remaining;
+    private _floorCandidates=_remaining select {abs ((_positionHeights select _x)-_lowest) < 1.8};
     private _selectionOrigin=_routeCursor;
     if (!_beliefSeeded && {_contactBelief isNotEqualTo []}
-        && {_floorCandidates findIf {abs (((AGLToASL (_positions select _x)) select 2)
-            -((AGLToASL (_contactBelief select 0)) select 2)) <= 1.5} >= 0}) then {
+        && {_floorCandidates findIf {abs ((_positionHeights select _x)-_beliefHeight) <= 1.5} >= 0}) then {
         _selectionOrigin=_contactBelief select 0;
         _beliefSeeded=true;
     };
