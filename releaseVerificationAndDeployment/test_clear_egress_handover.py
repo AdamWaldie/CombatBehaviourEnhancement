@@ -30,7 +30,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
         self.assertIn('!(_actor in _diverted)', admission)
         self.assertIn('_job set ["egressFailed",true]', admission)
         self.assertIn('_job set ["egressDiverted",_diverted]', admission)
-        self.assertIn('private _egressAssignments=_active apply', transition)
+        self.assertIn('_job set ["egressPending",_pending]', transition)
 
     def test_individual_order_filters_arrivals_and_retry_without_losing_failure(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')

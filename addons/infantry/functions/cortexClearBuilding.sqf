@@ -14,6 +14,8 @@
  * shared low-floor-first queue. Only roofed interior positions are clearance objectives; exposed
  * balconies and roof posts belong to garrisoning. This avoids a support partner waiting outside while only one soldier
  * attempts every room, and makes a large squad flow through the building instead of parking around it.
+ * Final egress journals pending native-leg receipts and assigned exits across owner
+ * migration; planning and travel share the original finite exit deadline.
  * Exterior reserves consider up to sixteen already-discovered native exits independently of
  * the four nearest interior entry choices; this does not establish complete building isolation.
  * Spare members above the entry capacity remain an actual reserve and replace unavailable interior
@@ -497,12 +499,15 @@ if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
 // native destination owns the actor now and must not inherit an old exit receipt.
 private _egressJournal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
 if (!_resume) then {_group setVariable ["WAIT_Cortex_ClearEgress",nil,true]};
-if (_resume && {count _egressJournal == 10} && {(_egressJournal select 0) == "EGRESS"}
+if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) == "EGRESS"}
     && {(_egressJournal select 4) == _building}
     && {(_egressJournal select 5) isEqualTo (_job get "buildingTransform")}
     && {(_egressJournal select 6) == _hardDeadline}
     && {(_egressJournal select 7) isEqualType 0} && {finite (_egressJournal select 7)}
-    && {count (_egressJournal select 3) <= 8}) then {
+    && {count (_egressJournal select 3) <= 8}
+    && {count _egressJournal == 10 || {(_egressJournal select 10) isEqualTo 2
+        && {(_egressJournal select 11) isEqualType []} && {(_egressJournal select 12) isEqualType []} && {count (_egressJournal select 12) <= 4}
+        && {count (_egressJournal select 11)+count (_egressJournal select 3) <= 8}}}) then {
     private _assignments=[];
     private _records=[];
     private _moves=createHashMap;
@@ -528,9 +533,41 @@ if (_resume && {count _egressJournal == 10} && {(_egressJournal select 0) == "EG
             } else {_failed=true};
         } else {_failed=true};
     } forEach (_egressJournal select 3);
-    if (_assignments isEqualTo []) then {_failed=true};
+    // Version 2 appends pending native-leg receipts and bounded entrance-use counts.
+    // Legacy ten-field journals have no pending work. Adoption never issues movement.
+    private _pending=[];
+    private _uses=createHashMap;
+    if (count _egressJournal == 13) then {
+        {
+            if (_x isEqualType [] && {count _x == 2}
+                && {(_x select 0) isEqualType objNull} && {(_x select 1) isEqualType []}
+                && {count (_x select 1) in [0,3]}
+                && {(_x select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
+                _x params ["_actor","_leg"];
+                private _live=(expectedDestination _actor) param [0,[]];
+                private _owned=currentCommand _actor in ["","STOP"]
+                    || {currentCommand _actor == "MOVE" && {_leg isEqualType []} && {count _leg == 3}
+                        && {count _live == 3} && {_live vectorDistance _leg <= 0.25}};
+                if (_actor in _available && {group _actor == _group} && {_leg isEqualType []}
+                    && {_owned} && {!(_actor in ((_assignments+_pending) apply {_x select 0}))}) then {
+                    _pending pushBack [_actor,+_leg];
+                    _moves set [netId _actor,+_leg];
+                } else {_failed=true};
+            } else {_failed=true};
+        } forEach (_egressJournal select 11);
+        {
+            if (_x isEqualType [] && {count _x == 2}
+                && {(_x select 0) isEqualType ""} && {(_x select 1) isEqualType 0}
+                && {finite (_x select 1)} && {(_x select 1) >= 0} && {(_x select 1) <= 8}) then {
+                _uses set [_x select 0,_x select 1];
+            } else {_failed=true};
+        } forEach ((_egressJournal select 12) select [0,4]);
+    };
+    if (_assignments isEqualTo [] && {_pending isEqualTo []}) then {_failed=true};
+    _job set ["egressPending",_pending];
+    _job set ["egressExitUses",_uses];
     _job set ["phase","EGRESS"];
-    _team=_assignments apply {_x select 0};
+    _team=(_assignments+_pending) apply {_x select 0};
     _job set ["team",_team];
     _job set ["egressAssignments",_assignments];
     _job set ["egressProgress",_records];
@@ -540,8 +577,8 @@ if (_resume && {count _egressJournal == 10} && {(_egressJournal select 0) == "EG
     _job set ["egressDeadline",time+(((_egressJournal select 7)-serverTime) max 0)];
     _job set ["egressFailed",_failed];
     _job set ["entryFailed",_egressJournal select 9];
-    _operation set ["participants",_assignments apply {_x select 0}];
-    _operation set ["participantProgress",_assignments apply {[_x select 0,getPosATL (_x select 0)]}];
+    _operation set ["participants",+_team];
+    _operation set ["participantProgress",_team apply {[_x,getPosATL _x]}];
     _operation set ["phase","EGRESS"];
     _group setVariable ["WAIT_Operation",_operation,true];
     _group setVariable ["WAIT_Cortex_ClearStatus",["EGRESS",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];

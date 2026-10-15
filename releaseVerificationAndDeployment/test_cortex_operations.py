@@ -2199,14 +2199,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_job get "egressDeadlineServer"',publish)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         observe=qa.split('private _exit=_group getVariable ["WAIT_Cortex_ClearEgress",[]];',1)[1].split('forEach _egressAssignments;',1)[0]
-        self.assertIn('count _exit in [4,10]',observe)
-        self.assertIn('_egressAssignments=+(_exit select 3)',observe)
+        self.assertIn('count _exit in [4,10,13]',observe)
+        self.assertIn('_egressAssignments pushBack +_x',observe)
         self.assertIn('_egressVisits set [_forEachIndex,true]',observe)
 
     def test_clearance_egresses_before_terminal_handover(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         self.assertIn('(_job getOrDefault ["phase","CLEAR"]) == "EGRESS"',text)
-        self.assertIn('[_unit,_exitPoint,false]',text)
+        self.assertIn('pushBack [_unit,+_target,false]',text)
         egress=text.split('private _claimedExitPoints=',1)[1].split('_job set ["phase","EGRESS"]',1)[0]
         planner=text.split('private _chooseExteriorExit={',1)[1].split('// Shared room coverage',1)[0]
         self.assertIn('_claimedExitPoints+_securityPoints',egress)
@@ -2214,7 +2214,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('call WAIT_fnc_BuildingExteriorProposal',planner)
         self.assertIn('call WAIT_fnc_BuildingExteriorCandidate',planner)
         self.assertNotIn('from 0 to 11',egress)
-        self.assertIn('_claimedExitPoints pushBack +_exitPoint',egress)
+        self.assertIn('_claimedExitPoints pushBackUnique +(_x select 1)',egress)
         self.assertIn('_unit distance2D _target > 1',text)
         self.assertIn('_job set ["phase","EGRESS"]',text)
         self.assertIn('_job set ["egressAssignments",_egressAssignments]',text)

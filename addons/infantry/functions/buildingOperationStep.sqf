@@ -23,6 +23,8 @@
  * After shared coverage, a completed room holder may yield once to nearby free visited space
  * which no unfinished worker needs. One candidate check per callback shares the geometry budget.
  * If no interior point is available, one bounded exterior exit selection may vacate the holder.
+ * Final egress plans one actor per callback (up to four proposals), journals pending
+ * actors across owner migration and retains the original shared 45-second boundary.
  * Early exits use the same callback, retain their 45-second deadline and public episode receipt,
  * and are reused at group egress without restarting movement or granting synthetic arrival.
  * Physically arrived early exits observe their selected doorway only after a fresh eye ray;
@@ -729,8 +731,108 @@ private _delay=call {
     };
     _job set ["earlyExitViewChecks",_earlyViewChecks];
     call _publishEarlyExits;
+    // Shared bounded planner: at most four proposals/entrances, existing geometry checks.
+    // Selection grants no movement authority or physical arrival receipt.
+    private _chooseExteriorExit={
+        params ["_unit","_reservationsIn","_securityLanes","_exitUses",["_observation",false]];
+        private _entries=_job get "entries";
+        private _buildingPos=getPosATL _building;
+        private _ranked=[];
+        {
+            _ranked pushBack [_exitUses getOrDefault [str _x,0],_unit distance2D _x,_forEachIndex,+_x];
+        } forEach (_entries select [0,4]);
+        _ranked sort true;
+        // The fallback still receives geometry validation and cannot imply model access.
+        if (_ranked isEqualTo []) then {
+            _ranked pushBack [0,0,0,+_buildingPos];
+        };
+        private _taken=+_reservationsIn;
+        private _tried=[];
+        private _exitPoint=[];
+        private _selectedEntry=[];
+        private _selectedWatch=[];
+        // Cover every retained entrance before rejecting: the old three-slot prefix
+        // could never examine a fourth viable exit when the first three failed.
+        // Keep three proposals for smaller sets; at most four for eight workers.
+        private _proposalCount=3 max count _ranked;
+        for "_proposalIndex" from 0 to (_proposalCount-1) do {
+            if (_exitPoint isNotEqualTo []) exitWith {};
+            private _entry=+((_ranked select (_proposalIndex mod count _ranked)) select 3);
+            private _outward=_buildingPos getDir _entry;
+            private _search=_entry getPos [10,_outward];
+            private _watch=_entry getPos [2,_outward];
+            _watch set [2,(_entry select 2)+1.2];
+            private _reservations=_taken+_tried;
+            private _candidate=[_unit,_search,_entry,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorProposal;
+            private _valid=false;
+            if (count _candidate == 3) then {
+                _candidate set [2,0];
+                _valid=[_unit,_building,_candidate,_entry,_watch,_entries,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorCandidate;
+                _tried pushBackUnique +_candidate;
+                if (_valid) then {_exitPoint=+_candidate; _selectedEntry=+_entry; _selectedWatch=+_watch};
+            };
+            diag_log format ["WAIT CLEAR EGRESS PROPOSAL: %1",[_job get "generation",netId _unit,_proposalIndex,+_entry,+_candidate,_valid]];
+        };
+        if (_selectedEntry isNotEqualTo []) then {
+            private _exitKey=str _selectedEntry;
+            _exitUses set [_exitKey,(_exitUses getOrDefault [_exitKey,0])+1];
+        };
+        if (_observation) exitWith {[_exitPoint,_selectedEntry,_selectedWatch]};
+        _exitPoint
+    };
+    // End exterior planner; selection alone grants no command authority.
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
         private _diverted=_job getOrDefault ["egressDiverted",[]];
+        private _pending=_job getOrDefault ["egressPending",[]];
+        if (_pending isNotEqualTo [] && {time < (_job get "egressDeadline")} && {call _mayIssueMovement}) then {
+            private _row=_pending deleteAt 0;
+            _row params ["_unit","_leg"];
+            private _live=(expectedDestination _unit) param [0,[]];
+            private _owned=currentCommand _unit in ["","STOP"]
+                || {currentCommand _unit == "MOVE" && {count _leg == 3}
+                    && {count _live == 3} && {_live vectorDistance _leg <= 0.25}};
+            if ([_unit] call _actorAvailable && {!(_unit in _unavailable)} && {_owned}) then {
+                private _claimedExitPoints=(keys _earlyExits) apply {+((_earlyExits get _x) select 1)};
+                private _securityPoints=[];
+                private _securityLanes=[];
+                {
+                    private _row=_earlyExits get _x;
+                    if ((_row select 3) in ["MOVING","ARRIVED"] && {count (_row param [6,[]]) == 3}) then {
+                        _securityLanes pushBack [+(_row select 1),+(_row select 6)];
+                    };
+                } forEach keys _earlyExits;
+                // An egress slot must preserve live exterior security, not only other exit slots.
+                {
+                    private _security=_x;
+                    private _securityStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _security,[]];
+                    if (!(_security in (((_job get "egressAssignments")+_pending) apply {_x select 0}))
+                        && {_security != _unit} && {[_security] call _actorAvailable}
+                        && {simulationEnabled _security} && {!isObjectHidden _security}
+                        && {(_securityStage param [2,""]) in ["APPROACH","ARRIVED"]}
+                        && {count (_securityStage param [4,[],[[]]]) == 3}) then {
+                        _securityPoints pushBack +(_securityStage select 0);
+                        _securityLanes pushBack [+(_securityStage select 0),+(_securityStage select 4)];
+                    };
+                } forEach ((_job getOrDefault ["securityActors",[]]) select [0,64]);
+                { _claimedExitPoints pushBackUnique +(_x select 1) } forEach (_job get "egressAssignments");
+                private _exitUses=_job getOrDefault ["egressExitUses",createHashMap];
+                private _target=[_unit,_claimedExitPoints+_securityPoints,_securityLanes,_exitUses] call _chooseExteriorExit;
+                _job set ["egressExitUses",_exitUses];
+                // A failed proposal cannot become an arrival at the actor's current position.
+                if (count _target == 3 && {[_unit] call _actorAvailable}
+                    && {[_unit] call _exitMovementOwned} && {call _mayIssueMovement}) then {
+                    (_job get "egressAssignments") pushBack [_unit,+_target,false];
+                    (_job get "egressProgress") pushBack [_unit,(getPosATL _unit) vectorDistance _target,time,0];
+                    _unit doMove _target;
+                    [_unit,_target] call _rememberMove;
+                } else {_job set ["egressFailed",true]};
+            } else {
+                _job set ["egressFailed",true];
+                _diverted pushBackUnique _unit;
+                (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _unit);
+            };
+            _job set ["egressPending",_pending];
+        };
         private _assignments=(_job get "egressAssignments") select {
             _x params ["_unit"];
             if !([_unit] call _exitMovementOwned) then {
@@ -748,6 +850,7 @@ private _delay=call {
         // A diverted/unavailable actor is no longer ours to route, but its unfinished exit
         // must remain visible instead of counting an empty eligible set as successful egress.
         if (count _assignments < count (_job get "egressAssignments")) then {_job set ["egressFailed",true]};
+        _job set ["egressAssignments",_assignments];
         private _outsideExit={
             params ["_assignment"];
             _assignment params ["_unit","_target"];
@@ -778,8 +881,9 @@ private _delay=call {
             _outside
         };
         // Matching a ground exit horizontally is insufficient when still upstairs.
-        private _arrived=_assignments findIf {[_x] call _outsideExit} < 0;
-        if (_arrived || {_assignments isEqualTo []} || {time >= (_job get "egressDeadline")}) then {
+        private _arrived=_pending isEqualTo [] && {_assignments findIf {[_x] call _outsideExit} < 0};
+        if (_arrived || {time >= (_job get "egressDeadline")}) then {
+            if (_pending isNotEqualTo []) then {_job set ["egressFailed",true]};
             if (!_arrived && {_assignments isNotEqualTo []}) then {
                 _job set ["egressFailed",true];
                 diag_log format ["[WAIT] %1 clear egress incomplete (%2 still inside)",_group,{[_x] call _outsideExit} count _assignments];
@@ -877,7 +981,7 @@ private _delay=call {
                     };
                 } forEach _assignments;
             };
-            1.5
+            if (_pending isNotEqualTo []) then {0.1} else {1.5}
         }
     };
     private _positions = _job get "positions";
@@ -2475,55 +2579,6 @@ private _delay=call {
     private _allWorkersProgressed=_activeWorkers findIf {
         count (_actorVisits getOrDefault [netId _x,[]]) < _requiredVisits
     } < 0;
-    // Shared bounded planner: at most four proposals/entrances, existing geometry checks.
-    // Selection grants no movement authority or physical arrival receipt.
-    private _chooseExteriorExit={
-        params ["_unit","_reservationsIn","_securityLanes","_exitUses",["_observation",false]];
-        private _entries=_job get "entries";
-        private _buildingPos=getPosATL _building;
-        private _ranked=[];
-        {
-            _ranked pushBack [_exitUses getOrDefault [str _x,0],_unit distance2D _x,_forEachIndex,+_x];
-        } forEach (_entries select [0,4]);
-        _ranked sort true;
-        // The fallback still receives geometry validation and cannot imply model access.
-        if (_ranked isEqualTo []) then {
-            _ranked pushBack [0,0,0,+_buildingPos];
-        };
-        private _taken=+_reservationsIn;
-        private _tried=[];
-        private _exitPoint=[];
-        private _selectedEntry=[];
-        private _selectedWatch=[];
-        // Cover every retained entrance before rejecting: the old three-slot prefix
-        // could never examine a fourth viable exit when the first three failed.
-        // Keep three proposals for smaller sets; at most four for eight workers.
-        private _proposalCount=3 max count _ranked;
-        for "_proposalIndex" from 0 to (_proposalCount-1) do {
-            if (_exitPoint isNotEqualTo []) exitWith {};
-            private _entry=+((_ranked select (_proposalIndex mod count _ranked)) select 3);
-            private _outward=_buildingPos getDir _entry;
-            private _search=_entry getPos [10,_outward];
-            private _watch=_entry getPos [2,_outward];
-            _watch set [2,(_entry select 2)+1.2];
-            private _reservations=_taken+_tried;
-            private _candidate=[_unit,_search,_entry,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorProposal;
-            private _valid=false;
-            if (count _candidate == 3) then {
-                _candidate set [2,0];
-                _valid=[_unit,_building,_candidate,_entry,_watch,_entries,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorCandidate;
-                _tried pushBackUnique +_candidate;
-                if (_valid) then {_exitPoint=+_candidate; _selectedEntry=+_entry; _selectedWatch=+_watch};
-            };
-            diag_log format ["WAIT CLEAR EGRESS PROPOSAL: %1",[_job get "generation",netId _unit,_proposalIndex,+_entry,+_candidate,_valid]];
-        };
-        if (_selectedEntry isNotEqualTo []) then {
-            private _exitKey=str _selectedEntry;
-            _exitUses set [_exitKey,(_exitUses getOrDefault [_exitKey,0])+1];
-        };
-        if (_observation) exitWith {[_exitPoint,_selectedEntry,_selectedWatch]};
-        _exitPoint
-    };
     // Shared room coverage must not release a partner still parked at its first node.
     // Finish each active actor's finite interior follow-through before successful egress.
     if (count _cleared == count _positions && {!_allWorkersProgressed}
@@ -2838,39 +2893,21 @@ private _delay=call {
         };
         if (_diverted isNotEqualTo []) then {_job set ["egressFailed",true]};
         _job set ["egressDiverted",_diverted];
-        private _claimedExitPoints=(keys _earlyExits) apply {+((_earlyExits get _x) select 1)};
-        private _securityPoints=[];
-        private _securityLanes=[];
+        // Defer expensive exterior planning; pending actors retain their owned room leg.
+        private _moves=_job getOrDefault ["movementTargets",createHashMap];
+        private _pending=[];
+        private _egressAssignments=[];
         {
-            private _row=_earlyExits get _x;
-            if ((_row select 3) in ["MOVING","ARRIVED"] && {count (_row param [6,[]]) == 3}) then {
-                _securityLanes pushBack [+(_row select 1),+(_row select 6)];
-            };
-        } forEach keys _earlyExits;
-        // An egress slot must preserve live exterior security, not only other exit slots.
-        {
-            private _security=_x;
-            private _securityStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _security,[]];
-            if (!(_security in _active) && {[_security] call _reserveReady}
-                && {(_securityStage param [2,""]) in ["APPROACH","ARRIVED"]}
-                && {count (_securityStage param [4,[],[[]]]) == 3}) then {
-                _securityPoints pushBack +(_securityStage select 0);
-                _securityLanes pushBack [+(_securityStage select 0),+(_securityStage select 4)];
-            };
-        } forEach ((_job getOrDefault ["securityActors",[]]) select [0,64]);
-        private _exitUses=createHashMap;
-        private _egressAssignments=_active apply {
             private _unit=_x;
             private _early=_earlyExits getOrDefault [netId _unit,[]];
-            if (_early isNotEqualTo []) exitWith {[_unit,+(_early select 1),(_early select 3) == "ARRIVED"]};
-            private _exitPoint=[_unit,_claimedExitPoints+_securityPoints,_securityLanes,_exitUses] call _chooseExteriorExit;
-            if (_exitPoint isEqualTo []) then {
-                // No usable distinct slot is a failed consolidation, never a shared success.
-                _job set ["egressFailed",true];
-                _exitPoint=getPosATL _unit;
-            } else {_claimedExitPoints pushBack +_exitPoint};
-            [_unit,_exitPoint,false]
-        };
+            if (_early isNotEqualTo []) then {
+                _egressAssignments pushBack [_unit,+(_early select 1),(_early select 3) == "ARRIVED"];
+            } else {
+                _pending pushBack [_unit,+(_moves getOrDefault [netId _unit,[]])];
+            };
+        } forEach _active;
+        _job set ["egressPending",_pending];
+        _job set ["egressExitUses",createHashMap];
         _job set ["phase","EGRESS"];
         _job set ["egressAssignments",_egressAssignments];
         _job set ["egressDeadline",time+45];
@@ -2880,17 +2917,8 @@ private _delay=call {
             [_x select 0,(getPosATL (_x select 0)) vectorDistance (_x select 1),time,0]
         }];
         _group setVariable ["WAIT_Cortex_ClearEgressRetries",[],true];
-        if (call _mayIssueMovement) then {
-            {
-                _x params ["_unit","_target"];
-                if (!(netId _unit in _earlyExits) && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
-                    _unit doMove _target;
-                    [_unit,_target] call _rememberMove;
-                };
-            } forEach _egressAssignments;
-        };
         _group setVariable ["WAIT_Cortex_ClearStatus",["EGRESS",count (_job get "cleared"),count (_job get "unreachable"),count (_job get "positions"),count (_job get "pairs"),serverTime],true];
-        1.5
+        0.1
     };
     1.5
 };
@@ -2925,7 +2953,9 @@ if (_phase == "EGRESS" && {!(_job getOrDefault ["finished",false])}
     private _journal=["EGRESS",_rows apply {_x select 1},_job get "egressStartedServer",_rows,
         _job get "building",_job get "buildingTransform",_job get "hardDeadline",
         _job get "egressDeadlineServer",_job getOrDefault ["egressFailed",false],
-        _job getOrDefault ["entryFailed",false]];
+        _job getOrDefault ["entryFailed",false],2,
+        +(_job getOrDefault ["egressPending",[]]),
+        ((keys (_job getOrDefault ["egressExitUses",createHashMap])) apply {[_x,(_job get "egressExitUses") get _x]})];
     if ((_group getVariable ["WAIT_Cortex_ClearEgress",[]]) isNotEqualTo _journal) then {
         _group setVariable ["WAIT_Cortex_ClearEgress",_journal,true];
     };

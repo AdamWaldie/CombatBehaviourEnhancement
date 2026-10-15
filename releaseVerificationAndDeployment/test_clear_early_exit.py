@@ -17,7 +17,7 @@ class ClearEarlyExitTests(unittest.TestCase):
                          'call _actorAvailable', 'call _actorTaskFree', 'call _mayIssueMovement',
                          '_follow deleteAt _blockerKey', 'call _rememberMove', 'call _publishEarlyExits']:
             self.assertIn(required,block)
-        planner = s.split('private _chooseExteriorExit={',1)[1].split('// Shared room coverage',1)[0]
+        planner = s.split('private _chooseExteriorExit={',1)[1].split('// End exterior planner;',1)[0]
         self.assertIn('private _proposalCount=3 max count _ranked;',planner)
         self.assertIn('from 0 to (_proposalCount-1)',planner)
         self.assertIn('_entries select [0,4]',planner)
@@ -29,9 +29,9 @@ class ClearEarlyExitTests(unittest.TestCase):
         s = self.step
         self.assertIn('!(netId _x in _earlyExits)',s)
         self.assertIn('if (_key in _earlyExits) then {continue}',s)
-        final = s.split('private _egressAssignments=_active apply',1)[1]
-        self.assertIn('if (_early isNotEqualTo []) exitWith',final)
-        self.assertIn('if (!(netId _unit in _earlyExits)',final)
+        final = s.split('// Defer expensive exterior planning;',1)[1]
+        self.assertIn('if (_early isNotEqualTo []) then',final)
+        self.assertNotIn('doMove',final.split('_group setVariable ["WAIT_Cortex_ClearStatus"',1)[0])
         service = s.split('private _earlyExits=',1)[1].split('if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS")',1)[0]
         self.assertIn('serverTime >= _deadline',service)
         self.assertIn('_record set [3,"FAILED"]',service)

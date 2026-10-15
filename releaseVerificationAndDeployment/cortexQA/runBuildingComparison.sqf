@@ -3,6 +3,7 @@
  * Compares physical building entry using independent engine commands across small and large,
  * single- and multi-storey house models, then exercises production garrison and clearance.
  * Locality/authority: scheduled dedicated-server audit; normal fixtures are server-pinned.
+ * Normal exit observations accumulate assignments as bounded planning publishes them.
  * The HC batch adds an explicit mid-egress transfer through the real migration provider.
  * Clearance acceptance requires covered interior navigation positions; exposed positions remain
  * separately recorded as exterior evidence, rather than being counted as uncleared rooms.
@@ -700,7 +701,7 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
             } forEach _members;
             private _journal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
             private _inside=false;
-            if (count _journal == 10) then {
+            if (count _journal in [10,13]) then {
                 private _bounds=boundingBoxReal _house;
                 {
                     private _actor=_x select 0;
@@ -716,8 +717,8 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
             };
             _inside || {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]}
         },300] call _wait;
-        ["HC-CLEAR-EGRESS-physical-mid-exit",_midExit && {count _before == 10},str [_before,_visits]] call _check;
-        if (count _before == 10) then {
+        ["HC-CLEAR-EGRESS-physical-mid-exit",_midExit && {count _before in [10,13]},str [_before,_visits]] call _check;
+        if (count _before in [10,13]) then {
             private _targets=(_before select 3) apply {[_x select 0,+(_x select 1),_x select 4]};
             private _exitVisits=_targets apply {false};
             private _transferAt=serverTime;
@@ -734,7 +735,7 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
             private _seenReplay=false;
             private _terminal=[{
                 private _journal=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
-                if (count _journal == 10 && {groupOwner _group == _owner}) then {
+                if (count _journal in [10,13] && {groupOwner _group == _owner}) then {
                     _seenReplay=true;
                     if ((_journal select 7) != (_before select 7) || {(_journal select 6) != (_before select 6)}
                         || {(_journal select 5) isNotEqualTo (_before select 5)}) then {_preserved=false};
@@ -974,9 +975,14 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
             };
         } forEach _members;
         private _exit=_group getVariable ["WAIT_Cortex_ClearEgress",[]];
-        if (!_egressSeen && {count _exit in [4,10]} && {(_exit select 0) == "EGRESS"}) then {
-            _egressAssignments=+(_exit select 3);
-            _egressVisits=_egressAssignments apply {false};
+        if (count _exit in [4,10,13] && {(_exit select 0) == "EGRESS"}) then {
+            {
+                private _actor=_x select 0;
+                if (_egressAssignments findIf {(_x select 0) == _actor} < 0) then {
+                    _egressAssignments pushBack +_x;
+                    _egressVisits pushBack false;
+                };
+            } forEach (_exit select 3);
             _egressSeen=_egressAssignments isNotEqualTo [];
         };
         {
