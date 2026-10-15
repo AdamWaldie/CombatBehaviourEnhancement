@@ -617,3 +617,10 @@ belief conversion). Remaining-node floor searches reuse that local snapshot inst
 terrain-frame conversions at every route step. Retired-index construction is also performed once.
 The nearest-neighbour search itself remains quadratic and bounded by admission; no engine frame
 or total addon overhead claim follows from this reduction. Physical profiling remains outstanding.
+
+Ordinary following explicitly includes destroyed LandVehicle entities in its existing nearby
+scan using the Arma 2.18 area query, and no longer discards their hulls on alive status. Empty
+live vehicles were already included. Existing heading, projected hull/height, 64-candidate and
+250 m limits remain. Destruction is not evidence of free space. This does not discover every
+static/classless wreck or create a route around a blockage; angled obstacles, jam resolution,
+physical braking and dense wreck scenes remain pending. No extra scan or controller is added.

@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Observes same-direction vehicles ahead and derives a continuous following speed cap.
+ * Purpose: Observes same-direction vehicle hulls ahead and derives a continuous following speed cap.
+ * Empty live vehicles and matching-heading destroyed vehicle entities remain obstacles;
+ * destruction alone never removes their hull from this observation. No bypass route is planned.
  * A mass-adjusted closing-speed envelope adds provisional braking and cruise-sampling headroom;
  * neither nominal deceleration nor scheduler response is physically guaranteed by this policy.
  * Locality/authority: read-only on the current vehicle owner. The driving operation owns all
@@ -30,7 +32,10 @@ private _massFactor=((1+(((getMass _vehicle)-3000)/7000)) max 1) min 2.5;
 private _deceleration=4/_massFactor;
 private _reaction=4;
 private _radius=((_ownForward max _requested)*6+20+(abs _front)) min 250;
-private _candidates=_vehicle nearEntities [["LandVehicle"],_radius];
+// Arma 2.18 area syntax explicitly includes dead vehicle entities. The default
+// radius syntax omits them; removing only the alive predicate would not fix discovery.
+private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
+private _candidates=_area nearEntities [["LandVehicle"],false,false,false];
 if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates]};
 private _cap=_requested;private _limiting=objNull;private _gap=-1;
 {
@@ -38,7 +43,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
     private _otherForward=((velocity _other) vectorDotProduct _forward) max 0;
     // Actual hull heading and projected velocity distinguish an ordinary predecessor from
     // crossing/oncoming traffic. Those cases require separate arbitration, not this follower rule.
-    if (_other != _vehicle && {alive _other}
+    if (_other != _vehicle && {!isNull _other}
         && {((vectorDir _other) vectorDotProduct _forward) > 0.7}
         && {((velocity _other) vectorDotProduct _forward) >= -0.5}) then {
         private _otherBox=boundingBoxReal _other;

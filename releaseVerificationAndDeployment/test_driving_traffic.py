@@ -12,6 +12,17 @@ class DrivingTrafficTests(unittest.TestCase):
             # Documentation mentions the caller speed policy; executable observer must not write.
             executable=s.split('params [[',1)[1]
             self.assertNotIn(command,executable)
+    def test_destroyed_vehicle_hulls_are_not_removed_by_scan_or_alive_filter(self):
+        s=src('drivingFollowingCap')
+        self.assertIn('_area=[getPosATL _vehicle,_radius,_radius,0,false,_radius]',s)
+        self.assertIn('_area nearEntities [["LandVehicle"],false,false,false]',s)
+        self.assertNotIn('alive _other',s)
+        self.assertIn('((vectorDir _other) vectorDotProduct _forward) > 0.7',s)
+        self.assertIn('_sameHeight',s)
+        self.assertIn('count _candidates > 64',s)
+        config=(ROOT/'addons/main/config.cpp').read_text()
+        self.assertIn('requiredVersion = 2.18',config)
+
     def test_traffic_wait_does_not_enter_route_recovery(self):
         s=src('drivingAssistStart')
         self.assertIn('&& {!_trafficLimited} && {abs speed _vehicle < 1',s)
