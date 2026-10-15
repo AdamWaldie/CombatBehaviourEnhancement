@@ -643,3 +643,5 @@ timeout cannot start the task later. This is admission expiry, not the lifetime 
 operation. The internal door executor also refuses direct non-server network calls while retaining
 local/server-dispatched actor, generation and proximity checks. Delayed delivery, HC migration and
 real notification/control timing remain physically unverified.
+
+Ordinary route recovery preserves native planning time: a new or newly progressing order gets at least 20 seconds without progress before the first refresh. That refresh gets 30 seconds before admission of the bounded six-second rear leg, and the final authored-route retry gets 60 seconds before exhaustion. Scheduler delay may extend observation; it does not shorten these windows. A full waypoint-identity change, follower-role change or actual route progress resets the relevant observation state. Traffic and intentional waits retain their existing recovery suppression. These are provisional finite windows, not proof that a native route must finish planning within them; long routes and repeated new-order replacement require physical retesting. No waypoint is recreated and no teleport, repair or velocity push is used.

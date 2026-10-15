@@ -28,6 +28,9 @@
  * Deliberate native waits near the completion envelope suppress recovery without evaluating
  * waypoint statement code. Recovery also refuses distant scripted, timed, synchronized or
  * object-attached MOVE orders; native execution and ordinary safety caps remain available.
+ * New or newly progressing routes get a 20-second planning/observation grace. A route refresh
+ * gets 30 seconds before cautious reverse admission; the reverse leg remains six seconds and
+ * the final authored-route retry gets 60 seconds. No new order inherits a spent retry window.
  * One group driving FSM admits the existing executor through the shared
  * scheduler; group decisions never issue these commands directly.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
@@ -299,9 +302,13 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             // A reverse leg has its own finite deadline. It must return to the authored
             // route even while still moving; the ordinary stall timer is not another hold.
             private _reverseComplete=_recoveryStage == 2 && {time >= _recoveryUntil};
+            // Preserve native planning time rather than repeatedly restarting a difficult route.
+            // Real progress, a replaced order, follower ownership or an intentional wait already
+            // resets this stage and its progress clock above. A rear leg keeps its finite expiry.
+            private _observationWindow=[20,30,0,60] param [_recoveryStage,60];
             if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
                 && {!_inCombat} && {!_trafficLimited} && {abs speed _vehicle < 1 || {_reverseComplete}}
-                && {time-_progressAt >= 12 || {_reverseComplete}} && {time >= _recoveryUntil}
+                && {time-_progressAt >= _observationWindow || {_reverseComplete}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
                 private _waypoint=[_group,_waypointIndex];
                 private _destination=waypointPosition _waypoint;
@@ -310,7 +317,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                         case 0: {
                             _movementOperator doMove _destination;
                             _recoveryStage=1;
-                            _recoveryUntil=time+8;
+                            _recoveryUntil=time+30;
                             _recoveryResult="ROUTE_REFRESH";
                         };
                         case 1: {
