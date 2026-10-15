@@ -22,6 +22,9 @@
  * If no interior point is available, one bounded exterior exit selection may vacate the holder.
  * Early exits use the same callback, retain their 45-second deadline and public episode receipt,
  * and are reused at group egress without restarting movement or granting synthetic arrival.
+ * Physically arrived early exits observe their selected doorway only after a fresh eye ray;
+ * one rotating check per callback maintains the watch without another scheduler or movement.
+ * Later exterior assignments preserve these observation lanes and prefer uncovered exits.
  * Terminal cleanup releases unchanged settings independently of movement diversion and journals
  * only actors it physically stopped for later native-order handback. Early exits retire into
  * the terminal route evidence instead of remaining an active replay journal.
@@ -552,6 +555,49 @@ private _delay=call {
         };
     } forEach (keys _earlyExits);
     _job set ["earlyExitMotion",_earlyMotion];
+    // An early arrival supports ongoing clearance by watching its selected doorway.
+    // One rotating actual-eye check per callback; observation never creates an entry receipt.
+    private _earlyViewChecks=_job getOrDefault ["earlyExitViewChecks",createHashMap];
+    private _watchKeys=(keys _earlyExits) select {
+        private _row=_earlyExits get _x;
+        (_row select 3) == "ARRIVED" && {count (_row param [6,[]]) == 3}
+    };
+    if (_watchKeys isNotEqualTo [] && {(_job getOrDefault ["phase",""]) != "EGRESS"}) then {
+        private _cursor=_job getOrDefault ["earlyExitViewCursor",0];
+        private _key=_watchKeys select (_cursor mod count _watchKeys);
+        _job set ["earlyExitViewCursor",_cursor+1];
+        private _row=_earlyExits get _key;
+        _row params ["_actor","_post"];
+        private _watch=_row select 6;
+        private _check=_earlyViewChecks getOrDefault [_key,[0,-1]];
+        if (serverTime >= (_check select 0) && {currentCommand _actor in ["","STOP"]}
+            && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree} && {call _mayIssueMovement}) then {
+            private _eye=eyePos _actor;
+            private _watchASL=AGLToASL _watch;
+            private _visible=(getPosASL _actor) vectorDistance (AGLToASL _post) <= 1
+                && {!terrainIntersectASL [_eye,_watchASL]}
+                && {(lineIntersectsSurfaces [_eye,_watchASL,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+            private _blockedSince=_check select 1;
+            if (_visible) then {_blockedSince=-1} else {if (_blockedSince < 0) then {_blockedSince=serverTime}};
+            _earlyViewChecks set [_key,[serverTime+2,_blockedSince]];
+            private _lease=[_job get "generation",_brain get "ownerEpoch",+_watch];
+            if (_visible && {(_actor getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isNotEqualTo _lease}
+                && {call _mayIssueMovement}) then {
+                _actor doWatch _watch;
+                _actor setVariable ["WAIT_Cortex_ClearExitWatch",_lease,true];
+                _actor setVariable ["WAIT_Cortex_ClearExitWatchLocal",_lease];
+            };
+            if (!_visible && {_blockedSince >= 0} && {serverTime-_blockedSince >= 3}
+                && {(_actor getVariable ["WAIT_Cortex_ClearExitWatch",[]]) isEqualTo _lease}
+                && {(_actor getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _lease}
+                && {call _mayIssueMovement}) then {
+                _actor doWatch objNull;
+                _actor setVariable ["WAIT_Cortex_ClearExitWatch",nil,true];
+                _actor setVariable ["WAIT_Cortex_ClearExitWatchLocal",nil];
+            };
+        };
+    };
+    _job set ["earlyExitViewChecks",_earlyViewChecks];
     call _publishEarlyExits;
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
         private _diverted=_job getOrDefault ["egressDiverted",[]];
@@ -822,7 +868,10 @@ private _delay=call {
             private _observationReserveKeys=_reserves apply {netId _x};
             {
                 private _candidateEntry=_x;
-                private _assignedCount=0;
+                private _assignedCount={
+                    private _row=_earlyExits get _x;
+                    (_row select 3) in ["MOVING","ARRIVED"] && {(_row param [5,[]]) isEqualTo _candidateEntry}
+                } count keys _earlyExits;
                 {
                     private _otherStage=_reserveStages get _x;
                     if (_x != _key && {_x in _observationReserveKeys}
@@ -848,6 +897,13 @@ private _delay=call {
                 private _taken=+(_stageTriedTargets getOrDefault [_key,[]]);
                 private _liveReserveKeys=_reserves apply {netId _x};
                 private _observerLanes=[];
+                {
+                    private _row=_earlyExits get _x;
+                    if ((_row select 3) in ["MOVING","ARRIVED"] && {count (_row param [6,[]]) == 3}) then {
+                        _taken pushBack +(_row select 1);
+                        _observerLanes pushBack [+(_row select 1),+(_row select 6)];
+                    };
+                } forEach keys _earlyExits;
                 // Historical stage receipts remain diagnostic, but promoted/unavailable actors
                 // no longer reserve a destination. Physical occupancy is checked by the selector.
                 {
@@ -2201,46 +2257,48 @@ private _delay=call {
     // Shared bounded planner: three proposals, four entrances, existing geometry checks.
     // Selection grants no movement authority or physical arrival receipt.
     private _chooseExteriorExit={
-        params ["_unit","_reservationsIn","_securityLanes","_exitUses"];
+        params ["_unit","_reservationsIn","_securityLanes","_exitUses",["_observation",false]];
         private _entries=_job get "entries";
         private _buildingPos=getPosATL _building;
-            private _ranked=[];
-            {
-                _ranked pushBack [_exitUses getOrDefault [str _x,0],_unit distance2D _x,_forEachIndex,+_x];
-            } forEach (_entries select [0,4]);
-            _ranked sort true;
-            // The fallback still receives geometry validation and cannot imply model access.
-            if (_ranked isEqualTo []) then {
-                _ranked pushBack [0,0,0,+_buildingPos];
+        private _ranked=[];
+        {
+            _ranked pushBack [_exitUses getOrDefault [str _x,0],_unit distance2D _x,_forEachIndex,+_x];
+        } forEach (_entries select [0,4]);
+        _ranked sort true;
+        // The fallback still receives geometry validation and cannot imply model access.
+        if (_ranked isEqualTo []) then {
+            _ranked pushBack [0,0,0,+_buildingPos];
+        };
+        private _taken=+_reservationsIn;
+        private _tried=[];
+        private _exitPoint=[];
+        private _selectedEntry=[];
+        private _selectedWatch=[];
+        // At most three proposals per worker (eight admitted workers). Alternate real
+        // entrances precede another proposal at the first entrance; no fixed grid/fan.
+        for "_proposalIndex" from 0 to 2 do {
+            if (_exitPoint isNotEqualTo []) exitWith {};
+            private _entry=+((_ranked select (_proposalIndex mod count _ranked)) select 3);
+            private _outward=_buildingPos getDir _entry;
+            private _search=_entry getPos [10,_outward];
+            private _watch=_entry getPos [2,_outward];
+            _watch set [2,(_entry select 2)+1.2];
+            private _reservations=_taken+_tried;
+            private _candidate=[_unit,_search,_entry,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorProposal;
+            private _valid=false;
+            if (count _candidate == 3) then {
+                _candidate set [2,0];
+                _valid=[_unit,_building,_candidate,_entry,_watch,_entries,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorCandidate;
+                _tried pushBackUnique +_candidate;
+                if (_valid) then {_exitPoint=+_candidate; _selectedEntry=+_entry; _selectedWatch=+_watch};
             };
-            private _taken=+_reservationsIn;
-            private _tried=[];
-            private _exitPoint=[];
-            private _selectedEntry=[];
-            // At most three proposals per worker (eight admitted workers). Alternate real
-            // entrances precede another proposal at the first entrance; no fixed grid/fan.
-            for "_proposalIndex" from 0 to 2 do {
-                if (_exitPoint isNotEqualTo []) exitWith {};
-                private _entry=+((_ranked select (_proposalIndex mod count _ranked)) select 3);
-                private _outward=_buildingPos getDir _entry;
-                private _search=_entry getPos [10,_outward];
-                private _watch=_entry getPos [2,_outward];
-                _watch set [2,(_entry select 2)+1.2];
-                private _reservations=_taken+_tried;
-                private _candidate=[_unit,_search,_entry,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorProposal;
-                private _valid=false;
-                if (count _candidate == 3) then {
-                    _candidate set [2,0];
-                    _valid=[_unit,_building,_candidate,_entry,_watch,_entries,_reservations,_securityLanes] call WAIT_fnc_BuildingExteriorCandidate;
-                    _tried pushBackUnique +_candidate;
-                    if (_valid) then {_exitPoint=+_candidate; _selectedEntry=+_entry};
-                };
-                diag_log format ["WAIT CLEAR EGRESS PROPOSAL: %1",[_job get "generation",netId _unit,_proposalIndex,+_entry,+_candidate,_valid]];
-            };
-            if (_selectedEntry isNotEqualTo []) then {
-                private _exitKey=str _selectedEntry;
-                _exitUses set [_exitKey,(_exitUses getOrDefault [_exitKey,0])+1];
-            };
+            diag_log format ["WAIT CLEAR EGRESS PROPOSAL: %1",[_job get "generation",netId _unit,_proposalIndex,+_entry,+_candidate,_valid]];
+        };
+        if (_selectedEntry isNotEqualTo []) then {
+            private _exitKey=str _selectedEntry;
+            _exitUses set [_exitKey,(_exitUses getOrDefault [_exitKey,0])+1];
+        };
+        if (_observation) exitWith {[_exitPoint,_selectedEntry,_selectedWatch]};
         _exitPoint
     };
     // Shared room coverage must not release a partner still parked at its first node.
@@ -2395,6 +2453,15 @@ private _delay=call {
                                     // Preserve security posts/lanes and previously selected exit slots.
                                     private _taken=(keys _earlyExits) apply {+((_earlyExits get _x) select 1)};
                                     private _lanes=[];
+                                    private _uses=createHashMap;
+                                    {
+                                        private _other=_earlyExits get _x;
+                                        if ((_other select 3) in ["MOVING","ARRIVED"] && {count (_other param [6,[]]) == 3}) then {
+                                            _lanes pushBack [+(_other select 1),+(_other select 6)];
+                                            private _entryKey=str (_other select 5);
+                                            _uses set [_entryKey,(_uses getOrDefault [_entryKey,0])+1];
+                                        };
+                                    } forEach keys _earlyExits;
                                     {
                                         private _security=_x;
                                         private _stage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _security,[]];
@@ -2402,9 +2469,12 @@ private _delay=call {
                                             && {count (_stage param [4,[],[[]]]) == 3}) then {
                                             _taken pushBack +(_stage select 0);
                                             _lanes pushBack [+(_stage select 0),+(_stage select 4)];
+                                            private _entryKey=str (_stage param [5,[]]);
+                                            _uses set [_entryKey,(_uses getOrDefault [_entryKey,0])+1];
                                         };
                                     } forEach ((_job getOrDefault ["securityActors",[]]) select [0,64]);
-                                    private _exitTarget=[_blocker,_taken,_lanes,createHashMap] call _chooseExteriorExit;
+                                    private _exitPlan=[_blocker,_taken,_lanes,_uses,true] call _chooseExteriorExit;
+                                    private _exitTarget=_exitPlan select 0;
                                     if (call _mayIssueMovement) then {
                                         _yielded pushBackUnique _blockerKey;
                                         _group setVariable ["WAIT_Cortex_ClearYield",_yieldContext+[+_yielded],true];
@@ -2412,7 +2482,7 @@ private _delay=call {
                                     if (count _exitTarget == 3 && {[_blocker] call _actorAvailable}
                                         && {[_blocker] call _actorTaskFree} && {currentCommand _blocker in ["","STOP"]}
                                         && {call _mayIssueMovement}) then {
-                                        _earlyExits set [_blockerKey,[_blocker,+_exitTarget,serverTime+45,"MOVING",false]];
+                                        _earlyExits set [_blockerKey,[_blocker,+_exitTarget,serverTime+45,"MOVING",false,+(_exitPlan select 1),+(_exitPlan select 2)]];
                                         _job set ["earlyExits",_earlyExits];
                                         _follow deleteAt _blockerKey;
                                         _blocker doMove _exitTarget;
@@ -2548,6 +2618,12 @@ private _delay=call {
         private _claimedExitPoints=(keys _earlyExits) apply {+((_earlyExits get _x) select 1)};
         private _securityPoints=[];
         private _securityLanes=[];
+        {
+            private _row=_earlyExits get _x;
+            if ((_row select 3) in ["MOVING","ARRIVED"] && {count (_row param [6,[]]) == 3}) then {
+                _securityLanes pushBack [+(_row select 1),+(_row select 6)];
+            };
+        } forEach keys _earlyExits;
         // An egress slot must preserve live exterior security, not only other exit slots.
         {
             private _security=_x;
