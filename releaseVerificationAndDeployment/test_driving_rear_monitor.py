@@ -27,4 +27,18 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))',src('drivingAssistStart'))
         self.assertIn('_rearLeg=_rearLeg || {(_state param [6,0]) == 2}',src('drivingOperationStep'))
         self.assertIn('time+([4,1] select (_traffic || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""}))',src('drivingOperationStep'))
+
+
+    def test_rear_prediction_uses_simultaneous_intervals_and_finite_scan_budget(self):
+        s=src('drivingRearClear')
+        for marker in ('private _predictionSeconds=2','35*_predictionSeconds',
+                       '_radius > 250','"REAR_SCAN_BUDGET"','"REAR_APPROACHING"',
+                       'vectorDiff _ownVelocity','for "_axis" from 0 to 2',
+                       '_entry=_entry max','_exit=_exit min','_entry <= _exit'):
+            self.assertIn(marker,s)
+        self.assertLess(s.index('if (_current) exitWith {true}'),s.index('private _relative='))
+        self.assertEqual(s.count('nearEntities'),2)
+        for forbidden in ('setVariable','sendSimpleCommand','forceSpeed','doMove','setVelocity'):
+            self.assertNotIn(forbidden,s.split('params [[',1)[1])
+
 if __name__=='__main__':unittest.main()
