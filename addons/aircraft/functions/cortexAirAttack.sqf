@@ -45,7 +45,8 @@
  * salvo or a gun burst. It never waits indefinitely for a single engine fire callback.
  * A lack of travel, solution or fire aborts the run; elapsed time alone
  * never completes it. Zeus priority, locality loss, explicit exclusions, runtime disablement or a
- * changed curator waypoint end the lease immediately. Cleanup deletes only that named temporary
+ * changed curator waypoint end the lease immediately. The named WAIT leg also has a metadata
+ * receipt; an edit yields and removes only its WAIT name, preserving the edited native waypoint. Cleanup deletes only that named temporary
  * waypoint. A successful run hands the aircraft back toward its unchanged original waypoint.
  * During direct Zeus handover, cleanup clears this attack's target commands, preserves the native
  * attack policy and selects the authenticated curator waypoint. One non-forced height request uses
@@ -101,9 +102,9 @@ private _finish={
             if (_ownedWaypointIndex >= 0) then {private _ownedWaypoint=(waypoints _finishGroup) select _ownedWaypointIndex;
                     private _snapshot=_finishGroup getVariable ["WAIT_Cortex_ZeusOrderSnapshot",[]];
                     private _hold=_finishGroup getVariable ["WAIT_AIPass_ZeusHold",[]];
-                    private _claimed=count _snapshot == 7 && {count _hold == 2}
+                    private _claimed=_reason == "OWNED_ROUTE_CHANGED" || {count _snapshot == 7 && {count _hold == 2}
                         && {(_snapshot select 0) == (_hold select 0)}
-                        && {(_snapshot select 5) == (_ownedWaypoint select 1)};
+                        && {(_snapshot select 5) == (_ownedWaypoint select 1)}};
                     if (_claimed) then {
                         _ownedWaypoint setWaypointName "";
                     } else {deleteWaypoint _ownedWaypoint};};
@@ -180,7 +181,7 @@ private _finish={
         };
         // On an ordinary finite end, retire only the exact hostile WAIT assigned and only while no
         // player, curator or specialist has claimed the group. A newer target survives cleanup.
-        if (!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"])) then {
+        if (!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"])) then {
             private _ownedTarget=_job getOrDefault ["fireTarget",objNull];
             private _cleanupExternal=[_finishGroup] call WAIT_fnc_CortexExternalTakeover
                 || {[_finishGroup] call WAIT_fnc_CortexZeusHeld};
@@ -492,6 +493,12 @@ if (_startFailure != "") exitWith {[_startFailure] call _finish};
 private _ownedWaypointName=_job getOrDefault ["ownedWaypointName",""];
 private _currentRoute=[_group,_ownedWaypointName] call WAIT_fnc_AuthoredRouteReceipt;
 if (_currentRoute isNotEqualTo (_job getOrDefault ["routeSignature",_currentRoute])) exitWith {["AUTHORED_ROUTE_CHANGED"] call _finish};
+// Compare the excluded leg too: edits/deletion/duplicate names yield before another flight write.
+// Attached target movement changes position naturally; the shared receipt compares identity instead.
+private _currentOwnedReceipt=[_group,_ownedWaypointName,true] call WAIT_fnc_AuthoredRouteReceipt;
+if (!isNil {_job get "ownedWaypointReceipt"} && {_currentOwnedReceipt isNotEqualTo (_job get "ownedWaypointReceipt")}) exitWith {
+    ["OWNED_ROUTE_CHANGED"] call _finish
+};
 private _target=_job getOrDefault ["target",objNull];
 if (!isNull _target && {alive _target} && {captive _target
     || {_target getVariable ["ace_captives_isSurrendering",false]}
@@ -697,6 +704,7 @@ if (_commandedStage != _stage) then {
         _ownedWaypoint setWaypointType "MOVE";
     };
     _group setCurrentWaypoint _ownedWaypoint;
+    _job set ["ownedWaypointReceipt",[_group,_ownedWaypointName,true] call WAIT_fnc_AuthoredRouteReceipt];
     _job set ["commandedStage",_stage];
     _job set ["commandedDestination",+_destination];
     _job set ["commandedAt",serverTime];

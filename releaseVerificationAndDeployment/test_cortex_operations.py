@@ -6506,7 +6506,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull',controller)
         self.assertIn('_x doWatch objNull',controller)
         self.assertNotIn('_group reveal [_fireTarget,4]',controller)
-        handover_cleanup=controller.split('if (_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"]) then {',1)[1].split('if (!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"])) then {',1)[0]
+        handover_cleanup=controller.split('if (_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"]) then {',1)[1].split('if (!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"])) then {',1)[0]
         self.assertNotIn('doTarget objNull',handover_cleanup)
         self.assertNotIn('doWatch objNull',handover_cleanup)
         self.assertIn('_operator doFire _fireTarget',controller)
