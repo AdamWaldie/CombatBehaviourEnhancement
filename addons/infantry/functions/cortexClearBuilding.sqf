@@ -447,12 +447,13 @@ if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
     private _moves=_job getOrDefault ["movementTargets",createHashMap];
     private _diverted=[];
     {
-        if (_x isEqualType [] && {count _x == 4}) then {
-            _x params ["_actor","_target","_until","_state"];
+        if (_x isEqualType [] && {count _x in [4,5]}) then {
+            _x params ["_actor","_target","_until","_state",["_retryUsed",false]];
             if (_actor isEqualType objNull && {!isNull _actor} && {_actor in _team}
                 && {_target isEqualType []} && {count _target == 3}
                 && {_target findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                 && {_until isEqualType 0} && {finite _until}
+                && {_retryUsed isEqualType true}
                 && {_state in ["MOVING","ARRIVED","FAILED","DIVERTED"]}) then {
                 private _live=(expectedDestination _actor) param [0,[]];
                 private _owned=currentCommand _actor == "MOVE" && {count _live == 3} && {_live vectorDistance _target <= 0.25};
@@ -467,7 +468,7 @@ if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
                     if (_state == "ARRIVED" && {!_held}) then {_state="MOVING"};
                     if (_state == "FAILED") then {_job set ["egressFailed",true]};
                 };
-                _early set [netId _actor,[_actor,+_target,_until,_state]];
+                _early set [netId _actor,[_actor,+_target,_until,_state,_retryUsed]];
             };
         };
     } forEach (_earlyReceipt select 1);

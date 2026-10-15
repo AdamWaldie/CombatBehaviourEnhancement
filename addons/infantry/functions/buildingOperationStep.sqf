@@ -22,6 +22,8 @@
  * If no interior point is available, one bounded exterior exit selection may vacate the holder.
  * Early exits use the same callback, retain their 45-second deadline and public episode receipt,
  * and are reused at group egress without restarting movement or granting synthetic arrival.
+ * Eight seconds without actual motion permits the shared generation's one recovery attempt;
+ * consumed retries survive owner adoption, while local observation never extends the exit budget.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
  * An entered security partner yields a colliding mover checkpoint to a nearby physically visited
@@ -474,6 +476,7 @@ private _delay=call {
         1.5
     };
     private _earlyExits=_job getOrDefault ["earlyExits",createHashMap];
+    private _earlyMotion=_job getOrDefault ["earlyExitMotion",createHashMap];
     private _publishEarlyExits={
         if (count _earlyExits > 0 && {call _mayIssueMovement}) then {
             private _rows=(keys _earlyExits) apply {+(_earlyExits get _x)};
@@ -509,12 +512,33 @@ private _delay=call {
                             _job set ["egressFailed",true];
                         } else {
                             [_actor,_building,["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
+                            // Actual motion, not decreasing straight-line distance, preserves a
+                            // native stair/corridor detour. Observation is local; retry consumption
+                            // is durable and never renews the original exit deadline.
+                            private _key=netId _actor;
+                            private _pose=getPosASL _actor;
+                            private _motion=_earlyMotion getOrDefault [_key,[+_pose,serverTime]];
+                            if (_pose vectorDistance (_motion select 0) >= 1) then {
+                                _motion=[+_pose,serverTime];
+                            };
+                            _earlyMotion set [_key,_motion];
+                            if (!(_record param [4,false,[true]]) && {serverTime-(_motion select 1) >= 8}
+                                && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
+                                && {currentCommand _actor != "MOVE" || {[_actor] call _ownsCurrentMove}}
+                                && {call _mayIssueMovement}) then {
+                                private _recovery=[_group,_operationGeneration,_actor,_target] call WAIT_fnc_RecoveryStep;
+                                if (_recovery == "RECOVERING") then {[_actor,_target] call _rememberMove};
+                                if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {
+                                    _record set [4,true];
+                                };
+                            };
                         };
                     };
                 };
             };
         };
     } forEach (keys _earlyExits);
+    _job set ["earlyExitMotion",_earlyMotion];
     call _publishEarlyExits;
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
         private _diverted=_job getOrDefault ["egressDiverted",[]];
@@ -2375,7 +2399,7 @@ private _delay=call {
                                     if (count _exitTarget == 3 && {[_blocker] call _actorAvailable}
                                         && {[_blocker] call _actorTaskFree} && {currentCommand _blocker in ["","STOP"]}
                                         && {call _mayIssueMovement}) then {
-                                        _earlyExits set [_blockerKey,[_blocker,+_exitTarget,serverTime+45,"MOVING"]];
+                                        _earlyExits set [_blockerKey,[_blocker,+_exitTarget,serverTime+45,"MOVING",false]];
                                         _job set ["earlyExits",_earlyExits];
                                         _follow deleteAt _blockerKey;
                                         _blocker doMove _exitTarget;

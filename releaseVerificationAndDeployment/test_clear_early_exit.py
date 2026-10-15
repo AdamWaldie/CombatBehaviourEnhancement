@@ -13,7 +13,7 @@ class ClearEarlyExitTests(unittest.TestCase):
         s = self.step
         block = s.split('// One exterior selection per completed worker per episode.',1)[1].split('continue;',1)[0]
         for required in ['call _reserveReady', 'call _chooseExteriorExit', '_yielded pushBackUnique _blockerKey',
-                         '_earlyExits set [_blockerKey,[_blocker,+_exitTarget,serverTime+45,"MOVING"]]',
+                         '_earlyExits set [_blockerKey,[_blocker,+_exitTarget,serverTime+45,"MOVING",false]]',
                          'call _actorAvailable', 'call _actorTaskFree', 'call _mayIssueMovement',
                          '_follow deleteAt _blockerKey', 'call _rememberMove', 'call _publishEarlyExits']:
             self.assertIn(required,block)
@@ -38,11 +38,26 @@ class ClearEarlyExitTests(unittest.TestCase):
         self.assertNotIn('doMove',service)
         self.assertNotIn('serverTime+45',service)
 
+    def test_recovery_uses_motion_and_durable_consumption_without_deadline_extension(self):
+        service = self.step.split('private _earlyExits=',1)[1].split('if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS")',1)[0]
+        for gate in ['_pose vectorDistance (_motion select 0) >= 1',
+                     'serverTime-(_motion select 1) >= 8',
+                     '!(_record param [4,false,[true]])',
+                     'currentCommand _actor != "MOVE" || {[_actor] call _ownsCurrentMove}',
+                     'call WAIT_fnc_RecoveryStep', '_record set [4,true]']:
+            self.assertIn(gate,service)
+        self.assertNotIn('_record set [2,',service)
+        self.assertNotIn('doMove',service)
+        adoption=self.start.split('private _earlyReceipt=',1)[1].split('// Adopt a transform/episode-bound exit journal',1)[0]
+        self.assertIn('count _x in [4,5]',adoption)
+        self.assertIn('_retryUsed isEqualType true',adoption)
+        self.assertIn('[_actor,+_target,_until,_state,_retryUsed]',adoption)
+
     def test_owner_adoption_retains_context_deadline_and_actual_authority(self):
         block = self.start.split('private _earlyReceipt=',1)[1].split('// Adopt a transform/episode-bound exit journal',1)[0]
         for required in ['isEqualTo _visitContext', 'count (_earlyReceipt select 1) <= 8',
                          '_live vectorDistance _target <= 0.25', 'vectorDistance (AGLToASL _target) <= 1',
-                         '_state="DIVERTED"', '[_actor,+_target,_until,_state]',
+                         '_state="DIVERTED"', '[_actor,+_target,_until,_state,_retryUsed]',
                          '_state == "ARRIVED" && {!_held}']:
             self.assertIn(required,block)
         self.assertNotIn('doMove',block)
