@@ -5810,8 +5810,10 @@ class CortexOperations(unittest.TestCase):
         tick=source('convoyTick')
         road=source('drivingRoadCap')
         self.assertIn('WAIT_fnc_DrivingRoadCap',tick)
-        self.assertIn('getPosASL _road',road)
-        self.assertIn('getPosASL _nextRoad',road)
+        self.assertIn('getRoadInfo _piece',road)
+        self.assertIn('_info param [6,[],[[]]]',road)
+        self.assertIn('_info param [7,[],[[]]]',road)
+        self.assertIn('getPosASL _piece',road)
         self.assertNotIn('getPosATL',road)
         trail=tick.split('private _pathGrade=0;',1)[1].split('private _pathCap=',1)[0]
         self.assertIn('(ATLToASL _b) select 2',trail)

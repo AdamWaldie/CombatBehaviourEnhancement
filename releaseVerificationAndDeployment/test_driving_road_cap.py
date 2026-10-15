@@ -6,13 +6,27 @@ class DrivingRoadCapTests(unittest.TestCase):
     def test_shared_observer_is_bounded_read_only_and_absolute(self):
         s=(ROOT/'addons/vehicles/functions/drivingRoadCap.sqf').read_text(encoding='utf-8')
         for marker in ('from 1 to 8','count _allConnected > 16','_road in _visited',
-                       '_travel >= 70','getPosASL _road','getPosASL _nextRoad','_cap=_cap min 15'):
+                       '_travel >= 70','[_road] call _readRoadGeometry','[_nextRoad] call _readRoadGeometry','_cap=_cap min 15'):
             self.assertIn(marker,s)
         executable=s.split('params [[',1)[1]
         for forbidden in ('forceSpeed','doMove','setCurrentWaypoint','setDriveOnPath',
                           'addWaypoint','createVehicle','spawn','waitUntil','setVariable'):
             self.assertNotIn(forbidden,executable)
         self.assertEqual(s.count('nearRoads'),1)
+    def test_grade_uses_asl_road_endpoints_including_within_piece_slope(self):
+        s=(ROOT/'addons/vehicles/functions/drivingRoadCap.sqf').read_text(encoding='utf-8')
+        geometry=s.split('private _readRoadGeometry={',1)[1].split('if (!isNull _road)',1)[0]
+        for gate in ['getRoadInfo _piece', '_info param [6,[],[[]]]', '_info param [7,[],[[]]]',
+                     '(_begin vectorAdd _end) vectorMultiply 0.5',
+                     'abs ((_end select 2)-(_begin select 2))/_length',
+                     'if (_bridge) exitWith {[[],0,false]}', 'finite _x']:
+            self.assertIn(gate,geometry)
+        self.assertNotIn('getTerrainHeightASL',geometry)
+        self.assertNotIn('set [2,0]',geometry)
+        self.assertIn('_maximumGrade max (_roadGeometry select 1)',s)
+        self.assertIn('_maximumGrade max (_nextGeometry select 1)',s)
+        self.assertIn('if (!(_nextGeometry select 2)) exitWith {_overBudget=true}',s)
+
     def test_both_modes_consume_the_observer_before_owned_speed_commands(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
