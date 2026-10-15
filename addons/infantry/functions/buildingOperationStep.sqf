@@ -29,6 +29,9 @@
  * repeatedly reset a stalled checkpoint leg while retaining its failed target.
  * Exhausted room retries emit one compact record per classification, including the native target,
  * actor state and failed pair identities. Exhaustion is not proof of inaccessible model geometry.
+ * Casualty promotion retains established exit coverage unless another capable local observer
+ * physically holds the same exit and passes a fresh VIEW check. One promotion ray per callback
+ * and sixteen reserve candidates bound this check; deferral never renews the episode deadline.
  * Casualty selection prefers the nearest eligible reserve to a surviving buddy, or the
  * building when the whole lane is unavailable; no geometry scan or deadline renewal is added.
  * A single exterior replacement follows its healthy original surviving mover through bounded
@@ -904,6 +907,51 @@ private _delay=call {
             _group setVariable ["WAIT_Cortex_ClearStageBudget",_stageBudget,true];
         };
     };
+    // Promotion cannot spend an established exit observer without a physically settled
+    // substitute. One fresh VIEW ray per callback bounds casualty-time confirmation.
+    // A stale role label, an approaching actor or a previous clear ray is not coverage.
+    private _promotionViewBudget=1;
+    private _promotionCandidates=+(_reserves select [0,16]);
+    if (_promotionCandidates isNotEqualTo []) then {
+        private _cursor=(_job getOrDefault ["promotionCandidateCursor",0]) mod count _promotionCandidates;
+        _promotionCandidates=(_promotionCandidates select [_cursor])+(_promotionCandidates select [0,_cursor]);
+        _job set ["promotionCandidateCursor",(_cursor+1) mod count _promotionCandidates];
+    };
+    private _mayPromoteReserve={
+        params ["_candidate"];
+        if (!(_candidate in _reserves) || {!([_candidate] call _reserveReady)}) exitWith {false};
+        private _stage=_reserveStages getOrDefault [netId _candidate,[]];
+        if ((_stage param [2,""]) != "ARRIVED") exitWith {true};
+        if (_promotionViewBudget <= 0) exitWith {false};
+        private _exit=_stage param [5,[],[[]]];
+        if (count _exit != 3) exitWith {false};
+        private _covered=false;
+        {
+            private _observer=_x;
+            private _otherStage=_reserveStages getOrDefault [netId _observer,[]];
+            private _watch=_otherStage param [4,[],[[]]];
+            private _post=_otherStage param [0,[],[[]]];
+            private _watchLease=[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],+_watch];
+            if (_observer != _candidate && {[_observer] call _reserveReady}
+                && {(_otherStage param [2,""]) == "ARRIVED"}
+                && {(_otherStage param [5,[],[[]]]) isEqualTo _exit}
+                && {count _post == 3} && {count _watch == 3}
+                && {currentCommand _observer in ["","STOP"]}
+                && {(_observer getVariable ["WAIT_Cortex_ClearExitWatch",[]]) isEqualTo _watchLease}
+                && {(_observer getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _watchLease}
+                && {(getPosASL _observer) vectorDistance (AGLToASL _post) <= 2}
+                && {abs (((getPosASL _observer) select 2)-((AGLToASL _post) select 2)) <= 0.75}
+                && {_promotionViewBudget > 0}) then {
+                _promotionViewBudget=_promotionViewBudget-1;
+                private _eye=eyePos _observer;
+                private _watchASL=AGLToASL _watch;
+                _covered=!terrainIntersectASL [_eye,_watchASL]
+                    && {(lineIntersectsSurfaces [_eye,_watchASL,_observer,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+            };
+            if (_covered) exitWith {};
+        } forEach (_reserves select [0,16]);
+        _covered
+    };
     private _pairRosterChanged=false;
     {
         private _pairIndex=_forEachIndex;
@@ -916,19 +964,22 @@ private _delay=call {
             if ((!([_member] call _actorAvailable) || {_member in _unavailable}) && {_reserves isNotEqualTo []}) then {
                 // Reinforce the surviving buddy from the nearest eligible reserve rather
                 // than roster order. With no available buddy, approach the building itself.
-                // This rare roster-change scan performs no geometry or movement query.
+                // Candidate ranking shares the bounded promotion VIEW budget above.
                 private _buddy=_pair select ((_slot+1) mod count _pair);
                 private _reinforceAnchor=if (_buddy != _member && {[_buddy] call _actorAvailable}
                     && {!(_buddy in _unavailable)}) then {_buddy} else {_building};
-                private _replacementIndex=0;
+                private _replacementIndex=-1;
                 private _replacementDistance=1e12;
                 {
                     private _distance=_x distance2D _reinforceAnchor;
-                    if (_distance < _replacementDistance) then {
-                        _replacementIndex=_forEachIndex;
+                    if (_distance < _replacementDistance && {[_x] call _mayPromoteReserve}) then {
+                        _replacementIndex=_reserves find _x;
                         _replacementDistance=_distance;
                     };
-                } forEach _reserves;
+                } forEach _promotionCandidates;
+                // Keep the casualty slot pending if the only replacements hold sole exit cover.
+                // Neither this wait nor budget deferral renews the finite clearance deadline.
+                if (_replacementIndex < 0) then {continue};
                 private _replacement=_reserves deleteAt _replacementIndex;
                 // Promotion changes this actor's purpose. Retire only the matching
                 // exit watch before an interior movement leg can inherit it.
