@@ -17,7 +17,7 @@
  * Brief predecessor dips below 2 km/h do not disable smoothing when longitudinal room remains;
  * raw closing-distance limits and reverse/ordered/pedestrian stops remain authoritative.
  * The route watchdog remembers only the unchanged final MOVE waypoint. If the engine marks it complete
- * more than 75 m early, the same waypoint is selected again; no waypoint is synthesized or rewritten.
+ * more than 75 m early, the same metadata-checked ungated waypoint is selected again; no waypoint is synthesized or rewritten.
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, km/h, gap, pushThrough, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
  * Return Value: Nothing.
@@ -90,6 +90,18 @@ if (!local _group) exitWith {};
 // during that work receives an immediate clean handover rather than a stale speed or route update.
 private _mayIssueDriving = {
     !([_group] call WAIT_fnc_CortexExternalTakeover)
+};
+// Recovery must not replay authored scripts, conditions, timers or trigger waits.
+// These values are inspected, never compiled or executed by the convoy controller.
+private _mayRecoverWaypoint={
+    params ["_waypoint"];
+    private _statements=waypointStatements _waypoint;
+    private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
+    waypointType _waypoint == "MOVE" && {_condition == "true"}
+        && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
+        && {waypointScript _waypoint == ""}
+        && {(waypointTimeout _waypoint param [2,0]) <= 0}
+        && {(synchronizedTriggers _waypoint) findIf {!isNull _x && {!triggerActivated _x}} < 0}
 };
 // A stalled engine route and a deliberate physical roadblock require different Zeus advice.
 // This bounded check runs only after the existing recovery attempts are exhausted; it never
@@ -294,18 +306,22 @@ for "_i" from 0 to (count _vehicles - 1) do {
 private _lastWaypoint = [_group, (count waypoints _group) - 1];
 if (count waypoints _group > 1 && {currentWaypoint _group < count waypoints _group}
     && {waypointType _lastWaypoint == "MOVE"}) then {
-    _state set ["routeWatch",[(count waypoints _group)-1,waypointPosition _lastWaypoint,waypointCompletionRadius _lastWaypoint]];
+    _state set ["routeWatch",[(count waypoints _group)-1,waypointPosition _lastWaypoint,waypointCompletionRadius _lastWaypoint,
+        [_group,"",false,_lastWaypoint select 1] call WAIT_fnc_AuthoredRouteReceipt]];
 };
 private _routeWatch=_state getOrDefault ["routeWatch",[]];
 if ([_group,"WAIT_Convoy_RouteRecovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled
     && {_routeWatch isNotEqualTo []} && {currentWaypoint _group >= count waypoints _group}
     && {time >= (_state getOrDefault ["routeRecoveryAt",-1])}) then {
-    _routeWatch params ["_watchedIndex","_watchedPosition","_watchedRadius"];
+    _routeWatch params ["_watchedIndex","_watchedPosition","_watchedRadius",["_watchedReceipt",[]]];
     // A Zeus edit changes or deletes the stored waypoint and therefore fails this identity check.
     // The Zeus suspension path above also clears local state before WAIT may resume.
     if (_watchedIndex < count waypoints _group) then {
         private _watchedWaypoint=[_group,_watchedIndex];
-        if (waypointType _watchedWaypoint == "MOVE"
+        if (_watchedReceipt isNotEqualTo []
+            && {([_group,"",false,_watchedIndex] call WAIT_fnc_AuthoredRouteReceipt) isEqualTo _watchedReceipt}
+            && {[_watchedWaypoint] call _mayRecoverWaypoint}
+            && {waypointType _watchedWaypoint == "MOVE"}
             && {waypointPosition _watchedWaypoint distance2D _watchedPosition < 2}
             && {_lead distance2D _watchedPosition > (_watchedRadius max 20)+75}) then {
             if ([] call _mayIssueDriving) then {
@@ -465,17 +481,23 @@ if ([] call _mayIssueDriving) then {
 // Speed limits cannot restart an engine movement order that stopped short. Retry only
 // after ten seconds without progress, while a real route destination remains active.
 private _leadProgress = _state getOrDefault ["leadProgress", [getPosATL _lead, time, 0]];
-if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0}) then {_leadProgress = [getPosATL _lead, time, 0]};
 private _waypointIndex = currentWaypoint _group;
+private _leadRouteReceipt=[_group,"",false,_waypointIndex] call WAIT_fnc_AuthoredRouteReceipt;
+if (_leadRouteReceipt isNotEqualTo (_state getOrDefault ["leadRouteReceipt",[]])) then {
+    _leadProgress=[getPosATL _lead,time,0];
+    _state set ["leadRouteReceipt",_leadRouteReceipt];
+};
+if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0}) then {_leadProgress = [getPosATL _lead, time, 0]};
 if (!_routeDone && {_leadLimit > 0} && {_waypointIndex < count waypoints _group}
     && {time - (_leadProgress select 1) >= 10} && {abs speed _lead < 1}) then {
     private _waypoint = [_group, _waypointIndex];
     private _destination = waypointPosition _waypoint;
-    if (waypointType _waypoint == "MOVE" && {_lead distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
+    if ([_waypoint] call _mayRecoverWaypoint && {_lead distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
         private _attempts=(_leadProgress param [2,0])+1;
         if (_attempts > 3) then {
             [_group,_revision,([_lead] call _classifyStall),[],_lead] remoteExecCall ["WAIT_fnc_ConvoyHaltServer",2];
-        } else {if ([] call _mayIssueDriving) then {_leadOperator doMove _destination}};
+        } else {if ([] call _mayIssueDriving && {currentWaypoint _group == _waypointIndex}
+            && {([_group,"",false,_waypointIndex] call WAIT_fnc_AuthoredRouteReceipt) isEqualTo _leadRouteReceipt}) then {_leadOperator doMove _destination}};
         _leadProgress set [2,_attempts];
     };
     _leadProgress set [0,getPosATL _lead]; _leadProgress set [1,time];

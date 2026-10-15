@@ -6,14 +6,15 @@
  * moving attached targets retain their object identities instead of transient world positions.
  * Arguments: 0 group <GROUP>, grpNull; 1 owned waypoint name <STRING>, empty (exclude none).
  * 2 owned-only <BOOL>, false: read only the named operation waypoint instead of excluding it.
+ * 3 waypoint engine index <NUMBER>, -1: negative reads all; otherwise read only that handle.
  * Return: ARRAY of waypoint metadata rows; empty for null/no authored entries. Cost is proportional
  * to waypoint count (fixed reads per row), not a world scan; large-route costs require profiling.
- * Current callers: WAIT_fnc_CortexAirAttack at admission and active owner callback.
+ * Current callers: CortexAirAttack admission/owner callback and ConvoyTick waypoint recovery.
  * Example: private _receipt=[group pilot1,"WAIT_AIR_ownedToken"] call WAIT_fnc_AuthoredRouteReceipt;
  */
-params [["_group",grpNull,[grpNull]],["_ownedName","",[""]],["_ownedOnly",false,[true]]];
+params [["_group",grpNull,[grpNull]],["_ownedName","",[""]],["_ownedOnly",false,[true]],["_waypointIndex",-1,[0]]];
 if (isNull _group) exitWith {[]};
-private _authored=waypoints _group select {if (_ownedOnly) then {
+private _authored=(waypoints _group select {_waypointIndex < 0 || {(_x select 1) == _waypointIndex}}) select {if (_ownedOnly) then {
     _ownedName != "" && {waypointName _x == _ownedName}
 } else {_ownedName == "" || {waypointName _x != _ownedName}}};
 _authored apply {
