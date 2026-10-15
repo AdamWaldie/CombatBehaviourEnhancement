@@ -11,6 +11,8 @@
  * An authored zero forced-speed hold is retained without recovery commands.
  * Persistent stationary traffic admits at most three native route retries in one eighty-second
  * public episode; collision caps remain active and newer seat/command ownership ends retries.
+ * Native individual MOVE destinations and deliberate STOP commands block new route recovery;
+ * an exact owned reverse journal alone permits its finite handback to the authored route.
  * Native boarding, service, medical and assembly tasks release the exact speed lease;
  * both driver and effective commander are rechecked at each cap/recovery command boundary.
  * The authored waypoint identity includes conditions, timeouts, synchronized triggers, speed,
@@ -27,8 +29,8 @@
  * receive no assumed forward-speed allowance. This does not establish crossing right-of-way.
  * Recognised forward gate/barrier geometry also constrains approach at the existing cadence.
  * Gate animation or damage does not grant passage; nearby openings use server validation, and no closing command is issued.
- * Owned traffic stops remain sampled; congestion suppresses route refresh/reverse rather than
- * treating a queue as navigation failure. No crossing priority or passing is inferred here.
+ * Owned traffic stops remain sampled; congestion suppresses reverse. Only bounded native-route
+ * retries may reconsider persistent blockage. No crossing priority or passing is inferred here.
  * The owned rear leg resamples its body corridor once per second on the existing scheduler,
  * stopping for new obstructions without extending its six-second deadline. Intended direction
  * is checked while stopped; an expired rear leg observes the forward retry before issuing it.
@@ -104,7 +106,8 @@ _brain set ["geometryTracks",_geometryTracks];
         && {(_recoveryWork get "route") isEqualTo _routeIdentity}
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
         && {(expectedDestination _driver) isEqualTo (_recoveryWork get "driverCommand")}
-        && {(expectedDestination _movementOperator) isEqualTo (_recoveryWork get "command")};
+        && {(expectedDestination _movementOperator) isEqualTo (_recoveryWork get "command")}
+        && {currentCommand _movementOperator != "STOP"};
     if (count _recoveryWork > 0 && {(_recoveryWork get "group") == _group} && {!_recoveryOwned}) then {
         if ((_recoveryWork get "route") isEqualTo _routeIdentity) then {
             _group setVariable ["WAIT_DrivingRecovery_Yield",_routeIdentity,true];
@@ -193,6 +196,24 @@ _brain set ["geometryTracks",_geometryTracks];
             call _mayIssueDriving && {vehicle leader _group isEqualTo _vehicle} && {!(call _nativeWaiting)}
                 && {call _recoveryOrderFree}
         };
+        private _nativeRouteIntent={
+            private _command=currentCommand _movementOperator;
+            if (_command == "STOP") exitWith {false};
+            if (!(_command in ["MOVE","WAIT"])) exitWith {true};
+            private _native=expectedDestination _movementOperator;
+            private _waypoint=[_group,currentWaypoint _group];
+            if (_command == "MOVE" && {(_native param [0,[]]) distance2D waypointPosition _waypoint <= 3}) exitWith {true};
+            // The rear leg intentionally differs from the waypoint. Only an unchanged
+            // current journal can authorize its own finite forward handback (including owned WAIT),
+            // not another MOVE or an unowned WAIT.
+            private _owned=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+            count _owned > 0 && {(_owned get "group") == _group}
+                && {(_owned get "route") isEqualTo _routeIdentity}
+                && {(_owned get "driver") == _driver} && {(_owned get "operator") == _movementOperator}
+                && {(expectedDestination _driver) isEqualTo (_owned get "driverCommand")}
+                && {_native isEqualTo (_owned get "command")}
+        };
+        private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}};
         private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
             // A new driver group adopts only after retiring the old group's exact cap lease.
@@ -302,7 +323,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _retryAllowed=!_reverseExpired || {
                 [_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled
                     && {!(behaviour leader _group in ["COMBAT","STEALTH"])} && {getSuppression _driver <= 0.1}
-                    && {call _mayRecoverRoute}
+                    && {call _mayRecoverOrdinaryRoute}
             };
             private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call WAIT_fnc_DrivingFollowingCap
@@ -417,7 +438,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {_recoveryStage == 0} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass}
                 && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
                 && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-                && {call _mayRecoverRoute};
+                && {call _mayRecoverOrdinaryRoute};
             private _jamObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity,_driver,_movementOperator];
             private _jamSeen=_vehicle getVariable ["WAIT_DrivingTrafficSeen",[]];
             private _jamContinuous=count _jamSeen == 3 && {(_jamSeen select 0) isEqualTo _jamObserver}
@@ -444,7 +465,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 };
                 if (!(_jam get "yielded") && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
                     && {serverTime >= (_jam get "next")} && {serverTime-(_jam get "since") >= 20}
-                    && {call _mayRecoverRoute}) then {
+                    && {call _mayRecoverOrdinaryRoute}) then {
                     _movementOperator doMove waypointPosition [_group,currentWaypoint _group];
                     _jam set ["attempts",(_jam get "attempts")+1];_jam set ["next",serverTime+20];
                     _jam set ["driverCommand",+(expectedDestination _driver)];
@@ -515,12 +536,13 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
                 && {!_inCombat} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {abs speed _vehicle < 1 || {_reverseComplete}}
                 && {time-_progressAt >= _observationWindow || {_reverseComplete} || {_finalExpired}} && {time >= _recoveryUntil}
-                && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
+                && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
                 private _waypoint=[_group,_waypointIndex];
                 private _destination=waypointPosition _waypoint;
                 if (waypointType _waypoint == "MOVE" && {_vehicle distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
                     switch (_recoveryStage) do {
                         case 0: {
+                            if !(call _mayRecoverOrdinaryRoute) exitWith {};
                             _movementOperator doMove _destination;
                             _recoveryStage=1;
                             _recoveryUntil=["REFRESH"] call _recordRecovery;
@@ -532,7 +554,7 @@ _brain set ["geometryTracks",_geometryTracks];
                             private _clearance=[_vehicle,8] call WAIT_fnc_DrivingRearClear;
                             private _rearSafe=(_clearance select 0) && {!surfaceIsWater _rear}
                                 && {((surfaceNormal _rear) select 2) >= 0.7};
-                            if (_rearSafe && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
+                            if (_rearSafe && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
                                 _movementOperator doMove _rear;
                                 _recoveryResult="CAUTIOUS_REVERSE";_reverseIssued=true;
                             } else {
@@ -542,6 +564,7 @@ _brain set ["geometryTracks",_geometryTracks];
                             _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued] call _recordRecovery;
                         };
                         case 2: {
+                            if !(call _mayRecoverOrdinaryRoute) exitWith {};
                             _movementOperator doMove _destination;
                             _recoveryStage=3;
                             _recoveryUntil=["FINAL"] call _recordRecovery;

@@ -7585,7 +7585,7 @@ class CortexOperations(unittest.TestCase):
         writes=re.findall(r'([^;{}]*)(?:_vehicle forceSpeed|_movementOperator doMove)',start)
         self.assertEqual(len(writes),5)
         jam=start.split('// Bounded traffic replan:',1)[1].split('// Waiting behind traffic',1)[0]
-        self.assertIn('&& {call _mayRecoverRoute}) then {',jam)
+        self.assertIn('&& {call _mayRecoverOrdinaryRoute}) then {',jam)
         self.assertIn('_movementOperator doMove waypointPosition [_group,currentWaypoint _group]',jam)
         self.assertGreaterEqual(start.count('call _mayIssueDriving'),3)
         self.assertIn('if (_state isEqualTo []) then {_vehicle setVariable ["WAIT_DrivingAssist_Restore",nil]}',start)

@@ -38,7 +38,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         jam=s.split('// Bounded traffic replan:',1)[1].split('// Waiting behind traffic',1)[0]
         for guard in ('serverTime+80','serverTime+20','(_jam get "attempts") < 3','serverTime < (_jam get "deadline")',
                       'serverTime-(_jam get "since") >= 20','abs speed _jamPeer < 1','abs speed _vehicle < 1',
-                      '_recoveryStage == 0','call _mayRecoverRoute','driverCommand','["yielded",true]',
+                      '_recoveryStage == 0','call _mayRecoverOrdinaryRoute','driverCommand','["yielded",true]',
                       'distance2D (_jam get "origin")) >= 15','["since",-1]'):
             self.assertIn(guard,jam)
         for forbidden in ('forceSpeed','deleteWaypoint','addWaypoint','enableAI','setVelocity','sendSimpleCommand','spawn'):
@@ -59,6 +59,21 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertNotIn('"attempts"',reset)
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
         self.assertIn('setVariable ["WAIT_DrivingTrafficSeen",nil]',release)
+    def test_direct_native_order_blocks_route_recovery_but_not_owned_rear_handback(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        guard=s.split('private _nativeRouteIntent={',1)[1].split('private _priorOwner=',1)[0]
+        self.assertIn('_command == "STOP"',guard)
+        self.assertIn('if (!(_command in ["MOVE","WAIT"])) exitWith {true}',guard)
+        self.assertIn('distance2D waypointPosition _waypoint <= 3',guard)
+        for receipt in ('get "group"','get "route"','get "driver"','get "operator"','get "driverCommand"','get "command"'):
+            self.assertIn(receipt,guard)
+        self.assertIn('private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}}',guard)
+        self.assertIn('currentCommand _movementOperator != "STOP"',s.split('private _release=',1)[0])
+        audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
+        self.assertIn('(driver _follower) doMove _directDestination',audit)
+        self.assertIn('DRIVING-traffic-newer-direct-MOVE-preserved',audit)
+        self.assertIn('(_retry getOrDefault ["attempts",0]) > _attemptsBefore',audit)
+
     def test_timing_model_never_escalates_before_required_observation(self):
         windows=(20,30,0,60)
         def due(stage,elapsed,deadline_elapsed,traffic=False):

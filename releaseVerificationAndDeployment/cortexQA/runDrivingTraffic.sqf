@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Physically exercises ordinary traffic following behind a stopped tracked predecessor,
- * then departure, repeated stop and restart. No controller callbacks or success state are injected.
+ * then departure, repeated stop/restart and a newer direct MOVE during blockage.
+ * No controller callbacks or success state are injected.
  * Locality/authority: scheduled server creates separate disposable driver groups. Predecessor
  * native waypoint/speed holds are fixture inputs; the follower is discovered and driven by WAIT.
  * Repeat/JIP: fresh fixtures per call; tuning restored and all crews/vehicles/groups deleted.
@@ -92,6 +93,31 @@ private _repeatStart=getPosATL _follower;
 _front forceSpeed 5;
 private _repeatResumed=[{_follower distance2D _repeatStart >= 35 && {speed _follower > 3}},60] call _wait;
 ["DRIVING-traffic-repeat-physical-resume",_resumed && {_repeatStopped} && {_repeatResumed},str getPosATL _follower] call _check;
+// A mission's newer direct MOVE does not replace its group waypoint. Hold the predecessor
+// again so traffic retries would become due, then observe that newer native destination.
+_front forceSpeed 0;
+private _directBlocked=[{abs speed _front < 1 && {abs speed _follower < 2}
+    && {_follower distance2D _front >= _bodyDistance+1}},40] call _wait;
+private _directDestination=_destination vectorAdd [0,250,0];
+(driver _follower) doMove _directDestination;
+private _directAccepted=[{((expectedDestination driver _follower) param [0,[]]) distance2D _directDestination <= 3},15] call _wait;
+private _attemptsBefore=(_follower getVariable ["WAIT_DrivingTrafficRetry",createHashMap]) getOrDefault ["attempts",0];
+private _directPreserved=true;
+["Ordinary driving: newer direct MOVE","The predecessor holds again. The truck has a new individual MOVE while its authored waypoint remains unchanged. WAIT must keep that native destination through a persistent traffic hold; it may not replace it with the old waypoint or start reverse recovery.",getPosATL _follower] call _phase;
+for "_sample" from 1 to 64 do {
+    sleep 0.5;
+    private _native=expectedDestination driver _follower;
+    private _retry=_follower getVariable ["WAIT_DrivingTrafficRetry",createHashMap];
+    private _state=_follower getVariable ["WAIT_DrivingAssist_State",[]];
+    if ((_native param [0,[]]) distance2D _directDestination > 3
+        || {(_retry getOrDefault ["attempts",0]) > _attemptsBefore} || {(_state param [6,0]) != 0}) then {_directPreserved=false};
+    if (_sample mod 2 == 0) then {
+        diag_log format ["WAIT DRIVING DIRECT ORDER: t=%1 command=%2 expected=%3 retry=%4 state=%5",
+            time,currentCommand driver _follower,_native,_retry,_state];
+    };
+};
+["DRIVING-traffic-newer-direct-MOVE-preserved",_ready && {_repeatResumed} && {_directBlocked} && {_directAccepted} && {_directPreserved},
+    str [_directDestination,expectedDestination driver _follower,_attemptsBefore]] call _check;
 [createHashMapFromArray [["WAIT_AIPass_DrivingAssist_Enable",false]]] call WAIT_fnc_CortexTuning;
 private _released=[{(_follower getVariable ["WAIT_DrivingAssist_State",[]]) isEqualTo []
     && {(_follower getVariable ["WAIT_DrivingAssist_Traffic",[]]) isEqualTo []}},15] call _wait;
