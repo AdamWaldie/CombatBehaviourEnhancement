@@ -243,6 +243,7 @@ private _delay=call {
                         // Releasing our unchanged settings must not cancel treatment, boarding
                         // or a specialist action with a formation recall.
                         if (_restore && {[_x] call _actorTaskFree}
+                            && {!(_x in (_job getOrDefault ["egressDiverted",[]]))}
                             && {currentCommand _x != "MOVE" || {[_x] call _ownsCurrentMove}}) then {
                             _x doWatch objNull;
                             if (_reason == "COMPLETE") then {
@@ -271,7 +272,7 @@ private _delay=call {
                     };
                     _x setVariable ["WAIT_Cortex_ClearReserve",nil];
                 };
-            } forEach (((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]])));
+            } forEach ((((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]]))) - (_job getOrDefault ["egressDiverted",[]]));
             _group setVariable ["WAIT_AIPass_ClearBuilding", nil, true];
             _group setVariable ["WAIT_Cortex_ClearEgress",nil,true];
             _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
@@ -468,10 +469,21 @@ private _delay=call {
         1.5
     };
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
+        private _diverted=_job getOrDefault ["egressDiverted",[]];
         private _assignments=(_job get "egressAssignments") select {
             _x params ["_unit"];
+            if (currentCommand _unit == "MOVE" && {!([_unit] call _ownsCurrentMove)}) then {
+                _diverted pushBackUnique _unit;
+                (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _unit);
+                _x set [2,false];
+            };
+            // A new individual destination can arrive without changing the group waypoint.
+            // It owns the actor immediately, including when it passes our old arrival slot.
+            // Never stop or retry that actor back to the retired clearance destination.
             [_unit] call _actorAvailable && {!(_unit in _unavailable)}
+                && {!(_unit in _diverted)}
         };
+        _job set ["egressDiverted",_diverted];
         // A diverted/unavailable actor is no longer ours to route, but its unfinished exit
         // must remain visible instead of counting an empty eligible set as successful egress.
         if (count _assignments < count (_job get "egressAssignments")) then {_job set ["egressFailed",true]};
