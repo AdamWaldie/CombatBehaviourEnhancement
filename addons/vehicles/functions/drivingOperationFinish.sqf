@@ -16,6 +16,7 @@ private _group=_brain getOrDefault ["group",grpNull];
 if (isNull _group || {!local _group}
     || {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isNotEqualTo _brain}
     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {};
+[_group,_brain,true] call WAIT_fnc_DrivingCrewStep;
 {[_x,_group] call WAIT_fnc_DrivingAssistRelease} forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
 _group setVariable ["WAIT_DrivingAssist_Vehicles",nil];
 _group setVariable ["WAIT_Driving_FSM",nil];

@@ -19,6 +19,7 @@ if ([_group] call WAIT_fnc_CortexZeusHeld || {[_group] call WAIT_fnc_CortexExter
 if (!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)) exitWith {["DISABLED"] call _reject};
 if (!([_group] call WAIT_fnc_DrivingMovementAvailable)) exitWith {["TACTICAL_OWNER"] call _reject};
 if (([_group] call WAIT_fnc_DrivingRouteReceipt) isNotEqualTo (_brain get "route")) exitWith {["ORDER_CHANGED"] call _reject};
+private _crewPending=[_group,_brain] call WAIT_fnc_DrivingCrewStep;
 [_group,_brain] call WAIT_fnc_DrivingAssistStart;
 private _bypass="";private _obstacle=false;private _corridor="";
 private _phase="HANDBACK";private _owned=0;private _recovery=false;private _waiting=false;private _exhausted=false;private _traffic=false;private _rearLeg=false;
@@ -40,8 +41,9 @@ if (_owned > 0) then {_phase=if (_recovery) then {"RECOVERY"} else {if (_waiting
 if (_obstacle && {_owned > 0}) then {_phase="OBSTACLE"};
 if (_corridor != "") then {_phase=_corridor};
 if (_bypass != "") then {_phase=_bypass};
-if (_owned == 0) then {_brain set ["cancelReason","NO_ELIGIBLE_VEHICLE"]};
+if (_owned == 0 && {!_crewPending}) then {_brain set ["cancelReason","NO_ELIGIBLE_VEHICLE"]};
 if (_exhausted) then {_phase="HANDBACK";_brain set ["cancelReason","EXHAUSTED"]};
-_brain set ["phase",_phase];_brain set ["nextAt",time+([4,1] select (_traffic || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""}))];_brain set ["pending",false];_brain set ["completed",true];
+if (_crewPending) then {_phase="CREW_HANDOVER"};
+_brain set ["phase",_phase];_brain set ["nextAt",time+([4,1] select (_crewPending || {_traffic} || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""}))];_brain set ["pending",false];_brain set ["completed",true];
 _group setVariable ["WAIT_Driving_State",[_phase,_brain get "generation",serverTime,_brain get "cancelReason"],true];
 -1

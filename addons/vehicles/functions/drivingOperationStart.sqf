@@ -35,7 +35,10 @@ private _hasVehicle=(units _group) findIf {
     private _vehicle=vehicle _x;
     _vehicle != _x && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")}
         && {local _vehicle} && {alive _vehicle} && {canMove _vehicle}
-        && {!isNull driver _vehicle} && {group driver _vehicle == _group}
+        && {(!isNull driver _vehicle && {group driver _vehicle == _group})
+            || {vehicle leader _group == _vehicle && {[_x] call WAIT_fnc_CortexCombatEffective}
+                && {(isNull driver _vehicle || {!alive driver _vehicle})}
+                && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}}}
         && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
 } >= 0;
 if (!_hasVehicle) exitWith {false};

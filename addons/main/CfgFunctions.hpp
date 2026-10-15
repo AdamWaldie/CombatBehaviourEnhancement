@@ -62,6 +62,7 @@ class CfgFunctions {
             class DrivingFollowingCap {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingFollowingCap.sqf";};
             class DrivingRearClear {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingRearClear.sqf";};
             class DrivingRouteReceipt {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingRouteReceipt.sqf";};
+            class DrivingCrewStep {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingCrewStep.sqf";};
             class DrivingOperationStart {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingOperationStart.sqf";};
             class DrivingOperationQueue {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingOperationQueue.sqf";};
             class DrivingOperationStep {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingOperationStep.sqf";};
