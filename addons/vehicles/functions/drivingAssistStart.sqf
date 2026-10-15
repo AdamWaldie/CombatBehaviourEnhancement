@@ -15,6 +15,7 @@
  * combat mode and formation. Same-index edits retire the old recovery stage. Every cap/recovery
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
  * Road bends, junctions and absolute road grade share the convoy observer at existing cadence.
+ * Friendly pedestrian hulls constrain ordinary driving as well as opted-in convoys.
  * Same-direction traffic uses current hull gaps and actual velocity for continuous following caps.
  * Owned traffic stops remain sampled; congestion suppresses route refresh/reverse rather than
  * treating a queue as navigation failure. No crossing priority or passing is inferred here.
@@ -233,6 +234,12 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _traffic=if ((_state param [6,0]) != 2) then {
                 [_vehicle,_capMps] call WAIT_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
+            // Share the convoy observer without adding a second speed writer. Its zero cap
+            // uses the existing traffic lease and faster sampling, and cannot trigger recovery.
+            private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true] call WAIT_fnc_CortexInfantrySpeed;
+            if (_pedestrianCap/3.6 < (_traffic select 0)) then {
+                _traffic=[_pedestrianCap/3.6,_vehicle,-1,time,0];
+            };
             private _trafficLimited=!isNull (_traffic select 1);
             _capMps=_capMps min (_traffic select 0);
             if !(call _mayIssueDriving) then {
@@ -259,7 +266,11 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             // clearing the queue does not immediately inherit a stale reverse deadline.
             if (_trafficLimited) then {
                 _progressPosition=getPosATL _vehicle;_progressAt=time;
-                _recoveryStage=0;_recoveryUntil=-1;_recoveryResult="TRAFFIC_FOLLOW";
+                // Keep an already-issued rear leg finite. After the pedestrian clears,
+                // its expired deadline returns to the authored route instead of losing
+                // the rear-leg receipt and treating backward travel as ordinary progress.
+                if (_recoveryStage != 2) then {_recoveryStage=0;_recoveryUntil=-1};
+                _recoveryResult="TRAFFIC_FOLLOW";
             };
             private _routeProgress=true;
             if (_recoveryStage > 0) then {
@@ -273,7 +284,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             };
             // Reversing is a recovery leg, not proof that the original route resumed.
             // Do not reset its finite stages merely because the vehicle moved backwards.
-            if (_vehicle distance2D _progressPosition >= 3 && {_routeProgress}) then {
+            if (!_trafficLimited && {_vehicle distance2D _progressPosition >= 3} && {_routeProgress}) then {
                 _progressPosition=getPosATL _vehicle;
                 _progressAt=time;
                 _recoveryStage=0;
