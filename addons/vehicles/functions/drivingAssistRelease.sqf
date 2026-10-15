@@ -25,6 +25,11 @@ if (!isNull _corridorGroup && {isNull _expectedGroup || {_expectedGroup == _corr
     && {((_corridor getOrDefault ["controller",["ORDINARY",-1]]) param [0,""]) == "ORDINARY"}) then {
     [_vehicle,_corridorGroup,"DRIVING_RELEASED"] call WAIT_fnc_DrivingCorridorRelease;
 };
+private _bypass=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
+private _bypassGroup=_bypass getOrDefault ["group",grpNull];
+if (!isNull _bypassGroup && {isNull _expectedGroup || {_expectedGroup == _bypassGroup}}) then {
+    [_vehicle,_bypassGroup,"DRIVING_RELEASED"] call WAIT_fnc_DrivingBypassRelease;
+};
 private _restore=_vehicle getVariable ["WAIT_DrivingAssist_Restore",[]];
 private _state=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
 if (!isNull _expectedGroup && {(_state param [3,grpNull]) != _expectedGroup}) exitWith {};

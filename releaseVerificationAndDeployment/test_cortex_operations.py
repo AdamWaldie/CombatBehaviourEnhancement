@@ -7621,7 +7621,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('WAIT_fnc_DrivingAssistRelease',start)
         self.assertIn('private _yieldToOwner=[_group] call WAIT_fnc_CortexExternalTakeover;',start)
         self.assertIn('getTerrainHeightASL _sample',start)
-        self.assertIn('time+([4,1] select (_trafficLimited || {_corridorActive} || {_recoveryStage == 2}))',start)
+        self.assertIn('time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))',start)
         self.assertIn('private _capMps=_cap/3.6;',start)
         self.assertIn('if (_saved > 0) then {_capMps=_capMps min _saved};',start)
         self.assertIn('forceSpeed _capMps',start)

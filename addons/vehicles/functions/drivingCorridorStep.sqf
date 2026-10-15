@@ -85,6 +85,7 @@ private _mayWrite={
         && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
         && {isAISteeringComponentEnabled _vehicle}
 };
+if (!isNil {_vehicle getVariable "WAIT_DrivingBypass_Work"}) exitWith {_inactive};
 private _work=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
 if !(call _mayWrite) exitWith {
     [_vehicle,_group,"OWNER_OR_ORDER_CHANGED",false] call WAIT_fnc_DrivingCorridorRelease;

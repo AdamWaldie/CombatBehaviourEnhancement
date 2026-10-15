@@ -37,3 +37,40 @@ class DrivingBypassTests(unittest.TestCase):
             for angle in range(0,91,5):
                 projected=abs(width*math.cos(math.radians(angle)))+abs(length*math.sin(math.radians(angle)))
                 self.assertGreater(radius,projected)
+
+    def test_executor_has_one_path_write_finite_budget_and_actual_completion(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
+        self.assertEqual(s.count('setDriveOnPath'),1)
+        self.assertIn('["deadline",serverTime+90]',s)
+        self.assertIn('serverTime >= (_work get "deadline")',s)
+        self.assertIn('_work set ["side",-1]',s)
+        self.assertIn('for "_i" from 1 to 4',s)
+        self.assertIn('_origin distance2D (_points select _index) <= 2.5',s)
+        self.assertIn('modelToWorldWorld',s)
+        self.assertIn('vectorDotProduct (_work get "forward") < 5',s)
+        self.assertNotIn('unitReady',s)
+        self.assertNotIn('set ["deadline"',s)
+        self.assertIn('if (isRemoteExecuted) exitWith',s)
+        self.assertIn('call _seatsAvailable',s)
+        self.assertIn('bis_fnc_moduleRemoteControl_owner',s)
+        self.assertNotIn('["authority",',s)
+    def test_controller_preserves_other_constraints_and_excludes_other_paths(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertEqual(s.count('call WAIT_fnc_DrivingBypassStep'),1)
+        self.assertIn('!_hadBypass',s)
+        self.assertIn('_traffic=+_withoutObstacle;',s)
+        self.assertIn('_bypass select 3',s)
+        self.assertIn('_obstacleObservation select 8',s)
+        self.assertIn('_capMps=_capMps min (_bypass select 1)',s)
+        self.assertIn('_pedestrianCap/3.6 < (_traffic select 0)',s)
+        self.assertIn('WAIT_DrivingBypass_Work',(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text())
+        fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
+        for phase in ('BYPASS_PLAN','BYPASS_FOLLOW'):self.assertIn(phase,fsm)
+    def test_release_requires_owned_follow_and_both_native_receipts(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        for marker in ('(_work get "phase") == "FOLLOW"','expectedDestination _driver',
+                       'expectedDestination _operator','CortexExternalTakeover','DrivingRouteReceipt',
+                       'count _cooldown >= 32','serverTime+120'):
+            self.assertIn(marker,s)
+        for forbidden in ('setPos','setVelocity','enableAI','addWaypoint','deleteWaypoint','spawn','waitUntil'):
+            self.assertNotIn(forbidden,s.split('params [[',1)[1])

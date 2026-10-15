@@ -15,7 +15,7 @@
  * resample at <=5 m, at most 24 stations/279 support/body rays. No spawning or collision helpers.
  * The radius deliberately overbounds turn footprint; no turning-radius or native steering success
  * is implied. Unsupported terrain/moving objects, large hulls or missing support refuse.
- * Current callers: Trusted diagnostic/script preflight only; driving execution is not connected yet.
+ * Current callers: DrivingBypassStep and trusted diagnostic/script preflight.
  * Example: [truck1,_solidObservation,-1] call WAIT_fnc_DrivingBypassPlan;
  */
 params [["_vehicle",objNull,[objNull]],["_observed",[],[[]]],["_side",1,[0]],["_envelope",[],[[]]]];
@@ -55,7 +55,7 @@ private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
     } forEach [_otherLow select 2,_otherHigh select 2];} forEach [_otherLow select 1,_otherHigh select 1];
 } forEach [_otherLow select 0,_otherHigh select 0];
 if (_maxX-_minX > 30 || {_maxY-_minY > 30} || {_minY <= _radius+6}) exitWith {["INSUFFICIENT_APPROACH_ROOM"] call _fail};
-private _before=_minY-_radius-3;private _after=_maxY+_radius+3;
+private _before=_minY-_radius-3;private _after=_maxY+_radius+10;
 private _lateral=if (_side > 0) then {_maxX+_radius+3} else {_minX-_radius-3};
 private _anchors=[[0,0],[0,_before],[_lateral,_before],[_lateral,_after],[0,_after]] apply {
     (_origin vectorAdd (_right vectorMultiply (_x select 0))) vectorAdd (_forward vectorMultiply (_x select 1))

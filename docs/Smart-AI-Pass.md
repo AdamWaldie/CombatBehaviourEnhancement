@@ -744,7 +744,7 @@ The existing speed writers combine the nominal mass-based braking ceiling with t
 This is approach observation and intentional waiting, not obstacle-routing parity. Production detours/native path influence, safe passing/right-of-way, dense-scene performance, damaged or moving structures, curved approaches, placed-versus-terrain controls, HC migration and physical braking remain unfinished or unverified. Audits remain held. No invisible collision helper, teleport, repair-push, waypoint reconstruction or additional movement controller is introduced.
 
 
-#### Physical bypass proposal (executor not connected yet)
+#### Physical bypass proposal and finite ordinary execution
 
 `[truck1,_solidObservation,-1] call WAIT_fnc_DrivingBypassPlan` preflights one left-side candidate; `1` selects the right. It accepts a fresh, stationary solid-object observation within 50 m while the vehicle is at most 8 km/h. Actual projected obstacle corners define the route; arbitrary terrain faces, moving objects, uncertain/oversized bounds and insufficient turning approach refuse. Vehicle or optional convoy dimensions expand a circumscribed hull clearance radius, capped at 12 m. This is deliberately conservative and does not prove steering feasibility.
 
@@ -752,4 +752,15 @@ Five anchor points route before, beside, beyond and back onto the original forwa
 
 The shared validator now also serves corridor admission. Corridor work remains bounded to 20 stations/231 rays; a bypass candidate is at most 24 stations/279 rays. The added middle body row addresses a gap where an intermediate beam could lie between the previous lower/upper samples. Discrete rays are still not continuous swept-volume proof. Native ray cost and admission spikes require physical performance measurement; these bounds do not establish the frame budget.
 
-Bypass proposals issue no movement and are not automatically consumed by ordinary/convoy driving yet. Finite execution, original-deadline ownership, current-command interruption, replanning after moving geometry, safe oncoming/passing authority, full-hull checkpoint evidence and route handback remain required before bypass routing can be accepted. The existing obstacle approach constraint remains in place. Audits are held; neither a valid proposal nor compilation is physical success.
+The proposal API remains read-only. Ordinary lead driving now consumes it through the finite executor below; convoy bypass composition and safe passing/right-of-way remain pending. Audits are held; neither a valid proposal nor compilation is physical success.
+
+
+#### Ordinary-lead bypass execution (physical acceptance pending)
+
+The existing ordinary driving callback now admits BYPASS_PLAN/BYPASS_FOLLOW under the driving recovery feature gate. It selects at most two sides on separate callbacks and preserves one original 90-second server-clock deadline across owner adoption. Exact native route, current brain/epoch, both seat occupants/command receipts and the caller's fresh plain-route authority guard each command. Corridors and reverse recovery cannot run over an active bypass. Convoys retain their own writer and are not admitted by this ordinary executor.
+
+A successful physical proposal issues one fixed path after owned driver/commander stops, capped at 8 km/h through the existing speed writer. Ordered checkpoints require actual position/elevation; at most four advance per callback. The next actual path segment receives fresh bounded support/body validation (at most 15 rays). Only that healthy leg permits yielding the exact source object's forward cap; gates, traffic and pedestrians remain independent constraints. Changed geometry/commands, failed health or expiry retire the path through guarded same-order handback. A failed episode retains its result and a bounded 120-second object/route cooldown; moving the object cannot reset that cooldown immediately. PLAN owns no movement and cannot stop native actors.
+
+Only all ordered visits plus actual full-hull clearance five metres beyond the obstacle plane complete PHYSICALLY_PASSED. Path acceptance, readiness and elapsed time cannot pass. Exit extensions leave tail room, and a destination behind the exit refuses rather than causing an overshoot/turnback. No helper object, teleport, feature reset, second scheduler or world scan is added. The internal authority predicate is synchronous local code only and is never serialized or remotely accepted.
+
+Required live acceptance remains ordinary cars/trucks and separate commanders, left/right failures, tight turns, inaccessible supports, moving/new obstacles, mid-leg new orders, repeat cooldown, owner migration, path retirement and native-route continuation. Actual steering feasibility and callback/frame overhead are unverified while audits are held. Convoy bypasses, constrained backoff, articulated vehicles and passing negotiation remain unfinished.

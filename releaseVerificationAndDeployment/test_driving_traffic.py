@@ -63,17 +63,17 @@ class DrivingTrafficTests(unittest.TestCase):
 
     def test_traffic_wait_does_not_enter_route_recovery(self):
         s=src('drivingAssistStart')
-        self.assertIn('&& {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {abs speed _vehicle < 1',s)
+        self.assertIn('&& {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {abs speed _vehicle < 1',s)
         self.assertIn('["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited',s)
         self.assertIn('_progressPosition=getPosATL _vehicle;_progressAt=time;',s)
         self.assertIn('WAIT_DrivingAssist_Traffic',s.split('getForcedSpeed _vehicle == 0',1)[1].split('then {_release=true}',1)[0])
         self.assertIn('_capMps=_capMps min (_traffic select 0)',s)
         self.assertLess(s.index('call WAIT_fnc_DrivingFollowingCap'),s.index('_vehicle forceSpeed _capMps'))
-        self.assertIn('time+([4,1] select (_trafficLimited || {_corridorActive} || {_recoveryStage == 2}))',s)
+        self.assertIn('time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))',s)
     def test_fsm_uses_existing_queue_and_cleanup_clears_observation(self):
         step=src('drivingOperationStep')
         self.assertIn('"TRAFFIC"',step)
-        self.assertIn('time+([4,1] select (_traffic || {_obstacle} || {_rearLeg} || {_corridor != ""}))',step)
+        self.assertIn('time+([4,1] select (_traffic || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""}))',step)
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
         self.assertIn('class TrafficFollowing',fsm)
         self.assertIn('to="TrafficFollowing"',fsm)
