@@ -578,3 +578,11 @@ the existing five-second freshness and three-contact geometry limits. This preve
 movement from selecting a different house through live position reads. Belief inside a roofed
 house is not proof the enemy remains there. Threat-prioritized interior routing is still missing;
 physical contact/entry, lost sight, false beliefs and HC continuity remain unverified.
+
+Natural building contact passes its believed position and original server-clock observation time
+into clearance. Finite, building-contained hints no older than five seconds may seed the first
+point on the matching floor near that belief. Lower floors still precede upper floors; after the
+one-time seed, nearest-neighbour progression continues. All room visits remain physical. The
+snapshot/timestamp is retained in the durable order and progress updates; owner adoption cannot
+refresh it, and stale hints revert to ordinary routing. No unseen target position is polled.
+This is initial route prioritization, not dynamic enemy tracking or proven topology. Threat-floor flow, stale beliefs, inaccessible points, casualties and HC remain unverified.

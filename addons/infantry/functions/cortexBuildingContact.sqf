@@ -55,6 +55,7 @@ if (_records isEqualTo []) exitWith {false};
 if (count _records > 3) then {_records resize 3};
 private _enemy=objNull;
 private _building=objNull;
+private _contactBelief=[];
 // Nearest-building alone also returns houses beside an outdoor actor. Check at most three fresh
 // beliefs and require model-bound inclusion plus overhead geometry from that same building.
 // Never query an enemy's live transform after the knowledge snapshot was made.
@@ -83,6 +84,7 @@ private _building=objNull;
             if (_roofHits findIf {(_x select 2) == _candidateBuilding || {(_x select 3) == _candidateBuilding}} >= 0) then {
                 _enemy=_candidateEnemy;
                 _building=_candidateBuilding;
+                _contactBelief=[+_candidatePosition,serverTime-(_x select 2)];
             };
         };
     };
@@ -92,7 +94,7 @@ if (isNull _building) exitWith {
     false
 };
 
-private _accepted=[_group,_building,createHashMapFromArray [["preserveBrain",true],["contact",_enemy]]] call WAIT_fnc_CortexClearBuilding;
+private _accepted=[_group,_building,createHashMapFromArray [["preserveBrain",true],["contact",_enemy],["contactBelief",_contactBelief]]] call WAIT_fnc_CortexClearBuilding;
 if (_accepted) then {
     _state set ["buildingContact",[_building,_enemy,serverTime]];
     [_state,"buildingCombat",60] call WAIT_fnc_CortexCooldown;

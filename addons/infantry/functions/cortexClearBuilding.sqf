@@ -43,6 +43,9 @@
  * 2: options <HASHMAP> (optional) - resume (default false), preserveBrain (default false for an
  *    explicit order) and operation-specific controls. Natural contact entry uses preserveBrain so
  *    live fire control and contact transitions continue around the single building movement owner.
+ *    contactBelief (default []) is [believed position AGL ARRAY, observed serverTime NUMBER].
+ *    A finite hint inside the building and at most five seconds old seeds one floor route.
+ *    Its timestamp survives adoption; it never supplies live target tracking or visit credit.
  *
  * Return Value:
  * Boolean - true when the order was applied or forwarded
@@ -170,6 +173,23 @@ private _remainingAdmission=+_team;
 _team = (_pairedAdmission+_remainingAdmission) select [0,_entryCapacity];
 private _previous = _group getVariable ["WAIT_AIPass_ClearOrder", []];
 private _resume = _options getOrDefault ["resume", false] && {_previous isNotEqualTo []} && {(_previous select 0) == _building};
+// A one-time native belief may seed a floor's route, never track an unseen live target.
+// Preserve the original timestamp across owner adoption; a stale hint is not renewed.
+private _contactBelief=if (_resume) then {+(_previous param [11,[],[[]]])} else {_options getOrDefault ["contactBelief",[]]};
+private _validBelief=_contactBelief isEqualType [] && {count _contactBelief == 2}
+    && {(_contactBelief select 0) isEqualType []} && {count (_contactBelief select 0) == 3}
+    && {(_contactBelief select 0) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+    && {(_contactBelief select 1) isEqualType 0} && {finite (_contactBelief select 1)}
+    && {serverTime-(_contactBelief select 1) >= 0} && {serverTime-(_contactBelief select 1) <= 5};
+if (_validBelief) then {
+    private _bounds=boundingBoxReal _building;
+    private _model=_building worldToModelVisual (_contactBelief select 0);
+    private _low=_bounds select 0;private _high=_bounds select 1;
+    _validBelief=(_model select 0) >= (_low select 0)-1 && {(_model select 0) <= (_high select 0)+1}
+        && {(_model select 1) >= (_low select 1)-1} && {(_model select 1) <= (_high select 1)+1}
+        && {(_model select 2) >= (_low select 2)-1} && {(_model select 2) <= (_high select 2)+1};
+};
+if (!_validBelief) then {_contactBelief=[]} else {_contactBelief=[+(_contactBelief select 0),_contactBelief select 1]};
 private _baseBehaviour = if (_previous isEqualTo []) then {behaviour _leader} else {_previous select 3};
 private _cleared = if (_resume) then {+(_previous select 1)} else {[]};
 private _unreachable = if (_resume) then {+(_previous param [4, []])} else {[]};
@@ -218,7 +238,7 @@ _nativeOrderReceipt=[_group] call WAIT_fnc_NativeOrderReceipt;
 if (!_resume) then {_baseAttack=attackEnabled _leader};
 if (_previous isEqualTo []) then {_baseBehaviour=behaviour _leader};
 _group setVariable ["WAIT_Cortex_ClearAdmissionFailure",nil,true];
-_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline], true];
+_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline, _contactBelief], true];
 _group setVariable ["WAIT_AIPass_ClearApplied", true];
 _group setVariable ["WAIT_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
 _group setVariable ["WAIT_Cortex_ClearEvidence",nil,true];
@@ -296,6 +316,7 @@ private _entryRoute=if (_entries isEqualTo []) then {[]} else {
 // Build a stable continuous route rather than repeatedly choosing whichever marker is nearest
 // to each individual. This prevents criss-crossing and gives every pair a clear-through sector.
 private _routeOrder=[];
+private _beliefSeeded=false;
 private _remaining=[];
 for "_index" from 0 to ((count _positions)-1) do {
     if !(_index in (_cleared+_unreachable)) then {_remaining pushBack _index};
@@ -303,12 +324,19 @@ for "_index" from 0 to ((count _positions)-1) do {
 private _routeCursor=if (_entryRoute isEqualTo []) then {getPosATL _building} else {_entryRoute};
 while {_remaining isNotEqualTo []} do {
     private _lowest=1e9;
-    {private _height=(_positions select _x) select 2; if (_height < _lowest) then {_lowest=_height}} forEach _remaining;
-    private _floorCandidates=_remaining select {abs (((_positions select _x) select 2)-_lowest) < 1.8};
+    {private _height=(AGLToASL (_positions select _x)) select 2; if (_height < _lowest) then {_lowest=_height}} forEach _remaining;
+    private _floorCandidates=_remaining select {abs (((AGLToASL (_positions select _x)) select 2)-_lowest) < 1.8};
+    private _selectionOrigin=_routeCursor;
+    if (!_beliefSeeded && {_contactBelief isNotEqualTo []}
+        && {_floorCandidates findIf {abs (((AGLToASL (_positions select _x)) select 2)
+            -((AGLToASL (_contactBelief select 0)) select 2)) <= 1.5} >= 0}) then {
+        _selectionOrigin=_contactBelief select 0;
+        _beliefSeeded=true;
+    };
     private _bestSlot=0;
     private _bestDistance=1e9;
     {
-        private _distance=_routeCursor distance2D (_positions select _x);
+        private _distance=_selectionOrigin distance2D (_positions select _x);
         if (_distance < _bestDistance) then {_bestSlot=_remaining find _x; _bestDistance=_distance};
     } forEach _floorCandidates;
     private _positionIndex=_remaining deleteAt _bestSlot;
@@ -349,7 +377,7 @@ private _job=createHashMapFromArray [
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
-    ["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
+    ["contactBelief",_contactBelief],["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
 // Adopt a transform/episode-bound exit journal without issuing movement. A different
 // native destination owns the actor now and must not inherit an old exit receipt.
