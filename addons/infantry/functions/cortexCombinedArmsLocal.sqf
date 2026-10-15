@@ -14,6 +14,8 @@
  * Locality/authority: current group owner only; server-issued public token must still match. Asset
  * aircraft discovery requires the pilot's group; ground discovery accepts the commander's or driver's group.
  * Repeat/JIP: duplicate roles are harmless; expiry, Zeus takeover, feature closure and token replacement reject stale calls.
+ * Contact positions require exactly three finite numeric ATL components, each within +/-1e6m.
+ * Invalid payloads reject before local cooldown or server reservation; no live-target fallback is used.
  * Arguments: 0: asset group <GROUP>; 1: opportunity <ARRAY>
  * [token,requester,target,position,role,expiry,ground-fire anchor].
  * Return Value: Boolean, true when the role was applied.
@@ -30,7 +32,7 @@ if ((_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isNotEqualTo _opportuni
     || {captive _target} || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
     || {!(_position isEqualType [])} || {count _position != 3}
-    || {_position findIf {!(_x isEqualType 0)} >= 0}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}
     || {!(_role in ["GROUND_FIRE","GROUND_MANOEUVRE","AIR_ATTACK"])}) exitWith {false};
 private _asset=objNull;
 {

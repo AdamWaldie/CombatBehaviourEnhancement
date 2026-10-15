@@ -891,3 +891,8 @@ The normal-owner traffic audit now includes a separate fresh tracked/truck creep
 Rear clearance retains its0.45m/0.9m knee and bumper rows and adds actual hull middle/top rows. Three lateral rays per distinct row mean at most twelve geometry rays, replacing the earlier six-ray bound. Existing actor queries,64-actor/full-hull projection, two-second relative-motion prediction, owner checks and finite reverse command boundaries are unchanged. Ordinary recovery and tracked withdrawal share this observer; no setting, timer or movement writer is added.
 
 These beams reduce the tall-hull blind spot but do not establish continuous swept-volume clearance. Thin obstacles between rows, attachments outside reported bounds, steep surfaces, actual reverse paths and runtime cost remain unverified. Audits remain held.
+
+
+### Combined-arms contact position transport (15 October 2026)
+
+Requester, authoritative allocator and asset owner now require exactly three finite numeric ATL components within+/-1e6metres. Malformed reports reject before consuming the request cooldown or reserving support assets. The server previously accepted two-coordinate reports which the owner rejected after reservation. No target-coordinate substitution, report-age refresh, new setting or query is added. Existing ten-second server freshness, hostility, communications, role eligibility and operation ownership checks remain. This is transport correctness; larger-scale allocation, contact updates and physical support effects remain incomplete and unverified.

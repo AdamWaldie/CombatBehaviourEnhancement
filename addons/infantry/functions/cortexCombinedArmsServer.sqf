@@ -23,6 +23,8 @@
  * repeated linear array membership searches. Ranking retains the discovered asset; dispatch
  * rechecks its live commander/driver ownership without another full unit scan. A unique rank
  * tie-breaker avoids comparing group objects. This does not bound total discovery population.
+ * Contact positions require exactly three finite numeric ATL components, each within +/-1e6m.
+ * Invalid payloads reject before local cooldown or server reservation; no live-target fallback is used.
  * Arguments: 0: requester <GROUP>; 1: observed hostile <OBJECT>; 2: believed ATL <ARRAY>;
  * 3: observation server time <NUMBER>.
  * Return Value: Number of asset roles dispatched.
@@ -33,7 +35,7 @@ params [["_requester",grpNull,[grpNull]],["_target",objNull,[objNull]],["_positi
 if (!isServer || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
     || {[] call WAIT_fnc_CortexIsPaused} || {isNull _requester} || {isNull _target} || {!alive _target}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != groupOwner _requester}}
-    || {count _position < 2} || {_position findIf {!(_x isEqualType 0)} >= 0}
+    || {count _position != 3} || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}
     || {!finite _observedAt} || {_observedAt < 0} || {_observedAt > serverTime+1}
     || {serverTime-_observedAt > 10} || {_target distance2D _position > 75}
     || {(side _requester) getFriend side _target >= 0.6}
