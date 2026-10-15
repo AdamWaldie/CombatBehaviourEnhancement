@@ -874,3 +874,10 @@ Aircraft AA threat geometry uses the perceived position in each native `nearTarg
 Initial buddy destinations and subsequent lead claims prefer native room nodes without another admitted worker's current owned approach or physical occupancy. Selection examines at most eight admitted interior workers, uses the existing same-floor and clear-geometry checks, and retains the existing 24-candidate initial buddy geometry limit. Cached buddy destinations and paths already in progress are unchanged. No new setting, timer, persistent room reservation or movement controller is added.
 
 This is a preference, not a collision-free routing guarantee. If all alternatives are occupied or lack a clear connection, the existing finite attempt remains available; occupancy does not remove pending rooms or renew the operation deadline. Dead, unavailable and handed-over movement requests cannot hold a reservation through their historical destination alone. Floor-aware physical room visits remain the completion authority. Normal/HC entry flow, dense doorway congestion, inaccessible model nodes and actual performance remain unverified while audits are held.
+
+
+### Ordinary-driving stationary traffic dwell (15 October 2026)
+
+Native-route traffic retries now require both the subject and limiting vehicle to remain within 1.5 metres of their dwell-start ASL positions. The local observation receipt retains those anchors across fresh samples; it does not slide them forward with a creeping queue. Motion, an observation gap over six seconds, changed peer, seats, route or owner restarts stationary dwell without renewing the public eighty-second episode or its three-attempt limit. Existing absolute-speed, collision-cap and authored-order gates remain. Legacy three-field local observation receipts restart dwell on first use. No setting, query, timer, waypoint replacement or new movement writer is added.
+
+This bounds observed displacement, not continuous motion between samples. Stop/start queues, tracked step-off, towing/Zeus relocation and measured retry behaviour remain untested in-game while audits are held.

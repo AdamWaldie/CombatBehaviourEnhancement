@@ -11,6 +11,8 @@
  * An authored zero forced-speed hold is retained without recovery commands.
  * Persistent stationary traffic admits at most three native route retries in one eighty-second
  * public episode; collision caps remain active and newer seat/command ownership ends retries.
+ * Traffic dwell restarts after a six-second observation gap or either hull moving more than
+ * 1.5 metres in ASL from its dwell anchor; low-speed motion beyond that bound restarts dwell.
  * Native individual MOVE destinations and deliberate STOP commands block new route recovery;
  * an exact owned reverse journal alone permits its finite handback to the authored route.
  * Native boarding, service, medical and assembly tasks release the exact speed lease;
@@ -466,12 +468,20 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {call _mayRecoverOrdinaryRoute};
             private _jamObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity,_driver,_movementOperator];
             private _jamSeen=_vehicle getVariable ["WAIT_DrivingTrafficSeen",[]];
-            private _jamContinuous=count _jamSeen == 3 && {(_jamSeen select 0) isEqualTo _jamObserver}
+            private _jamOwnPose=getPosASL _vehicle;
+            private _jamPeerPose=getPosASL _jamPeer;
+            private _jamContinuous=count _jamSeen == 5 && {(_jamSeen select 0) isEqualTo _jamObserver}
                 && {(_jamSeen select 1) == _jamPeer} && {serverTime >= (_jamSeen select 2)}
-                && {serverTime-(_jamSeen select 2) <= 6};
-            // This local observation receipt is not replayed or broadcast. Migration/gaps
+                && {serverTime-(_jamSeen select 2) <= 6}
+                && {_jamOwnPose vectorDistance (_jamSeen select 3) <= 1.5}
+                && {_jamPeerPose vectorDistance (_jamSeen select 4) <= 1.5};
+            // Anchors belong to the whole dwell, not just the preceding sample: otherwise
+            // a slow queue could creep indefinitely while every adjacent displacement is small.
+            private _jamOwnAnchor=if (_jamContinuous) then {+(_jamSeen select 3)} else {+_jamOwnPose};
+            private _jamPeerAnchor=if (_jamContinuous) then {+(_jamSeen select 4)} else {+_jamPeerPose};
+            // This local observation receipt is not replayed or broadcast. Migration/gaps/motion
             // restart only stationary dwell, never the public attempt count or hard deadline.
-            _vehicle setVariable ["WAIT_DrivingTrafficSeen",if (_jamEligible) then {[_jamObserver,_jamPeer,serverTime]} else {nil}];
+            _vehicle setVariable ["WAIT_DrivingTrafficSeen",if (_jamEligible) then {[_jamObserver,_jamPeer,serverTime,_jamOwnAnchor,_jamPeerAnchor]} else {nil}];
             if (_jamEligible) then {
                 if (count _jam == 0) then {
                     _jam=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],

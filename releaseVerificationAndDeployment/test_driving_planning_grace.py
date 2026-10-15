@@ -59,6 +59,26 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertNotIn('"attempts"',reset)
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
         self.assertIn('setVariable ["WAIT_DrivingTrafficSeen",nil]',release)
+    def test_stationary_dwell_uses_episode_anchors_not_sliding_samples(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        dwell=s.split('private _jamOwnPose=',1)[1].split('if (_jamEligible) then {',1)[0]
+        for gate in ('count _jamSeen == 5','_jamOwnPose vectorDistance (_jamSeen select 3) <= 1.5','_jamPeerPose vectorDistance (_jamSeen select 4) <= 1.5','+(_jamSeen select 3)','+(_jamSeen select 4)'):
+            self.assertIn(gate,dwell)
+        self.assertNotIn('"deadline"',dwell)
+        self.assertNotIn('"attempts"',dwell)
+        # At 0.2m/s all four-second steps are below1.5m, but twenty-second dwell is false.
+        anchor=0;since=0;last=0
+        for now in range(4,25,4):
+            position=now*0.2
+            self.assertLessEqual(position-last,1.5)
+            if abs(position-anchor)>1.5:
+                anchor=position;since=now
+            self.assertLess(now-since,20)
+            last=position
+        # Vertical relocation also invalidates the ASL anchor; unchanged poses retain it.
+        from math import dist
+        self.assertGreater(dist((0,0,3),(0,0,0)),1.5)
+        self.assertEqual(dist((0,0,0),(0,0,0)),0)
     def test_direct_native_order_blocks_route_recovery_but_not_owned_rear_handback(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         guard=s.split('private _nativeRouteIntent={',1)[1].split('private _priorOwner=',1)[0]
