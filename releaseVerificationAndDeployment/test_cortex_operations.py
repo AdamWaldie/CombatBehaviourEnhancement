@@ -5410,7 +5410,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (!_partial || {!_hasAssignments}) then {\n    _group setVariable ["WAIT_AIPass_Garrison", nil, true]',release)
         self.assertLess(release.index('} forEach _actors;'),release.index('private _hasAssignments='))
         self.assertIn('findIf {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []} >= 0',release)
-        self.assertIn('[_group,_restore,_actors] remoteExecCall',release)
+        self.assertIn('[_group,_restore,_actors,_recall] remoteExecCall',release)
         self.assertIn('[_group,false,_diverted] call WAIT_fnc_CortexGarrisonRelease',tick)
         self.assertIn('_live vectorDistance (_receipt select 3) <= 0.25',tick)
 

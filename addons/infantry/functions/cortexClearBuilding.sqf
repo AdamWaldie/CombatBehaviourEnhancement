@@ -51,7 +51,9 @@
  * [group this, nearestBuilding this] call WAIT_fnc_CortexClearBuilding;
  * Result: an entry element attempts successive building positions; unreachable positions leave an INCOMPLETE result.
  *
- * Current callers: mission scripts and the AI Orders ZEN module.
+ * Current callers: mission scripts, CortexOrderLocal and building-contact/locality continuation.
+ * WAIT-owned garrison post holds may enter a new clear after physical validation; the handoff
+ * restores those holds without injecting a JOIN recall ahead of the new building executor.
  */
 
 params [["_group", grpNull, [grpNull, objNull]], ["_target", objNull, [objNull, []]], ["_options", createHashMap, [createHashMap]]];
@@ -121,7 +123,14 @@ private _ownedRecall={
 };
 private _admissionGeneration=_group getVariable ["WAIT_AIPass_ClearGeneration",0];
 private _available = (units _group) select {
-    private _canMove=_x checkAIFeature "MOVE" && {_x checkAIFeature "PATH"};
+    private _posted=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
+    private _ownedPost=(_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []
+        && {_group getVariable ["WAIT_AIPass_GarrisonApplied",false]}
+        && {_x getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]}
+        && {!(_x checkAIFeature "PATH")} && {_posted isNotEqualTo []}
+        && {currentCommand _x in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
+        && {[_x,_posted] call WAIT_fnc_CortexGarrisonArrived};
+    private _canMove=_x checkAIFeature "MOVE" && {_x checkAIFeature "PATH" || {_ownedPost}};
     private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
     private _reservationFree=_reservation isEqualTo []
         || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
@@ -168,7 +177,7 @@ if (_preserveBrain) then {
 } else {
     [_group,false] call WAIT_fnc_CortexReleaseGroup;
 };
-if ((_group getVariable ["WAIT_AIPass_Garrison", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexGarrisonRelease};
+if ((_group getVariable ["WAIT_AIPass_Garrison", []]) isNotEqualTo []) then {[_group,true,[],false] call WAIT_fnc_CortexGarrisonRelease};
 if ((_group getVariable ["WAIT_AIPass_Defend", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexDefendRelease};
 private _previous = _group getVariable ["WAIT_AIPass_ClearOrder", []];
 private _resume = _options getOrDefault ["resume", false] && {_previous isNotEqualTo []} && {(_previous select 0) == _building};
