@@ -1015,3 +1015,6 @@ New clearance room-visit receipts now require the actual observer inside the tar
 
 
 Egress arrival is retained only while the actor remains within1m horizontally and1.5m vertically of its assigned exterior post. Displacement invalidates current settlement; existing exit/retry handling and original45s deadline apply. Historical arrival alone cannot finish the group after an actor leaves its post. No new query, timer or movement writer is added. Collision displacement, stairs, early-exit observers and physical retry/handback remain unverified.
+
+
+Early-exit observer arrival/recovery uses the same idle/STOP-or-owned-MOVE gate as final egress. Other native tasks mark the record DIVERTED and retain egress failure before any stop/recovery request; newer tasks receive no return movement. Existing deadlines, search/retry limits and observation budgets remain. Natural combat command propagation and explicit task takeover still require physical comparison; this does not establish complete isolation or flow.

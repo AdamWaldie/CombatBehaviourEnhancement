@@ -45,7 +45,7 @@ class ClearEarlyExitTests(unittest.TestCase):
         for gate in ['_pose vectorDistance (_motion select 0) >= 1',
                      'serverTime-(_motion select 1) >= 8',
                      '!(_record param [4,false,[true]])',
-                     'currentCommand _actor != "MOVE" || {[_actor] call _ownsCurrentMove}',
+                     '[_actor] call _exitMovementOwned',
                      'call WAIT_fnc_RecoveryStep', '_record set [4,true]']:
             self.assertIn(gate,service)
         self.assertNotIn('_record set [2,',service)

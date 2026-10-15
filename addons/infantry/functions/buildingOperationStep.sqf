@@ -638,7 +638,7 @@ private _delay=call {
         if (_state != "DIVERTED") then {
             if (!([_actor] call _actorAvailable) || {!([_actor] call _actorTaskFree)}
                 || {_actor in _unavailable}
-                || {currentCommand _actor in ["MOVE","FOLLOW"] && {!([_actor] call _ownsCurrentMove)}}) then {
+                || {!([_actor] call _exitMovementOwned)}) then {
                 _record set [3,"DIVERTED"];
                 private _diverted=_job getOrDefault ["egressDiverted",[]];
                 _diverted pushBackUnique _actor;
@@ -670,7 +670,7 @@ private _delay=call {
                             _earlyMotion set [_key,_motion];
                             if (!(_record param [4,false,[true]]) && {serverTime-(_motion select 1) >= 8}
                                 && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
-                                && {currentCommand _actor != "MOVE" || {[_actor] call _ownsCurrentMove}}
+                                && {[_actor] call _exitMovementOwned}
                                 && {call _mayIssueMovement}) then {
                                 private _recovery=[_group,_operationGeneration,_actor,_target] call WAIT_fnc_RecoveryStep;
                                 if (_recovery == "RECOVERING") then {[_actor,_target] call _rememberMove};

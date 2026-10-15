@@ -38,3 +38,15 @@ class ClearFinishNativeTaskTests(unittest.TestCase):
         self.assertIn('_diverted pushBackUnique _unit;',s)
         self.assertIn('_diverted pushBackUnique _actor;',s)
         self.assertIn('_job set ["egressFailed",true]',s)
+
+
+class EarlyExitNativeTaskTests(unittest.TestCase):
+    def test_early_exit_arrival_and_recovery_preserve_native_tasks(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        service=s.split('private _earlyExits=_job getOrDefault ["earlyExits",createHashMap];',1)[1].split('// An early arrival supports ongoing clearance',1)[0]
+        self.assertIn('|| {!([_actor] call _exitMovementOwned)}',service)
+        self.assertLess(service.index('call _exitMovementOwned'),service.index('doStop _actor'))
+        self.assertIn('_record set [3,"DIVERTED"]',service)
+        self.assertIn('_job set ["egressFailed",true]',service)
+        recovery=service.split('serverTime-(_motion select 1) >= 8',1)[1]
+        self.assertLess(recovery.index('call _exitMovementOwned'),recovery.index('call WAIT_fnc_RecoveryStep'))
