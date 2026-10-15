@@ -11,7 +11,8 @@
  * morale (WAIT_fnc_CortexMorale), which can make it withdraw.
  * Locality and authority: call where the group is local. Actor-local player/remote/external
  * ownership and native service actions refuse selection and are rechecked before writes.
- * Native FOLLOW/WAIT/STOP or non-route tasks also refuse opportunistic relocation.
+ * Native FOLLOW/WAIT/STOP or non-route tasks also refuse opportunistic relocation. A MOVE
+ * must address the current plain authored waypoint; individual destination replacements refuse.
  *
  * Review contract: A blocked backblast causes only a relocation request. A later group step must recheck clearance before ordering the shot.
  * Active actor reservations and every member of a tactical drill are not relocated. Explicit
@@ -112,17 +113,38 @@ private _blocked = (lineIntersectsSurfaces [_eye, _behind, _gunner, objNull, tru
         (_offset vectorDotProduct ((ATLToASL _enemyPos) vectorDiff (getPosASL _gunner))) < 0
     } >= 0};
 // Holding/clearing owns the destination even when the gunner may fire from it.
-if (_blocked && {!(currentCommand _gunner in ["","MOVE"])}) exitWith {false};
+private _mayRelocate={
+    if (!([_gunner] call _actorAvailable)) exitWith {false};
+    private _command=currentCommand _gunner;
+    if !(_command in ["","MOVE"]) exitWith {false};
+    private _index=currentWaypoint _group;
+    private _authored=_index > 0 && {_index < count waypoints _group};
+    if (!_authored) exitWith {_command == ""};
+    private _waypoint=[_group,_index];
+    // Intentional conditions/scripts/attachments belong to the mission, not this task.
+    if (waypointType _waypoint != "MOVE" || {waypointScript _waypoint != ""}
+        || {(waypointStatements _waypoint) isNotEqualTo ["true",""]}
+        || {(waypointTimeout _waypoint) findIf {_x != 0} >= 0}
+        || {synchronizedWaypoints _waypoint isNotEqualTo []}
+        || {synchronizedTriggers _waypoint isNotEqualTo []}
+        || {!isNull waypointAttachedObject _waypoint}
+        || {!isNull waypointAttachedVehicle _waypoint}) exitWith {false};
+    private _destination=(expectedDestination _gunner) param [0,[]];
+    _command == "" || {count _destination == 3
+        && {_destination vectorDistance waypointPosition _waypoint <= 3}}
+};
+if (_blocked && {!call _mayRelocate}) exitWith {false};
 if (_blocked && {!(_gunner checkAIFeature "PATH") || {!(_gunner checkAIFeature "MOVE")}
     || {_gunner in (_drill getOrDefault ["units",[]])}
     || {(_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []}
     || {(_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo []}
     || {_group getVariable ["WAIT_AIPass_ClearBuilding",false]}}) exitWith {false};
 if (_blocked) exitWith {
+    private _relocationRoute=[_group] call WAIT_fnc_NativeOrderReceipt;
     if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {false};
     if !([_gunner] call _actorAvailable) exitWith {false};
     private _spot = ([(getPosATL _gunner) getPos [6, (_enemyPos getDir _gunner) + selectRandom [-70, 70]], _enemyPos, 8, [], _group] call WAIT_fnc_CortexFindCover) select 0;
-    if (!([_gunner] call _actorAvailable) || {!(currentCommand _gunner in ["","MOVE"])}) exitWith {false};
+    if (!call _mayRelocate || {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo _relocationRoute}) exitWith {false};
     _gunner doMove _spot;
     _gunner setVariable ["WAIT_Cortex_ActorMove",["ANTI_ARMOUR",+_spot,_now+10]];
     _state set ["antiArmourRelocation",[_gunner,+_spot,_now+10]];
