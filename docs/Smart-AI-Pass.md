@@ -468,3 +468,27 @@ that command for GETIN transport association and cautions that other waypoint ty
 [waypointAttachVehicle documentation](https://community.bistudio.com/wiki/waypointAttachVehicle).
 Native attack association, detection/radar, roll-in, true weapon release and finite egress remain
 unverified across aircraft classes. A registered target or plan cannot pass those physical cases.
+
+
+## Defend area behaviour module
+
+Native Zeus and optional ZEN expose **Waldos AI Tweaks > Defend area**. The native module requires
+an attached AI soldier, identifying its squad and centre; without ZEN it requests a 60 m line facing
+that soldier's current direction. With ZEN, or from the custom module, the task dialog explicitly
+selects a squad, compass facing (0–360 degrees) and line width (15–150 m, default 60). The same
+128-initial-group selector limit as garrison applies; an attached squad is included explicitly.
+No nearby group is guessed. These controls issue a defence task, not addon configuration.
+
+The server authenticates the requesting curator, validates/clamps width and normalizes facing,
+then uses the existing current-owner preflight and acknowledgement. `width` is the named task key;
+older trusted calls using `radius` for defence width retain a legacy named-key fallback.
+CBA owns enablement. The existing defence executor allocates cover-aware line posts and a rear
+reserve, handles commitment/break conditions, publishes owner-adoptable assignments and releases
+on newer orders. Walking is used; this module does not advertise an unimplemented teleport option.
+No extra controller or polling loop is introduced. Script equivalent:
+`[group soldier1, getMarkerPos "ridge", 90, 60] call WAIT_fnc_CortexDefend;`.
+
+Native/optional dialog selection, actual width/facing, physical occupation and reserve commitment,
+replacement of garrison, refusal with preservation of previous state, release, JIP/HC migration,
+terrain coverage and measured performance remain pending live acceptance. Registration and owner
+acceptance are not proof of a working defensive line. Audits remain held.

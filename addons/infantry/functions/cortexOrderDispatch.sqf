@@ -6,7 +6,7 @@
  * Repeat/JIP: request tokens are consumed once; no stale order is replayed for JIP.
  * Arguments: 0: task parameters <ARRAY> of named pairs; 1: requesting owner <NUMBER>, default 2.
  * Return Value: Boolean, dispatch accepted.
- * Current callers: mission scripts, ModuleGarrison and ZenGarrisonModule.
+ * Current callers: mission scripts, ModuleGarrison, ZenGarrisonModule and ZenDefendModule.
  * No JIP command replay. Pending owner acknowledgements are limited to 64 for at most 12 seconds.
  * Example: [[["order", "RELEASE"], ["group", _group]], 2] call WAIT_fnc_CortexOrderDispatch;
  */
@@ -24,9 +24,10 @@ private _order = _settings getOrDefault ["order", ""];
 if (!(_group isEqualType grpNull) || {!(_order isEqualType "")}) exitWith {false};
 private _radius = _settings getOrDefault ["radius", 50];
 private _facing = _settings getOrDefault ["facing", 0];
+private _width = _settings getOrDefault ["width",_radius];
 private _building = _settings getOrDefault ["building", objNull];
 private _unit = _settings getOrDefault ["unit", objNull];
-if (!(_radius isEqualType 0) || {!(_facing isEqualType 0)} || {!(_building isEqualType objNull)} || {!(_unit isEqualType objNull)}) exitWith {false};
+if (!(_radius isEqualType 0) || {!(_facing isEqualType 0)} || {!(_width isEqualType 0)} || {!(_building isEqualType objNull)} || {!(_unit isEqualType objNull)}) exitWith {false};
 private _teleport = _settings getOrDefault ["teleport",false];
 if !(_teleport isEqualType true) exitWith {false};
 // Remote module requests cannot change addon configuration or artillery role registration.
@@ -73,6 +74,8 @@ _settings set ["controlReceipt",[
     _group getVariable ["WAIT_AIPass_ZeusControlKind",""]
 ]];
 _settings set ["radius",(_radius max 15) min 150];
+_settings set ["width",(_width max 15) min 150];
+_settings set ["facing",((_facing mod 360)+360) mod 360];
 _pairs = (keys _settings) apply {[_x,_settings get _x]};
 [_token, _pairs] remoteExecCall ["WAIT_fnc_CortexOrderLocal", groupOwner _group];
 [{

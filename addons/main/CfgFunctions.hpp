@@ -150,6 +150,7 @@ class CfgFunctions {
             class CortexArtilleryScoot {file = "\z\waldo_ai_tweaks\addons\support\functions\cortexArtilleryScoot.sqf";};
             class CortexClearRelease {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexClearRelease.sqf";};
             class ModuleGarrison {file = "\z\waldo_ai_tweaks\addons\infantry\functions\moduleGarrison.sqf";};
+            class ZenDefendModule {file = "\z\waldo_ai_tweaks\addons\infantry\functions\zenDefendModule.sqf";};
             class ZenGarrisonModule {file = "\z\waldo_ai_tweaks\addons\infantry\functions\zenGarrisonModule.sqf";};
             class CortexOrderDispatch {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexOrderDispatch.sqf";};
             class CortexOrderLocal {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexOrderLocal.sqf";};

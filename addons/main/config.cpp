@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "WAIT_core", "WAIT_danger", "WAIT_infantry", "WAIT_vehicles", "WAIT_aircraft", "WAIT_support", "WAIT_compatibility"};
-        units[] = {"WAIT_ModuleConvoyStart", "WAIT_ModuleConvoyHold", "WAIT_ModuleConvoyRelease", "WAIT_ModuleGarrison"};
+        units[] = {"WAIT_ModuleConvoyStart", "WAIT_ModuleConvoyHold", "WAIT_ModuleConvoyRelease", "WAIT_ModuleGarrison", "WAIT_ModuleDefend"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -44,10 +44,15 @@ class CfgVehicles {
         displayName = "Garrison area";
         category = "WAIT_CuratorOrders";
         function = "WAIT_fnc_ModuleGarrison";
+        WAIT_operation = "GARRISON";
         isGlobal = 1;
         isTriggerActivated = 0;
         isDisposable = 1;
         curatorCanAttach = 1;
+    };
+    class WAIT_ModuleDefend: WAIT_ModuleGarrison {
+        displayName = "Defend area";
+        WAIT_operation = "DEFEND";
     };
     class WAIT_ModuleConvoyStart: Module_F {
         scope = 1;

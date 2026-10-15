@@ -1300,7 +1300,7 @@
       "settings": [],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runServer.sqf ORD-02* and HC-03b*; server and WAIT owner movement passed",
+      "automation": "runServer.sqf ORD-02* and HC-03b*; server and WAIT owner movement passed Native and optional ZEN Defend area task controls now dispatch an explicit squad, centre, facing and line width through the authenticated owner executor. UI, actual posture/coverage/reserve, interruption, repeat and migration remain unverified.",
       "executable_sources": [
         "runServer.sqf"
       ],
@@ -1308,7 +1308,8 @@
         "addons/infantry/functions/cortexDefend.sqf",
         "addons/infantry/functions/cortexDefendApplyLocal.sqf",
         "addons/infantry/functions/cortexDefendRelease.sqf",
-        "addons/infantry/functions/cortexDefendStep.sqf"
+        "addons/infantry/functions/cortexDefendStep.sqf",
+        "addons/infantry/functions/zenDefendModule.sqf"
       ]
     },
     {

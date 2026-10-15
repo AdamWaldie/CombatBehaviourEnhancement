@@ -34,10 +34,11 @@ _group setVariable ["WAIT_Cortex_LastTaskSerial",_serial,true];
 private _order = _settings getOrDefault ["order", ""];
 private _position = _settings getOrDefault ["position", []];
 private _radius = _settings getOrDefault ["radius", 50];
+private _width = _settings getOrDefault ["width",_radius];
 private _building = _settings getOrDefault ["building", objNull];
 private _facing = _settings getOrDefault ["facing", 0];
 private _teleport = _settings getOrDefault ["teleport",false];
-if !(_teleport isEqualType true) exitWith {[_token,false,false,clientOwner,"Invalid placement mode."] remoteExecCall ["WAIT_fnc_CortexOrderResult",2]};
+if (!(_teleport isEqualType true) || {!(_width isEqualType 0)} || {!(_facing isEqualType 0)}) exitWith {[_token,false,false,clientOwner,"Invalid task parameters."] remoteExecCall ["WAIT_fnc_CortexOrderResult",2]};
 private _reason = [_group,_order,_building] call WAIT_fnc_CortexOrderReason;
 if (_reason != "") exitWith {[_token,false,false,clientOwner,_reason] remoteExecCall ["WAIT_fnc_CortexOrderResult",2]};
 private _oldHold = _group getVariable ["WAIT_AIPass_ZeusHold",[]];
@@ -51,7 +52,7 @@ if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE"]) then {
 
     private _accepted = switch (_order) do {
         case "GARRISON": {[_group, _position, (_radius max 15) min 150, createHashMapFromArray [["teleport",_teleport]]] call WAIT_fnc_CortexGarrison};
-        case "DEFEND": {[_group, _position, _facing, (_radius max 15) min 150] call WAIT_fnc_CortexDefend};
+        case "DEFEND": {[_group, _position, _facing, (_width max 15) min 150] call WAIT_fnc_CortexDefend};
         case "RELEASE": {
             private _released = [_group] call WAIT_fnc_CortexClearRelease;
             if ((_group getVariable ["WAIT_AIPass_Garrison", []]) isNotEqualTo []) then {_released = [_group] call WAIT_fnc_CortexGarrisonRelease};

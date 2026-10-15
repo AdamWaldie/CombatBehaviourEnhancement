@@ -57,7 +57,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | GUNNERY - Vehicle threat priority | 1 | 0 | 0 | `runGunnery.sqf` | 1 | implemented_partial |
 | ART-SMOKE - Artillery smoke | 1 | 0 | 0 | `runArtillerySmoke.sqf` | 1 | implemented_partial |
 | BREAK - Aircraft evasive break | 1 | 0 | 0 | `runAircraft.sqf` | 2 | implemented_partial |
-| DEFEND - Defence orders | 0 | 0 | 4 | `runServer.sqf` | 0 | implemented_partial |
+| DEFEND - Defence orders | 0 | 0 | 5 | `runServer.sqf` | 0 | implemented_partial |
 | CLEAR - Building clearance | 2 | 0 | 11 | `runBuildingComparison.sqf` | 2 | implemented_partial |
 | UI - CBA configuration and diagnostics | 0 | 0 | 3 | `runClient.sqf` | 0 | implemented_partial |
 | LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 16 | `runLifecycle.sqf` | 6 | implemented_partial |
@@ -396,7 +396,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** All assigned soldiers physically reach/hold positions; a new valid order cancels transient drills, and an invalid request preserves prior orders.
 
-**Automation and open work:** runServer.sqf ORD-02* and HC-03b*; server and WAIT owner movement passed
+**Automation and open work:** runServer.sqf ORD-02* and HC-03b*; server and WAIT owner movement passed Native and optional ZEN Defend area task controls now dispatch an explicit squad, centre, facing and line width through the authenticated owner executor. UI, actual posture/coverage/reserve, interruption, repeat and migration remain unverified.
 
 ### CLEAR - Building clearance
 

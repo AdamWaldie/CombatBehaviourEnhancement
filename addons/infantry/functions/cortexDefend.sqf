@@ -35,7 +35,7 @@
  * [group this, getMarkerPos "ridge", 45, 80] call WAIT_fnc_CortexDefend;
  * Result: the squad forms an 80 m line on the ridge facing north-east, with a reserve behind it.
  *
- * Current callers: mission scripts and the AI Orders ZEN module.
+ * Current callers: mission scripts and WAIT_fnc_CortexOrderLocal for native/optional defence tasks.
  */
 
 params [["_group", grpNull, [grpNull, objNull]], ["_centre", [], [[], objNull]], ["_facing", 0, [0, [], objNull]], ["_width", 60, [0]]];

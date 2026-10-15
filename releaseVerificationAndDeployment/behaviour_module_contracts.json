@@ -5,11 +5,13 @@
     "WAIT_ModuleConvoyStart",
     "WAIT_ModuleConvoyHold",
     "WAIT_ModuleConvoyRelease",
-    "WAIT_ModuleGarrison"
+    "WAIT_ModuleGarrison",
+    "WAIT_ModuleDefend"
   ],
   "zen_labels": [
     "Create AI Convoy",
-    "Garrison area"
+    "Garrison area",
+    "Defend area"
   ],
   "contracts": [
     {
@@ -47,6 +49,23 @@
       "termination": "Replacement task, native/Zeus handover, release, casualty/morale break or invalid structures",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; UI/authentication/placement/HC/JIP/live behaviour tests pending"
+    },
+    {
+      "behaviour": "Defensive line with rear reserve",
+      "target": "Explicit AI squad and centre",
+      "parameters": [
+        "compass facing",
+        "line width"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenDefendModule.sqf"
+      ],
+      "executor": "WAIT_fnc_CortexOrderDispatch",
+      "authority": "Authenticated curator/server request, preflighted current-owner CortexDefend execution and acknowledgement",
+      "termination": "New task/native/Zeus control, release, casualty/morale break or owner handover",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; dialog, actual line/reserve, interruption, repeat/HC/JIP and performance acceptance pending"
     }
   ]
 }

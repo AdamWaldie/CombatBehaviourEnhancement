@@ -20,4 +20,7 @@ missionNamespace setVariable ["WAIT_AITweaks_ZenRegisteredLocal", true];
 ["Waldos AI Tweaks", "Garrison area", {
     _this call WAIT_fnc_ZenGarrisonModule;
 }] call zen_custom_modules_fnc_register;
+["Waldos AI Tweaks", "Defend area", {
+    _this call WAIT_fnc_ZenDefendModule;
+}] call zen_custom_modules_fnc_register;
 true
