@@ -1,7 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Lets an approaching soldier on an explicit building order open a recognised unlocked door.
- * Locality/authority: called only on the soldier owner; BIS door animation has global effect.
+ * Locality/authority: called only on the soldier owner; direct non-server network invocation
+ * is refused. Local calls and server-dispatched owner work retain their normal actor/order gates.
+ * BIS door animation has global effect.
  * Repeat/JIP: two-second building cooldown bounds requests; engine door state persists for JIP.
  * Door model metadata is cached per building on each owner; locks are always read live.
  * At most four nearby-door geometry rays check interaction visibility per call. A closed door
@@ -17,6 +19,7 @@
  * Example: [_soldier,_house] call WAIT_fnc_CortexBuildingDoor;
  */
 params [["_unit",objNull,[objNull]],["_building",objNull,[objNull]],["_context",[],[[]]]];
+if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 private _orderCurrent={
     if (_context isEqualTo []) exitWith {true};
     if (count _context != 2 || {!((_context select 0) isEqualType "")} || {!((_context select 1) isEqualType 0)}) exitWith {false};

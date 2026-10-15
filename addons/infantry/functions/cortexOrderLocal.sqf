@@ -3,7 +3,8 @@
  * Executes an authenticated Zeus order only when the selected group is still local, then acknowledges its result.
  * Locality/authority: server authenticates dispatch; the current owner executes group commands.
  * Repeat/JIP: request tokens are consumed once; authored waypoint and Zeus control receipts
- * fence delayed work before mutation. No stale order is replayed for JIP.
+ * fence delayed work before mutation. The server-clock request deadline also prevents an
+ * acknowledged timeout from later starting work. No stale order is replayed for JIP.
  * Arguments: 0: token <STRING>; 1: task parameters <ARRAY> of named pairs.
  * Return Value: Nothing; reports actual owner acceptance.
  * Current callers: WAIT_fnc_CortexOrderDispatch.
@@ -17,6 +18,7 @@ if (isNull _group || {!local _group} || {(units _group) findIf {isPlayer _x} >= 
     [_token, false, false, clientOwner, "The squad changed owner or now contains a player."] remoteExecCall ["WAIT_fnc_CortexOrderResult", 2];
 };
 private _serial = _settings getOrDefault ["requestSerial",-1];
+private _deadline = _settings getOrDefault ["requestDeadline",-1];
 private _receipt = _settings getOrDefault ["nativeReceipt",[]];
 private _controlReceipt = _settings getOrDefault ["controlReceipt",[]];
 private _currentControl = [
@@ -24,11 +26,12 @@ private _currentControl = [
     _group getVariable ["WAIT_AIPass_ZeusWaypoints",false],
     _group getVariable ["WAIT_AIPass_ZeusControlKind",""]
 ];
-if (!(_serial isEqualType 0) || {_token != str _serial}
+if (!(_deadline isEqualType 0) || {!finite _deadline} || {serverTime >= _deadline}
+    || {!(_serial isEqualType 0)} || {_token != str _serial}
     || {_serial <= (_group getVariable ["WAIT_Cortex_LastTaskSerial",-1])}
     || {_receipt isNotEqualTo ([_group] call WAIT_fnc_NativeOrderReceipt)}
     || {_controlReceipt isNotEqualTo _currentControl}) exitWith {
-    [_token,false,false,clientOwner,"The task is stale or newer native/Zeus control replaced it."] remoteExecCall ["WAIT_fnc_CortexOrderResult",2];
+    [_token,false,false,clientOwner,"The task expired, is stale, or newer native/Zeus control replaced it."] remoteExecCall ["WAIT_fnc_CortexOrderResult",2];
 };
 _group setVariable ["WAIT_Cortex_LastTaskSerial",_serial,true];
 private _order = _settings getOrDefault ["order", ""];

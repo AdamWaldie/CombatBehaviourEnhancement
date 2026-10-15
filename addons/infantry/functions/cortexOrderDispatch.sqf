@@ -8,6 +8,7 @@
  * Return Value: Boolean, dispatch accepted.
  * Current callers: mission scripts, ModuleGarrison, ZenGarrisonModule and ZenDefendModule.
  * No JIP command replay. Pending owner acknowledgements are limited to 64 for at most 12 seconds.
+ * The server overwrites the admission deadline; owners refuse packets received at/after expiry.
  * Example: [[["order", "RELEASE"], ["group", _group]], 2] call WAIT_fnc_CortexOrderDispatch;
  */
 params [["_pairs", [], [[]]], ["_requestOwner", 2, [0]]];
@@ -69,6 +70,7 @@ if (_order in ["SPOTTER_ON", "SPOTTER_OFF"]) exitWith {
 };
 // Serialize the validated named map, so clients cannot forge execution metadata.
 _settings set ["requestSerial",_serial];
+_settings set ["requestDeadline",serverTime+12];
 _settings set ["nativeReceipt",[_group] call WAIT_fnc_NativeOrderReceipt];
 _settings set ["controlReceipt",[
     _group getVariable ["WAIT_AIPass_ZeusHold",[]],

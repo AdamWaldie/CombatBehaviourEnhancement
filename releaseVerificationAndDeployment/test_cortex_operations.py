@@ -1838,6 +1838,14 @@ class CortexOperations(unittest.TestCase):
             visited.extend(batch);cursor=(batch[-1]+1)%9
         self.assertEqual(set(visited),set(range(9)))
 
+    def test_internal_door_execution_refuses_nonserver_remote_senders(self):
+        text=source('cortexBuildingDoor')
+        gate=text.index('if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false}')
+        self.assertLess(gate,text.index('configOf _building'))
+        self.assertLess(gate,text.index('call BIS_fnc_door'))
+        self.assertIn('!local _unit',text)
+        self.assertIn('call _orderCurrent',text)
+
     def test_native_building_operations_have_no_external_delegation_path(self):
         clear=source('cortexClearBuilding')+source('buildingOperationStep')
         garrison=source('cortexGarrison')

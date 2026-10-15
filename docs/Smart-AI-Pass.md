@@ -635,3 +635,11 @@ slopes and reverse execution require physical validation. Existing 64-candidate 
 Rear discovery splits live infantry from dead-inclusive vehicle entities into two local-envelope
 queries, avoiding corpse density in the person occupancy budget. Combined hull processing remains
 capped at 64; the extra query occurs at reverse admission, not through another polling loop.
+
+Authenticated task dispatch now stamps a server-clock admission deadline matching its 12-second
+acknowledgement window. The owner rejects missing, malformed, nonfinite or expired deadlines
+before consuming task serials or changing Zeus/task control. A packet delayed beyond a reported
+timeout cannot start the task later. This is admission expiry, not the lifetime of an accepted
+operation. The internal door executor also refuses direct non-server network calls while retaining
+local/server-dispatched actor, generation and proximity checks. Delayed delivery, HC migration and
+real notification/control timing remain physically unverified.

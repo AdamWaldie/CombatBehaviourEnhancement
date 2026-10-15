@@ -17,6 +17,15 @@ class GarrisonModuleTests(unittest.TestCase):
         for required in ('remoteExecutedOwner != 2','WAIT_Cortex_LastTaskSerial','WAIT_fnc_NativeOrderReceipt','_token != str _serial'):
             self.assertLess(local.index(required),local.index('setVariable ["WAIT_AIPass_ZeusWaypoints"'))
         self.assertIn('createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]',local)
+    def test_timed_out_task_cannot_later_start_on_the_owner(self):
+        dispatch=src('cortexOrderDispatch');local=src('cortexOrderLocal')
+        self.assertIn('_settings set ["requestDeadline",serverTime+12]',dispatch)
+        self.assertLess(dispatch.index('_settings set ["requestDeadline"'),dispatch.index('remoteExecCall ["WAIT_fnc_CortexOrderLocal"'))
+        for guard in ('getOrDefault ["requestDeadline",-1]','!(_deadline isEqualType 0)',
+                      '!finite _deadline','serverTime >= _deadline'):
+            self.assertLess(local.index(guard),local.index('setVariable ["WAIT_Cortex_LastTaskSerial"'))
+        self.assertIn('The task expired',local)
+
     def test_garrison_controls_are_explicit_scoped_tasks(self):
         native=src('moduleGarrison'); zen=src('zenGarrisonModule')
         self.assertIn('attachedTo _logic',native)
