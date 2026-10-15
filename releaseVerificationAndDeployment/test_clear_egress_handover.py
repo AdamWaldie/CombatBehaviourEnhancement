@@ -24,7 +24,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         transition = source.split('// Complete physical coverage and participation', 1)[1]
         admission = transition.split('private _entries=', 1)[0]
-        self.assertIn('currentCommand _actor == "MOVE" && {!([_actor] call _ownsCurrentMove)}', admission)
+        self.assertIn('if !([_actor] call _exitMovementOwned) then', admission)
         self.assertIn('_diverted pushBackUnique _actor', admission)
         self.assertIn('deleteAt (netId _actor)', admission)
         self.assertIn('!(_actor in _diverted)', admission)
@@ -36,7 +36,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         egress = source.split('if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {', 1)[1]
         selection = egress.split('private _outsideExit={', 1)[0]
-        self.assertIn('currentCommand _unit == "MOVE" && {!([_unit] call _ownsCurrentMove)}', selection)
+        self.assertIn('if !([_unit] call _exitMovementOwned) then', selection)
         self.assertIn('_diverted pushBackUnique _unit', selection)
         self.assertIn('deleteAt (netId _unit)', selection)
         self.assertIn('_x set [2,false]', selection)
@@ -45,7 +45,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
         self.assertIn('_assignments findIf {[_x] call _outsideExit}', egress)
         self.assertIn('forEach _assignments', egress)
         finish = source.split('private _handbacks=[];', 1)[1].split('private _delay', 1)[0]
-        self.assertIn('currentCommand _x != "MOVE" || {[_x] call _ownsCurrentMove}', finish)
+        self.assertIn('[_x] call _exitMovementOwned', finish)
 
     def test_natural_continuation_is_opt_in_durable_and_after_successful_egress(self):
         admission=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')

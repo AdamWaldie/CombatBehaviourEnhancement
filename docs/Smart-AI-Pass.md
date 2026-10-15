@@ -997,3 +997,6 @@ The prepared normal-owner `REAR-TURN-LEFT/RIGHT` sensor diagnostics use excluded
 
 
 Explicit clearance release recalls formation only for idle/STOP actors or a current MOVE whose destination matches that clearance's recorded movement target within0.25m. FOLLOW, ATTACK, WAIT, fire/suppression, JOIN and unknown native commands cannot authorize doFollow. Existing current-owner, external-control, task/reservation and restore=false guards remain; unchanged settings still release independently. This closes an overwrite boundary, not proof that every exterior cluster is caused by release. Identical later STOP commands remain indistinguishable; physical replacement-task propagation, repeat clearance and separate HC handover remain unverified.
+
+
+The same native-task ownership rule now gates automatic clearance settlement and both egress admission/continuation. Actors on FOLLOW, ATTACK, WAIT or other non-owned tasks are marked diverted and removed from exit movement; their unfinished exit retains failure rather than becoming success. Idle/STOP and exact owned MOVE remain eligible. No successor task is stopped or recalled at terminal cleanup. This adds no query, timer or movement controller. Identical later STOP and all physical task propagation/flow remain unverified.

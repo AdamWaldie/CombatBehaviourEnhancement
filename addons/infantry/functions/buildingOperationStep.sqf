@@ -95,6 +95,8 @@
  * This establishes exit-approach observation, not complete building isolation.
  * Casualty promotion retires the matching generation/epoch exit watch before interior movement.
  * Terminal settlement also retires that exact watch metadata; successor leases survive cleanup.
+ * Egress admission, continued exit work and terminal movement require idle/STOP or a matching
+ * owned MOVE; newer FOLLOW/ATTACK/WAIT tasks divert actors rather than authorizing recall.
  * Native tasks and newer authority remain protected at that transfer boundary.
  * Arrived exit observation installs once per local owner epoch after physical arrival checks,
  * independently of its public stage receipt; replay issues no new movement.
@@ -166,6 +168,12 @@ private _delay=call {
         private _live=(expectedDestination _actor) param [0,[]];
         currentCommand _actor == "MOVE" && {count _issued == 3} && {count _live == 3}
             && {_live vectorDistance _issued <= 0.25}
+    };
+    // Native task ownership also applies when no MOVE destination changed. A newer
+    // FOLLOW/ATTACK/WAIT is not permission to stop, recall or send an actor to an exit.
+    private _exitMovementOwned={
+        params ["_actor"];
+        currentCommand _actor in ["","STOP"] || {[_actor] call _ownsCurrentMove}
     };
     private _activeOwnMove={
         params ["_actor"];
@@ -305,7 +313,7 @@ private _delay=call {
                         // or a specialist action with a formation recall.
                         if (_restore && {[_x] call _actorTaskFree}
                             && {!(_x in (_job getOrDefault ["egressDiverted",[]]))}
-                            && {currentCommand _x != "MOVE" || {[_x] call _ownsCurrentMove}}) then {
+                            && {[_x] call _exitMovementOwned}) then {
                             private _exitWatch=_x getVariable ["WAIT_Cortex_ClearExitWatch",[]];
                             if (count _exitWatch == 3
                                 && {(_exitWatch select 0) == (_job get "generation")}
@@ -699,7 +707,7 @@ private _delay=call {
         private _diverted=_job getOrDefault ["egressDiverted",[]];
         private _assignments=(_job get "egressAssignments") select {
             _x params ["_unit"];
-            if (currentCommand _unit == "MOVE" && {!([_unit] call _ownsCurrentMove)}) then {
+            if !([_unit] call _exitMovementOwned) then {
                 _diverted pushBackUnique _unit;
                 (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _unit);
                 _x set [2,false];
@@ -2781,7 +2789,7 @@ private _delay=call {
         private _diverted=_job getOrDefault ["egressDiverted",[]];
         _active=_active select {
             private _actor=_x;
-            if (currentCommand _actor == "MOVE" && {!([_actor] call _ownsCurrentMove)}) then {
+            if !([_actor] call _exitMovementOwned) then {
                 _diverted pushBackUnique _actor;
                 (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
             };

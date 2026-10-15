@@ -24,3 +24,17 @@ class ClearReleaseNativeTaskTests(unittest.TestCase):
         self.assertIn('_destination vectorDistance _issued <= 0.25',guard)
         self.assertNotIn('!= "MOVE"',guard)
         self.assertLess(end,s.index('_x doFollow _leader',end))
+
+
+class ClearFinishNativeTaskTests(unittest.TestCase):
+    def test_egress_and_finish_share_the_native_task_guard(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        start=s.index('private _exitMovementOwned=')
+        end=s.index('private _activeOwnMove=',start)
+        self.assertIn('currentCommand _actor in ["","STOP"] || {[_actor] call _ownsCurrentMove}',s[start:end])
+        self.assertIn('&& {[_x] call _exitMovementOwned}) then {',s)
+        self.assertIn('if !([_unit] call _exitMovementOwned) then {',s)
+        self.assertIn('if !([_actor] call _exitMovementOwned) then {',s)
+        self.assertIn('_diverted pushBackUnique _unit;',s)
+        self.assertIn('_diverted pushBackUnique _actor;',s)
+        self.assertIn('_job set ["egressFailed",true]',s)
