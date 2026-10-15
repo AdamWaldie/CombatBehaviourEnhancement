@@ -16,6 +16,20 @@ class FollowThroughOccupancyTests(unittest.TestCase):
         self.assertLess(rank.index('[[0,1] select _occupied'), rank.index('[0,1] select (abs (_unitFloor'))
         self.assertIn('vectorDistance _positionASL < 1.5', rank)
 
+    def test_completed_queue_establishes_yieldable_hold_without_stopping_partner(self):
+        source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        block = source.split('if (_waitingForFloor || {_availableCandidates isEqualTo []}) then {',1)[1].split('if (_candidates isNotEqualTo []) then {',1)[0]
+        for gate in ['_waitingForFloor || {_completedWorker}', '>= (2 min count _positions)',
+                     'call _actorAvailable', 'call _actorTaskFree', 'call _mayIssueMovement',
+                     '!([_waitingActor] call _activeOwnMove)',
+                     'currentCommand _waitingActor in ["","STOP","FOLLOW"]',
+                     '!(_key in _holds) || {currentCommand _waitingActor != "STOP"}',
+                     'private _hold=getPosATL _waitingActor', '_holds set [_key,+_hold]']:
+            self.assertIn(gate,block)
+        self.assertNotIn('doMove',block)
+        self.assertNotIn('doFollow',block)
+        self.assertNotIn('set ["deadline"',block)
+
     def test_yield_preserves_unfinished_visits_ownership_and_deadline(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         block = source.split('if (_ranked isNotEqualTo [] && {((_ranked select 0) select 0) == 1}) then {',1)[1].split('private _index=(_ranked select 0) select 3;',1)[0]

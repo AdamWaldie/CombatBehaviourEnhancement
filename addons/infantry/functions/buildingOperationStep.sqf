@@ -1372,21 +1372,25 @@ private _delay=call {
                         abs (((AGLToASL (_positions select _x)) select 2)-_lowestUnfinishedFloor) < 1.8
                     };
                     private _waitingForFloor=_availableCandidates isNotEqualTo [] && {_candidates isEqualTo []};
-                    if (_waitingForFloor) then {
-                        // Hold idle admitted actors once while another lane resolves lower rooms.
-                        // Existing active native legs and newer tasks remain authoritative.
+                    if (_waitingForFloor || {_availableCandidates isEqualTo []}) then {
+                        // Hold idle completed workers when the queue ends, as well as workers
+                        // waiting for lower rooms. Otherwise native formation following resumes
+                        // around the leader and these actors never acquire a yieldable room hold.
+                        // Unfinished partners retain their entry/follow-through path.
                         private _holds=_job getOrDefault ["roomHolds",createHashMap];
                         {
                             private _waitingActor=_x;
                             private _key=netId _waitingActor;
-                            if ([_waitingActor] call _actorAvailable && {[_waitingActor] call _actorTaskFree}
+                            private _completedWorker=count ((_job getOrDefault ["actorVisits",createHashMap]) getOrDefault [_key,[]]) >= (2 min count _positions);
+                            if ((_waitingForFloor || {_completedWorker})
+                                && {[_waitingActor] call _actorAvailable} && {[_waitingActor] call _actorTaskFree}
                                 && {call _mayIssueMovement} && {!([_waitingActor] call _activeOwnMove)}
                                 && {currentCommand _waitingActor in ["","STOP","FOLLOW"]}
                                 && {!(_key in _holds) || {currentCommand _waitingActor != "STOP"}}) then {
                                 private _hold=getPosATL _waitingActor;
                                 doStop _waitingActor;
                                 _holds set [_key,+_hold];
-                                diag_log format ["WAIT CLEAR FLOOR QUEUE HOLD: %1",[_job get "generation",_pairIndex,_key,_lowestUnfinishedFloor,+_hold]];
+                                diag_log format ["WAIT CLEAR FLOOR QUEUE HOLD: %1",[_job get "generation",_pairIndex,_key,_lowestUnfinishedFloor,+_hold,["COMPLETED_QUEUE","LOWER_FLOOR"] select _waitingForFloor]];
                             };
                         } forEach _pair;
                         _job set ["roomHolds",_holds];
