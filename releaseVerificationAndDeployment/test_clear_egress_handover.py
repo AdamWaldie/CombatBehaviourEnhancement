@@ -47,5 +47,28 @@ class ClearEgressHandoverTests(unittest.TestCase):
         finish = source.split('private _handbacks=[];', 1)[1].split('private _delay', 1)[0]
         self.assertIn('currentCommand _x != "MOVE" || {[_x] call _ownsCurrentMove}', finish)
 
+    def test_natural_continuation_is_opt_in_durable_and_after_successful_egress(self):
+        admission=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        contact=(ROOT/'addons/infantry/functions/cortexBuildingContact.sqf').read_text(encoding='utf-8')
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('["continueRoute",true]',contact)
+        self.assertIn('_previous param [12,false,[true]]',admission)
+        self.assertIn('_options getOrDefault ["continueRoute",false]',admission)
+        self.assertIn('"INVALID_CONTINUATION"',admission)
+        self.assertIn('_job getOrDefault ["continueRoute",false]], true]',s)
+        block=s.split('// A natural clear is an interruption',1)[1].split('if (_reason == "NEW_ORDER"',1)[0]
+        for guard in ('_result == "COMPLETE"','waypointType _waypoint == "MOVE"',
+                      'waypointScript _waypoint == ""','waypointTimeout',
+                      'synchronizedWaypoints','synchronizedTriggers','waypointAttachedObject',
+                      'currentCommand _actor == "STOP"','_actor in _settled',
+                      'WAIT_fnc_NativeOrderReceipt','WAIT_BuildingBrain','WAIT_Operation',
+                      'WAIT_fnc_CortexExternalTakeover'):
+            self.assertIn(guard,block)
+        self.assertLess(s.index('call WAIT_fnc_OperationRelease'),s.index('// A natural clear is an interruption'))
+        self.assertLess(block.index('[_leader] call _mayContinue'),block.index('_leader doMove'))
+        self.assertLess(block.index('[_x] call _mayContinue'),block.index('_x doFollow'))
+        for forbidden in ('addWaypoint','deleteWaypoint','setCurrentWaypoint','enableAI','setPos'):
+            self.assertNotIn(forbidden,block)
+
 if __name__ == '__main__':
     unittest.main()

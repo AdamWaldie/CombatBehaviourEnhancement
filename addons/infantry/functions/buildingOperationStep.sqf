@@ -26,7 +26,8 @@
  * one rotating check per callback maintains the watch without another scheduler or movement.
  * Later exterior assignments preserve these observation lanes and prefer uncovered exits.
  * Terminal cleanup releases unchanged settings independently of movement diversion and journals
- * only actors it physically stopped for later native-order handback. Early exits retire into
+ * only actors it physically stopped for later native-order handback. Successful natural clears
+ * may return those actors to their unchanged plain authored MOVE after common-operation release. Early exits retire into
  * the terminal route evidence instead of remaining an active replay journal.
  * Eight seconds without actual motion permits the shared generation's one recovery attempt;
  * consumed retries survive owner adoption, while local observation never extends the exit budget.
@@ -352,6 +353,51 @@ private _delay=call {
                 [_group,_operationGeneration,_result,_outcomeReason] call WAIT_fnc_OperationRelease;
             } else {
                 [_group,_operationGeneration,_reason] call WAIT_fnc_OperationCancel;
+            };
+        };
+        // A natural clear is an interruption of an existing route, not a permanent hold.
+        // Only actual successful participation/egress permits this opt-in continuation.
+        // No waypoint reconstruction, scripted/gated shortcut or recalled individual MOVE.
+        if (_reason == "COMPLETE" && {_result == "COMPLETE"}
+            && {_job getOrDefault ["continueRoute",false]} && {_settled isNotEqualTo []}) then {
+            private _index=currentWaypoint _group;
+            private _waypoint=[_group,_index];
+            private _plain=false;
+            if (_index > 0 && {_index < count waypoints _group}) then {
+                private _statements=waypointStatements _waypoint;
+                private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
+                _plain=waypointType _waypoint == "MOVE" && {_condition == "true"}
+                    && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
+                    && {waypointScript _waypoint == ""} && {(waypointTimeout _waypoint param [2,0]) <= 0}
+                    && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
+                    && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []};
+            };
+            private _mayContinue={
+                params ["_actor"];
+                _plain && {_restore} && {local _group}
+                    && {(_brain get "ownerEpoch") == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                    && {(_job get "generation") == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])}
+                    && {(_group getVariable ["WAIT_BuildingBrain",createHashMap]) isEqualTo _brain}
+                    && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}
+                    && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}
+                    && {_actor in _settled} && {currentCommand _actor == "STOP"}
+                    && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
+                    && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+            };
+            private _leader=leader _group;
+            if ([_leader] call _mayContinue) then {
+                private _continued=[_leader];
+                _leader doMove waypointPosition _waypoint;
+                {
+                    if (_x != _leader && {[_x] call _mayContinue}) then {
+                        _x doFollow _leader;
+                        _continued pushBack _x;
+                    };
+                } forEach _settled;
+                private _remaining=_settled-_continued;
+                if (_remaining isEqualTo []) then {_group setVariable ["WAIT_Cortex_ClearHold",nil,true]} else {
+                    _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_brain get "ownerEpoch",[_group] call WAIT_fnc_NativeOrderReceipt,_remaining],true];
+                };
             };
         };
         if (_reason == "NEW_ORDER" && {local _group}
@@ -2276,7 +2322,7 @@ private _delay=call {
         _job set ["deadline",(_job get "deadline") max (serverTime+120)];
     };
     if (_madeProgress || {_retryChanged}) then {
-        _group setVariable ["WAIT_AIPass_ClearOrder", [_job get "building", +_cleared, _job get "deadline", _job get "baseBehaviour", +_unreachable, +_retryCounts, +_failedBy, _job get "lastProgressAt",_job getOrDefault ["baseAttack",true],_job getOrDefault ["nativeOrderReceipt",[]],_job getOrDefault ["hardDeadline",_job get "deadline"],_job getOrDefault ["contactBelief",[]]], true];
+        _group setVariable ["WAIT_AIPass_ClearOrder", [_job get "building", +_cleared, _job get "deadline", _job get "baseBehaviour", +_unreachable, +_retryCounts, +_failedBy, _job get "lastProgressAt",_job getOrDefault ["baseAttack",true],_job getOrDefault ["nativeOrderReceipt",[]],_job getOrDefault ["hardDeadline",_job get "deadline"],_job getOrDefault ["contactBelief",[]],_job getOrDefault ["continueRoute",false]], true];
         _group setVariable ["WAIT_Cortex_ClearStatus",[_job getOrDefault ["phase","SWEEP"],count _cleared,count _unreachable,count (_job get "positions"),count (_job get "pairs"),_job get "lastProgressAt"],true];
     };
     private _allWorkersEntered=_activeWorkers findIf {!(_x in (_job getOrDefault ["enteredActors",[]]))} < 0;

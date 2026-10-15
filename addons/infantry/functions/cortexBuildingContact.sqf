@@ -7,7 +7,8 @@
  * and checks at most three recent contacts. Natural admission requests four actually eligible
  * actors from the executor; nominal headcount cannot satisfy that threshold.
  * The common building operation remains the sole
- * movement owner. Believed inclusion/roof geometry is not proof an enemy remains in that house.
+ * movement owner. After successful clearance it may return to the unchanged plain authored MOVE,
+ * preserving native behaviour/ROE and newer actor orders. Believed inclusion/roof geometry is not proof an enemy remains in that house.
  * Repeat/JIP: A per-group cooldown bounds failed topology and executor admission checks. An accepted clear publishes its
  * normal durable order and is reconstructed by the new owner after locality migration.
  * Arguments: 0: group <GROUP>; 1: group state <HASHMAP>; 2: Cortex knowledge records <ARRAY>.
@@ -96,7 +97,7 @@ if (isNull _building) exitWith {
     false
 };
 
-private _accepted=[_group,_building,createHashMapFromArray [["preserveBrain",true],["minimumActors",4],["contact",_enemy],["contactBelief",_contactBelief]]] call WAIT_fnc_CortexClearBuilding;
+private _accepted=[_group,_building,createHashMapFromArray [["preserveBrain",true],["continueRoute",true],["minimumActors",4],["contact",_enemy],["contactBelief",_contactBelief]]] call WAIT_fnc_CortexClearBuilding;
 if (_accepted) then {
     _state set ["buildingContact",[_building,_enemy,serverTime]];
     [_state,"buildingCombat",60] call WAIT_fnc_CortexCooldown;

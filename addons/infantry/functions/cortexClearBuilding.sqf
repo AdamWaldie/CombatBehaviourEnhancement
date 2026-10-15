@@ -46,6 +46,9 @@
  * 2: options <HASHMAP> (optional) - resume (default false), preserveBrain (default false for an
  *    explicit order) and operation-specific controls. Natural contact entry uses preserveBrain so
  *    live fire control and contact transitions continue around the single building movement owner.
+ *    continueRoute (BOOL, default false) returns a successful clear to its unchanged plain MOVE;
+ *    natural contact callers opt in. Failed/gated/no-route work retains post-clear settlement.
+ *    The choice is durable on owner resume and grants no hostile-room safety claim.
  *    minimumActors (NUMBER, default 1) requires 1..16 integer task-free actors before handoff.
  *    Natural contact requests 4; explicit/resume calls retain the historical default.
  *    contactBelief (default []) is [believed position AGL ARRAY, observed serverTime NUMBER].
@@ -234,6 +237,8 @@ if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nat
 // This final eligibility preflight matches the common operation's admission gate.
 if !([_group,false,false,true] call WAIT_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
 private _preserveBrain=_options getOrDefault ["preserveBrain",false];
+private _continueRoute=if (_resume) then {_previous param [12,false,[true]]} else {_options getOrDefault ["continueRoute",false]};
+if (!(_continueRoute isEqualType true)) exitWith {["INVALID_CONTINUATION"] call _refuse};
 if (_preserveBrain) then {
     private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
     if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
@@ -253,7 +258,7 @@ _nativeOrderReceipt=[_group] call WAIT_fnc_NativeOrderReceipt;
 if (!_resume) then {_baseAttack=attackEnabled _leader};
 if (_previous isEqualTo []) then {_baseBehaviour=behaviour _leader};
 _group setVariable ["WAIT_Cortex_ClearAdmissionFailure",nil,true];
-_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline, _contactBelief], true];
+_group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute], true];
 _group setVariable ["WAIT_AIPass_ClearApplied", true];
 _group setVariable ["WAIT_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
 _group setVariable ["WAIT_Cortex_ClearEvidence",nil,true];
@@ -396,7 +401,7 @@ private _job=createHashMapFromArray [
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
-    ["contactBelief",_contactBelief],["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
+    ["continueRoute",_continueRoute],["contactBelief",_contactBelief],["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
 // Historical individual visits survive owner adoption. A fresh task gets a new token,
 // even if it targets the same building in the same server frame. No movement is replayed.
