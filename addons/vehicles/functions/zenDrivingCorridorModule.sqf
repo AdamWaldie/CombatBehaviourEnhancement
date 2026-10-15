@@ -22,7 +22,7 @@ private _transform=if (_editing) then {[getPosWorld _target,vectorDir _target,ve
     [
         ["COMBO",["Task action","Create on empty ground. Update/remove applies only to the explicitly selected corridor area."],
             [if (_editing) then {["UPDATE","REMOVE"]} else {["CREATE"]},if (_editing) then {["Update selected corridor","Remove selected corridor"]} else {["Create corridor"]},0]],
-        ["SLIDER",["Direction (degrees)","Axis through the corridor: 0 north/south, 90 east/west. Existing routes must cross opposite ends. Driver-operated vehicles and dry supported paths only; commanded vehicles remain unfinished."],[0,360,if (_editing) then {getDir _target} else {_defaultFacing},0]],
+        ["SLIDER",["Direction (degrees)","Axis through the corridor: 0 north/south, 90 east/west. Existing routes must cross opposite ends. AI-steering land vehicles and dry supported paths only. Both driver and commander must remain available on the vehicle owner."],[0,360,if (_editing) then {getDir _target} else {_defaultFacing},0]],
         ["SLIDER",["Half-length (m)","Distance from centre to either end, excluding hull-sized approach/exit extensions."],[5,45,_definition param [1,25],0]],
         ["SLIDER",["Half-width (m)","Distance from centreline to either side. The whole living convoy envelope must fit."],[2,20,_definition param [2,5],0]],
         ["SLIDER",["Task speed (km/h)","Upper speed for the vehicle or convoy lead; existing traffic, pedestrian and convoy safety limits still win."],[5,30,_definition param [3,15],0]]

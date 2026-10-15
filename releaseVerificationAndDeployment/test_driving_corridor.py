@@ -173,3 +173,27 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('WAIT_fnc_AuthoredRouteReceipt', passage)
         crew = (ROOT / 'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
         self.assertIn('_revision >= (_passage get "revision")', crew)
+
+    def test_separate_commander_and_driver_have_symmetric_authority_checks(self):
+        source = (ROOT / 'addons/vehicles/functions/drivingCorridorStep.sqf').read_text()
+        crew = source.split('private _crewReady={',1)[1].split('private _controllerCurrent=',1)[0]
+        for guard in ('[_driver,_operator] findIf', 'local _x', 'group _x != _group',
+                      'vehicle _x != _vehicle', 'isPlayer _x', 'remoteControlled _x',
+                      'CortexCombatEffective', 'CortexExternalOwner', 'checkAIFeature "MOVE"',
+                      'checkAIFeature "PATH"', 'currentCommand _x'):
+            self.assertIn(guard, crew)
+        self.assertNotIn('_driver isEqualTo _operator', source)
+        crossing = source.split('if (_phase == "APPROACH")',1)[1].split('if (_phase == "CROSS")',1)[0]
+        self.assertLess(crossing.index('doStop _operator'), crossing.index('setDriveOnPath'))
+        self.assertLess(crossing.index('doStop _driver'), crossing.index('setDriveOnPath'))
+        self.assertIn('["driverCommand",+(expectedDestination _driver)]', crossing)
+    def test_crossing_and_handback_preserve_both_seat_commands(self):
+        source = (ROOT / 'addons/vehicles/functions/drivingCorridorStep.sqf').read_text()
+        release = (ROOT / 'addons/vehicles/functions/drivingCorridorRelease.sqf').read_text()
+        for text in (source, release):
+            self.assertIn('expectedDestination _driver', text)
+            self.assertIn('getOrDefault ["driverCommand",[]]', text)
+            self.assertNotIn('enableAI', text.split('params [[',1)[1])
+            self.assertNotIn('disableAI', text.split('params [[',1)[1])
+        self.assertIn('vehicle _operator == _vehicle', release)
+        self.assertLess(release.index('_driver doFollow _operator'), release.index('_operator doMove waypointPosition'))

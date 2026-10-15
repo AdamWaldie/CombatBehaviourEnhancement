@@ -3,6 +3,8 @@
  * Purpose: Executes a finite current-controller APPROACH/CROSS episode through a registered area.
  * Locality / Authority: Called only by the current ordinary/convoy brain, for its lead vehicle.
  * Shares existing speed/traffic writers; never edits waypoints, transfers locality or enables AI.
+ * Separate commander/driver seats require symmetric local task eligibility. Native commander
+ * approach hands to an owned two-actor stop/fixed path; crossing watches both command receipts.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
  * or deadline renewal. Original 120-second approach and half-length+45-second crossing budgets
  * remain finite. Area edits, new orders, changed seats and external ownership retire old work.
@@ -25,6 +27,21 @@ private _controllerReceipt=[_controller,if (_convoy) then {_configuration param 
 private _route=[_group] call WAIT_fnc_DrivingRouteReceipt;
 private _driver=driver _vehicle;
 private _operator=effectiveCommander _vehicle;
+// A separate commander is an independent command boundary, not permission to bypass its task.
+private _crewReady={
+    [_driver,_operator] findIf {
+        isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
+            || {!([_x] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _x}
+            || {!isNull remoteControlled _x}
+            || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
+            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+            || {!simulationEnabled _x} || {isObjectHidden _x}
+            || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
+                "REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID",
+                "HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+    } < 0
+};
 private _controllerCurrent={
     if (_convoy) exitWith {
         private _mobile=(_configuration param [4,[]]) select {
@@ -64,17 +81,9 @@ private _mayWrite={
         && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
         && {alive _vehicle} && {canMove _vehicle}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
-        && {!isNull _driver} && {_driver isEqualTo _operator}
+        && {call _crewReady}
         && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
-        && {local _driver} && {group _driver == _group} && {[_driver] call WAIT_fnc_CortexCombatEffective}
-        && {!isPlayer _driver} && {isNull remoteControlled _driver}
-        && {isNull (_driver getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-        && {[_driver] call WAIT_fnc_CortexExternalOwner == ""}
-        && {_driver checkAIFeature "MOVE"} && {_driver checkAIFeature "PATH"}
         && {isAISteeringComponentEnabled _vehicle}
-        && {!(currentCommand _driver in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
-            "REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID",
-            "HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 private _work=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
 if !(call _mayWrite) exitWith {
@@ -102,7 +111,10 @@ if (count _work > 0) exitWith {
     private _reason="";
     if ((_work get "group") != _group || {(_work get "route") isNotEqualTo _route}
         || {(_work get "driver") != _driver} || {(_work get "operator") != _operator}
-        || {(expectedDestination _operator) isNotEqualTo (_work get "command")}) then {_reason="COMMAND_CHANGED"};
+        || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
+        || {(_work getOrDefault ["phase",""]) == "CROSS" && {
+            (expectedDestination _driver) isNotEqualTo (_work getOrDefault ["driverCommand",[]])
+        }}) then {_reason="COMMAND_CHANGED"};
     if (_reason isEqualTo "" && {(_work getOrDefault ["controller",[]]) isNotEqualTo _controllerReceipt}) then {
         _reason="CONTROLLER_CHANGED";
     };
@@ -128,10 +140,14 @@ if (count _work > 0) exitWith {
             && {(vectorNormalized _forward) vectorDotProduct (_work get "travel") >= 0.85}
             && {call _mayWrite}
             && {(expectedDestination _operator) isEqualTo (_work get "command")}) then {
+            // Detach only these two owned native movement actors. Do not disable any AI
+            // feature, change leader/seats or replay a group-wide stop over other vehicles.
+            if (_operator != _driver) then {doStop _operator};
             doStop _driver;
             _vehicle setDriveOnPath _points;
             _work set ["phase","CROSS"];
             _work set ["command",+(expectedDestination _operator)];
+            _work set ["driverCommand",+(expectedDestination _driver)];
             _work set ["deadline",(_work get "hardDeadline") min (serverTime+(_definition select 1)+45)];
             _vehicle setVariable ["WAIT_DrivingCorridor_Work",_work,true];_phase="CROSS";
         };
