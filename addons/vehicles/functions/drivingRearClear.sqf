@@ -6,13 +6,14 @@
  * Repeat/JIP: No retained clearance or handlers. Each command boundary obtains fresh geometry;
  * observations cannot be replayed after a vehicle moves or changes owner.
  * Current relative velocities also project hull occupancy over two seconds before a reverse.
- * Constant translation is conservative evidence only; changing steering/acceleration is unknown.
+ * Measured reverse yaw adds a conservative full-body actor envelope and sampled corner sweeps.
+ * These only veto additional hazards; changing steering/acceleration remains unknown.
  * Arguments:
  * 0 vehicle <OBJECT, objNull> - local ground vehicle.
  * 1 distance <NUMBER, 8> - metres behind the rear body edge, clamped to 1..60.
  * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
- * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and at most twelve
- * geometry rays are processed. The query includes a 35 m/s two-second approach envelope,
+ * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and at most sixty
+ * geometry rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
  * capped at 250 m; oversized envelopes refuse rather than silently truncating the rear area. Vertical overlap uses real hull extents rather than centre height.
  * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
  * overlap policy; the solid-geometry rays remain independent and can still find obstructions.
@@ -36,6 +37,35 @@ if (_radius > 250) exitWith {[false,"REAR_SCAN_BUDGET",time,0]};
 private _forward=vectorDir _vehicle;private _up=vectorUp _vehicle;
 private _side=vectorNormalized (_forward vectorCrossProduct _up);
 private _ownVelocity=velocity _vehicle;
+// Additional veto only: retain the straight rear corridor even when measured yaw bends away.
+// Unknown future native steering is not a path permission. Observe at most two seconds of
+// current reverse motion, with three finite corner-sweep segments and no new world query.
+private _reverseSpeed=(-(velocityModelSpace _vehicle select 1)) max 0;
+private _yaw=(angularVelocityModelSpace _vehicle) param [2,0];
+if (!finite _yaw) then {_yaw=0};
+private _turnSeconds=if (_reverseSpeed > 0.25) then {2 min (_distance/_reverseSpeed)} else {0};
+private _turnAngle=_yaw*_turnSeconds*57.2957795;
+if (abs _turnAngle > 70) exitWith {[false,"REAR_TURN_ENVELOPE",time,0]};
+private _turning=abs _turnAngle >= 3;
+private _actorLeft=_left;private _actorRight=_right;
+private _actorRear=_rear-_distance;private _actorFront=_rear+0.5;
+if (_turning) then {
+    // Any hull point rotating through theta moves <=2*radius*sin(theta/2).
+    // Include forward corner swing as well as the commanded rear corridor. This broad
+    // envelope intentionally refuses some nearby non-conflicting actors; no clearance grant.
+    private _cornerRadius=sqrt (((abs (_low select 0)) max (abs (_high select 0)))^2
+        +(((abs (_low select 1)) max (abs (_high select 1)))^2));
+    private _rotationSwing=2*_cornerRadius*sin ((abs _turnAngle)*0.5);
+    private _centreSwing=_reverseSpeed*(1-cos _turnAngle)/(abs _yaw);
+    private _swing=_rotationSwing+_centreSwing;
+    _actorLeft=_left-_swing;_actorRight=_right+_swing;
+    _actorRear=_actorRear-_swing;_actorFront=(_high select 1)+_swing;
+};
+// Expanded turn actor bounds must remain inside discovery, including approaching actors.
+private _actorRadius=sqrt (((abs _actorLeft) max (abs _actorRight))^2
+    +(((abs _actorRear) max (abs _actorFront))^2));
+_radius=_radius max (_actorRadius+35*_predictionSeconds);
+if (_radius > 250) exitWith {[false,"REAR_SCAN_BUDGET",time,0]};
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 // Keep corpse density out of the live-person budget without dropping wrecked vehicles.
 // Two bounded-envelope native queries per reverse admission or active-leg safety sample.
@@ -65,16 +95,20 @@ private _occupied=_actors findIf {
                 } forEach [_otherLow select 1,_otherHigh select 1];
             } forEach [_otherLow select 0,_otherHigh select 0];
         } forEach [_otherLow select 2,_otherHigh select 2];
-        private _current=_maxX >= _left && {_minX <= _right} && {_maxY >= _rear-_distance}
-            && {_minY <= _rear+0.5} && {_maxZ >= (_low select 2)-0.3}
+        private _current=_maxX >= _actorLeft && {_minX <= _actorRight} && {_maxY >= _actorRear}
+            && {_minY <= _actorFront} && {_maxZ >= (_low select 2)-0.3}
             && {_minZ <= (_high select 2)+0.3};
         if (_current) exitWith {true};
         // Intersect overlap-time intervals on all three model axes. A diagonal crossing
         // must occupy width, depth and height together, not merely overlap their union.
-        private _relative=(velocity _thisActor) vectorDiff _ownVelocity;
+        // Turning bounds already include our integrated translation in this fixed starting
+        // frame. Subtracting our velocity again would count our travel twice.
+        private _relative=if (_turning) then {velocity _thisActor} else {
+            (velocity _thisActor) vectorDiff _ownVelocity
+        };
         private _modelVelocity=[_relative vectorDotProduct _side,_relative vectorDotProduct _forward,_relative vectorDotProduct _up];
         private _entry=0;private _exit=_predictionSeconds;private _possible=true;
-        private _ranges=[[_minX,_maxX,_left,_right],[_minY,_maxY,_rear-_distance,_rear+0.5],
+        private _ranges=[[_minX,_maxX,_actorLeft,_actorRight],[_minY,_maxY,_actorRear,_actorFront],
             [_minZ,_maxZ,(_low select 2)-0.3,(_high select 2)+0.3]];
         for "_axis" from 0 to 2 do {
             (_ranges select _axis) params ["_actorLow","_actorHigh","_areaLow","_areaHigh"];
@@ -109,4 +143,33 @@ private _clear=true;private _rays=0;
     } forEach [_left,(_left+_right)*0.5,_right];
     if (!_clear) exitWith {};
 } forEach _heights;
+if (_clear && {_turning}) then {
+    {
+        private _height=(_low select 2)+_x;
+        {
+            private _width=_x;
+            {
+                private _depth=_x;
+                private _from=_vehicle modelToWorldWorld [_width,_depth,_height];
+                for "_segment" from 1 to 3 do {
+                    private _elapsed=_turnSeconds*_segment/3;
+                    private _angle=_yaw*_elapsed*57.2957795;
+                    // Integrate constant measured yaw and reverse speed, then rotate the
+                    // rigid hull offset with the same pose. Three chords are samples only.
+                    private _centreX=-_reverseSpeed*(1-cos _angle)/_yaw;
+                    private _centreY=-_reverseSpeed*sin _angle/_yaw;
+                    private _to=_vehicle modelToWorldWorld [
+                        _centreX+_width*cos _angle+_depth*sin _angle,
+                        _centreY-_width*sin _angle+_depth*cos _angle,_height];
+                    _rays=_rays+1;
+                    if ((lineIntersectsSurfaces [_from,_to,_vehicle,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []) exitWith {_clear=false};
+                    _from=_to;
+                };
+                if (!_clear) exitWith {};
+            } forEach [_low select 1,_high select 1];
+            if (!_clear) exitWith {};
+        } forEach [_left,_right];
+        if (!_clear) exitWith {};
+    } forEach _heights;
+};
 [_clear,["REAR_GEOMETRY","CLEAR"] select _clear,time,_rays]
