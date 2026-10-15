@@ -20,11 +20,13 @@ if (!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatu
 if (!([_group] call WAIT_fnc_DrivingMovementAvailable)) exitWith {["TACTICAL_OWNER"] call _reject};
 if (([_group] call WAIT_fnc_DrivingRouteReceipt) isNotEqualTo (_brain get "route")) exitWith {["ORDER_CHANGED"] call _reject};
 [_group,_brain] call WAIT_fnc_DrivingAssistStart;
+private _corridor="";
 private _phase="HANDBACK";private _owned=0;private _recovery=false;private _waiting=false;private _exhausted=false;private _traffic=false;private _rearLeg=false;
 {
     private _state=_x getVariable ["WAIT_DrivingAssist_State",[]];
     if ((_state param [3,grpNull]) == _group) then {
         _owned=_owned+1;
+        if ((_state param [8,""]) in ["CORRIDOR_APPROACH","CORRIDOR_CROSS"]) then {_corridor=_state select 8};
         _traffic=_traffic || {(_state param [8,""]) == "TRAFFIC_FOLLOW"};
         _waiting=_waiting || {(_state param [8,""]) == "INTENTIONAL_WAIT"};
         _recovery=_recovery || {(_state param [6,0]) in [1,2,3]};
@@ -33,8 +35,9 @@ private _phase="HANDBACK";private _owned=0;private _recovery=false;private _wait
     };
 } forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
 if (_owned > 0) then {_phase=if (_recovery) then {"RECOVERY"} else {if (_waiting) then {"INTENTIONAL_WAIT"} else {if (_traffic) then {"TRAFFIC"} else {"CRUISE"}}}};
+if (_corridor != "") then {_phase=_corridor};
 if (_owned == 0) then {_brain set ["cancelReason","NO_ELIGIBLE_VEHICLE"]};
 if (_exhausted) then {_phase="HANDBACK";_brain set ["cancelReason","EXHAUSTED"]};
-_brain set ["phase",_phase];_brain set ["nextAt",time+([4,1] select (_traffic || {_rearLeg}))];_brain set ["pending",false];_brain set ["completed",true];
+_brain set ["phase",_phase];_brain set ["nextAt",time+([4,1] select (_traffic || {_rearLeg} || {_corridor != ""}))];_brain set ["pending",false];_brain set ["completed",true];
 _group setVariable ["WAIT_Driving_State",[_phase,_brain get "generation",serverTime,_brain get "cancelReason"],true];
 -1

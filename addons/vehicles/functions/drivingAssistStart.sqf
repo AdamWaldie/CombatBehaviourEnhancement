@@ -15,6 +15,8 @@
  * combat mode and formation. Same-index edits retire the old recovery stage. Every cap/recovery
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
  * Road bends, junctions and absolute road grade share the convoy observer at existing cadence.
+ * Registered navigation areas use finite approach/crossing work in this same callback; current
+ * traffic caps still win, and active corridor legs suppress ordinary route recovery.
  * Friendly pedestrian hulls constrain ordinary driving as well as opted-in convoys.
  * Forward-lane vehicle hulls constrain speed regardless of heading; aligned predecessors use
  * current hull gaps and actual velocity for continuous following caps. Other occupied hulls
@@ -272,6 +274,19 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             // recovery feature change currently prevents the forward retry. Hold its exact
             // speed lease until normal retry admission or a newer order/controller takes over.
             if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
+            // Corridor execution is part of this same owner callback, never a second controller.
+            // Do not take over an issued/expired rear leg. Existing traffic and pedestrian caps win.
+            private _hadCorridor=!isNil {_vehicle getVariable "WAIT_DrivingCorridor_Work"};
+            private _corridor=[false,1e6,""];
+            if (!_reverseLeg && {!_reverseExpired} && {call _mayRecoverRoute}) then {
+                _corridor=[_group,_vehicle,_brain] call WAIT_fnc_DrivingCorridorStep;
+            } else {
+                if (_hadCorridor) then {
+                    [_vehicle,_group,"ROUTE_AUTHORITY_ENDED"] call WAIT_fnc_DrivingCorridorRelease;
+                };
+            };
+            private _corridorActive=_corridor select 0;
+            _capMps=_capMps min (_corridor select 1);
             private _trafficLimited=!isNull (_traffic select 1);
             _capMps=_capMps min (_traffic select 0);
             if !(call _mayIssueDriving) then {
@@ -299,13 +314,15 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             if (call _nativeWaiting) then {_recoveryResult="INTENTIONAL_WAIT"};
             // Waiting behind traffic is not a route fault. Keep the last progress sample current so
             // clearing the queue does not immediately inherit a stale reverse deadline.
-            if (_trafficLimited) then {
+            if (_trafficLimited || {_corridorActive} || {_hadCorridor}) then {
                 _progressPosition=getPosATL _vehicle;_progressAt=time;
                 // Keep an already-issued rear leg finite. After the pedestrian clears,
                 // its expired deadline returns to the authored route instead of losing
                 // the rear-leg receipt and treating backward travel as ordinary progress.
                 if (_recoveryStage != 2) then {_recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false};
-                _recoveryResult="TRAFFIC_FOLLOW";
+                _recoveryResult=if (_corridorActive) then {_corridor select 2} else {
+                    ["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited
+                };
             };
             private _routeProgress=true;
             if (_recoveryStage > 0) then {
@@ -319,7 +336,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             };
             // Reversing is a recovery leg, not proof that the original route resumed.
             // Do not reset its finite stages merely because the vehicle moved backwards.
-            if (!_trafficLimited && {_vehicle distance2D _progressPosition >= 3} && {_routeProgress}) then {
+            if (!_trafficLimited && {!_corridorActive} && {!_hadCorridor} && {_vehicle distance2D _progressPosition >= 3} && {_routeProgress}) then {
                 _progressPosition=getPosATL _vehicle;
                 _progressAt=time;
                 _recoveryStage=0;
@@ -337,7 +354,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             // resets this stage and its progress clock above. A rear leg keeps its finite expiry.
             private _observationWindow=[20,30,0,60] param [_recoveryStage,60];
             if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-                && {!_inCombat} && {!_trafficLimited} && {abs speed _vehicle < 1 || {_reverseComplete}}
+                && {!_inCombat} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {abs speed _vehicle < 1 || {_reverseComplete}}
                 && {time-_progressAt >= _observationWindow || {_reverseComplete}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
                 private _waypoint=[_group,_waypointIndex];
@@ -382,7 +399,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             };
             _vehicle setVariable ["WAIT_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
                 _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued]];
-            _vehicle setVariable ["WAIT_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_recoveryStage == 2}))];
+            _vehicle setVariable ["WAIT_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_corridorActive} || {_recoveryStage == 2}))];
             };
             };
         };

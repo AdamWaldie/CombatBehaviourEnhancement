@@ -18,7 +18,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         changed=s.split('(_state param [9,[]]) isNotEqualTo _routeIdentity',1)[1].split('// A follower',1)[0]
         for marker in ('_state set [5,time]','_state set [6,0]','_state set [7,-1]'):
             self.assertIn(marker,changed)
-        progress=s.split('if (!_trafficLimited && {_vehicle distance2D',1)[1].split('private _waypointIndex=',1)[0]
+        progress=s.split('if (!_trafficLimited && {!_corridorActive} && {!_hadCorridor} && {_vehicle distance2D',1)[1].split('private _waypointIndex=',1)[0]
         self.assertIn('_progressAt=time',progress)
         self.assertIn('_recoveryStage=0',progress)
     def test_timing_model_never_escalates_before_required_observation(self):

@@ -757,7 +757,9 @@
         "addons/vehicles/functions/drivingGateRequest.sqf",
         "addons/vehicles/functions/drivingGateOpenServer.sqf",
         "addons/vehicles/functions/drivingCorridorRegister.sqf",
-        "addons/vehicles/functions/drivingCorridorGeometry.sqf"
+        "addons/vehicles/functions/drivingCorridorGeometry.sqf",
+        "addons/vehicles/functions/drivingCorridorStep.sqf",
+        "addons/vehicles/functions/drivingCorridorRelease.sqf"
       ]
     },
     {

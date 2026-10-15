@@ -10,9 +10,9 @@
  * 2 definition <ARRAY, []> - exact public [revision, halfLength, halfWidth, speedKmh].
  * 3 side <NUMBER, 1> - entry end, exactly -1 or 1 along the area's forward axis.
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY,
- *   transform ARRAY, rayCount NUMBER]. Maximum 15 support stations, 45 support rays and
- *   84 body rays (129 total). Samples are a proposal, not proof of swept-volume passability.
- * Current callers: Internal corridor foundation; executor/module connection remains pending.
+ *   transform ARRAY, rayCount NUMBER]. Maximum 20 support stations, 60 support rays and
+ *   114 body rays (174 total). Samples are a proposal, not proof of swept-volume passability.
+ * Current callers: DrivingCorridorStep, at admission only.
  * Example: [truck1,corridorLogic,corridorLogic getVariable ["WAIT_DrivingCorridor_Task",[]],1]
  *   call WAIT_fnc_DrivingCorridorGeometry;
  */
@@ -41,12 +41,16 @@ private _height=((_high select 2)-(_low select 2)) max 1;
 // Preserve the selected world layer. A deck above water is valid solid support; an empty
 // water surface is not. Do not silently substitute terrain below an unsupported bridge.
 private _centre=getPosASL _area;
-private _span=2*(_halfLength+10);
+private _halfBodyLength=(abs (_low select 1)) max (abs (_high select 1));
+// The tail must clear the far plane too. A fixed ten-metre endpoint strands long hulls.
+private _extension=(sqrt ((_halfBodyLength^2)+(_hullWidth^2))+6) max 10;
+if (_extension > 30) exitWith {["HULL_TOO_LONG"] call _failure};
+private _span=2*(_halfLength+_extension);
 private _segments=ceil (_span/8);
 private _points=[];private _rays=0;private _reason="";
 for "_station" from 0 to _segments do {
     if (_reason isEqualTo "") then {
-        private _along=(_halfLength+10-(_span*_station/_segments))*_side;
+        private _along=(_halfLength+_extension-(_span*_station/_segments))*_side;
         private _base=_centre vectorAdd (_axis vectorMultiply _along);
         private _supports=[];
         {

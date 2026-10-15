@@ -42,6 +42,8 @@ class CfgFunctions {
             class DrivingRoadCap {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingRoadCap.sqf";};
             class DrivingGateRequest {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingGateRequest.sqf";};
             class DrivingGateOpenServer {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingGateOpenServer.sqf";};
+            class DrivingCorridorStep {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingCorridorStep.sqf";};
+            class DrivingCorridorRelease {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingCorridorRelease.sqf";};
             class DrivingCorridorRegister {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingCorridorRegister.sqf";};
             class DrivingCorridorGeometry {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingCorridorGeometry.sqf";};
             class DrivingGateCap {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingGateCap.sqf";};
