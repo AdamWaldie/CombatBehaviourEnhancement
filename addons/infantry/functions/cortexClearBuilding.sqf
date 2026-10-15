@@ -54,6 +54,8 @@
  * Current callers: mission scripts, CortexOrderLocal and building-contact/locality continuation.
  * WAIT-owned garrison post holds may enter a new clear after physical validation; the handoff
  * restores those holds without injecting a JOIN recall ahead of the new building executor.
+ * Expired episodes and changed resume-order receipts are rejected before garrison/defence
+ * or autonomous-task handoff; late common-operation refusal remains separately handled.
  */
 
 params [["_group", grpNull, [grpNull, objNull]], ["_target", objNull, [objNull, []]], ["_options", createHashMap, [createHashMap]]];
@@ -166,18 +168,6 @@ private _remainingAdmission=+_team;
     };
 } forEach ((_group getVariable ["WAIT_CombatPairs",[]]) select [0,16]);
 _team = (_pairedAdmission+_remainingAdmission) select [0,_entryCapacity];
-private _preserveBrain=_options getOrDefault ["preserveBrain",false];
-if (_preserveBrain) then {
-    private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
-    if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
-        [_group,_state,"BUILDING_CONTACT"] call WAIT_fnc_CortexFlankEnd;
-    };
-    [_group] call WAIT_fnc_CortexGroupMoveClear;
-} else {
-    [_group,false] call WAIT_fnc_CortexReleaseGroup;
-};
-if ((_group getVariable ["WAIT_AIPass_Garrison", []]) isNotEqualTo []) then {[_group,true,[],false] call WAIT_fnc_CortexGarrisonRelease};
-if ((_group getVariable ["WAIT_AIPass_Defend", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexDefendRelease};
 private _previous = _group getVariable ["WAIT_AIPass_ClearOrder", []];
 private _resume = _options getOrDefault ["resume", false] && {_previous isNotEqualTo []} && {(_previous select 0) == _building};
 private _baseBehaviour = if (_previous isEqualTo []) then {behaviour _leader} else {_previous select 3};
@@ -205,6 +195,28 @@ if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nat
     false
 };
 
+// Complete resume/deadline validation before releasing another explicit task.
+// This final eligibility preflight matches the common operation's admission gate.
+if !([_group,false,false,true] call WAIT_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
+private _preserveBrain=_options getOrDefault ["preserveBrain",false];
+if (_preserveBrain) then {
+    private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
+    if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
+        [_group,_state,"BUILDING_CONTACT"] call WAIT_fnc_CortexFlankEnd;
+    };
+    [_group] call WAIT_fnc_CortexGroupMoveClear;
+} else {
+    [_group,false] call WAIT_fnc_CortexReleaseGroup;
+};
+if ((_group getVariable ["WAIT_AIPass_Garrison", []]) isNotEqualTo []) then {[_group,true,[],false] call WAIT_fnc_CortexGarrisonRelease};
+if ((_group getVariable ["WAIT_AIPass_Defend", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexDefendRelease};
+// General cleanup may remove WAIT-authored native waypoints. Receipt the resulting
+// order only after this authorized handoff, never mistake our cleanup for a later edit.
+_nativeOrderReceipt=[_group] call WAIT_fnc_NativeOrderReceipt;
+// A fresh clear borrows the restored task baseline, not a garrison/defence-applied hold.
+// A true resume retains its original reversible policy across owners.
+if (!_resume) then {_baseAttack=attackEnabled _leader};
+if (_previous isEqualTo []) then {_baseBehaviour=behaviour _leader};
 _group setVariable ["WAIT_Cortex_ClearAdmissionFailure",nil,true];
 _group setVariable ["WAIT_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline], true];
 _group setVariable ["WAIT_AIPass_ClearApplied", true];

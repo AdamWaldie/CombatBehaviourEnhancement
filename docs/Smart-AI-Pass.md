@@ -555,3 +555,10 @@ remain authoritative. Dense connection sets cap at 15 km/h. Convoys retain their
 cache; ordinary vehicles use their existing sample cadence. No route, waypoint or world
 object is changed. Heading-based branch selection does not prove which branch native AI
 will take. Junction false constraints, bends, slopes, actual speed and overhead remain unverified.
+
+Clearance resume now validates the episode deadline and unchanged native order before
+releasing existing garrison, defence or autonomous tasks. A matching final common-admission
+eligibility check also precedes handoff. The new clear records native order state after
+its authorized cleanup, so removal of WAIT waypoints is not mistaken for a later mission edit.
+Late operation-start refusal retains its existing cancellation handling; this is not a
+universal transaction guarantee. Expired/changed resumes and successful handoff need live retesting.

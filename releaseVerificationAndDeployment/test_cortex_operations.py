@@ -8058,6 +8058,22 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_pairRoutes=',update)
         self.assertNotIn('_state set [0',update)
 
+    def test_clearance_resume_refusals_precede_other_task_handoff(self):
+        text=source('cortexClearBuilding')
+        deadline=text.index('if (serverTime >= (_deadline min _hardDeadline)) exitWith')
+        changed_order=text.index('if (_resume && {(_previous param [9,_nativeOrderReceipt')
+        for cleanup in ('call WAIT_fnc_CortexReleaseGroup',
+                        'call WAIT_fnc_CortexGarrisonRelease','call WAIT_fnc_CortexDefendRelease'):
+            self.assertLess(deadline,text.index(cleanup))
+            self.assertLess(changed_order,text.index(cleanup))
+        handoff=text.index('private _preserveBrain=_options')
+        capture=text.index('_nativeOrderReceipt=[_group] call WAIT_fnc_NativeOrderReceipt;',handoff)
+        self.assertLess(text.index('call WAIT_fnc_CortexDefendRelease'),capture)
+        self.assertLess(capture,text.index('setVariable ["WAIT_AIPass_ClearOrder"'))
+        baseline=text.index('if (!_resume) then {_baseAttack=attackEnabled _leader}')
+        self.assertLess(capture,baseline)
+        self.assertLess(baseline,text.index('setVariable ["WAIT_AIPass_ClearOrder"'))
+
     def test_clearance_refusal_identifies_bounded_actor_admission_evidence(self):
         text=source('cortexClearBuilding')
         self.assertIn('(units _group) select [0,16]',text)
