@@ -5,6 +5,9 @@
  * Shares existing speed/traffic writers; never edits waypoints, transfers locality or enables AI.
  * Separate commander/driver seats require symmetric local task eligibility. Native commander
  * approach hands to an owned two-actor stop/fixed path; crossing watches both command receipts.
+ * New acquisition requires both actors idle or route-matching MOVE; native STOP, FOLLOW,
+ * ATTACK and unowned WAIT remain authoritative. APPROACH permits its owned arrival wait but
+ * rejects a new STOP/other native task before taking fixed steering. CROSS owns its own doStop.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
  * or deadline renewal. Original 120-second approach and half-length+45-second crossing budgets
  * remain finite. Area edits, new orders, changed seats and external ownership retire old work.
@@ -41,6 +44,20 @@ private _crewReady={
                 "REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID",
                 "HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
     } < 0
+};
+// Before any alternate movement exists, only idle or route-matching native MOVE
+// commands authorize acquisition. STOP/FOLLOW/ATTACK and unowned WAIT are not consent.
+private _nativeAdmissionReady={
+    private _destination=waypointPosition [_group,currentWaypoint _group];
+    [_driver,_operator] findIf {
+        private _command=toUpperANSI currentCommand _x;
+        _command != "" && {_command != "MOVE" || {
+            ((expectedDestination _x) param [0,[]]) distance2D _destination > 3
+        }}
+    } < 0
+};
+private _approachTasksReady={
+    [_driver,_operator] findIf {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])} < 0
 };
 private _controllerCurrent={
     if (_convoy) exitWith {
@@ -116,6 +133,8 @@ if (count _work > 0) exitWith {
         || {(_work getOrDefault ["phase",""]) == "CROSS" && {
             (expectedDestination _driver) isNotEqualTo (_work getOrDefault ["driverCommand",[]])
         }}) then {_reason="COMMAND_CHANGED"};
+    if (_reason isEqualTo "" && {(_work getOrDefault ["phase",""]) == "APPROACH"}
+        && {!(call _approachTasksReady)}) then {_reason="COMMAND_CHANGED"};
     if (_reason isEqualTo "" && {(_work getOrDefault ["controller",[]]) isNotEqualTo _controllerReceipt}) then {
         _reason="CONTROLLER_CHANGED";
     };
@@ -139,7 +158,7 @@ if (count _work > 0) exitWith {
         if ((getPosASL _vehicle) distance2D _entry <= 8
             && {abs (((getPosASL _vehicle) select 2)-(_entry select 2)) <= 2}
             && {(vectorNormalized _forward) vectorDotProduct (_work get "travel") >= 0.85}
-            && {call _mayWrite}
+            && {call _mayWrite} && {call _approachTasksReady}
             && {(expectedDestination _operator) isEqualTo (_work get "command")}) then {
             // Detach only these two owned native movement actors. Do not disable any AI
             // feature, change leader/seats or replay a group-wide stop over other vehicles.
@@ -199,8 +218,7 @@ if (_convoy && {count _passage > 0} && {(_passage get "revision") == (_configura
     && {serverTime < (_passage get "deadline")}) exitWith {_inactive};
 private _destination=waypointPosition _waypoint;
 // Do not replace a newer individual MOVE merely because its group route is unchanged.
-private _native=expectedDestination _operator;
-if (currentCommand _operator == "MOVE" && {(_native param [0,[]]) distance2D _destination > 3}) exitWith {_inactive};
+if !(call _nativeAdmissionReady) exitWith {_inactive};
 private _snapshot=missionNamespace getVariable ["WAIT_DrivingCorridor_Snapshot",[0,[]]];
 private _records=_snapshot param [1,[]];
 if (count _records > 32) exitWith {_inactive};
@@ -282,6 +300,7 @@ if (_exitRoom < _requiredRoom) exitWith {
 };
 private _tailSpeed=((_definition select 3) min (_configuration param [1,_definition select 3]))/3.6;
 private _tailDeadline=serverTime+((120+(_definition select 1)+45+60+_tailLength/(_tailSpeed max 1.39)) min 1800);
+if (!(call _mayWrite) || {!(call _nativeAdmissionReady)}) exitWith {_inactive};
 _operator doMove (_points select 0);
 _work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
     ["route",_route],["area",_area],["definition",_definition],["transform",_transform],

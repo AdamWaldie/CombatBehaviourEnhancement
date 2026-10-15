@@ -3,6 +3,9 @@
  * Purpose: Runs one finite ordinary/convoy-lead bypass PLAN/FOLLOW step through the existing controller.
  * Locality / Authority: Internal synchronous owner callback only. Current driving brain and the
  * caller's fresh authority predicate and internal plain-route/crew gates protect every command. Never remote.
+ * New PLAN acquisition preserves native STOP/FOLLOW/ATTACK/unowned WAIT on either seat;
+ * its two actors must be idle or moving to the authored destination. Owned FOLLOW-phase
+ * doStop receipts retain their separate retirement contract.
  * Repeat/JIP: Public serializable work stores original 90-second deadline, two-side attempt budget,
  * path/checkpoint/seat/route receipts. New owners adopt without command replay or clock renewal.
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 brain <HASHMAP, empty>;
@@ -51,6 +54,17 @@ private _plainRoute={
         && {waypointScript _waypoint == ""} && {(waypointTimeout _waypoint param [2,0]) <= 0}
         && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
         && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []}
+};
+// Before any alternate movement exists, only idle or route-matching native MOVE
+// commands authorize acquisition. STOP/FOLLOW/ATTACK and unowned WAIT are not consent.
+private _nativeAdmissionReady={
+    private _destination=waypointPosition [_group,currentWaypoint _group];
+    [_driver,_operator] findIf {
+        private _command=toUpperANSI currentCommand _x;
+        _command != "" && {_command != "MOVE" || {
+            ((expectedDestination _x) param [0,[]]) distance2D _destination > 3
+        }}
+    } < 0
 };
 private _controllerCurrent={
     if (_convoy) exitWith {
@@ -111,10 +125,9 @@ if (count _work == 0 && {!_convoy || {isNil {_group getVariable "WAIT_Convoy_Byp
         && {abs speed _vehicle <= 8}) then {
         private _context=[_group,_route,_observed select 1,_driver,_operator,_controllerReceipt];
         private _cooldown=_vehicle getVariable ["WAIT_DrivingBypass_Cooldown",[]];
-        private _waypoint=[_group,currentWaypoint _group];
         private _command=expectedDestination _operator;
         if (_cooldown findIf {(_x select 0) isEqualTo _context && {(_x select 1) > serverTime}} < 0
-            && {currentCommand _operator != "MOVE" || {(_command param [0,[]]) distance2D waypointPosition _waypoint <= 3}}) then {
+            && {call _nativeAdmissionReady}) then {
             _work=createHashMapFromArray [["group",_group],["route",_route],["driver",_driver],["operator",_operator],
                 ["context",_context],["controller",_controllerReceipt],["obstacle",_observed select 1],["transform",_observed select 8],
                 ["deadline",serverTime+90],["side",1],["phase","PLAN"],["index",0],
@@ -128,6 +141,7 @@ private _obstacle=_work get "obstacle";private _reason="";
 if ((_work get "route") isNotEqualTo _route || {(_work get "driver") != _driver} || {(_work get "operator") != _operator}
     || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
     || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}) then {_reason="COMMAND_CHANGED"};
+if (_reason == "" && {(_work get "phase") == "PLAN"} && {!(call _nativeAdmissionReady)}) then {_reason="COMMAND_CHANGED"};
 if (_reason == "" && {isNull _obstacle || {abs speed _obstacle > 0.5}
     || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo (_work get "transform")}}) then {_reason="OBSTACLE_CHANGED"};
 if (_reason == "" && {serverTime >= (_work get "deadline")}) then {_reason="TIMEOUT"};
@@ -161,7 +175,7 @@ if ((_work get "phase") == "PLAN") exitWith {
     if ((_destination vectorDiff _exit) vectorDotProduct _forward < _columnLength+(waypointCompletionRadius [_group,currentWaypoint _group] max 20)+10) exitWith {
         [_vehicle,_group,"DESTINATION_CLEARANCE"] call WAIT_fnc_DrivingBypassRelease;_inactive
     };
-    if (!(call _mayWrite) || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
+    if (!(call _mayWrite) || {!(call _nativeAdmissionReady)} || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
         || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}) exitWith {_inactive};
     private _box=boundingBoxReal _vehicle;private _low=_box select 0;private _high=_box select 1;
     private _halfWidth=((abs (_low select 0)) max (abs (_high select 0))) max (_envelope param [0,0]);
