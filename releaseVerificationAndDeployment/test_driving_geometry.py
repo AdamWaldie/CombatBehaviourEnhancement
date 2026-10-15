@@ -78,3 +78,18 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertNotRegex(s.split('params [[',1)[1],r'setVariable\s*\[[^\n]*,\s*true\s*\]')
         for name in ('drivingAssistRelease','convoyReleaseLocal'):
             self.assertIn('call WAIT_fnc_DrivingNativePathWatch',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
+
+    def test_native_path_subscription_expires_before_copy_and_feature_off_retires_old_revision(self):
+        s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text()
+        event=s.split('private _id=_driver addEventHandler',1)[1].split('_record=[_group',1)[0]
+        for marker in ('WAIT_DrivingNativePath_ValidUntil','CortexFeatureEnabled',
+                       'bis_fnc_moduleRemoteControl_owner','CortexExternalOwner'):
+            self.assertLess(event.index(marker),event.index('_path select [0,64]'))
+        self.assertIn('[_unit,effectiveCommander _vehicle] findIf',event)
+        self.assertIn('[_driver,_operator] findIf',s)
+        self.assertIn('"WAIT_DrivingNativePath_ValidUntil",time+6',s)
+        self.assertIn('"WAIT_DrivingNativePath_ValidUntil",nil',s)
+        tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        self.assertIn('["CONVOY"],true] call WAIT_fnc_DrivingNativePathWatch',tick)
+        release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
+        self.assertIn('["CONVOY"],true,_navigation getOrDefault ["revision",-1]',release)

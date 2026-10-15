@@ -5,6 +5,8 @@
  * clearance commands. One local PathCalculated handler on the actual driver, never a helper agent.
  * Repeat/JIP: Exact route/controller/seat/owner context replaces obsolete handlers. Local handles
  * and paths are never published. New owners wait for fresh native evidence, not replayed paths.
+ * A six-second local subscription expiry is refreshed only by the existing owner callback;
+ * abandoned/disabled/player-controlled watches cannot keep copying native events indefinitely.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 group <GROUP, grpNull>; 2 context <ARRAY, []>,
  * first element ORDINARY or CONVOY, second convoy revision where applicable; 3 release <BOOL, false>;
  * 4 expected convoy revision <NUMBER, -1> protects stale cleanup when >=0.
@@ -27,8 +29,11 @@ private _remove={
             _actor removeEventHandler ["PathCalculated",_id];
             _actor setVariable ["WAIT_DrivingNativePath_Binding",nil];
         };
-        _vehicle setVariable ["WAIT_DrivingNativePath_Watch",nil];
-        _vehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
+        if ((_vehicle getVariable ["WAIT_DrivingNativePath_Watch",[]]) isEqualTo _record) then {
+            _vehicle setVariable ["WAIT_DrivingNativePath_Watch",nil];
+            _vehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
+            _vehicle setVariable ["WAIT_DrivingNativePath_ValidUntil",nil];
+        };
     };
 };
 if (_release) exitWith {
@@ -36,9 +41,21 @@ if (_release) exitWith {
         && {(((_record select 1) select 0) param [0,""]) == (_context param [0,""])}
         && {_expectedRevision < 0 || {(((_record select 1) select 0) param [1,-2]) isEqualTo _expectedRevision}}) then {call _remove};[]
 };
+private _mode=_context param [0,""];
+if (!(_mode in ["ORDINARY","CONVOY"])) exitWith {[]};
+private _feature=["WAIT_AIPass_DrivingAssist_Enable","WAIT_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
+if (!([_group,_feature,true] call WAIT_fnc_CortexFeatureEnabled)) exitWith {
+    if (count _record == 4 && {(_record select 0) == _group}
+        && {(((_record select 1) select 0) param [0,""]) == _mode}) then {call _remove};[]
+};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _group || {!local _group} || {isNull _driver} || {!local _driver}
-    || {group _driver != _group} || {isPlayer _driver} || {!isNull remoteControlled _driver}) exitWith {[]};
+    || {group _driver != _group} || {[_driver,_operator] findIf {
+        isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
+            || {isPlayer _x} || {!isNull remoteControlled _x}
+            || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
+    } >= 0}) exitWith {[]};
 private _identity=[_context,_driver,_operator,clientOwner];
 if (count _record != 4 || {(_record select 0) != _group} || {(_record select 1) isNotEqualTo _identity}) then {
     call _remove;
@@ -53,6 +70,7 @@ if (count _record != 4 || {(_record select 0) != _group} || {(_record select 1) 
             && {(_oldWatch select 3) == (_oldBinding select 3)}) then {
             _oldVehicle setVariable ["WAIT_DrivingNativePath_Watch",nil];
             _oldVehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
+            _oldVehicle setVariable ["WAIT_DrivingNativePath_ValidUntil",nil];
         };
         _driver setVariable ["WAIT_DrivingNativePath_Binding",nil];
     };
@@ -63,6 +81,18 @@ if (count _record != 4 || {(_record select 0) != _group} || {(_record select 1) 
         _binding params ["_vehicle","_group","_identity"];
         if (!local _unit || {!local _vehicle} || {!local _group} || {driver _vehicle != _unit}
             || {(_vehicle getVariable ["WAIT_DrivingNativePath_Watch",[]]) isNotEqualTo [_group,_identity,_unit,_thisEventHandler]}) exitWith {};
+        private _mode=(_identity select 0) param [0,""];
+        private _feature=["WAIT_AIPass_DrivingAssist_Enable","WAIT_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
+        if (time > (_vehicle getVariable ["WAIT_DrivingNativePath_ValidUntil",-1])
+            || {!([_group,_feature,true] call WAIT_fnc_CortexFeatureEnabled)}
+            || {[_unit,effectiveCommander _vehicle] findIf {
+                isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
+                    || {isPlayer _x} || {!isNull remoteControlled _x}
+                    || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+                    || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
+            } >= 0}) exitWith {
+            _vehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
+        };
         private _nodes=_path select [0,64];
         _vehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
         if (count _nodes < 2 || {_nodes findIf {!(_x isEqualType []) || {count _x != 3}
@@ -74,6 +104,7 @@ if (count _record != 4 || {(_record select 0) != _group} || {(_record select 1) 
     _vehicle setVariable ["WAIT_DrivingNativePath_Watch",_record];
     _driver setVariable ["WAIT_DrivingNativePath_Binding",[_vehicle,_group,_identity,_id]];
 };
+_vehicle setVariable ["WAIT_DrivingNativePath_ValidUntil",time+6];
 private _segment=_vehicle getVariable ["WAIT_DrivingNativePath_Segment",[]];
 if (count _segment != 5 || {(_segment select 0) isNotEqualTo _identity} || {time-(_segment select 1) > 5}
     || {time < (_segment select 1)} || {(expectedDestination _driver) isNotEqualTo (_segment select 2)}

@@ -523,7 +523,7 @@ private _leadTurn=[_lead,_geometryTracks getOrDefault [netId _lead,[]],_geometry
 _geometryTracks set [netId _lead,_leadTurn select 1];_state set ["geometryTracks",_geometryTracks];
 private _leadNativeHint=if (_trafficAssistEnabled) then {
     [_lead,_group,["CONVOY",_revision,_geometryContext]] call WAIT_fnc_DrivingNativePathWatch
-} else {[_lead,_group,["CONVOY"],true,_revision] call WAIT_fnc_DrivingNativePathWatch};
+} else {[_lead,_group,["CONVOY"],true] call WAIT_fnc_DrivingNativePathWatch};
 private _leadCurveHint=if (_leadNativeHint isEqualTo []) then {[_leadTurn select 0]} else {_leadNativeHint};
 private _leadGeometry=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6,false,_leadCurveHint] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
 private _leadGate=_leadGeometry select 0;private _leadObstacle=_leadGeometry select 1;
@@ -687,7 +687,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
     _geometryTracks set [netId _vehicle,_turn select 1];
     private _nativeHint=if (_trafficAssistEnabled) then {
         [_vehicle,_group,["CONVOY",_revision,_geometryContext]] call WAIT_fnc_DrivingNativePathWatch
-    } else {[_vehicle,_group,["CONVOY"],true,_revision] call WAIT_fnc_DrivingNativePathWatch};
+    } else {[_vehicle,_group,["CONVOY"],true] call WAIT_fnc_DrivingNativePathWatch};
     private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
     private _vehicleGeometry=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6,false,_curveHint] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
     private _vehicleGate=_vehicleGeometry select 0;private _vehicleObstacle=_vehicleGeometry select 1;
