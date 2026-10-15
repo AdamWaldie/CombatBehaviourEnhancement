@@ -7415,7 +7415,7 @@ class CortexOperations(unittest.TestCase):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         tracked=source('cortexVehicleReverseStep')
         self.assertIn('boundingBoxReal _vehicle',observer)
-        self.assertIn('boundingBoxReal _x',observer)
+        self.assertIn('boundingBoxReal _thisActor',observer)
         self.assertIn('count _actors > 64',observer)
         self.assertIn('forEach [0.45,0.9]',observer)
         self.assertIn('forEach [_left,(_left+_right)*0.5,_right]',observer)
@@ -7430,6 +7430,20 @@ class CortexOperations(unittest.TestCase):
             self.assertNotIn(write,observer)
         self.assertNotIn('allVehicles',observer)
         self.assertNotIn('allUnits',observer)
+
+    def test_reverse_clearance_uses_full_vertical_hulls_not_actor_centres(self):
+        text=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text(encoding='utf-8')
+        for proof in ['private _thisActor=_x','_thisActor modelToWorld [_width,_x,_height]',
+                      'forEach [_otherLow select 2,_otherHigh select 2]',
+                      '_maxZ >= (_low select 2)-0.3','_minZ <= (_high select 2)+0.3']:
+            self.assertIn(proof,text)
+        self.assertNotIn('abs _vertical < 4',text)
+        # A tall hull can overlap while its centre lies outside the former four-metre band.
+        overlap=lambda low,high,other_low,other_high:other_high>=low-0.3 and other_low<=high+0.3
+        self.assertTrue(overlap(-1,2,1.9,7))
+        # Nearby centres on stacked surfaces do not justify occupying the reverse corridor.
+        self.assertFalse(overlap(-1,1,2,3.5))
+        self.assertTrue(overlap(-1,1,1.2,2))
 
     def test_ordinary_driving_fsm_owns_queued_execution_and_terminal_receipts(self):
         """Old/replaced/retired driving work cannot enter the movement executor."""

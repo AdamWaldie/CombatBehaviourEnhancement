@@ -9,7 +9,8 @@
  * 0 vehicle <OBJECT, objNull> - local ground vehicle.
  * 1 distance <NUMBER, 8> - metres behind the rear body edge, clamped to 1..60.
  * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
- * Dense candidate sets fail closed; at most 64 actors and six geometry rays are processed.
+ * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and six
+ * geometry rays are processed. Vertical overlap uses real hull extents rather than centre height.
  * Current callers: DrivingAssistStart and CortexVehicleReverseStep.
  * Example: private _clearance = [truck1,8] call WAIT_fnc_DrivingRearClear;
  */
@@ -25,25 +26,29 @@ private _radius=sqrt (((abs _rear+_distance+4)^2)+(_halfWidth^2));
 private _actors=_vehicle nearEntities [["CAManBase","LandVehicle"],_radius];
 if (count _actors > 64) exitWith {[false,"DENSE_REAR_TRAFFIC",time,0]};
 private _occupied=_actors findIf {
-    _x != _vehicle && {!(_x in crew _vehicle)} && {alive _x}
-    && {private _otherBox=boundingBoxReal _x;
+    private _thisActor=_x;
+    _thisActor != _vehicle && {!(_thisActor in crew _vehicle)} && {alive _thisActor}
+    && {private _otherBox=boundingBoxReal _thisActor;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
-        // Project all four corners; a long vehicle's centre may sit outside our corridor.
+        // Full projected hulls preserve overlap on slopes and separate stacked roads.
+        // Centre height and four z=0 footprint corners cannot represent a tall/tilted hull.
         private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
+        private _minZ=1e9;private _maxZ=-1e9;
         {
-            _x params ["_object","_corner"];
-            private _point=_vehicle worldToModel (_object modelToWorld _corner);
-            _minX=_minX min (_point select 0);_maxX=_maxX max (_point select 0);
-            _minY=_minY min (_point select 1);_maxY=_maxY max (_point select 1);
-        } forEach [
-            [_x,[_otherLow select 0,_otherLow select 1,0]],
-            [_x,[_otherLow select 0,_otherHigh select 1,0]],
-            [_x,[_otherHigh select 0,_otherLow select 1,0]],
-            [_x,[_otherHigh select 0,_otherHigh select 1,0]]
-        ];
-        private _vertical=(_vehicle worldToModel (getPosATL _x)) select 2;
+            private _height=_x;
+            {
+                private _width=_x;
+                {
+                    private _point=_vehicle worldToModel (_thisActor modelToWorld [_width,_x,_height]);
+                    _minX=_minX min (_point select 0);_maxX=_maxX max (_point select 0);
+                    _minY=_minY min (_point select 1);_maxY=_maxY max (_point select 1);
+                    _minZ=_minZ min (_point select 2);_maxZ=_maxZ max (_point select 2);
+                } forEach [_otherLow select 1,_otherHigh select 1];
+            } forEach [_otherLow select 0,_otherHigh select 0];
+        } forEach [_otherLow select 2,_otherHigh select 2];
         _maxX >= _left && {_minX <= _right} && {_maxY >= _rear-_distance}
-            && {_minY <= _rear+0.5} && {abs _vertical < 4}
+            && {_minY <= _rear+0.5} && {_maxZ >= (_low select 2)-0.3}
+            && {_minZ <= (_high select 2)+0.3}
     }
 } >= 0;
 if (_occupied) exitWith {[false,"REAR_OCCUPIED",time,0]};
