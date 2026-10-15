@@ -23,4 +23,7 @@ missionNamespace setVariable ["WAIT_AITweaks_ZenRegisteredLocal", true];
 ["Waldos AI Tweaks", "Defend area", {
     _this call WAIT_fnc_ZenDefendModule;
 }] call zen_custom_modules_fnc_register;
+["Waldos AI Tweaks", "Clear building", {
+    _this call WAIT_fnc_ZenClearModule;
+}] call zen_custom_modules_fnc_register;
 true

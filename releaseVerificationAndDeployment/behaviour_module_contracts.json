@@ -11,7 +11,8 @@
   "zen_labels": [
     "Create AI Convoy",
     "Garrison area",
-    "Defend area"
+    "Defend area",
+    "Clear building"
   ],
   "contracts": [
     {
@@ -67,6 +68,22 @@
       "termination": "New task/native/Zeus control, release, casualty/morale break or owner handover",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; dialog, actual line/reserve, interruption, repeat/HC/JIP and performance acceptance pending"
+    },
+    {
+      "behaviour": "Physical building clearance",
+      "target": "Explicit AI squad and exact selected building",
+      "parameters": [
+        "squad",
+        "building"
+      ],
+      "handlers": [
+        "addons/infantry/functions/zenClearModule.sqf"
+      ],
+      "executor": "WAIT_fnc_CortexOrderDispatch",
+      "authority": "Authenticated curator/server task validation and current-owner CortexClearBuilding acknowledgement",
+      "termination": "Replacement/native/Zeus control, release, moved/deleted building, finite result or deadline",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; dialog, physical pair entry/sweep/exit, repeat/HC/JIP and performance pending"
     }
   ]
 }

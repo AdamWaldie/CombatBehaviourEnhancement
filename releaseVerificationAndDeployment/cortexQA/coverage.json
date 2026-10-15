@@ -1342,7 +1342,8 @@
         "addons/infantry/functions/buildingExteriorProposal.sqf",
         "addons/infantry/functions/cortexClearRelease.sqf",
         "addons/core/functions/nativeOrderReceipt.sqf",
-        "addons/infantry/functions/combatPairs.sqf"
+        "addons/infantry/functions/combatPairs.sqf",
+        "addons/infantry/functions/zenClearModule.sqf"
       ]
     },
     {
