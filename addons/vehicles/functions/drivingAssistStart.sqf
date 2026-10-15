@@ -19,6 +19,8 @@
  * Forward-lane vehicle hulls constrain speed regardless of heading; aligned predecessors use
  * current hull gaps and actual velocity for continuous following caps. Other occupied hulls
  * receive no assumed forward-speed allowance. This does not establish crossing right-of-way.
+ * Recognised forward gate/barrier geometry also constrains approach at the existing cadence.
+ * Gate animation or damage does not grant passage; no opening or closing command is issued.
  * Owned traffic stops remain sampled; congestion suppresses route refresh/reverse rather than
  * treating a queue as navigation failure. No crossing priority or passing is inferred here.
  * The owned rear leg resamples its body corridor once per second on the existing scheduler,
@@ -251,6 +253,10 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call WAIT_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
+            if (!_reverseLeg) then {
+                private _gate=[_vehicle,_capMps] call WAIT_fnc_DrivingGateCap;
+                if ((_gate select 0) < (_traffic select 0)) then {_traffic=_gate};
+            };
             // Share the convoy observer without adding a second speed writer. Its zero cap
             // uses the existing traffic lease and faster sampling, and cannot trigger recovery.
             // Check the intended rear direction even while stopped. At the finite rear-leg
