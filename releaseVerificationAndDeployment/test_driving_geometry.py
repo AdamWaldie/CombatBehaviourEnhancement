@@ -33,3 +33,14 @@ class DrivingGeometryTests(unittest.TestCase):
             self.assertIn('""OBSTACLE""',(ROOT/f'addons/main/fsm/{path}.fsm').read_text())
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
         self.assertIn('WAIT_DrivingAssist_Obstacle",nil',release)
+
+    def test_turn_prediction_is_bounded_read_only_and_keeps_absolute_hull_rows(self):
+        s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
+        for marker in ('angularVelocityModelSpace _vehicle','_velocity <= 1','_velocity*2.5',
+                       '70/57.2957795','>= 3','0.5*_bendLength,_bendLength,_horizon',
+                       'count _stations-1','_front*sin _angle','_width*sin _angle',
+                       '_segmentStart+_fraction*(_segmentEnd-_segmentStart)','_from vectorDistance _to'):
+            self.assertIn(marker,s)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertNotIn('setAngularVelocity',s)
+        self.assertNotIn('setVariable',s.split('params [[',1)[1])
