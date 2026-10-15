@@ -142,8 +142,8 @@ private _finish={
             // This is a one-time replay of authenticated Zeus intent, not a Cortex route. Without
             // it Arma retained the pre-attack RED/COMBAT state and ignored AWARE/FULL movement.
             // Use the actual waypoint handle:
-            // deleting the Cortex waypoint leaves engine-ID gaps, so a findIf list offset is not a
-            // valid waypoint ID and previously selected the deleted slot/waypoint zero.
+            // deletion reindexes native waypoints, so use the handle from this fresh lookup,
+            // rather than retaining an index captured before cleanup.
             private _authoredWaypoint=if (_authoredWaypointOffset >= 0) then {
                 _handoverWaypoints select _authoredWaypointOffset
             } else {

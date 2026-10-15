@@ -21,4 +21,12 @@ class ConvoyWaypointGateTests(unittest.TestCase):
         helper=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text(encoding='utf-8')
         self.assertIn('["_waypointIndex",-1,[0]]',helper)
         self.assertIn('(_x select 1) == _waypointIndex',helper)
+    def test_implicit_waypoint_and_movement_operator_are_not_recalled(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        self.assertIn('(_waypoint select 1) > 0',s)
+        self.assertIn('&& {_waypointIndex > 0}',s)
+        self.assertIn('&& {_routeIndex > 0}',s)
+        restart=s.split('// Clear a previous HALT',1)[1].split('_x setUnloadInCombat',1)[0]
+        for guard in ('currentWaypoint _group > 0','driver _lead != leader _group','driver _lead != _leadOperator','vehicle leader _group == _lead'):
+            self.assertIn(guard,restart)
 if __name__=='__main__': unittest.main()

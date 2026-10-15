@@ -97,7 +97,7 @@ private _mayRecoverWaypoint={
     params ["_waypoint"];
     private _statements=waypointStatements _waypoint;
     private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
-    waypointType _waypoint == "MOVE" && {_condition == "true"}
+    (_waypoint select 1) > 0 && {waypointType _waypoint == "MOVE"} && {_condition == "true"}
         && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
         && {waypointScript _waypoint == ""}
         && {(waypointTimeout _waypoint param [2,0]) <= 0}
@@ -184,8 +184,11 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     // Vehicle movement remains a convoy task. Mounted gunners can fire without breaking formation.
     _group enableAttack false;
     // Clear a previous HALT doStop on the lead driver without deleting or replacing route waypoints.
-    if (_reacquire && {currentWaypoint _group < count waypoints _group}) then {
-        (driver _lead) doFollow leader _group;
+    if (_reacquire && {currentWaypoint _group > 0} && {currentWaypoint _group < count waypoints _group}) then {
+        // Do not make the lead's native movement operator follow itself or another seat.
+        // A same-vehicle subordinate may rejoin; route recovery belongs to the operator.
+        if (driver _lead != leader _group && {driver _lead != _leadOperator}
+            && {vehicle leader _group == _lead}) then {(driver _lead) doFollow leader _group};
         // Tracked HALT explicitly replaced vehicle movement with a current-position move.
         // Following the commander cannot supersede that vehicle-level destination reliably.
         // Restart only our matching halt once, toward the unchanged ordinary route waypoint.
@@ -488,7 +491,7 @@ if (_leadRouteReceipt isNotEqualTo (_state getOrDefault ["leadRouteReceipt",[]])
     _state set ["leadRouteReceipt",_leadRouteReceipt];
 };
 if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0}) then {_leadProgress = [getPosATL _lead, time, 0]};
-if (!_routeDone && {_leadLimit > 0} && {_waypointIndex < count waypoints _group}
+if (!_routeDone && {_leadLimit > 0} && {_waypointIndex > 0} && {_waypointIndex < count waypoints _group}
     && {time - (_leadProgress select 1) >= 10} && {abs speed _lead < 1}) then {
     private _waypoint = [_group, _waypointIndex];
     private _destination = waypointPosition _waypoint;
@@ -732,7 +735,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 // Keep bends, holds and waypoint arrival on the actual recorded route.
                 private _routeIndex=currentWaypoint _group;
                 if (_straightPath && {count _path >= 2} && {_frontSpeed > 2}
-                    && {_routeIndex < count waypoints _group}) then {
+                    && {_routeIndex > 0} && {_routeIndex < count waypoints _group}) then {
                     private _routeWaypoint=[_group,_routeIndex];
                     private _routeEnd=waypointPosition _routeWaypoint;
                     private _trailHeading=(_path select 0) getDir _destination;
