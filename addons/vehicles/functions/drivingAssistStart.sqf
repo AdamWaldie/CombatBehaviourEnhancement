@@ -14,6 +14,7 @@
  * The authored waypoint identity includes conditions, timeouts, synchronized triggers, speed,
  * combat mode and formation. Same-index edits retire the old recovery stage. Every cap/recovery
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
+ * Road bends, junctions and absolute road grade share the convoy observer at existing cadence.
  * Same-direction traffic uses current hull gaps and actual velocity for continuous following caps.
  * Owned traffic stops remain sampled; congestion suppresses route refresh/reverse rather than
  * treating a queue as navigation failure. No crossing priority or passing is inferred here.
@@ -211,6 +212,10 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             } forEach [20,45,70];
             private _cap=(missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_MaxSpeed",70]) max 15 min 120;
             if (_maximumGrade > 0.2) then {_cap=_cap min 18} else {if (_maximumGrade > 0.12) then {_cap=_cap min 28}};
+            // The shared read-only road walk anticipates bends/junctions without choosing a route.
+            // It runs at this vehicle's existing sparse cadence; mission and traffic caps still win.
+            private _roadObservation=[_vehicle,_cap] call WAIT_fnc_DrivingRoadCap;
+            _cap=_cap min (_roadObservation select 0);
             // The short rear leg must not inherit the normal road-speed cap. Retain
             // this cautious cap through reverse observation and the final retry handoff.
             if ((_state param [6,0]) in [1,2]) then {_cap=_cap min 10};

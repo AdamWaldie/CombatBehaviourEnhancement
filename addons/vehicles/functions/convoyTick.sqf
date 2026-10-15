@@ -392,46 +392,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
 private _roadCap = _maximum;
 if ([_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled) then {
     if (time >= (_state getOrDefault ["roadLookAt",-1])) then {
-        private _road = roadAt _lead;
-        if (isNull _road) then {_road=(_lead nearRoads 8) param [0,objNull]};
-        private _maximumTurn=0;
-        private _maximumGrade=0;
-        private _junction=false;
-        if (!isNull _road) then {
-            private _previousRoad=objNull;
-            // Absolute elevation is required: ground-relative heights erase road slopes.
-            private _roadPosition=getPosASL _road;
-            private _roadHeading=getDir _lead;
-            private _travel=0;
-            for "_sample" from 1 to 8 do {
-                private _allConnected=roadsConnectedTo _road;
-                if (count _allConnected >= 3) then {_junction=true};
-                private _connected=_allConnected-[_previousRoad];
-                private _nextRoad=objNull;
-                private _bestTurn=181;
-                {
-                    private _candidateHeading=_roadPosition getDir _x;
-                    private _candidateTurn=abs (((_candidateHeading-_roadHeading+540) mod 360)-180);
-                    if (_candidateTurn < _bestTurn) then {_bestTurn=_candidateTurn; _nextRoad=_x};
-                } forEach _connected;
-                if (isNull _nextRoad || {_bestTurn > 110}) exitWith {};
-                private _nextPosition=getPosASL _nextRoad;
-                private _segment=_roadPosition distance2D _nextPosition;
-                if (_segment < 1) exitWith {};
-                _maximumTurn=_maximumTurn max _bestTurn;
-                _maximumGrade=_maximumGrade max (abs ((_nextPosition select 2)-(_roadPosition select 2))/_segment);
-                _travel=_travel+_segment;
-                _roadHeading=_roadPosition getDir _nextPosition;
-                _previousRoad=_road;
-                _road=_nextRoad;
-                _roadPosition=_nextPosition;
-                if (_travel >= 70) exitWith {};
-            };
-        };
-        _roadCap=if (_maximumTurn > 70) then {18} else {if (_maximumTurn > 45) then {25} else {if (_maximumTurn > 25) then {35} else {_maximum}}};
-        if (_junction) then {_roadCap=_roadCap min 30};
-        if (_maximumGrade > 0.2) then {_roadCap=_roadCap min 18} else {if (_maximumGrade > 0.12) then {_roadCap=_roadCap min 25}};
-        _state set ["roadAssist",[_roadCap,_maximumTurn,_maximumGrade,_junction]];
+        private _roadObservation=[_lead,_maximum] call WAIT_fnc_DrivingRoadCap;
+        _roadCap=_roadObservation select 0;
+        _state set ["roadAssist",_roadObservation];
         _state set ["roadLookAt",time+3];
     } else {_roadCap=(_state getOrDefault ["roadAssist",[_maximum]]) select 0};
 };

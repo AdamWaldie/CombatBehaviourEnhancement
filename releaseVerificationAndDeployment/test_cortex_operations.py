@@ -5744,7 +5744,7 @@ class CortexOperations(unittest.TestCase):
     def test_convoy_driving_assist_is_bounded_and_does_not_take_route_ownership(self):
         tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
         for marker in ['WAIT_Convoy_DrivingAssist_Enable','["roadLookAt",time+3]',
-                       'roadsConnectedTo _road','_travel >= 70','["roadAssist",',
+                       'WAIT_fnc_DrivingRoadCap','["roadAssist",',
                        '["leadSpeedLimit",[_leadLimit,time]]','private _pathTurn=0;',
                        'private _pathGrade=0;']:
             self.assertIn(marker,tick)
@@ -5757,7 +5757,8 @@ class CortexOperations(unittest.TestCase):
 
     def test_convoy_grade_uses_absolute_elevation_for_roads_and_trails(self):
         tick=source('convoyTick')
-        road=tick.split('// One bounded road walk per convoy',1)[1].split('// During contact',1)[0]
+        road=source('drivingRoadCap')
+        self.assertIn('WAIT_fnc_DrivingRoadCap',tick)
         self.assertIn('getPosASL _road',road)
         self.assertIn('getPosASL _nextRoad',road)
         self.assertNotIn('getPosATL',road)

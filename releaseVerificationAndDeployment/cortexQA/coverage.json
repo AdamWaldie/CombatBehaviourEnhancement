@@ -751,7 +751,8 @@
         "addons/vehicles/functions/drivingOperationFinish.sqf",
         "addons/vehicles/functions/drivingRearClear.sqf",
         "addons/vehicles/functions/drivingMovementAvailable.sqf",
-        "addons/vehicles/functions/drivingFollowingCap.sqf"
+        "addons/vehicles/functions/drivingFollowingCap.sqf",
+        "addons/vehicles/functions/drivingRoadCap.sqf"
       ]
     },
     {

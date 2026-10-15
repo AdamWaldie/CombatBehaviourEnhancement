@@ -546,3 +546,12 @@ Rear clearance projects all eight corners of each candidate actor hull into the 
 vehicle frame, checking width, length and vertical overlap with 0.3 m padding. This replaces
 the fixed centre-height approximation. Existing 64-candidate and six-ray limits remain;
 slopes, stacked roads, tall vehicles and actual reverse execution require physical validation.
+
+Ordinary driving and convoy leads now share a read-only road look-ahead: up to eight road
+nodes or 70 m, with at most sixteen connections evaluated at a node and cycle detection.
+Turns above 25/45/70 degrees cap speed at 35/25/18 km/h; junctions cap at 30 km/h;
+grades above 0.12/0.2 cap at 25/18 km/h. Existing lower mission, terrain and traffic caps
+remain authoritative. Dense connection sets cap at 15 km/h. Convoys retain their three-second
+cache; ordinary vehicles use their existing sample cadence. No route, waypoint or world
+object is changed. Heading-based branch selection does not prove which branch native AI
+will take. Junction false constraints, bends, slopes, actual speed and overhead remain unverified.
