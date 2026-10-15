@@ -4,6 +4,7 @@
  * and hand back to the unchanged plain authored MOVE. Forward retries retire metadata only.
  * Locality / Authority: Current vehicle/group owner. Original seats, both native destinations,
  * route, external/tactical ownership and crew tasks protect cleanup. No waypoint reconstruction.
+ * Active fire, attack, service and other non-route commands forbid movement cleanup.
  * A native STOP overrides an unchanged destination receipt and forbids movement cleanup.
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
@@ -36,6 +37,7 @@ private _owned=_resume && {(_work get "kind") == "REVERSE"}
         && {[_x] call WAIT_fnc_CortexExternalOwner == ""} && {simulationEnabled _x} && {!isObjectHidden _x}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
         && {currentCommand _x != "STOP"}
+        && {toUpperANSI currentCommand _x in ["","MOVE","WAIT"]}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
 } forEach [_driver,_operator];

@@ -109,7 +109,10 @@ _brain set ["geometryTracks",_geometryTracks];
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
         && {(expectedDestination _driver) isEqualTo (_recoveryWork get "driverCommand")}
         && {(expectedDestination _movementOperator) isEqualTo (_recoveryWork get "command")}
-        && {currentCommand _movementOperator != "STOP"};
+        && {currentCommand _movementOperator != "STOP"}
+        && {[_driver,_movementOperator] findIf {
+            !(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])
+        } < 0};
     if (count _recoveryWork > 0 && {(_recoveryWork get "group") == _group} && {!_recoveryOwned}) then {
         if ((_recoveryWork get "route") isEqualTo _routeIdentity) then {
             _group setVariable ["WAIT_DrivingRecovery_Yield",_routeIdentity,true];
@@ -199,9 +202,9 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {call _recoveryOrderFree}
         };
         private _nativeRouteIntent={
-            private _command=currentCommand _movementOperator;
+            private _command=toUpperANSI currentCommand _movementOperator;
             if (_command == "STOP") exitWith {false};
-            if (!(_command in ["MOVE","WAIT"])) exitWith {true};
+            if (!(_command in ["MOVE","WAIT"])) exitWith {_command == ""};
             private _native=expectedDestination _movementOperator;
             private _waypoint=[_group,currentWaypoint _group];
             if (_command == "MOVE" && {(_native param [0,[]]) distance2D waypointPosition _waypoint <= 3}) exitWith {true};
@@ -215,7 +218,8 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {(expectedDestination _driver) isEqualTo (_owned get "driverCommand")}
                 && {_native isEqualTo (_owned get "command")}
         };
-        private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}};
+        private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}
+            && {toUpperANSI currentCommand _driver in ["","MOVE","WAIT"]}};
         private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
             // A new driver group adopts only after retiring the old group's exact cap lease.

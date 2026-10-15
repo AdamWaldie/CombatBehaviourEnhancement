@@ -63,11 +63,11 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         guard=s.split('private _nativeRouteIntent={',1)[1].split('private _priorOwner=',1)[0]
         self.assertIn('_command == "STOP"',guard)
-        self.assertIn('if (!(_command in ["MOVE","WAIT"])) exitWith {true}',guard)
+        self.assertIn('if (!(_command in ["MOVE","WAIT"])) exitWith {_command == ""}',guard)
         self.assertIn('distance2D waypointPosition _waypoint <= 3',guard)
         for receipt in ('get "group"','get "route"','get "driver"','get "operator"','get "driverCommand"','get "command"'):
             self.assertIn(receipt,guard)
-        self.assertIn('private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}}',guard)
+        self.assertIn('private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}',guard)
         self.assertIn('currentCommand _movementOperator != "STOP"',s.split('private _release=',1)[0])
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
         self.assertIn('(driver _follower) doMove _directDestination',audit)
@@ -85,4 +85,18 @@ class DrivingPlanningGraceTests(unittest.TestCase):
             self.assertFalse(due(stage,window+100,True,traffic=True))
         self.assertFalse(due(2,5,False))
         self.assertTrue(due(2,6,True))
+
+    def test_non_route_native_tasks_do_not_grant_ordinary_recovery(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        guard=s.split('private _nativeRouteIntent={',1)[1].split('private _priorOwner=',1)[0]
+        self.assertIn('toUpperANSI currentCommand _movementOperator', guard)
+        self.assertIn('exitWith {_command == ""}', guard)
+        self.assertNotIn('exitWith {true}', guard.split('private _native=',1)[0])
+        self.assertIn('toUpperANSI currentCommand _driver in ["","MOVE","WAIT"]', guard)
+        owned=s.split('private _recoveryOwned=',1)[1].split('if (count _recoveryWork',1)[0]
+        self.assertIn('[_driver,_movementOperator] findIf', owned)
+        self.assertIn('toUpperANSI currentCommand _x in ["","MOVE","WAIT"]', owned)
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        self.assertIn('toUpperANSI currentCommand _x in ["","MOVE","WAIT"]', release)
+
 if __name__=='__main__':unittest.main()
