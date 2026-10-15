@@ -13,7 +13,7 @@
  *   expands the measured lead hull only, never shrinks it. At most three finite scalars.
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY,
  *   transform ARRAY, rayCount NUMBER]. Maximum 20 support stations, 60 support rays and
- *   114 body rays (174 total). Samples are a proposal, not proof of swept-volume passability.
+ *   171 body rays (231 total). Samples are a proposal, not proof of swept-volume passability.
  * Current callers: DrivingCorridorStep, at admission only.
  * Example: [truck1,corridorLogic,corridorLogic getVariable ["WAIT_DrivingCorridor_Task",[]],1]
  *   call WAIT_fnc_DrivingCorridorGeometry;
@@ -53,60 +53,16 @@ private _extension=(sqrt ((_halfBodyLength^2)+(_hullWidth^2))+6) max 10;
 if (_extension > 30) exitWith {["HULL_TOO_LONG"] call _failure};
 private _span=2*(_halfLength+_extension);
 private _segments=ceil (_span/8);
-private _points=[];private _rays=0;private _reason="";
+private _guide=[];
 for "_station" from 0 to _segments do {
-    if (_reason isEqualTo "") then {
-        private _along=(_halfLength+_extension-(_span*_station/_segments))*_side;
-        private _base=_centre vectorAdd (_axis vectorMultiply _along);
-        private _supports=[];
-        {
-            private _sample=_base vectorAdd (_right vectorMultiply _x);
-            private _hits=lineIntersectsSurfaces [_sample vectorAdd [0,0,3],
-                _sample vectorAdd [0,0,-3],_vehicle,_area,true,1,"GEOM","NONE",true];
-            _rays=_rays+1;
-            if (_hits isEqualTo []) then {_reason="MISSING_SUPPORT"} else {
-                private _hit=_hits select 0;
-                // Solid terrain beneath water is not a dry crossing permission. An elevated
-                // object deck can remain eligible over water; fording capability is unfinished.
-                if (surfaceIsWater _sample && {isNull (_hit select 2) || {((_hit select 0) select 2) <= 0.25}}) then {
-                    _reason="WET_SUPPORT";
-                };
-                if (((_hit select 1) select 2) < 0.85) then {_reason="STEEP_SUPPORT"};
-                _supports pushBack (_hit select 0);
-            };
-        } forEach [-_hullWidth,0,_hullWidth];
-        if (count _supports == 3) then {
-            private _middle=_supports select 1;
-            if (abs (((_supports select 0) select 2)-(_middle select 2)) > 0.5
-                || {abs (((_supports select 2) select 2)-(_middle select 2)) > 0.5}) then {
-                _reason="CROSS_SLOPE"
-            };
-            _points pushBack _middle;
-        };
-    };
+    private _along=(_halfLength+_extension-(_span*_station/_segments))*_side;
+    _guide pushBack (_centre vectorAdd (_axis vectorMultiply _along));
 };
-if (_reason isNotEqualTo "") exitWith {[_reason,_rays] call _failure};
-for "_segment" from 1 to _segments do {
-    if (_reason isEqualTo "") then {
-        private _from=_points select (_segment-1);private _to=_points select _segment;
-        if (abs ((_to select 2)-(_from select 2)) > (_from distance2D _to)*0.25) then {
-            _reason="LONGITUDINAL_SLOPE"
-        };
-        {
-            private _offset=_right vectorMultiply _x;
-            {
-                private _up=[0,0,_x];
-                private _hits=lineIntersectsSurfaces [(_from vectorAdd _offset) vectorAdd _up,
-                    (_to vectorAdd _offset) vectorAdd _up,_vehicle,_area,true,1,"GEOM","NONE",true];
-                _rays=_rays+1;
-                if (_hits isNotEqualTo []) then {_reason="BODY_OBSTRUCTION"};
-            } forEach [0.5,_height];
-        } forEach [-_hullWidth,0,_hullWidth];
-    };
-};
-if (_reason isNotEqualTo "") exitWith {[_reason,_rays] call _failure};
+private _geometry=[_vehicle,_guide,_hullWidth,_height,_area] call WAIT_fnc_DrivingPathGeometry;
+private _rays=_geometry select 4;
+if (!(_geometry select 0)) exitWith {[_geometry select 1,_rays] call _failure};
 if (!((_area getVariable ["WAIT_DrivingCorridor_Task",[]]) isEqualTo _definition)
     || {!([getPosWorld _area,vectorDir _area,vectorUp _area] isEqualTo _transform)}) exitWith {
     ["AREA_CHANGED",_rays] call _failure
 };
-[true,"PROPOSAL",_points apply {ASLToATL _x},_points,_transform,_rays]
+[true,"PROPOSAL",_geometry select 2,_geometry select 3,_transform,_rays]

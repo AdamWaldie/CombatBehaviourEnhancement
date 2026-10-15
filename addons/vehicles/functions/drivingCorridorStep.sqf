@@ -12,7 +12,7 @@
  * 3 controller <STRING, ORDINARY> - ORDINARY or CONVOY; never admits convoy followers.
  * Return Value: ARRAY [active BOOL, taskCapMps NUMBER, phase STRING]. False grants no movement.
  * Cost: At most 32 passive area rows per admission; one geometry proposal per eligible area after
- * metadata selection, bounded to 174 rays. Failed proposals and terminal episodes cool down for
+ * metadata selection, bounded to 231 rays. Failed proposals and terminal episodes cool down for
  * 120 seconds by exact area revision/transform/route context. No added scheduler or global scan.
  * Current callers: DrivingAssistStart and ConvoyTick; registered areas come from server task dispatch.
  * Example: private _corridor=[_group,_vehicle,_brain] call WAIT_fnc_DrivingCorridorStep;

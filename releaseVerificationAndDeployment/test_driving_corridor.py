@@ -17,7 +17,7 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertNotIn(command, body)
     def test_geometry_cannot_move_or_flatten_the_vehicle(self):
         source = (ROOT / 'addons/vehicles/functions/drivingCorridorGeometry.sqf').read_text()
-        body = source.split('params [[', 1)[1]
+        body = source.split('params [[', 1)[1] + (ROOT / 'addons/vehicles/functions/drivingPathGeometry.sqf').read_text().split('params [[', 1)[1]
         for command in ('doMove', 'setDriveOnPath', 'forceSpeed', 'setPos', 'getTerrainHeightASL', 'spawn', 'waitUntil'):
             self.assertNotIn(command, body)
         self.assertIn('ASLToATL _x', body)
@@ -32,7 +32,7 @@ class CorridorFoundationTests(unittest.TestCase):
             segments = math.ceil(2 * (half_length + 30) / 8)
             stations = segments + 1
             self.assertLessEqual(stations, 20)
-            self.assertLessEqual(3 * stations + 6 * segments, 174)
+            self.assertLessEqual(3 * stations + 9 * segments, 231)
             self.assertLessEqual(2 * (half_length + 30) / segments, 8)
 
     def test_executor_is_finite_and_uses_physical_hull_completion(self):
