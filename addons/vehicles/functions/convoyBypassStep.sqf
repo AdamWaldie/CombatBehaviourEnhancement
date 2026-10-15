@@ -10,6 +10,8 @@
  * after ordered first-checkpoint entry the ceiling is 8 km/h until actual full-hull passage.
  * Bounds: at most 20 vehicles, 24 checkpoints, four checkpoint advances/eight hull corners per
  * vehicle per callback; metadata only, no rays or world scans. Lead passage cannot pass followers.
+ * Owner-local pose observations capture short passed checkpoint segments, bound to the exact
+ * episode/job token. Migration or gaps over three seconds discard inferred passage.
  * Current callers: ConvoyTick, ConvoyCrewLocal and ConvoyReleaseLocal.
  * Example: private _passage=[_group,_configuration] call WAIT_fnc_ConvoyBypassStep;
  */
@@ -22,7 +24,8 @@ private _retire={
     params ["_reason",["_status","INCOMPLETE"]];
     _group setVariable ["WAIT_Convoy_BypassResult",[_status,_reason,serverTime,
         _episode get "rows",_episode get "obstacle",_episode get "revision",_episode get "identity"],true];
-    _group setVariable ["WAIT_Convoy_BypassPassage",nil,true];_inactive
+    _group setVariable ["WAIT_Convoy_BypassPassage",nil,true];
+    _group setVariable ["WAIT_Convoy_BypassCapture",nil];_inactive
 };
 if (_cancel != "") exitWith {
     if (count _episode > 0 && {(_episode get "revision") == _revision}) then {[_cancel,"CANCELLED"] call _retire} else {_inactive}
@@ -75,6 +78,12 @@ if (count _leadWork == 0 && {(_leadResult param [1,-1]) >= (_episode get "starte
     && {(_leadResult param [2,objNull]) == _obstacle} && {(_leadResult param [0,""]) != "PHYSICALLY_PASSED"}) exitWith {
     ["LEAD_"+(_leadResult param [0,"FAILED"])] call _retire
 };
+private _captureIdentity=[_episode get "identity",clientOwner,_brain getOrDefault ["jobToken",""]];
+private _captureState=_group getVariable ["WAIT_Convoy_BypassCapture",[]];
+private _captures=if (count _captureState == 2 && {(_captureState select 0) isEqualTo _captureIdentity}) then {
+    _captureState select 1
+} else {createHashMap};
+private _nextCaptures=createHashMap;
 private _caps=createHashMap;private _passedCount=0;private _changed=false;private _failure="";
 {
     private _row=_x;_row params ["_vehicle","_driver","_operator","_checkpoint","_passed"];
@@ -85,10 +94,25 @@ private _caps=createHashMap;private _passedCount=0;private _changed=false;privat
                 || {!([_x] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _x} || {!isNull remoteControlled _x}
                 || {[_x] call WAIT_fnc_CortexExternalOwner != ""}} >= 0}) then {_failure="VEHICLE_UNAVAILABLE"} else {
             private _origin=getPosASL _vehicle;
+            private _capture=_captures getOrDefault [netId _vehicle,[]];
+            private _previous=+_origin;
+            if (count _capture == 2 && {serverTime >= (_capture select 1)}
+                && {serverTime-(_capture select 1) <= 3}
+                && {_origin vectorDistance (_capture select 0) <= 12}) then {_previous=+(_capture select 0)};
+            private _sweep=_origin vectorDiff _previous;
+            private _sweepXY=+_sweep;_sweepXY set [2,0];
+            private _squared=_sweepXY vectorDotProduct _sweepXY;private _lastFraction=0;
             for "_i" from 1 to 4 do {
-                if (_checkpoint < count _points && {_origin distance2D (_points select _checkpoint) <= 3.5}
-                    && {abs ((_origin select 2)-((_points select _checkpoint) select 2)) <= 2}) then {_checkpoint=_checkpoint+1};
+                if (_checkpoint >= count _points) exitWith {};
+                private _point=_points select _checkpoint;
+                private _offset=_point vectorDiff _previous;_offset set [2,0];
+                private _fraction=if (_squared > 0.01) then {((_offset vectorDotProduct _sweepXY)/_squared) max 0 min 1} else {1};
+                private _closest=_previous vectorAdd (_sweep vectorMultiply _fraction);
+                if (_fraction < _lastFraction || {_closest distance2D _point > 3.5}
+                    || {abs ((_closest select 2)-(_point select 2)) > 2}) exitWith {};
+                _lastFraction=_fraction;_checkpoint=_checkpoint+1;
             };
+            _nextCaptures set [netId _vehicle,[+_origin,serverTime]];
             if (_checkpoint != (_row select 3)) then {_row set [3,_checkpoint];_changed=true};
             private _clear=_checkpoint >= count _points;
             if (_clear) then {
@@ -115,6 +139,7 @@ private _caps=createHashMap;private _passedCount=0;private _changed=false;privat
         };
     };
 } forEach _rows;
+_group setVariable ["WAIT_Convoy_BypassCapture",[_captureIdentity,_nextCaptures]];
 if (_failure != "") exitWith {[_failure] call _retire};
 if (_passedCount == count _rows) exitWith {["ALL_VEHICLES_PHYSICALLY_PASSED","COMPLETE"] call _retire};
 if (_changed) then {_episode set ["rows",_rows];_group setVariable ["WAIT_Convoy_BypassPassage",_episode,true]};

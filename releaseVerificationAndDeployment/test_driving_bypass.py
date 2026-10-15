@@ -231,3 +231,27 @@ class BypassObservedCheckpointTests(unittest.TestCase):
         self.assertIn('if (_index != (_work get "index")) then',source)
         self.assertIn('_brain getOrDefault ["jobToken",""]',source)
         self.assertIn('_brain getOrDefault ["generation",-1]',source)
+
+
+class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
+    def test_capture_is_local_episode_scoped_and_bounded(self):
+        source=(ROOT/'addons/vehicles/functions/convoyBypassStep.sqf').read_text()
+        for marker in ('[_episode get "identity",clientOwner,_brain getOrDefault ["jobToken",""]]',
+                       'serverTime-(_capture select 1) <= 3',
+                       '_origin vectorDistance (_capture select 0) <= 12',
+                       '_fraction < _lastFraction','_closest distance2D _point > 3.5',
+                       '_group setVariable ["WAIT_Convoy_BypassCapture",nil]',
+                       'private _nextCaptures=createHashMap'):
+            self.assertIn(marker,source)
+        self.assertNotIn('WAIT_Convoy_BypassCapture",[_captureIdentity,_nextCaptures],true',source)
+        self.assertIn('if (_changed) then',source)
+
+    def test_individual_tail_clearance_still_follows_checkpoint_capture(self):
+        source=(ROOT/'addons/vehicles/functions/convoyBypassStep.sqf').read_text()
+        capture=source.index('private _closest=')
+        clearance=source.index('private _clear=_checkpoint >= count _points')
+        completion=source.index('_passedCount == count _rows')
+        self.assertLess(capture,clearance)
+        self.assertLess(clearance,completion)
+        self.assertIn('modelToWorldWorld [_xCoord,_yCoord,_x]',source)
+        self.assertIn('for "_i" from 1 to 4',source)
