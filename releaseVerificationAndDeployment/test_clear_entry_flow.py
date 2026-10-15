@@ -106,4 +106,23 @@ class ClearReserveFairnessTests(unittest.TestCase):
         # Small rosters retain their existing whole-roster service without rotation.
         assert list(range(6))[:8] == list(range(6))
 
+class ClearHolderOwnershipTests(unittest.TestCase):
+    def test_prior_drill_reunion_retires_successor_owned_holders(self):
+        source=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
+        gate=source.split('private _ownedMovers =',1)[1].split('private _holders =',1)[0]
+        for marker in ('if (_ordered)', 'WAIT_OperationGeneration','WAIT_AIPass_Epoch',
+                       '"participants",[]','"cancelReason",""','WAIT_Cortex_ClearHold',
+                       'WAIT_AIPass_ClearGeneration','call WAIT_fnc_NativeOrderReceipt'):
+            self.assertIn(marker,gate)
+        self.assertNotIn('doFollow',gate)
+        self.assertNotIn('doStop',gate)
+        # Old drill ownership transfers to the newer task, not to a deferred recall.
+        holders={'old_a','old_b','unclaimed'}
+        operation={'old_a'}
+        settled={'old_b'}
+        remaining=holders-operation-settled
+        self.assertEqual(remaining,{'unclaimed'})
+        self.assertEqual(holders-holders,set())
+        self.assertEqual(holders-set(),holders)
+
 if __name__=='__main__': unittest.main()
