@@ -28,7 +28,7 @@ class DrivingGateCapTests(unittest.TestCase):
     def test_opening_request_has_server_authority_and_complete_named_payload(self):
         owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
-        for key in ['group','vehicle','gate','route','transform','convoyRevision','expires']:
+        for key in ['group','vehicle','gate','route','transform','driver','commander','convoyRevision','expires']:
             self.assertIn('["'+key+'",',owner)
             self.assertIn('getOrDefault ["'+key+'",',server)
         for guard in ['!isServer', 'remoteExecutedOwner', 'groupOwner _group', 'owner _vehicle',
@@ -48,7 +48,7 @@ class DrivingGateCapTests(unittest.TestCase):
     def test_gate_attempts_are_finite_and_do_not_create_passage_or_closure(self):
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
         for guard in ['(_receipt select 0) == _group', '(_receipt select 1) isEqualTo _route',
-                      '_key in _attempts', 'count _attempts >= 16', 'count _definitions <= 64',
+                      '_attemptIndex >= 0', 'count _attempts >= 16', 'count _definitions <= 64',
                       '_index <= 8', 'bis_disabled_Door', 'SHARED_OPENING',
                       'ALREADY_OPEN_OR_MOVING', '[_x select 1,1]']:
             self.assertIn(guard,server)
@@ -56,5 +56,19 @@ class DrivingGateCapTests(unittest.TestCase):
             self.assertNotIn(command,server)
         self.assertNotIn('animateSource [_x select 1,0]',server)
         self.assertNotIn('setVariable ["bis_disabled',server)
+
+    def test_delivery_is_bounded_and_duplicate_server_work_returns_before_geometry(self):
+        owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        for guard in ['_attempts >= 2', 'serverTime < (_pending select 1)',
+                      '(_ack select 4) isEqualTo _route', '(_ack select 6) isEqualTo _transform',
+                      'OPEN_WINDOW_EXPIRED', 'REQUEST_TIMEOUT',
+                      'WAIT_DrivingGate_Pending",[_context,serverTime+5,_attempts+1],true', '["driver",_driver]', '["commander",_commander]']:
+            self.assertIn(guard,owner)
+        self.assertLess(server.index('if (_attemptIndex >= 0) exitWith'),server.index('call WAIT_fnc_DrivingGateCap'))
+        self.assertIn('_driver != _requestedDriver',server)
+        self.assertIn('_commander != _requestedCommander',server)
+        self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform]',server)
+        self.assertNotIn('animateSource',owner)
 
 if __name__=='__main__': unittest.main()

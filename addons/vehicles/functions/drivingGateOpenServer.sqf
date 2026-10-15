@@ -7,26 +7,31 @@
  * Repeat/JIP: At most one request per gate/transform in the current vehicle route/revision,
  * with sixteen gate attempts per route. A gate-wide twelve-second opening receipt coalesces
  * simultaneous requests. No closure, timer callback, retry controller or gate ownership transfer.
+ * A context-bound acknowledgement prevents repeated owner requests; delivery retries return
+ * the original outcome before geometry/config work. Driver/commander identity binds queued work.
  * Initial phases are retained; already-open gates are untouched. A refused/expired request
  * grants no passage and never disables the geometry cap. Live lock changes remain authoritative.
  * Arguments: 0 payload <ARRAY, []> of named pairs: group GROUP, vehicle OBJECT, gate OBJECT,
- * route ARRAY, transform ARRAY, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime.
+ * route ARRAY, transform ARRAY, driver OBJECT, commander OBJECT, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime.
  * Return Value: BOOL - an opening was commanded or an existing opening was shared; not passability.
  * Canonical Door_N_sound_source metadata only, N=1..8, at most 64 source definitions inspected.
  * Current callers: DrivingGateRequest on the server or current headless vehicle/group owner.
  * Example: [_payload] remoteExecCall ["WAIT_fnc_DrivingGateOpenServer",2];
  */
 params [["_payload",[],[[]]]];
-if (!isServer || {count _payload != 7} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
+if (!isServer || {count _payload != 9} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
 private _values=createHashMapFromArray _payload;
 private _group=_values getOrDefault ["group",grpNull];
 private _vehicle=_values getOrDefault ["vehicle",objNull];
 private _gate=_values getOrDefault ["gate",objNull];
+private _requestedDriver=_values getOrDefault ["driver",objNull];
+private _requestedCommander=_values getOrDefault ["commander",objNull];
 private _route=_values getOrDefault ["route",[]];
 private _transform=_values getOrDefault ["transform",[]];
 private _revision=_values getOrDefault ["convoyRevision",-1];
 private _expires=_values getOrDefault ["expires",-1];
 if (!(_group isEqualType grpNull) || {!(_vehicle isEqualType objNull)} || {!(_gate isEqualType objNull)}
+    || {!(_requestedDriver isEqualType objNull)} || {!(_requestedCommander isEqualType objNull)}
     || {!(_route isEqualType [])} || {!(_transform isEqualType [])} || {!(_revision isEqualType 0)}
     || {!finite _revision} || {_revision != floor _revision} || {_revision < -1}
     || {!(_expires isEqualType 0)} || {!finite _expires} || {_expires <= serverTime} || {_expires > serverTime+5}
@@ -37,7 +42,8 @@ if (_sender > 0 && {_sender != 2}
 private _driver=driver _vehicle;
 private _commander=effectiveCommander _vehicle;
 if (isNull _commander) then {_commander=_driver};
-if (isNull _driver || {!(_vehicle isKindOf "LandVehicle")} || {_vehicle isKindOf "StaticWeapon"}
+if (isNull _driver || {_driver != _requestedDriver} || {_commander != _requestedCommander}
+    || {!(_vehicle isKindOf "LandVehicle")} || {_vehicle isKindOf "StaticWeapon"}
     || {!alive _vehicle} || {!canMove _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
     || {!simulationEnabled _driver} || {isObjectHidden _driver}
     || {!simulationEnabled _commander} || {isObjectHidden _commander} || {group _driver != _group} || {group _commander != _group}
@@ -68,14 +74,36 @@ if (_revision >= 0) then {
         || {!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 };
 if (_revision == -2) exitWith {false};
-private _observed=[_vehicle,0,true] call WAIT_fnc_DrivingGateCap;
-if ((_observed select 1) != _gate || {(_observed select 2) > 12} || {(_observed select 2) < 0}) exitWith {false};
-// This cache is server-local authority; a public client variable cannot grant a fresh attempt.
+// Check the server-local attempt history before geometry/config work. A delivery retry
+// receives the original outcome; it never becomes another animation or geometry scan.
 private _receipt=_vehicle getVariable ["WAIT_DrivingGate_ServerAttempts",[]];
 private _attempts=if (count _receipt == 4 && {(_receipt select 0) == _group} && {(_receipt select 1) isEqualTo _route} && {(_receipt select 2) == _revision}) then {+(_receipt select 3)} else {[]};
 private _key=[_gate,+_transform];
-if (_key in _attempts || {count _attempts >= 16}) exitWith {false};
-_attempts pushBack _key;
+private _attemptIndex=_attempts findIf {(_x select [0,2]) isEqualTo _key};
+private _publishResult={
+    params ["_reason","_until"];
+    if (_attemptIndex >= 0) then {
+        private _row=_attempts select _attemptIndex;
+        _row set [2,_reason]; _row set [3,_until];
+        _vehicle setVariable ["WAIT_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
+    };
+    private _ack=[_gate,_reason,_until,_group,+_route,_revision,+_transform];
+    if ((_vehicle getVariable ["WAIT_DrivingGate_Result",[]]) isNotEqualTo _ack) then {
+        _vehicle setVariable ["WAIT_DrivingGate_Result",_ack,true];
+    };
+};
+if (_attemptIndex >= 0) exitWith {
+    private _previous=_attempts select _attemptIndex;
+    private _reason=_previous select 2;
+    if (_reason in ["OPEN_REQUESTED","SHARED_OPENING"] && {serverTime >= (_previous select 3)}) then {_reason="OPEN_WINDOW_EXPIRED"};
+    [_reason,_previous select 3] call _publishResult;
+    false
+};
+if (count _attempts >= 16) exitWith {["ROUTE_GATE_BUDGET",serverTime] call _publishResult;false};
+private _observed=[_vehicle,0,true] call WAIT_fnc_DrivingGateCap;
+if ((_observed select 1) != _gate || {(_observed select 2) > 12} || {(_observed select 2) < 0}) exitWith {false};
+_attemptIndex=count _attempts;
+_attempts pushBack [_gate,+_transform,"VALIDATING",serverTime+5];
 _vehicle setVariable ["WAIT_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
 private _sources=[];
 private _definitions="true" configClasses ((configOf _gate) >> "AnimationSources");
@@ -98,28 +126,32 @@ private _locked={
 };
 private _reason=if (_sources isEqualTo []) then {"UNSUPPORTED"} else {if (call _locked) then {"LOCKED"} else {"READY"}};
 if (_reason != "READY") exitWith {
-    _vehicle setVariable ["WAIT_DrivingGate_Result",[_gate,_reason,serverTime],true];
+    [_reason,serverTime] call _publishResult;
     false
 };
 private _opening=_gate getVariable ["WAIT_DrivingGate_ServerOpening",[]];
 if (count _opening == 4 && {(_opening select 0) isEqualTo _transform} && {serverTime < (_opening select 2)}) exitWith {
-    _vehicle setVariable ["WAIT_DrivingGate_Result",[_gate,"SHARED_OPENING",_opening select 2],true];
+    ["SHARED_OPENING",_opening select 2] call _publishResult;
     true
 };
 if (_sources findIf {(_x select 2) < 0.1} < 0) exitWith {
-    _vehicle setVariable ["WAIT_DrivingGate_Result",[_gate,"ALREADY_OPEN_OR_MOVING",serverTime],true];
+    ["ALREADY_OPEN_OR_MOVING",serverTime] call _publishResult;
     false
 };
 // Final mutation boundary: no delayed opening or stale transform survives a new order/lock.
 if (call _locked || {!alive _gate} || {driver _vehicle != _driver}
+    || {(effectiveCommander _vehicle) isNotEqualTo _requestedCommander && {!isNull effectiveCommander _vehicle}}
     || {group _driver != _group} || {isPlayer _driver} || {!isNull remoteControlled _driver}
     || {_sender > 0 && {_sender != 2} && {_sender != groupOwner _group || {_sender != owner _vehicle}}}
     || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
     || {([_group] call WAIT_fnc_DrivingRouteReceipt) isNotEqualTo _route}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
+    || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {
+    ["REQUEST_REPLACED",serverTime] call _publishResult;
+    false
+};
 _gate setVariable ["WAIT_DrivingGate_ServerOpening",[+_transform,+_sources,serverTime+12,_group]];
 {
     if ((_x select 2) < 0.1) then {_gate animateSource [_x select 1,1]};
 } forEach _sources;
-_vehicle setVariable ["WAIT_DrivingGate_Result",[_gate,"OPEN_REQUESTED",serverTime+12],true];
+["OPEN_REQUESTED",serverTime+12] call _publishResult;
 true
