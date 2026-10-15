@@ -2,6 +2,9 @@
  * Author: WaldoTheWarfighter
  * Keeps travelling occupants assigned to their actual seats, directs mounted fire and unloads only snapshotted passengers on halt.
  * Locality/authority: each server/HC acts only on its own vehicles and units from the server registry.
+ * Explicit mounted fire requests require an available operating crew member and the shared
+ * full-corridor position veto. A blocked lane retires only a still-matching convoy target.
+ * This five-second upkeep is not continuous fire/blast safety or proof a burst has stopped.
  * Hostile Hit events count as contact even when armour absorbs the damage. Local handler ownership
  * records its convoy group/machine so obsolete cleanup cannot remove an adopted handler.
  * Unload policy uses an exact public lease; an external value change blocks reacquisition until release.
@@ -86,18 +89,22 @@ private _seats = createHashMap;
                 };
             };
             private _fireEnabled = [_group,"WAIT_Convoy_MountedFire_Enable",true] call WAIT_fnc_CortexFeatureEnabled && {[group _unit,"WAIT_Convoy_MountedFire_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
-            if (local _unit && {!isPlayer _unit} && {!_fireEnabled || {!(combatMode group _unit in ["YELLOW", "RED"] && {unitCombatMode _unit in ["YELLOW", "RED"]})}}) then {
+            private _fireReady=_fireEnabled && {local _unit} && {!isPlayer _unit}
+                && {!_passenger} && {_role in ["gunner","commander","turret"]}
+                && {[_unit] call WAIT_fnc_CortexCombatEffective}
+                && {simulationEnabled _unit} && {!isObjectHidden _unit}
+                && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+                && {!([group _unit] call WAIT_fnc_CortexExternalTakeover)};
+            if (local _unit && {!isPlayer _unit} && {!_fireReady || {!(combatMode group _unit in ["YELLOW", "RED"] && {unitCombatMode _unit in ["YELLOW", "RED"]})}}) then {
                 private _previous = _unit getVariable ["WAIT_Convoy_Target", objNull];
                 if (!isNull _previous && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
                 if (!isNil {_unit getVariable "WAIT_Convoy_Target"}) then {_unit setVariable ["WAIT_Convoy_Target", nil, true]};
             };
-            if (_fireEnabled && {local _unit} && {alive _unit} && {!isPlayer _unit} && {!_passenger} && {_role in ["gunner", "commander", "turret"]}
-                && {!(_unit getVariable ["ACE_isUnconscious", false])} && {lifeState _unit != "INCAPACITATED"}
-                && {combatMode group _unit in ["YELLOW", "RED"]} && {unitCombatMode _unit in ["YELLOW", "RED"]}
-                && {!([group _unit] call WAIT_fnc_CortexExternalTakeover)}) then {
+            if (_fireReady && {combatMode group _unit in ["YELLOW","RED"]}
+                && {unitCombatMode _unit in ["YELLOW","RED"]}) then {
                 private _report = [_unit] call WAIT_fnc_ConvoyThreat;
-                if (_report isNotEqualTo []) then {
-                    private _enemy = _report select 0;
+                private _enemy=_report param [0,objNull,[objNull]];
+                if (!isNull _enemy && {[_unit,aimPos _enemy] call WAIT_fnc_CortexLineOfFireClear}) then {
                     // Target/fire never orders pursuit or changes ROE.
                     if (assignedTarget _unit != _enemy) then {
                         _unit doTarget _enemy;
