@@ -6,13 +6,15 @@
     "WAIT_ModuleConvoyHold",
     "WAIT_ModuleConvoyRelease",
     "WAIT_ModuleGarrison",
-    "WAIT_ModuleDefend"
+    "WAIT_ModuleDefend",
+    "WAIT_ModuleDrivingCorridor"
   ],
   "zen_labels": [
     "Create AI Convoy",
     "Garrison area",
     "Defend area",
-    "Clear building"
+    "Clear building",
+    "Navigation corridor"
   ],
   "contracts": [
     {
@@ -84,6 +86,26 @@
       "termination": "Replacement/native/Zeus control, release, moved/deleted building, finite result or deadline",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; dialog, physical pair entry/sweep/exit, repeat/HC/JIP and performance pending"
+    },
+    {
+      "behaviour": "Navigation corridor create, update or remove",
+      "target": "Explicit empty-ground position or editable WAIT corridor area; no nearest-area fallback",
+      "parameters": [
+        "task action",
+        "axis facing",
+        "half-length",
+        "half-width",
+        "task speed"
+      ],
+      "handlers": [
+        "addons/vehicles/functions/moduleDrivingCorridor.sqf",
+        "addons/vehicles/functions/zenDrivingCorridorModule.sqf"
+      ],
+      "executor": "WAIT_fnc_DrivingCorridorDispatch",
+      "authority": "Authenticated curator/server validation, revisioned passive definitions and current-owner ordinary/convoy lead execution",
+      "termination": "Area removal/transform change, finite deadline, new order/controller, HALT/release or actual lead crossing; followers retain predecessor trails",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; dialog, editor ownership, repeated passage, mixed convoy, HC/JIP and performance acceptance pending"
     }
   ]
 }

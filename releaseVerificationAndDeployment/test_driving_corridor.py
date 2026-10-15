@@ -4,13 +4,16 @@ import math
 import unittest
 ROOT = Path(__file__).resolve().parents[1]
 class CorridorFoundationTests(unittest.TestCase):
-    def test_registration_has_no_remote_or_movement_authority(self):
+    def test_registration_authenticates_remote_curators_and_has_no_movement_authority(self):
         source = (ROOT / 'addons/vehicles/functions/drivingCorridorRegister.sqf').read_text()
         body = source.split('params [[', 1)[1]
-        self.assertIn('!isServer || {isRemoteExecuted}', body)
+        self.assertIn('if (!isServer)', body)
+        self.assertIn('getAssignedCuratorLogic', body)
+        self.assertIn('WAIT_DrivingCorridorArea', body)
+        self.assertIn('curatorEditableObjects _curator', body)
         self.assertIn('count _records >= 32', body)
         self.assertLess(body.index('_area setVariable'), body.index('missionNamespace setVariable'))
-        for command in ('doMove', 'setDriveOnPath', 'forceSpeed', 'remoteExec', 'spawn', 'waitUntil'):
+        for command in ('doMove', 'setDriveOnPath', 'forceSpeed', 'remoteExecCall [', 'remoteExec [', 'spawn', 'waitUntil'):
             self.assertNotIn(command, body)
     def test_geometry_cannot_move_or_flatten_the_vehicle(self):
         source = (ROOT / 'addons/vehicles/functions/drivingCorridorGeometry.sqf').read_text()
@@ -19,6 +22,9 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertNotIn(command, body)
         self.assertIn('ASLToATL _x', body)
         self.assertIn('"MISSING_SUPPORT"', body)
+        self.assertIn('"WET_SUPPORT"', body)
+        self.assertIn('surfaceIsWater _sample', body)
+        self.assertIn('isNull (_hit select 2)', body)
         self.assertIn('"AREA_CHANGED"', body)
         self.assertIn('"HULL_TOO_WIDE"', body)
     def test_declared_sampling_bound_holds_across_allowed_lengths(self):
@@ -101,3 +107,32 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertIn(f'_envelope set [{dimension}', step)
             self.assertIn(f'_envelope param [{dimension},0]', geometry)
         self.assertIn('"INVALID_ENVELOPE"', geometry)
+
+    def test_module_payload_values_are_parsed_and_authoritative(self):
+        dialog = (ROOT / 'addons/vehicles/functions/zenDrivingCorridorModule.sqf').read_text()
+        dispatch = (ROOT / 'addons/vehicles/functions/drivingCorridorDispatch.sqf').read_text()
+        for key in ('mode', 'area', 'position', 'transform', 'facing', 'halfLength', 'halfWidth', 'speed', 'serial', 'expires'):
+            self.assertIn(f'["{key}",', dialog)
+            self.assertIn(f'getOrDefault ["{key}"', dispatch)
+        self.assertLess(dispatch.index('isNull _curator'), dispatch.index('createUnit ['))
+        self.assertLess(dispatch.index('_expires <= serverTime'), dispatch.index('createUnit ['))
+        self.assertLess(dispatch.index('isNotEqualTo _transform'), dispatch.index('createUnit ['))
+        self.assertIn('_serial == (_previous select 0)', dispatch)
+        self.assertIn('count _receipts >= 64', dispatch)
+        self.assertLess(dispatch.index('Corridor area budget reached'), dispatch.index('createGroup [sideLogic,true]'))
+        self.assertIn('WAIT_DrivingCorridor_LocalSerial', dispatch)
+        self.assertIn('addCuratorEditableObjects', dispatch)
+        self.assertIn('createGroup [sideLogic,true]', dispatch)
+        self.assertIn('setGroupOwner _replyOwner', dispatch)
+        self.assertNotIn('createVehicle [', dispatch)
+        self.assertIn('"WAIT_DrivingCorridorArea"', dispatch)
+        self.assertNotIn('setDriveOnPath', dispatch)
+    def test_native_module_is_disposable_and_persistent_area_has_no_recursive_module_function(self):
+        config = (ROOT / 'addons/main/config.cpp').read_text()
+        area = config.split('class WAIT_DrivingCorridorArea: Logic {', 1)[1].split('};', 1)[0]
+        self.assertNotIn('function =', area)
+        module = (ROOT / 'addons/vehicles/functions/moduleDrivingCorridor.sqf').read_text()
+        self.assertIn('!_activated', module)
+        self.assertIn('WAIT_processed', module)
+        self.assertIn('deleteVehicle _logic;', module)
+        self.assertIn('[_position,_target,_facing] call WAIT_fnc_ZenDrivingCorridorModule', module)

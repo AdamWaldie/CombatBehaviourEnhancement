@@ -12,7 +12,7 @@
  * Cost: At most 32 passive area rows per admission; one geometry proposal per eligible area after
  * metadata selection, bounded to 174 rays. Failed proposals and terminal episodes cool down for
  * 120 seconds by exact area revision/transform/route context. No added scheduler or global scan.
- * Current callers: DrivingAssistStart and ConvoyTick; behaviour modules remain pending.
+ * Current callers: DrivingAssistStart and ConvoyTick; registered areas come from server task dispatch.
  * Example: private _corridor=[_group,_vehicle,_brain] call WAIT_fnc_DrivingCorridorStep;
  */
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],

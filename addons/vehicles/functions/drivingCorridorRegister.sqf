@@ -1,8 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Registers or removes a finite navigation-area definition without issuing movement.
- * Locality / Authority: Trusted server calls only; remote execution is rejected. A behaviour
- * dispatcher must authenticate its caller before using this internal registration boundary.
+ * Locality / Authority: Server mutation only. Remote callers must be assigned curators editing their
+ * explicit editable WAIT corridor area; trusted local/server scripts may register another Logic.
  * Repeat/JIP: Identical definitions retain their revision. Changed definitions invalidate old
  * work. One public ordered snapshot replays passive definitions to JIP; no commands replay.
  * Arguments:
@@ -10,11 +10,22 @@
  * 1 dimensions <ARRAY, [25,5,15]> - half-length metres (5..45), half-width metres
  *   (2..20), task speed km/h (5..30). An empty array removes this area's definition.
  * Return Value: ARRAY [accepted BOOL, reason STRING, revision NUMBER]. Maximum 32 areas.
- * Current callers: Internal corridor foundation; executor/module connection remains pending.
+ * Current callers: DrivingCorridorDispatch and trusted server scripts.
  * Example: [corridorLogic,[25,5,15]] call WAIT_fnc_DrivingCorridorRegister;
  */
 params [["_area",objNull,[objNull]],["_dimensions",[25,5,15],[[]]]];
-if (!isServer || {isRemoteExecuted}) exitWith {[false,"SERVER_ONLY",-1]};
+if (!isServer) exitWith {[false,"SERVER_ONLY",-1]};
+private _sender=remoteExecutedOwner;
+if (isRemoteExecuted && {_sender <= 0}) exitWith {[false,"INVALID_SENDER",-1]};
+if (_sender > 2) then {
+    private _curatorPlayer=allPlayers findIf {owner _x == _sender && {!isNull getAssignedCuratorLogic _x}};
+    private _curator=if (_curatorPlayer < 0) then {objNull} else {getAssignedCuratorLogic (allPlayers select _curatorPlayer)};
+    if (isNull _curator || {isNull _area} || {!(_area isKindOf "WAIT_DrivingCorridorArea")}
+        || {owner _area != _sender && {!(_area in curatorEditableObjects _curator)}}) exitWith {
+        _sender=-1;
+    };
+};
+if (_sender == -1) exitWith {[false,"CURATOR_AUTHORITY",-1]};
 if (isNull _area || {!(_area isKindOf "Logic")}) exitWith {[false,"AREA_REQUIRED",-1]};
 if (_dimensions isNotEqualTo [] && {count _dimensions != 3 || {
     _dimensions findIf {!(_x isEqualType 0) || {!finite _x}} >= 0

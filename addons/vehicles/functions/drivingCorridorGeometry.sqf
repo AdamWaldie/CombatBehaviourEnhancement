@@ -66,6 +66,11 @@ for "_station" from 0 to _segments do {
             _rays=_rays+1;
             if (_hits isEqualTo []) then {_reason="MISSING_SUPPORT"} else {
                 private _hit=_hits select 0;
+                // Solid terrain beneath water is not a dry crossing permission. An elevated
+                // object deck can remain eligible over water; fording capability is unfinished.
+                if (surfaceIsWater _sample && {isNull (_hit select 2) || {((_hit select 0) select 2) <= 0.25}}) then {
+                    _reason="WET_SUPPORT";
+                };
                 if (((_hit select 1) select 2) < 0.85) then {_reason="STEEP_SUPPORT"};
                 _supports pushBack (_hit select 0);
             };
