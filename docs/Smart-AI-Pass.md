@@ -492,3 +492,5 @@ Native/optional dialog selection, actual width/facing, physical occupation and r
 replacement of garrison, refusal with preservation of previous state, release, JIP/HC migration,
 terrain coverage and measured performance remain pending live acceptance. Registration and owner
 acceptance are not proof of a working defensive line. Audits remain held.
+
+Defend now plans its complete line and reserve layout before releasing the prior task. It refuses non-finite inputs, groups over 64 admitted actors, wet/steep slots or positions less than 1 m apart, then rechecks group ownership/eligibility before cleanup and assignment writes. Open dry positions can remain valid when no cover is found; this does not claim ballistic protection or native path accessibility. Cover selection now receives the actual group so per-group feature exclusions apply. Invalid-layout preservation and terrain/cover/path behaviour remain pending physical acceptance.
