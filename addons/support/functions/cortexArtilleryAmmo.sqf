@@ -29,9 +29,27 @@ private _classifySmoke = {
     private _payloadArray=getArray (_ammoConfig >> "submunitionAmmo");
     private _hasPayload=_payload != "" || {isArray (_ammoConfig >> "submunitionAmmo")};
     if (_hasPayload) exitWith {
-        private _payloads=if (_payload != "") then {[_payload]} else {_payloadArray};
-        // Do not discard malformed entries and accidentally certify only the smoke subset.
-        _payloads isNotEqualTo [] && {count _payloads <= 16}
+        private _payloads=if (_payload != "") then {[_payload]} else {+_payloadArray};
+        private _validPayload=true;
+        if (_payload == "" && {_payloadArray findIf {!(_x isEqualType "")} >= 0}) then {
+            // Engine format: alternating class/probability pairs. Preserve every branch,
+            // including zero-weight ones, instead of filtering numbers out of malformed data.
+            _payloads=[];
+            _validPayload=count _payloadArray > 0 && {count _payloadArray <= 32} && {count _payloadArray mod 2 == 0};
+            private _positiveWeight=false;
+            if (_validPayload) then {
+                for "_index" from 0 to ((count _payloadArray)-2) step 2 do {
+                    private _class=_payloadArray select _index;
+                    private _weight=_payloadArray select (_index+1);
+                    if (!(_class isEqualType "") || {_class == ""} || {!(_weight isEqualType 0)}
+                        || {!finite _weight} || {_weight < 0}) exitWith {_validPayload=false};
+                    _payloads pushBack _class;
+                    if (_weight > 0) then {_positiveWeight=true};
+                };
+            };
+            _validPayload=_validPayload && {_positiveWeight};
+        };
+        _validPayload && {_payloads isNotEqualTo []} && {count _payloads <= 16}
             && {_payloads findIf {!(_x isEqualType "") || {_x == ""}} < 0}
             && {getNumber (_ammoConfig >> "hit") == 0}
             && {_payloads findIf {!([_x,_depth+1] call _classifySmoke)} < 0}

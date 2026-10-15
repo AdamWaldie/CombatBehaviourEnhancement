@@ -24,4 +24,10 @@ class SmokePayloadTests(unittest.TestCase):
         shot=(base/'cortexArtilleryShot.sqf').read_text(encoding='utf-8')
         final=shot.split('// Safety/munition checks',1)[1]
         self.assertLess(final.index('WAIT_AIPass_ArtillerySmoke_Enable'),final.index('doArtilleryFire'))
+    def test_weighted_payloads_are_validated_without_discarding_dangerous_branches(self):
+        s=(ROOT/'addons/support/functions/cortexArtilleryAmmo.sqf').read_text(encoding='utf-8')
+        for guard in ('count _payloadArray <= 32','count _payloadArray mod 2 == 0','!(_weight isEqualType 0)','!finite _weight','_weight < 0','_positiveWeight','_payloads pushBack _class'):
+            self.assertIn(guard,s)
+        self.assertNotIn('if (_weight > 0) then {_payloads',s)
+        self.assertLess(s.index('_validPayload=_validPayload && {_positiveWeight}'),s.index('_payloads findIf {!([_x,_depth+1]'))
 if __name__=='__main__': unittest.main()
