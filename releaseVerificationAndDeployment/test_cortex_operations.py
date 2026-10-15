@@ -4021,7 +4021,8 @@ class CortexOperations(unittest.TestCase):
         self.assertGreaterEqual(local.count('"APPLIED"'),2)
         self.assertIn('WAIT_Cortex_CombinedApplied',tick)
         self.assertIn('(_combinedApplied param [1,-1]) != clientOwner',tick)
-        self.assertIn('_group reveal [_target,2.5]',local)
+        self.assertIn('_group reveal [_target,_contactReceipt select 2]',local)
+        self.assertNotIn('_group reveal [_target,2.5]',local)
         # Shared knowledge must not become an ATTACK/pursuit order for every crew member. Only the
         # stationary fire role may explicitly target its gunner; manoeuvre and air controllers own
         # their later target/release boundary.
@@ -4236,7 +4237,7 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)
         self.assertIn('_current isNotEqualTo _snapshot',text)
-        self.assertIn('count _snapshot != 7',text)
+        self.assertIn('!((count _snapshot) in [7,8])',text)
         self.assertNotIn('WAIT_fnc_OperationCancel',text)
         self.assertNotIn('doMove',text)
         self.assertNotIn('doFollow',text)
@@ -4275,7 +4276,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(server.index('"WAIT_Cortex_CombinedGroundFallback"'),server.index('remoteExecCall ["WAIT_fnc_CortexCombinedArmsLocal"'))
         self.assertIn('((count _groundCandidates) min 32)',server)
         self.assertIn('"WAIT_Cortex_CombinedGroundFallback",nil',server)
-        self.assertIn('count _live != 7 || {serverTime >= (_live select 5)}',fallback)
+        self.assertIn('!((count _live) in [7,8]) || {serverTime >= (_live select 5)}',fallback)
         self.assertNotIn('(_live select 0) == _token',fallback)
         self.assertIn('_target distance2D _position > 75',fallback)
         self.assertIn('group _commander == _candidate',fallback)

@@ -896,3 +896,12 @@ These beams reduce the tall-hull blind spot but do not establish continuous swep
 ### Combined-arms contact position transport (15 October 2026)
 
 Requester, authoritative allocator and asset owner now require exactly three finite numeric ATL components within+/-1e6metres. Malformed reports reject before consuming the request cooldown or reserving support assets. The server previously accepted two-coordinate reports which the owner rejected after reservation. No target-coordinate substitution, report-age refresh, new setting or query is added. Existing ten-second server freshness, hostility, communications, role eligibility and operation ownership checks remain. This is transport correctness; larger-scale allocation, contact updates and physical support effects remain incomplete and unverified.
+
+
+### Combined-arms knowledge provenance (15 October 2026)
+
+The existing bounded native-knowledge pass appends reporter confidence at contact index5, retaining its original first five fields. Combined-arms requests cap that confidence at2.5. The server validates it and appends an immutable versioned receipt `[1, observedAt, confidence]` at role index7. Both replacement pools retain the same receipt at journal index6, compare it against the rejected role, and copy it unchanged. Owner replay supports eight-field roles alongside legacy seven-field roles. No setting, timer or discovery query is added; confidence uses at most the existing eight members per eight evaluated contacts.
+
+Only receipts no older than ten seconds may grant native target knowledge, at the sender-bounded confidence rather than a fixed2.5. Fallback, delivery and owner migration never renew observation time. Legacy roles grant no new knowledge; direct fire requires the asset group's native contact. Existing four-argument server calls conservatively default confidence to1 while retaining the caller's observation time. Manoeuvre routing still uses the supplied believed position, and role expiry remains a separate35-second dispatch lease.
+
+This does not make native `reveal` a historical-position API: the engine still owns the object knowledge it creates. Independent reacquisition, delayed fallback, current-owner belief propagation and actual firing remain physically unverified. Native remembered knowledge is not proof of current visual contact. Larger-scale effect allocation and continuous contact updates remain unfinished.

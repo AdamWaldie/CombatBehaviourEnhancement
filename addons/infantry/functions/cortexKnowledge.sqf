@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native contact records append bounded reporter confidence at index5; existing first five fields remain unchanged.
  * Purpose: Summarises bounded, engine-confirmed enemy knowledge for one local AI group without
  * creating or sharing target knowledge.
  * Locality/authority: Read-only; call where the group is local. It reads native AI knowledge and
@@ -22,7 +23,7 @@
  *
  * Return Value:
  * Array - [enemies, seenCount]. enemies is an array of
- * [enemy <OBJECT>, believedPosATL <ARRAY>, seenAge <NUMBER>, distance <NUMBER>, errorMargin <NUMBER>],
+ * [enemy <OBJECT>, believedPosATL <ARRAY>, seenAge <NUMBER>, distance <NUMBER>, errorMargin <NUMBER>, nativeConfidence <NUMBER>],
  * nearest first. seenCount counts enemies seen within the last 5 seconds.
  *
  * Example:
@@ -100,8 +101,10 @@ private _seenCount = 0;
     private _newest = -1;
     private _knownByGroup = false;
     private _error = 1000;
+    private _confidence=0;
     {
         private _knowledge = _x targetKnowledge _enemy;
+        _confidence=_confidence max (_x knowsAbout _enemy);
         if (_knowledge select 0) then {_knownByGroup = true};
         _newest = _newest max ((_knowledge select 2) max (_knowledge select 3));
         _error = _error min (_knowledge select 5);
@@ -109,7 +112,7 @@ private _seenCount = 0;
     if (_knownByGroup) then {
         private _age = if (_newest > 0) then {time - _newest} else {1e6};
         if (_age <= 5) then {_seenCount = _seenCount + 1};
-        _enemies pushBack [_enemy, _position, _age, _distance, _error];
+        _enemies pushBack [_enemy, _position, _age, _distance, _error,_confidence];
     };
 } forEach _candidates;
 [_enemies, _seenCount]

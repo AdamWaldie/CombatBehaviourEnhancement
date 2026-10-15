@@ -670,7 +670,7 @@ _checks pushBack ["ai","cortex-snapshot-scope","LOADED",format ["Snapshot server
         private _combinedTarget=_combinedRole param [2,objNull];
         private _combinedName=_combinedRole param [4,""];
         private _combinedExpiry=_combinedRole param [5,0];
-        private _combinedHealthy=count _combinedRole == 7 && {serverTime < _combinedExpiry}
+        private _combinedHealthy=(count _combinedRole) in [7,8] && {serverTime < _combinedExpiry}
             && {!isNull _combinedRequester} && {!isNull _combinedTarget} && {alive _combinedTarget}
             && {side _combinedRequester == side _group} && {_combinedName in ["GROUND_FIRE","GROUND_MANOEUVRE","AIR_ATTACK"]};
         _checks pushBack ["ai",format ["cortex-combined-role-%1",netId _group],["ERROR","LOADED"] select _combinedHealthy,format ["group=%1 token=%2 role=%3 requester=%4 target=%5 secondsRemaining=%6 applied=%7 result=%8. Combined roles share an opportunity only; they contain no assembly readiness or infantry movement gate.",groupId _group,_combinedRole param [0,""],_combinedName,groupId _combinedRequester,_combinedTarget,(_combinedExpiry-serverTime) max 0,_group getVariable ["WAIT_Cortex_CombinedApplied",[]],_group getVariable ["WAIT_Cortex_CombinedResult",[]]]];
