@@ -9,6 +9,8 @@
  * deletes a waypoint and yields to players, Zeus remote control, convoy ownership and specialist
  * driving ownership. Ineffective drivers and immobilized vehicles receive no recovery commands.
  * An authored zero forced-speed hold is retained without recovery commands.
+ * Persistent stationary traffic admits at most three native route retries in one eighty-second
+ * public episode; collision caps remain active and newer seat/command ownership ends retries.
  * Native boarding, service, medical and assembly tasks release the exact speed lease;
  * both driver and effective commander are rechecked at each cap/recovery command boundary.
  * The authored waypoint identity includes conditions, timeouts, synchronized triggers, speed,
@@ -398,6 +400,55 @@ _brain set ["geometryTracks",_geometryTracks];
             private _recoveryUntil=_state param [7,-1];
             private _recoveryResult=_state param [8,"IDLE"];
             if (call _nativeWaiting) then {_recoveryResult="INTENTIONAL_WAIT"};
+            // Bounded traffic replan: keep collision caps, never recreate the authored waypoint.
+            // The public budget survives owner changes; interrupted dwell is not accumulated.
+            private _jam=_vehicle getVariable ["WAIT_DrivingTrafficRetry",createHashMap];
+            private _jamChanged=false;
+            if (count _jam > 0 && {(_jam get "route") isNotEqualTo _routeIdentity
+                || {(_jam get "group") != _group}
+                || {(_vehicle distance2D (_jam get "origin")) >= 15
+                    && {((_jam get "origin") distance2D waypointPosition [_group,currentWaypoint _group])
+                        -(_vehicle distance2D waypointPosition [_group,currentWaypoint _group]) >= 15}}}) then {
+                _jam=createHashMap;_jamChanged=true;
+            };
+            private _jamPeer=_traffic select 1;
+            private _jamEligible=_trafficLimited && {!isNull _jamPeer} && {_jamPeer != _vehicle}
+                && {_jamPeer isKindOf "LandVehicle"} && {abs speed _jamPeer < 1} && {abs speed _vehicle < 1}
+                && {_recoveryStage == 0} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass}
+                && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
+                && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+                && {call _mayRecoverRoute};
+            if (_jamEligible) then {
+                if (count _jam == 0) then {
+                    _jam=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
+                        ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
+                        ["origin",getPosATL _vehicle],["deadline",serverTime+80],["next",serverTime+20],
+                        ["attempts",0],["peer",_jamPeer],["since",serverTime],["yielded",false]];
+                    _jamChanged=true;
+                };
+                if ((_jam get "driver") != _driver || {(_jam get "operator") != _movementOperator}
+                    || {(expectedDestination _driver) isNotEqualTo (_jam get "driverCommand")}
+                    || {(expectedDestination _movementOperator) isNotEqualTo (_jam get "command")}) then {
+                    if !(_jam get "yielded") then {_jam set ["yielded",true];_jamChanged=true};
+                };
+                if ((_jam get "peer") != _jamPeer || {(_jam get "since") < 0}) then {
+                    _jam set ["peer",_jamPeer];_jam set ["since",serverTime];_jamChanged=true;
+                };
+                if (!(_jam get "yielded") && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
+                    && {serverTime >= (_jam get "next")} && {serverTime-(_jam get "since") >= 20}
+                    && {call _mayRecoverRoute}) then {
+                    _movementOperator doMove waypointPosition [_group,currentWaypoint _group];
+                    _jam set ["attempts",(_jam get "attempts")+1];_jam set ["next",serverTime+20];
+                    _jam set ["driverCommand",+(expectedDestination _driver)];
+                    _jam set ["command",+(expectedDestination _movementOperator)];_jamChanged=true;
+                };
+            } else {
+                if (count _jam > 0 && {(_jam get "since") >= 0}) then {
+                    _jam set ["since",-1];_jamChanged=true;
+                };
+            };
+            if (_jamChanged) then {_vehicle setVariable ["WAIT_DrivingTrafficRetry",_jam,true]};
+
             // Waiting behind traffic is not a route fault. Keep the last progress sample current so
             // clearing the queue does not immediately inherit a stale reverse deadline.
             if (_trafficLimited || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass}) then {

@@ -33,6 +33,18 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         for guard in ('driverCommand','expectedDestination _operator','DrivingRouteReceipt','CortexExternalTakeover','CortexZeusHeld'):
             self.assertIn(guard,release)
         self.assertIn('_operator doFollow leader _group',release)
+    def test_traffic_retry_is_finite_and_keeps_collision_caps(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        jam=s.split('// Bounded traffic replan:',1)[1].split('// Waiting behind traffic',1)[0]
+        for guard in ('serverTime+80','serverTime+20','(_jam get "attempts") < 3','serverTime < (_jam get "deadline")',
+                      'serverTime-(_jam get "since") >= 20','abs speed _jamPeer < 1','abs speed _vehicle < 1',
+                      '_recoveryStage == 0','call _mayRecoverRoute','driverCommand','["yielded",true]',
+                      'distance2D (_jam get "origin")) >= 15','["since",-1]'):
+            self.assertIn(guard,jam)
+        for forbidden in ('forceSpeed','deleteWaypoint','addWaypoint','enableAI','setVelocity','sendSimpleCommand','spawn'):
+            self.assertNotIn(forbidden,jam)
+        self.assertEqual(jam.count(' doMove '),1)
+        self.assertLess(s.index('_vehicle forceSpeed _capMps'),s.index('// Bounded traffic replan:'))
     def test_timing_model_never_escalates_before_required_observation(self):
         windows=(20,30,0,60)
         def due(stage,elapsed,deadline_elapsed,traffic=False):
