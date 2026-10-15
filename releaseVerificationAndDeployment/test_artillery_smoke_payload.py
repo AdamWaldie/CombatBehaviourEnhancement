@@ -12,4 +12,16 @@ class SmokePayloadTests(unittest.TestCase):
         self.assertNotIn('aiAmmoUsageFlags',classify)
         self.assertNotIn('select {_x isEqualType ""}',classify)
         self.assertIn('_smokeChecks=0;',s)
+    def test_smoke_gate_reaches_admission_continuation_and_owner_release(self):
+        base=ROOT/'addons/support/functions'
+        fire=(base/'cortexArtilleryFire.sqf').read_text(encoding='utf-8')
+        self.assertIn('_mode != "SMOKE" || {[group gunner _x,"WAIT_AIPass_ArtillerySmoke_Enable"',fire)
+        explicit=fire.split('if (isNull _battery || {!alive gunner _battery}',1)[1]
+        self.assertLess(explicit.index('WAIT_AIPass_ArtillerySmoke_Enable'),explicit.index('WAIT_AIPass_FireSerial'))
+        mission=(base/'cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _blocked = _smokeBlocked',mission)
+        self.assertIn('WAIT_AIPass_ArtillerySmoke_Enable',mission)
+        shot=(base/'cortexArtilleryShot.sqf').read_text(encoding='utf-8')
+        final=shot.split('// Safety/munition checks',1)[1]
+        self.assertLess(final.index('WAIT_AIPass_ArtillerySmoke_Enable'),final.index('doArtilleryFire'))
 if __name__=='__main__': unittest.main()
