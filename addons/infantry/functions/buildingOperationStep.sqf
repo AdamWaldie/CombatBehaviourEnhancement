@@ -429,7 +429,8 @@ private _delay=call {
         };
         private _doors=_building getVariable ["WAIT_Cortex_DoorDefinitions",[]];
         private _allLocked=_doors isNotEqualTo [] && {_doors findIf {
-            (_building getVariable [format ["bis_disabled_Door_%1",_x select 0],0]) isEqualTo 0
+            ((_building getVariable ["bis_disabled_Door",0]) isEqualTo 0
+                && {(_building getVariable [format ["bis_disabled_Door_%1",_x select 0],0]) isEqualTo 0})
                 || {_building animationSourcePhase (_x select 1) >= 0.8}
         } < 0};
         private _bounds=boundingBoxReal _building;

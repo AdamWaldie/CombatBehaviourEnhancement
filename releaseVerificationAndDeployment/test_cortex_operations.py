@@ -1801,6 +1801,28 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('setPos',text)
         self.assertNotIn('setVariable [format ["bis_disabled',text)
 
+    def test_door_opening_requires_unobstructed_nearby_interaction(self):
+        text=source('cortexBuildingDoor')
+        for marker in ('private _visibilityChecks=0','_visibilityChecks < 4',
+                       'lineIntersectsSurfaces [eyePos _unit,_position,_unit,objNull,true,1,"GEOM","NONE"]',
+                       '(_hit select 2) == _building','(_hit select 3) == _building',
+                       '(_hit select 0) vectorDistance _position <= 0.5','if (_near && {_visible}'):
+            self.assertIn(marker,text)
+        self.assertLess(text.index('private _near='),text.index('lineIntersectsSurfaces'))
+        self.assertLess(text.index('if (_near && {_visible}'),text.index('call BIS_fnc_door'))
+        self.assertIn('_lock isEqualTo 0',text)
+        self.assertIn('call _orderCurrent',text.split('if (_near && {_visible}',1)[1])
+
+    def test_building_wide_lock_prevents_opening_but_keeps_open_access(self):
+        door=source('cortexBuildingDoor');step=source('buildingOperationStep')
+        self.assertGreaterEqual(door.count('getVariable ["bis_disabled_Door",0]'),2)
+        boundary=door.split('if (_near && {_visible}',1)[1].split('call BIS_fnc_door',1)[0]
+        self.assertIn('getVariable ["bis_disabled_Door",0]',boundary)
+        self.assertIn('bis_disabled_Door_%1',boundary)
+        access=step.split('private _allLocked=',1)[1].split('private _bounds=',1)[0]
+        self.assertIn('getVariable ["bis_disabled_Door",0]',access)
+        self.assertIn('animationSourcePhase (_x select 1) >= 0.8',access)
+
     def test_native_building_operations_have_no_external_delegation_path(self):
         clear=source('cortexClearBuilding')+source('buildingOperationStep')
         garrison=source('cortexGarrison')

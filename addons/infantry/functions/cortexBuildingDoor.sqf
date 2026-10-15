@@ -4,6 +4,8 @@
  * Locality/authority: called only on the soldier owner; BIS door animation has global effect.
  * Repeat/JIP: two-second building cooldown bounds requests; engine door state persists for JIP.
  * Door model metadata is cached per building on each owner; locks are always read live.
+ * At most four nearby-door geometry rays check interaction visibility per call. A closed door
+ * may occlude its own final 0.5 m, but an earlier wall/other object cannot justify remote opening.
  * Only combat-effective ordinary actors may request an opening; capture and specialist ownership
  * are rechecked independently of the group order.
  * Arguments: 0 unit <OBJECT>, default objNull; 1 building <OBJECT>, default objNull;
@@ -45,16 +47,34 @@ if (isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}) then {
     _building setVariable ["WAIT_Cortex_DoorDefinitions",_doors];
 };
 private _requested=false;
+private _visibilityChecks=0;
 {
     _x params ["_index","_source","_memory"];
     private _lock=_building getVariable [format ["bis_disabled_Door_%1",_index],0];
     // Unknown door/lock conventions are left to their mod rather than guessed or unlocked.
-    if (_lock isEqualTo 0 && {_building animationSourcePhase _source < 0.1}) then {
+    if (_lock isEqualTo 0 && {(_building getVariable ["bis_disabled_Door",0]) isEqualTo 0}
+        && {_building animationSourcePhase _source < 0.1}) then {
         private _position=_building modelToWorldWorld _memory;
         // Open only within interaction approach distance and on the actor's floor.
         // A nearby ground-floor actor must not open upper-storey doors remotely.
-        if ((getPosASL _unit) vectorDistance _position <= 3
-            && {abs (((getPosASL _unit) select 2)-(_position select 2)) <= 1.5}
+        private _near=(getPosASL _unit) vectorDistance _position <= 3
+            && {abs (((getPosASL _unit) select 2)-(_position select 2)) <= 1.5};
+        private _visible=false;
+        if (_near && {_visibilityChecks < 4}) then {
+            _visibilityChecks=_visibilityChecks+1;
+            private _hits=lineIntersectsSurfaces [eyePos _unit,_position,_unit,objNull,true,1,"GEOM","NONE"];
+            _visible=_hits isEqualTo [];
+            if (!_visible) then {
+                private _hit=_hits select 0;
+                // The closed leaf can hide its own trigger. Do not accept an intervening
+                // wall just because it belongs to this same building.
+                _visible=((_hit select 2) == _building || {(_hit select 3) == _building})
+                    && {(_hit select 0) vectorDistance _position <= 0.5};
+            };
+        };
+        if (_near && {_visible}
+            && {(_building getVariable ["bis_disabled_Door",0]) isEqualTo 0}
+            && {(_building getVariable [format ["bis_disabled_Door_%1",_index],0]) isEqualTo 0}
             && {call _orderCurrent} && {[_unit] call WAIT_fnc_CortexCombatEffective}
             && {!isPlayer _unit} && {isNull remoteControlled _unit}
             && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) exitWith {

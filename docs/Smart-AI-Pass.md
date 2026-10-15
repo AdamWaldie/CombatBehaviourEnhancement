@@ -586,3 +586,16 @@ one-time seed, nearest-neighbour progression continues. All room visits remain p
 snapshot/timestamp is retained in the durable order and progress updates; owner adoption cannot
 refresh it, and stale hints revert to ordinary routing. No unseen target position is polled.
 This is initial route prioritization, not dynamic enemy tracking or proven topology. Threat-floor flow, stale beliefs, inaccessible points, casualties and HC remain unverified.
+
+Door opening retains the three-metre actor interaction range, floor check and live lock guard.
+It now checks geometry from the actor's eye to the door trigger, at most four eligible doors
+per call. No obstruction is accepted except a hit on that building within the final 0.5 m,
+allowing the closed leaf itself to hide its trigger while rejecting earlier walls or objects.
+The generation/actor takeover guard is checked again before opening. Modded trigger offsets,
+closed leaves, adjacent rooms, locks and actual animation timing require physical retesting;
+recognizing a door does not prove access, entry or successful clearance.
+
+Door requests also honour the building-wide bis_disabled_Door flag as well as indexed locks,
+rechecking both at the animation boundary. Clearance's initial access check uses the same
+combined lock rule; a physically open recognized entry remains passable. No lock flag is
+changed. Global/indexed lock combinations and open-but-locked entrances need live validation.
