@@ -6,6 +6,8 @@
  * Door model metadata is cached per building on each owner; locks are always read live.
  * At most four nearby-door geometry rays check interaction visibility per call. A closed door
  * may occlude its own final 0.5 m, but an earlier wall/other object cannot justify remote opening.
+ * The owner-local per-building cursor rotates after tested doors so the query budget cannot
+ * permanently starve later entries. It is an observation hint, not replayable task authority.
  * Only combat-effective ordinary actors may request an opening; capture and specialist ownership
  * are rechecked independently of the group order.
  * Arguments: 0 unit <OBJECT>, default objNull; 1 building <OBJECT>, default objNull;
@@ -46,6 +48,13 @@ if (isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}) then {
     };
     _building setVariable ["WAIT_Cortex_DoorDefinitions",_doors];
 };
+if (_doors isEqualTo []) exitWith {false};
+private _doorCount=count _doors;
+private _cursor=_building getVariable ["WAIT_Cortex_DoorVisibilityCursor",0];
+if (!(_cursor isEqualType 0) || {!finite _cursor}) then {_cursor=0};
+_cursor=((floor _cursor) max 0) mod _doorCount;
+private _nextCursor=_cursor;
+private _scanDoors=(_doors select [_cursor])+(_doors select [0,_cursor]);
 private _requested=false;
 private _visibilityChecks=0;
 {
@@ -62,6 +71,7 @@ private _visibilityChecks=0;
         private _visible=false;
         if (_near && {_visibilityChecks < 4}) then {
             _visibilityChecks=_visibilityChecks+1;
+            _nextCursor=(_cursor+_forEachIndex+1) mod _doorCount;
             private _hits=lineIntersectsSurfaces [eyePos _unit,_position,_unit,objNull,true,1,"GEOM","NONE"];
             _visible=_hits isEqualTo [];
             if (!_visible) then {
@@ -83,6 +93,7 @@ private _visibilityChecks=0;
             _requested=true;
         };
     };
-    if (_requested) exitWith {};
-} forEach _doors;
+    if (_requested || {_visibilityChecks >= 4}) exitWith {};
+} forEach _scanDoors;
+_building setVariable ["WAIT_Cortex_DoorVisibilityCursor",_nextCursor];
 _requested

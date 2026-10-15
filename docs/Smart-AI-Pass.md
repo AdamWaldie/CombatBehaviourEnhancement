@@ -599,3 +599,9 @@ Door requests also honour the building-wide bis_disabled_Door flag as well as in
 rechecking both at the animation boundary. Clearance's initial access check uses the same
 combined lock rule; a physically open recognized entry remains passable. No lock flag is
 changed. Global/indexed lock combinations and open-but-locked entrances need live validation.
+
+The four-query door-visibility budget rotates through recognized entries on later callbacks.
+A local per-building cursor advances past each tested door, preventing earlier obstructed
+entries from permanently hiding a usable later entry. It carries no movement authority and
+needs no network/JIP replay. Empty door sets refuse before indexing; the 64-definition cap remains.
+Dense multi-door approach and multiple-owner fairness remain physically unverified.

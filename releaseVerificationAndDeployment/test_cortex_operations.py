@@ -1823,6 +1823,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('getVariable ["bis_disabled_Door",0]',access)
         self.assertIn('animationSourcePhase (_x select 1) >= 0.8',access)
 
+    def test_bounded_door_visibility_rotates_without_starving_later_entries(self):
+        text=source('cortexBuildingDoor')
+        for marker in ('if (_doors isEqualTo []) exitWith {false}',
+                       '(_doors select [_cursor])+(_doors select [0,_cursor])',
+                       '_nextCursor=(_cursor+_forEachIndex+1) mod _doorCount',
+                       'if (_requested || {_visibilityChecks >= 4}) exitWith {}',
+                       'setVariable ["WAIT_Cortex_DoorVisibilityCursor",_nextCursor]'):
+            self.assertIn(marker,text)
+        cursor=0;visited=[]
+        for _ in range(3):
+            batch=[(cursor+i)%9 for i in range(4)]
+            self.assertEqual(len(batch),4)
+            visited.extend(batch);cursor=(batch[-1]+1)%9
+        self.assertEqual(set(visited),set(range(9)))
+
     def test_native_building_operations_have_no_external_delegation_path(self):
         clear=source('cortexClearBuilding')+source('buildingOperationStep')
         garrison=source('cortexGarrison')
