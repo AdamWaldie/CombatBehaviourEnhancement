@@ -17,6 +17,9 @@
  * active, due jobs are postponed by five seconds and never run. The pause refreshes a one-minute
  * resumption grace used by tactical-drill watchdogs, so deferred work is not mistaken for starvation.
  * Locality and authority: machine-local. It performs no world scans. Changed restoration checkpoints are published after group jobs.
+ * The latest 256 executed callbacks retain duration, lateness and bounded job identity in a local
+ * ring, including callbacks which retire immediately. Paused/stale skips are not timing samples.
+ * The ring has no JIP/network replay and is not a matched frame-time overhead measurement.
  *
  * Review contract: The scheduler is machine-local and repeat-driven by CBA. Its budget is soft: it cannot interrupt a running SQF job and still traverses the full queue.
  * Danger assessment: bounded member events use generation-scoped finite FSMs and only wake the existing
@@ -90,8 +93,21 @@ private _earliest = -1;
         private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["WAIT_AIPass_Epoch", 0])}}};
         private _callbackStarted=diag_tickTime;
         private _delay = if (_stale) then {-1} else {if (_jobPaused) then {5} else {[_state] call _job}};
-        _state set ["lastCallbackMs",(diag_tickTime-_callbackStarted)*1000];
-        _state set ["queueLatency",(_now-_dueAt) max 0];
+        private _callbackMs=(diag_tickTime-_callbackStarted)*1000;
+        private _queueLatency=(_now-_dueAt) max 0;
+        _state set ["lastCallbackMs",_callbackMs];
+        _state set ["queueLatency",_queueLatency];
+        // Retain terminal callbacks too: their state leaves the queue below. One fixed-size
+        // owner-local ring uses the timers already collected here, with no extra worker,
+        // sort, world query or network publication on this recurring path.
+        if (!_stale && {!_jobPaused}) then {
+            private _samples=missionNamespace getVariable ["WAIT_AIPass_CallbackSamples",[]];
+            private _cursor=missionNamespace getVariable ["WAIT_AIPass_CallbackSampleCursor",0];
+            _samples set [_cursor,[_subsystem,(_state getOrDefault ["jobKey",""]) select [0,160],
+                _callbackMs,_queueLatency,_callbackStarted]];
+            missionNamespace setVariable ["WAIT_AIPass_CallbackSamples",_samples];
+            missionNamespace setVariable ["WAIT_AIPass_CallbackSampleCursor",(_cursor+1) mod 256];
+        };
         _state set ["lastRunAt",_now];
         // Diagnostics describe the current queued state, not an old transient skip. A paused job
         // remains intentionally queued, while a later successful callback clears its previous

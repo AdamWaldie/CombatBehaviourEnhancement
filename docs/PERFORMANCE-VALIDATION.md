@@ -29,3 +29,11 @@ This fixture tests native registration, transfer, refusal policy and destination
 Native refusal excludes the group from the management registry while retaining its current engine owner. The integration case verifies that policy and the actual adoption result. Do not fabricate registry entries to satisfy the standalone expectation. Integration remains pending physical validation.
 
 Normal audit batches default to zero headless clients. Run HC ownership and migration acceptance separately with `-BatchMode headless -HeadlessClients 2`; embedded migration cases are omitted from normal results, never reported as passes. Both batches require their own packaged-candidate evidence.
+
+## Callback cost attribution
+
+The existing scheduler retains its latest 256 executed callbacks in an owner-local ring, including finite callbacks which have already left the queue. Each sample contains `[subsystem, boundedJobKey, callbackMilliseconds, queueLatencySeconds, localDiagTickTime]`. Recording reuses existing timers, performs one ring-slot replacement and adds no worker, world scan or network publication. Paused and stale skips are excluded. The ring persists for the mission session and overwrites its oldest slot; it is neither JIP state nor a full-run trace.
+
+The server's on-demand `cortex-callback-samples` diagnostic reports sample count/age, nearest-rank p50/p95 callback duration, p95 queue latency and the eight slowest recorded identities. Empty history is `NOT_SAMPLED`, never a pass. Headless/client samples remain on their respective owners and are available there as `missionNamespace getVariable ["WAIT_AIPass_CallbackSamples",[]]`; the server report does not aggregate or represent those owners.
+
+Use this attribution to locate expensive callbacks during later audits, especially convoy ticks and building work. Percentiles mix the retained workload and include observation overhead, but exclude scheduler bookkeeping/checkpoint work outside each timed callback. They cannot establish the 5% median/10% p95 frame-time budget; the matched native/WAIT measurements above remain required.
