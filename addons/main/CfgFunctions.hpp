@@ -206,6 +206,7 @@ class CfgFunctions {
             class CortexDrillSetStage {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexDrillSetStage.sqf";};
             class CortexSetPhase {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexSetPhase.sqf";};
             class CortexGarrison {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexGarrison.sqf";};
+            class CortexGarrisonArrived {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexGarrisonArrived.sqf";};
             class CortexGarrisonRefill {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexGarrisonRefill.sqf";};
             class CortexGarrisonApplyLocal {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexGarrisonApplyLocal.sqf";};
             class CortexGarrisonRelease {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexGarrisonRelease.sqf";};

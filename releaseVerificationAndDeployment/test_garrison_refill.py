@@ -25,8 +25,10 @@ class GarrisonRefillTests(unittest.TestCase):
         self.assertIn('&& {!_heldInPlace}) then {_unit enableAI "PATH"}',apply)
         self.assertIn('if (!_heldInPlace && {[_unit] call _mayIssueMovement}) then {doStop _unit}',apply)
         refill=(ROOT/'addons/infantry/functions/cortexGarrisonRefill.sqf').read_text()
-        self.assertIn('_actor distance2D (_assignment select 0) <= 2',refill)
-        self.assertIn('_x distance2D (_other select 0) <= 2',refill)
-        self.assertGreaterEqual(refill.count('<= 0.75'),2)
+        self.assertIn('[_actor,_assignment] call WAIT_fnc_CortexGarrisonArrived',refill)
+        self.assertIn('[_x,_other] call WAIT_fnc_CortexGarrisonArrived',refill)
+        physical=(ROOT/'addons/infantry/functions/cortexGarrisonArrived.sqf').read_text(encoding='utf-8')
+        for guard in ('> 0.75','_outside','terrainIntersectASL','lineIntersectsSurfaces','VIEW'):
+            self.assertIn(guard,physical)
         self.assertIn('!(_x checkAIFeature "PATH")',refill)
 if __name__=='__main__': unittest.main()

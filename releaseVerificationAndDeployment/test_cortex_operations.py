@@ -4572,7 +4572,8 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(arrival.index('if ([_x] call _mayIssueMovement) then {'),arrival.index('_x disableAI "PATH"'))
         self.assertIn('["assignmentArrived",_assignmentArrived]',garrison_apply)
         self.assertIn('_assignmentArrived=_job get "assignmentArrived"',garrison_apply)
-        physical=garrison_apply.split('private _assignmentArrived=',1)[1].split('private _buildingAnchor',1)[0]
+        self.assertIn('private _assignmentArrived=WAIT_fnc_CortexGarrisonArrived;',garrison_apply)
+        physical=source('cortexGarrisonArrived')
         for guard in ['vectorDistance _target > _radius','> 0.75','worldToModel',
                       'lineIntersectsSurfaces','(_x select 2) == _building']:
             self.assertIn(guard,physical)

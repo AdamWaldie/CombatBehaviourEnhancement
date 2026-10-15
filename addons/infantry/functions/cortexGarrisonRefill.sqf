@@ -3,7 +3,8 @@
  * Purpose: Refills one vacant interior garrison post after the arrival job has settled.
  * Locality/authority: current group owner only, through the existing group scheduler. Eligibility,
  * actor reservations and native service/movement commands are checked before replacing a slot.
- * Repeat/JIP: one promotion per settled callback. Living assignments (including unconscious
+ * Repeat/JIP: one promotion per settled callback. Fresh physical arrival and exit observation are required for both exterior actors.
+ * Living assignments (including unconscious
  * soldiers) reserve their slots. New-owner ApplyLocal resets the pending marker before adoption.
  * Replacement actors walk; instant placement belongs only to initial explicit task admission.
  * Arguments: 0 group <GROUP>, grpNull.
@@ -49,8 +50,7 @@ private _eligible=_living select {
     // A previously enrolled actor handed to a newer native task is not a new reinforcement.
     private _spare=_assignment isEqualTo [] && {!(_actor in _roster)};
     if ((_assignment param [4,""]) == "EXTERIOR" && {_actor getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]}
-        && {!(_actor checkAIFeature "PATH")} && {_actor distance2D (_assignment select 0) <= 2}
-        && {abs ((getPosATL _actor select 2)-(_assignment select 0 select 2)) <= 0.75}) then {
+        && {!(_actor checkAIFeature "PATH")} && {[_actor,_assignment] call WAIT_fnc_CortexGarrisonArrived}) then {
         // Never vacate the sole assigned observation post for this building exit.
         _spare=_living findIf {
             _x != _actor && {local _x} && {!isPlayer _x}
@@ -58,10 +58,9 @@ private _eligible=_living select {
                 && {_x getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]} && {!(_x checkAIFeature "PATH")}
                 && {private _other=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
                     (_other param [4,""]) == "EXTERIOR"
-                        && {_x distance2D (_other select 0) <= 2}
-                        && {abs ((getPosATL _x select 2)-(_other select 0 select 2)) <= 0.75}
                         && {(_other param [2,objNull]) == (_assignment param [2,objNull])}
-                        && {(_other param [6,[]]) isEqualTo (_assignment param [6,[]])}}
+                        && {(_other param [6,[]]) isEqualTo (_assignment param [6,[]])}
+                        && {[_x,_other] call WAIT_fnc_CortexGarrisonArrived}}
         } >= 0;
     };
     _spare && {local _actor} && {!isPlayer _actor} && {isNull remoteControlled _actor}
