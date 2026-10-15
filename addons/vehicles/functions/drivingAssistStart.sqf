@@ -16,7 +16,9 @@
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
  * Road bends, junctions and absolute road grade share the convoy observer at existing cadence.
  * Friendly pedestrian hulls constrain ordinary driving as well as opted-in convoys.
- * Same-direction traffic uses current hull gaps and actual velocity for continuous following caps.
+ * Forward-lane vehicle hulls constrain speed regardless of heading; aligned predecessors use
+ * current hull gaps and actual velocity for continuous following caps. Other occupied hulls
+ * receive no assumed forward-speed allowance. This does not establish crossing right-of-way.
  * Owned traffic stops remain sampled; congestion suppresses route refresh/reverse rather than
  * treating a queue as navigation failure. No crossing priority or passing is inferred here.
  * Reverse admission uses a fresh body-sized rear corridor observation shared with tracked

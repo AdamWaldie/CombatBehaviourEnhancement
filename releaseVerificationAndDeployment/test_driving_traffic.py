@@ -23,6 +23,23 @@ class DrivingTrafficTests(unittest.TestCase):
         config=(ROOT/'addons/main/config.cpp').read_text()
         self.assertIn('requiredVersion = 2.18',config)
 
+    def test_angled_hulls_are_admitted_without_assuming_their_forward_clearance(self):
+        s=src('drivingFollowingCap')
+        admission=s.split('if (_other != _vehicle',1)[1].split('then {',1)[0]
+        self.assertNotIn('vectorDir',admission)
+        self.assertIn('private _otherForward=if (_following)',s)
+        self.assertIn('} else {0}',s)
+        self.assertIn('private _ahead=_maxY > _front-0.25',s)
+        self.assertNotIn('private _centre=',s)
+        # Forward projection must admit a long rotated hull whose centre is behind
+        # our bumper, while excluding a hull entirely behind or above the corridor.
+        def occupied(min_x,max_x,max_y,min_z,max_z):
+            return max_y>3-0.25 and max_x>=-1.25 and min_x<=1.25 and max_z>=-0.75 and min_z<=2.25
+        self.assertTrue(occupied(-2,2,5,0,2))
+        self.assertFalse(occupied(-2,2,2,0,2))
+        self.assertFalse(occupied(3,5,8,0,2))
+        self.assertFalse(occupied(-2,2,8,5,7))
+
     def test_reverse_overlap_includes_destroyed_vehicles_without_treating_dead_infantry_as_live(self):
         s=src('drivingRearClear')
         self.assertIn('_area nearEntities [["LandVehicle"],false,false,false]',s)

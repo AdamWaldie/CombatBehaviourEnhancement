@@ -1,7 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Observes same-direction vehicle hulls ahead and derives a continuous following speed cap.
- * Empty live vehicles and matching-heading destroyed vehicle entities remain obstacles;
+ * Purpose: Observes vehicle hulls occupying the forward lane and derives a continuous speed cap.
+ * Aligned moving predecessors retain measured forward speed. Other intersecting hulls are treated
+ * as occupied space without assuming that crossing or oncoming traffic will yield or move away.
+ * Empty live vehicles and destroyed vehicle entities at any heading remain obstacles;
  * destruction alone never removes their hull from this observation. No bypass route is planned.
  * A mass-adjusted closing-speed envelope adds provisional braking and cruise-sampling headroom;
  * neither nominal deceleration nor scheduler response is physically guaranteed by this policy.
@@ -40,12 +42,14 @@ if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates]};
 private _cap=_requested;private _limiting=objNull;private _gap=-1;
 {
     private _other=_x;
-    private _otherForward=((velocity _other) vectorDotProduct _forward) max 0;
-    // Actual hull heading and projected velocity distinguish an ordinary predecessor from
-    // crossing/oncoming traffic. Those cases require separate arbitration, not this follower rule.
-    if (_other != _vehicle && {!isNull _other}
-        && {((vectorDir _other) vectorDotProduct _forward) > 0.7}
-        && {((velocity _other) vectorDotProduct _forward) >= -0.5}) then {
+    if (_other != _vehicle && {!isNull _other}) then {
+        // Heading selects only the following-speed allowance, never obstacle admission.
+        // An angled parked hull or a reversing/oncoming vehicle still occupies this lane.
+        private _following=((vectorDir _other) vectorDotProduct _forward) > 0.7
+            && {((velocity _other) vectorDotProduct _forward) >= -0.5};
+        private _otherForward=if (_following) then {
+            ((velocity _other) vectorDotProduct _forward) max 0
+        } else {0};
         private _otherBox=boundingBoxReal _other;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
         private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
@@ -62,8 +66,8 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
                 } forEach [_otherLow select 1,_otherHigh select 1];
             } forEach [_otherLow select 0,_otherHigh select 0];
         } forEach [_otherLow select 2,_otherHigh select 2];
-        private _centre=_vehicle worldToModel (getPosATL _other);
-        private _ahead=(_centre select 1) > _front;
+        // A long sideways hull can intrude past our front even when its centre is behind it.
+        private _ahead=_maxY > _front-0.25;
         private _sameLane=_maxX >= (_low select 0)-0.25 && {_minX <= (_high select 0)+0.25};
         private _sameHeight=_maxZ >= (_low select 2)-0.25 && {_minZ <= (_high select 2)+0.25};
         if (_ahead && {_sameLane} && {_sameHeight}) then {
