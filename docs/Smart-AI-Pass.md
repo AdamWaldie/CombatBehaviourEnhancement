@@ -1003,3 +1003,6 @@ The same native-task ownership rule now gates automatic clearance settlement and
 
 
 Exterior egress/early-yield selection examines every retained entrance (up to four), instead of permanently omitting the fourth ranked entrance after three rejected proposals. Smaller entrance sets retain three attempts. At eight admitted workers the per-transition proposal ceiling rises from24to32 native searches, with existing geometry/occupancy validation and unchanged deadlines. No extra recurring worker or movement writer is added. A fourth-exit-only physical fixture and measured cost remain unverified; a proposal never proves native path access or actual departure.
+
+
+Anti-armour selection and movement/fire boundaries now reject actor-specific external/remote control, hidden or unsimulated actors and native service tasks. Opportunistic backblast relocation additionally requires idle or MOVE; FOLLOW/WAIT/STOP and other non-route tasks cannot authorize displacement. Existing backblast, drill, clearance, holding, reservation and group-owner checks remain. No extra scan/timer/controller is added. This does not identify ownership of a replacement MOVE, implement individual indoor engagement or prove physical launcher behaviour; those remain open.
