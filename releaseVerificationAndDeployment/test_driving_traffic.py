@@ -47,6 +47,25 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('_allowed=_allowed min (_otherForward+_closingAllowance)',s)
         self.assertLess(s.index('_allowed=_allowed min'),s.index('if (_allowed < _cap)'))
         self.assertNotIn('setMass',s)
+    def test_convoy_closing_envelope_uses_mass_and_forward_velocity(self):
+        import math
+        s=src('convoyTick')
+        for contract in ('velocityModelSpace _front select 1','getMass _vehicle','_deceleration=4/_massFactor','2*_deceleration*_closingRoom','_frontSpeed+3.6*_closingAllowance'):
+            self.assertIn(contract,s)
+        self.assertNotIn('[abs speed _front,0]',s)
+        def allowance(room,mass):
+            factor=min(2.5,max(1,1+(mass-3000)/7000))
+            decel=4/factor; reaction=4*decel
+            return 3.6*(math.sqrt(reaction*reaction+2*decel*room)-reaction)
+        self.assertEqual(allowance(0,3000),0)
+        self.assertLess(allowance(20,15000),allowance(20,3000))
+        self.assertGreater(allowance(30,15000),allowance(20,15000))
+        # The modeled relative closing distance cannot exceed available room.
+        for mass in (1500,10000,20000):
+            for room in (1,10,40):
+                relative=allowance(room,mass)/3.6
+                decel=4/min(2.5,max(1,1+(mass-3000)/7000))
+                self.assertAlmostEqual(4*relative+relative*relative/(2*decel),room)
     def test_prepared_traffic_audit_requires_physical_repeat_outcomes(self):
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text()
         for case in ('physical-approach','physical-separated-hold','release-physical-resume','repeat-physical-stop','repeat-physical-resume','disabled-observation-cleanup'):

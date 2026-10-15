@@ -524,7 +524,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Absolute speed cannot distinguish forward progress from a predecessor
     // backing into this follower during native obstacle recovery.
     private _frontReversing=(velocityModelSpace _front select 1) < -0.5;
-    private _frontSpeed = [abs speed _front,0] select _frontReversing;
+    private _frontSpeed = [((velocityModelSpace _front select 1) max 0)*3.6,0] select _frontReversing;
     private _previous = _speedLimits getOrDefault [_key,[_frontSpeed,time-1]];
     // Match predecessor speed at the requested gap; proportional correction avoids drifting along a band edge.
     // Acceleration remains bounded below, while compression still applies an immediate braking cap.
@@ -540,7 +540,15 @@ for "_i" from 1 to (count _vehicles - 1) do {
     };
     if (_controlGap < _gapLow) then {_limit = _limit min ((_frontSpeed-(_gapLow-_controlGap)*1.2) max 0)};
     // A stationary/braking predecessor must still constrain us inside the tolerance band.
-    private _closingCap = (_frontSpeed + ((_controlGap-_gapLow) max 0)*0.8) min _maximum;
+    // Match the ordinary driving model in SI units, then convert its closing allowance
+    // to the convoy's km/h caps. Heavy followers receive earlier provisional braking.
+    // This assumes measured predecessor velocity, not its future braking capability.
+    private _massFactor=((1+(((getMass _vehicle)-3000)/7000)) max 1) min 2.5;
+    private _deceleration=4/_massFactor;
+    private _reactionSpeed=4*_deceleration;
+    private _closingRoom=(_controlGap-_gapLow) max 0;
+    private _closingAllowance=(sqrt ((_reactionSpeed*_reactionSpeed)+2*_deceleration*_closingRoom)-_reactionSpeed) max 0;
+    private _closingCap = (_frontSpeed+3.6*_closingAllowance) min _maximum;
     private _elapsed = ((time-(_previous select 1)) max 0.1) min 3;
     // Tracks accelerate and brake unevenly. Do not propagate each brief speed dip
     // into an immediate follower throttle drop anywhere within the safe tolerance band.
