@@ -139,3 +139,19 @@ class DrivingBypassTests(unittest.TestCase):
             body=(ROOT/f'addons/vehicles/functions/{filename}.sqf').read_text()
             self.assertIn('WAIT_fnc_DrivingBypassRelease',body)
             self.assertIn('WAIT_fnc_ConvoyBypassStep',body)
+
+    def test_new_follower_move_yields_before_crew_and_path_writes(self):
+        tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        gate=tick.index('private _commandYield=')
+        self.assertLess(gate,tick.index('call WAIT_fnc_ConvoyCrewLocal'))
+        for marker in ('WAIT_Convoy_MovementReceipt','WAIT_Convoy_CommandYield',
+                       'currentCommand _operator == "MOVE"','_was vectorDistance _now > 0.25',
+                       '"NEW_NATIVE_ORDER"','(_commandYield param [0,-1]) == _revision'):
+            self.assertIn(marker,tick)
+        crew=(ROOT/'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
+        self.assertLess(crew.index('WAIT_Convoy_CommandYield'),crew.index('WAIT_Convoy_CrewDue'))
+        release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
+        self.assertIn('private _mayHandBack=!_preserveMoves',release)
+        self.assertIn('if (_mayRestoreGroup && {!_preserveMoves})',release)
+        self.assertIn('!_preserveMoves,_preserveMoves',release)
+        self.assertIn('if (_mayStopOwned && {_pathOwned})',release)

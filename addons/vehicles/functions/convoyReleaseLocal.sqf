@@ -13,6 +13,8 @@
  * Repeat/JIP: ordered registry snapshots replace old settings; owner-local paths rebuild on migration.
  * Public path receipts bind revision, epoch, seats and native command state; they grant no travel
  * credit. Service tasks, new native destinations and successor vehicles receive no path cancellation.
+ * NEW_NATIVE_ORDER cleanup restores exact policy leases and stops only unchanged owned fixed paths;
+ * replacement movement is never stopped or recalled, and route/formation restoration is suppressed.
  * A mounted crew is never recalled toward an on-foot leader. Authored waypoint metadata is retained.
  * Arguments: 0: group <GROUP>, grpNull; 1: forget baseline <BOOL>, true; 2: baseline <ARRAY>, [] reads the locally received baseline; 3: still-controlled vehicles <ARRAY>, []; 4: cancellation reason <STRING, RELEASED>.
  * Return Value: Nothing.
@@ -21,6 +23,7 @@
  */
 params [["_group", grpNull, [grpNull]], ["_forget", true, [true]], ["_restore", [], [[]]], ["_keepCrew", [], [[]]], ["_reason", "RELEASED", [""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
+private _preserveMoves=toUpperANSI _reason == "NEW_NATIVE_ORDER";
 private _navigation=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
 if (_keepCrew isEqualTo [] && {local _group}) then {
     [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call WAIT_fnc_ConvoyCorridorStep;
@@ -51,7 +54,7 @@ if (_restore isNotEqualTo []) then {
     // the saved convoy formation, attack permission and follower paths are evidence only.
     private _externalTakeover = local _group && {[_group] call WAIT_fnc_CortexExternalTakeover};
     private _mayRestoreGroup=local _group && {!_externalTakeover};
-    if (_mayRestoreGroup) then {
+    if (_mayRestoreGroup && {!_preserveMoves}) then {
         if (formation _group == "COLUMN") then {_group setFormation _formation};
         if (!attackEnabled _group) then {_group enableAttack _attack};
     };
@@ -113,14 +116,20 @@ if (_restore isNotEqualTo []) then {
             private _corridor=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
             if (!(_vehicle in _keepCrew)
                 && {((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY"}) then {
-                [_vehicle,_group,"CONVOY_RELEASED"] call WAIT_fnc_DrivingCorridorRelease;
+                [_vehicle,_group,"CONVOY_RELEASED",!_preserveMoves,_preserveMoves] call WAIT_fnc_DrivingCorridorRelease;
             };
             private _bypass=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
             if (!(_vehicle in _keepCrew) && {((_bypass getOrDefault ["controller",[]]) param [0,""]) == "CONVOY"}) then {
-                [_vehicle,_group,"CONVOY_RELEASED",true,false,_navigation getOrDefault ["revision",-1]] call WAIT_fnc_DrivingBypassRelease;
+                [_vehicle,_group,"CONVOY_RELEASED",!_preserveMoves,_preserveMoves,_navigation getOrDefault ["revision",-1]] call WAIT_fnc_DrivingBypassRelease;
             };
             // Retire an exact-owned steering path before native handback. Readiness is
             // insufficient: the engine can report unitReady while a fixed path still runs.
+            private _movementReceipt=_vehicle getVariable ["WAIT_Convoy_MovementReceipt",[]];
+            if (!(_vehicle in _keepCrew) && {count _movementReceipt == 5}
+                && {(_movementReceipt select 0) == _group}
+                && {(_movementReceipt select 1) == (_navigation getOrDefault ["revision",-1])}) then {
+                _vehicle setVariable ["WAIT_Convoy_MovementReceipt",nil,true];
+            };
             private _pathLease=_vehicle getVariable ["WAIT_Convoy_PathLease",[]];
             private _pathOwned=!isNull _driver && {!isNull _movementOperator} && {count _pathLease == 7}
                 && {(_pathLease select 0) == _group}
@@ -135,12 +144,16 @@ if (_restore isNotEqualTo []) then {
                     || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
                     || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
             } < 0;
-            private _mayHandBack=_mayRestoreGroup && {!_externalCrew} && {!_externalVehicle}
+            private _mayHandBack=!_preserveMoves && {_mayRestoreGroup} && {!_externalCrew} && {!_externalVehicle}
                 && {!(_vehicle in _keepCrew)} && {_taskFree}
                 && {group _driver == _group} && {group _movementOperator == _group}
                 && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
             private _endedPath=false;
-            if (_mayHandBack && {_pathOwned}) then {
+            private _mayStopOwned=_mayRestoreGroup && {!_externalCrew} && {!_externalVehicle}
+                && {!(_vehicle in _keepCrew)} && {_taskFree}
+                && {group _driver == _group} && {group _movementOperator == _group}
+                && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+            if (_mayStopOwned && {_pathOwned}) then {
                 doStop _driver;
                 _endedPath=true;
             };

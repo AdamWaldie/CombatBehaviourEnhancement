@@ -5688,7 +5688,7 @@ class CortexOperations(unittest.TestCase):
         release=source('convoyReleaseLocal')
         self.assertIn('private _externalTakeover = local _group && {',release)
         self.assertIn('private _mayRestoreGroup=local _group && {!_externalTakeover};',release)
-        self.assertIn('if (_mayRestoreGroup) then {',release)
+        self.assertIn('if (_mayRestoreGroup && {!_preserveMoves}) then {',release)
         self.assertIn('if (_mayRestoreGroup && {!isNull _driver}',release)
         self.assertLess(release.index('private _mayRestoreGroup='),release.index('setFormation _formation'))
 

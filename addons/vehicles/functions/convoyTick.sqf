@@ -20,6 +20,9 @@
  * Whole-column checkpoint/tail evidence retains the original deadline; lead success is insufficient.
  * Fixed follower paths retain a driver/operator/epoch/native-command receipt for guarded handback.
  * The receipt is ownership evidence only; it cannot establish actual path travel.
+ * A replacement individual MOVE on a recorded follower operator yields the entire current
+ * revision before crew/trail writes. A public revision receipt survives migration; a fresh server
+ * task revision is required to re-admit. Cleanup restores exact caps but cannot recall movement.
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
  * accelerate gradually while safety, contact, arrival and close-gap braking remain immediate.
@@ -84,6 +87,35 @@ if (_paused || {_playerCrew} || {_zeus}) exitWith {
     };
 };
 _group setVariable ["WAIT_Convoy_Suspended", false];
+// A new individual MOVE is a replacement order, not a stalled convoy leg. Keep this
+// revision yielded across later ticks and owner migration; only a new server revision may re-admit.
+private _commandYield=_group getVariable ["WAIT_Convoy_CommandYield",[]];
+if ((_commandYield param [0,-1]) != _revision) then {
+    private _diverted=objNull;private _diversion=[];
+    {
+        private _vehicle=_x;private _receipt=_vehicle getVariable ["WAIT_Convoy_MovementReceipt",[]];
+        private _operator=effectiveCommander _vehicle;
+        if (isNull _diverted && {local _vehicle} && {count _receipt == 5}
+            && {(_receipt select 0) == _group} && {(_receipt select 1) == _revision}
+            && {(_receipt select 2) == driver _vehicle} && {(_receipt select 3) == _operator}
+            && {!isNull _operator} && {local _operator} && {currentCommand _operator == "MOVE"}) then {
+            private _was=(_receipt select 4) param [0,[]];private _now=(expectedDestination _operator) param [0,[]];
+            if (count _was == 3 && {count _now == 3} && {_was vectorDistance _now > 0.25}) then {
+                _diverted=_vehicle;_diversion=+_now;
+            };
+        };
+    } forEach _registered;
+    if (!isNull _diverted) then {
+        _commandYield=[_revision,_diverted,_diversion,serverTime];
+        _group setVariable ["WAIT_Convoy_CommandYield",_commandYield,true];
+        [_group,false,_restore,[],"NEW_NATIVE_ORDER"] call WAIT_fnc_ConvoyReleaseLocal;
+    };
+};
+if ((_commandYield param [0,-1]) == _revision) exitWith {
+    _state=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
+    _state set ["ownerSuspended",true];_group setVariable ["WAIT_Convoy_LocalState",_state];
+    _group setVariable ["WAIT_Convoy_Suspended",true];
+};
 [_group, _configuration] call WAIT_fnc_ConvoyCrewLocal;
 if (_phase == "HALT") exitWith {
     _state set ["reacquire",true];
@@ -851,6 +883,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         _progress set [5,+_destination];
                         _progress set [9,+_path];
                         _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
+                        _vehicle setVariable ["WAIT_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
                         _progress set [7,false];
                     };
                 };
@@ -883,6 +916,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             _progress set [6,+_pathDestination];
                             _progress set [9,+_path];
                             _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
+                        _vehicle setVariable ["WAIT_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
                         };
                     };
                     _progress set [2, time + 1];

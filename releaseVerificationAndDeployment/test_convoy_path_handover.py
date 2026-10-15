@@ -15,7 +15,7 @@ class ConvoyPathHandoverTests(unittest.TestCase):
         for guard in ['count _pathLease == 7','_navigation getOrDefault ["revision",-1]',
                       'WAIT_AIPass_Epoch','(_pathLease select 3) == _driver',
                       '(_pathLease select 4) == _movementOperator','isEqualTo (_pathLease select 5)',
-                      '!(_vehicle in _keepCrew)','_taskFree','_mayHandBack && {_pathOwned}',
+                      '!(_vehicle in _keepCrew)','_taskFree','_mayStopOwned && {_pathOwned}',
                       '_live vectorDistance _committed <= 0.25']:
             self.assertIn(guard,block)
         self.assertLess(block.index('doStop _driver'),block.index('_driver doFollow leader _group'))

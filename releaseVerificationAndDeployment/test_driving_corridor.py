@@ -86,7 +86,7 @@ class CorridorFoundationTests(unittest.TestCase):
         halt = crew.split('if (_phase == "HALT"', 1)[1]
         self.assertLess(halt.index('doStop driver _vehicle;'), halt.index('"CONVOY_HALT",false'))
         self.assertIn('if (!(_vehicle in _keepCrew)', release)
-        self.assertIn('"CONVOY_RELEASED"] call WAIT_fnc_DrivingCorridorRelease', release)
+        self.assertIn('"CONVOY_RELEASED",!_preserveMoves,_preserveMoves] call WAIT_fnc_DrivingCorridorRelease', release)
         self.assertIn('"CONVOY_LEAD_CHANGED",false,true', tick)
         fsm = (ROOT / 'addons/main/fsm/convoyOperation.fsm').read_text()
         for phase in ('CORRIDOR_APPROACH', 'CORRIDOR_CROSS'):

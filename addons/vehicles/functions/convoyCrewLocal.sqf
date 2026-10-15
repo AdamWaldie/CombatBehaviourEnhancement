@@ -5,6 +5,7 @@
  * Hostile Hit events count as contact even when armour absorbs the damage. Local handler ownership
  * records its convoy group/machine so obsolete cleanup cannot remove an adopted handler.
  * Unload policy uses an exact public lease; an external value change blocks reacquisition until release.
+ * New individual MOVE handover blocks same-revision crew writes through a public yield receipt.
  * Repeat/JIP: five-second owner checks repair occupied seat assignments and replay a durable halt
  * after transfer. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, speed, gap, push, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
@@ -16,6 +17,7 @@
 params ["_group", "_configuration",["_reservationCargo",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 _configuration params ["_revision", "", "", "", "_vehicles", "_phase", "_cargo", "_restore", ["_reason", "MANUAL"], ["_threat", []], ["_deadline", 0]];
+if (((_group getVariable ["WAIT_Convoy_CommandYield",[]]) param [0,-1]) == _revision) exitWith {};
 if (time < (_group getVariable ["WAIT_Convoy_CrewDue", -1])) exitWith {};
 _group setVariable ["WAIT_Convoy_CrewDue", time + 5];
 private _externalCrew = _vehicles findIf {(crew _x) findIf {[_x] call WAIT_fnc_CortexExternalOwner != ""} >= 0} >= 0;
