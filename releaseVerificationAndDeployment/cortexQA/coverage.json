@@ -767,7 +767,8 @@
         "addons/vehicles/functions/drivingPathGeometry.sqf",
         "addons/vehicles/functions/drivingBypassPlan.sqf",
         "addons/vehicles/functions/drivingBypassStep.sqf",
-        "addons/vehicles/functions/drivingBypassRelease.sqf"
+        "addons/vehicles/functions/drivingBypassRelease.sqf",
+        "addons/vehicles/functions/drivingTurnTrack.sqf"
       ]
     },
     {

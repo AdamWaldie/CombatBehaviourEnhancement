@@ -44,3 +44,24 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertEqual(s.count('lineIntersectsSurfaces'),1)
         self.assertNotIn('setAngularVelocity',s)
         self.assertNotIn('setVariable',s.split('params [[',1)[1])
+
+    def test_track_measurement_resets_at_ownership_route_and_motion_boundaries(self):
+        s=(ROOT/'addons/vehicles/functions/drivingTurnTrack.sqf').read_text()
+        for marker in ('clientOwner','driver _vehicle','effectiveCommander _vehicle',
+                       '_forward <= 1','_previous select 0) isNotEqualTo _identity',
+                       'time-(_previous select 2) > 6','_distanceSquared >= 9',
+                       'time-(_previous select 2) >= 1.5','abs _curvature < 0.004',
+                       'worldToModel','ASLToAGL'):
+            self.assertIn(marker,s)
+        for forbidden in ('setVariable','spawn','waitUntil','doMove','forceSpeed','lineIntersectsSurfaces'):
+            self.assertNotIn(forbidden,s.split('params [[',1)[1])
+        for name in ('drivingAssistStart','convoyTick'):
+            self.assertIn('call WAIT_fnc_DrivingTurnTrack',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
+
+    def test_ordinary_measurements_are_per_vehicle_and_prune_departed_roster(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('private _geometryTracks=createHashMap',s)
+        self.assertIn('_priorTracks getOrDefault [netId _x,[]]',s)
+        self.assertIn('_geometryTracks getOrDefault [netId _vehicle,[]]',s)
+        self.assertIn('_geometryTracks set [netId _vehicle,_turn select 1]',s)
+        self.assertNotIn('getOrDefault ["geometryTrack",[]]',s)

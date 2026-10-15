@@ -6,7 +6,9 @@
  * Repeat/JIP: No handlers/cache/clearance leases. Current transforms and GEOM surfaces are sampled
  * on every call; deletion, movement, rotation and damage do not rely on a mission-object grid.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 requested m/s <NUMBER, 20>, clamped 0..35;
- * 2 server recheck <BOOL, false> - read-only remote-vehicle sampling allowed on server.
+ * 2 server recheck <BOOL, false> - read-only remote-vehicle sampling allowed on server;
+ * 3 measured curvature <ARRAY, []> optional single finite inverse-metre value from local track.
+ * Empty retains instantaneous native-yaw fallback for independent server/script rechecks.
  * Return Value: ARRAY [gate observation ARRAY, solid observation ARRAY]. Gate observation retains
  * [cap m/s, gate OBJECT, gap metres, time, rays]. Solid is empty without a sampled blocker, else
  * [cap m/s, object (objNull for terrain), gap, time, rays, kind, hit ASL, normal, transform].
@@ -23,7 +25,7 @@
  * Current callers: DrivingAssistStart, ConvoyTick and DrivingGateCap's server-compatible adapter.
  * Example: private _observed=[truck1,15] call WAIT_fnc_DrivingGeometryCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]]];
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]],["_measured",[],[[]]]];
 if (!finite _requested) then {_requested=0};
 _requested=(_requested max 0) min 35;
 if (isNull _vehicle || {!local _vehicle && {!(_serverCheck && {isServer})}} || {!alive _vehicle}) exitWith {[[_requested,objNull,-1,time,0],[]]};
@@ -42,6 +44,9 @@ private _yaw=(angularVelocityModelSpace _vehicle) param [2,0];
 if (!finite _yaw || {_velocity <= 1}) then {_yaw=0};
 private _bendLength=(_velocity*2.5) max 8 min _horizon;
 private _curvature=if (_velocity > 1) then {_yaw/_velocity} else {0};
+if (count _measured == 1 && {(_measured select 0) isEqualType 0} && {finite (_measured select 0)}) then {
+    _curvature=if (_velocity > 1) then {_measured select 0} else {0};
+};
 private _maxCurvature=(70/57.2957795)/_bendLength;
 _curvature=(_curvature max -_maxCurvature) min _maxCurvature;
 private _turning=abs (_curvature*_bendLength*57.2957795) >= 3;

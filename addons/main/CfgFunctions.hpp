@@ -55,6 +55,7 @@ class CfgFunctions {
             class DrivingBypassStep {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingBypassStep.sqf";};
             class DrivingBypassRelease {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingBypassRelease.sqf";};
             class DrivingBypassPlan {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingBypassPlan.sqf";};
+            class DrivingTurnTrack {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingTurnTrack.sqf";};
             class DrivingGeometryCap {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingGeometryCap.sqf";};
             class DrivingGateCap {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingGateCap.sqf";};
             class DrivingFollowingCap {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingFollowingCap.sqf";};

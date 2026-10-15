@@ -517,7 +517,11 @@ if (!_routeDone && {_leadLimit > (_leadSpeedState select 0)}) then {
 private _leadTraffic=if (_trafficAssistEnabled) then {
     [_lead,_leadLimit/3.6] call WAIT_fnc_DrivingFollowingCap
 } else {[_leadLimit/3.6,objNull,-1,time,0]};
-private _leadGeometry=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+private _geometryTracks=_state getOrDefault ["geometryTracks",createHashMap];
+private _geometryContext=[_group,_revision,_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_DrivingRouteReceipt];
+private _leadTurn=[_lead,_geometryTracks getOrDefault [netId _lead,[]],_geometryContext] call WAIT_fnc_DrivingTurnTrack;
+_geometryTracks set [netId _lead,_leadTurn select 1];_state set ["geometryTracks",_geometryTracks];
+private _leadGeometry=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6,false,[_leadTurn select 0]] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
 private _leadGate=_leadGeometry select 0;private _leadObstacle=_leadGeometry select 1;
 if (_leadGate isNotEqualTo [] && {(_leadGate select 0) < (_leadTraffic select 0)}) then {_leadTraffic=_leadGate};
 private _leadWithoutObstacle=+_leadTraffic;
@@ -675,7 +679,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _traffic=if (_trafficAssistEnabled) then {
         [_vehicle,_limit/3.6,_front] call WAIT_fnc_DrivingFollowingCap
     } else {[_limit/3.6,objNull,-1,time,0]};
-    private _vehicleGeometry=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+    private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],_geometryContext] call WAIT_fnc_DrivingTurnTrack;
+    _geometryTracks set [netId _vehicle,_turn select 1];
+    private _vehicleGeometry=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6,false,[_turn select 0]] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
     private _vehicleGate=_vehicleGeometry select 0;private _vehicleObstacle=_vehicleGeometry select 1;
     if (_vehicleGate isNotEqualTo [] && {(_vehicleGate select 0) < (_traffic select 0)}) then {_traffic=_vehicleGate};
     // Source-constraint yielding requires this follower's unchanged committed trail, actual

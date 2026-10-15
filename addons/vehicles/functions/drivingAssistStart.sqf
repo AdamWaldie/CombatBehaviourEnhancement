@@ -78,6 +78,11 @@ private _previous=_group getVariable ["WAIT_DrivingAssist_Vehicles",[]];
     if !(_x in _vehicles) then {[_x,_group] call WAIT_fnc_DrivingAssistRelease};
 } forEach _previous;
 _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
+// Rebuild only the current roster's private measurement map; departed vehicles retain no history.
+private _priorTracks=_brain getOrDefault ["geometryTracks",createHashMap];
+private _geometryTracks=createHashMap;
+{_geometryTracks set [netId _x,_priorTracks getOrDefault [netId _x,[]]]} forEach _vehicles;
+_brain set ["geometryTracks",_geometryTracks];
 {
     private _vehicle=_x;
     private _driver=driver _vehicle;
@@ -257,7 +262,9 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call WAIT_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
-            private _geometry=if (!_reverseLeg) then {[_vehicle,_capMps] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+            private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call WAIT_fnc_DrivingTurnTrack;
+            _geometryTracks set [netId _vehicle,_turn select 1];
+            private _geometry=if (!_reverseLeg) then {[_vehicle,_capMps,false,[_turn select 0]] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
             private _gateObservation=_geometry select 0;
             private _obstacleObservation=_geometry select 1;
             if (_gateObservation isNotEqualTo [] && {(_gateObservation select 0) < (_traffic select 0)}) then {_traffic=_gateObservation};
