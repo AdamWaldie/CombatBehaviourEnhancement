@@ -21,6 +21,9 @@
  * receive no assumed forward-speed allowance. This does not establish crossing right-of-way.
  * Owned traffic stops remain sampled; congestion suppresses route refresh/reverse rather than
  * treating a queue as navigation failure. No crossing priority or passing is inferred here.
+ * The owned rear leg resamples its body corridor once per second on the existing scheduler,
+ * stopping for new obstructions without extending its six-second deadline. Intended direction
+ * is checked while stopped; an expired rear leg observes the forward retry before issuing it.
  * Reverse admission uses a fresh body-sized rear corridor observation shared with tracked
  * withdrawal. Actor and solid-geometry clearance does not prove native reverse execution.
  * Only the current leader vehicle can refresh/reverse the shared route. Followers keep native
@@ -187,7 +190,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 _state set [5,time];
                 _state set [6,0];
                 _state set [7,-1];
-                _state set [8,"NEW_ROUTE"];
+                _state set [8,"NEW_ROUTE"];_state set [10,false];
             };
             // A follower must not retain the cautious-reverse stage of a former leader.
             // Start a fresh observation interval if it later becomes the leader again.
@@ -196,11 +199,11 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 _state set [5,time];
                 _state set [6,0];
                 _state set [7,-1];
-                _state set [8,"NATIVE_FOLLOWER"];
+                _state set [8,"NATIVE_FOLLOWER"];_state set [10,false];
             };
             if (_state isNotEqualTo [] && {call _nativeWaiting}) then {
                 _state set [4,getPosATL _vehicle];_state set [5,time];
-                _state set [6,0];_state set [7,-1];_state set [8,"INTENTIONAL_WAIT"];
+                _state set [6,0];_state set [7,-1];_state set [8,"INTENTIONAL_WAIT"];_state set [10,false];
             };
             private _origin=getPosASL _vehicle;
             private _direction=vectorDir _vehicle;
@@ -236,15 +239,35 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             // cap is detected and the pre-WAIT value can be restored exactly.
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
-            private _traffic=if ((_state param [6,0]) != 2) then {
+            private _reverseIssued=_state param [10,(_state param [8,""]) == "CAUTIOUS_REVERSE"];
+            private _reverseLeg=(_state param [6,0]) == 2 && {_reverseIssued}
+                && {time < (_state param [7,-1])};
+            private _reverseExpired=(_state param [6,0]) == 2 && {_reverseIssued} && {!_reverseLeg};
+            private _retryAllowed=!_reverseExpired || {
+                [_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled
+                    && {!(behaviour leader _group in ["COMBAT","STEALTH"])} && {getSuppression _driver <= 0.1}
+                    && {call _mayRecoverRoute}
+            };
+            private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call WAIT_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
             // Share the convoy observer without adding a second speed writer. Its zero cap
             // uses the existing traffic lease and faster sampling, and cannot trigger recovery.
-            private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true] call WAIT_fnc_CortexInfantrySpeed;
+            // Check the intended rear direction even while stopped. At the finite rear-leg
+            // deadline observe the forward retry, so a rear-only obstacle cannot trap handback.
+            private _travelIntent=if (_reverseLeg) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
+            private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true,_travelIntent] call WAIT_fnc_CortexInfantrySpeed;
+            if (_reverseLeg) then {
+                private _rearObservation=[_vehicle,8] call WAIT_fnc_DrivingRearClear;
+                if !(_rearObservation select 0) then {_traffic=[0,_vehicle,-1,time,0]};
+            };
             if (_pedestrianCap/3.6 < (_traffic select 0)) then {
                 _traffic=[_pedestrianCap/3.6,_vehicle,-1,time,0];
             };
+            // An expired owned rear command cannot keep moving just because combat or a
+            // recovery feature change currently prevents the forward retry. Hold its exact
+            // speed lease until normal retry admission or a newer order/controller takes over.
+            if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
             private _trafficLimited=!isNull (_traffic select 1);
             _capMps=_capMps min (_traffic select 0);
             if !(call _mayIssueDriving) then {
@@ -274,7 +297,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 // Keep an already-issued rear leg finite. After the pedestrian clears,
                 // its expired deadline returns to the authored route instead of losing
                 // the rear-leg receipt and treating backward travel as ordinary progress.
-                if (_recoveryStage != 2) then {_recoveryStage=0;_recoveryUntil=-1};
+                if (_recoveryStage != 2) then {_recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false};
                 _recoveryResult="TRAFFIC_FOLLOW";
             };
             private _routeProgress=true;
@@ -294,7 +317,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 _progressAt=time;
                 _recoveryStage=0;
                 _recoveryUntil=-1;
-                _recoveryResult="PROGRESS";
+                _recoveryResult="PROGRESS";_reverseIssued=false;
             };
             private _waypointIndex=currentWaypoint _group;
             private _hasRoute=_waypointIndex < count waypoints _group;
@@ -318,7 +341,7 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                             _movementOperator doMove _destination;
                             _recoveryStage=1;
                             _recoveryUntil=time+30;
-                            _recoveryResult="ROUTE_REFRESH";
+                            _recoveryResult="ROUTE_REFRESH";_reverseIssued=false;
                         };
                         case 1: {
                             private _rear=_vehicle getPos [8,(getDir _vehicle)+180];
@@ -328,9 +351,9 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                                 && {((surfaceNormal _rear) select 2) >= 0.7};
                             if (_rearSafe && {call _mayIssueDriving} && {call _mayRecoverRoute}) then {
                                 _movementOperator doMove _rear;
-                                _recoveryResult="CAUTIOUS_REVERSE";
+                                _recoveryResult="CAUTIOUS_REVERSE";_reverseIssued=true;
                             } else {
-                                _recoveryResult="REAR_BLOCKED";
+                                _recoveryResult="REAR_BLOCKED";_reverseIssued=false;
                             };
                             _recoveryStage=2;
                             _recoveryUntil=time+6;
@@ -339,10 +362,10 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                             _movementOperator doMove _destination;
                             _recoveryStage=3;
                             _recoveryUntil=time+60;
-                            _recoveryResult="FINAL_ROUTE_RETRY";
+                            _recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false;
                         };
                         default {
-                            _recoveryResult="EXHAUSTED";
+                            _recoveryResult="EXHAUSTED";_reverseIssued=false;
                             _recoveryUntil=time+60;
                         };
                     };
@@ -351,8 +374,8 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 };
             };
             _vehicle setVariable ["WAIT_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
-                _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity]];
-            _vehicle setVariable ["WAIT_DrivingAssist_Next",time+([4,1] select _trafficLimited)];
+                _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued]];
+            _vehicle setVariable ["WAIT_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_recoveryStage == 2}))];
             };
             };
         };

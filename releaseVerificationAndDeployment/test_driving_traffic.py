@@ -69,11 +69,11 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('WAIT_DrivingAssist_Traffic',s.split('getForcedSpeed _vehicle == 0',1)[1].split('then {_release=true}',1)[0])
         self.assertIn('_capMps=_capMps min (_traffic select 0)',s)
         self.assertLess(s.index('call WAIT_fnc_DrivingFollowingCap'),s.index('_vehicle forceSpeed _capMps'))
-        self.assertIn('time+([4,1] select _trafficLimited)',s)
+        self.assertIn('time+([4,1] select (_trafficLimited || {_recoveryStage == 2}))',s)
     def test_fsm_uses_existing_queue_and_cleanup_clears_observation(self):
         step=src('drivingOperationStep')
         self.assertIn('"TRAFFIC"',step)
-        self.assertIn('time+([4,1] select _traffic)',step)
+        self.assertIn('time+([4,1] select (_traffic || {_rearLeg}))',step)
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
         self.assertIn('class TrafficFollowing',fsm)
         self.assertIn('to="TrafficFollowing"',fsm)

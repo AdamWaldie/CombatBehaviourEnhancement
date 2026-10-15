@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Observes the swept rear body corridor before a native vehicle reverse command.
+ * Purpose: Observes the swept rear body corridor before and during an owned native reverse leg.
  * Locality / Authority: Read-only on the current vehicle owner. It issues no movement, speed,
  * collision, physics or crew command. The consuming finite operation retains movement authority.
  * Repeat/JIP: No retained clearance or handlers. Each command boundary obtains fresh geometry;
@@ -29,7 +29,7 @@ private _halfWidth=((abs _left) max (abs _right))+4;
 private _radius=sqrt (((abs _rear+_distance+4)^2)+(_halfWidth^2));
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 // Keep corpse density out of the live-person budget without dropping wrecked vehicles.
-// These are two bounded-envelope native queries only when reverse admission is sampled.
+// Two bounded-envelope native queries per reverse admission or active-leg safety sample.
 private _actors=(_vehicle nearEntities ["CAManBase",_radius])
     +(_area nearEntities [["LandVehicle"],false,false,false]);
 if (count _actors > 64) exitWith {[false,"DENSE_REAR_TRAFFIC",time,0]};

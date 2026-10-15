@@ -4,7 +4,8 @@
  * Locality/authority: Read-only on the current vehicle owner; never issues movement commands.
  * Repeat/JIP: Fresh bounded observations only; no handlers, leases or cached clearance to replay.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 requested km/h <NUMBER, 0>;
- * 2 controlling group <GROUP, grpNull>; 3 ordinary driving <BOOL, false>.
+ * 2 controlling group <GROUP, grpNull>; 3 ordinary driving <BOOL, false>;
+ * 4 travel intent <NUMBER, 0>: 0 actual velocity, -1 owned rear leg, 1 owned forward retry.
  * Ordinary mode follows the driving-assistance gate; convoy mode retains its opt-in infantry gate.
  * Return Value: NUMBER km/h, zero..request. Dense sets fail closed. At most 32 pedestrian hulls,
  * eight corners each; a speed-dependent query is capped at 250 m. Nominal braking and four-second
@@ -13,7 +14,7 @@
  * Example: private _speed = [_truck,30,group driver _truck,true] call WAIT_fnc_CortexInfantrySpeed;
  */
 params [["_vehicle",objNull,[objNull]],["_requested",0,[0]],
-    ["_group",grpNull,[grpNull]],["_ordinary",false,[false]]];
+    ["_group",grpNull,[grpNull]],["_ordinary",false,[false]],["_travelIntent",0,[0]]];
 if (!finite _requested) exitWith {0};
 _requested=(_requested max 0) min 126;
 if (isNull _vehicle || {isNull _group} || {!local _vehicle}) exitWith {_requested};
@@ -23,7 +24,9 @@ private _enabled=if (_ordinary) then {
 if (!_enabled) exitWith {_requested};
 private _bounds=boundingBoxReal _vehicle;
 private _low=_bounds select 0;private _high=_bounds select 1;
-private _reverse=(velocityModelSpace _vehicle select 1) < -0.5;
+private _reverse=if (_travelIntent == 0) then {
+    (velocityModelSpace _vehicle select 1) < -0.5
+} else {_travelIntent < 0};
 private _sign=[1,-1] select _reverse;
 private _edge=if (_reverse) then {-(_low select 1)} else {_high select 1};
 private _speed=abs (velocityModelSpace _vehicle select 1);
