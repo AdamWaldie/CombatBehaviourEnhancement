@@ -155,3 +155,13 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('if (_mayRestoreGroup && {!_preserveMoves})',release)
         self.assertIn('!_preserveMoves,_preserveMoves',release)
         self.assertIn('if (_mayStopOwned && {_pathOwned})',release)
+
+    def test_bypass_approach_allowance_ends_at_ordered_entry(self):
+        s=(ROOT/'addons/vehicles/functions/convoyBypassStep.sqf').read_text()
+        cap=s.split('private _room=0;',1)[1].split('_caps set [netId _vehicle,_cap];',1)[0]
+        self.assertIn('if (_checkpoint == 0)',cap)
+        self.assertIn('_origin distance2D (_points select 0)',cap)
+        self.assertIn('-_body-6',cap)
+        self.assertIn('getMass _vehicle',cap)
+        self.assertIn('private _target=8/3.6',cap)
+        self.assertNotIn('forceSpeed',cap)

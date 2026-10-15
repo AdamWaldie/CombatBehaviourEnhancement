@@ -6,6 +6,8 @@
  * migration without replay or clock renewal. Terminal identity prevents failed episode recreation.
  * Arguments: 0 group <GROUP, grpNull>; 1 configuration <ARRAY, []>; 2 cancel reason <STRING, empty>.
  * Return Value: ARRAY [active BOOL, capsMps HASHMAP keyed netId, passed NUMBER, required NUMBER].
+ * Approach caps use current hull distance and the existing nominal mass/reaction model;
+ * after ordered first-checkpoint entry the ceiling is 8 km/h until actual full-hull passage.
  * Bounds: at most 20 vehicles, 24 checkpoints, four checkpoint advances/eight hull corners per
  * vehicle per callback; metadata only, no rays or world scans. Lead passage cannot pass followers.
  * Current callers: ConvoyTick, ConvoyCrewLocal and ConvoyReleaseLocal.
@@ -96,7 +98,20 @@ private _caps=createHashMap;private _passedCount=0;private _changed=false;privat
                     if ((_corner vectorDiff (_episode get "far")) vectorDotProduct (_episode get "forward") < 5) then {_clear=false};
                 } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];} forEach [_low select 0,_high select 0];
             };
-            if (_clear) then {_row set [4,true];_changed=true;_passedCount=_passedCount+1} else {_caps set [netId _vehicle,8/3.6]};
+            if (_clear) then {_row set [4,true];_changed=true;_passedCount=_passedCount+1} else {
+                // Distant followers keep approach room rather than inheriting an immediate
+                // whole-column crawl. Ordered first-checkpoint entry ends this allowance.
+                private _room=0;
+                if (_checkpoint == 0) then {
+                    private _bounds=boundingBoxReal _vehicle;private _low=_bounds select 0;private _high=_bounds select 1;
+                    private _body=(abs (_low select 1)) max (abs (_high select 1));
+                    _room=((_origin distance2D (_points select 0))-_body-6) max 0;
+                };
+                private _mass=((1+(((getMass _vehicle)-3000)/7000)) max 1) min 2.5;
+                private _deceleration=4/_mass;private _reaction=4*_deceleration;private _target=8/3.6;
+                private _cap=(sqrt (((_target+_reaction)^2)+2*_deceleration*_room)-_reaction) max _target;
+                _caps set [netId _vehicle,_cap];
+            };
         };
     };
 } forEach _rows;
