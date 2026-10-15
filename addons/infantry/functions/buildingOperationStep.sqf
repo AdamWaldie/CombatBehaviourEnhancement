@@ -17,6 +17,8 @@
  * Entry/support/egress floor comparisons use absolute ASL elevation, never differences
  * between heights relative to separate terrain cells. Native movement destinations remain ATL.
  * Idle waiting pairs retain owned current-position holds; waiting never renews the finite episode.
+ * After shared coverage, a completed room holder may yield once to nearby free visited space
+ * which no unfinished worker needs. One candidate check per callback shares the geometry budget.
  * Supported raw transit positions are kept separate from covered clearance targets;
  * checkpoint arrival never substitutes for visiting the assigned room.
  * An entered security partner yields a colliding mover checkpoint to a nearby physically visited
@@ -2095,6 +2097,14 @@ private _delay=call {
         private _followBudgetChanged=false;
         private _followReservations=[];
         private _followReservationsReady=false;
+        // One completed worker may yield per callback, once per original episode.
+        // The public attempt receipt survives locality adoption without renewing deadlines.
+        private _yieldReceipt=_group getVariable ["WAIT_Cortex_ClearYield",[]];
+        private _yieldContext=[_job get "building",_job get "buildingTransform",_job get "hardDeadline"];
+        private _yielded=if (count _yieldReceipt == 4 && {(_yieldReceipt select [0,3]) isEqualTo _yieldContext}) then {
+            +(_yieldReceipt select 3)
+        } else {[]};
+        private _yieldConsidered=false;
         {
             private _unit=_x;
             private _key=netId _unit;
@@ -2104,7 +2114,11 @@ private _delay=call {
                 && {!(_arrived param [4,false,[true]])} && {[_unit] call _actorAvailable}
                 && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}
                 && {currentCommand _unit != "MOVE" || {[_unit] call _ownsCurrentMove}}
-                && {!([_unit] call _activeOwnMove)}) then {
+                && {!([_unit] call _activeOwnMove)}
+                // A yield can revisit a historical node; that old visit cannot stop its new leg.
+                && {(getPosASL _unit) vectorDistance (AGLToASL (_positions select (_arrived select 0))) <= 1.5}
+                && {[_unit,AGLToASL (_positions select (_arrived select 0))] call _roomSegmentClear}
+            ) then {
                 doStop _unit;
                 _arrived set [4,true];
             };
@@ -2159,6 +2173,69 @@ private _delay=call {
                             (getPosASL _unit) vectorDistance _positionASL,_x]
                     };
                     _ranked sort true;
+                    if (_ranked isNotEqualTo [] && {((_ranked select 0) select 0) == 1}) then {
+                        // Every destination is occupied. Do not spend a path/recovery attempt
+                        // by ordering another actor into the same body or reserved destination.
+                        // A completed, still-owned room holder can vacate into shared visited
+                        // space which no unfinished participant needs for its remaining visits.
+                        if (!_yieldConsidered) then {
+                            _yieldConsidered=true;
+                            private _blockedASL=AGLToASL (_positions select ((_ranked select 0) select 3));
+                            private _blockers=_activeWorkers select {
+                                _x != _unit && {!(netId _x in _yielded)}
+                                    && {count (_actorVisits getOrDefault [netId _x,[]]) >= _requiredVisits}
+                                    && {(getPosASL _x) vectorDistance _blockedASL < 1.5}
+                                    && {currentCommand _x in ["","STOP"]}
+                                    && {[_x] call _actorTaskFree} && {[_x] call _actorAvailable}
+                                    && {netId _x in (_job getOrDefault ["roomHolds",createHashMap])
+                                        || {(_follow getOrDefault [netId _x,[]]) param [4,false,[true]]}}
+                            };
+                            if (_blockers isNotEqualTo []) then {
+                                private _cursor=_job getOrDefault ["followYieldCursor",0];
+                                private _blocker=_blockers select (_cursor mod count _blockers);
+                                _job set ["followYieldCursor",_cursor+1];
+                                private _blockerKey=netId _blocker;
+                                private _needed=[];
+                                {
+                                    private _visits=_actorVisits getOrDefault [netId _x,[]];
+                                    if (count _visits < _requiredVisits) then {
+                                        {_needed pushBackUnique _x} forEach ((_cleared select [0,24])-_visits);
+                                    };
+                                } forEach _activeWorkers;
+                                private _spots=(_cleared select [0,24]) select {
+                                    private _spot=AGLToASL (_positions select _x);
+                                    !(_x in _needed)
+                                        && {abs (((getPosASL _blocker) select 2)-(_spot select 2)) <= 0.75}
+                                        && {(getPosASL _blocker) vectorDistance _spot >= 2}
+                                        && {(getPosASL _blocker) vectorDistance _spot <= 8}
+                                        && {_followReservations findIf {
+                                            (_x select 0) != _blockerKey && {
+                                                (_x select 1) vectorDistance _spot < 1.5
+                                                    || {(_x select 2) isNotEqualTo [] && {(_x select 2) vectorDistance _spot < 1.5}}
+                                            }
+                                        } < 0}
+                                };
+                                private _spotRanks=_spots apply {[(getPosASL _blocker) vectorDistance (AGLToASL (_positions select _x)),_x]};
+                                _spotRanks sort true;
+                                if (_spotRanks isNotEqualTo []) then {
+                                    private _yieldIndex=(_spotRanks select 0) select 1;
+                                    private _yieldTarget=+(_positions select _yieldIndex);
+                                    if ([_blocker,AGLToASL _yieldTarget] call _roomSegmentClear
+                                        && {[_blocker] call _actorAvailable} && {[_blocker] call _actorTaskFree}
+                                        && {currentCommand _blocker in ["","STOP"]} && {call _mayIssueMovement}) then {
+                                        _blocker doMove _yieldTarget;
+                                        [_blocker,_yieldTarget] call _rememberMove;
+                                        _follow set [_blockerKey,[_yieldIndex,0,_now,false,false,[],_now,getPosASL _blocker]];
+                                        _yielded pushBackUnique _blockerKey;
+                                        _group setVariable ["WAIT_Cortex_ClearYield",_yieldContext+[+_yielded],true];
+                                        private _slot=_followReservations findIf {(_x select 0) == _blockerKey};
+                                        if (_slot >= 0) then {(_followReservations select _slot) set [2,AGLToASL _yieldTarget]};
+                                    };
+                                };
+                            };
+                        };
+                        continue;
+                    };
                     if (_ranked isNotEqualTo []) then {
                         private _index=(_ranked select 0) select 3;
                         private _target=[_index] call _roomMovementPoint;

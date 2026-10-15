@@ -11,11 +11,27 @@ class FollowThroughOccupancyTests(unittest.TestCase):
         candidates += [(0, 0, 9.0, 2)]
         self.assertEqual(min(candidates)[3], 2)
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
-        rank = source.split('private _ranked=_candidates apply {', 1)[1]
         # Locate the follow-through ranking by its unique reservation snapshot.
         rank = source.split('private _occupied=_followReservations findIf {', 1)[1].split('_ranked sort true;', 1)[0]
         self.assertLess(rank.index('[[0,1] select _occupied'), rank.index('[0,1] select (abs (_unitFloor'))
         self.assertIn('vectorDistance _positionASL < 1.5', rank)
+
+    def test_yield_preserves_unfinished_visits_ownership_and_deadline(self):
+        source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        block = source.split('if (_ranked isNotEqualTo [] && {((_ranked select 0) select 0) == 1}) then {',1)[1].split('private _index=(_ranked select 0) select 3;',1)[0]
+        for gate in ['count (_actorVisits getOrDefault [netId _x,[]]) >= _requiredVisits',
+                     'currentCommand _blocker in ["","STOP"]', '!(_x in _needed)',
+                     'call _roomSegmentClear', 'call _mayIssueMovement', 'continue;',
+                     '_yielded pushBackUnique _blockerKey']:
+            self.assertIn(gate, block)
+        self.assertNotIn('set ["deadline"',block)
+        self.assertNotIn('call WAIT_fnc_RecoveryStep',block)
+        self.assertNotIn('_failedTargets pushBack',block)
+        self.assertIn('_yieldContext+[+_yielded]',block)
+        self.assertIn('(_yieldReceipt select [0,3]) isEqualTo _yieldContext',source)
+        arrival=source.split('if (_arrived isNotEqualTo []',1)[1].split('doStop _unit;',1)[0]
+        self.assertIn('vectorDistance (AGLToASL (_positions select (_arrived select 0))) <= 1.5',arrival)
+        self.assertIn('call _roomSegmentClear',arrival)
 
 if __name__ == '__main__':
     unittest.main()
