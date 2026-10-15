@@ -175,3 +175,17 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('_reason="UNSTABLE_SUPPORT"',support)
         self.assertIn('if (_reason != "") exitWith',s)
         self.assertEqual(s.count('lineIntersectsSurfaces'),2)
+
+    def test_native_stop_prevents_all_driving_release_movement(self):
+        for name, actor in (("drivingBypassRelease", "_x"),
+                            ("drivingCorridorRelease", "_actor"),
+                            ("drivingRecoveryRelease", "_x")):
+            with self.subTest(release=name):
+                s=(ROOT / "addons/vehicles/functions" / (name+".sqf")).read_text(encoding="utf-8")
+                guard='currentCommand '+actor+' != "STOP"'
+                self.assertIn(guard, s)
+                self.assertLess(s.index(guard), s.index('doStop _driver'))
+                self.assertIn('expectedDestination _driver', s)
+                self.assertIn('expectedDestination _operator', s)
+                self.assertIn('WAIT_fnc_CortexZeusHeld', s)
+                self.assertIn('WAIT_fnc_CortexExternalTakeover', s)
