@@ -9,7 +9,8 @@
  * 3 waypoint engine index <NUMBER>, -1: negative reads all; otherwise read only that handle.
  * Return: ARRAY of waypoint metadata rows; empty for null/no authored entries. Cost is proportional
  * to waypoint count (fixed reads per row), not a world scan; large-route costs require profiling.
- * Current callers: CortexAirAttack admission/owner callback, ConvoyTick recovery and DrivingRouteReceipt.
+ * Current callers: CortexAirAttack admission/owner callback, ConvoyTick recovery,
+ * DrivingRouteReceipt and NativeOrderReceipt task/CQB guards.
  * Example: private _receipt=[group pilot1,"WAIT_AIR_ownedToken"] call WAIT_fnc_AuthoredRouteReceipt;
  */
 params [["_group",grpNull,[grpNull]],["_ownedName","",[""]],["_ownedOnly",false,[true]],["_waypointIndex",-1,[0]]];

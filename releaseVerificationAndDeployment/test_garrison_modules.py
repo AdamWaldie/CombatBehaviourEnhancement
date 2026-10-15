@@ -38,8 +38,12 @@ class GarrisonModuleTests(unittest.TestCase):
         self.assertNotIn('sortByHeight',src('cortexGarrisonApplyLocal'))
     def test_receipts_include_authored_waits_and_zeus_replacement(self):
         receipt=(ROOT/'addons/core/functions/nativeOrderReceipt.sqf').read_text()
-        for command in ('waypointCompletionRadius','waypointStatements','waypointTimeout','synchronizedTriggers'):
-            self.assertIn(command+' _waypoint',receipt)
+        metadata=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text()
+        self.assertIn('[_group,"",false,_index] call WAIT_fnc_AuthoredRouteReceipt',receipt)
+        for command in ('waypointCompletionRadius','waypointStatements','waypointTimeout','synchronizedTriggers',
+                        'waypointScript','waypointAttachedObject','waypointAttachedVehicle',
+                        'synchronizedWaypoints','waypointHousePosition','waypointLoiterAltitude'):
+            self.assertIn(command+' _waypoint',metadata)
         self.assertNotIn('call compile',receipt)
         self.assertNotIn('execVM',receipt)
         dispatch=src('cortexOrderDispatch'); local=src('cortexOrderLocal')

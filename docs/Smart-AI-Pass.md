@@ -562,3 +562,11 @@ eligibility check also precedes handoff. The new clear records native order stat
 its authorized cleanup, so removal of WAIT waypoints is not mistaken for a later mission edit.
 Late operation-start refusal retains its existing cancellation handling; this is not a
 universal transaction guarantee. Expired/changed resumes and successful handoff need live retesting.
+
+CQB and authenticated Zeus task admission now use the same full current-waypoint metadata
+snapshot as driving: scripts, attachment identities, synchronized waypoints, house positions,
+loiter settings and existing native fields all participate. The compact count/no-order sentinel
+is retained. Attached target motion is not a replacement order; changing the attachment is.
+This closes same-index edit gaps in delayed owner dispatch, clearance continuation and held
+post-clear state. It reads current-node metadata only, without running authored code or adding
+world scans. Same-index edits, moving attachments, JIP/HC and overhead remain physically unverified.
