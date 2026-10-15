@@ -22,6 +22,9 @@
  * If no interior point is available, one bounded exterior exit selection may vacate the holder.
  * Early exits use the same callback, retain their 45-second deadline and public episode receipt,
  * and are reused at group egress without restarting movement or granting synthetic arrival.
+ * Terminal cleanup releases unchanged settings independently of movement diversion and journals
+ * only actors it physically stopped for later native-order handback. Early exits retire into
+ * the terminal route evidence instead of remaining an active replay journal.
  * Eight seconds without actual motion permits the shared generation's one recovery attempt;
  * consumed retries survive owner adoption, while local observation never extends the exit budget.
  * Supported raw transit positions are kept separate from covered clearance targets;
@@ -199,6 +202,7 @@ private _delay=call {
         private _result = ["INCOMPLETE","COMPLETE"] select (count (_job get "cleared") == count (_job get "positions") && {!(_job getOrDefault ["egressFailed",false])} && {!(_job getOrDefault ["entryFailed",false])});
         if (_reason != "COMPLETE") then {_result="CANCELLED"};
         private _handbacks=[];
+        private _settled=[];
         // One bounded terminal snapshot preserves the route which actually failed before cleanup
         // clears actors' destinations. No geometry query or recurring trace is added to the hot path.
         private _routeActors=(_job getOrDefault ["team",[]])+(_job getOrDefault ["securityActors",[]]);
@@ -224,7 +228,9 @@ private _delay=call {
         private _routeEvidence=[serverTime,_result,_routeStates,_routeActors apply {
             [netId _x,getPosATL _x,currentCommand _x,expectedDestination _x,
                 _x checkAIFeature "MOVE",_x checkAIFeature "PATH"]
-        },_reason,_stageEvidence];
+        },_reason,_stageEvidence,(keys (_job getOrDefault ["earlyExits",createHashMap])) apply {
+            +((_job get "earlyExits") get _x)
+        }];
         _group setVariable ["WAIT_Cortex_ClearRouteEvidence",_routeEvidence,true];
         diag_log format ["WAIT CLEAR ROUTE END: %1",_routeEvidence];
         if (!isNull _group) then {
@@ -258,6 +264,7 @@ private _delay=call {
                                 // Recalling an incomplete team around an interior leader creates a wedge.
                                 // A later native/Zeus order replaces this one-shot hold; no loop rewrites it.
                                 doStop _x;
+                                _settled pushBackUnique _x;
                             } else {
                                 _x setVariable ["WAIT_Cortex_ClearRecall",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],_leader,time+5]];
                                 _x doFollow _leader;
@@ -279,15 +286,21 @@ private _delay=call {
                     };
                     _x setVariable ["WAIT_Cortex_ClearReserve",nil];
                 };
-            } forEach ((((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]]))) - (_job getOrDefault ["egressDiverted",[]]));
+            // Settings leases must also be retired for diverted actors. Only the guarded
+            // movement block above excludes them; a new destination does not own our old cap.
+            } forEach (((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]])));
             _group setVariable ["WAIT_AIPass_ClearBuilding", nil, true];
             _group setVariable ["WAIT_Cortex_ClearEgress",nil,true];
+            _group setVariable ["WAIT_Cortex_ClearEarlyExits",nil,true];
             _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
             _group setVariable ["WAIT_Cortex_ClearFollowBudget",nil,true];
             _group setVariable ["WAIT_AIPass_ClearApplied", nil];
         };
-        if (_reason == "COMPLETE" && {_restore}) then {
-            _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_NativeOrderReceipt,((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]]))],true];
+        _group setVariable ["WAIT_Cortex_ClearHold",nil,true];
+        if (_reason == "COMPLETE" && {_restore} && {_settled isNotEqualTo []}) then {
+            // Record only actors this finish actually stopped. A diverted or service actor
+            // must never inherit a later formation recall from a hold it did not receive.
+            _group setVariable ["WAIT_Cortex_ClearHold",[_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_NativeOrderReceipt,+_settled],true];
         };
         if (_reason == "NEW_ORDER" && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
             // A native waypoint does not necessarily cancel an actor's explicit movement request.

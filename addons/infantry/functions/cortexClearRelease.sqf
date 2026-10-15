@@ -48,6 +48,7 @@ _group setVariable ["WAIT_AIPass_ClearOrder", nil, true];
 _group setVariable ["WAIT_Cortex_ClearFollowBudget",nil,true];
 _group setVariable ["WAIT_AIPass_ClearBuilding", nil, true];
 _group setVariable ["WAIT_Cortex_ClearEgress",nil,true];
+_group setVariable ["WAIT_Cortex_ClearEarlyExits",nil,true];
 _group setVariable ["WAIT_AIPass_ClearApplied", nil];
 private _leader=[_group] call WAIT_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};

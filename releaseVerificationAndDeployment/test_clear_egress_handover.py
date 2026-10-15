@@ -5,6 +5,21 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 class ClearEgressHandoverTests(unittest.TestCase):
+    def test_terminal_hold_contains_only_actual_settlements_and_cleans_diverted_leases(self):
+        source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        finish = source.split('private _handbacks=[];',1)[1].split('if (_reason == "NEW_ORDER"',1)[0]
+        movement = finish.split('if (_restore && {[_x] call _actorTaskFree}',1)[1].split('_x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true]',1)[0]
+        self.assertIn('!(_x in (_job getOrDefault ["egressDiverted",[]]))',movement)
+        self.assertLess(movement.index('doStop _x'),movement.index('_settled pushBackUnique _x'))
+        loop = finish.split('} forEach ',1)[1].split(';',1)[0]
+        self.assertNotIn('egressDiverted',loop)
+        hold = finish.split('if (_reason == "COMPLETE" && {_restore}',1)[1]
+        self.assertIn('_settled isNotEqualTo []',hold)
+        self.assertIn('WAIT_fnc_NativeOrderReceipt,+_settled]',hold)
+        self.assertIn('WAIT_Cortex_ClearEarlyExits",nil,true',finish)
+        release = (ROOT / 'addons/infantry/functions/cortexClearRelease.sqf').read_text(encoding='utf-8')
+        self.assertIn('WAIT_Cortex_ClearEarlyExits",nil,true',release)
+
     def test_transition_preserves_replacement_before_first_exit_order(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         transition = source.split('// Complete physical coverage and participation', 1)[1]
