@@ -45,7 +45,7 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('serverTime >= (_work get "deadline")',s)
         self.assertIn('_work set ["side",-1]',s)
         self.assertIn('for "_i" from 1 to 4',s)
-        self.assertIn('_origin distance2D (_points select _index) <= 2.5',s)
+        self.assertIn('_closest distance2D _point > 2.5',s)
         self.assertIn('modelToWorldWorld',s)
         self.assertIn('vectorDotProduct (_work get "forward") < 5',s)
         self.assertNotIn('unitReady',s)
@@ -189,3 +189,45 @@ class DrivingBypassTests(unittest.TestCase):
                 for guard in ('expectedDestination _driver', 'expectedDestination _operator',
                               'WAIT_fnc_CortexZeusHeld', 'WAIT_fnc_CortexExternalTakeover'):
                     self.assertIn(guard, release)
+
+
+class BypassObservedCheckpointTests(unittest.TestCase):
+    @staticmethod
+    def capture(points, previous, current, fresh=True):
+        if not fresh:
+            previous=current
+        sweep=[b-a for a,b in zip(previous,current)]
+        squared=sum(v*v for v in sweep[:2])
+        index=0
+        last=0
+        for point in points[:4]:
+            fraction=max(0,min(1,sum((point[i]-previous[i])*sweep[i] for i in (0,1))/squared)) if squared > .01 else 1
+            closest=[previous[i]+sweep[i]*fraction for i in range(3)]
+            if fraction < last or sum((closest[i]-point[i])**2 for i in (0,1)) > 2.5**2 or abs(closest[2]-point[2]) > 2:
+                break
+            last=fraction
+            index+=1
+        return index
+
+    def test_delayed_callback_counts_passed_checkpoint(self):
+        self.assertEqual(self.capture([(0,5,0)],(0,0,0),(0,9,0)),1)
+        self.assertEqual(self.capture([(0,5,0)],(0,0,0),(0,9,0),False),0)
+
+    def test_prefix_and_direction_are_preserved(self):
+        self.assertEqual(self.capture([(5,5,0),(0,8,0)],(0,0,0),(0,10,0)),0)
+        self.assertEqual(self.capture([(0,8,0),(0,3,0)],(0,0,0),(0,10,0)),1)
+
+    def test_height_is_interpolated_and_other_floor_rejected(self):
+        self.assertEqual(self.capture([(0,5,5)],(0,0,0),(0,10,10)),1)
+        self.assertEqual(self.capture([(0,5,0)],(0,0,5),(0,10,5)),0)
+
+    def test_executor_binds_capture_to_current_owner_and_fresh_short_sweep(self):
+        source=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
+        for guard in ('(_capture select 2) isEqualTo _captureOwner','serverTime-(_capture select 1) <= 3',
+                      '_origin vectorDistance (_capture select 0) <= 12','_brain getOrDefault ["ownerEpoch",-1]',
+                      '_fraction < _lastFraction','for "_i" from 1 to 4 do'):
+            self.assertIn(guard,source)
+        self.assertIn('_work set ["capture",[+_origin,serverTime,+_captureOwner]',source)
+        self.assertIn('if (_index != (_work get "index")) then',source)
+        self.assertIn('_brain getOrDefault ["jobToken",""]',source)
+        self.assertIn('_brain getOrDefault ["generation",-1]',source)

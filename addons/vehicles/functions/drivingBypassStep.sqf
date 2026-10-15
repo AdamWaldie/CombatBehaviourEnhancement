@@ -13,7 +13,9 @@
  * 5 controller <STRING, ORDINARY> - ORDINARY or CONVOY; followers never enter this executor.
  * Return Value: ARRAY [active BOOL, capMps NUMBER, phase STRING, sourceConstraintMayYield BOOL].
  * Bounds: one side proposal per callback (max two); FOLLOW validates one actual next segment
- * (at most 15 rays) and advances at most four physical checkpoints per callback. No new scheduler.
+ * (at most 15 rays) and advances at most four ordered physical checkpoints per callback.
+ * Capture uses current pose or a <=3-second, <=12-metre observed ASL segment; it is not
+ * replayed across owner epochs or treated as proof of continuous collision-free travel. No new scheduler.
  * Full ordered checkpoint visit and actual tail clearance alone complete. Invalid geometry,
  * command/owner changes and deadline expiry retain failure; no elapsed-time or ready success.
  * Current callers: DrivingAssistStart and ConvoyTick. Convoy followers retain predecessor trails.
@@ -108,6 +110,7 @@ private _mayWrite={
         && {isAISteeringComponentEnabled _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {isNil {_vehicle getVariable "WAIT_DrivingCorridor_Work"}}
 };
+private _captureOwner=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["jobToken",""],_brain getOrDefault ["generation",-1]];
 private _work=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
 if (!(call _mayWrite)) exitWith {
     if ((_work getOrDefault ["controller",["ORDINARY",-1]]) isEqualTo _controllerReceipt) then {
@@ -184,6 +187,7 @@ if ((_work get "phase") == "PLAN") exitWith {
     if (_operator != _driver) then {doStop _operator};doStop _driver;
     _vehicle setDriveOnPath _points;
     _work set ["phase","FOLLOW"];_work set ["points",_asl];_work set ["index",1];
+    _work set ["capture",[getPosASL _vehicle,serverTime,+_captureOwner]];
     _work set ["radius",_radius];_work set ["height",((_high select 2)-(_low select 2)) max (_envelope param [2,0])];
     _work set ["tailDeadline",(_work get "deadline")+((_columnLength/(8/3.6)+60) min 1710)];
     _work set ["forward",_forward];_work set ["far",_exit vectorDiff (_forward vectorMultiply (_radius+10))];
@@ -192,10 +196,27 @@ if ((_work get "phase") == "PLAN") exitWith {
     [true,8/3.6,"BYPASS_FOLLOW",false]
 };
 private _points=_work get "points";private _index=_work get "index";private _origin=getPosASL _vehicle;
+// A callback can arrive after a checkpoint was passed. Capture only the next ordered
+// prefix against a short observed movement segment, never an arbitrary nearest future point.
+private _capture=_work getOrDefault ["capture",[]];
+private _previous=+_origin;
+if (count _capture == 3 && {(_capture select 2) isEqualTo _captureOwner}
+    && {serverTime >= (_capture select 1)} && {serverTime-(_capture select 1) <= 3}
+    && {_origin vectorDistance (_capture select 0) <= 12}) then {_previous=+(_capture select 0)};
+private _sweep=_origin vectorDiff _previous;
+private _sweepXY=+_sweep;_sweepXY set [2,0];
+private _squared=_sweepXY vectorDotProduct _sweepXY;
+private _lastFraction=0;
 for "_i" from 1 to 4 do {
-    if (_index < count _points && {_origin distance2D (_points select _index) <= 2.5}
-        && {abs ((_origin select 2)-((_points select _index) select 2)) <= 2}) then {_index=_index+1};
+    if (_index >= count _points) exitWith {};
+    private _point=_points select _index;
+    private _offset=_point vectorDiff _previous;_offset set [2,0];
+    private _fraction=if (_squared > 0.01) then {((_offset vectorDotProduct _sweepXY)/_squared) max 0 min 1} else {1};
+    private _closest=_previous vectorAdd (_sweep vectorMultiply _fraction);
+    if (_fraction < _lastFraction || {_closest distance2D _point > 2.5} || {abs ((_closest select 2)-(_point select 2)) > 2}) exitWith {};
+    _lastFraction=_fraction;_index=_index+1;
 };
+_work set ["capture",[+_origin,serverTime,+_captureOwner]];
 if (_index != (_work get "index")) then {_work set ["index",_index];_vehicle setVariable ["WAIT_DrivingBypass_Work",_work,true]};
 if (_index >= count _points) exitWith {
     private _box=boundingBoxReal _vehicle;private _low=_box select 0;private _high=_box select 1;private _clear=true;
