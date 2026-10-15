@@ -41,4 +41,30 @@ class DrivingRearMonitorTests(unittest.TestCase):
         for forbidden in ('setVariable','sendSimpleCommand','forceSpeed','doMove','setVelocity'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
 
+
+
+    def test_tracked_reverse_commands_bind_seats_destinations_and_route(self):
+        s=src('cortexVehicleReverseStep')
+        for marker in ('WAIT_VehicleReverse_Command','driver _ownedVehicle == (_commandReceipt select 1)',
+                       'effectiveCommander _ownedVehicle == (_commandReceipt select 2)',
+                       'expectedDestination (_commandReceipt select 1)',
+                       'expectedDestination (_commandReceipt select 2)',
+                       'WAIT_fnc_DrivingRouteReceipt','COMMAND_OR_SEATS_CHANGED',
+                       '"RELEASED"','bis_fnc_moduleRemoteControl_owner'):
+            self.assertIn(marker,s)
+        release=s.split('private _release={',1)[1].split('if (toUpperANSI _mode',1)[0]
+        self.assertLess(release.index('call _commandsUnchanged'),release.index('sendSimpleCommand'))
+        self.assertNotIn('(_record select 2) == (_group getVariable',release)
+        self.assertIn('getVariable ["WAIT_VehicleReverse",[]]) isEqualTo _record',release)
+        vehicle=src('cortexVehicles')
+        self.assertIn('if (_reverse == "FALLBACK") then',vehicle)
+        self.assertIn('["RELEASED","FALLBACK"] select _fallbackAuthority',s)
+        self.assertLess(s.index('COMMAND_OR_SEATS_CHANGED'),s.index('if (!_eligible) exitWith'))
+        self.assertIn('_fallbackAuthority && {!_handover}',s)
+        fallback=s.split('private _fallbackAuthority=',1)[1].split('private _eligible=',1)[0]
+        for gate in ('ownerEpoch','WAIT_AIPass_Epoch','CortexExternalTakeover','WAIT_ExternalDrivingOwner'):
+            self.assertIn(gate,fallback)
+        group=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text(encoding='utf-8')
+        self.assertIn('_reverseResult in ["COMPLETE","FALLBACK"]',group)
+
 if __name__=='__main__':unittest.main()

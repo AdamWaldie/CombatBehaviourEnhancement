@@ -7668,7 +7668,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('WITHDRAW-tracked-threat-facing',audit)
         for forbidden in ['setDir','setVelocity','setPos','while {','spawn {']:
             self.assertNotIn(forbidden,reverse)
-        self.assertIn('if (_reverse != "REVERSE")',vehicles)
+        self.assertIn('if (_reverse == "FALLBACK")',vehicles)
         self.assertIn('_reverseResult in ["COMPLETE","FALLBACK"]',tick)
         for helper in ['operationCancel','operationRelease','cortexRestoreCalm','cortexLocality']:
             self.assertIn('WAIT_fnc_CortexVehicleReverseStep',source(helper))
