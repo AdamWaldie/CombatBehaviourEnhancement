@@ -14,6 +14,8 @@
  * at most 32 raw transit candidates; eight source-specific connector records bound geometry cost.
  * Already-entered movers request same-floor rooms without revisiting their buddy.
  * New claims wait for the lowest unfinished ASL room band, including rooms claimed by other lanes.
+ * New lead/buddy destinations prefer nodes without another admitted worker's owned approach or
+ * physical occupancy. This bounded preference does not reserve rooms or replan active paths.
  * Entry/support/egress floor comparisons use absolute ASL elevation, never differences
  * between heights relative to separate terrain cells. Native movement destinations remain ATL.
  * Idle waiting pairs retain owned current-position holds; waiting never renews the finite episode.
@@ -165,6 +167,32 @@ private _delay=call {
         if (!([_actor] call _ownsCurrentMove) || {unitReady _actor}) exitWith {false};
         private _issued=(_job get "movementTargets") get (netId _actor);
         (getPosASL _actor) vectorDistance (AGLToASL _issued) > 0.4
+    };
+    // Admission preference only: historical requests must not reserve rooms forever.
+    // Inspect at most the eight admitted interior workers; never redirect an active path.
+    private _occupiedRoomTargets={
+        params ["_excluded"];
+        private _occupied=[];
+        private _moves=_job getOrDefault ["movementTargets",createHashMap];
+        {
+            private _actor=_x;
+            private _issued=_moves getOrDefault [netId _actor,[]];
+            if (!(_actor in _excluded) && {[_actor] call _actorAvailable}
+                && {simulationEnabled _actor} && {!isObjectHidden _actor} && {count _issued == 3}
+                && {[_actor] call _ownsCurrentMove
+                    || {(getPosASL _actor) vectorDistance (AGLToASL _issued) < 2.5}}) then {
+                _occupied pushBack (+_issued);
+            };
+        } forEach ((_job get "team") select [0,8]);
+        _occupied
+    };
+    private _roomTargetOccupied={
+        params ["_candidate","_occupied"];
+        private _candidateASL=AGLToASL _candidate;
+        (_occupied findIf {
+            _candidate distance2D _x < 2.5
+                && {abs ((_candidateASL select 2)-((AGLToASL _x) select 2)) <= 1.5}
+        }) >= 0
     };
     // Callback-local geometry cache and hard ray budget; no persistent observer.
     private _roomGeometryResults=createHashMap;
@@ -1626,6 +1654,14 @@ private _delay=call {
                         _job set ["roomHolds",_holds];
                     };
                     if (_candidates isNotEqualTo []) then {
+                        // Prefer free room destinations before model-order/distance ranking.
+                        // If every candidate is occupied, retain the finite native attempt;
+                        // support occupancy must not empty the pending queue or create a deadlock.
+                        private _occupied=[_pair] call _occupiedRoomTargets;
+                        private _freeCandidates=_candidates select {
+                            !([_positions select _x,_occupied] call _roomTargetOccupied)
+                        };
+                        if (_freeCandidates isNotEqualTo []) then {_candidates=_freeCandidates};
                         private _point=_pair select (_moverIndex mod count _pair);
                         private _ranked=_candidates apply {
                             private _candidate=_positions select _x;
@@ -1944,8 +1980,18 @@ private _delay=call {
                                 _x isNotEqualTo _anchor && {abs (((AGLToASL _x) select 2)-((AGLToASL _anchor) select 2)) <= 1.5}
                                     && {_x distance2D _anchor >= 2.5} && {_x distance2D _anchor <= 8}
                             };
-                            private _ranked=_candidates apply {[_x distance2D _anchor,_x]};
-                            _ranked sort true;
+                            private _occupied=[[_partner]] call _occupiedRoomTargets;
+                            // Prefer non-conflicting native nodes, but keep blocked alternatives
+                            // behind them when the free nodes have no clear interior connection.
+                            private _freeCandidates=_candidates select {
+                                !([_x,_occupied] call _roomTargetOccupied)
+                            };
+                            private _busyCandidates=_candidates-_freeCandidates;
+                            private _freeRanks=_freeCandidates apply {[_x distance2D _anchor,_x]};
+                            private _busyRanks=_busyCandidates apply {[_x distance2D _anchor,_x]};
+                            _freeRanks sort true;
+                            _busyRanks sort true;
+                            private _ranked=_freeRanks+_busyRanks;
                             _ranked resize ((count _ranked) min 24);
                             private _origin=(AGLToASL _anchor) vectorAdd [0,0,0.8];
                             private _connected=_ranked findIf {
