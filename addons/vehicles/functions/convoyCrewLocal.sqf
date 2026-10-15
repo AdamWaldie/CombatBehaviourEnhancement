@@ -140,6 +140,14 @@ private _seats = createHashMap;
     };
 } forEach _vehicles;
 if (_phase != "HALT") exitWith {};
+if (local _group) then {
+    private _passage=_group getVariable ["WAIT_Convoy_CorridorPassage",createHashMap];
+    // HALT is a new explicit revision; retire the original passage only after the existing stops.
+    if (count _passage > 0 && {_revision >= (_passage get "revision")}
+        && {(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {
+            (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+        } >= 0}) then {[_group,[_passage get "revision"],"CONVOY_HALT"] call WAIT_fnc_ConvoyCorridorStep};
+};
 {
     _x params ["_unit", "_vehicle"];
     if (local _unit && {vehicle _unit == _unit} && {(_unit getVariable ["WAIT_Convoy_Unloaded", []]) isNotEqualTo [_group, _revision]}) then {_unit setVariable ["WAIT_Convoy_Unloaded", [_group, _revision], true]};

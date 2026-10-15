@@ -136,3 +136,40 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('WAIT_processed', module)
         self.assertIn('deleteVehicle _logic;', module)
         self.assertIn('[_position,_target,_facing] call WAIT_fnc_ZenDrivingCorridorModule', module)
+
+    def test_tail_passage_has_no_second_movement_or_speed_writer(self):
+        source = (ROOT / 'addons/vehicles/functions/convoyCorridorStep.sqf').read_text().split('params [[',1)[1]
+        for command in ('doMove', 'doFollow', 'doStop', 'forceSpeed', 'setDriveOnPath', 'addWaypoint',
+                        'deleteWaypoint', 'setCurrentWaypoint', 'lineIntersects', 'nearEntities', 'spawn', 'waitUntil'):
+            self.assertNotIn(command, source)
+        self.assertIn('count _rows > 20', source)
+        self.assertIn('modelToWorldWorld', source)
+        self.assertIn('_crossed == count _rows && {count _rows > 0}', source)
+        self.assertIn('"ALL_VEHICLES_PHYSICALLY_CROSSED","COMPLETE"', source)
+        self.assertIn('"TAIL_TIMEOUT"', source)
+        self.assertIn('_terminal param [6,[]]', source)
+        self.assertIn('isNotEqualTo _identity', source)
+        self.assertIn('["LEAD_"+(_leadResult', source)
+    def test_tail_deadline_is_frozen_at_admission_and_not_renewed_by_owner(self):
+        step = (ROOT / 'addons/vehicles/functions/drivingCorridorStep.sqf').read_text()
+        passage = (ROOT / 'addons/vehicles/functions/convoyCorridorStep.sqf').read_text()
+        self.assertIn('min 1800', step)
+        self.assertIn('["tailDeadline",_tailDeadline]', step)
+        self.assertIn('["deadline",_work get "tailDeadline"]', passage)
+        self.assertNotIn('set ["deadline"', passage)
+        self.assertIn('"DESTINATION_CLEARANCE"', step)
+        self.assertIn('waypointCompletionRadius _waypoint max 20', step)
+    def test_tail_caps_and_settlement_use_existing_convoy_callback(self):
+        tick = (ROOT / 'addons/vehicles/functions/convoyTick.sqf').read_text()
+        self.assertEqual(tick.count('call WAIT_fnc_ConvoyCorridorStep'), 1)
+        self.assertIn('private _settled = !_passageActive && {_routeDone}', tick)
+        self.assertLess(tick.index('_limit=_limit min ((_passageCaps'), tick.index('_vehicle forceSpeed _ownedSpeed'))
+        self.assertIn('"CORRIDOR_TAIL"', (ROOT / 'addons/main/fsm/convoyOperation.fsm').read_text())
+    def test_tail_cleanup_matches_original_revision_and_preserves_authored_progression(self):
+        passage = (ROOT / 'addons/vehicles/functions/convoyCorridorStep.sqf').read_text()
+        self.assertIn('(_episode get "revision") == _revision', passage)
+        self.assertIn('currentWaypoint _group < _index', passage)
+        self.assertIn('WAIT_AIPass_ZeusHold', passage)
+        self.assertIn('WAIT_fnc_AuthoredRouteReceipt', passage)
+        crew = (ROOT / 'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
+        self.assertIn('_revision >= (_passage get "revision")', crew)

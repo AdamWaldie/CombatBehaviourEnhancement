@@ -22,6 +22,9 @@
 params [["_group", grpNull, [grpNull]], ["_forget", true, [true]], ["_restore", [], [[]]], ["_keepCrew", [], [[]]], ["_reason", "RELEASED", [""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 private _navigation=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
+if (_keepCrew isEqualTo [] && {local _group}) then {
+    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call WAIT_fnc_ConvoyCorridorStep;
+};
 private _brain=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
 if (count _brain > 0 && {_forget || {toUpperANSI _reason in ["ZEUS","PLAYER","EXTERNAL","EXTERNAL_OWNER","OWNERSHIP_LOST"]}}) then {
     _brain set ["cancelled",true];

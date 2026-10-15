@@ -175,6 +175,11 @@ if (count _work > 0) exitWith {
     if (isNil {_vehicle getVariable "WAIT_DrivingCorridor_Work"}) then {_inactive}
     else {[true,(_definition select 3)/3.6,"CORRIDOR_"+_phase]}
 };
+// An unfinished column passage owns this area episode after its lead has handed back.
+// Do not admit a second lead corridor while the same revision still has vehicles inside/approaching.
+private _passage=_group getVariable ["WAIT_Convoy_CorridorPassage",createHashMap];
+if (_convoy && {count _passage > 0} && {(_passage get "revision") == (_configuration param [0,-1])}
+    && {serverTime < (_passage get "deadline")}) exitWith {_inactive};
 private _destination=waypointPosition _waypoint;
 // Do not replace a newer individual MOVE merely because its group route is unchanged.
 private _native=expectedDestination _operator;
@@ -238,13 +243,35 @@ if (!(call _mayWrite) || {(expectedDestination _operator) isNotEqualTo _native}
     || {_vehicle distance2D ((_proposal select 2) select 0) > 400}
     || {(_proposal select 4) isNotEqualTo _transform}) exitWith {_inactive};
 private _points=_proposal select 2;private _asl=_proposal select 3;
+private _tailLength=0;
+if (_convoy) then {
+    private _column=_configuration param [4,[]];
+    for "_i" from 1 to (count _column-1) do {
+        _tailLength=_tailLength+((_configuration param [2,30]) max ((_column select _i) distance2D (_column select (_i-1))));
+    };
+};
+// Do not drive beyond an authored destination and then turn back into the corridor.
+// A column also needs room for its retained predecessor gaps beyond the far end.
+private _exitPoint=(_proposal select 3) select ((count (_proposal select 3))-1);
+private _exitRoom=((ATLToASL _destination) vectorDiff _exitPoint) vectorDotProduct (_axis vectorMultiply (-_side));
+private _requiredRoom=_tailLength;
+if (_convoy) then {_requiredRoom=_requiredRoom+(waypointCompletionRadius _waypoint max 20)+10};
+if (_exitRoom < _requiredRoom) exitWith {
+    if (count _cooldown >= 32) then {_cooldown deleteAt 0};
+    _cooldown pushBack [_context,serverTime+120];
+    _vehicle setVariable ["WAIT_DrivingCorridor_Cooldown",_cooldown,true];
+    _vehicle setVariable ["WAIT_DrivingCorridor_Result",["DESTINATION_CLEARANCE",serverTime,_area,"ADMISSION"],true];
+    _inactive
+};
+private _tailSpeed=((_definition select 3) min (_configuration param [1,_definition select 3]))/3.6;
+private _tailDeadline=serverTime+((120+(_definition select 1)+45+60+_tailLength/(_tailSpeed max 1.39)) min 1800);
 _operator doMove (_points select 0);
 _work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
     ["route",_route],["area",_area],["definition",_definition],["transform",_transform],
     ["context",_context],["epoch",_group getVariable ["WAIT_AIPass_Epoch",0]],
     ["points",_points],["asl",_asl],["travel",_axis vectorMultiply (-_side)],
     ["far",(getPosASL _area) vectorDiff (_axis vectorMultiply ((_definition select 1)*_side))],
-    ["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
+    ["tailDeadline",_tailDeadline],["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
     ["command",+(expectedDestination _operator)]];
 _vehicle setVariable ["WAIT_DrivingCorridor_Work",_work,true];
 [true,(_definition select 3)/3.6,"CORRIDOR_APPROACH"]

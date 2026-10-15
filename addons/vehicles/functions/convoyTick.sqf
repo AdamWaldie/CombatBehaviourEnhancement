@@ -331,6 +331,10 @@ if ([_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeature
 };
 private _corridorActive=_corridor select 0;
 _state set ["corridorPhase",_corridor select 2];
+private _passage=[_group,_configuration] call WAIT_fnc_ConvoyCorridorStep;
+private _passageActive=_passage select 0;
+private _passageCaps=_passage select 1;
+if (!_corridorActive && {_passageActive}) then {_state set ["corridorPhase","CORRIDOR_TAIL"]};
 private _lastWaypoint = [_group, (count waypoints _group) - 1];
 if (count waypoints _group > 1 && {currentWaypoint _group < count waypoints _group}
     && {waypointType _lastWaypoint == "MOVE"}) then {
@@ -364,7 +368,7 @@ if (!_corridorActive && {!_hadCorridor} && {[_group,"WAIT_Convoy_RouteRecovery_E
 };
 private _routeDone = !_corridorActive && {count waypoints _group > 1} && {currentWaypoint _group >= count waypoints _group}
     && {_lead distance2D waypointPosition _lastWaypoint <= (waypointCompletionRadius _lastWaypoint max 20)};
-private _settled = _routeDone && {_vehicles findIf {abs speed _x >= 1} < 0};
+private _settled = !_passageActive && {_routeDone} && {_vehicles findIf {abs speed _x >= 1} < 0};
 for "_i" from 1 to (count _vehicles - 1) do {
     if ((_vehicles select _i) distance2D (_vehicles select (_i - 1)) > (_gaps select _i) * 1.5) then {_settled = false};
 };
@@ -598,6 +602,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
     if (_vehicleGate isNotEqualTo [] && {(_vehicleGate select 0) < (_traffic select 0)}) then {_traffic=_vehicleGate};
     private _trafficBlocked=!isNull (_traffic select 1);
     _limit=_limit min ((_traffic select 0)*3.6);
+    _limit=_limit min ((_passageCaps getOrDefault [netId _vehicle,1e6])*3.6);
     _limit = [_vehicle,_limit,_group] call WAIT_fnc_CortexInfantrySpeed;
     if ([] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
