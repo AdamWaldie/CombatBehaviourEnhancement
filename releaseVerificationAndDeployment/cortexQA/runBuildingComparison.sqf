@@ -20,7 +20,9 @@
  * the assigned watch point and an unobstructed actual eye-to-watch ray. All living exterior
  * participants in the twelve-person fixture must be observed; stage labels alone cannot pass.
  * An additive garrison overflow case requires all interior posts and two distinct exterior observers,
- * then physical ordinary-order handover. This is navigation/occupation, not combat-effectiveness proof.
+ * then physical ordinary-order handover. A separate natural-contact case retains its original
+ * patrol route and requires actual post-clear travel after native gunfire kills the defender.
+ * No new route or movement reset is injected after that contact starts. This is navigation/occupation, not combat-effectiveness proof.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; all required audit callbacks.
  * Optional fourth argument: nativeOnly <BOOL>, false; stop after independent comparisons.
  * Optional fifth argument: skipNative <BOOL>, false; run production acceptance without repeating controls.
@@ -1682,6 +1684,190 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 deleteGroup _contactGroup;
 deleteGroup _contactOpposition;
 deleteVehicle _contactHouse;
+
+// Independent natural-contact continuation case; original no-route acceptance above is retained.
+// One plain patrol waypoint is established before enabling contact. After actual entry, the
+// initially protected defender becomes vulnerable; only native gunfire may kill it. No later
+// waypoint/actor movement/reset/clear request or result assignment can manufacture continuation.
+if (!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])) then {
+private _routeContactSite=[7750,5800,0];
+private _routeContactHouse=createVehicle ["Land_i_House_Small_01_V1_F",_routeContactSite,[],0,"NONE"];
+_routeContactHouse enableSimulationGlobal true;
+[_routeContactHouse,"contact-route"] call _validateNewFixturePlacement;
+private _routeContactRooms=_routeContactHouse buildingPos -1;
+// Find an exterior approach with a genuine view through an opening before creating actors.
+// A hidden room plus an arbitrary rear approach tests absent detection, not contact-to-clear.
+private _routeContactRoom=[];
+private _routeContactApproach=[];
+{
+    private _room=_x;
+    for "_bearing" from 0 to 337.5 step 22.5 do {
+        private _approach=_routeContactSite getPos [38,_bearing];
+        private _from=AGLToASL (_approach vectorAdd [0,0,1.5]);
+        private _to=AGLToASL (_room vectorAdd [0,0,1.5]);
+        if ((lineIntersectsSurfaces [_from,_to,objNull,objNull,true,1,"VIEW","NONE"]) isEqualTo []) exitWith {
+            _routeContactRoom=+_room; _routeContactApproach=+_approach;
+        };
+    };
+    if (_routeContactRoom isNotEqualTo []) exitWith {};
+} forEach (_routeContactRooms select [0,16]);
+private _routeContactGeometryReady=_routeContactRoom isNotEqualTo [];
+if (!_routeContactGeometryReady) then {_routeContactRoom=_routeContactRooms param [0,getPosATL _routeContactHouse]; _routeContactApproach=_routeContactSite vectorAdd [-12,-38,0]};
+private _routeContactGroup=createGroup [east,true];
+private _routeContactOpposition=createGroup [west,true];
+{
+    _x setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _x setVariable ["acex_headless_blacklist",true,true];
+} forEach [_routeContactGroup,_routeContactOpposition];
+_routeContactOpposition setVariable ["WAIT_AIPass_Exclude",true,true];
+private _routeContactMembers=[];
+for "_i" from 0 to 5 do {
+    private _rowOrigin=_routeContactApproach getPos [floor (_i/3)*3,(_routeContactApproach getDir _routeContactHouse)+180];
+    private _unit=_routeContactGroup createUnit ["O_Soldier_F",_rowOrigin getPos [(_i mod 3)*3,(_routeContactApproach getDir _routeContactHouse)+90],[],0,"NONE"];
+    _unit allowDamage false;
+    _unit setVariable ["WAIT_CortexQA_RouteShots",0];
+    _unit addEventHandler ["FiredMan",{
+        params ["_unit"];
+        _unit setVariable ["WAIT_CortexQA_RouteShots",(_unit getVariable ["WAIT_CortexQA_RouteShots",0])+1];
+    }];
+    _unit setDir (_unit getDir _routeContactHouse);
+    _unit setVariable ["acex_headless_blacklist",true,true];
+    _unit setVariable ["WAIT_CortexQA_Label",format ["NATURAL ROUTE CQB %1",_i+1],true];
+    _routeContactMembers pushBack _unit;
+};
+private _routeContactEnemy=_routeContactOpposition createUnit ["B_Soldier_F",_routeContactRoom,[],0,"NONE"];
+_routeContactEnemy allowDamage false;
+// This contact-to-clear fixture requires a posted interior defender, not a pursuer that
+// leaves the building before the squad acquires it. Native sensing, aiming and fire remain.
+_routeContactEnemy disableAI "PATH";
+_routeContactEnemy setDir (_routeContactEnemy getDir leader _routeContactGroup);
+_routeContactEnemy setVariable ["acex_headless_blacklist",true,true];
+_routeContactEnemy setVariable ["WAIT_CortexQA_Label","INDOOR LIVE HOSTILE",true];
+private _routeDestination=_routeContactSite vectorAdd [0,170,0];
+private _routeWaypoint=_routeContactGroup addWaypoint [_routeDestination,0];
+_routeWaypoint setWaypointType "MOVE";
+_routeWaypoint setWaypointSpeed "LIMITED";
+_routeContactGroup setCurrentWaypoint _routeWaypoint;
+private _routeReceipt=[_routeContactGroup] call WAIT_fnc_NativeOrderReceipt;
+_routeContactEnemy addEventHandler ["Killed",{
+    params ["_unit","_killer","_instigator"];
+    _unit setVariable ["WAIT_CortexQA_RouteKilledBy",if (isNull _instigator) then {_killer} else {_instigator}];
+}];
+_routeContactGroup setCombatMode "RED";
+_routeContactOpposition setCombatMode "RED";
+[createHashMapFromArray [
+    ["WAIT_AIPass_BuildingCombat_Enable",true],
+    ["WAIT_AIPass_BuildingCombat_Range",100],
+    ["WAIT_AIPass_Contact_Enable",true]
+]] call WAIT_fnc_CortexTuning;
+private _routeContactSightline=_routeContactGeometryReady && {_routeContactMembers findIf {
+    (lineIntersectsSurfaces [eyePos _x,eyePos _routeContactEnemy,_x,_routeContactEnemy,true,1,"VIEW","NONE"]) isEqualTo []
+} >= 0};
+["BUILD-CONTINUE-visible-fixture",_routeContactSightline,str [_routeContactRoom,_routeContactApproach,_routeContactGeometryReady]] call _check;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",_routeContactMembers+[_routeContactEnemy],true];
+["Natural CQB: original patrol route","The squad starts with one plain patrol waypoint. Native contact must trigger clearance and physical entry. Then the posted defender becomes vulnerable to real fire. Successful physical clearance must hand back to the original waypoint without any new test-side movement order. Protected attackers make this a controller-flow diagnostic, not combat-effectiveness proof.",getPosATL _routeContactHouse] call _phase;
+private _routeNativeContact=[{(units _routeContactGroup) findIf {_x knowsAbout _routeContactEnemy >= 1} >= 0},30] call _wait;
+["BUILD-CONTINUE-native-knowledge",_routeNativeContact,str (_routeContactMembers apply {_x knowsAbout _routeContactEnemy})] call _check;
+private _routeDefenderHeld=(getPosASL _routeContactEnemy) vectorDistance (AGLToASL _routeContactRoom) <= 1.5;
+["BUILD-CONTINUE-interior-defender-retained",_routeDefenderHeld,
+    str [getPosATL _routeContactEnemy,_routeContactRoom,currentCommand _routeContactEnemy]] call _check;
+private _routeNaturalClear=[{_routeContactGroup getVariable ["WAIT_AIPass_ClearBuilding",false]},20] call _wait;
+["BUILD-CONTINUE-natural-clear-started",_routeNativeContact && {_routeNaturalClear},str [_routeContactGroup getVariable ["WAIT_Cortex_ClearStatus",[]],_routeContactGroup getVariable ["WAIT_OperationResult",[]]]] call _check;
+private _routeContactTraceAt=diag_tickTime;
+private _routeContactTraceCount=0;
+private _routeVisitTargets=_routeContactRooms select {
+    private _origin=AGLToASL _x;
+    private _roof=lineIntersectsSurfaces [_origin vectorAdd [0,0,0.5],_origin vectorAdd [0,0,10],objNull,objNull,true,1,"GEOM","NONE"];
+    _roof isNotEqualTo [] && {((_roof select 0) select 2) == _routeContactHouse || {((_roof select 0) select 3) == _routeContactHouse}}
+};
+private _routeVisits=_routeVisitTargets apply {false};
+private _observeRouteRooms={
+    {
+        if (!(_routeVisits select _forEachIndex)) then {
+            private _room=_x;
+            if (_routeContactMembers findIf {[_x,_routeContactHouse,_room] call _observedRoomVisit} >= 0) then {
+                _routeVisits set [_forEachIndex,true];
+            };
+        };
+    } forEach _routeVisitTargets;
+};
+private _routeNaturalEntry=[{
+    call _observeRouteRooms;
+    if (diag_tickTime >= _routeContactTraceAt && {_routeContactTraceCount < 12}) then {
+        _routeContactTraceAt=diag_tickTime+8;
+        _routeContactTraceCount=_routeContactTraceCount+1;
+        private _brain=_routeContactGroup getVariable ["WAIT_BuildingBrain",createHashMap];
+        private _job=_brain getOrDefault ["job",createHashMap];
+        private _operation=_routeContactGroup getVariable ["WAIT_Operation",createHashMap];
+        diag_log format ["WAIT BUILD CONTINUE OWNER: %1",[_routeContactTraceCount,
+            _operation getOrDefault ["intent",""],_operation getOrDefault ["generation",-1],
+            _job getOrDefault ["phase",""],_brain getOrDefault ["lastStepAt",-1],
+            attackEnabled leader _routeContactGroup,_routeContactGroup getVariable ["WAIT_Cortex_ClearStatus",[]]]];
+        {
+            private _key=netId _x;
+            diag_log format ["WAIT BUILD CONTINUE ACTOR: %1",[_routeContactTraceCount,_key,alive _x,
+                getPosATL _x,currentCommand _x,expectedDestination _x,
+                _x in (_job getOrDefault ["team",[]]),
+                (_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [_key,[]],
+                (_job getOrDefault ["actorVisits",createHashMap]) getOrDefault [_key,[]],
+                _x getVariable ["WAIT_Cortex_ActorMove",[]],getUnitState _x]];
+        } forEach (_routeContactMembers select [0,16]);
+    };
+    _routeContactRooms findIf {
+    private _room=_x;
+    _routeContactMembers findIf {[_x,_routeContactHouse,_room] call _observedRoomVisit} >= 0
+} >= 0},90] call _wait;
+["BUILD-CONTINUE-physical-entry",_routeNaturalClear && {_routeNaturalEntry},str (_routeContactMembers apply {[getPosATL _x,currentCommand _x,expectedDestination _x]})] call _check;
+// Enable real casualty resolution only after entry was independently observed. No setDamage,
+// target/reveal or forced-fire call supplies a kill, room visit, result or movement outcome.
+if (_routeNaturalEntry) then {_routeContactEnemy allowDamage true};
+private _routeTerminal=[{
+    call _observeRouteRooms;
+    ((_routeContactGroup getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]
+},180] call _wait;
+private _routeOutcome=(_routeContactGroup getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""];
+private _routeShots=0;
+{_routeShots=_routeShots+(_x getVariable ["WAIT_CortexQA_RouteShots",0])} forEach _routeContactMembers;
+private _defenderKilled=!alive _routeContactEnemy
+    && {(_routeContactEnemy getVariable ["WAIT_CortexQA_RouteKilledBy",objNull]) in _routeContactMembers}
+    && {_routeShots > 0};
+["BUILD-CONTINUE-real-defender-casualty",_routeNaturalEntry && {_defenderKilled},
+    str [alive _routeContactEnemy,_routeShots,_routeContactEnemy getVariable ["WAIT_CortexQA_RouteKilledBy",objNull]]] call _check;
+["BUILD-CONTINUE-clearance-complete",_routeNativeContact && {_routeNaturalClear} && {_routeNaturalEntry}
+    && {_routeTerminal} && {_routeOutcome == "COMPLETE"},str (_routeContactGroup getVariable ["WAIT_Cortex_ClearResult",[]])] call _check;
+private _routePhysicalClear=_routeVisits isNotEqualTo [] && {_routeVisits findIf {!_x} < 0};
+["BUILD-CONTINUE-physical-room-coverage",_routeNaturalClear && {_routePhysicalClear},str [_routeVisitTargets,_routeVisits]] call _check;
+private _continuationOrigins=_routeContactMembers apply {getPosATL _x};
+private _continued=false;
+if (_routeTerminal && {_routeOutcome == "COMPLETE"} && {_defenderKilled} && {_routePhysicalClear}) then {
+    _continued=[{
+        private _bounds=boundingBoxReal _routeContactHouse;
+        private _low=_bounds select 0;private _high=_bounds select 1;
+        _routeContactMembers findIf {
+            private _index=_routeContactMembers find _x;
+            private _origin=_continuationOrigins select _index;
+            private _model=_routeContactHouse worldToModel (getPosATL _x);
+            private _outside=(_model select 0) < (_low select 0)-0.5 || {(_model select 0) > (_high select 0)+0.5}
+                || {(_model select 1) < (_low select 1)-0.5} || {(_model select 1) > (_high select 1)+0.5};
+            !alive _x || {!simulationEnabled _x} || {isObjectHidden _x} || {!isNull objectParent _x}
+                || {!_outside} || {_x distance2D _origin < 25}
+                || {(_origin distance2D _routeDestination)-(_x distance2D _routeDestination) < 20}
+        } < 0
+    },90] call _wait;
+};
+["BUILD-CONTINUE-original-route-physical",_continued,
+    str (_routeContactMembers apply {[netId _x,getPosATL _x,currentCommand _x,expectedDestination _x]})] call _check;
+["BUILD-CONTINUE-authored-route-retained",_continued
+    && {([_routeContactGroup] call WAIT_fnc_NativeOrderReceipt) isEqualTo _routeReceipt},
+    str [_routeReceipt,[_routeContactGroup] call WAIT_fnc_NativeOrderReceipt]] call _check;
+[_routeContactGroup] call WAIT_fnc_CortexClearRelease;
+missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach (_routeContactMembers+[_routeContactEnemy]);
+deleteGroup _routeContactGroup;
+deleteGroup _routeContactOpposition;
+deleteVehicle _routeContactHouse;
+
+};
 
 // A newer actor destination is distinct from the replaced group room route.
 private _overrideSite=[7950,6100,0];

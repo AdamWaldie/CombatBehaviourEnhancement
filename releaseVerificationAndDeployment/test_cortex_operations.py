@@ -7427,7 +7427,7 @@ class CortexOperations(unittest.TestCase):
                        'BUILD-CONTACT-physical-entry','WAIT_AIPass_BuildingCombat_Enable',
                        'WAIT_AIPass_BuildingCombat_Range','knowsAbout _contactEnemy']:
             self.assertIn(marker,audit)
-        natural=audit.split('// Natural building contact acceptance.',1)[1].split('// A newer actor destination',1)[0]
+        natural=audit.split('// Natural building contact acceptance.',1)[1].split('// Independent natural-contact continuation case;',1)[0]
         for forbidden in [' reveal ','WAIT_fnc_CortexClearBuilding','setPos','moveIn']:
             self.assertNotIn(forbidden,natural)
         self.assertEqual(natural.count('disableAI "PATH"'),1)

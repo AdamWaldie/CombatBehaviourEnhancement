@@ -70,5 +70,25 @@ class ClearEgressHandoverTests(unittest.TestCase):
         for forbidden in ('addWaypoint','deleteWaypoint','setCurrentWaypoint','enableAI','setPos'):
             self.assertNotIn(forbidden,block)
 
+    def test_natural_route_fixture_observes_real_handover_without_replacement_orders(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')
+        self.assertIn('BUILD-CONTACT-physical-entry',s)
+        case=s.split('// Independent natural-contact continuation case;',1)[1].split('// A newer actor destination',1)[0]
+        for marker in ('BUILD-CONTINUE-native-knowledge','BUILD-CONTINUE-natural-clear-started',
+                       'BUILD-CONTINUE-physical-entry','BUILD-CONTINUE-real-defender-casualty',
+                       'BUILD-CONTINUE-clearance-complete','BUILD-CONTINUE-physical-room-coverage','BUILD-CONTINUE-original-route-physical',
+                       'BUILD-CONTINUE-authored-route-retained','FiredMan','"Killed"'):
+            self.assertIn(marker,case)
+        observation=case.split('// Enable real casualty resolution',1)[1].split('call WAIT_fnc_CortexClearRelease',1)[0]
+        for command in (' doMove ', ' doFollow ', 'addWaypoint','setCurrentWaypoint',
+                        'call WAIT_fnc_CortexClearBuilding',' setDamage ', ' setPos', ' reveal '):
+            self.assertNotIn(command,observation)
+        self.assertIn('_x distance2D _origin < 25',observation)
+        self.assertIn('distance2D _routeDestination) < 20',observation)
+        self.assertIn('_routeOutcome == "COMPLETE"',observation)
+        self.assertIn('&& {_routePhysicalClear}',observation)
+        self.assertIn('call _observedRoomVisit',case)
+        self.assertIn('call _observeRouteRooms;',observation)
+
 if __name__ == '__main__':
     unittest.main()
