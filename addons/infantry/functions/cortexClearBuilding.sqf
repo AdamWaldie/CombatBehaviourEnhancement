@@ -43,6 +43,8 @@
  * 2: options <HASHMAP> (optional) - resume (default false), preserveBrain (default false for an
  *    explicit order) and operation-specific controls. Natural contact entry uses preserveBrain so
  *    live fire control and contact transitions continue around the single building movement owner.
+ *    minimumActors (NUMBER, default 1) requires 1..16 integer task-free actors before handoff.
+ *    Natural contact requests 4; explicit/resume calls retain the historical default.
  *    contactBelief (default []) is [believed position AGL ARRAY, observed serverTime NUMBER].
  *    A finite hint inside the building and at most five seconds old seeds one floor route.
  *    Its timestamp survives adoption; it never supplies live target tracking or visit credit.
@@ -146,6 +148,15 @@ private _available = (units _group) select {
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
             || {[_x,_admissionGeneration] call _ownedRecall}}
 };
+// Natural contact requires reserve strength beyond the pair. Validate its requested minimum
+// against the real task-free roster, not preliminary live headcount, before any handoff.
+// Explicit calls retain their historical default; resumes can continue with surviving actors.
+private _minimumActors=_options getOrDefault ["minimumActors",1];
+if (!(_minimumActors isEqualType 0) || {!finite _minimumActors}
+    || {_minimumActors < 1} || {_minimumActors > 16} || {_minimumActors != floor _minimumActors}) exitWith {
+    ["INVALID_ACTOR_MINIMUM"] call _refuse
+};
+if (count _available < _minimumActors) exitWith {["INSUFFICIENT_ELIGIBLE_ACTORS"] call _refuse};
 // Existing intact eligible pairs retain admission priority; remaining actors fill capacity.
 private _team = +_available;
 if (_team isEqualTo []) exitWith {["NO_ELIGIBLE_ACTORS"] call _refuse};

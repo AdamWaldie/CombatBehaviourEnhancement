@@ -4,9 +4,11 @@
  * a natural WAIT clearance operation without replacing explicit orders or manufacturing knowledge.
  * Locality / Authority: Runs only on the local group owner during the bounded CONTACT decision.
  * It uses the stored native believed position, never the hostile's current world position,
- * and checks at most three recent contacts. The common building operation remains the sole
+ * and checks at most three recent contacts. Natural admission requests four actually eligible
+ * actors from the executor; nominal headcount cannot satisfy that threshold.
+ * The common building operation remains the sole
  * movement owner. Believed inclusion/roof geometry is not proof an enemy remains in that house.
- * Repeat/JIP: A per-group cooldown bounds failed topology checks. An accepted clear publishes its
+ * Repeat/JIP: A per-group cooldown bounds failed topology and executor admission checks. An accepted clear publishes its
  * normal durable order and is reconstructed by the new owner after locality migration.
  * Arguments: 0: group <GROUP>; 1: group state <HASHMAP>; 2: Cortex knowledge records <ARRAY>.
  * Return Value: Boolean - true only when a physical building-clear operation was started.
@@ -34,7 +36,7 @@ private _anchor=[_group] call WAIT_fnc_CortexGroupAnchor;
 if (isNull _anchor) then {_anchor=leader _group};
 if (isNull _anchor) exitWith {false};
 private _capable=(units _group) select {
-    alive _x && {local _x} && {!isPlayer _x} && {lifeState _x != "INCAPACITATED"}
+    [_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {isNull objectParent _x}
 };
 // A natural entry needs a viable clearing pair plus exterior/reserve strength. Explicit CLEAR
@@ -94,9 +96,13 @@ if (isNull _building) exitWith {
     false
 };
 
-private _accepted=[_group,_building,createHashMapFromArray [["preserveBrain",true],["contact",_enemy],["contactBelief",_contactBelief]]] call WAIT_fnc_CortexClearBuilding;
+private _accepted=[_group,_building,createHashMapFromArray [["preserveBrain",true],["minimumActors",4],["contact",_enemy],["contactBelief",_contactBelief]]] call WAIT_fnc_CortexClearBuilding;
 if (_accepted) then {
     _state set ["buildingContact",[_building,_enemy,serverTime]];
     [_state,"buildingCombat",60] call WAIT_fnc_CortexCooldown;
+} else {
+    // Eligibility may change after the cheap strength check. Avoid repeating the same
+    // building geometry/admission work every decision callback while actors stay protected.
+    [_state,"buildingCombat",8] call WAIT_fnc_CortexCooldown;
 };
 _accepted
