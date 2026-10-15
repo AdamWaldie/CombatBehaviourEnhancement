@@ -13,6 +13,8 @@
  * exceed the budget. An earliest-due cache makes idle callbacks constant-time instead of traversing
  * the complete group queue. Wake requests raised during a callback are merged after traversal,
  * including earlier jobs already skipped; the cache never hides their updated due time.
+ * Aircraft runtime retirement counts retained and pending jobs, so a callback-queued successor
+ * remains eligible for the next tick rather than being discarded by lifecycle reconciliation.
  * Due processing still traverses the queue once and
  * jobs move to the back, so no group is starved when the budget is always spent. When the machine's FPS is below
  * WAIT_AIPass_LowFpsThreshold, rescheduling delays are doubled. While ENDEX or SafeStart is
@@ -160,7 +162,7 @@ if (
     missionNamespace getVariable ["WAIT_Aircraft_DecelerationSchedulerActive", false]
     || {missionNamespace getVariable ["WAIT_Aircraft_LandingSchedulerActive", false]}
 ) then {
-    private _aircraftStates = (_next apply {_x select 2}) select {(_x getOrDefault ["subsystem", ""]) == "AIRCRAFT"};
+    private _aircraftStates = ((_next + (missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []])) apply {_x select 2}) select {(_x getOrDefault ["subsystem", ""]) == "AIRCRAFT"};
     private _decelerationActive = (_aircraftStates findIf {(_x getOrDefault ["jobKey", ""]) find "WAIT_DECEL_" == 0}) >= 0;
     private _landingActive = (_aircraftStates findIf {(_x getOrDefault ["jobKey", ""]) find "WAIT_LANDING_" == 0}) >= 0;
     private _changed = _decelerationActive != (missionNamespace getVariable ["WAIT_Aircraft_DecelerationSchedulerActive", false])

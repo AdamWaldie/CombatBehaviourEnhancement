@@ -53,3 +53,24 @@ class SchedulerReconcileWakeTests(unittest.TestCase):
         self.assertIn('["WAIT_AIPass_Jobs", "WAIT_AIPass_PendingJobs"]',source)
         self.assertEqual(source.count('forEach _retained'),1)
         self.assertIn('missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _earliest]',source)
+
+
+class AircraftPendingRetirementTests(unittest.TestCase):
+    def test_pending_successor_keeps_its_runtime_alive(self):
+        retained=[]
+        pending=[{"subsystem":"AIRCRAFT","jobKey":"WAIT_LANDING_new"}]
+        def active(rows,prefix):
+            return any(r.get("subsystem")=="AIRCRAFT" and r.get("jobKey","").startswith(prefix) for r in rows)
+        self.assertFalse(active(retained,"WAIT_LANDING_"))
+        self.assertTrue(active(retained+pending,"WAIT_LANDING_"))
+        self.assertFalse(active(retained+pending,"WAIT_DECEL_"))
+        self.assertFalse(active([],"WAIT_LANDING_"))
+
+    def test_retirement_observes_both_queues_before_reconcile(self):
+        source=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text()
+        start=source.index('private _aircraftStates =')
+        finish=source.index('if (_changed)',start)
+        observed=source[start:finish]
+        self.assertIn('_next + (missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []])',observed)
+        self.assertIn('WAIT_DECEL_',observed)
+        self.assertIn('WAIT_LANDING_',observed)
