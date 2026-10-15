@@ -471,8 +471,15 @@ if (!_routeDone && {_leadLimit > (_leadSpeedState select 0)}) then {
 private _leadTraffic=if (_trafficAssistEnabled) then {
     [_lead,_leadLimit/3.6] call WAIT_fnc_DrivingFollowingCap
 } else {[_leadLimit/3.6,objNull,-1,time,0]};
-private _leadGate=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6] call WAIT_fnc_DrivingGateCap} else {[]};
+private _leadGeometry=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+private _leadGate=_leadGeometry select 0;private _leadObstacle=_leadGeometry select 1;
 if (_leadGate isNotEqualTo [] && {(_leadGate select 0) < (_leadTraffic select 0)}) then {_leadTraffic=_leadGate};
+private _leadObstacleLimited=_leadObstacle isNotEqualTo [] && {(_leadObstacle select 0) < (_leadTraffic select 0)};
+if (_leadObstacleLimited) then {
+    _leadTraffic=_leadObstacle select [0,5];
+    if (isNull (_leadTraffic select 1)) then {_leadTraffic set [1,_lead]};
+};
+_state set ["obstacleLimited",_leadObstacleLimited];
 private _leadTrafficBlocked=!isNull (_leadTraffic select 1);
 _leadLimit=_leadLimit min ((_leadTraffic select 0)*3.6);
 _leadLimit = [_lead,_leadLimit,_group] call WAIT_fnc_CortexInfantrySpeed;
@@ -598,8 +605,14 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _traffic=if (_trafficAssistEnabled) then {
         [_vehicle,_limit/3.6,_front] call WAIT_fnc_DrivingFollowingCap
     } else {[_limit/3.6,objNull,-1,time,0]};
-    private _vehicleGate=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6] call WAIT_fnc_DrivingGateCap} else {[]};
+    private _vehicleGeometry=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+    private _vehicleGate=_vehicleGeometry select 0;private _vehicleObstacle=_vehicleGeometry select 1;
     if (_vehicleGate isNotEqualTo [] && {(_vehicleGate select 0) < (_traffic select 0)}) then {_traffic=_vehicleGate};
+    if (_vehicleObstacle isNotEqualTo [] && {(_vehicleObstacle select 0) < (_traffic select 0)}) then {
+        _traffic=_vehicleObstacle select [0,5];
+        if (isNull (_traffic select 1)) then {_traffic set [1,_vehicle]};
+        _state set ["obstacleLimited",true];
+    };
     private _trafficBlocked=!isNull (_traffic select 1);
     _limit=_limit min ((_traffic select 0)*3.6);
     _limit=_limit min ((_passageCaps getOrDefault [netId _vehicle,1e6])*3.6);

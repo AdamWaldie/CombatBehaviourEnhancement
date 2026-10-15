@@ -18,6 +18,7 @@ class FSM {
    class CorridorApproach {priority=5;to="CorridorApproach";condition="_phase == ""CORRIDOR_APPROACH""";action="";};
    class CorridorTail {priority=5;to="CorridorTail";condition="_phase == ""CORRIDOR_TAIL""";action="";};
    class CorridorCross {priority=5;to="CorridorCross";condition="_phase == ""CORRIDOR_CROSS""";action="";};
+   class Obstacle {priority=5;to="Obstacle";condition="_phase == ""OBSTACLE""";action="";};
    class Recovery {priority=5;to="Recovery";condition="_phase == ""RECOVERY""";action="";};
    class Spacing {priority=5;to="Spacing";condition="_phase == ""SPACING""";action="";};
    class Arrived {priority=5;to="Arrived";condition="_phase == ""ARRIVED""";action="";};
@@ -29,6 +30,7 @@ class FSM {
   class CorridorApproach {name="CorridorApproach";init="[_group,_registryRevision,_configuration,_brain,""CORRIDOR_APPROACH""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class CorridorTail {name="CorridorTail";init="[_group,_registryRevision,_configuration,_brain,""CORRIDOR_TAIL""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class CorridorCross {name="CorridorCross";init="[_group,_registryRevision,_configuration,_brain,""CORRIDOR_CROSS""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+  class Obstacle {name="Obstacle";init="[_group,_registryRevision,_configuration,_brain,""OBSTACLE""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class Recovery {name="Recovery";init="[_group,_registryRevision,_configuration,_brain,""RECOVERY""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class ContactHold {name="ContactHold";init="[_group,_registryRevision,_configuration,_brain,""CONTACT_HOLD""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class Suspended {name="Suspended";init="[_group,_registryRevision,_configuration,_brain,""SUSPENDED""] call WAIT_fnc_ConvoyOperationQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};

@@ -73,7 +73,7 @@ class DrivingTrafficTests(unittest.TestCase):
     def test_fsm_uses_existing_queue_and_cleanup_clears_observation(self):
         step=src('drivingOperationStep')
         self.assertIn('"TRAFFIC"',step)
-        self.assertIn('time+([4,1] select (_traffic || {_rearLeg} || {_corridor != ""}))',step)
+        self.assertIn('time+([4,1] select (_traffic || {_obstacle} || {_rearLeg} || {_corridor != ""}))',step)
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
         self.assertIn('class TrafficFollowing',fsm)
         self.assertIn('to="TrafficFollowing"',fsm)

@@ -255,8 +255,17 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call WAIT_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
-            private _gateObservation=if (!_reverseLeg) then {[_vehicle,_capMps] call WAIT_fnc_DrivingGateCap} else {[]};
+            private _geometry=if (!_reverseLeg) then {[_vehicle,_capMps] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+            private _gateObservation=_geometry select 0;
+            private _obstacleObservation=_geometry select 1;
             if (_gateObservation isNotEqualTo [] && {(_gateObservation select 0) < (_traffic select 0)}) then {_traffic=_gateObservation};
+            private _obstacleLimited=_obstacleObservation isNotEqualTo []
+                && {(_obstacleObservation select 0) < (_traffic select 0)};
+            if (_obstacleLimited) then {
+                _traffic=_obstacleObservation select [0,5];
+                if (isNull (_traffic select 1)) then {_traffic set [1,_vehicle]};
+            };
+            _vehicle setVariable ["WAIT_DrivingAssist_Obstacle",_obstacleObservation];
             // Share the convoy observer without adding a second speed writer. Its zero cap
             // uses the existing traffic lease and faster sampling, and cannot trigger recovery.
             // Check the intended rear direction even while stopped. At the finite rear-leg
@@ -287,6 +296,8 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
             };
             private _corridorActive=_corridor select 0;
             _capMps=_capMps min (_corridor select 1);
+            // A closer pedestrian/rear constraint can supersede the solid-obstacle sample.
+            _obstacleLimited=_obstacleLimited && {abs ((_traffic select 0)-(_obstacleObservation select 0)) <= 0.001};
             private _trafficLimited=!isNull (_traffic select 1);
             _capMps=_capMps min (_traffic select 0);
             if !(call _mayIssueDriving) then {
@@ -321,7 +332,9 @@ _group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
                 // the rear-leg receipt and treating backward travel as ordinary progress.
                 if (_recoveryStage != 2) then {_recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false};
                 _recoveryResult=if (_corridorActive) then {_corridor select 2} else {
-                    ["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited
+                    if (_obstacleLimited) then {["OBSTACLE_WAIT","OBSTACLE_APPROACH"] select (abs speed _vehicle >= 1)} else {
+                        ["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited
+                    }
                 };
             };
             private _routeProgress=true;

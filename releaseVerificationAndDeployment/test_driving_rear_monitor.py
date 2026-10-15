@@ -26,5 +26,5 @@ class DrivingRearMonitorTests(unittest.TestCase):
     def test_existing_scheduler_samples_active_rear_stage_faster(self):
         self.assertIn('time+([4,1] select (_trafficLimited || {_corridorActive} || {_recoveryStage == 2}))',src('drivingAssistStart'))
         self.assertIn('_rearLeg=_rearLeg || {(_state param [6,0]) == 2}',src('drivingOperationStep'))
-        self.assertIn('time+([4,1] select (_traffic || {_rearLeg} || {_corridor != ""}))',src('drivingOperationStep'))
+        self.assertIn('time+([4,1] select (_traffic || {_obstacle} || {_rearLeg} || {_corridor != ""}))',src('drivingOperationStep'))
 if __name__=='__main__':unittest.main()
