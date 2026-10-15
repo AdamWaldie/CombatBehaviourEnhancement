@@ -163,3 +163,24 @@ class DrivingTrafficTests(unittest.TestCase):
             self.assertNotIn(forbidden,block)
 
 if __name__=='__main__': unittest.main()
+
+
+class CrossingUnacknowledgedPeerTests(unittest.TestCase):
+    def test_imminent_left_crossing_is_not_assumed_to_yield(self):
+        def constrain(from_right, room, stopping_room, candidate, current):
+            allowed=0 if room <= stopping_room else candidate
+            return min(current,allowed) if from_right or room <= stopping_room else current
+        self.assertEqual(constrain(False,10,20,3,12),0)
+        self.assertEqual(constrain(True,10,20,3,12),0)
+        self.assertEqual(constrain(False,50,20,3,12),12)
+        self.assertEqual(constrain(True,50,20,3,12),3)
+
+    def test_sides_share_occupancy_horizon_and_physical_constraints(self):
+        source=src('drivingFollowingCap')
+        prediction=source.split('// Project crossing occupancy',1)[1].split('if (_ahead && {_sameLane}',1)[0]
+        self.assertIn('if (_sameHeight && {_otherSpeed > 0.8})',prediction)
+        self.assertIn('(_fromRight || {_room <= _stoppingRoom})',prediction)
+        self.assertIn('_ownIn < _otherOut+1',prediction)
+        self.assertIn('_otherIn < _ownOut+1',prediction)
+        self.assertIn('if (_room <= _stoppingRoom) then {_allowed=0}',prediction)
+        self.assertEqual(source.count('nearEntities'),1)

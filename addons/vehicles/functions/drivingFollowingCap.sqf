@@ -4,7 +4,9 @@
  * Aligned moving predecessors retain measured forward speed. Other intersecting hulls are treated
  * as occupied space without assuming that crossing or oncoming traffic will yield or move away.
  * Moving crossing traffic on the right also constrains approach when projected hull occupancy
- * windows overlap within six seconds. Current measured velocity defines the other course;
+ * windows overlap within six seconds. Crossing actors from either side inside nominal stopping
+ * room also constrain imminent collision; priority never assumes an unacknowledged peer yields.
+ * Current measured velocity defines the other course;
  * desired/actual forward speed defines our approach. Current vertical overlap is required.
  * Time-window yielding never clears an occupied hull or expires into permission to drive through it.
  * Empty live vehicles and destroyed vehicle entities at any heading remain obstacles;
@@ -88,13 +90,15 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
         private _sameLane=_maxX >= (_low select 0)-0.25 && {_minX <= (_high select 0)+0.25};
         private _sameHeight=_maxZ >= (_low select 2)-0.25 && {_minZ <= (_high select 2)+0.25};
         // Project crossing occupancy on measured courses rather than stopping merely for
-        // closeness. Only the right-hand approach yields; current lane occupancy below always
-        // retains priority, independent of this prediction or who is expected to give way.
+        // closeness. Normal approach yields to the right; either side can require emergency
+        // braking inside stopping room. No peer has acknowledged that it will give way.
+        // Current lane occupancy below remains independent of this prediction.
         private _otherVelocity=velocity _other;_otherVelocity set [2,0];
         private _otherSpeed=vectorMagnitude _otherVelocity;
         private _otherCentre=_other modelToWorldWorld ((_otherLow vectorAdd _otherHigh) vectorMultiply 0.5);
         private _relative=_otherCentre vectorDiff _ownCentre;_relative set [2,0];
-        if (_sameHeight && {_otherSpeed > 0.8} && {_relative vectorDotProduct _right > 0.25}) then {
+        private _fromRight=_relative vectorDotProduct _right > 0.25;
+        if (_sameHeight && {_otherSpeed > 0.8}) then {
             private _course=vectorNormalized _otherVelocity;
             private _denominator=(_forward select 0)*(_course select 1)-(_forward select 1)*(_course select 0);
             if (abs _denominator > 0.2) then {
@@ -115,7 +119,9 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
                     private _allowed=_arrivalCap min _brakingCap;
                     private _stoppingRoom=_ownForward*_reaction+(_ownForward^2)/(2*_deceleration);
                     if (_room <= _stoppingRoom) then {_allowed=0};
-                    if (_allowed < _cap) then {_cap=_allowed;_limiting=_other;_gap=_room};
+                    if ((_fromRight || {_room <= _stoppingRoom}) && {_allowed < _cap}) then {
+                        _cap=_allowed;_limiting=_other;_gap=_room
+                    };
                 };
             };
         };
