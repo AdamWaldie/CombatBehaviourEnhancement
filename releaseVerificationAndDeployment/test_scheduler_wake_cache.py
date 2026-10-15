@@ -36,3 +36,20 @@ class SchedulerWakeCacheTests(unittest.TestCase):
         self.assertIn('_next append _rescheduled;',source)
 
 if __name__ == '__main__': unittest.main()
+
+
+class SchedulerReconcileWakeTests(unittest.TestCase):
+    def test_reconciliation_cannot_postpone_existing_wake(self):
+        rows=[(100,{"wakeAt":10}),(30,{})]
+        effective=min(min(due,state.get("wakeAt",due)) for due,state in rows)
+        old=min(due for due,_ in rows)
+        self.assertEqual(old,30)
+        self.assertEqual(effective,10)
+        self.assertEqual(min(30,{"wakeAt":80}["wakeAt"]),30)
+
+    def test_both_retained_queues_use_effective_due_without_new_scan(self):
+        source=(ROOT/'addons/core/functions/schedulerReconcile.sqf').read_text()
+        self.assertIn('(_x select 0) min ((_x select 2) getOrDefault ["wakeAt",_x select 0])',source)
+        self.assertIn('["WAIT_AIPass_Jobs", "WAIT_AIPass_PendingJobs"]',source)
+        self.assertEqual(source.count('forEach _retained'),1)
+        self.assertIn('missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _earliest]',source)
