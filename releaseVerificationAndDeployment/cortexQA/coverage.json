@@ -1343,7 +1343,8 @@
         "addons/infantry/functions/cortexClearRelease.sqf",
         "addons/core/functions/nativeOrderReceipt.sqf",
         "addons/infantry/functions/combatPairs.sqf",
-        "addons/infantry/functions/zenClearModule.sqf"
+        "addons/infantry/functions/zenClearModule.sqf",
+        "addons/core/functions/positionBucketAdmit.sqf"
       ]
     },
     {

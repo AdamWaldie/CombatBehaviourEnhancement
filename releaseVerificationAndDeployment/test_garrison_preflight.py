@@ -6,7 +6,7 @@ class GarrisonPreflightTests(unittest.TestCase):
     def test_candidate_validation_precedes_cleanup_and_publication(self):
         s=(ROOT/'addons/infantry/functions/cortexGarrison.sqf').read_text(encoding='utf-8')
         cleanup=s.index('call WAIT_fnc_CortexReleaseGroup')
-        for guard in ('!finite _radius','count _units > 64','count _buildings > 64','_positionsSeen > 512','!surfaceIsWater _position','_taken findIf','INVALID_OR_OVER_BUDGET_PLAN'):
+        for guard in ('!finite _radius','count _units > 64','count _buildings > 64','_positionsSeen > 512','!surfaceIsWater _position','WAIT_fnc_PositionBucketAdmit','INVALID_OR_OVER_BUDGET_PLAN'):
             self.assertLess(s.index(guard),cleanup)
         self.assertLess(cleanup,s.index('setVariable ["WAIT_Cortex_GarrisonCandidates"'))
         self.assertEqual(s.count('nearestObjects'),1)

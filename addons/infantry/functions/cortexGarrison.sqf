@@ -87,7 +87,7 @@ if (_inPlace) then {
     if (count _buildings > 64) then {_planningValid=false};
     private _candidates=[];
     private _positionsSeen=0;
-    private _taken=[];
+    private _taken=createHashMap;
     {
         if (!_planningValid) exitWith {};
         private _building=_x;
@@ -98,11 +98,10 @@ if (_inPlace) then {
             {
                 private _position=_x;
                 if (count _position == 3 && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-                    && {!surfaceIsWater _position} && {_taken findIf {_x distance _position < 1} < 0}) then {
+                    && {!surfaceIsWater _position} && {[AGLToASL _position,_taken,1] call WAIT_fnc_PositionBucketAdmit}) then {
                     private _positionASL=AGLToASL _position;
                     private _roofed=(lineIntersectsSurfaces [_positionASL vectorAdd [0,0,1],_positionASL vectorAdd [0,0,15],objNull,objNull,true,1]) isNotEqualTo [];
                     _candidates pushBack [[1,0] select _roofed,if (_sortByHeight) then {-(_position select 2)} else {random 1},count _candidates,_position,getPosATL _building,_building];
-                    _taken pushBack _position;
                 };
             } forEach _positions;
         };

@@ -88,14 +88,13 @@ if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
 };
 private _allPositions = _building buildingPos -1;
 if (count _allPositions > 512) exitWith {["POSITION_BUDGET_EXCEEDED"] call _refuse};
-private _seenPositions=[];
+private _seenPositions=createHashMap;
 private _positions = _allPositions select {
     private _position=_x;
     private _valid=_position isEqualType [] && {count _position == 3}
         && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-        && {_seenPositions findIf {_x vectorDistance _position < 0.5} < 0};
+        && {[AGLToASL _position,_seenPositions,0.5] call WAIT_fnc_PositionBucketAdmit};
     if (!_valid) exitWith {false};
-    _seenPositions pushBack _position;
     private _positionASL=AGLToASL _position;
     private _roofHits=lineIntersectsSurfaces [
         _positionASL vectorAdd [0,0,0.5],_positionASL vectorAdd [0,0,10],objNull,objNull,true,4,"GEOM","NONE"
