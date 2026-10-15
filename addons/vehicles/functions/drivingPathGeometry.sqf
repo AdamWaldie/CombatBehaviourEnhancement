@@ -10,6 +10,7 @@
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY, rayCount].
  * Bound: 24 stations/72 support rays plus 23*9 body rays (279 total). Current corridor calls
  * use at most 20 stations/231 rays. Three body heights include middle-height beams/overhangs.
+ * Terrain and static decks may support proposals; vehicle/person surfaces and moving props cannot.
  * This is discrete sampled geometry, not continuous swept-volume or steering feasibility proof.
  * Current callers: DrivingCorridorGeometry and DrivingBypassPlan.
  * Example: [truck1,_guideASL,2.5,3] call WAIT_fnc_DrivingPathGeometry;
@@ -48,6 +49,11 @@ for "_i" from 0 to (count _guide-1) do {
                 _vehicle,_ignored,true,1,"GEOM","NONE",true];_rays=_rays+1;
             if (_hits isEqualTo []) then {_reason="MISSING_SUPPORT"} else {
                 private _hit=_hits select 0;
+                // A flat roof is not a road deck. Resolve proxy and parent hits so an
+                // occupied, parked or wrecked vehicle cannot become traversable support.
+                private _supportObject=if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2};
+                if (!isNull _supportObject && {_supportObject isKindOf "AllVehicles"
+                    || {vectorMagnitude velocity _supportObject > 0.1}}) then {_reason="UNSTABLE_SUPPORT"};
                 if (surfaceIsWater _sample && {isNull (_hit select 2) || {((_hit select 0) select 2) <= 0.25}}) then {_reason="WET_SUPPORT"};
                 if (((_hit select 1) select 2) < 0.85) then {_reason="STEEP_SUPPORT"};
                 _supports pushBack (_hit select 0);

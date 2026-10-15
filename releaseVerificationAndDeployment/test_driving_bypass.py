@@ -165,3 +165,13 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('getMass _vehicle',cap)
         self.assertIn('private _target=8/3.6',cap)
         self.assertNotIn('forceSpeed',cap)
+
+    def test_path_support_cannot_use_vehicles_people_or_moving_props(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPathGeometry.sqf').read_text(encoding='utf-8')
+        support=s.split('private _hit=_hits select 0;',1)[1].split('_supports pushBack',1)[0]
+        self.assertIn('if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2}',support)
+        self.assertIn('_supportObject isKindOf "AllVehicles"',support)
+        self.assertIn('vectorMagnitude velocity _supportObject > 0.1',support)
+        self.assertIn('_reason="UNSTABLE_SUPPORT"',support)
+        self.assertIn('if (_reason != "") exitWith',s)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
