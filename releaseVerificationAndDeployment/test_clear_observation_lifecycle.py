@@ -55,5 +55,16 @@ class ClearObservationLifecycle(unittest.TestCase):
         self.assertNotIn('setVariable ["_viewConfirmed"',watch)
 
 
+    def test_terminal_watch_clear_requires_the_actual_owned_exit_watch(self):
+        text=(INFANTRY / "buildingOperationStep.sqf").read_text(encoding="utf-8")
+        clear=text.split('private _exitWatch=_x getVariable',1)[1].split('if (_reason == "COMPLETE")',1)[0]
+        for guard in ('count _exitWatch == 3',
+                      '(_exitWatch select 0) == (_job get "generation")',
+                      '(_exitWatch select 1) == (_brain get "ownerEpoch")',
+                      'WAIT_Cortex_ClearExitWatchLocal', 'isEqualTo _exitWatch'):
+            self.assertLess(clear.index(guard),clear.index('_x doWatch objNull'))
+        self.assertEqual(clear.count('doWatch objNull'),1)
+
+
 if __name__ == "__main__":
     unittest.main()

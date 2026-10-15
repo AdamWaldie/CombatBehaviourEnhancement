@@ -25,7 +25,9 @@
  * Physically arrived early exits observe their selected doorway only after a fresh eye ray;
  * one rotating check per callback maintains the watch without another scheduler or movement.
  * Later exterior assignments preserve these observation lanes and prefer uncovered exits.
- * Terminal cleanup releases unchanged settings independently of movement diversion and journals
+ * Terminal cleanup clears only matching generation/owner exit watches; actors without an owned
+ * watch receipt retain their current observation command. Unchanged settings release independently
+ * of movement diversion, and cleanup journals
  * only actors it physically stopped for later native-order handback. Successful natural clears
  * may return those actors to their unchanged plain authored MOVE after common-operation release. Early exits retire into
  * the terminal route evidence instead of remaining an active replay journal.
@@ -265,7 +267,13 @@ private _delay=call {
                         if (_restore && {[_x] call _actorTaskFree}
                             && {!(_x in (_job getOrDefault ["egressDiverted",[]]))}
                             && {currentCommand _x != "MOVE" || {[_x] call _ownsCurrentMove}}) then {
-                            _x doWatch objNull;
+                            private _exitWatch=_x getVariable ["WAIT_Cortex_ClearExitWatch",[]];
+                            if (count _exitWatch == 3
+                                && {(_exitWatch select 0) == (_job get "generation")}
+                                && {(_exitWatch select 1) == (_brain get "ownerEpoch")}
+                                && {(_x getVariable ["WAIT_Cortex_ClearExitWatchLocal",[]]) isEqualTo _exitWatch}) then {
+                                _x doWatch objNull;
+                            };
                             if (_reason == "COMPLETE") then {
                                 // Settlement retains actual positions even when participation failed.
                                 // Recalling an incomplete team around an interior leader creates a wedge.
