@@ -46,7 +46,8 @@
  * A lack of travel, solution or fire aborts the run; elapsed time alone
  * never completes it. Zeus priority, locality loss, explicit exclusions, runtime disablement or a
  * changed curator waypoint end the lease immediately. The named WAIT leg also has a metadata
- * receipt; an edit yields and removes only its WAIT name, preserving the edited native waypoint. Cleanup deletes only that named temporary
+ * receipt; an edit yields and removes only its WAIT name, preserving the edited native waypoint.
+ * Every cleanup path repeats that check, including early cancellation before normal route comparison. Cleanup deletes only that named temporary
  * waypoint. A successful run hands the aircraft back toward its unchanged original waypoint.
  * During direct Zeus handover, cleanup clears this attack's target commands, preserves the native
  * attack policy and selects the authenticated curator waypoint. One non-forced height request uses
@@ -84,6 +85,13 @@ private _finish={
         };
     };
     private _finishGroup=_job getOrDefault ["group",grpNull];
+    // Early Zeus/external cancellation can precede the main callback's route comparison.
+    // Recheck at cleanup so cancellation reason alone cannot authorize deleting an edited leg.
+    private _finishOwnedName=_job getOrDefault ["ownedWaypointName",""];
+    private _preserveEditedLeg=!isNull _finishGroup && {_finishOwnedName != ""}
+        && {!isNil {_job get "ownedWaypointReceipt"}}
+        && {([_finishGroup,_finishOwnedName,true] call WAIT_fnc_AuthoredRouteReceipt)
+            isNotEqualTo (_job get "ownedWaypointReceipt")};
     if (!isNull _finishGroup && {"token" in _job}) then {[_finishGroup,_job,"ENDED",_reason] call WAIT_fnc_CortexDrillSetStage};
     private _handler=_job getOrDefault ["firedHandler",-1];
     if (_handler >= 0) then {_aircraft removeEventHandler ["Fired",_handler]};
@@ -102,7 +110,7 @@ private _finish={
             if (_ownedWaypointIndex >= 0) then {private _ownedWaypoint=(waypoints _finishGroup) select _ownedWaypointIndex;
                     private _snapshot=_finishGroup getVariable ["WAIT_Cortex_ZeusOrderSnapshot",[]];
                     private _hold=_finishGroup getVariable ["WAIT_AIPass_ZeusHold",[]];
-                    private _claimed=_reason == "OWNED_ROUTE_CHANGED" || {count _snapshot == 7 && {count _hold == 2}
+                    private _claimed=_preserveEditedLeg || {_reason == "OWNED_ROUTE_CHANGED"} || {count _snapshot == 7 && {count _hold == 2}
                         && {(_snapshot select 0) == (_hold select 0)}
                         && {(_snapshot select 5) == (_ownedWaypoint select 1)}};
                     if (_claimed) then {
@@ -181,7 +189,7 @@ private _finish={
         };
         // On an ordinary finite end, retire only the exact hostile WAIT assigned and only while no
         // player, curator or specialist has claimed the group. A newer target survives cleanup.
-        if (!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"])) then {
+        if (!_preserveEditedLeg && {!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"])}) then {
             private _ownedTarget=_job getOrDefault ["fireTarget",objNull];
             private _cleanupExternal=[_finishGroup] call WAIT_fnc_CortexExternalTakeover
                 || {[_finishGroup] call WAIT_fnc_CortexZeusHeld};
@@ -197,7 +205,7 @@ private _finish={
                 } forEach crew _aircraft;
             };
         };
-        if (_resume && {!isNull _finishGroup} && {local _finishGroup}) then {
+        if (_resume && {!_preserveEditedLeg} && {!isNull _finishGroup} && {local _finishGroup}) then {
             private _resumePosition=_job getOrDefault ["resumePosition",[]];
             private _resumeGroup=group driver _aircraft;
             private _resumeWaypointIndex=if (count _resumePosition >= 2) then {
@@ -226,7 +234,7 @@ private _finish={
     // Prevent immediate rediscovery of the same known contact after a finite run. This is a short
     // re-attack interval, not a movement controller or Zeus order guard.
     _aircraft setVariable ["WAIT_Cortex_AirAttackBlockedUntil",serverTime+(
-        if (_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"]) then {5}
+        if (_preserveEditedLeg || {_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"]}) then {5}
         else {if (_reason in ["COMPLETE","TARGET_DESTROYED"]) then {20}
             else {if (_reason == "DELIVERY_SAFETY_FLOOR") then {120} else {35}}}
     ) max (_aircraft getVariable ["WAIT_Cortex_AirAttackBlockedUntil",0])];

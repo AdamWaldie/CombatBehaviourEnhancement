@@ -25,9 +25,19 @@ class OwnedAirLegTests(unittest.TestCase):
         s=(ROOT/'addons/aircraft/functions/cortexAirAttack.sqf').read_text(encoding='utf-8')
         gate=s.index('["OWNED_ROUTE_CHANGED"] call _finish')
         self.assertLess(gate,s.index('_ownedWaypoint setWaypointPosition [_destination,0]'))
-        self.assertIn('_reason == "OWNED_ROUTE_CHANGED" || {count _snapshot',s)
+        self.assertIn('_preserveEditedLeg || {_reason == "OWNED_ROUTE_CHANGED"} || {count _snapshot',s)
         self.assertIn('["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"]',s)
         self.assertLess(s.index('_group setCurrentWaypoint _ownedWaypoint;'),s.index('_job set ["ownedWaypointReceipt"'))
         receipt=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text(encoding='utf-8')
         self.assertIn('["_ownedOnly",false,[true]]',receipt)
         self.assertIn('_ownedName != "" && {waypointName _x == _ownedName}',receipt)
+
+class AirCleanupReceiptTests(unittest.TestCase):
+    def test_early_cleanup_rechecks_the_leg_and_suppresses_old_recall(self):
+        s=(ROOT/'addons/aircraft/functions/cortexAirAttack.sqf').read_text(encoding='utf-8')
+        finish=s.split('private _finish={',1)[1].split('private _mayControlAircraft',1)[0]
+        self.assertLess(finish.index('private _preserveEditedLeg='),finish.index('deleteWaypoint _ownedWaypoint'))
+        self.assertIn('[_finishGroup,_finishOwnedName,true] call WAIT_fnc_AuthoredRouteReceipt',finish)
+        self.assertIn('private _claimed=_preserveEditedLeg',finish)
+        self.assertIn('if (_resume && {!_preserveEditedLeg}',finish)
+        self.assertIn('if (!_preserveEditedLeg && {',finish)
