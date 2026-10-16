@@ -13,6 +13,8 @@
  * command, or explicit STOP, cancels seat actions even when its destination is unchanged.
  * The issued candidate seat switch may expose its own asynchronous ACTION phase. A newer
  * indistinguishable ACTION during that window cannot be identified by command observations.
+ * Candidate selection and each seat-action boundary preserve strict actor movement reservations.
+ * A newly reserved candidate cancels this attempt before ejecting or switching seats.
  * Journals without these command receipts retire without replaying a seat action.
  * Arguments: 0 group <GROUP, grpNull>; 1 current driving brain <HASHMAP, empty>;
  * 2 release <BOOL, false> retires a matching journal without further native action.
@@ -89,6 +91,7 @@ private _available={
         && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
         && {count _crew <= 20} && {count _driverSeat >= 6}
         && {isNull _assignedDriver || {!alive _assignedDriver} || {_assignedDriver == _candidate}}
+        && {isNull _candidate || {!([_candidate] call WAIT_fnc_CortexActorMoveReserved)}}
         && {_route isNotEqualTo []}
         && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
         && {_crew findIf {
@@ -120,6 +123,7 @@ if (count _work == 0) then {
         private _actor=_x select 0;
         alive _actor && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
             && {[_actor] call WAIT_fnc_CortexCombatEffective}
+            && {!([_actor] call WAIT_fnc_CortexActorMoveReserved)}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
             && {assignedVehicle _actor in [objNull,_vehicle]}
             && {currentCommand _actor != "STOP"}
@@ -154,6 +158,7 @@ if (!isNull _driver && {_driver != (_work get "driver") || {alive _driver}}) exi
 // Seat vacancy and native order proof are checked atomically with each action.
 private _commandsOwned={
     vehicle _candidate == _vehicle && {[_candidate] call WAIT_fnc_CortexCombatEffective}
+        && {!([_candidate] call WAIT_fnc_CortexActorMoveReserved)}
         && {simulationEnabled _candidate} && {!isObjectHidden _candidate}
         && {_candidate checkAIFeature "MOVE"} && {_candidate checkAIFeature "PATH"}
         && {leader _group == (_work get "leader")}

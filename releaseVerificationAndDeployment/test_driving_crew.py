@@ -113,3 +113,13 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('!local _vehicle',driving)
         for forbidden in ('setOwner','setGroupOwner','forceSpeed','setDriveOnPath','setVelocity','moveInDriver'):
             self.assertNotIn(forbidden,s)
+
+    def test_actor_reservations_veto_selection_and_each_native_seat_action(self):
+        s=self.source()
+        choices=s.split('private _choices=',1)[1].split('private _cargo=',1)[0]
+        self.assertIn('!([_actor] call WAIT_fnc_CortexActorMoveReserved)',choices)
+        available=s.split('private _available={',1)[1].split('private _finish=',1)[0]
+        self.assertIn('isNull _candidate || {!([_candidate] call WAIT_fnc_CortexActorMoveReserved)}',available)
+        commands=s.split('private _commandsOwned={',1)[1].split('if (_phase == "READY"',1)[0]
+        self.assertIn('!([_candidate] call WAIT_fnc_CortexActorMoveReserved)',commands)
+        self.assertEqual(s.count('call _commandsOwned'),2)
