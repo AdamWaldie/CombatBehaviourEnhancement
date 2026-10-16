@@ -77,6 +77,10 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         raise ValueError('Unknown performance composition')
     if batch_mode not in ('normal', 'headless'):
         raise ValueError('Unsupported audit batch mode')
+    if focus == 'indooractorshc' and (batch_mode != 'headless' or not headless_provider):
+        raise ValueError('Individual indoor HC fixtures require a dedicated headless batch and real provider')
+    if focus in ('indooractors','indoornatural') and batch_mode != 'normal':
+        raise ValueError('Individual indoor normal fixtures require a separate batch from HC migration')
     if headless_provider and batch_mode != 'headless':
         raise ValueError('Headless providers require a dedicated headless batch')
     if headless_provider and focus == 'standaloneperformance':
@@ -159,6 +163,8 @@ def release_gate(package, evidence):
     report = json.loads(evidence.read_text())
     if report.get('focus') == 'nativebuildings':
         raise ValueError('Native building diagnostics cannot accept a WAIT release')
+    if report.get('focus') in ('indooractors','indooractorshc','indoornatural'):
+        raise ValueError('Focused individual indoor fixtures cannot accept a WAIT release')
     if record['dirty']:
         raise ValueError('Release requires a clean committed build')
     if report.get('status') != 'PASS' or not report.get('complete'):

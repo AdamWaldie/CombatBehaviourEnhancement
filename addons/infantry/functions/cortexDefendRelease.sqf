@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Release commands preserve live or malformed actor reservations; only typed finite leases expire.
  * Ends a defence order: soldiers normally rejoin formation and fight as a normal squad. Replacement-
  * order release clears Cortex state and releases only a still-owned combat-labelled hold, so a
  * new group waypoint can move the soldier without overwriting a newer direct unit command.
@@ -46,9 +47,7 @@ if (isNull _leader) then {_leader=leader _group};
 {
     private _ownedHold = (_x getVariable ["WAIT_AIPass_DefendHolding",false])
         || {(_x getVariable ["WAIT_AIPass_DefendPos",[]]) isNotEqualTo []};
-    private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
-    private _reservationFree=_reservation isEqualTo []
-        || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+    private _reservationFree=!([_x] call WAIT_fnc_CortexActorMoveReserved);
     private _nativeTask=currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
     if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {_reservationFree} && {!_nativeTask} && {isNull objectParent _x}

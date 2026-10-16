@@ -11,6 +11,8 @@
  * - re-applies garrison orders on the new owner after a locality change, because disableAI and
  *   event handlers are stored per machine;
  * - reconciles finite movement ownership for independent alternative controllers;
+ * - retires inherited exact pass-leg receipts in the existing sixteen-vehicle chunk, including
+ *   vehicle locality that arrives after group adoption, without replaying the old pass;
  * - caches locally owned, eligible artillery for fire support and counter-battery;
  * - re-applies defence-line orders after a locality change;
  * - installs the missile-warning handler on every locally owned, eligible AI aircraft. A warning
@@ -136,6 +138,12 @@ _job set ["groupCursor",_groupCursor+12];
 
 private _wantArtillery = (missionNamespace getVariable ["WAIT_AIPass_Artillery_Enable", false])
     || {missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Enable", false]};
+// Cleanup uses the existing bounded vehicle slice even when air/artillery features are disabled.
+{
+    if (local _x && {!isNil {_x getVariable "WAIT_DrivingPass_Leg"}}) then {
+        [_x] call WAIT_fnc_DrivingPassRetireInherited;
+    };
+} forEach (_scanVehicles select [_vehicleCursor,16]);
 private _wantFlares = (missionNamespace getVariable ["WAIT_AIPass_AircraftFlares_Enable", true])
     || {missionNamespace getVariable ["WAIT_AIPass_AircraftBreak_Enable", true]};
 private _wantAttackFlares=missionNamespace getVariable ["WAIT_Cortex_AttackRunFlares_Enable",true];

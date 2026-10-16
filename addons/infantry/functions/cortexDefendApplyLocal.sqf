@@ -15,6 +15,7 @@
  * wandering does not. Inactivity causes a bounded route
  * refresh, and only exhausted refreshes record failure.
  * Scheduler delay and temporary Zeus ownership do not consume recovery attempts.
+ * A temporarily reserved actor keeps its arrival job pending without aging its no-progress timer.
  * Locality and authority: call where the group is local.
  *
  * Review contract: Each application resets local holding state and versions its arrival job. Old generations retire; ineligible groups receive no new movement commands.
@@ -51,9 +52,7 @@ private _routes=[];
 // lease over a later Zeus, player or specialist takeover in the same callback.
 private _mayIssueMovement = {
     params ["_actor"];
-    private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
-    private _free=_reservation isEqualTo []
-        || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+    private _free=!([_actor] call WAIT_fnc_CortexActorMoveReserved);
     !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group}
         && {isNull objectParent _actor} && {_free} && {!isPlayer _actor}
         && {isNull remoteControlled _actor} && {[_actor] call WAIT_fnc_CortexCombatEffective}
@@ -87,9 +86,7 @@ private _mayIssueMovement = {
     };
     private _mayIssueMovement = {
         params ["_actor"];
-        private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
-        private _free=_reservation isEqualTo []
-            || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
+        private _free=!([_actor] call WAIT_fnc_CortexActorMoveReserved);
         !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group}
             && {isNull objectParent _actor} && {_free} && {!isPlayer _actor}
             && {isNull remoteControlled _actor} && {[_actor] call WAIT_fnc_CortexCombatEffective}
@@ -104,12 +101,20 @@ private _mayIssueMovement = {
         private _routeIndex=_routes findIf {(_x select 0) isEqualTo _unit};
         private _routeGeneration=if (_routeIndex >= 0) then {(_routes select _routeIndex) param [4,-1]} else {-1};
         private _assignment = _unit getVariable ["WAIT_AIPass_DefendPos", []];
-        if (_routeIndex >= 0
+        private _routeCurrent=_routeIndex >= 0
             && {(_unit getVariable ["WAIT_AIPass_DefendRouteGeneration",-2]) == _routeGeneration}
             && {[_unit] call WAIT_fnc_CortexCombatEffective} && {local _unit} && {!isPlayer _unit}
-            && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}
+            && {group _unit == _group} && {_assignment isNotEqualTo []}
             && {!(_unit getVariable ["WAIT_AIPass_DefendHolding", false])}
-            && {!(_unit getVariable ["WAIT_AIPass_DefendFailed",false])} && {[_unit] call _mayIssueMovement}) then {
+            && {!(_unit getVariable ["WAIT_AIPass_DefendFailed",false])};
+        private _canIssue=_routeCurrent && {[_unit] call _mayIssueMovement};
+        if (_routeCurrent && {!_canIssue}) then {
+            // Deferral is not arrival or route failure. Keep the callback alive so an
+            // expiring specialist reservation cannot silently abandon the defence post.
+            _pending=_pending+1;
+            (_routes select _routeIndex) set [2,time];
+        };
+        if (_canIssue) then {
             if ((getPosATL _unit) vectorDistance (_assignment select 0) <= 3
                 && {abs (((getPosATL _unit) select 2)-((_assignment select 0) select 2)) <= 1.5}
                 && {[_unit] call _mayIssueMovement}) then {

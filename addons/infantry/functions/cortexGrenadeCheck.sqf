@@ -14,7 +14,7 @@
  * cannot overwrite it. A soldier held as part of a coordinated base of fire temporarily leaves that
  * owned PATH hold, evades, then becomes eligible for the covering role again. Flank element members
  * and actors with another live reservation are left to their current task. Delayed regroup requires
- * the same group, Zeus token, actor lease and evasion
+ * the same group, authored waypoint receipt, Zeus token, actor lease and evasion
  * destination, an on-foot combat-effective soldier and no newer drill; soldiers held in place by a
  * garrison order (PATH disabled) cannot move and are skipped.
  * Locality and authority: scheduler job on the machine that received the event; orders go only to
@@ -23,6 +23,7 @@
  * Repeat/JIP: current feature gates and eligibility are rechecked; owner jobs are retired on migration.
  * At most 16 nearby actors are considered. Recovery matches exact expiry, operation generation and
  * owner epoch; stale callbacks cannot clear a newer evasion or issue follow over native/specialist tasks.
+ * Legacy regroup records without a route receipt only retire their exact-owned marker.
  * Arguments:
  * 0: job <HASHMAP> - contains "projectile", or internal "regroup" actor records
  *
@@ -41,12 +42,13 @@ private _regroup = _job getOrDefault ["regroup", []];
 if (_regroup isNotEqualTo []) exitWith {
     {
         _x params ["_unit","_group","_spot","_hold",
-            ["_expires",-1,[0]],["_generation",-1,[0]],["_epoch",-1,[0]]];
+            ["_expires",-1,[0]],["_generation",-1,[0]],["_epoch",-1,[0]],["_nativeRoute",[],[[]]]];
         private _actorMove = _unit getVariable ["WAIT_Cortex_ActorMove",[]];
         private _ownsEvasion = count _actorMove == 3 && {(_actorMove select 0) == "GRENADE_EVASION"}
             && {(_actorMove select 1) distance2D _spot <= 1}
             && {_expires >= 0} && {(_actorMove select 2) == _expires};
         if (_ownsEvasion && {local _unit}) then {
+            private _destination=(expectedDestination _unit) param [0,[],[[]]];
             private _stillOurs=local _group && {group _unit == _group} && {vehicle _unit == _unit}
                 && {!isPlayer _unit} && {isNull remoteControlled _unit}
                 && {(_group getVariable ["WAIT_OperationGeneration",0]) == _generation}
@@ -58,7 +60,9 @@ if (_regroup isNotEqualTo []) exitWith {
                 && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
                 && {[_group] call WAIT_fnc_CortexIsEligible}
                 && {(_group getVariable ["WAIT_AIPass_ZeusHold",[]]) isEqualTo _hold}
-                && {((expectedDestination _unit) select 0) distance2D _spot <= 1};
+                && {_nativeRoute isNotEqualTo []}
+                && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _nativeRoute}
+                && {count _destination == 3} && {_destination vectorDistance _spot <= 0.25};
             if (_stillOurs) then {
                 private _drill = (_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
                 if (!(_unit in (_drill getOrDefault ["units",[]])) && {alive leader _group}) then {
@@ -112,12 +116,13 @@ private _regroupActors = [];
                 _unit enableAI "PATH";
                 _state set ["supportHeld",_supportHeld-[_unit]];
             };
+            private _nativeRoute=[_group] call WAIT_fnc_NativeOrderReceipt;
             _unit doMove _spot;
             private _expires=time+6;
             _unit setVariable ["WAIT_Cortex_ActorMove",["GRENADE_EVASION",+_spot,_expires]];
             _reacted = _reacted + 1;
             _regroupActors pushBack [_unit,_group,+_spot,+(_group getVariable ["WAIT_AIPass_ZeusHold",[]]),
-                _expires,_group getVariable ["WAIT_OperationGeneration",0],_group getVariable ["WAIT_AIPass_Epoch",0]];
+                _expires,_group getVariable ["WAIT_OperationGeneration",0],_group getVariable ["WAIT_AIPass_Epoch",0],_nativeRoute];
         };
     };
 } forEach ((_grenade nearEntities ["CAManBase", 12]) select [0,16]);

@@ -148,6 +148,46 @@ class PackagePipelineTests(unittest.TestCase):
         self.assertNotIn('FarRange',phase)
         self.assertNotIn('allUnits',phase)
 
+    def test_indoor_hc_stage_requires_real_provider_and_installs_owner_helpers(self):
+        from stage_headless_provider import REQUIRED
+        for mode,provider in [('normal',None),('headless',None)]:
+            with self.assertRaisesRegex(ValueError,'real provider'):
+                stage(self.folder,Path(self.temp.name)/('invalid-indoor-'+mode),'indooractorshc',batch_mode=mode,headless_provider=provider)
+        provider=Path(self.temp.name)/'indoor-provider'
+        source=provider/'MissionScripts/Headless'; source.mkdir(parents=True)
+        for name in REQUIRED:(source/name).write_text('/* provider contract fixture only */\ntrue;')
+        mission=stage(self.folder,Path(self.temp.name)/'indoor-hc','indooractorshc',batch_mode='headless',headless_provider=provider)
+        init=(mission/'init.sqf').read_text()
+        self.assertIn('compatibilityHeadlessProvider',init)
+        self.assertIn('cortexQAPerformanceOwner.sqf',init)
+        self.assertIn('cortexQAIndoorActorOwner.sqf',init)
+        self.assertTrue((mission/'cortexQAIndoorActorsHC.sqf').is_file())
+        manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
+        self.assertEqual(manifest['batch_mode'],'headless')
+        self.assertEqual(manifest['focus'],'indooractorshc')
+        from mod_pipeline import mission_hashes
+        self.assertEqual(mission_hashes(mission),manifest['mission_files'])
+
+    def test_focused_indoor_fixture_results_cannot_promote_whole_addon(self):
+        evidence=Path(self.temp.name)/'indoor-report.json'
+        for focus in ('indooractors','indooractorshc'):
+            evidence.write_text(json.dumps({'focus':focus,'status':'PASS','complete':True}))
+            with self.assertRaisesRegex(ValueError,'Focused individual indoor fixtures'):
+                release_gate(self.folder,evidence)
+
+    def test_indoor_actor_normal_focus_stages_real_payload_and_rejects_hc_mix(self):
+        mission=stage(self.folder,Path(self.temp.name)/'indoor-normal','indooractors',batch_mode='normal')
+        fixture=(mission/'cortexQAIndoorActors.sqf').read_text()
+        self.assertIn('INDOOR-pair-physical-entry',fixture)
+        self.assertIn('INDOOR-native-move-handover',fixture)
+        self.assertIn('if (_focus == "indooractors") exitWith',(mission/'cortexQAServer.sqf').read_text())
+        manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
+        self.assertEqual(manifest['focus'],'indooractors')
+        self.assertEqual(manifest['batch_mode'],'normal')
+        self.assertIn('cortexQAIndoorActors.sqf',manifest['mission_files'])
+        with self.assertRaisesRegex(ValueError,'separate batch'):
+            stage(self.folder,Path(self.temp.name)/'indoor-invalid-hc','indooractors',batch_mode='headless')
+
     def test_focuses_follow_real_dispatch_and_invalid_focus_is_rejected(self):
         self.assertIn('performancemixed', supported_focuses())
         self.assertIn('airskills', supported_focuses())
