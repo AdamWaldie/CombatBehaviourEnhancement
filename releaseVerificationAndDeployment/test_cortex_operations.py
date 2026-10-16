@@ -499,7 +499,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('time+1.5,_release,_throwGeneration', queued)
         self.assertIn('WAIT_OperationGeneration',queued)
         drill_reserves=source('cortexFlankStep').split('private _rankCandidates={',1)[1].split('private _anchor=',1)[0]
-        self.assertIn('WAIT_Cortex_ActorMove',drill_reserves)
+        self.assertIn('call WAIT_fnc_CortexActorMoveReserved',drill_reserves)
         self.assertIn('WAIT_fnc_CompatibilityExternalControl',drill_reserves)
         self.assertIn('currentCommand _x',drill_reserves)
         flight_authority=source('flightLeaseValid')
@@ -527,7 +527,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('&& {_reservationFree}',roles)
         self.assertNotIn('_x in _existing ||',roles)
         self.assertIn('call WAIT_fnc_CortexActorMoveReserved',roles)
-        self.assertIn('(_reservation param [2,1e12,[0]]) <= time',drill_reserves)
+        self.assertNotIn('(_reservation param [2,1e12,[0]]) <= time',drill_reserves)
         remnant=source('cortexRegroupStep')
         self.assertIn('count (_group getVariable ["WAIT_Operation",createHashMap]) > 0',remnant)
         self.assertIn('!(_x in _participants)',remnant)
@@ -6469,6 +6469,16 @@ class CortexOperations(unittest.TestCase):
         matrix = (ROOT / 'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text(encoding='utf-8')
         self.assertIn('{deleteVehicle (_x select 0)} forEach _fixtureCrew', matrix)
         self.assertIn('-operating-crew-retained', matrix)
+
+    def test_drill_refill_checks_strict_actor_ownership_before_roster_mutation(self):
+        step=source('cortexFlankStep')
+        rank=step.split('private _rankCandidates={',1)[1].split('private _units=[];',1)[0]
+        self.assertIn('private _reservationFree=!([_x] call WAIT_fnc_CortexActorMoveReserved);',rank)
+        self.assertNotIn('_reservation param [2,1e12,[0]]',rank)
+        self.assertIn('WAIT_fnc_CompatibilityExternalControl',rank)
+        self.assertIn('"CARRY SOLDIER"',rank)
+        refill=step.split('private _units=[];',1)[1]
+        self.assertLess(refill.index('call _rankCandidates'),refill.index('_units pushBack _replacement'))
 
     def test_drill_steps_cannot_adopt_a_replacement_action(self):
         step=source('cortexFlankStep')
