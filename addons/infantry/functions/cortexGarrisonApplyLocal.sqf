@@ -51,6 +51,7 @@
  * Handlers: Suppressed and Hit drop the soldier to a lower stance for 4-8 s, then restore the stance
  * he held immediately before ducking only if the Cortex duck stance still remains.
  * Deferred posture recovery is bound to the same group, garrison generation, owner epoch and assignment.
+ * Both posture boundaries recheck the assigned building transform; moved/deleted posts grant no authority.
  * Later stance changes are preserved. Handlers and delayed recovery yield to actor movement
  * reservations, mounted/remote control and native medical, boarding or service tasks.
  * Native MOVE/FOLLOW approaches retain their movement posture; the general danger response
@@ -225,6 +226,10 @@ private _buildingAnchor = {
                 private _duckGeneration=_duckGroup getVariable ["WAIT_AIPass_GarrisonGeneration",-1];
                 private _duckEpoch=_duckGroup getVariable ["WAIT_AIPass_Epoch",0];
                 private _duckAssignment=+(_unit getVariable ["WAIT_AIPass_GarrisonPos",[]]);
+                private _duckBuilding=_duckAssignment param [2,objNull];
+                private _duckTransform=_duckAssignment param [3,[]];
+                if (_duckTransform isNotEqualTo [] && {isNull _duckBuilding
+                    || {_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding]}}) exitWith {};
                 private _until = time + 4 + random 4;
                 _unit setVariable ["WAIT_AIPass_DuckUntil", _until];
                 private _duckStance=["MIDDLE", "DOWN"] select ((unitPos _unit) == "MIDDLE");
@@ -240,6 +245,12 @@ private _buildingAnchor = {
                         && {!([_unit] call WAIT_fnc_CortexActorMoveReserved)}
                         && {!(toUpperANSI currentCommand _unit in ["MOVE","FOLLOW","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
                         && {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo _duckAssignment}
+                        && {
+                            private _building=_duckAssignment param [2,objNull];
+                            private _transform=_duckAssignment param [3,[]];
+                            _transform isEqualTo [] || {!isNull _building
+                                && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+                        }
                         && {[group _unit] call WAIT_fnc_CortexIsEligible}
                         && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) then {
                         if (unitPos _unit == (_unit getVariable ["WAIT_Cortex_GarrisonDuckStance", ""])) then {

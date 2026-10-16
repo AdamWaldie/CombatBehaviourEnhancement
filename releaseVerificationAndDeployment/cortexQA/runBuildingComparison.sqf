@@ -653,6 +653,65 @@ if (!_largeOnly && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch
         {if (_x distance (_poses select _forEachIndex) > 1) then {_held=false}} forEach _members;
         ["GARRISON-surplus-stable-observation",_occupied && {call _observedAll} && {_held}] call _check;
         ["GARRISON-surplus-finite-search",_members findIf {(_x getVariable ["WAIT_Cortex_GarrisonExteriorAttempts",0]) > 3} < 0] call _check;
+        // Real incoming-fire posture test on a physically occupied exterior post. This does not
+        // call the duck handler or assign suppression/expiry state. No reaction is inferred from labels.
+        private _postIndex=_members findIf {
+            ((_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) param [4,""]) == "EXTERIOR"
+                && {unitPos _x != "DOWN"}
+        };
+        ["GARRISON-duck-live-prerequisite",_occupied && {_postIndex >= 0}] call _check;
+        if (_occupied && {_postIndex >= 0}) then {
+            private _defender=_members select _postIndex;
+            private _priorPosture=unitPos _defender;
+            private _assignment=+(_defender getVariable ["WAIT_AIPass_GarrisonPos",[]]);
+            private _watch=_assignment select 5;
+            private _attackPosition=_defender getPos [35,_defender getDir _watch];
+            private _damagePolicies=_members apply {isDamageAllowed _x};
+            {_x allowDamage false} forEach _members;
+            private _attackGroup=createGroup [west,true];
+            _attackGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+            _attackGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+            _attackGroup setVariable ["acex_headless_blacklist",true,true];
+            private _attacker=_attackGroup createUnit ["B_Soldier_F",_attackPosition,[],0,"NONE"];
+            _attacker allowDamage false;
+            _attacker disableAI "PATH";
+            _attacker setVariable ["acex_headless_blacklist",true,true];
+            _attacker setVariable ["WAIT_CortexQA_PostureShots",0];
+            _attacker addEventHandler ["FiredMan",{
+                params ["_actor"];
+                _actor setVariable ["WAIT_CortexQA_PostureShots",(_actor getVariable ["WAIT_CortexQA_PostureShots",0])+1];
+            }];
+            _attacker setDir (_attacker getDir _defender);
+            _attackGroup setCombatMode "RED";
+            _attacker setUnitCombatMode "RED";
+            _attacker doTarget _defender;
+            _attacker doFire _defender;
+            missionNamespace setVariable ["WAIT_CortexQA_Actors",_members+[_attacker],true];
+            ["Garrison posture under fire","Diagnostic invulnerable actors: a real hostile rifleman fires at an occupied exterior post. Require actual shots and the production duck reaction. Then a newer explicit stance order must survive the old delayed recovery. No handler, suppression or completion state is injected.",getPosATL _defender] call _phase;
+            private _ducked=[{
+                (_attacker getVariable ["WAIT_CortexQA_PostureShots",0]) > 0
+                    && {(_defender getVariable ["WAIT_AIPass_DuckUntil",-1]) > time}
+                    && {(_defender getVariable ["WAIT_Cortex_GarrisonDuckStance",""]) != ""}
+            },25] call _wait;
+            private _shotCount=_attacker getVariable ["WAIT_CortexQA_PostureShots",0];
+            private _until=_defender getVariable ["WAIT_AIPass_DuckUntil",-1];
+            ["GARRISON-duck-real-fire",_ducked && {_shotCount > 0},str [_shotCount,_priorPosture,unitPos _defender,_until]] call _check;
+            deleteVehicle _attacker;
+            deleteGroup _attackGroup;
+            if (_ducked) then {
+                // This is the deliberate replacement input, never the expected completion state.
+                _defender setUnitPos "UP";
+                private _replacementAt=time;
+                [{time > _until+1},12] call _wait;
+                ["GARRISON-duck-preserves-new-stance",time > _until && {unitPos _defender == "UP"}
+                    && {(_defender getVariable ["WAIT_AIPass_GarrisonPos",[]]) isEqualTo _assignment},
+                    str [_replacementAt,_until,unitPos _defender]] call _check;
+            } else {
+                ["GARRISON-duck-preserves-new-stance",false,"No real duck reaction; replacement case not exercised"] call _check;
+            };
+            {_x allowDamage (_damagePolicies select _forEachIndex)} forEach _members;
+            missionNamespace setVariable ["WAIT_CortexQA_Actors",_members,true];
+        };
         [_securityGroup] call WAIT_fnc_CortexGarrisonRelease;
         private _origins=_members apply {getPosATL _x};
         private _wp=_securityGroup addWaypoint [_site vectorAdd [75,-35,0],0];

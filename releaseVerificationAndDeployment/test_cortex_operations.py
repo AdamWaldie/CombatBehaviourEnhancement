@@ -3334,6 +3334,29 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_garrison_duck_live_case_uses_real_fire_and_replacement_input(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        case=qa.split('// Real incoming-fire posture test',1)[1].split('private _origins=_members',1)[0]
+        for proof in ['addEventHandler ["FiredMan"','_attacker doFire _defender;',
+                      'GARRISON-duck-real-fire','GARRISON-duck-preserves-new-stance',
+                      'No real duck reaction; replacement case not exercised',
+                      'allowDamage (_damagePolicies select _forEachIndex)']:
+            self.assertIn(proof,case)
+        self.assertNotIn('setSuppression',case)
+        self.assertNotIn('setVariable ["WAIT_AIPass_DuckUntil"',case)
+        self.assertNotIn('setPosATL',case)
+        self.assertLess(case.index('GARRISON-duck-real-fire'),case.index('_defender setUnitPos "UP";'))
+
+    def test_garrison_duck_checks_live_building_transform_at_both_boundaries(self):
+        duck=source('cortexGarrisonApplyLocal').split('private _duck = {',1)[1].split('WAIT_AIPass_GarrisonHandlerIds',1)[0]
+        event, delayed=duck.split('params ["_unit", "_until", "_priorStance",',1)
+        self.assertIn('_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding]',event)
+        self.assertIn('isNull _duckBuilding',event)
+        self.assertLess(event.index('private _duckTransform='),event.index('_unit setUnitPos _duckStance;'))
+        self.assertIn('_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',delayed)
+        self.assertIn('!isNull _building',delayed)
+        self.assertLess(delayed.index('private _transform='),delayed.index('_unit setUnitPos _priorStance;'))
+
     def test_garrison_duck_yields_to_reserved_and_native_tasks_at_both_boundaries(self):
         duck=source('cortexGarrisonApplyLocal').split('private _duck = {',1)[1].split('WAIT_AIPass_GarrisonHandlerIds',1)[0]
         event, delayed=duck.split('params ["_unit", "_until", "_priorStance",',1)
