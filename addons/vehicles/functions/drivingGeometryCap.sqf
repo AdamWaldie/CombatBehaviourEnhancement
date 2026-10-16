@@ -20,7 +20,7 @@
  * clamped to 70 degrees; the remaining horizon follows the final tangent. Rigid hull offsets
  * rotate with each predicted pose. Unsupported/stationary yaw falls back to straight sensing.
  * Bodies use current absolute pitch/elevation. Gentle upward support is excluded from generic
- * blocking; occupied/active land-vehicle and pedestrian hulls retain their dedicated observers.
+ * blocking. Downward-facing underside hits remain solid constraints; occupied/active land-vehicle and pedestrian hulls retain their dedicated observers.
  * Stationary engine-off unoccupied land hulls also feed finite bypass planning; their independent
  * traffic cap remains active. Per-call classification inspects at most 16 land hulls and avoids
  * repeated crew reads per ray. Over-budget hulls retain traffic-only handling. No hit
@@ -120,6 +120,8 @@ _heights=_heights arrayIntersect _heights;
             // Traffic and pedestrians retain their existing hull observers. Static/classless
             // props, parked aircraft/boats and steep terrain add no synthetic collision props.
             // Upward-facing support is not a blocking wall merely because a forward ray meets a hill/deck.
+            // Downward-facing undersides still obstruct the sampled body rows; abs(normal Z)
+            // would also erase those overhead constraints.
             private _staticHull=false;
             if (!isNull _object && {_object isKindOf "LandVehicle"}) then {
                 private _key=str _object;
@@ -132,7 +134,7 @@ _heights=_heights arrayIntersect _heights;
                 };
             };
             private _represented=!isNull _object && {_object isKindOf "CAManBase" || {_object isKindOf "LandVehicle" && {!_staticHull}}};
-            if (!_isGate && {!_represented} && {abs (_normal select 2) < 0.7} && {_gap < _solidGap}) then {
+            if (!_isGate && {!_represented} && {(_normal select 2) < 0.7} && {_gap < _solidGap}) then {
                 _solidGap=_gap;
                 private _kind=if (isNull _object) then {"TERRAIN"} else {
                     ["STATIC","MOVING_OBJECT"] select (abs speed _object > 0.5)

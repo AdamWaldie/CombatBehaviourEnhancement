@@ -8,11 +8,26 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertEqual(s.count('lineIntersectsSurfaces'),1)
         for required in ('true,4,"GEOM","NONE"','[_left,(_left+_right)*0.5,_right]',
                          'forEach _heights','max 25 min 600','getPosWorld _object','vectorUp _object',
-                         'abs (_normal select 2) < 0.7','_object isKindOf "LandVehicle"'):
+                         '(_normal select 2) < 0.7','_object isKindOf "LandVehicle"'):
             self.assertIn(required,s)
         for forbidden in ('createVehicle','allMissionObjects','allDead','spawn','waitUntil','setVariable',
                           'setVelocity','doMove','forceSpeed','animateSource','animationSourcePhase'):
             self.assertNotIn(forbidden,s)
+    def test_support_filter_keeps_downward_undersides_as_obstructions(self):
+        import re
+        s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text(encoding='utf-8')
+        # Read the actual production predicate, including a possible absolute-value regression.
+        match=re.search(r'&& \{(?P<absolute>abs )?\(_normal select 2\) < (?P<cutoff>[0-9.]+)\}',s)
+        self.assertIsNotNone(match)
+        cutoff=float(match.group('cutoff'))
+        def blocks(z):
+            return (abs(z) if match.group('absolute') else z) < cutoff
+        for label,z,expected in [('level support',1,False),('gentle uphill support',0.9,False),
+                                 ('vertical wall',0,True),('sloping underside',-0.8,True),
+                                 ('horizontal underside',-1,True)]:
+            with self.subTest(surface=label):
+                self.assertEqual(blocks(z),expected)
+
     def test_gate_adapter_preserves_only_gate_result_and_barriers_need_sources(self):
         s=(ROOT/'addons/vehicles/functions/drivingGateCap.sqf').read_text()
         self.assertIn('call WAIT_fnc_DrivingGeometryCap) select 0',s)

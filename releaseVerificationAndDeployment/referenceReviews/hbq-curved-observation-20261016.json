@@ -5,7 +5,8 @@
   "scope": "ArcPts, SegN, ClampK and RaySegments helpers plus travelled-curvature main branch; remaining geometry consumers remain separately scoped",
   "rangesReviewed": [
     "384-454 arc helpers and segment conversion",
-    "2519-2555 travelled curvature, direction reset and bend length"
+    "2519-2555 travelled curvature, direction reset and bend length",
+    "450-554 complete Sense body; classifier and gate helpers retain separately scoped reviews"
   ],
   "sourceIntent": "Predict obstacle rays along measured travelled curvature only for a short bend horizon, then continue tangentially. Bound bend angle and segment work; reset curvature after standing or changing forward/reverse direction.",
   "sourceMechanics": [
@@ -29,5 +30,13 @@
   "implementationAccepted": false,
   "physicalAcceptance": false,
   "wholeHBQParity": false,
-  "audits": "held by user instruction"
+  "audits": "held by user instruction",
+  "sensingExtension": {
+    "sourceIntent": "Sense casts a ground-relative low row through curved segments, classifies hits and evaluates lateral distance along the arc/tangent. STRICT sensing narrows bypass treatment of the excluded object. Debug publication is throttled.",
+    "comparison": "WAIT samples rigid body rows at current absolute elevation and retains separate gate, traffic and pedestrian observers. This review found its solid filter used absolute normal Z even though only upward support should be excluded.",
+    "change": "Use signed normal Z for support exclusion. Downward underside hits remain solid constraints. Ray count, observation cadence and native movement authority are unchanged.",
+    "engineReference": "https://community.bistudio.com/wiki/lineIntersectsSurfaces",
+    "engineContract": "The second element of each returned intersection is the intersected surface normal. GEOM sensing is not a complete PhysX or hull-clearance proof.",
+    "remaining": "Source classifier/gate adapters are separately reviewed. Terrain-relative low rows versus absolute body rows, grade/deck transitions, modded undersides and physical braking still require measured comparison."
+  }
 }
