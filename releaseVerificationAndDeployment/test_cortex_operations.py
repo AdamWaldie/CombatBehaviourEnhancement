@@ -4601,7 +4601,7 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexClearRelease')
         self.assertIn('private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;',release)
         self.assertIn('then {_restore=false}',release)
-        self.assertLess(release.index('then {_restore=false}'),release.index('if (_restore && {_taskFree} && {_movementOwned}) then {'))
+        self.assertLess(release.index('then {_restore=false}'),release.index('if (_restore && {_taskFree} && {_movementOwned} && {isNull objectParent _x}) then {'))
         self.assertIn('_destination vectorDistance _issued <= 0.25',release)
         self.assertIn('count _issued == 3 && {count _destination == 3}',release)
         self.assertLess(release.index('private _movementTargets='),release.index('_group setVariable ["WAIT_BuildingBrain",nil]'))

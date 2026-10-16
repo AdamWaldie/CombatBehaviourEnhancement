@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Prepares real ordinary-driver casualty/replacement and protected-seat comparisons.
  * Locality / Authority: Scheduled server, normal batch only. Initial mounting, casualty,
- * unconsciousness, lock and assignment are fixture inputs. No production callbacks, completion
+ * unconsciousness, lock, assignment and explicit STOP are fixture inputs. No production callbacks, completion
  * state, replacement seat actions or post-casualty relocation are injected by the test.
  * Repeat/JIP: Fresh disposable actors per case; tuning restored, explicit corpse/crew cleanup.
  * Observer labels replicate; this fixture does not transfer groups to headless clients.
@@ -52,10 +52,11 @@ private _previous=createHashMapFromArray (_settings apply {[_x,missionNamespace 
     missionNamespace setVariable ["WAIT_CortexQA_Actors",[_vehicle,_driver,_replacement,_incoming],true];
     ["Ordinary driver handover: "+_kind,
         if (_kind == "REPLACE") then {"The original driver dies. WAIT must remove the corpse using its own native action, move mounted crew into the confirmed free driver seat, and physically resume this route. The fixture never seats the replacement or calls the production executor."}
-        else {"Protected comparison: the living unconscious driver, locked seat or incoming driver assignment must prevent the mounted replacement from taking the seat. Original fixture intent must remain intact."},_start] call _phase;
+        else {"Protected comparison: the living unconscious driver, locked seat, incoming driver assignment or explicit STOP must prevent the mounted replacement from taking the seat. Original fixture intent must remain intact."},_start] call _phase;
     ["DRIVING-crew-"+_kind+"-fixture",_ready] call _check;
     if (_kind == "UNCONSCIOUS") then {_driver setUnconscious true} else {_driver setDamage 1};
     private _damaged=damage _vehicle;private _routeStart=getPosATL _vehicle;
+    if (_kind == "STOP") then {doStop _replacement};
     _vehicle forceSpeed -1;
     _group setVariable ["WAIT_AIPass_Exclude",false,true];
     if (_kind == "REPLACE") then {
@@ -77,6 +78,7 @@ private _previous=createHashMapFromArray (_settings apply {[_x,missionNamespace 
             if (driver _vehicle == _replacement || {(_work getOrDefault ["phase",""]) in ["VACATING","SWITCHING","COMPLETE"]}) then {_preserved=false};
             if (_kind == "UNCONSCIOUS" && {!alive _driver || {driver _vehicle != _driver}}) then {_preserved=false};
             if (_kind == "LOCKED" && {!lockedDriver _vehicle}) then {_preserved=false};
+            if (_kind == "STOP" && {currentCommand _replacement != "STOP"}) then {_preserved=false};
             if (_kind == "ASSIGNED" && {assignedVehicle _incoming != _vehicle
                 || {(assignedVehicleRole _incoming param [0,""]) != "driver"}}) then {_preserved=false};
             if (_sample mod 2 == 0) then {
@@ -91,5 +93,5 @@ private _previous=createHashMapFromArray (_settings apply {[_x,missionNamespace 
     {if (!isNull _x) then {deleteVehicle _x}} forEach (_cleanup arrayIntersect _cleanup);
     deleteVehicle _vehicle;deleteGroup _group;
     if (!isNull _incomingGroup) then {deleteGroup _incomingGroup};
-} forEach ["REPLACE","UNCONSCIOUS","LOCKED","ASSIGNED"];
+} forEach ["REPLACE","UNCONSCIOUS","LOCKED","ASSIGNED","STOP"];
 [_previous] call WAIT_fnc_CortexTuning;

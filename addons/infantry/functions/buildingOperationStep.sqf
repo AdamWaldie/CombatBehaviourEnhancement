@@ -770,7 +770,11 @@ private _delay=call {
             if (_exitPoint isNotEqualTo []) exitWith {};
             private _entry=+((_ranked select (_proposalIndex mod count _ranked)) select 3);
             private _outward=_buildingPos getDir _entry;
-            private _search=_entry getPos [10,_outward];
+            // A repeated entrance must explore a different exterior approach, not repeat
+            // the same blocked native search. Keep the original proposal/ray budget.
+            private _entryAttempt=floor (_proposalIndex/count _ranked);
+            private _searchBearing=_outward+([0,-35,35] select (_entryAttempt min 2));
+            private _search=_entry getPos [10,_searchBearing];
             private _watch=_entry getPos [2,_outward];
             _watch set [2,(_entry select 2)+1.2];
             private _reservations=_taken+_tried;

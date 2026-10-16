@@ -33,6 +33,25 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('_previousVehicle != vehicle leader _group',s)
         self.assertIn('toLowerANSI (_x select 1) == "cargo"',s)
         self.assertEqual(s.count('call _available'),3)
+    def test_native_command_changes_guard_admission_and_both_actions(self):
+        s=self.source()
+        self.assertIn('currentCommand leader _group != "STOP"',s)
+        self.assertIn('currentCommand _actor != "STOP"',s)
+        self.assertIn('["nativeCommand",currentCommand _candidate]',s)
+        self.assertIn('["leaderNativeCommand",currentCommand leader _group]',s)
+        gate=s.split('private _commandsOwned={',1)[1].split('if (_phase == "READY"',1)[0]
+        self.assertIn('currentCommand _candidate != "STOP"',gate)
+        self.assertEqual(gate.count('call _commandOwned'),2)
+        self.assertEqual(s.count('call _commandsOwned'),2)
+        transition=s.split('private _commandOwned={',1)[1].split('private _crew=',1)[0]
+        self.assertIn('_actor == _candidate',transition)
+        self.assertIn('_phase == "SWITCHING"',transition)
+        self.assertIn('currentCommand _actor == "ACTION"',transition)
+        self.assertNotIn('"STOP"',transition)
+        self.assertLess(transition.index('MISSING_RECEIPT'),transition.index('currentCommand _actor == _receipt'))
+        # Rebase only after the controller's own native action, never at callback entry.
+        self.assertGreater(s.index('_work set ["nativeCommand",'),s.index('_candidate action ["MoveToDriver"'))
+
     def test_vacant_seat_does_not_override_incoming_assignment(self):
         s=self.source()
         available=s.split('private _available={',1)[1].split('private _finish=',1)[0]

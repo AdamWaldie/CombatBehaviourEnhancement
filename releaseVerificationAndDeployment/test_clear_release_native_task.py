@@ -17,7 +17,7 @@ class ClearReleaseNativeTaskTests(unittest.TestCase):
     def test_recall_boundary_requires_allowed_command_and_move_receipt(self):
         s=(ROOT/'addons/infantry/functions/cortexClearRelease.sqf').read_text()
         start=s.index('private _movementOwned=')
-        end=s.index('if (_restore && {_taskFree} && {_movementOwned})',start)
+        end=s.index('if (_restore && {_taskFree} && {_movementOwned} && {isNull objectParent _x})',start)
         guard=s[start:end]
         self.assertIn('currentCommand _x in ["","STOP"]',guard)
         self.assertIn('currentCommand _x == "MOVE"',guard)

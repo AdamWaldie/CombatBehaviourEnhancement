@@ -46,6 +46,10 @@
  * it never treats an extrapolated destination as evidence of an observed predecessor path.
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, km/h, gap, pushThrough, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
+ * Diagnostic capture: owner-local WAIT_Convoy_CaptureControl=true retains only the latest
+ * follower samples in local-state controlSamples (at most nineteen); false removes them.
+ * Samples expose each limiting stage and actual writes, including later trail-cap writes.
+ * No publication, logger, additional world scan or movement writer is installed.
  * Return Value: Nothing.
  * Current caller: WAIT_fnc_ConvoyOperationStep through the shared owner-local scheduler.
  * Example: [_group, _configuration] call WAIT_fnc_ConvoyTick;
@@ -611,6 +615,11 @@ private _speedLimits = _state get "speedLimits";
 private _pathOwners = _state getOrDefault ["pathOwners",createHashMap];
 private _pathAssistEnabled=[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
 _state set ["pathOwners",_pathOwners];
+// Internal audit capture is local to this owner and resets each travelling callback.
+// It cannot grant authority, change any cap, or retain an unbounded time series.
+private _captureControl=(_group getVariable ["WAIT_Convoy_CaptureControl",false]) isEqualTo true;
+private _controlSamples=createHashMap;
+if (_captureControl) then {_state set ["controlSamples",_controlSamples]} else {_state deleteAt "controlSamples"};
 for "_i" from 1 to (count _vehicles - 1) do {
     private _vehicle = _vehicles select _i;
     private _front = _vehicles select (_i - 1);
@@ -665,6 +674,13 @@ for "_i" from 1 to (count _vehicles - 1) do {
         _limit=(_limit+_catchupBoost) max 5;
     };
     if (_controlGap < _gapLow) then {_limit = _limit min ((_frontSpeed-(_gapLow-_controlGap)*1.2) max 0)};
+    private _controlSample=[];
+    if (_captureControl) then {
+        _controlSample=[serverTime,_revision,_i,netId _front,
+            [_gap,_controlGap,_desiredGap,_gapLow,_gapHigh,_lateralOffset],
+            [((velocityModelSpace _vehicle select 1)*3.6),_frontSpeed,_previous select 0],
+            [["spacing",_limit]],[],false];
+    };
     // A stationary/braking predecessor must still constrain us inside the tolerance band.
     // Match the ordinary driving model in SI units, then convert its closing allowance
     // to the convoy's km/h caps. Heavy followers receive earlier provisional braking.
@@ -691,7 +707,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Reverse yield overrides smoothing and lateral recapture; neither is
     // permission to advance into a reversing predecessor. Keep route identity.
     if (_frontReversing) then {_limit=0};
+    if (_captureControl) then {(_controlSample select 6) append [["closing",_closingCap],["smoothed",_limit]]};
     if (_retainedPathCap >= 0) then {_limit=_limit min _retainedPathCap};
+    if (_captureControl) then {(_controlSample select 6) pushBack ["retainedPath",_retainedPathCap]};
     // Preserve normal aligned predecessor spacing. Its turning/reversing hull and
     // contact-range occupancy still constrain us, as do all other occupied vehicles.
     private _traffic=if (_trafficAssistEnabled) then {
@@ -753,10 +771,19 @@ for "_i" from 1 to (count _vehicles - 1) do {
     _limit=_limit min ((_traffic select 0)*3.6);
     _limit=_limit min ((_passageCaps getOrDefault [netId _vehicle,1e6])*3.6);
     _limit=_limit min ((_bypassCaps getOrDefault [netId _vehicle,1e6])*3.6);
+    private _preInfantryLimit=_limit;
     _limit = [_vehicle,_limit,_group] call WAIT_fnc_CortexInfantrySpeed;
+    if (_captureControl) then {
+        (_controlSample select 6) append [["trafficGeometry",(_traffic select 0)*3.6],
+            ["passage",(_passageCaps getOrDefault [netId _vehicle,1e6])*3.6],
+            ["bypass",(_bypassCaps getOrDefault [netId _vehicle,1e6])*3.6],
+            ["beforeInfantry",_preInfantryLimit],["afterInfantry",_limit]];
+        _controlSamples set [_key,_controlSample];
+    };
     if ([] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
         _vehicle forceSpeed _ownedSpeed;
+        if (_captureControl) then {(_controlSample select 7) pushBack ["PACE",_limit];_controlSample set [8,true]};
         if (_vehicleGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_vehicle,_vehicleGate,_revision] call WAIT_fnc_DrivingGateRequest};
         _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
     };
@@ -912,11 +939,13 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 };
                 private _pathCap=if (_pathTurn > 70) then {18} else {if (_pathTurn > 45) then {25} else {if (_pathTurn > 25) then {35} else {_maximum}}};
                 if (_pathGrade > 0.2) then {_pathCap=_pathCap min 18} else {if (_pathGrade > 0.12) then {_pathCap=_pathCap min 25}};
+                if (_captureControl) then {(_controlSample select 6) pushBack ["freshPath",_pathCap]};
                 _progress set [8,_pathCap];
                 _limit=_limit min _pathCap;
                 if ([] call _mayIssueDriving) then {
                     private _ownedSpeed=_limit/3.6;
                     _vehicle forceSpeed _ownedSpeed;
+                    if (_captureControl) then {(_controlSample select 7) pushBack ["TRAIL",_limit];_controlSample set [8,true]};
                     _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
                 };
                 _speedLimits set [_key,[_limit,time]];

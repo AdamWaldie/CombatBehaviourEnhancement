@@ -9,6 +9,11 @@
  * Repeat/JIP: Public original deadline and issued phases survive transfer without replaying actions.
  * Terminal receipts suppress repeated attempts for the same driver and route. No forced seating,
  * physics movement, repair, AI-feature reset, waypoint rewrite or second scheduler is used.
+ * Candidate and leader native commands are snapshotted as well as destinations. A newer
+ * command, or explicit STOP, cancels seat actions even when its destination is unchanged.
+ * The issued candidate seat switch may expose its own asynchronous ACTION phase. A newer
+ * indistinguishable ACTION during that window cannot be identified by command observations.
+ * Journals without these command receipts retire without replaying a seat action.
  * Arguments: 0 group <GROUP, grpNull>; 1 current driving brain <HASHMAP, empty>;
  * 2 release <BOOL, false> retires a matching journal without further native action.
  * Return Value: BOOL - an admitted native seat action is pending, not restored mobility.
@@ -53,6 +58,14 @@ private _publish={if (_changed) then {_vehicle setVariable ["WAIT_DrivingCrew_Wo
 if (_terminal || {count _work == 0 && {!isNull _driver} && {alive _driver}}) exitWith {call _publish;false};
 private _candidate=if (count _work > 0) then {_work get "candidate"} else {objNull};
 private _phase=if (count _work > 0) then {_work get "phase"} else {""};
+// A native seat action may expose ACTION asynchronously after its immediate receipt.
+// Only this candidate in the already-issued SWITCHING phase may make that transition.
+private _commandOwned={
+    params ["_actor","_receipt"];
+    if (_receipt == "MISSING_RECEIPT") exitWith {false};
+    currentCommand _actor == _receipt
+        || {_actor == _candidate && {_phase == "SWITCHING"} && {currentCommand _actor == "ACTION"}}
+};
 private _crew=fullCrew [_vehicle,"",false];
 private _tasks=["GET IN","GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
     "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
@@ -64,6 +77,7 @@ private _available={
     local _group && {alive _vehicle} && {canMove _vehicle} && {abs speed _vehicle < 1}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle} && {!lockedDriver _vehicle}
         && {vehicle leader _group == _vehicle}
+        && {currentCommand leader _group != "STOP"}
         && {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain}
         && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
         && {!(_brain getOrDefault ["cancelled",false])} && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
@@ -108,6 +122,7 @@ if (count _work == 0) then {
             && {[_actor] call WAIT_fnc_CortexCombatEffective}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
             && {assignedVehicle _actor in [objNull,_vehicle]}
+            && {currentCommand _actor != "STOP"}
     };
     private _cargo=_choices select {toLowerANSI (_x select 1) == "cargo"};
     if (_cargo isNotEqualTo []) then {_choices=_cargo};
@@ -116,6 +131,7 @@ if (count _work == 0) then {
         _work=createHashMapFromArray [["group",_group],["route",_route],["driver",_driver],["candidate",_candidate],
             ["command",+(expectedDestination _candidate)],["assignment",assignedVehicleRole _candidate],
             ["leader",leader _group],["leaderCommand",+(expectedDestination leader _group)],
+            ["nativeCommand",currentCommand _candidate],["leaderNativeCommand",currentCommand leader _group],
             ["deadline",serverTime+25],["phase","READY"],["started",serverTime]];
         _phase="READY";_changed=true;_brain set ["crewVehicle",_vehicle];
     };
@@ -129,6 +145,8 @@ if (isNull _candidate || {!local _candidate} || {vehicle _candidate != _vehicle}
     || {!simulationEnabled _candidate} || {isObjectHidden _candidate}
     || {!(_candidate checkAIFeature "MOVE")} || {!(_candidate checkAIFeature "PATH")}
     || {leader _group != (_work get "leader")}
+    || {!([_candidate,_work getOrDefault ["nativeCommand","MISSING_RECEIPT"]] call _commandOwned)}
+    || {!([leader _group,_work getOrDefault ["leaderNativeCommand","MISSING_RECEIPT"]] call _commandOwned)}
     || {(expectedDestination leader _group) isNotEqualTo (_work get "leaderCommand")} || {!(assignedVehicle _candidate in [objNull,_vehicle])}
     || {(expectedDestination _candidate) isNotEqualTo (_work get "command")}
     || {assignedVehicleRole _candidate isNotEqualTo (_work get "assignment")}) exitWith {["CANCELLED"] call _finish};
@@ -139,6 +157,9 @@ private _commandsOwned={
         && {simulationEnabled _candidate} && {!isObjectHidden _candidate}
         && {_candidate checkAIFeature "MOVE"} && {_candidate checkAIFeature "PATH"}
         && {leader _group == (_work get "leader")}
+        && {currentCommand _candidate != "STOP"}
+        && {[_candidate,_work getOrDefault ["nativeCommand","MISSING_RECEIPT"]] call _commandOwned}
+        && {[leader _group,_work getOrDefault ["leaderNativeCommand","MISSING_RECEIPT"]] call _commandOwned}
         && {(expectedDestination leader _group) isEqualTo (_work get "leaderCommand")}
         && {(expectedDestination _candidate) isEqualTo (_work get "command")}
         && {assignedVehicle _candidate in [objNull,_vehicle]}
@@ -157,6 +178,8 @@ if (_phase in ["READY","VACATING"]) then {
     isNil {
         if (call _available && {call _commandsOwned} && {isNull driver _vehicle}) then {
             _candidate action ["MoveToDriver",_vehicle];
+            _work set ["nativeCommand",currentCommand _candidate];
+            _work set ["leaderNativeCommand",currentCommand leader _group];
             _work set ["command",+(expectedDestination _candidate)];
             _work set ["leaderCommand",+(expectedDestination leader _group)];
             _work set ["assignment",assignedVehicleRole _candidate];
