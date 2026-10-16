@@ -5,8 +5,10 @@
  * Line/reserve geometry is planned before old orders are released. Invalid, wet, steep or
  * overlapping layouts return false with prior assignments intact. Geometry is not proof of
  * native path accessibility; physical approach/arrival remains a separate requirement.
+ * A changed native order, actor command, task generation or ownership epoch during planning
+ * refuses the new task before cleanup. FOLLOW permits its same leader to keep moving.
  * Line and reserve slots count only local combat-effective actors without player or specialist
- * ownership; protected actors remain outside the order's allocation and starting strength.
+ * ownership or an actor movement reservation; protected actors remain outside the order's allocation and starting strength.
  *
  * About two thirds of the squad form a firing line across the facing
  * direction, spread over the given width. Lateral slots contract towards the centre when the nominal
@@ -71,9 +73,34 @@ if (!_facingValid || {!(_facing isEqualType 0)} || {!finite _facing}) exitWith {
 _facing=((_facing mod 360)+360) mod 360;
 private _units = (units _group) select {
     [_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
-        && {vehicle _x == _x} && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
+        && {vehicle _x == _x} && {!([_x] call WAIT_fnc_CortexActorMoveReserved)}
+        && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
 };
 if (_units isEqualTo [] || {count _units > 64}) exitWith {false};
+// Capture observable task context before geometry work; this is admission evidence, not
+// movement authority. Native planning-mode/force-replan flags are deliberately not compared.
+private _admissionRoute=[_group] call WAIT_fnc_NativeOrderReceipt;
+private _admissionEpoch=_group getVariable ["WAIT_AIPass_Epoch",0];
+private _generationKeys=["WAIT_AIPass_ClearGeneration","WAIT_AIPass_GarrisonGeneration",
+    "WAIT_AIPass_DefendGeneration","WAIT_OperationGeneration"];
+private _admissionGenerations=_generationKeys apply {_group getVariable [_x,-1]};
+private _admissionActors=_units apply {[_x,currentCommand _x,+((expectedDestination _x) param [0,[],[[]]]),formLeader _x]};
+private _admissionCurrent={
+    local _group && {(_group getVariable ["WAIT_AIPass_Epoch",0]) == _admissionEpoch}
+        && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _admissionRoute}
+        && {(_generationKeys apply {_group getVariable [_x,-1]}) isEqualTo _admissionGenerations}
+        && {_admissionActors findIf {
+            _x params ["_actor","_command","_destination","_followLeader"];
+            !local _actor || {group _actor != _group} || {vehicle _actor != _actor}
+                || {isPlayer _actor} || {!isNull remoteControlled _actor}
+                || {!([_actor] call WAIT_fnc_CortexCombatEffective)}
+                || {[_actor] call WAIT_fnc_CortexActorMoveReserved}
+                || {currentCommand _actor != _command}
+                || {if (_command == "FOLLOW" && {!isNull _followLeader}) then {
+                    formLeader _actor != _followLeader
+                } else {((expectedDestination _actor) param [0,[],[[]]]) isNotEqualTo _destination}}
+        } < 0}
+};
 private _reserveCount = if (count _units >= 4) then {floor (count _units / 3)} else {0};
 private _line = _units select [0, count _units - _reserveCount];
 private _reserve = _units select [count _line, _reserveCount];
@@ -116,7 +143,7 @@ private _rear=if (_rearRoute isEqualTo []) then {+_centre} else {+(_rearRoute se
     _placements pushBack [_x,[_slot,_facing,"RESERVE"]];
 } forEach _reserve;
 // Geometry queries may overlap new authority. Refuse before cleanup or assignment mutation.
-if (!_layoutValid || {count _placements != count _units} || {!local _group}
+if (!_layoutValid || {count _placements != count _units} || {!(call _admissionCurrent)} || {!local _group}
     || {!([_group] call WAIT_fnc_CortexIsEligible)} || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
 // End transient movement only after a complete layout is ready.
 [_group,false] call WAIT_fnc_CortexReleaseGroup;

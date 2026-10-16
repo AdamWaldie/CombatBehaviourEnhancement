@@ -2247,7 +2247,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('currentCommand _actor in [',garrison)
         self.assertIn('!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)',garrison)
         self.assertIn('[_group] call WAIT_fnc_CortexExternalTakeover',reserve)
-        self.assertLess(reserve.index('CortexExternalTakeover'),reserve.index('_x setVariable ["WAIT_AIPass_DefendPos"'))
+        self.assertLess(reserve.index('CortexExternalTakeover'),reserve.index('_actor setVariable ["WAIT_AIPass_DefendPos"'))
         self.assertNotIn('_x doMove _position;',reserve)
         self.assertIn('[_group,_reserve] call WAIT_fnc_CortexDefendApplyLocal',reserve)
 
@@ -2374,7 +2374,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('forEach [0.65,0.35,0]',reserve)
         self.assertIn('surfaceNormal _position',reserve)
         text=source('cortexDefendApplyLocal')
-        self.assertIn('_routes pushBack [_x,getPosATL _x,time,0,_routeGeneration]',text)
+        self.assertIn('private _route=[_x,getPosATL _x,time,0,_routeGeneration,+_assignment,false,',text)
         self.assertIn('WAIT_AIPass_DefendRouteGeneration',text)
         self.assertIn('if (_fullApply) then {_actors=+units _group}',text)
         self.assertIn('forEach (_job get "actors")',text)

@@ -15,6 +15,9 @@
  * wandering does not. Inactivity causes a bounded route
  * refresh, and only exhausted refreshes record failure.
  * Scheduler delay and temporary Zeus ownership do not consume recovery attempts.
+ * Delayed arrival/retry writes require the exact planned assignment and either the issued MOVE
+ * destination or the unchanged pre-issue command. A newer command retires this actor's assignment
+ * without a movement/watch write. This local job receipt does not establish migration adoption.
  * A temporarily reserved actor keeps its arrival job pending without aging its no-progress timer.
  * Locality and authority: call where the group is local.
  *
@@ -68,12 +71,30 @@ private _mayIssueMovement = {
     private _assignment = _x getVariable ["WAIT_AIPass_DefendPos", []];
     if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}) then {
-        _routes pushBack [_x,getPosATL _x,time,0,_routeGeneration];
+        private _route=[_x,getPosATL _x,time,0,_routeGeneration,+_assignment,false,
+            currentCommand _x,+((expectedDestination _x) param [0,[],[[]]]),formLeader _x];
+        _routes pushBack _route;
         if ((getPosATL _x) vectorDistance (_assignment select 0) > 2 && {[_x] call _mayIssueMovement}) then {
             _x doMove (_assignment select 0);
+            _route set [6,true];
         };
     };
 } forEach _actors;
+// A receipt records only commands issued by this job; it grants no general actor authority.
+private _ownsRouteCommand={
+    params ["_actor","_route"];
+    private _command=currentCommand _actor;
+    private _destination=(expectedDestination _actor) param [0,[],[[]]];
+    if (_route select 6) exitWith {
+        _command == "" || {_command == "MOVE" && {count _destination == 3}
+            && {_destination vectorDistance ((_route select 5) select 0) <= 0.25}}
+    };
+    _command == (_route select 7) && {
+        if (_command == "FOLLOW" && {!isNull (_route select 9)}) then {
+            formLeader _actor == (_route select 9)
+        } else {_destination isEqualTo (_route select 8)}
+    }
+};
 [{
     params ["_job"];
     private _group = _job get "group";
@@ -96,6 +117,7 @@ private _mayIssueMovement = {
     };
     private _pending = 0;
     private _routes=_job get "routes";
+    private _ownsRouteCommand=_job get "ownsRouteCommand";
     {
         private _unit=_x;
         private _routeIndex=_routes findIf {(_x select 0) isEqualTo _unit};
@@ -105,8 +127,16 @@ private _mayIssueMovement = {
             && {(_unit getVariable ["WAIT_AIPass_DefendRouteGeneration",-2]) == _routeGeneration}
             && {[_unit] call WAIT_fnc_CortexCombatEffective} && {local _unit} && {!isPlayer _unit}
             && {group _unit == _group} && {_assignment isNotEqualTo []}
+            && {_assignment isEqualTo ((_routes select _routeIndex) select 5)}
             && {!(_unit getVariable ["WAIT_AIPass_DefendHolding", false])}
             && {!(_unit getVariable ["WAIT_AIPass_DefendFailed",false])};
+        if (_routeCurrent && {!([_unit,_routes select _routeIndex] call _ownsRouteCommand)}) then {
+            // The current order belongs to somebody else. Retire metadata, never restore formation.
+            _unit setVariable ["WAIT_AIPass_DefendPos",nil,true];
+            _unit setVariable ["WAIT_AIPass_DefendHolding",nil];
+            _unit setVariable ["WAIT_AIPass_DefendFailed",nil,true];
+            _routeCurrent=false;
+        };
         private _canIssue=_routeCurrent && {[_unit] call _mayIssueMovement};
         if (_routeCurrent && {!_canIssue}) then {
             // Deferral is not arrival or route failure. Keep the callback alive so an
@@ -134,6 +164,7 @@ private _mayIssueMovement = {
                     if (time-_lastProgress >= 15) then {
                         if (_retries < 3 && {[_unit] call _mayIssueMovement}) then {
                             _unit doMove (_assignment select 0);
+                            _route set [6,true];
                             _route set [2,time];
                             _route set [3,_retries+1];
                         } else {
@@ -147,5 +178,5 @@ private _mayIssueMovement = {
         };
     } forEach (_job get "actors");
     [2, -1] select (_pending == 0)
-}, createHashMapFromArray [["group", _group], ["actors",+_actors], ["routes",_routes], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
+}, createHashMapFromArray [["group", _group], ["actors",+_actors], ["routes",_routes], ["ownsRouteCommand",_ownsRouteCommand], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
 
