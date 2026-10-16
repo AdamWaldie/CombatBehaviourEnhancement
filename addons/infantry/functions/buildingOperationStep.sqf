@@ -9,6 +9,7 @@
  * generation scoped and reconstructed after locality migration. Each room, entrance and egress
  * leg has one generation-owned movement writer. Entry, room and recovery movement each issue one
  * native doMove path request without a second formation-planner destination override.
+ * Unchanged owned MOVE requests survive readiness changes; finite timed retries own replanning.
  * Entry and floor-changing mover handoffs retain a covered checkpoint and at most one floor-access
  * checkpoint. Candidate native floor connectors retain a current-floor access leg before the
  * destination-floor landing only when no physically visited destination-floor access is available.
@@ -164,7 +165,7 @@ private _delay=call {
         diag_log format ["WAIT CLEAR ENTRY SAMPLE: %1",[
             serverTime,clientOwner,_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],
             _lane,_key,_mover,+_intended,getPosASL _actor,expectedDestination _actor,
-            currentCommand _actor,speed _actor,_entered]];
+            currentCommand _actor,speed _actor,_entered,unitReady _actor]];
     };
     private _actorAvailable={
         params ["_actor"];
@@ -2422,9 +2423,12 @@ private _delay=call {
                             };
                             private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
                             private _committedTarget=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
+                            // An unchanged owned MOVE may be ready/temporarily stationary without
+                            // granting a new path request every callback. Timed retries below own
+                            // no-progress recovery; readiness still controls physical handoffs.
                             private _sameActiveTarget=count _committedTarget == 3
                                 && {_committedTarget vectorDistance _unitTarget <= 0.25}
-                                && {[_unit] call _activeOwnMove};
+                                && {[_unit] call _ownsCurrentMove};
                             if (!_sameActiveTarget && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
                                 // An unchanged active path or support hold already satisfies this handoff.
                                 if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo _unitTarget

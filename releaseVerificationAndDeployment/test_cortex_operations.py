@@ -2125,6 +2125,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_worker,_house,_x] call _observedRoomVisit',audit)
         self.assertIn('[_x,_house,_room] call _observedRoomVisit',audit)
 
+    def test_clearance_preserves_owned_move_even_when_native_actor_is_ready(self):
+        step=source('buildingOperationStep')
+        same=step.split('private _sameActiveTarget=',1)[1].split('if (!_sameActiveTarget',1)[0]
+        self.assertIn('call _ownsCurrentMove',same)
+        self.assertNotIn('call _activeOwnMove',same)
+        owned=step.split('private _ownsCurrentMove={',1)[1].split('// Native task ownership',1)[0]
+        self.assertIn('currentCommand _actor == "MOVE"',owned)
+        self.assertIn('_live vectorDistance _issued <= 0.25',owned)
+        retry=step.split('private _commandEnded=',1)[1].split('_retries=_retries+1',1)[0]
+        self.assertIn('_now-_lastProgress > _retryDelay',retry)
+        self.assertIn('_x doMove _unitTarget',retry)
+
     def test_clear_entry_capture_is_opt_in_bounded_and_read_only(self):
         step=source('buildingOperationStep')
         capture=step.split('private _captureEntry={',1)[1].split('private _actorAvailable=',1)[0]
