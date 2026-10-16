@@ -3334,6 +3334,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_garrison_duck_yields_to_reserved_and_native_tasks_at_both_boundaries(self):
+        duck=source('cortexGarrisonApplyLocal').split('private _duck = {',1)[1].split('WAIT_AIPass_GarrisonHandlerIds',1)[0]
+        event, delayed=duck.split('params ["_unit", "_until", "_priorStance",',1)
+        for section in (event,delayed):
+            self.assertIn('WAIT_fnc_CortexActorMoveReserved',section)
+            self.assertIn('objectParent _unit',section)
+            self.assertIn('remoteControlled _unit',section)
+            for task in ['"GET IN"','"HEAL"','"CARRY SOLDIER"','"ASSEMBLE"','"REPAIR"']:
+                self.assertIn(task,section)
+        self.assertIn('getVariable ["WAIT_AIPass_Epoch",0]',event)
+        self.assertIn('getVariable ["WAIT_AIPass_Epoch",0]',delayed)
+
     def test_garrison_duck_restores_immediate_stance_only_for_same_assignment(self):
         apply=source('cortexGarrisonApplyLocal')
         duck=apply.split('private _duck = {',1)[1].split('WAIT_AIPass_GarrisonHandlerIds',1)[0]

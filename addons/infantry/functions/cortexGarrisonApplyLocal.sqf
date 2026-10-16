@@ -51,7 +51,9 @@
  * Handlers: Suppressed and Hit drop the soldier to a lower stance for 4-8 s, then restore the stance
  * he held immediately before ducking only if the Cortex duck stance still remains.
  * Deferred posture recovery is bound to the same group, garrison generation, owner epoch and assignment.
- * Later stance changes are preserved. Handlers do nothing after release or Zeus takeover.
+ * Later stance changes are preserved. Handlers and delayed recovery yield to actor movement
+ * reservations, mounted/remote control and native medical, boarding or service tasks.
+ * Handlers do nothing after release or Zeus takeover.
  * Locality and authority: call where the group is local.
  * Each actor must remain combat-effective and free of player/specialist ownership before
  * initial movement or an arrival PATH lock; captive and surrendered actors are never retasked.
@@ -210,13 +212,17 @@ private _buildingAnchor = {
                 params ["_unit"];
                 if (!local _unit || {isPlayer _unit} || {!([_unit] call WAIT_fnc_CortexCombatEffective)} || {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo []}
                     || {!([group _unit] call WAIT_fnc_CortexIsEligible)} || {[group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover}) exitWith {};
+                // A stale garrison marker grants no posture authority over another task.
+                if (!isNull objectParent _unit || {!isNull remoteControlled _unit}
+                    || {[_unit] call WAIT_fnc_CortexActorMoveReserved}
+                    || {toUpperANSI currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {};
                 if (time < (_unit getVariable ["WAIT_AIPass_DuckUntil", -1])) exitWith {};
                 private _priorStance=unitPos _unit;
                 // Already prone is not a reason to raise the soldier under incoming fire.
                 if (toUpperANSI _priorStance == "DOWN") exitWith {};
                 private _duckGroup=group _unit;
                 private _duckGeneration=_duckGroup getVariable ["WAIT_AIPass_GarrisonGeneration",-1];
-                private _duckEpoch=_duckGroup getVariable ["WAIT_AIPass_Epoch",-1];
+                private _duckEpoch=_duckGroup getVariable ["WAIT_AIPass_Epoch",0];
                 private _duckAssignment=+(_unit getVariable ["WAIT_AIPass_GarrisonPos",[]]);
                 private _until = time + 4 + random 4;
                 _unit setVariable ["WAIT_AIPass_DuckUntil", _until];
@@ -228,7 +234,10 @@ private _buildingAnchor = {
                     if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit} && {(_unit getVariable ["WAIT_AIPass_DuckUntil", -1]) == _until}
                         && {group _unit == _duckGroup} && {local _duckGroup}
                         && {(_duckGroup getVariable ["WAIT_AIPass_GarrisonGeneration",-2]) == _duckGeneration}
-                        && {(_duckGroup getVariable ["WAIT_AIPass_Epoch",-2]) == _duckEpoch}
+                        && {(_duckGroup getVariable ["WAIT_AIPass_Epoch",0]) == _duckEpoch}
+                        && {isNull objectParent _unit} && {isNull remoteControlled _unit}
+                        && {!([_unit] call WAIT_fnc_CortexActorMoveReserved)}
+                        && {!(toUpperANSI currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
                         && {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo _duckAssignment}
                         && {[group _unit] call WAIT_fnc_CortexIsEligible}
                         && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) then {
