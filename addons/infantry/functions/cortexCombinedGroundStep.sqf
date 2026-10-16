@@ -8,7 +8,8 @@
  * influence releases only the Cortex waypoint and movement lease. A stalled vehicle gets one
  * bounded route replan; a second stall ends the role so gameplay roadblocks remain meaningful.
  * Locality/authority: runs only where the vehicle group is local after a server-authenticated role.
- * Repeat/JIP: the public role token rejects stale jobs; locality replay queues one replacement job.
+ * Repeat/JIP: the complete admitted opportunity rejects stale jobs, including same-token edits.
+ * Locality replay queues one replacement job; legacy jobs without a snapshot retire safely.
  * Arrival fire requests require a combat-effective local gunner; arrival alone never proves fire effect.
  * Cleanup requires the matching operation generation, so a late role cannot delete a newer route.
  * Failed arrival fire, asset loss, immobility and exhausted movement retire the exact admitted
@@ -28,6 +29,12 @@ private _destination=_job getOrDefault ["destination",[]];
 private _operationGeneration=_job getOrDefault ["operationGeneration",-1];
 private _ownerEpoch=_job getOrDefault ["ownerEpoch",-1];
 private _snapshot=_job getOrDefault ["opportunity",[]];
+private _roleCurrent={
+    (count _snapshot) in [7,8] && {(_snapshot select 0) isEqualTo _token}
+        && {(_snapshot select 2) isEqualTo _target} && {(_snapshot select 4) == "GROUND_MANOEUVRE"}
+        && {(_snapshot select 5) isEqualTo (_job getOrDefault ["expiry",-1])}
+        && {(_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isEqualTo _snapshot}
+};
 private _finish={
     params ["_reason"];
     if (!isNull _group && {local _group}
@@ -53,7 +60,7 @@ private _finish={
             [_group,"COMBINED_GROUND",false] call WAIT_fnc_CortexOwnershipLease;
             _state deleteAt "movementLease";
         };
-        if (((_group getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""]) == _token) then {
+        if (call _roleCurrent) then {
             _group setVariable ["WAIT_Cortex_CombinedResult",[_token,"GROUND_MANOEUVRE",_reason,serverTime,_target,_destination],true];
             // Only this admitted snapshot may spend a fallback slot. New roles, owners,
             // expiry, target loss and administrative cancellation cannot dispatch replacements.
@@ -69,8 +76,7 @@ private _finish={
 };
 if (isNull _group || {isNull _asset} || {!alive _asset}) exitWith {["ASSET_LOST"] call _finish};
 if (!local _group || {_ownerEpoch != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {-1};
-private _role=_group getVariable ["WAIT_Cortex_CombinedRole",[]];
-if (!((count _role) in [7,8]) || {(_role select 0) != _token} || {(_role select 4) != "GROUND_MANOEUVRE"}) exitWith {["ROLE_RELEASED"] call _finish};
+if !(call _roleCurrent) exitWith {["ROLE_RELEASED"] call _finish};
 if ([_group] call WAIT_fnc_CortexZeusHeld) exitWith {["ZEUS_HANDOVER"] call _finish};
 if (!([_group] call WAIT_fnc_CortexIsEligible)
     || {!([_group,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
@@ -93,6 +99,7 @@ if (_asset distance2D _destination <= 70) exitWith {
     private _knownTarget=(_group knowsAbout _target) > 0;
     private _fireDecision=["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR"] select _knownTarget;
     private _fireAllowed=_knownTarget && {!isNull _gunner} && {[_gunner] call WAIT_fnc_CortexCombatEffective} && {local _gunner}
+        && {group _gunner == _group}
         && {simulationEnabled _asset} && {!isObjectHidden _asset}
         && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
         && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
@@ -108,7 +115,7 @@ if (_asset distance2D _destination <= 70) exitWith {
     };
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";
-        if ([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear) then {
+        if ([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear && {call _roleCurrent}) then {
             _gunner doTarget _target;
             _gunner doFire _target;
             _fireDecision="ORDER_ISSUED";

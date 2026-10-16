@@ -4250,6 +4250,20 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('select (_fireDecision == "ORDER_ISSUED")',step)
         self.assertIn('simulationEnabled _asset && {!isObjectHidden _asset} && {!canMove _asset}',step)
 
+    def test_combined_ground_continuation_and_result_require_complete_admitted_role(self):
+        text=source('cortexCombinedGroundStep')
+        role=text.split('private _roleCurrent={',1)[1].split('private _finish={',1)[0]
+        for guard in ('(_snapshot select 0) isEqualTo _token','(_snapshot select 2) isEqualTo _target',
+                      '(_snapshot select 4) == "GROUND_MANOEUVRE"','_job getOrDefault ["expiry",-1]',
+                      'isEqualTo _snapshot'):
+            self.assertIn(guard,role)
+        finish=text.split('private _finish={',1)[1].split('if (isNull _group ||',1)[0]
+        self.assertLess(finish.index('if (call _roleCurrent)'),finish.index('"WAIT_Cortex_CombinedResult"'))
+        self.assertLess(text.index('if !(call _roleCurrent) exitWith'),text.index('if (_asset distance2D _destination <= 70)'))
+        self.assertIn('call WAIT_fnc_CortexLineOfFireClear && {call _roleCurrent}',text)
+        self.assertIn('group _gunner == _group',text)
+        self.assertIn('group _gunner != _group',source('cortexCombinedArmsLocal'))
+
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)

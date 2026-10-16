@@ -90,6 +90,7 @@ if (_role == "GROUND_FIRE") exitWith {
     // operation controllers own the later target/release boundary.
     private _fireRefusal=if (_group knowsAbout _target > 0) then {""} else {"NO_KNOWN_CONTACT"};
     if (isNull _gunner || {!([_gunner] call WAIT_fnc_CortexCombatEffective)} || {!local _gunner}
+        || {group _gunner != _group}
         || {!simulationEnabled _asset} || {isObjectHidden _asset}
         || {!simulationEnabled _gunner} || {isObjectHidden _gunner}
         || {!(combatMode _group in ["YELLOW","RED"])}
