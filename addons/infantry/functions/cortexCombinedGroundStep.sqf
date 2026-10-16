@@ -146,7 +146,8 @@ if (serverTime >= (_job getOrDefault ["capabilityAt",serverTime])) then {
         || {!([_stationOperator] call WAIT_fnc_CortexCombatEffective)}
         || {isPlayer _stationOperator} || {!isNull remoteControlled _stationOperator}
         || {([_stationOperator] call WAIT_fnc_CortexExternalOwner) != ""}
-        || {[_stationOperator] call WAIT_fnc_CompatibilityExternalControl}) then {
+        || {[_stationOperator] call WAIT_fnc_CompatibilityExternalControl}
+        || {!([_stationOperator] call WAIT_fnc_CortexActorFireTaskAvailable)}) then {
         _capabilityFailure="NO_FIRE_OPERATOR";
     };
     if (_capabilityFailure == "" && {!([_asset,_stationOperator] call WAIT_fnc_CortexGroundFireReady)}) then {
@@ -172,6 +173,7 @@ if (_asset distance2D _destination <= 70) exitWith {
         && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
         && {([_gunner] call WAIT_fnc_CortexExternalOwner) == ""}
         && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}
+        && {[_gunner] call WAIT_fnc_CortexActorFireTaskAvailable}
         && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
         && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
     if (_fireAllowed && {!canFire _asset}) then {_fireAllowed=false;_fireDecision="NO_FIRE_PLATFORM"};

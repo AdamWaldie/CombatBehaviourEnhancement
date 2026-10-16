@@ -128,6 +128,7 @@ if (_role == "GROUND_FIRE") exitWith {
         || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
         || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
         || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
+        || {!([_gunner] call WAIT_fnc_CortexActorFireTaskAvailable)}
         || {[_group] call WAIT_fnc_CortexExternalTakeover}) then {_fireRefusal="NO_FIRE_OPERATOR"};
     if (_fireRefusal == "" && {!canFire _asset}) then {_fireRefusal="NO_FIRE_PLATFORM"};
     if (_fireRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_STATION_AMMO"};
@@ -165,7 +166,8 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         || {!simulationEnabled _gunner} || {isObjectHidden _gunner}
         || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
         || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
-        || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}) then {_capabilityRefusal="NO_FIRE_OPERATOR"};
+        || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
+        || {!([_gunner] call WAIT_fnc_CortexActorFireTaskAvailable)}) then {_capabilityRefusal="NO_FIRE_OPERATOR"};
     if (_capabilityRefusal == "" && {!canFire _asset}) then {_capabilityRefusal="NO_FIRE_PLATFORM"};
     if (_capabilityRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
         _capabilityRefusal="NO_STATION_AMMO";

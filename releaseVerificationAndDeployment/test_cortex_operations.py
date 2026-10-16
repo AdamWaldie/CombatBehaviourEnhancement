@@ -4398,6 +4398,19 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('serverTime >= (_job getOrDefault ["expiry"'),text.index('// Dormancy/locality convergence'))
         self.assertIn('["capabilityAt",serverTime+4]',source('cortexCombinedArmsLocal'))
 
+    def test_combined_ground_preserves_protected_individual_tasks(self):
+        guard=source('cortexActorFireTaskAvailable')
+        self.assertIn('WAIT_fnc_CortexActorMoveReserved',guard)
+        for command in ('REARM','HEAL','GET IN','GET OUT','SCRIPTED','REPAIR','REFUEL','CARRY SOLDIER'):
+            self.assertIn('"'+command+'"',guard)
+        self.assertNotIn('doTarget',guard)
+        self.assertNotIn('setVariable',guard)
+        admission=source('cortexCombinedArmsLocal')
+        self.assertEqual(admission.count('[_gunner] call WAIT_fnc_CortexActorFireTaskAvailable'),2)
+        step=source('cortexCombinedGroundStep')
+        self.assertIn('[_stationOperator] call WAIT_fnc_CortexActorFireTaskAvailable',step)
+        self.assertIn('&& {[_gunner] call WAIT_fnc_CortexActorFireTaskAvailable}',step)
+
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)

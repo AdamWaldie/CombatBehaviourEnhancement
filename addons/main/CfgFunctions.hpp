@@ -224,6 +224,7 @@ class CfgFunctions {
             class CortexCombinedGroundFallbackServer {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedGroundFallbackServer.sqf";};
             class CortexCombinedRejectServer {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedRejectServer.sqf";};
             class CortexCombinedArmsLocal {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedArmsLocal.sqf";};
+            class CortexActorFireTaskAvailable {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexActorFireTaskAvailable.sqf";};
             class CortexGroundFireReady {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexGroundFireReady.sqf";};
             class CortexCombinedGroundStep {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCombinedGroundStep.sqf";};
             class CortexCooldown {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCooldown.sqf";};
