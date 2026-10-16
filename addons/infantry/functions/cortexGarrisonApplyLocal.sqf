@@ -53,7 +53,8 @@
  * Deferred posture recovery is bound to the same group, garrison generation, owner epoch and assignment.
  * Later stance changes are preserved. Handlers and delayed recovery yield to actor movement
  * reservations, mounted/remote control and native medical, boarding or service tasks.
- * Handlers do nothing after release or Zeus takeover.
+ * Native MOVE/FOLLOW approaches retain their movement posture; the general danger response
+ * remains available. Handlers do nothing after release or Zeus takeover.
  * Locality and authority: call where the group is local.
  * Each actor must remain combat-effective and free of player/specialist ownership before
  * initial movement or an arrival PATH lock; captive and surrendered actors are never retasked.
@@ -215,7 +216,7 @@ private _buildingAnchor = {
                 // A stale garrison marker grants no posture authority over another task.
                 if (!isNull objectParent _unit || {!isNull remoteControlled _unit}
                     || {[_unit] call WAIT_fnc_CortexActorMoveReserved}
-                    || {toUpperANSI currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {};
+                    || {toUpperANSI currentCommand _unit in ["MOVE","FOLLOW","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {};
                 if (time < (_unit getVariable ["WAIT_AIPass_DuckUntil", -1])) exitWith {};
                 private _priorStance=unitPos _unit;
                 // Already prone is not a reason to raise the soldier under incoming fire.
@@ -237,7 +238,7 @@ private _buildingAnchor = {
                         && {(_duckGroup getVariable ["WAIT_AIPass_Epoch",0]) == _duckEpoch}
                         && {isNull objectParent _unit} && {isNull remoteControlled _unit}
                         && {!([_unit] call WAIT_fnc_CortexActorMoveReserved)}
-                        && {!(toUpperANSI currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+                        && {!(toUpperANSI currentCommand _unit in ["MOVE","FOLLOW","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
                         && {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo _duckAssignment}
                         && {[group _unit] call WAIT_fnc_CortexIsEligible}
                         && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) then {

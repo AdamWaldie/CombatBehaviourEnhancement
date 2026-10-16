@@ -3341,7 +3341,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('WAIT_fnc_CortexActorMoveReserved',section)
             self.assertIn('objectParent _unit',section)
             self.assertIn('remoteControlled _unit',section)
-            for task in ['"GET IN"','"HEAL"','"CARRY SOLDIER"','"ASSEMBLE"','"REPAIR"']:
+            for task in ['"MOVE"','"FOLLOW"','"GET IN"','"HEAL"','"CARRY SOLDIER"','"ASSEMBLE"','"REPAIR"']:
                 self.assertIn(task,section)
         self.assertIn('getVariable ["WAIT_AIPass_Epoch",0]',event)
         self.assertIn('getVariable ["WAIT_AIPass_Epoch",0]',delayed)
