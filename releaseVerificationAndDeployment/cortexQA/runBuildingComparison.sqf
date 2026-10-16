@@ -3,7 +3,8 @@
  * Compares physical building entry using independent engine commands across small and large,
  * single- and multi-storey house models, then exercises production garrison and clearance.
  * Locality/authority: scheduled dedicated-server audit; normal fixtures are server-pinned.
- * Normal exit observations accumulate assignments as bounded planning publishes them.
+ * Normal and HC exit observations accumulate assignments as bounded planning publishes them.
+ * HC acceptance includes pending workers and rejects roster loss across the transfer.
  * The HC batch adds an explicit mid-egress transfer through the real migration provider.
  * Clearance acceptance requires covered interior navigation positions; exposed positions remain
  * separately recorded as exterior evidence, rather than being counted as uncleared rooms.
@@ -687,7 +688,7 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
             _members pushBack _unit;
         };
         missionNamespace setVariable ["WAIT_CortexQA_Actors",_members,true];
-        ["HC clearance: owner transfer during exit","A fresh four-soldier group clears a multi-storey house. Ownership transfers to a real HC while an actor is still inside and exiting. Original exit destinations, deadline and consumed retries must survive, followed by actual exit and ordinary movement. No actor relocation, door assistance, freezing or completion injection is applied.",_site] call _phase;
+        ["HC clearance: owner transfer during exit","A fresh four-soldier group clears a multi-storey house. Ownership transfers to a real HC during egress while workers still await exit planning inside the house. Original exit destinations, deadline and consumed retries must survive, followed by actual exit and ordinary movement. No actor relocation, door assistance, freezing or completion injection is applied.",_site] call _phase;
         private _accepted=[_group,_house] call WAIT_fnc_CortexClearBuilding;
         ["HC-CLEAR-EGRESS-order-accepted",_accepted] call _check;
         private _rooms=_house buildingPos -1;
@@ -713,12 +714,33 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
                         && {(_pose select 1) > (_low select 1)} && {(_pose select 1) < (_high select 1)}
                         && {(_pose select 2) > (_low select 2)} && {(_pose select 2) < (_high select 2)}) then {_inside=true};
                 } forEach (_journal select 3);
+                // Pending-only egress is a real migration boundary too. Observe the actual
+                // actor inside the house; no fixture timer or injected movement creates it.
+                if (count _journal == 13 && {(_journal select 10) == 2}
+                    && {(_journal select 11) isNotEqualTo []}) then {
+                    {
+                        private _actor=_x select 0;
+                        private _pose=_house worldToModel (getPosATL _actor);
+                        private _low=_bounds select 0;
+                        private _high=_bounds select 1;
+                        if ((_pose select 0) > (_low select 0) && {(_pose select 0) < (_high select 0)}
+                            && {(_pose select 1) > (_low select 1)} && {(_pose select 1) < (_high select 1)}
+                            && {(_pose select 2) > (_low select 2)} && {(_pose select 2) < (_high select 2)}) then {_inside=true};
+                    } forEach (_journal select 11);
+                } else {_inside=false};
                 if (_inside) then {_before=+_journal};
             };
             _inside || {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]}
         },300] call _wait;
         ["HC-CLEAR-EGRESS-physical-mid-exit",_midExit && {count _before in [10,13]},str [_before,_visits]] call _check;
         if (count _before in [10,13]) then {
+            private _pendingBefore=+(_before select 11);
+            private _expectedActors=((_before select 3)+_pendingBefore) apply {_x select 0};
+            private _rosterComplete=count _expectedActors == count _members
+                && {count (_expectedActors arrayIntersect _expectedActors) == count _members}
+                && {_members findIf {!(_x in _expectedActors)} < 0};
+            ["HC-CLEAR-EGRESS-pending-observed",_pendingBefore isNotEqualTo [] && {_rosterComplete},
+                str [_pendingBefore,_expectedActors]] call _check;
             private _targets=(_before select 3) apply {[_x select 0,+(_x select 1),_x select 4]};
             private _exitVisits=_targets apply {false};
             private _transferAt=serverTime;
@@ -739,6 +761,27 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
                     _seenReplay=true;
                     if ((_journal select 7) != (_before select 7) || {(_journal select 6) != (_before select 6)}
                         || {(_journal select 5) isNotEqualTo (_before select 5)}) then {_preserved=false};
+                    private _pending=if (count _journal == 13) then {_journal select 11} else {[]};
+                    private _currentActors=((_journal select 3)+_pending) apply {_x select 0};
+                    if (count _currentActors != count _expectedActors
+                        || {count (_currentActors arrayIntersect _currentActors) != count _expectedActors}
+                        || {_expectedActors findIf {!(_x in _currentActors)} >= 0}) then {_preserved=false};
+                    // Every pending worker must retain its original leg until allocated.
+                    // Afterwards preserve the selected target/retry record and observe its exit.
+                    {
+                        _x params ["_actor","_leg"];
+                        private _waiting=_pending select {(_x select 0) == _actor};
+                        if (_waiting isNotEqualTo []) then {
+                            if (count _waiting != 1 || {((_waiting select 0) select 1) isNotEqualTo _leg}) then {_preserved=false};
+                        };
+                    } forEach _pendingBefore;
+                    {
+                        private _actor=_x select 0;
+                        if (_targets findIf {(_x select 0) == _actor} < 0) then {
+                            _targets pushBack [_actor,+(_x select 1),_x select 4];
+                            _exitVisits pushBack false;
+                        };
+                    } forEach (_journal select 3);
                     {
                         _x params ["_actor","_target","_retries"];
                         private _rows=(_journal select 3) select {(_x select 0) == _actor};
@@ -757,8 +800,9 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
                 } forEach _targets;
                 ((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]
             },(((_before select 7)-serverTime+8) max 0) min 55] call _wait;
-            ["HC-CLEAR-EGRESS-journal-preserved",_seenReplay && {_preserved},str [_before,_group getVariable ["WAIT_Cortex_ClearEgress",[]]]] call _check;
-            ["HC-CLEAR-EGRESS-physical-complete",_terminal && {_exitVisits findIf {!_x} < 0}
+            ["HC-CLEAR-EGRESS-journal-preserved",_seenReplay && {_preserved} && {_rosterComplete},str [_before,_group getVariable ["WAIT_Cortex_ClearEgress",[]]]] call _check;
+            ["HC-CLEAR-EGRESS-physical-complete",_terminal && {_rosterComplete} && {count _targets == count _expectedActors}
+                && {_exitVisits findIf {!_x} < 0}
                 && {((_group getVariable ["WAIT_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"}
                 && {_visits findIf {count _x < 2} < 0},str [_exitVisits,_visits,_group getVariable ["WAIT_Cortex_ClearResult",[]]]] call _check;
             [_group,2] call WAIT_fnc_HeadlessMigrateGroup;

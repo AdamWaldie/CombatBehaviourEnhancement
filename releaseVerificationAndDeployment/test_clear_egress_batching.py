@@ -51,3 +51,18 @@ class ClearEgressBatchingTests(unittest.TestCase):
         self.assertIn('_egressAssignments findIf',observation)
         self.assertIn('_egressAssignments pushBack +_x',observation)
         self.assertNotIn('!_egressSeen',observation)
+
+    def test_hc_fixture_requires_pending_roster_and_actual_exit_for_every_worker(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        case=qa.split('// Separate headless-batch acceptance:',1)[1].split('if (local _group) then {[_group] call WAIT_fnc_CortexClearRelease}',1)[0]
+        for marker in ('HC-CLEAR-EGRESS-pending-observed','private _pendingBefore=+',
+                       'count _expectedActors == count _members',
+                       'count _currentActors != count _expectedActors',
+                       'forEach _pendingBefore','isNotEqualTo _leg',
+                       '_targets pushBack [_actor,+(_x select 1),_x select 4]',
+                       'count _targets == count _expectedActors',
+                       '[_actor,_house,_target] call _observedExit'):
+            self.assertIn(marker,case)
+        observe=case.split('private _terminal=[{',1)[1].split('HC-CLEAR-EGRESS-journal-preserved',1)[0]
+        for forbidden in (' doMove ', 'doStop','setPos','setVelocity','enableSimulation'):
+            self.assertNotIn(forbidden,observe)
