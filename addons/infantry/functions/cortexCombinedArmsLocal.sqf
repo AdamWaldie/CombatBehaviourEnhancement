@@ -14,7 +14,9 @@
  * its controller, rather than a single instantaneous speed sample, proves progress or handles a stall.
  * Locality/authority: current group owner only; server-issued public token must still match. Asset
  * aircraft discovery requires the pilot's group; ground discovery accepts the commander's or driver's group.
- * Repeat/JIP: duplicate roles are harmless; expiry, Zeus takeover, feature closure and token replacement reject stale calls.
+ * Repeat/JIP: exact opportunity/owner/epoch receipts suppress repeated application on one owner.
+ * A new owner epoch must admit again; original expiry/contact age never renew. Zeus takeover,
+ * feature closure and replaced public opportunities reject stale calls.
  * Contact positions require exactly three finite numeric ATL components, each within +/-1e6m.
  * Invalid payloads reject before local cooldown or server reservation; no live-target fallback is used.
  * Arguments: 0: asset group <GROUP>; 1: opportunity <ARRAY>
@@ -37,6 +39,22 @@ if ((_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isNotEqualTo _opportuni
     || {!(_position isEqualType [])} || {count _position != 3}
     || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}
     || {!(_role in ["GROUND_FIRE","GROUND_MANOEUVRE","AIR_ATTACK"])}) exitWith {false};
+// The caller's public applied marker is diagnostic/replay state, not executor idempotence.
+// A duplicate delivery on this owner/epoch must not repeat fire, reveal or route acquisition.
+private _applicationIdentity=[+_opportunity,clientOwner,_group getVariable ["WAIT_AIPass_Epoch",0]];
+private _application=_group getVariable ["WAIT_Cortex_CombinedApplicationLocal",[]];
+if (count _application == 2 && {(_application select 0) isEqualTo _applicationIdentity}) exitWith {
+    // Repair a missing replay marker with the original timestamp, without repeating effects.
+    private _applied=[_token,clientOwner,_application select 1];
+    if ((_group getVariable ["WAIT_Cortex_CombinedApplied",[]]) isNotEqualTo _applied) then {
+        _group setVariable ["WAIT_Cortex_CombinedApplied",_applied,true];
+    };
+    true
+};
+private _markApplied={
+    _group setVariable ["WAIT_Cortex_CombinedApplicationLocal",[_applicationIdentity,serverTime]];
+    _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+};
 private _asset=objNull;
 {
     private _vehicle=vehicle _x;
@@ -112,7 +130,7 @@ if (_role == "GROUND_FIRE") exitWith {
     };
     _gunner doTarget _target;
     _gunner doFire _target;
-    _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+    call _markApplied;
     _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"APPLIED",serverTime,_target],true];
     true
 };
@@ -167,7 +185,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
     private _selected=[_start,_candidates,_targetPosition,[_supportPosition],_target,"VEHICLE"]
         call WAIT_fnc_CortexSelectAvenue;
     if (_selected isEqualTo []) exitWith {
-        _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+        call _markApplied;
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"NO_SAFE_ROUTE",serverTime,_target],true];
         [_group,_opportunity,"NO_SAFE_ROUTE",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
@@ -175,7 +193,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
     private _destination=_selected select ((count _selected)-1);
     if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {false};
     if !([_group,"COMBINED_GROUND",true,_expiry] call WAIT_fnc_CortexOwnershipLease) exitWith {
-        _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+        call _markApplied;
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"EXTERNAL_BUSY",serverTime,_target],true];
         [_group,_opportunity,"EXTERNAL_BUSY",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
@@ -186,7 +204,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
     private _operation=[_group,"COMBINED_GROUND",_target,[],[_destination],"MANOEUVRE"] call WAIT_fnc_OperationStart;
     if (count _operation == 0) exitWith {
         [_group,"COMBINED_GROUND",false] call WAIT_fnc_CortexOwnershipLease;
-        _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+        call _markApplied;
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"OWNER_LOST",serverTime,_target],true];
         [_group,_opportunity,"OWNER_LOST",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
@@ -197,7 +215,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {
         [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call WAIT_fnc_OperationRelease;
         [_group,"COMBINED_GROUND",false] call WAIT_fnc_CortexOwnershipLease;
-        _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+        call _markApplied;
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"MOVEMENT_REJECTED",serverTime,_target],true];
         [_group,_opportunity,"MOVEMENT_REJECTED",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
@@ -210,7 +228,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         ["ownerEpoch",_operation get "ownerEpoch"],["lastPosition",_start],
         ["progressAt",time],["stalls",0]
     ],1] call WAIT_fnc_CortexQueueJob;
-    _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+    call _markApplied;
     _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"APPLIED",serverTime,_target,_destination],true];
     true
 };
@@ -220,7 +238,7 @@ if (_role == "AIR_ATTACK") exitWith {
     // incompatible loadout cannot look like an accepted attack and then circle without firing.
     private _plan=[_asset,_target] call WAIT_fnc_CortexAirAttackPlan;
     if (_plan isEqualTo createHashMap) exitWith {
-        _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+        call _markApplied;
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"NO_VIABLE_WEAPON",serverTime,_target],true];
         [_requester,_group,_token] remoteExecCall ["WAIT_fnc_CortexCombinedAirFallbackServer",2];
         false
@@ -229,12 +247,12 @@ if (_role == "AIR_ATTACK") exitWith {
     // Acceptance must correspond to this target, not merely an aircraft's busy marker.
     private _started=[createHashMapFromArray [["aircraft",_asset],["group",_group],["target",_target]],0.5] call WAIT_fnc_AirAttackOperationStart;
     if (!_started) exitWith {
-        _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+        call _markApplied;
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"AIR_BUSY_OR_REFUSED",serverTime,_target],true];
         [_requester,_group,_token] remoteExecCall ["WAIT_fnc_CortexCombinedAirFallbackServer",2];
         false
     };
-    _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
+    call _markApplied;
     _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"APPLIED",serverTime,_target],true];
     true
 };

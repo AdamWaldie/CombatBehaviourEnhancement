@@ -4278,6 +4278,20 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(manoeuvre.index('if (_capabilityRefusal != "") exitWith'),manoeuvre.index('WAIT_fnc_CortexSelectAvenue'))
         self.assertLess(manoeuvre.index('NO_TARGET_AMMO'),manoeuvre.index('WAIT_fnc_CortexOwnershipLease'))
 
+    def test_combined_executor_suppresses_exact_owner_epoch_duplicates_before_effects(self):
+        text=source('cortexCombinedArmsLocal')
+        guard=text.index('WAIT_Cortex_CombinedApplicationLocal')
+        self.assertLess(text.index('isNotEqualTo _opportunity'),guard)
+        self.assertLess(guard,text.index('private _asset=objNull'))
+        self.assertLess(guard,text.index('_group reveal'))
+        self.assertIn('[+_opportunity,clientOwner,_group getVariable ["WAIT_AIPass_Epoch",0]]',text)
+        self.assertIn('(_application select 0) isEqualTo _applicationIdentity',text)
+        self.assertIn('private _applied=[_token,clientOwner,_application select 1]',text)
+        self.assertEqual(text.count('setVariable ["WAIT_Cortex_CombinedApplied",'),2)
+        self.assertEqual(text.count('call _markApplied;'),9)
+        fire=text.split('if (_role == "GROUND_FIRE") exitWith {',1)[1].split('if (_role == "GROUND_MANOEUVRE") exitWith {',1)[0]
+        self.assertLess(fire.index('_gunner doFire'),fire.index('call _markApplied'))
+
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)
