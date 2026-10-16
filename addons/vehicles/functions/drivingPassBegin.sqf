@@ -8,7 +8,7 @@
  * no scheduler, JIP command or automatic discovery.
  * Arguments: 0 proposal <HASHMAP>, empty; 1 prepared work <HASHMAP>, empty.
  * Return: BOOL - local work admitted, not movement or successful passage.
- * Current callers: trusted explicit scripts; automatic admission remains unimplemented.
+ * Current callers: trusted explicit scripts and experimental DrivingPassAdmission.
  * Requires an existing current driving brain and an unexpired prepared proposal/consent.
  * Example: [_proposal,_prepared] call WAIT_fnc_DrivingPassBegin;
  */

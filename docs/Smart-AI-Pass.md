@@ -1154,7 +1154,7 @@ inside its unscheduled command boundary, rather than caching permission before t
 Bohemia documents CommandChanged as a group event with a STOP command value. This does
 not establish that repeated identical STOPs always emit it, that group events identify the
 affected crew member, or that own events are always synchronous. Those are explicit live test
-cases. Automatic passing remains absent; this observer is not universal interruption proof.
+cases. Automatic passing is now connected through the default-off experimental admission path described below; this observer is not universal interruption proof.
 No movement is issued from the event handler, including on engine versions with historical
 command-handler crashes.
 
@@ -1403,3 +1403,21 @@ The prepared normal-only `parkedbypass` focus uses three fresh disposable scenar
 Bypass and corridor admission now compare all three coordinates of native PositionAGL destinations, refusing malformed/nonfinite targets or a separation above 3 m. Ordinary gate intent uses the same full-distance comparison. A same-horizontal-position order at another elevation is not consent to the authored route.
 
 Bypass work records both driver and operator native command types at admission and after its own fixed-path acquisition. Active steps, ordinary alternate gate intent and handback require those types as well as the existing destination receipts. A changed command type retires work without native route recall; legacy work without task receipts grants no recall. Repeated identical commands, native asynchronous command propagation and real STOP/Zeus/HC interruption remain physical test requirements. No new scheduler, scan, event handler or movement writer is introduced.
+
+### Passing handback and consent
+
+The explicit road-pass prototype now requires the unchanged authored route before cleanup may issue STOP or native-route handback. A changed route retires work and its consent metadata without inserting a formation-follow fallback; a same-vehicle subordinate is recalled only when the original route remains owned. Active consent must retain the exact original context and finite expiry, with no deadline renewal. These guards protect handback. Automatic admission is described below and remains experimental; physical steering, command propagation, negotiation, interruption, HC round trips and performance acceptance are outstanding.
+
+Pass cleanup also rechecks Zeus hold, convoy takeover, external driving ownership, actor specialist/remote-control markers, actual seats and current simulation before restoring commands. These preserve existing ownership exclusions; they are not new compatibility adapters or proof of controller handover.
+
+### Experimental automatic road-pass admission
+
+CBA **Experimental automatic road passing** (`WAIT_AIPass_DrivingAssist_Passing_Enable`, default **off**) connects sustained ordinary-road traffic observation to the existing finite pass prototype. It is not accepted production behaviour. A slow moving predecessor must remain the observed traffic peer for eight seconds, with current crew/order identity, road presence and at least 10 km/h proposed speed advantage. Combat/stealth, player or external ownership and existing alternate movement owners refuse admission. Convoys do not use it.
+
+One preparation per owner advances at 0.1-second intervals on the existing shared scheduler, sampling at most one bounded geometry slice or traffic query per step. The original two-second proposal deadline never renews; owner/route/crew changes cancel. Failure or admission places the same context on a 60-second cooldown. Real server-brokered owner consent is required before DrivingPassBegin can hand work to the existing ordinary driving FSM. Cancellation retracts matching requests/consent, and passing-owner replies must still match the current private request serial/context. No speed write, collision exemption, physics helper or permanent scheduler is added. Disabling the option cancels preparation; an already admitted pass retains its finite safety/handback contract.
+
+Automatic moving-road passing, actual proposal completion within the deadline, late RPC cancellation, native command propagation, new orders, ordinary/HC variants and the 5% median/10% p95 frame budget remain unverified. Default-off is deliberate until those tests pass. Head-on jam negotiation remains a separate missing behaviour; this option does not claim to resolve it.
+
+Automatic passing refuses same-group peers in observation, proposal, preparation and owner consent. Its proposed speed is bounded by the existing safety cap, 65% of configured maximum speed or recent observed cruise capability, and at most 30 km/h above the predecessor. LIMITED groups use only unobstructed cruise speed actually observed within the last 30 seconds in the current brain/owner epoch, authored route and speed mode. The record stores the latest qualifying observed speed, not an indefinitely refreshed peak. With no qualifying observation they do not start. This retains authored speed intent; it is not proof that the vehicle can accelerate or finish the pass within the estimate.
+
+Automatic qualification consumes the current limiting observation after gate, solid and pedestrian constraints, so a closer independent blocker prevents qualification through an otherwise-followed vehicle. It does not discard those constraints to create passing demand.

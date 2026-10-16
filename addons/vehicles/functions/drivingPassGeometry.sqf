@@ -14,7 +14,7 @@
  * geometry. Crew/locality/native-order context must match before and after each slice.
  * Oriented width and length traces replace an isotropic radius; no continuous swept-volume,
  * traffic prediction, owner agreement or native steering success is implied.
- * Current callers: trusted script preflight only; automatic pass executor remains unimplemented.
+ * Current callers: trusted script preflight and experimental DrivingPassAdmission; physical acceptance remains outstanding.
  * Example: private _slice=[_proposal,0] call WAIT_fnc_DrivingPassGeometry;
  */
 params [["_proposal",createHashMap,[createHashMap]],["_cursor",0,[0]]];

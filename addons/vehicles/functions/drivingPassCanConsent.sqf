@@ -21,6 +21,7 @@ if (isNull _operator) then {_operator=_driver};
 if (isNull _driver || {isNull _operator}) exitWith {false};
 private _group=group _driver;
 if (isNull _group || {!local _group} || {group _operator != _group}
+    || {behaviour leader _group in ["COMBAT","STEALTH"]}
     || {!([_group] call WAIT_fnc_CortexIsEligible)}
     || {[_group] call WAIT_fnc_CortexExternalTakeover}
     || {!([_group] call WAIT_fnc_DrivingMovementAvailable)}

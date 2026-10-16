@@ -20,6 +20,7 @@
 
 params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
+["CANCEL",_expectedGroup,_vehicle] call WAIT_fnc_DrivingPassAdmission;
 [_vehicle,_expectedGroup] call WAIT_fnc_DrivingPassRetireInherited;
 private _pass=_vehicle getVariable ["WAIT_DrivingPass_Work",createHashMap];
 if (count _pass > 0 && {isNull _expectedGroup || {(_pass get "group") == _expectedGroup}}) then {

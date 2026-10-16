@@ -4,7 +4,8 @@
  * Locality/authority: Only authenticated server remote calls. Each owned participant checks its
  * exact current crew/order row and local eligibility. A peer's public label is never an ACK.
  * Repeat/JIP: Matching-token private receipts expire at original deadlines; no deadline renewal,
- * movement, priority, controller transfer or JIP replay. AGREED still requires live execution guards.
+ * movement, priority, controller transfer or JIP replay. Passing-owner verification requires
+ * its still-current request serial/context; a cancelled request cannot acquire late consent. AGREED still requires live execution guards.
  * Arguments: 0 mode <STRING>, empty, VERIFY or RESULT; 1 server payload <ARRAY>, empty.
  * VERIFY: [token, vehicles, context, handshakeDeadline, consentExpiry, serial]; RESULT adds phase.
  * Return: BOOL - reply/result handled, not physical passing or authority to disable safety.
@@ -29,11 +30,17 @@ if (_mode == "RESULT" && {(_payload select 6) == "AGREED"}) then {
     if (_installed) exitWith {_mode="DUPLICATE"};
 };
 if (_mode == "DUPLICATE") exitWith {true};
-private _owned=[];private _accepted=serverTime < ([_deadline,_expires] select (_mode == "RESULT"));
+private _owned=[];private _accepted=serverTime < ([_deadline,_expires] select (_mode == "RESULT"))
+    && {group driver (_vehicles select 0) != group driver (_vehicles select 1)};
 for "_i" from 0 to 1 do {
     private _vehicle=_vehicles select _i;
     if (local _vehicle) then {
         _owned pushBack _vehicle;
+        if (_vehicle == (_vehicles select 0)) then {
+            private _request=_vehicle getVariable ["WAIT_DrivingPass_Request",[]];
+            if (count _request != 3 || {(_request select 2) != _serial}
+                || {(_request select 0) isNotEqualTo _context}) then {_accepted=false};
+        };
         if (((_live select 1) select _i) isNotEqualTo ((_context select 1) select _i)
             || {!([_vehicle] call WAIT_fnc_DrivingPassCanConsent)}) then {_accepted=false};
         private _old=_vehicle getVariable ["WAIT_DrivingPass_Consent",[]];

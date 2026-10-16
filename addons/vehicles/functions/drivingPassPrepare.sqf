@@ -11,7 +11,7 @@
  * One call performs at most one 12-station geometry slice (243 rays maximum) OR one bounded traffic query.
  * READY_PROPOSAL means all slices were sampled and the final observer found no conflict;
  * it grants no owner agreement, swept-volume guarantee, native steering or movement authority.
- * Current callers: trusted script preflight only; automatic pass executor remains unimplemented.
+ * Current callers: trusted script preflight and experimental DrivingPassAdmission; physical acceptance remains outstanding.
  * Example: _work=[_proposal,_work] call WAIT_fnc_DrivingPassPrepare;
  */
 params [["_proposal",createHashMap,[createHashMap]],["_work",createHashMap,[createHashMap]]];
@@ -65,6 +65,7 @@ if ((_proposal getOrDefault ["status",""]) != "PROPOSAL"
     || {(_proposal getOrDefault ["observedAt",-1]) isNotEqualTo (_work getOrDefault ["proposalAt",-2])}
     || {(_proposal getOrDefault ["vehicles",[]]) isNotEqualTo _vehicles}
     || {_vehicles isEqualTo []} || {!local (_vehicles select 0)}) exitWith {["PROPOSAL_OR_CONTEXT_CHANGED"] call _refuse};
+if (count _vehicles == 2 && {group driver (_vehicles select 0) == group driver (_vehicles select 1)}) exitWith {["SAME_GROUP"] call _refuse};
 // Local receipt observation is not consent for a foreign owner. Keep that distinction
 // explicit while refusing local controller/mission conflicts before costly geometry.
 private _remoteOwners=[];

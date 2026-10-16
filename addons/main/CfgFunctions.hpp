@@ -69,6 +69,7 @@ class CfgFunctions {
             class DrivingPassTraffic {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingPassTraffic.sqf";};
             class DrivingPassContext {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingPassContext.sqf";};
             class DrivingPassGeometry {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingPassGeometry.sqf";};
+            class DrivingPassAdmission {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingPassAdmission.sqf";};
             class DrivingPassPlan {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingPassPlan.sqf";};
             class DrivingBypassObstacleAvailable {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingBypassObstacleAvailable.sqf";};
             class DrivingBypassPlan {file = "\z\waldo_ai_tweaks\addons\vehicles\functions\drivingBypassPlan.sqf";};

@@ -169,6 +169,50 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('DROP_BACK',s)
         self.assertNotIn('set ["deadline",',s)
         self.assertIn('call WAIT_fnc_DrivingPassGeometry',s)
+    def test_automatic_admission_is_bounded_opt_in_and_uses_real_consent(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassAdmission.sqf').read_text(encoding='utf-8')
+        for guard in ('DrivingAssist_Passing_Enable",false','serverTime-_since < 8',
+                      'serverTime+60','(_proposal get "observedAt")+2','WAIT_DrivingPass_Preparing',
+                      'call WAIT_fnc_DrivingPassPrepare','call WAIT_fnc_DrivingPassAgreementRequest',
+                      'call WAIT_fnc_DrivingPassBegin','call WAIT_fnc_CortexQueueJob',
+                      'else {0.1}','call WAIT_fnc_DrivingPassCanConsent'):
+            self.assertIn(guard,s)
+        for forbidden in ('forceSpeed','doMove','doStop','setDriveOnPath','addMissionEventHandler','spawn','waitUntil'):
+            self.assertNotIn(forbidden,s.split('params [[',1)[1])
+        owner=(ROOT/'addons/vehicles/functions/drivingPassAgreementOwner.sqf').read_text(encoding='utf-8')
+        self.assertIn('(_request select 2) != _serial',owner)
+        self.assertIn('(_request select 0) isNotEqualTo _context',owner)
+        ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps]',ordinary)
+        release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
+        self.assertIn('["CANCEL",_expectedGroup,_vehicle]',release)
+        finish=s.split('private _finish={',1)[1].split('if (_mode == "CANCEL")',1)[0]
+        self.assertLess(finish.index('if (_requestOwned)'),finish.index('call WAIT_fnc_DrivingPassAgreementRelease'))
+        self.assertIn('REQUEST_REPLACED',s)
+        for guard in ('speedMode _group == "LIMITED"','serverTime-(_cruise select 2) <= 30','0.65/3.6','group driver _peer != _group'):
+            self.assertIn(guard,s)
+        for name in ('drivingPassPlan','drivingPassPrepare'):
+            self.assertIn('SAME_GROUP',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8'))
+        self.assertIn('(_request select 2) != (_job get "serial")',s)
+
+    def test_new_route_prevents_pass_cleanup_commands_and_consent_is_immutable(self):
+        finish=(ROOT/'addons/vehicles/functions/drivingPassFinish.sqf').read_text(encoding='utf-8')
+        owned=finish.split('private _owned={',1)[1].split('\nisNil {',1)[0]
+        self.assertIn('call WAIT_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")',owned)
+        for guard in ('CortexZeusHeld','WAIT_ExternalDrivingOwner','WAIT_Convoy_Active','simulationEnabled _vehicle'):
+            self.assertIn(guard,owned)
+        actor=finish.split('private _actorFree=',1)[1].split('private _owned=',1)[0]
+        for guard in ('CortexExternalOwner','bis_fnc_moduleRemoteControl_owner','vehicle _actor == _vehicle'):
+            self.assertIn(guard,actor)
+        self.assertLess(finish.index('call _owned &&'),finish.index('doStop _driver'))
+        self.assertNotIn('_operator doFollow leader _group',finish)
+        self.assertIn('if (_driver != _operator) then {_driver doFollow _operator}',finish)
+        step=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        for guard in ('(_consent select 1) isNotEqualTo (_work get "context")',
+                      '!finite (_consent select 3)','(_consent select 3) != (_work get "deadline")'):
+            self.assertIn(guard,step)
+        self.assertNotIn('set ["deadline",',step)
+
     def test_pass_finish_is_generation_and_exact_token_bound(self):
         s=(ROOT/'addons/vehicles/functions/drivingPassFinish.sqf').read_text()
         for guard in ('get "epoch"','get "generation"','driverCommand','expectedDestination _operator',
@@ -246,7 +290,7 @@ class DrivingPassPlanTests(unittest.TestCase):
 
     def test_observed_stop_prevents_finish_and_inherited_native_recall(self):
         finish=(ROOT/'addons/vehicles/functions/drivingPassFinish.sqf').read_text()
-        owned=finish.split('private _owned={',1)[1].split('isNil {',1)[0]
+        owned=finish.split('private _owned={',1)[1].split('\nisNil {',1)[0]
         self.assertIn('!(_work getOrDefault ["interrupted",false])',owned)
         self.assertIn('!_interrupted',owned)
         boundary=finish.split('isNil {',1)[1]

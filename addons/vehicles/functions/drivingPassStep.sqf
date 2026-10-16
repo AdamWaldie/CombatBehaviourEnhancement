@@ -6,7 +6,7 @@
  * the caller applies the returned cap with its unchanged traffic/pedestrian/geometry limits.
  * Observed native STOP events end work without recall. Own setup carries an exact write fence.
  * Repeated identical STOP delivery and event timing require physical interruption QA.
- * Repeat/JIP: Original consent deadline never renews. Return begins only after measured hull
+ * Repeat/JIP: Original consent context and finite expiry must still match; its deadline never renews. Return begins only after measured hull
  * separation. New native/controller orders retire work without recall. Each issued leg publishes
  * cleanup identity for successor owners, never the path/work. No physics or JIP replay.
  * Arguments: 0 group <GROUP>, grpNull; 1 vehicle <OBJECT>, objNull; 2 brain <HASHMAP>, empty;
@@ -58,7 +58,10 @@ private _aligned=abs (((getDir _vehicle-getDir _peer+540) mod 360)-180) <= 25;
 private _ahead=_aligned && {_long > _half+_peerHalf+6};
 private _behind=_aligned && {_long < -(_half+_peerHalf+3)};
 if (!(_consent isEqualType []) || {count _consent != 5} || {(_consent select 0) isNotEqualTo (_work get "token")}
-    || {(_consent select 4) isNotEqualTo "AGREED"}) exitWith {["CONSENT_RETIRED",_ahead || {_behind}] call _finish};
+    || {(_consent select 4) isNotEqualTo "AGREED"}
+    || {(_consent select 1) isNotEqualTo (_work get "context")}
+    || {!((_consent select 3) isEqualType 0)} || {!finite (_consent select 3)}
+    || {(_consent select 3) != (_work get "deadline")}) exitWith {["CONSENT_RETIRED",_ahead || {_behind}] call _finish};
 if (serverTime >= (_work get "deadline")) exitWith {
     [["EXPIRED_HELD","EXPIRED_CLEAR"] select (_ahead || {_behind}),_ahead || {_behind}] call _finish
 };

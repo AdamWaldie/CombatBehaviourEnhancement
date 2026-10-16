@@ -7,7 +7,7 @@
  * No JIP command, movement, priority or collision exemption. Consent is not execution authority.
  * Arguments: 0 proposal <HASHMAP>, empty; 1 preparation work <HASHMAP>, empty.
  * Return: BOOL - request submitted, not agreement, movement or physical passing success.
- * Current callers: trusted script preflight; automatic passing admission remains unimplemented.
+ * Current callers: trusted script preflight and experimental DrivingPassAdmission.
  * Example: [_proposal,_work] call WAIT_fnc_DrivingPassAgreementRequest;
  */
 params [["_proposal",createHashMap,[createHashMap]],["_work",createHashMap,[createHashMap]]];

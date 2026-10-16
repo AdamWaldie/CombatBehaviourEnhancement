@@ -2,9 +2,11 @@
  * Author: WaldoTheWarfighter
  * Purpose: Retires exact pass work and optionally hands its unchanged command to the native route.
  * Locality/authority: Vehicle/group owner. Current epoch, brain generation, both seats and
- * destinations protect every stop/handback; detectable newer orders/controllers survive.
+ * destinations, live simulation, external controller/Zeus state and the unchanged authored route
+ * protect every stop/handback; detectable newer orders/controllers survive.
  * Observed STOP events veto command cleanup. Whether a repeated identical STOP emits that
- * group event remains an engine-level interruption test requirement.
+ * group event remains an engine-level interruption test requirement. A newer authored route
+ * retires metadata/consent only: cleanup never inserts a formation-follow fallback.
  * Repeat/JIP: Exact local journal and matching public leg receipt retire once, token-specific
  * broker release. Successor owners use DrivingPassRetireInherited, never replay this work. No ownership
  * transfer, physics shortcut or JIP command. A blocked abort records failure and may keep STOP.
@@ -22,6 +24,9 @@ private _stop=_vehicle getVariable ["WAIT_DrivingPass_Interrupted",[]];
 private _driver=_work get "driver";private _operator=_work get "operator";
 private _brain=_group getVariable ["WAIT_Driving_Brain",createHashMap];
 private _actorFree={params ["_actor"];local _actor && {!isPlayer _actor} && {isNull remoteControlled _actor}
+    && {vehicle _actor == _vehicle} && {simulationEnabled _actor} && {!isObjectHidden _actor}
+    && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+    && {[_actor] call WAIT_fnc_CortexExternalOwner == ""}
     && {[_actor] call WAIT_fnc_CortexCombatEffective} && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
     && {!([_actor] call WAIT_fnc_CortexActorMoveReserved)}
     && {currentCommand _actor in ["","MOVE","WAIT","STOP"]}};
@@ -34,9 +39,14 @@ private _owned={
     && {driver _vehicle == _driver} && {(effectiveCommander _vehicle) in [_operator,objNull]}
     && {[_driver] call _actorFree} && {[_operator] call _actorFree}
     && {group _driver == _group} && {group _operator == _group}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {[_group] call WAIT_fnc_DrivingMovementAvailable}
+    && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
+    && {[_group] call WAIT_fnc_DrivingMovementAvailable}
+    && {alive _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+    && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
+    && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
     && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
     && {(expectedDestination _operator) isEqualTo (_work get "command")}
+    && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")}
 };
 isNil {
 [_group,_vehicle,_work,true] call WAIT_fnc_DrivingPassCommandWatch;
@@ -48,9 +58,6 @@ if (call _owned && {_work get "issued"}) then {
         if (_driver != _operator) then {_driver doFollow _operator};
         if (([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")) then {
             _operator doMove waypointPosition [_group,currentWaypoint _group];
-        } else {
-            // Native task semantics, including scripted/non-MOVE orders, stay with the engine.
-            _operator doFollow leader _group;
         };
     };
 };

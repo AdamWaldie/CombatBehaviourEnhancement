@@ -14,7 +14,7 @@
  * and collision caps must still constrain it. Mounted people are represented by their vehicle.
  * Approaching risk uses actual velocity and a finite constant-course estimate, not an assumption
  * that another driver yields. Curved/future traffic still requires runtime collision/abort checks.
- * Current callers: trusted script preflight only; automatic pass executor remains unimplemented.
+ * Current callers: DrivingPassPrepare/Step/Begin and trusted preflight; automatic admission remains experimental.
  * Example: private _traffic=[_proposal] call WAIT_fnc_DrivingPassTraffic;
  */
 params [["_proposal",createHashMap,[createHashMap]]];

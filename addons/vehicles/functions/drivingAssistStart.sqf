@@ -35,7 +35,8 @@
  * Close stable static blockage may use the same finite rear recovery after fresh dwell;
  * independent traffic, gate and pedestrian constraints still suppress its admission.
  * Owned traffic stops remain sampled; congestion suppresses reverse. Only bounded native-route
- * retries may reconsider persistent blockage. No crossing priority or passing is inferred here.
+ * retries may reconsider persistent blockage. No crossing priority is inferred. Experimental automatic passing uses separate finite
+ * preparation and real owner consent, with no collision exemption.
  * The owned rear leg resamples its body corridor once per second on the existing scheduler,
  * stopping for new obstructions without extending its six-second deadline. Intended direction
  * is checked while stopped; an expired rear leg observes the forward retry before issuing it.
@@ -375,6 +376,7 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
             // Corridor execution is part of this same owner callback, never a second controller.
             // Do not take over an issued/expired rear leg. Existing traffic and pedestrian caps win.
+            ["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call WAIT_fnc_DrivingPassAdmission;
             private _hadPass=!isNil {_vehicle getVariable "WAIT_DrivingPass_Work"};
             private _pass=[_group,_vehicle,_brain,_mayIssueDriving] call WAIT_fnc_DrivingPassStep;
             private _passActive=_pass select 0;

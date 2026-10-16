@@ -16,7 +16,7 @@
  * the final 30 m. Each lane offset uses its own road endpoints; insufficient pull-out
  * room or a predecessor outside the traversed road chain refuses. Actual hull clearance
  * still gates any future executor return.
- * Current callers: trusted script preflight only; automatic passing executor remains unimplemented.
+ * Current callers: trusted script preflight and experimental DrivingPassAdmission; physical acceptance remains outstanding.
  * Example: private _proposal=[truck1,truck2,50] call WAIT_fnc_DrivingPassPlan;
  */
 params [["_vehicle",objNull,[objNull]],["_front",objNull,[objNull]],["_speedKmh",50,[0]]];
@@ -25,6 +25,7 @@ if (isNull _vehicle || {isNull _front} || {_vehicle == _front} || {!local _vehic
     || {!alive _vehicle} || {!alive _front} || {!canMove _vehicle}
     || {!(_vehicle isKindOf "LandVehicle")} || {!(_front isKindOf "LandVehicle")}) exitWith {["VEHICLE_UNAVAILABLE"] call _fail};
 if (!finite _speedKmh || {_speedKmh < 5} || {_speedKmh > 120}) exitWith {["INVALID_SPEED"] call _fail};
+if (group driver _vehicle == group driver _front) exitWith {["SAME_GROUP"] call _fail};
 private _context=[[_vehicle,_front]] call WAIT_fnc_DrivingPassContext;
 if (_context isEqualTo []) exitWith {["INVALID_CONTEXT"] call _fail};
 private _forward=velocityModelSpace _front select 1;
