@@ -88,7 +88,7 @@ class DrivingGateIntentTests(unittest.TestCase):
                        'WAIT_DrivingBypass_Work","FOLLOW"','WAIT_DrivingCorridor_Work","CROSS"',
                        'expectedDestination _driver','expectedDestination _operator',
                        'serverTime <','"controller",[]','"phase",""]) == "APPROACH"',
-                       '_driverTarget distance2D _destination <= 3'):
+                       '_driverTarget vectorDistance _destination <= 3'):
             self.assertIn(marker,s)
         # Plain route action requires idle or the original MOVE, not a later task.
         def plain(command, target_matches=True):

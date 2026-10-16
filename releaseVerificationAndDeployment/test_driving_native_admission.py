@@ -8,7 +8,7 @@ class NativeAdmissionTests(unittest.TestCase):
             source=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
             helper=source.split('private _nativeAdmissionReady={',1)[1].split('};',1)[0]
             for marker in ('[_driver,_operator] findIf','toUpperANSI currentCommand _x','_command != ""',
-                           '_command != "MOVE"','expectedDestination _x','distance2D _destination > 3'):
+                           '_command != "MOVE"','expectedDestination _x','vectorDistance _destination > 3'):
                 self.assertIn(marker,helper)
             self.assertGreaterEqual(source.count('call _nativeAdmissionReady'),2)
             self.assertEqual(source.count('setDriveOnPath'),1)

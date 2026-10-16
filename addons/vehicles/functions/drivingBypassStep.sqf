@@ -4,7 +4,7 @@
  * Locality / Authority: Internal synchronous owner callback only. Current driving brain and the
  * caller's fresh authority predicate and internal plain-route/crew gates protect every command. Never remote.
  * New PLAN acquisition preserves native STOP/FOLLOW/ATTACK/unowned WAIT on either seat;
- * its two actors must be idle or moving to the authored destination. Owned FOLLOW-phase
+ * its two actors must be idle or moving to the full three-dimensional authored destination. Owned FOLLOW-phase
  * doStop receipts retain their separate retirement contract.
  * Repeat/JIP: Public serializable work stores original 90-second deadline, two-side attempt budget,
  * path/checkpoint/seat/route receipts. New owners adopt without command replay or clock renewal.
@@ -63,8 +63,10 @@ private _nativeAdmissionReady={
     private _destination=waypointPosition [_group,currentWaypoint _group];
     [_driver,_operator] findIf {
         private _command=toUpperANSI currentCommand _x;
-        _command != "" && {_command != "MOVE" || {
-            ((expectedDestination _x) param [0,[]]) distance2D _destination > 3
+        private _target=(expectedDestination _x) param [0,[],[[]]];
+        _command != "" && {_command != "MOVE" || {count _target != 3
+            || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+            || {_target vectorDistance _destination > 3}
         }}
     } < 0
 };
@@ -134,7 +136,8 @@ if (count _work == 0 && {!_convoy || {isNil {_group getVariable "WAIT_Convoy_Byp
             _work=createHashMapFromArray [["group",_group],["route",_route],["driver",_driver],["operator",_operator],
                 ["context",_context],["controller",_controllerReceipt],["obstacle",_observed select 1],["transform",_observed select 8],
                 ["deadline",serverTime+90],["side",1],["phase","PLAN"],["index",0],
-                ["command",+_command],["driverCommand",+(expectedDestination _driver)]];
+                ["command",+_command],["driverCommand",+(expectedDestination _driver)],
+                ["driverTask",toUpperANSI currentCommand _driver],["operatorTask",toUpperANSI currentCommand _operator]];
             _vehicle setVariable ["WAIT_DrivingBypass_Work",_work,true];
         };
     };
@@ -143,7 +146,9 @@ if (count _work == 0) exitWith {_inactive};
 private _obstacle=_work get "obstacle";private _reason="";
 if ((_work get "route") isNotEqualTo _route || {(_work get "driver") != _driver} || {(_work get "operator") != _operator}
     || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
-    || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}) then {_reason="COMMAND_CHANGED"};
+    || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}
+    || {(toUpperANSI currentCommand _driver) != (_work getOrDefault ["driverTask","__MISSING__"])}
+    || {(toUpperANSI currentCommand _operator) != (_work getOrDefault ["operatorTask","__MISSING__"])}) then {_reason="COMMAND_CHANGED"};
 if (_reason == "" && {(_work get "phase") == "PLAN"} && {!(call _nativeAdmissionReady)}) then {_reason="COMMAND_CHANGED"};
 if (_reason == "" && {!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)
     || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo (_work get "transform")}}) then {_reason="OBSTACLE_CHANGED"};
@@ -192,6 +197,7 @@ if ((_work get "phase") == "PLAN") exitWith {
     _work set ["tailDeadline",(_work get "deadline")+((_columnLength/(8/3.6)+60) min 1710)];
     _work set ["forward",_forward];_work set ["far",_exit vectorDiff (_forward vectorMultiply (_radius+10))];
     _work set ["command",+(expectedDestination _operator)];_work set ["driverCommand",+(expectedDestination _driver)];
+    _work set ["driverTask",toUpperANSI currentCommand _driver];_work set ["operatorTask",toUpperANSI currentCommand _operator];
     _vehicle setVariable ["WAIT_DrivingBypass_Work",_work,true];
     [true,8/3.6,"BYPASS_FOLLOW",false]
 };

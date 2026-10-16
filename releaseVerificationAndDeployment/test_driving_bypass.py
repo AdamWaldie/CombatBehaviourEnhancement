@@ -38,6 +38,30 @@ class DrivingBypassTests(unittest.TestCase):
         from mod_pipeline import supported_focuses
         self.assertIn('parkedbypass',supported_focuses())
 
+    def test_bypass_command_types_guard_execution_gate_use_and_handback(self):
+        for name in ('drivingBypassStep','drivingBypassRelease','drivingGateIntent'):
+            s=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            for field in ('driverTask','operatorTask','__MISSING__'):
+                self.assertIn(field,s)
+        step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
+        for actor,key in (('_driver','driverTask'),('_operator','operatorTask')):
+            self.assertIn(f'["{key}",toUpperANSI currentCommand {actor}]',step)
+            self.assertIn(f'_work set ["{key}",toUpperANSI currentCommand {actor}]',step)
+        release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text(encoding='utf-8')
+        self.assertLess(release.index('getOrDefault ["driverTask"'),release.index('doStop _driver'))
+        self.assertLess(release.index('getOrDefault ["operatorTask"'),release.index('_operator doMove'))
+
+    def test_alternate_admission_preserves_vertical_destination_identity(self):
+        for name in ('drivingBypassStep','drivingCorridorStep'):
+            s=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            gate=s.split('private _nativeAdmissionReady={',1)[1].split('} < 0',1)[0]
+            self.assertIn('count _target != 3',gate)
+            self.assertIn('_target vectorDistance _destination > 3',gate)
+            self.assertNotIn('distance2D',gate)
+        intent=(ROOT/'addons/vehicles/functions/drivingGateIntent.sqf').read_text(encoding='utf-8')
+        self.assertIn('_driverTarget vectorDistance _destination <= 3',intent)
+        self.assertIn('_target vectorDistance _destination > 3',intent)
+
     def test_preflight_has_no_movement_or_physics_authority(self):
         for name in ('drivingBypassPlan','drivingPathGeometry'):
             body=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text().split('params [[',1)[1]

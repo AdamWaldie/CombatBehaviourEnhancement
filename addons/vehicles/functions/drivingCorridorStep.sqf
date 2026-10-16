@@ -51,8 +51,10 @@ private _nativeAdmissionReady={
     private _destination=waypointPosition [_group,currentWaypoint _group];
     [_driver,_operator] findIf {
         private _command=toUpperANSI currentCommand _x;
-        _command != "" && {_command != "MOVE" || {
-            ((expectedDestination _x) param [0,[]]) distance2D _destination > 3
+        private _target=(expectedDestination _x) param [0,[],[[]]];
+        _command != "" && {_command != "MOVE" || {count _target != 3
+            || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+            || {_target vectorDistance _destination > 3}
         }}
     } < 0
 };

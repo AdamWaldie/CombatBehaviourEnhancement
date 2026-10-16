@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Purpose: Retires an controller-owned bypass and only its exact owned fixed path/native handback.
  * Locality / Authority: Current vehicle/group owner. Both seats, route, command receipts and
- * external/tactical ownership protect cleanup; a newer command is never recalled.
+ * external/tactical ownership protect cleanup. Both native command types must also match;
+ * matching destinations alone cannot recall a changed MOVE/STOP/FOLLOW command. Identical
+ * repeated commands remain indistinguishable; missing legacy task receipts grant no recall.
  * Repeat/JIP: Public episode retires once; bounded 32-entry object/route cooldown lasts 120 s.
  * PLAN owns no movement and cannot stop native actors. Local handles/code are never published.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
@@ -41,6 +43,8 @@ private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly}}
     && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
     && {(expectedDestination _operator) isEqualTo (_work get "command")}
     && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
+    && {(toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])}
+    && {(toUpperANSI currentCommand _operator) == (_work getOrDefault ["operatorTask","__MISSING__"])}
     && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
     && {_convoy || {[_group] call WAIT_fnc_DrivingMovementAvailable}}
     && {_convoy || {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}}

@@ -4,6 +4,7 @@
  * Locality / Authority: Read-only current owner or trusted server recheck. Callers authenticate
  * sender, route, seats, capability and locks separately; this helper grants no movement authority.
  * Repeat/JIP: Fresh native commands and public finite journals only; no cache, writes or replay.
+ * Plain route matching compares full PositionAGL destinations, including height.
  * An unchanged owned bypass FOLLOW/corridor CROSS may retain its acquired STOP. A later
  * indistinguishable STOP cannot be separated from that receipt and remains a known limitation.
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 route <ARRAY, []>.
@@ -40,6 +41,10 @@ private _alternate=false;
         && {(_work getOrDefault ["operator",objNull]) == _operator}
         && {(expectedDestination _driver) isEqualTo (_work getOrDefault ["driverCommand",[]])}
         && {(expectedDestination _operator) isEqualTo (_work getOrDefault ["command",[]])}
+        && {_variable != "WAIT_DrivingBypass_Work" || {
+            (toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])
+                && {(toUpperANSI currentCommand _operator) == (_work getOrDefault ["operatorTask","__MISSING__"])}
+        }}
         && {[_driver,_operator] findIf {!(toUpperANSI currentCommand _x in ["","STOP","MOVE","WAIT"])} < 0}) exitWith {
         _alternate=true;
     };
@@ -59,13 +64,13 @@ if (!_alternate && {(_approach getOrDefault ["group",grpNull]) == _group}
     private _driverTask=toUpperANSI currentCommand _driver;
     private _driverTarget=(expectedDestination _driver) param [0,[],[[]]];
     _alternate=_driver == _operator || {_driverTask == ""}
-        || {_driverTask == "MOVE" && {count _driverTarget == 3} && {_driverTarget distance2D _destination <= 3}};
+        || {_driverTask == "MOVE" && {count _driverTarget == 3} && {_driverTarget vectorDistance _destination <= 3}};
 };
 if (_alternate) exitWith {true};
 [_driver,_operator] findIf {
     private _command=toUpperANSI currentCommand _x;
     _command != "" && {_command != "MOVE" || {
         private _target=(expectedDestination _x) param [0,[],[[]]];
-        count _target != 3 || {_target distance2D _destination > 3}
+        count _target != 3 || {_target vectorDistance _destination > 3}
     }}
 } < 0

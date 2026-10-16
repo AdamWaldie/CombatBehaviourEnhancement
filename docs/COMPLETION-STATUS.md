@@ -10,7 +10,7 @@ Workshop-parity percentage is available.
 ## Current evidence boundary
 
 - Audits are paused by the user. No new in-game result is claimed here.
-- The latest local code validation passed **1030 tests** and all sequential offline gates.
+- The latest local code validation passed **1032 tests** and all sequential offline gates.
   The current local batch includes natural individual indoor dispatch, disjoint-operation ownership,
   contact/boarding reservation protection, convoy path-cap/grade corrections and native recovery receipts.
   It includes uncommitted source and documentation changes. It is not a clean committed release
@@ -19,6 +19,7 @@ Workshop-parity percentage is available.
 - Defence release now requires matching command receipts before watch/formation restoration. Admitted replacement tasks suppress predecessor recall; reserve selection requires a physically nearby owned HOLD. Repeated transitions remain physically unverified.
 - Defence reserve planning now rejects overlapping reinforcement slots before assignment changes and excludes busy/reserved actors. Its physical reinforcement and casualty flow remain unverified.
 - Defence admission now also refuses changed native/individual orders, task generations or ownership during geometry planning, before old-task cleanup. Reserved actors are excluded from its layout. Offline checks passed; physical interruption remains unverified.
+- Alternate driving admission and gate intent now compare full 3D native destinations. Bypass execution/handback also checks both seat command types; asynchronous propagation, identical commands and physical interruption remain unverified.
 - Stationary engine-off vehicle hulls with no living crew now reach the existing finite bypass planner. Occupancy/engine/attachment changes invalidate work; independent traffic caps remain. The normal-only parkedbypass focus now prepares actual empty/wreck passage and native boarding during active work. These cases remain unrun; bypass and interruption are physically unverified.
 - The focused `indooractors`, `indooractorshc` and `indoornatural` fixtures are prepared but unrun.
   Natural admission now runs through the contact decision fallback; its existence is not entry evidence.
