@@ -25,3 +25,8 @@ class ActionsUsagePolicyTests(unittest.TestCase):
         deploy=(ROOT/'.github/workflows/deploy.yml').read_text()
         self.assertIn('workflow_dispatch:',candidate)
         self.assertIn('types: [published]',deploy)
+
+    def test_hemtt_installer_uses_authenticated_release_api(self):
+        for filename in ('testing.yml','candidate.yml','deploy.yml'):
+            source=(ROOT/'.github/workflows'/filename).read_text()
+            self.assertIn('GITHUB_TOKEN: ${{ github.token }}',source)
