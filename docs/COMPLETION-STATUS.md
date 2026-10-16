@@ -10,7 +10,7 @@ Workshop-parity percentage is available.
 ## Current evidence boundary
 
 - Audits are paused by the user. No new in-game result is claimed here.
-- The latest local code validation passed **1019 tests** and all sequential offline gates.
+- The latest local code validation passed **1020 tests** and all sequential offline gates.
   The current local batch includes natural individual indoor dispatch, disjoint-operation ownership,
   contact/boarding reservation protection, convoy path-cap/grade corrections and native recovery receipts.
   It includes uncommitted source and documentation changes. It is not a clean committed release
@@ -129,7 +129,7 @@ its older snapshots do not override this page.
 
 The incremental notes have been consolidated below. None of these changes adds accepted
 behaviour or establishes the runtime performance budget. The latest full offline build passed
-1019 tests, compilation/lint and the sequential repository gates, producing nine PBOs.
+1020 tests, compilation/lint and the sequential repository gates, producing nine PBOs.
 
 | Area | Implemented source | Remaining evidence or execution |
 | --- | --- | --- |

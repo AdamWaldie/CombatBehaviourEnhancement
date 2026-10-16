@@ -69,6 +69,7 @@ if (count _centre != 3 || {_centre findIf {!(_x isEqualType 0) || {!finite _x}} 
 private _units = (units _group) select {
     [_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {vehicle _x == _x} && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
+        && {!([_x] call WAIT_fnc_CortexActorMoveReserved)}
 };
 if (_units isEqualTo [] || {count _units > 64}) exitWith {false};
 
@@ -151,6 +152,6 @@ _group setVariable ["WAIT_Cortex_GarrisonResult",nil,true];
 _group setVariable ["WAIT_Cortex_GarrisonDeadline",serverTime+240,true];
 _group setVariable ["WAIT_AIPass_Garrison", [_centre, _radius, count _units], true];
 _group setVariable ["WAIT_AIPass_GarrisonApplied", false];
-[_group] call WAIT_fnc_CortexGarrisonApplyLocal;
+[_group,_units] call WAIT_fnc_CortexGarrisonApplyLocal;
 diag_log format ["[WAIT] %1 garrisoned at %2 r=%3 (%4 soldiers)", _group, _centre, _radius, count _units];
 true

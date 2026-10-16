@@ -82,3 +82,26 @@ class DoorObservationAuthorityTests(unittest.TestCase):
         self.assertIn('_command in ["","STOP"]',delayed)
         self.assertIn('_command == "MOVE"',delayed)
         self.assertNotIn('!(_command in',delayed)
+
+    def test_garrison_reapplication_distinguishes_fresh_actors_from_adoption(self):
+        s=(ROOT/'addons/infantry/functions/cortexGarrisonApplyLocal.sqf').read_text()
+        admission=s.split('private _mayIssueMovement = {',1)[1].split('private _rememberMove =',1)[0]
+        for guard in ('_actor in _freshActors','count _receipt == 5',
+                      '(_receipt select 4) isEqualTo _assignment','_live vectorDistance (_receipt select 3) <= 0.25',
+                      'call WAIT_fnc_CortexGarrisonArrived'):
+            self.assertIn(guard,admission)
+        self.assertIn('!_heldInPlace && {_unit in _freshActors}',s)
+        self.assertIn('private _atPost=[_unit,_assignment] call _assignmentArrived;',s)
+        hold=s.split('if (_atPost &&',1)[1].split('if (!_atPost',1)[0]
+        self.assertIn('call _rememberMove',hold)
+        self.assertNotIn('doMove',hold)
+        self.assertIn('currentCommand _unit == "MOVE"',hold)
+        self.assertIn('(expectedDestination _unit) param [0,_destination]',hold)
+        explicit=(ROOT/'addons/infantry/functions/cortexGarrison.sqf').read_text()
+        self.assertIn('[_group,_units] call WAIT_fnc_CortexGarrisonApplyLocal',explicit)
+        self.assertIn('call WAIT_fnc_CortexActorMoveReserved',explicit.split('private _units =',1)[1].split('if (_units isEqualTo',1)[0])
+        refill=(ROOT/'addons/infantry/functions/cortexGarrisonRefill.sqf').read_text()
+        self.assertIn('[_group,[_actor]] call WAIT_fnc_CortexGarrisonApplyLocal',refill)
+        self.assertIn('currentCommand _actor in ["","STOP"]',refill)
+        discover=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text()
+        self.assertIn('[_group] call WAIT_fnc_CortexGarrisonApplyLocal',discover)

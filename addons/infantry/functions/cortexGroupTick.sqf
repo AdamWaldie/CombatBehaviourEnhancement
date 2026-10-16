@@ -184,7 +184,8 @@ if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {
         private _nativeTask=_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
         private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
         private _live=(expectedDestination _actor) param [0,[]];
-        private _matching=count _receipt == 4 && {(_receipt select 0) == _group}
+        private _matching=count _receipt == 5 && {(_receipt select 0) == _group}
+            && {(_receipt select 4) isEqualTo (_actor getVariable ["WAIT_AIPass_GarrisonPos",[]])}
             && {(_receipt select 1) == (_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1])}
             && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
             && {count _live == 3} && {count (_receipt select 3) == 3}

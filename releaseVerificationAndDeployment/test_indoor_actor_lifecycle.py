@@ -277,7 +277,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertNotIn('doFollow',release)
 
     def test_garrison_and_defend_use_same_reservation_boundary(self):
-        for name,expected in [('cortexGarrison',1),('cortexGarrisonApplyLocal',2),('cortexDefendApplyLocal',2)]:
+        for name,expected in [('cortexGarrison',2),('cortexGarrisonApplyLocal',2),('cortexDefendApplyLocal',2)]:
             text=(ROOT/('addons/infantry/functions/'+name+'.sqf')).read_text()
             self.assertEqual(text.count('call WAIT_fnc_CortexActorMoveReserved'),expected,name)
             self.assertNotIn('_reservation param [2,1e12,[0]]',text)

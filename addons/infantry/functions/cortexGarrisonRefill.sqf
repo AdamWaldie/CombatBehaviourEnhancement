@@ -69,7 +69,7 @@ private _eligible=_living select {
                         && {[_x,_other] call WAIT_fnc_CortexGarrisonArrived}}
         } >= 0;
     };
-    _spare && {local _actor} && {!isPlayer _actor} && {isNull remoteControlled _actor}
+    _spare && {currentCommand _actor in ["","STOP"]} && {local _actor} && {!isPlayer _actor} && {isNull remoteControlled _actor}
         && {isNull objectParent _actor} && {_actor checkAIFeature "MOVE"} && {_free}
         && {[_actor] call WAIT_fnc_CortexCombatEffective}
         && {!(_actor getVariable ["WAIT_AIPass_GarrisonFailed",false])}
@@ -89,6 +89,6 @@ _group setVariable ["WAIT_Cortex_GarrisonRoster",_roster,true];
 // Only a settled job can open this fresh approach window. Existing failed routes remain failed;
 // unfinished routes cannot repeatedly renew their deadline through casualty callbacks.
 _group setVariable ["WAIT_Cortex_GarrisonDeadline",serverTime+90,true];
-[_group] call WAIT_fnc_CortexGarrisonApplyLocal;
+[_group,[_actor]] call WAIT_fnc_CortexGarrisonApplyLocal;
 _group setVariable ["WAIT_Cortex_GarrisonRefill",[netId _actor,+(_vacancy select 0),serverTime],true];
 true

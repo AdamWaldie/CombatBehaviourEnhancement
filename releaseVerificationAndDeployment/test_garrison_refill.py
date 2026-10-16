@@ -23,7 +23,7 @@ class GarrisonRefillTests(unittest.TestCase):
         self.assertIn('private _heldInPlace=',apply)
         self.assertIn('!(_unit checkAIFeature "PATH")',apply)
         self.assertIn('&& {!_heldInPlace}) then {_unit enableAI "PATH"}',apply)
-        self.assertIn('if (!_heldInPlace && {[_unit] call _mayIssueMovement}) then {doStop _unit}',apply)
+        self.assertIn('if (!_heldInPlace && {_unit in _freshActors} && {[_unit] call _mayIssueMovement}) then {doStop _unit}',apply)
         refill=(ROOT/'addons/infantry/functions/cortexGarrisonRefill.sqf').read_text()
         self.assertIn('[_actor,_assignment] call WAIT_fnc_CortexGarrisonArrived',refill)
         self.assertIn('[_x,_other] call WAIT_fnc_CortexGarrisonArrived',refill)

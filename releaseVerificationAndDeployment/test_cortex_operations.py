@@ -2358,7 +2358,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_entries resize ((count _entries) min 4)',apply)
         self.assertIn('if (_nextEntry < count _entries && {[_x] call _mayIssueMovement}) then',apply)
         self.assertNotIn('doStop _x; _x doMove',apply)
-        self.assertIn('if (!_heldInPlace && {[_unit] call _mayIssueMovement}) then {doStop _unit}',apply)
+        self.assertIn('if (!_heldInPlace && {_unit in _freshActors} && {[_unit] call _mayIssueMovement}) then {doStop _unit}',apply)
         self.assertIn('["deadline", _deadline]',apply)
         self.assertIn('getVariable ["WAIT_Cortex_GarrisonDeadline",-1]',apply)
         self.assertIn('serverTime > (_job get "deadline")',apply)
@@ -4627,7 +4627,7 @@ class CortexOperations(unittest.TestCase):
         # The garrison job must release its own PATH lock at loss of eligibility and recheck
         # ownership before its arrival hold or first individual move can mutate a unit.
         self.assertIn('[_group,false] call WAIT_fnc_CortexGarrisonRelease;',garrison_apply)
-        self.assertIn('if (!_heldInPlace && {[_unit] call _mayIssueMovement}) then {doStop _unit};',garrison_apply)
+        self.assertIn('if (!_heldInPlace && {_unit in _freshActors} && {[_unit] call _mayIssueMovement}) then {doStop _unit};',garrison_apply)
         arrival=garrison_apply.split('if ([_x,_assignment] call _assignmentArrived) then {',1)[1].split('} else {',1)[0]
         self.assertIn('if ([_x] call _mayIssueMovement) then {',arrival)
         self.assertLess(arrival.index('if ([_x] call _mayIssueMovement) then {'),arrival.index('_x disableAI "PATH"'))
@@ -5511,14 +5511,16 @@ class CortexOperations(unittest.TestCase):
         gate=callback.split("private _mayIssueMovement = {",1)[1].split("private _pending =",1)[0]
         self.assertIn('_command in ["","STOP"]',gate)
         self.assertNotIn('!(_command in ["MOVE","FOLLOW"])',gate)
-        self.assertIn('_command == "MOVE" && {count _receipt == 4}',gate)
+        self.assertIn('_command == "MOVE" && {count _receipt == 5}',gate)
         self.assertIn('_live vectorDistance (_receipt select 3) <= 0.25',gate)
         self.assertIn('(_receipt select 1) == (_job get "generation")',gate)
         self.assertIn("&& {_commandOwned}",gate)
 
     def test_garrison_release_preserves_replacement_move_and_follow(self):
         apply=source("cortexGarrisonApplyLocal"); release=source("cortexGarrisonRelease")
-        self.assertEqual(apply.count("call _rememberMove;"),8)
+        self.assertEqual(apply.count("call _rememberMove;"),9)
+        self.assertIn('[_unit,_holdReceiptTarget] call _rememberMove;',apply)
+        self.assertIn('(expectedDestination _unit) param [0,_destination]',apply)
         self.assertIn('["rememberMove",_rememberMove]',apply)
         self.assertIn('_live vectorDistance (_move select 3) <= 0.25',release)
         self.assertIn('_command == "MOVE" && {_ownedMove}',release)

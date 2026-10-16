@@ -62,6 +62,9 @@
  *
  * Arguments:
  * 0: group <GROUP>
+ * 1: freshly assigned actors <ARRAY of OBJECT, []>. Explicit orders/refill name only their
+ * newly assigned actors. Discovery resumes only assignment-bound native MOVE or arrived holds.
+ * MOVE receipts include the full assignment so an old leg cannot authorise another slot.
  *
  * Return Value:
  * Nothing
@@ -70,10 +73,11 @@
  * [_group] call WAIT_fnc_CortexGarrisonApplyLocal;
  * Result: the garrison is live on this machine.
  *
- * Current callers: WAIT_fnc_CortexGarrison and WAIT_fnc_CortexDiscover.
+ * Current callers: WAIT_fnc_CortexGarrison, WAIT_fnc_CortexGarrisonRefill and WAIT_fnc_CortexDiscover.
  */
 
-params [["_group", grpNull, [grpNull]]];
+params [["_group", grpNull, [grpNull]],["_freshActors",[],[[]]]];
+if (count _freshActors > 64 || {_freshActors findIf {!(_x isEqualType objNull)} >= 0}) exitWith {};
 if (isNull _group || {!local _group} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {};
 private _assignmentValid = {
     params ["_assignment"];
@@ -103,7 +107,23 @@ private _buildingTopologyCache=missionNamespace getVariable ["WAIT_Cortex_Garris
 private _mayIssueMovement = {
     params ["_actor"];
     private _free=!([_actor] call WAIT_fnc_CortexActorMoveReserved);
-    !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
+    private _command=currentCommand _actor;
+    private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
+    private _assignment=_actor getVariable ["WAIT_AIPass_GarrisonPos",[]];
+    private _live=(expectedDestination _actor) param [0,[]];
+    private _receiptValid=_receipt isEqualType [] && {count _receipt == 5}
+        && {(_receipt select 0) == _group}
+        && {[1,2] findIf {!((_receipt select _x) isEqualType 0) || {!finite (_receipt select _x)} || {(_receipt select _x) < 0}} < 0}
+        && {(_receipt select 2) <= (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_receipt select 4) isEqualTo _assignment}
+        && {(_receipt select 3) isEqualType []} && {count (_receipt select 3) == 3}
+        && {(_receipt select 3) findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
+    private _commandOwned=_actor in _freshActors || {_command == ""}
+        || {_command == "MOVE" && {_receiptValid} && {count _live == 3}
+            && {count (_receipt select 3) == 3} && {_live vectorDistance (_receipt select 3) <= 0.25}}
+        || {_command == "STOP" && {_receiptValid} && {_actor getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]}
+            && {!(_actor checkAIFeature "PATH")} && {[_actor,_assignment] call WAIT_fnc_CortexGarrisonArrived}};
+    _commandOwned && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
         && {[_actor] call WAIT_fnc_CortexCombatEffective}
@@ -112,7 +132,7 @@ private _mayIssueMovement = {
 };
 private _rememberMove = {
     params ["_actor","_target"];
-    _actor setVariable ["WAIT_Cortex_GarrisonMove",[_group,_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1],_group getVariable ["WAIT_AIPass_Epoch",0],+_target],true];
+    _actor setVariable ["WAIT_Cortex_GarrisonMove",[_group,_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1],_group getVariable ["WAIT_AIPass_Epoch",0],+_target,+(_actor getVariable ["WAIT_AIPass_GarrisonPos",[]])],true];
 };
 private _buildingEntries = {
     params ["_building","_unit","_destination"];
@@ -215,7 +235,7 @@ private _buildingAnchor = {
         };
         // Release the former formation task only while WAIT still owns movement. A curator or
         // specialist can take over between setup and this first individual building command.
-        if (!_heldInPlace && {[_unit] call _mayIssueMovement}) then {doStop _unit};
+        if (!_heldInPlace && {_unit in _freshActors} && {[_unit] call _mayIssueMovement}) then {doStop _unit};
         private _destination = _assignment select 0;
         private _building = _assignment param [2,objNull];
         private _entries=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {[]} else {[_building,_unit,_destination] call _buildingEntries;};
@@ -224,7 +244,18 @@ private _buildingAnchor = {
         private _target = if (_approach) then {_entries select 0} else {_destination};
         private _anchor=if (_approach) then {[_building,_target,_destination] call _buildingAnchor} else {[]};
         _routes set [netId _unit,[_target,_approach,getPosATL _unit,time,0,[str _destination],0,_entries,_entryIndex,_anchor,false]];
-        if (!([_unit,_assignment] call _assignmentArrived) && {[_unit] call _mayIssueMovement}) then {
+        private _atPost=[_unit,_assignment] call _assignmentArrived;
+        // In-place/instant placement can arrive without any MOVE. Bind the actual held
+        // assignment for later adoption; this receipt is metadata, never a path visit.
+        if (_atPost && {[_unit] call _mayIssueMovement}) then {
+            // A still-running owned approach keeps its exact native leg until the arrival
+            // callback stops it. A proximity visit must not invent a different MOVE receipt.
+            private _holdReceiptTarget=if (currentCommand _unit == "MOVE") then {
+                (expectedDestination _unit) param [0,_destination]
+            } else {_destination};
+            [_unit,_holdReceiptTarget] call _rememberMove;
+        };
+        if (!_atPost && {[_unit] call _mayIssueMovement}) then {
             _unit setVariable ["WAIT_Cortex_GarrisonAppliedStance","UP",true];
             _unit setUnitPos "UP";
             _unit forceSpeed 4;
@@ -262,7 +293,8 @@ private _buildingAnchor = {
         private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
         private _live=(expectedDestination _actor) param [0,[]];
         private _commandOwned=_command in ["","STOP"]
-            || {_command == "MOVE" && {count _receipt == 4}
+            || {_command == "MOVE" && {count _receipt == 5}
+                && {(_receipt select 4) isEqualTo (_actor getVariable ["WAIT_AIPass_GarrisonPos",[]])}
                 && {(_receipt select 0) == _group}
                 && {(_receipt select 1) == (_job get "generation")}
                 && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}

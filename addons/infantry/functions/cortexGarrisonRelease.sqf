@@ -89,7 +89,8 @@ if (isNull _leader) then {_leader=leader _group};
             private _command = toUpperANSI currentCommand _x;
             private _move=_unit getVariable ["WAIT_Cortex_GarrisonMove",[]];
             private _live=(expectedDestination _unit) param [0,[]];
-            private _ownedMove=count _move == 4 && {(_move select 0) == _group}
+            private _ownedMove=count _move in [4,5] && {(_move select 0) == _group}
+                && {count _move == 4 || {(_move select 4) isEqualTo (_unit getVariable ["WAIT_AIPass_GarrisonPos",[]])}}
                 && {(_move select 1) == (_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1])}
                 && {(_move select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
                 && {count _live == 3} && {count (_move select 3) == 3}

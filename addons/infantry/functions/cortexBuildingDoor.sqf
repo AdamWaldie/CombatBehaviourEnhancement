@@ -119,7 +119,8 @@ private _orderCurrent={
         && {_assignment isEqualType []} && {count _assignment >= 4}
         && {(_assignment select 2) == _building}
         && {(_assignment select 3) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
-        && {_receipt isEqualType []} && {count _receipt == 4}
+        && {_receipt isEqualType []} && {count _receipt == 5}
+        && {(_receipt select 4) isEqualTo _assignment}
         && {(_receipt select 0) == _group} && {(_receipt select 1) == (_context select 1)}
         && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
         && {(_receipt select 3) call _vectorValid} && {_live call _vectorValid}
