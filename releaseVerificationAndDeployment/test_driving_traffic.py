@@ -6,7 +6,7 @@ def src(name): return (ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text
 class DrivingTrafficTests(unittest.TestCase):
     def test_observer_is_read_only_bounded_and_size_height_aware(self):
         s=src('drivingFollowingCap')
-        for guard in ('local _vehicle','count _candidates > 64','min 250','boundingBoxReal _other','_sameHeight','_minZ','_maxZ','velocity _other','_hullGap'):
+        for guard in ('local _vehicle','count _candidates > 64','_radius > 500','boundingBoxReal _other','_sameHeight','_minZ','_maxZ','velocity _other','_hullGap'):
             self.assertIn(guard,s)
         for command in ('forceSpeed','doMove','setPos','setVelocity','disableCollisionWith','spawn','waitUntil'):
             # Documentation mentions the caller speed policy; executable observer must not write.
@@ -67,6 +67,27 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('count _actors > 64',s)
         self.assertIn('forEach [_otherLow select 2,_otherHigh select 2]',s)
         self.assertLess(s.index('private _occupied='),s.index('private _clear=true'))
+
+    def test_discovery_covers_fast_approach_even_at_low_own_speed(self):
+        import math
+        s=src('drivingFollowingCap')
+        self.assertIn('private _horizon=6;',s)
+        self.assertIn('private _approachAllowance=35*_horizon;',s)
+        self.assertIn('*_horizon+_approachAllowance+20+(abs _front)',s)
+        self.assertIn('_ownIn < _horizon && {_otherIn < _horizon}',s)
+        self.assertLess(s.index('_radius > 500'),s.index('_area nearEntities'))
+        # Independent courses meet after four seconds: own 3 m/s, peer 30 m/s.
+        own_arrival=12/3
+        peer_arrival=120/30
+        self.assertEqual(own_arrival,peer_arrival)
+        distance=math.hypot(12,120)
+        old_own_travel_radius=3*6+20+5
+        self.assertGreater(distance,old_own_travel_radius)
+        self.assertLess(distance,35*6)
+        # An oncoming peer 210 m ahead closes at 55 m/s, inside six seconds.
+        self.assertLess(210/(20+35),6)
+        self.assertGreater(210,20*6+20+5)
+        self.assertLess(210,(20+35)*6)
 
     def test_traffic_wait_does_not_enter_route_recovery(self):
         s=src('drivingAssistStart')
@@ -141,7 +162,7 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertEqual(s.count('nearEntities'),1)
         prediction=s.split('// Project crossing occupancy',1)[1].split('if (_ahead && {_sameLane}',1)[0]
         for marker in ('_sameHeight','_otherSpeed > 0.8','vectorDotProduct _right > 0.25',
-                       'abs _denominator > 0.2','_ownIn < 6','_otherIn < 6',
+                       'abs _denominator > 0.2','_ownIn < _horizon','_otherIn < _horizon',
                        '_ownOut > 0','_otherOut > 0','_ownIn < _otherOut+1',
                        '_otherIn < _ownOut+1','_arrivalCap min _brakingCap',
                        '_room <= _stoppingRoom','_allowed=0'):

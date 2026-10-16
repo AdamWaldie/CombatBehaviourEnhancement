@@ -23,6 +23,10 @@
  * Return: ARRAY [cap m/s NUMBER, limiting vehicle OBJECT, hull gap m NUMBER,
  * sampledAt NUMBER, candidate count NUMBER]. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
  * a congestion sentinel; at most 64 candidate hulls are evaluated, eight corners each.
+ * Discovery includes six seconds of own travel plus a nominal 35 m/s opposing/crossing
+ * approach and 20 m hull margin, capped at 500 m. An over-budget envelope refuses before
+ * querying. Faster approaching traffic and unusually large modded hulls remain limitations.
+ * This observation horizon does not establish a physical stopping-distance guarantee.
  * Current callers: DrivingAssistStart and ConvoyTick through their finite operation schedulers.
  * Example: private _traffic = [truck1,20] call WAIT_fnc_DrivingFollowingCap;
  */
@@ -47,7 +51,14 @@ private _massFactor=((1+(((getMass _vehicle)-3000)/7000)) max 1) min 2.5;
 private _deceleration=4/_massFactor;
 private _reaction=4;
 _plannedSpeed=(_ownForward max _requested) max 0.5;
-private _radius=((_ownForward max _requested)*6+20+(abs _front)) min 250;
+// Relative approach matters even while we are nearly stopped: a crossing vehicle
+// can enter our six-second conflict window from well outside our own travel radius.
+// Use the same finite prediction horizon plus a nominal 35 m/s approaching course.
+// The 20 m margin is provisional hull/discovery headroom, not arbitrary mod-size coverage.
+private _horizon=6;
+private _approachAllowance=35*_horizon;
+private _radius=(_ownForward max _requested)*_horizon+_approachAllowance+20+(abs _front);
+if (!finite _radius || {_radius > 500}) exitWith {[0,_vehicle,-1,time,0]};
 // Arma 2.18 area syntax explicitly includes dead vehicle entities. The default
 // radius syntax omits them; removing only the alive predicate would not fix discovery.
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
@@ -110,7 +121,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
                 private _otherWindow=_otherHalfLength+_halfLength*_alignment+_halfWidth*(abs _denominator)+2.5;
                 private _ownIn=(_alongOwn-_ownWindow)/_plannedSpeed;private _ownOut=(_alongOwn+_ownWindow)/_plannedSpeed;
                 private _otherIn=(_alongOther-_otherWindow)/_otherSpeed;private _otherOut=(_alongOther+_otherWindow)/_otherSpeed;
-                if (_ownIn < 6 && {_otherIn < 6} && {_ownOut > 0} && {_otherOut > 0}
+                if (_ownIn < _horizon && {_otherIn < _horizon} && {_ownOut > 0} && {_otherOut > 0}
                     && {_ownIn < _otherOut+1} && {_otherIn < _ownOut+1}) then {
                     private _room=(_alongOwn-_ownWindow) max 0;
                     private _arrivalCap=_room/((_otherOut+1) max 0.5);
