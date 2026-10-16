@@ -52,8 +52,16 @@ private _observedRoomVisit={
     if ((_pose select 0) < (_low select 0) || {(_pose select 0) > (_high select 0)}
         || {(_pose select 1) < (_low select 1)} || {(_pose select 1) > (_high select 1)}
         || {(_pose select 2) < (_low select 2)} || {(_pose select 2) > (_high select 2)}) exitWith {false};
+    // A model bounding box can enclose an open courtyard or space beside a wing.
+    // Require physical overhead geometry belonging to this house, independently of WAIT receipts.
+    private _roof=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.5],
+        _actual vectorAdd [0,0,10],_actor,objNull,true,4,"GEOM","NONE"];
+    if (_roof isEqualTo []) exitWith {false};
+    private _nearestRoof=_roof select 0;
+    if ((_nearestRoof select 2) != _house && {(_nearestRoof select 3) != _house}) exitWith {false};
     private _hits=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.6],_target vectorAdd [0,0,0.6],_actor,objNull,true,8,"GEOM","NONE"];
-    count _hits < 8 && {_hits findIf {(_x select 2) == _house || {(_x select 3) == _house}} < 0}
+    // Another building, prop or wall also blocks a physical navigation visit.
+    _hits isEqualTo []
 };
 // Independent physical exit observation. An interior fallback hold cannot pass.
 private _observedExit={

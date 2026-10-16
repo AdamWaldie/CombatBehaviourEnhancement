@@ -2125,6 +2125,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_worker,_house,_x] call _observedRoomVisit',audit)
         self.assertIn('[_x,_house,_room] call _observedRoomVisit',audit)
 
+    def test_independent_room_visit_rejects_open_bounds_and_intervening_objects(self):
+        audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')
+        visit=audit.split('private _observedRoomVisit={',1)[1].split('// Independent physical exit observation.',1)[0]
+        self.assertIn('if (_roof isEqualTo []) exitWith {false}',visit)
+        self.assertIn('(_nearestRoof select 2) != _house && {(_nearestRoof select 3) != _house}',visit)
+        self.assertIn('_hits isEqualTo []',visit)
+        self.assertNotIn('_hits findIf',visit)
+        self.assertNotIn('getVariable',visit)
+        self.assertNotIn('WAIT_fnc_',visit)
+
     def test_clearance_mover_handoff_preserves_ordered_actor_specific_room_history(self):
         step=source('buildingOperationStep')
         branch=step.split('private _approaches=_job',1)[1].split('private _issue=',1)[0]
