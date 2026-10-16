@@ -76,7 +76,14 @@ _group setCombatMode "RED";
 {_x setUnitCombatMode "RED"} forEach _shooters;
 ["FIRE-weapons-free-unit-modes",_shooters findIf {unitCombatMode _x != "RED"} < 0,
     str (_shooters apply {unitCombatMode _x})] call _check;
-["Fire control: weapons free","The same live targets remain. The squad must now fire real rounds at both targets. Labels show actual shots and target hit events; assignment alone does not establish effective fire.",[2100,1100,0]] call _phase;
+// Keep one member under an explicit individual never-fire order while its peers engage.
+// This is a real ROE boundary, not a disabled weapon or test-side fire veto.
+private _heldShooter=_shooters select 3;
+_heldShooter setUnitCombatMode "BLUE";
+private _heldShotBaseline=_heldShooter getVariable ["WAIT_CortexQA_ActualShots",0];
+["FIRE-individual-hold-fixture",unitCombatMode _heldShooter == "BLUE"
+    && {combatMode _group == "RED"},str [combatMode _group,unitCombatMode _heldShooter]] call _check;
+["Fire control: weapons free","The same live targets remain. Three soldiers must now fire real rounds at both targets while the fourth retains an individual BLUE never-fire order. Labels show actual shots and target hit events; assignment alone does not establish effective fire.",[2100,1100,0]] call _phase;
 private _engaged=[{
     (_shooters findIf {(_x getVariable ["WAIT_CortexQA_ActualShots",0]) > 0} >= 0)
         && {_targets findIf {(_x getVariable ["WAIT_CortexQA_TargetHits",0]) == 0} < 0}
@@ -95,6 +102,14 @@ private _bothHit=[{
     _targets findIf {(_x getVariable ["WAIT_CortexQA_TargetHits",0]) == 0} < 0
 },30] call _wait;
 ["FIRE-both-targets-projectile-hits",_bothHit,str (_targets apply {_x getVariable ["WAIT_CortexQA_TargetHits",0]})] call _check;
+["FIRE-individual-hold-no-shots",unitCombatMode _heldShooter == "BLUE"
+    && {(_heldShooter getVariable ["WAIT_CortexQA_ActualShots",0]) == _heldShotBaseline},
+    str [_heldShotBaseline,_heldShooter getVariable ["WAIT_CortexQA_ActualShots",0]]] call _check;
+["FIRE-individual-hold-no-scripted-order",
+    (_heldShooter getVariable ["WAIT_Cortex_FireTarget",[]]) isEqualTo []
+        && {(_heldShooter getVariable ["WAIT_AIPass_LastSuppress",-1]) < 0},
+    str [_heldShooter getVariable ["WAIT_Cortex_FireTarget",[]],
+        _heldShooter getVariable ["WAIT_AIPass_LastSuppress",-1]]] call _check;
 _group setCombatMode "BLUE";
 {_x setUnitCombatMode "BLUE"; _x doTarget objNull} forEach _shooters;
 sleep 3;
@@ -111,6 +126,7 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 // order. This observer samples existing public state only; it adds no runtime scheduler or coordination.
 private _suppressionGroups=[];
 private _suppressionShooters=[];
+private _reserveStarved=[];
 for "_g" from 0 to 1 do {
     private _suppressionGroup=createGroup [east,true];
     _suppressionGroup setGroupIdGlobal [format ["Cortex QA TALK %1",_g+1]];
@@ -127,6 +143,28 @@ for "_g" from 0 to 1 do {
         _unit disableAI "PATH";
         _unit setUnitCombatMode "BLUE";
         _unit setVariable ["acex_headless_blacklist",true,true];
+        if (_i == 2) then {
+            // Inventory is deliberately insufficient for rifle suppression despite plentiful GL
+            // magazines. Native firing/reloading remains enabled; no permission flags are faked.
+            removeAllWeapons _unit;
+            {_unit removeMagazines _x} forEach (magazines _unit);
+            _unit addMagazine "30Rnd_65x39_caseless_green";
+            _unit addWeapon "arifle_Katiba_GL_F";
+            _unit addMagazine "30Rnd_65x39_caseless_green";
+            for "_mag" from 1 to 4 do {_unit addMagazine "1Rnd_HE_Grenade_shell"};
+            _unit selectWeapon "arifle_Katiba_GL_F";
+            private _inventory=magazinesAmmoFull _unit;
+            private _rifleSpare=_inventory select {
+                !(_x select 2) && {(_x select 0) == "30Rnd_65x39_caseless_green"} && {(_x select 1) > 0}
+            };
+            private _grenadeSpare=_inventory select {
+                !(_x select 2) && {(_x select 0) == "1Rnd_HE_Grenade_shell"} && {(_x select 1) > 0}
+            };
+            [format ["FIRE-reserve-starved-fixture-%1",_g],count _rifleSpare == 1
+                && {count _grenadeSpare == 4} && {_unit ammo (currentMuzzle _unit) > 0},
+                str _inventory] call _check;
+            _reserveStarved pushBack _unit;
+        };
         _unit setVariable ["WAIT_CortexQA_SuppressOrders",[]];
         _unit setVariable ["WAIT_CortexQA_SuppressShots",[]];
         _unit setVariable ["WAIT_CortexQA_Label",format ["SQUAD %1 / SHOOTER %2 | waiting",_g+1,_i+1],true];
@@ -229,6 +267,11 @@ private _actualSuppression=_suppressionGroups findIf {
 ["FIRE-talking-guns-rotated-suppressors",_rotated,str _orderedByGroup] call _check;
 ["FIRE-squads-not-global-volley",_staggered,str _roundSpreads] call _check;
 ["FIRE-multi-squad-actual-suppression",_actualSuppression,str (_suppressionShooters apply {[_x getVariable ["WAIT_CortexQA_SuppressShots",[]],[_x] call _hasSuppressionShot]})] call _check;
+// Adequately supplied peers must produce suppression above, so an entirely dormant scheduler
+// cannot satisfy this rejection case. Ordinary native fire by these soldiers is still permitted.
+["FIRE-launcher-reserves-do-not-qualify-rifle",count _reserveStarved == 2
+    && {_reserveStarved findIf {(_x getVariable ["WAIT_AIPass_LastSuppress",-1]) >= 0} < 0},
+    str (_reserveStarved apply {[_x getVariable ["WAIT_AIPass_LastSuppress",-1],magazinesAmmoFull _x]})] call _check;
 {[_x] call WAIT_fnc_CortexReleaseGroup} forEach _suppressionGroups;
 {deleteVehicle _x} forEach (_suppressionShooters+[_suppressionEnemy]+_suppressionScreen);
 {deleteGroup _x} forEach (_suppressionGroups+[_suppressionEnemyGroup]);

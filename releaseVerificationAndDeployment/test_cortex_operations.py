@@ -3334,6 +3334,28 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_suppression_reserve_rejection_has_live_positive_peers(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()
+        for proof in ['FIRE-reserve-starved-fixture-', 'count _rifleSpare == 1',
+                      'count _grenadeSpare == 4', 'FIRE-launcher-reserves-do-not-qualify-rifle',
+                      '_reserveStarved findIf {(_x getVariable ["WAIT_AIPass_LastSuppress",-1]) >= 0} < 0']:
+            self.assertIn(proof,qa)
+        self.assertLess(qa.index('FIRE-multi-squad-actual-suppression'),qa.index('FIRE-launcher-reserves-do-not-qualify-rifle'))
+        self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
+
+    def test_individual_hold_fire_is_exercised_beside_firing_peers(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()
+        for proof in ['private _heldShooter=_shooters select 3;',
+                      '_heldShooter setUnitCombatMode "BLUE";',
+                      'FIRE-individual-hold-fixture','FIRE-individual-hold-no-shots',
+                      'FIRE-individual-hold-no-scripted-order',
+                      '== _heldShotBaseline']:
+            self.assertIn(proof,qa)
+        self.assertLess(qa.index('_heldShooter setUnitCombatMode "BLUE";'),qa.index('FIRE-both-targets-actual-fire'))
+        self.assertLess(qa.index('FIRE-both-targets-projectile-hits'),qa.index('FIRE-individual-hold-no-shots'))
+        fire=source('cortexFireControl')
+        self.assertLess(fire.index('unitCombatMode _x in ["YELLOW","RED"]'),fire.index('_unit doFire _closest'))
+
     def test_fire_audit_requires_projectiles_during_suppression_commands(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()
         for proof in ['_shots pushBack [time,_weapon,_muzzle,_ammo,_magazine,_orderedAt,',
