@@ -2130,6 +2130,8 @@ class CortexOperations(unittest.TestCase):
         same=step.split('private _sameActiveTarget=',1)[1].split('if (!_sameActiveTarget',1)[0]
         self.assertIn('call _ownsCurrentMove',same)
         self.assertNotIn('call _activeOwnMove',same)
+        self.assertIn('currentCommand _unit == "" && {count _nativeTarget == 3}',same)
+        self.assertIn('_nativeTarget vectorDistance _committedTarget <= 0.25',same)
         owned=step.split('private _ownsCurrentMove={',1)[1].split('// Native task ownership',1)[0]
         self.assertIn('currentCommand _actor == "MOVE"',owned)
         self.assertIn('_live vectorDistance _issued <= 0.25',owned)
