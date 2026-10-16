@@ -10,7 +10,7 @@
  * target retains identity; its transient position is not an authored order replacement.
  * This reads authored values only; it never evaluates conditions or executes statements.
  * Only current-node metadata is read; native handle enumeration scales with route length.
- * Current callers: CortexClearBuilding, BuildingOperationStep, GroupBrainStep,
+ * Current callers: CortexGarrison, CortexClearBuilding, BuildingOperationStep, GroupBrainStep,
  * CortexOrderDispatch, CortexOrderLocal and CortexGrenadeCheck.
  * Example: private _receipt = [group soldier1] call WAIT_fnc_NativeOrderReceipt;
  */

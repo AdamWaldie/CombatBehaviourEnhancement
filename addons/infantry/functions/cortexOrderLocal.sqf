@@ -5,6 +5,9 @@
  * Repeat/JIP: request tokens are consumed once; authored waypoint and Zeus control receipts
  * fence delayed work before mutation. The server-clock request deadline also prevents an
  * acknowledged timeout from later starting work. No stale order is replayed for JIP.
+ * Failed task rollback restores only the unchanged temporary control token, owner epoch,
+ * serial, task generations and native route. Capability-only refusal can restore unchanged
+ * prior flags; a newer accepted task blocks rollback even without another module request.
  * Arguments: 0: token <STRING>; 1: task parameters <ARRAY> of named pairs.
  * Return Value: Nothing; reports actual owner acceptance.
  * Current callers: WAIT_fnc_CortexOrderDispatch.
@@ -48,13 +51,20 @@ if (_reason != "") exitWith {[_token,false,false,clientOwner,_reason] remoteExec
 private _oldHold = _group getVariable ["WAIT_AIPass_ZeusHold",[]];
 private _oldWaypoints = _group getVariable ["WAIT_AIPass_ZeusWaypoints",false];
 private _oldControlKind = _group getVariable ["WAIT_AIPass_ZeusControlKind",""];
+private _executionEpoch=_group getVariable ["WAIT_AIPass_Epoch",0];
+private _executionTaskKeys=["WAIT_AIPass_ClearGeneration","WAIT_AIPass_GarrisonGeneration",
+    "WAIT_AIPass_DefendGeneration","WAIT_OperationGeneration"];
+private _executionTasks=_executionTaskKeys apply {_group getVariable [_x,-1]};
+private _temporaryControl=[];
 if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE"]) then {
     _group setVariable ["WAIT_AIPass_ZeusControlKind",nil,true];
     _group setVariable ["WAIT_AIPass_ZeusWaypoints", false, true];
     _group setVariable ["WAIT_AIPass_ZeusHold", [random 1e6, 0], true];
+    _temporaryControl=[_group getVariable ["WAIT_AIPass_ZeusHold",[]],false,""];
 };
 
 private _previousClearFailure=_group getVariable ["WAIT_Cortex_ClearAdmissionFailure",[]];
+private _previousGarrisonFailure=_group getVariable ["WAIT_Cortex_GarrisonAdmissionFailure",[]];
     private _accepted = switch (_order) do {
         case "GARRISON": {[_group, _position, (_radius max 15) min 150, createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]] call WAIT_fnc_CortexGarrison};
         case "DEFEND": {[_group, _position, _facing, (_width max 15) min 150] call WAIT_fnc_CortexDefend};
@@ -96,12 +106,30 @@ private _previousClearFailure=_group getVariable ["WAIT_Cortex_ClearAdmissionFai
         default {false};
     };
 
-if (!_accepted && {_order in ["GARRISON","DEFEND","CLEAR","AIRBORNE"]}) then {
+private _garrisonFailure=_group getVariable ["WAIT_Cortex_GarrisonAdmissionFailure",[]];
+private _newGarrisonFailure=_order == "GARRISON" && {count _garrisonFailure == 3}
+    && {_garrisonFailure isNotEqualTo _previousGarrisonFailure} && {(_garrisonFailure select 2) == _serial};
+private _liveControl=[_group getVariable ["WAIT_AIPass_ZeusHold",[]],
+    _group getVariable ["WAIT_AIPass_ZeusWaypoints",false],_group getVariable ["WAIT_AIPass_ZeusControlKind",""]];
+// Rollback owns only this exact temporary override. A newer order/owner/control token survives.
+if (!_accepted && {_temporaryControl isNotEqualTo []}
+    && {(_executionTaskKeys apply {_group getVariable [_x,-1]}) isEqualTo _executionTasks}
+    && {local _group} && {(_group getVariable ["WAIT_AIPass_Epoch",0]) == _executionEpoch}
+    && {(_group getVariable ["WAIT_Cortex_LastTaskSerial",-1]) == _serial}
+    && {_liveControl isEqualTo _temporaryControl}
+    && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _receipt}) then {
     _group setVariable ["WAIT_AIPass_ZeusControlKind",_oldControlKind,true];
     _group setVariable ["WAIT_AIPass_ZeusHold",_oldHold,true];
     _group setVariable ["WAIT_AIPass_ZeusWaypoints",_oldWaypoints,true];
 };
 private _executionReason="No valid positions or eligible passengers were available. The order was not started.";
+if (!_accepted && {_newGarrisonFailure}) then {
+    _executionReason=switch (_garrisonFailure select 1) do {
+        case "PLAN_CONTEXT_CHANGED": {"The squad's orders, owner or actors changed during planning. Garrison was not started and no earlier task was replaced."};
+        case "NO_VALID_POSITIONS": {"No valid garrison positions were found in the selected area. No earlier task was replaced."};
+        default {"Garrison planning was invalid or exceeded its bounded planning budget. No earlier task was replaced."};
+    };
+};
 if (!_accepted && {_order == "CLEAR"}) then {
     private _failure=_group getVariable ["WAIT_Cortex_ClearAdmissionFailure",[]];
     _executionReason="Clearance was refused by the current owner; inspect the selected squad and building.";

@@ -23,6 +23,9 @@
  * Locality and authority: call where the group is local, or on the server, which forwards to the
  * owner. Non-server, non-owner copies (for example an Eden init field on a client) do nothing.
  *
+ * Admission snapshots route, owner epoch, task generations and selected actors' native command
+ * destinations before planning. Changed context refuses the plan before prior-task cleanup.
+ * Identical repeated commands remain observationally ambiguous; runtime races need physical testing.
  * Review contract: Plan and validate candidates before replacing existing assignments. Invalid input, empty valid geometry or exhausted planning budget preserves the previous task. The shared eligibility gate rejects player and feature-owned groups before side effects.
  *
  * Arguments:
@@ -78,6 +81,30 @@ if !(missionNamespace getVariable ["WAIT_AIPass_Active", false]) exitWith {
     false
 };
 
+// Capture observable task context before geometry work; this is admission evidence, not
+// movement authority. Native planning-mode/force-replan flags are deliberately not compared.
+private _admissionRoute=[_group] call WAIT_fnc_NativeOrderReceipt;
+private _admissionEpoch=_group getVariable ["WAIT_AIPass_Epoch",0];
+private _generationKeys=["WAIT_AIPass_ClearGeneration","WAIT_AIPass_GarrisonGeneration",
+    "WAIT_AIPass_DefendGeneration","WAIT_OperationGeneration"];
+private _admissionGenerations=_generationKeys apply {_group getVariable [_x,-1]};
+private _admissionActors=_units apply {[_x,currentCommand _x,+((expectedDestination _x) param [0,[],[[]]]),formLeader _x]};
+private _admissionCurrent={
+    local _group && {(_group getVariable ["WAIT_AIPass_Epoch",0]) == _admissionEpoch}
+        && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _admissionRoute}
+        && {(_generationKeys apply {_group getVariable [_x,-1]}) isEqualTo _admissionGenerations}
+        && {_admissionActors findIf {
+            _x params ["_actor","_command","_destination","_followLeader"];
+            !local _actor || {group _actor != _group} || {vehicle _actor != _actor}
+                || {isPlayer _actor} || {!isNull remoteControlled _actor}
+                || {!([_actor] call WAIT_fnc_CortexCombatEffective)}
+                || {[_actor] call WAIT_fnc_CortexActorMoveReserved}
+                || {currentCommand _actor != _command}
+                || {if (_command == "FOLLOW" && {!isNull _followLeader}) then {
+                    formLeader _actor != _followLeader
+                } else {((expectedDestination _actor) param [0,[],[[]]]) isNotEqualTo _destination}}
+        } < 0}
+};
 // One bounded admission plan. No assignment or old-task cleanup happens during geometry reads.
 private _candidateAssignments=[];
 private _planningValid=true;
@@ -110,8 +137,15 @@ if (_inPlace) then {
     _candidates sort true;
     _candidateAssignments=_candidates apply {[_x select 3,(_x select 4) getDir (_x select 3),_x select 5,[getPosWorld (_x select 5),vectorDir (_x select 5),vectorUp (_x select 5)]]};
 };
+if !(call _admissionCurrent) exitWith {
+    _group setVariable ["WAIT_Cortex_GarrisonAdmissionFailure",[diag_tickTime,"PLAN_CONTEXT_CHANGED",_group getVariable ["WAIT_Cortex_LastTaskSerial",-1]]];
+    diag_log format ["[WAIT] Garrison refused group=%1 reason=PLAN_CONTEXT_CHANGED; prior task retained",_group];
+    false
+};
 if (!_planningValid || {_candidateAssignments isEqualTo []} || {!local _group}
     || {!([_group] call WAIT_fnc_CortexIsEligible)} || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {
+    private _failure=["NO_VALID_POSITIONS","INVALID_OR_OVER_BUDGET_PLAN"] select (!_planningValid);
+    _group setVariable ["WAIT_Cortex_GarrisonAdmissionFailure",[diag_tickTime,_failure,_group getVariable ["WAIT_Cortex_LastTaskSerial",-1]]];
     diag_log format ["[WAIT] Garrison refused group=%1 reason=INVALID_OR_OVER_BUDGET_PLAN; prior task retained",_group];
     false
 };
