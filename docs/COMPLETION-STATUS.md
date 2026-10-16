@@ -10,15 +10,16 @@ Workshop-parity percentage is available.
 ## Current evidence boundary
 
 - Audits are paused by the user. No new in-game result is claimed here.
-- The latest local code validation passed **1034 tests** and all sequential offline gates.
+- The latest local code validation passed **1038 tests** and all sequential offline gates.
   The current local batch includes natural individual indoor dispatch, disjoint-operation ownership,
   contact/boarding reservation protection, convoy path-cap/grade corrections and native recovery receipts.
-  It includes uncommitted source and documentation changes. It is not a clean committed release
-  candidate, a physical result or a performance measurement.
+  The behaviour changes are committed locally. The earlier signed candidate remains separate;
+  these offline results provide no new physical or performance acceptance.
 - Delayed defence arrival/retry now checks its exact assignment and issued destination, retiring changed individual commands without movement restoration. Owner adoption now checks published MOVE/HOLD receipts and native route identity; physical migration remains unverified.
 - Defence release now requires matching command receipts before watch/formation restoration. Admitted replacement tasks suppress predecessor recall; reserve selection requires a physically nearby owned HOLD. Repeated transitions remain physically unverified.
 - Defence reserve planning now rejects overlapping reinforcement slots before assignment changes and excludes busy/reserved actors. Its physical reinforcement and casualty flow remain unverified.
 - Defence admission now also refuses changed native/individual orders, task generations or ownership during geometry planning, before old-task cleanup. Reserved actors are excluded from its layout. Offline checks passed; physical interruption remains unverified.
+- Experimental passing now preserves pull-out headway during qualification, checks complete oriented hull separation before return, and predicts measured traffic courses against the pass corridor. Discovery covers a nominal 35 m/s approach over the proposal duration, up to 1,250 m; faster modded traffic and measured query cost remain limitations. The Altis normal-only roadpassing fixture and convoy startup observations are prepared but unrun.
 - Explicit road-pass cleanup now requires the unchanged authored route and current ownership exclusions before restoring commands. Active consent is context/expiry-bound. Default-off experimental automatic passing now has finite observation/preparation/consent admission; negotiated head-on jam discovery remains unimplemented. Physical and performance acceptance are outstanding.
 - Alternate driving admission and gate intent now compare full 3D native destinations. Bypass execution/handback also checks both seat command types; asynchronous propagation, identical commands and physical interruption remain unverified.
 - Stationary engine-off vehicle hulls with no living crew now reach the existing finite bypass planner. Occupancy/engine/attachment changes invalidate work; independent traffic caps remain. The normal-only parkedbypass focus now prepares actual empty/wreck passage and native boarding during active work. These cases remain unrun; bypass and interruption are physically unverified.
