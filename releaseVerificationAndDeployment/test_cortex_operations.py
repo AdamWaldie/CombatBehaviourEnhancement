@@ -7602,6 +7602,16 @@ class CortexOperations(unittest.TestCase):
                        'DANGER-VEHICLE-orient-crew-retained']:
             self.assertIn(marker,audit)
 
+    def test_combat_gunner_replacement_preserves_actor_controller_ownership(self):
+        text=source('cortexVehicleCrewRecover')
+        ownership=text.split('if ([_candidate] call WAIT_fnc_CortexActorMoveReserved',1)[1].split('private _command=',1)[0]
+        for guard in ['remoteControlled _candidate','bis_fnc_moduleRemoteControl_owner',
+                      'WAIT_fnc_CortexExternalOwner','WAIT_fnc_CompatibilityExternalControl','ACTOR_OWNERSHIP']:
+            self.assertIn(guard,ownership)
+        self.assertLess(text.index('ACTOR_OWNERSHIP'),text.index('_candidate assignAsGunner'))
+        self.assertLess(text.index('ACTOR_OWNERSHIP'),text.index('_candidate action'))
+        self.assertNotIn('setVariable ["WAIT_Cortex_ActorMove",nil]',text)
+
     def test_mounted_danger_recovers_a_lost_gunner_without_sacrificing_the_driver(self):
         registry=(ROOT/'addons/main/CfgFunctions.hpp').read_text(encoding='utf-8')
         recovery=source('cortexVehicleCrewRecover')
