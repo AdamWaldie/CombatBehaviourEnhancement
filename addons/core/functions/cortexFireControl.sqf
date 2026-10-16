@@ -103,11 +103,9 @@ private _eligible = (units _group) select {
 };
 // Route ownership extends beyond drills: a clearer, evading actor or finite aid mover
 // must not receive an ATTACK/SUPPRESS command over its current destination.
-private _reservedActors=_eligible select {
-    private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
-    _reservation isEqualType [] && {count _reservation == 3}
-        && {(_reservation select 2) isEqualType 0} && {(_reservation select 2) > _now}
-};
+// Unknown ownership must not become permission to replace an actor's route. Only the
+// shared typed, finite reservation predicate can establish that a lease has expired.
+private _reservedActors=_eligible select {[_x] call WAIT_fnc_CortexActorMoveReserved};
 private _operation=_group getVariable ["WAIT_Operation",createHashMap];
 if ((_operation getOrDefault ["intent",""]) in ["CLEAR","MEDICAL_AID","WITHDRAW"]
     && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {

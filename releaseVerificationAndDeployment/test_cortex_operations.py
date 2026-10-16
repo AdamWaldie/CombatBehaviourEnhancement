@@ -4398,6 +4398,16 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('serverTime >= (_job getOrDefault ["expiry"'),text.index('// Dormancy/locality convergence'))
         self.assertIn('["capabilityAt",serverTime+4]',source('cortexCombinedArmsLocal'))
 
+    def test_fire_control_uses_strict_movement_reservations_without_disabling_native_fire(self):
+        text=source('cortexFireControl')
+        self.assertIn('private _reservedActors=_eligible select {[_x] call WAIT_fnc_CortexActorMoveReserved};',text)
+        self.assertIn('private _members = _eligible - _drillUnits;',text)
+        self.assertIn('private _movingMembers = _eligible arrayIntersect _drillUnits;',text)
+        predicate=source('cortexActorMoveReserved')
+        for proof in ('_lease isEqualTo []','count _lease == 3','finite _x','finite (_lease select 2)','time >= (_lease select 2)'):
+            self.assertIn(proof,predicate)
+        self.assertNotIn('disableAI',predicate)
+
     def test_combined_ground_preserves_protected_individual_tasks(self):
         guard=source('cortexActorFireTaskAvailable')
         self.assertIn('WAIT_fnc_CortexActorMoveReserved',guard)
