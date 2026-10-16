@@ -3334,6 +3334,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_suppression_requires_the_loaded_primary_bullet_muzzle(self):
+        suppression = source("cortexFireControl").split('// Disciplined suppression', 1)[1]
+        boundary = suppression.index('_unit doSuppressiveFire _targetASL')
+        for proof in ['currentMuzzle _unit', 'currentMagazine _unit',
+                      '_unit ammo _muzzle', 'currentWeapon _unit == _weapon',
+                      '_loaded > 0', '== "shotbullet"',
+                      'compatibleMagazines [_weapon,_magazineMuzzle]',
+                      '(magazinesAmmoFull _unit) select',
+                      '!(_x select 2) && {(_x select 1) > 0}',
+                      'getNumber (_ammo >> "hit") > 0',
+                      'if (_rifleReady && {count _spare >= 2} && {_rounds >= 60}']:
+            self.assertLess(suppression.index(proof), boundary)
+        self.assertNotIn('selectWeapon', suppression)
+        self.assertNotIn('_unit ammo _weapon', suppression)
+
     def test_native_canfire_gets_immediate_safe_suppression_parity(self):
         fire = source("cortexFireControl")
         suppression = fire.split('// Disciplined suppression', 1)[1]

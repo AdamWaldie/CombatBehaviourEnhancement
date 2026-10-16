@@ -172,3 +172,13 @@ Keep the goal active. When audits resume, rebuild a fresh exact candidate, verif
 The curved-helper/Sense comparison is `releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json`. Engineering attribution stays outside product guides. Whole-source parity and all physical/performance requirements remain open.
 
 The retained mixed-column evidence is under `.qa/workshop-evaluation-20261012/`: `mixed-convoy-startup-control-review.json`, `mixed-convoy-control-review-20261013.json` and `convoy-historical-stop-start-baseline-20261013.json`. Read it before tuning gains. The source comparison still needs grade/deck observation, native queue execution and remaining helper/caller dispositions. No audit ran during these changes.
+
+## Newly registered AI reference (2026-10-16)
+
+Workshop item 3820871877, Pinned Down Combat Suppression, is registered for AI-only evaluation in releaseVerificationAndDeployment/referenceReviews/pinned-down-combat-suppression-3820871877.json. Player effects are explicitly out of scope. Local package hashes are recorded; source review and implementation remain pending. The wider goal and audits remain paused.
+
+Continuation update: the goal tool confirms ACTIVE after user continuation; physical audits remain paused. The new suppression reference now has an initial AI source comparison, source hashes, explicit audio exclusion and outstanding deep-review dispositions. No production implementation or physical acceptance is claimed. Read the register JSON for current findings rather than the initial registration status above.
+
+Suppression follow-up: CortexFireControl now requires the selected primary bullet muzzle to be loaded before deliberate suppression. A carried rifle reserve cannot qualify a pistol, underbarrel launcher or empty selected muzzle. Complete Build passed 1058 tests and all offline gates (log .qa/workshop-evaluation-20261016/suppression-muzzle-build.log). Physical empty-rifle, launcher-selected and loaded-rifle cases remain unverified; no audit launched.
+
+Final suppression checkpoint: reserve accounting now uses selected-muzzle compatibility and nonempty unloaded magazines, preventing underbarrel reserves and loaded duplicates from qualifying rifle suppression. Full Build completed with 1058 passing tests and all offline gates; .qa/workshop-evaluation-20261016/suppression-reserve-build.log, fingerprint 2871d90f5e59aac24b085dcdb08f43d6890c6215678d9d62d77a8506c8cafd4f. PR16 remains open/draft on the same branch. No push, signing or audit. Live ammo-switch/reload cases and overall physical acceptance remain outstanding.
