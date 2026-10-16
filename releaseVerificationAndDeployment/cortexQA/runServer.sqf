@@ -733,6 +733,7 @@ if (_focus in ["all","features","mechanics","airborne"]) then {
 };
 if (_focus in ["all","features","mechanics","vehicles","stateflows","dangerparity","dangerbuildings"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAVehicles.sqf"};
 if (_focus in ["all","features","mechanics","vehicles"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQADrivingTraffic.sqf"};
+if (_focus in ["all","features","mechanics","vehicles","parkedbypass"] && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])}) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAParkedBypass.sqf"};
 if (_focus in ["all","features","mechanics","vehicles","drivercrew"] && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])}) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQADrivingCrew.sqf"};
 if (_focus in ["all","features","mechanics","vehicles","naval"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQANaval.sqf"};
 if (_focus in ["all","features","mechanics","fire"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAFire.sqf"};

@@ -3,6 +3,41 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class DrivingBypassTests(unittest.TestCase):
+    def test_stationary_vehicle_hulls_reach_bypass_without_bypassing_traffic_safety(self):
+        helper=(ROOT/'addons/vehicles/functions/drivingBypassObstacleAvailable.sqf').read_text(encoding='utf-8').split('params [[',1)[1]
+        for guard in ('abs speed _obstacle > 0.5','attachedTo _obstacle','attachedObjects _obstacle',
+                      '!isEngineOn _obstacle','count _crew <= 64','_crew findIf {alive _x} < 0'):
+            self.assertIn(guard,helper)
+        for forbidden in ('setVariable','createVehicle','forceSpeed','setDriveOnPath','nearestObjects','lineIntersects'):
+            self.assertNotIn(forbidden,helper)
+        geometry=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text(encoding='utf-8')
+        self.assertIn('_staticHulls getOrDefault',geometry)
+        self.assertIn('count _staticHulls < 16',geometry)
+        self.assertIn('"LandVehicle" && {!_staticHull}',geometry)
+        plan=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
+        self.assertEqual(plan.count('call WAIT_fnc_DrivingBypassObstacleAvailable'),2)
+        step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
+        self.assertEqual(step.count('call WAIT_fnc_DrivingBypassObstacleAvailable'),2)
+        self.assertLess(step.rindex('call WAIT_fnc_DrivingBypassObstacleAvailable'),step.index('_vehicle setDriveOnPath'))
+        following=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text(encoding='utf-8')
+        self.assertNotIn('DrivingBypassObstacleAvailable',following)
+
+    def test_parked_fixture_requires_real_passage_and_live_occupancy_change(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runParkedBypass.sqf').read_text(encoding='utf-8')
+        for marker in ('["EMPTY","WRECK","OCCUPIED"]','_ownBounds select 0','_blockBounds select 1',
+                       '_lateral >= 3','_vehicle distance2D _start >= 140','"PHYSICALLY_PASSED"',
+                       '_boarder assignAsDriver _blocker','[_boarder] orderGetIn true',
+                       'vehicle _boarder == _blocker','"OBSTACLE_CHANGED"','time+150'):
+            self.assertIn(marker,s)
+        for forbidden in ('call WAIT_fnc_DrivingBypassStep','call WAIT_fnc_DrivingBypassPlan',
+                          'setDriveOnPath','moveInDriver','setVariable ["WAIT_DrivingBypass_Result"',
+                          'setVariable ["WAIT_DrivingBypass_Work"','forceSpeed','setPos'):
+            self.assertNotIn(forbidden,s)
+        server=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text(encoding='utf-8')
+        self.assertIn('"parkedbypass"',server)
+        from mod_pipeline import supported_focuses
+        self.assertIn('parkedbypass',supported_focuses())
+
     def test_preflight_has_no_movement_or_physics_authority(self):
         for name in ('drivingBypassPlan','drivingPathGeometry'):
             body=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text().split('params [[',1)[1]

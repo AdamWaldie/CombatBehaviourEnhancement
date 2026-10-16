@@ -17,7 +17,7 @@
  * Capture uses current pose or a <=3-second, <=12-metre observed ASL segment; it is not
  * replayed across owner epochs or treated as proof of continuous collision-free travel. No new scheduler.
  * Full ordered checkpoint visit and actual tail clearance alone complete. Invalid geometry,
- * command/owner changes and deadline expiry retain failure; no elapsed-time or ready success.
+ * command/owner changes, obstacle crew/engine/attachment changes and deadline expiry retain failure; no elapsed-time or ready success.
  * Current callers: DrivingAssistStart and ConvoyTick. Convoy followers retain predecessor trails.
  * Neither path acceptance nor this API is physical QA.
  * Example: [_group,_vehicle,_brain,_solid,_mayRecoverRoute] call WAIT_fnc_DrivingBypassStep;
@@ -145,7 +145,7 @@ if ((_work get "route") isNotEqualTo _route || {(_work get "driver") != _driver}
     || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
     || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}) then {_reason="COMMAND_CHANGED"};
 if (_reason == "" && {(_work get "phase") == "PLAN"} && {!(call _nativeAdmissionReady)}) then {_reason="COMMAND_CHANGED"};
-if (_reason == "" && {isNull _obstacle || {abs speed _obstacle > 0.5}
+if (_reason == "" && {!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)
     || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo (_work get "transform")}}) then {_reason="OBSTACLE_CHANGED"};
 if (_reason == "" && {serverTime >= (_work get "deadline")}) then {_reason="TIMEOUT"};
 if (_reason != "") exitWith {[_vehicle,_group,_reason,_reason != "COMMAND_CHANGED"] call WAIT_fnc_DrivingBypassRelease;_inactive};
@@ -178,7 +178,7 @@ if ((_work get "phase") == "PLAN") exitWith {
     if ((_destination vectorDiff _exit) vectorDotProduct _forward < _columnLength+(waypointCompletionRadius [_group,currentWaypoint _group] max 20)+10) exitWith {
         [_vehicle,_group,"DESTINATION_CLEARANCE"] call WAIT_fnc_DrivingBypassRelease;_inactive
     };
-    if (!(call _mayWrite) || {!(call _nativeAdmissionReady)} || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
+    if (!(call _mayWrite) || {!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)} || {!(call _nativeAdmissionReady)} || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
         || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}) exitWith {_inactive};
     private _box=boundingBoxReal _vehicle;private _low=_box select 0;private _high=_box select 1;
     private _halfWidth=((abs (_low select 0)) max (abs (_high select 0))) max (_envelope param [0,0]);

@@ -741,6 +741,7 @@
       "executable_sources": [
         "runVehicleDrills.sqf",
         "runDrivingTraffic.sqf",
+        "runParkedBypass.sqf",
         "runDrivingCrew.sqf"
       ],
       "production_sources": [
@@ -769,6 +770,7 @@
         "addons/vehicles/functions/drivingGeometryCap.sqf",
         "addons/vehicles/functions/drivingPathGeometry.sqf",
         "addons/vehicles/functions/drivingBypassPlan.sqf",
+        "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf",
         "addons/vehicles/functions/drivingPassPlan.sqf",
         "addons/vehicles/functions/drivingPassGeometry.sqf",
         "addons/vehicles/functions/drivingPassContext.sqf",

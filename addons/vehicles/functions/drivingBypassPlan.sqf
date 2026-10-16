@@ -10,7 +10,7 @@
  * [halfWidth, halfLength, height] metres expanding the current vehicle only.
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY,
  * obstacle transform ARRAY, vehicle transform ARRAY, rayCount NUMBER].
- * Limits: stationary STATIC object only, observation <=1.5 seconds old/50 m away, vehicle <=8 km/h;
+ * Limits: stationary STATIC object only (vehicle hulls must remain engine-off and unoccupied), observation <=1.5 seconds old/50 m away, vehicle <=8 km/h;
  * projected object span <=30 m, hull circumscribed clearance radius <=12 m. Five guide anchors
  * resample at <=5 m, at most 24 stations/279 support/body rays. No spawning or collision helpers.
  * The radius deliberately overbounds turn footprint; no turning-radius or native steering success
@@ -28,7 +28,7 @@ if (count _observed != 9 || {!(_side in [-1,1])}
     }}}) exitWith {["INVALID_OBSERVATION"] call _fail};
 private _obstacle=_observed select 1;
 if (!(_obstacle isEqualType objNull) || {isNull _obstacle} || {(_observed select 5) != "STATIC"}
-    || {abs speed _obstacle > 0.5} || {abs speed _vehicle > 8}) exitWith {["NOT_STATIC_BYPASS"] call _fail};
+    || {!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)} || {abs speed _vehicle > 8}) exitWith {["NOT_STATIC_BYPASS"] call _fail};
 private _sampled=_observed select 3;private _gap=_observed select 2;
 if (!(_sampled isEqualType 0) || {!finite _sampled} || {_sampled > time} || {time-_sampled > 1.5}
     || {!(_gap isEqualType 0)} || {!finite _gap} || {_gap < 0} || {_gap > 50}) exitWith {["STALE_OBSERVATION"] call _fail};
@@ -74,7 +74,8 @@ if (_overBudget) exitWith {["PATH_BUDGET"] call _fail};
 // Circumscribed support/body clearance overbounds corners without pretending a point fits a hull.
 private _geometry=[_vehicle,_guide,_radius,_height] call WAIT_fnc_DrivingPathGeometry;
 if (!(_geometry select 0)) exitWith {[_geometry select 1,_geometry select 4] call _fail};
-if ([getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo _transform
+if (!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)
+    || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo _transform}
     || {[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle] isNotEqualTo _vehicleTransform}) exitWith {
     ["GEOMETRY_CHANGED",_geometry select 4] call _fail
 };

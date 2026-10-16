@@ -20,7 +20,10 @@
  * clamped to 70 degrees; the remaining horizon follows the final tangent. Rigid hull offsets
  * rotate with each predicted pose. Unsupported/stationary yaw falls back to straight sensing.
  * Bodies use current absolute pitch/elevation. Gentle upward support is excluded from generic
- * blocking; represented land-vehicle/pedestrian hulls retain their dedicated observers. No hit
+ * blocking; occupied/active land-vehicle and pedestrian hulls retain their dedicated observers.
+ * Stationary engine-off unoccupied land hulls also feed finite bypass planning; their independent
+ * traffic cap remains active. Per-call classification inspects at most 16 land hulls and avoids
+ * repeated crew reads per ray. Over-budget hulls retain traffic-only handling. No hit
  * never proves an entire path clear. Predicted turns, narrow/low geometry, slopes and actual braking
  * need physical validation. This observes approach constraints, not a bypass/detour executor.
  * Current callers: DrivingAssistStart, ConvoyTick and DrivingGateCap's server-compatible adapter.
@@ -67,6 +70,7 @@ if (_turning) then {
 };
 private _nearest=1e9;private _gate=objNull;private _rays=0;
 private _solidGap=1e9;private _solid=[];private _gateClasses=createHashMap;
+private _staticHulls=createHashMap;
 private _bottom=(_low select 2)+0.45;
 private _top=((_high select 2)-0.2) max _bottom;
 private _heights=[_bottom,(_bottom+_top)*0.5,_top];
@@ -116,7 +120,18 @@ _heights=_heights arrayIntersect _heights;
             // Traffic and pedestrians retain their existing hull observers. Static/classless
             // props, parked aircraft/boats and steep terrain add no synthetic collision props.
             // Upward-facing support is not a blocking wall merely because a forward ray meets a hill/deck.
-            private _represented=!isNull _object && {_object isKindOf "CAManBase" || {_object isKindOf "LandVehicle"}};
+            private _staticHull=false;
+            if (!isNull _object && {_object isKindOf "LandVehicle"}) then {
+                private _key=str _object;
+                private _cached=_staticHulls getOrDefault [_key,-1];
+                if (_cached isEqualType true) then {_staticHull=_cached} else {
+                    if (count _staticHulls < 16) then {
+                        _staticHull=[_object] call WAIT_fnc_DrivingBypassObstacleAvailable;
+                        _staticHulls set [_key,_staticHull];
+                    };
+                };
+            };
+            private _represented=!isNull _object && {_object isKindOf "CAManBase" || {_object isKindOf "LandVehicle" && {!_staticHull}}};
             if (!_isGate && {!_represented} && {abs (_normal select 2) < 0.7} && {_gap < _solidGap}) then {
                 _solidGap=_gap;
                 private _kind=if (isNull _object) then {"TERRAIN"} else {
