@@ -4962,6 +4962,18 @@ class CortexOperations(unittest.TestCase):
                 self.assertIn(proof,block)
         self.assertLess(routine.index('CortexLineOfFireClear'),routine.index('_gunner doFire _target'))
 
+    def test_vehicle_gunnery_selects_first_usable_ranked_contact_with_finite_work(self):
+        text=source('cortexVehicles')
+        selection=text.split('private _target=objNull;',1)[1].split('private _standoff',1)[0]
+        self.assertIn('forEach (_ranked select [0,8])',selection)
+        self.assertIn('[_vehicle,_gunner,_candidate] call WAIT_fnc_CortexGroundFireReady',selection)
+        self.assertIn('[_gunner,aimPos _candidate] call WAIT_fnc_CortexLineOfFireClear',selection)
+        self.assertIn('exitWith {\n                    _target=_candidate;',selection)
+        self.assertLess(selection.index('if (!isNull _target)'),selection.index('_gunner doTarget _target'))
+        self.assertNotIn('nearEntities',selection)
+        self.assertNotIn(' reveal ',selection)
+        self.assertIn('if (count _candidates > 8) then {_candidates resize 8}',source('cortexKnowledge'))
+
     def test_vehicle_gunnery_refreshes_fire_when_contact_was_already_shared(self):
         vehicles=source('cortexVehicles')
         target_change=vehicles.index('if ([] call _mayIssueVehicle && {assignedTarget _gunner != _target}) then {')

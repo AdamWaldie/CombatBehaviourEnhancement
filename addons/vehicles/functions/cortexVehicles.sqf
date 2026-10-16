@@ -40,6 +40,8 @@
  * enemy seen in the last 15 s within 600 m: anti-tank infantry first, then armour, then anything
  * else, nearest first, held for 8 s. Scripted fire requires an available current group gunner,
  * a safe firing lane and (for ground platforms) target-suitable loaded station ammunition.
+ * Up to eight known contacts are considered in threat order, stopping at the first usable lane;
+ * an incompatible or blocked first choice cannot starve a lower-priority usable target.
  * A live combined-ground role suppresses competing routine ground targeting until its original
  * expiry or retirement; natural engagement and independent safety responses remain available. A fully mounted tank or APC that knows of an anti-tank soldier
  * within 60% of WAIT_AIPass_Vehicles_StandoffDistance backs off to that distance, at most once a
@@ -654,21 +656,28 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
             && {canFire _vehicle}
             && {combatMode _group in ["YELLOW", "RED"]} && {unitCombatMode _gunner in ["YELLOW", "RED"]}
             && {(_gunner getVariable ["WAIT_AIPass_TargetHold", -1]) < time}) then {
-            private _target = (_enemies select ((_ranked select 0) select 2)) select 0;
-            // One selected lane/inventory observation per bounded fire refresh, not per enemy.
-            private _stationReady=!(_vehicle isKindOf "LandVehicle")
-                || {[_vehicle,_gunner,_target] call WAIT_fnc_CortexGroundFireReady};
-            if (_stationReady && {[_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear}) then {
-            if ([] call _mayIssueVehicle && {assignedTarget _gunner != _target}) then {
-                _gunner doTarget _target;
-            };
-            // Target sharing may have assigned this contact before the vehicle layer runs. Fire refresh
-            // therefore follows its own bounded hold instead of depending on a target identity change.
-            if ([] call _mayIssueVehicle) then {
-                _gunner doFire _target;
-                _gunner setVariable ["WAIT_AIPass_TargetHold", time + 8];
-                _gunner setVariable ["WAIT_AIPass_VehicleTarget", _target, true];
-            };
+            // CortexKnowledge supplies at most eight contacts. Preserve threat order, but
+            // an unusable first contact must not starve the next safe, compatible target.
+            // Each candidate gets at most one station/lane observation; stop on first success.
+            private _target=objNull;
+            {
+                private _candidate=(_enemies select (_x select 2)) select 0;
+                private _stationReady=!(_vehicle isKindOf "LandVehicle")
+                    || {[_vehicle,_gunner,_candidate] call WAIT_fnc_CortexGroundFireReady};
+                if (_stationReady && {[_gunner,aimPos _candidate] call WAIT_fnc_CortexLineOfFireClear}) exitWith {
+                    _target=_candidate;
+                };
+            } forEach (_ranked select [0,8]);
+            if (!isNull _target) then {
+                if ([] call _mayIssueVehicle && {assignedTarget _gunner != _target}) then {
+                    _gunner doTarget _target;
+                };
+                // A shared target still needs its own bounded native fire request.
+                if ([] call _mayIssueVehicle) then {
+                    _gunner doFire _target;
+                    _gunner setVariable ["WAIT_AIPass_TargetHold", time + 8];
+                    _gunner setVariable ["WAIT_AIPass_VehicleTarget", _target, true];
+                };
             };
         };
         private _standoff = missionNamespace getVariable ["WAIT_AIPass_Vehicles_StandoffDistance", 250];
