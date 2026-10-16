@@ -7602,6 +7602,18 @@ class CortexOperations(unittest.TestCase):
                        'DANGER-VEHICLE-orient-crew-retained']:
             self.assertIn(marker,audit)
 
+    def test_airborne_held_first_fixture_requires_another_physical_exit(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runAirborne.sqf').read_text(encoding='utf-8')
+        for marker in ['AIRBORNE-held-first-stays-aboard','AIRBORNE-unheld-passenger-exits',
+                       'vehicle _unheld isKindOf "ParachuteBase"','vehicle _heldActor == _aircraft',
+                       'isEqualTo _holdLease','WAIT_CortexQA_HeadlessBatch',
+                       '"WAIT_AIPass_Airborne_JumpInterval",_savedJumpInterval,true']:
+            self.assertIn(marker,qa)
+        self.assertNotIn('call WAIT_fnc_CortexParachuteJump',qa)
+        self.assertNotIn('WAIT_fnc_CortexAirborneDropStep',qa)
+        self.assertIn('AIRBORNE-physical-landing',qa)
+        self.assertIn('AIRBORNE-post-landing-movement',qa)
+
     def test_airborne_episode_rejects_stale_execution_and_cleanup(self):
         start=source('cortexAirborneCheck')
         step=source('cortexAirborneDropStep')
