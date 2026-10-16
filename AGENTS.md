@@ -23,3 +23,10 @@ These are established user requirements, not new discoveries. Carry them into ev
 - The chat may be attached to a different repository. WAIT is currently at `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, remote `https://github.com/AdamWaldie/WaldosAITweaks.git`. Before every Git mutation, verify the actual repository root, remote, branch and intended PR. Do not commit WAIT work to another checkout. PR 12 was merged. Follow-up currently belongs to PR 13, but verify its live state before updating it.
 
 Current local source comparison: `.qa/workshop-comparison-20261014/WORKSHOP-COMPARISON.md`. Its deep-review items remain open. The source index is structural evidence only. Preserved Pinned Down sources are under `C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708`; verify its manifest before relying on it. Keep raw sources and assets out of published product content.
+
+## GitHub Actions usage
+
+- Batch related implementation work locally; do not push every small commit or every goal continuation. Push a coherent review checkpoint after local validation, or when the user requests it. Avoid repeated remote reruns without diagnosing the failure first.
+- Validation runs automatically for main and ready pull requests. Draft PRs use local gates; a remote draft check requires deliberate workflow_dispatch. Do not mark a PR ready merely to cause a build. Ready-for-review must trigger the complete validation pipeline.
+- Keep validation concurrency scoped to the workflow and PR/ref, cancel superseded validation runs, and preserve full release/signed-candidate checks. Do not use skip-ci messages or remove tests to conceal failures.
+- Pass the read-only GitHub token to the HEMTT installer to avoid unauthenticated release API rate limits; never print it.
