@@ -7395,11 +7395,13 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(marker,contact)
         self.assertIn('["BUILDINGS", "03 Infantry", "07 Buildings and CQB"]',sections)
         self.assertIn('class CortexBuildingContact',functions)
-        for marker in ['(_x param [2,1e6,[0]]) <= 5','isNull objectParent _enemy',
-                       'boundingBoxReal _candidateBuilding','worldToModelVisual','lineIntersectsSurfaces',
-                       '(_x select 2) == _candidateBuilding','count _capable < 4',
-                       '["preserveBrain",true]','WAIT_fnc_CortexClearBuilding']:
+        for marker in ['count _capable < 4','["preserveBrain",true]',
+                       'WAIT_fnc_BuildingContactSelect','WAIT_fnc_CortexClearBuilding']:
             self.assertIn(marker,contact)
+        selector=source('buildingContactSelect')
+        for marker in ['_age <= 5','isNull objectParent _enemy','boundingBoxReal _building',
+                       'worldToModel _belief','lineIntersectsSurfaces','_nearest select 2']:
+            self.assertIn(marker,selector)
         for forbidden in [' setPos ',' moveIn ',' allowDamage ',' disableAI ']:
             self.assertNotIn(forbidden,contact)
         self.assertIn('private _preserveBrain=_options getOrDefault ["preserveBrain",false];',clear)
@@ -7411,17 +7413,15 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(tick.index('WAIT_fnc_CortexBuildingContact'),tick.index('WAIT_fnc_CortexTacticalStart'))
 
     def test_natural_building_admission_uses_belief_not_unseen_enemy_transform(self):
-        text=source('cortexBuildingContact')
+        text=source('buildingContactSelect')
         for marker in ('_x param [1,[],[[]]]','count _belief == 3','!finite _x',
-                       'finite _age','_age >= 0','private _candidatePosition=+(_x select 1)',
-                       'nearestBuilding _candidatePosition',
-                       '_candidateBuilding worldToModelVisual _candidatePosition',
-                       'AGLToASL _candidatePosition'):
+                       'finite _age','_age >= 0','private _belief=+(_x select 1)',
+                       'nearestBuilding _belief','_building worldToModel _belief','AGLToASL _belief'):
             self.assertIn(marker,text)
-        for forbidden in ('getPosATL _candidateEnemy','getPosWorld _candidateEnemy','getPosASL _candidateEnemy'):
+        for forbidden in ('getPosATL _enemy','getPosWorld _enemy','getPosASL _enemy'):
             self.assertNotIn(forbidden,text)
         self.assertIn('if (count _records > 3) then {_records resize 3}',text)
-        self.assertIn('(_x param [2,1e6,[0]]) <= 5',text)
+        self.assertIn('_age <= 5',text)
 
     def test_natural_building_contact_has_physical_audit(self):
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')

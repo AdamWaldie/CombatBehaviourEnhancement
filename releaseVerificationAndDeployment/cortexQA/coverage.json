@@ -1359,6 +1359,7 @@
       "production_sources": [
         "addons/infantry/functions/cortexBuildingDoor.sqf",
         "addons/infantry/functions/cortexBuildingContact.sqf",
+        "addons/infantry/functions/buildingContactSelect.sqf",
         "addons/infantry/functions/cortexClearBuilding.sqf",
         "addons/infantry/functions/buildingOperationStart.sqf",
         "addons/infantry/functions/buildingOperationQueue.sqf",

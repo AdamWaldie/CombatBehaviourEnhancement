@@ -6,7 +6,8 @@ def source(name):return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encod
 class ClearContactBeliefTests(unittest.TestCase):
     def test_native_snapshot_reaches_admission_and_durable_progress(self):
         contact=source('cortexBuildingContact');start=source('cortexClearBuilding');step=source('buildingOperationStep')
-        self.assertIn('_contactBelief=[+_candidatePosition,serverTime-(_x select 2)]',contact)
+        self.assertIn('call WAIT_fnc_BuildingContactSelect',contact)
+        self.assertIn('[+_belief,serverTime-(_x select 2)]',source('buildingContactSelect'))
         self.assertIn('["contactBelief",_contactBelief]',contact)
         self.assertIn('_previous param [11,[],[[]]]',start)
         for check in ('!finite _x','finite (_contactBelief select 1)',
