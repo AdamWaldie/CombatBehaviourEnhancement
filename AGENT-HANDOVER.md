@@ -27,7 +27,7 @@ Remote: `https://github.com/AdamWaldie/WaldosAITweaks.git`
 
 Branch: `Adam/owner-local-fsm-signing-20261016`
 
-Latest implementation commit: `2f57b2a5b224aba169eaf9e57489c549eb52183e`. A subsequent checkpoint commit records documentation and this handover.
+Latest committed implementation at refresh: `91d3f4b`, following suppression readiness and garrison posture fixes. The next checkpoint includes the prepared repeat/recovery fixture and refreshed status. Resolve HEAD and working-tree status for the exact current source; later notes below preserve historical steps, not current commit identity.
 
 [PR 16](https://github.com/AdamWaldie/WaldosAITweaks/pull/16) is open and draft. The previous pushed source was `71e4d45af4f6139fbdc1a2d7808c926465162b64`. Revalidate the live head and inspect `git log origin/Adam/owner-local-fsm-signing-20261016..HEAD` for outstanding commits. This handover is tracked with the driving review checkpoint and excluded from player packages. Preserve any unrelated dirty files.
 
@@ -43,11 +43,15 @@ Read `AGENTS.md` and `CONTRIBUTING.md`. Every changed SQF file needs its require
 
 Latest local implementation validation:
 
-- Driving changes through `2f57b2a` passed 1,057 tests, all sequential offline gates, HEMTT build and FSM inspections. The process exited 0.
-- Nine PBOs compiled from 310 production SQF sources.
-- Log: `.qa/workshop-comparison-20261014/driving-underside-build.log`.
-- Unsigned package fingerprint: `3c980830d56a4a2e090a7e809fc59e63f97222fdba04cdd93f206c7bf2774ff3`.
-- A new clean driving Release build uses `.qa/workshop-comparison-20261014/driving-checkpoint-release.log`. Its signed candidate/report, if successfully created, are under `releases/review-driving-20261016/`. Read the report for the exact source and hash. These paths do not themselves prove completion.
+- Suppression readiness is bound to a loaded selected primary bullet muzzle and nonempty unloaded reserves for that muzzle. Launcher magazines cannot qualify rifle reserves.
+- Garrison posture yields to active movement/native tasks, preserves already-prone actors, restores the immediate prior posture only under the original ownership/assignment and rechecks the live building transform.
+- Fire fixtures now release individual never-fire orders correctly and require real rifle projectiles during suppression commands. Individual hold-fire and reserve-starvation cases are prepared.
+- Garrison real-fire fixture now prepares ordinary recovery, a distinct second burst and newer stance preservation. These are unrun fixtures, not physical results.
+- Latest completed Build: 1,067 tests, all sequential offline gates, nine PBOs, 310 production SQF sources, FSM inspections and sealing, exit 0.
+- Log: `.qa/workshop-evaluation-20261016/garrison-posture-repeat-fixture-build.log`.
+- Unsigned build fingerprint: `075837148d77b379f543820df868228de13fd2fdff92be4a551bf67ae5127597`.
+- A current signed release has not yet been produced. The historical candidate below predates the driving, suppression and garrison changes. Do not relabel it.
+- Current source-only reference addition: `releaseVerificationAndDeployment/referenceReviews/pinned-down-combat-suppression-3820871877.json`, AI only. The source FSM matches the preserved earlier version; source review is incomplete and earns no parity/acceptance credit.
 
 Earlier signed review candidate verified at capture:
 
@@ -202,3 +206,5 @@ Garrison moving-posture follow-up: hard duck events and their delayed recovery n
 Garrison transform posture fence: immediate duck and delayed recovery now revalidate the assigned building's live position/direction/up-vector receipt, matching movement invalidation. Stored assignment equality alone no longer permits posture changes after Zeus movement, rotation or deletion. Complete Build exit 0, 1065 tests/all gates; .qa/workshop-evaluation-20261016/garrison-posture-transform-build.log. Physical incoming-fire and mid-duck transform/deletion tests remain absent and unrun; audits remain paused. Changes currently uncommitted.
 
 Garrison live fixture prepared in normal-owner surplus case: requires a physically occupied non-prone exterior actor, spawns an excluded hostile rifleman, records real FiredMan shots and waits for production duck metadata. Deletes hostile before issuing explicit replacement UP, then checks it survives the old deadline. Damage policies are temporarily saved/restored for this diagnostic; no handler calls, synthetic suppression, actor teleport or completion writes. Prerequisite/missing reactions fail instead of passing unused cases. Full Build exit 0, 1066 tests/all gates; .qa/workshop-evaluation-20261016/garrison-posture-live-fixture-build.log, fingerprint 4a6099ef56ee91421f74c6eadf71b89cea7e1e2ac307cdd22c62397cd59918dd. This prepares replacement-stance acceptance only; unmodified pre-duck recovery, mid-duck building transform and HC migration still need live cases. No audit launched. Combined transform guard/fixture checkpoint supersedes prior uncommitted note.
+
+Garrison live repeat fixture extended: first hostile burst is stopped using actual group/unit BLUE and cleared attacker target; no defender recovery values are written. Audit observes return to immediate pre-duck posture, then requires new attacker shots and a strictly later live duck deadline before the explicit replacement UP test. First recovery failure stays recorded even if the later case succeeds. Complete Build exit 0, 1067 tests/all gates; .qa/workshop-evaluation-20261016/garrison-posture-repeat-fixture-build.log, fingerprint 075837148d77b379f543820df868228de13fd2fdff92be4a551bf67ae5127597. Physical ordinary recovery/repeat cases are now prepared but unrun. Mid-duck transform/deletion and HC migration fixtures remain pending. Local changes not yet committed; no audit launched.

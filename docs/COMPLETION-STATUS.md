@@ -10,12 +10,14 @@ Workshop-parity percentage is available.
 ## Current evidence boundary
 
 - Audits are paused by the user. No new in-game result is claimed here.
-- The latest local code validation passed **1057 tests** and all sequential offline gates.
+- The latest local code validation passed **1067 tests** and all sequential offline gates.
   The current batch adds authenticated combined-ground failure replacement, exact role/operator authority,
   owner-epoch application receipts and durable destination/recovery journals. Active route changes retire
   movement; capability checks retain the original expiry. Routine ground gunnery yields to the live role.
   These offline results provide no new physical or performance acceptance.
 - Routine vehicle targeting now tries bounded lower-ranked usable contacts. Driving discovery includes nominal approaching traffic, and native bend hints use path distance instead of node count. Sampled downward undersides retain solid constraints. These changes have offline coverage only.
+- Infantry suppression now requires the selected loaded primary bullet muzzle and muzzle-specific nonempty spare magazines. Garrison posture recovery preserves the immediate prior stance only under unchanged assignment/ownership and live building transform; it yields to movement, native service and actor reservations. These source fixes have offline coverage only.
+- Fire authority, reserve rejection and real-fire garrison recovery/repeat fixtures are prepared but unrun. Fixture improvements do not retroactively resolve historical audit failures or establish current physical acceptance.
 - The normal convoy matrix now records actual lead/follower constraint chains. Mixed-column stop/start causation, native queue recovery, expanded traffic-query cost and physical steering/braking remain unresolved. Source reviews retain explicit gaps and no whole-mod parity credit.
 - Ground support checks loaded target-suitable station ammunition before manoeuvre commitment and again
   during travel and arrival. Protected individual tasks and strict actor reservations prevent competing

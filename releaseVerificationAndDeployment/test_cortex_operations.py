@@ -3334,6 +3334,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_garrison_posture_recovery_and_repeat_require_distinct_real_bursts(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        case=qa.split('// Real incoming-fire posture test',1)[1].split('private _origins=_members',1)[0]
+        for proof in ['GARRISON-duck-restores-prior-posture','unitPos _defender == _priorPosture',
+                      'GARRISON-duck-repeat-real-fire', '> _secondShotBaseline',
+                      '> _until', 'if (_secondDuck) then {']:
+            self.assertIn(proof,case)
+        self.assertLess(case.index('GARRISON-duck-restores-prior-posture'),case.index('_defender setUnitPos "UP";'))
+        self.assertEqual(case.count('_attacker doFire _defender;'),2)
+
     def test_garrison_duck_live_case_uses_real_fire_and_replacement_input(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         case=qa.split('// Real incoming-fire posture test',1)[1].split('private _origins=_members',1)[0]

@@ -687,7 +687,7 @@ if (!_largeOnly && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch
             _attacker doTarget _defender;
             _attacker doFire _defender;
             missionNamespace setVariable ["WAIT_CortexQA_Actors",_members+[_attacker],true];
-            ["Garrison posture under fire","Diagnostic invulnerable actors: a real hostile rifleman fires at an occupied exterior post. Require actual shots and the production duck reaction. Then a newer explicit stance order must survive the old delayed recovery. No handler, suppression or completion state is injected.",getPosATL _defender] call _phase;
+            ["Garrison posture under fire","Diagnostic invulnerable actors: a real hostile rifleman fires at an occupied exterior post. Require actual shots and the production duck reaction, followed by restoration of the prior posture. A second real burst must trigger a fresh reaction before a newer explicit stance order tests delayed recovery. No handler, suppression or completion state is injected.",getPosATL _defender] call _phase;
             private _ducked=[{
                 (_attacker getVariable ["WAIT_CortexQA_PostureShots",0]) > 0
                     && {(_defender getVariable ["WAIT_AIPass_DuckUntil",-1]) > time}
@@ -696,9 +696,39 @@ if (!_largeOnly && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch
             private _shotCount=_attacker getVariable ["WAIT_CortexQA_PostureShots",0];
             private _until=_defender getVariable ["WAIT_AIPass_DuckUntil",-1];
             ["GARRISON-duck-real-fire",_ducked && {_shotCount > 0},str [_shotCount,_priorPosture,unitPos _defender,_until]] call _check;
+            // Stop the hostile's real firing, without writing any defender recovery state.
+            _attackGroup setCombatMode "BLUE";
+            _attacker setUnitCombatMode "BLUE";
+            _attacker doTarget objNull;
+            private _recovered=false;
+            if (_ducked) then {
+                sleep 1;
+                _until=_defender getVariable ["WAIT_AIPass_DuckUntil",_until];
+                [{time > _until+1},12] call _wait;
+                _recovered=time > _until && {unitPos _defender == _priorPosture}
+                    && {(_defender getVariable ["WAIT_AIPass_GarrisonPos",[]]) isEqualTo _assignment};
+            };
+            ["GARRISON-duck-restores-prior-posture",_ducked && {_recovered},
+                str [_priorPosture,unitPos _defender,_until]] call _check;
+            // A fresh live burst must trigger the replacement case independently. Prior shots
+            // and the expired first duck cannot satisfy this prerequisite.
+            private _secondShotBaseline=_attacker getVariable ["WAIT_CortexQA_PostureShots",0];
+            _attackGroup setCombatMode "RED";
+            _attacker setUnitCombatMode "RED";
+            _attacker doTarget _defender;
+            _attacker doFire _defender;
+            private _secondDuck=[{
+                (_attacker getVariable ["WAIT_CortexQA_PostureShots",0]) > _secondShotBaseline
+                    && {(_defender getVariable ["WAIT_AIPass_DuckUntil",-1]) > time}
+                    && {(_defender getVariable ["WAIT_AIPass_DuckUntil",-1]) > _until}
+                    && {(_defender getVariable ["WAIT_Cortex_GarrisonDuckStance",""]) != ""}
+            },25] call _wait;
+            _until=_defender getVariable ["WAIT_AIPass_DuckUntil",-1];
+            ["GARRISON-duck-repeat-real-fire",_secondDuck,
+                str [_secondShotBaseline,_attacker getVariable ["WAIT_CortexQA_PostureShots",0],_until]] call _check;
             deleteVehicle _attacker;
             deleteGroup _attackGroup;
-            if (_ducked) then {
+            if (_secondDuck) then {
                 // This is the deliberate replacement input, never the expected completion state.
                 _defender setUnitPos "UP";
                 private _replacementAt=time;
