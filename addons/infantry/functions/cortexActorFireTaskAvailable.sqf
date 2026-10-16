@@ -5,7 +5,7 @@
  * Repeat/JIP: No state changes or renewal; reads the current task on every admission and fire boundary.
  * Arguments: 0 actor <OBJECT, objNull>.
  * Return: BOOL, true only for a local actor without a protected task or movement reservation.
- * Current callers: CortexCombinedArmsLocal and CortexCombinedGroundStep.
+ * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
  * Example: private _available=[gunner tank1] call WAIT_fnc_CortexActorFireTaskAvailable;
  */
 params [["_actor",objNull,[objNull]]];

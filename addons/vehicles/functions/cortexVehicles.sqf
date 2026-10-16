@@ -38,7 +38,10 @@
  * and any existing movement owner remain authoritative.
  * During sustained contact the AI gunner is pointed at the most dangerous
  * enemy seen in the last 15 s within 600 m: anti-tank infantry first, then armour, then anything
- * else, nearest first, held for 8 s. A fully mounted tank or APC that knows of an anti-tank soldier
+ * else, nearest first, held for 8 s. Scripted fire requires an available current group gunner,
+ * a safe firing lane and (for ground platforms) target-suitable loaded station ammunition.
+ * A live combined-ground role suppresses competing routine ground targeting until its original
+ * expiry or retirement; natural engagement and independent safety responses remain available. A fully mounted tank or APC that knows of an anti-tank soldier
  * within 60% of WAIT_AIPass_Vehicles_StandoffDistance backs off to that distance, at most once a
  * minute, through an inserted waypoint.
  * A withdrawal or standoff owns group movement until its tagged waypoint completes or its bounded
@@ -212,6 +215,27 @@ if (_vehicles isEqualTo []) exitWith {_movementOwned};
 // being followed by a stale forced speed, dismount, withdrawal or gunner request.
 private _mayIssueVehicle = {
     !([_group] call WAIT_fnc_CortexExternalTakeover)
+};
+// A live combined ground role owns this group's scripted ground targeting. Routine
+// gunnery must not retarget its support gun or fire before manoeuvre arrival. This is
+// reservation scope only: natural engine engagement, smoke and passenger safety remain available.
+private _combinedGroundRole=_group getVariable ["WAIT_Cortex_CombinedRole",[]];
+private _combinedGroundFireOwned=_combinedGroundRole isEqualType []
+    && {count _combinedGroundRole in [7,8]}
+    && {(_combinedGroundRole select 4) in ["GROUND_FIRE","GROUND_MANOEUVRE"]}
+    && {(_combinedGroundRole select 5) isEqualType 0} && {finite (_combinedGroundRole select 5)}
+    && {serverTime < (_combinedGroundRole select 5)};
+private _gunnerAvailable={
+    params ["_vehicle","_gunner"];
+    !isNull _gunner && {local _gunner} && {group _gunner == _group}
+        && {[_gunner] call WAIT_fnc_CortexCombatEffective}
+        && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+        && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
+        && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
+        && {isNull (_gunner getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        && {([_gunner] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}
+        && {[_gunner] call WAIT_fnc_CortexActorFireTaskAvailable}
 };
 if (_externalTakeover) exitWith {_movementOwned};
 if !([] call _mayIssueVehicle) exitWith {_movementOwned};
@@ -498,6 +522,10 @@ if (_dangerDismount isNotEqualTo []) then {
                     [_vehicle,+_dangerPosition,25,"HE",1,false,"DANGER",objNull,_dangerSource] call WAIT_fnc_CortexArtilleryFire;
                 };
                 if (_knownHostile && {_freshGeneration} && {!(_emplacementUnsafe || {_disabledUnsafe})}
+                    && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
+                    && {[_vehicle,_gunner] call _gunnerAvailable}
+                    && {canFire _vehicle}
+                    && {!(_vehicle isKindOf "LandVehicle") || {[_vehicle,_gunner,_dangerSource] call WAIT_fnc_CortexGroundFireReady}}
                     && {[_group,"WAIT_AIPass_VehicleGunnery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
                     && {combatMode _group in ["YELLOW","RED"]}
                     && {unitCombatMode _gunner in ["YELLOW","RED"]}
@@ -621,10 +649,16 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
             };
         } forEach _enemies;
         _ranked sort true;
-        if (_ranked isNotEqualTo [] && {alive _gunner} && {local _gunner} && {!isPlayer _gunner}
+        if (_ranked isNotEqualTo [] && {[_vehicle,_gunner] call _gunnerAvailable}
+            && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
+            && {canFire _vehicle}
             && {combatMode _group in ["YELLOW", "RED"]} && {unitCombatMode _gunner in ["YELLOW", "RED"]}
             && {(_gunner getVariable ["WAIT_AIPass_TargetHold", -1]) < time}) then {
             private _target = (_enemies select ((_ranked select 0) select 2)) select 0;
+            // One selected lane/inventory observation per bounded fire refresh, not per enemy.
+            private _stationReady=!(_vehicle isKindOf "LandVehicle")
+                || {[_vehicle,_gunner,_target] call WAIT_fnc_CortexGroundFireReady};
+            if (_stationReady && {[_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear}) then {
             if ([] call _mayIssueVehicle && {assignedTarget _gunner != _target}) then {
                 _gunner doTarget _target;
             };
@@ -634,6 +668,7 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
                 _gunner doFire _target;
                 _gunner setVariable ["WAIT_AIPass_TargetHold", time + 8];
                 _gunner setVariable ["WAIT_AIPass_VehicleTarget", _target, true];
+            };
             };
         };
         private _standoff = missionNamespace getVariable ["WAIT_AIPass_Vehicles_StandoffDistance", 250];

@@ -4946,6 +4946,22 @@ class CortexOperations(unittest.TestCase):
         non_vehicle=vehicles.split('} else {',1)[1].split('};',1)[0]
         self.assertNotIn('deleteAt "movementLease"',non_vehicle)
 
+    def test_routine_ground_gunnery_yields_combined_roles_and_checks_operator_station_lane(self):
+        text=source('cortexVehicles')
+        reservation=text.split('private _combinedGroundRole=',1)[1].split('private _gunnerAvailable=',1)[0]
+        self.assertIn('in ["GROUND_FIRE","GROUND_MANOEUVRE"]',reservation)
+        self.assertIn('serverTime < (_combinedGroundRole select 5)',reservation)
+        self.assertNotIn('setVariable',reservation)
+        authority=text.split('private _gunnerAvailable=',1)[1].split('if (_externalTakeover)',1)[0]
+        for proof in ('group _gunner == _group','CortexCombatEffective','simulationEnabled _gunner','isObjectHidden _gunner','remoteControlled _gunner','CortexExternalOwner','CompatibilityExternalControl','CortexActorFireTaskAvailable'):
+            self.assertIn(proof,authority)
+        danger=text.split('if (_knownHostile &&',1)[1].split('} forEach _affectedVehicles',1)[0]
+        routine=text.split('if (_ranked isNotEqualTo []',1)[1].split('private _standoff',1)[0]
+        for block in (danger,routine):
+            for proof in ('!_combinedGroundFireOwned','call _gunnerAvailable','canFire _vehicle','CortexGroundFireReady','CortexLineOfFireClear'):
+                self.assertIn(proof,block)
+        self.assertLess(routine.index('CortexLineOfFireClear'),routine.index('_gunner doFire _target'))
+
     def test_vehicle_gunnery_refreshes_fire_when_contact_was_already_shared(self):
         vehicles=source('cortexVehicles')
         target_change=vehicles.index('if ([] call _mayIssueVehicle && {assignedTarget _gunner != _target}) then {')
