@@ -50,13 +50,25 @@ if !(call _current) exitWith {["OWNER_OR_ORDER_CHANGED",true] call _finish};
 private _consent=_vehicle getVariable ["WAIT_DrivingPass_Consent",[]];
 
 if (isNull _peer) exitWith {["PEER_DELETED",true] call _finish};
-private _box=boundingBoxReal _vehicle;private _peerBox=boundingBoxReal _peer;
-private _half=(abs ((_box select 0) select 1)) max (abs ((_box select 1) select 1));
-private _peerHalf=(abs ((_peerBox select 0) select 1)) max (abs ((_peerBox select 1) select 1));
-private _long=(_peer worldToModel (ASLToAGL getPosASL _vehicle)) select 1;
+// Use complete oriented hull intervals, not centre distance and nominal half lengths.
+// Even the permitted heading difference changes longitudinal extent at the outer corners.
+private _heading=getDir _peer;private _axis=[sin _heading,cos _heading,0];
+private _origin=getPosWorld _peer;
+private _span={
+    params ["_object"];
+    private _box=boundingBoxReal _object;private _low=_box select 0;private _high=_box select 1;
+    private _minimum=1e9;private _maximum=-1e9;
+    {private _xx=_x;{private _yy=_x;{
+        private _point=(_object modelToWorldWorld [_xx,_yy,_x]) vectorDiff _origin;
+        private _along=_point vectorDotProduct _axis;
+        _minimum=_minimum min _along;_maximum=_maximum max _along;
+    } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];} forEach [_low select 0,_high select 0];
+    [_minimum,_maximum]
+};
+private _ownSpan=[_vehicle] call _span;private _peerSpan=[_peer] call _span;
 private _aligned=abs (((getDir _vehicle-getDir _peer+540) mod 360)-180) <= 25;
-private _ahead=_aligned && {_long > _half+_peerHalf+6};
-private _behind=_aligned && {_long < -(_half+_peerHalf+3)};
+private _ahead=_aligned && {(_ownSpan select 0) > (_peerSpan select 1)+6};
+private _behind=_aligned && {(_ownSpan select 1) < (_peerSpan select 0)-3};
 if (!(_consent isEqualType []) || {count _consent != 5} || {(_consent select 0) isNotEqualTo (_work get "token")}
     || {(_consent select 4) isNotEqualTo "AGREED"}
     || {(_consent select 1) isNotEqualTo (_work get "context")}
