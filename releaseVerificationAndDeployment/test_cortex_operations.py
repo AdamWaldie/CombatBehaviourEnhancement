@@ -4235,6 +4235,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"ORDER_ISSUED"',arrival)
         self.assertIn('"WAIT_Cortex_CombinedFireDecision"',arrival)
         self.assertLess(arrival.index('WAIT_fnc_CortexLineOfFireClear'),arrival.index('_gunner doFire'))
+    def test_combined_runtime_failures_retire_only_the_admitted_opportunity_after_cleanup(self):
+        local=source('cortexCombinedArmsLocal')
+        step=source('cortexCombinedGroundStep')
+        server=source('cortexCombinedRejectServer')
+        self.assertIn('["opportunity",+_opportunity]',local)
+        finish=step.split('private _finish={',1)[1].split('if (isNull _group ||',1)[0]
+        self.assertLess(finish.index('call WAIT_fnc_CortexGroupMoveClear'),finish.index('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'))
+        for guard in ('_operationMatches','isEqualTo _snapshot','serverTime < (_snapshot select 5)'):
+            self.assertIn(guard,finish)
+        for reason in ('ASSET_LOST','ASSET_IMMOBILE','BLOCKED','MOVEMENT_REJECTED','NO_STATION_AMMO','BLOCKED_FIRE_LANE'):
+            self.assertIn('"'+reason+'"',finish)
+            self.assertIn('"'+reason+'"',server)
+        self.assertIn('select (_fireDecision == "ORDER_ISSUED")',step)
+        self.assertIn('simulationEnabled _asset && {!isObjectHidden _asset} && {!canMove _asset}',step)
+
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)

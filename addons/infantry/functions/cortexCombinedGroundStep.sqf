@@ -11,6 +11,9 @@
  * Repeat/JIP: the public role token rejects stale jobs; locality replay queues one replacement job.
  * Arrival fire requests require a combat-effective local gunner; arrival alone never proves fire effect.
  * Cleanup requires the matching operation generation, so a late role cannot delete a newer route.
+ * Failed arrival fire, asset loss, immobility and exhausted movement retire the exact admitted
+ * opportunity through the authenticated server fallback after owned cleanup. Original contact/expiry
+ * never renew; a fire request remains an order, not proof of shots or effect.
  * Arguments: 0: job state <HASHMAP> containing group, asset, target, token, expiry and destination.
  * Return Value: Number of seconds before the next scheduler step, or -1 when complete.
  * Current callers: WAIT_fnc_CortexCombinedArmsLocal through WAIT_fnc_CortexQueueJob.
@@ -24,6 +27,7 @@ private _token=_job getOrDefault ["token",""];
 private _destination=_job getOrDefault ["destination",[]];
 private _operationGeneration=_job getOrDefault ["operationGeneration",-1];
 private _ownerEpoch=_job getOrDefault ["ownerEpoch",-1];
+private _snapshot=_job getOrDefault ["opportunity",[]];
 private _finish={
     params ["_reason"];
     if (!isNull _group && {local _group}
@@ -51,6 +55,14 @@ private _finish={
         };
         if (((_group getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""]) == _token) then {
             _group setVariable ["WAIT_Cortex_CombinedResult",[_token,"GROUND_MANOEUVRE",_reason,serverTime,_target,_destination],true];
+            // Only this admitted snapshot may spend a fallback slot. New roles, owners,
+            // expiry, target loss and administrative cancellation cannot dispatch replacements.
+            if (_operationMatches && {(count _snapshot) in [7,8]}
+                && {(_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isEqualTo _snapshot}
+                && {serverTime < (_snapshot select 5)}
+                && {_reason in ["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED"]}) then {
+                [_group,_snapshot,_reason,clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
+            };
         };
     };
     -1
@@ -72,6 +84,8 @@ if (captive _target || {_target getVariable ["ace_captives_isSurrendering",false
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
     || {(side _group) getFriend (side _target) >= 0.6}) exitWith {["TARGET_NO_LONGER_HOSTILE"] call _finish};
 if (serverTime >= (_job getOrDefault ["expiry",serverTime])) exitWith {["EXPIRED"] call _finish};
+if (_asset distance2D _destination > 70
+    && {simulationEnabled _asset && {!isObjectHidden _asset} && {!canMove _asset}}) exitWith {["ASSET_IMMOBILE"] call _finish};
 if (_asset distance2D _destination <= 70) exitWith {
     // Arrival grants no new observation. Preserve native/shared knowledge; do not refresh
     // an unseen moving target merely because the vehicle reached its firing position.
@@ -103,7 +117,7 @@ if (_asset distance2D _destination <= 70) exitWith {
     // Physical arrival completes the move, not the requested fire effect. Fired-event and
     // target-damage evidence are still required by combat acceptance.
     _group setVariable ["WAIT_Cortex_CombinedFireDecision",[_token,_fireDecision,serverTime,_gunner,_target],true];
-    ["POSITION_REACHED"] call _finish
+    [[_fireDecision,"POSITION_REACHED"] select (_fireDecision == "ORDER_ISSUED")] call _finish
 };
 if (time >= (_job getOrDefault ["progressAt",time])+10) then {
     private _travel=_asset distance2D (_job getOrDefault ["lastPosition",getPosATL _asset]);
