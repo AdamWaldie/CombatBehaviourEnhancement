@@ -7,7 +7,7 @@
  * Arguments: 0 proposal <HASHMAP>, empty, from DrivingPassPlan.
  * Return: HASHMAP status REFUSED or TRAFFIC_OBSERVATION, blocked BOOL, reason, actor,
  * candidateCount, observedAt and context. No observed conflict is not permission to pass.
- * Bound: one native area query <=900 m, at most 64 candidates and 127 guide segments each;
+ * Bound: one native area query <=1250 m, at most 64 candidates and 127 guide segments each;
  * dense results refuse without inspecting a selected prefix. No raycasts or recurring handler.
  * Area discovery includes dead vehicle entities; parked/empty/destroyed hulls remain obstacles.
  * The intended predecessor is excluded only from this corridor observer; independent following
@@ -38,7 +38,10 @@ if (!(_guide isEqualType []) || {count _guide < 2} || {count _guide > 128}
         || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} >= 0}
     || {!(_duration isEqualType 0)} || {!finite _duration} || {_duration <= 0} || {_duration > 24}
     || {!(_travel isEqualType 0)} || {!finite _travel} || {_travel <= 0} || {_travel > 350}) exitWith {["INVALID_CORRIDOR"] call _fail};
-private _range=((_travel+17*_duration+60) max 150) min 900;
+// Cover the full proposed travel plus a 35 m/s oncoming approach and 60 m margin.
+// The old 17 m/s envelope could omit ordinary fast road traffic until after admission.
+// Faster modded traffic can still originate beyond this nominal envelope: no clearance guarantee.
+private _range=((_travel+35*_duration+60) max 150) min 1250;
 private _area=[getPosATL _vehicle,_range,_range,0,false,_range];
 private _candidates=_area nearEntities [["LandVehicle","CAManBase"],false,false,false];
 if (count _candidates > 64) exitWith {["TRAFFIC_BUDGET",count _candidates] call _fail};

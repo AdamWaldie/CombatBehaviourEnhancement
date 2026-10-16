@@ -51,6 +51,19 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('APPROACHING_TRAFFIC',code)
         for forbidden in ('setVariable','doMove','setDriveOnPath','forceSpeed','setVelocity','remoteExec'):
             self.assertNotIn(forbidden,code)
+    def test_query_envelope_covers_fast_road_approach_for_entire_proposal(self):
+        import re
+        text=(ROOT/'addons/vehicles/functions/drivingPassTraffic.sqf').read_text(encoding='utf-8')
+        match=re.search(r'_travel\+(\d+)\*_duration\+(\d+)\) max (\d+)\) min (\d+)',text)
+        self.assertIsNotNone(match)
+        approach,margin,minimum,maximum=map(float,match.groups())
+        for travel,duration in ((350,24),(120,12),(60,5)):
+            radius=min(max(travel+approach*duration+margin,minimum),maximum)
+            for oncoming in (60/3.6,90/3.6,120/3.6):
+                self.assertGreaterEqual(radius,travel+oncoming*duration+20)
+        self.assertLessEqual(maximum,1250)
+        self.assertIn('count _candidates > 64',text)
+
     def test_preparation_never_renews_or_treats_partial_scan_as_ready(self):
         s=(ROOT/'addons/vehicles/functions/drivingPassPrepare.sqf').read_text()
         self.assertEqual(s.count('set ["deadline",'),1)
