@@ -7602,6 +7602,20 @@ class CortexOperations(unittest.TestCase):
                        'DANGER-VEHICLE-orient-crew-retained']:
             self.assertIn(marker,audit)
 
+    def test_airborne_episode_rejects_stale_execution_and_cleanup(self):
+        start=source('cortexAirborneCheck')
+        step=source('cortexAirborneDropStep')
+        self.assertIn('["episode",_episode]',start)
+        self.assertIn('WAIT_AIPass_DropSerial',start)
+        for owner in ['_group','_aircraft']:
+            self.assertIn(owner+' setVariable ["WAIT_AIPass_DropEpisode",_episode,true]',start)
+        entry=step.split('private _finish =',1)[0]
+        for guard in ['_episode isEqualTo []','WAIT_AIPass_Epoch','WAIT_AIPass_DropEpisode','exitWith {-1}']:
+            self.assertIn(guard,entry)
+        finish=step.split('private _finish = {',1)[1].split('if (isNull _group',1)[0]
+        self.assertLess(finish.index('_episode isEqualTo (_group getVariable'),finish.index('setVariable ["WAIT_AIPass_Dropping",nil]'))
+        self.assertLess(finish.index('_episode isEqualTo (_aircraft getVariable'),finish.index('setVariable ["WAIT_AIPass_DropUntil",nil]'))
+
     def test_airborne_drop_rechecks_live_aircraft_control_before_each_exit(self):
         drop=source('cortexAirborneDropStep')
         phase=drop.split('if ((_job get "phase") == "DROP") exitWith {',1)[1].split('// LAND',1)[0]

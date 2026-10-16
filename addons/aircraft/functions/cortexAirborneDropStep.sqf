@@ -15,6 +15,7 @@
  *
  * Review contract: Both DROP and LAND recheck eligibility. A landing timeout ends tracking without assigning a ground attack to soldiers still airborne.
  *
+ * Exact insertion episodes and owner epochs guard execution and cleanup; legacy jobs retire silently.
  * Every DROP step rechecks live pilot/commander takeover before another passenger exits.
  * Repeat/JIP: current-owner eligibility and automatic feature gates are rechecked before each jump.
  * Arguments:
@@ -33,14 +34,25 @@
 params [["_job", createHashMap, [createHashMap]]];
 private _group = _job getOrDefault ["group", grpNull];
 private _aircraft = _job getOrDefault ["aircraft", objNull];
+private _episode=_job getOrDefault ["episode",[]];
+// Obsolete or legacy jobs cannot execute or retire a successor's insertion state.
+if (isNull _group || {!local _group} || {_episode isEqualTo []}
+    || {(_job getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}
+    || {_episode isNotEqualTo (_group getVariable ["WAIT_AIPass_DropEpisode",[]])}) exitWith {-1};
 private _finish = {
     // A stale owner must not clear the successor's insertion bookkeeping. The shared
     // scheduler captures ownerEpoch when queuing this group job.
     private _sameOwner=!isNull _group && {local _group}
-        && {(_job getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])};
+        && {(_job getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {_episode isEqualTo (_group getVariable ["WAIT_AIPass_DropEpisode",[]])};
     if (_sameOwner) then {
         _group setVariable ["WAIT_AIPass_Dropping",nil];
-        if (!isNull _aircraft && {local _aircraft}) then {_aircraft setVariable ["WAIT_AIPass_DropUntil",nil]};
+        _group setVariable ["WAIT_AIPass_DropEpisode",nil,true];
+        if (!isNull _aircraft && {local _aircraft}
+            && {_episode isEqualTo (_aircraft getVariable ["WAIT_AIPass_DropEpisode",[]])}) then {
+            _aircraft setVariable ["WAIT_AIPass_DropUntil",nil];
+            _aircraft setVariable ["WAIT_AIPass_DropEpisode",nil,true];
+        };
     };
     -1
 };
@@ -48,6 +60,7 @@ if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["WAIT_A
     || {!([_group] call WAIT_fnc_CortexIsEligible)}
     || {!(_job getOrDefault ["forced",false]) && {!([_group,"WAIT_AIPass_Airborne_Enable",false] call WAIT_fnc_CortexFeatureEnabled)}}) exitWith {call _finish};
 
+if (_episode isNotEqualTo (_aircraft getVariable ["WAIT_AIPass_DropEpisode",[]])) exitWith {call _finish};
 if ((_job get "phase") == "DROP") exitWith {
     private _jumpers = (_job get "jumpers") select {
         local _x && {vehicle _x == _aircraft} && {!isPlayer _x}
