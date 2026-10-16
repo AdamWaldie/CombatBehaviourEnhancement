@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
+ * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
  * Locality / Authority: Runs through WAIT's shared scheduler where the group is local. It checks the
  * operation generation, Zeus and external ownership before issuing any movement command.
@@ -147,6 +148,24 @@ private _delay=call {
     private _group = _job get "group";
     if (isNull _group || {!local _group}) exitWith {-1};
     if ((_group getVariable ["WAIT_AIPass_ClearGeneration", -1]) != (_job get "generation")) exitWith {-1};
+    // Opt-in audit evidence only. No geometry query, public replay or permanent observer.
+    private _captureEntryEnabled=_group getVariable ["WAIT_Cortex_ClearCaptureEntry",false];
+    private _captureEntry={
+        params ["_actor","_lane","_mover","_intended","_entered"];
+        private _count=_job getOrDefault ["entryCaptureCount",0];
+        if (_count >= 256) exitWith {};
+        private _stamps=_job getOrDefault ["entryCaptureStamps",createHashMap];
+        private _key=netId _actor;
+        if (serverTime-(_stamps getOrDefault [_key,-1e9]) < 2) exitWith {};
+        if (!(_key in _stamps) && {count _stamps >= 16}) exitWith {};
+        _stamps set [_key,serverTime];
+        _job set ["entryCaptureStamps",_stamps];
+        _job set ["entryCaptureCount",_count+1];
+        diag_log format ["WAIT CLEAR ENTRY SAMPLE: %1",[
+            serverTime,clientOwner,_job get "generation",_group getVariable ["WAIT_AIPass_Epoch",0],
+            _lane,_key,_mover,+_intended,getPosASL _actor,expectedDestination _actor,
+            currentCommand _actor,speed _actor,_entered]];
+    };
     private _actorAvailable={
         params ["_actor"];
         private _free=!([_actor] call WAIT_fnc_CortexActorMoveReserved);
@@ -2462,6 +2481,11 @@ private _delay=call {
                             };
                         };
                         _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];
+                        if (_captureEntryEnabled && {!_entered || {!_partnerEntered}}) then {
+                            private _intended=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
+                            [_unit,_pairIndex,_unit == _point,_intended,
+                                _unit in (_job getOrDefault ["enteredActors",[]])] call _captureEntry;
+                        };
                         };
                     } forEach _pair;
                     if (_issue) then {_lastTarget=_positionIndex; _lastProgress=_now; _lastPositions=_pair apply {getPosATL _x}};

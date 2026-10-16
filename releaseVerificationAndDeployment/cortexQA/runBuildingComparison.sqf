@@ -944,6 +944,7 @@ if (!_largeOnly && {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",
     private _otherBuildings=(nearestObjects [_site,["House"],50,true])-[_house];
     [format ["CLEAR-fresh-%1-site-isolated",_size],_otherBuildings isEqualTo [],str [_site,_otherBuildings]] call _check;
     private _group=createGroup [east,true];
+    _group setVariable ["WAIT_Cortex_ClearCaptureEntry",true];
     _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
     _group setVariable ["acex_headless_blacklist",true,true];
     private _members=[];

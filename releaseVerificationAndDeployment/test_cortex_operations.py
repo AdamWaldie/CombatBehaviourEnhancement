@@ -2125,6 +2125,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_worker,_house,_x] call _observedRoomVisit',audit)
         self.assertIn('[_x,_house,_room] call _observedRoomVisit',audit)
 
+    def test_clear_entry_capture_is_opt_in_bounded_and_read_only(self):
+        step=source('buildingOperationStep')
+        capture=step.split('private _captureEntry={',1)[1].split('private _actorAvailable=',1)[0]
+        for marker in ['_count >= 256','count _stamps >= 16','< 2','expectedDestination _actor',
+                       'currentCommand _actor','getPosASL _actor','WAIT CLEAR ENTRY SAMPLE']:
+            self.assertIn(marker,capture)
+        for forbidden in ['lineIntersects','nearEntities','nearestObjects','doMove','setDestination','remoteExec','setVariable']:
+            self.assertNotIn(forbidden,capture)
+        self.assertIn('getVariable ["WAIT_Cortex_ClearCaptureEntry",false]',step)
+        self.assertIn('if (_captureEntryEnabled &&',step)
+        audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')
+        self.assertIn('setVariable ["WAIT_Cortex_ClearCaptureEntry",true]',audit)
+
     def test_independent_room_visit_rejects_open_bounds_and_intervening_objects(self):
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')
         visit=audit.split('private _observedRoomVisit={',1)[1].split('// Independent physical exit observation.',1)[0]
