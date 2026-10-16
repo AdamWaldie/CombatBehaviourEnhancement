@@ -11,7 +11,8 @@
  * 2 vehicle <OBJECT>, objNull; 3 driving brain <HASHMAP>, empty;
  * 4 traffic observation <ARRAY>, []; 5 proposed m/s <NUMBER>, 0;
  * 6 preparation job <HASHMAP>, empty, internal STEP only.
- * Return: BOOL for OBSERVE/CANCEL; NUMBER next shared-scheduler delay or -1 for STEP.
+ * Return: OBSERVE NUMBER qualification cap m/s (1e6 means no extra constraint);
+ * CANCEL BOOL; STEP NUMBER next shared-scheduler delay or -1. Only the existing writer applies caps.
  * Bounds: one 12-station geometry slice (<=243 rays) or traffic query per 0.1-second job step,
  * <=2 seconds total. No added world discovery, permanent scheduler or collision exemption.
  * Current callers: DrivingAssistStart, DrivingAssistRelease and this finite scheduled job.
@@ -20,12 +21,12 @@
 params [["_mode","OBSERVE",[""]],["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],
     ["_brain",createHashMap,[createHashMap]],["_traffic",[],[[]]],["_speed",0,[0]],
     ["_job",createHashMap,[createHashMap]]];
-if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {if (_mode == "STEP") then {-1} else {false}};
+if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {if (_mode == "STEP") then {-1} else {if (_mode == "OBSERVE") then {1e6} else {false}}};
 if (_mode == "STEP") then {
     _group=_job getOrDefault ["group",grpNull];_vehicle=_job getOrDefault ["vehicle",objNull];
     _brain=_job getOrDefault ["brain",createHashMap];
 };
-if (_mode != "STEP" && {isNull _vehicle}) exitWith {false};
+if (_mode != "STEP" && {isNull _vehicle}) exitWith {if (_mode == "OBSERVE") then {1e6} else {false}};
 private _finish={
     params ["_reason",["_started",false]];
     private _context=_job getOrDefault ["context",[]];
@@ -70,7 +71,7 @@ if (_mode == "CANCEL") exitWith {
 if !(_mode in ["OBSERVE","STEP"]) exitWith {false};
 private _enabled=[_group,"WAIT_AIPass_DrivingAssist_Passing_Enable",false] call WAIT_fnc_CortexFeatureEnabled;
 if (_mode == "OBSERVE" && {!_enabled} && {isNil {_vehicle getVariable "WAIT_DrivingPass_Admission"}}
-    && {isNil {_vehicle getVariable "WAIT_DrivingPass_AutoSeen"}}) exitWith {false};
+    && {isNil {_vehicle getVariable "WAIT_DrivingPass_AutoSeen"}}) exitWith {1e6};
 private _current=_enabled && {!isNull _group} && {local _group} && {!isNull _vehicle} && {local _vehicle}
     && {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain}
     && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])}
@@ -110,9 +111,26 @@ if (_mode == "STEP") exitWith {
     if (_job getOrDefault ["done",false]) then {-1} else {0.1}
 };
 private _old=_vehicle getVariable ["WAIT_DrivingPass_Admission",createHashMap];
-if (count _old > 0 && {!(_old getOrDefault ["done",false])} && {serverTime < (_old get "deadline")}) exitWith {true};
+if (count _old > 0 && {!(_old getOrDefault ["done",false])} && {serverTime < (_old get "deadline")}) exitWith {
+    if (!_current || {([(_old get "proposal") get "vehicles"] call WAIT_fnc_DrivingPassContext) isNotEqualTo (_old get "context")}) then {
+        _job=_old;["OBSERVATION_CHANGED"] call _finish;1e6
+    } else {_old getOrDefault ["headwayCap",1e6]}
+};
 if (count _old > 0) then {_job=_old;["EXPIRED"] call _finish};
 private _peer=_traffic param [1,objNull,[objNull]];
+// Our extra headway can remove the ordinary close-follow cap. Continue observing only
+// the same fresh peer/context while no different limiting obstacle has appeared.
+private _priorSeen=_vehicle getVariable ["WAIT_DrivingPass_AutoSeen",[]];
+if (isNull _peer && {count _priorSeen == 3} && {serverTime >= (_priorSeen select 2)}
+    && {serverTime-(_priorSeen select 2) <= 6}) then {
+    private _binding=_priorSeen select 0;
+    if (count _binding == 4 && {(_binding select [0,3]) isEqualTo [_group,_brain getOrDefault ["generation",-1],_brain getOrDefault ["ownerEpoch",-1]]}) then {
+        private _oldContext=_binding select 3;
+        private _rows=_oldContext param [1,[],[[]]];
+        private _oldPeer=(_rows param [1,[],[[]]]) param [0,objNull,[objNull]];
+        if (!isNull _oldPeer && {([[_vehicle,_oldPeer]] call WAIT_fnc_DrivingPassContext) isEqualTo _oldContext}) then {_peer=_oldPeer};
+    };
+};
 private _cruiseIdentity=[_group,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["generation",-1],
     speedMode _group,[_group] call WAIT_fnc_DrivingRouteReceipt];
 private _cruise=_vehicle getVariable ["WAIT_DrivingPass_AutoCruise",[]];
@@ -132,31 +150,51 @@ private _candidate=_current && {finite _speed} && {_speed >= 5/3.6} && {_speed <
     && {group driver _peer != _group}
     && {!(behaviour driver _peer in ["COMBAT","STEALTH"])}
     && {speed _peer > 2} && {speed _peer+10 < _speed*3.6}
+    && {abs (((getDir _peer-getDir _vehicle+540) mod 360)-180) <= 25}
+    && {abs ((getPosASL _peer select 2)-(getPosASL _vehicle select 2)) <= 2}
     && {_vehicle distance2D _peer <= 60} && {!isNull roadAt _vehicle} && {!isNull roadAt _peer};
-if (!_candidate) exitWith {_vehicle setVariable ["WAIT_DrivingPass_AutoSeen",nil];false};
+if (!_candidate) exitWith {_vehicle setVariable ["WAIT_DrivingPass_AutoSeen",nil];1e6};
 private _context=[[_vehicle,_peer]] call WAIT_fnc_DrivingPassContext;
-if (_context isEqualTo []) exitWith {false};
+if (_context isEqualTo []) exitWith {1e6};
+private _cooldown=_vehicle getVariable ["WAIT_DrivingPass_AutoCooldown",[]];
+if (count _cooldown == 2 && {(_cooldown select 0) isEqualTo _context} && {serverTime < (_cooldown select 1)}) exitWith {1e6};
+// Keep pull-out room while qualifying instead of converging on ordinary close-follow spacing.
+// This is only a cap proposal; the existing writer and all collision minima retain control.
+private _ownBox=boundingBoxReal _vehicle;private _peerBox=boundingBoxReal _peer;
+private _ownHalfLength=(abs ((_ownBox select 0) select 1)) max (abs ((_ownBox select 1) select 1));
+private _peerHalfLength=(abs ((_peerBox select 0) select 1)) max (abs ((_peerBox select 1) select 1));
+private _ownHalfWidth=(abs ((_ownBox select 0) select 0)) max (abs ((_ownBox select 1) select 0));
+private _peerHalfWidth=(abs ((_peerBox select 0) select 0)) max (abs ((_peerBox select 1) select 0));
+private _heading=getDir _vehicle;private _forward=[sin _heading,cos _heading,0];
+private _relative=(getPosASL _peer) vectorDiff (getPosASL _vehicle);
+private _gap=_relative vectorDotProduct _forward;
+private _lateral=abs (_relative vectorDotProduct [cos _heading,-sin _heading,0]);
+if (_gap <= 0 || {_lateral > _ownHalfWidth+_peerHalfWidth+1}) exitWith {
+    _vehicle setVariable ["WAIT_DrivingPass_AutoSeen",nil];1e6
+};
+private _pullOut=(1.5*(_ownHalfWidth+_peerHalfWidth+2+_lateral)/tan 20) max 12;
+private _desired=_ownHalfLength+_peerHalfLength+_pullOut+6;
+private _peerForward=((velocity _peer) vectorDotProduct _forward) max 0;
+private _headwayCap=_speed min ((_peerForward+(_gap-_desired)/4) max 0);
 private _identity=[_group,_brain get "generation",_brain get "ownerEpoch",_context];
 private _seen=_vehicle getVariable ["WAIT_DrivingPass_AutoSeen",[]];
 private _continuous=count _seen == 3 && {(_seen select 0) isEqualTo _identity}
     && {serverTime >= (_seen select 2)} && {serverTime-(_seen select 2) <= 6};
 private _since=if (_continuous) then {_seen select 1} else {serverTime};
 _vehicle setVariable ["WAIT_DrivingPass_AutoSeen",[_identity,_since,serverTime]];
-if (serverTime-_since < 8) exitWith {false};
-private _cooldown=_vehicle getVariable ["WAIT_DrivingPass_AutoCooldown",[]];
-if (count _cooldown == 2 && {(_cooldown select 0) isEqualTo _context} && {serverTime < (_cooldown select 1)}) exitWith {false};
+if (serverTime-_since < 8) exitWith {_headwayCap};
 private _slot=missionNamespace getVariable ["WAIT_DrivingPass_Preparing",createHashMap];
-if (count _slot > 0 && {!(_slot getOrDefault ["done",false])} && {serverTime < (_slot get "deadline")}) exitWith {false};
+if (count _slot > 0 && {!(_slot getOrDefault ["done",false])} && {serverTime < (_slot get "deadline")}) exitWith {_headwayCap};
 private _proposal=[_vehicle,_peer,_speed*3.6] call WAIT_fnc_DrivingPassPlan;
 if ((_proposal getOrDefault ["status",""]) != "PROPOSAL") exitWith {
-    _vehicle setVariable ["WAIT_DrivingPass_AutoCooldown",[_context,serverTime+60]];false
+    _vehicle setVariable ["WAIT_DrivingPass_AutoCooldown",[_context,serverTime+60]];1e6
 };
 _job=createHashMapFromArray [["group",_group],["vehicle",_vehicle],["brain",_brain],
     ["ownerEpoch",_brain get "ownerEpoch"],["generation",_brain get "generation"],
     ["context",_proposal get "context"],["proposal",_proposal],["prepared",createHashMap],
-    ["deadline",(_proposal get "observedAt")+2],["done",false],["requested",false],["serial",-1]];
+    ["deadline",(_proposal get "observedAt")+2],["headwayCap",_headwayCap],["done",false],["requested",false],["serial",-1]];
 _vehicle setVariable ["WAIT_DrivingPass_Admission",_job];
 missionNamespace setVariable ["WAIT_DrivingPass_Preparing",_job];
 [{params ["_job"];["STEP",grpNull,objNull,createHashMap,[],0,_job] call WAIT_fnc_DrivingPassAdmission},
     _job,0,format ["WAIT_PASS_PREP_%1_%2",str _vehicle,_brain get "generation"]] call WAIT_fnc_CortexQueueJob;
-true
+_headwayCap

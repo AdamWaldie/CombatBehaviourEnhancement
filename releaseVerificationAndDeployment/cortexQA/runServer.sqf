@@ -51,6 +51,13 @@ if (_failures isNotEqualTo []) exitWith {
 };
 private _wait = {params ["_condition",["_seconds",15]]; private _until = diag_tickTime + _seconds; waitUntil {sleep 0.2; call _condition || {diag_tickTime >= _until}}; call _condition};
 private _saved = createHashMapFromArray (([] call WAIT_fnc_CortexTuningSpec) apply {[_x select 0,missionNamespace getVariable [_x select 0,_x select 5]]});
+if (_focus == "roadpassing") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQARoadPassing.sqf";
+    [_saved] call WAIT_fnc_CortexTuning;
+    missionNamespace setVariable ["WAIT_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["WAIT_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["WAIT CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
 if (_focus == "indooractorshc") exitWith {
     [createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],
         ["WAIT_AIPass_Regroup_Enable",false],["WAIT_AIPass_BuildingCombat_Enable",true],

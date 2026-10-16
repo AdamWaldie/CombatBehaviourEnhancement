@@ -743,6 +743,7 @@
         "runVehicleDrills.sqf",
         "runDrivingTraffic.sqf",
         "runParkedBypass.sqf",
+        "runRoadPassing.sqf",
         "runDrivingCrew.sqf"
       ],
       "production_sources": [

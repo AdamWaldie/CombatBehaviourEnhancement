@@ -376,7 +376,10 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
             // Corridor execution is part of this same owner callback, never a second controller.
             // Do not take over an issued/expired rear leg. Existing traffic and pedestrian caps win.
-            ["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call WAIT_fnc_DrivingPassAdmission;
+            private _passingHeadway=["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call WAIT_fnc_DrivingPassAdmission;
+            if (_passingHeadway isEqualType 0 && {finite _passingHeadway} && {_passingHeadway >= 0}) then {
+                _capMps=_capMps min _passingHeadway;
+            };
             private _hadPass=!isNil {_vehicle getVariable "WAIT_DrivingPass_Work"};
             private _pass=[_group,_vehicle,_brain,_mayIssueDriving] call WAIT_fnc_DrivingPassStep;
             private _passActive=_pass select 0;

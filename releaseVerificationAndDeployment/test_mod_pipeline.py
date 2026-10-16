@@ -7,6 +7,21 @@ from unittest.mock import patch
 from mod_pipeline import ROOT, seal, stage, verify, release_gate, supported_focuses
 
 class PackagePipelineTests(unittest.TestCase):
+    def test_road_passing_stage_requires_real_terrain_and_separate_normal_batch(self):
+        mission=stage(self.folder,Path(self.temp.name)/'road-pass','roadpassing',world='Altis')
+        self.assertEqual(mission.name,'WAIT_Audit.Altis')
+        sqm=(mission/'mission.sqm').read_text(encoding='utf-8')
+        self.assertIn('A3_Map_Altis',sqm)
+        self.assertNotIn('HeadlessClient_F',sqm)
+        self.assertIn('cortexQARoadPassing.sqf',(mission/'cortexQAServer.sqf').read_text(encoding='utf-8'))
+        self.assertTrue((mission/'cortexQARoadPassing.sqf').is_file())
+        self.assertIn('[16600,12800,0]',(mission/'initServer.sqf').read_text(encoding='utf-8'))
+        for world,batch in [('VR','normal'),('Altis','headless')]:
+            with self.assertRaisesRegex(ValueError,'Altis and a separate normal batch'):
+                stage(self.folder,Path(self.temp.name)/f'bad-road-{world}-{batch}','roadpassing',world=world,batch_mode=batch)
+        with self.assertRaises(ValueError):
+            stage(self.folder,Path(self.temp.name)/'baseline-road','roadpassing',world='Altis',native_baseline=True)
+
     def test_terrain_building_baseline_uses_altis_mission_identity(self):
         mission=stage(self.folder,Path(self.temp.name)/'terrain-buildings','nativebuildings',native_baseline=True,world='Altis')
         self.assertEqual(mission.name,'WAIT_Audit.Altis')

@@ -195,6 +195,34 @@ class DrivingPassPlanTests(unittest.TestCase):
             self.assertIn('SAME_GROUP',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8'))
         self.assertIn('(_request select 2) != (_job get "serial")',s)
 
+    def test_automatic_qualification_retains_pullout_room_through_existing_writer(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassAdmission.sqf').read_text(encoding='utf-8')
+        for guard in ('_pullOut+6','_peerForward+(_gap-_desired)/4','["headwayCap",_headwayCap]',
+                      'if (serverTime-_since < 8) exitWith {_headwayCap}',
+                      'OBSERVATION_CHANGED','_speed min'):
+            self.assertIn(guard,s)
+        ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('_capMps=_capMps min _passingHeadway',ordinary)
+        self.assertLess(ordinary.index('_capMps=_capMps min _passingHeadway'),ordinary.index('_vehicle forceSpeed _capMps'))
+        self.assertNotIn('forceSpeed',s.split('params [[',1)[1])
+        self.assertIn('serverTime-(_priorSeen select 2) <= 6',s)
+        self.assertIn('isNull _peer && {count _priorSeen == 3}',s)
+        self.assertIn('isEqualTo _oldContext',s)
+        self.assertIn('_gap <= 0 || {_lateral > _ownHalfWidth+_peerHalfWidth+1}',s)
+
+    def test_real_road_fixture_observes_natural_admission_and_physical_return(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runRoadPassing.sqf').read_text(encoding='utf-8')
+        for marker in ('worldName == "Altis"','from 0 to 63','_searchUntil=diag_tickTime+90',
+                       '_travel >= 650','["PASS","REPLACE"]','_ownSpan select 0','_frontSpan select 1',
+                       '_excursion >= 3','"RETURN_COMPLETE"','_vehicle distance2D _replacement < 20',
+                       'vectorDistance _replaceStart >= 100'):
+            self.assertIn(marker,s)
+        for forbidden in ('call WAIT_fnc_DrivingPassAdmission','call WAIT_fnc_DrivingPassBegin',
+                          'call WAIT_fnc_DrivingPassPrepare','setDriveOnPath','_vehicle forceSpeed',
+                          'setVariable ["WAIT_DrivingPass_Result"','setVariable ["WAIT_DrivingPass_Work"','setPos'):
+            self.assertNotIn(forbidden,s)
+        self.assertIn('_front forceSpeed (12/3.6)',s)
+
     def test_new_route_prevents_pass_cleanup_commands_and_consent_is_immutable(self):
         finish=(ROOT/'addons/vehicles/functions/drivingPassFinish.sqf').read_text(encoding='utf-8')
         owned=finish.split('private _owned={',1)[1].split('\nisNil {',1)[0]
