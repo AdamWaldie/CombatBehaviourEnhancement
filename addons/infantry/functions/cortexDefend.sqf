@@ -148,11 +148,12 @@ if (!_layoutValid || {count _placements != count _units} || {!(call _admissionCu
 // End transient movement only after a complete layout is ready.
 [_group,false] call WAIT_fnc_CortexReleaseGroup;
 [_group] call WAIT_fnc_CortexClearRelease;
-if ((_group getVariable ["WAIT_AIPass_Defend", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexDefendRelease};
+if ((_group getVariable ["WAIT_AIPass_Defend", []]) isNotEqualTo []) then {[_group,false,false] call WAIT_fnc_CortexDefendRelease};
 {_x params ["_actor","_assignment"];_actor setVariable ["WAIT_AIPass_DefendPos",_assignment,true]} forEach _placements;
 if ((_group getVariable ["WAIT_AIPass_Garrison", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexGarrisonRelease};
 _group setVariable ["WAIT_AIPass_Defend", [_centre, _facing, _width, count _units], true];
 _group setVariable ["WAIT_AIPass_DefendApplied", false];
-[_group] call WAIT_fnc_CortexDefendApplyLocal;
+_group setVariable ["WAIT_Cortex_DefendNativeRoute",[_group] call WAIT_fnc_NativeOrderReceipt,true];
+[_group,[],_units] call WAIT_fnc_CortexDefendApplyLocal;
 diag_log format ["[WAIT] %1 defending %2 facing %3 (line %4, reserve %5)", _group, _centre, round _facing, count _line, count _reserve];
 true

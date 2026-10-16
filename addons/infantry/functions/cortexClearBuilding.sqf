@@ -270,7 +270,7 @@ if (_preserveBrain) then {
     [_group,false] call WAIT_fnc_CortexReleaseGroup;
 };
 if ((_group getVariable ["WAIT_AIPass_Garrison", []]) isNotEqualTo []) then {[_group,true,[],false] call WAIT_fnc_CortexGarrisonRelease};
-if ((_group getVariable ["WAIT_AIPass_Defend", []]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexDefendRelease};
+if ((_group getVariable ["WAIT_AIPass_Defend", []]) isNotEqualTo []) then {[_group,false,false] call WAIT_fnc_CortexDefendRelease};
 // General cleanup may remove WAIT-authored native waypoints. Receipt the resulting
 // order only after this authorized handoff, never mistake our cleanup for a later edit.
 _nativeOrderReceipt=[_group] call WAIT_fnc_NativeOrderReceipt;

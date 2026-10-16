@@ -17,9 +17,11 @@
  * Scheduler delay and temporary Zeus ownership do not consume recovery attempts.
  * Delayed arrival/retry writes require the exact planned assignment and either the issued MOVE
  * destination or the unchanged pre-issue command. A newer command retires this actor's assignment
- * without a movement/watch write. This local job receipt does not establish migration adoption.
+ * without a movement/watch write. Adoption additionally requires a matching published MOVE/HOLD
+ * receipt for non-idle native commands; only explicit task callers supply fresh actors.
  * A temporarily reserved actor keeps its arrival job pending without aging its no-progress timer.
- * Locality and authority: call where the group is local.
+ * Locality and authority: internal owner-local executor; only server-forwarded remote context is accepted.
+ * Published receipts support owner adoption, not independent client movement authority.
  *
  * Review contract: Each application resets local holding state and versions its arrival job. Old generations retire; ineligible groups receive no new movement commands.
  *
@@ -27,6 +29,8 @@
  * 0: group <GROUP>
  * 1: actors <ARRAY of OBJECT>, [] - optional changed subset; an empty array reapplies the complete
  *    published defence after initial placement or locality migration.
+ * 2: fresh actors <ARRAY of OBJECT>, [] - only actors admitted by a new explicit defence
+ *    or reserve commitment. Discovery never supplies this list. Both lists are limited to 64.
  *
  * Return Value:
  * Nothing
@@ -34,16 +38,23 @@
  * Example:
  * [_group] call WAIT_fnc_CortexDefendApplyLocal;
  * Result: the defence line forms on this machine.
- * [_group,_reserve] call WAIT_fnc_CortexDefendApplyLocal;
+ * [_group,_reserve,_reserve] call WAIT_fnc_CortexDefendApplyLocal;
  * Result: only the newly committed reserve receives a route; the established line is untouched.
  *
  * Current callers: WAIT_fnc_CortexDefend, WAIT_fnc_CortexDefendStep and WAIT_fnc_CortexDiscover.
  */
 
-params [["_group", grpNull, [grpNull]],["_actors",[],[[]]]];
+params [["_group", grpNull, [grpNull]],["_actors",[],[[]]],["_freshActors",[],[[]]]];
+if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {count _actors > 64} || {count _freshActors > 64}
+    || {(_actors+_freshActors) findIf {!(_x isEqualType objNull)} >= 0}) exitWith {};
 if (isNull _group || {!local _group} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {};
 private _fullApply=_actors isEqualTo [];
 if (_fullApply) then {_actors=+units _group};
+if (count _actors > 64) exitWith {};
+private _nativeRoute=[_group] call WAIT_fnc_NativeOrderReceipt;
+if (_nativeRoute isNotEqualTo (_group getVariable ["WAIT_Cortex_DefendNativeRoute",[]])) exitWith {
+    [_group,false] call WAIT_fnc_CortexDefendRelease;
+};
 private _generation=_group getVariable ["WAIT_AIPass_DefendGeneration",0];
 if (_fullApply || {_generation <= 0}) then {
     _generation=_generation+1;
@@ -51,6 +62,32 @@ if (_fullApply || {_generation <= 0}) then {
 };
 _group setVariable ["WAIT_AIPass_DefendApplied", true];
 private _routes=[];
+private _adoptionCommandOwned={
+    params ["_actor","_assignment"];
+    private _command=currentCommand _actor;
+    if (_actor in _freshActors || {_command == ""}) exitWith {true};
+    private _receipt=_actor getVariable ["WAIT_Cortex_DefendMove",[]];
+    private _valid=_receipt isEqualType [] && {count _receipt == 6}
+        && {(_receipt select 0) isEqualTo _group}
+        && {[1,2] findIf {!((_receipt select _x) isEqualType 0) || {!finite (_receipt select _x)} || {(_receipt select _x) < 0}} < 0}
+        && {(_receipt select 2) <= (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_receipt select 4) isEqualTo _assignment}
+        && {(_receipt select 3) isEqualType []} && {count (_receipt select 3) == 3}
+        && {(_receipt select 3) findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
+    if (!_valid) exitWith {false};
+    private _live=(expectedDestination _actor) param [0,[],[[]]];
+    (_command == "MOVE" && {(_receipt select 5) == "MOVE"} && {count _live == 3}
+        && {_live vectorDistance (_receipt select 3) <= 0.25})
+        || {_command == "STOP" && {(_receipt select 5) == "HOLD"}
+            && {(getPosATL _actor) vectorDistance (_assignment select 0) <= 3}}
+};
+private _rememberMove={
+    params ["_actor","_target","_kind"];
+    _actor setVariable ["WAIT_Cortex_DefendMove",[_group,
+        _group getVariable ["WAIT_AIPass_DefendGeneration",-1],
+        _group getVariable ["WAIT_AIPass_Epoch",0],+_target,
+        +(_actor getVariable ["WAIT_AIPass_DefendPos",[]]),_kind],true];
+};
 // Recheck immediately before individual movement writes; scheduler eligibility is not a
 // lease over a later Zeus, player or specialist takeover in the same callback.
 private _mayIssueMovement = {
@@ -71,12 +108,19 @@ private _mayIssueMovement = {
     private _assignment = _x getVariable ["WAIT_AIPass_DefendPos", []];
     if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}) then {
-        private _route=[_x,getPosATL _x,time,0,_routeGeneration,+_assignment,false,
-            currentCommand _x,+((expectedDestination _x) param [0,[],[[]]]),formLeader _x];
-        _routes pushBack _route;
-        if ((getPosATL _x) vectorDistance (_assignment select 0) > 2 && {[_x] call _mayIssueMovement}) then {
-            _x doMove (_assignment select 0);
-            _route set [6,true];
+        if ([_x,_assignment] call _adoptionCommandOwned) then {
+            private _route=[_x,getPosATL _x,time,0,_routeGeneration,+_assignment,false,
+                currentCommand _x,+((expectedDestination _x) param [0,[],[[]]]),formLeader _x];
+            _routes pushBack _route;
+            if ((getPosATL _x) vectorDistance (_assignment select 0) > 2 && {[_x] call _mayIssueMovement}) then {
+                _x doMove (_assignment select 0);
+                _route set [6,true];
+                [_x,_assignment select 0,"MOVE"] call _rememberMove;
+            };
+        } else {
+            // A published post alone cannot reclaim a newer native command on this owner.
+            _x setVariable ["WAIT_AIPass_DefendPos",nil,true];
+            _x setVariable ["WAIT_Cortex_DefendMove",nil,true];
         };
     };
 } forEach _actors;
@@ -99,7 +143,9 @@ private _ownsRouteCommand={
     params ["_job"];
     private _group = _job get "group";
     if (isNull _group || {!local _group} || {(_group getVariable ["WAIT_AIPass_Defend", []]) isEqualTo []}) exitWith {-1};
-    if ((_group getVariable ["WAIT_AIPass_DefendGeneration", -1]) != (_job get "generation")) exitWith {-1};
+    if ((_group getVariable ["WAIT_AIPass_DefendGeneration", -1]) != (_job get "generation")
+        || {(_group getVariable ["WAIT_AIPass_Epoch",0]) != (_job get "epoch")}
+        || {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_job get "nativeRoute")}) exitWith {-1};
     // External control has priority. Do not age or reissue an owned movement while Zeus is active.
     if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {
         [_group,false] call WAIT_fnc_CortexDefendRelease;
@@ -118,6 +164,7 @@ private _ownsRouteCommand={
     private _pending = 0;
     private _routes=_job get "routes";
     private _ownsRouteCommand=_job get "ownsRouteCommand";
+    private _rememberMove=_job get "rememberMove";
     {
         private _unit=_x;
         private _routeIndex=_routes findIf {(_x select 0) isEqualTo _unit};
@@ -133,6 +180,7 @@ private _ownsRouteCommand={
         if (_routeCurrent && {!([_unit,_routes select _routeIndex] call _ownsRouteCommand)}) then {
             // The current order belongs to somebody else. Retire metadata, never restore formation.
             _unit setVariable ["WAIT_AIPass_DefendPos",nil,true];
+            _unit setVariable ["WAIT_Cortex_DefendMove",nil,true];
             _unit setVariable ["WAIT_AIPass_DefendHolding",nil];
             _unit setVariable ["WAIT_AIPass_DefendFailed",nil,true];
             _routeCurrent=false;
@@ -151,6 +199,7 @@ private _ownsRouteCommand={
                 doStop _unit;
                 _unit doWatch ((_assignment select 0) getPos [60, _assignment select 1]);
                 _unit setVariable ["WAIT_AIPass_DefendHolding", true];
+                [_unit,_assignment select 0,"HOLD"] call _rememberMove;
             } else {
                 _pending = _pending + 1;
                 private _route=_routes select _routeIndex;
@@ -165,6 +214,7 @@ private _ownsRouteCommand={
                         if (_retries < 3 && {[_unit] call _mayIssueMovement}) then {
                             _unit doMove (_assignment select 0);
                             _route set [6,true];
+                            [_unit,_assignment select 0,"MOVE"] call _rememberMove;
                             _route set [2,time];
                             _route set [3,_retries+1];
                         } else {
@@ -178,5 +228,6 @@ private _ownsRouteCommand={
         };
     } forEach (_job get "actors");
     [2, -1] select (_pending == 0)
-}, createHashMapFromArray [["group", _group], ["actors",+_actors], ["routes",_routes], ["ownsRouteCommand",_ownsRouteCommand], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
+}, createHashMapFromArray [["group", _group], ["actors",+_actors], ["routes",_routes], ["ownsRouteCommand",_ownsRouteCommand], ["rememberMove",_rememberMove],
+    ["epoch",_group getVariable ["WAIT_AIPass_Epoch",0]], ["nativeRoute",_nativeRoute], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
 

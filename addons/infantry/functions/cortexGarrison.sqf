@@ -152,7 +152,7 @@ if (!_planningValid || {_candidateAssignments isEqualTo []} || {!local _group}
 [_group,false] call WAIT_fnc_CortexReleaseGroup;
 [_group] call WAIT_fnc_CortexClearRelease;
 if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexGarrisonRelease};
-if ((_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo []) then {[_group] call WAIT_fnc_CortexDefendRelease};
+if ((_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo []) then {[_group,false,false] call WAIT_fnc_CortexDefendRelease};
 _group setVariable ["WAIT_Cortex_GarrisonCandidates",_candidateAssignments,true];
 {
     private _assignment=if (_forEachIndex < count _candidateAssignments) then {

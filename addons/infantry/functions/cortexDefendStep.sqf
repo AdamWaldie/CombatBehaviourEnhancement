@@ -10,7 +10,7 @@
  * committed reserve is reapplied: the existing line retains its hold, watch sector and route generation.
  * The reserve then holds at the reinforced line, watching the same sector.
  * Unconscious, captive, mounted, reserved and specialist-controlled actors cannot be committed.
- * Only settled reserve soldiers with idle/STOP commands are available; newer individual orders
+ * Only settled reserve soldiers with idle/STOP commands and a matching HOLD receipt are available; newer individual orders
  * remain untouched. Reinforcement geometry is planned and checked for overlap before publication.
  * An invalid layout leaves the reserve uncommitted for a later decision tick. Loss checks count
  * combat-effective line members rather than treating every living member as an available defender.
@@ -37,7 +37,17 @@ if (_state getOrDefault ["reserveCommitted", false] || {[_group] call WAIT_fnc_C
 private _lineUnits = (units _group) select {((_x getVariable ["WAIT_AIPass_DefendPos", []]) param [2, ""]) == "LINE"};
 private _reserveAvailable={
     params ["_actor"];
-    local _actor && {group _actor == _group} && {isNull objectParent _actor}
+    private _assignment=_actor getVariable ["WAIT_AIPass_DefendPos",[]];
+    private _receipt=_actor getVariable ["WAIT_Cortex_DefendMove",[]];
+    private _held=_receipt isEqualType [] && {count _receipt == 6}
+        && {(_receipt select 0) isEqualTo _group} && {(_receipt select 4) isEqualTo _assignment}
+        && {(_receipt select 5) == "HOLD"}
+        && {[1,2] findIf {!((_receipt select _x) isEqualType 0) || {!finite (_receipt select _x)} || {(_receipt select _x) < 0}} < 0}
+        && {(_receipt select 2) <= (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_receipt select 3) isEqualType []} && {count (_receipt select 3) == 3}
+        && {(_receipt select 3) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {(getPosATL _actor) vectorDistance (_receipt select 3) <= 3};
+    _held && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {!isPlayer _actor} && {isNull remoteControlled _actor}
         && {[_actor] call WAIT_fnc_CortexCombatEffective}
         && {!([_actor] call WAIT_fnc_CortexActorMoveReserved)}
@@ -90,7 +100,7 @@ if (!_layoutValid || {!local _group} || {[_group] call WAIT_fnc_CortexExternalTa
     || {_reserve findIf {!([_x] call _reserveAvailable)} >= 0}) exitWith {false};
 {_x params ["_actor","_assignment"];_actor setVariable ["WAIT_AIPass_DefendPos",_assignment,true]} forEach _placements;
 _state set ["reserveCommitted", true];
-[_group,_reserve] call WAIT_fnc_CortexDefendApplyLocal;
+[_group,_reserve,_reserve] call WAIT_fnc_CortexDefendApplyLocal;
 diag_log format ["[WAIT] %1 committed reserve (%2 soldiers)", _group, count _reserve];
 true
 

@@ -56,4 +56,50 @@ class DefendPreflightTests(unittest.TestCase):
         self.assertIn('_assignment isEqualTo ((_routes select _routeIndex) select 5)',s)
         self.assertEqual(s.count('_route set [6,true]'),2)
 
+    def test_adoption_requires_bound_receipt_and_worker_stays_in_owner_epoch(self):
+        s=(ROOT/'addons/infantry/functions/cortexDefendApplyLocal.sqf').read_text()
+        adoption=s.split('private _adoptionCommandOwned={',1)[1].split('private _rememberMove=',1)[0]
+        for value in ('count _receipt == 6','(_receipt select 4) isEqualTo _assignment',
+                      '(_receipt select 2) <=','_live vectorDistance (_receipt select 3) <= 0.25',
+                      '(_receipt select 5) == "HOLD"','_actor in _freshActors'):
+            self.assertIn(value,adoption)
+        self.assertIn('remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}',s)
+        self.assertIn('count _actors > 64',s)
+        self.assertIn('!= (_job get "epoch")',s)
+        self.assertIn('isNotEqualTo (_job get "nativeRoute")',s)
+        self.assertIn('[_x,_assignment select 0,"MOVE"] call _rememberMove',s)
+        self.assertIn('[_unit,_assignment select 0,"HOLD"] call _rememberMove',s)
+        discovery=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text()
+        self.assertIn('[_group] call WAIT_fnc_CortexDefendApplyLocal',discovery)
+        order=(ROOT/'addons/infantry/functions/cortexDefend.sqf').read_text()
+        self.assertIn('[_group,[],_units] call WAIT_fnc_CortexDefendApplyLocal',order)
+        release=(ROOT/'addons/infantry/functions/cortexDefendRelease.sqf').read_text()
+        self.assertIn('setVariable ["WAIT_Cortex_DefendMove",nil,true]',release)
+        self.assertIn('setVariable ["WAIT_Cortex_DefendNativeRoute",nil,true]',release)
+
+    def test_release_and_reserve_need_actual_owned_command_evidence(self):
+        release=(ROOT/'addons/infantry/functions/cortexDefendRelease.sqf').read_text(encoding='utf-8')
+        for value in ('count _receipt == 6','(_receipt select 4) isEqualTo _assignment',
+                      '_live vectorDistance (_receipt select 3) <= 0.25','{_ownedCommand}',
+                      '_command in ["","STOP"]','(_receipt select 5) == "HOLD"'):
+            self.assertIn(value,release)
+        self.assertLess(release.index('{_ownedCommand}'),release.index('_x doWatch objNull'))
+        self.assertLess(release.index('{_ownedCommand}'),release.index('_x doFollow _leader'))
+        self.assertLess(release.index('_x doFollow _leader'),release.index('setVariable ["WAIT_Cortex_DefendMove",nil,true]'))
+        reserve=(ROOT/'addons/infantry/functions/cortexDefendStep.sqf').read_text(encoding='utf-8')
+        available=reserve.split('private _reserveAvailable={',1)[1].split('private _reserve =',1)[0]
+        for value in ('count _receipt == 6','(_receipt select 4) isEqualTo _assignment',
+                      '(_receipt select 5) == "HOLD"','vectorDistance (_receipt select 3) <= 3'):
+            self.assertIn(value,available)
+
+    def test_replacement_tasks_suppress_predecessor_recall(self):
+        for name in ('cortexDefend','cortexGarrison','cortexClearBuilding'):
+            s=(ROOT/('addons/infantry/functions/'+name+'.sqf')).read_text(encoding='utf-8')
+            self.assertIn('[_group,false,false] call WAIT_fnc_CortexDefendRelease',s)
+            self.assertNotIn('[_group] call WAIT_fnc_CortexDefendRelease',s)
+        release=(ROOT/'addons/infantry/functions/cortexDefendRelease.sqf').read_text(encoding='utf-8')
+        self.assertIn('["_recallHeld",true,[true]]',release)
+        self.assertIn('[_group,_restore,_recallHeld] remoteExecCall',release)
+        self.assertIn('_recallHeld && {!_externalTakeover',release)
+
 if __name__=='__main__': unittest.main()

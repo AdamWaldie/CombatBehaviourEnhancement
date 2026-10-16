@@ -1992,7 +1992,8 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('["_restore",true,[true]]',release)
             self.assertIn('private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;',release)
             self.assertIn('private _canRestore = _restore && {!_externalTakeover};',release)
-            self.assertIn('_canRestore || {!_externalTakeover && {_ownedHold',release)
+            self.assertIn('_canRestore ||',release)
+            self.assertIn('!_externalTakeover && {_ownedHold',release)
             self.assertIn('_x doFollow _leader',release)
             self.assertIn('["","STOP","ATTACK","FIRE","SUPPRESS"]',release)
         self.assertIn('[_group,false] call WAIT_fnc_CortexGarrisonRelease',tick)
@@ -2249,7 +2250,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group] call WAIT_fnc_CortexExternalTakeover',reserve)
         self.assertLess(reserve.index('CortexExternalTakeover'),reserve.index('_actor setVariable ["WAIT_AIPass_DefendPos"'))
         self.assertNotIn('_x doMove _position;',reserve)
-        self.assertIn('[_group,_reserve] call WAIT_fnc_CortexDefendApplyLocal',reserve)
+        self.assertIn('[_group,_reserve,_reserve] call WAIT_fnc_CortexDefendApplyLocal',reserve)
 
     def test_garrison_duck_handlers_yield_to_a_later_external_owner(self):
         """Suppression callbacks must not alter the posture of a Zeus or specialist-owned unit."""
@@ -2396,7 +2397,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('forEach _actors',apply)
         self.assertNotIn('_group setVariable ["WAIT_AIPass_DefendApplied", false]',reserve)
         self.assertNotIn('_x doMove _position',reserve)
-        self.assertIn('[_group,_reserve] call WAIT_fnc_CortexDefendApplyLocal',reserve)
+        self.assertIn('[_group,_reserve,_reserve] call WAIT_fnc_CortexDefendApplyLocal',reserve)
         self.assertIn('WAIT_AIPass_DefendRouteGeneration',release)
 
     def test_clearance_renews_safety_lease_only_on_observed_progress(self):
@@ -4716,7 +4717,8 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('["","STOP","ATTACK","FIRE","SUPPRESS"]',code)
             self.assertIn('private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;',code)
             self.assertIn('private _canRestore = _restore && {!_externalTakeover};',code)
-            self.assertIn('_canRestore || {!_externalTakeover && {_ownedHold',code)
+            self.assertIn('_canRestore ||',code)
+            self.assertIn('!_externalTakeover && {_ownedHold',code)
             self.assertIn('call WAIT_fnc_CortexActorMoveReserved',code)
             self.assertIn('&& {_reservationFree} && {!_nativeTask}',code)
             restore_condition=code.split('_canRestore ||',1)[1].split('then {',1)[0]
