@@ -4366,6 +4366,21 @@ class CortexOperations(unittest.TestCase):
         fallback=step.split('_reason in [',1)[1].split(']',1)[0]
         self.assertNotIn('NATIVE_ORDER_CHANGED',fallback)
 
+    def test_combined_audit_requires_local_native_projectile_toward_reported_contact(self):
+        text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombinedArms.sqf').read_text(encoding='utf-8')
+        sampler=text.split('private _installStationObserver={',1)[1].split('private _apc=createVehicle',1)[0]
+        for guard in ('!local _unit','addEventHandler ["FiredMan"','gunner _vehicle != _unit',
+                      'velocity _projectile','getPosASL _projectile','_role param [3',
+                      'count _records > 128'):
+            self.assertIn(guard,sampler)
+        self.assertNotIn('createVehicle',sampler)
+        self.assertNotIn('setVelocity',sampler)
+        shot=text.split('["COMBINED-ground-actual-fire"',1)[1].split('["COMBINED-ground-manoeuvre-physical-travel"',1)[0]
+        self.assertIn('(_x select 1) == _fireOperator',shot)
+        self.assertIn('(_x select 6) == _fireToken',shot)
+        self.assertIn('vectorMagnitude _course > 1',shot)
+        self.assertIn('>= cos 15',shot)
+
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)
