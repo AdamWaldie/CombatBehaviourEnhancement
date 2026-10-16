@@ -74,7 +74,7 @@ private _finish={
             if (_operationMatches && {(count _snapshot) in [7,8]}
                 && {(_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isEqualTo _snapshot}
                 && {serverTime < (_snapshot select 5)}
-                && {_reason in ["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED","OWNER_LOST"]}) then {
+                && {_reason in ["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_FIRE_PLATFORM","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED","OWNER_LOST"]}) then {
                 [_group,_snapshot,_reason,clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
             };
         };
@@ -132,6 +132,31 @@ if (captive _target || {_target getVariable ["ace_captives_isSurrendering",false
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
     || {(side _group) getFriend (side _target) >= 0.6}) exitWith {["TARGET_NO_LONGER_HOSTILE"] call _finish};
 if (serverTime >= (_job getOrDefault ["expiry",serverTime])) exitWith {["EXPIRED"] call _finish};
+// Dormancy/locality convergence cannot manufacture capability loss or renew this expiry.
+if (!simulationEnabled _asset || {isObjectHidden _asset}) exitWith {1};
+private _stationOperator=gunner _asset;
+if (!isNull _stationOperator && {group _stationOperator == _group}
+    && {[_stationOperator] call WAIT_fnc_CortexCombatEffective}
+    && {!local _stationOperator || {!simulationEnabled _stationOperator} || {isObjectHidden _stationOperator}}) exitWith {1};
+private _capabilityFailure="";
+if (serverTime >= (_job getOrDefault ["capabilityAt",serverTime])) then {
+    _job set ["capabilityAt",serverTime+4];
+    if (!canFire _asset) then {_capabilityFailure="NO_FIRE_PLATFORM"};
+    if (isNull _stationOperator || {group _stationOperator != _group}
+        || {!([_stationOperator] call WAIT_fnc_CortexCombatEffective)}
+        || {isPlayer _stationOperator} || {!isNull remoteControlled _stationOperator}
+        || {([_stationOperator] call WAIT_fnc_CortexExternalOwner) != ""}
+        || {[_stationOperator] call WAIT_fnc_CompatibilityExternalControl}) then {
+        _capabilityFailure="NO_FIRE_OPERATOR";
+    };
+    if (_capabilityFailure == "" && {!([_asset,_stationOperator] call WAIT_fnc_CortexGroundFireReady)}) then {
+        _capabilityFailure="NO_STATION_AMMO";
+    };
+    if (_capabilityFailure == "" && {!([_asset,_stationOperator,_target] call WAIT_fnc_CortexGroundFireReady)}) then {
+        _capabilityFailure="NO_TARGET_AMMO";
+    };
+};
+if (_capabilityFailure != "") exitWith {[_capabilityFailure] call _finish};
 if (_asset distance2D _destination > 70
     && {simulationEnabled _asset && {!isObjectHidden _asset} && {!canMove _asset}}) exitWith {["ASSET_IMMOBILE"] call _finish};
 if (_asset distance2D _destination <= 70) exitWith {
@@ -149,6 +174,7 @@ if (_asset distance2D _destination <= 70) exitWith {
         && {!([_gunner] call WAIT_fnc_CompatibilityExternalControl)}
         && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
         && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+    if (_fireAllowed && {!canFire _asset}) then {_fireAllowed=false;_fireDecision="NO_FIRE_PLATFORM"};
     if (_fireAllowed && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
         _fireAllowed=false; _fireDecision="NO_STATION_AMMO";
     };

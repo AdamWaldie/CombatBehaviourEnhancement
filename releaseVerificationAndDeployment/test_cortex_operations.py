@@ -4381,6 +4381,23 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('vectorMagnitude _course > 1',shot)
         self.assertIn('>= cos 15',shot)
 
+    def test_combined_enroute_capability_reassessment_is_finite_and_dormancy_preserves_expiry(self):
+        text=source('cortexCombinedGroundStep')
+        block=text.split('// Dormancy/locality convergence',1)[1].split('if (_asset distance2D _destination > 70',1)[0]
+        self.assertIn('exitWith {1}',block)
+        self.assertIn('!local _stationOperator',block)
+        defer=block.split('private _stationOperator=',1)[1].split('private _capabilityFailure=',1)[0]
+        self.assertIn('[_stationOperator] call WAIT_fnc_CortexCombatEffective',defer)
+        self.assertIn('_job set ["capabilityAt",serverTime+4]',block)
+        for reason in ('NO_FIRE_PLATFORM','NO_FIRE_OPERATOR','NO_STATION_AMMO','NO_TARGET_AMMO'):
+            self.assertIn(reason,block)
+            self.assertIn(reason,source('cortexCombinedRejectServer'))
+        self.assertNotIn('reveal',block)
+        self.assertNotIn('doFire',block)
+        self.assertNotIn('set ["expiry"',block)
+        self.assertLess(text.index('serverTime >= (_job getOrDefault ["expiry"'),text.index('// Dormancy/locality convergence'))
+        self.assertIn('["capabilityAt",serverTime+4]',source('cortexCombinedArmsLocal'))
+
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)

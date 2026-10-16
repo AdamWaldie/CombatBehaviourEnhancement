@@ -129,6 +129,7 @@ if (_role == "GROUND_FIRE") exitWith {
         || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
         || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
         || {[_group] call WAIT_fnc_CortexExternalTakeover}) then {_fireRefusal="NO_FIRE_OPERATOR"};
+    if (_fireRefusal == "" && {!canFire _asset}) then {_fireRefusal="NO_FIRE_PLATFORM"};
     if (_fireRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_STATION_AMMO"};
     if (_fireRefusal == "" && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_TARGET_AMMO"};
     if (_fireRefusal == "" && {!([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear)}) then {
@@ -165,6 +166,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
         || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
         || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}) then {_capabilityRefusal="NO_FIRE_OPERATOR"};
+    if (_capabilityRefusal == "" && {!canFire _asset}) then {_capabilityRefusal="NO_FIRE_PLATFORM"};
     if (_capabilityRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
         _capabilityRefusal="NO_STATION_AMMO";
     };
@@ -285,7 +287,7 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         ["nativeOrder",+_nativeOrder],["driver",driver _asset],["operator",_operator],
         ["moveWaypoint",+_waypoint],["moveReceipt",[count waypoints _group,_waypoint select 1,
             [_group,"",false,_waypoint select 1] call WAIT_fnc_AuthoredRouteReceipt]],
-        ["progressAt",_progressAt],["stalls",_stalls]
+        ["progressAt",_progressAt],["stalls",_stalls],["capabilityAt",serverTime+4]
     ],1] call WAIT_fnc_CortexQueueJob;
     call _markApplied;
     _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"APPLIED",serverTime,_target,_destination],true];
