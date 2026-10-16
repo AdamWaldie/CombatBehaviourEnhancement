@@ -49,6 +49,10 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('TRAFFIC_OBSERVATION',code)
         self.assertIn('OCCUPIED_CORRIDOR',code)
         self.assertIn('APPROACHING_TRAFFIC',code)
+        self.assertIn('_offset vectorDotProduct _right',code)
+        self.assertIn('_enter=_enter max (_first min _last)',code)
+        self.assertIn('_leave=_leave min (_first max _last)',code)
+        self.assertNotIn('private _closing=-',code)
         for forbidden in ('setVariable','doMove','setDriveOnPath','forceSpeed','setVelocity','remoteExec'):
             self.assertNotIn(forbidden,code)
     def test_query_envelope_covers_fast_road_approach_for_entire_proposal(self):

@@ -12,6 +12,9 @@
  * Area discovery includes dead vehicle entities; parked/empty/destroyed hulls remain obstacles.
  * The intended predecessor is excluded only from this corridor observer; independent following
  * and collision caps must still constrain it. Mounted people are represented by their vehicle.
+ * Predicted risk intersects measured constant-course motion with each expanded corridor segment,
+ * using simultaneous longitudinal, lateral and vertical time intervals. This is conservative:
+ * separate arrival times can still refuse; parallel off-corridor travel alone does not.
  * Approaching risk uses actual velocity and a finite constant-course estimate, not an assumption
  * that another driver yields. Curved/future traffic still requires runtime collision/abort checks.
  * Current callers: DrivingPassPrepare/Step/Begin and trusted preflight; automatic admission remains experimental.
@@ -48,9 +51,7 @@ if (count _candidates > 64) exitWith {["TRAFFIC_BUDGET",count _candidates] call 
 private _box=boundingBoxReal _vehicle;
 private _width=((abs ((_box select 0) select 0)) max (abs ((_box select 1) select 0)))+0.5;
 private _height=((_box select 1) select 2)-((_box select 0) select 2);
-private _origin=getPosASL _vehicle;private _forward=vectorDir _vehicle;
-_forward set [2,0];_forward=vectorNormalized _forward;
-private _ownSpeed=_travel/(_duration max 0.1);
+private _halfLength=(abs ((_box select 0) select 1)) max (abs ((_box select 1) select 1));
 private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
 {
     private _other=_x;
@@ -62,7 +63,8 @@ private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
         private _otherLength=(abs ((_otherBox select 0) select 1)) max (abs ((_otherBox select 1) select 1));
         private _radius=sqrt (_otherWidth^2+_otherLength^2);
         private _vertical=(_height+((_otherBox select 1) select 2)-((_otherBox select 0) select 2))*0.5+1;
-        private _occupied=false;
+        private _occupied=false;private _approaching=false;
+        private _velocity=velocity _other;
         for "_segment" from 1 to (count _guide-1) do {
             private _a=_guide select (_segment-1);private _b=_guide select _segment;
             private _delta=_b vectorDiff _a;private _flat=+_delta;_flat set [2,0];
@@ -71,12 +73,37 @@ private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
             private _closest=_a vectorAdd (_delta vectorMultiply _fraction);
             if (_position distance2D _closest <= _width+_radius+1
                 && {abs ((_position select 2)-(_closest select 2)) <= _vertical}) exitWith {_occupied=true};
+            private _length=vectorMagnitude _flat;
+            if (_length > 0.1 && {vectorMagnitude _velocity > 0.5}) then {
+                private _along=_flat vectorMultiply (1/_length);
+                private _right=[_along select 1,-(_along select 0),0];
+                private _offset=_position vectorDiff _a;
+                private _longMargin=_halfLength+_radius+1;
+                private _sideMargin=_width+_radius+1;
+                private _enter=0;private _leave=_duration;private _possible=true;
+                // All axes must overlap at the same future time. A nearby oncoming
+                // actor on a parallel road is not by itself a corridor conflict.
+                {
+                    _x params ["_coordinate","_speed","_minimum","_maximum"];
+                    if (abs _speed < 0.01) then {
+                        if (_coordinate < _minimum || {_coordinate > _maximum}) then {_possible=false};
+                    } else {
+                        private _first=(_minimum-_coordinate)/_speed;
+                        private _last=(_maximum-_coordinate)/_speed;
+                        _enter=_enter max (_first min _last);
+                        _leave=_leave min (_first max _last);
+                        if (_enter > _leave) then {_possible=false};
+                    };
+                    if (!_possible) exitWith {};
+                } forEach [
+                    [_offset vectorDotProduct _along,_velocity vectorDotProduct _along,-_longMargin,_length+_longMargin],
+                    [_offset vectorDotProduct _right,_velocity vectorDotProduct _right,-_sideMargin,_sideMargin],
+                    [_position select 2,_velocity select 2,((_a select 2) min (_b select 2))-_vertical,((_a select 2) max (_b select 2))+_vertical]
+                ];
+                if (_possible && {_enter <= _leave}) then {_approaching=true};
+            };
+            if (_approaching) exitWith {};
         };
-        private _offset=_position vectorDiff _origin;
-        private _closing=-((velocity _other) vectorDotProduct _forward);
-        private _approaching=(_offset vectorDotProduct _forward) > 0 && {_closing > 0.5}
-            && {_position distance2D _origin <= (_ownSpeed+_closing)*_duration+20}
-            && {abs (_offset select 2) <= _vertical};
         if (_occupied || {_approaching}) exitWith {
             _limiting=_other;_reason=["APPROACHING_TRAFFIC","OCCUPIED_CORRIDOR"] select _occupied;
         };
