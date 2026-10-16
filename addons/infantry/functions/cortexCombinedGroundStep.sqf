@@ -61,13 +61,20 @@ private _finish={
             _state deleteAt "movementLease";
         };
         if (call _roleCurrent) then {
+            private _progress=_group getVariable ["WAIT_Cortex_CombinedGroundProgress",[]];
+            if (_operationMatches && {_progress isEqualType []} && {count _progress == 10}
+                && {(_progress select 0) isEqualTo _snapshot} && {(_progress select 1) isEqualTo _asset}) then {
+                _progress=+_progress;
+                _progress set [9,["FAILED","COMPLETE"] select (_reason == "POSITION_REACHED")];
+                _group setVariable ["WAIT_Cortex_CombinedGroundProgress",_progress,true];
+            };
             _group setVariable ["WAIT_Cortex_CombinedResult",[_token,"GROUND_MANOEUVRE",_reason,serverTime,_target,_destination],true];
             // Only this admitted snapshot may spend a fallback slot. New roles, owners,
             // expiry, target loss and administrative cancellation cannot dispatch replacements.
             if (_operationMatches && {(count _snapshot) in [7,8]}
                 && {(_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isEqualTo _snapshot}
                 && {serverTime < (_snapshot select 5)}
-                && {_reason in ["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED"]}) then {
+                && {_reason in ["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED","OWNER_LOST"]}) then {
                 [_group,_snapshot,_reason,clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
             };
         };
@@ -85,6 +92,12 @@ private _currentOperation=_group getVariable ["WAIT_Operation",createHashMap];
 if ((_currentOperation getOrDefault ["generation",-2]) != _operationGeneration
     || {(_currentOperation getOrDefault ["intent",""]) != "COMBINED_GROUND"}
     || {(_currentOperation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {["REPLACED"] call _finish};
+private _driver=driver _asset;
+private _operator=effectiveCommander _asset;if (isNull _operator) then {_operator=_driver};
+if (isNull _driver || {isNull _operator}
+    || {_driver isNotEqualTo (_job getOrDefault ["driver",objNull])}
+    || {_operator isNotEqualTo (_job getOrDefault ["operator",objNull])}
+    || {group _driver != _group && {group _operator != _group}}) exitWith {["OWNER_LOST"] call _finish};
 if (isNull _target || {!alive _target}) exitWith {["TARGET_LOST"] call _finish};
 if (captive _target || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
@@ -138,7 +151,8 @@ if (time >= (_job getOrDefault ["progressAt",time])+10) then {
             _job set ["stalls",_stalls+1];
             if (call _roleCurrent) then {
                 _group setVariable ["WAIT_Cortex_CombinedGroundProgress",[+_snapshot,_asset,_stalls+1,
-                    serverTime-(time-(_job get "progressAt")),+(_job get "lastPosition")],true];
+                    serverTime-(time-(_job get "progressAt")),+(_job get "lastPosition"),+_destination,
+                    +(_job get "nativeOrder"),_job get "driver",_job get "operator","ACTIVE"],true];
             };
             private _waypoint=[_group,_destination,55,"MOVE",_operationGeneration] call WAIT_fnc_CortexGroupMove;
             if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) then {
@@ -150,7 +164,8 @@ if (time >= (_job getOrDefault ["progressAt",time])+10) then {
     _job set ["progressAt",time];
     if (call _roleCurrent) then {
         _group setVariable ["WAIT_Cortex_CombinedGroundProgress",[+_snapshot,_asset,
-            _job getOrDefault ["stalls",0],serverTime,+(getPosATL _asset)],true];
+            _job getOrDefault ["stalls",0],serverTime,+(getPosATL _asset),+_destination,
+            +(_job get "nativeOrder"),_job get "driver",_job get "operator","ACTIVE"],true];
     };
 };
 if ((_job getOrDefault ["terminal",""]) != "") exitWith {[_job get "terminal"] call _finish};

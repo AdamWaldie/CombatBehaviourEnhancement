@@ -571,8 +571,11 @@ private _get = {
 private _combinedRole=_group getVariable ["WAIT_Cortex_CombinedRole",[]];
 if ((count _combinedRole) in [7,8] && {serverTime < (_combinedRole select 5)}) then {
     private _combinedApplied=_group getVariable ["WAIT_Cortex_CombinedApplied",[]];
+    private _combinedApplication=_group getVariable ["WAIT_Cortex_CombinedApplicationLocal",[]];
+    private _combinedIdentity=[+_combinedRole,clientOwner,_group getVariable ["WAIT_AIPass_Epoch",0]];
     if ((_combinedApplied param [0,""]) != (_combinedRole select 0)
-        || {(_combinedApplied param [1,-1]) != clientOwner}) then {
+        || {(_combinedApplied param [1,-1]) != clientOwner}
+        || {count _combinedApplication != 2 || {(_combinedApplication select 0) isNotEqualTo _combinedIdentity}}) then {
         [_group,_combinedRole] call WAIT_fnc_CortexCombinedArmsLocal;
     };
 };

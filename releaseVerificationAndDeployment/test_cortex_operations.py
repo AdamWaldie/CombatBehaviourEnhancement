@@ -4288,25 +4288,68 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_application select 0) isEqualTo _applicationIdentity',text)
         self.assertIn('private _applied=[_token,clientOwner,_application select 1]',text)
         self.assertEqual(text.count('setVariable ["WAIT_Cortex_CombinedApplied",'),2)
-        self.assertEqual(text.count('call _markApplied;'),9)
+        self.assertEqual(text.count('call _markApplied;'),10)
         fire=text.split('if (_role == "GROUND_FIRE") exitWith {',1)[1].split('if (_role == "GROUND_MANOEUVRE") exitWith {',1)[0]
         self.assertLess(fire.index('_gunner doFire'),fire.index('call _markApplied'))
 
     def test_combined_replay_retains_spent_recovery_and_original_observation_age(self):
         local=source('cortexCombinedArmsLocal')
         step=source('cortexCombinedGroundStep')
-        journal=local.split('private _progress=_group getVariable ["WAIT_Cortex_CombinedGroundProgress"',1)[1].split('private _state=',1)[0]
+        journal=local.split('private _progress=_group getVariable ["WAIT_Cortex_CombinedGroundProgress"',1)[1].split('// Route geometry belongs',1)[0]
         for guard in ('isEqualTo _opportunity','isEqualTo _asset','in [0,1]',
                       'finite (_progress select 3)','serverTime >= (_progress select 3)',
                       '_progressAt=time-(serverTime-(_progress select 3))'):
             self.assertIn(guard,journal)
         self.assertIn('["stalls",_stalls]',local)
-        self.assertIn('if (_matchingProgress) then {_stalls=1;_progressAt=time-10}',journal)
+        self.assertIn('if (_matchingProgress && {!_resumeGround}) exitWith',journal)
         self.assertIn('(_progress select 3) >= 0',journal)
         retry=step.split('// Spend before route reacquisition',1)[1]
         self.assertLess(retry.index('"WAIT_Cortex_CombinedGroundProgress"'),retry.index('call WAIT_fnc_CortexGroupMove'))
         self.assertIn('serverTime-(time-(_job get "progressAt"))',retry)
         self.assertIn('if (_stalls >= 1)',step)
+
+    def test_combined_owner_replay_preserves_destination_only_under_native_order_and_crew_receipts(self):
+        local=source('cortexCombinedArmsLocal')
+        self.assertLess(local.index('call WAIT_fnc_CortexLocality'),local.index('private _applicationIdentity='))
+        replay=local.split('private _resumeGround=false;',1)[1].split('// Route geometry belongs',1)[0]
+        for guard in ('count _progress == 10','(_progress select 6) isEqualTo _nativeOrder',
+                      '(_progress select 7) isEqualTo driver _asset','(_progress select 8) isEqualTo _operator'):
+            self.assertIn(guard,replay)
+        self.assertIn('if (_resumeGround) then {_selected=[+(_progress select 5)]} else {',local)
+        self.assertLess(local.index('if (_matchingProgress && {!_resumeGround}) exitWith'),local.index('WAIT_fnc_CortexOwnershipLease'))
+        step=source('cortexCombinedGroundStep')
+        self.assertEqual(step.count('+(_job get "nativeOrder"),_job get "driver",_job get "operator","ACTIVE"'),2)
+        active=step.split('private _driver=driver _asset;',1)[1].split('if (isNull _target',1)[0]
+        self.assertIn('_driver isNotEqualTo (_job getOrDefault ["driver",objNull])',active)
+        self.assertIn('_operator isNotEqualTo (_job getOrDefault ["operator",objNull])',active)
+        self.assertIn('group _driver != _group && {group _operator != _group}',active)
+        self.assertIn('["OWNER_LOST"] call _finish',active)
+
+    def test_combined_terminal_journal_cannot_restart_movement_or_fire_on_new_owner(self):
+        local=source('cortexCombinedArmsLocal')
+        ground=local.split('if (_role == "GROUND_MANOEUVRE") exitWith {',1)[1]
+        terminal=ground.split('// A future firing role',1)[0]
+        self.assertIn('in ["COMPLETE","FAILED"]',terminal)
+        self.assertIn('isEqualTo _opportunity',terminal)
+        self.assertIn('isEqualTo _asset',terminal)
+        self.assertNotIn('doFire',terminal)
+        self.assertNotIn('CortexGroupMove',terminal)
+        self.assertIn('(_progress select 9) == "ACTIVE"',ground)
+        step=source('cortexCombinedGroundStep')
+        self.assertIn('_progress set [9,["FAILED","COMPLETE"] select (_reason == "POSITION_REACHED")]',step)
+
+    def test_combined_replay_defers_split_crew_locality_and_checks_returning_owner_epoch(self):
+        local=source('cortexCombinedArmsLocal')
+        defer=local.split('// Group and crew locality can arrive',1)[1].split('if (_role == "AIR_ATTACK"',1)[0]
+        self.assertIn('group _x == _group',defer)
+        self.assertIn('!local _x',defer)
+        self.assertIn('exitWith {false}',defer)
+        self.assertNotIn('CortexCombinedRejectServer',defer)
+        tick=source('cortexGroupTick')
+        replay=tick.split('private _combinedRole=',1)[1].split('private _nearest =',1)[0]
+        self.assertIn('WAIT_Cortex_CombinedApplicationLocal',replay)
+        self.assertIn('WAIT_AIPass_Epoch',replay)
+        self.assertIn('isNotEqualTo _combinedIdentity',replay)
 
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
@@ -4317,7 +4360,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',text)
         self.assertNotIn('doFollow',text)
         local=source('cortexCombinedArmsLocal')
-        self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),7)
+        self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),8)
     def test_combined_ground_refusal_producer_reasons_reach_server_retirement(self):
         local=source('cortexCombinedArmsLocal')
         server=source('cortexCombinedRejectServer')

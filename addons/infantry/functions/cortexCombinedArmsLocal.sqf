@@ -39,6 +39,10 @@ if ((_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isNotEqualTo _opportuni
     || {!(_position isEqualType [])} || {count _position != 3}
     || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}
     || {!(_role in ["GROUND_FIRE","GROUND_MANOEUVRE","AIR_ATTACK"])}) exitWith {false};
+// Establish this owner's epoch before an application receipt or route snapshot is captured.
+if !(_group getVariable ["WAIT_AIPass_Adopted",false]) then {[_group,true] call WAIT_fnc_CortexLocality};
+if (!local _group || {!([_group] call WAIT_fnc_CortexIsEligible)}
+    || {(_group getVariable ["WAIT_Cortex_CombinedRole",[]]) isNotEqualTo _opportunity}) exitWith {false};
 // The caller's public applied marker is diagnostic/replay state, not executor idempotence.
 // A duplicate delivery on this owner/epoch must not repeat fire, reveal or route acquisition.
 private _applicationIdentity=[+_opportunity,clientOwner,_group getVariable ["WAIT_AIPass_Epoch",0]];
@@ -73,6 +77,13 @@ if (_role in ["GROUND_FIRE","GROUND_MANOEUVRE"] && {
     !(_asset isKindOf "LandVehicle") || {_asset isKindOf "StaticWeapon"}
         || {!([_group,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
         || {!([_group,"WAIT_AIPass_VehicleGunnery_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
+}) exitWith {false};
+// Group and crew locality can arrive on different frames. Defer split ownership;
+// absence of a local operator during transfer is not a permanent capability refusal.
+if (_role in ["GROUND_FIRE","GROUND_MANOEUVRE"] && {
+    [driver _asset,effectiveCommander _asset,gunner _asset] findIf {
+        !isNull _x && {group _x == _group} && {!local _x}
+    } >= 0
 }) exitWith {false};
 if (_role == "AIR_ATTACK" && {
     !(_asset isKindOf "Air") || {isTouchingGround _asset}
@@ -135,6 +146,14 @@ if (_role == "GROUND_FIRE") exitWith {
     true
 };
 if (_role == "GROUND_MANOEUVRE") exitWith {
+    private _terminalProgress=_group getVariable ["WAIT_Cortex_CombinedGroundProgress",[]];
+    if (_terminalProgress isEqualType [] && {count _terminalProgress == 10}
+        && {(_terminalProgress select 0) isEqualTo _opportunity}
+        && {(_terminalProgress select 1) isEqualTo _asset}
+        && {(_terminalProgress select 9) in ["COMPLETE","FAILED"]}) exitWith {
+        call _markApplied;
+        true
+    };
     // A future firing role needs an eligible station now, before any route or movement lease.
     // This grants no firing permission or new knowledge; arrival repeats capability and ROE checks.
     private _gunner=gunner _asset;
@@ -158,39 +177,74 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         false
     };
     private _start=getPosATL _asset;
-    // Route geometry belongs to the authenticated contact report. An unseen moving enemy
-    // must not silently update this committed firing-area plan through its live coordinates.
-    private _targetPosition=+_position;
-    private _supportPosition=if (count _context >= 2) then {+_context} else {getPosATL leader _requester};
-    private _axis=_targetPosition vectorDiff _supportPosition;
-    _axis set [2,0];
-    if (vectorMagnitude _axis < 1) then {_axis=[sin getDir _asset,cos getDir _asset,0]};
-    _axis=vectorNormalized _axis;
-    private _left=[-(_axis select 1),_axis select 0,0];
-    private _relative=_start vectorDiff _supportPosition;
-    private _side=if ((_relative vectorDotProduct _left) < 0) then {_left vectorMultiply -1} else {_left};
-    // These are alternative firing areas, not a scripted movement profile. Sampling a few ranges
-    // and lateral offsets makes the same contact opportunity usable on hills and rough terrain while
-    // keeping the engine free to choose roads and avoid local obstacles.
-    private _candidates=[];
-    {
-        private _standOff=_x;
+    private _nativeOrder=[_group] call WAIT_fnc_NativeOrderReceipt;
+    private _operator=effectiveCommander _asset;if (isNull _operator) then {_operator=driver _asset};
+    private _stalls=0;private _progressAt=time;private _lastPosition=+_start;
+    private _progress=_group getVariable ["WAIT_Cortex_CombinedGroundProgress",[]];
+    private _matchingProgress=_progress isEqualType [] && {count _progress > 0}
+        && {(_progress select 0) isEqualTo _opportunity};
+    private _resumeGround=false;
+    if (_matchingProgress) then {
+        _resumeGround=count _progress == 10 && {(_progress select 9) == "ACTIVE"} && {(_progress select 1) isEqualTo _asset}
+            && {(_progress select 2) isEqualType 0} && {(_progress select 2) in [0,1]}
+            && {(_progress select 3) isEqualType 0} && {finite (_progress select 3)}
+            && {(_progress select 3) >= 0} && {serverTime >= (_progress select 3)}
+            && {[_progress select 4,_progress select 5] findIf {
+                !(_x isEqualType []) || {count _x != 3}
+                    || {_x findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}
+            } < 0}
+            && {(_progress select 6) isEqualTo _nativeOrder}
+            && {(_progress select 7) isEqualTo driver _asset}
+            && {(_progress select 8) isEqualTo _operator};
+        if (_resumeGround) then {
+            _stalls=_progress select 2;
+            _progressAt=time-(serverTime-(_progress select 3));
+            _lastPosition=+(_progress select 4);
+        };
+    };
+    // An ambiguous/legacy matching journal is not permission to choose another route.
+    if (_matchingProgress && {!_resumeGround}) exitWith {
+        _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"OWNER_LOST",serverTime,_target],true];
+        [_group,_opportunity,"OWNER_LOST",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
+        false
+    };
+
+    private _selected=[];
+    if (_resumeGround) then {_selected=[+(_progress select 5)]} else {
+        // Route geometry belongs to the authenticated contact report. An unseen moving enemy
+        // must not silently update this committed firing-area plan through its live coordinates.
+        private _targetPosition=+_position;
+        private _supportPosition=if (count _context >= 2) then {+_context} else {getPosATL leader _requester};
+        private _axis=_targetPosition vectorDiff _supportPosition;
+        _axis set [2,0];
+        if (vectorMagnitude _axis < 1) then {_axis=[sin getDir _asset,cos getDir _asset,0]};
+        _axis=vectorNormalized _axis;
+        private _left=[-(_axis select 1),_axis select 0,0];
+        private _relative=_start vectorDiff _supportPosition;
+        private _side=if ((_relative vectorDotProduct _left) < 0) then {_left vectorMultiply -1} else {_left};
+        // These are alternative firing areas, not a scripted movement profile. Sampling a few ranges
+        // and lateral offsets makes the same contact opportunity usable on hills and rough terrain while
+        // keeping the engine free to choose roads and avoid local obstacles.
+        private _candidates=[];
         {
-            private _destination=_targetPosition vectorAdd (_axis vectorMultiply -_standOff);
-            _destination=_destination vectorAdd (_side vectorMultiply _x);
-            _destination set [2,0];
-            _candidates pushBack [_destination];
-        } forEach [260,320,380];
-    } forEach [180,240];
-    private _selected=[_start,_candidates,_targetPosition,[_supportPosition],_target,"VEHICLE"]
-        call WAIT_fnc_CortexSelectAvenue;
+            private _standOff=_x;
+            {
+                private _destination=_targetPosition vectorAdd (_axis vectorMultiply -_standOff);
+                _destination=_destination vectorAdd (_side vectorMultiply _x);
+                _destination set [2,0];
+                _candidates pushBack [_destination];
+            } forEach [260,320,380];
+        } forEach [180,240];
+        _selected=[_start,_candidates,_targetPosition,[_supportPosition],_target,"VEHICLE"]
+            call WAIT_fnc_CortexSelectAvenue;
+    };
     if (_selected isEqualTo []) exitWith {
         call _markApplied;
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"NO_SAFE_ROUTE",serverTime,_target],true];
         [_group,_opportunity,"NO_SAFE_ROUTE",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
     };
-    private _destination=_selected select ((count _selected)-1);
+    private _destination=+(_selected select ((count _selected)-1));
     if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {false};
     if !([_group,"COMBINED_GROUND",true,_expiry] call WAIT_fnc_CortexOwnershipLease) exitWith {
         call _markApplied;
@@ -220,33 +274,15 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         [_group,_opportunity,"MOVEMENT_REJECTED",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
     };
-    // Preserve feature recovery consumption across owner replay. Local clock values and
-    // scheduler handles never migrate; the public observation uses server time.
-    private _stalls=0;private _progressAt=time;private _lastPosition=+_start;
-    private _progress=_group getVariable ["WAIT_Cortex_CombinedGroundProgress",[]];
-    private _matchingProgress=_progress isEqualType [] && {count _progress > 0}
-        && {(_progress select 0) isEqualTo _opportunity};
-    // Corrupt/future matching evidence must not manufacture a fresh recovery budget.
-    if (_matchingProgress) then {_stalls=1;_progressAt=time-10};
-    if (_matchingProgress && {count _progress == 5} && {(_progress select 0) isEqualTo _opportunity}
-        && {(_progress select 1) isEqualTo _asset}
-        && {(_progress select 2) isEqualType 0} && {(_progress select 2) in [0,1]}
-        && {(_progress select 3) isEqualType 0} && {finite (_progress select 3)}
-        && {(_progress select 3) >= 0} && {serverTime >= (_progress select 3)}
-        && {(_progress select 4) isEqualType []} && {count (_progress select 4) == 3}
-        && {(_progress select 4) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
-        _stalls=_progress select 2;
-        _progressAt=time-(serverTime-(_progress select 3));
-        _lastPosition=+(_progress select 4);
-    };
     _group setVariable ["WAIT_Cortex_CombinedGroundProgress",[+_opportunity,_asset,_stalls,
-        serverTime-(time-_progressAt),+_lastPosition],true];
+        serverTime-(time-_progressAt),+_lastPosition,+_destination,+_nativeOrder,driver _asset,_operator,"ACTIVE"],true];
     private _state=[_group] call WAIT_fnc_CortexGroupState;
     _state set ["movementLease",["COMBINED_GROUND",time+((_expiry-serverTime) max 5)]];
     [WAIT_fnc_CortexCombinedGroundStep,createHashMapFromArray [
         ["group",_group],["asset",_asset],["target",_target],["token",_token],["opportunity",+_opportunity],
         ["expiry",_expiry],["destination",_destination],["operationGeneration",_operation get "generation"],
         ["ownerEpoch",_operation get "ownerEpoch"],["lastPosition",_lastPosition],
+        ["nativeOrder",+_nativeOrder],["driver",driver _asset],["operator",_operator],
         ["progressAt",_progressAt],["stalls",_stalls]
     ],1] call WAIT_fnc_CortexQueueJob;
     call _markApplied;
