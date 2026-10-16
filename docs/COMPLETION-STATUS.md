@@ -10,11 +10,18 @@ Workshop-parity percentage is available.
 ## Current evidence boundary
 
 - Audits are paused by the user. No new in-game result is claimed here.
-- The latest local code validation passed **1038 tests** and all sequential offline gates.
-  The current local batch includes natural individual indoor dispatch, disjoint-operation ownership,
-  contact/boarding reservation protection, convoy path-cap/grade corrections and native recovery receipts.
-  The behaviour changes are committed locally. The earlier signed candidate remains separate;
-  these offline results provide no new physical or performance acceptance.
+- The latest local code validation passed **1052 tests** and all sequential offline gates.
+  The current batch adds authenticated combined-ground failure replacement, exact role/operator authority,
+  owner-epoch application receipts and durable destination/recovery journals. Active route changes retire
+  movement; capability checks retain the original expiry. Routine ground gunnery yields to the live role.
+  These offline results provide no new physical or performance acceptance.
+- Ground support checks loaded target-suitable station ammunition before manoeuvre commitment and again
+  during travel and arrival. Protected individual tasks and strict actor reservations prevent competing
+  gunner orders. Routine vehicle direct fire also checks the shared friendly/civilian firing cone.
+  Infantry fire control now uses the same strict reservation predicate as movement admission.
+- The prepared combined-arms fixture records local gunner FiredMan events with native projectile
+  origin/velocity, admitted operator/token and direction toward the reported contact. This can establish
+  directed shots when run; it cannot prove hits, suppression, destruction or HC observation coverage.
 - Delayed defence arrival/retry now checks its exact assignment and issued destination, retiring changed individual commands without movement restoration. Owner adoption now checks published MOVE/HOLD receipts and native route identity; physical migration remains unverified.
 - Defence release now requires matching command receipts before watch/formation restoration. Admitted replacement tasks suppress predecessor recall; reserve selection requires a physically nearby owned HOLD. Repeated transitions remain physically unverified.
 - Defence reserve planning now rejects overlapping reinforcement slots before assignment changes and excludes busy/reserved actors. Its physical reinforcement and casualty flow remain unverified.
