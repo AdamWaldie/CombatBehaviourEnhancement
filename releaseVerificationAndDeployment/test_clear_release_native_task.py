@@ -67,3 +67,18 @@ class DoorObservationAuthorityTests(unittest.TestCase):
         caller=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
         discovery=caller.split('// Before exterior actors commit',1)[1].split('private _allLocked=',1)[0]
         self.assertIn('["CLEAR",_job get "generation"],true] call WAIT_fnc_CortexBuildingDoor',discovery)
+
+    def test_context_binds_actual_building_assignment_and_native_task(self):
+        s=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
+        context=s.split('private _key=switch',1)[1].split('if (isNull _unit',1)[0]
+        for guard in ('call WAIT_fnc_CortexActorMoveReserved','currentCommand _unit in ["","MOVE"]',
+                      'getOrDefault ["building",objNull]) == _building','WAIT_AIPass_GarrisonPos',
+                      '(_assignment select 2) == _building','(_assignment select 3) isEqualTo',
+                      'WAIT_Cortex_GarrisonMove','_live vectorDistance (_receipt select 3) <= 0.25',
+                      'call WAIT_fnc_NativeOrderReceipt','getOrDefault ["team",[]]'):
+            self.assertIn(guard,context)
+        garrison=(ROOT/'addons/infantry/functions/cortexGarrisonApplyLocal.sqf').read_text()
+        delayed=garrison.split('private _commandOwned=',1)[1].split('private _pending =',1)[0]
+        self.assertIn('_command in ["","STOP"]',delayed)
+        self.assertIn('_command == "MOVE"',delayed)
+        self.assertNotIn('!(_command in',delayed)

@@ -121,12 +121,13 @@ private _spotters=_job get "spotters";
         // generic ground-group loop as a second movement/behaviour owner.
         private _eligible = _groundEligible;
         private _movementLease = _group getVariable ["WAIT_Cortex_MovementLease", []];
-        if (_movementLease isNotEqualTo []) then {
-            if (count _movementLease != 2 || {serverTime >= (_movementLease select 1)}) then {
-                [_group,"",false] call WAIT_fnc_CortexOwnershipLease;
-            } else {
-                [_group,_movementLease select 0,true,_movementLease select 1] call WAIT_fnc_CortexOwnershipLease;
-            };
+        // Observation cannot manufacture authority, renew a deadline or erase unknown state.
+        // Only a complete finite expired lease may be retired through its recorded owner.
+        private _typedMovementLease=_movementLease isEqualType [] && {count _movementLease == 2}
+            && {(_movementLease select 0) isEqualType ""} && {(_movementLease select 0) != ""}
+            && {(_movementLease select 1) isEqualType 0} && {finite (_movementLease select 1)};
+        if (_typedMovementLease && {serverTime >= (_movementLease select 1)}) then {
+            [_group,_movementLease select 0,false] call WAIT_fnc_CortexOwnershipLease;
         };
         if (_eligible) then {
             _group setVariable ["WAIT_AIPass_PeakSize", (_group getVariable ["WAIT_AIPass_PeakSize", 0]) max ({alive _x} count units _group)];

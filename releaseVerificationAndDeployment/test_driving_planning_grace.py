@@ -137,4 +137,35 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertIn('call WAIT_fnc_DrivingOperationQueue',state)
         self.assertNotIn('DrivingOperationFinish',state)
 
+    def test_driving_and_gate_server_share_strict_movement_lease_boundary(self):
+        s=(ROOT/'addons/vehicles/functions/drivingMovementAvailable.sqf').read_text()
+        for guard in ('_lease isEqualType []','(_lease select 0) isEqualType ""',
+                      '(_lease select 0) != ""','finite (_lease select 1)',
+                      'if (_lease isNotEqualTo []) exitWith {false}',
+                      '_reverse isEqualType []','if (!_typed) exitWith {false}',
+                      '_serverCheck && {isServer}'):
+            self.assertIn(guard,s)
+        self.assertNotIn('setVariable',s)
+        gate=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        self.assertEqual(gate.count('[_group,true] call WAIT_fnc_DrivingMovementAvailable'),2)
+        final=gate.split('// Final mutation boundary:',1)[1].split('_gate setVariable',1)[0]
+        self.assertIn('call WAIT_fnc_DrivingMovementAvailable',final)
+        self.assertNotIn('_lease select 1',gate)
+
+    def test_discovery_cannot_erase_unknown_leases_or_renew_deadlines(self):
+        discover=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text()
+        block=discover.split('private _movementLease =',1)[1].split('if (_eligible)',1)[0]
+        self.assertIn('_typedMovementLease',block)
+        self.assertIn('finite (_movementLease select 1)',block)
+        self.assertIn('serverTime >= (_movementLease select 1)',block)
+        self.assertIn('[_group,_movementLease select 0,false]',block)
+        self.assertEqual(block.count('call WAIT_fnc_CortexOwnershipLease'),1)
+        self.assertNotIn('select 0,true',block)
+        lease=(ROOT/'addons/compatibility/functions/cortexOwnershipLease.sqf').read_text()
+        self.assertLess(lease.index('if (_lease isNotEqualTo [] && {!_typed})'),lease.index('if (_acquire)'))
+        self.assertIn('!finite _expires',lease)
+        final=lease.split('call WAIT_fnc_DrivingOperationFinish',1)[1].split('setVariable ["WAIT_Cortex_MovementLease"',1)[0]
+        self.assertIn('isNotEqualTo _lease',final)
+        self.assertIn('!local _group',final)
+
 if __name__=='__main__':unittest.main()

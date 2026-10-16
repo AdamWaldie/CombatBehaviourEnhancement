@@ -69,10 +69,9 @@ if (_revision >= 0) then {
         || {!(_vehicle in (_config select 4))}
         || {!([_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 } else {
-    private _lease=_group getVariable ["WAIT_Cortex_MovementLease",[]];
     if (!(missionNamespace getVariable ["WAIT_AIPass_Active",false])
         || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
-        || {count _lease == 2 && {serverTime < (_lease select 1)}}
+        || {!([_group,true] call WAIT_fnc_DrivingMovementAvailable)}
         || {!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 };
 if (_revision == -2 || {_revision < 0 && {!([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent)}}) exitWith {false};
@@ -141,7 +140,8 @@ if (_sources findIf {(_x select 2) < 0.1} < 0) exitWith {
     false
 };
 // Final mutation boundary: no delayed opening or stale transform survives a new order/lock.
-if ((_revision < 0 && {!([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent)})
+if ((_revision < 0 && {!([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent)
+        || {!([_group,true] call WAIT_fnc_DrivingMovementAvailable)}})
     || {call _locked} || {!alive _gate} || {driver _vehicle != _driver}
     || {(effectiveCommander _vehicle) isNotEqualTo _requestedCommander && {!isNull effectiveCommander _vehicle}}
     || {group _driver != _group} || {isPlayer _driver} || {!isNull remoteControlled _driver}

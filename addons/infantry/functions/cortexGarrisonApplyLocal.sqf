@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Delayed movement retries require idle/STOP or the exact owned MOVE; native combat, waiting
+ * and follow tasks retain authority even if their destination did not change.
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
  * Applies a garrison order on the machine that owns the group: moves soldiers to their positions,
  * locks them there, and installs the duck-under-fire handlers.
@@ -259,7 +261,7 @@ private _buildingAnchor = {
         private _command=currentCommand _actor;
         private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
         private _live=(expectedDestination _actor) param [0,[]];
-        private _commandOwned=!(_command in ["MOVE","FOLLOW"])
+        private _commandOwned=_command in ["","STOP"]
             || {_command == "MOVE" && {count _receipt == 4}
                 && {(_receipt select 0) == _group}
                 && {(_receipt select 1) == (_job get "generation")}

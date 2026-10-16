@@ -13,6 +13,8 @@
  * Only combat-effective ordinary actors may request an opening; capture and specialist ownership
  * are rechecked independently of the group order. Indoor requests also recheck contact identity,
  * feature gates and group task priority immediately before the global animation side effect.
+ * CLEAR/GARRISON requests bind the live building/transform, participant assignment and owned
+ * movement receipt; generation alone cannot authorize another building or a newer native task.
  * Arguments: 0 unit <OBJECT>, default objNull; 1 building <OBJECT>, default objNull;
  * 2 context <ARRAY, []> - optional [CLEAR, GARRISON or INDOOR <STRING>, order generation <NUMBER>].
  * 3 metadata only <BOOL, false> - cache model definitions without interaction or cooldown.
@@ -91,7 +93,37 @@ private _orderCurrent={
         case "GARRISON": {"WAIT_AIPass_GarrisonGeneration"};
         default {""};
     };
-    local _group && {_key != ""} && {(_group getVariable [_key,-1]) == (_context select 1)}
+    if (!local _group || {_key == ""} || {(_group getVariable [_key,-1]) != (_context select 1)}
+        || {[_unit] call WAIT_fnc_CortexActorMoveReserved}
+        || {!(currentCommand _unit in ["","MOVE"])}) exitWith {false};
+    if ((_context select 0) == "CLEAR") exitWith {
+        private _brain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
+        private _job=_brain getOrDefault ["job",createHashMap];
+        private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
+        private _live=(expectedDestination _unit) param [0,[],[[]]];
+        (_group getVariable ["WAIT_AIPass_ClearBuilding",false])
+            && {!(_brain getOrDefault ["cancelled",true])} && {!(_brain getOrDefault ["finished",true])}
+            && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {(_job getOrDefault ["generation",-1]) == (_context select 1)}
+            && {(_job getOrDefault ["building",objNull]) == _building}
+            && {_unit in ((_job getOrDefault ["team",[]])+(_job getOrDefault ["securityActors",[]]))}
+            && {(_job getOrDefault ["buildingTransform",[]]) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+            && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}
+            && {currentCommand _unit == "" || {_issued call _vectorValid && {_live call _vectorValid}
+                && {_live vectorDistance _issued <= 0.25}}}
+    };
+    private _assignment=_unit getVariable ["WAIT_AIPass_GarrisonPos",[]];
+    private _receipt=_unit getVariable ["WAIT_Cortex_GarrisonMove",[]];
+    private _live=(expectedDestination _unit) param [0,[],[[]]];
+    (_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []
+        && {_assignment isEqualType []} && {count _assignment >= 4}
+        && {(_assignment select 2) == _building}
+        && {(_assignment select 3) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+        && {_receipt isEqualType []} && {count _receipt == 4}
+        && {(_receipt select 0) == _group} && {(_receipt select 1) == (_context select 1)}
+        && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_receipt select 3) call _vectorValid} && {_live call _vectorValid}
+        && {currentCommand _unit == "" || {_live vectorDistance (_receipt select 3) <= 0.25}}
 };
 if (isNull _unit || {isNull _building} || {!local _unit} || {!([_unit] call WAIT_fnc_CortexCombatEffective)}
     || {isPlayer _unit} || {[group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover}

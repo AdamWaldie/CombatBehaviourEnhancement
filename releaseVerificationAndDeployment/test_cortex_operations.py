@@ -5509,7 +5509,8 @@ class CortexOperations(unittest.TestCase):
         apply=source("cortexGarrisonApplyLocal")
         callback=apply.split('params ["_job"];',1)[1]
         gate=callback.split("private _mayIssueMovement = {",1)[1].split("private _pending =",1)[0]
-        self.assertIn('_command in ["MOVE","FOLLOW"]',gate)
+        self.assertIn('_command in ["","STOP"]',gate)
+        self.assertNotIn('!(_command in ["MOVE","FOLLOW"])',gate)
         self.assertIn('_command == "MOVE" && {count _receipt == 4}',gate)
         self.assertIn('_live vectorDistance (_receipt select 3) <= 0.25',gate)
         self.assertIn('(_receipt select 1) == (_job get "generation")',gate)
