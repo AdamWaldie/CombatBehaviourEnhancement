@@ -126,6 +126,8 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
         private _id = format ["CNVM-%1-%2",_label,_spacing];
         [_id,"This case creates operating crew, no cargo passengers: all must stay aboard. Watch their labelled vehicles and actual tracks on the 1 km straight, then a deliberate halt/resume. Separate cases test corners. BASELINE labels identify engine-only comparisons.",[2500,2500] call _terrainPosition] call _phase;
         private _group = createGroup [east,true];
+        // Normal fixture owns this group. Capture only WAIT cases; engine baselines stay untouched.
+        _group setVariable ["WAIT_Convoy_CaptureControl",!_baseline];
         _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
         _group setVariable ["acex_headless_blacklist",true,true];
         private _vehicles=[];
@@ -284,7 +286,9 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                         _timingController getOrDefault ["leadSpeedLimit",[]],
                         _progress param [1,-1],_progress param [4,0],
                         _progress param [5,[]],_progress param [6,[]],
-                        isAISteeringComponentEnabled _x]
+                        isAISteeringComponentEnabled _x,
+                        (_timingController getOrDefault ["controlSamples",createHashMap]) getOrDefault [_key,[]],
+                        _timingController getOrDefault ["leadControlSample",[]]]
                 } else {["UNAVAILABLE_REMOTE_OWNER",groupOwner _group]};
                 [netId _x,speed _x,getForcedSpeed _x,velocityModelSpace _x,
                     _longitudinal,netId _operator,currentCommand _operator,expectedDestination _operator,

@@ -458,6 +458,8 @@ private _frontTrails = _state get "frontTrails";
     };
     _frontTrails set [_key, _record];
 } forEach _vehicles;
+private _captureControl=(_group getVariable ["WAIT_Convoy_CaptureControl",false]) isEqualTo true;
+_state deleteAt "leadControlSample";
 private _turn = abs (((getDir _lead - (_state get "heading") + 540) mod 360) - 180);
 _state set ["heading", getDir _lead];
 private _stretch = 0;private _spacingGaps=[0];
@@ -495,6 +497,15 @@ if (_trafficAssistEnabled) then {
 };
 // During contact, keep the front moving instead of waiting inside the ambush for a disabled rear vehicle.
 private _leadLimit = ((_maximum - ((_stretch - 1.2) max 0) * 5 - (_turn min 60) * 0.4) max 5) min _roadCap;
+// One current owner-local observation, enabled only by an explicit audit capture flag.
+// Fields: server time, revision, owner/epoch, forward km/h/cruise/stretch/turn/route/contact,
+// ordered km/h cap observations, and whether this callback actually wrote the lead speed.
+private _leadControl=[];
+if (_captureControl) then {
+    _leadControl=[serverTime,_revision,[clientOwner,_group getVariable ["WAIT_AIPass_Epoch",0]],
+        [(velocityModelSpace _lead select 1)*3.6,_maximum,_stretch,_turn,_routeDone,_contact],
+        [["road",_roadCap],["stretchTurn",_leadLimit]],false];
+};
 // A stretched but mobile convoy slows progressively; a hard zero here creates stop/start waves.
 // Actual arrival, pinned contact and pedestrian safety still request a full stop.
 // Outside contact, do not let the lead outrun a follower still acquiring its path.
@@ -526,7 +537,9 @@ if (!_contact) then {
         };
     };
 };
+if (_captureControl) then {(_leadControl select 4) pushBack ["pacing",_leadLimit]};
 _leadLimit=_leadLimit min ((_corridor select 1)*3.6);
+if (_captureControl) then {(_leadControl select 4) pushBack ["corridor",_leadLimit]};
 if (_routeDone) then {_leadLimit = 0};
 // Avoid converting small one-second spacing corrections into a visible throttle pulse. Acceleration
 // is gradual; arrival remains an immediate stop and the infantry corridor below can still stop now.
@@ -535,6 +548,7 @@ private _leadElapsed=((time-(_leadSpeedState select 1)) max 0.1) min 3;
 if (!_routeDone && {_leadLimit > (_leadSpeedState select 0)}) then {
     _leadLimit=_leadLimit min ((_leadSpeedState select 0)+6*_leadElapsed);
 };
+if (_captureControl) then {(_leadControl select 4) pushBack ["accelerationAndArrival",_leadLimit]};
 private _leadTraffic=if (_trafficAssistEnabled) then {
     [_lead,_leadLimit/3.6] call WAIT_fnc_DrivingFollowingCap
 } else {[_leadLimit/3.6,objNull,-1,time,0]};
@@ -578,17 +592,22 @@ if (_bypassActive && {_bypass select 3} && {count _leadObstacle == 9}) then {
 };
 _leadLimit=_leadLimit min ((_bypass select 1)*3.6);
 _leadLimit=_leadLimit min ((_bypassCaps getOrDefault [netId _lead,1e6])*3.6);
+if (_captureControl) then {(_leadControl select 4) pushBack ["bypass",_leadLimit]};
 _state set ["obstacleLimited",_leadObstacleLimited];
 private _leadTrafficBlocked=!isNull (_leadTraffic select 1);
 _leadLimit=_leadLimit min ((_leadTraffic select 0)*3.6);
+if (_captureControl) then {(_leadControl select 4) pushBack ["trafficGeometry",_leadLimit]};
 _leadLimit = [_lead,_leadLimit,_group] call WAIT_fnc_CortexInfantrySpeed;
+if (_captureControl) then {(_leadControl select 4) pushBack ["infantry",_leadLimit]};
 _state set ["leadSpeedLimit",[_leadLimit,time]];
 if ([] call _mayIssueDriving) then {
     private _ownedSpeed=_leadLimit/3.6;
     _lead forceSpeed _ownedSpeed;
+    if (_captureControl) then {_leadControl set [5,true]};
     if (_leadGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_lead,_leadGate,_revision] call WAIT_fnc_DrivingGateRequest};
     _lead setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
 };
+if (_captureControl) then {_state set ["leadControlSample",_leadControl]};
 // Speed limits cannot restart an engine movement order that stopped short. Retry only
 // after ten seconds without progress, while a real route destination remains active.
 private _leadProgress = _state getOrDefault ["leadProgress", [getPosATL _lead, time, 0]];
@@ -621,7 +640,7 @@ private _pathAssistEnabled=[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call
 _state set ["pathOwners",_pathOwners];
 // Internal audit capture is local to this owner and resets each travelling callback.
 // It cannot grant authority, change any cap, or retain an unbounded time series.
-private _captureControl=(_group getVariable ["WAIT_Convoy_CaptureControl",false]) isEqualTo true;
+
 private _controlSamples=createHashMap;
 if (_captureControl) then {_state set ["controlSamples",_controlSamples]} else {_state deleteAt "controlSamples"};
 for "_i" from 1 to (count _vehicles - 1) do {

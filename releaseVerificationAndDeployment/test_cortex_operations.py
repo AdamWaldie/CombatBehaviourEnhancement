@@ -4974,6 +4974,20 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn(' reveal ',selection)
         self.assertIn('if (count _candidates > 8) then {_candidates resize 8}',source('cortexKnowledge'))
 
+    def test_convoy_matrix_captures_actual_lead_and_follower_control_boundaries(self):
+        text=source('convoyTick')
+        matrix=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text(encoding='utf-8')
+        self.assertIn('setVariable ["WAIT_Convoy_CaptureControl",!_baseline]',matrix)
+        self.assertIn('getOrDefault ["controlSamples",createHashMap]',matrix)
+        self.assertIn('getOrDefault ["leadControlSample",[]]',matrix)
+        self.assertLess(text.index('private _captureControl='),text.index('private _leadLimit ='))
+        self.assertIn('_state deleteAt "leadControlSample"',text)
+        for cap in ('pacing','corridor','accelerationAndArrival','bypass','trafficGeometry','infantry'):
+            self.assertIn('(_leadControl select 4) pushBack ["'+cap+'",_leadLimit]',text)
+        write=text.split('_lead forceSpeed _ownedSpeed;',1)[1].split('// Speed limits cannot restart',1)[0]
+        self.assertIn('if (_captureControl) then {_leadControl set [5,true]}',write)
+        self.assertIn('_state set ["leadControlSample",_leadControl]',write)
+
     def test_vehicle_gunnery_refreshes_fire_when_contact_was_already_shared(self):
         vehicles=source('cortexVehicles')
         target_change=vehicles.index('if ([] call _mayIssueVehicle && {assignedTarget _gunner != _target}) then {')
