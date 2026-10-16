@@ -15,6 +15,7 @@
  *
  * Review contract: Both DROP and LAND recheck eligibility. A landing timeout ends tracking without assigning a ground attack to soldiers still airborne.
  *
+ * Every DROP step rechecks live pilot/commander takeover before another passenger exits.
  * Repeat/JIP: current-owner eligibility and automatic feature gates are rechecked before each jump.
  * Arguments:
  * 0: job state <HASHMAP> - group, aircraft, jumpers, index, phase, target, deadline
@@ -48,11 +49,29 @@ if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["WAIT_A
     || {!(_job getOrDefault ["forced",false]) && {!([_group,"WAIT_AIPass_Airborne_Enable",false] call WAIT_fnc_CortexFeatureEnabled)}}) exitWith {call _finish};
 
 if ((_job get "phase") == "DROP") exitWith {
-    private _jumpers = (_job get "jumpers") select {alive _x && {local _x} && {vehicle _x == _aircraft}};
+    private _jumpers = (_job get "jumpers") select {
+        local _x && {vehicle _x == _aircraft} && {!isPlayer _x}
+            && {[_x] call WAIT_fnc_CortexCombatEffective}
+            && {!([_x] call WAIT_fnc_CortexActorMoveReserved)}
+            && {isNull remoteControlled _x}
+            && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+    };
     if (_jumpers isEqualTo [] || {!alive _aircraft}) exitWith {
         _job set ["phase", "LAND"];
         3
     };
+    // Aircraft control can change after admission while the passenger squad remains AI-owned.
+    private _pilot=driver _aircraft;
+    private _commander=effectiveCommander _aircraft;
+    if (!([_pilot] call WAIT_fnc_CortexCombatEffective) || {isPlayer _pilot}
+        || {isPlayer _commander} || {!isNull remoteControlled _pilot}
+        || {!isNull remoteControlled _commander}
+        || {!isNull (_pilot getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {!isNull (_commander getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {[group _pilot] call WAIT_fnc_CortexExternalTakeover}
+        || {[group _commander] call WAIT_fnc_CortexExternalTakeover}) exitWith {call _finish};
     // The jump itself is an owned action. Stop it before the next passenger leaves if Zeus, a
     // player or a specialist controller takes the group; anyone still aboard remains where that
     // new controller expects rather than completing WAIT's earlier drop plan.

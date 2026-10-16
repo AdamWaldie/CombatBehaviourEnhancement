@@ -7602,6 +7602,27 @@ class CortexOperations(unittest.TestCase):
                        'DANGER-VEHICLE-orient-crew-retained']:
             self.assertIn(marker,audit)
 
+    def test_airborne_drop_rechecks_live_aircraft_control_before_each_exit(self):
+        drop=source('cortexAirborneDropStep')
+        phase=drop.split('if ((_job get "phase") == "DROP") exitWith {',1)[1].split('// LAND',1)[0]
+        selection=phase.split('private _jumpers =',1)[1].split('if (_jumpers isEqualTo []',1)[0]
+        for guard in ['WAIT_fnc_CortexActorMoveReserved','WAIT_fnc_CortexCombatEffective',
+                      'remoteControlled _x','WAIT_fnc_CompatibilityExternalControl']:
+            self.assertIn(guard,selection)
+        for guard in ['private _pilot=driver _aircraft','isPlayer _commander','remoteControlled _pilot',
+                      'remoteControlled _commander','bis_fnc_moduleRemoteControl_owner',
+                      '[group _pilot] call WAIT_fnc_CortexExternalTakeover',
+                      '[group _commander] call WAIT_fnc_CortexExternalTakeover']:
+            self.assertLess(phase.index(guard),phase.index('call WAIT_fnc_CortexParachuteJump'))
+
+    def test_parachute_exit_preserves_actor_tasks_before_mutation(self):
+        jump=source('cortexParachuteJump')
+        for guard in ['call WAIT_fnc_CortexCombatEffective','call WAIT_fnc_CortexActorMoveReserved',
+                      'remoteControlled _unit','bis_fnc_moduleRemoteControl_owner',
+                      'call WAIT_fnc_CortexExternalOwner','call WAIT_fnc_CompatibilityExternalControl']:
+            self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
+            self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
+
     def test_combat_gunner_replacement_preserves_actor_controller_ownership(self):
         text=source('cortexVehicleCrewRecover')
         ownership=text.split('if ([_candidate] call WAIT_fnc_CortexActorMoveReserved',1)[1].split('private _command=',1)[0]
