@@ -2125,6 +2125,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_worker,_house,_x] call _observedRoomVisit',audit)
         self.assertIn('[_x,_house,_room] call _observedRoomVisit',audit)
 
+    def test_buddy_separation_cannot_renew_room_mover_progress(self):
+        step=source('buildingOperationStep')
+        lane=step.split('private _roomRequestChanged=',1)[1].split('// Once inside, only the assigned room mover',1)[0]
+        self.assertIn('private _issue=_roomRequestChanged;',lane)
+        self.assertIn('if (_partnerCommitted isNotEqualTo _supportTarget) then {_issue=true}',lane)
+        self.assertIn('if (_roomRequestChanged) then {_lastTarget=_positionIndex; _lastProgress=_now;',lane)
+        self.assertNotIn('if (_issue) then {_lastTarget=',lane)
+        self.assertEqual(lane.count('_roomRequestChanged='),0)
+        progress=step.split('// Once inside, only the assigned room mover',1)[1].split('private _commandEnded=',1)[0]
+        self.assertIn('_bestDistance-_targetDistance >= 1',progress)
+
     def test_clearance_preserves_owned_move_even_when_native_actor_is_ready(self):
         step=source('buildingOperationStep')
         same=step.split('private _sameActiveTarget=',1)[1].split('if (!_sameActiveTarget',1)[0]

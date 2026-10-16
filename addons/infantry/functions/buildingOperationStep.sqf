@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
+ * Buddy separation requests do not renew the room mover's finite no-progress clock.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
  * Locality / Authority: Runs through WAIT's shared scheduler where the group is local. It checks the
@@ -2240,7 +2241,8 @@ private _delay=call {
                             _target=+_checkpoint;
                         };
                     };
-                    private _issue=_lastTarget != _positionIndex;
+                    private _roomRequestChanged=_lastTarget != _positionIndex;
+                    private _issue=_roomRequestChanged;
                     private _bestDistance=_state param [13,1e12,[0]];
                     private _bestTarget=_state param [14,[],[[]]];
                     if (_bestTarget isNotEqualTo _target) then {
@@ -2497,7 +2499,9 @@ private _delay=call {
                         };
                         };
                     } forEach _pair;
-                    if (_issue) then {_lastTarget=_positionIndex; _lastProgress=_now; _lastPositions=_pair apply {getPosATL _x}};
+                    // A buddy yielding space is not room-mover progress. Keep the mover's
+                    // no-progress clock intact when only the support destination changes.
+                    if (_roomRequestChanged) then {_lastTarget=_positionIndex; _lastProgress=_now; _lastPositions=_pair apply {getPosATL _x}};
                     // Once inside, only the assigned room mover proves progress toward this room.
                     // The security partner is expected to adjust cover and follow the previous room;
                     // counting that movement hid doorway stalls and prevented recovery indefinitely.
