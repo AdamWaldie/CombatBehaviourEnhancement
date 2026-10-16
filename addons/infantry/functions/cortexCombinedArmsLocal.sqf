@@ -220,13 +220,34 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         [_group,_opportunity,"MOVEMENT_REJECTED",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
         false
     };
+    // Preserve feature recovery consumption across owner replay. Local clock values and
+    // scheduler handles never migrate; the public observation uses server time.
+    private _stalls=0;private _progressAt=time;private _lastPosition=+_start;
+    private _progress=_group getVariable ["WAIT_Cortex_CombinedGroundProgress",[]];
+    private _matchingProgress=_progress isEqualType [] && {count _progress > 0}
+        && {(_progress select 0) isEqualTo _opportunity};
+    // Corrupt/future matching evidence must not manufacture a fresh recovery budget.
+    if (_matchingProgress) then {_stalls=1;_progressAt=time-10};
+    if (_matchingProgress && {count _progress == 5} && {(_progress select 0) isEqualTo _opportunity}
+        && {(_progress select 1) isEqualTo _asset}
+        && {(_progress select 2) isEqualType 0} && {(_progress select 2) in [0,1]}
+        && {(_progress select 3) isEqualType 0} && {finite (_progress select 3)}
+        && {(_progress select 3) >= 0} && {serverTime >= (_progress select 3)}
+        && {(_progress select 4) isEqualType []} && {count (_progress select 4) == 3}
+        && {(_progress select 4) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
+        _stalls=_progress select 2;
+        _progressAt=time-(serverTime-(_progress select 3));
+        _lastPosition=+(_progress select 4);
+    };
+    _group setVariable ["WAIT_Cortex_CombinedGroundProgress",[+_opportunity,_asset,_stalls,
+        serverTime-(time-_progressAt),+_lastPosition],true];
     private _state=[_group] call WAIT_fnc_CortexGroupState;
     _state set ["movementLease",["COMBINED_GROUND",time+((_expiry-serverTime) max 5)]];
     [WAIT_fnc_CortexCombinedGroundStep,createHashMapFromArray [
         ["group",_group],["asset",_asset],["target",_target],["token",_token],["opportunity",+_opportunity],
         ["expiry",_expiry],["destination",_destination],["operationGeneration",_operation get "generation"],
-        ["ownerEpoch",_operation get "ownerEpoch"],["lastPosition",_start],
-        ["progressAt",time],["stalls",0]
+        ["ownerEpoch",_operation get "ownerEpoch"],["lastPosition",_lastPosition],
+        ["progressAt",_progressAt],["stalls",_stalls]
     ],1] call WAIT_fnc_CortexQueueJob;
     call _markApplied;
     _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"APPLIED",serverTime,_target,_destination],true];

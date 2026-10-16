@@ -134,8 +134,13 @@ if (time >= (_job getOrDefault ["progressAt",time])+10) then {
         // Reacquire a missing route once; a still-owned destination remains committed.
         // This cannot create an obstacle-avoidance spiral around a deliberate roadblock.
         if !([_group] call WAIT_fnc_CortexExternalTakeover) then {
-            private _waypoint=[_group,_destination,55,"MOVE",_operationGeneration] call WAIT_fnc_CortexGroupMove;
+            // Spend before route reacquisition so transfer cannot refund this attempt.
             _job set ["stalls",_stalls+1];
+            if (call _roleCurrent) then {
+                _group setVariable ["WAIT_Cortex_CombinedGroundProgress",[+_snapshot,_asset,_stalls+1,
+                    serverTime-(time-(_job get "progressAt")),+(_job get "lastPosition")],true];
+            };
+            private _waypoint=[_group,_destination,55,"MOVE",_operationGeneration] call WAIT_fnc_CortexGroupMove;
             if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) then {
                 _job set ["terminal","MOVEMENT_REJECTED"];
             };
@@ -143,6 +148,10 @@ if (time >= (_job getOrDefault ["progressAt",time])+10) then {
     };
     _job set ["lastPosition",getPosATL _asset];
     _job set ["progressAt",time];
+    if (call _roleCurrent) then {
+        _group setVariable ["WAIT_Cortex_CombinedGroundProgress",[+_snapshot,_asset,
+            _job getOrDefault ["stalls",0],serverTime,+(getPosATL _asset)],true];
+    };
 };
 if ((_job getOrDefault ["terminal",""]) != "") exitWith {[_job get "terminal"] call _finish};
 1

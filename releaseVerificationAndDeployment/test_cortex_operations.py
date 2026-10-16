@@ -4292,6 +4292,22 @@ class CortexOperations(unittest.TestCase):
         fire=text.split('if (_role == "GROUND_FIRE") exitWith {',1)[1].split('if (_role == "GROUND_MANOEUVRE") exitWith {',1)[0]
         self.assertLess(fire.index('_gunner doFire'),fire.index('call _markApplied'))
 
+    def test_combined_replay_retains_spent_recovery_and_original_observation_age(self):
+        local=source('cortexCombinedArmsLocal')
+        step=source('cortexCombinedGroundStep')
+        journal=local.split('private _progress=_group getVariable ["WAIT_Cortex_CombinedGroundProgress"',1)[1].split('private _state=',1)[0]
+        for guard in ('isEqualTo _opportunity','isEqualTo _asset','in [0,1]',
+                      'finite (_progress select 3)','serverTime >= (_progress select 3)',
+                      '_progressAt=time-(serverTime-(_progress select 3))'):
+            self.assertIn(guard,journal)
+        self.assertIn('["stalls",_stalls]',local)
+        self.assertIn('if (_matchingProgress) then {_stalls=1;_progressAt=time-10}',journal)
+        self.assertIn('(_progress select 3) >= 0',journal)
+        retry=step.split('// Spend before route reacquisition',1)[1]
+        self.assertLess(retry.index('"WAIT_Cortex_CombinedGroundProgress"'),retry.index('call WAIT_fnc_CortexGroupMove'))
+        self.assertIn('serverTime-(time-(_job get "progressAt"))',retry)
+        self.assertIn('if (_stalls >= 1)',step)
+
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)
