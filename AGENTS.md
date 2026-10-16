@@ -33,3 +33,7 @@ Current local source comparison: `.qa/workshop-comparison-20261014/WORKSHOP-COMP
 - Validation runs automatically for main and ready pull requests. Draft PRs use local gates; a remote draft check requires deliberate workflow_dispatch. Do not mark a PR ready merely to cause a build. Ready-for-review must trigger the complete validation pipeline.
 - Keep validation concurrency scoped to the workflow and PR/ref, cancel superseded validation runs, and preserve full release/signed-candidate checks. Do not use skip-ci messages or remove tests to conceal failures.
 - Pass the read-only GitHub token to the HEMTT installer to avoid unauthenticated release API rate limits; never print it.
+
+## Continuation handover
+
+Read `AGENT-HANDOVER.md` for the current review checkpoint, local evidence paths and outstanding work. Revalidate live Git/PR and process state before relying on its snapshot. The handover and engineering reference reviews are not player-facing package content.
