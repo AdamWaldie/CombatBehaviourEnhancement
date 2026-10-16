@@ -49,7 +49,8 @@
  * before the position is reported unreachable. Opening an unlocked door does not reset the physical-progress timer. A replacement
  * order or locality change retires the old job; the new owner rebuilds its local route.
  * Handlers: Suppressed and Hit drop the soldier to a lower stance for 4-8 s, then restore the stance
- * he held when the order was applied only if the Cortex duck stance still remains.
+ * he held immediately before ducking only if the Cortex duck stance still remains.
+ * Deferred posture recovery is bound to the same group, garrison generation, owner epoch and assignment.
  * Later stance changes are preserved. Handlers do nothing after release or Zeus takeover.
  * Locality and authority: call where the group is local.
  * Each actor must remain combat-effective and free of player/specialist ownership before
@@ -210,23 +211,33 @@ private _buildingAnchor = {
                 if (!local _unit || {isPlayer _unit} || {!([_unit] call WAIT_fnc_CortexCombatEffective)} || {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo []}
                     || {!([group _unit] call WAIT_fnc_CortexIsEligible)} || {[group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover}) exitWith {};
                 if (time < (_unit getVariable ["WAIT_AIPass_DuckUntil", -1])) exitWith {};
+                private _priorStance=unitPos _unit;
+                // Already prone is not a reason to raise the soldier under incoming fire.
+                if (toUpperANSI _priorStance == "DOWN") exitWith {};
+                private _duckGroup=group _unit;
+                private _duckGeneration=_duckGroup getVariable ["WAIT_AIPass_GarrisonGeneration",-1];
+                private _duckEpoch=_duckGroup getVariable ["WAIT_AIPass_Epoch",-1];
+                private _duckAssignment=+(_unit getVariable ["WAIT_AIPass_GarrisonPos",[]]);
                 private _until = time + 4 + random 4;
                 _unit setVariable ["WAIT_AIPass_DuckUntil", _until];
                 private _duckStance=["MIDDLE", "DOWN"] select ((unitPos _unit) == "MIDDLE");
                 _unit setVariable ["WAIT_Cortex_GarrisonDuckStance",_duckStance,true];
                 _unit setUnitPos _duckStance;
                 [{
-                    params ["_unit", "_until"];
+                    params ["_unit", "_until", "_priorStance", "_duckGroup", "_duckGeneration", "_duckEpoch", "_duckAssignment"];
                     if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit} && {(_unit getVariable ["WAIT_AIPass_DuckUntil", -1]) == _until}
-                        && {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isNotEqualTo []}
+                        && {group _unit == _duckGroup} && {local _duckGroup}
+                        && {(_duckGroup getVariable ["WAIT_AIPass_GarrisonGeneration",-2]) == _duckGeneration}
+                        && {(_duckGroup getVariable ["WAIT_AIPass_Epoch",-2]) == _duckEpoch}
+                        && {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo _duckAssignment}
                         && {[group _unit] call WAIT_fnc_CortexIsEligible}
                         && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) then {
                         if (unitPos _unit == (_unit getVariable ["WAIT_Cortex_GarrisonDuckStance", ""])) then {
-                            _unit setUnitPos (_unit getVariable ["WAIT_AIPass_GarrisonStance", "AUTO"]);
+                            _unit setUnitPos _priorStance;
                         };
                         _unit setVariable ["WAIT_Cortex_GarrisonDuckStance",nil,true];
                     };
-                }, [_unit, _until], _until - time] call CBA_fnc_waitAndExecute;
+                }, [_unit,_until,_priorStance,_duckGroup,_duckGeneration,_duckEpoch,_duckAssignment], _until - time] call CBA_fnc_waitAndExecute;
             };
             _unit setVariable ["WAIT_AIPass_GarrisonHandlerIds", [
                 ["Suppressed", _unit addEventHandler ["Suppressed", _duck]],

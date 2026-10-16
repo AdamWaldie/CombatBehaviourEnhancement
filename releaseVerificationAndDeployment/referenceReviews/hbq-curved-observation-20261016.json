@@ -38,5 +38,65 @@
     "engineReference": "https://community.bistudio.com/wiki/lineIntersectsSurfaces",
     "engineContract": "The second element of each returned intersection is the intersected surface normal. GEOM sensing is not a complete PhysX or hull-clearance proof.",
     "remaining": "Source classifier/gate adapters are separately reviewed. Terrain-relative low rows versus absolute body rows, grade/deck transitions, modded undersides and physical braking still require measured comparison."
+  },
+  "gradeDeckReview": {
+    "scope": "Source-only projection analysis. No sampled geometry or native traversal executed.",
+    "sourceRanges": [
+      "431-454 RaySegments endpoint conversion",
+      "483-489 Sense GEOM casts"
+    ],
+    "sourceProjection": "RaySegments keeps transformed XY but replaces endpoint altitude using AGLToASL [worldX,worldY,H]. Sense uses one H=0.6 row; endpoints interpolate as straight segments.",
+    "waitProjection": "DrivingGeometryCap transforms each sampled model body row through current vehicle pitch/elevation; straight sensing has one segment per row/width. Turning has up to three segments. No future support height is observed.",
+    "analyticSensitivity": [
+      {
+        "distanceM": 10,
+        "relativeGradeDegrees": 5,
+        "heightDifferenceM": 0.875
+      },
+      {
+        "distanceM": 25,
+        "relativeGradeDegrees": 5,
+        "heightDifferenceM": 2.187
+      },
+      {
+        "distanceM": 50,
+        "relativeGradeDegrees": 5,
+        "heightDifferenceM": 4.374
+      },
+      {
+        "distanceM": 10,
+        "relativeGradeDegrees": 10,
+        "heightDifferenceM": 1.763
+      },
+      {
+        "distanceM": 25,
+        "relativeGradeDegrees": 10,
+        "heightDifferenceM": 4.408
+      },
+      {
+        "distanceM": 50,
+        "relativeGradeDegrees": 10,
+        "heightDifferenceM": 8.816
+      }
+    ],
+    "interpretation": "For a hypothetical grade change relative to the current body projection, even five degrees produces approximately 2.19m divergence at25m. These are mathematical sensitivity examples, not observed engine failures or a driveability threshold.",
+    "limitations": [
+      "Ground-relative endpoints do not establish that the chosen elevation belongs to the current road deck; do not equate terrain with a bridge surface.",
+      "Current-pitch rigid projection can diverge from a changed grade before the vehicle pitches; ignoring upward normals does not recover obstacles the rays never intersect.",
+      "Sparse endpoints also cannot represent arbitrary intermediate crest/dip shape.",
+      "The fixed 0.45m lower body-row offset leaves lower objects outside that row; wheels, PhysX and pathfinder behaviour are separate evidence.",
+      "GEOM observations and native path hints do not prove full swept-body or braking clearance."
+    ],
+    "nextDecision": "Before changing projection, compare bounded support observations with current native path elevation and vehicle/deck identity. Reject missing or ambiguous surface information. Keep current upper body rows and signed underside handling; do not introduce a terrain-only clearance shortcut.",
+    "physicalCases": [
+      "same vehicle/obstacle on flat terrain and grade change",
+      "crest and dip with low solid obstacle beyond transition",
+      "same low obstacle on elevated deck and ground below",
+      "low overhead obstruction on level deck and ramp",
+      "curved uphill/downhill approach with real braking and mission interruption"
+    ],
+    "performance": "Any added support observation must have an explicit per-callback query/hit budget and measured overhead. No new world queries were added in this review.",
+    "implementationAccepted": false,
+    "physicalAcceptance": false
   }
 }

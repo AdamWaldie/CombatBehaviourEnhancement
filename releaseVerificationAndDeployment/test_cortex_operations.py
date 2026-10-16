@@ -3334,6 +3334,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_garrison_duck_restores_immediate_stance_only_for_same_assignment(self):
+        apply=source('cortexGarrisonApplyLocal')
+        duck=apply.split('private _duck = {',1)[1].split('WAIT_AIPass_GarrisonHandlerIds',1)[0]
+        for proof in ['private _priorStance=unitPos _unit;', 'group _unit == _duckGroup',
+                      'local _duckGroup', '== _duckGeneration', '== _duckEpoch',
+                      'isEqualTo _duckAssignment', '_unit setUnitPos _priorStance;',
+                      '[_unit,_until,_priorStance,_duckGroup,_duckGeneration,_duckEpoch,_duckAssignment]']:
+            self.assertIn(proof,duck)
+        self.assertLess(duck.index('private _priorStance=unitPos _unit;'),duck.index('_unit setUnitPos _duckStance;'))
+        self.assertLess(duck.index('if (toUpperANSI _priorStance == "DOWN") exitWith {};'),duck.index('_unit setUnitPos _duckStance;'))
+        self.assertNotIn('_unit setUnitPos (_unit getVariable ["WAIT_AIPass_GarrisonStance"',duck)
+
     def test_suppression_reserve_rejection_has_live_positive_peers(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()
         for proof in ['FIRE-reserve-starved-fixture-', 'count _rifleSpare == 1',
@@ -4679,7 +4691,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (unitPos _unit == (_unit getVariable ["WAIT_Cortex_GarrisonDuckStance", ""]))', apply)
         self.assertIn('if (unitPos _x == (_x getVariable ["WAIT_Cortex_GarrisonDuckStance", ""]))', release)
         self.assertIn('!([group _unit] call WAIT_fnc_CortexIsEligible)', apply)
-        delayed=apply.split('params ["_unit", "_until"];')[1].split('}, [_unit, _until]')[0]
+        delayed=apply.split('params ["_unit", "_until", "_priorStance",')[1].split('}, [_unit,_until,_priorStance,')[0]
         self.assertIn('&& {[group _unit] call WAIT_fnc_CortexIsEligible}', delayed)
         for text in [apply, release]:
             self.assertIn('setVariable ["WAIT_Cortex_GarrisonDuckStance",nil,true]', text)
