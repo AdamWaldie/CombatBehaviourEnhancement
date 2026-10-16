@@ -21,4 +21,4 @@ class GrenadeNativeHandoverTests(unittest.TestCase):
         cleanup = callback.index('_unit setVariable ["WAIT_Cortex_ActorMove",nil]')
         self.assertGreater(cleanup, follow)
         self.assertIn('if (_ownsEvasion && {local _unit}) then {', callback)
-        self.assertIn('(_actorMove select 2) == _expires', callback)
+        self.assertIn('_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]', callback)

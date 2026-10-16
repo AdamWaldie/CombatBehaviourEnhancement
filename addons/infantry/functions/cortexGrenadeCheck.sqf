@@ -23,6 +23,8 @@
  * Repeat/JIP: current feature gates and eligibility are rechecked; owner jobs are retired on migration.
  * At most 16 nearby actors are considered. Recovery matches exact expiry, operation generation and
  * owner epoch; stale callbacks cannot clear a newer evasion or issue follow over native/specialist tasks.
+ * Admission preserves unknown/malformed actor reservations; delayed cleanup requires the exact
+ * issued evasion lease, including its destination, so a replacement marker is never retired.
  * Legacy regroup records without a route receipt only retire their exact-owned marker.
  * Arguments:
  * 0: job <HASHMAP> - contains "projectile", or internal "regroup" actor records
@@ -44,9 +46,8 @@ if (_regroup isNotEqualTo []) exitWith {
         _x params ["_unit","_group","_spot","_hold",
             ["_expires",-1,[0]],["_generation",-1,[0]],["_epoch",-1,[0]],["_nativeRoute",[],[[]]]];
         private _actorMove = _unit getVariable ["WAIT_Cortex_ActorMove",[]];
-        private _ownsEvasion = count _actorMove == 3 && {(_actorMove select 0) == "GRENADE_EVASION"}
-            && {(_actorMove select 1) distance2D _spot <= 1}
-            && {_expires >= 0} && {(_actorMove select 2) == _expires};
+        private _ownsEvasion = _expires >= 0
+            && {_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]};
         if (_ownsEvasion && {local _unit}) then {
             private _destination=(expectedDestination _unit) param [0,[],[[]]];
             private _stillOurs=local _group && {group _unit == _group} && {vehicle _unit == _unit}
@@ -97,7 +98,6 @@ private _regroupActors = [];
     private _state = _group getVariable ["WAIT_AIPass_State",createHashMap];
     private _drillUnits = (_state getOrDefault ["drill", createHashMap]) getOrDefault ["units", []];
     private _supportHeld = _state getOrDefault ["supportHeld",[]];
-    private _actorMove = _unit getVariable ["WAIT_Cortex_ActorMove",[]];
     if (local _unit && {!isPlayer _unit} && {isNull remoteControlled _unit}
         && {[_unit] call WAIT_fnc_CortexCombatEffective} && {vehicle _unit == _unit}
         && {!([_unit] call WAIT_fnc_CompatibilityExternalControl)}
@@ -105,7 +105,7 @@ private _regroupActors = [];
         && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
         && {_unit checkAIFeature "MOVE"}
         && {_unit checkAIFeature "PATH" || {_unit in _supportHeld}}
-        && {!(_unit in _drillUnits)} && {count _actorMove != 3 || {time >= (_actorMove select 2)}}
+        && {!(_unit in _drillUnits)} && {!([_unit] call WAIT_fnc_CortexActorMoveReserved)}
         && {_checkedResults select _groupIndex} && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
         private _sees = _unit distance _grenade < 5 || {([objNull, "VIEW"] checkVisibility [eyePos _unit, _grenadeASL]) > 0.2};
         private _chance = (0.5 + 0.5 * (_unit skill "general")) * (1 - 0.5 * ((getSuppression _unit) max 0 min 1));

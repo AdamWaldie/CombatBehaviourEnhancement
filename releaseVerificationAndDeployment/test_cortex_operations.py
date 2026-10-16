@@ -4785,6 +4785,17 @@ class CortexOperations(unittest.TestCase):
             self.assertLess(text.index(release),text.index('call ace_captives_fnc_setSurrendered'))
         self.assertIn('WAIT_fnc_CortexCombatEffective',text)
 
+    def test_grenade_evasion_admission_and_cleanup_require_strict_ownership(self):
+        text=source('cortexGrenadeCheck')
+        admission=text.split('private _grenade =',1)[1]
+        self.assertLess(admission.index('call WAIT_fnc_CortexActorMoveReserved'),admission.index('_unit doMove _spot'))
+        self.assertNotIn('count _actorMove != 3',admission)
+        cleanup=text.split('if (_regroup isNotEqualTo []) exitWith {',1)[1].split('private _grenade =',1)[0]
+        self.assertIn('_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]',cleanup)
+        self.assertNotIn('(_actorMove select 1) distance2D',cleanup)
+        self.assertLess(cleanup.index('_actorMove isEqualTo'),cleanup.index('if (_ownsEvasion && {local _unit})'))
+        self.assertLess(cleanup.index('if (_ownsEvasion && {local _unit})'),cleanup.index('setVariable ["WAIT_Cortex_ActorMove",nil]'))
+
     def test_grenade_evasion_regroup_does_not_overwrite_new_actions(self):
         text=source('cortexGrenadeCheck')
         callback=text.split('if (_regroup isNotEqualTo []) exitWith {')[1].split('private _grenade =',1)[0]
@@ -4792,10 +4803,10 @@ class CortexOperations(unittest.TestCase):
             self.assertLess(callback.index(guard),callback.index('doFollow'))
         self.assertLess(callback.index('doFollow'),callback.index('setVariable ["WAIT_Cortex_ActorMove",nil]'))
         self.assertIn('if (_ownsEvasion && {local _unit}) then {',callback)
-        for guard in ['(_actorMove select 2) == _expires','WAIT_OperationGeneration','WAIT_AIPass_Epoch','CortexExternalOwner','remoteControlled','currentCommand']:
+        for guard in ['_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]','WAIT_OperationGeneration','WAIT_AIPass_Epoch','CortexExternalOwner','remoteControlled','currentCommand']:
             self.assertLess(callback.index(guard),callback.index('doFollow'))
         self.assertIn('setVariable ["WAIT_Cortex_ActorMove",["GRENADE_EVASION"',text)
-        self.assertIn('count _actorMove != 3 || {time >= (_actorMove select 2)}',text)
+        self.assertIn('!([_unit] call WAIT_fnc_CortexActorMoveReserved)',text)
         self.assertIn('setVariable ["WAIT_Cortex_ActorMove",nil]',callback)
         self.assertIn('[WAIT_fnc_CortexGrenadeCheck,createHashMapFromArray [["regroup",_regroupActors]],6] call WAIT_fnc_CortexQueueJob',text)
         self.assertIn('"WAIT_AIPass_GrenadeEvasion_Enable",true] call WAIT_fnc_CortexFeatureEnabled',text)
