@@ -3622,8 +3622,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('setVariable ["WAIT_Cortex_ActorMove",["ANTI_ARMOUR"',text)
         self.assertIn('_state set ["antiArmourRelocation"',text)
         support=source('cortexSupportBoundStart')
-        self.assertIn('getVariable ["WAIT_Cortex_ActorMove",[]]',support)
-        self.assertIn('time >= (_actorMove select 2)',support)
+        self.assertIn('!([_x] call WAIT_fnc_CortexActorMoveReserved)',support)
+        self.assertNotIn('count _actorMove != 3',support)
         for cleanup in [source('cortexRestoreCalm'),source('cortexLocality')]:
             self.assertIn('setVariable ["WAIT_Cortex_ActorMove",nil]',cleanup)
 
@@ -4808,8 +4808,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_unit enableAI "PATH"',grenade)
         self.assertIn('_state set ["supportHeld",_supportHeld-[_unit]]',grenade)
         maintain=source('cortexSupportMaintain')
-        self.assertIn('getVariable ["WAIT_Cortex_ActorMove",[]]',maintain)
-        self.assertIn('time >= (_actorMove select 2)',maintain)
+        self.assertIn('!([_x] call WAIT_fnc_CortexActorMoveReserved)',maintain)
+        self.assertNotIn('count _actorMove != 3',maintain)
 
     def test_tactical_drills_do_not_consume_reserved_actors(self):
         for name in ['cortexFlankStart','cortexAdvanceStart','cortexAssaultStart']:
@@ -6469,6 +6469,18 @@ class CortexOperations(unittest.TestCase):
         matrix = (ROOT / 'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text(encoding='utf-8')
         self.assertIn('{deleteVehicle (_x select 0)} forEach _fixtureCrew', matrix)
         self.assertIn('-operating-crew-retained', matrix)
+
+    def test_support_owner_move_and_cover_preserve_strict_actor_reservations(self):
+        start=source('cortexSupportBoundStart')
+        fit=start.split('private _fit=',1)[1].split('if (count _fit < 3)',1)[0]
+        self.assertIn('!([_x] call WAIT_fnc_CortexActorMoveReserved)',fit)
+        maintain=source('cortexSupportMaintain')
+        cover=maintain.split('private _coverIdentity=',1)[1]
+        self.assertLess(cover.index('!([_x] call WAIT_fnc_CortexActorMoveReserved)'),cover.index('doStop _x'))
+        for code in [start,cover]:
+            self.assertNotIn('count _actorMove != 3',code)
+            self.assertIn('WAIT_fnc_CompatibilityExternalControl',code)
+            self.assertIn('"CARRY SOLDIER"',code)
 
     def test_drill_refill_checks_strict_actor_ownership_before_roster_mutation(self):
         step=source('cortexFlankStep')
