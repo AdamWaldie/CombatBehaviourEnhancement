@@ -6,7 +6,9 @@ class ConvoyWaypointGateTests(unittest.TestCase):
     def test_recovery_reads_gates_without_executing_them(self):
         s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
         gate=s.split('private _mayRecoverWaypoint=',1)[1].split('// A stalled engine route',1)[0]
-        for field in ('waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers','triggerActivated'):
+        for field in ('waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers','triggerActivated',
+                      'isNull waypointAttachedVehicle _waypoint','isNull waypointAttachedObject _waypoint',
+                      '(synchronizedWaypoints _waypoint) isEqualTo []'):
             self.assertIn(field,gate)
         for forbidden in ('compile','execVM','call compile'):
             self.assertNotIn(forbidden,gate)

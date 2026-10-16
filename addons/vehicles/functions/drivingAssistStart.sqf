@@ -14,6 +14,7 @@
  * Traffic dwell restarts after a six-second observation gap or either hull moving more than
  * 1.5 metres in ASL from its dwell anchor; low-speed motion beyond that bound restarts dwell.
  * Native individual MOVE destinations and deliberate STOP commands block new route recovery;
+ * the waypoint match includes elevation so a newer stacked-road destination is not flattened.
  * an exact owned reverse journal alone permits its finite handback to the authored route.
  * Native boarding, service, medical and assembly tasks release the exact speed lease;
  * both driver and effective commander are rechecked at each cap/recovery command boundary.
@@ -48,6 +49,9 @@
  * New or newly progressing routes get a 20-second planning/observation grace. A route refresh
  * gets 30 seconds before cautious reverse admission; the reverse leg remains six seconds and
  * the final authored-route retry gets 60 seconds. No new order inherits a spent retry window.
+ * Exhausted recovery stays at durable stage four without more route/reverse retries. Existing
+ * safety sampling continues; new-route identity or measured forward progress can retire exhaustion.
+ * Traffic holds, native waits and becoming a follower cannot renew the spent episode.
  * One group driving FSM admits the existing executor through the shared
  * scheduler; group decisions never issue these commands directly.
  * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
@@ -210,7 +214,7 @@ _brain set ["geometryTracks",_geometryTracks];
             if (!(_command in ["MOVE","WAIT"])) exitWith {_command == ""};
             private _native=expectedDestination _movementOperator;
             private _waypoint=[_group,currentWaypoint _group];
-            if (_command == "MOVE" && {(_native param [0,[]]) distance2D waypointPosition _waypoint <= 3}) exitWith {true};
+            if (_command == "MOVE" && {(_native param [0,[]]) vectorDistance (waypointPosition _waypoint) <= 3}) exitWith {true};
             // The rear leg intentionally differs from the waypoint. Only an unchanged
             // current journal can authorize its own finite forward handback (including owned WAIT),
             // not another MOVE or an unowned WAIT.
@@ -237,7 +241,7 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_state isEqualTo [] && {_recoveryOwned}
                 && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}) then {
                 private _kind=_recoveryWork get "kind";
-                private _stage=switch (_kind) do {case "REFRESH":{1};case "FINAL":{3};default {2}};
+                private _stage=switch (_kind) do {case "REFRESH":{1};case "FINAL":{3};case "EXHAUSTED":{4};default {2}};
                 private _deadline=_recoveryWork get "deadline";
                 if (_stage == 1 && {serverTime >= (_recoveryWork get "hardDeadline")-60}) then {_stage=2};
                 _state=[_recoveryWork get "cap",0,time,_group,+(_recoveryWork get "origin"),
@@ -266,14 +270,13 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_state isNotEqualTo [] && {vehicle leader _group isNotEqualTo _vehicle}) then {
                 // Retire the former leader's exact rear command before returning to formation.
                 // Clearing only the stage would leave that native destination running.
-                [_vehicle,_group,"NATIVE_FOLLOWER"] call WAIT_fnc_DrivingRecoveryRelease;
+                if ((_state param [6,0]) != 4) then {[_vehicle,_group,"NATIVE_FOLLOWER"] call WAIT_fnc_DrivingRecoveryRelease};
                 _state set [4,getPosATL _vehicle];
                 _state set [5,time];
-                _state set [6,0];
-                _state set [7,-1];
+                if ((_state param [6,0]) != 4) then {_state set [6,0];_state set [7,-1]};
                 _state set [8,"NATIVE_FOLLOWER"];_state set [10,false];
             };
-            if (_state isNotEqualTo [] && {call _nativeWaiting}) then {
+            if (_state isNotEqualTo [] && {(_state param [6,0]) != 4} && {call _nativeWaiting}) then {
                 _state set [4,getPosATL _vehicle];_state set [5,time];
                 _state set [6,0];_state set [7,-1];_state set [8,"INTENTIONAL_WAIT"];_state set [10,false];
             };
@@ -317,7 +320,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _hard=if (count _old > 0 && {(_old get "group") == _group} && {(_old get "route") isEqualTo _routeIdentity}) then {
                     _old get "hardDeadline"
                 } else {serverTime+96};
-                private _deadline=switch (_kind) do {case "REFRESH":{_hard-66};case "FINAL":{_hard};default {_hard-60}};
+                private _deadline=switch (_kind) do {case "REFRESH":{_hard-66};case "FINAL":{_hard};case "EXHAUSTED":{_hard};default {_hard-60}};
                 private _work=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
                     ["kind",_kind],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
@@ -526,7 +529,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 // Keep an already-issued rear leg finite. After the pedestrian clears,
                 // its expired deadline returns to the authored route instead of losing
                 // the rear-leg receipt and treating backward travel as ordinary progress.
-                if (_recoveryStage != 2) then {
+                if !(_recoveryStage in [2,4]) then {
                     [_vehicle,_group,"RECOVERY_PAUSED",false] call WAIT_fnc_DrivingRecoveryRelease;
                     _recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false
                 };
@@ -578,7 +581,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // Real progress, a replaced order, follower ownership or an intentional wait already
             // resets this stage and its progress clock above. A rear leg keeps its finite expiry.
             private _observationWindow=[20,30,0,60] param [_recoveryStage,60];
-            if (_hasRoute && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+            if (_hasRoute && {_recoveryStage in [0,1,2,3]} && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
                 && {!_inCombat} && {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {abs speed _vehicle < 1 || {_reverseComplete}}
                 && {time-_progressAt >= _observationWindow || {_reverseComplete} || {_finalExpired}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
@@ -616,8 +619,12 @@ _brain set ["geometryTracks",_geometryTracks];
                             _recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false;
                         };
                         default {
+                            // Spent retries do not release traffic/terrain safety for this group.
+                            // Persist stage four across adoption; only measured route progress or
+                            // a new authored route may replenish the recovery episode.
                             _recoveryResult="EXHAUSTED";_reverseIssued=false;
-                            _recoveryUntil=time+60;
+                            _recoveryStage=4;
+                            _recoveryUntil=["EXHAUSTED"] call _recordRecovery;
                         };
                     };
                     _progressPosition=getPosATL _vehicle;

@@ -15,12 +15,32 @@
  * feature gates and group task priority immediately before the global animation side effect.
  * Arguments: 0 unit <OBJECT>, default objNull; 1 building <OBJECT>, default objNull;
  * 2 context <ARRAY, []> - optional [CLEAR, GARRISON or INDOOR <STRING>, order generation <NUMBER>].
+ * 3 metadata only <BOOL, false> - cache model definitions without interaction or cooldown.
+ * Metadata discovery is read-only world observation and does not require an available actor.
+ * STOP, disabled movement, hidden actors and disabled simulation veto opening requests.
  * Return: BOOL, an opening request was issued (not proof of entry).
  * Current callers: CortexClearBuilding, CortexGarrisonApplyLocal and IndoorActorOperation owner jobs.
  * Example: [_soldier,_house] call WAIT_fnc_CortexBuildingDoor;
  */
-params [["_unit",objNull,[objNull]],["_building",objNull,[objNull]],["_context",[],[[]]]];
+params [["_unit",objNull,[objNull]],["_building",objNull,[objNull]],["_context",[],[[]]],["_metadataOnly",false,[true]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
+if (isNull _building) exitWith {false};
+// Model metadata is stable for this object's lifetime. Locks and animation phases are not.
+private _doors=_building getVariable ["WAIT_Cortex_DoorDefinitions",[]];
+if (isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}) then {
+    private _config=configOf _building;
+    private _count=(getNumber (_config >> "numberOfDoors")) min 64;
+    for "_index" from 1 to _count do {
+        private _source=format ["Door_%1_sound_source",_index];
+        if (isClass (_config >> "AnimationSources" >> _source)) then {
+            private _memory=_building selectionPosition [format ["Door_%1_trigger",_index],"Memory"];
+            if (_memory isNotEqualTo [0,0,0]) then {_doors pushBack [_index,_source,_memory]};
+        };
+    };
+    _building setVariable ["WAIT_Cortex_DoorDefinitions",_doors];
+};
+// Discovery never opens a door or consumes the interaction cooldown.
+if (_metadataOnly) exitWith {false};
 private _vectorValid={
     _this isEqualType [] && {count _this == 3}
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
@@ -79,20 +99,6 @@ if (isNull _unit || {isNull _building} || {!local _unit} || {!([_unit] call WAIT
     || {!([group _unit] call WAIT_fnc_CortexIsEligible)}) exitWith {false};
 if !(call _orderCurrent) exitWith {false};
 if (serverTime < (_building getVariable ["WAIT_Cortex_DoorRequestUntil",-1])) exitWith {false};
-// Model metadata is stable for this object's lifetime. Locks and animation phases are not.
-private _doors=_building getVariable ["WAIT_Cortex_DoorDefinitions",[]];
-if (isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}) then {
-    private _config=configOf _building;
-    private _count=(getNumber (_config >> "numberOfDoors")) min 64;
-    for "_index" from 1 to _count do {
-        private _source=format ["Door_%1_sound_source",_index];
-        if (isClass (_config >> "AnimationSources" >> _source)) then {
-            private _memory=_building selectionPosition [format ["Door_%1_trigger",_index],"Memory"];
-            if (_memory isNotEqualTo [0,0,0]) then {_doors pushBack [_index,_source,_memory]};
-        };
-    };
-    _building setVariable ["WAIT_Cortex_DoorDefinitions",_doors];
-};
 if (_doors isEqualTo []) exitWith {false};
 private _doorCount=count _doors;
 private _cursor=_building getVariable ["WAIT_Cortex_DoorVisibilityCursor",0];
@@ -132,6 +138,11 @@ private _visibilityChecks=0;
             && {(_building getVariable [format ["bis_disabled_Door_%1",_index],0]) isEqualTo 0}
             && {call _orderCurrent} && {[_unit] call WAIT_fnc_CortexCombatEffective}
             && {!isPlayer _unit} && {isNull remoteControlled _unit}
+            && {local _unit} && {isNull objectParent _unit} && {simulationEnabled _unit}
+            && {!isObjectHidden _unit} && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
+            && {currentCommand _unit != "STOP"}
+            && {(getPosASL _unit) vectorDistance _position <= 3}
+            && {abs (((getPosASL _unit) select 2)-(_position select 2)) <= 1.5}
             && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) exitWith {
             _building setVariable ["WAIT_Cortex_DoorRequestUntil",serverTime+2,true];
             [_building,_index,1] call BIS_fnc_door;

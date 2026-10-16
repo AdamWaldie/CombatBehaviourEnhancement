@@ -40,6 +40,8 @@
  * tick (64 candidates, eight corners each). Only its exact registered predecessor is excluded
  * from this observer because size-aware convoy spacing already owns that gap. Up to 20 vehicles
  * are admitted; dense observations stop rather than authorize a recovery through unseen traffic.
+ * Recovery refuses object/vehicle-attached and peer-synchronized waypoints; native execution
+ * retains their target and rendezvous semantics. No activation code is evaluated.
  * The route watchdog remembers only the unchanged final MOVE waypoint. If the engine marks it complete
  * more than 75 m early, the same metadata-checked ungated waypoint is selected again; no waypoint is synthesized or rewritten.
  * Native recovery retains the recorded bend/trail endpoint separately from straight-leg look-ahead;
@@ -160,6 +162,8 @@ private _mayRecoverWaypoint={
         && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
         && {waypointScript _waypoint == ""}
         && {(waypointTimeout _waypoint param [2,0]) <= 0}
+        && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
+        && {(synchronizedWaypoints _waypoint) isEqualTo []}
         && {(synchronizedTriggers _waypoint) findIf {!isNull _x && {!triggerActivated _x}} < 0}
 };
 // A stalled engine route and a deliberate physical roadblock require different Zeus advice.

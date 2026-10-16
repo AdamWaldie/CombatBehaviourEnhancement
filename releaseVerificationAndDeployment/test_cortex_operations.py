@@ -7648,9 +7648,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('call _mayIssueDriving',guard)
         self.assertIn('vehicle leader _group isEqualTo _vehicle',guard)
         self.assertGreaterEqual(start.count('{call _mayRecoverRoute}'),2)
-        follower=start.split('if (_state isNotEqualTo [] && {vehicle leader _group isNotEqualTo _vehicle}) then {',1)[1].split('};',1)[0]
+        follower=start.split('if (_state isNotEqualTo [] && {vehicle leader _group isNotEqualTo _vehicle}) then {',1)[1].split('private _origin=',1)[0]
         self.assertIn('_state set [5,time]',follower)
         self.assertIn('_state set [6,0]',follower)
+        self.assertIn('if ((_state param [6,0]) != 4) then {_state set [6,0];_state set [7,-1]}',follower)
         self.assertIn('"NATIVE_FOLLOWER"',follower)
         self.assertLess(start.index('"NATIVE_FOLLOWER"'),start.index('private _cap='))
 

@@ -84,7 +84,8 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         guard=s.split('private _nativeRouteIntent={',1)[1].split('private _priorOwner=',1)[0]
         self.assertIn('_command == "STOP"',guard)
         self.assertIn('if (!(_command in ["MOVE","WAIT"])) exitWith {_command == ""}',guard)
-        self.assertIn('distance2D waypointPosition _waypoint <= 3',guard)
+        self.assertIn('vectorDistance (waypointPosition _waypoint) <= 3',guard)
+        self.assertNotIn('distance2D',guard)
         for receipt in ('get "group"','get "route"','get "driver"','get "operator"','get "driverCommand"','get "command"'):
             self.assertIn(receipt,guard)
         self.assertIn('private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}',guard)
@@ -118,5 +119,22 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertIn('toUpperANSI currentCommand _x in ["","MOVE","WAIT"]', owned)
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
         self.assertIn('toUpperANSI currentCommand _x in ["","MOVE","WAIT"]', release)
+
+    def test_exhaustion_keeps_safety_without_replenishing_retries(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('_hasRoute && {_recoveryStage in [0,1,2,3]}',s)
+        self.assertIn('_recoveryStage=4;',s)
+        self.assertIn('["EXHAUSTED"] call _recordRecovery',s)
+        self.assertIn('case "EXHAUSTED":{4}',s)
+        self.assertIn('if !(_recoveryStage in [2,4]) then {',s)
+        follower=s.split('// A follower must not retain',1)[1].split('private _origin=',1)[0]
+        self.assertIn('(_state param [6,0]) != 4',follower)
+        step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text()
+        self.assertIn('_phase="RECOVERY_EXHAUSTED"',step)
+        self.assertNotIn('if (_exhausted) then {_phase="HANDBACK"',step)
+        fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
+        state=fsm.split('class RecoveryExhausted {name=',1)[1].split('class Recovery {name=',1)[0]
+        self.assertIn('call WAIT_fnc_DrivingOperationQueue',state)
+        self.assertNotIn('DrivingOperationFinish',state)
 
 if __name__=='__main__':unittest.main()

@@ -595,7 +595,7 @@ private _delay=call {
     if !(_job getOrDefault ["accessAdmitted",false]) then {
         private _probe=(_job get "team") param [0,objNull];
         if (isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}) then {
-            [_probe,_building,["CLEAR",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor;
+            [_probe,_building,["CLEAR",_job get "generation"],true] call WAIT_fnc_CortexBuildingDoor;
         };
         private _doors=_building getVariable ["WAIT_Cortex_DoorDefinitions",[]];
         private _allLocked=_doors isNotEqualTo [] && {_doors findIf {
