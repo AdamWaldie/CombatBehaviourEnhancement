@@ -50,10 +50,16 @@ Latest local implementation validation:
 - Latest completed Build: 1,067 tests, all sequential offline gates, nine PBOs, 310 production SQF sources, FSM inspections and sealing, exit 0.
 - Log: `.qa/workshop-evaluation-20261016/garrison-posture-repeat-fixture-build.log`.
 - Unsigned build fingerprint: `075837148d77b379f543820df868228de13fd2fdff92be4a551bf67ae5127597`.
-- A current signed release has not yet been produced. The historical candidate below predates the driving, suppression and garrison changes. Do not relabel it.
+- A clean Release build and permanent-key signed local review candidate now exist for `32729c202f1528b29756ada9aa6ecdd083db9c51`; all 1,067 tests and offline gates passed.
+- Artifact: `releases/review-suppression-garrison-32729c2/wait-candidate.zip`.
+- Report: `releases/review-suppression-garrison-32729c2/signing-verification.json`.
+- ZIP SHA-256: `c87b8a2bd1cb7bf0a65543c16e0c2f3ee390647881bde3192b28e794f546d594`.
+- Signed package fingerprint: `63f2d027e67bbb2a9d0fc47292ea39d8859176cb489260020f0052762586a75f`.
+- Native pinned signer plus independent HEMTT: nine valid signatures and nine damaged signatures rejected; repeated verification after ZIP extraction also passed. Inventory: 42 files, nine PBOs, nine bisigns, one public key, no private key material. Signing scratch uses external temporary directories and cleanup.
+- Release log: `.qa/workshop-evaluation-20261016/suppression-garrison-checkpoint-release.log`. No audit, GitHub Release or Steam upload. All behavioural/performance acceptance remains outstanding.
 - Current source-only reference addition: `releaseVerificationAndDeployment/referenceReviews/pinned-down-combat-suppression-3820871877.json`, AI only. The source FSM matches the preserved earlier version; source review is incomplete and earns no parity/acceptance credit.
 
-Earlier signed review candidate verified at capture:
+Historical signed review candidate verified at its capture:
 
 - Clean source: `71e4d45af4f6139fbdc1a2d7808c926465162b64`.
 - Artifact: `releases/review-checkpoint-71e4d45/wait-candidate.zip`.
