@@ -3334,6 +3334,26 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_fire_audit_requires_projectiles_during_suppression_commands(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()
+        for proof in ['_shots pushBack [time,_weapon,_muzzle,_ammo,_magazine,_orderedAt,',
+                      '_orderedAt >= 0', '_shotAt >= _orderedAt', '_shotAt <= _orderedAt+8',
+                      '_weapon == primaryWeapon _unit', '_command == "SUPPRESS"',
+                      '_readyGroups == 2 && {_groupsWithShots == 2}',
+                      '(units _group) findIf {[_x] call _hasSuppressionShot} < 0']:
+            self.assertIn(proof,qa)
+        self.assertIn('if (count _shots > 200) then {_shots deleteAt 0}',qa)
+
+    def test_fire_audit_releases_individual_never_fire_orders(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()
+        for actors, check in [('_shooters','FIRE-weapons-free-unit-modes'),
+                              ('_suppressionShooters','FIRE-suppression-unit-modes')]:
+            command='{_x setUnitCombatMode "RED"} forEach '+actors+';'
+            self.assertLess(qa.index(command),qa.index(check))
+            self.assertIn(actors+' findIf {unitCombatMode _x != "RED"} < 0',qa)
+        self.assertLess(qa.index('FIRE-weapons-free-unit-modes'),qa.index('FIRE-both-targets-actual-fire'))
+        self.assertLess(qa.index('FIRE-suppression-unit-modes'),qa.index('private _deadline=time+35'))
+
     def test_suppression_requires_the_loaded_primary_bullet_muzzle(self):
         suppression = source("cortexFireControl").split('// Disciplined suppression', 1)[1]
         boundary = suppression.index('_unit doSuppressiveFire _targetASL')

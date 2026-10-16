@@ -72,6 +72,10 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",_shooters+_targets,true];
 sleep 12;
 ["FIRE-hold-fire-no-shots",_shooters findIf {(_x getVariable ["WAIT_CortexQA_ActualShots",0]) > 0} < 0] call _check;
 _group setCombatMode "RED";
+// Individual BLUE is a separate engine order: release it explicitly at this phase boundary.
+{_x setUnitCombatMode "RED"} forEach _shooters;
+["FIRE-weapons-free-unit-modes",_shooters findIf {unitCombatMode _x != "RED"} < 0,
+    str (_shooters apply {unitCombatMode _x})] call _check;
 ["Fire control: weapons free","The same live targets remain. The squad must now fire real rounds at both targets. Labels show actual shots and target hit events; assignment alone does not establish effective fire.",[2100,1100,0]] call _phase;
 private _engaged=[{
     (_shooters findIf {(_x getVariable ["WAIT_CortexQA_ActualShots",0]) > 0} >= 0)
@@ -127,9 +131,14 @@ for "_g" from 0 to 1 do {
         _unit setVariable ["WAIT_CortexQA_SuppressShots",[]];
         _unit setVariable ["WAIT_CortexQA_Label",format ["SQUAD %1 / SHOOTER %2 | waiting",_g+1,_i+1],true];
         _unit addEventHandler ["FiredMan",{
-            params ["_unit"];
+            params ["_unit","_weapon","_muzzle","_mode","_ammo","_magazine"];
             private _shots=_unit getVariable ["WAIT_CortexQA_SuppressShots",[]];
-            _shots pushBack time;
+            private _orderedAt=_unit getVariable ["WAIT_AIPass_LastSuppress",-1];
+            // Record real projectile events, including misses and native fire. Acceptance below
+            // counts only primary bullet shots correlated with an existing production order.
+            _shots pushBack [time,_weapon,_muzzle,_ammo,_magazine,_orderedAt,
+                toUpperANSI (currentCommand _unit)];
+            if (count _shots > 200) then {_shots deleteAt 0};
             _unit setVariable ["WAIT_CortexQA_SuppressShots",_shots,true];
         }];
         _suppressionShooters pushBack _unit;
@@ -164,6 +173,18 @@ private _allContact=[{
 _suppressionEnemy setPosATL [2100,1460,0];
 {_x doTarget objNull; _x doWatch objNull} forEach _suppressionShooters;
 {_x setCombatMode "RED"} forEach _suppressionGroups;
+{_x setUnitCombatMode "RED"} forEach _suppressionShooters;
+["FIRE-suppression-unit-modes",_suppressionShooters findIf {unitCombatMode _x != "RED"} < 0,
+    str (_suppressionShooters apply {unitCombatMode _x})] call _check;
+private _hasSuppressionShot={
+    params ["_unit"];
+    (_unit getVariable ["WAIT_CortexQA_SuppressShots",[]]) findIf {
+        _x params ["_shotAt","_weapon","_muzzle","_ammo","_magazine","_orderedAt","_command"];
+        _orderedAt >= 0 && {_shotAt >= _orderedAt} && {_shotAt <= _orderedAt+8}
+            && {_weapon == primaryWeapon _unit} && {_command == "SUPPRESS"}
+            && {toLowerANSI getText (configFile >> "CfgAmmo" >> _ammo >> "simulation") == "shotbullet"}
+    } >= 0
+};
 private _deadline=time+35;
 waitUntil {
     {
@@ -181,7 +202,10 @@ waitUntil {
         private _group=_x;
         count ((units _group) select {(_x getVariable ["WAIT_CortexQA_SuppressOrders",[]]) isNotEqualTo []}) >= 2
     } count _suppressionGroups;
-    _readyGroups == 2 || {time >= _deadline}
+    private _groupsWithShots={
+        (units _x) findIf {[_x] call _hasSuppressionShot} >= 0
+    } count _suppressionGroups;
+    (_readyGroups == 2 && {_groupsWithShots == 2}) || {time >= _deadline}
 };
 private _orderedByGroup=_suppressionGroups apply {
     private _events=[];
@@ -200,11 +224,11 @@ for "_round" from 0 to (_comparableRounds-1) do {
 private _staggered=_comparableRounds >= 2 && {_roundSpreads findIf {_x >= 0.15} >= 0};
 private _actualSuppression=_suppressionGroups findIf {
     private _group=_x;
-    (units _group) findIf {(_x getVariable ["WAIT_CortexQA_SuppressShots",[]]) isNotEqualTo []} < 0
+    (units _group) findIf {[_x] call _hasSuppressionShot} < 0
 } < 0;
 ["FIRE-talking-guns-rotated-suppressors",_rotated,str _orderedByGroup] call _check;
 ["FIRE-squads-not-global-volley",_staggered,str _roundSpreads] call _check;
-["FIRE-multi-squad-actual-suppression",_actualSuppression,str (_suppressionShooters apply {count (_x getVariable ["WAIT_CortexQA_SuppressShots",[]])})] call _check;
+["FIRE-multi-squad-actual-suppression",_actualSuppression,str (_suppressionShooters apply {[_x getVariable ["WAIT_CortexQA_SuppressShots",[]],[_x] call _hasSuppressionShot]})] call _check;
 {[_x] call WAIT_fnc_CortexReleaseGroup} forEach _suppressionGroups;
 {deleteVehicle _x} forEach (_suppressionShooters+[_suppressionEnemy]+_suppressionScreen);
 {deleteGroup _x} forEach (_suppressionGroups+[_suppressionEnemyGroup]);
