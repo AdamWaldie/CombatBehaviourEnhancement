@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Applies one expiring combined-arms contact role on the selected asset owner.
- * Direct fire requires a combat-effective local gunner and target-suitable loaded station ammo;
+ * Direct fire and ground manoeuvre admission require a combat-effective local group gunner
+ * and target-suitable loaded station ammo before movement commitment;
  * incapacitated operators or incompatible target classes reject the exact reservation.
  * A direct-fire ground vehicle receives fresh receipt-bounded knowledge and one gunner fire request without losing
  * its authored route. Manoeuvring vehicles and aircraft receive knowledge only: their finite
@@ -116,6 +117,28 @@ if (_role == "GROUND_FIRE") exitWith {
     true
 };
 if (_role == "GROUND_MANOEUVRE") exitWith {
+    // A future firing role needs an eligible station now, before any route or movement lease.
+    // This grants no firing permission or new knowledge; arrival repeats capability and ROE checks.
+    private _gunner=gunner _asset;
+    private _capabilityRefusal="";
+    if (isNull _gunner || {!local _gunner} || {group _gunner != _group}
+        || {!([_gunner] call WAIT_fnc_CortexCombatEffective)}
+        || {!simulationEnabled _asset} || {isObjectHidden _asset}
+        || {!simulationEnabled _gunner} || {isObjectHidden _gunner}
+        || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
+        || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
+        || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}) then {_capabilityRefusal="NO_FIRE_OPERATOR"};
+    if (_capabilityRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
+        _capabilityRefusal="NO_STATION_AMMO";
+    };
+    if (_capabilityRefusal == "" && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {
+        _capabilityRefusal="NO_TARGET_AMMO";
+    };
+    if (_capabilityRefusal != "") exitWith {
+        _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,_capabilityRefusal,serverTime,_target],true];
+        [_group,_opportunity,_capabilityRefusal,clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
+        false
+    };
     private _start=getPosATL _asset;
     // Route geometry belongs to the authenticated contact report. An unseen moving enemy
     // must not silently update this committed firing-area plan through its live coordinates.

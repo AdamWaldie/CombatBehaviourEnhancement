@@ -4264,6 +4264,20 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('group _gunner == _group',text)
         self.assertIn('group _gunner != _group',source('cortexCombinedArmsLocal'))
 
+    def test_combined_manoeuvre_checks_real_weapon_station_before_route_commitment(self):
+        text=source('cortexCombinedArmsLocal')
+        manoeuvre=text.split('if (_role == "GROUND_MANOEUVRE") exitWith {',1)[1].split('if (_role == "AIR_ATTACK") exitWith {',1)[0]
+        admission=manoeuvre.split('private _start=',1)[0]
+        for guard in ('group _gunner != _group','local _gunner','WAIT_fnc_CortexCombatEffective',
+                      'NO_FIRE_OPERATOR','NO_STATION_AMMO','NO_TARGET_AMMO',
+                      '[_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady',
+                      'remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'):
+            self.assertIn(guard,admission)
+        self.assertNotIn('doFire',admission)
+        self.assertNotIn('reveal',admission)
+        self.assertLess(manoeuvre.index('if (_capabilityRefusal != "") exitWith'),manoeuvre.index('WAIT_fnc_CortexSelectAvenue'))
+        self.assertLess(manoeuvre.index('NO_TARGET_AMMO'),manoeuvre.index('WAIT_fnc_CortexOwnershipLease'))
+
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')
         self.assertIn('WAIT_fnc_HeadlessResolveSender',text)
@@ -4273,11 +4287,11 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',text)
         self.assertNotIn('doFollow',text)
         local=source('cortexCombinedArmsLocal')
-        self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),6)
+        self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),7)
     def test_combined_ground_refusal_producer_reasons_reach_server_retirement(self):
         local=source('cortexCombinedArmsLocal')
         server=source('cortexCombinedRejectServer')
-        emitted=set(re.findall(r'_fireRefusal\s*=\s*"([^"\n]+)"',local))
+        emitted=set(re.findall(r'_(?:fire|capability)Refusal\s*=\s*"([^"\n]+)"',local))
         emitted.update(re.findall(r'\[_group,_opportunity,"([^"\n]+)",clientOwner\] remoteExecCall \["WAIT_fnc_CortexCombinedRejectServer",2\]',local))
         accepted=re.search(r'_reason in \[(.*?)\]',server)
         self.assertIsNotNone(accepted)
