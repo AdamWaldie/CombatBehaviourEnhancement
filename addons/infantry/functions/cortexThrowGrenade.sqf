@@ -14,6 +14,8 @@
  *
  * Repeat/JIP: a maximum 1.5-second aiming window with 0.25-second retries rechecks ownership, medical/captivity status, Zeus takeover, drill replacement/cancellation, ammunition and frag safety;
  * Replacement operation generations, owner epochs and native protected tasks cancel queued throws.
+ * Danger smoke rechecks the shared typed movement reservation at every queued release/retry;
+ * unknown or malformed leases remain reserved and cancel before facing or weapon commands.
  * A cancelled queued fragmentation throw records its drill token so assault may continue without it.
  * Pending throws are not replayed to joining clients. Fragmentation throws track the actual projectile
  * locally for assault sequencing; that FiredMan handler removes itself or expires after ten seconds.
@@ -127,12 +129,9 @@ private _thrown = false;
                 };
                 if (_dangerInvalid) exitWith {[] call _cancel};
                 if (count _context == 3 && {(_context select 0) == "DANGER"}) then {
-                    private _reservation=_unit getVariable ["WAIT_Cortex_ActorMove",[]];
-                    private _reservationFree=_reservation isEqualTo []
-                        || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= time}};
-                    if (!_reservationFree) then {
-                        _dangerInvalid=true;
-                    };
+                    // Selection and every queued retry share the same strict expiry contract.
+                    // A malformed or newly acquired reservation cannot authorize a stale throw.
+                    _dangerInvalid=[_unit] call WAIT_fnc_CortexActorMoveReserved;
                 };
                 if (_dangerInvalid) exitWith {["ACTOR_RESERVED"] call _cancel};
                 // A queued screen must still face the retained contact at release. Observation

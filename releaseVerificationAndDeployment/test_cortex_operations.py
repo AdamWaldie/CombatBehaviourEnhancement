@@ -3334,6 +3334,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_queued_danger_smoke_rechecks_strict_reservation_before_release(self):
+        grenade=source('cortexThrowGrenade')
+        release=grenade.split('private _release = {',1)[1]
+        reservation=release.index('_dangerInvalid=[_unit] call WAIT_fnc_CortexActorMoveReserved;')
+        cancel=release.index('if (_dangerInvalid) exitWith {["ACTOR_RESERVED"] call _cancel};')
+        self.assertLess(reservation,cancel)
+        self.assertLess(cancel,release.index('_unit doWatch _towards;'))
+        self.assertLess(cancel,release.index('forceWeaponFire'))
+        self.assertNotIn('_reservation param [2,1e12,[0]]',release)
+        self.assertIn('[_retry,+_this,0.25] call CBA_fnc_waitAndExecute;',release)
+
     def test_suppression_sentinel_does_not_improve_ranking_or_evasion(self):
         self.assertIn('damage _x + ((getSuppression _x) max 0 min 1)',source('cortexAntiArmour'))
         self.assertIn('(1 - 0.5 * ((getSuppression _unit) max 0 min 1))',source('cortexGrenadeCheck'))
