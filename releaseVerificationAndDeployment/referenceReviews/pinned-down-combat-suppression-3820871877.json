@@ -302,5 +302,20 @@
       ],
       "buildFingerprint": "2871d90f5e59aac24b085dcdb08f43d6890c6215678d9d62d77a8506c8cafd4f"
     }
-  ]
+  ],
+  "effectPathReview": {
+    "scope": "AI skill degradation, shared decay/disable branches, AI CBA mapping and brain config; source-only review remains incomplete.",
+    "skillChanges": "Three aiming skills are derived from a cached baseline with suppression power0.8 and configurable cap; courage is not degraded. Recovery uses configured half-life scaled by courage, then writes cached baseline at low stress or disable. No per-skill applied-value receipt protects a later external skill edit.",
+    "engineContract": "https://community.bistudio.com/wiki/getSuppression?useskin=vector",
+    "documentedRange": "Native suppression is documented0..1, with-1 for unavailable/disabled; source division by configured maxSuppression and synthetic floor3 need engine measurement, not an assumption of raw config-scale API values.",
+    "waitFinding": "CortexMorale previously summed-1 as negative pressure; now clamps local samples0..1 before averaging. Disabled/unavailable contributes zero, while the existing20% weight stays bounded. No new suppression controller, scan or skill penalty.",
+    "validation": "Full Build exit0,1069 tests/all gates; .qa/workshop-evaluation-20261016/morale-suppression-sentinel-build.log",
+    "physicalAcceptance": false,
+    "remaining": [
+      "Trace all live AI setting disable callbacks and FSM shutdown against specialist takeover.",
+      "Measure normalized native suppression separately from configured brain maxima and explicit script writes.",
+      "Do not apply cached-baseline skill restoration over later owner changes.",
+      "Live disabled-suppression morale and end-to-end fire/morale behaviour remain unrun."
+    ]
+  }
 }

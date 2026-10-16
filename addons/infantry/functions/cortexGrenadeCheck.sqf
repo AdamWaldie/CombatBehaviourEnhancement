@@ -108,7 +108,7 @@ private _regroupActors = [];
         && {!(_unit in _drillUnits)} && {count _actorMove != 3 || {time >= (_actorMove select 2)}}
         && {_checkedResults select _groupIndex} && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
         private _sees = _unit distance _grenade < 5 || {([objNull, "VIEW"] checkVisibility [eyePos _unit, _grenadeASL]) > 0.2};
-        private _chance = (0.5 + 0.5 * (_unit skill "general")) * (1 - 0.5 * getSuppression _unit);
+        private _chance = (0.5 + 0.5 * (_unit skill "general")) * (1 - 0.5 * ((getSuppression _unit) max 0 min 1));
         if (_sees && {random 1 < _chance}) then {
             private _direction = (_grenadePos getDir _unit) + ((_reacted mod 3) - 1) * 35;
             private _spot = ([(getPosATL _unit) getPos [9, _direction], _grenadePos, 6, [], _group] call WAIT_fnc_CortexFindCover) select 0;

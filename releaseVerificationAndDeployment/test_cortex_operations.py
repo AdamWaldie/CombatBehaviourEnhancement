@@ -3334,6 +3334,31 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doTarget objNull; _x doWatch objNull',qa)
         self.assertNotIn('call WAIT_fnc_CortexFireControl',qa)
 
+    def test_suppression_sentinel_does_not_improve_ranking_or_evasion(self):
+        self.assertIn('damage _x + ((getSuppression _x) max 0 min 1)',source('cortexAntiArmour'))
+        self.assertIn('(1 - 0.5 * ((getSuppression _unit) max 0 min 1))',source('cortexGrenadeCheck'))
+        smoke=source('dangerSmokeStep')
+        self.assertIn('[-((getSuppression _x) max 0 min 1),random 1,_x]',smoke)
+        availability=smoke.split('private _actorAvailable={',1)[1].split('private _members=',1)[0]
+        self.assertIn('!([_actor] call WAIT_fnc_CortexActorMoveReserved)',availability)
+        self.assertNotIn('_reservation param',availability)
+        for skill in (0,0.5,1):
+            baseline=0.5+0.5*skill
+            for suppression in (-1,0,0.5,1,3):
+                probability=baseline*(1-0.5*min(1,max(0,suppression)))
+                self.assertGreaterEqual(probability,0)
+                self.assertLessEqual(probability,baseline)
+
+    def test_morale_suppression_sentinel_cannot_become_negative_pressure(self):
+        morale=source('cortexMorale')
+        self.assertIn('_suppression + ((getSuppression _x) max 0 min 1)',morale)
+        self.assertNotIn('_suppression + getSuppression _x',morale)
+        self.assertIn('0.2 * _suppression',morale)
+        # Native disabled/unavailable is -1; out-of-range scripted pressure must not
+        # invert or exceed the existing contribution. This is not an in-engine result.
+        for value,expected in [(-1,0),(0,0),(0.5,0.1),(1,0.2),(3,0.2)]:
+            self.assertAlmostEqual(0.2*min(1,max(0,value)),expected)
+
     def test_garrison_posture_recovery_and_repeat_require_distinct_real_bursts(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         case=qa.split('// Real incoming-fire posture test',1)[1].split('private _origins=_members',1)[0]

@@ -100,7 +100,8 @@ private _gunners = (units _group) select {
 };
 if (_gunners findIf {assignedTarget _x == _armour && {(_x getVariable ["WAIT_AIPass_TargetHold", -1]) > _now}} >= 0) exitWith {false};
 private _ranked = [];
-{_ranked pushBack [damage _x + getSuppression _x, _forEachIndex]} forEach _gunners;
+// Unavailable suppression (-1) is no evidence of exceptional readiness.
+{_ranked pushBack [damage _x + ((getSuppression _x) max 0 min 1), _forEachIndex]} forEach _gunners;
 _ranked sort true;
 if (_ranked isEqualTo []) exitWith {false};
 private _gunner = _gunners select ((_ranked select 0) select 1);
