@@ -90,5 +90,14 @@
   "implementationAccepted": false,
   "physicalAcceptance": false,
   "wholeHBQParity": false,
-  "audits": "held by user instruction"
+  "audits": "held by user instruction",
+  "preparedCapabilityFixture": {
+    "file": "releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf",
+    "scope": "Normal-owner excluded native diagnostic only; separate tracked APC, wheeled MRAP and truck, each LEFT/RIGHT.",
+    "requirements": "At least three backward-velocity samples, one metre displacement, three degrees heading change, observed yaw sign and bounded turning observer execution.",
+    "build": "1068 tests; full Build exit0; .qa/workshop-evaluation-20261016/native-reverse-families-build.log",
+    "physicalRun": false,
+    "queueExecutorImplemented": false,
+    "convoyCapabilityProven": false
+  }
 }

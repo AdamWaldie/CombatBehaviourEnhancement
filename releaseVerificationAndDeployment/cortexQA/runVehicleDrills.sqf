@@ -5,7 +5,7 @@
  * calm remount and damaged-armour withdrawal using live vehicles, including an active withdrawal
  * migrating from the server to a real headless owner before Zeus replacement.
  * Standalone driving also measures native travel, a condition-gated wait, resume and disabled cleanup.
- * A normal-only excluded native reverse-turn diagnostic observes real heading/travel and shared
+ * Normal-only excluded tracked, wheeled MRAP and truck reverse-turn diagnostics observe real heading/travel and shared
  * sensor work; it does not validate production stopping, collision avoidance or HC migration.
  * Locality/authority: scheduled server creates disposable fixtures; production Cortex code commands
  * each current owner, and the migration case deliberately transfers its crew group and vehicle.
@@ -1221,9 +1221,11 @@ deleteGroup _driveGroup;
 // Keep this distinct from production withdrawal and the intentionally straight convoy case.
 if !(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
     {
-        private _turn=_x;
-        private _case="REAR-TURN-"+_turn;
-        private _vehicle=createVehicle ["O_APC_Tracked_02_cannon_F",[4300+150*_forEachIndex,3000,0],[],0,"NONE"];
+        _x params ["_class","_turn","_family"];
+        // Keep legacy tracked IDs; wheeled capabilities have their own results and cannot
+        // inherit a tracked success. These excluded actors are native command diagnostics only.
+        private _case=(["REAR-TURN-","REAR-"+_family+"-TURN-"] select (_family != "TRACKED"))+_turn;
+        private _vehicle=createVehicle [_class,[4300+150*_forEachIndex,3000,0],[],0,"NONE"];
         _vehicle setDir 0;
         createVehicleCrew _vehicle;
         private _group=group driver _vehicle;
@@ -1272,5 +1274,12 @@ if !(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
         missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
         {deleteVehicle _x} forEach crew _vehicle;
         deleteVehicle _vehicle;deleteGroup _group;
-    } forEach ["LEFT","RIGHT"];
+    } forEach [
+        ["O_APC_Tracked_02_cannon_F","LEFT","TRACKED"],
+        ["O_APC_Tracked_02_cannon_F","RIGHT","TRACKED"],
+        ["O_MRAP_02_F","LEFT","WHEELED"],
+        ["O_MRAP_02_F","RIGHT","WHEELED"],
+        ["O_Truck_03_transport_F","LEFT","TRUCK"],
+        ["O_Truck_03_transport_F","RIGHT","TRUCK"]
+    ];
 };

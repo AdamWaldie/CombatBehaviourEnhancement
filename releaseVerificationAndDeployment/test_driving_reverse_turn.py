@@ -54,3 +54,16 @@ class ReverseTurnTests(unittest.TestCase):
         self.assertEqual(s.count('nearEntities'),2)
         self.assertNotIn('setVelocity',s)
         self.assertNotIn('doMove',s)
+
+    def test_native_reverse_capability_cases_do_not_inherit_tracked_results(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text()
+        case=s.split('// Sensor diagnostic only: native inputs are fixture stimuli',1)[1]
+        for vehicle,family in [('O_APC_Tracked_02_cannon_F','TRACKED'),('O_MRAP_02_F','WHEELED'),('O_Truck_03_transport_F','TRUCK')]:
+            for turn in ('LEFT','RIGHT'):
+                self.assertIn(f'["{vehicle}","{turn}","{family}"]',case)
+        for proof in ['_samples >= 3 && {_travel >= 1} && {_maxHeading >= 3}',
+                      '_vehicle sendSimpleCommand "BACK";',
+                      '_group setVariable ["WAIT_AIPass_Exclude",true,true]']:
+            self.assertIn(proof,case)
+        self.assertNotIn('setVelocity',case)
+        self.assertNotIn('setPos',case)
