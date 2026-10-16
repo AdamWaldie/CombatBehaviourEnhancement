@@ -98,6 +98,35 @@ if (isNull _driver || {isNull _operator}
     || {_driver isNotEqualTo (_job getOrDefault ["driver",objNull])}
     || {_operator isNotEqualTo (_job getOrDefault ["operator",objNull])}
     || {group _driver != _group && {group _operator != _group}}) exitWith {["OWNER_LOST"] call _finish};
+// A waypoint description alone cannot preserve authority over edited native orders.
+private _routeCurrent={
+    private _waypoint=_job getOrDefault ["moveWaypoint",[]];
+    private _receipt=_job getOrDefault ["moveReceipt",[]];
+    if (count _waypoint != 2 || {(_waypoint select 0) != _group}
+        || {count _receipt != 3} || {(_waypoint select 1) < 0}
+        || {(_waypoint select 1) >= count waypoints _group}) exitWith {false};
+    private _intent=_group getVariable ["WAIT_Cortex_GroupMoveIntent",createHashMap];
+    if ((_intent getOrDefault ["operationGeneration",-2]) != _operationGeneration
+        || {(_intent getOrDefault ["waypoint",[]]) isNotEqualTo _waypoint}) exitWith {false};
+    private _owned=[_group,"",false,_waypoint select 1] call WAIT_fnc_AuthoredRouteReceipt;
+    if (_owned isNotEqualTo (_receipt select 2)) exitWith {false};
+    if (count waypoints _group == (_receipt select 0)
+        && {currentWaypoint _group == (_receipt select 1)}) exitWith {true};
+    private _live=[_group] call WAIT_fnc_NativeOrderReceipt;
+    // Engine completion may advance to the original next node before this callback.
+    // The owned waypoint must still exist unchanged; deletion cannot masquerade as arrival.
+    if (_asset distance2D _destination > 70 || {(_live select 0) != (_receipt select 0)}
+        || {currentWaypoint _group != (_waypoint select 1)+1}) exitWith {false};
+    private _native=_job getOrDefault ["nativeOrder",[]];
+    if (count _native == 2 && {(_native select 1) == -1}) exitWith {
+        currentWaypoint _group >= count waypoints _group
+    };
+    if (count _native != 3 || {count _live != 3}) exitWith {false};
+    private _oldRows=_native select 2;private _liveRows=_live select 2;
+    count _oldRows == 1 && {count _liveRows == 1}
+        && {((_oldRows select 0) select [1]) isEqualTo ((_liveRows select 0) select [1])}
+};
+if !(call _routeCurrent) exitWith {["NATIVE_ORDER_CHANGED"] call _finish};
 if (isNull _target || {!alive _target}) exitWith {["TARGET_LOST"] call _finish};
 if (captive _target || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
@@ -128,10 +157,13 @@ if (_asset distance2D _destination <= 70) exitWith {
     };
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";
-        if ([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear && {call _roleCurrent}) then {
-            _gunner doTarget _target;
-            _gunner doFire _target;
-            _fireDecision="ORDER_ISSUED";
+        private _laneClear=[_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear;
+        if !(call _routeCurrent) then {_fireDecision="NATIVE_ORDER_CHANGED"} else {
+            if (_laneClear && {call _roleCurrent}) then {
+                _gunner doTarget _target;
+                _gunner doFire _target;
+                _fireDecision="ORDER_ISSUED";
+            };
         };
     };
     // Physical arrival completes the move, not the requested fire effect. Fired-event and
@@ -146,7 +178,7 @@ if (time >= (_job getOrDefault ["progressAt",time])+10) then {
         if (_stalls >= 1) exitWith {_job set ["terminal","BLOCKED"]};
         // Reacquire a missing route once; a still-owned destination remains committed.
         // This cannot create an obstacle-avoidance spiral around a deliberate roadblock.
-        if !([_group] call WAIT_fnc_CortexExternalTakeover) then {
+        if (!([_group] call WAIT_fnc_CortexExternalTakeover) && {call _routeCurrent}) then {
             // Spend before route reacquisition so transfer cannot refund this attempt.
             _job set ["stalls",_stalls+1];
             if (call _roleCurrent) then {

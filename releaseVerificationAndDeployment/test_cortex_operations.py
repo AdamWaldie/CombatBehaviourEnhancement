@@ -2290,7 +2290,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(ground_fire.index('CortexExternalTakeover'),ground_fire.index('_gunner doTarget _target'))
         self.assertNotIn('forEach crew _asset',combined)
         self.assertLess(combined.rindex('CortexExternalTakeover'),combined.index('call WAIT_fnc_AirAttackOperationStart'))
-        self.assertIn('!([_group] call WAIT_fnc_CortexExternalTakeover) then {',ground)
+        self.assertIn('!([_group] call WAIT_fnc_CortexExternalTakeover) && {call _routeCurrent}',ground)
         arrival=ground.split('if (_asset distance2D _destination <= 70)',1)[1].split('if (time >=',1)[0]
         self.assertLess(arrival.index('CortexExternalTakeover'),arrival.index('_gunner doTarget _target'))
         self.assertIn('if (_fireAllowed) then {',arrival)
@@ -4260,7 +4260,7 @@ class CortexOperations(unittest.TestCase):
         finish=text.split('private _finish={',1)[1].split('if (isNull _group ||',1)[0]
         self.assertLess(finish.index('if (call _roleCurrent)'),finish.index('"WAIT_Cortex_CombinedResult"'))
         self.assertLess(text.index('if !(call _roleCurrent) exitWith'),text.index('if (_asset distance2D _destination <= 70)'))
-        self.assertIn('call WAIT_fnc_CortexLineOfFireClear && {call _roleCurrent}',text)
+        self.assertIn('if (_laneClear && {call _roleCurrent})',text)
         self.assertIn('group _gunner == _group',text)
         self.assertIn('group _gunner != _group',source('cortexCombinedArmsLocal'))
 
@@ -4350,6 +4350,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('WAIT_Cortex_CombinedApplicationLocal',replay)
         self.assertIn('WAIT_AIPass_Epoch',replay)
         self.assertIn('isNotEqualTo _combinedIdentity',replay)
+
+    def test_combined_active_route_edits_retire_without_recovery_or_fallback(self):
+        local=source('cortexCombinedArmsLocal')
+        self.assertIn('["moveWaypoint",+_waypoint]',local)
+        self.assertIn('["moveReceipt",[count waypoints _group,_waypoint select 1,',local)
+        step=source('cortexCombinedGroundStep')
+        route=step.split('private _routeCurrent={',1)[1].split('if (isNull _target',1)[0]
+        for guard in ('isNotEqualTo _waypoint','_owned isNotEqualTo (_receipt select 2)',
+                      'currentWaypoint _group == (_receipt select 1)','currentWaypoint _group != (_waypoint select 1)+1',
+                      '_asset distance2D _destination > 70', 'isEqualTo ((_liveRows select 0) select [1])'):
+            self.assertIn(guard,route)
+        self.assertIn('["NATIVE_ORDER_CHANGED"] call _finish',route)
+        self.assertIn('if !(call _routeCurrent) then {_fireDecision="NATIVE_ORDER_CHANGED"}',step)
+        fallback=step.split('_reason in [',1)[1].split(']',1)[0]
+        self.assertNotIn('NATIVE_ORDER_CHANGED',fallback)
 
     def test_combined_ground_refusal_authenticates_without_mutating_movement(self):
         text=source('cortexCombinedRejectServer')

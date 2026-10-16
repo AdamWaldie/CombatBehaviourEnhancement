@@ -283,6 +283,8 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         ["expiry",_expiry],["destination",_destination],["operationGeneration",_operation get "generation"],
         ["ownerEpoch",_operation get "ownerEpoch"],["lastPosition",_lastPosition],
         ["nativeOrder",+_nativeOrder],["driver",driver _asset],["operator",_operator],
+        ["moveWaypoint",+_waypoint],["moveReceipt",[count waypoints _group,_waypoint select 1,
+            [_group,"",false,_waypoint select 1] call WAIT_fnc_AuthoredRouteReceipt]],
         ["progressAt",_progressAt],["stalls",_stalls]
     ],1] call WAIT_fnc_CortexQueueJob;
     call _markApplied;
