@@ -27,9 +27,9 @@ Remote: `https://github.com/AdamWaldie/WaldosAITweaks.git`
 
 Branch: `Adam/owner-local-fsm-signing-20261016`
 
-Latest committed implementation at refresh: `91d3f4b`, following suppression readiness and garrison posture fixes. The next checkpoint includes the prepared repeat/recovery fixture and refreshed status. Resolve HEAD and working-tree status for the exact current source; later notes below preserve historical steps, not current commit identity.
+Latest committed implementation at refresh: `655728a46859e94641b32a6ec8bb12009d88d0c7`. Later evidence-only handover commits may follow; resolve HEAD before editing. The exact signed candidate below is tied to this source, never a later metadata commit.
 
-[PR 16](https://github.com/AdamWaldie/WaldosAITweaks/pull/16) is open and draft. The previous pushed source was `71e4d45af4f6139fbdc1a2d7808c926465162b64`. Revalidate the live head and inspect `git log origin/Adam/owner-local-fsm-signing-20261016..HEAD` for outstanding commits. This handover is tracked with the driving review checkpoint and excluded from player packages. Preserve any unrelated dirty files.
+[PR 16](https://github.com/AdamWaldie/WaldosAITweaks/pull/16) is open and draft. The verified remote head is `844a82cae78ecd577463e7c911d9475455751f97`; newer local work has not yet been pushed. Revalidate the live head and inspect `git log origin/Adam/owner-local-fsm-signing-20261016..HEAD` for outstanding commits. This handover is tracked with the driving review checkpoint and excluded from player packages. Preserve any unrelated dirty files.
 
 The chat is attached to WMP at `C:/Users/AdamW/OneDrive/Documents/GitHub/WaldosMissionPack`. That checkout has unrelated work. Do not put WAIT changes there. The execution sandbox may require escalation for writes, Git and builds in WAIT. Elevated GitHub CLI works. A non-elevated authentication failure can be misleading.
 
@@ -40,6 +40,20 @@ Preserved history includes `Adam/driving-fsm-foundations`, its old draft PR 14, 
 Read `AGENTS.md` and `CONTRIBUTING.md`. Every changed SQF file needs its required useful header. Keep operations finite, owner-local, interruptible and generation-bound. A newer mission task or Zeus order must survive cleanup.
 
 ## Latest validation and signed package
+
+Current clean signed review source: `655728a46859e94641b32a6ec8bb12009d88d0c7`.
+
+- Complete Release: 1,083 tests and all offline gates passed; no physical acceptance added.
+- Artifact: `releases/review-cqb-airborne-655728a/wait-candidate.zip`.
+- Report: `releases/review-cqb-airborne-655728a/signing-verification.json`.
+- ZIP SHA-256: `016dc0763b69f6991e1140ddc8fe7c1738b2e99757b41702b70593bcdda5121e`.
+- Signed package fingerprint: `79838ad796282a4108a5c31f3dd477f23305d870d99d1a860383c4fbe657b300`.
+- Existing pinned key/signer used. Independent HEMTT accepted all nine signatures and rejected all nine damaged controls, both before and after ZIP extraction. Package hashes and public-only key inventory verified; temporary extracted files removed.
+- Release log: `.qa/workshop-evaluation-20261016/cqb-airborne-checkpoint-release.log`.
+- Includes strict actor ownership across smoke, drill refill, support and crew; airborne takeover/episode protection; stronger independent CQB observation; bounded entry diagnostics; unchanged-owned-MOVE readiness fix.
+- Audits remain paused. CQB flow, native reverse/queues, airborne mid-exit migration/protection and performance remain unaccepted. No release/Steam publication.
+
+Previous checkpoint details below are historical, not the latest candidate.
 
 Latest local implementation validation:
 

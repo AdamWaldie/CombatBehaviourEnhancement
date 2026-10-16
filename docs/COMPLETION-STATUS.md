@@ -10,7 +10,9 @@ Workshop-parity percentage is available.
 ## Current evidence boundary
 
 - Audits are paused by the user. No new in-game result is claimed here.
-- The latest local code validation passed **1067 tests** and all sequential offline gates.
+- The latest clean review source is `655728a`. Its complete Release build and fixed-key signing passed; nine signatures verified and nine damaged controls were rejected again after ZIP extraction. These package checks add no behaviour acceptance.
+- Recent source changes protect actor ownership across smoke, drill refill, coordinated support, crew replacement and airborne exits. Airborne execution/cleanup uses insertion episodes. CQB preserves unchanged owned MOVE through native readiness changes; opt-in bounded entry diagnostics and stronger independent visit geometry prepare later investigation. These effects remain physically unverified.
+- The latest local code validation passed **1083 tests** and all sequential offline gates.
   The current batch adds authenticated combined-ground failure replacement, exact role/operator authority,
   owner-epoch application receipts and durable destination/recovery journals. Active route changes retire
   movement; capability checks retain the original expiry. Routine ground gunnery yields to the live role.
