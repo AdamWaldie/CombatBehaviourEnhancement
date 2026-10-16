@@ -1,0 +1,33 @@
+{
+  "reviewed": "2026-10-16",
+  "source": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+  "sourceSHA256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+  "scope": "ArcPts, SegN, ClampK and RaySegments helpers plus travelled-curvature main branch; remaining geometry consumers remain separately scoped",
+  "rangesReviewed": [
+    "384-454 arc helpers and segment conversion",
+    "2519-2555 travelled curvature, direction reset and bend length"
+  ],
+  "sourceIntent": "Predict obstacle rays along measured travelled curvature only for a short bend horizon, then continue tangentially. Bound bend angle and segment work; reset curvature after standing or changing forward/reverse direction.",
+  "sourceMechanics": [
+    "ArcPts bends only through BendLen and then extends straight along the reached tangent.",
+    "SegN chooses one to three segments using bend angle and ray length; ClampK limits the bent part to about seventy degrees.",
+    "RaySegments converts the model arc to fixed height above local ground; this is an observation path, not native steering execution.",
+    "The main branch derives curvature as 2*x/(x*x+y*y) from old position in current model space, with three-metre/1.5-second measurement thresholds and a 250m straightness radius."
+  ],
+  "waitComparison": [
+    "DrivingTurnTrack already uses travelled curvature with owner/context/seat binding, freshness and direction/standing reset.",
+    "DrivingGeometryCap already bounds the near bend horizon and continues tangentially. Physical sweep adequacy and grade/bridge behaviour remain unaccepted.",
+    "DrivingNativePathWatch additionally observes native driver PathCalculated events; it grants no movement or clearance authority. A next-three-node window could reject dense valid forward nodes before they span three metres.",
+    "The revised native hint walks six metres of retained path distance, interpolates sparse segments, preserves floor/forward/disconnected-stretch guards and makes at most two bounded passes over the existing 64 nodes."
+  ],
+  "limits": [
+    "No new world query, movement command or scheduler was added by this hint change.",
+    "Retaining only the first 64 event nodes can still leave a vehicle without usable nearby evidence.",
+    "A current native path is a hint, not proof of collision clearance, physical steering, progress or mission completion.",
+    "Dense/sparse paths, stopped turns, grades, repeated native orders, interruption and the runtime performance budget need physical acceptance."
+  ],
+  "implementationAccepted": false,
+  "physicalAcceptance": false,
+  "wholeHBQParity": false,
+  "audits": "held by user instruction"
+}

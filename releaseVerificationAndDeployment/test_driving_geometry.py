@@ -71,13 +71,30 @@ class DrivingGeometryTests(unittest.TestCase):
         for marker in ('"PathCalculated"','_path select [0,64]','_thisEventHandler',
                        'removeEventHandler','_expectedRevision','time-(_segment select 1) > 5',
                        'expectedDestination _driver','expectedDestination _operator',
-                       '_distance < _nearDistance','_distance >= 3','_best=12','(_local select 1) > 1','_nearIndex+3','_oldBinding select 3'):
+                       '_distance < _nearDistance','_distance >= 3','_distance <= 12','(_target select 1) > 1','_walked >= 6','_oldBinding select 3'):
             self.assertIn(marker,s)
         for forbidden in ('doMove','setDriveOnPath','forceSpeed','calculatePath','createAgent','spawn','waitUntil'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
         self.assertNotRegex(s.split('params [[',1)[1],r'setVariable\s*\[[^\n]*,\s*true\s*\]')
         for name in ('drivingAssistRelease','convoyReleaseLocal'):
             self.assertIn('call WAIT_fnc_DrivingNativePathWatch',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
+
+    def test_native_path_lookahead_is_distance_bounded_for_dense_and_sparse_nodes(self):
+        s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text(encoding='utf-8')
+        selection=s.split('// Native paths may use dense nodes.',1)[1]
+        for marker in ('_nearPoint=+_closest','for "_i" from (_nearIndex+1) to (count _nodes-1)',
+                       '_advance=_length min (6-_walked)','_delta vectorMultiply (_advance/_length)',
+                       '_floorLost','_distance >= 3','_distance <= 12'):
+            self.assertIn(marker,s)
+        self.assertNotIn('_nearIndex+3',selection)
+        self.assertLess(selection.index('_floorLost ||'),selection.index('worldToModel'))
+        # Prior next-three-node admission rejects these valid half-metre forward samples.
+        dense=[i*0.5 for i in range(1,64)]
+        self.assertLess(max(dense[:3]),3)
+        self.assertIn(6,dense)
+        # A single sparse segment also spans the desired lookahead; interpolation is required.
+        self.assertLess(6,20)
+        self.assertIn('_path select [0,64]',s)
 
     def test_native_path_subscription_expires_before_copy_and_feature_off_retires_old_revision(self):
         s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text()

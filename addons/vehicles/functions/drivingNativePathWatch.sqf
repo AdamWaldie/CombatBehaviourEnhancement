@@ -11,9 +11,10 @@
  * first element ORDINARY or CONVOY, second convoy revision where applicable; 3 release <BOOL, false>;
  * 4 expected convoy revision <NUMBER, -1> protects stale cleanup when >=0.
  * Return Value: ARRAY [] without usable evidence, otherwise [curvature NUMBER, allowStopped BOOL].
- * Bounds: native events retain at most 64 ASL nodes; owner callbacks inspect at most 63 segments.
+ * Bounds: native events retain at most 64 ASL nodes; owner callbacks make two bounded passes over those nodes.
  * Five-second evidence age, exact both-seat destinations, current proximity/floor and forward
- * lookahead 3..12 m protect use. Multiple disconnected nearby path stretches refuse a hint;
+ * lookahead 3..12 m protect use. A six-metre path-distance walk interpolates the forward
+ * hint independently of node spacing; leaving the observed floor refuses the hint. Multiple disconnected nearby path stretches refuse a hint;
  * equal-distance ties within one stretch retain the first segment rather than jumping ahead.
  * A captured path grants neither movement nor physical completion.
  * Current callers: DrivingAssistStart, ConvoyTick, DrivingAssistRelease and ConvoyReleaseLocal.
@@ -111,7 +112,7 @@ private _segment=_vehicle getVariable ["WAIT_DrivingNativePath_Segment",[]];
 if (count _segment != 5 || {(_segment select 0) isNotEqualTo _identity} || {time-(_segment select 1) > 5}
     || {time < (_segment select 1)} || {(expectedDestination _driver) isNotEqualTo (_segment select 2)}
     || {(expectedDestination _operator) isNotEqualTo (_segment select 3)}) exitWith {[]};
-private _nodes=_segment select 4;private _origin=getPosASL _vehicle;private _nearIndex=-1;private _nearDistance=3;private _nearRuns=0;private _inNearRun=false;private _target=[];private _best=12;
+private _nodes=_segment select 4;private _origin=getPosASL _vehicle;private _nearIndex=-1;private _nearDistance=3;private _nearRuns=0;private _inNearRun=false;private _nearPoint=[];
 for "_i" from 0 to (count _nodes-2) do {
     private _a=_nodes select _i;private _b=_nodes select (_i+1);private _line=_b vectorDiff _a;_line set [2,0];
     private _lengthSquared=_line vectorDotProduct _line;
@@ -122,21 +123,37 @@ for "_i" from 0 to (count _nodes-2) do {
         private _near=_distance <= 3 && {abs ((_origin select 2)-(_closest select 2)) <= 2};
         if (_near) then {
             if (!_inNearRun) then {_nearRuns=_nearRuns+1};
-            if (_nearIndex < 0 || {_distance < _nearDistance}) then {_nearIndex=_i;_nearDistance=_distance};
+            if (_nearIndex < 0 || {_distance < _nearDistance}) then {_nearIndex=_i;_nearDistance=_distance;_nearPoint=+_closest};
         };
         // Zero-length duplicate nodes do not break a contiguous path stretch.
         _inNearRun=_near;
     };
 };
 if (_nearIndex < 0 || {_nearRuns > 1}) exitWith {[]};
-for "_i" from (_nearIndex+1) to ((_nearIndex+3) min (count _nodes-1)) do {
-    private _point=_nodes select _i;
-    private _distance=_origin distance2D _point;
-    if (_distance >= 3 && {_distance <= _best} && {abs ((_origin select 2)-(_point select 2)) <= 2}) then {
-        private _local=_vehicle worldToModel (ASLToAGL _point);
-        if ((_local select 1) > 1) then {_best=_distance;_target=_local};
+// Native paths may use dense nodes. A fixed next-three-node window can contain
+// less than three metres and discard an otherwise usable forward bend. Walk an
+// actual bounded distance from the closest observed segment, with no route write.
+private _walked=0;private _cursor=+_nearPoint;private _targetASL=[];private _floorLost=false;
+for "_i" from (_nearIndex+1) to (count _nodes-1) do {
+    if (_walked >= 6 || {_floorLost}) exitWith {};
+    private _next=_nodes select _i;
+    private _delta=_next vectorDiff _cursor;
+    private _length=vectorMagnitude [_delta select 0,_delta select 1,0];
+    if (_length > 0.01) then {
+        private _advance=_length min (6-_walked);
+        private _point=_cursor vectorAdd (_delta vectorMultiply (_advance/_length));
+        if (abs ((_origin select 2)-(_point select 2)) > 2) then {_floorLost=true} else {
+            _walked=_walked+_advance;_cursor=_point;
+            if (_walked >= 3) then {_targetASL=+_point};
+        };
+    } else {
+        if (abs ((_origin select 2)-(_next select 2)) > 2) then {_floorLost=true};
     };
 };
-if (_target isEqualTo []) exitWith {[]};
+if (_floorLost || {_targetASL isEqualTo []}) exitWith {[]};
+private _distance=_origin distance2D _targetASL;
+if !(_distance >= 3 && {_distance <= 12}) exitWith {[]};
+private _target=_vehicle worldToModel (ASLToAGL _targetASL);
+if !((_target select 1) > 1) exitWith {[]};
 private _distanceSquared=(_target select 0)^2+(_target select 1)^2;
 [2*(_target select 0)/_distanceSquared,true]
