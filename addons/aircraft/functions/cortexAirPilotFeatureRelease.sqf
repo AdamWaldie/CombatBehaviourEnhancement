@@ -53,6 +53,32 @@ private _safe=alive _actor && {!isPlayer _actor} && {isNull remoteControlled _ac
     && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
     && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
     && {[_actor] call CBE_fnc_CortexActorFireTaskAvailable};
+// An owner transfer invalidates the old lease, but ordinary release deliberately
+// refuses another issuer. Retire only this receipt's previous-owner attack record.
+// Tokens alone are insufficient: machine-local generation counters can collide.
+if (_safe && {local _aircraft} && {_issuer != clientOwner}) then {
+    isNil {
+        private _current=_aircraft getVariable ["CBE_FlightLease",createHashMap];
+        private _brain=_aircraft getVariable ["CBE_AirAttack_Brain",createHashMap];
+        private _activeBrain=count _brain > 0
+            && {!(_brain getOrDefault ["finished",false])}
+            && {!(_brain getOrDefault ["cancelled",false])};
+        if (local _actor && {local _aircraft} && {!_activeBrain}
+            && {serverTime < _releaseUntil}
+            && {(_actor getVariable ["CBE_AirPilotFeatureLocalEpoch",0]) == _epoch}
+            && {(_actor getVariable ["CBE_AirPilotFeatureReceipt",[]]) isEqualTo _receipt}
+            && {(_current getOrDefault ["controller",""]) == "AIR_ATTACK"}
+            && {(_current getOrDefault ["token",""]) == _token}
+            && {(_current getOrDefault ["owner",-1]) == _issuer}) then {
+            _aircraft setVariable ["CBE_FlightLeaseLast",[
+                "AIR_ATTACK",_token,_current getOrDefault ["revision",-1],
+                "PILOT_FEATURE_PREVIOUS_OWNER_RELEASE",serverTime
+            ],true];
+            _aircraft setVariable ["CBE_FlightLease",nil,true];
+        };
+        _lease=_aircraft getVariable ["CBE_FlightLease",createHashMap];
+    };
+};
 if (count _lease == 0 && {_safe}) exitWith {
     {if !(_actor checkAIFeature _x) then {_actor enableAI _x}} forEach _features;
     _actor setVariable ["CBE_AirPilotFeatureReceipt",nil,true];

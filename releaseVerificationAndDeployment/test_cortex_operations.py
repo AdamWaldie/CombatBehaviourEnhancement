@@ -7,6 +7,26 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'addons/main/functions/Cortex'
 def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encoding='utf-8')
 class CortexOperations(unittest.TestCase):
+    def test_air_stale_lease_retirement_requires_original_issuer_and_airframe_authority(self):
+        release=source('cortexAirPilotFeatureRelease')
+        retirement=release.split('// An owner transfer invalidates the old lease',1)[1].split('if (count _lease == 0',1)[0]
+        for guard in ('_safe && {local _aircraft} && {_issuer != clientOwner}',
+                      'isNil {', 'local _actor && {local _aircraft} && {!_activeBrain}',
+                      'serverTime < _releaseUntil',
+                      'CBE_AirPilotFeatureLocalEpoch', 'isEqualTo _receipt',
+                      '["controller",""]) == "AIR_ATTACK"',
+                      '["token",""]) == _token', '["owner",-1]) == _issuer',
+                      '["finished",false]', '["cancelled",false]'):
+            self.assertIn(guard,retirement)
+        # A delayed old receipt must not use token equality to clear a successor.
+        self.assertLess(retirement.index('["owner",-1]) == _issuer'),
+                        retirement.index('setVariable ["CBE_FlightLease",nil,true]'))
+        self.assertIn('_lease=_aircraft getVariable ["CBE_FlightLease",createHashMap]',retirement)
+        generic=source('flightLeaseRelease')
+        self.assertIn('["owner",-1]) != clientOwner',generic)
+        self.assertNotIn('remoteExec',retirement)
+        self.assertNotIn('doMove',retirement)
+
     def test_role_replacement_consumes_each_donor_and_supports_three_survivors(self):
         step=source('cortexFlankStep')
         transfer=step.split('while {count _movingAvailable < _minimumMovers',1)[1].split('if (count _movingAvailable < _minimumMovers)',1)[0]

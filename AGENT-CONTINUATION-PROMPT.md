@@ -1,6 +1,8 @@
-# Continue WAIT development
+# Continue CBE development
 
-Continue the active WAIT goal in `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`. This chat may be attached to WaldosMissionPack. Do not edit or commit WAIT changes there.
+> Current checkpoint, 2026-10-17: Product is Combat Behaviour Enhancement (CBE), exclusively CBE_* / CBE_fnc_* with no legacy aliases. PRs14 and16 were both merged into main at d725923e14675deffc2dd0efcbf4acbb3502065b after the consolidated namespace tree passed local gates and ready-PR CI. Their identical head was758ccedb75d66141efedc7e9e444c97f1eeb1283. Follow-up branch: Adam/cbe-aircraft-release-followup, based on that main merge. Earlier branch, draft-PR and credit snapshots below are historical and superseded. Do not reopen or push to the merged branches. No new merge or publication is authorised by this checkpoint. Audits remain paused. Protected reference paths and full behavioural intent below remain applicable.
+
+Continue the active CBE goal in `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`. This chat may be attached to WaldosMissionPack. Do not edit or commit WAIT changes there.
 
 ## Goal
 
