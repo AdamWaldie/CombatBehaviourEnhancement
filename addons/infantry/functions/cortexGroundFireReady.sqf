@@ -7,15 +7,18 @@
  * An optional target also requires configured ammunition intent for its actual platform class.
  * Missing usage flags retain a conservative legacy fallback; no targeting command is issued.
  * Locality/authority: Read-only on the gunner owner; vehicle locality may differ; callers retain ROE, safety and token checks.
- * Repeat/JIP: No state, commands or handlers; rereads current crew and magazines at each fire boundary.
+ * Repeat/JIP: No world state, commands or handlers; rereads native station state at each boundary.
+ * Optional caller-local observation is reset per call; reload evidence grants no firing permission.
  * Arguments: 0 platform <OBJECT, objNull>; 1 selected gunner <OBJECT, objNull>;
- * 2 target <OBJECT, objNull>, omitted means the legacy station-only ammunition check.
+ * 2 target <OBJECT, objNull>, omitted means the station-only ammunition check;
+ * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles.
  * Return Value: BOOL, station has usable damaging ammunition for the supplied target,
  * or any damaging ammunition when target is omitted; not proof of firing/effect.
  * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
  * Example: [_vehicle,gunner _vehicle,_enemy] call WAIT_fnc_CortexGroundFireReady;
  */
-params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]]];
+params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]]];
+_observation set ["reloadInProgress",false];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
     || {gunner _asset != _gunner} || {vehicle _gunner != _asset}) exitWith {false};
@@ -65,12 +68,17 @@ private _queries=0;
         private _state=weaponState [_asset,_station,_weapon,_muzzle];
         private _magazine=_state param [3,"",[""]];
         private _rounds=_state param [4,0,[0]];
+        private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
+        private _suitable=_magazine != ""
+            && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
+            && {[_ammo] call _targetSuitable};
+        private _reload=_state param [6,0,[0]];
+        if (count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
+            && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1}) then {
+            _observation set ["reloadInProgress",true];
+        };
         count _state >= 5 && {(_state select 0) == _weapon}
             && {(_state select 1) == _muzzle}
-            && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {
-                private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
-                (getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0})
-                    && {[_ammo] call _targetSuitable}
-            }
+            && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable}
     } >= 0
 } >= 0

@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Maintains one finite ground-vehicle manoeuvre issued by a combined-arms contact opportunity.
  * Arrival fire rechecks actual loaded gunner-station ammunition against the target platform class.
+ * A native magazine reload defers missing-ammo failure without renewing the original expiry.
+ * Reload observation is not permission to fire or claim an effect.
  * The vehicle uses one temporary Cortex waypoint to move to a safe-side firing position. It does
  * not wait for another arm, teleport, repeatedly replace the route or force progress through an
  * obstruction. Arrival, target loss, expiry, locality migration, feature closure or direct Zeus
@@ -139,9 +141,9 @@ if (!isNull _stationOperator && {group _stationOperator == _group}
     && {[_stationOperator] call WAIT_fnc_CortexCombatEffective}
     && {!local _stationOperator || {!simulationEnabled _stationOperator} || {isObjectHidden _stationOperator}}) exitWith {1};
 private _capabilityFailure="";
+private _ammoObservation=createHashMap;
 if (serverTime >= (_job getOrDefault ["capabilityAt",serverTime])) then {
     _job set ["capabilityAt",serverTime+4];
-    if (!canFire _asset) then {_capabilityFailure="NO_FIRE_PLATFORM"};
     if (isNull _stationOperator || {group _stationOperator != _group}
         || {!([_stationOperator] call WAIT_fnc_CortexCombatEffective)}
         || {isPlayer _stationOperator} || {!isNull remoteControlled _stationOperator}
@@ -150,13 +152,21 @@ if (serverTime >= (_job getOrDefault ["capabilityAt",serverTime])) then {
         || {!([_stationOperator] call WAIT_fnc_CortexActorFireTaskAvailable)}) then {
         _capabilityFailure="NO_FIRE_OPERATOR";
     };
-    if (_capabilityFailure == "" && {!([_asset,_stationOperator] call WAIT_fnc_CortexGroundFireReady)}) then {
-        _capabilityFailure="NO_STATION_AMMO";
-    };
-    if (_capabilityFailure == "" && {!([_asset,_stationOperator,_target] call WAIT_fnc_CortexGroundFireReady)}) then {
-        _capabilityFailure="NO_TARGET_AMMO";
+    if (_capabilityFailure == "") then {
+        private _stationReady=[_asset,_stationOperator] call WAIT_fnc_CortexGroundFireReady;
+        // Always query target-specific reload evidence, including an empty station.
+        // An unrelated ammunition reload cannot defer this opportunity's failure.
+        private _targetReady=[_asset,_stationOperator,_target,_ammoObservation] call WAIT_fnc_CortexGroundFireReady;
+        if (!_stationReady) then {_capabilityFailure="NO_STATION_AMMO"} else {
+            if (!_targetReady) then {_capabilityFailure="NO_TARGET_AMMO"};
+        };
+        if (_capabilityFailure == "" && {!canFire _asset}) then {_capabilityFailure="NO_FIRE_PLATFORM"};
     };
 };
+// A temporary empty magazine is not permanent asset failure. The original expiry
+// was checked above; waiting does not rewrite role, route, progress or retry clocks.
+if (_capabilityFailure in ["NO_STATION_AMMO","NO_TARGET_AMMO","NO_FIRE_PLATFORM"]
+    && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {1};
 if (_capabilityFailure != "") exitWith {[_capabilityFailure] call _finish};
 if (_asset distance2D _destination > 70
     && {simulationEnabled _asset && {!isObjectHidden _asset} && {!canMove _asset}}) exitWith {["ASSET_IMMOBILE"] call _finish};
@@ -176,13 +186,16 @@ if (_asset distance2D _destination <= 70) exitWith {
         && {[_gunner] call WAIT_fnc_CortexActorFireTaskAvailable}
         && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
         && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+    if (_fireAllowed) then {
+        private _stationReady=[_asset,_gunner] call WAIT_fnc_CortexGroundFireReady;
+        private _targetReady=[_asset,_gunner,_target,_ammoObservation] call WAIT_fnc_CortexGroundFireReady;
+        if (!_stationReady) then {_fireAllowed=false;_fireDecision="NO_STATION_AMMO"} else {
+            if (!_targetReady) then {_fireAllowed=false;_fireDecision="NO_TARGET_AMMO"};
+        };
+    };
     if (_fireAllowed && {!canFire _asset}) then {_fireAllowed=false;_fireDecision="NO_FIRE_PLATFORM"};
-    if (_fireAllowed && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
-        _fireAllowed=false; _fireDecision="NO_STATION_AMMO";
-    };
-    if (_fireAllowed && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {
-        _fireAllowed=false; _fireDecision="NO_TARGET_AMMO";
-    };
+    if (_fireDecision in ["NO_STATION_AMMO","NO_TARGET_AMMO","NO_FIRE_PLATFORM"]
+        && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {1};
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";
         private _laneClear=[_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear;

@@ -7697,6 +7697,23 @@ class CortexOperations(unittest.TestCase):
             self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
             self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
 
+    def test_combined_ground_reload_wait_keeps_original_deadline_and_never_grants_fire(self):
+        ready=source('cortexGroundFireReady')
+        self.assertIn('_observation set ["reloadInProgress",false]',ready)
+        reload=ready.split('private _reload=',1)[1].split('count _state >= 5',1)[0]
+        for guard in ['_suitable','finite _reload','_reload > 0','_reload <= 1']:
+            self.assertIn(guard,reload)
+        step=source('cortexCombinedGroundStep')
+        self.assertEqual(step.count('&& {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {1}'),2)
+        self.assertLess(step.index('serverTime >= (_job getOrDefault ["expiry"'),step.index('private _ammoObservation='))
+        for actor in ['_stationOperator','_gunner']:
+            self.assertIn(f'private _targetReady=[_asset,{actor},_target,_ammoObservation] call WAIT_fnc_CortexGroundFireReady',step)
+        self.assertNotIn('objNull,_ammoObservation',step)
+        self.assertNotIn('_job set ["expiry"',step)
+        self.assertNotIn('_job set ["deadline"',step)
+        arrival=step.split('if (_asset distance2D _destination <= 70) exitWith {',1)[1]
+        self.assertLess(arrival.index('reloadInProgress'),arrival.index('_gunner doFire'))
+
     def test_ground_fire_readiness_uses_loaded_station_muzzle_not_inventory(self):
         text=source('cortexGroundFireReady')
         self.assertNotIn('magazinesAllTurrets',text)
