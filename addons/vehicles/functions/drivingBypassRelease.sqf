@@ -5,6 +5,7 @@
  * external/tactical ownership protect cleanup. Both native command types must also match;
  * matching destinations alone cannot recall a changed MOVE/STOP/FOLLOW command. Identical
  * repeated commands remain indistinguishable; missing legacy task receipts grant no recall.
+ * New individual reservations prevent movement cleanup; actor leases remain untouched.
  * Repeat/JIP: Public episode retires once; bounded 32-entry object/route cooldown lasts 120 s.
  * PLAN owns no movement and cannot stop native actors. Local handles/code are never published.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
@@ -51,7 +52,8 @@ private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly}}
     && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}};
 {
     _owned=_owned && {!isNull _x} && {local _x} && {vehicle _x == _vehicle}
-        && {[_x] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _x} && {isNull remoteControlled _x}
+        && {[_x] call WAIT_fnc_CortexCombatEffective}
+        && {!([_x] call WAIT_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {simulationEnabled _x} && {!isObjectHidden _x}
         && {[_x] call WAIT_fnc_CortexExternalOwner == ""}

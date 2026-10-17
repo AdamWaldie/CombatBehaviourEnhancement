@@ -6,6 +6,7 @@
  * New PLAN acquisition preserves native STOP/FOLLOW/ATTACK/unowned WAIT on either seat;
  * its two actors must be idle or moving to the full three-dimensional authored destination. Owned FOLLOW-phase
  * doStop receipts retain their separate retirement contract.
+ * Individual actor reservations on either seat veto acquisition and every later command.
  * Repeat/JIP: Public serializable work stores original 90-second deadline, two-side attempt budget,
  * path/checkpoint/seat/route receipts. New owners adopt without command replay or clock renewal.
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 brain <HASHMAP, empty>;
@@ -35,7 +36,8 @@ private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 private _seatsAvailable={
     [_driver,_operator] findIf {
         isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
-            || {!([_x] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _x}
+            || {!([_x] call WAIT_fnc_CortexCombatEffective)}
+            || {[_x] call WAIT_fnc_CortexActorMoveReserved} || {isPlayer _x}
             || {!isNull remoteControlled _x} || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
             || {!simulationEnabled _x} || {isObjectHidden _x}

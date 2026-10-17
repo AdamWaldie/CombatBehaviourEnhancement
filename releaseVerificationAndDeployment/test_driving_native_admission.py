@@ -24,6 +24,19 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertLess(release.index('WAIT_fnc_CortexActorMoveReserved'),release.index('doStop _driver'))
         self.assertNotIn('setVariable ["WAIT_Cortex_ActorMove",nil]',release)
 
+    def test_alternate_paths_preserve_seat_reservations_during_execution_and_cleanup(self):
+        for name,helper in [('drivingBypassStep','_seatsAvailable'),('drivingCorridorStep','_crewReady')]:
+            text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            readiness=text.split(f'private {helper}={{',1)[1].split('} < 0',1)[0]
+            self.assertIn('[_driver,_operator] findIf',readiness)
+            self.assertIn('[_x] call WAIT_fnc_CortexActorMoveReserved',readiness)
+            writer=text.split('private _mayWrite={',1)[1].split('};',1)[0]
+            self.assertIn(f'call {helper}',writer)
+        for name,actor in [('drivingBypassRelease','_x'),('drivingCorridorRelease','_actor')]:
+            text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            self.assertLess(text.index(f'!([{actor}] call WAIT_fnc_CortexActorMoveReserved)'),text.index('doStop _driver'))
+            self.assertNotIn('setVariable ["WAIT_Cortex_ActorMove",nil]',text)
+
     def test_pre_path_rechecks_do_not_reject_fixed_path_owned_stop(self):
         bypass=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
         self.assertIn('(_work get "phase") == "PLAN"} && {!(call _nativeAdmissionReady)',bypass)

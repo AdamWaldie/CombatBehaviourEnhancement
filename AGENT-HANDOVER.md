@@ -290,3 +290,7 @@ Parachute exit now applies inherited chute velocity only after actual seat occup
 ## 2026-10-17 Ordinary recovery seat reservations
 
 DrivingAssistStart now includes the strict actor reservation predicate in its shared native-task boundary for both driver and effective commander; this covers initial release and each later cap/recovery write. DrivingRecoveryRelease checks the same predicate before doStop/doFollow/doMove handback, without clearing the actor lease. Unknown/nonlocal leases refuse admission, valid expired leases use existing semantics. Full Build passed: 1086 tests, exit 0; `.qa/workshop-evaluation-20261016/driving-seat-reservation-build.log`. No physical takeover or recovery acceptance; audits remain paused. Signed source remains 655728a and predates these changes.
+
+## 2026-10-17 Alternate driving seat reservations
+
+Bypass and navigation-corridor shared seat guards now refuse strict actor reservations in ordinary and convoy-lead execution, including approach/fixed-path issue. Both release helpers check reservations before movement cleanup and never clear actor leases. Full Build passed: 1087 tests, exit 0; `.qa/workshop-evaluation-20261016/driving-alternate-seat-reservation-build.log`. No live acceptance: preserving new task authority does not prove termination of an already-running native fixed path. Prepared future takeover tests must distinguish command refusal from actual vehicle cessation/handover. Audits remain paused.

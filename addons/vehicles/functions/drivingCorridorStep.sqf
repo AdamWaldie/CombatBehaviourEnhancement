@@ -8,6 +8,7 @@
  * New acquisition requires both actors idle or route-matching MOVE; native STOP, FOLLOW,
  * ATTACK and unowned WAIT remain authoritative. APPROACH permits its owned arrival wait but
  * rejects a new STOP/other native task before taking fixed steering. CROSS owns its own doStop.
+ * Individual actor reservations on either seat veto acquisition and every later command.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
  * or deadline renewal. Original 120-second approach and half-length+45-second crossing budgets
  * remain finite. Area edits, new orders, changed seats and external ownership retire old work.
@@ -34,7 +35,8 @@ private _operator=effectiveCommander _vehicle;
 private _crewReady={
     [_driver,_operator] findIf {
         isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
-            || {!([_x] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _x}
+            || {!([_x] call WAIT_fnc_CortexCombatEffective)}
+            || {[_x] call WAIT_fnc_CortexActorMoveReserved} || {isPlayer _x}
             || {!isNull remoteControlled _x}
             || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             || {[_x] call WAIT_fnc_CortexExternalOwner != ""}

@@ -5,6 +5,7 @@
  * external/tactical ownership checks protect every stop and route-resume command.
  * Crossing ownership includes both seat receipts. A separate same-vehicle driver rejoins only
  * its unchanged owned commander before native-route wakeup; other actors/features are untouched.
+ * New individual reservations prevent movement cleanup; actor leases remain untouched.
  * Repeat/JIP: Retires public work once; retains a bounded 120-second context cooldown and terminal
  * diagnostic. No movement is replayed to joining clients or over a changed command/seat/route.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 group <GROUP, grpNull>; 2 reason <STRING, RELEASED>;
@@ -50,7 +51,8 @@ private _owned=!isNull _driver && {!isNull _operator} && {local _driver} && {loc
     && {alive _vehicle} && {canMove _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle};
 {
     private _actor=_x;
-    _owned=_owned && {[_actor] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _actor}
+    _owned=_owned && {[_actor] call WAIT_fnc_CortexCombatEffective}
+        && {!([_actor] call WAIT_fnc_CortexActorMoveReserved)} && {!isPlayer _actor}
         && {isNull remoteControlled _actor}
         && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {[_actor] call WAIT_fnc_CortexExternalOwner == ""}
