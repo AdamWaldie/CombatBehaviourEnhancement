@@ -7714,6 +7714,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_lateral_feature_cleanup_retains_exact_changed_pilot(self):
+        job=source('cortexAirAttack')
+        mutation=job.split('_job set ["lateralPilotFeatures",_lateralPilotFeatures];',1)[1].split('_pilot doTarget objNull',1)[0]
+        self.assertLess(mutation.index('_job set ["lateralPilot",_pilot]'),mutation.index('_pilot disableAI'))
+        cleanup=job.split('private _finishPilot=',1)[1].split('// Direct Zeus input',1)[0]
+        self.assertIn('_job getOrDefault ["lateralPilot",objNull]',cleanup)
+        self.assertNotIn('driver _aircraft',cleanup)
+        self.assertIn('group _finishPilot == _finishGroup',cleanup)
+        self.assertIn('vehicle _finishPilot == _aircraft',cleanup)
+        self.assertIn('CortexActorFireTaskAvailable',cleanup)
+
     def test_air_pilot_task_authority_precedes_admission_flight_and_feature_cleanup(self):
         job=source('cortexAirAttack')
         admission=job.split('private _allowed=',1)[1].split('if (!_allowed)',1)[0]
@@ -7722,7 +7733,7 @@ class CortexOperations(unittest.TestCase):
         boundary=job.split('private _mayControlAircraft = {',1)[1].split('};',1)[0]
         self.assertIn('local _livePilot',boundary)
         self.assertIn('[_livePilot] call WAIT_fnc_CortexActorFireTaskAvailable',boundary)
-        cleanup=job.split('private _finishPilot=driver _aircraft;',1)[1].split('_finishPilot enableAI',1)[0]
+        cleanup=job.split('private _finishPilot=_job getOrDefault ["lateralPilot",objNull];',1)[1].split('_finishPilot enableAI',1)[0]
         self.assertIn('[_finishPilot] call WAIT_fnc_CortexActorFireTaskAvailable',cleanup)
 
     def test_air_target_cleanup_only_retires_recorded_actor_assignment(self):

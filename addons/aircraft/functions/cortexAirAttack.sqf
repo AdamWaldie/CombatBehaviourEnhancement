@@ -4,6 +4,7 @@
  * Operator replacement cancels the old plan before retained targeting/release state can transfer.
  * Target cleanup is scoped to the actor/target actually commanded by this job.
  * Pilot actor reservations/service tasks veto admission and later flight mutations.
+ * Lateral feature snapshots retain the exact affected pilot; replacement crew inherit no restoration.
  * Release readiness requires actual native selected-weapon state with the exact planned
  * magazine and positive rounds; reserve turret stock grants no release permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
@@ -124,8 +125,9 @@ private _finish={
                     } else {deleteWaypoint _ownedWaypoint};};
         };
         // This controller never changes enableAttack, so cleanup has no restoration authority.
-        private _finishPilot=driver _aircraft;
+        private _finishPilot=_job getOrDefault ["lateralPilot",objNull];
         if (_ownsFlight && {!isNull _finishPilot} && {alive _finishPilot} && {local _finishPilot}
+            && {group _finishPilot == _finishGroup} && {vehicle _finishPilot == _aircraft}
             && {!isPlayer _finishPilot} && {isNull (remoteControlled _finishPilot)}
             && {([_finishPilot] call WAIT_fnc_CortexExternalOwner) == ""}
             && {!([_finishPilot] call WAIT_fnc_CompatibilityExternalControl)}
@@ -374,6 +376,7 @@ if (_stage == "") then {
     if ((_plan get "pattern") == "LATERAL") then {
         private _lateralPilotFeatures=["AUTOCOMBAT","TARGET","AUTOTARGET"] select {_pilot checkAIFeature _x};
         _job set ["lateralPilotFeatures",_lateralPilotFeatures];
+        _job set ["lateralPilot",_pilot];
         {_pilot disableAI _x} forEach _lateralPilotFeatures;
         _pilot doTarget objNull;
         _pilot doWatch objNull;
