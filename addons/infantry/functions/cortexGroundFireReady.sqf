@@ -1,7 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Verify the selected ground gunner's actual station has a loaded damaging magazine
- * compatible with an exposed station weapon. Ammunition on another turret cannot qualify it.
+ * in a native station weapon/muzzle state. Reserve magazines or another turret cannot qualify it.
+ * Work: at most16 station weapons,8 configured muzzles each and32 native weapon-state queries.
+ * This checks loaded rounds, not completion of the native reload/firing cycle.
  * An optional target also requires configured ammunition intent for its actual platform class.
  * Missing usage flags retain a conservative legacy fallback; no targeting command is issued.
  * Locality/authority: Read-only on the gunner owner; vehicle locality may differ; callers retain ROE, safety and token checks.
@@ -22,7 +24,6 @@ private _stationIndex=_crew findIf {(_x select 0) == _gunner};
 if (_stationIndex < 0) exitWith {false};
 private _station=(_crew select _stationIndex) select 3;
 private _weapons=_asset weaponsTurret _station;
-private _loaded=magazinesAllTurrets _asset;
 private _targetPlatform=if (isNull _target) then {objNull} else {vehicle _target};
 private _targetFlag=if (isNull _targetPlatform) then {0} else {
     if (_targetPlatform isKindOf "Man") then {64} else {
@@ -50,12 +51,26 @@ private _targetSuitable={
     };
     getNumber (_ammo >> "airLock") <= 0
 };
-_loaded findIf {
-    _x params ["_magazine","_turret","_rounds"];
-    _turret isEqualTo _station && {_rounds > 0} && {
-        private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
-        (getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0})
-            && {_weapons findIf {_magazine in compatibleMagazines _x} >= 0}
-            && {[_ammo] call _targetSuitable}
-    }
+// Inventory membership does not prove a magazine is loaded. Query each native
+// station muzzle directly, including an unselected coaxial/secondary weapon.
+private _queries=0;
+(_weapons select [0,16]) findIf {
+    private _weapon=_x;
+    private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");
+    if (_muzzles isEqualTo []) then {_muzzles=["this"]};
+    (_muzzles select [0,8]) findIf {
+        if (_queries >= 32) exitWith {false};
+        _queries=_queries+1;
+        private _muzzle=[_x,_weapon] select (_x == "this");
+        private _state=weaponState [_asset,_station,_weapon,_muzzle];
+        private _magazine=_state param [3,"",[""]];
+        private _rounds=_state param [4,0,[0]];
+        count _state >= 5 && {(_state select 0) == _weapon}
+            && {(_state select 1) == _muzzle}
+            && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {
+                private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
+                (getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0})
+                    && {[_ammo] call _targetSuitable}
+            }
+    } >= 0
 } >= 0

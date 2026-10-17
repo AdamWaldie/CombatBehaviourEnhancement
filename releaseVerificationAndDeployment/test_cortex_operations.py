@@ -7697,6 +7697,19 @@ class CortexOperations(unittest.TestCase):
             self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
             self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
 
+    def test_ground_fire_readiness_uses_loaded_station_muzzle_not_inventory(self):
+        text=source('cortexGroundFireReady')
+        self.assertNotIn('magazinesAllTurrets',text)
+        self.assertNotIn('compatibleMagazines',text)
+        for proof in ['weaponState [_asset,_station,_weapon,_muzzle]',
+                      '(_state select 0) == _weapon','(_state select 1) == _muzzle',
+                      '_magazine != ""','finite _rounds','_rounds > 0',
+                      '_weapons select [0,16]','_muzzles select [0,8]','_queries >= 32']:
+            self.assertIn(proof,text)
+        self.assertIn('[_ammo] call _targetSuitable',text)
+        self.assertNotIn('selectWeapon',text)
+        self.assertNotIn('loadMagazine',text)
+
     def test_direct_door_calls_cannot_borrow_reserved_or_service_actors(self):
         text=source('cortexBuildingDoor')
         direct=text.split('if (_context isEqualTo []) exitWith {',1)[1].split('};',1)[0]
