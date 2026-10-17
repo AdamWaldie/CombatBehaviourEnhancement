@@ -37,3 +37,11 @@ Current local source comparison: `.qa/workshop-comparison-20261014/WORKSHOP-COMP
 ## Continuation handover
 
 Read `AGENT-HANDOVER.md` for the current review checkpoint, local evidence paths and outstanding work. Revalidate live Git/PR and process state before relying on its snapshot. The handover and engineering reference reviews are not player-facing package content.
+
+## Low-credit checkpoint and handover
+
+User standing instruction: at very low remaining credits, commit safe work and provide another agent with a continuation prompt containing the full goal, current context and source/register references. Use 20 remaining credits as the default threshold unless the user changes it.
+
+Check the live account usage tool before a long work batch and when resuming after a substantial break. Do not claim continuous monitoring between turns. Missing usage data is unknown, not zero. At or below the threshold, finish the current bounded operation safely, inspect any live tool/process handle, and avoid starting another large batch. Preserve unrelated changes; verify the repository/PR boundary and commit only the intended work. Record unfinished work and failed checks rather than claiming completion.
+
+Refresh AGENT-HANDOVER.md and AGENT-CONTINUATION-PROMPT.md with the unchanged full objective, current branch/commit/PR, local versus remote state, exact artifacts, validation limits, active processes, pending approvals, audit authorisation and next action. Include the private ledger/mod list, source inventory, review registers and archive locations. Verify referenced files and provide the commit plus prompt link to the user. Do not push solely for bookkeeping, mark the goal complete, change audit permission, expose secrets, or redeem usage resets without the required user instruction.
