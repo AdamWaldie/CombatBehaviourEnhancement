@@ -312,3 +312,7 @@ Remote checkpoint verified at 05308a649dd971c65e94a99e4fac1aa3a53bf5dd, PR16 ope
 ## 2026-10-17 Retained mixed-column evidence
 
 Reviewed retained normal convoy source61e136b runtime20261011-184243-432 (not current behaviour). `referenceReviews/convoy-retained-mixed-20261017.json` records exact RPT hash/lines, package commit, scenario classes and 24 baseline/WAIT mixed50 samples. Tracked follower nearly stationary in four five-second WAIT samples while forceSpeed remained positive 8.12628..8.33333m/s; baseline has no sampled near-stops. This weakens zero-cap-only explanation at those instants, but intervening caps/native planning/steering/ground contact remain unresolved. No one-second timing rows exist, and cases are not matched trajectories; no causal or current acceptance claim. Use prepared capture on resume before tuning spacing. No audits launched.
+
+## 2026-10-17 Retained convoy destination/source cross-check
+
+The four historical tracked near-stops have native MOVE / VEHICLE PLANNED targets44.76..72.64m away, so nearby-destination arrival is not a complete explanation at those instants. Old61e136b and current7f1c4c1 both permit native retask after >8m endpoint advance; this is an opportunity, not a measured issue count or causal result. Review JSON now records that distinction. All41 private HBQ semantic-index entries resolved and matched their stored SHA256; no missing or stale review hashes found. Source review coverage is still not implementation/physical parity. No production edits or audit launches in this cross-check.

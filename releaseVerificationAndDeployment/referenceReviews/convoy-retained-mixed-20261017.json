@@ -205,7 +205,8 @@
   "findings": [
     "The WAIT mixed50 tracked follower is near stationary in four sampled frames with positive forceSpeed; baseline mixed50 has no near-stationary samples.",
     "Positive speed permission is not actual propulsion or successful path execution. These observations rule out an explicit zero cap as the sole explanation at those instants, not between samples.",
-    "Baseline and WAIT cases are separate runs within the matrix, not matched counterfactual trajectories. No statistical or causal superiority claim is made."
+    "Baseline and WAIT cases are separate runs within the matrix, not matched counterfactual trajectories. No statistical or causal superiority claim is made.",
+    "All four near-stationary tracked samples report native MOVE / VEHICLE PLANNED with destinations 44.76 to72.64 metres away. Those instants are not arrival at a nearby target; neither native MOVE nor a distant destination proves a viable path."
   ],
   "limitations": [
     "Five-second sampling can miss complete stop/start cycles and intervening cap changes.",
@@ -221,5 +222,12 @@
     "O_MRAP_02_F",
     "O_APC_Tracked_02_cannon_F",
     "O_Truck_03_transport_F"
-  ]
+  ],
+  "sourceComparison": {
+    "path": "addons/vehicles/functions/convoyTick.sqf",
+    "historicalCommit": "61e136b6e2424beeabff8e2ebf296b31968687bd",
+    "currentReviewedCommit": "7f1c4c1",
+    "sharedPolicy": "Both versions permit native doMove when the committed destination advances more than eight metres in 2D. This is an issuance opportunity, not a recorded issue count. Current code additionally retains recorded pre-extension destination and exact command receipts.",
+    "limitation": "Sampled expected destinations can change without showing every command issue; no frequency or causal claim is supported by these five-second rows."
+  }
 }
