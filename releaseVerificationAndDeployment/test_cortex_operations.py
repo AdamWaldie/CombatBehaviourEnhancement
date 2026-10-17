@@ -8134,7 +8134,7 @@ class CortexOperations(unittest.TestCase):
         for proof in ['_index <= 0','waypointType _waypoint == "MOVE"',
                       '_condition == "true"','_statements param [1,""]',
                       'waypointScript','waypointTimeout','waypointAttachedVehicle',
-                      'waypointAttachedObject','synchronizedWaypoints','triggerActivated']:
+                      'waypointAttachedObject','synchronizedWaypoints','(synchronizedTriggers _waypoint) isEqualTo []']:
             self.assertIn(proof,policy)
         self.assertNotIn('distance2D',policy)
         self.assertNotIn('compile',policy)

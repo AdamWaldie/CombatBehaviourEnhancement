@@ -37,6 +37,15 @@ class NativeAdmissionTests(unittest.TestCase):
             self.assertLess(text.index(f'!([{actor}] call WAIT_fnc_CortexActorMoveReserved)'),text.index('doStop _driver'))
             self.assertNotIn('setVariable ["WAIT_Cortex_ActorMove",nil]',text)
 
+    def test_recovery_admission_and_handback_both_preserve_all_trigger_links(self):
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        admission=assist.split('private _recoveryOrderFree = {',1)[1].split('private _mayRecoverRoute',1)[0]
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        for text in [admission,release]:
+            self.assertIn('(synchronizedTriggers _waypoint) isEqualTo []',text)
+            self.assertIn('(synchronizedWaypoints _waypoint) isEqualTo []',text)
+        self.assertNotIn('triggerActivated',admission)
+
     def test_pre_path_rechecks_do_not_reject_fixed_path_owned_stop(self):
         bypass=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
         self.assertIn('(_work get "phase") == "PLAN"} && {!(call _nativeAdmissionReady)',bypass)

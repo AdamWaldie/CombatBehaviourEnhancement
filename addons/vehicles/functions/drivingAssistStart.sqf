@@ -47,7 +47,8 @@
  * formation movement; a leader/seat/locality change invalidates delayed recovery commands.
  * Deliberate native waits near the completion envelope suppress recovery without evaluating
  * waypoint statement code. Recovery also refuses distant scripted, timed, synchronized or
- * object-attached MOVE orders; native execution and ordinary safety caps remain available.
+ * object-attached MOVE orders; even currently active synchronized triggers retain authored control.
+ * Native execution and ordinary safety caps remain available.
  * New or newly progressing routes get a 20-second planning/observation grace. A route refresh
  * gets 30 seconds before cautious reverse admission; the reverse leg remains six seconds and
  * the final authored-route retry gets 60 seconds. No new order inherits a spent retry window.
@@ -205,7 +206,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {(waypointTimeout _waypoint param [2,0]) <= 0}
                 && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
                 && {(synchronizedWaypoints _waypoint) isEqualTo []}
-                && {(synchronizedTriggers _waypoint) findIf {!isNull _x && {!triggerActivated _x}} < 0}
+                && {(synchronizedTriggers _waypoint) isEqualTo []}
         };
         private _mayRecoverRoute = {
             call _mayIssueDriving && {vehicle leader _group isEqualTo _vehicle} && {!(call _nativeWaiting)}
