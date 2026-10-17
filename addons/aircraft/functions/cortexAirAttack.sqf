@@ -136,6 +136,11 @@ private _finish={
             && {(_job getOrDefault ["lateralPilotReceipt",[]]) isNotEqualTo []}
             && {(_finishPilot getVariable ["WAIT_AirPilotFeatureReceipt",[]]) isEqualTo (_job get "lateralPilotReceipt")}) then {
             {_finishPilot enableAI _x} forEach (_job getOrDefault ["lateralPilotFeatures",[]]);
+            private _releasedReceipt=_job get "lateralPilotReceipt";
+            private _window=_finishPilot getVariable ["WAIT_AirPilotFeatureReleaseWindow",[]];
+            if (count _window == 2 && {(_window select 0) isEqualTo _releasedReceipt}) then {
+                _finishPilot setVariable ["WAIT_AirPilotFeatureReleaseWindow",nil,true];
+            };
             _finishPilot setVariable ["WAIT_AirPilotFeatureReceipt",nil,true];
         };
         // Direct Zeus input owns the aircraft immediately. Do not clear target or watch state here:

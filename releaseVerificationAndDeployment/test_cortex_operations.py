@@ -7714,6 +7714,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_init_adoption_cannot_age_active_issuer_release_window(self):
+        adopt=source('cortexAirPilotFeatureAdopt')
+        guard=adopt.split('// Init/late lookup on the original owner',1)[1].split('// The immutable issuer',1)[0]
+        self.assertIn('(_receipt select 5) isEqualTo clientOwner',guard)
+        self.assertIn('(_window select 0) isNotEqualTo _receipt',guard)
+        self.assertIn('exitWith {false}',guard)
+        self.assertLess(adopt.index('// Init/late lookup'),adopt.index('call WAIT_fnc_CortexAirPilotFeatureRelease'))
+        job=source('cortexAirAttack')
+        cleanup=job.split('private _releasedReceipt=',1)[1].split('// Direct Zeus input',1)[0]
+        self.assertIn('(_window select 0) isEqualTo _releasedReceipt',cleanup)
+        self.assertIn('_finishPilot setVariable ["WAIT_AirPilotFeatureReleaseWindow",nil,true]',cleanup)
+
     def test_air_feature_release_deadline_survives_adoption_without_renewal(self):
         release=source('cortexAirPilotFeatureRelease')
         self.assertIn('if (!_matchingWindow && {_issuer == clientOwner}) then {',release)
