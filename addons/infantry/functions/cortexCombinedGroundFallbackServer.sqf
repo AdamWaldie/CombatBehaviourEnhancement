@@ -79,7 +79,7 @@ _replacement setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"FALLBACK_D
     params ["_replacement","_token","_role","_target"];
     if (!isNull _replacement && {((_replacement getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
         private _result=_replacement getVariable ["WAIT_Cortex_CombinedResult",[]];
-        if ((_result param [0,""]) == _token && {(_result param [2,""]) in ["DISPATCHED","FALLBACK_DISPATCHED","APPLIED"]}) then {
+        if ((_result param [0,""]) == _token && {(_result param [2,""]) in ["DISPATCHED","FALLBACK_DISPATCHED","APPLIED","WAITING_FOR_RELOAD"]}) then {
             _replacement setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
         };
         _replacement setVariable ["WAIT_Cortex_CombinedRole",nil,true];

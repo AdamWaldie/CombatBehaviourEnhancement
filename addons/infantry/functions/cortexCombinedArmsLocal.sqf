@@ -15,6 +15,8 @@
  * Locality/authority: current group owner only; server-issued public token must still match. Asset
  * aircraft discovery requires the pilot's group; ground discovery accepts the commander's or driver's group.
  * Repeat/JIP: exact opportunity/owner/epoch receipts suppress repeated application on one owner.
+ * Relevant native reloads defer admission through the existing group tick and original expiry.
+ * Pending reload receipts preserve the route/asset/gunner; report reveal occurs once per owner receipt.
  * A new owner epoch must admit again; original expiry/contact age never renew. Zeus takeover,
  * feature closure and replaced public opportunities reject stale calls.
  * Contact positions require exactly three finite numeric ATL components, each within +/-1e6m.
@@ -24,7 +26,7 @@
  * Receipt [1,original observedAt,confidence] may reveal only within10s and at sender-bounded confidence.
  * Legacy seven-field roles grant no new knowledge. Owner replay never renews the receipt.
  * Return Value: Boolean, true when the role was applied.
- * Current callers: WAIT_fnc_CortexCombinedArmsServer through remote execution.
+ * Current callers: CortexCombinedArmsServer/Fallback dispatch and CortexGroupTick owner replay.
  * Example: [_vehicleGroup,_opportunity] remoteExecCall ["WAIT_fnc_CortexCombinedArmsLocal",groupOwner _vehicleGroup];
  */
 params [["_group",grpNull,[grpNull]],["_opportunity",[],[[]]]];
@@ -56,6 +58,9 @@ if (count _application == 2 && {(_application select 0) isEqualTo _applicationId
     true
 };
 private _markApplied={
+    if (((_group getVariable ["WAIT_Cortex_CombinedReloadLocal",[]]) param [0,[]]) isEqualTo _applicationIdentity) then {
+        _group setVariable ["WAIT_Cortex_CombinedReloadLocal",nil];
+    };
     _group setVariable ["WAIT_Cortex_CombinedApplicationLocal",[_applicationIdentity,serverTime]];
     _group setVariable ["WAIT_Cortex_CombinedApplied",[_token,clientOwner,serverTime],true];
 };
@@ -73,6 +78,24 @@ private _asset=objNull;
         }}) exitWith {_asset=_vehicle};
 } forEach units _group;
 if (isNull _asset) exitWith {false};
+private _reloadReceipt=_group getVariable ["WAIT_Cortex_CombinedReloadLocal",[]];
+if (count _reloadReceipt == 4 && {(_reloadReceipt select 0) isEqualTo _applicationIdentity}
+    && {(_reloadReceipt select 1) != _asset || {(_reloadReceipt select 2) != gunner _asset}
+        || {(_reloadReceipt select 3) isNotEqualTo ([_group] call WAIT_fnc_NativeOrderReceipt)}}) exitWith {
+    _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"OTHER_INTENT_ACTIVE",serverTime,_target],true];
+    [_group,_opportunity,"OTHER_INTENT_ACTIVE",clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];
+    false
+};
+private _waitForReload={
+    params ["_gunner"];
+    private _receipt=[_applicationIdentity,_asset,_gunner,[_group] call WAIT_fnc_NativeOrderReceipt];
+    if ((_group getVariable ["WAIT_Cortex_CombinedReloadLocal",[]]) isNotEqualTo _receipt) then {
+        _group setVariable ["WAIT_Cortex_CombinedReloadLocal",_receipt];
+        _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"WAITING_FOR_RELOAD",serverTime,_target],true];
+    };
+    // Remain unapplied: CortexGroupTick rechecks this exact finite opportunity.
+    false
+};
 if (_role in ["GROUND_FIRE","GROUND_MANOEUVRE"] && {
     !(_asset isKindOf "LandVehicle") || {_asset isKindOf "StaticWeapon"}
         || {!([_group,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
@@ -111,7 +134,10 @@ private _freshReport=count _contactReceipt == 3 && {(_contactReceipt select 0) i
     && {serverTime-(_contactReceipt select 1) <= 10}
     && {(_contactReceipt select 2) isEqualType 0} && {finite (_contactReceipt select 2)}
     && {(_contactReceipt select 2) > 0} && {(_contactReceipt select 2) <= 2.5};
-if (_freshReport) then {_group reveal [_target,_contactReceipt select 2]};
+if (_freshReport && {(_group getVariable ["WAIT_Cortex_CombinedReportLocal",[]]) isNotEqualTo _applicationIdentity}) then {
+    _group reveal [_target,_contactReceipt select 2];
+    _group setVariable ["WAIT_Cortex_CombinedReportLocal",_applicationIdentity];
+};
 if (_role == "GROUND_FIRE") exitWith {
     private _gunner=gunner _asset;
     // Knowledge is shared with the whole crew, but only the weapon operator receives an explicit
@@ -130,9 +156,17 @@ if (_role == "GROUND_FIRE") exitWith {
         || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
         || {!([_gunner] call WAIT_fnc_CortexActorFireTaskAvailable)}
         || {[_group] call WAIT_fnc_CortexExternalTakeover}) then {_fireRefusal="NO_FIRE_OPERATOR"};
-    if (_fireRefusal == "" && {!canFire _asset}) then {_fireRefusal="NO_FIRE_PLATFORM"};
-    if (_fireRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_STATION_AMMO"};
-    if (_fireRefusal == "" && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {_fireRefusal="NO_TARGET_AMMO"};
+    private _ammoObservation=createHashMap;
+    if (_fireRefusal == "") then {
+        private _stationReady=[_asset,_gunner] call WAIT_fnc_CortexGroundFireReady;
+        private _targetReady=[_asset,_gunner,_target,_ammoObservation] call WAIT_fnc_CortexGroundFireReady;
+        if (!_stationReady) then {_fireRefusal="NO_STATION_AMMO"} else {
+            if (!_targetReady) then {_fireRefusal="NO_TARGET_AMMO"};
+        };
+        if (_fireRefusal == "" && {!canFire _asset}) then {_fireRefusal="NO_FIRE_PLATFORM"};
+    };
+    if (_fireRefusal in ["NO_STATION_AMMO","NO_TARGET_AMMO","NO_FIRE_PLATFORM"]
+        && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {[_gunner] call _waitForReload};
     if (_fireRefusal == "" && {!([_gunner,aimPos _target] call WAIT_fnc_CortexLineOfFireClear)}) then {
         _fireRefusal="BLOCKED_FIRE_LANE";
     };
@@ -168,13 +202,17 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         || {([_gunner] call WAIT_fnc_CortexExternalOwner) != ""}
         || {[_gunner] call WAIT_fnc_CompatibilityExternalControl}
         || {!([_gunner] call WAIT_fnc_CortexActorFireTaskAvailable)}) then {_capabilityRefusal="NO_FIRE_OPERATOR"};
-    if (_capabilityRefusal == "" && {!canFire _asset}) then {_capabilityRefusal="NO_FIRE_PLATFORM"};
-    if (_capabilityRefusal == "" && {!([_asset,_gunner] call WAIT_fnc_CortexGroundFireReady)}) then {
-        _capabilityRefusal="NO_STATION_AMMO";
+    private _ammoObservation=createHashMap;
+    if (_capabilityRefusal == "") then {
+        private _stationReady=[_asset,_gunner] call WAIT_fnc_CortexGroundFireReady;
+        private _targetReady=[_asset,_gunner,_target,_ammoObservation] call WAIT_fnc_CortexGroundFireReady;
+        if (!_stationReady) then {_capabilityRefusal="NO_STATION_AMMO"} else {
+            if (!_targetReady) then {_capabilityRefusal="NO_TARGET_AMMO"};
+        };
+        if (_capabilityRefusal == "" && {!canFire _asset}) then {_capabilityRefusal="NO_FIRE_PLATFORM"};
     };
-    if (_capabilityRefusal == "" && {!([_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady)}) then {
-        _capabilityRefusal="NO_TARGET_AMMO";
-    };
+    if (_capabilityRefusal in ["NO_STATION_AMMO","NO_TARGET_AMMO","NO_FIRE_PLATFORM"]
+        && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {[_gunner] call _waitForReload};
     if (_capabilityRefusal != "") exitWith {
         _group setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,_capabilityRefusal,serverTime,_target],true];
         [_group,_opportunity,_capabilityRefusal,clientOwner] remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2];

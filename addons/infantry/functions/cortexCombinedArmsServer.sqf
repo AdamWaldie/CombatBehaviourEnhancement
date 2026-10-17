@@ -208,7 +208,7 @@ _requester setVariable ["WAIT_Cortex_CombinedAirFallback",[_token,_target,+_posi
             // Expiry retires the reservation, not a completed/refused physical outcome.
             private _result=_x getVariable ["WAIT_Cortex_CombinedResult",[]];
             if ((_result param [0,""]) == _token
-                && {(_result param [2,""]) in ["DISPATCHED","APPLIED"]}) then {
+                && {(_result param [2,""]) in ["DISPATCHED","APPLIED","WAITING_FOR_RELOAD"]}) then {
                 _x setVariable ["WAIT_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
             };
             _x setVariable ["WAIT_Cortex_CombinedRole",nil,true];

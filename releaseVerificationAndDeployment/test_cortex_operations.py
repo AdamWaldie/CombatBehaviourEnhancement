@@ -4468,7 +4468,7 @@ class CortexOperations(unittest.TestCase):
         admission=manoeuvre.split('private _start=',1)[0]
         for guard in ('group _gunner != _group','local _gunner','WAIT_fnc_CortexCombatEffective',
                       'NO_FIRE_OPERATOR','NO_STATION_AMMO','NO_TARGET_AMMO',
-                      '[_asset,_gunner,_target] call WAIT_fnc_CortexGroundFireReady',
+                      '[_asset,_gunner,_target,_ammoObservation] call WAIT_fnc_CortexGroundFireReady',
                       'remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'):
             self.assertIn(guard,admission)
         self.assertNotIn('doFire',admission)
@@ -4628,7 +4628,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',text)
         self.assertNotIn('doFollow',text)
         local=source('cortexCombinedArmsLocal')
-        self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),8)
+        self.assertEqual(local.count('remoteExecCall ["WAIT_fnc_CortexCombinedRejectServer",2]'),9)
     def test_combined_ground_refusal_producer_reasons_reach_server_retirement(self):
         local=source('cortexCombinedArmsLocal')
         server=source('cortexCombinedRejectServer')
@@ -7696,6 +7696,21 @@ class CortexOperations(unittest.TestCase):
                       'call WAIT_fnc_CortexExternalOwner','call WAIT_fnc_CompatibilityExternalControl']:
             self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
             self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
+
+    def test_ground_reload_admission_reuses_tick_and_preserves_route_and_report_age(self):
+        local=source('cortexCombinedArmsLocal')
+        wait=local.split('private _waitForReload={',1)[1].split('if (_role in',1)[0]
+        self.assertIn('WAITING_FOR_RELOAD',wait)
+        self.assertNotIn('call _markApplied',wait)
+        self.assertNotIn('CortexQueueJob',wait)
+        self.assertNotIn('waitAndExecute',wait)
+        self.assertIn('(_reloadReceipt select 3) isNotEqualTo ([_group] call WAIT_fnc_NativeOrderReceipt)',local)
+        self.assertIn('(_reloadReceipt select 2) != gunner _asset',local)
+        self.assertIn('WAIT_Cortex_CombinedReportLocal',local)
+        self.assertEqual(local.count('_group reveal [_target'),1)
+        for name in ['cortexCombinedArmsServer','cortexCombinedGroundFallbackServer']:
+            self.assertIn('"WAITING_FOR_RELOAD"',source(name))
+        self.assertIn('[_group,_combinedRole] call WAIT_fnc_CortexCombinedArmsLocal',source('cortexGroupTick'))
 
     def test_combined_ground_reload_wait_keeps_original_deadline_and_never_grants_fire(self):
         ready=source('cortexGroundFireReady')

@@ -39,7 +39,9 @@ class CombinedContactPayloadTests(unittest.TestCase):
         self.assertIn('serverTime-_age,_confidence min 2.5',request)
         self.assertIn('_contactReceipt=[1,_observedAt,_confidence min 2.5]',server)
         self.assertIn('serverTime-(_contactReceipt select 1) <= 10',owner)
-        self.assertIn('if (_freshReport) then {_group reveal',owner)
+        self.assertIn('if (_freshReport && {(_group getVariable ["WAIT_Cortex_CombinedReportLocal",[]]) isNotEqualTo _applicationIdentity})',owner)
+        self.assertIn('_group reveal [_target,_contactReceipt select 2]',owner)
+        self.assertIn('_group setVariable ["WAIT_Cortex_CombinedReportLocal",_applicationIdentity]',owner)
         self.assertIn('"NO_KNOWN_CONTACT"',owner)
         for name in ('cortexCombinedAirFallbackServer','cortexCombinedGroundFallbackServer'):
             fallback=source(name)
