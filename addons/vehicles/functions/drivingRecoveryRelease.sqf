@@ -11,6 +11,8 @@
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
  * Admission, route metadata, native command checks and handback execute without suspension.
  * Disabled simulation, hidden or immobile vehicles receive bookkeeping retirement only.
+ * A leader on foot or without an eligible mounted target permits stopping our reverse only;
+ * no crew follows a dismounted leader. Result field5 distinguishes native handback from a stop.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
  * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact reverse handback.
  * Return Value: BOOL - matching journal retired, never physical recovery success.
@@ -27,6 +29,7 @@ if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle}
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 private _driver=_work get "driver";private _operator=_work get "operator";
+private _handback="METADATA_ONLY";
 private _owned=_resume && {(_work get "kind") == "REVERSE"}
     && {alive _vehicle} && {canMove _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
     && {local _group} && {!isNull _driver} && {!isNull _operator}
@@ -58,15 +61,27 @@ if (_owned) then {
         && {waypointScript _waypoint == ""} && {(waypointTimeout _waypoint param [2,0]) <= 0}
         && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
         && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []}) then {
+        private _leader=leader _group;
+        private _leaderVehicle=vehicle _leader;
+        private _mountedTarget=!isNull _leader && {[_leader] call CBE_fnc_CortexCombatEffective}
+            && {_leaderVehicle != _leader} && {_leaderVehicle isKindOf "LandVehicle"}
+            && {alive _leaderVehicle} && {canMove _leaderVehicle}
+            && {simulationEnabled _leaderVehicle} && {!isObjectHidden _leaderVehicle};
         doStop _driver;if (_operator != _driver) then {doStop _operator};
-        if (_driver != _operator) then {_driver doFollow _operator};
-        if (vehicle leader _group == _vehicle) then {_operator doMove waypointPosition _waypoint} else {
-            if (vehicle leader _group isKindOf "LandVehicle") then {_operator doFollow leader _group};
+        _handback="STOP_ONLY";
+        // Following an on-foot leader could cause crew dismount; never invent that task.
+        if (_leaderVehicle == _vehicle || {_mountedTarget}) then {
+            if (_driver != _operator) then {_driver doFollow _operator};
+            if (_leaderVehicle == _vehicle) then {
+                _operator doMove waypointPosition _waypoint;_handback="AUTHORED_ROUTE";
+            } else {
+                _operator doFollow _leader;_handback="MOUNTED_LEADER";
+            };
         };
     };
 };
 if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work) then {
-    _vehicle setVariable ["CBE_DrivingRecovery_Result",[_reason,serverTime,_group,_work get "kind",_work get "hardDeadline"],true];
+    _vehicle setVariable ["CBE_DrivingRecovery_Result",[_reason,serverTime,_group,_work get "kind",_work get "hardDeadline",_handback],true];
     _vehicle setVariable ["CBE_DrivingRecovery_Work",nil,true];
 };
 true

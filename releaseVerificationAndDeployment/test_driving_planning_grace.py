@@ -32,7 +32,9 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
         for guard in ('driverCommand','expectedDestination _operator','DrivingRouteReceipt','CortexExternalTakeover','CortexZeusHeld'):
             self.assertIn(guard,release)
-        self.assertIn('_operator doFollow leader _group',release)
+        self.assertIn('private _leader=leader _group',release)
+        self.assertIn('_operator doFollow _leader',release)
+        self.assertLess(release.index('if (_leaderVehicle == _vehicle || {_mountedTarget})'),release.index('_operator doFollow _leader'))
     def test_traffic_retry_is_finite_and_keeps_collision_caps(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         jam=s.split('// Bounded traffic replan:',1)[1].split('// Waiting behind traffic',1)[0]

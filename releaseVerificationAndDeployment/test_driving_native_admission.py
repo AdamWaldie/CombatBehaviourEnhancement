@@ -53,6 +53,24 @@ class NativeAdmissionTests(unittest.TestCase):
         for forbidden in ('sleep ', 'waitUntil', 'spawn ', 'setCurrentWaypoint', 'deleteWaypoint', 'enableAI'):
             self.assertNotIn(forbidden,transaction)
 
+    def test_recovery_holds_without_dismounted_or_disabled_follow_target(self):
+        text=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        target=text.split('private _mountedTarget=',1)[1].split('doStop _driver',1)[0]
+        for check in ('CortexCombatEffective','_leaderVehicle != _leader',
+                      '_leaderVehicle isKindOf "LandVehicle"','alive _leaderVehicle',
+                      'canMove _leaderVehicle','simulationEnabled _leaderVehicle',
+                      '!isObjectHidden _leaderVehicle'):
+            self.assertIn(check,target)
+        handback=text.split('_handback="STOP_ONLY";',1)[1].split('if ((_vehicle getVariable',1)[0]
+        gate='if (_leaderVehicle == _vehicle || {_mountedTarget}) then {'
+        for command in ('_driver doFollow _operator','_operator doFollow _leader','_operator doMove'):
+            self.assertLess(handback.index(gate),handback.index(command))
+        for outcome in ('METADATA_ONLY','STOP_ONLY','AUTHORED_ROUTE','MOUNTED_LEADER'):
+            self.assertIn(f'"{outcome}"',text)
+        self.assertIn('_work get "hardDeadline",_handback],true]',text)
+        self.assertNotIn('getIn',handback)
+        self.assertNotIn('moveIn',handback)
+
     def test_recovery_admission_and_handback_both_preserve_all_trigger_links(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         admission=assist.split('private _recoveryOrderFree = {',1)[1].split('private _mayRecoverRoute',1)[0]
