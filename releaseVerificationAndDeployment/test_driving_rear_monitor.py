@@ -4,6 +4,13 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 def src(n):return (ROOT/'addons/vehicles/functions'/f'{n}.sqf').read_text(encoding='utf-8')
 class DrivingRearMonitorTests(unittest.TestCase):
+    def test_nonfinite_rear_distance_refuses_before_queries_and_hull_work(self):
+        text=src('drivingRearClear')
+        guard='if (!finite _distance) exitWith {[false,"INVALID_REAR_DISTANCE",time,0]}'
+        self.assertIn(guard,text)
+        for operation in ['_distance=(_distance max 1) min 60','boundingBoxReal _vehicle','nearEntities','lineIntersectsSurfaces']:
+            self.assertLess(text.index(guard),text.index(operation))
+
     def test_rear_observation_applies_before_speed_write_without_extending_deadline(self):
         s=src('drivingAssistStart')
         sample=s.split('if (_reverseLeg) then {',1)[1].split('private _trafficLimited=',1)[0]

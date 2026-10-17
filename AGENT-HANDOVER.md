@@ -320,3 +320,7 @@ The four historical tracked near-stops have native MOVE / VEHICLE PLANNED target
 ## 2026-10-17 Direct door API task authority
 
 Current door executor already uses3m absolute distance, floor and visibility checks; no speculative radius tuning. Empty-context direct calls previously returned orderCurrent=true and bypassed actor/native-task authority. They now require strict unreserved actor and idle/MOVE, checked both before observation and at animation boundary. Owned INDOOR contact/lease admission remains separate, preserving its authorized combat request. CLEAR/GARRISON paths unchanged. Full Build passed1091 tests/all gates, exit0; `.qa/workshop-evaluation-20261016/door-direct-admission-build.log`. No claim this caused historical early animation; physical doors/entry remain unverified, audits paused.
+
+## 2026-10-17 Rear observation finite input
+
+DrivingRearClear now refuses non-finite requested distance with INVALID_REAR_DISTANCE and zero queries/rays before clamping, hull work or discovery. Previously the NUMBER type contract did not establish finiteness. Finite1..60m behaviour unchanged. Full Build passed1092 tests/all gates, exit0; `.qa/workshop-evaluation-20261016/rear-distance-input-build.log`. Forward support classification already preserves downward undersides; current rigid pitch projection still does not prove future slope/deck support. No terrain-flattening or speculative support permission added. Audits paused.

@@ -11,6 +11,7 @@
  * Arguments:
  * 0 vehicle <OBJECT, objNull> - local ground vehicle.
  * 1 distance <NUMBER, 8> - metres behind the rear body edge, clamped to 1..60.
+ * Non-finite distances refuse clearance before any world query or geometry calculation.
  * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
  * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and at most sixty
  * geometry rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
@@ -24,6 +25,7 @@
  */
 params [["_vehicle",objNull,[objNull]],["_distance",8,[0]]];
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[false,"OWNER_UNAVAILABLE",time,0]};
+if (!finite _distance) exitWith {[false,"INVALID_REAR_DISTANCE",time,0]};
 _distance=(_distance max 1) min 60;
 private _box=boundingBoxReal _vehicle;
 private _low=_box select 0;private _high=_box select 1;
