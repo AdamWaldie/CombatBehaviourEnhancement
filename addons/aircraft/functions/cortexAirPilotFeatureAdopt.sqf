@@ -31,12 +31,11 @@ if (_receipt isEqualTo []) exitWith {
     };
     false
 };
-if (count _receipt != 7 || {(_receipt select 1) isNotEqualTo _actor}) exitWith {false};
+if (count _receipt != 8 || {(_receipt select 1) isNotEqualTo _actor}) exitWith {false};
 // Init/late lookup on the original owner is observation, not operation termination.
 // Only actual cleanup may create its first release window; adoption must not age it early.
-private _window=_actor getVariable ["WAIT_AirPilotFeatureReleaseWindow",[]];
 if ((_receipt select 5) isEqualTo clientOwner
-    && {count _window != 2 || {(_window select 0) isNotEqualTo _receipt}}) exitWith {false};
+    && {(_receipt select 7) isEqualTo -1}) exitWith {false};
 // The immutable issuer is provenance. Only this actual actor-local callback authorizes this
 // machine's release attempt; neither group ownership nor the public flight lease grants it.
 _actor setVariable ["WAIT_AirPilotFeatureAdoption",+_receipt];

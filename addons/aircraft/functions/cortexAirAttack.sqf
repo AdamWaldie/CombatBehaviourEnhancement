@@ -136,11 +136,6 @@ private _finish={
             && {(_job getOrDefault ["lateralPilotReceipt",[]]) isNotEqualTo []}
             && {(_finishPilot getVariable ["WAIT_AirPilotFeatureReceipt",[]]) isEqualTo (_job get "lateralPilotReceipt")}) then {
             {_finishPilot enableAI _x} forEach (_job getOrDefault ["lateralPilotFeatures",[]]);
-            private _releasedReceipt=_job get "lateralPilotReceipt";
-            private _window=_finishPilot getVariable ["WAIT_AirPilotFeatureReleaseWindow",[]];
-            if (count _window == 2 && {(_window select 0) isEqualTo _releasedReceipt}) then {
-                _finishPilot setVariable ["WAIT_AirPilotFeatureReleaseWindow",nil,true];
-            };
             _finishPilot setVariable ["WAIT_AirPilotFeatureReceipt",nil,true];
         };
         // Direct Zeus input owns the aircraft immediately. Do not clear target or watch state here:
@@ -395,7 +390,7 @@ if (_stage == "") then {
         if (_lateralPilotFeatures isNotEqualTo []) then {
             // Explicit originally-enabled whitelist, original actor/group/airframe and issuing
             // owner/token are public recovery evidence. No route or attack request is replayable.
-            private _receipt=[1,_pilot,_aircraft,_group,_flightLeaseToken,clientOwner,+_lateralPilotFeatures];
+            private _receipt=[2,_pilot,_aircraft,_group,_flightLeaseToken,clientOwner,+_lateralPilotFeatures,-1];
             _job set ["lateralPilotReceipt",_receipt];
             _pilot setVariable ["WAIT_AirPilotFeatureReceipt",_receipt,true];
         };

@@ -7718,26 +7718,34 @@ class CortexOperations(unittest.TestCase):
         adopt=source('cortexAirPilotFeatureAdopt')
         guard=adopt.split('// Init/late lookup on the original owner',1)[1].split('// The immutable issuer',1)[0]
         self.assertIn('(_receipt select 5) isEqualTo clientOwner',guard)
-        self.assertIn('(_window select 0) isNotEqualTo _receipt',guard)
+        self.assertIn('(_receipt select 7) isEqualTo -1',guard)
         self.assertIn('exitWith {false}',guard)
         self.assertLess(adopt.index('// Init/late lookup'),adopt.index('call WAIT_fnc_CortexAirPilotFeatureRelease'))
-        job=source('cortexAirAttack')
-        cleanup=job.split('private _releasedReceipt=',1)[1].split('// Direct Zeus input',1)[0]
-        self.assertIn('(_window select 0) isEqualTo _releasedReceipt',cleanup)
-        self.assertIn('_finishPilot setVariable ["WAIT_AirPilotFeatureReleaseWindow",nil,true]',cleanup)
 
     def test_air_feature_release_deadline_survives_adoption_without_renewal(self):
         release=source('cortexAirPilotFeatureRelease')
-        self.assertIn('if (!_matchingWindow && {_issuer == clientOwner}) then {',release)
+        self.assertIn('if (_releaseUntil == -1) then {',release)
         self.assertEqual(release.count('serverTime+60'),1)
-        self.assertIn('serverTime >= (_window select 1)',release)
-        self.assertIn('MISSING_RELEASE_WINDOW',release)
-        self.assertLess(release.index('serverTime >= (_window select 1)'),release.index('_actor enableAI'))
+        self.assertIn('_receipt set [7,_releaseUntil]',release)
+        self.assertIn('serverTime >= _releaseUntil',release)
+        self.assertLess(release.index('serverTime >= _releaseUntil'),release.index('_actor enableAI'))
+        self.assertNotIn('WAIT_AirPilotFeatureReleaseWindow',release)
+        self.assertNotIn('MISSING_RELEASE_WINDOW',release)
         adopt=source('cortexAirPilotFeatureAdopt')
         self.assertIn('_attempt < 5',adopt)
         self.assertIn('(vehicle _actor) isKindOf "Air"',adopt)
         self.assertIn('[_actor,true,_attempt+1,_epoch]',adopt)
         self.assertNotIn('serverTime+60',adopt)
+
+    def test_air_migration_can_start_release_before_original_issuer_window(self):
+        release=source('cortexAirPilotFeatureRelease')
+        start=release.split('if (_releaseUntil == -1) then {',1)[1].split('if (_attempt == 0',1)[0]
+        self.assertNotIn('_issuer == clientOwner',start)
+        self.assertIn('WAIT_AirPilotFeatureAdoption",+_receipt',start)
+        self.assertIn('_actor setVariable ["WAIT_AirPilotFeatureReceipt",_receipt,true]',start)
+        self.assertLess(release.index('isNotEqualTo _receipt'),release.index('_receipt set [7,_releaseUntil]'))
+        self.assertIn('_releaseUntil != -1 && {_releaseUntil < 0}',release)
+        self.assertIn('!finite _releaseUntil',release)
 
     def test_air_feature_adoption_uses_actual_actor_locality_without_flight_replay(self):
         adopt=source('cortexAirPilotFeatureAdopt')
@@ -7767,7 +7775,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_air_pilot_feature_release_is_exact_owner_finite_and_task_safe(self):
         helper=source('cortexAirPilotFeatureRelease')
-        for guard in ['!local _actor','count _receipt != 7','_issuer isNotEqualTo clientOwner',
+        for guard in ['!local _actor','count _receipt != 8','_issuer isNotEqualTo clientOwner',
                       '_attempt >= 60','_attempt+1','count _lease == 0','CortexActorFireTaskAvailable',
                       'CortexExternalTakeover','CortexExternalOwner','CompatibilityExternalControl',
                       'WAIT_AirPilotFeatureReleaseStarted','UNRESOLVED','isNotEqualTo _receipt']:
@@ -7787,7 +7795,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('PILOT_FEATURE_HANDOVER_PENDING',admission)
         self.assertIn('_pilot getVariable ["WAIT_AirPilotFeatureReceipt",[]]',admission)
         mutation=job.split('private _lateralPilotFeatures=',1)[1].split('_pilot doTarget objNull',1)[0]
-        self.assertIn('[1,_pilot,_aircraft,_group,_flightLeaseToken,clientOwner,+_lateralPilotFeatures]',mutation)
+        self.assertIn('[2,_pilot,_aircraft,_group,_flightLeaseToken,clientOwner,+_lateralPilotFeatures,-1]',mutation)
         self.assertLess(mutation.index('_pilot setVariable ["WAIT_AirPilotFeatureReceipt",_receipt,true]'),mutation.index('_pilot disableAI'))
         cleanup=job.split('private _finishPilot=',1)[1].split('// Direct Zeus input',1)[0]
         self.assertIn('isEqualTo (_job get "lateralPilotReceipt")',cleanup)
