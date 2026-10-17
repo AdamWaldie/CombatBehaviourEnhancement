@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Retains eligible infantry partners across operation changes and repairs broken pairs.
+ * Intact pairs win; only unpaired actors choose the nearest remaining eligible partner in3D,
+ * with roster order breaking equal-distance ties. Distance is not proof of a connected route.
  * Locality/authority: Current group owner only; writes group pairing metadata, never actor commands.
  * Repeat/JIP: Unchanged pairs do not republish. Public receipts survive owner migration and JIP.
  * Arguments: 0 group <GROUP, grpNull>; 1 eligible actors <ARRAY of OBJECT, []>, maximum 16.
@@ -30,17 +32,32 @@ private _orphans=[];
         if (count _pair == 1) then {_orphans pushBack (_pair select 0)};
     };
 } forEach (_previous select [0,16]);
+// Preserve every intact pair before choosing replacements; proximity must not steal a buddy.
+// This uses only the supplied eligible roster (maximum16), never a world or enemy query.
+private _takeNearest={
+    params ["_anchor"];
+    private _origin=getPosASL _anchor;
+    private _bestIndex=0;
+    private _bestDistance=1e12;
+    {
+        private _distance=(getPosASL _x) vectorDistance _origin;
+        if (_distance < _bestDistance) then {
+            _bestIndex=_forEachIndex;_bestDistance=_distance;
+        };
+    } forEach _remaining;
+    _remaining deleteAt _bestIndex
+};
 {
     if (_x in _remaining) then {
         private _pair=[_x];
         _remaining=_remaining-[_x];
-        if (_remaining isNotEqualTo []) then {_pair pushBack (_remaining deleteAt 0)};
+        if (_remaining isNotEqualTo []) then {_pair pushBack ([(_pair select 0)] call _takeNearest)};
         _pairs pushBack _pair;
     };
 } forEach _orphans;
 while {_remaining isNotEqualTo []} do {
     private _pair=[_remaining deleteAt 0];
-    if (_remaining isNotEqualTo []) then {_pair pushBack (_remaining deleteAt 0)};
+    if (_remaining isNotEqualTo []) then {_pair pushBack ([(_pair select 0)] call _takeNearest)};
     _pairs pushBack _pair;
 };
 if (_pairs isNotEqualTo _previous) then {_group setVariable ["CBE_CombatPairs",_pairs,true]};

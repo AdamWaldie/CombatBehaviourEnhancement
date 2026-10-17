@@ -9008,6 +9008,25 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_lastProgress=',block)
         self.assertNotIn('_cursor=',block)
 
+    def test_new_buddy_selection_is_nearest_without_breaking_intact_pairs(self):
+        pairs=source('combatPairs')
+        self.assertLess(pairs.index('} forEach (_previous select [0,16])'),pairs.index('private _takeNearest='))
+        nearest=pairs.split('private _takeNearest={',1)[1].split('} forEach _orphans',1)[0]
+        self.assertIn('(getPosASL _x) vectorDistance _origin',nearest)
+        self.assertIn('if (_distance < _bestDistance)',nearest)
+        self.assertIn('_remaining deleteAt _bestIndex',nearest)
+        self.assertEqual(pairs.count('call _takeNearest'),2)
+        for forbidden in ('allUnits','nearEntities','doMove','doFollow','getPosATL _enemy'):
+            self.assertNotIn(forbidden,pairs)
+        # Selection model checks 3D proximity and stable roster ties, not native movement.
+        from math import dist
+        def partner(anchor,remaining,positions):
+            return min(enumerate(remaining),key=lambda row:(dist(positions[anchor],positions[row[1]]),row[0]))[1]
+        positions={'a':(0,0,0),'far':(30,0,0),'near':(2,0,0),'upper':(0,0,8),'tie':(-2,0,0)}
+        self.assertEqual(partner('a',['far','near'],positions),'near')
+        self.assertEqual(partner('a',['upper','near'],positions),'near')
+        self.assertEqual(partner('a',['tie','near'],positions),'tie')
+
     def test_shared_infantry_pairs_are_owner_local_and_used_by_clearance(self):
         pairs=source('combatPairs')
         self.assertIn('!local _group',pairs)

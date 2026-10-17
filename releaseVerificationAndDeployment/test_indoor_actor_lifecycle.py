@@ -53,6 +53,27 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertEqual(s.count('lineIntersectsSurfaces'),1)
         self.assertNotIn('getPosATL _enemy',s)
 
+    def test_planner_avoids_current_squad_body_overlap_without_enemy_or_world_scan(self):
+        s=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text()
+        bodies=s.split('private _bodies=[];',1)[1].split('private _ranked=[];',1)[0]
+        for guard in ('_x != _actor','alive _x','isNull objectParent _x',
+                      'simulationEnabled _x','!isObjectHidden _x','getPosASL _x',
+                      '(units group _actor) select [0,16]'):
+            self.assertIn(guard,bodies)
+        self.assertLess(s.index('_bodies findIf'),s.index('_ranked pushBack'))
+        self.assertIn('_x distance2D _nodeASL < 1.5',s)
+        self.assertIn('abs ((_x select 2)-_height) <= 1',s)
+        for forbidden in ('allUnits','nearEntities','nearestObjects','setVariable','_enemy'):
+            self.assertNotIn(forbidden,s)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertIn('_ranked select [0,3]',s)
+        # Occupancy is floor-specific and temporary, not a failed-node cache entry.
+        def occupied(body,node):
+            return ((body[0]-node[0])**2+(body[1]-node[1])**2)**0.5<1.5 and abs(body[2]-node[2])<=1
+        self.assertTrue(occupied((0.5,0,10),(0,0,10)))
+        self.assertFalse(occupied((0.5,0,13),(0,0,10)))
+        self.assertFalse(occupied((2,0,10),(0,0,10)))
+
     def test_physical_fixture_has_real_prerequisites_and_no_positive_shortcuts(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runIndoorActors.sqf').read_text()
         for guard in ('INDOOR-idle-owner-prerequisite','INDOOR-pair-physical-entry',

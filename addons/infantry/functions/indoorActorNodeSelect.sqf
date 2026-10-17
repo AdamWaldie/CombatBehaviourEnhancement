@@ -3,6 +3,8 @@
  * Purpose: Plan one actor's indoor observation destination near a supplied native contact belief.
  * Locality/authority: Read-only on the actor and group owner. No movement or access is granted.
  * Repeat/JIP: Read-only. At most 512 native positions are ranked and three roof queries are issued.
+ * Current positions of at most16 living, simulated, visible, dismounted squadmates exclude
+ * same-floor body overlap. No enemy/other-group scan or persistent occupancy cache is used.
  * Up to four actor-local failed-node observations temporarily exclude matching destinations only
  * while the original owner epoch, building transform and sixty-second expiry remain valid.
  * A caller must retain the building transform, recheck authority and observe physical arrival.
@@ -40,6 +42,15 @@ private _low=_bounds select 0;
 private _high=_bounds select 1;
 private _beliefHeight=(AGLToASL _belief) select 2;
 private _origin=getPosATL _actor;
+// Reservation metadata does not include a teammate who is simply standing at a node.
+// Sample only the existing bounded squad roster; never inspect unseen hostile positions.
+private _bodies=[];
+{
+    if (_x != _actor && {alive _x} && {isNull objectParent _x}
+        && {simulationEnabled _x} && {!isObjectHidden _x}) then {
+        _bodies pushBack getPosASL _x;
+    };
+} forEach ((units group _actor) select [0,16]);
 private _ranked=[];
 {
     private _node=_x;
@@ -48,9 +59,11 @@ private _ranked=[];
         private _inside=(_model select 0) > (_low select 0) && {(_model select 0) < (_high select 0)}
             && {(_model select 1) > (_low select 1)} && {(_model select 1) < (_high select 1)}
             && {(_model select 2) >= (_low select 2)-0.5} && {(_model select 2) <= (_high select 2)};
-        private _height=(AGLToASL _node) select 2;
+        private _nodeASL=AGLToASL _node;
+        private _height=_nodeASL select 2;
         if (_inside && {abs (_height-_beliefHeight) <= 1.5}
             && {_reserved findIf {_x vectorDistance _node < 1.5} < 0}
+            && {_bodies findIf {_x distance2D _nodeASL < 1.5 && {abs ((_x select 2)-_height) <= 1}} < 0}
             && {_failedNodes findIf {_x vectorDistance _node < 1.5} < 0}) then {
             // Belief proximity first; actor travel breaks ties without consulting enemy transforms.
             _ranked pushBack [_node distance2D _belief,_node distance2D _origin,_forEachIndex];
