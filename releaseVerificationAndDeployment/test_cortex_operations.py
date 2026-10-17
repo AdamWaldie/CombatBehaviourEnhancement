@@ -7714,6 +7714,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_attack_operator_replacement_cannot_inherit_release_state(self):
+        job=source('cortexAirAttack')
+        self.assertIn('_job set ["selectedOperator",if (_plannedStation',job)
+        self.assertIn('_currentOperator != (_job getOrDefault ["selectedOperator",objNull])',job)
+        cancel=job.index('["WEAPON_OPERATOR_CHANGED"] call _finish')
+        self.assertLess(cancel,job.index('_aircraft selectWeaponTurret'))
+        self.assertLess(cancel,job.index('_operator doFire _fireTarget'))
+        fired=job.split('private _ownsRelease=',1)[1].split('if (_selectedRelease',1)[0]
+        self.assertIn('_operator == (_liveJob getOrDefault ["selectedOperator",objNull])',fired)
+        changed=job.split('// Retained selection, targeting',1)[1].split('WEAPON_OPERATOR_UNAVAILABLE',1)[0]
+        self.assertNotIn('fireRequestAttempts",0',changed)
+
     def test_air_weapon_operator_authority_covers_planning_mutations_and_shot_credit(self):
         helper=source('cortexAirWeaponOperatorAvailable')
         for guard in ['!local _aircraft','!local _group','!local _operator',

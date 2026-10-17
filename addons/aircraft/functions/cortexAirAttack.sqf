@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Selected operators retain live same-group/local/task authority at each weapon boundary.
+ * Operator replacement cancels the old plan before retained targeting/release state can transfer.
  * Release readiness requires actual native selected-weapon state with the exact planned
  * magazine and positive rounds; reserve turret stock grants no release permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
@@ -387,6 +388,8 @@ if (_stage == "") then {
     _job set ["airSimulation",_plan getOrDefault ["airSimulation",""]];
     _job set ["selectedWeapon",_plan getOrDefault ["selectedWeapon",""]];
     _job set ["selectedTurret",_plan getOrDefault ["selectedTurret",[]]];
+    private _plannedStation=_job get "selectedTurret";
+    _job set ["selectedOperator",if (_plannedStation isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _plannedStation}];
     _job set ["selectedSimulation",_plan getOrDefault ["selectedSimulation",""]];
     _job set ["selectedWeaponClass",_plan getOrDefault ["selectedWeaponClass",""]];
     _job set ["selectedMagazine",_plan getOrDefault ["selectedMagazine",""]];
@@ -458,6 +461,7 @@ if (_stage == "") then {
             && {!(_brain getOrDefault ["finished",false])}
             && {!(_brain getOrDefault ["cancelled",false])}
             && {_operator == _expectedOperator}
+            && {_operator == (_liveJob getOrDefault ["selectedOperator",objNull])}
             && {[_aircraft,_fireGroup,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}
             && {!isNull _operator} && {local _operator} && {!isPlayer _operator}
             && {isNull remoteControlled _operator}
@@ -743,6 +747,14 @@ private _attackTurret=_job getOrDefault ["selectedTurret",[]];
 private _attackOperator=if (_stage != "ATTACK") then {objNull} else {
     if (_attackTurret isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _attackTurret}
 };
+if (_stage in ["INGRESS","ATTACK"]) then {
+    // Retained selection, targeting and asynchronous release receipts belong to this actor.
+    // A new occupant needs a fresh plan; do not reset retry limits inside the old operation.
+    private _station=_job getOrDefault ["selectedTurret",[]];
+    private _currentOperator=if (_station isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _station};
+    _job set ["operatorChanged",_currentOperator != (_job getOrDefault ["selectedOperator",objNull])];
+};
+if (_job getOrDefault ["operatorChanged",false]) exitWith {["WEAPON_OPERATOR_CHANGED"] call _finish};
 if (_stage == "ATTACK"
     && {!([_aircraft,_group,_attackOperator] call WAIT_fnc_CortexAirWeaponOperatorAvailable)}) exitWith {
     ["WEAPON_OPERATOR_UNAVAILABLE"] call _finish
