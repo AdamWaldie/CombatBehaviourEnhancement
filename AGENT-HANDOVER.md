@@ -302,3 +302,9 @@ Exact reread confirmed synchronized waypoints were already rejected; do not repo
 ## 2026-10-17 CQB replacement entry proposal
 
 Lane casualty replacement now deletes only its pairEntryTargets lane key before survivor/replacement handoff. Previously the lane-number cache survived roster changes, letting a replacement inherit the removed buddy's target without fresh occupancy selection. The normal planner rebuilds it; room coverage, survivor entry, lane route and hard deadline remain intact. Full Build passed: 1089 tests and all gates, exit 0; `.qa/workshop-evaluation-20261016/cqb-replacement-entry-cache-build.log`. No physical reinforcement/flow acceptance; audits remain paused.
+
+## 2026-10-17 Convoy navigation capture
+
+Existing opt-in controlSamples follower rows now append field9 actual NATIVE/STEERING movement-write receipts (destination or endpoint/count) and field10 pre-write native command/readiness/expected destination/committed endpoints/trail cursor. Latest-only local samples stay bounded, with no path history, publication or scan. Current controller already has proportional spacing, outer-band catch-up and smoothing; eight-metre endpoint advancement can still authorize frequent native requests. This is a hypothesis for later measured diagnosis, not a stop/start fix or causation claim. Initial build exposed an adjacency-based guard test because capture preceded doMove; hooks now record after actual command issue and original guard test remains unchanged. Full rerun passed 1090 tests/all gates, exit0; `.qa/workshop-evaluation-20261016/convoy-navigation-capture-build-recheck.log`. Audits paused.
+
+Remote checkpoint verified at 05308a649dd971c65e94a99e4fac1aa3a53bf5dd, PR16 open/draft, one batched push. Run38991001068 completed SKIPPED as intended; no manual dispatch. Signed48a77bb remains exact-source evidence and predates subsequent diagnostics.

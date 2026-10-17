@@ -51,6 +51,8 @@
  * Diagnostic capture: owner-local WAIT_Convoy_CaptureControl=true retains only the latest
  * follower samples in local-state controlSamples (at most nineteen); false removes them.
  * Samples expose each limiting stage and actual writes, including later trail-cap writes.
+ * Follower fields9/10 retain bounded navigation-write receipts and pre-write native state;
+ * they distinguish repeated path requests from spacing caps without recording full paths.
  * No publication, logger, additional world scan or movement writer is installed.
  * Return Value: Nothing.
  * Current caller: WAIT_fnc_ConvoyOperationStep through the shared owner-local scheduler.
@@ -702,7 +704,10 @@ for "_i" from 1 to (count _vehicles - 1) do {
         _controlSample=[serverTime,_revision,_i,netId _front,
             [_gap,_controlGap,_desiredGap,_gapLow,_gapHigh,_lateralOffset],
             [((velocityModelSpace _vehicle select 1)*3.6),_frontSpeed,_previous select 0],
-            [["spacing",_limit]],[],false];
+            [["spacing",_limit]],[],false,[],
+            [currentCommand _movementOperator,unitReady _vehicle,
+                +(expectedDestination _movementOperator),+(_progress param [5,[]]),
+                +(_progress param [6,[]]),_progress param [3,0]]];
     };
     // A stationary/braking predecessor must still constrain us inside the tolerance band.
     // Match the ordinary driving model in SI units, then convert its closing allowance
@@ -1015,6 +1020,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     || {_committedDestination distance2D _destination > 8}) then {
                     if ([] call _mayIssueDriving) then {
                         _movementOperator doMove _destination;
+                        if (_captureControl) then {(_controlSample select 9) pushBack ["NATIVE",+_destination,_frontSpeed,_joining,_straightPath]};
                         _progress set [5,+_destination];
                         _progress set [12,+_recordedDestination];
                         _progress set [9,+_path];
@@ -1043,6 +1049,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         || {_committedPathDestination distance2D _pathDestination > 8}) then {
                         if ([] call _mayIssueDriving) then {
                             _vehicle setDriveOnPath _path;
+                            if (_captureControl) then {(_controlSample select 9) pushBack ["STEERING",+_pathDestination,count _path]};
                             // This is movement ownership evidence, never proof the path executed.
                             // Capture the native command state after the sole path write so release
                             // cannot cancel a later native destination or a changed driver/operator.

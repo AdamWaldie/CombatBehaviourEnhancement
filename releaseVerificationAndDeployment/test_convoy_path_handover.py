@@ -21,6 +21,19 @@ class ConvoyPathHandoverTests(unittest.TestCase):
         self.assertLess(block.index('doStop _driver'),block.index('_driver doFollow leader _group'))
         for command in ['deleteWaypoint','addWaypoint','enableAI','setPos','setVelocity']:
             self.assertNotIn(command,block)
+    def test_opt_in_capture_distinguishes_navigation_requests_from_speed_writes(self):
+        text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        for marker,command in [('"NATIVE",+_destination','_movementOperator doMove _destination;'),
+                               ('"STEERING",+_pathDestination','_vehicle setDriveOnPath _path;')]:
+            hook=text.index('(_controlSample select 9) pushBack ['+marker)
+            self.assertIn('if (_captureControl)',text[hook-40:hook])
+            self.assertLess(text.rfind(command,0,hook),hook)
+            self.assertGreaterEqual(text.rfind(command,0,hook),0)
+        self.assertIn('[currentCommand _movementOperator,unitReady _vehicle',text)
+        self.assertIn('+(_progress param [5,[]])',text)
+        self.assertIn('+(_progress param [6,[]])',text)
+        self.assertNotIn('"STEERING",+_path,',text)
+
     def test_on_foot_leader_and_scripted_waypoint_do_not_receive_synthetic_recall(self):
         s=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         recall=s.split('if (_driver != _leader',1)[1]
