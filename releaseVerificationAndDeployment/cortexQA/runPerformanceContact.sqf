@@ -1,10 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
- * Measures matched Cortex OFF/ON/ON/OFF workloads across server and two WAIT headless owners.
+ * Measures matched Cortex OFF/ON/ON/OFF workloads across server and two CBE headless owners.
  * The infantry arm uses 50 six-soldier groups and real hostile contacts. The mixed arm uses 30
  * infantry squads, ten ground vehicles, six helicopters and four jets.
  * Locality/authority: scheduled dedicated-server fixture. Groups are deliberately migrated through
- * WAIT_fnc_HeadlessMigrateGroup; frame samples and queue health are collected on each real owner.
+ * CBE_fnc_HeadlessMigrateGroup; frame samples and queue health are collected on each real owner.
  * Repeat/JIP: fresh invulnerable actors per arm; published sampler results use unique ids and all
  * actors/groups are removed between arms. Late samplers are generation-guarded by their owner.
  *
@@ -19,11 +19,11 @@ private _prefix=["PERF-CONTACT","PERF-MIXED"] select _mixed;
 // Both arms retain the loaded addon configuration. Report this as a runtime-toggle
 // comparison, never as the full addon overhead versus a separate native-AI launch.
 private _baselineDanger=getText (configFile >> "CfgVehicles" >> "O_Soldier_F" >> "fsmDanger");
-missionNamespace setVariable ["WAIT_CortexQA_PerformanceComparisonScope","RUNTIME_TOGGLE",true];
-diag_log format ["WAIT PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=false|dangerFSM=%1",_baselineDanger];
+missionNamespace setVariable ["CBE_CortexQA_PerformanceComparisonScope","RUNTIME_TOGGLE",true];
+diag_log format ["CBE PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=false|dangerFSM=%1",_baselineDanger];
 
-missionNamespace setVariable ["WAIT_CortexQA_PerformanceContactCompleted",false];
-private _hcOwners=((missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0}) select [0,2];
+missionNamespace setVariable ["CBE_CortexQA_PerformanceContactCompleted",false];
+private _hcOwners=((missionNamespace getVariable ["CBE_Headless_Clients",[]]) apply {_x select 0}) select [0,2];
 [format ["%1-two-headless-prerequisite",_prefix],count _hcOwners == 2,str _hcOwners] call _check;
 if (count _hcOwners != 2) exitWith {};
 private _owners=[2]+_hcOwners;
@@ -42,9 +42,9 @@ private _ownersResponsive=true;
         [format ["%1-arm-%2-owner-prerequisite",_prefix,_arm],false,str _liveHcOwners] call _check;
     };
     private _sampleId=format ["CONTACT_%1_%2",_arm,floor serverTime];
-    [createHashMapFromArray [["WAIT_AIPass_Enable",_enabled],["WAIT_AIPass_Contact_Enable",true],
-        ["WAIT_AIPass_Regroup_Enable",true]]] call WAIT_fnc_CortexTuning;
-    private _ready=[{(missionNamespace getVariable ["WAIT_AIPass_Active",false]) == _enabled},30] call _wait;
+    [createHashMapFromArray [["CBE_AIPass_Enable",_enabled],["CBE_AIPass_Contact_Enable",true],
+        ["CBE_AIPass_Regroup_Enable",true]]] call CBE_fnc_CortexTuning;
+    private _ready=[{(missionNamespace getVariable ["CBE_AIPass_Active",false]) == _enabled},30] call _wait;
     private _groups=[];
     private _actors=[];
     private _targets=[];
@@ -53,8 +53,8 @@ private _ownersResponsive=true;
     private _contactGroups=[];
     private _targetGroups=[];
     private _targetGroup=createGroup [west,true];
-    _targetGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-    _targetGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _targetGroup setVariable ["CBE_AIPass_Exclude",true,true];
+    _targetGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _targetGroup setVariable ["acex_headless_blacklist",true,true];
     _targetGroup setBehaviour "CARELESS";
     _targetGroup setCombatMode "BLUE";
@@ -109,20 +109,20 @@ private _ownersResponsive=true;
                 } forEach crew _vehicle;
                 _actors pushBack _vehicle;
             };
-            _group setVariable ["WAIT_CortexQA_PerformanceGroup",true,true];
-            _group setVariable ["WAIT_AIPass_Exclude",!_enabled,true];
+            _group setVariable ["CBE_CortexQA_PerformanceGroup",true,true];
+            _group setVariable ["CBE_AIPass_Exclude",!_enabled,true];
             _groups pushBack _group;
             _groupTargets pushBack _target;
             _destinations pushBack (_origin vectorAdd [0,if (_mixed && {_index >= 40}) then {1000} else {210},0]);
             if (_contact) then {_contactGroups pushBack _group};
-            // WAIT deliberately refuses to migrate an active helicopter in flight. Keep every air
+            // CBE deliberately refuses to migrate an active helicopter in flight. Keep every air
             // group on the server in both native and Cortex arms so the benchmark measures the
             // production locality policy instead of treating that protection as a fixture failure.
             private _desiredOwner=if (_mixed && {_index >= 40}) then {2} else {_owners select (_index mod count _owners)};
             if (_desiredOwner == 2) then {
-                _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+                _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
             } else {
-                [_group,_desiredOwner] call WAIT_fnc_HeadlessMigrateGroup;
+                [_group,_desiredOwner] call CBE_fnc_HeadlessMigrateGroup;
             };
             // Arma creates every group on the server before ownership transfer. A short pacing
             // interval avoids presenting the engine allocator with 66 near-simultaneous six-unit
@@ -130,7 +130,7 @@ private _ownersResponsive=true;
             sleep 0.05;
         };
     };
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors select [0,18],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",_actors select [0,18],true];
     // The engine can transiently refuse the tail of a burst of setGroupOwner requests even while
     // both HCs remain healthy. Retry only groups which have not reached their declared owner; the
     // measured window still begins after ownership settles, and a persistent refusal remains a
@@ -146,7 +146,7 @@ private _ownersResponsive=true;
         sleep 2;
         {
             _x params ["_pendingGroup","_pendingOwner"];
-            [_pendingGroup,_pendingOwner] call WAIT_fnc_HeadlessMigrateGroup;
+            [_pendingGroup,_pendingOwner] call CBE_fnc_HeadlessMigrateGroup;
             sleep 0.1;
         } forEach _pending;
     };
@@ -171,21 +171,21 @@ private _ownersResponsive=true;
     sleep 20;
     private _starts=_groups apply {(units _x) apply {[_x,getPosATL _x]}};
     {
-        missionNamespace setVariable [format ["WAIT_CortexQA_PerformanceResult_%1_%2",_sampleId,_x],nil,true];
-        [_sampleId,60] remoteExecCall ["WAIT_CortexQA_PerformanceSampleOwner",_x];
+        missionNamespace setVariable [format ["CBE_CortexQA_PerformanceResult_%1_%2",_sampleId,_x],nil,true];
+        [_sampleId,60] remoteExecCall ["CBE_CortexQA_PerformanceSampleOwner",_x];
     } forEach _sampleOwners;
     private _responseStart=diag_tickTime;
     {if (!isNull _x) then {_x setCaptive false}} forEach _targets;
     {
         private _index=_forEachIndex;
         [_x,_groupTargets select _index,_destinations select _index,_x in _contactGroups]
-            remoteExecCall ["WAIT_CortexQA_PerformanceStartGroup",groupOwner _x];
+            remoteExecCall ["CBE_CortexQA_PerformanceStartGroup",groupOwner _x];
         // Stagger path requests across frames. Sending 33 six-unit groups to one HC in a single
         // burst can leave the process connected while its simulation thread stops advancing.
         sleep 0.05;
     } forEach _groups;
     private _startReady=[{
-        _groups findIf {!(_x getVariable ["WAIT_CortexQA_PerformanceStarted",false])} < 0
+        _groups findIf {!(_x getVariable ["CBE_CortexQA_PerformanceStarted",false])} < 0
     },20] call _wait;
     [format ["%1-arm-%2-owner-start",_prefix,_arm],_startReady,""] call _check;
     private _responseLatency=-1;
@@ -197,18 +197,18 @@ private _ownersResponsive=true;
                 private _physicallyMoved=(_starts select _index) findIf {
                     (_x select 0) distance2D (_x select 1) >= 10
                 } >= 0;
-                _physicallyMoved || {_x getVariable ["WAIT_CortexQA_PerformanceFired",false]}
+                _physicallyMoved || {_x getVariable ["CBE_CortexQA_PerformanceFired",false]}
             } count _contactGroups;
             if (_responding >= ([10,8] select _mixed)) then {_responseLatency=diag_tickTime-_responseStart};
         };
         sleep 1;
     };
     private _sampleReady=[{
-        _sampleOwners findIf {(missionNamespace getVariable [format ["WAIT_CortexQA_PerformanceResult_%1_%2",_sampleId,_x],[]]) isEqualTo []} < 0
+        _sampleOwners findIf {(missionNamespace getVariable [format ["CBE_CortexQA_PerformanceResult_%1_%2",_sampleId,_x],[]]) isEqualTo []} < 0
     },20] call _wait;
-    private _ownerResults=_owners apply {missionNamespace getVariable [format ["WAIT_CortexQA_PerformanceResult_%1_%2",_sampleId,_x],[]]};
-    private _sampleResults=_sampleOwners apply {missionNamespace getVariable [format ["WAIT_CortexQA_PerformanceResult_%1_%2",_sampleId,_x],[]]};
-    private _ownerHeartbeats=_owners apply {missionNamespace getVariable [format ["WAIT_CortexQA_PerformanceHeartbeat_%1_%2",_sampleId,_x],-1]};
+    private _ownerResults=_owners apply {missionNamespace getVariable [format ["CBE_CortexQA_PerformanceResult_%1_%2",_sampleId,_x],[]]};
+    private _sampleResults=_sampleOwners apply {missionNamespace getVariable [format ["CBE_CortexQA_PerformanceResult_%1_%2",_sampleId,_x],[]]};
+    private _ownerHeartbeats=_owners apply {missionNamespace getVariable [format ["CBE_CortexQA_PerformanceHeartbeat_%1_%2",_sampleId,_x],-1]};
     _ownersResponsive=_ownerHeartbeats findIf {_x < 0 || {serverTime-_x > 5}} < 0;
     [format ["%1-arm-%2-owner-responsive",_prefix,_arm],_ownersResponsive,str _ownerHeartbeats] call _check;
     private _survivingHcOwners=(allPlayers select {_x isKindOf "HeadlessClient_F"}) apply {owner _x};
@@ -218,7 +218,7 @@ private _ownersResponsive=true;
         private _index=_groups find _x;
         (_starts select _index) findIf {(_x select 0) distance2D (_x select 1) >= 20} >= 0
     } count _groups;
-    private _fired={_x getVariable ["WAIT_CortexQA_PerformanceFired",false]} count _contactGroups;
+    private _fired={_x getVariable ["CBE_CortexQA_PerformanceFired",false]} count _contactGroups;
     private _ownerLoadsValid=true;
     {_ownerLoadsValid=_ownerLoadsValid && {count _x == 8} && {(_x select 1) >= 100} && {(_x select 6) >= (_ownerCounts select _forEachIndex)} && {(_x select 7) >= (_ownerUnitBaselines select _forEachIndex)}} forEach _ownerResults;
     private _valid=_ready && {_ownershipReady} && {_startReady} && {_sampleReady} && {_ownersStillLive} && {_ownersResponsive} && {_ownerLoadsValid}
@@ -231,10 +231,10 @@ private _ownersResponsive=true;
     {deleteVehicle _x} forEach (_actors+_targets);
     {
         _x params ["_ownedGroup","_ownedBy"];
-        [_ownedGroup] remoteExecCall ["WAIT_CortexQA_PerformanceDeleteGroup",_ownedBy];
+        [_ownedGroup] remoteExecCall ["CBE_CortexQA_PerformanceDeleteGroup",_ownedBy];
     } forEach _ownedGroups;
     {deleteGroup _x} forEach _targetGroups;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
     sleep 10;
 } forEach [false,true,true,false];
 private _allValid=count _results == 4 && {_results findIf {!(_x select 1)} < 0};
@@ -251,4 +251,4 @@ if (_allValid) then {
         } forEach [1,2];
     } forEach _sampleOwners;
 };
-missionNamespace setVariable ["WAIT_CortexQA_PerformanceContactCompleted",true];
+missionNamespace setVariable ["CBE_CortexQA_PerformanceContactCompleted",true];

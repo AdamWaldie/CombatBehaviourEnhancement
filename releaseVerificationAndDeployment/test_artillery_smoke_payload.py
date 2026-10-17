@@ -15,15 +15,15 @@ class SmokePayloadTests(unittest.TestCase):
     def test_smoke_gate_reaches_admission_continuation_and_owner_release(self):
         base=ROOT/'addons/support/functions'
         fire=(base/'cortexArtilleryFire.sqf').read_text(encoding='utf-8')
-        self.assertIn('_mode != "SMOKE" || {[group gunner _x,"WAIT_AIPass_ArtillerySmoke_Enable"',fire)
+        self.assertIn('_mode != "SMOKE" || {[group gunner _x,"CBE_AIPass_ArtillerySmoke_Enable"',fire)
         explicit=fire.split('if (isNull _battery || {!alive gunner _battery}',1)[1]
-        self.assertLess(explicit.index('WAIT_AIPass_ArtillerySmoke_Enable'),explicit.index('WAIT_AIPass_FireSerial'))
+        self.assertLess(explicit.index('CBE_AIPass_ArtillerySmoke_Enable'),explicit.index('CBE_AIPass_FireSerial'))
         mission=(base/'cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
         self.assertIn('private _blocked = _smokeBlocked',mission)
-        self.assertIn('WAIT_AIPass_ArtillerySmoke_Enable',mission)
+        self.assertIn('CBE_AIPass_ArtillerySmoke_Enable',mission)
         shot=(base/'cortexArtilleryShot.sqf').read_text(encoding='utf-8')
         final=shot.split('// Safety/munition checks',1)[1]
-        self.assertLess(final.index('WAIT_AIPass_ArtillerySmoke_Enable'),final.index('doArtilleryFire'))
+        self.assertLess(final.index('CBE_AIPass_ArtillerySmoke_Enable'),final.index('doArtilleryFire'))
     def test_weighted_payloads_are_validated_without_discarding_dangerous_branches(self):
         s=(ROOT/'addons/support/functions/cortexArtilleryAmmo.sqf').read_text(encoding='utf-8')
         for guard in ('count _payloadArray <= 32','count _payloadArray mod 2 == 0','!(_weight isEqualType 0)','!finite _weight','_weight < 0','_positiveWeight','_payloads pushBack _class'):

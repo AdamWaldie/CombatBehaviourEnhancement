@@ -9,7 +9,7 @@
  * Arguments: 0: group <GROUP>.
  * Return Value: local combat-effective actor <OBJECT>, objNull when none is available.
  * Current callers: danger and common operation lifecycle cleanup/start paths.
- * Example: private _actor = [group player] call WAIT_fnc_CortexGroupAnchor;
+ * Example: private _actor = [group player] call CBE_fnc_CortexGroupAnchor;
  */
 
 params [["_group",grpNull,[grpNull]]];
@@ -18,9 +18,9 @@ private _eligible={
     params ["_actor"];
     !isNull _actor && {local _actor} && {!isPlayer _actor}
         && {isNull remoteControlled _actor}
-        && {[_actor] call WAIT_fnc_CortexCombatEffective}
-        && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
-        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
+        && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
 };
 private _leader=leader _group;
 if ([_leader] call _eligible) exitWith {_leader};

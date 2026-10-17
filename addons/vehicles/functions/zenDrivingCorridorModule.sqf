@@ -7,15 +7,15 @@
  * 2 default facing <NUMBER, 0> - native module orientation when creating.
  * Return Value: BOOL - dialog opened, not server acceptance or physical passage.
  * Current callers: ZEN registration and ModuleDrivingCorridor.
- * Example: [getMarkerPos "bridge",objNull] call WAIT_fnc_ZenDrivingCorridorModule;
+ * Example: [getMarkerPos "bridge",objNull] call CBE_fnc_ZenDrivingCorridorModule;
  */
 params [["_position",[],[[]]],["_target",objNull,[objNull]],["_defaultFacing",0,[0]]];
 if (!hasInterface || {isNil "zen_dialog_fnc_create"} || {count _position != 3}) exitWith {false};
-if (!isNull _target && {!(_target isKindOf "WAIT_DrivingCorridorArea")}) exitWith {
-    ["NAVIGATION CORRIDOR","Place on empty ground to create, or on the exact existing corridor area to edit. No nearest area is selected.","ERROR"] call WAIT_fnc_AITweaksNotifyLocal;false
+if (!isNull _target && {!(_target isKindOf "CBE_DrivingCorridorArea")}) exitWith {
+    ["NAVIGATION CORRIDOR","Place on empty ground to create, or on the exact existing corridor area to edit. No nearest area is selected.","ERROR"] call CBE_fnc_AITweaksNotifyLocal;false
 };
 private _editing=!isNull _target;
-private _definition=if (_editing) then {_target getVariable ["WAIT_DrivingCorridor_Task",[0,25,5,15]]} else {[0,25,5,15]};
+private _definition=if (_editing) then {_target getVariable ["CBE_DrivingCorridor_Task",[0,25,5,15]]} else {[0,25,5,15]};
 private _transform=if (_editing) then {[getPosWorld _target,vectorDir _target,vectorUp _target]} else {[]};
 [
     "Navigation corridor task",
@@ -31,11 +31,11 @@ private _transform=if (_editing) then {[getPosWorld _target,vectorDir _target,ve
         params ["_values","_context"];
         _context params ["_position","_target","_transform"];
         _values params ["_mode","_facing","_halfLength","_halfWidth","_speed"];
-        private _serial=(missionNamespace getVariable ["WAIT_DrivingCorridor_LocalSerial",0])+1;
-        missionNamespace setVariable ["WAIT_DrivingCorridor_LocalSerial",_serial];
+        private _serial=(missionNamespace getVariable ["CBE_DrivingCorridor_LocalSerial",0])+1;
+        missionNamespace setVariable ["CBE_DrivingCorridor_LocalSerial",_serial];
         [[["mode",_mode],["area",_target],["position",_position],["transform",_transform],
             ["facing",round _facing],["halfLength",round _halfLength],["halfWidth",round _halfWidth],
-            ["speed",round _speed],["serial",_serial],["expires",serverTime+10]]] call WAIT_fnc_DrivingCorridorDispatch;
+            ["speed",round _speed],["serial",_serial],["expires",serverTime+10]]] call CBE_fnc_DrivingCorridorDispatch;
     },{},[+_position,_target,_transform]
 ] call zen_dialog_fnc_create;
 true

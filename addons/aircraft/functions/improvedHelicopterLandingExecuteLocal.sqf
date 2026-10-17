@@ -21,7 +21,7 @@
  *
  * Return Value: BOOL - true on touchdown, false after a validated abort.
  *
- * Example: [_helicopter, _position, "TR UNLOAD", _index, ""] call WAIT_fnc_ImprovedHelicopterLandingExecuteLocal;
+ * Example: [_helicopter, _position, "TR UNLOAD", _index, ""] call CBE_fnc_ImprovedHelicopterLandingExecuteLocal;
  * Result: Returns true after validated touchdown, or false after an ineligible or aborted
  * approach, and updates the aircraft's published LastResult for diagnostics.
  * Current caller: ImprovedHelicopterLandingStep when a supported landing waypoint enters range.
@@ -39,7 +39,7 @@ if (
     || {!local _helicopter}
     || {!alive _helicopter}
     || {count _targetPosition < 2}
-    || {_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Active", false]}
+    || {_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]}
 ) exitWith {false};
 
 private _pilot = currentPilot _helicopter;
@@ -59,19 +59,19 @@ private _groupHelicopterCount = {
 };
 // Exact vector landing owns one aircraft and one touchdown point. A formation must remain entirely
 // under vanilla group flight control; acquiring any member would steer the shared group into one LZ.
-if ([_group] call _groupHelicopterCount != 1 || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
-private _minimumDistance = ([_helicopter, "MinimumActivationDistance", 50] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 50;
+if ([_group] call _groupHelicopterCount != 1 || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+private _minimumDistance = ([_helicopter, "MinimumActivationDistance", 50] call CBE_fnc_ImprovedHelicopterLandingSetting) max 50;
 if (_helicopter distance2D _targetPosition <= _minimumDistance) exitWith {false};
 
-private _controlRevision = (_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", 0]) + 1;
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", _controlRevision, true];
+private _controlRevision = (_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", 0]) + 1;
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", _controlRevision, true];
 private _flightLeaseToken=str _controlRevision;
 // A landing order has the highest primary-flight priority because an approach close to terrain
 // cannot safely be replaced by attack, braking or a defensive velocity break. Countermeasures may
 // still fire, but only this exact revision may mutate flight until touchdown or release.
-if !([_helicopter,"LANDING",_flightLeaseToken,500] call WAIT_fnc_FlightLeaseAcquire) exitWith {false};
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_Active", true, true];
-_helicopter setVariable ["WAIT_HelicopterDeceleration_Active", false, true];
+if !([_helicopter,"LANDING",_flightLeaseToken,500] call CBE_fnc_FlightLeaseAcquire) exitWith {false};
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active", true, true];
+_helicopter setVariable ["CBE_HelicopterDeceleration_Active", false, true];
 _helicopter disableAI "PATH";
 _helicopter disableAI "MOVE";
 _pilot disableAI "FSM";
@@ -80,7 +80,7 @@ private _startPositionASL = getPosASL _helicopter;
 // height zero; if Zeus moves/deletes the landing waypoint afterwards, restore uses this non-forced
 // height instead of imposing the generic landing transit altitude on the new order.
 _helicopter setVariable [
-    "WAIT_ImprovedHelicopterLanding_ReleaseHeight",
+    "CBE_ImprovedHelicopterLanding_ReleaseHeight",
     (((getPosATL _helicopter) select 2) max 20) min 500
 ];
 private _startTerrainASL = getTerrainHeightASL _startPositionASL;
@@ -88,9 +88,9 @@ private _targetTerrainASL = getTerrainHeightASL _targetPosition;
 private _startDistance = (_helicopter distance2D _targetPosition) max 1;
 // Do not inherit an almost stationary take-off speed as the pace for the entire approach. This is
 // particularly visible on agile light helicopters and short transport legs.
-private _entrySpeed = ((abs speed _helicopter) / 3.6) max ((([_helicopter, "MinimumApproachSpeed", 55] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 0) / 3.6);
-private _transitAltitude = ((getPosATL _helicopter) select 2) max ([_helicopter, "TransitAltitude", 30] call WAIT_fnc_ImprovedHelicopterLandingSetting);
-private _glideRatio = ([_helicopter, "GlideSlopeRatio", 4] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 2;
+private _entrySpeed = ((abs speed _helicopter) / 3.6) max ((([_helicopter, "MinimumApproachSpeed", 55] call CBE_fnc_ImprovedHelicopterLandingSetting) max 0) / 3.6);
+private _transitAltitude = ((getPosATL _helicopter) select 2) max ([_helicopter, "TransitAltitude", 30] call CBE_fnc_ImprovedHelicopterLandingSetting);
+private _glideRatio = ([_helicopter, "GlideSlopeRatio", 4] call CBE_fnc_ImprovedHelicopterLandingSetting) max 2;
 private _descentDistance = (_transitAltitude * _glideRatio) max 150;
 private _currentVelocity = velocity _helicopter;
 private _attitude = _helicopter call BIS_fnc_getPitchBank;
@@ -119,18 +119,18 @@ private _landed = false;
 private _lastPosition = getPosASL _helicopter;
 private _lastTick = diag_tickTime;
 private _targetSurfaceNormal = surfaceNormal _targetPosition;
-private _touchdownRadius = [_helicopter, "TouchdownRadius", 2] call WAIT_fnc_ImprovedHelicopterLandingSetting;
-private _finalCommitDistance = (([_helicopter, "FinalCommitDistance", 75] call WAIT_fnc_ImprovedHelicopterLandingSetting) max (_touchdownRadius + 5)) min 150;
+private _touchdownRadius = [_helicopter, "TouchdownRadius", 2] call CBE_fnc_ImprovedHelicopterLandingSetting;
+private _finalCommitDistance = (([_helicopter, "FinalCommitDistance", 75] call CBE_fnc_ImprovedHelicopterLandingSetting) max (_touchdownRadius + 5)) min 150;
 private _committedToTouchdown = false;
 private _closestDistance = _startDistance;
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_LastResult", ["ACTIVE", _targetPosition, diag_tickTime, _startDistance, (getPosATL _helicopter) select 2], true];
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_LastResult", ["ACTIVE", _targetPosition, diag_tickTime, _startDistance, (getPosATL _helicopter) select 2], true];
 
 while {
     !_abort
     && {!_landed}
-    && {_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Active", false]}
-    && {(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
-    && {[_helicopter,"LANDING",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid}
+    && {_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]}
+    && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
+    && {[_helicopter,"LANDING",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
 } do {
     private _now = diag_tickTime;
     private _delta = (_now - _lastTick) max 0.01;
@@ -165,14 +165,14 @@ while {
             || {!local _helicopter}
             || {group _pilot != _group}
             || {!alive _helicopter}
-            || {!(missionNamespace getVariable ["WAIT_ImprovedHelicopterLanding_Enable", true])}
-            || {_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Exclude", false]}
+            || {!(missionNamespace getVariable ["CBE_ImprovedHelicopterLanding_Enable", true])}
+            || {_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Exclude", false]}
             || {isNull _pilot}
             || {!alive _pilot}
             || {!_pilotAwake}
             || {isPlayer _pilot}
             || {!isNull (remoteControlled _pilot)}
-            || {[_group] call WAIT_fnc_CortexZeusHeld}
+            || {[_group] call CBE_fnc_CortexZeusHeld}
             || {!isEngineOn _helicopter}
             || {!isNull (getSlingLoad _helicopter)}
             || {!canMove _helicopter}
@@ -199,17 +199,17 @@ while {
     if (isTouchingGround _helicopter && {_distance > (_touchdownRadius + 5)}) then {_abort = true;};
     if (_abort) exitWith {};
     private _relativeTargetAltitude = (_positionASL select 2) - _targetTerrainASL;
-    if (!_goAround && {_goArounds < ([_helicopter, "MaximumGoArounds", 1] call WAIT_fnc_ImprovedHelicopterLandingSetting)}) then {
+    if (!_goAround && {_goArounds < ([_helicopter, "MaximumGoArounds", 1] call CBE_fnc_ImprovedHelicopterLandingSetting)}) then {
         if (
-            _distance < ([_helicopter, "GoAroundTriggerDistance", 200] call WAIT_fnc_ImprovedHelicopterLandingSetting)
-            && {_relativeTargetAltitude > ([_helicopter, "GoAroundHeight", 150] call WAIT_fnc_ImprovedHelicopterLandingSetting)}
+            _distance < ([_helicopter, "GoAroundTriggerDistance", 200] call CBE_fnc_ImprovedHelicopterLandingSetting)
+            && {_relativeTargetAltitude > ([_helicopter, "GoAroundHeight", 150] call CBE_fnc_ImprovedHelicopterLandingSetting)}
         ) then {
             _goAround = true;
             _goArounds = _goArounds + 1;
             _goAroundHeading = _yaw;
         };
     };
-    if (_goAround && {_distance >= ([_helicopter, "GoAroundExitDistance", 250] call WAIT_fnc_ImprovedHelicopterLandingSetting)}) then {
+    if (_goAround && {_distance >= ([_helicopter, "GoAroundExitDistance", 250] call CBE_fnc_ImprovedHelicopterLandingSetting)}) then {
         _goAround = false;
         _startDistance = _distance max 1;
         _entrySpeed = ((abs speed _helicopter) / 3.6) max 12;
@@ -220,7 +220,7 @@ while {
     };
     if (
         !_goAround
-        && {_goArounds < ([_helicopter, "MaximumGoArounds", 1] call WAIT_fnc_ImprovedHelicopterLandingSetting)}
+        && {_goArounds < ([_helicopter, "MaximumGoArounds", 1] call CBE_fnc_ImprovedHelicopterLandingSetting)}
         && {_closestDistance < 80}
         && {_distance > (_closestDistance + 20)}
     ) then {
@@ -231,15 +231,15 @@ while {
 
     if (_now >= _nextObstacleScan && {_distance < 120}) then {
         _nextObstacleScan = _now + 0.5;
-        private _trees = nearestTerrainObjects [_targetPosition, ["TREE", "SMALL TREE"], [_helicopter, "TreeScanRadius", 25] call WAIT_fnc_ImprovedHelicopterLandingSetting, false, true];
+        private _trees = nearestTerrainObjects [_targetPosition, ["TREE", "SMALL TREE"], [_helicopter, "TreeScanRadius", 25] call CBE_fnc_ImprovedHelicopterLandingSetting, false, true];
         private _highestCanopy = _targetTerrainASL;
         {
             private _bounds = boundingBoxReal _x;
             private _top = (_bounds param [1, [0, 0, 0]]) param [2, 0];
             _highestCanopy = _highestCanopy max (((getPosASL _x) select 2) + _top);
         } forEach (_trees select [0, (count _trees) min 12]);
-        _treeHoverHeight = (((_highestCanopy - _targetTerrainASL) max 0) + ([_helicopter, "TreeSafetyBuffer", 5] call WAIT_fnc_ImprovedHelicopterLandingSetting))
-            min ([_helicopter, "MaximumTreeHoverHeight", 40] call WAIT_fnc_ImprovedHelicopterLandingSetting);
+        _treeHoverHeight = (((_highestCanopy - _targetTerrainASL) max 0) + ([_helicopter, "TreeSafetyBuffer", 5] call CBE_fnc_ImprovedHelicopterLandingSetting))
+            min ([_helicopter, "MaximumTreeHoverHeight", 40] call CBE_fnc_ImprovedHelicopterLandingSetting);
     };
     if (_now >= _nextForwardScan && {_distance >= 30}) then {
         _nextForwardScan = _now + 0.35;
@@ -260,7 +260,7 @@ while {
     if (_yaw >= 360) then {_yaw = _yaw - 360;};
 
     private _desiredSpeed = if (_goAround) then {
-        (([_helicopter, "GoAroundSpeed", 70] call WAIT_fnc_ImprovedHelicopterLandingSetting) / 3.6) max 15
+        (([_helicopter, "GoAroundSpeed", 70] call CBE_fnc_ImprovedHelicopterLandingSetting) / 3.6) max 15
     } else {
         private _factor = sqrt ((_distance / _startDistance) min 1);
         (_entrySpeed * _factor) max (2 min _distance)
@@ -287,8 +287,8 @@ while {
     private _altitudeError = (_expectedTerrainASL + _desiredRelativeAltitude) - (_positionASL select 2);
     private _desiredVelocityZ = if (_goAround) then {3} else {
         (_altitudeError * 0.45)
-            min ([_helicopter, "MaximumClimbRate", 8] call WAIT_fnc_ImprovedHelicopterLandingSetting)
-            max (-([_helicopter, "MaximumDescentRate", 10] call WAIT_fnc_ImprovedHelicopterLandingSetting))
+            min ([_helicopter, "MaximumClimbRate", 8] call CBE_fnc_ImprovedHelicopterLandingSetting)
+            max (-([_helicopter, "MaximumDescentRate", 10] call CBE_fnc_ImprovedHelicopterLandingSetting))
     };
     if (!_goAround && {_distance < 12}) then {_desiredVelocityZ = _desiredVelocityZ min -0.35;};
 
@@ -325,25 +325,25 @@ while {
         _up = (_up vectorMultiply (1 - _slopeBlend)) vectorAdd (_targetSurfaceNormal vectorMultiply _slopeBlend);
     };
     // Grouping can occur between the periodic validation above and this frame's write. Recheck at
-    // the actual mutation boundary so no further WAIT vector reaches a newly formed flight.
-    if ([_group] call _groupHelicopterCount != 1 || {[_group] call WAIT_fnc_CortexExternalTakeover}) then {
+    // the actual mutation boundary so no further CBE vector reaches a newly formed flight.
+    if ([_group] call _groupHelicopterCount != 1 || {[_group] call CBE_fnc_CortexExternalTakeover}) then {
         _abort = true;
         _groupedAbort = true;
     } else {
         _helicopter setVectorDirAndUp [_direction, vectorNormalized _up];
         _helicopter setVelocity _currentVelocity;
     };
-    if (_distance < 100 && {_atlAltitude < 50} && {!(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_GearLocal", false])}) then {
-        _helicopter setVariable ["WAIT_ImprovedHelicopterLanding_GearLocal", true];
+    if (_distance < 100 && {_atlAltitude < 50} && {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_GearLocal", false])}) then {
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal", true];
         _pilot action ["LandGear", _helicopter];
     };
     if (_distance < _touchdownRadius && {isTouchingGround _helicopter || {_atlAltitude < 0.35}}) then {_landed = true;};
-    uiSleep (([_helicopter, "ControlInterval", 0.05] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 0.02 min 0.2);
+    uiSleep (([_helicopter, "ControlInterval", 0.05] call CBE_fnc_ImprovedHelicopterLandingSetting) max 0.02 min 0.2);
 };
 
-if ((_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision) then {
+if ((_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision) then {
     _helicopter setVariable [
-        "WAIT_ImprovedHelicopterLanding_LastResult",
+        "CBE_ImprovedHelicopterLanding_LastResult",
         [["ABORTED", "LANDED"] select _landed, _targetPosition, diag_tickTime, _helicopter distance2D _targetPosition, (getPosATL _helicopter) select 2],
         true
     ];
@@ -351,13 +351,13 @@ if ((_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", 
 if (
     _landed
     && {local _helicopter}
-    && {(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
+    && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
 ) then {
-    [_helicopter, _group, _targetPosition, _waypointType, _expectedWaypoint, _expectedScript, count (waypoints _group), _controlRevision] spawn WAIT_fnc_ImprovedHelicopterLandingAnchorLocal;
+    [_helicopter, _group, _targetPosition, _waypointType, _expectedWaypoint, _expectedScript, count (waypoints _group), _controlRevision] spawn CBE_fnc_ImprovedHelicopterLandingAnchorLocal;
 } else {
     // Do not repeat the restore when something else already reclaimed and reconfigured the
     // aircraft while this approach was still catching up to its own abort - most commonly a fresh
-    // WAIT_fnc_TransportDispatchLocal retargeting call (a mid-approach MOVE_PICKUP/SET_DESTINATION,
+    // an external transport dispatcher retargeting call (a mid-approach MOVE_PICKUP/SET_DESTINATION,
     // i.e. the player moved the LZ), which calls this same restore function itself before wiping
     // waypoints and then applies its own real cruise flyInHeight/land state. This loop's own Active
     // flag being already false at this point means someone else is responsible for the aircraft's
@@ -365,12 +365,12 @@ if (
     // ~30m transit altitude, degrading the aircraft to a slow, low-altitude crawl toward the new
     // target with no clean cancel - the concrete "moves like a snail and lands randomly enroute
     // after moving the LZ" symptom this closes. Mirrors the equivalent fix already applied to the
-    // post-touchdown ground-anchor loop in WAIT_fnc_ImprovedHelicopterLandingAnchorLocal.
+    // post-touchdown ground-anchor loop in CBE_fnc_ImprovedHelicopterLandingAnchorLocal.
     if (
-        _helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Active", false]
-        && {(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
+        _helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]
+        && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
     ) then {
-        [_helicopter, false, "", _groupedAbort] call WAIT_fnc_ImprovedHelicopterLandingRestoreLocal;
+        [_helicopter, false, "", _groupedAbort] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
     };
 };
 _landed

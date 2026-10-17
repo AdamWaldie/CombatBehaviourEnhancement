@@ -3,7 +3,7 @@
  * Registers an object as a counter-battery radar for one side (used by counter-battery "RADAR" mode).
  *
  * Any object works, typically a radar prop. While it is alive, enemy artillery firing within
- * WAIT_AIPass_CounterBattery_RadarRange of it is located for that side's batteries. Safe in an Eden
+ * CBE_AIPass_CounterBattery_RadarRange of it is located for that side's batteries. Safe in an Eden
  * init field with no isServer wrapper: copies on other machines do nothing, and the server's own copy
  * registers the radar and publishes the list.
  * Locality and authority: server-authoritative list, broadcast once per registration.
@@ -17,7 +17,7 @@
  * Boolean - true when registered on the server
  *
  * Example:
- * [this, west] call WAIT_fnc_CortexRegisterRadar;
+ * [this, west] call CBE_fnc_CortexRegisterRadar;
  * Result: BLUFOR batteries answer enemy artillery fire detected by this radar.
  *
  * Repeat/JIP: replaces the same object entry; removal is repeat-safe. Public registry reaches JIP.
@@ -33,7 +33,7 @@ if (_side isEqualType sideUnknown) then {
 };
 _side = toUpperANSI _side;
 if (!(_side in ["WEST", "EAST", "GUER", "CIV"]) || {_enabled && {!alive _object}}) exitWith {false};
-private _radars = (missionNamespace getVariable ["WAIT_AIPass_CounterBatteryRadars", []]) select {alive (_x select 0) && {(_x select 0) != _object}};
+private _radars = (missionNamespace getVariable ["CBE_AIPass_CounterBatteryRadars", []]) select {alive (_x select 0) && {(_x select 0) != _object}};
 if (_enabled) then {_radars pushBack [_object, _side]};
-missionNamespace setVariable ["WAIT_AIPass_CounterBatteryRadars", _radars, true];
+missionNamespace setVariable ["CBE_AIPass_CounterBatteryRadars", _radars, true];
 true

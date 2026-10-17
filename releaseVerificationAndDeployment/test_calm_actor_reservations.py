@@ -21,7 +21,7 @@ class CalmActorReservationTests(unittest.TestCase):
         self.assertIn('!_yieldToExternal',hold)
     def test_generic_loop_preserves_live_proof_and_leaves_owned_release_to_features(self):
         generic=self.s.split('private _target = _x getVariable',1)[1].split('private _staticSupport=',1)[0]
-        self.assertIn('if ([_x] call _actorMoveFree) then {_x setVariable ["WAIT_Cortex_ActorMove",nil]}',generic)
+        self.assertIn('if ([_x] call _actorMoveFree) then {_x setVariable ["CBE_Cortex_ActorMove",nil]}',generic)
         # Existing deployment cleanup must still remove its own tag, independently.
         self.assertIn('(_deployMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]',self.s)
         self.assertIn('(_assistantMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]',self.s)
@@ -30,7 +30,7 @@ class OperationReservationTests(unittest.TestCase):
     def test_shared_progress_and_recovery_use_strict_actor_reservation(self):
         for relative in ('addons/core/functions/operationStep.sqf','addons/infantry/functions/recoveryStep.sqf'):
             source=(ROOT/relative).read_text()
-            self.assertIn('call WAIT_fnc_CortexActorMoveReserved',source)
+            self.assertIn('call CBE_fnc_CortexActorMoveReserved',source)
             self.assertNotIn('_move select 2',source)
 
     def test_suspended_recovery_retires_observation_without_spending_or_quarantine(self):
@@ -50,7 +50,7 @@ class OperationReservationTests(unittest.TestCase):
         self.assertIn('!finite _x',source.split('// This is the final direct movement',1)[0])
         boundary=source.split('isNil {',1)[1]
         for guard in ('!local _group','!local _actor','checkAIFeature "MOVE"','checkAIFeature "PATH"',
-                      'call WAIT_fnc_CortexExternalTakeover','if (call _reserved)',
+                      'call CBE_fnc_CortexExternalTakeover','if (call _reserved)',
                       'simulationEnabled _actor','getOrDefault ["generation",-2]',
                       '_used=_currentOperation getOrDefault ["recoveryAttempts",createHashMap]'):
             self.assertLess(boundary.index(guard),boundary.index('_used set [_key,_attempts+1]'))
@@ -99,6 +99,6 @@ class OperationProgressDomainTests(unittest.TestCase):
             source=(ROOT/'addons/infantry/functions'/name).read_text()
             self.assertIn('set ["participantPlatforms"',source)
         rebalance=(ROOT/'addons/infantry/functions/rebalanceRoles.sqf').read_text()
-        self.assertIn('call WAIT_fnc_CortexActorMoveReserved',rebalance)
+        self.assertIn('call CBE_fnc_CortexActorMoveReserved',rebalance)
         self.assertIn('_platforms getOrDefault [netId _x,_x]',rebalance)
         self.assertNotIn('_reservation param [2',rebalance)

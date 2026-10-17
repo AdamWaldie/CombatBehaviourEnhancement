@@ -22,13 +22,13 @@ class SchedulerWakeCacheTests(unittest.TestCase):
 
     def test_tick_separates_old_cache_and_merges_callback_requests(self):
         source=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text()
-        reset=source.index('missionNamespace setVariable ["WAIT_AIPass_NextJobDue", -1];',
+        reset=source.index('missionNamespace setVariable ["CBE_AIPass_NextJobDue", -1];',
                            source.index('if (_jobs isEqualTo []) exitWith'))
         # First match is the empty-queue branch; reset again before processing.
-        reset=source.index('missionNamespace setVariable ["WAIT_AIPass_NextJobDue", -1];',reset+1)
+        reset=source.index('missionNamespace setVariable ["CBE_AIPass_NextJobDue", -1];',reset+1)
         traversal=source.index('} forEach _jobs;')
         merge=source.index('private _raisedDue=')
-        final=source.index('missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _earliest];',merge)
+        final=source.index('missionNamespace setVariable ["CBE_AIPass_NextJobDue", _earliest];',merge)
         self.assertLess(reset,source.index('private _start = diag_tickTime;'))
         self.assertLess(traversal,merge)
         self.assertLess(merge,final)
@@ -50,27 +50,27 @@ class SchedulerReconcileWakeTests(unittest.TestCase):
     def test_both_retained_queues_use_effective_due_without_new_scan(self):
         source=(ROOT/'addons/core/functions/schedulerReconcile.sqf').read_text()
         self.assertIn('(_x select 0) min ((_x select 2) getOrDefault ["wakeAt",_x select 0])',source)
-        self.assertIn('["WAIT_AIPass_Jobs", "WAIT_AIPass_PendingJobs"]',source)
+        self.assertIn('["CBE_AIPass_Jobs", "CBE_AIPass_PendingJobs"]',source)
         self.assertEqual(source.count('forEach _retained'),1)
-        self.assertIn('missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _earliest]',source)
+        self.assertIn('missionNamespace setVariable ["CBE_AIPass_NextJobDue", _earliest]',source)
 
 
 class AircraftPendingRetirementTests(unittest.TestCase):
     def test_pending_successor_keeps_its_runtime_alive(self):
         retained=[]
-        pending=[{"subsystem":"AIRCRAFT","jobKey":"WAIT_LANDING_new"}]
+        pending=[{"subsystem":"AIRCRAFT","jobKey":"CBE_LANDING_new"}]
         def active(rows,prefix):
             return any(r.get("subsystem")=="AIRCRAFT" and r.get("jobKey","").startswith(prefix) for r in rows)
-        self.assertFalse(active(retained,"WAIT_LANDING_"))
-        self.assertTrue(active(retained+pending,"WAIT_LANDING_"))
-        self.assertFalse(active(retained+pending,"WAIT_DECEL_"))
-        self.assertFalse(active([],"WAIT_LANDING_"))
+        self.assertFalse(active(retained,"CBE_LANDING_"))
+        self.assertTrue(active(retained+pending,"CBE_LANDING_"))
+        self.assertFalse(active(retained+pending,"CBE_DECEL_"))
+        self.assertFalse(active([],"CBE_LANDING_"))
 
     def test_retirement_observes_both_queues_before_reconcile(self):
         source=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text()
         start=source.index('private _aircraftStates =')
         finish=source.index('if (_changed)',start)
         observed=source[start:finish]
-        self.assertIn('_next + (missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []])',observed)
-        self.assertIn('WAIT_DECEL_',observed)
-        self.assertIn('WAIT_LANDING_',observed)
+        self.assertIn('_next + (missionNamespace getVariable ["CBE_AIPass_PendingJobs", []])',observed)
+        self.assertIn('CBE_DECEL_',observed)
+        self.assertIn('CBE_LANDING_',observed)

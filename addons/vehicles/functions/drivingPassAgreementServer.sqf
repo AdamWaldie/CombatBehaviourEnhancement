@@ -13,16 +13,16 @@
  * RELEASE: [token], accepted from either original current participant owner.
  * Return: BOOL - request/reply processed, never physical passage or movement permission.
  * Current callers: DrivingPassAgreementRequest and authenticated DrivingPassAgreementOwner replies.
- * Example: ["ACK",[_token,true]] remoteExecCall ["WAIT_fnc_DrivingPassAgreementServer",2];
+ * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingPassAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
 if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE"])}) exitWith {false};
 private _sender=remoteExecutedOwner;
-private _registry=localNamespace getVariable ["WAIT_DrivingPass_Agreements",createHashMap];
-localNamespace setVariable ["WAIT_DrivingPass_Agreements",_registry];
+private _registry=localNamespace getVariable ["CBE_DrivingPass_Agreements",createHashMap];
+localNamespace setVariable ["CBE_DrivingPass_Agreements",_registry];
 private _topologyCurrent={
     params ["_vehicles","_context"];
-    private _live=[_vehicles] call WAIT_fnc_DrivingPassContext;
+    private _live=[_vehicles] call CBE_fnc_DrivingPassContext;
     if (_live isEqualTo [] || {count _context != 2} || {!((_context select 1) isEqualType [])}
         || {count (_context select 1) != 2}) exitWith {false};
     private _actual=_live select 1;private _expected=_context select 1;
@@ -44,7 +44,7 @@ private _sendResult={
     params ["_record"];
     private _message=[_record get "token",_record get "vehicles",_record get "context",
         _record get "deadline",_record get "expires",_record get "serial",_record get "phase"];
-    {["RESULT",_message] remoteExecCall ["WAIT_fnc_DrivingPassAgreementOwner",_x]} forEach (_record get "owners");
+    {["RESULT",_message] remoteExecCall ["CBE_fnc_DrivingPassAgreementOwner",_x]} forEach (_record get "owners");
 };
 if (_mode == "BEGIN") exitWith {
     if (count _payload != 5) exitWith {false};
@@ -79,13 +79,13 @@ if (_mode == "BEGIN") exitWith {
     } >= 0}) exitWith {false};
     private _owners=(_vehicles apply {owner _x});_owners=_owners arrayIntersect _owners;
     if (_owners findIf {_x <= 0} >= 0) exitWith {false};
-    private _sequence=(localNamespace getVariable ["WAIT_DrivingPass_ServerSequence",0])+1;
-    localNamespace setVariable ["WAIT_DrivingPass_ServerSequence",_sequence];
+    private _sequence=(localNamespace getVariable ["CBE_DrivingPass_ServerSequence",0])+1;
+    localNamespace setVariable ["CBE_DrivingPass_ServerSequence",_sequence];
     private _token=format ["%1:%2:%3",_sender,netId _vehicle,_sequence];
     private _record=createHashMapFromArray [["token",_token],["serial",_serial],["vehicles",_vehicles],
         ["context",_context],["deadline",_deadline],["expires",_expires],["owners",_owners],["acks",[]],["phase","PENDING"]];
     _registry set [_token,_record];
-    {["VERIFY",[_token,_vehicles,_context,_deadline,_expires,_serial]] remoteExecCall ["WAIT_fnc_DrivingPassAgreementOwner",_x]} forEach _owners;
+    {["VERIFY",[_token,_vehicles,_context,_deadline,_expires,_serial]] remoteExecCall ["CBE_fnc_DrivingPassAgreementOwner",_x]} forEach _owners;
     true
 };
 if (_mode == "RELEASE") exitWith {

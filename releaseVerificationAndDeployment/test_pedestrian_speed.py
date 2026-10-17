@@ -18,7 +18,7 @@ class PedestrianSpeedTests(unittest.TestCase):
         self.assertLess(cap(70,30,40000),cap(70,30,1000))
     def test_shared_owner_path_and_recovery_suppression(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
-        self.assertIn('[_vehicle,_capMps*3.6,_group,true,_travelIntent] call WAIT_fnc_CortexInfantrySpeed',s)
+        self.assertIn('[_vehicle,_capMps*3.6,_group,true,_travelIntent] call CBE_fnc_CortexInfantrySpeed',s)
         self.assertLess(s.index('private _pedestrianCap='),s.index('_vehicle forceSpeed _capMps'))
         self.assertIn('_traffic=[_pedestrianCap/3.6,_vehicle,-1,time,0]',s)
         self.assertIn('if ((_trafficLimited && {!_solidCandidate}) || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass} || {_passActive} || {_hadPass}) then {',s)

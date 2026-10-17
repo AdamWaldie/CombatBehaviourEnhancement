@@ -1,4 +1,4 @@
-# WAIT implementation and acceptance status
+# CBE implementation and acceptance status
 
 See [implementation progress](../docs/IMPLEMENTATION-PROGRESS.md), the
 [capability registry](../docs/CAPABILITY-REGISTRY.md) and

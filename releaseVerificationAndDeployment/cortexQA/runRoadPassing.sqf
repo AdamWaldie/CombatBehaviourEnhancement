@@ -14,7 +14,7 @@
  * Example: stage the roadpassing focus with world Altis; run only when audits are authorised.
  */
 params ["_check","_phase","_wait"];
-private _terrain=worldName == "Altis" && {isServer} && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])};
+private _terrain=worldName == "Altis" && {isServer} && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])};
 ["PASS-road-normal-Altis-prerequisite",_terrain] call _check;
 if (!_terrain) exitWith {};
 private _searchUntil=diag_tickTime+90;
@@ -97,10 +97,10 @@ private _span={
     } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];} forEach [_low select 0,_high select 0];
     [_minimum,_maximum]
 };
-private _keys=["WAIT_AIPass_Enable","WAIT_AIPass_Contact_Enable","WAIT_AIPass_DrivingAssist_Enable","WAIT_AIPass_DrivingAssist_Passing_Enable"];
+private _keys=["CBE_AIPass_Enable","CBE_AIPass_Contact_Enable","CBE_AIPass_DrivingAssist_Enable","CBE_AIPass_DrivingAssist_Passing_Enable"];
 private _previous=createHashMapFromArray (_keys apply {[_x,missionNamespace getVariable [_x,false]]});
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],
-    ["WAIT_AIPass_DrivingAssist_Enable",true],["WAIT_AIPass_DrivingAssist_Passing_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],
+    ["CBE_AIPass_DrivingAssist_Enable",true],["CBE_AIPass_DrivingAssist_Passing_Enable",true]]] call CBE_fnc_CortexTuning;
 {
     private _mode=_x;
     ["Automatic road pass: "+_mode,"Production traffic observation must naturally qualify and negotiate a pass. Watch actual lateral travel, complete hull separation and return. REPLACE changes only the native waypoint during active OUT; the newer order must survive and produce real travel. No passing helper or result is injected.",_spawnPositions select 0] call _phase;
@@ -109,7 +109,7 @@ private _previous=createHashMapFromArray (_keys apply {[_x,missionNamespace getV
     _vehicle setDir (_start select 1);_front setDir (_frontStart select 1);
     createVehicleCrew _vehicle;createVehicleCrew _front;
     private _group=group driver _vehicle;private _frontGroup=group driver _front;
-    { _x setVariable ["WAIT_Headless_ExcludeGroup",true,true];_x setVariable ["acex_headless_blacklist",true,true];
+    { _x setVariable ["CBE_Headless_ExcludeGroup",true,true];_x setVariable ["acex_headless_blacklist",true,true];
         _x setBehaviour "SAFE";_x setCombatMode "BLUE";_x setSpeedMode "FULL";
     } forEach [_group,_frontGroup];
     private _ready=[{local _vehicle && {local _front} && {local _group} && {local _frontGroup}
@@ -123,17 +123,17 @@ private _previous=createHashMapFromArray (_keys apply {[_x,missionNamespace getV
     {private _wp=_x addWaypoint [_spawnPositions select 2,0];_wp setWaypointType "MOVE";
         _wp setWaypointCompletionRadius 5;_x setCurrentWaypoint _wp;
     } forEach [_group,_frontGroup];
-    (driver _vehicle) setVariable ["WAIT_CortexQA_Label","AUTO PASSER "+_mode,true];
-    (driver _vehicle) setVariable ["WAIT_CortexQA_Target",_spawnPositions select 2,true];
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[_vehicle,_front,driver _vehicle,driver _front],true];
+    (driver _vehicle) setVariable ["CBE_CortexQA_Label","AUTO PASSER "+_mode,true];
+    (driver _vehicle) setVariable ["CBE_CortexQA_Target",_spawnPositions select 2,true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[_vehicle,_front,driver _vehicle,driver _front],true];
     private _damage=[damage _vehicle,damage _front];private _active=false;private _out=false;
     private _returned=false;private _clear=true;private _excursion=0;private _passed=false;
     private _replaced=false;private _replacement=[];private _replaceStart=[];private _preserved=true;private _newTravel=false;
     private _until=time+150;
     while {time < _until && {!_passed} && {!_newTravel}} do {
         sleep 0.25;
-        private _work=_vehicle getVariable ["WAIT_DrivingPass_Work",createHashMap];
-        private _result=_vehicle getVariable ["WAIT_DrivingPass_Result",[]];
+        private _work=_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
+        private _result=_vehicle getVariable ["CBE_DrivingPass_Result",[]];
         private _matching=count _work > 0 && {(_work getOrDefault ["peer",objNull]) == _front};
         _active=_active || {_matching};
         if (_matching && {(_work getOrDefault ["phase",""]) == "OUT"}) then {_out=true};
@@ -157,9 +157,9 @@ private _previous=createHashMapFromArray (_keys apply {[_x,missionNamespace getV
         _passed=_mode == "PASS" && {_active} && {_out} && {_returned} && {_ahead}
             && {_excursion >= 3} && {abs (_delta vectorDotProduct _right) <= 2}
             && {(getPosASL _vehicle) vectorDistance _origin >= 80} && {(_result param [0,""]) == "RETURN_COMPLETE"};
-        diag_log format ["WAIT AUTO ROAD PASS: mode=%1 t=%2 positions=%3 speeds=%4 active=%5 excursion=%6 ahead=%7 replaced=%8 result=%9 admission=%10",
+        diag_log format ["CBE AUTO ROAD PASS: mode=%1 t=%2 positions=%3 speeds=%4 active=%5 excursion=%6 ahead=%7 replaced=%8 result=%9 admission=%10",
             _mode,time,[getPosASL _vehicle,getPosASL _front],[speed _vehicle,speed _front],_matching,_excursion,_ahead,_replaced,_result,
-            _vehicle getVariable ["WAIT_DrivingPass_AdmissionResult",[]]];
+            _vehicle getVariable ["CBE_DrivingPass_AdmissionResult",[]]];
     };
     ["PASS-road-"+_mode+"-natural-owned-operation",_ready && {_active} && {_out}] call _check;
     if (_mode == "PASS") then {
@@ -168,8 +168,8 @@ private _previous=createHashMapFromArray (_keys apply {[_x,missionNamespace getV
         ["PASS-road-replacement-native-order-preserved",_replaced && {_preserved}] call _check;
         ["PASS-road-replacement-physical-travel",_ready && {_active} && {_replaced} && {_newTravel} && {_clear}] call _check;
     };
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
     {private _object=_x;{deleteVehicle _x} forEach crew _object;deleteVehicle _object} forEach [_vehicle,_front];
     {deleteGroup _x} forEach [_group,_frontGroup];
 } forEach ["PASS","REPLACE"];
-[_previous] call WAIT_fnc_CortexTuning;
+[_previous] call CBE_fnc_CortexTuning;

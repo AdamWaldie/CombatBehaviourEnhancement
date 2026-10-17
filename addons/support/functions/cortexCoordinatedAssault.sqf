@@ -41,19 +41,19 @@
  * false while dispatch is pending or no coordinated movement formed, so existing movement can continue.
  *
  * Example:
- * [_group, _state] call WAIT_fnc_CortexCoordinatedAssault;
+ * [_group, _state] call CBE_fnc_CortexCoordinatedAssault;
  * Result: two reinforcing squads sweep the enemy position from both flanks while the first squad fires.
  *
- * Current caller: WAIT_fnc_CortexGroupTick.
+ * Current caller: CBE_fnc_CortexGroupTick.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]]];
-private _publicResponders = _group getVariable ["WAIT_Cortex_SupportResponders",[]];
+private _publicResponders = _group getVariable ["CBE_Cortex_SupportResponders",[]];
 if (_state getOrDefault ["coordinated", false]) exitWith {
     private _active = _publicResponders findIf {
         _x params ["_helper","_token"];
-        private _lease = _helper getVariable ["WAIT_AIPass_SupportLease",[]];
-        private _status = _helper getVariable ["WAIT_AIPass_SupportStatus",[]];
+        private _lease = _helper getVariable ["CBE_AIPass_SupportLease",[]];
+        private _status = _helper getVariable ["CBE_AIPass_SupportStatus",[]];
         count _lease == 6 && {(_lease select 0) == _token} && {(_lease select 1) == _group}
             && {serverTime < (_lease select 2)} && {count _status == 4}
             && {(_status select 0) == _token} && {_status select 2} && {_status select 3}
@@ -71,26 +71,26 @@ if (_pendingUntil > 0 && {_publicResponders isEqualTo []}) then {
     // ownership window on the next group tick so a local advance or flank can start immediately.
     _state deleteAt "coordinatedPendingUntil";
 };
-if ([_state, "coordinated"] call WAIT_fnc_CortexCooldown) exitWith {false};
+if ([_state, "coordinated"] call CBE_fnc_CortexCooldown) exitWith {false};
 if ((_state getOrDefault ["moraleState", "STEADY"]) != "STEADY") exitWith {false};
 private _enemyPos = _state getOrDefault ["enemyPos", []];
 // Use a local combat-effective anchor so leader loss or reassignment does not suppress an otherwise viable manoeuvre.
-private _leader = [_group] call WAIT_fnc_CortexGroupAnchor;
+private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 if (count _enemyPos < 2 || {time - (_state getOrDefault ["lastSeen", -1e6]) > 60} || {_leader distance2D _enemyPos > 400}) exitWith {false};
 private _responders = [];
 private _acknowledged = false;
 {
     _x params ["_helper","_token"];
-    private _lease = _helper getVariable ["WAIT_AIPass_SupportLease",[]];
-    private _status = _helper getVariable ["WAIT_AIPass_SupportStatus",[]];
-    private _eligibility=_helper getVariable ["WAIT_Cortex_SupportEligibility",[]];
+    private _lease = _helper getVariable ["CBE_AIPass_SupportLease",[]];
+    private _status = _helper getVariable ["CBE_AIPass_SupportStatus",[]];
+    private _eligibility=_helper getVariable ["CBE_Cortex_SupportEligibility",[]];
     private _prepared=count _eligibility == 3 && {(_eligibility select 0) == _token}
         && {(_eligibility select 1) == groupOwner _helper} && {serverTime < (_eligibility select 2)};
     private _executing=count _status == 4 && {(_status select 0) == _token} && {_status select 2};
     if (count _lease == 6 && {(_lease select 0) == _token} && {(_lease select 1) == _group}
         && {serverTime < (_lease select 2)} && {_prepared || {_executing}}
-        && {[_helper] call WAIT_fnc_CortexIsEligible}) then {
+        && {[_helper] call CBE_fnc_CortexIsEligible}) then {
         if (_executing && {_status select 3}) then {_acknowledged = true};
         _responders pushBack _helper;
     };
@@ -101,7 +101,7 @@ if (_acknowledged) exitWith {
     // local drill now, before publishing coordinated ownership, so two movement controllers never
     // overlap and a rejected or delayed request never creates an idle planning window.
     if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
-        [_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd;
+        [_group,_state,"ROLE_HANDOVER"] call CBE_fnc_CortexFlankEnd;
     };
     _state set ["coordinated",true];
     _state deleteAt "coordinatedPendingUntil";
@@ -109,8 +109,8 @@ if (_acknowledged) exitWith {
 };
 if (_responders isEqualTo []) exitWith {false};
 private _contactConfirmedAt=serverTime-((time-(_state getOrDefault ["lastSeen",-1e6])) max 0);
-[_group,_enemyPos,clientOwner,_contactConfirmedAt] remoteExecCall ["WAIT_fnc_CortexSupportAssaultServer",2];
-[_state,"coordinated",10] call WAIT_fnc_CortexCooldown;
+[_group,_enemyPos,clientOwner,_contactConfirmedAt] remoteExecCall ["CBE_fnc_CortexSupportAssaultServer",2];
+[_state,"coordinated",10] call CBE_fnc_CortexCooldown;
 // Suppress duplicate network dispatches for a bounded interval without claiming movement. The
 // requester keeps native combat or its local drill until a helper owner acknowledges the assault.
 _state set ["coordinatedPendingUntil",time+15];

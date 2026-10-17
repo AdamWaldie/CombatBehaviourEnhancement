@@ -5,7 +5,7 @@
  *
  * Only kills trigger survivor regroup. Nothing polls living units, and no fired-near events are
  * added. The peak strength separates the survivors of a destroyed squad from deliberate small teams:
- * a sniper pair or lone sentry never reaches WAIT_AIPass_Regroup_MinimumPeakSize, so it is never
+ * a sniper pair or lone sentry never reaches CBE_AIPass_Regroup_MinimumPeakSize, so it is never
  * merged. Peak strength is stored only on the owning machine. Existing groups are seeded when the
  * pass starts, and the first kill on a new owner counts the members still listed in the group.
  * Locality and authority: called from the EntityKilled handler on the machine where the group is
@@ -20,29 +20,29 @@
  * Nothing
  *
  * Example:
- * [group _unit, _unit] call WAIT_fnc_CortexRegroupOnKill;
- * Result: a remnant evaluation runs after WAIT_AIPass_Regroup_SettleSeconds.
+ * [group _unit, _unit] call CBE_fnc_CortexRegroupOnKill;
+ * Result: a remnant evaluation runs after CBE_AIPass_Regroup_SettleSeconds.
  *
- * Current caller: the EntityKilled handler installed by WAIT_fnc_CortexInit.
+ * Current caller: the EntityKilled handler installed by CBE_fnc_CortexInit.
  */
 
 params [["_group", grpNull, [grpNull]], ["_unit", objNull, [objNull]]];
 if (isNull _group || {!local _group}) exitWith {};
 private _listed = count units _group;
 if !(_unit in units _group) then {_listed = _listed + 1};
-_group setVariable ["WAIT_AIPass_PeakSize", (_group getVariable ["WAIT_AIPass_PeakSize", 0]) max _listed];
+_group setVariable ["CBE_AIPass_PeakSize", (_group getVariable ["CBE_AIPass_PeakSize", 0]) max _listed];
 
-if !(missionNamespace getVariable ["WAIT_AIPass_Regroup_Enable", true]) exitWith {};
-if (_group getVariable ["WAIT_AIPass_RegroupQueued", false]) exitWith {};
+if !(missionNamespace getVariable ["CBE_AIPass_Regroup_Enable", true]) exitWith {};
+if (_group getVariable ["CBE_AIPass_RegroupQueued", false]) exitWith {};
 private _alive = {alive _x} count units _group;
-if (_alive == 0 || {_alive > (missionNamespace getVariable ["WAIT_AIPass_Regroup_MaxRemnantSize", 2])}) exitWith {};
+if (_alive == 0 || {_alive > (missionNamespace getVariable ["CBE_AIPass_Regroup_MaxRemnantSize", 2])}) exitWith {};
 
 // An event or explicit order may arrive before the discovery sweep. Adopt first,
 // otherwise that sweep invalidates the freshly queued job's owner epoch.
-if !(_group getVariable ["WAIT_AIPass_Adopted",false]) then {[_group,true] call WAIT_fnc_CortexLocality};
-_group setVariable ["WAIT_AIPass_RegroupQueued", true];
+if !(_group getVariable ["CBE_AIPass_Adopted",false]) then {[_group,true] call CBE_fnc_CortexLocality};
+_group setVariable ["CBE_AIPass_RegroupQueued", true];
 [
-    WAIT_fnc_CortexRegroupStep,
-    createHashMapFromArray [["group", _group], ["phase", "EVALUATE"], ["firstEvaluation", -1], ["operationGeneration",_group getVariable ["WAIT_OperationGeneration",0]]],
-    missionNamespace getVariable ["WAIT_AIPass_Regroup_SettleSeconds", 5]
-] call WAIT_fnc_CortexQueueJob;
+    CBE_fnc_CortexRegroupStep,
+    createHashMapFromArray [["group", _group], ["phase", "EVALUATE"], ["firstEvaluation", -1], ["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]]],
+    missionNamespace getVariable ["CBE_AIPass_Regroup_SettleSeconds", 5]
+] call CBE_fnc_CortexQueueJob;

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static performance regression audit for Waldos AI Tweaks SQF.
+"""Static performance regression audit for Combat Behaviour Enhancement (CBE) SQF.
 
 The scanner deliberately reports opportunities rather than runtime timings.  It
 removes comments and string contents before examining recurring ``while``

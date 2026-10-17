@@ -6,7 +6,7 @@
  * Arguments: None.
  * Return Value: HASHMAP with panel, text and muted RGBA colours.
  * Current callers: disposable cortexQA/runGuide.sqf.
- * Example: private _theme = [] call WAIT_fnc_AITweaksUiTheme;
+ * Example: private _theme = [] call CBE_fnc_AITweaksUiTheme;
  */
 
 createHashMapFromArray [

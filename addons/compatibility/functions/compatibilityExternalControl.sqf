@@ -1,8 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
- * Reads declared ownership and active specialist runtime markers through WAIT's compatibility boundary.
+ * Reads declared ownership and active specialist runtime markers through CBE's compatibility boundary.
  * Tactical subsystems use this neutral gate rather than depending on another product's runtime
- * variable name. The marker is read-only and never grants WAIT ownership.
+ * variable name. The marker is read-only and never grants CBE ownership.
  *
  * Locality / Authority: Read-only; callable on any machine for a group or object.
  * Repeat/JIP: Safe to repeat. It reads the currently published marker each time and changes no state.
@@ -14,10 +14,10 @@
  * Boolean - true only when the subject or, for an object, its current group explicitly declares
  * external control or an actor has a specialist runtime marker.
  *
- * Current callers: WAIT eligibility, vehicles, aircraft, skill layers, diagnostics and HC adoption.
+ * Current callers: CBE eligibility, vehicles, aircraft, skill layers, diagnostics and HC adoption.
  *
  * Example:
- * if ([group _unit] call WAIT_fnc_CompatibilityExternalControl) exitWith {};
+ * if ([group _unit] call CBE_fnc_CompatibilityExternalControl) exitWith {};
  */
 params [["_subject", grpNull, [grpNull, objNull]]];
 

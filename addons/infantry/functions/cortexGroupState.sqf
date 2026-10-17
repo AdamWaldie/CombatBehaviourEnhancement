@@ -9,7 +9,7 @@
  * RETREAT), morale (0-1), moraleState. The owner-local groupTactics FSM publishes the semantic
  * phase (including SUPPORT, MANOEUVRE, ASSAULT, CLEAR and WITHDRAW) separately, so extraction of
  * phase handlers does not create a second movement owner. Cooldowns and per-phase fields remain here
- * while those handlers are migrated out of WAIT_fnc_CortexGroupTick.
+ * while those handlers are migrated out of CBE_fnc_CortexGroupTick.
  * Locality and authority: machine-local.
  *
  * Arguments:
@@ -19,20 +19,20 @@
  * HashMap - the state map (the same object on every call)
  *
  * Example:
- * private _state = [_group] call WAIT_fnc_CortexGroupState;
+ * private _state = [_group] call CBE_fnc_CortexGroupState;
  * Result: the group's live pass state.
  *
- * Current callers: WAIT_fnc_GroupBrainStep, WAIT_fnc_CortexGroupTick,
- * WAIT_fnc_CortexReinforce and order functions.
+ * Current callers: CBE_fnc_GroupBrainStep, CBE_fnc_CortexGroupTick,
+ * CBE_fnc_CortexReinforce and order functions.
  */
 
 params [["_group", grpNull, [grpNull]]];
-private _state = _group getVariable ["WAIT_AIPass_State", createHashMap];
+private _state = _group getVariable ["CBE_AIPass_State", createHashMap];
 if (count _state == 0) then {
     _state = createHashMapFromArray [
         ["phase", "CALM"], ["morale", 1], ["moraleState", "STEADY"], ["cooldowns", createHashMap]
     ];
-    _group setVariable ["WAIT_AIPass_State", _state];
+    _group setVariable ["CBE_AIPass_State", _state];
 };
 _state
 

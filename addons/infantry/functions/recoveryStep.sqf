@@ -9,7 +9,7 @@
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 actor <OBJECT>; 3 destination <ARRAY, two or three numeric coordinates>.
  * Return Value: STRING - RECOVERING, EXHAUSTED, YIELDED or INVALID.
  * Current callers: Operation-backed manoeuvre and building jobs.
- * Example: [group player,4,soldier1,getPosATL player] call WAIT_fnc_RecoveryStep;
+ * Example: [group player,4,soldier1,getPosATL player] call CBE_fnc_RecoveryStep;
  */
 params [["_group",grpNull,[grpNull]],["_generation",-1,[0]],["_actor",objNull,[objNull]],["_destination",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2} || {isNull _group} || {isNull _actor} || {!local _group} || {!local _actor} || {!(count _destination in [2,3])}
@@ -17,17 +17,17 @@ if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2} || {isNull _group} || 
 // This is the final direct movement command in a recovery path. Recheck handover at the point of
 // issue because a Zeus or specialist operation can arrive between an earlier operation step and
 // this isolated retry. Recovery must retire rather than overwrite the newer controller's route.
-if ([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover
-    || {[_actor] call WAIT_fnc_CompatibilityExternalControl}) exitWith {"YIELDED"};
-if (group _actor != _group || {vehicle _actor != _actor} || {!([_actor] call WAIT_fnc_CortexCombatEffective)}) exitWith {"INVALID"};
+if ([_group,false,_actor] call CBE_fnc_CortexExternalTakeover
+    || {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {"YIELDED"};
+if (group _actor != _group || {vehicle _actor != _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}) exitWith {"INVALID"};
 if (!(_actor checkAIFeature "MOVE") || {!(_actor checkAIFeature "PATH")}
     || {!(simulationEnabled _actor)} || {isObjectHidden _actor}) exitWith {"YIELDED"};
-private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _generation}) exitWith {"INVALID"};
-if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])
+if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])
     || {!(_actor in (_operation getOrDefault ["participants",[]]))}) exitWith {"INVALID"};
 if (_actor in (_operation getOrDefault ["unavailable",[]])) exitWith {"EXHAUSTED"};
-private _reserved={[_actor] call WAIT_fnc_CortexActorMoveReserved};
+private _reserved={[_actor] call CBE_fnc_CortexActorMoveReserved};
 if (call _reserved) exitWith {"YIELDED"};
 private _recovery=_operation getOrDefault ["recovery",createHashMap];
 private _key=netId _actor;
@@ -42,13 +42,13 @@ isNil {
     _result=call {
         if (isNull _group || {isNull _actor} || {!local _group} || {!local _actor}
             || {group _actor != _group} || {vehicle _actor != _actor}
-            || {!([_actor] call WAIT_fnc_CortexCombatEffective)}) exitWith {"INVALID"};
-        if ([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover
-            || {[_actor] call WAIT_fnc_CompatibilityExternalControl}) exitWith {"YIELDED"};
-        private _currentOperation=_group getVariable ["WAIT_Operation",createHashMap];
+            || {!([_actor] call CBE_fnc_CortexCombatEffective)}) exitWith {"INVALID"};
+        if ([_group,false,_actor] call CBE_fnc_CortexExternalTakeover
+            || {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {"YIELDED"};
+        private _currentOperation=_group getVariable ["CBE_Operation",createHashMap];
         if (count _currentOperation == 0
             || {(_currentOperation getOrDefault ["generation",-2]) != _generation}
-            || {(_currentOperation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            || {(_currentOperation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
             || {!(_actor in (_currentOperation getOrDefault ["participants",[]]))}) exitWith {"INVALID"};
         if (_actor in (_currentOperation getOrDefault ["unavailable",[]])) exitWith {"EXHAUSTED"};
         if (currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]) exitWith {"YIELDED"};
@@ -65,7 +65,7 @@ isNil {
         _recovery set [_key,[_attempts+1,time,+_destination,getPosATL _actor]];
         _currentOperation set ["recoveryAttempts",_used];
         _currentOperation set ["recovery",_recovery];
-        _group setVariable ["WAIT_Operation",_currentOperation,true];
+        _group setVariable ["CBE_Operation",_currentOperation,true];
         _actor doMove _destination;
         "RECOVERING"
     };

@@ -1,4 +1,4 @@
-name: Publish tested WAIT package
+name: Publish tested CBE package
 on:
   release:
     types: [published]
@@ -22,8 +22,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
-        run: gh release download "$TAG" -p wait-candidate.zip -p cortex-results.json -D incoming
-      - run: unzip incoming/wait-candidate.zip -d candidate
+        run: gh release download "$TAG" -p cbe-candidate.zip -p cortex-results.json -D incoming
+      - run: unzip incoming/cbe-candidate.zip -d candidate
       - run: python releaseVerificationAndDeployment/mod_pipeline.py release-gate candidate incoming/cortex-results.json
       - run: python releaseVerificationAndDeployment/check_cortex_coverage.py --require-accepted
       - name: Verify pinned authority and every addon signature
@@ -33,6 +33,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          python -c 'import json,os,subprocess; r=json.load(open("candidate/wait-build.json")); assert os.environ["TAG"] == "v"+r["version"]; assert r["commit"] == subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()'
-          cp incoming/wait-candidate.zip "WaldosAITweaks-$TAG.zip"
-          gh release upload "$TAG" "WaldosAITweaks-$TAG.zip" --clobber
+          python -c 'import json,os,subprocess; r=json.load(open("candidate/cbe-build.json")); assert os.environ["TAG"] == "v"+r["version"]; assert r["commit"] == subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()'
+          cp incoming/cbe-candidate.zip "CBE-$TAG.zip"
+          gh release upload "$TAG" "CBE-$TAG.zip" --clobber

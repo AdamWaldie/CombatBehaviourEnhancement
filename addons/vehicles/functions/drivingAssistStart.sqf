@@ -63,21 +63,21 @@
  * 0: group <GROUP> - local AI group commanding the vehicle.
  * 1: operation brain <HASHMAP, empty> - internal current-owner executor receipt.
  * Return Value: Nothing.
- * Current callers: WAIT_fnc_CortexGroupTick (admission), DrivingOperationStep (execution).
- * Example: [group driver truck1] call WAIT_fnc_DrivingAssistStart;
+ * Current callers: CBE_fnc_CortexGroupTick (admission), DrivingOperationStep (execution).
+ * Example: [group driver truck1] call CBE_fnc_DrivingAssistStart;
  */
 
 params [["_group",grpNull,[grpNull]],["_brain",createHashMap,[createHashMap]]];
 if (isNull _group || {!local _group}) exitWith {};
 // Normal group decisions admit/reuse the FSM; only its current queued callback writes commands.
-if (count _brain == 0) exitWith {[_group] call WAIT_fnc_DrivingOperationStart};
-if ((_group getVariable ["WAIT_Driving_Brain",createHashMap]) isNotEqualTo _brain
+if (count _brain == 0) exitWith {[_group] call CBE_fnc_DrivingOperationStart};
+if ((_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain
     || {_brain getOrDefault ["cancelled",false]}
-    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {};
-private _enabled=[_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {};
+private _enabled=[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 // Read only the current authored waypoint. Conditions and trigger identities belong to the order,
 // just as its position does. A same-index edit must not inherit a reverse request for the old order.
-private _readRouteIdentity={[_group] call WAIT_fnc_DrivingRouteReceipt};
+private _readRouteIdentity={[_group] call CBE_fnc_DrivingRouteReceipt};
 private _vehicles=[];
 {
     private _vehicle=vehicle _x;
@@ -88,11 +88,11 @@ private _vehicles=[];
 } forEach units _group;
 // A group can leave its previous vehicle, board an aircraft or become a convoy between sparse
 // scheduler steps. Release only the vehicles we previously owned; never touch another group's cap.
-private _previous=_group getVariable ["WAIT_DrivingAssist_Vehicles",[]];
+private _previous=_group getVariable ["CBE_DrivingAssist_Vehicles",[]];
 {
-    if !(_x in _vehicles) then {[_x,_group] call WAIT_fnc_DrivingAssistRelease};
+    if !(_x in _vehicles) then {[_x,_group] call CBE_fnc_DrivingAssistRelease};
 } forEach _previous;
-_group setVariable ["WAIT_DrivingAssist_Vehicles",_vehicles];
+_group setVariable ["CBE_DrivingAssist_Vehicles",_vehicles];
 // Rebuild only the current roster's private measurement map; departed vehicles retain no history.
 private _priorTracks=_brain getOrDefault ["geometryTracks",createHashMap];
 private _geometryTracks=createHashMap;
@@ -100,13 +100,13 @@ private _geometryTracks=createHashMap;
 _brain set ["geometryTracks",_geometryTracks];
 {
     private _vehicle=_x;
-    [_vehicle] call WAIT_fnc_DrivingPassRetireInherited;
+    [_vehicle] call CBE_fnc_DrivingPassRetireInherited;
     private _driver=driver _vehicle;
     private _movementOperator=effectiveCommander _vehicle;
     if (isNull _movementOperator) then {_movementOperator=_driver};
     private _nativeTaskFree={
         params ["_actor"];
-        !isNull _actor && {!([_actor] call WAIT_fnc_CortexActorMoveReserved)}
+        !isNull _actor && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
             && {!(currentCommand _actor in [
             "GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED",
@@ -114,7 +114,7 @@ _brain set ["geometryTracks",_geometryTracks];
         ])}
     };
     private _routeIdentity=call _readRouteIdentity;
-    private _recoveryWork=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+    private _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
     private _recoveryOwned=count _recoveryWork > 0 && {(_recoveryWork get "group") == _group}
         && {(_recoveryWork get "route") isEqualTo _routeIdentity}
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
@@ -126,49 +126,49 @@ _brain set ["geometryTracks",_geometryTracks];
         } < 0};
     if (count _recoveryWork > 0 && {(_recoveryWork get "group") == _group} && {!_recoveryOwned}) then {
         if ((_recoveryWork get "route") isEqualTo _routeIdentity) then {
-            _group setVariable ["WAIT_DrivingRecovery_Yield",_routeIdentity,true];
+            _group setVariable ["CBE_DrivingRecovery_Yield",_routeIdentity,true];
         };
-        [_vehicle,_group,"ORDER_OR_SEATS_CHANGED",false] call WAIT_fnc_DrivingRecoveryRelease;
+        [_vehicle,_group,"ORDER_OR_SEATS_CHANGED",false] call CBE_fnc_DrivingRecoveryRelease;
         _recoveryWork=createHashMap;
     };
-    private _release=(_group getVariable ["WAIT_DrivingRecovery_Yield",[]]) isEqualTo _routeIdentity;
+    private _release=(_group getVariable ["CBE_DrivingRecovery_Yield",[]]) isEqualTo _routeIdentity;
 
     // Driving must make the same ownership decision as every other delayed controller. A group
     // member becoming player-controlled or specialist-owned is enough to retire the sparse speed
     // cap before it can issue a recovery move; the individual driver checks below retain the
     // vehicle-specific local/remote-control safety boundary.
-    private _yieldToOwner=[_group] call WAIT_fnc_CortexExternalTakeover;
+    private _yieldToOwner=[_group] call CBE_fnc_CortexExternalTakeover;
     if (!_enabled || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
-        || {!([_driver] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _driver}
+        || {!([_driver] call CBE_fnc_CortexCombatEffective)} || {isPlayer _driver}
         || {!isNull (_driver getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-        || {[_driver] call WAIT_fnc_CortexExternalOwner != ""}
+        || {[_driver] call CBE_fnc_CortexExternalOwner != ""}
         || {_yieldToOwner}
         || {!([_driver] call _nativeTaskFree)}
         || {!([_movementOperator] call _nativeTaskFree)}
         || {getForcedSpeed _vehicle == 0 && {
-            private _heldState=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
+            private _heldState=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
             !((_recoveryOwned && {(_recoveryWork get "cap") == 0}) || {(_heldState param [0,-1]) == 0 && {(_heldState param [3,grpNull]) == _group}
-                && {!isNull ((_vehicle getVariable ["WAIT_DrivingAssist_Traffic",[]]) param [1,objNull])}})
+                && {!isNull ((_vehicle getVariable ["CBE_DrivingAssist_Traffic",[]]) param [1,objNull])}})
         }}
-        || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
-        || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
+        || {_vehicle getVariable ["CBE_Convoy_Active",false]}
+        || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         || {behaviour leader _group == "CARELESS"}
         || {_routeIdentity isEqualTo []}) then {_release=true};
-    if (_release) then {[_vehicle,_group] call WAIT_fnc_DrivingAssistRelease} else {
+    if (_release) then {[_vehicle,_group] call CBE_fnc_DrivingAssistRelease} else {
         // Terrain sampling is deliberately sparse but may still overlap a newer Zeus or specialist
         // order. Preserve that order at the actual cap/recovery command boundary.
         private _mayIssueDriving = {
             local _group && {local _vehicle}
-                && {[_group] call WAIT_fnc_DrivingMovementAvailable}
+                && {[_group] call CBE_fnc_DrivingMovementAvailable}
                 && {driver _vehicle isEqualTo _driver}
                 && {(effectiveCommander _vehicle) in [_movementOperator,objNull]}
                 && {vehicle _movementOperator isEqualTo _vehicle}
                 && {local _driver} && {group _driver == _group}
                 && {!isPlayer _driver} && {isNull remoteControlled _driver}
-                && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
+                && {!([_group] call CBE_fnc_CortexExternalTakeover)}
                 && {alive _vehicle} && {canMove _vehicle}
-                && {[_driver] call WAIT_fnc_CortexCombatEffective}
-                && {[_movementOperator] call WAIT_fnc_CortexCombatEffective}
+                && {[_driver] call CBE_fnc_CortexCombatEffective}
+                && {[_movementOperator] call CBE_fnc_CortexCombatEffective}
                 && {local _movementOperator} && {group _movementOperator == _group}
                 && {!isPlayer _movementOperator} && {isNull remoteControlled _movementOperator}
                 && {_driver checkAIFeature "MOVE"} && {_driver checkAIFeature "PATH"}
@@ -220,9 +220,9 @@ _brain set ["geometryTracks",_geometryTracks];
             private _waypoint=[_group,currentWaypoint _group];
             if (_command == "MOVE" && {(_native param [0,[]]) vectorDistance (waypointPosition _waypoint) <= 3}) exitWith {true};
             // The rear leg intentionally differs from the waypoint. Only an unchanged
-            // current journal can authorize its own finite forward handback (including owned WAIT),
-            // not another MOVE or an unowned WAIT.
-            private _owned=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+            // current journal can authorize its own finite forward handback (including owned CBE),
+            // not another MOVE or an unowned CBE.
+            private _owned=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
             count _owned > 0 && {(_owned get "group") == _group}
                 && {(_owned get "route") isEqualTo _routeIdentity}
                 && {(_owned get "driver") == _driver} && {(_owned get "operator") == _movementOperator}
@@ -231,17 +231,17 @@ _brain set ["geometryTracks",_geometryTracks];
         };
         private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}
             && {toUpperANSI currentCommand _driver in ["","MOVE","WAIT"]}};
-        private _priorOwner=(_vehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull];
+        private _priorOwner=(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
             // A new driver group adopts only after retiring the old group's exact cap lease.
-            [_vehicle,_priorOwner] call WAIT_fnc_DrivingAssistRelease;
+            [_vehicle,_priorOwner] call CBE_fnc_DrivingAssistRelease;
         };
-        if (time >= (_vehicle getVariable ["WAIT_DrivingAssist_Next",-1])) then {
+        if (time >= (_vehicle getVariable ["CBE_DrivingAssist_Next",-1])) then {
             // A new Zeus, mission or specialist cap may not advertise an ownership marker. The
             // last cap we applied is therefore the narrowest reliable lease check: once another
-            // value replaces it, release without restoring the stale pre-WAIT value.
-            private _previous=_vehicle getVariable ["WAIT_DrivingAssist_Restore",[]];
-            private _state=_vehicle getVariable ["WAIT_DrivingAssist_State",[]];
+            // value replaces it, release without restoring the stale pre-CBE value.
+            private _previous=_vehicle getVariable ["CBE_DrivingAssist_Restore",[]];
+            private _state=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
             if (_state isEqualTo [] && {_recoveryOwned}
                 && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}) then {
                 private _kind=_recoveryWork get "kind";
@@ -252,11 +252,11 @@ _brain set ["geometryTracks",_geometryTracks];
                     time-(serverTime-(_recoveryWork get "started")),_stage,time+(_deadline-serverTime),
                     "ADOPTED_RECOVERY",_routeIdentity,_kind == "REVERSE"];
                 _previous=+(_recoveryWork get "baseline");
-                _vehicle setVariable ["WAIT_DrivingAssist_Restore",_previous];
+                _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
             };
             private _ownedCap=_state param [0,-1];
             if (_previous isNotEqualTo [] && {_ownedCap >= 0} && {abs ((getForcedSpeed _vehicle)-_ownedCap) > 0.1}) then {
-                [_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;
+                [_vehicle,_group] call CBE_fnc_DrivingAssistRelease;
             } else {
             // Recovery belongs to this authored route, not merely to this vehicle.
             // Same-index waypoint replacement must not inherit an old reverse stage
@@ -274,7 +274,7 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_state isNotEqualTo [] && {vehicle leader _group isNotEqualTo _vehicle}) then {
                 // Retire the former leader's exact rear command before returning to formation.
                 // Clearing only the stage would leave that native destination running.
-                if ((_state param [6,0]) != 4) then {[_vehicle,_group,"NATIVE_FOLLOWER"] call WAIT_fnc_DrivingRecoveryRelease};
+                if ((_state param [6,0]) != 4) then {[_vehicle,_group,"NATIVE_FOLLOWER"] call CBE_fnc_DrivingRecoveryRelease};
                 _state set [4,getPosATL _vehicle];
                 _state set [5,time];
                 if ((_state param [6,0]) != 4) then {_state set [6,0];_state set [7,-1]};
@@ -298,29 +298,29 @@ _brain set ["geometryTracks",_geometryTracks];
                 _maximumGrade=_maximumGrade max (abs ((_sample select 2)-(_last select 2))/_horizontal);
                 _last=_sample;
             } forEach [20,45,70];
-            private _cap=(missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_MaxSpeed",70]) max 15 min 120;
+            private _cap=(missionNamespace getVariable ["CBE_AIPass_DrivingAssist_MaxSpeed",70]) max 15 min 120;
             if (_maximumGrade > 0.2) then {_cap=_cap min 18} else {if (_maximumGrade > 0.12) then {_cap=_cap min 28}};
             // The shared read-only road walk anticipates bends/junctions without choosing a route.
             // It runs at this vehicle's existing sparse cadence; mission and traffic caps still win.
-            private _roadObservation=[_vehicle,_cap] call WAIT_fnc_DrivingRoadCap;
+            private _roadObservation=[_vehicle,_cap] call CBE_fnc_DrivingRoadCap;
             _cap=_cap min (_roadObservation select 0);
             // The short rear leg must not inherit the normal road-speed cap. Retain
             // this cautious cap through reverse observation and the final retry handoff.
             if ((_state param [6,0]) in [1,2]) then {_cap=_cap min 10};
-            private _previous=_vehicle getVariable ["WAIT_DrivingAssist_Restore",[]];
+            private _previous=_vehicle getVariable ["CBE_DrivingAssist_Restore",[]];
             if (_previous isEqualTo []) then {
                 _previous=[getForcedSpeed _vehicle];
-                _vehicle setVariable ["WAIT_DrivingAssist_Restore",_previous];
+                _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
             };
             private _saved=_previous param [0,-1];
             // Arma forceSpeed/getForcedSpeed values are metres per second. Keep the policy value
             // readable in km/h, but keep the actual lease in engine units so another controller's
-            // cap is detected and the pre-WAIT value can be restored exactly.
+            // cap is detected and the pre-CBE value can be restored exactly.
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
             private _recordRecovery={
                 params ["_kind"];
-                private _old=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+                private _old=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                 private _hard=if (count _old > 0 && {(_old get "group") == _group} && {(_old get "route") isEqualTo _routeIdentity}) then {
                     _old get "hardDeadline"
                 } else {serverTime+96};
@@ -329,7 +329,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
                     ["kind",_kind],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
                     ["origin",getPosATL _vehicle],["baseline",+_previous],["cap",_capMps]];
-                _vehicle setVariable ["WAIT_DrivingRecovery_Work",_work,true];
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
                 time+(_deadline-serverTime)
             };
             private _reverseIssued=_state param [10,(_state param [8,""]) == "CAUTIOUS_REVERSE"];
@@ -337,18 +337,18 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {time < (_state param [7,-1])};
             private _reverseExpired=(_state param [6,0]) == 2 && {_reverseIssued} && {!_reverseLeg};
             private _retryAllowed=!_reverseExpired || {
-                [_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled
+                [_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled
                     && {!(behaviour leader _group in ["COMBAT","STEALTH"])} && {getSuppression _driver <= 0.1}
                     && {call _mayRecoverOrdinaryRoute}
             };
             private _traffic=if (!_reverseLeg) then {
-                [_vehicle,_capMps] call WAIT_fnc_DrivingFollowingCap
+                [_vehicle,_capMps] call CBE_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
-            private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call WAIT_fnc_DrivingTurnTrack;
+            private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingTurnTrack;
             _geometryTracks set [netId _vehicle,_turn select 1];
-            private _nativeHint=[_vehicle,_group,["ORDINARY",_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call WAIT_fnc_DrivingNativePathWatch;
+            private _nativeHint=[_vehicle,_group,["ORDINARY",_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingNativePathWatch;
             private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
-            private _geometry=if (!_reverseLeg) then {[_vehicle,_capMps,false,_curveHint] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+            private _geometry=if (!_reverseLeg) then {[_vehicle,_capMps,false,_curveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
             private _gateObservation=_geometry select 0;
             private _obstacleObservation=_geometry select 1;
             if (_gateObservation isNotEqualTo [] && {(_gateObservation select 0) < (_traffic select 0)}) then {_traffic=_gateObservation};
@@ -359,15 +359,15 @@ _brain set ["geometryTracks",_geometryTracks];
                 _traffic=_obstacleObservation select [0,5];
                 if (isNull (_traffic select 1)) then {_traffic set [1,_vehicle]};
             };
-            _vehicle setVariable ["WAIT_DrivingAssist_Obstacle",_obstacleObservation];
+            _vehicle setVariable ["CBE_DrivingAssist_Obstacle",_obstacleObservation];
             // Share the convoy observer without adding a second speed writer. Its zero cap
             // uses the existing traffic lease and faster sampling, and cannot trigger recovery.
             // Check the intended rear direction even while stopped. At the finite rear-leg
             // deadline observe the forward retry, so a rear-only obstacle cannot trap handback.
             private _travelIntent=if (_reverseLeg) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
-            private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true,_travelIntent] call WAIT_fnc_CortexInfantrySpeed;
+            private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true,_travelIntent] call CBE_fnc_CortexInfantrySpeed;
             if (_reverseLeg) then {
-                private _rearObservation=[_vehicle,8] call WAIT_fnc_DrivingRearClear;
+                private _rearObservation=[_vehicle,8] call CBE_fnc_DrivingRearClear;
                 if !(_rearObservation select 0) then {_traffic=[0,_vehicle,-1,time,0]};
             };
             if (_pedestrianCap/3.6 < (_traffic select 0)) then {
@@ -379,35 +379,35 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
             // Corridor execution is part of this same owner callback, never a second controller.
             // Do not take over an issued/expired rear leg. Existing traffic and pedestrian caps win.
-            private _passingHeadway=["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call WAIT_fnc_DrivingPassAdmission;
+            private _passingHeadway=["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call CBE_fnc_DrivingPassAdmission;
             if (_passingHeadway isEqualType 0 && {finite _passingHeadway} && {_passingHeadway >= 0}) then {
                 _capMps=_capMps min _passingHeadway;
             };
-            private _hadPass=!isNil {_vehicle getVariable "WAIT_DrivingPass_Work"};
-            private _pass=[_group,_vehicle,_brain,_mayIssueDriving] call WAIT_fnc_DrivingPassStep;
+            private _hadPass=!isNil {_vehicle getVariable "CBE_DrivingPass_Work"};
+            private _pass=[_group,_vehicle,_brain,_mayIssueDriving] call CBE_fnc_DrivingPassStep;
             private _passActive=_pass select 0;
-            private _hadBypass=!isNil {_vehicle getVariable "WAIT_DrivingBypass_Work"};
-            private _hadCorridor=!isNil {_vehicle getVariable "WAIT_DrivingCorridor_Work"};
+            private _hadBypass=!isNil {_vehicle getVariable "CBE_DrivingBypass_Work"};
+            private _hadCorridor=!isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"};
             private _corridor=[false,1e6,""];
             if (!_passActive && {!_hadPass} && {!_reverseLeg} && {!_reverseExpired} && {!_hadBypass} && {call _mayRecoverRoute}) then {
-                _corridor=[_group,_vehicle,_brain] call WAIT_fnc_DrivingCorridorStep;
+                _corridor=[_group,_vehicle,_brain] call CBE_fnc_DrivingCorridorStep;
             } else {
                 if (_hadCorridor) then {
-                    [_vehicle,_group,"ROUTE_AUTHORITY_ENDED"] call WAIT_fnc_DrivingCorridorRelease;
+                    [_vehicle,_group,"ROUTE_AUTHORITY_ENDED"] call CBE_fnc_DrivingCorridorRelease;
                 };
             };
             private _corridorActive=_corridor select 0;
             private _bypass=[false,1e6,"",false];
             if (!_passActive && {!_hadPass} && {!_corridorActive} && {!_hadCorridor} && {!_reverseLeg} && {!_reverseExpired}
                 && {call _mayRecoverRoute}) then {
-                _bypass=[_group,_vehicle,_brain,_obstacleObservation,_mayRecoverRoute] call WAIT_fnc_DrivingBypassStep;
+                _bypass=[_group,_vehicle,_brain,_obstacleObservation,_mayRecoverRoute] call CBE_fnc_DrivingBypassStep;
             } else {
-                if (_hadBypass) then {[_vehicle,_group,"ROUTE_AUTHORITY_ENDED"] call WAIT_fnc_DrivingBypassRelease};
+                if (_hadBypass) then {[_vehicle,_group,"ROUTE_AUTHORITY_ENDED"] call CBE_fnc_DrivingBypassRelease};
             };
             private _bypassActive=_bypass select 0;
             // Only a freshly validated active leg can yield this exact source object's forward
             // constraint. Other gates, occupied hulls and pedestrians keep their current caps.
-            private _bypassWork=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
+            private _bypassWork=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
             if (_bypassActive && {_bypass select 3} && {_obstacleObservation isNotEqualTo []}
                 && {(_obstacleObservation select 1) isEqualTo (_bypassWork getOrDefault ["obstacle",objNull])}
                 && {(_obstacleObservation select 8) isEqualTo (_bypassWork getOrDefault ["transform",[]])}) then {
@@ -430,7 +430,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {!isNull (_obstacleObservation select 1)} && {abs speed _vehicle < 1}
                 && {(_withoutObstacle select 0) > 0} && {_pedestrianCap > 0}
                 && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass};
-            private _solidSeen=_vehicle getVariable ["WAIT_DrivingSolidSeen",[]];
+            private _solidSeen=_vehicle getVariable ["CBE_DrivingSolidSeen",[]];
             private _solidObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity];
             private _solidReady=false;
             if (_solidCandidate) then {
@@ -439,22 +439,22 @@ _brain set ["geometryTracks",_geometryTracks];
                     && {serverTime >= (_solidSeen select 2)} && {serverTime-(_solidSeen select 2) <= 6};
                 private _since=if (_continuous) then {_solidSeen select 1} else {serverTime};
                 _solidReady=serverTime-_since >= 3;
-                _vehicle setVariable ["WAIT_DrivingSolidSeen",[_contact,_since,serverTime]];
-            } else {_vehicle setVariable ["WAIT_DrivingSolidSeen",nil]};
+                _vehicle setVariable ["CBE_DrivingSolidSeen",[_contact,_since,serverTime]];
+            } else {_vehicle setVariable ["CBE_DrivingSolidSeen",nil]};
             _capMps=_capMps min (_traffic select 0);
             if !(call _mayIssueDriving) then {
                 // An initial admission has not applied a cap or created an owning state yet.
                 // Discard only that unapplied snapshot; established leases use normal release.
-                if (_state isEqualTo []) then {_vehicle setVariable ["WAIT_DrivingAssist_Restore",nil]};
-                [_vehicle,_group] call WAIT_fnc_DrivingAssistRelease;
+                if (_state isEqualTo []) then {_vehicle setVariable ["CBE_DrivingAssist_Restore",nil]};
+                [_vehicle,_group] call CBE_fnc_DrivingAssistRelease;
             } else {
             _vehicle forceSpeed _capMps;
             if (_gateObservation isNotEqualTo [] && {call _mayIssueDriving}) then {
-                [_group,_vehicle,_gateObservation] call WAIT_fnc_DrivingGateRequest;
+                [_group,_vehicle,_gateObservation] call CBE_fnc_DrivingGateRequest;
             };
-            _vehicle setVariable ["WAIT_DrivingAssist_Traffic",_traffic];
+            _vehicle setVariable ["CBE_DrivingAssist_Traffic",_traffic];
             // Retain the owning group for diagnostics only. The lease remains the forced-speed
-            // value: this reference never grants route or movement ownership to WAIT.
+            // value: this reference never grants route or movement ownership to CBE.
             // Native vehicles can abandon an otherwise valid MOVE command after a small collision
             // or navigation fault.  Recovery remains subordinate to that authored waypoint:
             // refresh it once, reverse only into a checked-clear rear area, then retry once.
@@ -467,7 +467,7 @@ _brain set ["geometryTracks",_geometryTracks];
             if (call _nativeWaiting) then {_recoveryResult="INTENTIONAL_WAIT"};
             // Bounded traffic replan: keep collision caps, never recreate the authored waypoint.
             // The public budget survives owner changes; interrupted dwell is not accumulated.
-            private _jam=_vehicle getVariable ["WAIT_DrivingTrafficRetry",createHashMap];
+            private _jam=_vehicle getVariable ["CBE_DrivingTrafficRetry",createHashMap];
             private _jamChanged=false;
             if (count _jam > 0 && {(_jam get "route") isNotEqualTo _routeIdentity
                 || {(_jam get "group") != _group}
@@ -481,10 +481,10 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {_jamPeer isKindOf "LandVehicle"} && {abs speed _jamPeer < 1} && {abs speed _vehicle < 1}
                 && {_recoveryStage == 0} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass}
                 && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
-                && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+                && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                 && {call _mayRecoverOrdinaryRoute};
             private _jamObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity,_driver,_movementOperator];
-            private _jamSeen=_vehicle getVariable ["WAIT_DrivingTrafficSeen",[]];
+            private _jamSeen=_vehicle getVariable ["CBE_DrivingTrafficSeen",[]];
             private _jamOwnPose=getPosASL _vehicle;
             private _jamPeerPose=getPosASL _jamPeer;
             private _jamContinuous=count _jamSeen == 5 && {(_jamSeen select 0) isEqualTo _jamObserver}
@@ -498,7 +498,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _jamPeerAnchor=if (_jamContinuous) then {+(_jamSeen select 4)} else {+_jamPeerPose};
             // This local observation receipt is not replayed or broadcast. Migration/gaps/motion
             // restart only stationary dwell, never the public attempt count or hard deadline.
-            _vehicle setVariable ["WAIT_DrivingTrafficSeen",if (_jamEligible) then {[_jamObserver,_jamPeer,serverTime,_jamOwnAnchor,_jamPeerAnchor]} else {nil}];
+            _vehicle setVariable ["CBE_DrivingTrafficSeen",if (_jamEligible) then {[_jamObserver,_jamPeer,serverTime,_jamOwnAnchor,_jamPeerAnchor]} else {nil}];
             if (_jamEligible) then {
                 if (count _jam == 0) then {
                     _jam=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
@@ -528,7 +528,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     _jam set ["since",-1];_jamChanged=true;
                 };
             };
-            if (_jamChanged) then {_vehicle setVariable ["WAIT_DrivingTrafficRetry",_jam,true]};
+            if (_jamChanged) then {_vehicle setVariable ["CBE_DrivingTrafficRetry",_jam,true]};
 
             // Waiting behind traffic is not a route fault. Keep the last progress sample current so
             // clearing the queue does not immediately inherit a stale reverse deadline.
@@ -538,7 +538,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 // its expired deadline returns to the authored route instead of losing
                 // the rear-leg receipt and treating backward travel as ordinary progress.
                 if !(_recoveryStage in [2,4]) then {
-                    [_vehicle,_group,"RECOVERY_PAUSED",false] call WAIT_fnc_DrivingRecoveryRelease;
+                    [_vehicle,_group,"RECOVERY_PAUSED",false] call CBE_fnc_DrivingRecoveryRelease;
                     _recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false
                 };
                 _recoveryResult=if (_bypassActive) then {_bypass select 2} else {if (_corridorActive) then {_corridor select 2} else {
@@ -566,14 +566,14 @@ _brain set ["geometryTracks",_geometryTracks];
                 _recoveryStage=0;
                 _recoveryUntil=-1;
                 _recoveryResult="PROGRESS";_reverseIssued=false;
-                [_vehicle,_group,"ROUTE_PROGRESS",false] call WAIT_fnc_DrivingRecoveryRelease;
+                [_vehicle,_group,"ROUTE_PROGRESS",false] call CBE_fnc_DrivingRecoveryRelease;
             };
             private _waypointIndex=currentWaypoint _group;
             private _hasRoute=_waypointIndex < count waypoints _group;
             private _inCombat=behaviour leader _group in ["COMBAT","STEALTH"] || {getSuppression _driver > 0.1};
             // A reverse leg has its own finite deadline. It must return to the authored
             // route even while still moving; the ordinary stall timer is not another hold.
-            private _scheduledRecovery=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+            private _scheduledRecovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
             // A delayed callback must not start an already-expired rear window.
             if (_recoveryStage == 1 && {count _scheduledRecovery > 0}
                 && {serverTime >= (_scheduledRecovery get "hardDeadline")-60}) then {
@@ -589,7 +589,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // Real progress, a replaced order, follower ownership or an intentional wait already
             // resets this stage and its progress clock above. A rear leg keeps its finite expiry.
             private _observationWindow=[20,30,0,60] param [_recoveryStage,60];
-            if (_hasRoute && {_recoveryStage in [0,1,2,3]} && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+            if (_hasRoute && {_recoveryStage in [0,1,2,3]} && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                 && {!_inCombat} && {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {abs speed _vehicle < 1 || {_reverseComplete}}
                 && {time-_progressAt >= _observationWindow || {_reverseComplete} || {_finalExpired}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
@@ -607,7 +607,7 @@ _brain set ["geometryTracks",_geometryTracks];
                         case 1: {
                             private _rear=_vehicle getPos [8,(getDir _vehicle)+180];
                             // Fresh shared body-width observation; no fixed-width centre probe.
-                            private _clearance=[_vehicle,8] call WAIT_fnc_DrivingRearClear;
+                            private _clearance=[_vehicle,8] call CBE_fnc_DrivingRearClear;
                             private _rearSafe=(_clearance select 0) && {!surfaceIsWater _rear}
                                 && {((surfaceNormal _rear) select 2) >= 0.7};
                             if (_rearSafe && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
@@ -639,15 +639,15 @@ _brain set ["geometryTracks",_geometryTracks];
                     _progressAt=time;
                 };
             };
-            private _liveRecovery=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+            private _liveRecovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
             if (count _liveRecovery > 0 && {(_liveRecovery get "group") == _group}
                 && {(_liveRecovery get "cap") != _capMps}) then {
-                _liveRecovery set ["cap",_capMps];_vehicle setVariable ["WAIT_DrivingRecovery_Work",_liveRecovery,true];
+                _liveRecovery set ["cap",_capMps];_vehicle setVariable ["CBE_DrivingRecovery_Work",_liveRecovery,true];
             };
-            _vehicle setVariable ["WAIT_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
+            _vehicle setVariable ["CBE_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
                 _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued]];
-            _vehicle setVariable ["WAIT_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))];
-            if (_passActive) then {_vehicle setVariable ["WAIT_DrivingAssist_Next",time+1]};
+            _vehicle setVariable ["CBE_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))];
+            if (_passActive) then {_vehicle setVariable ["CBE_DrivingAssist_Next",time+1]};
             };
             };
         };

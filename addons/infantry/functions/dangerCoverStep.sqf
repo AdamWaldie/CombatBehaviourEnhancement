@@ -1,9 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Give one stationary exposed soldier a single bounded move to nearby physical cover after an immediate danger event.
- * Locality / Authority: Called by the group brain while it already runs in WAIT's shared scheduler.
+ * Locality / Authority: Called by the group brain while it already runs in CBE's shared scheduler.
  * It runs on the actor and group owner and yields
- * to player, Zeus, specialist, native-command and WAIT-operation ownership before selecting or issuing movement.
+ * to player, Zeus, specialist, native-command and CBE-operation ownership before selecting or issuing movement.
  * Repeat/JIP: One group lease coalesces a danger burst. Each call either retains, releases or creates
  * one finite move. Physical arrival releases the movement reservation immediately; the deadline is a failure bound.
  * The lease also binds owner epoch, operation generation and full authored waypoint receipt.
@@ -12,9 +12,9 @@
  * checks both horizontal distance and floor band, and follows only while the expected destination still matches.
  * Arguments: 0 group <GROUP>; 1 actor <OBJECT>; 2 threat position <ARRAY>; 3 danger generation <NUMBER>;
  * 4 release-only <BOOL>, false - retire the owned lease without recovery or new movement.
- * Return Value: Boolean - true while WAIT owns a finite danger-cover move, otherwise false.
- * Current callers: WAIT_fnc_CortexGroupTick.
- * Example: [group player,player,getPosATL player,1] call WAIT_fnc_DangerCoverStep;
+ * Return Value: Boolean - true while CBE owns a finite danger-cover move, otherwise false.
+ * Current callers: CBE_fnc_CortexGroupTick.
+ * Example: [group player,player,getPosATL player,1] call CBE_fnc_DangerCoverStep;
  */
 
 params [
@@ -24,44 +24,44 @@ params [
 private _clearLease={
     params [["_reason","RELEASED",[""]]];
     if (!isNull _group) then {
-        private _pending=_group getVariable ["WAIT_Danger_CoverPending",[]];
+        private _pending=_group getVariable ["CBE_Danger_CoverPending",[]];
         if (count _pending >= 2 && {(_pending select 0) isEqualTo _actor}
             && {_generation < 0 || {(_pending select 1) == _generation}}) then {
-            _group setVariable ["WAIT_Danger_CoverPending",nil];
+            _group setVariable ["CBE_Danger_CoverPending",nil];
         };
         // A stale callback may retire its own lease but cannot overwrite a newer assessment.
-        if (_generation < 0 || {_generation == (_group getVariable ["WAIT_Danger_Generation",0])}) then {
-            _group setVariable ["WAIT_Danger_CoverDecision",[_reason,time,_actor,_generation]];
+        if (_generation < 0 || {_generation == (_group getVariable ["CBE_Danger_Generation",0])}) then {
+            _group setVariable ["CBE_Danger_CoverDecision",[_reason,time,_actor,_generation]];
         };
-        private _lease=_group getVariable ["WAIT_Danger_CoverLease",[]];
+        private _lease=_group getVariable ["CBE_Danger_CoverLease",[]];
         if (count _lease >= 2 && {(_lease select 0) isEqualTo _actor}
             && {(_generation < 0) || {(_lease select 1) == _generation}}) then {
             if (count _lease >= 4 && {!isNull _actor} && {local _actor}) then {
-                private _ownedMove=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+                private _ownedMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
                 if (count _ownedMove == 3 && {(_ownedMove select 0) == "DANGER_COVER"}
                     && {(_ownedMove select 1) distance2D (_lease select 3) <= 1}
                     && {(_ownedMove select 2) == (_lease select 2)}) then {
-                    _actor setVariable ["WAIT_Cortex_ActorMove",nil];
+                    _actor setVariable ["CBE_Cortex_ActorMove",nil];
                 };
             };
-            _group setVariable ["WAIT_Danger_CoverLease",nil];
+            _group setVariable ["CBE_Danger_CoverLease",nil];
         };
     };
     false
 };
 if (isNull _group || {isNull _actor} || {!local _group} || {!local _actor}
-    || {!([_actor] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _actor} || {!isNull remoteControlled _actor}
-    || {([_actor] call WAIT_fnc_CortexExternalOwner) != ""} || {group _actor != _group}) exitWith {[] call _clearLease};
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor} || {!isNull remoteControlled _actor}
+    || {([_actor] call CBE_fnc_CortexExternalOwner) != ""} || {group _actor != _group}) exitWith {[] call _clearLease};
 // A delayed old observation cannot retire the lease belonging to the current danger generation.
-if (_generation >= 0 && {_generation != (_group getVariable ["WAIT_Danger_Generation",0])}) exitWith {[] call _clearLease};
+if (_generation >= 0 && {_generation != (_group getVariable ["CBE_Danger_Generation",0])}) exitWith {[] call _clearLease};
 private _readOrderContext={
-    [_group getVariable ["WAIT_AIPass_Epoch",0],_group getVariable ["WAIT_OperationGeneration",0],
-        [_group] call WAIT_fnc_NativeOrderReceipt]
+    [_group getVariable ["CBE_AIPass_Epoch",0],_group getVariable ["CBE_OperationGeneration",0],
+        [_group] call CBE_fnc_NativeOrderReceipt]
 };
 private _entryContext=call _readOrderContext;
-private _lease=_group getVariable ["WAIT_Danger_CoverLease",[]];
+private _lease=_group getVariable ["CBE_Danger_CoverLease",[]];
 private _leaseContextCurrent=count _lease == 6 && {(_lease select 5) isEqualTo _entryContext};
-private _moveProof=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+private _moveProof=_actor getVariable ["CBE_Cortex_ActorMove",[]];
 // A fresh observation is not automatically a new movement intent. Adopt a still-live solid-cover
 // route only when the nearby new hazard is screened at that exact destination. Never extend its
 // deadline, repeat doMove or let a stale callback adopt a newer generation.
@@ -70,18 +70,18 @@ if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 5} && {(_lease s
     && {_threat distance2D (_lease select 4) <= 3}
     && {count _moveProof == 3 && {(_moveProof select 0) == "DANGER_COVER"}
         && {(_moveProof select 1) isEqualTo (_lease select 3)} && {(_moveProof select 2) == (_lease select 2)}}
-    && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-    && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+    && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
     && {lineIntersectsSurfaces [AGLToASL ((_lease select 3) vectorAdd [0,0,1.2]),
         AGLToASL (_threat vectorAdd [0,0,1.2]),_actor,objNull,true,1,"GEOM","NONE"] isNotEqualTo []}) then {
     _lease set [1,_generation];
     _lease set [4,+_threat];
-    _group setVariable ["WAIT_Danger_CoverLease",_lease];
-    private _decision=_group getVariable ["WAIT_Danger_CoverDecision",[]];
+    _group setVariable ["CBE_Danger_CoverLease",_lease];
+    private _decision=_group getVariable ["CBE_Danger_CoverDecision",[]];
     if (count _decision >= 4 && {(_decision select 2) == _actor}) then {
         _decision set [3,_generation];
-        _group setVariable ["WAIT_Danger_CoverDecision",_decision];
+        _group setVariable ["CBE_Danger_CoverDecision",_decision];
     };
 };
 
@@ -93,14 +93,14 @@ if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 4} && {(_lease s
     && {(_moveProof select 1) distance2D (_lease select 3) <= 1}
     && {(_moveProof select 2) == (_lease select 2)}
     && {((expectedDestination _actor) select 0) distance2D (_lease select 3) <= 1}
-    && {_generation == (_group getVariable ["WAIT_Danger_Generation",0])}
-    && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
-    && {[_group,"WAIT_AIPass_Danger_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-    && {((_group getVariable ["WAIT_Danger_CoverDecision",[]]) param [5,"COVER"]) != "CONCEALMENT"
-        || {[_group,"WAIT_AIPass_DangerConcealment_Enable",true] call WAIT_fnc_CortexFeatureEnabled}}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-    && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
-    && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}
+    && {_generation == (_group getVariable ["CBE_Danger_Generation",0])}
+    && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+    && {[_group,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+    && {((_group getVariable ["CBE_Danger_CoverDecision",[]]) param [5,"COVER"]) != "CONCEALMENT"
+        || {[_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled}}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+    && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
     && {isNull objectParent _actor}
     && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
     && {currentCommand _actor in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}) exitWith {true};
@@ -119,16 +119,16 @@ if (count _lease >= 4) then {
     _arrived=_endReason == "AT_DESTINATION";
     _timedOut=_endReason == "TIMEOUT" && {_leasedActor == _actor} && {_leasedGeneration == _generation};
     // One owner-local observation, not an accumulating history or proof of effective screening.
-    _group setVariable ["WAIT_Danger_CoverEnd",[time,_leasedActor,_leasedGeneration,_endReason,_distance,_height,+_leasedSpot,clientOwner,_group getVariable ["WAIT_AIPass_Epoch",0]]];
+    _group setVariable ["CBE_Danger_CoverEnd",[time,_leasedActor,_leasedGeneration,_endReason,_distance,_height,+_leasedSpot,clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]];
     if (!isNull _leasedActor) then {
-        private _actorMove=_leasedActor getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _actorMove=_leasedActor getVariable ["CBE_Cortex_ActorMove",[]];
         if (local _leasedActor && {count _actorMove == 3}
             && {(_actorMove select 0) == "DANGER_COVER"}
             && {(_actorMove select 1) distance2D _leasedSpot <= 1}
             && {(_actorMove select 2) == _expires}) then {
-            _leasedActor setVariable ["WAIT_Cortex_ActorMove",nil];
+            _leasedActor setVariable ["CBE_Cortex_ActorMove",nil];
             if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)} && {alive _leasedActor} && {!isPlayer _leasedActor} && {isNull remoteControlled _leasedActor}
-                && {([_leasedActor] call WAIT_fnc_CortexExternalOwner) == ""} && {group _leasedActor == _group}
+                && {([_leasedActor] call CBE_fnc_CortexExternalOwner) == ""} && {group _leasedActor == _group}
                 && {isNull objectParent _leasedActor} && {_leasedActor != leader _group}
                 // Successful arrival is useful cover, not a reason to run back across exposure.
                 // Only a failed owned approach needs this bounded return-to-formation recovery.
@@ -136,39 +136,39 @@ if (count _lease >= 4) then {
                 && {_leasedActor checkAIFeature "MOVE"} && {_leasedActor checkAIFeature "PATH"}
                 && {((expectedDestination _leasedActor) select 0) distance2D _leasedSpot <= 1}
                 && {abs ((((expectedDestination _leasedActor) select 0) param [2,0])-(_leasedSpot param [2,0])) <= 1.5}
-                && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}
-                && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-                && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-                && {!([_leasedActor] call WAIT_fnc_CompatibilityExternalControl)}
+                && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+                && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+                && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                && {!([_leasedActor] call CBE_fnc_CompatibilityExternalControl)}
                 && {currentCommand _leasedActor in ["","MOVE"]}) then {
                 _leasedActor doFollow (leader _group);
             };
         };
     };
-    _group setVariable ["WAIT_Danger_CoverLease",nil];
+    _group setVariable ["CBE_Danger_CoverLease",nil];
 };
 if (_orderChanged) exitWith {["ORDER_CHANGED"] call _clearLease};
 if (_arrived) exitWith {["AT_DESTINATION"] call _clearLease};
 // A deadline is terminal for this observation, not permission to recommit the same failed route.
 if (_timedOut) exitWith {["TIMEOUT"] call _clearLease};
 if (_releaseOnly) exitWith {["RELEASED"] call _clearLease};
-if (_generation != (_group getVariable ["WAIT_Danger_Generation",0])
-    || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
-    || {!([_group,"WAIT_AIPass_Danger_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
-    || {[_actor] call WAIT_fnc_CompatibilityExternalControl}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}
-    || {[_group] call WAIT_fnc_CortexZeusHeld}) exitWith {[] call _clearLease};
+if (_generation != (_group getVariable ["CBE_Danger_Generation",0])
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+    || {!([_group,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+    || {[_actor] call CBE_fnc_CompatibilityExternalControl}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}
+    || {[_group] call CBE_fnc_CortexZeusHeld}) exitWith {[] call _clearLease};
 // Recheck at the final command boundary. A danger observation recorded before a new order or operation
 // must retire instead of turning its stale observation into a movement instruction.
-if (count (_group getVariable ["WAIT_Operation",createHashMap]) > 0
+if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {!isNull objectParent _actor}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}
-    || {(_actor getVariable ["WAIT_Cortex_ActorMove",[]]) isNotEqualTo []}) exitWith {
-    _group setVariable ["WAIT_Danger_CoverBlockedContext",[time,currentCommand _actor,
+    || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}) exitWith {
+    _group setVariable ["CBE_Danger_CoverBlockedContext",[time,currentCommand _actor,
         _actor checkAIFeature "MOVE",_actor checkAIFeature "PATH",
-        count (_group getVariable ["WAIT_Operation",createHashMap]),
-        _actor getVariable ["WAIT_Cortex_ActorMove",[]]]];
+        count (_group getVariable ["CBE_Operation",createHashMap]),
+        _actor getVariable ["CBE_Cortex_ActorMove",[]]]];
     ["OWNERSHIP_OR_COMMAND"] call _clearLease
 };
 _threat=+_threat;
@@ -177,43 +177,43 @@ if (count _threat == 2) then {_threat pushBack ((getPosATL _actor) select 2)};
 private _origin=getPosATL _actor;
 // Search around the current actor, including after grenade evasion. An away-offset centre
 // excluded useful nearby side cover before its threat screening could be evaluated.
-private _decision=_group getVariable ["WAIT_Danger_CoverDecision",[]];
+private _decision=_group getVariable ["CBE_Danger_CoverDecision",[]];
 private _sameSearch=count _decision >= 4 && {(_decision select 2) == _actor} && {(_decision select 3) == _generation};
 if (_sameSearch && {(_decision select 0) in ["NO_SCREEN","NO_DISPLACEMENT","AT_DESTINATION","TIMEOUT"]}) exitWith {false};
 // A failed solid-cover search must not repeat every scheduler tick when visual fallback is disabled.
 // A newer danger generation permits a fresh assessment.
 if (_sameSearch && {(_decision select 0) == "NO_VALID_COVER"}
-    && {!([_group,"WAIT_AIPass_DangerConcealment_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {
+    && {!([_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {
     ["NO_SCREEN"] call _clearLease
 };
 // One search per callback. A failed solid-cover pass permits a visual-only pass on the next
 // existing scheduler step; it never doubles the geometry work in the current callback.
 private _screenMode=if (_sameSearch && {(_decision select 0) == "NO_VALID_COVER"}
-    && {[_group,"WAIT_AIPass_DangerConcealment_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) then {
+    && {[_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
     "CONCEALMENT"
 } else {"COVER"};
 // Continuous rounds can change the danger generation without changing useful geometry.
 // Cache only failure, never a successful destination: destructible/movable cover is retried
 // after three seconds, or immediately when the actor/threat materially changes position.
-private _failedSearches=_actor getVariable ["WAIT_Danger_CoverFailedSearches",createHashMap];
+private _failedSearches=_actor getVariable ["CBE_Danger_CoverFailedSearches",createHashMap];
 private _failedSearch=_failedSearches getOrDefault [_screenMode,[]];
 private _sameGeometry=count _failedSearch == 3 && {time < (_failedSearch select 0)}
     && {_origin vectorDistance (_failedSearch select 1) <= 2}
     && {_threat vectorDistance (_failedSearch select 2) <= 3};
 private _cover=if (_sameGeometry) then {[_origin,false]} else {
-    private _result=[_origin,_threat,18,[],_group,_screenMode] call WAIT_fnc_CortexFindCover;
+    private _result=[_origin,_threat,18,[],_group,_screenMode] call CBE_fnc_CortexFindCover;
     if !(_result select 1) then {
         _failedSearches set [_screenMode,[time+3,+_origin,+_threat]];
-        _actor setVariable ["WAIT_Danger_CoverFailedSearches",_failedSearches];
+        _actor setVariable ["CBE_Danger_CoverFailedSearches",_failedSearches];
     } else {
         _failedSearches deleteAt _screenMode;
     };
     _result
 };
-private _searchStats=_group getVariable ["WAIT_Danger_EngineStats",createHashMap];
+private _searchStats=_group getVariable ["CBE_Danger_EngineStats",createHashMap];
 private _searchCounter=["coverGeometrySearches","coverNegativeCacheHits"] select _sameGeometry;
 _searchStats set [_searchCounter,((_searchStats getOrDefault [_searchCounter,0])+1) min 100000];
-_group setVariable ["WAIT_Danger_EngineStats",_searchStats];
+_group setVariable ["CBE_Danger_EngineStats",_searchStats];
 _cover params ["_spot","_found"];
 // A small valid move can put the actor behind nearby cover. Treat negligible displacement
 // separately; it is not evidence that solid cover failed and should not trigger concealment.
@@ -223,26 +223,26 @@ if (_found && {count _spot >= 2} && {_spot distance2D _origin < 0.6}) exitWith {
 if (!_found || {count _spot < 2}
     || {_spot distance2D _origin > 18}) exitWith {
     [["NO_VALID_COVER","NO_SCREEN"] select (_screenMode == "CONCEALMENT")] call _clearLease;
-    if (_screenMode == "COVER" && {[_group,"WAIT_AIPass_DangerConcealment_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) then {
-        _group setVariable ["WAIT_Danger_CoverPending",[_actor,_generation,+_threat,time+4]];
+    if (_screenMode == "COVER" && {[_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
+        _group setVariable ["CBE_Danger_CoverPending",[_actor,_generation,+_threat,time+4]];
     };
     false
 };
 if (_entryContext isNotEqualTo (call _readOrderContext)
-    || {[_group] call WAIT_fnc_CortexExternalTakeover} || {[_group] call WAIT_fnc_CortexZeusHeld}
-    || {[_actor] call WAIT_fnc_CompatibilityExternalControl}
-    || {count (_group getVariable ["WAIT_Operation",createHashMap]) > 0}
+    || {[_group] call CBE_fnc_CortexExternalTakeover} || {[_group] call CBE_fnc_CortexZeusHeld}
+    || {[_actor] call CBE_fnc_CompatibilityExternalControl}
+    || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}) exitWith {[] call _clearLease};
-_group setVariable ["WAIT_Danger_CoverPending",nil];
-_group setVariable ["WAIT_Danger_CoverDecision",["COMMITTED",time,_actor,_generation,+_spot,_screenMode]];
+_group setVariable ["CBE_Danger_CoverPending",nil];
+_group setVariable ["CBE_Danger_CoverDecision",["COMMITTED",time,_actor,_generation,+_spot,_screenMode]];
 // The observation may end before native pathing reaches cover. Retain the committed move
 // independently, with a bounded travel allowance rather than a four-second universal cutoff.
 private _deadline=time+((2+(_origin distance2D _spot)/2) max 4 min 12);
 _actor doMove _spot;
-_actor setVariable ["WAIT_Cortex_ActorMove",["DANGER_COVER",+_spot,_deadline]];
-_group setVariable ["WAIT_Danger_CoverLease",[_actor,_generation,_deadline,+_spot,+_threat,+_entryContext]];
-private _stats=_group getVariable ["WAIT_Danger_EngineStats",createHashMap];
+_actor setVariable ["CBE_Cortex_ActorMove",["DANGER_COVER",+_spot,_deadline]];
+_group setVariable ["CBE_Danger_CoverLease",[_actor,_generation,_deadline,+_spot,+_threat,+_entryContext]];
+private _stats=_group getVariable ["CBE_Danger_EngineStats",createHashMap];
 _stats set ["coverMoves",((_stats getOrDefault ["coverMoves",0])+1) min 100000];
 _stats set ["lastCoverActor",_actor];
-_group setVariable ["WAIT_Danger_EngineStats",_stats];
+_group setVariable ["CBE_Danger_EngineStats",_stats];
 true

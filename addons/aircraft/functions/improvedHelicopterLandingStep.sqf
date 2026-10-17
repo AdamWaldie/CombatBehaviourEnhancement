@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Examines one local AI helicopter's current waypoint once inside WAIT's shared bounded scheduler.
+ * Examines one local AI helicopter's current waypoint once inside CBE's shared bounded scheduler.
  * Supported landing orders enter the finite vector landing controller only after class, crew,
  * formation, distance, motion, lease and Zeus-authority checks pass. Ordinary MOVE waypoints remain
  * native. A multi-aircraft group releases any old exact-landing lease because one shared waypoint
@@ -13,8 +13,8 @@
  *
  * Arguments: 0: state <HASHMAP> containing helicopter, generation, lastSignature and subsystem.
  * Return Value: NUMBER - 0.5 seconds until the next observation, or -1 when the job retires.
- * Current callers: WAIT_fnc_ImprovedHelicopterLandingInit through WAIT_fnc_CortexQueueJob.
- * Example: [WAIT_fnc_ImprovedHelicopterLandingStep,createHashMapFromArray [["helicopter",_heli],["generation",3],["subsystem","AIRCRAFT"]],0] call WAIT_fnc_CortexQueueJob;
+ * Current callers: CBE_fnc_ImprovedHelicopterLandingInit through CBE_fnc_CortexQueueJob.
+ * Example: [CBE_fnc_ImprovedHelicopterLandingStep,createHashMapFromArray [["helicopter",_heli],["generation",3],["subsystem","AIRCRAFT"]],0] call CBE_fnc_CortexQueueJob;
  */
 
 params [["_state", createHashMap, [createHashMap]]];
@@ -24,14 +24,14 @@ if (
     isNull _helicopter
     || {!alive _helicopter}
     || {!local _helicopter}
-    || {(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_TrackerGenerationLocal", 0]) != _generation}
-    || {!(missionNamespace getVariable ["WAIT_ImprovedHelicopterLanding_Enable", true])}
+    || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_TrackerGenerationLocal", 0]) != _generation}
+    || {!(missionNamespace getVariable ["CBE_ImprovedHelicopterLanding_Enable", true])}
 ) exitWith {
     if (!isNull _helicopter && {local _helicopter}
-        && {(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_TrackerGenerationLocal", 0]) == _generation}) then {
-        _helicopter setVariable ["WAIT_ImprovedHelicopterLanding_TrackedLocal", false];
-        _helicopter setVariable ["WAIT_ImprovedHelicopterLanding_GearLocal", false];
-        [_helicopter, false] call WAIT_fnc_ImprovedHelicopterLandingRestoreLocal;
+        && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_TrackerGenerationLocal", 0]) == _generation}) then {
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_TrackedLocal", false];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal", false];
+        [_helicopter, false] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
     };
     -1
 };
@@ -53,12 +53,12 @@ private _groupHelicopters = [];
 if (
     count _groupHelicopters != 1
     && {
-        _helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Active", false]
-        || {_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_GroundAnchored", false]}
+        _helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]
+        || {_helicopter getVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored", false]}
     }
 ) then {
-    [_helicopter, false, "", true] call WAIT_fnc_ImprovedHelicopterLandingRestoreLocal;
-    diag_log format ["[WAIT AI LANDING] Released controller because helicopter joined a %1-aircraft group helicopter=%2.", count _groupHelicopters, netId _helicopter];
+    [_helicopter, false, "", true] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+    diag_log format ["[CBE AI LANDING] Released controller because helicopter joined a %1-aircraft group helicopter=%2.", count _groupHelicopters, netId _helicopter];
 };
 
 private _index = currentWaypoint _group;
@@ -77,22 +77,22 @@ if (_type == "SCRIPTED" && {_script find "land" >= 0}) then {_landingType = true
 private _signature = [_index, _position, _type, _script];
 if !(_signature isEqualTo _lastSignature) then {
     _state set ["lastSignature", _signature];
-    _helicopter setVariable ["WAIT_ImprovedHelicopterLanding_TrackerState", [_index, _type, _position, _script], true];
-    diag_log format ["[WAIT AI LANDING] Tracker owner=%1 helicopter=%2 waypoint=%3 type=%4 position=%5", clientOwner, netId _helicopter, _index, _type, _position];
+    _helicopter setVariable ["CBE_ImprovedHelicopterLanding_TrackerState", [_index, _type, _position, _script], true];
+    diag_log format ["[CBE AI LANDING] Tracker owner=%1 helicopter=%2 waypoint=%3 type=%4 position=%5", clientOwner, netId _helicopter, _index, _type, _position];
 };
 
-private _minimumDistance = ([_helicopter, "MinimumActivationDistance", 50] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 50;
+private _minimumDistance = ([_helicopter, "MinimumActivationDistance", 50] call CBE_fnc_ImprovedHelicopterLandingSetting) max 50;
 private _distance = _helicopter distance2D _position;
-private _triggerDistance = ((abs speed _helicopter) * ([_helicopter, "TriggerSpeedFactor", 4.2] call WAIT_fnc_ImprovedHelicopterLandingSetting))
-    max ([_helicopter, "TriggerDistance", 500] call WAIT_fnc_ImprovedHelicopterLandingSetting);
+private _triggerDistance = ((abs speed _helicopter) * ([_helicopter, "TriggerSpeedFactor", 4.2] call CBE_fnc_ImprovedHelicopterLandingSetting))
+    max ([_helicopter, "TriggerDistance", 500] call CBE_fnc_ImprovedHelicopterLandingSetting);
 private _velocity = velocity _helicopter;
 private _horizontalSpeed = sqrt (((_velocity select 0) ^ 2) + ((_velocity select 1) ^ 2));
-private _minimumApproachSpeed = (([_helicopter, "MinimumApproachSpeed", 55] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 0) / 3.6;
-private _transitAltitude = ([_helicopter, "TransitAltitude", 30] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 15;
-private _glideRatio = ([_helicopter, "GlideSlopeRatio", 4] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 2;
-private _finalCommitDistance = ([_helicopter, "FinalCommitDistance", 75] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 10;
+private _minimumApproachSpeed = (([_helicopter, "MinimumApproachSpeed", 55] call CBE_fnc_ImprovedHelicopterLandingSetting) max 0) / 3.6;
+private _transitAltitude = ([_helicopter, "TransitAltitude", 30] call CBE_fnc_ImprovedHelicopterLandingSetting) max 15;
+private _glideRatio = ([_helicopter, "GlideSlopeRatio", 4] call CBE_fnc_ImprovedHelicopterLandingSetting) max 2;
+private _finalCommitDistance = ([_helicopter, "FinalCommitDistance", 75] call CBE_fnc_ImprovedHelicopterLandingSetting) max 10;
 private _closeApproachDistance = ((_transitAltitude * _glideRatio) max (_finalCommitDistance * 2)) min _triggerDistance;
-private _approachReady = _helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ImmediateAcquisition", false]
+private _approachReady = _helicopter getVariable ["CBE_ImprovedHelicopterLanding_ImmediateAcquisition", false]
     || {_horizontalSpeed >= _minimumApproachSpeed}
     || {_distance <= _closeApproachDistance};
 
@@ -104,18 +104,18 @@ if (
     && {_approachReady}
     && {isEngineOn _helicopter}
     && {!isTouchingGround _helicopter}
-    && {!(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Exclude", false])}
+    && {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Exclude", false])}
     && {isNull (getSlingLoad _helicopter)}
-    && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-    && {!(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Active", false])}
+    && {!([_group] call CBE_fnc_CortexZeusHeld)}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false])}
 ) then {
     // Recheck at the acquisition boundary because the finite controller will become the sole
     // flight owner until touchdown, abort or an external order invalidates it.
     if (local _helicopter && {currentPilot _helicopter == _pilot}
-        && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}) then {
-        diag_log format ["[WAIT AI LANDING] Controller acquiring helicopter=%1 waypoint=%2 type=%3 distance=%4 horizontalSpeed=%5 closeEnvelope=%6", netId _helicopter, _index, _type, round _distance, round (_horizontalSpeed * 3.6), round _closeApproachDistance];
-        [_helicopter, _position, _type, _index, _script] spawn WAIT_fnc_ImprovedHelicopterLandingExecuteLocal;
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}) then {
+        diag_log format ["[CBE AI LANDING] Controller acquiring helicopter=%1 waypoint=%2 type=%3 distance=%4 horizontalSpeed=%5 closeEnvelope=%6", netId _helicopter, _index, _type, round _distance, round (_horizontalSpeed * 3.6), round _closeApproachDistance];
+        [_helicopter, _position, _type, _index, _script] spawn CBE_fnc_ImprovedHelicopterLandingExecuteLocal;
         _state set ["lastSignature", []];
     };
 };

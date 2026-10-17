@@ -24,14 +24,14 @@
  * retains its separate exact contact/task receipt rather than borrowing this exemption.
  * Return: BOOL, an opening request was issued (not proof of entry).
  * Current callers: CortexClearBuilding, CortexGarrisonApplyLocal and IndoorActorOperation owner jobs.
- * Example: [_soldier,_house] call WAIT_fnc_CortexBuildingDoor;
+ * Example: [_soldier,_house] call CBE_fnc_CortexBuildingDoor;
  */
 params [["_unit",objNull,[objNull]],["_building",objNull,[objNull]],["_context",[],[[]]],["_metadataOnly",false,[true]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 if (isNull _building) exitWith {false};
 // Model metadata is stable for this object's lifetime. Locks and animation phases are not.
-private _doors=_building getVariable ["WAIT_Cortex_DoorDefinitions",[]];
-if (isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}) then {
+private _doors=_building getVariable ["CBE_Cortex_DoorDefinitions",[]];
+if (isNil {_building getVariable "CBE_Cortex_DoorDefinitions"}) then {
     private _config=configOf _building;
     private _count=(getNumber (_config >> "numberOfDoors")) min 64;
     for "_index" from 1 to _count do {
@@ -41,7 +41,7 @@ if (isNil {_building getVariable "WAIT_Cortex_DoorDefinitions"}) then {
             if (_memory isNotEqualTo [0,0,0]) then {_doors pushBack [_index,_source,_memory]};
         };
     };
-    _building setVariable ["WAIT_Cortex_DoorDefinitions",_doors];
+    _building setVariable ["CBE_Cortex_DoorDefinitions",_doors];
 };
 // Discovery never opens a door or consumes the interaction cooldown.
 if (_metadataOnly) exitWith {false};
@@ -53,13 +53,13 @@ private _orderCurrent={
     // A direct script request has no owned-operation receipt. It may assist an
     // ordinary approach, never borrow an unrelated reserved/native service task.
     if (_context isEqualTo []) exitWith {
-        !([_unit] call WAIT_fnc_CortexActorMoveReserved)
+        !([_unit] call CBE_fnc_CortexActorMoveReserved)
             && {currentCommand _unit in ["","MOVE"]}
     };
     if (count _context != 2 || {!((_context select 0) isEqualType "")} || {!((_context select 1) isEqualType 0)}) exitWith {false};
     private _group=group _unit;
     if ((_context select 0) == "INDOOR") exitWith {
-        private _brain=_unit getVariable ["WAIT_IndoorActor_Brain",createHashMap];
+        private _brain=_unit getVariable ["CBE_IndoorActor_Brain",createHashMap];
         private _destination=(expectedDestination _unit) param [0,[],[[]]];
         private _target=_brain getOrDefault ["target",[]];
         private _contact=_brain getOrDefault ["contact",objNull];
@@ -76,72 +76,72 @@ private _orderCurrent={
             && {!(_brain getOrDefault ["finished",true])} && {(_brain getOrDefault ["phase",""]) == "APPROACH"}
             && {(_brain getOrDefault ["building",objNull]) == _building}
             && {(_brain getOrDefault ["group",grpNull]) == _group}
-            && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
-            && {(_brain getOrDefault ["operationGeneration",-1]) == (_group getVariable ["WAIT_OperationGeneration",0])}
-            && {[_unit] call WAIT_fnc_IndoorActorGroupAvailable}
+            && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_brain getOrDefault ["operationGeneration",-1]) == (_group getVariable ["CBE_OperationGeneration",0])}
+            && {[_unit] call CBE_fnc_IndoorActorGroupAvailable}
             && {serverTime < (_brain getOrDefault ["deadline",0])}
-            && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
-            && {[_group,"WAIT_AIPass_BuildingCombat_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-            && {[_group,"WAIT_AIPass_Assault_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-            && {(_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []}
-            && {(_group getVariable ["WAIT_AIPass_Defend",[]]) isEqualTo []}
-            && {!(_group getVariable ["WAIT_AIPass_ClearBuilding",false])}
+            && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+            && {[_group,"CBE_AIPass_BuildingCombat_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+            && {[_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+            && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}
+            && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
+            && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])}
             && {getSuppression _unit < 0.5} && {combatMode _group in ["YELLOW","RED","WHITE"]}
             && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
             && {currentCommand _unit in ["","MOVE"] || {_combatCommand}}
             && {_destination call _vectorValid} && {_target call _vectorValid}
             && {_destination vectorDistance _target <= 0.25}
-            && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo (_brain getOrDefault ["route",[]])}
+            && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_brain getOrDefault ["route",[]])}
             && {[getPosWorld _building,vectorDir _building,vectorUp _building] isEqualTo (_brain getOrDefault ["transform",[]])}
-            && {(_unit getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo (_brain getOrDefault ["lease",[]])}
+            && {(_unit getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo (_brain getOrDefault ["lease",[]])}
     };
     private _key=switch (_context select 0) do {
-        case "CLEAR": {"WAIT_AIPass_ClearGeneration"};
-        case "GARRISON": {"WAIT_AIPass_GarrisonGeneration"};
+        case "CLEAR": {"CBE_AIPass_ClearGeneration"};
+        case "GARRISON": {"CBE_AIPass_GarrisonGeneration"};
         default {""};
     };
     if (!local _group || {_key == ""} || {(_group getVariable [_key,-1]) != (_context select 1)}
-        || {[_unit] call WAIT_fnc_CortexActorMoveReserved}
+        || {[_unit] call CBE_fnc_CortexActorMoveReserved}
         || {!(currentCommand _unit in ["","MOVE"])}) exitWith {false};
     if ((_context select 0) == "CLEAR") exitWith {
-        private _brain=_group getVariable ["WAIT_BuildingBrain",createHashMap];
+        private _brain=_group getVariable ["CBE_BuildingBrain",createHashMap];
         private _job=_brain getOrDefault ["job",createHashMap];
         private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
         private _live=(expectedDestination _unit) param [0,[],[[]]];
-        (_group getVariable ["WAIT_AIPass_ClearBuilding",false])
+        (_group getVariable ["CBE_AIPass_ClearBuilding",false])
             && {!(_brain getOrDefault ["cancelled",true])} && {!(_brain getOrDefault ["finished",true])}
-            && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+            && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
             && {(_job getOrDefault ["generation",-1]) == (_context select 1)}
             && {(_job getOrDefault ["building",objNull]) == _building}
             && {_unit in ((_job getOrDefault ["team",[]])+(_job getOrDefault ["securityActors",[]]))}
             && {(_job getOrDefault ["buildingTransform",[]]) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
-            && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}
+            && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}
             && {currentCommand _unit == "" || {_issued call _vectorValid && {_live call _vectorValid}
                 && {_live vectorDistance _issued <= 0.25}}}
     };
-    private _assignment=_unit getVariable ["WAIT_AIPass_GarrisonPos",[]];
-    private _receipt=_unit getVariable ["WAIT_Cortex_GarrisonMove",[]];
+    private _assignment=_unit getVariable ["CBE_AIPass_GarrisonPos",[]];
+    private _receipt=_unit getVariable ["CBE_Cortex_GarrisonMove",[]];
     private _live=(expectedDestination _unit) param [0,[],[[]]];
-    (_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []
+    (_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []
         && {_assignment isEqualType []} && {count _assignment >= 4}
         && {(_assignment select 2) == _building}
         && {(_assignment select 3) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
         && {_receipt isEqualType []} && {count _receipt == 5}
         && {(_receipt select 4) isEqualTo _assignment}
         && {(_receipt select 0) == _group} && {(_receipt select 1) == (_context select 1)}
-        && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_receipt select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_receipt select 3) call _vectorValid} && {_live call _vectorValid}
         && {currentCommand _unit == "" || {_live vectorDistance (_receipt select 3) <= 0.25}}
 };
-if (isNull _unit || {isNull _building} || {!local _unit} || {!([_unit] call WAIT_fnc_CortexCombatEffective)}
-    || {isPlayer _unit} || {[group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover}
+if (isNull _unit || {isNull _building} || {!local _unit} || {!([_unit] call CBE_fnc_CortexCombatEffective)}
+    || {isPlayer _unit} || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}
     || {vehicle _unit != _unit} || {!alive _building}
-    || {!([group _unit] call WAIT_fnc_CortexIsEligible)}) exitWith {false};
+    || {!([group _unit] call CBE_fnc_CortexIsEligible)}) exitWith {false};
 if !(call _orderCurrent) exitWith {false};
-if (serverTime < (_building getVariable ["WAIT_Cortex_DoorRequestUntil",-1])) exitWith {false};
+if (serverTime < (_building getVariable ["CBE_Cortex_DoorRequestUntil",-1])) exitWith {false};
 if (_doors isEqualTo []) exitWith {false};
 private _doorCount=count _doors;
-private _cursor=_building getVariable ["WAIT_Cortex_DoorVisibilityCursor",0];
+private _cursor=_building getVariable ["CBE_Cortex_DoorVisibilityCursor",0];
 if (!(_cursor isEqualType 0) || {!finite _cursor}) then {_cursor=0};
 _cursor=((floor _cursor) max 0) mod _doorCount;
 private _nextCursor=_cursor;
@@ -176,20 +176,20 @@ private _visibilityChecks=0;
         if (_near && {_visible}
             && {(_building getVariable ["bis_disabled_Door",0]) isEqualTo 0}
             && {(_building getVariable [format ["bis_disabled_Door_%1",_index],0]) isEqualTo 0}
-            && {call _orderCurrent} && {[_unit] call WAIT_fnc_CortexCombatEffective}
+            && {call _orderCurrent} && {[_unit] call CBE_fnc_CortexCombatEffective}
             && {!isPlayer _unit} && {isNull remoteControlled _unit}
             && {local _unit} && {isNull objectParent _unit} && {simulationEnabled _unit}
             && {!isObjectHidden _unit} && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
             && {currentCommand _unit != "STOP"}
             && {(getPosASL _unit) vectorDistance _position <= 3}
             && {abs (((getPosASL _unit) select 2)-(_position select 2)) <= 1.5}
-            && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) exitWith {
-            _building setVariable ["WAIT_Cortex_DoorRequestUntil",serverTime+2,true];
+            && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}) exitWith {
+            _building setVariable ["CBE_Cortex_DoorRequestUntil",serverTime+2,true];
             [_building,_index,1] call BIS_fnc_door;
             _requested=true;
         };
     };
     if (_requested || {_visibilityChecks >= 4}) exitWith {};
 } forEach _scanDoors;
-_building setVariable ["WAIT_Cortex_DoorVisibilityCursor",_nextCursor];
+_building setVariable ["CBE_Cortex_DoorVisibilityCursor",_nextCursor];
 _requested

@@ -21,7 +21,7 @@
  * Boolean - true when the valid request is accepted, pending readiness, or applied locally
  *
  * Example:
- * ["NIGHT", "LINE"] call WAIT_fnc_AIRebalanceInit;
+ * ["NIGHT", "LINE"] call CBE_fnc_AIRebalanceInit;
  * Result: eligible existing and newly local AI use the LINE profile's low-light skill values.
  *
  * Current callers: AITweak startup wrapper, CBA setting callbacks, server scripts and audits.
@@ -31,22 +31,22 @@ params [
     ["_mode", "AUTO", [""]],
     ["_profile", "LINE", [""]]
 ];
-[] call WAIT_fnc_CompatibilityHeadlessBridge;
+[] call CBE_fnc_CompatibilityHeadlessBridge;
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
-if !(missionNamespace getVariable ["WAIT_AITweaks_SettingsReady", false]) exitWith {
-    if (missionNamespace getVariable ["WAIT_AI_RebalanceInitPending", false]) exitWith {true};
-    missionNamespace setVariable ["WAIT_AI_RebalanceInitPending", true];
+if !(missionNamespace getVariable ["CBE_AITweaks_SettingsReady", false]) exitWith {
+    if (missionNamespace getVariable ["CBE_AI_RebalanceInitPending", false]) exitWith {true};
+    missionNamespace setVariable ["CBE_AI_RebalanceInitPending", true];
     [] spawn {
         waitUntil {
-            missionNamespace getVariable ["WAIT_AITweaks_SettingsReady", false]
-            || {!(missionNamespace getVariable ["WAIT_AI_RebalanceInitPending", false])}
+            missionNamespace getVariable ["CBE_AITweaks_SettingsReady", false]
+            || {!(missionNamespace getVariable ["CBE_AI_RebalanceInitPending", false])}
         };
-        private _requested = missionNamespace getVariable ["WAIT_AI_RebalanceInitPending", false];
-        missionNamespace setVariable ["WAIT_AI_RebalanceInitPending", false];
-        if (_requested && {missionNamespace getVariable ["WAIT_AITweaks_SettingsReady", false]}
-            && {missionNamespace getVariable ["WAIT_AIRebalance_Enable", false]}) then {
-            [missionNamespace getVariable ["WAIT_AIRebalance_Mode", "AUTO"],
-                missionNamespace getVariable ["WAIT_AIRebalance_Profile", "LINE"]] call WAIT_fnc_AIRebalanceInit;
+        private _requested = missionNamespace getVariable ["CBE_AI_RebalanceInitPending", false];
+        missionNamespace setVariable ["CBE_AI_RebalanceInitPending", false];
+        if (_requested && {missionNamespace getVariable ["CBE_AITweaks_SettingsReady", false]}
+            && {missionNamespace getVariable ["CBE_AIRebalance_Enable", false]}) then {
+            [missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"],
+                missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"]] call CBE_fnc_AIRebalanceInit;
         };
     };
     true
@@ -89,57 +89,57 @@ private _defaultProfiles = createHashMapFromArray [
             ["general", 0.95], ["courage", 0.96], ["reloadSpeed", 0.94]
         ]]
     ];
-private _storedProfiles = missionNamespace getVariable ["WAIT_AI_Profiles", createHashMap];
+private _storedProfiles = missionNamespace getVariable ["CBE_AI_Profiles", createHashMap];
 {
     if !(_x in (keys _storedProfiles)) then {_storedProfiles set [_x, _defaultProfiles get _x]};
 } forEach keys _defaultProfiles;
-missionNamespace setVariable ["WAIT_AI_Profiles", _storedProfiles];
+missionNamespace setVariable ["CBE_AI_Profiles", _storedProfiles];
 
 _mode = toUpperANSI _mode;
 if !(_mode in ["AUTO","DAY","NIGHT"]) exitWith {false};
 _profile = toUpperANSI _profile;
-private _profiles = missionNamespace getVariable ["WAIT_AI_Profiles", createHashMap];
+private _profiles = missionNamespace getVariable ["CBE_AI_Profiles", createHashMap];
 if !(_profile in (keys _profiles)) exitWith {
-    if (isServer) then {diag_log format ["[WAIT AI] Unknown profile '%1'; AI rebalance was not changed.", _profile]};
+    if (isServer) then {diag_log format ["[CBE AI] Unknown profile '%1'; AI rebalance was not changed.", _profile]};
     false
 };
 
 // Explicit server calls change CBA; callbacks apply only the effective owner-local state.
-private _configurationChange = !(missionNamespace getVariable ["WAIT_AIRebalance_Enable", true])
-    || {_mode != (missionNamespace getVariable ["WAIT_AIRebalance_Mode", "AUTO"])}
-    || {_profile != (missionNamespace getVariable ["WAIT_AIRebalance_Profile", "LINE"])};
+private _configurationChange = !(missionNamespace getVariable ["CBE_AIRebalance_Enable", true])
+    || {_mode != (missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"])}
+    || {_profile != (missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"])};
 if (_configurationChange) exitWith {
     if (!isServer) exitWith {false};
     ([createHashMapFromArray [
-        ["WAIT_AIRebalance_Mode", _mode],
-        ["WAIT_AIRebalance_Profile", _profile],
-        ["WAIT_AIRebalance_Enable", true]
-    ]] call WAIT_fnc_CortexTuning) > 0
+        ["CBE_AIRebalance_Mode", _mode],
+        ["CBE_AIRebalance_Profile", _profile],
+        ["CBE_AIRebalance_Enable", true]
+    ]] call CBE_fnc_CortexTuning) > 0
 };
-missionNamespace setVariable ["WAIT_AI_RebalanceActive", true];
+missionNamespace setVariable ["CBE_AI_RebalanceActive", true];
 
-if !(missionNamespace getVariable ["WAIT_AI_HandlerInstalled", false]) then {
-    missionNamespace setVariable ["WAIT_AI_HandlerInstalled", true];
+if !(missionNamespace getVariable ["CBE_AI_HandlerInstalled", false]) then {
+    missionNamespace setVariable ["CBE_AI_HandlerInstalled", true];
     ["CAManBase", "init", {
         params ["_unit"];
-        if !(_unit getVariable ["WAIT_AI_LocalHandlerInstalled", false]) then {
-            _unit setVariable ["WAIT_AI_LocalHandlerInstalled", true];
+        if !(_unit getVariable ["CBE_AI_LocalHandlerInstalled", false]) then {
+            _unit setVariable ["CBE_AI_LocalHandlerInstalled", true];
             _unit addEventHandler ["Local", {
                 params ["_unit", "_isLocal"];
-                if (_isLocal && {missionNamespace getVariable ["WAIT_AI_RebalanceActive", false]}) then {[_unit] call WAIT_fnc_AIApplyProfile};
+                if (_isLocal && {missionNamespace getVariable ["CBE_AI_RebalanceActive", false]}) then {[_unit] call CBE_fnc_AIApplyProfile};
             }];
         };
-        if (local _unit && {!isPlayer _unit} && {toUpperANSI (missionNamespace getVariable ["WAIT_AI_ApplyMode", "BOTH"]) != "EXISTING"}) then {
-            [_unit] call WAIT_fnc_AIApplyProfile;
+        if (local _unit && {!isPlayer _unit} && {toUpperANSI (missionNamespace getVariable ["CBE_AI_ApplyMode", "BOTH"]) != "EXISTING"}) then {
+            [_unit] call CBE_fnc_AIApplyProfile;
         };
     }, true, [], true] call CBA_fnc_addClassEventHandler;
 };
 
-// ACE Headless can be the active owner scheduler even when WAIT's optional HC distributor is off.
+// ACE Headless can be the active owner scheduler even when CBE's optional HC distributor is off.
 // Its documented post-transfer event runs on the destination owner and reports whether the engine
-// transfer actually succeeded. Adopt ordinary AI there instead of assuming WAIT initiated the move.
-if !(missionNamespace getVariable ["WAIT_AI_ACEHeadlessHandlerInstalled", false]) then {
-    missionNamespace setVariable ["WAIT_AI_ACEHeadlessHandlerInstalled", true];
+// transfer actually succeeded. Adopt ordinary AI there instead of assuming CBE initiated the move.
+if !(missionNamespace getVariable ["CBE_AI_ACEHeadlessHandlerInstalled", false]) then {
+    missionNamespace setVariable ["CBE_AI_ACEHeadlessHandlerInstalled", true];
     ["ace_headless_groupTransferPost", {
         params ["_group", "_headlessEntity", "_previousOwner", "_newOwner", "_transferredSuccessfully"];
         // ACE raises this event on both the old locality and the destination HC. During the transfer
@@ -147,66 +147,66 @@ if !(missionNamespace getVariable ["WAIT_AI_ACEHeadlessHandlerInstalled", false]
         // the authoritative gate. Without it, the server or a different HC can acknowledge work it
         // did not own (visible as sender/claimedOwner mismatches in dedicated-server diagnostics).
         if (_transferredSuccessfully && {isServer || {!hasInterface}} && {clientOwner == _newOwner}
-            && {local _group} && {missionNamespace getVariable ["WAIT_AI_RebalanceActive", false]}) then {
+            && {local _group} && {missionNamespace getVariable ["CBE_AI_RebalanceActive", false]}) then {
             // Reuse the common adoption path so an ACE transfer retires stale operation callbacks
-            // and immediately reconstructs durable WAIT intent as well as applying skills. The old
+            // and immediately reconstructs durable CBE intent as well as applying skills. The old
             // implementation only refreshed skills here, leaving active movement/clear/convoy work
             // dependent on a later discovery sweep.
-            [_group, _previousOwner, _newOwner, "ACE"] call WAIT_fnc_AIHeadlessAdoptLocal;
-            private _adoption=_group getVariable ["WAIT_AI_LastHeadlessAdoption",[]];
+            [_group, _previousOwner, _newOwner, "ACE"] call CBE_fnc_AIHeadlessAdoptLocal;
+            private _adoption=_group getVariable ["CBE_AI_LastHeadlessAdoption",[]];
             private _applied=_adoption param [1,0];
-            diag_log format ["[WAIT AI] ACE HC adoption group=%1 previousOwner=%2 newOwner=%3 localUnits=%4 applied=%5 profile=%6/%7.",
+            diag_log format ["[CBE AI] ACE HC adoption group=%1 previousOwner=%2 newOwner=%3 localUnits=%4 applied=%5 profile=%6/%7.",
                 _group, _previousOwner, _newOwner, {local _x} count units _group, _applied,
-                missionNamespace getVariable ["WAIT_AIRebalance_Profile", "LINE"],
-                missionNamespace getVariable ["WAIT_AIRebalance_Mode", "AUTO"]
+                missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"],
+                missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"]
             ];
             if (_newOwner >= 2) then {
                 [_group, _headlessEntity, _previousOwner, _newOwner, _applied,
-                    missionNamespace getVariable ["WAIT_AIRebalance_Profile", "LINE"],
-                    missionNamespace getVariable ["WAIT_AIRebalance_Mode", "AUTO"]
-                ] remoteExecCall ["WAIT_fnc_AIHeadlessAdoptionResultServer", 2];
+                    missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"],
+                    missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"]
+                ] remoteExecCall ["CBE_fnc_AIHeadlessAdoptionResultServer", 2];
             };
         };
     }] call CBA_fnc_addEventHandler;
 };
 
-// WAIT provides the same post-transfer contract when its native headless manager is the sole
-// distributor.  Listening to its public event makes WAIT follow an already-authoritative move;
-// WAIT never registers an HC, selects a destination, or starts a second balancing loop.
-if !(missionNamespace getVariable ["WAIT_AI_CompatibilityHeadlessHandlerInstalled", false]) then {
-    missionNamespace setVariable ["WAIT_AI_CompatibilityHeadlessHandlerInstalled", true];
-    ["WAIT_Compatibility_HeadlessMigrated", {
+// CBE provides the same post-transfer contract when its native headless manager is the sole
+// distributor.  Listening to its public event makes CBE follow an already-authoritative move;
+// CBE never registers an HC, selects a destination, or starts a second balancing loop.
+if !(missionNamespace getVariable ["CBE_AI_CompatibilityHeadlessHandlerInstalled", false]) then {
+    missionNamespace setVariable ["CBE_AI_CompatibilityHeadlessHandlerInstalled", true];
+    ["CBE_Compatibility_HeadlessMigrated", {
         params ["_group", "_previousOwner", "_newOwner", "_provider"];
         if ((isServer || {!hasInterface}) && {clientOwner == _newOwner} && {local _group}
-            && {missionNamespace getVariable ["WAIT_AI_RebalanceActive", false] || {missionNamespace getVariable ["WAIT_AIPass_Active", false]}}) then {
-            [_group, _previousOwner, _newOwner, _provider] call WAIT_fnc_AIHeadlessAdoptLocal;
+            && {missionNamespace getVariable ["CBE_AI_RebalanceActive", false] || {missionNamespace getVariable ["CBE_AIPass_Active", false]}}) then {
+            [_group, _previousOwner, _newOwner, _provider] call CBE_fnc_AIHeadlessAdoptLocal;
         };
     }] call CBA_fnc_addEventHandler;
 };
 
-if (toUpperANSI (missionNamespace getVariable ["WAIT_AI_ApplyMode", "BOTH"]) != "NEW") then {
+if (toUpperANSI (missionNamespace getVariable ["CBE_AI_ApplyMode", "BOTH"]) != "NEW") then {
     {
-        if !(_x getVariable ["WAIT_AI_LocalHandlerInstalled", false]) then {
-            _x setVariable ["WAIT_AI_LocalHandlerInstalled", true];
+        if !(_x getVariable ["CBE_AI_LocalHandlerInstalled", false]) then {
+            _x setVariable ["CBE_AI_LocalHandlerInstalled", true];
             _x addEventHandler ["Local", {
                 params ["_unit", "_isLocal"];
-                if (_isLocal && {missionNamespace getVariable ["WAIT_AI_RebalanceActive", false]}) then {[_unit] call WAIT_fnc_AIApplyProfile};
+                if (_isLocal && {missionNamespace getVariable ["CBE_AI_RebalanceActive", false]}) then {[_unit] call CBE_fnc_AIApplyProfile};
             }];
         };
-        if (local _x && {!isPlayer _x}) then {[_x] call WAIT_fnc_AIApplyProfile};
+        if (local _x && {!isPlayer _x}) then {[_x] call CBE_fnc_AIApplyProfile};
     } forEach allUnits;
 };
 
 // Skills share the same bounded scheduler as tactics. Generation ownership prevents duplicate
 // refresh jobs and makes queued work harmless after disable/re-enable.
-if !(missionNamespace getVariable ["WAIT_AI_LightingQueued", false]) then {
-    missionNamespace setVariable ["WAIT_AI_LightingQueued", true];
+if !(missionNamespace getVariable ["CBE_AI_LightingQueued", false]) then {
+    missionNamespace setVariable ["CBE_AI_LightingQueued", true];
     private _state = createHashMapFromArray [
         ["subsystem", "SKILLS"],
-        ["generation", missionNamespace getVariable ["WAIT_AI_LightingGeneration", 0]]
+        ["generation", missionNamespace getVariable ["CBE_AI_LightingGeneration", 0]]
     ];
-    [WAIT_fnc_AILightingStep, _state, 1] call WAIT_fnc_CortexQueueJob;
+    [CBE_fnc_AILightingStep, _state, 1] call CBE_fnc_CortexQueueJob;
 };
-[] call WAIT_fnc_SchedulerReconcile;
-if (isServer) then {diag_log format ["[WAIT AI] %1 profile active in %2 mode.", _profile, _mode]};
+[] call CBE_fnc_SchedulerReconcile;
+if (isServer) then {diag_log format ["[CBE AI] %1 profile active in %2 mode.", _profile, _mode]};
 true

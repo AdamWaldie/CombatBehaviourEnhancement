@@ -9,18 +9,18 @@ tactical tuning resumes, so growth and ownership can be measured instead of infe
 - 126 Cortex functions for tactical state, movement, support, vehicles, aircraft and compatibility.
 - 38 SQF files in the retained Cortex QA suites, plus standalone mission initialization.
 - About 1.14 MB of production SQF and 3.06 MB in the repository excluding Git metadata.
-- Seven mandatory addon PBOs: bootstrap, core, infantry, vehicles, aircraft, support and compatibility, packaged under `z\waldo_ai_tweaks` by HEMTT.
+- Seven mandatory addon PBOs: bootstrap, core, infantry, vehicles, aircraft, support and compatibility, packaged under `z\cbe` by HEMTT.
 
 ## Implemented domains
 
 | Domain | Current implementation | Primary control |
 | --- | --- | --- |
-| Skill and lethality | Day/night/AUTO profiles, equipment heuristics, infantry and operating-crew dispersion, locality adoption | `WAIT_AIRebalance_*`, `WAIT_AI_*Dispersion` |
-| Infantry state | Contact reporting, investigation, cover, suppression reactions, morale, retreat, surrender, regroup and calm restoration | `WAIT_AIPass_*` |
+| Skill and lethality | Day/night/AUTO profiles, equipment heuristics, infantry and operating-crew dispersion, locality adoption | `CBE_AIRebalance_*`, `CBE_AI_*Dispersion` |
+| Infantry state | Contact reporting, investigation, cover, suppression reactions, morale, retreat, surrender, regroup and calm restoration | `CBE_AIPass_*` |
 | Manoeuvre | Finite flank, advance, assault, bounding, route planning, stance and casualty reinforcement | Cortex group scheduler |
 | Coordination | Support-by-fire, reinforcement, coordinated assault and combined-arms opportunity exchange | Server opportunity coordinator plus owner-local action |
 | Buildings | Garrison, defend, clear, external AI controller lease and physical progress tracking | Explicit order or enabled tactical opportunity |
-| Convoys | Predecessor spacing, road look-ahead, mixed-vehicle pacing, contact halt, dismount, remount, recovery and Zeus notification | `WAIT_fnc_SimpleAiConvoy` |
+| Convoys | Predecessor spacing, road look-ahead, mixed-vehicle pacing, contact halt, dismount, remount, recovery and Zeus notification | `CBE_fnc_SimpleAiConvoy` |
 | Vehicles | Passenger decisions, gunnery priorities, standoff, smoke/withdrawal and crew retention | Cortex vehicle jobs |
 | Aircraft | Attack planning, weapon capability, ingress/release/egress, missile reaction, attack-run flares, landing and deceleration | Cortex aircraft jobs and landing handlers |
 | Fires | Artillery roles, warning smoke, finite bursts, observation, counter-battery and shoot-and-scoot | Server mission authority plus gun owner |
@@ -29,7 +29,7 @@ tactical tuning resumes, so growth and ownership can be measured instead of infe
 
 ## Foundation and optional integrations
 
-CBA is required infrastructure; ZEN is optional. WAIT owns the base-soldier danger FSM while loaded;
+CBA is required infrastructure; ZEN is optional. CBE owns the base-soldier danger FSM while loaded;
 another replacement of the same engine slot is unsupported. Specialist and alternative movement controllers
 receive explicit finite ownership checks; detection alone is not proof of compatibility. Each operation uses
 generation-scoped ownership and exact restoration, without disabling unrelated behaviour.

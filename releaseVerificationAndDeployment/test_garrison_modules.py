@@ -14,16 +14,16 @@ class GarrisonModuleTests(unittest.TestCase):
         self.assertIn('_settings set ["requestSerial",_serial]',dispatch)
     def test_owner_rejects_stale_tasks_before_order_mutation(self):
         local=src('cortexOrderLocal')
-        for required in ('remoteExecutedOwner != 2','WAIT_Cortex_LastTaskSerial','WAIT_fnc_NativeOrderReceipt','_token != str _serial'):
-            self.assertLess(local.index(required),local.index('setVariable ["WAIT_AIPass_ZeusWaypoints"'))
+        for required in ('remoteExecutedOwner != 2','CBE_Cortex_LastTaskSerial','CBE_fnc_NativeOrderReceipt','_token != str _serial'):
+            self.assertLess(local.index(required),local.index('setVariable ["CBE_AIPass_ZeusWaypoints"'))
         self.assertIn('createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]',local)
     def test_timed_out_task_cannot_later_start_on_the_owner(self):
         dispatch=src('cortexOrderDispatch');local=src('cortexOrderLocal')
         self.assertIn('_settings set ["requestDeadline",serverTime+12]',dispatch)
-        self.assertLess(dispatch.index('_settings set ["requestDeadline"'),dispatch.index('remoteExecCall ["WAIT_fnc_CortexOrderLocal"'))
+        self.assertLess(dispatch.index('_settings set ["requestDeadline"'),dispatch.index('remoteExecCall ["CBE_fnc_CortexOrderLocal"'))
         for guard in ('getOrDefault ["requestDeadline",-1]','!(_deadline isEqualType 0)',
                       '!finite _deadline','serverTime >= _deadline'):
-            self.assertLess(local.index(guard),local.index('setVariable ["WAIT_Cortex_LastTaskSerial"'))
+            self.assertLess(local.index(guard),local.index('setVariable ["CBE_Cortex_LastTaskSerial"'))
         self.assertIn('The task expired',local)
 
     def test_garrison_controls_are_explicit_scoped_tasks(self):
@@ -33,7 +33,7 @@ class GarrisonModuleTests(unittest.TestCase):
         self.assertNotIn('nearestObjects',zen)
         self.assertIn('[[false,true],["Walk into positions","Instant interior placement"],0]',zen)
         self.assertIn('[15,150,50,0]',zen)
-        self.assertIn('call WAIT_fnc_CortexOrderDispatch',zen)
+        self.assertIn('call CBE_fnc_CortexOrderDispatch',zen)
         for text in (native,zen):
             self.assertNotIn('CBA_fnc_addSetting',text)
             self.assertNotIn('CBA_settings_fnc_set',text)
@@ -48,7 +48,7 @@ class GarrisonModuleTests(unittest.TestCase):
     def test_receipts_include_authored_waits_and_zeus_replacement(self):
         receipt=(ROOT/'addons/core/functions/nativeOrderReceipt.sqf').read_text()
         metadata=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text()
-        self.assertIn('[_group,"",false,_index] call WAIT_fnc_AuthoredRouteReceipt',receipt)
+        self.assertIn('[_group,"",false,_index] call CBE_fnc_AuthoredRouteReceipt',receipt)
         for command in ('waypointCompletionRadius','waypointStatements','waypointTimeout','synchronizedTriggers',
                         'waypointScript','waypointAttachedObject','waypointAttachedVehicle',
                         'synchronizedWaypoints','waypointHousePosition','waypointLoiterAltitude'):
@@ -57,9 +57,9 @@ class GarrisonModuleTests(unittest.TestCase):
         self.assertNotIn('execVM',receipt)
         dispatch=src('cortexOrderDispatch'); local=src('cortexOrderLocal')
         self.assertIn('_settings set ["controlReceipt",[',dispatch)
-        for key in ('WAIT_AIPass_ZeusHold','WAIT_AIPass_ZeusWaypoints','WAIT_AIPass_ZeusControlKind'):
+        for key in ('CBE_AIPass_ZeusHold','CBE_AIPass_ZeusWaypoints','CBE_AIPass_ZeusControlKind'):
             self.assertIn(key,dispatch)
             self.assertIn(key,local)
-        self.assertLess(local.index('_controlReceipt isNotEqualTo _currentControl'),local.index('setVariable ["WAIT_Cortex_LastTaskSerial"'))
-        self.assertLess(local.index('_controlReceipt isNotEqualTo _currentControl'),local.index('setVariable ["WAIT_AIPass_ZeusHold"'))
+        self.assertLess(local.index('_controlReceipt isNotEqualTo _currentControl'),local.index('setVariable ["CBE_Cortex_LastTaskSerial"'))
+        self.assertLess(local.index('_controlReceipt isNotEqualTo _currentControl'),local.index('setVariable ["CBE_AIPass_ZeusHold"'))
 if __name__=='__main__': unittest.main()

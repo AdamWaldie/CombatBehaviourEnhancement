@@ -7,8 +7,8 @@
  * The selection snapshot is checked again on acceptance. No global settings are changed.
  * Arguments: 0 centre ATL <ARRAY>, []; 1 attached target <OBJECT>, objNull.
  * Return: BOOL - dialog created, not task acceptance or physical arrival.
- * Current callers: ZEN registration and WAIT_fnc_ModuleGarrison.
- * Example: [getPosATL house1,soldier1] call WAIT_fnc_ZenGarrisonModule;
+ * Current callers: ZEN registration and CBE_fnc_ModuleGarrison.
+ * Example: [getPosATL house1,soldier1] call CBE_fnc_ZenGarrisonModule;
  */
 params [["_position",[],[[]]],["_target",objNull,[objNull]]];
 if (!hasInterface || {isNil "zen_dialog_fnc_create"} || {count _position != 3}) exitWith {false};
@@ -22,7 +22,7 @@ if (!isNull _target && {_target isKindOf "CAManBase"} && {!isPlayer _target}) th
     _groups = [_selected] + (_groups - [_selected]);
 };
 if (_groups isEqualTo []) exitWith {
-    ["GARRISON","No selectable AI squad. Place the module on an AI soldier to select its squad explicitly.","ERROR"] call WAIT_fnc_AITweaksNotifyLocal;
+    ["GARRISON","No selectable AI squad. Place the module on an AI soldier to select its squad explicitly.","ERROR"] call CBE_fnc_AITweaksNotifyLocal;
     false
 };
 [
@@ -36,7 +36,7 @@ if (_groups isEqualTo []) exitWith {
     {
         params ["_values","_position"];
         _values params ["_group","_radius","_teleport","_sortByHeight"];
-        [[["order","GARRISON"],["group",_group],["position",_position],["radius",round _radius],["teleport",_teleport],["sortByHeight",_sortByHeight]],clientOwner] call WAIT_fnc_CortexOrderDispatch;
+        [[["order","GARRISON"],["group",_group],["position",_position],["radius",round _radius],["teleport",_teleport],["sortByHeight",_sortByHeight]],clientOwner] call CBE_fnc_CortexOrderDispatch;
     },{},+_position
 ] call zen_dialog_fnc_create;
 true

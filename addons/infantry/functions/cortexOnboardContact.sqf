@@ -6,19 +6,19 @@
  * Repeat/JIP: reports bridge the 20-second far scheduler tier without becoming durable; stop requests
  * expire with the report and record each passenger once. Danger reports do not disclose a target.
  * Arguments: 0: group <GROUP>, grpNull; 1: state <HASHMAP>, empty.
- * Return: Nothing. Current caller: WAIT_fnc_CortexGroupTick after eligibility and order checks.
- * Example: [_group,_state] call WAIT_fnc_CortexOnboardContact;
+ * Return: Nothing. Current caller: CBE_fnc_CortexGroupTick after eligibility and order checks.
+ * Example: [_group,_state] call CBE_fnc_CortexOnboardContact;
  */
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]]];
-if (isNull _group || {!local _group} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {};
-if (!([_group,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled)
-    || {!([_group,"WAIT_AIPass_VehicleDismount_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {};
+if (isNull _group || {!local _group} || {!([_group] call CBE_fnc_CortexIsEligible)}) exitWith {};
+if (!([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)
+    || {!([_group,"CBE_AIPass_VehicleDismount_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {};
 private _vehicles=[];
 {if (alive _x && {vehicle _x != _x}) then {_vehicles pushBackUnique vehicle _x}} forEach units _group;
 {
     private _vehicle=_x;
-    private _report=_vehicle getVariable ["WAIT_Cortex_OnboardReport",[]];
-    private _dangerReport=_vehicle getVariable ["WAIT_Cortex_OnboardDanger",[]];
+    private _report=_vehicle getVariable ["CBE_Cortex_OnboardReport",[]];
+    private _dangerReport=_vehicle getVariable ["CBE_Cortex_OnboardDanger",[]];
     // Prefer whichever bounded crew report remains useful for longer. Both payloads carry only
     // approximate geometry; neither grants the passenger group target identity or knowledge.
     if (count _dangerReport == 4 && {count _report != 4 || {(_dangerReport select 3) > (_report select 3)}}) then {
@@ -44,17 +44,17 @@ private _vehicles=[];
             // This remains useful even while moving, whereas PassengerReady deliberately rejects
             // a moving vehicle and therefore prevents an unsafe exit.
             if (_onboardCargo isNotEqualTo []) then {
-                _vehicle setVariable ["WAIT_Cortex_DismountStopRequest",[_group,groupOwner _group,serverTime+30],true];
+                _vehicle setVariable ["CBE_Cortex_DismountStopRequest",[_group,groupOwner _group,serverTime+30],true];
             };
             private _cargo=_onboardCargo apply {_x select 0};
-            _cargo=_cargo select {[_x,_vehicle] call WAIT_fnc_CortexPassengerReady};
+            _cargo=_cargo select {[_x,_vehicle] call CBE_fnc_CortexPassengerReady};
             private _owned=_state getOrDefault ["dismounted",[]];
             {
                 private _unit=_x;
                 if (_owned findIf {(_x select 0) == _unit} < 0) then {
                     _owned pushBack [_unit,_vehicle];
-                    _group setVariable ["WAIT_Cortex_DismountContinuation",[serverTime+60,
-                        _group getVariable ["WAIT_OperationGeneration",0],+_owned,
+                    _group setVariable ["CBE_Cortex_DismountContinuation",[serverTime+60,
+                        _group getVariable ["CBE_OperationGeneration",0],+_owned,
                         [currentWaypoint _group,waypointPosition [_group,currentWaypoint _group]]],true];
                 };
                 _state set ["dismounted",_owned];
@@ -62,7 +62,7 @@ private _vehicles=[];
                 // Preserve the engine's in-progress exit animation/order. A later interrupted
                 // command may be retried on the next eligible tick, but healthy exits are not reissued.
                 if (toUpperANSI (currentCommand _unit) != "GET OUT"
-                    && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
+                    && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
                     [_unit] orderGetIn false;
                     unassignVehicle _unit;
                     doGetOut _unit;
@@ -76,5 +76,5 @@ private _vehicles=[];
 if ("onboardContactUntil" in _state && {serverTime >= (_state get "onboardContactUntil")}
     && {(_state getOrDefault ["phase",""]) == "CALM"}) then {
     _state deleteAt "onboardContactUntil";
-    [_group,_state,true,false,"ONBOARD_REPORT_EXPIRED"] call WAIT_fnc_CortexRestoreCalm;
+    [_group,_state,true,false,"ONBOARD_REPORT_EXPIRED"] call CBE_fnc_CortexRestoreCalm;
 };

@@ -10,7 +10,7 @@
  * Return: BOOL - false for null, pedestrians, moving/attached objects, or occupied/active vehicles.
  * Bounds: one current object and at most 64 crew; no world searches, rays or scheduler work.
  * Current callers: DrivingGeometryCap, DrivingBypassPlan and DrivingBypassStep.
- * Example: private _available=[parkedTruck] call WAIT_fnc_DrivingBypassObstacleAvailable;
+ * Example: private _available=[parkedTruck] call CBE_fnc_DrivingBypassObstacleAvailable;
  */
 params [["_obstacle",objNull,[objNull]]];
 if (isNull _obstacle || {_obstacle isKindOf "CAManBase"}

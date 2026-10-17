@@ -6,14 +6,14 @@
  * Arguments: 0: battery <OBJECT>; 1: token <STRING>; 2: spotter <OBJECT>; 3: enemy <OBJECT>; 4: last impact ATL <ARRAY>.
  * Return Value: Nothing.
  * Current callers: ArtilleryMissionStep.
- * Example: [_gun, _token, _spotter, _enemy, []] remoteExecCall ["WAIT_fnc_CortexArtilleryObserve", owner _spotter];
+ * Example: [_gun, _token, _spotter, _enemy, []] remoteExecCall ["CBE_fnc_CortexArtilleryObserve", owner _spotter];
  */
 params ["_battery", "_token", "_spotter", "_enemy", "_impact"];
 if (remoteExecutedOwner != 2 || {!local _spotter}) exitWith {};
-private _fix = [_spotter, _enemy, _impact] call WAIT_fnc_CortexSpotterFix;
+private _fix = [_spotter, _enemy, _impact] call CBE_fnc_CortexSpotterFix;
 private _observedAt=-1;
 if (_fix isNotEqualTo []) then {
     private _knowledge=_spotter targetKnowledge _enemy;
     _observedAt=serverTime-((time-(_knowledge select 2)) max 0);
 };
-[_battery, _token, _spotter, _fix, clientOwner, _observedAt] remoteExecCall ["WAIT_fnc_CortexArtilleryReport", 2];
+[_battery, _token, _spotter, _fix, clientOwner, _observedAt] remoteExecCall ["CBE_fnc_CortexArtilleryReport", 2];

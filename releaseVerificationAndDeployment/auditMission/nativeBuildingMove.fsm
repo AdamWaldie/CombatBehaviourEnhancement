@@ -9,7 +9,7 @@
  * Example: _actor doFSM ["nativeBuildingMove.fsm",_house buildingPos 0,objNull];
  */
 class FSM {
-    fsmName="WAIT native building movement comparison";
+    fsmName="CBE native building movement comparison";
     initState="Start";
     finalStates[]={"Finished"};
     class States {
@@ -36,7 +36,7 @@ class FSM {
         };
         class Finished {
             name="Finished";
-            init="if (!isNull _actor && {local _actor}) then {private _receipt=[_reason,+_goal,getPosASL _actor,serverTime]; _actor setVariable [""WAIT_CortexQA_NativeFsmResult"",_receipt]; diag_log format [""WAIT NATIVE BUILDING FSM END: %1"",[netId _actor,_receipt]];};";
+            init="if (!isNull _actor && {local _actor}) then {private _receipt=[_reason,+_goal,getPosASL _actor,serverTime]; _actor setVariable [""CBE_CortexQA_NativeFsmResult"",_receipt]; diag_log format [""CBE NATIVE BUILDING FSM END: %1"",[netId _actor,_receipt]];};";
             precondition="";
             class Links {};
         };

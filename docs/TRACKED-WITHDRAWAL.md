@@ -21,7 +21,7 @@ Bounded lack of physical progress ends the reverse attempt and falls back once t
 A short successful leg reaches cover or gains separation before reassessment; no timer alone
 proves withdrawal. Smoke direction uses the recorded threat bearing, not a smoke object's location.
 
-Cancellation must stop only matching WAIT-owned simple commands before accepting a replacement
+Cancellation must stop only matching CBE-owned simple commands before accepting a replacement
 order. Locality adoption preserves the durable escape intent and physical progress, retires inherited reverse commands, then revalidates
 terrain and crew capability on the new owner. No new persistent worker is permitted; steps use the
 existing shared group scheduler. The current seven-field withdrawal snapshot needs a documented

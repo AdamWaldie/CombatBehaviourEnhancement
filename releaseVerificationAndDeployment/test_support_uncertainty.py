@@ -29,7 +29,7 @@ class SupportUncertainty(unittest.TestCase):
             self.assertIn('exitWith {}', before)
             self.assertIn('_mission set ["phase", "WAIT"]', before)
             self.assertIn('_mission set ["parked",false]', wake)
-            self.assertIn('call WAIT_fnc_ArtilleryMissionStart', wake)
+            self.assertIn('call CBE_fnc_ArtilleryMissionStart', wake)
             self.assertNotIn('ArtilleryShot', wake)
             self.assertNotIn('doArtilleryFire', wake)
         fired = (SUPPORT / 'cortexArtilleryFired.sqf').read_text(encoding='utf-8')
@@ -37,11 +37,11 @@ class SupportUncertainty(unittest.TestCase):
         self.assertIn('_position distance2D (_mission get "aim") > 10', fired)
         rejected = (SUPPORT / 'cortexArtilleryRejected.sqf').read_text(encoding='utf-8')
         self.assertIn('(_mission get "token") != _token', rejected)
-        self.assertIn('call WAIT_fnc_HeadlessResolveSender', rejected)
+        self.assertIn('call CBE_fnc_HeadlessResolveSender', rejected)
 
     def test_deletion_cleanup_is_exact_and_repeat_safe(self):
         text = (SUPPORT / 'artilleryMissionStart.sqf').read_text(encoding='utf-8')
-        deletion = text.split('if (isNil {missionNamespace getVariable "WAIT_Artillery_DeletedEH"}) then {', 1)[1]
+        deletion = text.split('if (isNil {missionNamespace getVariable "CBE_Artillery_DeletedEH"}) then {', 1)[1]
         deletion = deletion.split('private _current=', 1)[0]
         self.assertIn('(_record getOrDefault ["battery",objNull]) isEqualTo _entity', deletion)
         self.assertIn('_missions deleteAt _key', deletion)
@@ -49,7 +49,7 @@ class SupportUncertainty(unittest.TestCase):
         self.assertNotIn('allUnits', deletion)
         stop = (ROOT / 'addons/core/functions/cortexStop.sqf').read_text(encoding='utf-8')
         self.assertIn('removeMissionEventHandler ["EntityDeleted",_artilleryDeletedEH]', stop)
-        self.assertIn('missionNamespace setVariable ["WAIT_Artillery_DeletedEH",nil]', stop)
+        self.assertIn('missionNamespace setVariable ["CBE_Artillery_DeletedEH",nil]', stop)
 
 
 if __name__ == '__main__':

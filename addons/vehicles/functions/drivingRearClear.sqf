@@ -21,7 +21,7 @@
  * Discovery uses one live-infantry and one dead-inclusive vehicle query; native query cost
  * remains engine-dependent even though subsequent hull evaluation is capped.
  * Current callers: DrivingAssistStart and CortexVehicleReverseStep.
- * Example: private _clearance = [truck1,8] call WAIT_fnc_DrivingRearClear;
+ * Example: private _clearance = [truck1,8] call CBE_fnc_DrivingRearClear;
  */
 params [["_vehicle",objNull,[objNull]],["_distance",8,[0]]];
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[false,"OWNER_UNAVAILABLE",time,0]};

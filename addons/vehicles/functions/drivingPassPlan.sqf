@@ -17,7 +17,7 @@
  * room or a predecessor outside the traversed road chain refuses. Actual hull clearance
  * still gates any future executor return.
  * Current callers: trusted script preflight and experimental DrivingPassAdmission; physical acceptance remains outstanding.
- * Example: private _proposal=[truck1,truck2,50] call WAIT_fnc_DrivingPassPlan;
+ * Example: private _proposal=[truck1,truck2,50] call CBE_fnc_DrivingPassPlan;
  */
 params [["_vehicle",objNull,[objNull]],["_front",objNull,[objNull]],["_speedKmh",50,[0]]];
 private _fail={params ["_reason"];createHashMapFromArray [["status","REFUSED"],["reason",_reason]]};
@@ -26,7 +26,7 @@ if (isNull _vehicle || {isNull _front} || {_vehicle == _front} || {!local _vehic
     || {!(_vehicle isKindOf "LandVehicle")} || {!(_front isKindOf "LandVehicle")}) exitWith {["VEHICLE_UNAVAILABLE"] call _fail};
 if (!finite _speedKmh || {_speedKmh < 5} || {_speedKmh > 120}) exitWith {["INVALID_SPEED"] call _fail};
 if (group driver _vehicle == group driver _front) exitWith {["SAME_GROUP"] call _fail};
-private _context=[[_vehicle,_front]] call WAIT_fnc_DrivingPassContext;
+private _context=[[_vehicle,_front]] call CBE_fnc_DrivingPassContext;
 if (_context isEqualTo []) exitWith {["INVALID_CONTEXT"] call _fail};
 private _forward=velocityModelSpace _front select 1;
 if (_forward < -0.1 || {(velocityModelSpace _vehicle select 1) < -0.1}) exitWith {["REVERSING"] call _fail};
@@ -140,7 +140,7 @@ for "_index" from 0 to 31 do {
 if (_reason != "") exitWith {[_reason] call _fail};
 if (_returnIndex < 2 || {_returnIndex >= count _guide-1}) exitWith {["PASS_LEG_BUDGET"] call _fail};
 if !(_frontRoad in _visited) exitWith {["PEER_OFF_CORRIDOR"] call _fail};
-if (([[_vehicle,_front]] call WAIT_fnc_DrivingPassContext) isNotEqualTo _context) exitWith {["CONTEXT_CHANGED"] call _fail};
+if (([[_vehicle,_front]] call CBE_fnc_DrivingPassContext) isNotEqualTo _context) exitWith {["CONTEXT_CHANGED"] call _fail};
 createHashMapFromArray [["status","PROPOSAL"],["reason","GEOMETRY_AND_AGREEMENT_REQUIRED"],
     ["context",_context],["returnIndex",_returnIndex],["guideASL",_guide],["requiredTravel",_needed],["estimatedSeconds",_seconds],
     ["maximumSeconds",_seconds*1.8+5],["observedAt",serverTime],["vehicles",[_vehicle,_front]],

@@ -16,7 +16,7 @@
  * Return: BOOL for START/QUEUE/FINISH/TRANSFER; NUMBER -1 for STEP (one shared-scheduler invocation).
  * Current callers: IndoorActorDispatch, indoorActor FSM, focused fixtures and locality/release cleanup.
  * Example: ["START",soldier1,createHashMapFromArray [["building",house1],
- * ["belief",[[100,100,2],serverTime]]]] call WAIT_fnc_IndoorActorOperation;
+ * ["belief",[[100,100,2],serverTime]]]] call CBE_fnc_IndoorActorOperation;
  */
 params [["_mode","START",[""]],["_actor",objNull,[objNull]],
     ["_brain",createHashMap,[createHashMap]]];
@@ -36,43 +36,43 @@ private _vectorValid={
 };
 private _releaseAvailable={
     local _actor && {local _group} && {!isPlayer _actor} && {isNull remoteControlled _actor}
-        && {isNull objectParent _actor} && {[_actor] call WAIT_fnc_CortexCombatEffective}
+        && {isNull objectParent _actor} && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
-        && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
-        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
-        && {!([_group] call WAIT_fnc_CortexZeusHeld)}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
+        && {!([_group] call CBE_fnc_CortexZeusHeld)}
 };
 private _available={
     local _actor && {local _group} && {!isNull _group} && {!isPlayer _actor}
         && {isNull remoteControlled _actor} && {isNull objectParent _actor}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
-        && {[_actor] call WAIT_fnc_CortexCombatEffective}
+        && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
         && {getSuppression _actor < 0.5} && {currentWeapon _actor != ""}
         && {combatMode _group in ["YELLOW","RED","WHITE"]}
-        && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
-        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
-        && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-        && {[_group,false,true,false,_actor] call WAIT_fnc_CortexIsEligible}
-        && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
-        && {[_group,"WAIT_AIPass_BuildingCombat_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-        && {[_group,"WAIT_AIPass_Assault_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-        && {(_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []}
-        && {(_group getVariable ["WAIT_AIPass_Defend",[]]) isEqualTo []}
-        && {!(_group getVariable ["WAIT_AIPass_ClearBuilding",false])}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
+        && {!([_group] call CBE_fnc_CortexZeusHeld)}
+        && {[_group,false,true,false,_actor] call CBE_fnc_CortexIsEligible}
+        && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+        && {[_group,"CBE_AIPass_BuildingCombat_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}
+        && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
+        && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])}
 };
 if (_mode == "FINISH") exitWith {
     if (count _brain > 0) then {
         _brain set ["finished",true]; _brain set ["pending",false]; _brain set ["completed",true];
     };
     if (!local _actor || {!local _group}) exitWith {false};
-    private _journal=_actor getVariable ["WAIT_IndoorActor_Order",[]];
+    private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
     if (count _journal != 9) exitWith {
-        if (count _brain > 0 && {(_actor getVariable ["WAIT_IndoorActor_Brain",createHashMap]) isEqualTo _brain}) then {
-            _actor setVariable ["WAIT_IndoorActor_Brain",nil]; _actor setVariable ["WAIT_IndoorActor_FSM",nil];
+        if (count _brain > 0 && {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain}) then {
+            _actor setVariable ["CBE_IndoorActor_Brain",nil]; _actor setVariable ["CBE_IndoorActor_FSM",nil];
         };
         false
     };
@@ -96,12 +96,12 @@ if (_mode == "FINISH") exitWith {
     if (count _brain > 0 && {(_brain getOrDefault ["generation",-1]) != _generation
         || {(_brain getOrDefault ["ownerEpoch",-1]) != _epoch}}) exitWith {false};
     private _destination=(expectedDestination _actor) param [0,[],[[]]];
-    private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
     private _ownsLeg=_issued && {_oldGroup == _group} && {call _releaseAvailable}
         && {_reservation isEqualTo _lease || {_migration && {_reservation isEqualTo []}}}
-        && {(_group getVariable ["WAIT_OperationGeneration",0]) == _operation}
-        && {[_actor] call WAIT_fnc_IndoorActorGroupAvailable}
-        && {([_group] call WAIT_fnc_NativeOrderReceipt) isEqualTo _route}
+        && {(_group getVariable ["CBE_OperationGeneration",0]) == _operation}
+        && {[_actor] call CBE_fnc_IndoorActorGroupAvailable}
+        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _route}
         && {currentCommand _actor == "MOVE"}
         && {_destination call _vectorValid} && {_target call _vectorValid}
         && {_destination vectorDistance _target <= 0.25};
@@ -113,39 +113,39 @@ if (_mode == "FINISH") exitWith {
             _actor doMove waypointPosition _waypoint;
         } else {_actor doFollow leader _group};
     };
-    if ((_actor getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo _lease) then {
-        _actor setVariable ["WAIT_Cortex_ActorMove",nil];
+    if ((_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _lease) then {
+        _actor setVariable ["CBE_Cortex_ActorMove",nil];
     };
     // A failed issued leg is a temporary observation for this actor, never an access verdict.
     if (!_migration && {_issued} && {_oldGroup == _group}
         && {(_brain getOrDefault ["reason",""]) == "NO_PROGRESS"}
-        && {_epoch == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+        && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
         private _house=_brain getOrDefault ["building",objNull];
         private _transform=_brain getOrDefault ["transform",[]];
         if (!isNull _house && {alive _house} && {_target call _vectorValid}
             && {[getPosWorld _house,vectorDir _house,vectorUp _house] isEqualTo _transform}) then {
-            private _failed=(_actor getVariable ["WAIT_IndoorActor_NodeFailures",[]]) select [0,4];
+            private _failed=(_actor getVariable ["CBE_IndoorActor_NodeFailures",[]]) select [0,4];
             _failed=_failed select {_x isEqualType [] && {count _x == 5}
                 && {(_x select 3) isEqualType 0} && {finite (_x select 3)} && {serverTime < (_x select 3)}
                 && {(_x select 4) isEqualTo _epoch}
                 && {!((_x select 0) isEqualTo _house && {(_x select 2) isEqualTo _target})}};
             if (count _failed >= 4) then {_failed deleteAt 0};
             _failed pushBack [_house,_transform call _copyArray,+_target,serverTime+60,_epoch];
-            _actor setVariable ["WAIT_IndoorActor_NodeFailures",_failed];
+            _actor setVariable ["CBE_IndoorActor_NodeFailures",_failed];
         };
     };
-    _actor setVariable ["WAIT_IndoorActor_Result",[_generation,
+    _actor setVariable ["CBE_IndoorActor_Result",[_generation,
         _brain getOrDefault ["reason","RELEASED"],serverTime,+_target],true];
-    _actor setVariable ["WAIT_IndoorActor_Order",nil,true];
+    _actor setVariable ["CBE_IndoorActor_Order",nil,true];
     if (local _oldGroup) then {
-        _oldGroup setVariable ["WAIT_IndoorActor_Actors",(_oldGroup getVariable ["WAIT_IndoorActor_Actors",[]])-[_actor]];
+        _oldGroup setVariable ["CBE_IndoorActor_Actors",(_oldGroup getVariable ["CBE_IndoorActor_Actors",[]])-[_actor]];
     };
-    private _current=_actor getVariable ["WAIT_IndoorActor_Brain",createHashMap];
+    private _current=_actor getVariable ["CBE_IndoorActor_Brain",createHashMap];
     if (count _brain == 0 || {_current isEqualTo _brain}) then {
-        _actor setVariable ["WAIT_IndoorActor_Brain",nil];
-        _actor setVariable ["WAIT_IndoorActor_FSM",nil];
+        _actor setVariable ["CBE_IndoorActor_Brain",nil];
+        _actor setVariable ["CBE_IndoorActor_FSM",nil];
     };
-    _actor setVariable ["WAIT_IndoorActor_Cooldown",serverTime+20,true];
+    _actor setVariable ["CBE_IndoorActor_Cooldown",serverTime+20,true];
     true
 };
 if (_mode == "START") exitWith {
@@ -160,67 +160,67 @@ if (_mode == "START") exitWith {
     if !(call _available) exitWith {false};
     // Fresh scripted/Zeus-created groups may precede periodic discovery. Establish the
     // owner epoch before publishing an actor journal, never adopt over that new journal later.
-    if (!(_group getVariable ["WAIT_AIPass_Adopted",false])) then {
-        [_group,true] call WAIT_fnc_CortexLocality;
+    if (!(_group getVariable ["CBE_AIPass_Adopted",false])) then {
+        [_group,true] call CBE_fnc_CortexLocality;
     };
-    if (!(call _available) || {!(_group getVariable ["WAIT_AIPass_Adopted",false])}
-        || {(_group getVariable ["WAIT_AIPass_Epoch",0]) <= 0}
+    if (!(call _available) || {!(_group getVariable ["CBE_AIPass_Adopted",false])}
+        || {(_group getVariable ["CBE_AIPass_Epoch",0]) <= 0}
         || {serverTime-(_belief select 1) > 5}) exitWith {false};
-    private _admission=[_actor,_contact,_belief select 0,_building] call WAIT_fnc_IndoorActorNativeContext;
-    if (_admission isEqualTo [] || {serverTime < (_actor getVariable ["WAIT_IndoorActor_Cooldown",-1])}
-        || {(_actor getVariable ["WAIT_Cortex_ActorMove",[]]) isNotEqualTo []}
-        || {(_actor getVariable ["WAIT_IndoorActor_Order",[]]) isNotEqualTo []}
-        || {count (_actor getVariable ["WAIT_IndoorActor_Brain",createHashMap]) > 0}
-        || {!([_actor] call WAIT_fnc_IndoorActorGroupAvailable)}) exitWith {false};
+    private _admission=[_actor,_contact,_belief select 0,_building] call CBE_fnc_IndoorActorNativeContext;
+    if (_admission isEqualTo [] || {serverTime < (_actor getVariable ["CBE_IndoorActor_Cooldown",-1])}
+        || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}
+        || {(_actor getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}
+        || {count (_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) > 0}
+        || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {false};
     // Native command, destination and actual engagement identity remain fixed until SELECT.
     // BUSY combat paths are observation-only; arbitrary individual MOVE tasks are never replaced.
     private _members=(units _group) select [0,16];
-    private _investigators=_group getVariable ["WAIT_IndoorActor_Actors",[]];
+    private _investigators=_group getVariable ["CBE_IndoorActor_Actors",[]];
     if (!(_investigators isEqualType []) || {count _investigators > 2}) exitWith {false};
     _investigators=_investigators select {
         _x isEqualType objNull && {!isNull _x} && {group _x == _group}
-            && {count (_x getVariable ["WAIT_IndoorActor_Brain",createHashMap]) > 0}
-            && {!((_x getVariable ["WAIT_IndoorActor_Brain",createHashMap]) getOrDefault ["finished",true])}
+            && {count (_x getVariable ["CBE_IndoorActor_Brain",createHashMap]) > 0}
+            && {!((_x getVariable ["CBE_IndoorActor_Brain",createHashMap]) getOrDefault ["finished",true])}
     };
     if (!(_actor in _members) || {count _investigators >= 2}) exitWith {false};
-    private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
+    private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
     if (_actor in ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["units",[]])
         || {_actor in (_state getOrDefault ["supportHeld",[]])}) exitWith {false};
-    private _generation=(_actor getVariable ["WAIT_IndoorActor_Generation",0])+1;
-    private _epoch=_group getVariable ["WAIT_AIPass_Epoch",0];
+    private _generation=(_actor getVariable ["CBE_IndoorActor_Generation",0])+1;
+    private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
     private _deadline=(serverTime+45) min ((_belief select 1)+30);
     private _lease=["INDOOR_INVESTIGATE",+(_belief select 0),time+(_deadline-serverTime)];
-    private _serial=(missionNamespace getVariable ["WAIT_IndoorActor_Serial",0])+1;
-    missionNamespace setVariable ["WAIT_IndoorActor_Serial",_serial];
-    _brain=createHashMapFromArray [["jobKey",format ["WAIT_INDOOR_%1",_serial]],["actor",_actor],["group",_group],["generation",_generation],
-        ["ownerEpoch",_epoch],["operationGeneration",_group getVariable ["WAIT_OperationGeneration",0]],
-        ["deadline",_deadline],["route",[_group] call WAIT_fnc_NativeOrderReceipt],
+    private _serial=(missionNamespace getVariable ["CBE_IndoorActor_Serial",0])+1;
+    missionNamespace setVariable ["CBE_IndoorActor_Serial",_serial];
+    _brain=createHashMapFromArray [["jobKey",format ["CBE_INDOOR_%1",_serial]],["actor",_actor],["group",_group],["generation",_generation],
+        ["ownerEpoch",_epoch],["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]],
+        ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],
         ["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",[]],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosATL _actor]];
-    _actor setVariable ["WAIT_IndoorActor_Generation",_generation];
-    _actor setVariable ["WAIT_IndoorActor_Brain",_brain];
-    _group setVariable ["WAIT_IndoorActor_Actors",_investigators+[_actor]];
-    _actor setVariable ["WAIT_Cortex_ActorMove",_lease call _copyArray];
-    _actor setVariable ["WAIT_IndoorActor_Order",[_generation,_epoch,_group,
+    _actor setVariable ["CBE_IndoorActor_Generation",_generation];
+    _actor setVariable ["CBE_IndoorActor_Brain",_brain];
+    _group setVariable ["CBE_IndoorActor_Actors",_investigators+[_actor]];
+    _actor setVariable ["CBE_Cortex_ActorMove",_lease call _copyArray];
+    _actor setVariable ["CBE_IndoorActor_Order",[_generation,_epoch,_group,
         _brain get "operationGeneration",_deadline,(_brain get "route") call _copyArray,[],_lease call _copyArray,false],true];
-    private _handle=[_actor,_brain] execFSM "\z\waldo_ai_tweaks\addons\main\fsm\indoorActor.fsm";
-    _actor setVariable ["WAIT_IndoorActor_FSM",_handle];
+    private _handle=[_actor,_brain] execFSM "\z\cbe\addons\main\fsm\indoorActor.fsm";
+    _actor setVariable ["CBE_IndoorActor_FSM",_handle];
     true
 };
-private _current=(_actor getVariable ["WAIT_IndoorActor_Brain",createHashMap]) isEqualTo _brain
+private _current=(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain
     && {count _brain > 0} && {(_brain getOrDefault ["group",grpNull]) == _group}
-    && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])};
+    && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])};
 if (_mode == "QUEUE") exitWith {
     if (!_current || {_brain getOrDefault ["finished",false]}) exitWith {false};
     if (_brain getOrDefault ["pending",false]) exitWith {true};
     _brain set ["pending",true]; _brain set ["completed",false];
     [
-        {params ["_job"]; ["STEP",_job get "actor",_job] call WAIT_fnc_IndoorActorOperation},
+        {params ["_job"]; ["STEP",_job get "actor",_job] call CBE_fnc_IndoorActorOperation},
         _brain,0,_brain get "jobKey"
-    ] call WAIT_fnc_CortexQueueJob;
+    ] call CBE_fnc_CortexQueueJob;
     true
 };
 if (_mode != "STEP") exitWith {false};
@@ -228,33 +228,33 @@ _brain set ["pending",false]; _brain set ["completed",true]; _brain set ["nextAt
 private _finish={
     params ["_reason"];
     _brain set ["reason",_reason];
-    ["FINISH",_actor,_brain] call WAIT_fnc_IndoorActorOperation;
+    ["FINISH",_actor,_brain] call CBE_fnc_IndoorActorOperation;
     -1
 };
 if (!_current) exitWith {["OWNER_CHANGED"] call _finish};
 if (_brain getOrDefault ["finished",false]) exitWith {-1};
 // A new explicitly disjoint operation may coexist, but only while its live roster proves it.
 // An unseen operation that already ended cannot be reconstructed as harmless after the fact.
-private _operationGeneration=_group getVariable ["WAIT_OperationGeneration",0];
+private _operationGeneration=_group getVariable ["CBE_OperationGeneration",0];
 if (_operationGeneration != (_brain get "operationGeneration")
-    && {count (_group getVariable ["WAIT_Operation",createHashMap]) > 0}
-    && {[_actor] call WAIT_fnc_IndoorActorGroupAvailable}) then {
-    private _journal=_actor getVariable ["WAIT_IndoorActor_Order",[]];
+    && {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
+    && {[_actor] call CBE_fnc_IndoorActorGroupAvailable}) then {
+    private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
     if (count _journal == 9 && {(_journal select 0) == (_brain get "generation")}
         && {(_journal select 1) == (_brain get "ownerEpoch")}
         && {(_journal select 2) == _group}
         && {(_journal select 3) == (_brain get "operationGeneration")}
         && {(_journal select 7) isEqualTo (_brain get "lease")}
-        && {(_actor getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo (_brain get "lease")}) then {
+        && {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo (_brain get "lease")}) then {
         _brain set ["operationGeneration",_operationGeneration];
         _journal=+_journal; _journal set [3,_operationGeneration];
-        _actor setVariable ["WAIT_IndoorActor_Order",_journal,true];
+        _actor setVariable ["CBE_IndoorActor_Order",_journal,true];
     };
 };
-if (!(call _available) || {(_group getVariable ["WAIT_OperationGeneration",0]) != (_brain get "operationGeneration")}
-    || {!([_actor] call WAIT_fnc_IndoorActorGroupAvailable)}
-    || {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_brain get "route")}
-    || {(_actor getVariable ["WAIT_Cortex_ActorMove",[]]) isNotEqualTo (_brain get "lease")}) exitWith {
+if (!(call _available) || {(_group getVariable ["CBE_OperationGeneration",0]) != (_brain get "operationGeneration")}
+    || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}
+    || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_brain get "route")}
+    || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo (_brain get "lease")}) exitWith {
     ["PREEMPTED"] call _finish
 };
 private _building=_brain get "building";
@@ -275,7 +275,7 @@ if ((_brain getOrDefault ["contactRequired",false] && {isNull _contact})
 };
 private _phase=_brain get "phase";
 if (_phase == "SELECT") exitWith {
-    private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call WAIT_fnc_IndoorActorNativeContext;
+    private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext;
     if (_admission isEqualTo []) exitWith {["NATIVE_TASK"] call _finish};
     private _previous=_brain get "admission";
     // Native AI may start the same-contact path after START. Adopt that newer leg
@@ -289,9 +289,9 @@ if (_phase == "SELECT") exitWith {
     if ((_admission select 0) == "OBSERVE" && {!_escalate}) exitWith {
         private _target=+(_admission select 2);
         _brain set ["target",_target]; _brain set ["phase","APPROACH"];
-        private _journal=+(_actor getVariable ["WAIT_IndoorActor_Order",[]]);
+        private _journal=+(_actor getVariable ["CBE_IndoorActor_Order",[]]);
         _journal set [6,+_target];
-        _actor setVariable ["WAIT_IndoorActor_Order",_journal,true];
+        _actor setVariable ["CBE_IndoorActor_Order",_journal,true];
         -1
     };
     // A stall sample is not authority to reset a path that has since resumed.
@@ -305,21 +305,21 @@ if (_phase == "SELECT") exitWith {
         || {(_admission select 0) != "OBSERVE"}
         || {getUnitState _actor == "PLANNING"} || {currentCommand _actor == "FIRE"}}) exitWith {["ESCALATION_REFUSED"] call _finish};
     private _reserved=[];
-    {private _order=_x getVariable ["WAIT_IndoorActor_Order",[]];
+    {private _order=_x getVariable ["CBE_IndoorActor_Order",[]];
         if (count _order == 9 && {_order select 8}) then {_reserved pushBack (_order select 6)};
-    } forEach ((_group getVariable ["WAIT_IndoorActor_Actors",[]]) select [0,2]);
+    } forEach ((_group getVariable ["CBE_IndoorActor_Actors",[]]) select [0,2]);
     if (_escalate) then {_reserved pushBack +(_brain get "target")};
-    private _node=[_actor,_building,(_brain get "belief") select 0,_reserved] call WAIT_fnc_IndoorActorNodeSelect;
+    private _node=[_actor,_building,(_brain get "belief") select 0,_reserved] call CBE_fnc_IndoorActorNodeSelect;
     if (_node isEqualTo []) exitWith {["NO_CANDIDATE"] call _finish};
     // Geometry work grants no command authority; re-read actor, route and operation ownership.
     if (!(call _available)
-        || {([_actor,_contact,(_brain get "belief") select 0,_building] call WAIT_fnc_IndoorActorNativeContext) isNotEqualTo _admission}
-        || {(_actor getVariable ["WAIT_IndoorActor_Brain",createHashMap]) isNotEqualTo _brain}
-        || {(_actor getVariable ["WAIT_Cortex_ActorMove",[]]) isNotEqualTo (_brain get "lease")}
+        || {([_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo _admission}
+        || {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isNotEqualTo _brain}
+        || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo (_brain get "lease")}
         || {[getPosWorld _building,vectorDir _building,vectorUp _building] isNotEqualTo (_brain get "transform")}
-        || {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_brain get "route")}
-        || {(_group getVariable ["WAIT_OperationGeneration",0]) != (_brain get "operationGeneration")}
-        || {!([_actor] call WAIT_fnc_IndoorActorGroupAvailable)}) exitWith {["PREEMPTED"] call _finish};
+        || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_brain get "route")}
+        || {(_group getVariable ["CBE_OperationGeneration",0]) != (_brain get "operationGeneration")}
+        || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {["PREEMPTED"] call _finish};
     // A stall sample is not authority to reset a path that has since resumed.
     if (_escalate && {(getPosATL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
         _brain set ["progressPosition",getPosATL _actor]; _brain set ["progressAt",serverTime];
@@ -330,9 +330,9 @@ if (_phase == "SELECT") exitWith {
     if (_escalate) then {_brain set ["escalations",1]};
     _brain set ["escalate",false]; _brain set ["progressAt",serverTime]; _brain set ["progressPosition",getPosATL _actor];
     _brain set ["target",+_node]; _brain set ["issued",true]; _brain set ["phase","APPROACH"];
-    private _journal=+(_actor getVariable ["WAIT_IndoorActor_Order",[]]);
+    private _journal=+(_actor getVariable ["CBE_IndoorActor_Order",[]]);
     _journal set [6,+_node]; _journal set [8,true];
-    _actor setVariable ["WAIT_IndoorActor_Order",_journal,true];
+    _actor setVariable ["CBE_IndoorActor_Order",_journal,true];
     -1
 };
 private _target=_brain get "target";
@@ -341,7 +341,7 @@ private _combatCommand=currentCommand _actor in ["ATTACK","FIRE"] && {!isNull _c
 if (!(currentCommand _actor in ["","MOVE"] || {_combatCommand}) || {!(_destination call _vectorValid)}
     || {_destination vectorDistance _target > 0.25}) exitWith {["NATIVE_TASK"] call _finish};
 if (_phase == "APPROACH") exitWith {
-    [_actor,_building,["INDOOR",_brain get "generation"]] call WAIT_fnc_CortexBuildingDoor;
+    [_actor,_building,["INDOOR",_brain get "generation"]] call CBE_fnc_CortexBuildingDoor;
     private _position=getPosATL _actor;
     private _near=_position vectorDistance _target <= 1.5;
     private _inside=false;
@@ -367,7 +367,7 @@ if (_phase == "APPROACH") exitWith {
         if (serverTime-(_brain get "progressAt") >= 12) then {
             if (!(_brain get "issued") && {(_brain get "escalations") == 0}
                 && {getUnitState _actor != "PLANNING"} && {currentCommand _actor != "FIRE"}) then {
-                private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call WAIT_fnc_IndoorActorNativeContext;
+                private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext;
                 if (_admission isNotEqualTo [] && {(_admission select 0) == "OBSERVE"}
                     && {(_admission select 2) isEqualTo _target}) then {
                     _brain set ["admission",_admission call _copyArray];

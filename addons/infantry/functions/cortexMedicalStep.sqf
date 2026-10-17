@@ -10,10 +10,10 @@
  * 0: group <GROUP>
  * 1: state <HASHMAP> - current Cortex group state.
  * 2: phase <STRING> - current Cortex phase.
- * Return Value: BOOL - true while WAIT owns a finite aid operation.
- * Current callers: WAIT_fnc_CortexGroupTick.
- * Example: [group player,createHashMap,"CALM"] call WAIT_fnc_CortexMedicalStep;
- * Result: an eligible local medic physically approaches and uses the native treatment command, or WAIT leaves the squad unchanged.
+ * Return Value: BOOL - true while CBE owns a finite aid operation.
+ * Current callers: CBE_fnc_CortexGroupTick.
+ * Example: [group player,createHashMap,"CALM"] call CBE_fnc_CortexMedicalStep;
+ * Result: an eligible local medic physically approaches and uses the native treatment command, or CBE leaves the squad unchanged.
  */
 
 params [
@@ -26,48 +26,48 @@ if (isNull _group || {!local _group}) exitWith {false};
 private _actorEligible={
     params ["_actor"];
     !isNull _actor && {local _actor} && {!isPlayer _actor} && {isNull remoteControlled _actor}
-        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
 };
 private _finish = {
     params ["_result","_reason"];
-    private _aid=_group getVariable ["WAIT_Cortex_MedicalAid",[]];
+    private _aid=_group getVariable ["CBE_Cortex_MedicalAid",[]];
     private _generation=_aid param [0,-1];
     if (_generation >= 0) then {
         if (_result == "COMPLETE") then {
-            [_group,_generation,"COMPLETE",_reason] call WAIT_fnc_OperationRelease;
+            [_group,_generation,"COMPLETE",_reason] call CBE_fnc_OperationRelease;
         } else {
-            [_group,_generation,_reason] call WAIT_fnc_OperationCancel;
+            [_group,_generation,_reason] call CBE_fnc_OperationCancel;
         };
     };
-    _group setVariable ["WAIT_Cortex_MedicalAid",nil,true];
+    _group setVariable ["CBE_Cortex_MedicalAid",nil,true];
     false
 };
 
-private _medicalEnabled=[_group,"WAIT_AIPass_MedicalAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
-private _medicalInterrupted=[_group] call WAIT_fnc_CortexZeusHeld
-    || {[_group] call WAIT_fnc_CompatibilityExternalControl};
+private _medicalEnabled=[_group,"CBE_AIPass_MedicalAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled;
+private _medicalInterrupted=[_group] call CBE_fnc_CortexZeusHeld
+    || {[_group] call CBE_fnc_CompatibilityExternalControl};
 if (!_medicalEnabled || {_medicalInterrupted}) exitWith {
-    if ((_group getVariable ["WAIT_Cortex_MedicalAid",[]]) isNotEqualTo []) then {
+    if ((_group getVariable ["CBE_Cortex_MedicalAid",[]]) isNotEqualTo []) then {
         ["CANCELLED",["FEATURE_CLOSED","EXTERNAL"] select _medicalInterrupted] call _finish
     } else {false}
 };
 
 // Ownership can change after the tick-level eligibility check and immediately before an engine
 // command. Recheck at each movement or treatment write so Zeus and specialist controllers never
-// receive a stale WAIT command from this finite operation.
+// receive a stale CBE command from this finite operation.
 private _mayIssueMedical = {
     params ["_medic","_casualty"];
-    !([_group] call WAIT_fnc_CortexExternalTakeover)
-        && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-        && {!([_group] call WAIT_fnc_CompatibilityExternalControl)}
+    !([_group] call CBE_fnc_CortexExternalTakeover)
+        && {!([_group] call CBE_fnc_CortexZeusHeld)}
+        && {!([_group] call CBE_fnc_CompatibilityExternalControl)}
         && {[_medic] call _actorEligible} && {[_casualty] call _actorEligible}
 };
 
-private _aid=_group getVariable ["WAIT_Cortex_MedicalAid",[]];
-private _dangerResponse=_group getVariable ["WAIT_Danger_Response",[]];
+private _aid=_group getVariable ["CBE_Cortex_MedicalAid",[]];
+private _dangerResponse=_group getVariable ["CBE_Danger_Response",[]];
 private _dangerActive=count _dangerResponse == 5
-    && {(_dangerResponse select 4) == (_group getVariable ["WAIT_Danger_Generation",-1])}
+    && {(_dangerResponse select 4) == (_group getVariable ["CBE_Danger_Generation",-1])}
     && {time < (_dangerResponse select 3)};
 if (_aid isNotEqualTo []) exitWith {
     // Medical runs before the normal contact planner in CortexGroupTick. Retire it here when the
@@ -77,9 +77,9 @@ if (_aid isNotEqualTo []) exitWith {
     _aid params ["_generation","_medic","_casualty","_startedAt","_lastOrderAt","_bestDistance","_lastProgressAt"];
     // Treatment may legitimately make no spatial progress, but it still needs the same
     // generation/owner proof as approach movement before counting success or issuing HealSoldier.
-    private _currentAidOperation=_group getVariable ["WAIT_Operation",createHashMap];
+    private _currentAidOperation=_group getVariable ["CBE_Operation",createHashMap];
     if ((_currentAidOperation getOrDefault ["generation",-1]) != _generation
-        || {(_currentAidOperation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        || {(_currentAidOperation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
         || {(_currentAidOperation getOrDefault ["intent",""]) != "MEDICAL_AID"}) exitWith {
         ["CANCELLED","REPLACED"] call _finish
     };
@@ -87,26 +87,26 @@ if (_aid isNotEqualTo []) exitWith {
         || {!([_medic] call _actorEligible)} || {!([_casualty] call _actorEligible)}
         || {!local _medic} || {!local _casualty} || {group _medic != _group} || {group _casualty != _group}
         || {vehicle _medic != _medic} || {vehicle _casualty != _casualty}
-        || {!([_medic] call WAIT_fnc_CortexCombatEffective)}
-        || {!([_casualty] call WAIT_fnc_CortexCombatEffective)}) exitWith {
+        || {!([_medic] call CBE_fnc_CortexCombatEffective)}
+        || {!([_casualty] call CBE_fnc_CortexCombatEffective)}) exitWith {
         ["CANCELLED","ACTOR_UNAVAILABLE"] call _finish
     };
     // A new finite actor task is ownership, even when the group itself remains ordinary.
     // The medic's own HealSoldier action may report ACTION/HEAL, so those commands are
     // not treated as unrelated work here. Explicit other services and reservations yield.
     private _newActorTask=[_medic,_casualty] findIf {
-        private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
         private _reserved=_reservation isNotEqualTo [] && {!(_reservation isEqualType [])
             || {count _reservation != 3} || {(_reservation param [2,1e12,[0]]) > time}};
         _reserved || {currentCommand _x in ["GET IN","GET OUT","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
     } >= 0;
     if (_newActorTask) exitWith {["CANCELLED","ACTOR_TASK_CHANGED"] call _finish};
-    if (damage _casualty < (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_DamageThreshold",0.35])) exitWith {
-        missionNamespace setVariable ["WAIT_AIPass_MedicalAssists",(missionNamespace getVariable ["WAIT_AIPass_MedicalAssists",0])+1];
+    if (damage _casualty < (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_DamageThreshold",0.35])) exitWith {
+        missionNamespace setVariable ["CBE_AIPass_MedicalAssists",(missionNamespace getVariable ["CBE_AIPass_MedicalAssists",0])+1];
         ["COMPLETE","TREATED"] call _finish
     };
-    if (_phase in ["CONTACT","RETREAT"] || {time-_startedAt >= (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Timeout",45])}) exitWith {
-        ["CANCELLED",["COMBAT_RESUMED","TIMEOUT"] select (time-_startedAt >= (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Timeout",45]))] call _finish
+    if (_phase in ["CONTACT","RETREAT"] || {time-_startedAt >= (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Timeout",45])}) exitWith {
+        ["CANCELLED",["COMBAT_RESUMED","TIMEOUT"] select (time-_startedAt >= (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Timeout",45]))] call _finish
     };
     private _distance=(getPosASL _medic) vectorDistance (getPosASL _casualty);
     private _inTreatmentRange=_distance <= 4
@@ -119,7 +119,7 @@ if (_aid isNotEqualTo []) exitWith {
     };
     private _cancelReason="";
     if (!_inTreatmentRange) then {
-        private _operationState=[_group,_generation,2,12] call WAIT_fnc_OperationStep;
+        private _operationState=[_group,_generation,2,12] call CBE_fnc_OperationStep;
         if (_operationState in ["LOST_OWNER","ZEUS","EXTERNAL","REPLACED"]) then {_cancelReason=_operationState};
         if (_operationState == "STALLED") then {_cancelReason="NO_PROGRESS"};
     };
@@ -145,31 +145,31 @@ if (_aid isNotEqualTo []) exitWith {
         };
         _aid set [5,_bestDistance];
         _aid set [6,_lastProgressAt];
-        _group setVariable ["WAIT_Cortex_MedicalAid",_aid,true];
+        _group setVariable ["CBE_Cortex_MedicalAid",_aid,true];
     };
     true
 };
 
 // Treatment is a security action, not a substitute for a current assault, withdrawal, building task,
 // passenger procedure or direct order. Restrict selection to CALM/SECURITY and only when no finite
-// WAIT operation already owns the group.
+// CBE operation already owns the group.
 if (_dangerActive) exitWith {false};
 if !(_phase in ["CALM","SECURITY"]) exitWith {false};
-if (count (_group getVariable ["WAIT_Operation",createHashMap]) > 0
-    || {_group getVariable ["WAIT_AIPass_ClearBuilding",false]}
-    || {(_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []}
-    || {(_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo []}) exitWith {false};
+if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
+    || {_group getVariable ["CBE_AIPass_ClearBuilding",false]}
+    || {(_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []}
+    || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}) exitWith {false};
 
 private _members=(units _group) select {
-    private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
     private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
         && {(_reservation param [2,1e12,[0]]) <= time}};
     alive _x && {[_x] call _actorEligible} && {group _x == _group} && {_free}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
-        && {vehicle _x == _x} && {[_x] call WAIT_fnc_CortexCombatEffective}
+        && {vehicle _x == _x} && {[_x] call CBE_fnc_CortexCombatEffective}
         && {!(_x getVariable ["ACE_isUnconscious",false])}
 };
-private _threshold=missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_DamageThreshold",0.35];
+private _threshold=missionNamespace getVariable ["CBE_AIPass_MedicalAssist_DamageThreshold",0.35];
 // Command succession is independent of medical eligibility. A wounded current leader still needs a
 // living medic; the pair selection below excludes only self-treatment.
 private _casualties=_members select {damage _x >= _threshold};
@@ -184,7 +184,7 @@ private _best=1e9;
         private _distance=(getPosASL _medic) vectorDistance (getPosASL _x);
         private _canApproach=(_medic checkAIFeature "MOVE" && {_medic checkAIFeature "PATH"})
             || {_distance <= 4 && {abs (((getPosASL _medic) select 2)-((getPosASL _x) select 2)) <= 1.5}};
-        if (_medic != _x && {_distance < _best} && {_canApproach} && {_distance <= (missionNamespace getVariable ["WAIT_AIPass_MedicalAssist_Range",80])}) then {
+        if (_medic != _x && {_distance < _best} && {_canApproach} && {_distance <= (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Range",80])}) then {
             _best=_distance;
             _pair=[_medic,_x];
         };
@@ -192,21 +192,21 @@ private _best=1e9;
 } forEach _medics;
 if (_pair isEqualTo []) exitWith {false};
 _pair params ["_medic","_casualty"];
-private _operation=[_group,"MEDICAL_AID",_casualty,[_medic], [getPosATL _casualty],"APPROACH"] call WAIT_fnc_OperationStart;
+private _operation=[_group,"MEDICAL_AID",_casualty,[_medic], [getPosATL _casualty],"APPROACH"] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {false};
 private _generation=_operation get "generation";
 if !([_medic,_casualty] call _mayIssueMedical) exitWith {
-    [_group,_generation,"EXTERNAL"] call WAIT_fnc_OperationCancel;
+    [_group,_generation,"EXTERNAL"] call CBE_fnc_OperationCancel;
     false
 };
 if ((_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) > 1.5})
     && {!(_medic checkAIFeature "MOVE") || {!(_medic checkAIFeature "PATH")}}) exitWith {
-    [_group,_generation,"MOVEMENT_DISABLED"] call WAIT_fnc_OperationCancel; false
+    [_group,_generation,"MOVEMENT_DISABLED"] call CBE_fnc_OperationCancel; false
 };
 if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) > 1.5}) then {
     _medic doMove getPosATL _casualty;
 } else {
     _medic action ["HealSoldier",_casualty];
 };
-_group setVariable ["WAIT_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,time,time,_best,time],true];
+_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,time,time,_best,time],true];
 true

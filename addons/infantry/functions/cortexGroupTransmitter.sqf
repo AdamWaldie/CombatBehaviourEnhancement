@@ -8,7 +8,7 @@
  * Arguments: 0: group <GROUP>.
  * Return Value: communicating member <OBJECT>, objNull when no eligible member can transmit.
  * Current callers: support, reinforcement, artillery, report and combined-arms coordination.
- * Example: private _radio = [group _unit] call WAIT_fnc_CortexGroupTransmitter;
+ * Example: private _radio = [group _unit] call CBE_fnc_CortexGroupTransmitter;
  */
 params [["_group", grpNull, [grpNull]]];
 if (isNull _group) exitWith {objNull};
@@ -20,6 +20,6 @@ if (_leader in _members) then {
 };
 private _transmitter = objNull;
 {
-    if ([_x] call WAIT_fnc_CortexCanTransmit) exitWith {_transmitter = _x};
+    if ([_x] call CBE_fnc_CortexCanTransmit) exitWith {_transmitter = _x};
 } forEach (_members select [0, 12]);
 _transmitter

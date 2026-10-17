@@ -11,38 +11,38 @@
  */
 params ["_check","_phase","_wait",["_chuteOverride","",[""]]];
 private _savedChute=missionNamespace getVariable ["WALDO_STATIC_STATICCHUTE","NonSteerable_Parachute_F"];
-private _savedJumpInterval=missionNamespace getVariable ["WAIT_AIPass_Airborne_JumpInterval",1];
+private _savedJumpInterval=missionNamespace getVariable ["CBE_AIPass_Airborne_JumpInterval",1];
 if (_chuteOverride != "") then {missionNamespace setVariable ["WALDO_STATIC_STATICCHUTE",_chuteOverride,true]};
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],["WAIT_AIPass_Airborne_Enable",false],["WAIT_AIPass_Regroup_Enable",false]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],["CBE_AIPass_Airborne_Enable",false],["CBE_AIPass_Regroup_Enable",false]]] call CBE_fnc_CortexTuning;
 private _aircraft=createVehicle ["O_Heli_Light_02_unarmed_F",[1800,1100,180],[],0,"FLY"];
 createVehicleCrew _aircraft;
 private _pilotGroup=group driver _aircraft;
-_pilotGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_pilotGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _pilotGroup setVariable ["acex_headless_blacklist",true,true];
-_pilotGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+_pilotGroup setVariable ["CBE_AIPass_Exclude",true,true];
 _aircraft flyInHeight 180;
 _aircraft allowDamage false;
 private _crew=crew _aircraft;
 {_x setVariable ["acex_headless_blacklist",true,true]; _x allowDamage false} forEach _crew;
 private _cargo=createGroup [east,true];
-_cargo setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_cargo setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _cargo setVariable ["acex_headless_blacklist",true,true];
 private _jumpers=[];
 for "_i" from 0 to 1 do {
     private _unit=_cargo createUnit ["O_Soldier_F",[1790+_i*3,1090,0],[],0,"NONE"];
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["PARACHUTIST %1",_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["PARACHUTIST %1",_i+1],true];
     _unit addEventHandler ["GetInMan",{
         params ["_unit","_role","_vehicle"];
-        diag_log format ["WAIT CORTEX AIRBORNE BOARD|unit=%1 vehicle=%2 role=%3 position=%4 owner=%5",netId _unit,typeOf _vehicle,_role,getPosATL _vehicle,owner _unit];
+        diag_log format ["CBE CORTEX AIRBORNE BOARD|unit=%1 vehicle=%2 role=%3 position=%4 owner=%5",netId _unit,typeOf _vehicle,_role,getPosATL _vehicle,owner _unit];
     }];
     _unit addEventHandler ["GetOutMan",{
         params ["_unit","_role","_vehicle"];
-        diag_log format ["WAIT CORTEX AIRBORNE EXIT|unit=%1 vehicle=%2 position=%3 velocity=%4",netId _unit,typeOf _vehicle,getPosATL _unit,velocity _unit];
+        diag_log format ["CBE CORTEX AIRBORNE EXIT|unit=%1 vehicle=%2 position=%3 velocity=%4",netId _unit,typeOf _vehicle,getPosATL _unit,velocity _unit];
     }];
     _unit addEventHandler ["Killed",{
         params ["_unit","_killer"];
-        diag_log format ["WAIT CORTEX AIRBORNE DEATH|unit=%1 vehicle=%2 position=%3 velocity=%4 killer=%5",netId _unit,typeOf vehicle _unit,getPosATL _unit,velocity _unit,_killer];
+        diag_log format ["CBE CORTEX AIRBORNE DEATH|unit=%1 vehicle=%2 position=%3 velocity=%4 killer=%5",netId _unit,typeOf vehicle _unit,getPosATL _unit,velocity _unit,_killer];
     }];
     _unit addBackpack "B_FieldPack_ocamo";
     _unit addItemToBackpack "FirstAidKit";
@@ -59,15 +59,15 @@ _flightWaypoint setWaypointBehaviour "CARELESS";
 _flightWaypoint setWaypointSpeed "NORMAL";
 _aircraft limitSpeed 100;
 private _packs=_jumpers apply {[backpack _x,backpackItems _x]};
-diag_log format ["WAIT CORTEX AIRBORNE CONFIG|chute=%1",missionNamespace getVariable ["WALDO_STATIC_STATICCHUTE","NonSteerable_Parachute_F"]];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_jumpers+_crew,true];
+diag_log format ["CBE CORTEX AIRBORNE CONFIG|chute=%1",missionNamespace getVariable ["WALDO_STATIC_STATICCHUTE","NonSteerable_Parachute_F"]];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_jumpers+_crew,true];
 ["Airborne disabled: passengers retained","Automatic insertion is off. Both passengers must remain in the live helicopter; the following explicit order is a separate supported control.",[1800,1100,100]] call _phase;
 sleep 8;
 ["AIRBORNE-disabled-passengers-retained",_jumpers findIf {vehicle _x != _aircraft} < 0] call _check;
-private _owners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
-if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false] && {_owners isNotEqualTo []}) then {
-    [_cargo,_owners select 0] call WAIT_fnc_HeadlessMigrateGroup;
-    ["AIRBORNE-flight-owner-preserved",groupOwner _cargo == 2 && {owner _aircraft == 2},"WAIT intentionally refuses migration of helicopter occupants during flight"] call _check;
+private _owners=(missionNamespace getVariable ["CBE_Headless_Clients",[]]) apply {_x select 0};
+if (missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false] && {_owners isNotEqualTo []}) then {
+    [_cargo,_owners select 0] call CBE_fnc_HeadlessMigrateGroup;
+    ["AIRBORNE-flight-owner-preserved",groupOwner _cargo == 2 && {owner _aircraft == 2},"CBE intentionally refuses migration of helicopter occupants during flight"] call _check;
 };
 private _high=[{(getPosATL _aircraft select 2) >= 120 && {speed _aircraft >= 50} && {_aircraft distance2D _flightOrigin >= 100}},60] call _wait;
 ["AIRBORNE-moving-flight-precondition",_high,format ["speed=%1 km/h travel=%2 m altitude=%3 m",speed _aircraft,_aircraft distance2D _flightOrigin,getPosATL _aircraft select 2]] call _check;
@@ -75,27 +75,27 @@ private _high=[{(getPosATL _aircraft select 2) >= 120 && {speed _aircraft >= 50}
 ["Airborne: explicit drop across owners","Watch each passenger leave the moving helicopter, descend in a parachute, then physically reach the ground. The aircraft must first travel 100 m and reach 50 km/h. The pilot stays aboard. Backpack contents must survive the whole drop.",getPosATL _aircraft] call _phase;
 // A real actor task marker is an intentional negative input, never a drop-completion receipt.
 // Four seconds between exits leaves time to observe the unheld passenger in a native chute.
-private _heldFirst=_chuteOverride == "" && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])};
+private _heldFirst=_chuteOverride == "" && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])};
 private _heldActor=_jumpers select 0;
 private _holdLease=["AUDIT_HELD_PASSENGER",getPosATL _heldActor,time+45];
 if (_heldFirst) then {
-    missionNamespace setVariable ["WAIT_AIPass_Airborne_JumpInterval",4,true];
-    _heldActor setVariable ["WAIT_Cortex_ActorMove",_holdLease];
+    missionNamespace setVariable ["CBE_AIPass_Airborne_JumpInterval",4,true];
+    _heldActor setVariable ["CBE_Cortex_ActorMove",_holdLease];
 };
-["AIRBORNE-order-accepted",[_cargo] call WAIT_fnc_CortexAirborneDrop] call _check;
-["AIRBORNE-repeat-order-refused",!([_cargo] call WAIT_fnc_CortexAirborneDrop),"A second immediate order must not queue another drop for the same aircraft"] call _check;
+["AIRBORNE-order-accepted",[_cargo] call CBE_fnc_CortexAirborneDrop] call _check;
+["AIRBORNE-repeat-order-refused",!([_cargo] call CBE_fnc_CortexAirborneDrop),"A second immediate order must not queue another drop for the same aircraft"] call _check;
 if (_heldFirst) then {
     private _unheld=_jumpers select 1;
     private _unheldExited=[{vehicle _unheld isKindOf "ParachuteBase"},15] call _wait;
     ["AIRBORNE-held-first-stays-aboard",_high && {alive _heldActor}
         && {vehicle _heldActor == _aircraft}
-        && {(_heldActor getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo _holdLease},
-        str [vehicle _heldActor,_heldActor getVariable ["WAIT_Cortex_ActorMove",[]]]] call _check;
+        && {(_heldActor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _holdLease},
+        str [vehicle _heldActor,_heldActor getVariable ["CBE_Cortex_ActorMove",[]]]] call _check;
     ["AIRBORNE-unheld-passenger-exits",_high && {_unheldExited} && {alive _unheld},
         str [typeOf vehicle _unheld,getPosATL _unheld]] call _check;
     // Release only the exact test input. The running production job must perform the later exit.
-    if ((_heldActor getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo _holdLease) then {
-        _heldActor setVariable ["WAIT_Cortex_ActorMove",nil];
+    if ((_heldActor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _holdLease) then {
+        _heldActor setVariable ["CBE_Cortex_ActorMove",nil];
     };
 };
 private _dropOrigin=getPosATL _aircraft;
@@ -106,15 +106,15 @@ private _nextFlightSample=0;
 private _landed=[{
     if (time >= _nextFlightSample) then {
         _nextFlightSample=time+1;
-        diag_log format ["WAIT CORTEX AIRBORNE SAMPLE|actors=%1",_jumpers apply {[netId _x,alive _x,typeOf vehicle _x,getPosATL _x,velocity _x,isDamageAllowed _x,owner _x]}];
-        private _jobs=(missionNamespace getVariable ["WAIT_AIPass_Jobs",[]]) select {((_x select 2) getOrDefault ["group",grpNull]) == _cargo};
-        diag_log format ["WAIT CORTEX AIRBORNE JOB|dropping=%1 epoch=%2 adopted=%3 hold=%4 jobs=%5",
-            _cargo getVariable ["WAIT_AIPass_Dropping",false],_cargo getVariable ["WAIT_AIPass_Epoch",0],
-            _cargo getVariable ["WAIT_AIPass_Adopted",false],_cargo getVariable ["WAIT_AIPass_ZeusHold",[]],
+        diag_log format ["CBE CORTEX AIRBORNE SAMPLE|actors=%1",_jumpers apply {[netId _x,alive _x,typeOf vehicle _x,getPosATL _x,velocity _x,isDamageAllowed _x,owner _x]}];
+        private _jobs=(missionNamespace getVariable ["CBE_AIPass_Jobs",[]]) select {((_x select 2) getOrDefault ["group",grpNull]) == _cargo};
+        diag_log format ["CBE CORTEX AIRBORNE JOB|dropping=%1 epoch=%2 adopted=%3 hold=%4 jobs=%5",
+            _cargo getVariable ["CBE_AIPass_Dropping",false],_cargo getVariable ["CBE_AIPass_Epoch",0],
+            _cargo getVariable ["CBE_AIPass_Adopted",false],_cargo getVariable ["CBE_AIPass_ZeusHold",[]],
             _jobs apply {private _state=_x select 2; [_x select 0,_state getOrDefault ["phase",""],_state getOrDefault ["ownerEpoch",-1]]}];
     };
     {if (vehicle _x isKindOf "ParachuteBase") then {_seen set [_forEachIndex,true]; _chutes pushBackUnique vehicle _x}} forEach _jumpers;
-    if (_chutes findIf {_x getVariable ["WAIT_Headless_HelicopterPinned",false] || {_x getVariable ["WAIT_ImprovedHelicopterLanding_LocalHandlerInstalled",false]}} >= 0) then {_parachuteControllerConflict=true};
+    if (_chutes findIf {_x getVariable ["CBE_Headless_HelicopterPinned",false] || {_x getVariable ["CBE_ImprovedHelicopterLanding_LocalHandlerInstalled",false]}} >= 0) then {_parachuteControllerConflict=true};
     _seen findIf {!_x} < 0 && {_jumpers findIf {!alive _x || {vehicle _x != _x} || {getPosATL _x select 2 > 2}} < 0}
 },170] call _wait;
 ["AIRBORNE-aircraft-continued-flight",_aircraft distance2D _dropOrigin >= 100,format ["aircraft travel after order=%1 m",_aircraft distance2D _dropOrigin]] call _check;
@@ -124,7 +124,7 @@ private _landed=[{
 ["AIRBORNE-backpack-preserved",(_jumpers apply {[backpack _x,backpackItems _x]}) isEqualTo _packs] call _check;
 ["AIRBORNE-operating-crew-retained",_crew findIf {!alive _x || {vehicle _x != _aircraft}} < 0] call _check;
 if (_landed) then {
-    ["AIRBORNE-ground-order-refused",!([_cargo] call WAIT_fnc_CortexAirborneDrop)] call _check;
+    ["AIRBORNE-ground-order-refused",!([_cargo] call CBE_fnc_CortexAirborneDrop)] call _check;
     private _origins=_jumpers apply {getPosATL _x};
     // Put the destination beyond every landing position. A leader-relative point
     // can leave a dispersed passenger already inside the arrival radius.
@@ -153,10 +153,10 @@ if (_landed) then {
     ["AIRBORNE-post-landing-movement",false,"Prerequisite failed: both passengers did not land alive"] call _check;
 };
 sleep 15;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach (_jumpers+_crew+_chutes+[_aircraft]);
 deleteGroup _cargo; deleteGroup _pilotGroup;
 
 missionNamespace setVariable ["WALDO_STATIC_STATICCHUTE",_savedChute,true];
 
-missionNamespace setVariable ["WAIT_AIPass_Airborne_JumpInterval",_savedJumpInterval,true];
+missionNamespace setVariable ["CBE_AIPass_Airborne_JumpInterval",_savedJumpInterval,true];

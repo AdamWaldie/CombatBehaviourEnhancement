@@ -11,7 +11,7 @@
  * Measurement: >=3 m planar displacement or >=1.5 s; samples older than 6 s reset. Curves wider
  * than 250 m count as straight. At <=1 m/s or reversing, prediction is straight and resets.
  * Current callers: DrivingAssistStart and ConvoyTick through their existing bounded callbacks.
- * Example: private _turn=[truck1,_previous,[_route,_epoch]] call WAIT_fnc_DrivingTurnTrack;
+ * Example: private _turn=[truck1,_previous,[_route,_epoch]] call CBE_fnc_DrivingTurnTrack;
  */
 params [["_vehicle",objNull,[objNull]],["_previous",[],[[]]],["_context",[],[[]]]];
 if (isRemoteExecuted || {isNull _vehicle} || {!local _vehicle} || {!alive _vehicle}) exitWith {[0,[]]};

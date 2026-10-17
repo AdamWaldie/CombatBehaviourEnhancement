@@ -30,11 +30,11 @@ class DrivingRoadCapTests(unittest.TestCase):
     def test_both_modes_consume_the_observer_before_owned_speed_commands(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
-        self.assertLess(ordinary.index('call WAIT_fnc_DrivingRoadCap'),ordinary.index('_vehicle forceSpeed _capMps'))
+        self.assertLess(ordinary.index('call CBE_fnc_DrivingRoadCap'),ordinary.index('_vehicle forceSpeed _capMps'))
         self.assertIn('_cap=_cap min (_roadObservation select 0)',ordinary)
         self.assertIn('["roadLookAt",time+3]',convoy)
         self.assertIn('["roadAssist",_roadObservation]',convoy)
-        self.assertEqual(convoy.count('call WAIT_fnc_DrivingRoadCap'),1)
+        self.assertEqual(convoy.count('call CBE_fnc_DrivingRoadCap'),1)
     def test_policy_never_raises_requested_or_existing_lower_speed(self):
         def cap(requested,turn,grade,junction,dense=False):
             result=min(120,max(0,requested))

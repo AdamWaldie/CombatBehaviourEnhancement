@@ -6,7 +6,7 @@
  * Actor combat effectiveness and ownership are rechecked before movement and holding. Lost
  * group eligibility retires the job and published order instead of perpetually delaying it.
  *
- * Runs on the original owner and again on any new owner (WAIT_fnc_CortexDiscover), because unit
+ * Runs on the original owner and again on any new owner (CBE_fnc_CortexDiscover), because unit
  * orders are held by the owning machine. A reserve reinforcement may pass only its newly reassigned
  * actors; established line soldiers retain their hold and route generation. A job stops each selected
  * soldier only on arrival and points him at
@@ -36,41 +36,41 @@
  * Nothing
  *
  * Example:
- * [_group] call WAIT_fnc_CortexDefendApplyLocal;
+ * [_group] call CBE_fnc_CortexDefendApplyLocal;
  * Result: the defence line forms on this machine.
- * [_group,_reserve,_reserve] call WAIT_fnc_CortexDefendApplyLocal;
+ * [_group,_reserve,_reserve] call CBE_fnc_CortexDefendApplyLocal;
  * Result: only the newly committed reserve receives a route; the established line is untouched.
  *
- * Current callers: WAIT_fnc_CortexDefend, WAIT_fnc_CortexDefendStep and WAIT_fnc_CortexDiscover.
+ * Current callers: CBE_fnc_CortexDefend, CBE_fnc_CortexDefendStep and CBE_fnc_CortexDiscover.
  */
 
 params [["_group", grpNull, [grpNull]],["_actors",[],[[]]],["_freshActors",[],[[]]]];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {count _actors > 64} || {count _freshActors > 64}
     || {(_actors+_freshActors) findIf {!(_x isEqualType objNull)} >= 0}) exitWith {};
-if (isNull _group || {!local _group} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {};
+if (isNull _group || {!local _group} || {!([_group] call CBE_fnc_CortexIsEligible)}) exitWith {};
 private _fullApply=_actors isEqualTo [];
 if (_fullApply) then {_actors=+units _group};
 if (count _actors > 64) exitWith {};
-private _nativeRoute=[_group] call WAIT_fnc_NativeOrderReceipt;
-if (_nativeRoute isNotEqualTo (_group getVariable ["WAIT_Cortex_DefendNativeRoute",[]])) exitWith {
-    [_group,false] call WAIT_fnc_CortexDefendRelease;
+private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+if (_nativeRoute isNotEqualTo (_group getVariable ["CBE_Cortex_DefendNativeRoute",[]])) exitWith {
+    [_group,false] call CBE_fnc_CortexDefendRelease;
 };
-private _generation=_group getVariable ["WAIT_AIPass_DefendGeneration",0];
+private _generation=_group getVariable ["CBE_AIPass_DefendGeneration",0];
 if (_fullApply || {_generation <= 0}) then {
     _generation=_generation+1;
-    _group setVariable ["WAIT_AIPass_DefendGeneration",_generation];
+    _group setVariable ["CBE_AIPass_DefendGeneration",_generation];
 };
-_group setVariable ["WAIT_AIPass_DefendApplied", true];
+_group setVariable ["CBE_AIPass_DefendApplied", true];
 private _routes=[];
 private _adoptionCommandOwned={
     params ["_actor","_assignment"];
     private _command=currentCommand _actor;
     if (_actor in _freshActors || {_command == ""}) exitWith {true};
-    private _receipt=_actor getVariable ["WAIT_Cortex_DefendMove",[]];
+    private _receipt=_actor getVariable ["CBE_Cortex_DefendMove",[]];
     private _valid=_receipt isEqualType [] && {count _receipt == 6}
         && {(_receipt select 0) isEqualTo _group}
         && {[1,2] findIf {!((_receipt select _x) isEqualType 0) || {!finite (_receipt select _x)} || {(_receipt select _x) < 0}} < 0}
-        && {(_receipt select 2) <= (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_receipt select 2) <= (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_receipt select 4) isEqualTo _assignment}
         && {(_receipt select 3) isEqualType []} && {count (_receipt select 3) == 3}
         && {(_receipt select 3) findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
@@ -83,31 +83,31 @@ private _adoptionCommandOwned={
 };
 private _rememberMove={
     params ["_actor","_target","_kind"];
-    _actor setVariable ["WAIT_Cortex_DefendMove",[_group,
-        _group getVariable ["WAIT_AIPass_DefendGeneration",-1],
-        _group getVariable ["WAIT_AIPass_Epoch",0],+_target,
-        +(_actor getVariable ["WAIT_AIPass_DefendPos",[]]),_kind],true];
+    _actor setVariable ["CBE_Cortex_DefendMove",[_group,
+        _group getVariable ["CBE_AIPass_DefendGeneration",-1],
+        _group getVariable ["CBE_AIPass_Epoch",0],+_target,
+        +(_actor getVariable ["CBE_AIPass_DefendPos",[]]),_kind],true];
 };
 // Recheck immediately before individual movement writes; scheduler eligibility is not a
 // lease over a later Zeus, player or specialist takeover in the same callback.
 private _mayIssueMovement = {
     params ["_actor"];
-    private _free=!([_actor] call WAIT_fnc_CortexActorMoveReserved);
-    !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group}
+    private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
+    !([_group] call CBE_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group}
         && {isNull objectParent _actor} && {_free} && {!isPlayer _actor}
-        && {isNull remoteControlled _actor} && {[_actor] call WAIT_fnc_CortexCombatEffective}
+        && {isNull remoteControlled _actor} && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
-        && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+        && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 {
-    _x setVariable ["WAIT_AIPass_DefendHolding", nil];
-    _x setVariable ["WAIT_AIPass_DefendFailed",nil,true];
-    private _routeGeneration=(_x getVariable ["WAIT_AIPass_DefendRouteGeneration",0])+1;
-    _x setVariable ["WAIT_AIPass_DefendRouteGeneration",_routeGeneration];
-    private _assignment = _x getVariable ["WAIT_AIPass_DefendPos", []];
-    if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
-        && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}) then {
+    _x setVariable ["CBE_AIPass_DefendHolding", nil];
+    _x setVariable ["CBE_AIPass_DefendFailed",nil,true];
+    private _routeGeneration=(_x getVariable ["CBE_AIPass_DefendRouteGeneration",0])+1;
+    _x setVariable ["CBE_AIPass_DefendRouteGeneration",_routeGeneration];
+    private _assignment = _x getVariable ["CBE_AIPass_DefendPos", []];
+    if ([_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
+        && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)} && {_assignment isNotEqualTo []}) then {
         if ([_x,_assignment] call _adoptionCommandOwned) then {
             private _route=[_x,getPosATL _x,time,0,_routeGeneration,+_assignment,false,
                 currentCommand _x,+((expectedDestination _x) param [0,[],[[]]]),formLeader _x];
@@ -119,8 +119,8 @@ private _mayIssueMovement = {
             };
         } else {
             // A published post alone cannot reclaim a newer native command on this owner.
-            _x setVariable ["WAIT_AIPass_DefendPos",nil,true];
-            _x setVariable ["WAIT_Cortex_DefendMove",nil,true];
+            _x setVariable ["CBE_AIPass_DefendPos",nil,true];
+            _x setVariable ["CBE_Cortex_DefendMove",nil,true];
         };
     };
 } forEach _actors;
@@ -142,23 +142,23 @@ private _ownsRouteCommand={
 [{
     params ["_job"];
     private _group = _job get "group";
-    if (isNull _group || {!local _group} || {(_group getVariable ["WAIT_AIPass_Defend", []]) isEqualTo []}) exitWith {-1};
-    if ((_group getVariable ["WAIT_AIPass_DefendGeneration", -1]) != (_job get "generation")
-        || {(_group getVariable ["WAIT_AIPass_Epoch",0]) != (_job get "epoch")}
-        || {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_job get "nativeRoute")}) exitWith {-1};
+    if (isNull _group || {!local _group} || {(_group getVariable ["CBE_AIPass_Defend", []]) isEqualTo []}) exitWith {-1};
+    if ((_group getVariable ["CBE_AIPass_DefendGeneration", -1]) != (_job get "generation")
+        || {(_group getVariable ["CBE_AIPass_Epoch",0]) != (_job get "epoch")}
+        || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_job get "nativeRoute")}) exitWith {-1};
     // External control has priority. Do not age or reissue an owned movement while Zeus is active.
-    if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {
-        [_group,false] call WAIT_fnc_CortexDefendRelease;
+    if !([_group] call CBE_fnc_CortexIsEligible) exitWith {
+        [_group,false] call CBE_fnc_CortexDefendRelease;
         -1
     };
     private _mayIssueMovement = {
         params ["_actor"];
-        private _free=!([_actor] call WAIT_fnc_CortexActorMoveReserved);
-        !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group}
+        private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
+        !([_group] call CBE_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group}
             && {isNull objectParent _actor} && {_free} && {!isPlayer _actor}
-            && {isNull remoteControlled _actor} && {[_actor] call WAIT_fnc_CortexCombatEffective}
+            && {isNull remoteControlled _actor} && {[_actor] call CBE_fnc_CortexCombatEffective}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
-            && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+            && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
     private _pending = 0;
@@ -169,20 +169,20 @@ private _ownsRouteCommand={
         private _unit=_x;
         private _routeIndex=_routes findIf {(_x select 0) isEqualTo _unit};
         private _routeGeneration=if (_routeIndex >= 0) then {(_routes select _routeIndex) param [4,-1]} else {-1};
-        private _assignment = _unit getVariable ["WAIT_AIPass_DefendPos", []];
+        private _assignment = _unit getVariable ["CBE_AIPass_DefendPos", []];
         private _routeCurrent=_routeIndex >= 0
-            && {(_unit getVariable ["WAIT_AIPass_DefendRouteGeneration",-2]) == _routeGeneration}
-            && {[_unit] call WAIT_fnc_CortexCombatEffective} && {local _unit} && {!isPlayer _unit}
+            && {(_unit getVariable ["CBE_AIPass_DefendRouteGeneration",-2]) == _routeGeneration}
+            && {[_unit] call CBE_fnc_CortexCombatEffective} && {local _unit} && {!isPlayer _unit}
             && {group _unit == _group} && {_assignment isNotEqualTo []}
             && {_assignment isEqualTo ((_routes select _routeIndex) select 5)}
-            && {!(_unit getVariable ["WAIT_AIPass_DefendHolding", false])}
-            && {!(_unit getVariable ["WAIT_AIPass_DefendFailed",false])};
+            && {!(_unit getVariable ["CBE_AIPass_DefendHolding", false])}
+            && {!(_unit getVariable ["CBE_AIPass_DefendFailed",false])};
         if (_routeCurrent && {!([_unit,_routes select _routeIndex] call _ownsRouteCommand)}) then {
             // The current order belongs to somebody else. Retire metadata, never restore formation.
-            _unit setVariable ["WAIT_AIPass_DefendPos",nil,true];
-            _unit setVariable ["WAIT_Cortex_DefendMove",nil,true];
-            _unit setVariable ["WAIT_AIPass_DefendHolding",nil];
-            _unit setVariable ["WAIT_AIPass_DefendFailed",nil,true];
+            _unit setVariable ["CBE_AIPass_DefendPos",nil,true];
+            _unit setVariable ["CBE_Cortex_DefendMove",nil,true];
+            _unit setVariable ["CBE_AIPass_DefendHolding",nil];
+            _unit setVariable ["CBE_AIPass_DefendFailed",nil,true];
             _routeCurrent=false;
         };
         private _canIssue=_routeCurrent && {[_unit] call _mayIssueMovement};
@@ -198,7 +198,7 @@ private _ownsRouteCommand={
                 && {[_unit] call _mayIssueMovement}) then {
                 doStop _unit;
                 _unit doWatch ((_assignment select 0) getPos [60, _assignment select 1]);
-                _unit setVariable ["WAIT_AIPass_DefendHolding", true];
+                _unit setVariable ["CBE_AIPass_DefendHolding", true];
                 [_unit,_assignment select 0,"HOLD"] call _rememberMove;
             } else {
                 _pending = _pending + 1;
@@ -218,9 +218,9 @@ private _ownsRouteCommand={
                             _route set [2,time];
                             _route set [3,_retries+1];
                         } else {
-                            _unit setVariable ["WAIT_AIPass_DefendFailed",true,true];
+                            _unit setVariable ["CBE_AIPass_DefendFailed",true,true];
                             _pending=_pending-1;
-                            diag_log format ["[WAIT] Defence arrival failed after bounded replans unit=%1 remaining=%2",_unit,_unit distance2D (_assignment select 0)];
+                            diag_log format ["[CBE] Defence arrival failed after bounded replans unit=%1 remaining=%2",_unit,_unit distance2D (_assignment select 0)];
                         };
                     };
                 };
@@ -229,5 +229,5 @@ private _ownsRouteCommand={
     } forEach (_job get "actors");
     [2, -1] select (_pending == 0)
 }, createHashMapFromArray [["group", _group], ["actors",+_actors], ["routes",_routes], ["ownsRouteCommand",_ownsRouteCommand], ["rememberMove",_rememberMove],
-    ["epoch",_group getVariable ["WAIT_AIPass_Epoch",0]], ["nativeRoute",_nativeRoute], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
+    ["epoch",_group getVariable ["CBE_AIPass_Epoch",0]], ["nativeRoute",_nativeRoute], ["generation", _generation]], 1] call CBE_fnc_CortexQueueJob;
 

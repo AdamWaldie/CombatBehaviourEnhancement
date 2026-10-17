@@ -11,7 +11,7 @@
  * to waypoint count (fixed reads per row), not a world scan; large-route costs require profiling.
  * Current callers: CortexAirAttack admission/owner callback, ConvoyTick recovery,
  * DrivingRouteReceipt and NativeOrderReceipt task/CQB guards.
- * Example: private _receipt=[group pilot1,"WAIT_AIR_ownedToken"] call WAIT_fnc_AuthoredRouteReceipt;
+ * Example: private _receipt=[group pilot1,"CBE_AIR_ownedToken"] call CBE_fnc_AuthoredRouteReceipt;
  */
 params [["_group",grpNull,[grpNull]],["_ownedName","",[""]],["_ownedOnly",false,[true]],["_waypointIndex",-1,[0]]];
 if (isNull _group) exitWith {[]};

@@ -9,8 +9,8 @@
  * 3 reserved ATL points <ARRAY, []>; 4 observer lanes <ARRAY, []>, each [post ATL, watch ATL].
  * Refuses more than 128 reservations or 64 lanes; validates every supplied coordinate.
  * Return Value: ARRAY, proposed ATL or []; caller must validate geometry and physical arrival.
- * Current callers: WAIT_fnc_BuildingOperationStep and WAIT_fnc_CortexGarrisonApplyLocal.
- * Example: [_unit,_exit getPos [7,180],_exit,[],[]] call WAIT_fnc_BuildingExteriorProposal;
+ * Current callers: CBE_fnc_BuildingOperationStep and CBE_fnc_CortexGarrisonApplyLocal.
+ * Example: [_unit,_exit getPos [7,180],_exit,[],[]] call CBE_fnc_BuildingExteriorProposal;
  */
 params [["_actor",objNull,[objNull]],["_search",[],[[]]],["_entry",[],[[]]],
     ["_taken",[],[[]]],["_observerLanes",[],[[]]]];

@@ -8,17 +8,17 @@ class ClearEgressHandoverTests(unittest.TestCase):
     def test_terminal_hold_contains_only_actual_settlements_and_cleans_diverted_leases(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         finish = source.split('private _handbacks=[];',1)[1].split('if (_reason == "NEW_ORDER"',1)[0]
-        movement = finish.split('if (_restore && {[_x] call _actorTaskFree}',1)[1].split('_x setVariable ["WAIT_Cortex_ClearForcedSpeed",nil,true]',1)[0]
+        movement = finish.split('if (_restore && {[_x] call _actorTaskFree}',1)[1].split('_x setVariable ["CBE_Cortex_ClearForcedSpeed",nil,true]',1)[0]
         self.assertIn('!(_x in (_job getOrDefault ["egressDiverted",[]]))',movement)
         self.assertLess(movement.index('doStop _x'),movement.index('_settled pushBackUnique _x'))
         loop = finish.split('} forEach ',1)[1].split(';',1)[0]
         self.assertNotIn('egressDiverted',loop)
         hold = finish.split('if (_reason == "COMPLETE" && {_restore}',1)[1]
         self.assertIn('_settled isNotEqualTo []',hold)
-        self.assertIn('WAIT_fnc_NativeOrderReceipt,+_settled]',hold)
-        self.assertIn('WAIT_Cortex_ClearEarlyExits",nil,true',finish)
+        self.assertIn('CBE_fnc_NativeOrderReceipt,+_settled]',hold)
+        self.assertIn('CBE_Cortex_ClearEarlyExits",nil,true',finish)
         release = (ROOT / 'addons/infantry/functions/cortexClearRelease.sqf').read_text(encoding='utf-8')
-        self.assertIn('WAIT_Cortex_ClearEarlyExits",nil,true',release)
+        self.assertIn('CBE_Cortex_ClearEarlyExits",nil,true',release)
 
     def test_transition_preserves_replacement_before_first_exit_order(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
@@ -61,10 +61,10 @@ class ClearEgressHandoverTests(unittest.TestCase):
                       'waypointScript _waypoint == ""','waypointTimeout',
                       'synchronizedWaypoints','synchronizedTriggers','waypointAttachedObject',
                       'currentCommand _actor == "STOP"','_actor in _settled',
-                      'WAIT_fnc_NativeOrderReceipt','WAIT_BuildingBrain','WAIT_Operation',
-                      'WAIT_fnc_CortexExternalTakeover'):
+                      'CBE_fnc_NativeOrderReceipt','CBE_BuildingBrain','CBE_Operation',
+                      'CBE_fnc_CortexExternalTakeover'):
             self.assertIn(guard,block)
-        self.assertLess(s.index('call WAIT_fnc_OperationRelease'),s.index('// A natural clear is an interruption'))
+        self.assertLess(s.index('call CBE_fnc_OperationRelease'),s.index('// A natural clear is an interruption'))
         self.assertLess(block.index('[_leader] call _mayContinue'),block.index('_leader doMove'))
         self.assertLess(block.index('[_x] call _mayContinue'),block.index('_x doFollow'))
         for forbidden in ('addWaypoint','deleteWaypoint','setCurrentWaypoint','enableAI','setPos'):
@@ -79,9 +79,9 @@ class ClearEgressHandoverTests(unittest.TestCase):
                        'BUILD-CONTINUE-clearance-complete','BUILD-CONTINUE-physical-room-coverage','BUILD-CONTINUE-original-route-physical',
                        'BUILD-CONTINUE-authored-route-retained','FiredMan','"Killed"'):
             self.assertIn(marker,case)
-        observation=case.split('// Enable real casualty resolution',1)[1].split('call WAIT_fnc_CortexClearRelease',1)[0]
+        observation=case.split('// Enable real casualty resolution',1)[1].split('call CBE_fnc_CortexClearRelease',1)[0]
         for command in (' doMove ', ' doFollow ', 'addWaypoint','setCurrentWaypoint',
-                        'call WAIT_fnc_CortexClearBuilding',' setDamage ', ' setPos', ' reveal '):
+                        'call CBE_fnc_CortexClearBuilding',' setDamage ', ' setPos', ' reveal '):
             self.assertNotIn(command,observation)
         self.assertIn('_x distance2D _origin < 25',observation)
         self.assertIn('distance2D _routeDestination) < 20',observation)

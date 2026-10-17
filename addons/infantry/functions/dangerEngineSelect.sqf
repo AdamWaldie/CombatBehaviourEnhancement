@@ -8,7 +8,7 @@
  * Arguments: 0: engine danger records <ARRAY>, [].
  * Return Value: Array - selected [cause, position, expiry, source] record, or [].
  * Current callers: Engine-loaded infantry danger FSM.
- * Example: [[[2,getPosATL player,time + 1,objNull]]] call WAIT_fnc_DangerEngineSelect;
+ * Example: [[[2,getPosATL player,time + 1,objNull]]] call CBE_fnc_DangerEngineSelect;
  */
 
 params [["_records",[],[[]]]];

@@ -9,8 +9,8 @@
  * Arguments: actor OBJECT objNull, contact OBJECT objNull, believed ATL ARRAY [], building OBJECT objNull.
  * Return: ARRAY [ISSUE or OBSERVE STRING, native intent STRING, native destination ARRAY,
  * bound native-known contact OBJECT], or [] for protected/unknown context. Metadata is not access proof.
- * Current caller: WAIT_fnc_IndoorActorOperation admission and pre-command validation.
- * Example: private _context=[soldier1,enemy1,[100,100,2],house1] call WAIT_fnc_IndoorActorNativeContext;
+ * Current caller: CBE_fnc_IndoorActorOperation admission and pre-command validation.
+ * Example: private _context=[soldier1,enemy1,[100,100,2],house1] call CBE_fnc_IndoorActorNativeContext;
  */
 params [["_actor",objNull,[objNull]],["_contact",objNull,[objNull]],
     ["_belief",[],[[]]],["_building",objNull,[objNull]]];
@@ -42,7 +42,7 @@ private _index=currentWaypoint _group;
 private _authored=_index > 0 && {_index < count waypoints _group};
 private _waypoint=[_group,_index];
 if (_authored && {waypointType _waypoint != "MOVE" || {waypointScript _waypoint != ""}
-    || {waypointDescription _waypoint == "WAIT AI PASS"}
+    || {waypointDescription _waypoint == "CBE AI PASS"}
     || {(waypointStatements _waypoint) isNotEqualTo ["true",""]}
     || {(waypointTimeout _waypoint) findIf {_x != 0} >= 0}
     || {synchronizedWaypoints _waypoint isNotEqualTo []}

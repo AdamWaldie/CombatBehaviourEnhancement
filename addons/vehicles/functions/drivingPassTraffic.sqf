@@ -18,7 +18,7 @@
  * Approaching risk uses actual velocity and a finite constant-course estimate, not an assumption
  * that another driver yields. Curved/future traffic still requires runtime collision/abort checks.
  * Current callers: DrivingPassPrepare/Step/Begin and trusted preflight; automatic admission remains experimental.
- * Example: private _traffic=[_proposal] call WAIT_fnc_DrivingPassTraffic;
+ * Example: private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
  */
 params [["_proposal",createHashMap,[createHashMap]]];
 private _fail={params ["_reason",["_count",0]];createHashMapFromArray [["status","REFUSED"],
@@ -29,7 +29,7 @@ private _context=_proposal getOrDefault ["context",[]];
 private _observed=_proposal getOrDefault ["observedAt",-1];
 private _current={_observed isEqualType 0 && {finite _observed} && {serverTime >= _observed}
     && {serverTime-_observed <= 2} && {_context isNotEqualTo []}
-    && {([_vehicles] call WAIT_fnc_DrivingPassContext) isEqualTo _context}};
+    && {([_vehicles] call CBE_fnc_DrivingPassContext) isEqualTo _context}};
 if !(call _current) exitWith {["STALE_CONTEXT"] call _fail};
 private _vehicle=_vehicles select 0;private _front=_vehicles select 1;
 if (!local _vehicle) exitWith {["OWNER_UNAVAILABLE"] call _fail};

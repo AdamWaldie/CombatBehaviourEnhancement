@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Convert one bounded engine danger queue into WAIT group danger observations.
+ * Purpose: Convert one bounded engine danger queue into CBE group danger observations.
  * Locality / Authority: Runs unscheduled on the machine local to the affected AI soldier. It records
  * causes and approximate positions only; it never reveals, targets, moves or changes the actor.
  * Repeat/JIP: Safe to repeat. A valid first observation may install the group's bounded contact
@@ -14,18 +14,18 @@
  * Return Value: Boolean - true when at least one valid record was processed for a local reflex or
  * group handoff. Reflex-only records do not start the group brain.
  * Current callers: Engine-loaded infantry danger FSM.
- * Example: [cursorObject,[[2,getPosATL cursorObject,time + 1,objNull]],"IMMEDIATE"] call WAIT_fnc_DangerEngineSubmit;
+ * Example: [cursorObject,[[2,getPosATL cursorObject,time + 1,objNull]],"IMMEDIATE"] call CBE_fnc_DangerEngineSubmit;
  */
 
 params [['_actor',objNull,[objNull]],['_records',[],[[]]],['_mode','ASSESS',['']]];
-if (isNull _actor || {!local _actor} || {!([_actor] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _actor}
-    || {[_actor] call WAIT_fnc_CompatibilityExternalControl}) exitWith {false};
+if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor}
+    || {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
 private _group=group _actor;
 if (isNull _group || {!local _group}
-    || {!(missionNamespace getVariable ['WAIT_AIPass_Active',false])}
-    || {!([_group,'WAIT_AIPass_Danger_Enable',true] call WAIT_fnc_CortexFeatureEnabled)}
-    || {[_group,false,_actor] call WAIT_fnc_CortexExternalTakeover}
-    || {[] call WAIT_fnc_CortexIsPaused}) exitWith {false};
+    || {!(missionNamespace getVariable ['CBE_AIPass_Active',false])}
+    || {!([_group,'CBE_AIPass_Danger_Enable',true] call CBE_fnc_CortexFeatureEnabled)}
+    || {[_group,false,_actor] call CBE_fnc_CortexExternalTakeover}
+    || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
 
 // Preserve the engine distinction between losing a member of this group and finding another body.
 // Both are bounded alerts, but only the former may carry squad-casualty priority downstream.
@@ -88,28 +88,28 @@ private _reflexOnly=0;
 // A reflex-only record must not start a persistent group brain. Bootstrap the existing tactical
 // owner only when at least one observation is relevant to group combat planning.
 private _bootstrapped=false;
-if (count _latest > 0 && {!(_group getVariable ['WAIT_AIPass_Managed',false])}
-    && {[_group,false,true] call WAIT_fnc_CortexIsEligible}) then {
-    // A native danger callback can be the group's first WAIT contact before the sparse discovery
+if (count _latest > 0 && {!(_group getVariable ['CBE_AIPass_Managed',false])}
+    && {[_group,false,true] call CBE_fnc_CortexIsEligible}) then {
+    // A native danger callback can be the group's first CBE contact before the sparse discovery
     // sweep reaches it. Install the same repeat-safe group observer before publishing the brain so
     // later native EnemyDetected transitions retain their real witness and cannot fall into the
     // discovery interval. DangerSetup adds one group handler and never starts a second worker.
-    [_group] call WAIT_fnc_DangerSetup;
-    _bootstrapped=[_group,true] call WAIT_fnc_GroupBrainStart;
+    [_group] call CBE_fnc_DangerSetup;
+    _bootstrapped=[_group,true] call CBE_fnc_GroupBrainStart;
 };
-private _groupReady=_group getVariable ['WAIT_AIPass_Managed',false];
+private _groupReady=_group getVariable ['CBE_AIPass_Managed',false];
 private _accepted=false;
 private _acceptedCauses=[];
 if (_groupReady) then {
     {
-        if ([_actor,_x,_latest get _x,_latestSource getOrDefault [_x,objNull]] call WAIT_fnc_DangerRequest) then {
+        if ([_actor,_x,_latest get _x,_latestSource getOrDefault [_x,objNull]] call CBE_fnc_DangerRequest) then {
             _accepted=true;
             _acceptedCauses pushBack _x;
         };
     } forEach (keys _latest);
 };
 if (_processed) then {
-    private _stats=_group getVariable ['WAIT_Danger_EngineStats',createHashMap];
+    private _stats=_group getVariable ['CBE_Danger_EngineStats',createHashMap];
     _stats set ['submissions',((_stats getOrDefault ['submissions',0])+1) min 100000];
     _stats set ['acceptedRecords',((_stats getOrDefault ['acceptedRecords',0])+count _acceptedCauses) min 100000];
     _stats set ['reflexOnlyRecords',((_stats getOrDefault ['reflexOnlyRecords',0])+_reflexOnly) min 100000];
@@ -118,12 +118,12 @@ if (_processed) then {
     if (_bootstrapped) then {
         _stats set ['bootstraps',((_stats getOrDefault ['bootstraps',0])+1) min 100000];
     };
-    _group setVariable ['WAIT_Danger_EngineStats',_stats];
+    _group setVariable ['CBE_Danger_EngineStats',_stats];
 };
 if (_accepted) then {
-    private _count=_group getVariable ['WAIT_Danger_EngineEvents',0];
-    _group setVariable ['WAIT_Danger_EngineEvents',(_count + 1) min 100000];
-    _group setVariable ['WAIT_Danger_EngineLastAt',time];
+    private _count=_group getVariable ['CBE_Danger_EngineEvents',0];
+    _group setVariable ['CBE_Danger_EngineEvents',(_count + 1) min 100000];
+    _group setVariable ['CBE_Danger_EngineLastAt',time];
 };
 // The engine FSM may still execute the selected local reflex when no group observation was
 // submitted. Returning false here would turn known-friendly near fire into RELEASE and suppress

@@ -28,7 +28,7 @@
  * querying. Faster approaching traffic and unusually large modded hulls remain limitations.
  * This observation horizon does not establish a physical stopping-distance guarantee.
  * Current callers: DrivingAssistStart and ConvoyTick through their finite operation schedulers.
- * Example: private _traffic = [truck1,20] call WAIT_fnc_DrivingFollowingCap;
+ * Example: private _traffic = [truck1,20] call CBE_fnc_DrivingFollowingCap;
  */
 params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]]];
 _requested=(_requested max 0) min 35;

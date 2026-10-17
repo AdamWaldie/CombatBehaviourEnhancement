@@ -4,9 +4,9 @@ import argparse
 import json
 import re
 
-CASE = re.compile(r"WAIT CORTEX QA\|([^|]+)\|(PASS|FAIL)\|([^\r\n]*)")
-DONE = re.compile(r"WAIT CORTEX QA (SERVER|CLIENT) COMPLETE: (\d+) finding")
-SOURCE = re.compile(r"WAIT CORTEX QA SOURCE\|fingerprint=([0-9a-f]{64})", re.I)
+CASE = re.compile(r"CBE CORTEX QA\|([^|]+)\|(PASS|FAIL)\|([^\r\n]*)")
+DONE = re.compile(r"CBE CORTEX QA (SERVER|CLIENT) COMPLETE: (\d+) finding")
+SOURCE = re.compile(r"CBE CORTEX QA SOURCE\|fingerprint=([0-9a-f]{64})", re.I)
 ERROR = re.compile(r"Error in expression|Error position:|Error Undefined variable|Error Missing|Error Params:|Error Type |Error Generic error|Error Zero divisor", re.I)
 FATAL_RUNTIME_ERROR = re.compile(
     r"DX11 - device removed - reason:|ErrorMessage:\s*DX11|Exception code:\s*[0-9A-F]+",
@@ -28,10 +28,10 @@ KNOWN_CHARACTER_WARNING = re.compile(
     r"that has been deleted\.(?:\\n|\s+)?a3_characters_f\s*$", re.I,
 )
 CHARACTER_PRESENT = re.compile(
-    r'WAIT AUDIT DEPENDENCIES\|[^\r\n]*\["A3_Characters_F",true\][^\r\n]*\|observerClass=true', re.I,
+    r'CBE AUDIT DEPENDENCIES\|[^\r\n]*\["A3_Characters_F",true\][^\r\n]*\|observerClass=true', re.I,
 )
 CHARACTER_ACTIVATED = re.compile(
-    r'WAIT AUDIT ADDON ACTIVATION\|[^\r\n]*\["A3_Characters_F",true\]', re.I,
+    r'CBE AUDIT ADDON ACTIVATION\|[^\r\n]*\["A3_Characters_F",true\]', re.I,
 )
 
 def summarize(logs):
@@ -46,7 +46,7 @@ def summarize(logs):
     evidence_logs = set()
     for name, content in logs.items():
         normalized = content.replace('""', '"')
-        character_ready = bool(CHARACTER_PRESENT.search(normalized)) and bool(CHARACTER_ACTIVATED.search(normalized)) and 'WAIT AUDIT OBSERVER ZEUS READY' in content
+        character_ready = bool(CHARACTER_PRESENT.search(normalized)) and bool(CHARACTER_ACTIVATED.search(normalized)) and 'CBE AUDIT OBSERVER ZEUS READY' in content
         fingerprints = {match.group(1).lower() for match in SOURCE.finditer(content)}
         if fingerprints:
             source_fingerprints[name] = sorted(fingerprints)
@@ -191,7 +191,7 @@ def staged_mission_path(root, manifest):
     world = manifest.get('world', 'VR')
     if world not in ('VR', 'Altis'):
         raise ValueError('Unsupported audit world in manifest')
-    mission = root / ('WAIT_Audit.' + world)
+    mission = root / ('CBE_Audit.' + world)
     if not mission.is_dir():
         raise ValueError('Staged audit mission directory is missing')
     return mission
@@ -212,7 +212,7 @@ def main():
         report['focus']=manifest['focus']
         report['package_commit']=manifest['package']['commit']
         try:
-            identity=verify(root/'@WaldosAITweaks')
+            identity=verify(root/'@CBE')
             if identity['fingerprint'] != manifest['package']['fingerprint'] or identity['fingerprint'] != report['source_fingerprint']:
                 raise ValueError('RPT, package and audit manifest identity disagree')
             mission=staged_mission_path(root, manifest)

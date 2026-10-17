@@ -10,11 +10,11 @@
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 route <ARRAY, []>.
  * Return Value: BOOL - current ordinary route/owned alternate command intent, not gate clearance.
  * Current callers: DrivingGateRequest, DrivingGateOpenServer and DrivingPassCanConsent, ordinary mode only.
- * Example: private _allowed=[group driver truck1,truck1,_route] call WAIT_fnc_DrivingGateIntent;
+ * Example: private _allowed=[group driver truck1,truck1,_route] call CBE_fnc_DrivingGateIntent;
  */
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],["_route",[],[[]]]];
 if (isNull _group || {isNull _vehicle} || {_route isEqualTo []}
-    || {([_group] call WAIT_fnc_DrivingRouteReceipt) isNotEqualTo _route}) exitWith {false};
+    || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}) exitWith {false};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _operator) then {_operator=_driver};
 if (isNull _driver || {isNull _operator}) exitWith {false};
@@ -41,17 +41,17 @@ private _alternate=false;
         && {(_work getOrDefault ["operator",objNull]) == _operator}
         && {(expectedDestination _driver) isEqualTo (_work getOrDefault ["driverCommand",[]])}
         && {(expectedDestination _operator) isEqualTo (_work getOrDefault ["command",[]])}
-        && {_variable != "WAIT_DrivingBypass_Work" || {
+        && {_variable != "CBE_DrivingBypass_Work" || {
             (toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])
                 && {(toUpperANSI currentCommand _operator) == (_work getOrDefault ["operatorTask","__MISSING__"])}
         }}
         && {[_driver,_operator] findIf {!(toUpperANSI currentCommand _x in ["","STOP","MOVE","WAIT"])} < 0}) exitWith {
         _alternate=true;
     };
-} forEach [["WAIT_DrivingBypass_Work","FOLLOW"],["WAIT_DrivingCorridor_Work","CROSS"]];
+} forEach [["CBE_DrivingBypass_Work","FOLLOW"],["CBE_DrivingCorridor_Work","CROSS"]];
 // Corridor approach owns the operator's alternate MOVE but has not acquired STOP.
 // Its separate driver must still retain idle/plain-route intent.
-private _approach=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
+private _approach=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
 if (!_alternate && {(_approach getOrDefault ["group",grpNull]) == _group}
     && {(_approach getOrDefault ["controller",[]]) isEqualTo ["ORDINARY",-1]}
     && {(_approach getOrDefault ["phase",""]) == "APPROACH"}

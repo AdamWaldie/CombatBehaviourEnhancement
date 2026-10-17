@@ -14,11 +14,11 @@ class StandalonePerformanceReportTests(unittest.TestCase):
                       headlessClients=0,performance_composition='infantry',dependencySources=['cba'],package=dict(dirty=False,fingerprint='a'*64),
                       mission_files={'mission.sqm':'b'*64,'cortexQAStandalonePerformance.sqf':'c'*64})
         (folder/'audit-manifest.json').write_text(json.dumps(manifest))
-        identity=[loaded,'z/wait/danger/danger.fsm' if loaded else 'native.fsm',50,300,'INFANTRY_PATROL',2]
+        identity=[loaded,'z/cbe/addons/danger/danger.fsm' if loaded else 'native.fsm',50,300,'INFANTRY_PATROL',2]
         result=[loaded,True,1000,10,20,30,50,300,50,1,True]
-        text='WAIT STANDALONE PERF IDENTITY: '+json.dumps(identity)+'\n'
-        text+='WAIT STANDALONE PERF COMPOSITION: [50,50,0,0,0,0]\n'
-        text+='WAIT STANDALONE PERF RESULT: '+json.dumps(result)+'\nWAIT STANDALONE PERF COMPLETE\n'
+        text='CBE STANDALONE PERF IDENTITY: '+json.dumps(identity)+'\n'
+        text+='CBE STANDALONE PERF COMPOSITION: [50,50,0,0,0,0]\n'
+        text+='CBE STANDALONE PERF RESULT: '+json.dumps(result)+'\nCBE STANDALONE PERF COMPLETE\n'
         (folder/'server/run.rpt').write_text(text)
         return read_run(folder)
 
@@ -66,7 +66,7 @@ class StandalonePerformanceReportTests(unittest.TestCase):
             self.fixture(folder,False)
             log=folder/'server/run.rpt'
             text=log.read_text()
-            log.write_text(text.replace('WAIT STANDALONE PERF COMPLETE',''))
+            log.write_text(text.replace('CBE STANDALONE PERF COMPLETE',''))
             with self.assertRaises(ValueError): read_run(folder)
             log.write_text(text.replace('50, 300, 50, 1, true','50, 300, 50, 1, false'))
             with self.assertRaises(ValueError): read_run(folder)
@@ -92,8 +92,8 @@ class StandalonePerformanceReportTests(unittest.TestCase):
             self.fixture(folder,False)
             log=folder/'server/run.rpt'
             original=log.read_text()
-            marker='WAIT STANDALONE PERF COMPOSITION: [50,50,0,0,0,0]\n'
-            for replacement in ['', 'WAIT STANDALONE PERF COMPOSITION: [50,49,1,0,0,0]\n']:
+            marker='CBE STANDALONE PERF COMPOSITION: [50,50,0,0,0,0]\n'
+            for replacement in ['', 'CBE STANDALONE PERF COMPOSITION: [50,49,1,0,0,0]\n']:
                 log.write_text(original.replace(marker,replacement))
                 with self.assertRaises(ValueError): read_run(folder)
 
@@ -135,7 +135,7 @@ class StandalonePerformanceReportTests(unittest.TestCase):
             folder=Path(directory)/'native'
             self.fixture(folder,False)
             path=folder/'server/run.rpt';original=path.read_text()
-            marker='WAIT STANDALONE PERF RESULT: '
+            marker='CBE STANDALONE PERF RESULT: '
             row=json.loads(next(line.split(marker)[1] for line in original.splitlines() if marker in line))
             invalid=[None,{},'not a result']
             for index in (2,3,4,5,6,7,8,9):

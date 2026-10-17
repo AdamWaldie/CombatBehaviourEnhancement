@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Owner execution preserves unknown/malformed actor reservations through the shared strict predicate.
- * Releases only the current WAIT support assignment when it expires, is revoked or loses every
+ * Releases only the current CBE support assignment when it expires, is revoked or loses every
  * feature gate capable of owning it. A mode must remain enabled at both ends of the reservation;
  * independent requester/responder checks could otherwise preserve a lease whose next state no
  * longer existed. Disabling reinforcement still cannot cancel a shared coordinated assault.
@@ -31,16 +31,16 @@
  * Arguments: 0: group <GROUP>; 1: local state <HASHMAP>.
  * Return Value: Nothing.
  * Current callers: GroupTick.
- * Example: [_group, _state] call WAIT_fnc_CortexSupportMaintain;
+ * Example: [_group, _state] call CBE_fnc_CortexSupportMaintain;
  * Result: the active assignment advances, holds, or releases without competing movement owners.
  */
 params ["_group","_state"];
 if (!local _group) exitWith {};
 // The reservation may expire in the same scheduler turn that Zeus or another
-// controller claims the group. Retire WAIT's lease either way. A normal feature
+// controller claims the group. Retire CBE's lease either way. A normal feature
 // shutdown still restores the support hold; only an actual replacement owner keeps
 // the saved combat permissions and follower commands out of its task.
-private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;
+private _externalTakeover = [_group] call CBE_fnc_CortexExternalTakeover;
 private _mayRestoreGroup=!_externalTakeover;
 private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
@@ -48,7 +48,7 @@ private _movementLeaseActive = count _movementLease == 2 && {time < (_movementLe
     switch (_movementOwner) do {
         case "SUPPORT_RALLY": {
             (waypoints _group) findIf {
-                (_x select 1) >= currentWaypoint _group && {waypointDescription _x == "WAIT AI PASS"}
+                (_x select 1) >= currentWaypoint _group && {waypointDescription _x == "CBE AI PASS"}
             } >= 0
         };
         case "COORDINATED_ASSAULT": {_state getOrDefault ["assaulting",false]};
@@ -60,9 +60,9 @@ private _token = _state getOrDefault ["supportToken",""];
 if (_token == "") exitWith {
     // A locality/checkpoint loss can leave the public movement lease after the local support token.
     // There is no remaining Cortex assignment to own movement, so return it immediately.
-    private _dangerLease = _group getVariable ["WAIT_Cortex_OwnershipLease",[]];
+    private _dangerLease = _group getVariable ["CBE_Cortex_OwnershipLease",[]];
     if (count _dangerLease == 3 && {(_dangerLease select 0) == "SUPPORT"}) then {
-        [_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
+        [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     };
 };
 private _operationGeneration=_state getOrDefault ["supportOperationGeneration",-1];
@@ -70,9 +70,9 @@ private _finishOperation={
     params ["_result","_reason"];
     if (_operationGeneration >= 0) then {
         if (_result == "COMPLETE") then {
-            [_group,_operationGeneration,"COMPLETE",_reason] call WAIT_fnc_OperationRelease;
+            [_group,_operationGeneration,"COMPLETE",_reason] call CBE_fnc_OperationRelease;
         } else {
-            [_group,_operationGeneration,_reason] call WAIT_fnc_OperationCancel;
+            [_group,_operationGeneration,_reason] call CBE_fnc_OperationCancel;
         };
     };
     _state deleteAt "supportOperationGeneration";
@@ -81,14 +81,14 @@ private _restoreAttack={
     if (_mayRestoreGroup && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
     _state deleteAt "attackChanged"; _state deleteAt "baseAttack";
 };
-private _lease = _group getVariable ["WAIT_AIPass_SupportLease",[]];
+private _lease = _group getVariable ["CBE_AIPass_SupportLease",[]];
 private _requester = _lease param [1,grpNull,[grpNull]];
 private _sharedReinforce = !isNull _requester
-    && {[_requester,"WAIT_AIPass_Reinforce_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-    && {[_group,"WAIT_AIPass_Reinforce_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
+    && {[_requester,"CBE_AIPass_Reinforce_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+    && {[_group,"CBE_AIPass_Reinforce_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 private _sharedCoordinated = !isNull _requester
-    && {[_requester,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-    && {[_group,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
+    && {[_requester,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+    && {[_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 private _supportEnabled = _sharedReinforce || {_sharedCoordinated};
 private _releaseSupport={
     params [["_reason","SUPPORT_RELEASED"]];
@@ -96,45 +96,45 @@ private _releaseSupport={
     // Waiting for its queued callback leaves an old drill blocking SupportBoundStart.
     private _outgoingDrill=_state getOrDefault ["drill",createHashMap];
     if ((_outgoingDrill getOrDefault ["supportToken",""]) == _token) then {
-        [_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd;
+        [_group,_state,"ROLE_HANDOVER"] call CBE_fnc_CortexFlankEnd;
     };
     // Reject only the exact lease snapshot accepted by this owner. The server validates token,
     // snapshot and sender again, making repeated cleanup and a racing replacement lease harmless.
     if (count _lease == 6 && {_token == (_lease select 0)}) then {
-        [_group,_token,false,_lease,clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAck",2];
+        [_group,_token,false,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
     };
     // Delete only this support assignment's route. A later withdrawal, vehicle
     // manoeuvre, artillery scoot or tactical drill survives stale support cleanup.
     if (_operationGeneration >= 0
         && {(_supportOwnsMovement || {!_movementLeaseActive})}
         && {_state getOrDefault ["responding",false] || {_state getOrDefault ["assaulting",false]}}) then {
-        [_group,_operationGeneration] call WAIT_fnc_CortexGroupMoveClear;
+        [_group,_operationGeneration] call CBE_fnc_CortexGroupMoveClear;
     };
     if (_supportOwnsMovement) then {_state deleteAt "movementLease"};
     ["CANCELLED",_reason] call _finishOperation;
-    [_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
+    [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     call _restoreAttack;
     {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling"];
 };
 // The cached operation step is intentionally infrequent. A curator or specialist can claim this
 // group between those steps, so retire the matching support lease before any covering hold or bound
 // setup below is allowed to write movement. Release observes _mayRestoreGroup and therefore never
-// restores WAIT's former command over the new owner.
+// restores CBE's former command over the new owner.
 if (_externalTakeover) exitWith {
     ["EXTERNAL"] call _releaseSupport;
 };
-private _abort = _group getVariable ["WAIT_Cortex_SupportAbort",[]];
+private _abort = _group getVariable ["CBE_Cortex_SupportAbort",[]];
 if (count _abort == 4 && {(_abort select 0) == _token}) exitWith {
-    _group setVariable ["WAIT_Cortex_SupportAbort",nil,true];
+    _group setVariable ["CBE_Cortex_SupportAbort",nil,true];
     ["SERVER_RETIREMENT"] call _releaseSupport;
 };
 if (_lease isEqualTo [] || {(_lease select 0) != _token} || {serverTime >= (_lease select 2)}
-    || {!([_group,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
+    || {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {!_supportEnabled}) exitWith {
     ["LEASE_EXPIRED"] call _releaseSupport
 };
 
-if (_state getOrDefault ["assaulting",false] && {!([_group,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {
+if (_state getOrDefault ["assaulting",false] && {!([_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {
     ["FEATURE_DISABLED"] call _releaseSupport
 };
 
@@ -143,7 +143,7 @@ if (_state getOrDefault ["assaulting",false] && {!([_group,"WAIT_AIPass_Coordina
 // clears the matching token and never restores an older route.
 private _operationEndReason="";
 if (_operationGeneration >= 0) then {
-    private _operationState=[_group,_operationGeneration,3,30,true] call WAIT_fnc_OperationStep;
+    private _operationState=[_group,_operationGeneration,3,30,true] call CBE_fnc_OperationStep;
     if (_operationState in ["ZEUS","EXTERNAL","LOST_OWNER","REPLACED"]) then {
         _operationEndReason=_operationState;
     };
@@ -163,32 +163,32 @@ if ((_state getOrDefault ["supportToken",""]) == _token
     && {!(_state getOrDefault ["assaulting",false])}
     && {(_state getOrDefault ["arrivedAt",-1]) < 0}
     && {count _lease == 6}) then {
-    private _fit=(units _group) select {[_x] call WAIT_fnc_CortexCombatEffective};
+    private _fit=(units _group) select {[_x] call CBE_fnc_CortexCombatEffective};
     if (count _fit >= 3 && {_fit findIf {_x distance2D (_lease select 3) > 45} < 0}) then {
         _state set ["arrivedAt",time];
     };
 };
 
 // Server roles own inter-squad timing; the existing drill owns the two local fire teams.
-private _role=_group getVariable ["WAIT_Cortex_SupportRole",[]];
+private _role=_group getVariable ["CBE_Cortex_SupportRole",[]];
 private _coordinating=(_state getOrDefault ["supportToken",""]) == _token
     && {_state getOrDefault ["assaulting",false]} && {count _role == 5} && {(_role select 0) == _token};
 private _moving=_coordinating && {(_role select 2) == "MOVE"};
 // Retain cleanup for holds created by an older packaged version. New cover roles use doStop only.
 private _held=_state getOrDefault ["supportHeld",[]];
 {
-    if (_x getVariable ["WAIT_Cortex_SupportPathHold",false]) then {_held pushBackUnique _x};
+    if (_x getVariable ["CBE_Cortex_SupportPathHold",false]) then {_held pushBackUnique _x};
 } forEach units _group;
 private _newMove=_moving && {(_state getOrDefault ["supportBoundSequence",-1]) != (_role select 1)};
 if (_newMove || {!_coordinating}) then {
     _state deleteAt "supportCoverIdentity";
     {
-        if (local _x && {group _x == _group}) then {_x setVariable ["WAIT_Cortex_SupportPathHold",nil,true]};
+        if (local _x && {group _x == _group}) then {_x setVariable ["CBE_Cortex_SupportPathHold",nil,true]};
         if (local _x && {group _x == _group} && {!isPlayer _x}
-            && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}) then {
+            && {isNull (remoteControlled _x)} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}) then {
             _x enableAI "PATH";
-            _x setVariable ["WAIT_Cortex_SupportPathHold",nil,true];
+            _x setVariable ["CBE_Cortex_SupportPathHold",nil,true];
             // supportHeld is the ownership record. Combat can relabel our doStop
             // as ATTACK or FIRE without cancelling it, so currentCommand == STOP
             // is not a valid ownership check. Preserve commands which cannot be a
@@ -208,17 +208,17 @@ if (_coordinating) then {
             // ownership edge into NOT_READY or consume the sequence; the existing server
             // bound deadline still applies and this allowance lasts at most five seconds.
             private _settling=_state getOrDefault ["supportBoundSettling",[]];
-            private _settleIdentity=[_token,_role select 1,_group getVariable ["WAIT_AIPass_Epoch",0]];
+            private _settleIdentity=[_token,_role select 1,_group getVariable ["CBE_AIPass_Epoch",0]];
             if (count _settling != 2 || {(_settling select 0) isNotEqualTo _settleIdentity}) then {
                 _settling=[_settleIdentity,serverTime+5];
                 _state set ["supportBoundSettling",_settling];
             };
             private _localityPending=(units _group) findIf {alive _x && {!local _x}} >= 0;
             if (!_localityPending || {serverTime >= (_settling select 1)}) then {
-            private _started=[_group,_state,_role] call WAIT_fnc_CortexSupportBoundStart;
+            private _started=[_group,_state,_role] call CBE_fnc_CortexSupportBoundStart;
             if (!_started) then {
                 _state set ["supportBoundSequence",_role select 1];
-                _group setVariable ["WAIT_Cortex_SupportBoundResult",
+                _group setVariable ["CBE_Cortex_SupportBoundResult",
                     [_token,_role select 1,"NOT_READY"],true];
             };
             _state deleteAt "supportBoundSettling";
@@ -227,24 +227,24 @@ if (_coordinating) then {
     } else {
         _state deleteAt "supportBoundSettling";
         private _drill=_state getOrDefault ["drill",createHashMap];
-        if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd};
+        if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ROLE_HANDOVER"] call CBE_fnc_CortexFlankEnd};
         private _coverIdentity=[_token,_role select 1];
         if ((_state getOrDefault ["supportCoverIdentity",[]]) isNotEqualTo _coverIdentity) then {
-            private _coverOperation=_group getVariable ["WAIT_Operation",createHashMap];
+            private _coverOperation=_group getVariable ["CBE_Operation",createHashMap];
             if ((_coverOperation getOrDefault ["generation",-2]) == _operationGeneration
-                && {(_coverOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_coverOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
                 && {(_coverOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}) then {
                 _coverOperation set ["phase","SUPPORT"];
-                _group setVariable ["WAIT_Operation",_coverOperation,true];
+                _group setVariable ["CBE_Operation",_coverOperation,true];
             };
             {
                 if (local _x && {group _x == _group} && {isNull objectParent _x}
-                    && {[_x] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _x}
-                    && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-                    && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+                    && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x}
+                    && {isNull (remoteControlled _x)} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+                    && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                     && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
                     && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
-                    && {!([_x] call WAIT_fnc_CortexActorMoveReserved)}) then {
+                    && {!([_x] call CBE_fnc_CortexActorMoveReserved)}) then {
                     doStop _x;
                 };
             } forEach units _group;

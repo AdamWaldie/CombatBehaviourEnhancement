@@ -10,7 +10,7 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIndoorNatural.sqf";
  */
 params ["_check","_phase","_wait"];
-if (!isServer || {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]}) exitWith {
+if (!isServer || {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]}) exitWith {
     ["INDOOR-NATURAL-normal-prerequisite",false] call _check;
 };
 private _site=[9000,9800,0];
@@ -37,22 +37,22 @@ if (_rooms isEqualTo []) exitWith {deleteVehicle _house};
 private _group=createGroup [east,true];
 private _enemyGroup=createGroup [west,true];
 {
-    _x setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _x setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _x setVariable ["acex_headless_blacklist",true,true];
 } forEach [_group,_enemyGroup];
-_enemyGroup setVariable ["WAIT_AI_Exclude",true,true];
+_enemyGroup setVariable ["CBE_AI_Exclude",true,true];
 _group setCombatMode "YELLOW";
 private _actors=[];
 for "_i" from 0 to 1 do {
     private _actor=_group createUnit ["O_Soldier_F",_site vectorAdd [-4+_i*5,-30,0],[],0,"NONE"];
     _actor allowDamage false;
-    _actor setVariable ["WAIT_CortexQA_Label",format ["NATURAL entry %1",_i+1],true];
+    _actor setVariable ["CBE_CortexQA_Label",format ["NATURAL entry %1",_i+1],true];
     _actors pushBack _actor;
 };
 private _enemy=_enemyGroup createUnit ["B_Soldier_F",_rooms select 0,[],0,"CAN_COLLIDE"];
 _enemy allowDamage false;
-_enemy setVariable ["WAIT_CortexQA_Label","NATURAL hostile (invulnerable routing fixture)",true];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors+[_enemy],true];
+_enemy setVariable ["CBE_CortexQA_Label","NATURAL hostile (invulnerable routing fixture)",true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_actors+[_enemy],true];
 {_x addCuratorEditableObjects [[_house]+_actors+[_enemy],true]} forEach allCurators;
 private _starts=_actors apply {getPosATL _x};
 private _knowledge=[false,false];
@@ -82,9 +82,9 @@ private _complete=[{
     {
         private _index=_forEachIndex;
         if (_x knowsAbout _enemy >= 1) then {_knowledge set [_index,true]};
-        private _journal=_x getVariable ["WAIT_IndoorActor_Order",[]];
+        private _journal=_x getVariable ["CBE_IndoorActor_Order",[]];
         if (count _journal == 9) then {
-            private _brain=_x getVariable ["WAIT_IndoorActor_Brain",createHashMap];
+            private _brain=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
             if ((_brain getOrDefault ["contact",objNull]) == _enemy
                 && {(_brain getOrDefault ["building",objNull]) == _house}) then {
                 _admitted set [_index,true]; _generations set [_index,_journal select 0];
@@ -100,6 +100,6 @@ private _complete=[{
 ["INDOOR-NATURAL-physical-entry",_complete && {_visits findIf {!_x} < 0}
     && {_travel findIf {_x < 5} < 0},str [_visits,_travel]] call _check;
 ["INDOOR-NATURAL-server-owner",groupOwner _group == 2 && {_actors findIf {!local _x} < 0}] call _check;
-{["FINISH",_x,createHashMap] call WAIT_fnc_IndoorActorOperation; deleteVehicle _x} forEach _actors;
+{["FINISH",_x,createHashMap] call CBE_fnc_IndoorActorOperation; deleteVehicle _x} forEach _actors;
 deleteVehicle _enemy; deleteGroup _group; deleteGroup _enemyGroup; deleteVehicle _house;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];

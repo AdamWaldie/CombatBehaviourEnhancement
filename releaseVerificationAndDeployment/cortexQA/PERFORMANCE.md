@@ -4,9 +4,9 @@ The primary target is 50 AI groups without significant added cost versus the sam
 
 ## Baseline scope
 
-The current OFF/ON fixtures keep WAIT loaded in every arm. CBA's master gate changes runtime participation; it does not remove the addon configuration or restore the native danger FSM. These fixtures measure runtime-toggle cost and log the effective infantry danger path. Their measurements cannot establish total WAIT overhead versus native AI.
+The current OFF/ON fixtures keep CBE loaded in every arm. CBA's master gate changes runtime participation; it does not remove the addon configuration or restore the native danger FSM. These fixtures measure runtime-toggle cost and log the effective infantry danger path. Their measurements cannot establish total CBE overhead versus native AI.
 
-Full performance acceptance requires a separate matched launch without WAIT, using the same actors, routes, ownership, terrain, observation and sampling cost. The current runtime-toggle results remain useful diagnostics, but do not satisfy that comparison. This separate native baseline is still pending.
+Full performance acceptance requires a separate matched launch without CBE, using the same actors, routes, ownership, terrain, observation and sampling cost. The current runtime-toggle results remain useful diagnostics, but do not satisfy that comparison. This separate native baseline is still pending.
 
 ## Workloads
 
@@ -14,7 +14,7 @@ Full performance acceptance requires a separate matched launch without WAIT, usi
 - Run both a 50-squad infantry matrix and a 50-group mixed matrix containing infantry, ground vehicles, helicopters and jets.
 - Use idle, ordinary patrol and sustained contact workloads. Preserve the same composition, placement, route geometry, visibility, skill, feature configuration and ownership for paired runs.
 - Use fresh actors for each arm; warm up before sampling. Run OFF/ON/ON/OFF to expose order and warm-up effects, with at least three repeats before acceptance.
-- Exercise server ownership, WAIT HC distribution and ACE HC distribution separately. Record all owners and hardware. Local server/client/HC processes sharing one machine do not establish dedicated-host capacity.
+- Exercise server ownership, CBE HC distribution and ACE HC distribution separately. Record all owners and hardware. Local server/client/HC processes sharing one machine do not establish dedicated-host capacity.
 - Include near and far groups, mixed distances, and feature combinations. Passing by disabling the features under test is not acceptance.
 
 ## Measurements
@@ -27,13 +27,13 @@ The user-confirmed overhead budget is no more than 5% median and 10% p95 added f
 
 The existing twelve-group scheduler fixture demonstrates cheap queued movement and retirement only. Its actors have one soldier each and are excluded from normal Cortex discovery. It does not benchmark a hundred active Cortex groups.
 
-The scheduler has a soft budget between jobs. One running job can exceed that budget. While every queued job is waiting, the scheduler uses a cached earliest deadline and returns without traversing the queue; WAIT diagnostics compares that cache with the real earliest queued job and reports a consistency error if the cache could delay work. Due work now gets an opportunity every frame. This removes the earlier four-heavy-jobs-per-second ceiling while preserving the idle fast path and per-frame budget. Due-job processing still traverses the queue, so large jobs and repeated group/world scans need measured limits; the configured millisecond budget and idle fast path are not proof of bounded frame cost.
+The scheduler has a soft budget between jobs. One running job can exceed that budget. While every queued job is waiting, the scheduler uses a cached earliest deadline and returns without traversing the queue; CBE diagnostics compares that cache with the real earliest queued job and reports a consistency error if the cache could delay work. Due work now gets an opportunity every frame. This removes the earlier four-heavy-jobs-per-second ceiling while preserving the idle fast path and per-frame budget. Due-job processing still traverses the queue, so large jobs and repeated group/world scans need measured limits; the configured millisecond budget and idle fast path are not proof of bounded frame cost.
 
 The server patrol pilot is implemented in `runPerformance.sqf`, available through `-CortexFocus performance`. It creates 50 six-soldier groups for each OFF/ON/ON/OFF arm, warms up, then samples 60 seconds of server frame times. Every group must physically move; enabled arms require all 50 groups to remain managed and eligible. It checks baseline drift, the agreed median/p95 limits and a separate overdue-job bound. The earlier 100-group server pilot, runtime-20260927-085848, remains historical evidence: OFF samples were 21 ms median / 24 ms p95; ON samples were 21/25 and 21/24 ms, with all groups moving and a maximum observed job overdue age of 6.511 seconds. That result is not current 50-group acceptance and the routine full audit no longer repeats the saturated scale.
 
 The distributed contact arm is implemented in `runPerformanceContact.sqf` and selected with
 `-CortexFocus performancecontact -HeadlessClients 2`. It uses matched OFF/ON/ON/OFF arms with 50
-six-soldier manoeuvre groups divided across the server and both WAIT headless owners. Thirteen
+six-soldier manoeuvre groups divided across the server and both CBE headless owners. Thirteen
 interleaved groups receive real, stationary, invulnerable contacts while 37 execute matched movement.
 Every arm must retain its measured owner load, move at least 45 groups, consume live rifle ammunition
 in at least eight contact groups and bring at least ten contact groups into a physical response.
@@ -110,4 +110,4 @@ alongside them.
 
 The disposable mission init now explicitly compiles the distributed owner sampler/workload definitions on every machine. Previously the file was staged but had no initialization caller. Sampling, workloads and handlers still start only on a server request, and the three owner entry points reject other remote senders. This repairs the executable audit path; it does not validate any previous or future frame-time result. Fresh matched measurements remain required.
 
-Standalone report inputs require explicit boolean native/WAIT roles, a clean candidate with a full SHA-256 fingerprint and a SHA-256 mission inventory containing both the mission and standalone workload source. Counts must be integers and frame-time measurements finite positive numbers; JSON booleans are not measurements. Malformed provenance or result rows invalidate the comparison rather than earning budget credit. This validation is not runtime evidence or a substitute for repeated matched captures.
+Standalone report inputs require explicit boolean native/CBE roles, a clean candidate with a full SHA-256 fingerprint and a SHA-256 mission inventory containing both the mission and standalone workload source. Counts must be integers and frame-time measurements finite positive numbers; JSON booleans are not measurements. Malformed provenance or result rows invalidate the comparison rather than earning budget credit. This validation is not runtime evidence or a substitute for repeated matched captures.

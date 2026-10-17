@@ -8,7 +8,7 @@
  * when it genuinely owns an eligible aircraft. The cached deadline makes frames with no due work
  * constant-time. At least one due job runs
  * on a due frame; the rest run only while
- * WAIT_AIPass_TickBudgetMs remains. Jobs that do not fit wait for the next tick, which keeps
+ * CBE_AIPass_TickBudgetMs remains. Jobs that do not fit wait for the next tick, which keeps
  * new jobs from starting after the budget is spent. A running job cannot be pre-empted and can
  * exceed the budget. An earliest-due cache makes idle callbacks constant-time instead of traversing
  * the complete group queue. Wake requests raised during a callback are merged after traversal,
@@ -17,7 +17,7 @@
  * remains eligible for the next tick rather than being discarded by lifecycle reconciliation.
  * Due processing still traverses the queue once and
  * jobs move to the back, so no group is starved when the budget is always spent. When the machine's FPS is below
- * WAIT_AIPass_LowFpsThreshold, rescheduling delays are doubled. While ENDEX or SafeStart is
+ * CBE_AIPass_LowFpsThreshold, rescheduling delays are doubled. While ENDEX or SafeStart is
  * active, due jobs are postponed by five seconds and never run. The pause refreshes a one-minute
  * resumption grace used by tactical-drill watchdogs, so deferred work is not mistaken for starvation.
  * Locality and authority: machine-local. It performs no world scans. Changed restoration checkpoints are published after group jobs.
@@ -35,40 +35,40 @@
  * Nothing
  *
  * Example:
- * [] call WAIT_fnc_CortexSchedulerTick;
+ * [] call CBE_fnc_CortexSchedulerTick;
  * Result: due jobs run and are rescheduled or retired.
  *
- * Current caller: the shared per-frame handler installed by WAIT_fnc_SchedulerReconcile.
+ * Current caller: the shared per-frame handler installed by CBE_fnc_SchedulerReconcile.
  */
 
-if (!(missionNamespace getVariable ["WAIT_AIPass_Active", false])
-    && {!(missionNamespace getVariable ["WAIT_AI_RebalanceActive", false])}
-    && {!(missionNamespace getVariable ["WAIT_Convoy_SchedulerActive", false])}
-    && {!(missionNamespace getVariable ["WAIT_Aircraft_SchedulerActive", false])}) exitWith {};
-private _jobs = missionNamespace getVariable ["WAIT_AIPass_Jobs", []];
-private _pending = missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []];
+if (!(missionNamespace getVariable ["CBE_AIPass_Active", false])
+    && {!(missionNamespace getVariable ["CBE_AI_RebalanceActive", false])}
+    && {!(missionNamespace getVariable ["CBE_Convoy_SchedulerActive", false])}
+    && {!(missionNamespace getVariable ["CBE_Aircraft_SchedulerActive", false])}) exitWith {};
+private _jobs = missionNamespace getVariable ["CBE_AIPass_Jobs", []];
+private _pending = missionNamespace getVariable ["CBE_AIPass_PendingJobs", []];
 private _now = time;
-if (_pending isEqualTo [] && {_now < (missionNamespace getVariable ["WAIT_AIPass_NextJobDue", -1])}) exitWith {};
+if (_pending isEqualTo [] && {_now < (missionNamespace getVariable ["CBE_AIPass_NextJobDue", -1])}) exitWith {};
 if (_pending isNotEqualTo []) then {
     _jobs append _pending;
-    missionNamespace setVariable ["WAIT_AIPass_PendingJobs", []];
+    missionNamespace setVariable ["CBE_AIPass_PendingJobs", []];
 };
 if (_jobs isEqualTo []) exitWith {
-    missionNamespace setVariable ["WAIT_AIPass_Jobs", []];
-    missionNamespace setVariable ["WAIT_AIPass_NextJobDue", -1];
+    missionNamespace setVariable ["CBE_AIPass_Jobs", []];
+    missionNamespace setVariable ["CBE_AIPass_NextJobDue", -1];
 };
 
 // Isolate wake requests raised during this traversal from the previous idle cache.
 // QueueJob may update a previously skipped state after its old due time was sampled.
-missionNamespace setVariable ["WAIT_AIPass_NextJobDue", -1];
+missionNamespace setVariable ["CBE_AIPass_NextJobDue", -1];
 private _start = diag_tickTime;
-private _budget = ((missionNamespace getVariable ["WAIT_AIPass_TickBudgetMs", 1]) max 0.2) / 1000;
-private _slow = diag_fps < (missionNamespace getVariable ["WAIT_AIPass_LowFpsThreshold", 25]);
-private _paused = [] call WAIT_fnc_CortexIsPaused;
+private _budget = ((missionNamespace getVariable ["CBE_AIPass_TickBudgetMs", 1]) max 0.2) / 1000;
+private _slow = diag_fps < (missionNamespace getVariable ["CBE_AIPass_LowFpsThreshold", 25]);
+private _paused = [] call CBE_fnc_CortexIsPaused;
 // Deferred tactical jobs must not look starved immediately after a deliberate SafeStart or
 // ENDEX pause. Refreshing this grace deadline while paused gives every owner queue one minute
 // after play resumes to execute its existing drill callback.
-if (_paused) then {missionNamespace setVariable ["WAIT_AIPass_ResumeGraceUntil",_now+60]};
+if (_paused) then {missionNamespace setVariable ["CBE_AIPass_ResumeGraceUntil",_now+60]};
 private _processed = 0;
 private _next = [];
 private _rescheduled = [];
@@ -85,10 +85,10 @@ private _earliest = -1;
         private _subsystem = _state getOrDefault ["subsystem", "TACTICS"];
         private _skillsJob = _subsystem == "SKILLS";
         private _enabledFlag = switch (_subsystem) do {
-            case "SKILLS": {"WAIT_AI_RebalanceActive"};
-            case "CONVOY": {"WAIT_Convoy_SchedulerActive"};
-            case "AIRCRAFT": {"WAIT_Aircraft_SchedulerActive"};
-            default {"WAIT_AIPass_Active"};
+            case "SKILLS": {"CBE_AI_RebalanceActive"};
+            case "CONVOY": {"CBE_Convoy_SchedulerActive"};
+            case "AIRCRAFT": {"CBE_Aircraft_SchedulerActive"};
+            default {"CBE_AIPass_Active"};
         };
         private _enabled = missionNamespace getVariable [_enabledFlag, false];
         // Skill refresh is intentionally live during a tactical pause. Convoys and aircraft are
@@ -97,7 +97,7 @@ private _earliest = -1;
         private _jobPaused = _paused && {!_skillsJob};
         if (_subsystem in ["CONVOY", "AIRCRAFT"]) then {_jobPaused=false};
         private _group = _state getOrDefault ["group", grpNull];
-        private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["WAIT_AIPass_Epoch", 0])}}};
+        private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["CBE_AIPass_Epoch", 0])}}};
         private _callbackStarted=diag_tickTime;
         private _delay = if (_stale) then {-1} else {if (_jobPaused) then {5} else {[_state] call _job}};
         private _callbackMs=(diag_tickTime-_callbackStarted)*1000;
@@ -108,12 +108,12 @@ private _earliest = -1;
         // owner-local ring uses the timers already collected here, with no extra worker,
         // sort, world query or network publication on this recurring path.
         if (!_stale && {!_jobPaused}) then {
-            private _samples=missionNamespace getVariable ["WAIT_AIPass_CallbackSamples",[]];
-            private _cursor=missionNamespace getVariable ["WAIT_AIPass_CallbackSampleCursor",0];
+            private _samples=missionNamespace getVariable ["CBE_AIPass_CallbackSamples",[]];
+            private _cursor=missionNamespace getVariable ["CBE_AIPass_CallbackSampleCursor",0];
             _samples set [_cursor,[_subsystem,(_state getOrDefault ["jobKey",""]) select [0,160],
                 _callbackMs,_queueLatency,_callbackStarted]];
-            missionNamespace setVariable ["WAIT_AIPass_CallbackSamples",_samples];
-            missionNamespace setVariable ["WAIT_AIPass_CallbackSampleCursor",(_cursor+1) mod 256];
+            missionNamespace setVariable ["CBE_AIPass_CallbackSamples",_samples];
+            missionNamespace setVariable ["CBE_AIPass_CallbackSampleCursor",(_cursor+1) mod 256];
         };
         _state set ["lastRunAt",_now];
         // Diagnostics describe the current queued state, not an old transient skip. A paused job
@@ -134,7 +134,7 @@ private _earliest = -1;
         } else {
             if (_jobPaused) then {_state set ["skippedReason","PAUSED"]} else {_state deleteAt "skippedReason"};
         };
-        if (!_stale && {!_paused} && {!isNull _group}) then {[_group] call WAIT_fnc_CortexCheckpoint};
+        if (!_stale && {!_paused} && {!isNull _group}) then {[_group] call CBE_fnc_CortexCheckpoint};
         if (!isNil "_delay" && {_delay isEqualType 0} && {_delay >= 0}) then {
             // A finite danger response has already been observed locally. Preserve its prompt
             // reassessment under low FPS; only optional planning keeps the normal backoff. The
@@ -151,23 +151,23 @@ private _earliest = -1;
 } forEach _jobs;
 // Jobs that just ran move behind those still waiting, so a full budget rotates fairly.
 _next append _rescheduled;
-missionNamespace setVariable ["WAIT_AIPass_Jobs", _next];
-private _raisedDue=missionNamespace getVariable ["WAIT_AIPass_NextJobDue",-1];
+missionNamespace setVariable ["CBE_AIPass_Jobs", _next];
+private _raisedDue=missionNamespace getVariable ["CBE_AIPass_NextJobDue",-1];
 if (_raisedDue >= 0 && {_earliest < 0 || {_raisedDue < _earliest}}) then {_earliest=_raisedDue};
-missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _earliest];
+missionNamespace setVariable ["CBE_AIPass_NextJobDue", _earliest];
 // Aircraft observers activate the scheduler only on machines which currently own eligible
 // aircraft. When the final generation-scoped job retires, release that runtime; class/locality
 // handlers will reacquire it if another eligible aircraft becomes local later.
 if (
-    missionNamespace getVariable ["WAIT_Aircraft_DecelerationSchedulerActive", false]
-    || {missionNamespace getVariable ["WAIT_Aircraft_LandingSchedulerActive", false]}
+    missionNamespace getVariable ["CBE_Aircraft_DecelerationSchedulerActive", false]
+    || {missionNamespace getVariable ["CBE_Aircraft_LandingSchedulerActive", false]}
 ) then {
-    private _aircraftStates = ((_next + (missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []])) apply {_x select 2}) select {(_x getOrDefault ["subsystem", ""]) == "AIRCRAFT"};
-    private _decelerationActive = (_aircraftStates findIf {(_x getOrDefault ["jobKey", ""]) find "WAIT_DECEL_" == 0}) >= 0;
-    private _landingActive = (_aircraftStates findIf {(_x getOrDefault ["jobKey", ""]) find "WAIT_LANDING_" == 0}) >= 0;
-    private _changed = _decelerationActive != (missionNamespace getVariable ["WAIT_Aircraft_DecelerationSchedulerActive", false])
-        || {_landingActive != (missionNamespace getVariable ["WAIT_Aircraft_LandingSchedulerActive", false])};
-    missionNamespace setVariable ["WAIT_Aircraft_DecelerationSchedulerActive", _decelerationActive];
-    missionNamespace setVariable ["WAIT_Aircraft_LandingSchedulerActive", _landingActive];
-    if (_changed) then {[] call WAIT_fnc_SchedulerReconcile};
+    private _aircraftStates = ((_next + (missionNamespace getVariable ["CBE_AIPass_PendingJobs", []])) apply {_x select 2}) select {(_x getOrDefault ["subsystem", ""]) == "AIRCRAFT"};
+    private _decelerationActive = (_aircraftStates findIf {(_x getOrDefault ["jobKey", ""]) find "CBE_DECEL_" == 0}) >= 0;
+    private _landingActive = (_aircraftStates findIf {(_x getOrDefault ["jobKey", ""]) find "CBE_LANDING_" == 0}) >= 0;
+    private _changed = _decelerationActive != (missionNamespace getVariable ["CBE_Aircraft_DecelerationSchedulerActive", false])
+        || {_landingActive != (missionNamespace getVariable ["CBE_Aircraft_LandingSchedulerActive", false])};
+    missionNamespace setVariable ["CBE_Aircraft_DecelerationSchedulerActive", _decelerationActive];
+    missionNamespace setVariable ["CBE_Aircraft_LandingSchedulerActive", _landingActive];
+    if (_changed) then {[] call CBE_fnc_SchedulerReconcile};
 };

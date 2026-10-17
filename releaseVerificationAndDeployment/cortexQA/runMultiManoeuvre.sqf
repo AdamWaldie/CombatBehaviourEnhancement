@@ -82,26 +82,26 @@ private _terrainPosition={
     private _prefix="MULTI-"+_mode;
     [_prefix+"-terrain-scenario",_terrainScenarioReady,
         str [worldName,_terrainOrigin,_terrainHeading,_terrainRelief,_terrainMaximumGrade,_terrainMinimumNormal]] call _check;
-    private _savedNearRange=missionNamespace getVariable ["WAIT_AIPass_NearRange",900];
-    private _savedFarRange=missionNamespace getVariable ["WAIT_AIPass_FarRange",2500];
-    missionNamespace setVariable ["WAIT_AIPass_NearRange",5000];
-    missionNamespace setVariable ["WAIT_AIPass_FarRange",5000];
+    private _savedNearRange=missionNamespace getVariable ["CBE_AIPass_NearRange",900];
+    private _savedFarRange=missionNamespace getVariable ["CBE_AIPass_FarRange",2500];
+    missionNamespace setVariable ["CBE_AIPass_NearRange",5000];
+    missionNamespace setVariable ["CBE_AIPass_FarRange",5000];
     // Independent-drill baseline: mutual timing is observed, not a coordination claim.
     [createHashMapFromArray [
-        ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],["WAIT_AIPass_Flank_Enable",_mode == "FLANK"],
-        ["WAIT_AIPass_Advance_Enable",_mode == "BOUND"],["WAIT_AIPass_Aggression",2],
-        ["WAIT_AIPass_Morale_Enable",false],["WAIT_AIPass_Regroup_Enable",false],
-        ["WAIT_AIPass_Reinforce_Enable",false],["WAIT_AIPass_CoordinatedAssault_Enable",false],
-        ["WAIT_AIPass_Artillery_Enable",false],["WAIT_AIPass_FireControl_Enable",true]
-    ]] call WAIT_fnc_CortexTuning;
+        ["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],["CBE_AIPass_Flank_Enable",_mode == "FLANK"],
+        ["CBE_AIPass_Advance_Enable",_mode == "BOUND"],["CBE_AIPass_Aggression",2],
+        ["CBE_AIPass_Morale_Enable",false],["CBE_AIPass_Regroup_Enable",false],
+        ["CBE_AIPass_Reinforce_Enable",false],["CBE_AIPass_CoordinatedAssault_Enable",false],
+        ["CBE_AIPass_Artillery_Enable",false],["CBE_AIPass_FireControl_Enable",true]
+    ]] call CBE_fnc_CortexTuning;
     private _groups=[];
     private _teams=[];
     private _actors=[];
     for "_team" from 0 to 1 do {
         private _group=createGroup [east,true];
-        _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+        _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
         _group setVariable ["acex_headless_blacklist",true,true];
-        _group setVariable ["WAIT_AIPass_Profile","ELITE",true];
+        _group setVariable ["CBE_AIPass_Profile","ELITE",true];
         _group setCombatMode "YELLOW";
         _group allowFleeing 0;
         private _members=[];
@@ -110,10 +110,10 @@ private _terrainPosition={
             _unit setVariable ["acex_headless_blacklist",true,true];
             _unit setDir 0;
             _unit allowDamage false;
-            _unit setVariable ["WAIT_CortexQA_MultiShots",0];
+            _unit setVariable ["CBE_CortexQA_MultiShots",0];
             _unit addEventHandler ["FiredMan",{
                 params ["_unit","_weapon"];
-                if !(_weapon in ["Throw","Put"]) then {_unit setVariable ["WAIT_CortexQA_MultiShots",(_unit getVariable ["WAIT_CortexQA_MultiShots",0])+1]};
+                if !(_weapon in ["Throw","Put"]) then {_unit setVariable ["CBE_CortexQA_MultiShots",(_unit getVariable ["CBE_CortexQA_MultiShots",0])+1]};
             }];
             _members pushBack _unit;
         };
@@ -122,8 +122,8 @@ private _terrainPosition={
         _actors append _members;
     };
     private _enemyGroup=createGroup [west,true];
-    _enemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-    _enemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _enemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
+    _enemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _enemyGroup setVariable ["acex_headless_blacklist",true,true];
     _enemyGroup setCombatMode "YELLOW";
     _enemyGroup allowFleeing 0;
@@ -131,7 +131,7 @@ private _terrainPosition={
     for "_index" from 0 to 5 do {
         private _enemy=_enemyGroup createUnit ["B_Soldier_F",[2215+_index*14,1360] call _terrainPosition,[],0,"NONE"];
         _enemy allowDamage false; _enemy disableAI "PATH"; _enemy setDir 180; _enemy setUnitPos "UP";
-        _enemy setVariable ["WAIT_CortexQA_Label",format ["SHARED ENEMY %1",_index+1],true];
+        _enemy setVariable ["CBE_CortexQA_Label",format ["SHARED ENEMY %1",_index+1],true];
         _enemies pushBack _enemy;
     };
     private _enemy=_enemies select 2;
@@ -144,7 +144,7 @@ private _terrainPosition={
     private _fireLaneCrossings=[0,0];
     private _drillSeen=[false,false];
     private _expectedDrill=["FLANK","ADVANCE"] select (_mode == "BOUND");
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors+_enemies,true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",_actors+_enemies,true];
     [_prefix+": two squads","Both squads must physically manoeuvre against the same enemy, retain their members and finish cohesive. Cyan trails show travel. Moving/covering counts and actual shots show whether one squad supports the other; accepted drill flags do not pass.",[2250,1200] call _terrainPosition] call _phase;
     // Direction is established without revealing the target. setDir gives every actor a genuine
     // visual-acquisition opportunity before doWatch starts tracking; doWatch alone can leave a
@@ -181,7 +181,7 @@ private _terrainPosition={
         private _drillActive=[];
         {
             private _teamIndex=_forEachIndex;
-            private _state=(_groups select _teamIndex) getVariable ["WAIT_AIPass_State",createHashMap];
+            private _state=(_groups select _teamIndex) getVariable ["CBE_AIPass_State",createHashMap];
             private _drill=_state getOrDefault ["drill",createHashMap];
             private _ownsDrill=(_drill getOrDefault ["type",""]) == _expectedDrill;
             if (_ownsDrill) then {_drillSeen set [_teamIndex,true]};
@@ -192,9 +192,9 @@ private _terrainPosition={
                 private _index=_teamIndex*6+_forEachIndex;
                 private _travel=_x distance2D (_origins select _index);
                 if (_ownsDrill) then {_peaks set [_index,(_peaks select _index) max _travel]};
-                _shots=_shots+(_x getVariable ["WAIT_CortexQA_MultiShots",0]);
-                _x setVariable ["WAIT_CortexQA_Label",format ["%1 squad %2 | travel %3 m | moving %4/6 | shots %5",_mode,_teamIndex+1,round _travel,_moving,_x getVariable ["WAIT_CortexQA_MultiShots",0]],true];
-                _x setVariable ["WAIT_CortexQA_Target",getPosATL _enemy,true];
+                _shots=_shots+(_x getVariable ["CBE_CortexQA_MultiShots",0]);
+                _x setVariable ["CBE_CortexQA_Label",format ["%1 squad %2 | travel %3 m | moving %4/6 | shots %5",_mode,_teamIndex+1,round _travel,_moving,_x getVariable ["CBE_CortexQA_MultiShots",0]],true];
+                _x setVariable ["CBE_CortexQA_Target",getPosATL _enemy,true];
             } forEach _x;
             _movingCounts pushBack _moving;
             _shotDeltas pushBack (_shots-(_lastShots select _teamIndex));
@@ -231,7 +231,7 @@ private _terrainPosition={
         // End promptly after both real drills have published a terminal result. Ordinary
         // post-drill waypoint movement must not accumulate more Cortex evidence.
         if ((_drillSeen findIf {!_x}) < 0 && {(_groups findIf {
-            private _state=_x getVariable ["WAIT_AIPass_State",createHashMap];
+            private _state=_x getVariable ["CBE_AIPass_State",createHashMap];
             count (_state getOrDefault ["drill",createHashMap]) > 0
         }) < 0}) then {_until=0};
         sleep 2;
@@ -241,13 +241,13 @@ private _terrainPosition={
         private _teamIndex=_forEachIndex;
         private _members=_x;
         private _group=_groups select _teamIndex;
-        private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
+        private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
         private _drill=_state getOrDefault ["drill",createHashMap];
-        diag_log format ["WAIT CORTEX QA MULTI END: case=%1 team=%2 phase=%3 drillType=%4 stage=%5 bound=%6/%7 result=%8 failure=%9 flankRefusal=%10 advanceRefusal=%11",
+        diag_log format ["CBE CORTEX QA MULTI END: case=%1 team=%2 phase=%3 drillType=%4 stage=%5 bound=%6/%7 result=%8 failure=%9 flankRefusal=%10 advanceRefusal=%11",
             _prefix,_teamIndex+1,_state getOrDefault ["phase","NONE"],_drill getOrDefault ["type","NONE"],
             _drill getOrDefault ["stage","NONE"],_drill getOrDefault ["index",-1],count (_drill getOrDefault ["points",[]]),
-            _group getVariable ["WAIT_Cortex_DrillResult",[]],_group getVariable ["WAIT_Cortex_DrillFailure",[]],
-            _group getVariable ["WAIT_Cortex_FlankRefusal",[]],_group getVariable ["WAIT_Cortex_AdvanceRefusal",[]]];
+            _group getVariable ["CBE_Cortex_DrillResult",[]],_group getVariable ["CBE_Cortex_DrillFailure",[]],
+            _group getVariable ["CBE_Cortex_FlankRefusal",[]],_group getVariable ["CBE_Cortex_AdvanceRefusal",[]]];
         [_prefix+format ["-squad-%1-physical-travel",_teamIndex+1],_contact && {_drillSeen select _teamIndex} && {(_peaks select [_teamIndex*6,6]) findIf {_x < 30} < 0},str (_peaks select [_teamIndex*6,6])] call _check;
         // Capture physical and native command state before deleting the fixture. A boolean alone
         // cannot distinguish a held support actor, lost movement intent or dispersed followers.
@@ -255,7 +255,7 @@ private _terrainPosition={
             [netId _x,alive _x,group _x == _group,getPosATL _x,_x distance2D leader _group,
                 currentCommand _x,expectedDestination _x,assignedTarget _x,unitCombatMode _x,
                 _x checkAIFeature "PATH",_x checkAIFeature "MOVE",
-                _x getVariable ["WAIT_Cortex_ActorMove",[]]]
+                _x getVariable ["CBE_Cortex_ActorMove",[]]]
         };
         [_prefix+format ["-squad-%1-cohesion",_teamIndex+1],_members findIf {!alive _x || {group _x != _group} || {_x distance2D leader _group > 40}} < 0,str _actorEvidence] call _check;
         [_prefix+format ["-squad-%1-covering-fire",_teamIndex+1],(_drillSeen select _teamIndex) && {(_coverEvents select _teamIndex) > 0},str _coverEvents] call _check;
@@ -266,7 +266,7 @@ private _terrainPosition={
     if (_mode == "BOUND") then {[_prefix+"-observed-movement-fire-overlap",(_drillSeen findIf {!_x}) < 0 && {_switches >= 2},str [_switches,_coverEvents,_drillSeen]] call _check};
     {deleteVehicle _x} forEach (_actors+_enemies);
     {deleteGroup _x} forEach (_groups+[_enemyGroup]);
-    missionNamespace setVariable ["WAIT_AIPass_NearRange",_savedNearRange];
-    missionNamespace setVariable ["WAIT_AIPass_FarRange",_savedFarRange];
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_AIPass_NearRange",_savedNearRange];
+    missionNamespace setVariable ["CBE_AIPass_FarRange",_savedFarRange];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 } forEach ["FLANK","BOUND"];

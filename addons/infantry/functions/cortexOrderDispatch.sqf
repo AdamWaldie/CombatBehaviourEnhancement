@@ -9,10 +9,10 @@
  * Current callers: mission scripts, ModuleGarrison, ZenGarrisonModule and ZenDefendModule.
  * No JIP command replay. Pending owner acknowledgements are limited to 64 for at most 12 seconds.
  * The server overwrites the admission deadline; owners refuse packets received at/after expiry.
- * Example: [[["order", "RELEASE"], ["group", _group]], 2] call WAIT_fnc_CortexOrderDispatch;
+ * Example: [[["order", "RELEASE"], ["group", _group]], 2] call CBE_fnc_CortexOrderDispatch;
  */
 params [["_pairs", [], [[]]], ["_requestOwner", 2, [0]]];
-if (!isServer) exitWith {[_pairs,clientOwner] remoteExecCall ["WAIT_fnc_CortexOrderDispatch",2]; true};
+if (!isServer) exitWith {[_pairs,clientOwner] remoteExecCall ["CBE_fnc_CortexOrderDispatch",2]; true};
 private _sender = remoteExecutedOwner;
 if (isRemoteExecuted && {_sender <= 0}) exitWith {false};
 if (_sender > 0) then {_requestOwner = _sender};
@@ -35,16 +35,16 @@ private _teleport = _settings getOrDefault ["teleport",false];
 if !(_teleport isEqualType true) exitWith {false};
 // Remote module requests cannot change addon configuration or artillery role registration.
 if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE"])}) exitWith {false};
-private _pending = missionNamespace getVariable ["WAIT_AIPass_OrderPending", createHashMap];
+private _pending = missionNamespace getVariable ["CBE_AIPass_OrderPending", createHashMap];
 if (count _pending >= 64) exitWith {
-    ["AI ORDERS","Too many pending squad orders. Wait for owner replies before retrying.","ERROR"] remoteExecCall ["WAIT_fnc_AITweaksNotifyLocal",_requestOwner];
+    ["AI ORDERS","Too many pending squad orders. Wait for owner replies before retrying.","ERROR"] remoteExecCall ["CBE_fnc_AITweaksNotifyLocal",_requestOwner];
     false
 };
-private _serial = (missionNamespace getVariable ["WAIT_AIPass_OrderSerial", 0]) + 1;
-missionNamespace setVariable ["WAIT_AIPass_OrderSerial", _serial];
+private _serial = (missionNamespace getVariable ["CBE_AIPass_OrderSerial", 0]) + 1;
+missionNamespace setVariable ["CBE_AIPass_OrderSerial", _serial];
 private _token = str _serial;
 _pending set [_token, [_requestOwner, _group, groupOwner _group, _order]];
-missionNamespace setVariable ["WAIT_AIPass_OrderPending", _pending];
+missionNamespace setVariable ["CBE_AIPass_OrderPending", _pending];
 private _valid = !isNull _group && {(units _group) findIf {isPlayer _x} < 0}
     && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
 if (_order in ["GARRISON", "DEFEND"]) then {
@@ -54,38 +54,38 @@ if (_order in ["GARRISON", "DEFEND"]) then {
 if (_order == "CLEAR") then {_valid = _valid && {!isNull (_settings getOrDefault ["building", objNull])}};
 if (!_valid) exitWith {
     _pending deleteAt _token;
-    ["AI ORDERS","Invalid squad or task target. No order was started.","ERROR"] remoteExecCall ["WAIT_fnc_AITweaksNotifyLocal",_requestOwner];
+    ["AI ORDERS","Invalid squad or task target. No order was started.","ERROR"] remoteExecCall ["CBE_fnc_AITweaksNotifyLocal",_requestOwner];
     false
 };
 if (_order in ["ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH"]) exitWith {
-    private _accepted = [_group, _order select [5]] call WAIT_fnc_CortexSetArtilleryRole;
-    [_token, _accepted] call WAIT_fnc_CortexOrderResult;
+    private _accepted = [_group, _order select [5]] call CBE_fnc_CortexSetArtilleryRole;
+    [_token, _accepted] call CBE_fnc_CortexOrderResult;
     _accepted
 };
 if (_order in ["SPOTTER_ON", "SPOTTER_OFF"]) exitWith {
     private _unit = _settings getOrDefault ["unit", objNull];
-    private _accepted = !isNull _unit && {group _unit == _group} && {[_unit, _order == "SPOTTER_ON"] call WAIT_fnc_CortexSetSpotter};
-    [_token, _accepted] call WAIT_fnc_CortexOrderResult;
+    private _accepted = !isNull _unit && {group _unit == _group} && {[_unit, _order == "SPOTTER_ON"] call CBE_fnc_CortexSetSpotter};
+    [_token, _accepted] call CBE_fnc_CortexOrderResult;
     _accepted
 };
 // Serialize the validated named map, so clients cannot forge execution metadata.
 _settings set ["requestSerial",_serial];
 _settings set ["requestDeadline",serverTime+12];
-_settings set ["nativeReceipt",[_group] call WAIT_fnc_NativeOrderReceipt];
+_settings set ["nativeReceipt",[_group] call CBE_fnc_NativeOrderReceipt];
 _settings set ["controlReceipt",[
-    _group getVariable ["WAIT_AIPass_ZeusHold",[]],
-    _group getVariable ["WAIT_AIPass_ZeusWaypoints",false],
-    _group getVariable ["WAIT_AIPass_ZeusControlKind",""]
+    _group getVariable ["CBE_AIPass_ZeusHold",[]],
+    _group getVariable ["CBE_AIPass_ZeusWaypoints",false],
+    _group getVariable ["CBE_AIPass_ZeusControlKind",""]
 ]];
 _settings set ["radius",(_radius max 15) min 150];
 _settings set ["width",(_width max 15) min 150];
 _settings set ["facing",((_facing mod 360)+360) mod 360];
 _pairs = (keys _settings) apply {[_x,_settings get _x]};
-[_token, _pairs] remoteExecCall ["WAIT_fnc_CortexOrderLocal", groupOwner _group];
+[_token, _pairs] remoteExecCall ["CBE_fnc_CortexOrderLocal", groupOwner _group];
 [{
     params ["_token"];
-    if (_token in (missionNamespace getVariable ["WAIT_AIPass_OrderPending", createHashMap])) then {
-        [_token, false, true] call WAIT_fnc_CortexOrderResult;
+    if (_token in (missionNamespace getVariable ["CBE_AIPass_OrderPending", createHashMap])) then {
+        [_token, false, true] call CBE_fnc_CortexOrderResult;
     };
 }, [_token], 12] call CBA_fnc_waitAndExecute;
 true

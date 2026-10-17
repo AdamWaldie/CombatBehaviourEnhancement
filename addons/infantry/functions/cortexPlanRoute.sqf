@@ -3,7 +3,7 @@
  * Turns a list of leg end points into bound points, inserting street crossings.
  *
  * Shared by the flank and advance drills. Each leg is cut into bounds of
- * WAIT_AIPass_Flank_BoundDistance (minimum 15 m). With WAIT_AIPass_StreetCrossing_Enable, a leg is
+ * CBE_AIPass_Flank_BoundDistance (minimum 15 m). With CBE_AIPass_StreetCrossing_Enable, a leg is
  * sampled every 6 m. Where it runs onto a road (isOnRoad and roadAt, bridges excluded), a CROSS_NEAR
  * point is placed at the near edge and a CROSS_FAR point just past the far edge, using the road width
  * from getRoadInfo, and ordinary bound points inside the road are dropped. The last point gets the
@@ -21,15 +21,15 @@
  * Array - [[positionATL, kind], ...] with kind BOUND, CROSS_NEAR, CROSS_FAR or the final kind
  *
  * Example:
- * private _points = [_start, [_wide, _close]] call WAIT_fnc_CortexPlanRoute;
+ * private _points = [_start, [_wide, _close]] call CBE_fnc_CortexPlanRoute;
  * Result: a bounding route that pauses and smokes at each road it crosses.
  *
- * Current callers: WAIT_fnc_CortexFlankStart and WAIT_fnc_CortexAdvanceStart.
+ * Current callers: CBE_fnc_CortexFlankStart and CBE_fnc_CortexAdvanceStart.
  */
 
 params [["_start", [], [[]]], ["_legs", [], [[]]], ["_finalKind", "FINAL", [""]], ["_group",grpNull,[grpNull]]];
-private _bound = (missionNamespace getVariable ["WAIT_AIPass_Flank_BoundDistance", 55]) max 15;
-private _streets = [_group,"WAIT_AIPass_StreetCrossing_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+private _bound = (missionNamespace getVariable ["CBE_AIPass_Flank_BoundDistance", 55]) max 15;
+private _streets = [_group,"CBE_AIPass_StreetCrossing_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 private _points = [];
 private _from = _start;
 {

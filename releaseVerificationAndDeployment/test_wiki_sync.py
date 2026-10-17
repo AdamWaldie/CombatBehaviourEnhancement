@@ -24,7 +24,7 @@ class WikiSyncTests(unittest.TestCase):
     def test_repository_documentation_builds_without_broken_wiki_links(self):
         wiki.build(self.out)
         self.assertEqual(wiki.audit(self.out)[0], [])
-        self.assertTrue((self.out/'Home.md').read_text().startswith('# Waldos AI Tweaks'))
+        self.assertTrue((self.out/'Home.md').read_text().startswith('# Combat Behaviour Enhancement (CBE)'))
 
     def test_rewrites_local_links_to_wiki_pages_and_repository_files(self):
         pages = wiki.build(self.out, root=self.root, repo=REPO)

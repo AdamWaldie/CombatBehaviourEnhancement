@@ -1,5 +1,5 @@
 class FSM {
-    fsmName="WAIT finite individual indoor investigation";
+    fsmName="CBE finite individual indoor investigation";
     class States {
         class Start {
             name="Start";
@@ -10,23 +10,23 @@ class FSM {
         class Router {
             name="Router";init="";precondition="";
             class Links {
-                class End {priority=10;to="Finished";condition="isNull _actor || {!local _actor} || {!local group _actor} || {group _actor != (_brain getOrDefault [""group"",grpNull])} || {(_brain getOrDefault [""ownerEpoch"",-1]) != ((group _actor) getVariable [""WAIT_AIPass_Epoch"",0])} || {serverTime >= (_brain getOrDefault [""deadline"",0])} || {_brain getOrDefault [""finished"",false]} || {_brain getOrDefault [""cancelled"",false]} || {(_actor getVariable [""WAIT_IndoorActor_Brain"",createHashMap]) isNotEqualTo _brain}";action="if !(""reason"" in _brain) then {_brain set [""reason"",if (serverTime >= (_brain getOrDefault [""deadline"",0])) then {""DEADLINE""} else {""OWNER_CHANGED""}]};";};
+                class End {priority=10;to="Finished";condition="isNull _actor || {!local _actor} || {!local group _actor} || {group _actor != (_brain getOrDefault [""group"",grpNull])} || {(_brain getOrDefault [""ownerEpoch"",-1]) != ((group _actor) getVariable [""CBE_AIPass_Epoch"",0])} || {serverTime >= (_brain getOrDefault [""deadline"",0])} || {_brain getOrDefault [""finished"",false]} || {_brain getOrDefault [""cancelled"",false]} || {(_actor getVariable [""CBE_IndoorActor_Brain"",createHashMap]) isNotEqualTo _brain}";action="if !(""reason"" in _brain) then {_brain set [""reason"",if (serverTime >= (_brain getOrDefault [""deadline"",0])) then {""DEADLINE""} else {""OWNER_CHANGED""}]};";};
                 class Due {priority=0;to="Work";condition="time >= (_brain getOrDefault [""nextAt"",time])";action="";};
             };
         };
         class Work {
-            name="Work";init="[""QUEUE"",_actor,_brain] call WAIT_fnc_IndoorActorOperation;";precondition="";
+            name="Work";init="[""QUEUE"",_actor,_brain] call CBE_fnc_IndoorActorOperation;";precondition="";
             class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};
         };
         class Waiting {
             name="Waiting";init="";precondition="";
             class Links {
-                class End {priority=10;to="Finished";condition="isNull _actor || {!local _actor} || {!local group _actor} || {group _actor != (_brain getOrDefault [""group"",grpNull])} || {(_brain getOrDefault [""ownerEpoch"",-1]) != ((group _actor) getVariable [""WAIT_AIPass_Epoch"",0])} || {serverTime >= (_brain getOrDefault [""deadline"",0])} || {_brain getOrDefault [""finished"",false]} || {_brain getOrDefault [""cancelled"",false]} || {(_actor getVariable [""WAIT_IndoorActor_Brain"",createHashMap]) isNotEqualTo _brain}";action="if !(""reason"" in _brain) then {_brain set [""reason"",if (serverTime >= (_brain getOrDefault [""deadline"",0])) then {""DEADLINE""} else {""OWNER_CHANGED""}]};";};
+                class End {priority=10;to="Finished";condition="isNull _actor || {!local _actor} || {!local group _actor} || {group _actor != (_brain getOrDefault [""group"",grpNull])} || {(_brain getOrDefault [""ownerEpoch"",-1]) != ((group _actor) getVariable [""CBE_AIPass_Epoch"",0])} || {serverTime >= (_brain getOrDefault [""deadline"",0])} || {_brain getOrDefault [""finished"",false]} || {_brain getOrDefault [""cancelled"",false]} || {(_actor getVariable [""CBE_IndoorActor_Brain"",createHashMap]) isNotEqualTo _brain}";action="if !(""reason"" in _brain) then {_brain set [""reason"",if (serverTime >= (_brain getOrDefault [""deadline"",0])) then {""DEADLINE""} else {""OWNER_CHANGED""}]};";};
                 class Done {priority=0;to="Router";condition="_brain getOrDefault [""completed"",false]";action="";};
             };
         };
         class Finished {
-            name="Finished";init="[""FINISH"",_actor,_brain] call WAIT_fnc_IndoorActorOperation;";precondition="";
+            name="Finished";init="[""FINISH"",_actor,_brain] call CBE_fnc_IndoorActorOperation;";precondition="";
             class Links {};
         };
     };

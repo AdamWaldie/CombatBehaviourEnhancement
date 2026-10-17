@@ -32,18 +32,18 @@
  * target axis on a climbing exit; LATERAL stays abeam long enough for its retained turret; STANDOFF
  * uses a stable release leg and accelerates away. Repeat/JIP: safe to repeat. Each result is a new
  * owner-local plan and has no JIP side effects.
- * Aircraft may set WAIT_Cortex_AirAttackPattern to STRAFE, OFFSET, HOOK, STANDOFF, BOMB or LATERAL
+ * Aircraft may set CBE_Cortex_AirAttackPattern to STRAFE, OFFSET, HOOK, STANDOFF, BOMB or LATERAL
  * for a finite mission-maker/test override. An incompatible forced type returns no plan instead of
  * silently substituting another weapon or manoeuvre; LATERAL requires a living gun-armed turret.
  * Arguments: 0: aircraft <OBJECT>; 1: hostile target <OBJECT>.
  * Return Value: HASHMAP plan, or an empty HASHMAP when the request is invalid.
- * Current callers: WAIT_fnc_CortexAirAttack.
- * Example: private _plan = [_plane,_tank] call WAIT_fnc_CortexAirAttackPlan;
+ * Current callers: CBE_fnc_CortexAirAttack.
+ * Example: private _plan = [_plane,_tank] call CBE_fnc_CortexAirAttackPlan;
  */
 params [["_aircraft",objNull,[objNull]],["_target",objNull,[objNull]]];
 if (isNull _aircraft || {isNull _target} || {!alive _aircraft} || {!alive _target}) exitWith {createHashMap};
 private _pilot=driver _aircraft;
-if (isNull _pilot || {!([_pilot] call WAIT_fnc_CortexCombatEffective)} || {!local _aircraft}) exitWith {createHashMap};
+if (isNull _pilot || {!([_pilot] call CBE_fnc_CortexCombatEffective)} || {!local _aircraft}) exitWith {createHashMap};
 private _side=side group _pilot;
 // Logic objects can have a hostile side without being a physical combat target.
 // In particular, curator modules must never become weapon-delivery objectives.
@@ -52,7 +52,7 @@ if (_target isKindOf "Logic" || {_target isKindOf "HeadlessClient_F"} || {_side 
     || {_target getVariable ["ace_captives_isHandcuffed",false]}) exitWith {createHashMap};
 private _airToAir=_target isKindOf "Air" && {!isTouchingGround _target};
 
-private _ammoCache=missionNamespace getVariable ["WAIT_Cortex_AirAmmoFacts",createHashMap];
+private _ammoCache=missionNamespace getVariable ["CBE_Cortex_AirAmmoFacts",createHashMap];
 private _ammoFacts={
     params ["_magazine"];
     private _facts=_ammoCache getOrDefault [_magazine,[]];
@@ -128,7 +128,7 @@ private _loadedMagazines=[];private _nativeQueries=0;
 {
     private _turret=_x;
     private _stationOperator=if (_turret isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _turret};
-    if (!([_aircraft,group _pilot,_stationOperator] call WAIT_fnc_CortexAirWeaponOperatorAvailable)) then {continue};
+    if (!([_aircraft,group _pilot,_stationOperator] call CBE_fnc_CortexAirWeaponOperatorAvailable)) then {continue};
     // Arma exposes fixed-wing and other driver-controlled weapons through `weapons`, while
     // Bohemia defines [-1] as the driver weapon station. Some aircraft expose those weapons through
     // weaponsTurret, while other vehicle/config combinations expose part of the same station through
@@ -241,7 +241,7 @@ private _known=(_pilot nearTargets ([8000,5000] select !(_aircraft isKindOf "Pla
     if (_validReport && {!isNull _contact} && {alive _contact} && {_side getFriend side _contact < 0.6}) then {
         private _antiAir=false;
         if (_contact isKindOf "CAManBase") then {
-            _antiAir="AA" in ([_contact] call WAIT_fnc_CortexCapabilities);
+            _antiAir="AA" in ([_contact] call CBE_fnc_CortexCapabilities);
         } else {
             {
                 _x params ["_magazine","_turret","_rounds"];
@@ -251,13 +251,13 @@ private _known=(_pilot nearTargets ([8000,5000] select !(_aircraft isKindOf "Pla
         if (_antiAir) then {_aaPositions pushBack (+_reportedPosition)};
     };
 } forEach _known;
-missionNamespace setVariable ["WAIT_Cortex_AirAmmoFacts",_ammoCache];
+missionNamespace setVariable ["CBE_Cortex_AirAmmoFacts",_ammoCache];
 
 private _airPos=getPosATL _aircraft;
 private _targetPos=getPosATL _target;
 if (_airToAir) then {
     private _knowers=((units group _pilot) select [0,8]) select {
-        local _x && {[_x] call WAIT_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
+        local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
     };
     private _knower=_knowers param [0,objNull,[objNull]];
     _targetPos=if (isNull _knower) then {[]} else {_knower getHideFrom _target};
@@ -277,7 +277,7 @@ private _threatSide=0;
 // Choose the side opposite the observed AA mass. With no AA, vary the geometry between runs.
 private _sideVector=if (_threatSide > 0) then {_right} else {if (_threatSide < 0) then {_left} else {[ _left,_right] select (random 1 >= 0.5)}};
 private _isPlane=_aircraft isKindOf "Plane";
-private _standoffAvailable=_standoff && {serverTime >= (_aircraft getVariable ["WAIT_Cortex_AirStandoffBlockedUntil",0])};
+private _standoffAvailable=_standoff && {serverTime >= (_aircraft getVariable ["CBE_Cortex_AirStandoffBlockedUntil",0])};
 // Use the retained weapon-family classification rather than the raw simulation string. Some
 // configuration families expose a cannon through a non-standard projectile simulation; that is still
 // a valid STRAFE station once the loadout inspection has classified it as a gun. This keeps plan
@@ -316,7 +316,7 @@ private _pattern=if (_airToAir) then {"INTERCEPT"} else {if (_aaPositions isNotE
         if (_choices isEqualTo []) then {""} else {selectRandomWeighted _choices}
     }
 }};
-private _patternOverride=toUpperANSI (_aircraft getVariable ["WAIT_Cortex_AirAttackPattern","AUTO"]);
+private _patternOverride=toUpperANSI (_aircraft getVariable ["CBE_Cortex_AirAttackPattern","AUTO"]);
 private _overrideValid=_patternOverride in ["STRAFE","OFFSET","HOOK","STANDOFF","BOMB","LATERAL"]
     && {!(_patternOverride == "STRAFE") || {_hasGun}}
     && {!(_patternOverride in ["OFFSET","HOOK"]) || {_hasRocket}}

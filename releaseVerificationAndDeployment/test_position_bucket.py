@@ -25,5 +25,5 @@ class PositionBucketTests(unittest.TestCase):
         self.assertEqual(helper.count('_x toFixed 0'),2)
         for name,grid,spacing in [('cortexGarrison','_taken','1'),('cortexClearBuilding','_seenPositions','0.5')]:
             source=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text(encoding='utf-8')
-            self.assertIn(f'[AGLToASL _position,{grid},{spacing}] call WAIT_fnc_PositionBucketAdmit',source)
+            self.assertIn(f'[AGLToASL _position,{grid},{spacing}] call CBE_fnc_PositionBucketAdmit',source)
 if __name__=='__main__': unittest.main()

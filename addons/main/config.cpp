@@ -1,12 +1,12 @@
 #include "script_component.hpp"
 
 class CfgPatches {
-    class WAIT_AI_Tweaks_Main {
-        name = "Waldos AI Tweaks";
+    class CBE_AI_Tweaks_Main {
+        name = "Combat Behaviour Enhancement (CBE)";
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
-        requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "WAIT_core", "WAIT_danger", "WAIT_infantry", "WAIT_vehicles", "WAIT_aircraft", "WAIT_support", "WAIT_compatibility"};
-        units[] = {"WAIT_ModuleConvoyStart", "WAIT_ModuleConvoyHold", "WAIT_ModuleConvoyRelease", "WAIT_ModuleGarrison", "WAIT_ModuleDefend", "WAIT_ModuleDrivingCorridor", "WAIT_DrivingCorridorArea"};
+        requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModuleDrivingCorridor", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -15,14 +15,14 @@ class CfgPatches {
 };
 
 class Extended_PreInit_EventHandlers {
-    class WAIT_AI_Tweaks_Main {
-        init = "call compile preprocessFileLineNumbers '\z\waldo_ai_tweaks\addons\main\XEH_preInit.sqf'";
+    class CBE_AI_Tweaks_Main {
+        init = "call compile preprocessFileLineNumbers '\z\cbe\addons\main\XEH_preInit.sqf'";
     };
 };
 
 class Extended_PostInit_EventHandlers {
-    class WAIT_AI_Tweaks_Main {
-        init = "call compile preprocessFileLineNumbers '\z\waldo_ai_tweaks\addons\main\XEH_postInit.sqf'";
+    class CBE_AI_Tweaks_Main {
+        init = "call compile preprocessFileLineNumbers '\z\cbe\addons\main\XEH_postInit.sqf'";
     };
 };
 
@@ -30,71 +30,71 @@ class Extended_PostInit_EventHandlers {
 
 // Native curator orders are available without an optional dialog provider.
 class CfgFactionClasses {
-    class WAIT_CuratorOrders {
-        displayName = "Waldos AI Tweaks";
+    class CBE_CuratorOrders {
+        displayName = "Combat Behaviour Enhancement (CBE)";
         priority = 2;
         side = 7;
     };
 };
 class CfgVehicles {
     class Logic;
-    class WAIT_DrivingCorridorArea: Logic {
+    class CBE_DrivingCorridorArea: Logic {
         scope = 1;
         scopeCurator = 0;
         displayName = "Navigation corridor area";
-        category = "WAIT_CuratorOrders";
+        category = "CBE_CuratorOrders";
     };
     class Module_F;
-    class WAIT_ModuleDrivingCorridor: Module_F {
+    class CBE_ModuleDrivingCorridor: Module_F {
         scope = 1;
         scopeCurator = 2;
         displayName = "Navigation corridor";
-        category = "WAIT_CuratorOrders";
-        function = "WAIT_fnc_ModuleDrivingCorridor";
+        category = "CBE_CuratorOrders";
+        function = "CBE_fnc_ModuleDrivingCorridor";
         isGlobal = 1;
         isTriggerActivated = 0;
         isDisposable = 1;
         curatorCanAttach = 1;
     };
-    class WAIT_ModuleGarrison: Module_F {
+    class CBE_ModuleGarrison: Module_F {
         scope = 1;
         scopeCurator = 2;
         displayName = "Garrison area";
-        category = "WAIT_CuratorOrders";
-        function = "WAIT_fnc_ModuleGarrison";
-        WAIT_operation = "GARRISON";
+        category = "CBE_CuratorOrders";
+        function = "CBE_fnc_ModuleGarrison";
+        CBE_operation = "GARRISON";
         isGlobal = 1;
         isTriggerActivated = 0;
         isDisposable = 1;
         curatorCanAttach = 1;
     };
-    class WAIT_ModuleDefend: WAIT_ModuleGarrison {
+    class CBE_ModuleDefend: CBE_ModuleGarrison {
         displayName = "Defend area";
-        WAIT_operation = "DEFEND";
+        CBE_operation = "DEFEND";
     };
-    class WAIT_ModuleConvoyStart: Module_F {
+    class CBE_ModuleConvoyStart: Module_F {
         scope = 1;
         scopeCurator = 2;
         displayName = "Convoy: start / resume";
-        category = "WAIT_CuratorOrders";
-        function = "WAIT_fnc_ModuleConvoy";
+        category = "CBE_CuratorOrders";
+        function = "CBE_fnc_ModuleConvoy";
         isGlobal = 1;
         isTriggerActivated = 0;
         isDisposable = 1;
         curatorCanAttach = 1;
-        WAIT_operation = "START";
+        CBE_operation = "START";
     };
-    class WAIT_ModuleConvoyHold: WAIT_ModuleConvoyStart {
+    class CBE_ModuleConvoyHold: CBE_ModuleConvoyStart {
         displayName = "Convoy: hold and unload passengers";
-        WAIT_operation = "STOP";
+        CBE_operation = "STOP";
     };
-    class WAIT_ModuleConvoyRelease: WAIT_ModuleConvoyStart {
+    class CBE_ModuleConvoyRelease: CBE_ModuleConvoyStart {
         displayName = "Convoy: release control";
-        WAIT_operation = "RELEASE";
+        CBE_operation = "RELEASE";
     };
 };
 class Extended_DisplayLoad_EventHandlers {
     class RscDisplayCurator {
-        WAIT_AI_Tweaks = "call (missionNamespace getVariable ['WAIT_AIPass_ZeusInstallLocal', {}])";
+        CBE_AI_Tweaks = "call (missionNamespace getVariable ['CBE_AIPass_ZeusInstallLocal', {}])";
     };
 };

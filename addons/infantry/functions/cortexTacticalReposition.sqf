@@ -1,15 +1,15 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Commits one short terrain-screened reposition when the current contact cannot support a useful assault, flank or advance.
- * Locality / Authority: Runs only on the current group owner after normal WAIT eligibility checks. Zeus, players, authored HOLD/SENTRY orders, specialist owners and newer WAIT operations take precedence.
+ * Locality / Authority: Runs only on the current group owner after normal CBE eligibility checks. Zeus, players, authored HOLD/SENTRY orders, specialist owners and newer CBE operations take precedence.
  * A routine group-waypoint fallback yields to any live or malformed actor reservation;
  * the earlier close-armour withdrawal retains survival priority. Other native/fire and
  * independently scoped manoeuvre paths remain available to unreserved actors.
  * Repeat/JIP: One operation generation owns one waypoint. A public cooldown prevents route churn; locality migration retires the old generation and never replays its command blindly.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: ordered known enemies <ARRAY>; 3: selected target index <NUMBER, default 0>; 4: assessment reason <STRING>.
  * Return Value: Boolean - true only when a physical reposition or close-threat withdrawal started.
- * Current callers: WAIT_fnc_CortexTacticalStart.
- * Example: private _started=[group player,_state,_contacts,0,"ARMOUR_OVERMATCH"] call WAIT_fnc_CortexTacticalReposition;
+ * Current callers: CBE_fnc_CortexTacticalStart.
+ * Example: private _started=[group player,_state,_contacts,0,"ARMOUR_OVERMATCH"] call CBE_fnc_CortexTacticalReposition;
  */
 
 params [
@@ -20,15 +20,15 @@ params [
     ["_reason","NO_SAFE_MANOEUVRE",[""]]
 ];
 if (isNull _group || {!local _group} || {_enemies isEqualTo []}
-    || {!([_group,false,false,true] call WAIT_fnc_CortexIsEligible)}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
+    || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
 if (count (_state getOrDefault ["drill",createHashMap]) > 0
     || {(_state getOrDefault ["movementLease",[]]) isNotEqualTo []}
-    || {count (_group getVariable ["WAIT_Operation",createHashMap]) > 0}) exitWith {false};
+    || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}) exitWith {false};
 
 // This is an infantry group destination, not a substitute vehicle escape controller.
 if ((units _group) findIf {alive _x && {!isNull objectParent _x}} >= 0) exitWith {false};
-private _leader=[_group] call WAIT_fnc_CortexGroupAnchor;
+private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 if (isNull _leader || {!alive _leader}) exitWith {false};
 _targetIndex=(_targetIndex max 0) min ((count _enemies)-1);
@@ -46,7 +46,7 @@ if (count _threatPos < 2 && {!isNull _target} && {_leader knowsAbout _target > 0
 };
 if (!(count _threatPos in [2,3]) || {_threatPos findIf {!(_x isEqualType 0)} >= 0}
     || {_threatPos isEqualTo [0,0,0]}) exitWith {false};
-private _cooldown=_group getVariable ["WAIT_Cortex_TacticalRepositionCooldown",[]];
+private _cooldown=_group getVariable ["CBE_Cortex_TacticalRepositionCooldown",[]];
 if (count _cooldown == 3 && {time < (_cooldown select 0)}
     && {(_cooldown select 1) == _reason} && {(_cooldown select 2) isEqualTo _target}) exitWith {false};
 
@@ -58,9 +58,9 @@ private _distance=_origin distance2D _threatPos;
 if (_reason == "ARMOUR_OVERMATCH" && {_distance <= 120}) exitWith {
     _state set ["enemyPos",+_threatPos];
     _state set ["withdrawReason","CLOSE_ARMOUR_OVERMATCH"];
-    private _withdrawing=[_group,_state] call WAIT_fnc_CortexRetreat;
+    private _withdrawing=[_group,_state] call CBE_fnc_CortexRetreat;
     if (_withdrawing) then {
-        _group setVariable ["WAIT_Cortex_TacticalReposition",["WITHDRAW",_reason,_target,serverTime],true];
+        _group setVariable ["CBE_Cortex_TacticalReposition",["WITHDRAW",_reason,_target,serverTime],true];
     };
     _withdrawing
 };
@@ -69,7 +69,7 @@ if (_reason == "ARMOUR_OVERMATCH" && {_distance <= 120}) exitWith {
 // actors, so preserve finite actor work rather than stealing a grenade/AT/indoor leg.
 // The close-armour withdrawal above retains its urgent survival priority.
 private _actorReserved={
-    private _lease=_this getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _lease=_this getVariable ["CBE_Cortex_ActorMove",[]];
     if (_lease isEqualTo []) exitWith {false};
     private _expired=_lease isEqualType [] && {count _lease == 3}
         && {(_lease select 0) isEqualType ""}
@@ -102,46 +102,46 @@ private _candidates=[];
     private _goal=_origin getPos [_range,_x];
     _candidates pushBack [_intermediate,_goal];
 } forEach _headings;
-private _route=[_origin,_candidates,_threatPos,[],_target,"INFANTRY"] call WAIT_fnc_CortexSelectAvenue;
+private _route=[_origin,_candidates,_threatPos,[],_target,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
 if (_route isEqualTo []) exitWith {
-    _group setVariable ["WAIT_Cortex_TacticalReposition",["BLOCKED",_reason,_target,serverTime],true];
-    _group setVariable ["WAIT_Cortex_TacticalRepositionCooldown",[time+12,_reason,_target]];
+    _group setVariable ["CBE_Cortex_TacticalReposition",["BLOCKED",_reason,_target,serverTime],true];
+    _group setVariable ["CBE_Cortex_TacticalRepositionCooldown",[time+12,_reason,_target]];
     false
 };
 private _goal=+(_route select -1);
-private _cover=[_goal,_threatPos,18,[],_group] call WAIT_fnc_CortexFindCover;
+private _cover=[_goal,_threatPos,18,[],_group] call CBE_fnc_CortexFindCover;
 if (_cover param [1,false,[false]]) then {
     _goal=+(_cover select 0);
     _route set [(count _route)-1,_goal];
 };
 
-if !([_group,"TACTICAL_REPOSITION",true,serverTime+30] call WAIT_fnc_CortexOwnershipLease) exitWith {false};
+if !([_group,"TACTICAL_REPOSITION",true,serverTime+30] call CBE_fnc_CortexOwnershipLease) exitWith {false};
 private _participants=(units _group) select {
     alive _x && {local _x} && {!isPlayer _x} && {isNull objectParent _x}
         && {lifeState _x != "INCAPACITATED"}
 };
 private _objective=[_target,_threatPos] select isNull _target;
-private _operation=[_group,"REPOSITION",_objective,_participants,_route,"MOVING"] call WAIT_fnc_OperationStart;
+private _operation=[_group,"REPOSITION",_objective,_participants,_route,"MOVING"] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {
-    [_group,"TACTICAL_REPOSITION",false] call WAIT_fnc_CortexOwnershipLease;
+    [_group,"TACTICAL_REPOSITION",false] call CBE_fnc_CortexOwnershipLease;
     false
 };
 private _generation=_operation get "generation";
-private _waypoint=[_group,_route select 0,6,"MOVE",_generation] call WAIT_fnc_CortexGroupMove;
+private _waypoint=[_group,_route select 0,6,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
 if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) exitWith {
     // A native service task or newer owner can reject movement at the final boundary.
     // No waypoint means no started reposition: retire its exact operation and reservation now.
-    [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call WAIT_fnc_OperationRelease;
-    [_group,"TACTICAL_REPOSITION",false] call WAIT_fnc_CortexOwnershipLease;
-    _group setVariable ["WAIT_Cortex_TacticalReposition",["BLOCKED",_reason,_target,serverTime],true];
-    _group setVariable ["WAIT_Cortex_TacticalRepositionCooldown",[time+12,_reason,_target]];
+    [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+    [_group,"TACTICAL_REPOSITION",false] call CBE_fnc_CortexOwnershipLease;
+    _group setVariable ["CBE_Cortex_TacticalReposition",["BLOCKED",_reason,_target,serverTime],true];
+    _group setVariable ["CBE_Cortex_TacticalRepositionCooldown",[time+12,_reason,_target]];
     false
 };
 _state set ["tacticalRepositionOperationGeneration",_generation];
 _state set ["tacticalRepositionLeg",0];
 _state set ["movementLease",["TACTICAL_REPOSITION",time+30]];
-_group setVariable ["WAIT_Cortex_TacticalReposition",[
+_group setVariable ["CBE_Cortex_TacticalReposition",[
     "MOVING",_reason,_target,serverTime,+_origin,+_goal,+_route,_generation
 ],true];
-_group setVariable ["WAIT_Cortex_TacticalRepositionCooldown",[time+75,_reason,_target]];
+_group setVariable ["CBE_Cortex_TacticalRepositionCooldown",[time+75,_reason,_target]];
 true

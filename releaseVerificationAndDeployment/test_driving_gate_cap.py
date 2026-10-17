@@ -18,9 +18,9 @@ class DrivingGateCapTests(unittest.TestCase):
     def test_existing_executors_combine_gate_before_speed_and_recovery(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
-        self.assertLess(ordinary.index('call WAIT_fnc_DrivingGeometryCap'),ordinary.index('_vehicle forceSpeed _capMps'))
+        self.assertLess(ordinary.index('call CBE_fnc_DrivingGeometryCap'),ordinary.index('_vehicle forceSpeed _capMps'))
         self.assertIn('if (!_reverseLeg) then {',ordinary)
-        self.assertEqual(convoy.count('call WAIT_fnc_DrivingGeometryCap'),2)
+        self.assertEqual(convoy.count('call CBE_fnc_DrivingGeometryCap'),2)
         self.assertIn('then {_leadTraffic=_leadGate}',convoy)
         self.assertIn('then {_traffic=_vehicleGate}',convoy)
         self.assertIn('!_leadTrafficBlocked',convoy)
@@ -32,18 +32,18 @@ class DrivingGateCapTests(unittest.TestCase):
             self.assertIn('["'+key+'",',owner)
             self.assertIn('getOrDefault ["'+key+'",',server)
         for guard in ['!isServer', 'remoteExecutedOwner', 'groupOwner _group', 'owner _vehicle',
-                      'owner driver _vehicle', 'call WAIT_fnc_CortexIsEligible', 'call WAIT_fnc_CortexIsPaused',
+                      'owner driver _vehicle', 'call CBE_fnc_CortexIsEligible', 'call CBE_fnc_CortexIsPaused',
                       '_expires <= serverTime', '_expires > serverTime+5',
-                      'call WAIT_fnc_DrivingRouteReceipt', '_transform isNotEqualTo',
-                      'call WAIT_fnc_DrivingGateCap', '(_observed select 1) != _gate',
+                      'call CBE_fnc_DrivingRouteReceipt', '_transform isNotEqualTo',
+                      'call CBE_fnc_DrivingGateCap', '(_observed select 1) != _gate',
                       '(_observed select 2) > 12', 'abs speed _vehicle > 8',
-                      'WAIT_AIPass_Active', '!simulationEnabled _vehicle', 'isObjectHidden _vehicle']:
+                      'CBE_AIPass_Active', '!simulationEnabled _vehicle', 'isObjectHidden _vehicle']:
             self.assertIn(guard,server)
         mutation=server.split('// Final mutation boundary:',1)[1]
         self.assertLess(mutation.index('call _locked'),mutation.index('animateSource'))
         self.assertLess(mutation.index('driver _vehicle != _driver'),mutation.index('animateSource'))
         self.assertNotIn('animateSource',owner)
-        self.assertIn('remoteExecCall ["WAIT_fnc_DrivingGateOpenServer",2]',owner)
+        self.assertIn('remoteExecCall ["CBE_fnc_DrivingGateOpenServer",2]',owner)
 
     def test_gate_attempts_are_finite_and_do_not_create_passage_or_closure(self):
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
@@ -63,9 +63,9 @@ class DrivingGateCapTests(unittest.TestCase):
         for guard in ['_attempts >= 2', 'serverTime < (_pending select 1)',
                       '(_ack select 4) isEqualTo _route', '(_ack select 6) isEqualTo _transform',
                       'OPEN_WINDOW_EXPIRED', 'REQUEST_TIMEOUT',
-                      'WAIT_DrivingGate_Pending",[_context,serverTime+5,_attempts+1],true', '["driver",_driver]', '["commander",_commander]']:
+                      'CBE_DrivingGate_Pending",[_context,serverTime+5,_attempts+1],true', '["driver",_driver]', '["commander",_commander]']:
             self.assertIn(guard,owner)
-        self.assertLess(server.index('if (_attemptIndex >= 0) exitWith'),server.index('call WAIT_fnc_DrivingGateCap'))
+        self.assertLess(server.index('if (_attemptIndex >= 0) exitWith'),server.index('call CBE_fnc_DrivingGateCap'))
         self.assertIn('_driver != _requestedDriver',server)
         self.assertIn('_commander != _requestedCommander',server)
         self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform]',server)
@@ -75,17 +75,17 @@ class DrivingGateIntentTests(unittest.TestCase):
     def test_gate_intent_is_checked_before_request_and_authoritative_mutation(self):
         owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
-        self.assertLess(owner.index('call WAIT_fnc_DrivingGateIntent'),owner.index('WAIT_DrivingGate_Pending'))
-        self.assertEqual(server.count('call WAIT_fnc_DrivingGateIntent'),2)
+        self.assertLess(owner.index('call CBE_fnc_DrivingGateIntent'),owner.index('CBE_DrivingGate_Pending'))
+        self.assertEqual(server.count('call CBE_fnc_DrivingGateIntent'),2)
         mutation=server.split('// Final mutation boundary:',1)[1]
-        self.assertLess(mutation.index('call WAIT_fnc_DrivingGateIntent'),mutation.index('animateSource'))
+        self.assertLess(mutation.index('call CBE_fnc_DrivingGateIntent'),mutation.index('animateSource'))
         self.assertIn('_revision < 0',mutation)
 
     def test_plain_and_owned_alternate_intent_have_distinct_stop_contracts(self):
         s=(ROOT/'addons/vehicles/functions/drivingGateIntent.sqf').read_text()
         for marker in ('waypointType _waypoint != "MOVE"','synchronizedWaypoints',
                        'synchronizedTriggers','waypointAttachedObject','waypointTimeout',
-                       'WAIT_DrivingBypass_Work","FOLLOW"','WAIT_DrivingCorridor_Work","CROSS"',
+                       'CBE_DrivingBypass_Work","FOLLOW"','CBE_DrivingCorridor_Work","CROSS"',
                        'expectedDestination _driver','expectedDestination _operator',
                        'serverTime <','"controller",[]','"phase",""]) == "APPROACH"',
                        '_driverTarget vectorDistance _destination <= 3'):

@@ -20,8 +20,8 @@ class DrivingCrewTests(unittest.TestCase):
             self.assertNotIn(command,s)
     def test_authority_and_original_orders_bind_late_writes(self):
         s=self.source()
-        for guard in ('remoteExecutedOwner > 0','WAIT_Driving_Brain','WAIT_AIPass_Epoch','CortexZeusHeld',
-                      'CortexExternalTakeover','WAIT_Convoy_Active','WAIT_ExternalDrivingOwner','DrivingMovementAvailable',
+        for guard in ('remoteExecutedOwner > 0','CBE_Driving_Brain','CBE_AIPass_Epoch','CortexZeusHeld',
+                      'CortexExternalTakeover','CBE_Convoy_Active','CBE_ExternalDrivingOwner','DrivingMovementAvailable',
                       'count _crew <= 20','abs speed _vehicle < 1','!lockedDriver _vehicle',
                       'isPlayer _actor','group _actor != _group','currentCommand _actor in _tasks',
                       'waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers',
@@ -63,31 +63,31 @@ class DrivingCrewTests(unittest.TestCase):
         s=self.source()
         self.assertEqual(s.count('serverTime+25'),1)
         self.assertIn('serverTime >= (_work get "deadline")',s)
-        self.assertIn('driver _vehicle == _candidate && {[_candidate] call WAIT_fnc_CortexCombatEffective}',s)
+        self.assertIn('driver _vehicle == _candidate && {[_candidate] call CBE_fnc_CortexCombatEffective}',s)
         self.assertIn('["COMPLETE","CANCELLED","EXPIRED"]',s)
         release=s.split('if (_release) exitWith {',1)[1].split('private _changed=',1)[0]
         self.assertNotIn(' action [',release)
         self.assertIn('(_brain getOrDefault ["route",[]])',release)
         finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text(encoding='utf-8')
-        self.assertIn('[_group,_brain,true] call WAIT_fnc_DrivingCrewStep',finish)
+        self.assertIn('[_group,_brain,true] call CBE_fnc_DrivingCrewStep',finish)
     def test_existing_fsm_owns_the_only_scheduler(self):
         step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text(encoding='utf-8')
         start=(ROOT/'addons/vehicles/functions/drivingOperationStart.sqf').read_text(encoding='utf-8')
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text(encoding='utf-8')
-        self.assertIn('private _crewPending=[_group,_brain] call WAIT_fnc_DrivingCrewStep',step)
+        self.assertIn('private _crewPending=[_group,_brain] call CBE_fnc_DrivingCrewStep',step)
         self.assertIn('if (_crewPending) then {_phase="CREW_HANDOVER"}',step)
         self.assertIn('_crewPending || {_traffic}',step)
         self.assertIn('isNull driver _vehicle || {!alive driver _vehicle}',start)
         self.assertIn('class CrewHandover',fsm)
         self.assertNotIn('execFSM',self.source())
         source=self.source()
-        self.assertLess(source.index('Normal healthy drivers'),source.index('call WAIT_fnc_DrivingRouteReceipt'))
+        self.assertLess(source.index('Normal healthy drivers'),source.index('call CBE_fnc_DrivingRouteReceipt'))
         self.assertLess(source.index('Normal healthy drivers'),source.index('fullCrew'))
 
     def test_physical_fixture_uses_discovery_and_measured_results(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingCrew.sqf').read_text(encoding='utf-8')
-        self.assertNotIn('call WAIT_fnc_DrivingCrewStep',s)
-        self.assertNotIn('setVariable ["WAIT_DrivingCrew_Work"',s)
+        self.assertNotIn('call CBE_fnc_DrivingCrewStep',s)
+        self.assertNotIn('setVariable ["CBE_DrivingCrew_Work"',s)
         self.assertNotIn(' action [',s)
         self.assertIn('_vehicle distance2D _routeStart >= 35',s)
         self.assertIn('driver _vehicle == _replacement',s)
@@ -98,8 +98,8 @@ class DrivingCrewTests(unittest.TestCase):
             self.assertIn(case,s)
         self.assertEqual(s.count('moveInCargo'),1)
         self.assertLess(s.index('moveInCargo'),s.index('_driver setDamage 1'))
-        self.assertIn('WAIT_CortexQA_HeadlessBatch',s)
-        self.assertIn('WAIT_Headless_ExcludeGroup',s)
+        self.assertIn('CBE_CortexQA_HeadlessBatch',s)
+        self.assertIn('CBE_Headless_ExcludeGroup',s)
 
     def test_seat_actions_do_not_require_remote_vehicle_movement_authority(self):
         s=self.source().split('params [[',1)[1]
@@ -117,9 +117,9 @@ class DrivingCrewTests(unittest.TestCase):
     def test_actor_reservations_veto_selection_and_each_native_seat_action(self):
         s=self.source()
         choices=s.split('private _choices=',1)[1].split('private _cargo=',1)[0]
-        self.assertIn('!([_actor] call WAIT_fnc_CortexActorMoveReserved)',choices)
+        self.assertIn('!([_actor] call CBE_fnc_CortexActorMoveReserved)',choices)
         available=s.split('private _available={',1)[1].split('private _finish=',1)[0]
-        self.assertIn('isNull _candidate || {!([_candidate] call WAIT_fnc_CortexActorMoveReserved)}',available)
+        self.assertIn('isNull _candidate || {!([_candidate] call CBE_fnc_CortexActorMoveReserved)}',available)
         commands=s.split('private _commandsOwned={',1)[1].split('if (_phase == "READY"',1)[0]
-        self.assertIn('!([_candidate] call WAIT_fnc_CortexActorMoveReserved)',commands)
+        self.assertIn('!([_candidate] call CBE_fnc_CortexActorMoveReserved)',commands)
         self.assertEqual(s.count('call _commandsOwned'),2)

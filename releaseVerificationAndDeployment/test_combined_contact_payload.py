@@ -15,7 +15,7 @@ class CombinedContactPayloadTests(unittest.TestCase):
             if name.endswith('Request'):
                 self.assertLess(boundary,s.index('_state set ["combinedArmsDue"'))
             elif name.endswith('Server'):
-                self.assertLess(boundary,s.index('_requester setVariable ["WAIT_Cortex_CombinedDue"'))
+                self.assertLess(boundary,s.index('_requester setVariable ["CBE_Cortex_CombinedDue"'))
             else:
                 self.assertLess(boundary,s.index('private _asset='))
     def test_invalid_positions_cannot_be_valid_contact_vectors(self):
@@ -39,9 +39,9 @@ class CombinedContactPayloadTests(unittest.TestCase):
         self.assertIn('serverTime-_age,_confidence min 2.5',request)
         self.assertIn('_contactReceipt=[1,_observedAt,_confidence min 2.5]',server)
         self.assertIn('serverTime-(_contactReceipt select 1) <= 10',owner)
-        self.assertIn('if (_freshReport && {(_group getVariable ["WAIT_Cortex_CombinedReportLocal",[]]) isNotEqualTo _applicationIdentity})',owner)
+        self.assertIn('if (_freshReport && {(_group getVariable ["CBE_Cortex_CombinedReportLocal",[]]) isNotEqualTo _applicationIdentity})',owner)
         self.assertIn('_group reveal [_target,_contactReceipt select 2]',owner)
-        self.assertIn('_group setVariable ["WAIT_Cortex_CombinedReportLocal",_applicationIdentity]',owner)
+        self.assertIn('_group setVariable ["CBE_Cortex_CombinedReportLocal",_applicationIdentity]',owner)
         self.assertIn('"NO_KNOWN_CONTACT"',owner)
         for name in ('cortexCombinedAirFallbackServer','cortexCombinedGroundFallbackServer'):
             fallback=source(name)

@@ -15,39 +15,39 @@
  * retain failure evidence and may leave an owned STOP rather than merge through an occupied hull.
  * One existing callback observes at most one bounded traffic query OR one geometry slice.
  * Current callers: DrivingAssistStart only; admission is explicit DrivingPassBegin.
- * Example: [_group,_vehicle,_brain,_mayIssueDriving] call WAIT_fnc_DrivingPassStep;
+ * Example: [_group,_vehicle,_brain,_mayIssueDriving] call CBE_fnc_DrivingPassStep;
  */
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],
     ["_brain",createHashMap,[createHashMap]],["_mayIssue",{false},[{}]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2} || {isNull _vehicle} || {!local _vehicle}
     || {isNull _group} || {!local _group}
-    || {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isNotEqualTo _brain}) exitWith {[false,1e6,"NOT_CURRENT_OWNER"]};
-private _work=_vehicle getVariable ["WAIT_DrivingPass_Work",createHashMap];
+    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}) exitWith {[false,1e6,"NOT_CURRENT_OWNER"]};
+private _work=_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
 if (count _work == 0) exitWith {[false,1e6,""]};
 if ((_work get "group") != _group) exitWith {
-    [_vehicle,_work get "group","GROUP_CHANGED",false] call WAIT_fnc_DrivingPassFinish;
+    [_vehicle,_work get "group","GROUP_CHANGED",false] call CBE_fnc_DrivingPassFinish;
     [false,1e6,"GROUP_CHANGED"]
 };
 private _driver=_work get "driver";private _operator=_work get "operator";private _peer=_work get "peer";
 private _base={
-    !(_work getOrDefault ["interrupted",false]) && {call _mayIssue} && {(_work get "epoch") == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+    !(_work getOrDefault ["interrupted",false]) && {call _mayIssue} && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_work get "generation") == (_brain getOrDefault ["generation",-1])}
         && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])}
-        && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")}
+        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")}
         && {driver _vehicle == _driver} && {(effectiveCommander _vehicle) in [_operator,objNull]}
-        && {[_driver,_operator] findIf {[_x] call WAIT_fnc_CortexActorMoveReserved} < 0}
+        && {[_driver,_operator] findIf {[_x] call CBE_fnc_CortexActorMoveReserved} < 0}
         && {[_driver,_operator] findIf {!(currentCommand _x in ["","MOVE","WAIT","STOP"])} < 0}
-        && {(_vehicle getVariable ["WAIT_DrivingPass_Work",createHashMap]) isEqualTo _work}
+        && {(_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap]) isEqualTo _work}
 };
 private _current={call _base && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
     && {(expectedDestination _operator) isEqualTo (_work get "command")}};
 private _finish={params ["_reason",["_resume",false]];
-    [_vehicle,_group,_reason,_resume] call WAIT_fnc_DrivingPassFinish;
+    [_vehicle,_group,_reason,_resume] call CBE_fnc_DrivingPassFinish;
     [false,1e6,_reason]
 };
 if (_work getOrDefault ["interrupted",false]) exitWith {["NATIVE_STOP_EVENT",false] call _finish};
 if !(call _current) exitWith {["OWNER_OR_ORDER_CHANGED",true] call _finish};
-private _consent=_vehicle getVariable ["WAIT_DrivingPass_Consent",[]];
+private _consent=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];
 
 if (isNull _peer) exitWith {["PEER_DELETED",true] call _finish};
 // Use complete oriented hull intervals, not centre distance and nominal half lengths.
@@ -78,7 +78,7 @@ if (serverTime >= (_work get "deadline")) exitWith {
     [["EXPIRED_HELD","EXPIRED_CLEAR"] select (_ahead || {_behind}),_ahead || {_behind}] call _finish
 };
 private _phase=_work get "phase";
-private _pairContext=[[_vehicle,_peer]] call WAIT_fnc_DrivingPassContext;
+private _pairContext=[[_vehicle,_peer]] call CBE_fnc_DrivingPassContext;
 private _peerCurrent=_pairContext isNotEqualTo [] && {((_pairContext select 1) select 1) isEqualTo (_work get "peerRow")};
 if ((!_peerCurrent || {!alive _peer} || {!_aligned}) && {_phase in ["OUT","RETURN_SCAN"]}) then {
     _phase="DROP_BACK";_work set ["phase",_phase];
@@ -90,7 +90,7 @@ private _issue={
     isNil {
         if (count _path >= 2 && {call _current}) then {
             private _writing=[_vehicle,_work get "token",_work get "epoch",_work get "generation"];
-            _group setVariable ["WAIT_DrivingPass_CommandWriting",_writing];
+            _group setVariable ["CBE_DrivingPass_CommandWriting",_writing];
             doStop _driver;if (_operator != _driver) then {doStop _operator};
             if (call _base) then {
                 _vehicle setDriveOnPath _path;
@@ -98,7 +98,7 @@ private _issue={
                 _work set ["command",+(expectedDestination _operator)];
                 _work set ["issued",true];_work set ["phase",_newPhase];
                 // Cleanup identity only: successors must never replay the old fixed path.
-                _vehicle setVariable ["WAIT_DrivingPass_Leg",["PASS_LEG_V1",clientOwner,_group,
+                _vehicle setVariable ["CBE_DrivingPass_Leg",["PASS_LEG_V1",clientOwner,_group,
                     _work get "epoch",_work get "generation",_work get "token",_driver,_operator,
                     +(expectedDestination _driver),+(expectedDestination _operator),
                     _work get "route",_work get "deadline",_peer],true];
@@ -107,8 +107,8 @@ private _issue={
                 _work set ["lastAt",serverTime];
                 _issued=true;
             };
-            if ((_group getVariable ["WAIT_DrivingPass_CommandWriting",[]]) isEqualTo _writing) then {
-                _group setVariable ["WAIT_DrivingPass_CommandWriting",nil];
+            if ((_group getVariable ["CBE_DrivingPass_CommandWriting",[]]) isEqualTo _writing) then {
+                _group setVariable ["CBE_DrivingPass_CommandWriting",nil];
             };
         };
         false
@@ -131,7 +131,7 @@ if (_phase == "RETURN_SCAN") exitWith {
     if (serverTime-(_work get "scanAt") >= 4) exitWith {["RETURN_SCAN_EXPIRED",_ahead] call _finish};
     private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
         ["context",_pairContext],["observedAt",serverTime],["guideASL",_work get "returnASL"]];
-    private _slice=[_proposal,_work get "scanCursor"] call WAIT_fnc_DrivingPassGeometry;
+    private _slice=[_proposal,_work get "scanCursor"] call CBE_fnc_DrivingPassGeometry;
     if ((_slice getOrDefault ["status",""]) != "SLICE_PROPOSAL") exitWith {["RETURN_OBSTRUCTED",false] call _finish};
     private _points=_work get "returnValidated";
     _points append ((_slice get "pointsATL") select [[1,0] select ((_work get "scanCursor") == 0)]);
@@ -150,7 +150,7 @@ if (_phase == "RETURN") exitWith {
 private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
     ["context",_pairContext],["observedAt",serverTime],["guideASL",(_work get "outPath") apply {ATLToASL _x}],
     ["estimatedSeconds",((_work get "deadline")-serverTime) min 24],["requiredTravel",350]];
-private _traffic=[_proposal] call WAIT_fnc_DrivingPassTraffic;
+private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
 private _distance=_vehicle distance2D (_work get "target");
 if ((_work get "lastDistance")-_distance >= 1) then {_work set ["lastDistance",_distance];_work set ["lastAt",serverTime]};
 if ((_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION" || {_traffic getOrDefault ["blocked",true]}

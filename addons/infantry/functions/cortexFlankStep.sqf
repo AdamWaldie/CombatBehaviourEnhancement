@@ -10,12 +10,12 @@
  * Bounds: each member gets his own spot, spread across a shallow line facing the last known enemy position. A slot on
  * water or a cliff-like side slope contracts towards the bound centre rather than stranding that soldier. Ordinary
  * bounds, the final position and the assault position are snapped to cover facing the enemy
- * (WAIT_fnc_CortexFindCover); street crossings and the clearing rush are not. On movement bounds, final approaches and
+ * (CBE_fnc_CortexFindCover); street crossings and the clearing rush are not. On movement bounds, final approaches and
  * street crossings, group-level RED pursuit is replaced by a finite YELLOW lease, but individual
  * TARGET, AUTOTARGET and AUTOCOMBAT remain enabled. Movers therefore keep acquiring, engaging and
- * reacting to visible threats while one committed doMove destination expresses WAIT's tactical intent.
+ * reacting to visible threats while one committed doMove destination expresses CBE's tactical intent.
  * A generation-owned group attack-delegation lease prevents competing leader-issued pursuit routes.
- * WAIT does not pair doMove with setDestination, clear native targets, or repeatedly fight a live ATTACK
+ * CBE does not pair doMove with setDestination, clear native targets, or repeatedly fight a live ATTACK
  * command. A mover is reconsidered only after measured physical no-progress; one route refresh is allowed
  * before the actor becomes a recovery straggler and the viable element continues.
  * A RED group first receives a finite YELLOW movement lease: it remains fire-at-will, but the engine must keep
@@ -24,7 +24,7 @@
  * still has the value Cortex applied. A later Zeus, waypoint or script ROE change cancels the manoeuvre and survives
  * cleanup. Movers retain automatic target acquisition and may fire while moving; the paired fire team and covering
  * squad still provide deliberate supporting fire. Movers watch the known threat direction.
- * Native COMBAT behaviour remains available throughout movement. WAIT owns route and role selection,
+ * Native COMBAT behaviour remains available throughout movement. CBE owns route and role selection,
  * while the engine owns moment-to-moment posture, target engagement and obstacle avoidance.
  * The manoeuvre group receives a finite FULL-speed lease so inherited NORMAL or LIMITED travel
  * does not make short tactical bounds crawl. Cleanup restores the prior speed only while Cortex
@@ -41,18 +41,18 @@
  * finish the bound. This short, progress-driven grace avoids turning an active mover into a recovery
  * chase while never holding the element for an actor who has actually stopped.
  * Remaining actors become bounded recovery stragglers and keep moving toward their element; they are
- * never counted as arrived or teleported. WAIT_AIPass_Flank_BoundTimeout limits stationary time; four times that value is the absolute bound limit. Stationary movement ends as STALLED; the absolute limit ends as TIME_LIMIT, never arrival. Handoffs occur as soon as physical arrival is established. WAIT_AIPass_Flank_BoundPause is an
+ * never counted as arrived or teleported. CBE_AIPass_Flank_BoundTimeout limits stationary time; four times that value is the absolute bound limit. Stationary movement ends as STALLED; the absolute limit ends as TIME_LIMIT, never arrival. Handoffs occur as soon as physical arrival is established. CBE_AIPass_Flank_BoundPause is an
  * optional deliberate overwatch interval (default zero), never an internal scheduling requirement.
  * Road smoke is dispatched opportunistically without holding the crossing for an animation or bloom.
  * Final, clearing and consolidation transitions use the same optional interval; coordinated bounds
  * already have a covering squad and therefore never add it. A zero-duration handoff is requeued at the
  * next shared-scheduler opportunity instead of inheriting the ordinary 1.5 second observation cadence.
- * Final assault (WAIT_AIPass_Assault_Enable): after a flank or advance hold,
- * if the enemy is believed within WAIT_AIPass_Assault_Range of the element and morale is STEADY,
+ * Final assault (CBE_AIPass_Assault_Enable): after a flank or advance hold,
+ * if the enemy is believed within CBE_AIPass_Assault_Range of the element and morale is STEADY,
  * the whole viable element reaches its assault position and clears through. The behaviour profile's
  * assaultChance controls optional grenade preparation, not whether an enabled, successful manoeuvre
  * arbitrarily abandons its assault transition. One member may throw a fragmentation grenade
- * (WAIT_fnc_CortexThrowGrenade, never near friendlies). The approach uses a covered spot
+ * (CBE_fnc_CortexThrowGrenade, never near friendlies). The approach uses a covered spot
  * 20 m short of the reported enemy and clears 20 m beyond that fixed objective, while the base of fire keeps suppressing. Formation commitment issues the covered approach immediately. Arrival issues the clear-through immediately, whether or not a grenade throw was queued. A queued frag is an opportunistic action: its own next-frame safety check may cancel it, but deployment never gates the assault or aborts movement. The assault axis stays fixed through the crossing; water destinations are rejected.
  * Consolidation: a flank brings its covering element forward even when no final assault
  * is selected; the manoeuvre element holds its gained position. After clearing through,
@@ -62,7 +62,7 @@
  * Advance has already moved both elements through the objective.
  * Ending: a completed drill leaves the element holding the ground it took. Members rejoin formation
  * when the leader comes within 30 m, when the squad returns to CALM, or when it retreats . The drill aborts, with members following the leader again, when the group
- * leaves CONTACT, Zeus takes the group (WAIT_fnc_CortexZeusHeld), or half the element is lost. It
+ * leaves CONTACT, Zeus takes the group (CBE_fnc_CortexZeusHeld), or half the element is lost. It
  * also ends, holding ground, when an enemy is believed within 30 m and assault is disabled. Flanks move only their selected element. Successive advances exchange two elements,
  * including the leader in the second element, only after physical arrival.
  * Coordinated bounds face the matching server role objective even before personal sight;
@@ -99,16 +99,16 @@
  * Number - seconds until the next step, or -1 when the drill ended
  *
  * Example:
- * [createHashMapFromArray [["group", _group],["drillToken",_drill get "token"]]] call WAIT_fnc_CortexFlankStep;
+ * [createHashMapFromArray [["group", _group],["drillToken",_drill get "token"]]] call CBE_fnc_CortexFlankStep;
  * Result: the element moves one stage further.
  *
- * Current caller: the finite tacticalDrill FSM launched by WAIT_fnc_CortexDrillStart.
+ * Current caller: the finite tacticalDrill FSM launched by CBE_fnc_CortexDrillStart.
  */
 
 params [["_job", createHashMap, [createHashMap]]];
 private _group = _job getOrDefault ["group", grpNull];
 if (isNull _group || {!local _group}) exitWith {-1};
-private _state = _group getVariable ["WAIT_AIPass_State", createHashMap];
+private _state = _group getVariable ["CBE_AIPass_State", createHashMap];
 private _drill = _state getOrDefault ["drill", createHashMap];
 if (count _drill == 0) exitWith {-1};
 // A cancelled job may still be queued when another drill starts on this group.
@@ -116,7 +116,7 @@ if (count _drill == 0) exitWith {-1};
 private _token = _job getOrDefault ["drillToken",""];
 if (_token == "" || {_token != (_drill getOrDefault ["token",""])}) exitWith {-1};
 private _end = {
-    [_group, _state, _this] call WAIT_fnc_CortexFlankEnd;
+    [_group, _state, _this] call CBE_fnc_CortexFlankEnd;
     -1
 };
 // The generic lifecycle owns interruption and physical-progress accounting.  The drill remains
@@ -125,8 +125,8 @@ private _end = {
 private _operationGeneration=_drill getOrDefault ["operationGeneration",-1];
 private _operationEndReason="";
 if (_operationGeneration >= 0) then {
-    private _operationStale=missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25];
-    private _operationStatus=[_group,_operationGeneration,3,_operationStale] call WAIT_fnc_OperationStep;
+    private _operationStale=missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25];
+    private _operationStatus=[_group,_operationGeneration,3,_operationStale] call CBE_fnc_OperationStep;
     if (_operationStatus in ["LOST_OWNER","ZEUS","EXTERNAL","REPLACED","STALLED"]
         && {_operationStatus != "STALLED" || {!((_drill getOrDefault ["stage",""]) in ["START","MOVE"])}}) then {_operationEndReason=_operationStatus};
     // MOVE has actor-specific retry/replacement and a hard bound deadline below. Aggregate
@@ -134,7 +134,7 @@ if (_operationGeneration >= 0) then {
 };
 if (_operationEndReason != "") exitWith {_operationEndReason call _end};
 // External control and replacement orders win before any mode or movement mutation.
-if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {"OWNERSHIP_LOST" call _end};
+if !([_group] call CBE_fnc_CortexIsEligible) exitWith {"OWNERSHIP_LOST" call _end};
 private _intentTarget=_drill getOrDefault ["target",objNull];
 // Retain a clear-through after a casualty, but surrender or a side change ends hostile intent.
 // Never continue a committed approach against a now-protected object merely because its old
@@ -150,25 +150,25 @@ if (!isNull _intentTarget && {captive _intentTarget
 // writes; route scoring and progress accounting remain bounded and do not issue movement.
 private _actorTaskFree={
     params ["_actor"];
-    private _reservation=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
     private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
         && {(_reservation param [2,1e12,[0]]) <= time}};
-    _free && {[_actor] call WAIT_fnc_CortexCombatEffective}
+    _free && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {local _actor} && {!isPlayer _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {isNull remoteControlled _actor}
-        && {([_actor] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 private _mayIssueMovement = {
     params ["_actor"];
-    !([_group] call WAIT_fnc_CortexExternalTakeover) && {[_actor] call _actorTaskFree}
+    !([_group] call CBE_fnc_CortexExternalTakeover) && {[_actor] call _actorTaskFree}
 };
 // A committed bound owns movement, not weapon aiming. Prevent the native leader from
 // delegating a competing ATTACK route while TARGET/AUTOTARGET/FIREWEAPON remain untouched.
 // The common operation consumes this exact-value lease on release; an external policy edit
 // ends the drill rather than being forced back on every callback.
-private _movementOperation=_group getVariable ["WAIT_Operation",createHashMap];
+private _movementOperation=_group getVariable ["CBE_Operation",createHashMap];
 if (_operationGeneration >= 0 && {(_movementOperation getOrDefault ["generation",-1]) == _operationGeneration}) then {
     private _restore=_movementOperation getOrDefault ["restore",createHashMap];
     private _attackLease=_restore getOrDefault ["groupAttack",[]];
@@ -176,12 +176,12 @@ if (_operationGeneration >= 0 && {(_movementOperation getOrDefault ["generation"
         private _delegates=units _group;
         if (count _delegates <= 64 && {_delegates findIf {
             isPlayer _x || {!isNull remoteControlled _x}
-                || {([_x] call WAIT_fnc_CortexExternalOwner) != ""}
-                || {[_x] call WAIT_fnc_CompatibilityExternalControl}
+                || {([_x] call CBE_fnc_CortexExternalOwner) != ""}
+                || {[_x] call CBE_fnc_CompatibilityExternalControl}
         } < 0}) then {
             _restore set ["groupAttack",[attackEnabled _group,false]];
             _movementOperation set ["restore",_restore];
-            _group setVariable ["WAIT_Operation",_movementOperation,true];
+            _group setVariable ["CBE_Operation",_movementOperation,true];
             _group enableAttack false;
         };
     } else {
@@ -211,22 +211,22 @@ if (_groupSpeedLease isNotEqualTo [] && {speedMode _group != (_groupSpeedLease s
 };
 private _supportToken=_drill getOrDefault ["supportToken",""];
 private _support=_supportToken != "";
-private _supportRole=_group getVariable ["WAIT_Cortex_SupportRole",[]];
+private _supportRole=_group getVariable ["CBE_Cortex_SupportRole",[]];
 private _supportValid=_support && {count _supportRole == 5}
     && {(_supportRole select 0) == _supportToken}
     && {(_supportRole select 1) == (_drill get "supportSequence")}
     && {(_supportRole select 2) == "MOVE"}
     && {_state getOrDefault ["assaulting",false]};
-private _gate=if (_support) then {"WAIT_AIPass_CoordinatedAssault_Enable"} else {
+private _gate=if (_support) then {"CBE_AIPass_CoordinatedAssault_Enable"} else {
     switch (_drill getOrDefault ["type","FLANK"]) do {
-        case "ADVANCE": {"WAIT_AIPass_Advance_Enable"};
-        case "ASSAULT": {"WAIT_AIPass_Assault_Enable"};
-        default {"WAIT_AIPass_Flank_Enable"};
+        case "ADVANCE": {"CBE_AIPass_Advance_Enable"};
+        case "ASSAULT": {"CBE_AIPass_Assault_Enable"};
+        default {"CBE_AIPass_Flank_Enable"};
     }
 };
-if (!(missionNamespace getVariable ["WAIT_AIPass_Active", false])
+if (!(missionNamespace getVariable ["CBE_AIPass_Active", false])
     || {if (_support) then {!_supportValid} else {(_state getOrDefault ["phase",""]) != "CONTACT"}}
-    || {!([_group,_gate,true] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {"ABORT" call _end};
+    || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {"ABORT" call _end};
 // This callback is the drill's liveness heartbeat. Standalone drills also renew their
 // movement ownership instead of relying on one fixed five-minute lease. GroupTick uses
 // the heartbeat to release every owned PATH/behaviour change if this job disappears or
@@ -235,14 +235,14 @@ _drill set ["lastStep",time];
 private _movementLease=_state getOrDefault ["movementLease",[]];
 if (count _movementLease == 2 && {(_movementLease select 0) == "TACTICAL_DRILL"}) then {
     _state set ["movementLease",["TACTICAL_DRILL",time+90]];
-    [_group,"TACTICAL_DRILL",true,serverTime+90] call WAIT_fnc_CortexOwnershipLease;
+    [_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLease;
 };
 // Rebuild depleted manoeuvre elements from the surviving squad inside this existing group job.
 // There is no casualty event handler or per-unit scheduler. A change during a live bound restarts
 // that bound from the same route point so spot indexes cannot drift after a casualty.
 private _ownedPathUnits=(_drill getOrDefault ["disabled",[]]) select {(_x select 1) == "PATH"} apply {_x select 0};
-private _unavailable=(_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["unavailable",[]];
-private _fitSquad=(units _group) select {!(_x in _unavailable)} select {[_x] call WAIT_fnc_CortexCombatEffective && {local _x}
+private _unavailable=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["unavailable",[]];
+private _fitSquad=(units _group) select {!(_x in _unavailable)} select {[_x] call CBE_fnc_CortexCombatEffective && {local _x}
     && {isNull objectParent _x} && {group _x == _group} && {_x checkAIFeature "MOVE"}
     && {_x checkAIFeature "PATH" || {_x in _ownedPathUnits}} && {[_x] call _actorTaskFree}};
 private _teams=_drill getOrDefault ["teams",[]];
@@ -253,14 +253,14 @@ private _rankCandidates={
     // Reserve selection must honour finite actor tasks before the drill mutates its own roster;
     // the later shared operation roster check cannot undo a carrier already added to a fire team.
     _candidates=_candidates select {
-        private _reservationFree=!([_x] call WAIT_fnc_CortexActorMoveReserved);
+        private _reservationFree=!([_x] call CBE_fnc_CortexActorMoveReserved);
         _reservationFree
-            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
             && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
-    private _anchor=[_group] call WAIT_fnc_CortexGroupAnchor;
+    private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
     if (isNull _anchor) then {_anchor=leader _group};
-    private _rifles=_candidates select {!(([_x] call WAIT_fnc_CortexUnitRole) in ["MG","AT","LEADER"])};
+    private _rifles=_candidates select {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])};
     private _support=_candidates select {!(_x in _rifles) && {_x != _anchor}};
     _rifles+_support+(_candidates select {_x == _anchor})
 };
@@ -313,17 +313,17 @@ if (_operationGeneration >= 0) then {
     // make the operation appear leader-only or stalled after an otherwise valid casualty rebalance.
     // Exclude actors outside the committed live element, rather than admitting unrelated
     // security or support actors whose movement could mask a stalled bound.
-    [_group,_operationGeneration,count _units,(units _group)-_units] call WAIT_fnc_RebalanceRoles;
+    [_group,_operationGeneration,count _units,(units _group)-_units] call CBE_fnc_RebalanceRoles;
 };
 if (_reinforcements isNotEqualTo []) then {
-    private _history=_group getVariable ["WAIT_Cortex_DrillReinforcements",[]];
+    private _history=_group getVariable ["CBE_Cortex_DrillReinforcements",[]];
     _history pushBack [serverTime,_drill getOrDefault ["type",""],_drill getOrDefault ["index",-1],_reinforcements];
     // Diagnostics must not grow the public payload for a long-lived casualty/recovery operation.
     // Current participants remain authoritative; retain only the latest replacement transitions.
     if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
-    _group setVariable ["WAIT_Cortex_DrillReinforcements",_history,true];
+    _group setVariable ["CBE_Cortex_DrillReinforcements",_history,true];
     if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
-        [_group,_drill,"START","CASUALTY_REINFORCEMENT"] call WAIT_fnc_CortexDrillSetStage;
+        [_group,_drill,"START","CASUALTY_REINFORCEMENT"] call CBE_fnc_CortexDrillSetStage;
         _drill set ["spots",[]];
         _drill set ["boundStart",time];
     };
@@ -346,7 +346,7 @@ if (_main isNotEqualTo []) then {
         private _peers = _main;
         private _teamIndex = _teams findIf {_actor in _x};
         if (_teamIndex >= 0) then {_peers = (_teams select _teamIndex) select {_x in _main}};
-        private _rally = getPosATL ([_group] call WAIT_fnc_CortexGroupAnchor);
+        private _rally = getPosATL ([_group] call CBE_fnc_CortexGroupAnchor);
         if (_peers isNotEqualTo []) then {
             _rally = [0,0,0];
             {_rally = _rally vectorAdd getPosATL _x} forEach _peers;
@@ -361,7 +361,7 @@ if (_main isNotEqualTo []) then {
                 // separated soldier can fight while closing on the correct fire team.
                 private _recoveryResult="YIELDED";
                 if (_operationGeneration >= 0) then {
-                    _recoveryResult=[_group,_operationGeneration,_actor,_rally] call WAIT_fnc_RecoveryStep;
+                    _recoveryResult=[_group,_operationGeneration,_actor,_rally] call CBE_fnc_RecoveryStep;
                 } else {
                     if ([_actor] call _mayIssueMovement) then {
                         _actor doMove _rally;
@@ -383,8 +383,8 @@ _recovery = _recovery select {!((_x select 0) in _rejoined)};
 _drill set ["recovery",_recovery];
 _recovering = _recovery apply {_x select 0};
 private _recoverySnapshot = [["NONE","REJOINING"] select (_recovering isNotEqualTo []),_recovering,_drill getOrDefault ["index",-1]];
-if (_recoverySnapshot isNotEqualTo (_group getVariable ["WAIT_Cortex_DrillRecovery",[]])) then {
-    _group setVariable ["WAIT_Cortex_DrillRecovery",_recoverySnapshot,true];
+if (_recoverySnapshot isNotEqualTo (_group getVariable ["CBE_Cortex_DrillRecovery",[]])) then {
+    _group setVariable ["CBE_Cortex_DrillRecovery",_recoverySnapshot,true];
 };
 _units = _units - _recovering;
 // Validate the actual moving element after recovery actors have been removed. The earlier
@@ -406,7 +406,7 @@ private _ensureMovingTeam={
         _coverAvailable pushBack _coverer;
         _drill set ["teams",_teams];
         if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
-            [_group,_drill,"START","SURVIVOR_PAIR_REBALANCE"] call WAIT_fnc_CortexDrillSetStage;
+            [_group,_drill,"START","SURVIVOR_PAIR_REBALANCE"] call CBE_fnc_CortexDrillSetStage;
             _drill set ["spots",[]];
         };
     };
@@ -418,14 +418,14 @@ private _ensureMovingTeam={
         _drill set ["teams",_teams];
         if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
             // Membership changed: rebuild slots for this same committed bound before indexing them.
-            [_group,_drill,"START","RECOVERY_REINFORCEMENT"] call WAIT_fnc_CortexDrillSetStage;
+            [_group,_drill,"START","RECOVERY_REINFORCEMENT"] call CBE_fnc_CortexDrillSetStage;
             _drill set ["spots",[]];
         };
-        private _history=_group getVariable ["WAIT_Cortex_DrillReinforcements",[]];
+        private _history=_group getVariable ["CBE_Cortex_DrillReinforcements",[]];
         _history pushBack [serverTime,_drill getOrDefault ["type",""],_drill getOrDefault ["index",-1],
             [[format ["TEAM_%1_RECOVERY",_turn+1],netId _replacement]]];
         if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
-        _group setVariable ["WAIT_Cortex_DrillReinforcements",_history,true];
+        _group setVariable ["CBE_Cortex_DrillReinforcements",_history,true];
     };
     [_movingAvailable,_coverAvailable]
 };
@@ -453,7 +453,7 @@ private _enemyPos = if (_support) then {+(_supportRole select 4)} else {
     _state getOrDefault ["enemyPos", _drill get "enemyPos"]
 };
 private _assaulting = _drill getOrDefault ["assaulting", false];
-private _assaultEnabled = [_group,"WAIT_AIPass_Assault_Enable", true] call WAIT_fnc_CortexFeatureEnabled;
+private _assaultEnabled = [_group,"CBE_AIPass_Assault_Enable", true] call CBE_fnc_CortexFeatureEnabled;
 if (_assaulting && {!_assaultEnabled}) exitWith {"ABORT" call _end};
 if (!_support && {!_assaulting} && {!_assaultEnabled} && {_centroid distance2D _enemyPos < 30}) exitWith {"CLOSE" call _end};
 
@@ -531,11 +531,11 @@ private _issue = {
         // Release only Cortex's matching cover stance when this soldier starts moving.
         // A later mission-maker or Zeus stance remains authoritative.
         if ([_unit] call _mayIssueMovement
-            && {_unit getVariable ["WAIT_AIPass_StanceSet",false]}
-            && {toUpperANSI (unitPos _unit) == (_unit getVariable ["WAIT_Cortex_AppliedStance",""])}) then {
+            && {_unit getVariable ["CBE_AIPass_StanceSet",false]}
+            && {toUpperANSI (unitPos _unit) == (_unit getVariable ["CBE_Cortex_AppliedStance",""])}) then {
             _unit setUnitPos "AUTO";
-            _unit setVariable ["WAIT_AIPass_StanceSet",nil,true];
-            _unit setVariable ["WAIT_Cortex_AppliedStance",nil,true];
+            _unit setVariable ["CBE_AIPass_StanceSet",nil,true];
+            _unit setVariable ["CBE_Cortex_AppliedStance",nil,true];
         };
         private _spacing = [5, 3] select (_kind == "CLEAR");
         private _lateral = (_forEachIndex - (count _units - 1) / 2) * _spacing;
@@ -561,14 +561,14 @@ private _issue = {
                 } forEach [0.65,0.35,0];
             };
             if (_kind in ["BOUND", "FINAL", "ASSAULT"]) then {
-                private _cover = ([_spot, _enemyPos, 3, _spots, _group] call WAIT_fnc_CortexFindCover) select 0;
+                private _cover = ([_spot, _enemyPos, 3, _spots, _group] call CBE_fnc_CortexFindCover) select 0;
                 // Cover may lie beyond the search radius on a large object. Preserve the formation slot.
                 if (_cover distance2D _spot <= 2 && {_spots findIf {_cover distance2D _x < 2} < 0}) then {_spot = _cover};
             };
         };
         _spots pushBack _spot;
         // Preserve native target acquisition, autonomous combat and the actor's current behaviour.
-        // WAIT commits a route and role but leaves moment-to-moment combat to the engine.
+        // CBE commits a route and role but leaves moment-to-moment combat to the engine.
         // Do not issue doFollow or setDestination: either can create a second movement owner.
         if ([_unit] call _mayIssueMovement) then {
             // Individual RED overrides the group's YELLOW bound policy. Lease only that
@@ -579,16 +579,16 @@ private _issue = {
             };
             private _handoff=[serverTime,netId _unit,_drill get "index",
                 currentCommand _unit,expectedDestination _unit,+_spot,attackEnabled _group];
-            // A previous covering role may have received a WAIT target assignment. Retire
+            // A previous covering role may have received a CBE target assignment. Retire
             // only that exact local receipt before the actor becomes a mover; native knowledge
             // and a newer external assignment remain available to ordinary engine aiming.
-            private _fireTarget=_unit getVariable ["WAIT_Cortex_FireTarget",[]];
+            private _fireTarget=_unit getVariable ["CBE_Cortex_FireTarget",[]];
             if (count _fireTarget == 3 && {(_fireTarget select 0) == _group}
-                && {(_fireTarget select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_fireTarget select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
                 && {!isNull (_fireTarget select 2)} && {assignedTarget _unit == (_fireTarget select 2)}) then {
                 _unit doTarget objNull;
             };
-            _unit setVariable ["WAIT_Cortex_FireTarget",nil];
+            _unit setVariable ["CBE_Cortex_FireTarget",nil];
             if ([_unit] call _mayIssueMovement) then {
                 _unit doWatch _enemyPos;
                 _unit doMove _spot;
@@ -608,7 +608,7 @@ private _issue = {
     };
     _drill set ["boundWaypoint",_waypointSnapshot];
     _drill set ["spots", _spots];
-    _group setVariable ["WAIT_Cortex_DrillMovementHandoffs",[
+    _group setVariable ["CBE_Cortex_DrillMovementHandoffs",[
         _operationGeneration,_token,+(_drill getOrDefault ["movementHandoffs",[]])
     ],true];
     _drill set ["movers", +_units];
@@ -630,11 +630,11 @@ private _issue = {
     private _boundIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0]];
     if (_boundIdentity isNotEqualTo (_drill getOrDefault ["boundDeadlineIdentity",[]])) then {
         _drill set ["boundDeadlineIdentity",_boundIdentity];
-        _drill set ["boundDeadline",_now+4*(missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25])];
+        _drill set ["boundDeadline",_now+4*(missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25])];
     };
     // Replacing casualties or blocked movers cannot renew this bound's hard travel limit.
     _drill set ["boundStart", _now];
-    [_group,_drill,"MOVE",format ["BOUND_%1_ISSUED",_drill get "index"]] call WAIT_fnc_CortexDrillSetStage;
+    [_group,_drill,"MOVE",format ["BOUND_%1_ISSUED",_drill get "index"]] call CBE_fnc_CortexDrillSetStage;
 };
 
 private _result = 1.5;
@@ -647,7 +647,7 @@ switch (_drill get "stage") do {
         private _arrivedUnits = [];
         private _stalled = false;
         private _blocked = [];
-        private _timeout = missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25];
+        private _timeout = missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25];
         private _progress = _drill get "progress";
         private _retries = _drill getOrDefault ["retries",_movers apply {[0,_now]}];
         private _previousArrivals=_drill getOrDefault ["arrivedUnits",[]];
@@ -689,7 +689,7 @@ switch (_drill get "stage") do {
                         _unit doMove (_spots select _forEachIndex);
                         _retry set [0,(_retry select 0)+1];
                         _retry set [1,_now];
-                        diag_log format ["[WAIT] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,_remaining,currentCommand _unit,expectedDestination _unit,_spots select _forEachIndex,assignedTarget _unit];
+                        diag_log format ["[CBE] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,_remaining,currentCommand _unit,expectedDestination _unit,_spots select _forEachIndex,assignedTarget _unit];
                     };
                     if (_now-(_last select 3) > _timeout) then {_stalled = true; _blocked pushBack _unit};
                 };
@@ -720,8 +720,8 @@ switch (_drill get "stage") do {
                 };
             } forEach _stragglers;
             _drill set ["recovery",_recovery];
-            _group setVariable ["WAIT_Cortex_DrillRecovery",["REJOINING",_recovery apply {_x select 0},_drill get "index"],true];
-            diag_log format ["[WAIT] Bound role complete group=%1 arrived=%2/%3 recovery=%4",_group,count _arrivedUnits,count _units,_stragglers];
+            _group setVariable ["CBE_Cortex_DrillRecovery",["REJOINING",_recovery apply {_x select 0},_drill get "index"],true];
+            diag_log format ["[CBE] Bound role complete group=%1 arrived=%2/%3 recovery=%4",_group,count _arrivedUnits,count _units,_stragglers];
             _arrived = true;
             _stalled = false;
         };
@@ -730,8 +730,8 @@ switch (_drill get "stage") do {
             // Continue with a viable majority. These actors are separated, not arrived.
             {_recovery pushBack [_x,0,_now]} forEach _blocked;
             _drill set ["recovery",_recovery];
-            _group setVariable ["WAIT_Cortex_DrillRecovery",["REJOINING",_recovery apply {_x select 0},_drill get "index"],true];
-            diag_log format ["[WAIT] Bound continues with stragglers group=%1 separated=%2 continuing=%3",_group,_blocked,_units-_blocked];
+            _group setVariable ["CBE_Cortex_DrillRecovery",["REJOINING",_recovery apply {_x select 0},_drill get "index"],true];
+            diag_log format ["[CBE] Bound continues with stragglers group=%1 separated=%2 continuing=%3",_group,_blocked,_units-_blocked];
             _stalled = false;
         };
         private _neededReplacements=(2-count (_units-_blocked)) max 0;
@@ -748,8 +748,8 @@ switch (_drill get "stage") do {
             _drill set ["recovery",_recovery];
             // Next callback removes isolated actors and rebalances at most two coverers.
             // Keep this exact bound and its remaining actors; never return to an old rally.
-            [_group,_drill,"START","STALLED_ELEMENT_REINFORCEMENT"] call WAIT_fnc_CortexDrillSetStage;
-            diag_log format ["[WAIT] Bound replacement pending group=%1 isolated=%2 reserve=%3",_group,_blocked,_availableCover];
+            [_group,_drill,"START","STALLED_ELEMENT_REINFORCEMENT"] call CBE_fnc_CortexDrillSetStage;
+            diag_log format ["[CBE] Bound replacement pending group=%1 isolated=%2 reserve=%3",_group,_blocked,_availableCover];
             _result=1.5;
         };
         if (!_arrived && {_stalled || {_now > (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}}) exitWith {
@@ -764,38 +764,38 @@ switch (_drill get "stage") do {
                         ["movementOwner",attackEnabled _group,behaviour _unit,unitCombatMode _unit,
                             assignedTarget _unit,getAttackTarget _unit,_unit checkAIFeature "PATH",_unit checkAIFeature "MOVE",
                             _unit checkAIFeature "AUTOTARGET",_unit checkAIFeature "TARGET",_unit checkAIFeature "AUTOCOMBAT",
-                            groupOwner _group,_group getVariable ["WAIT_Cortex_SupportRole",[]]]];
+                            groupOwner _group,_group getVariable ["CBE_Cortex_SupportRole",[]]]];
                 };
             } forEach _movers;
             private _failure = [_reason,_drill get "index",(_points select (_drill get "index")) select 1,
                 _now-(_drill get "boundStart"),_timeout,_measurements];
-            _group setVariable ["WAIT_Cortex_DrillFailure",_failure,true];
-            diag_log format ["[WAIT] Drill movement ended group=%1 details=%2",_group,_failure];
+            _group setVariable ["CBE_Cortex_DrillFailure",_failure,true];
+            diag_log format ["[CBE] Drill movement ended group=%1 details=%2",_group,_failure];
             _result = _reason call _end;
         };
         if (_arrived) then {
             call _restoreFeatures;
             if (_teams isNotEqualTo [] && {(_drill get "teamTurn") == 0}) then {
-                [_group,_drill,"PAUSE","FIRE_TEAM_ARRIVED"] call WAIT_fnc_CortexDrillSetStage;
+                [_group,_drill,"PAUSE","FIRE_TEAM_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
                 // A separate squad already covers a coordinated bound. Avoid stacking
                 // a fixed team pause on top of the inter-squad handoff.
-                private _teamPause=if (_support) then {0} else {missionNamespace getVariable ["WAIT_AIPass_Flank_BoundPause",0]};
+                private _teamPause=if (_support) then {0} else {missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0]};
                 _drill set ["pauseUntil",_now + _teamPause];
             } else {
             switch ((_points select (_drill get "index")) select 1) do {
                 case "CROSS_NEAR": {
-                    [_group,_drill,"PAUSE","ROAD_EDGE_ARRIVED"] call WAIT_fnc_CortexDrillSetStage;
+                    [_group,_drill,"PAUSE","ROAD_EDGE_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
                     _drill set ["pauseUntil", _now];
                     // Smoke is opportunistic support, never a mandatory movement gate.
                     // One empty inventory must not suppress another member's carried smoke.
                     // Stop after the first accepted throw; the helper owns safety and cooldowns.
                     {
-                        if ([_x, _enemyPos, "SMOKE"] call WAIT_fnc_CortexThrowGrenade) exitWith {};
+                        if ([_x, _enemyPos, "SMOKE"] call CBE_fnc_CortexThrowGrenade) exitWith {};
                     } forEach _units;
                 };
                 case "FINAL": {
-                    [_group,_drill,"HOLD","FINAL_BOUND_ARRIVED"] call WAIT_fnc_CortexDrillSetStage;
-                    private _pause = if (_support) then {0} else {missionNamespace getVariable ["WAIT_AIPass_Flank_BoundPause",0]};
+                    [_group,_drill,"HOLD","FINAL_BOUND_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                    private _pause = if (_support) then {0} else {missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0]};
                     private _multiplier = [1,2] select (!_support && {(_drill getOrDefault ["type","FLANK"]) == "FLANK"});
                     _drill set ["pauseUntil",_now + _pause * _multiplier];
                 };
@@ -809,7 +809,7 @@ switch (_drill get "stage") do {
                     private _queued = false;
                     if (_drill getOrDefault ["assaultGrenade",false]) then {
                         {
-                            if ([_x,_objective,"FRAG"] call WAIT_fnc_CortexThrowGrenade) exitWith {
+                            if ([_x,_objective,"FRAG"] call CBE_fnc_CortexThrowGrenade) exitWith {
                                 _thrower = _x;
                                 _queued = true;
                             };
@@ -818,7 +818,7 @@ switch (_drill get "stage") do {
                     // Grenades support the assault but never reserve its movement phase. The helper
                     // owns the asynchronous throw and safety cancellation; the element commits its
                     // clear-through in this same owner-local step.
-                    [_group,_drill,"START",["ASSAULT_POSITION","ASSAULT_GRENADE_DISPATCHED"] select _queued] call WAIT_fnc_CortexDrillSetStage;
+                    [_group,_drill,"START",["ASSAULT_POSITION","ASSAULT_GRENADE_DISPATCHED"] select _queued] call CBE_fnc_CortexDrillSetStage;
                     _drill set ["pauseUntil",_now];
                     _drill set ["grenadeThrower",_thrower];
                     _drill set ["grenadeActionUntil",_now];
@@ -827,16 +827,16 @@ switch (_drill get "stage") do {
                     call _issue;
                 };
                 case "CONSOLIDATE": {
-                    [_group,_drill,"HOLD","CONSOLIDATION_ARRIVED"] call WAIT_fnc_CortexDrillSetStage;
-                    _drill set ["pauseUntil",_now + (missionNamespace getVariable ["WAIT_AIPass_Flank_BoundPause",0])];
+                    [_group,_drill,"HOLD","CONSOLIDATION_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                    _drill set ["pauseUntil",_now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0])];
                 };
                 case "CLEAR": {
-                    [_group,_drill,"HOLD","CLEAR_THROUGH_ARRIVED"] call WAIT_fnc_CortexDrillSetStage;
-                    _drill set ["pauseUntil",_now + (missionNamespace getVariable ["WAIT_AIPass_Flank_BoundPause",0])];
+                    [_group,_drill,"HOLD","CLEAR_THROUGH_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                    _drill set ["pauseUntil",_now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0])];
                 };
                 default {
-                    [_group,_drill,"PAUSE","BOUND_ARRIVED"] call WAIT_fnc_CortexDrillSetStage;
-                    _drill set ["pauseUntil", _now + (missionNamespace getVariable ["WAIT_AIPass_Flank_BoundPause", 0])];
+                    [_group,_drill,"PAUSE","BOUND_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                    _drill set ["pauseUntil", _now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause", 0])];
                 };
             };
             };
@@ -883,7 +883,7 @@ switch (_drill get "stage") do {
             // coordinated tactic roll. Its final approach must flow into the assault and clear-through
             // instead of rolling a second independent chance and stopping on the flank. Screened
             // coordinated approaches can finish at 85 m, so give them a small handover margin.
-            private _assaultRange = missionNamespace getVariable ["WAIT_AIPass_Assault_Range",80];
+            private _assaultRange = missionNamespace getVariable ["CBE_AIPass_Assault_Range",80];
             if (_support) then {_assaultRange = _assaultRange max 100};
             private _assault = !_assaulting
                 && {_assaultEnabled}
@@ -900,7 +900,7 @@ switch (_drill get "stage") do {
                 _assaultCandidates pushBack [_approach,_clear];
             } forEach [0,-15,15,-30,30];
             private _assaultRoute=if (_assault) then {
-                [_centroid,_assaultCandidates,_enemyPos] call WAIT_fnc_CortexSelectAvenue
+                [_centroid,_assaultCandidates,_enemyPos] call CBE_fnc_CortexSelectAvenue
             } else {[]};
             if (_assaultRoute isNotEqualTo []) then {
                 private _approachPoint=+(_assaultRoute select 0);
@@ -911,13 +911,13 @@ switch (_drill get "stage") do {
                 _drill set ["assaulting", true];
                 _drill set ["assaultObjective",+_enemyPos];
                 _drill set ["assaultDirection",_assaultDirection];
-                _drill set ["assaultGrenade",random 1 < ([_group,"assaultChance"] call WAIT_fnc_CortexProfile)];
+                _drill set ["assaultGrenade",random 1 < ([_group,"assaultChance"] call CBE_fnc_CortexProfile)];
                 _points pushBack [_approachPoint, "ASSAULT"];
                 _points pushBack [_clearPoint, "CLEAR"];
-                missionNamespace setVariable ["WAIT_AIPass_Assaults", (missionNamespace getVariable ["WAIT_AIPass_Assaults", 0]) + 1];
+                missionNamespace setVariable ["CBE_AIPass_Assaults", (missionNamespace getVariable ["CBE_AIPass_Assaults", 0]) + 1];
                 // Route selection already committed a safe avenue. Preserve the diagnostic
                 // transition, then issue its first approach in this same budgeted group step.
-                [_group,_drill,"START","ASSAULT_COMMITTED"] call WAIT_fnc_CortexDrillSetStage;
+                [_group,_drill,"START","ASSAULT_COMMITTED"] call CBE_fnc_CortexDrillSetStage;
                 _drill set ["teamTurn",0];
                 _drill set ["index",count _points-2];
                 call _issue;

@@ -90,10 +90,10 @@ private _terrainRight=[cos _terrainHeading,-sin _terrainHeading,0];
 ["CNVM-terrain-scenario",_terrainScenarioReady,
     str [worldName,_terrainOrigin,_terrainHeading,_terrainRelief,_terrainMaximumGrade,_terrainMinimumNormal]] call _check;
 if (!_terrainScenarioReady) exitWith {};
-private _columnOnly=(missionNamespace getVariable ["WAIT_CortexQA_Focus","all"]) in ["convoycolumn","convoytracked"];
-private _trackedOnly=(missionNamespace getVariable ["WAIT_CortexQA_Focus","all"]) == "convoytracked";
-private _followDiagnostic=(missionNamespace getVariable ["WAIT_CortexQA_Focus","all"]) == "convoyfollow";
-private _diagnostic=(missionNamespace getVariable ["WAIT_CortexQA_Focus","all"]) == "convoydiagnostic";
+private _columnOnly=(missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) in ["convoycolumn","convoytracked"];
+private _trackedOnly=(missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) == "convoytracked";
+private _followDiagnostic=(missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) == "convoyfollow";
+private _diagnostic=(missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) == "convoydiagnostic";
 private _types = [
     ["BASELINE-WHEELED",["O_MRAP_02_F","O_Truck_03_transport_F","O_Truck_03_transport_F"]],
     ["BASELINE-TRACKED",["O_APC_Tracked_02_cannon_F","O_APC_Tracked_02_cannon_F","O_APC_Tracked_02_cannon_F"]],
@@ -126,9 +126,9 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
         private _id = format ["CNVM-%1-%2",_label,_spacing];
         [_id,"This case creates operating crew, no cargo passengers: all must stay aboard. Watch their labelled vehicles and actual tracks on the 1 km straight, then a deliberate halt/resume. Separate cases test corners. BASELINE labels identify engine-only comparisons.",[2500,2500] call _terrainPosition] call _phase;
         private _group = createGroup [east,true];
-        // Normal fixture owns this group. Capture only WAIT cases; engine baselines stay untouched.
-        _group setVariable ["WAIT_Convoy_CaptureControl",!_baseline];
-        _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+        // Normal fixture owns this group. Capture only CBE cases; engine baselines stay untouched.
+        _group setVariable ["CBE_Convoy_CaptureControl",!_baseline];
+        _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
         _group setVariable ["acex_headless_blacklist",true,true];
         private _vehicles=[];
         private _fixtureCrew=[];
@@ -136,22 +136,22 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
         {
             private _vehicle=createVehicle [_x,[2500,2500-_forEachIndex*_spacing] call _terrainPosition,[],0,"NONE"];
             _vehicle setDir _terrainHeading;
-            _vehicle setVariable ["WAIT_CortexQA_GapBand",[_spacing*0.8,_spacing*1.2],true];
+            _vehicle setVariable ["CBE_CortexQA_GapBand",[_spacing*0.8,_spacing*1.2],true];
             createVehicleCrew _vehicle;
             private _vehicleNumber=_forEachIndex+1;
             {
                 _fixtureCrew pushBack [_x,_vehicle];
-                _x setVariable ["WAIT_CortexQA_Label",format ["%1 / vehicle %2 crew",_id,_vehicleNumber],true];
+                _x setVariable ["CBE_CortexQA_Label",format ["%1 / vehicle %2 crew",_id,_vehicleNumber],true];
             } forEach crew _vehicle;
-            _vehicle setVariable ["WAIT_CortexQA_Case",_id,true];
-            _vehicle setVariable ["WAIT_CortexQA_Exits",[],true];
+            _vehicle setVariable ["CBE_CortexQA_Case",_id,true];
+            _vehicle setVariable ["CBE_CortexQA_Exits",[],true];
             _vehicle addEventHandler ["GetOut",{
                 params ["_vehicle","_role","_unit"];
                 if (isNull _unit) exitWith {}; // Deleted fixture occupants are cleanup, not physical exits.
-                private _exits=_vehicle getVariable ["WAIT_CortexQA_Exits",[]];
+                private _exits=_vehicle getVariable ["CBE_CortexQA_Exits",[]];
                 _exits pushBack [netId _unit,_role,serverTime,getPosATL _vehicle];
-                _vehicle setVariable ["WAIT_CortexQA_Exits",_exits,true];
-                diag_log format ["WAIT CORTEX QA MATRIX CREW EXIT: case=%1 unit=%2 role=%3 position=%4 assigned=%5 assignedRole=%6 command=%7 convoyActive=%8",_vehicle getVariable ["WAIT_CortexQA_Case",""],netId _unit,_role,getPosATL _unit,assignedVehicle _unit,assignedVehicleRole _unit,currentCommand _unit,_vehicle getVariable ["WAIT_Convoy_Active",false]];
+                _vehicle setVariable ["CBE_CortexQA_Exits",_exits,true];
+                diag_log format ["CBE CORTEX QA MATRIX CREW EXIT: case=%1 unit=%2 role=%3 position=%4 assigned=%5 assignedRole=%6 command=%7 convoyActive=%8",_vehicle getVariable ["CBE_CortexQA_Case",""],netId _unit,_role,getPosATL _unit,assignedVehicle _unit,assignedVehicleRole _unit,currentCommand _unit,_vehicle getVariable ["CBE_Convoy_Active",false]];
             }];
             private _old=group driver _vehicle;
             (crew _vehicle) joinSilent _group;
@@ -159,16 +159,16 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             {_x setVariable ["acex_headless_blacklist",true,true]} forEach crew _vehicle;
             _vehicles pushBack _vehicle;
         } forEach _classes;
-        missionNamespace setVariable ["WAIT_CortexQA_Actors",_fixtureCrew apply {_x select 0},true];
+        missionNamespace setVariable ["CBE_CortexQA_Actors",_fixtureCrew apply {_x select 0},true];
         _group selectLeader driver (_vehicles select 0);
         _group setBehaviour "SAFE";
         _group setCombatMode "BLUE";
         private _wp=_group addWaypoint [[2500,3500] call _terrainPosition,0]; _wp setWaypointType "MOVE";
         _wp=_group addWaypoint [[2900,3500] call _terrainPosition,0]; _wp setWaypointType "MOVE";
         _wp=_group addWaypoint [[2900,3900] call _terrainPosition,0]; _wp setWaypointType "MOVE";
-        missionNamespace setVariable ["WAIT_CortexQA_ConvoyVehicles",_vehicles,true];
+        missionNamespace setVariable ["CBE_CortexQA_ConvoyVehicles",_vehicles,true];
         if (_baseline) then {
-            _group setVariable ["WAIT_AIPass_Exclude",true,true];
+            _group setVariable ["CBE_AIPass_Exclude",true,true];
             _group setFormation "COLUMN"; _group enableAttack false;
             {
                 _x limitSpeed 34.5;
@@ -181,7 +181,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             if (_label == "BASELINE-DRIVER-FOLLOW") then {{if (_forEachIndex > 0) then {(driver _x) doFollow leader _group}} forEach _vehicles};
             if (_label == "BASELINE-VEHICLE-FOLLOW") then {{if (_forEachIndex > 0) then {_x doFollow leader _group}} forEach _vehicles};
             [_id+"-fixture",count _vehicles == 3 && {_vehicles findIf {!alive driver _x} < 0}] call _check;
-        } else {[_id+"-start",[_group,_requestedSpeed,_spacing,true] call WAIT_fnc_SimpleAiConvoy] call _check};
+        } else {[_id+"-start",[_group,_requestedSpeed,_spacing,true] call CBE_fnc_SimpleAiConvoy] call _check};
         private _origins=_vehicles apply {getPosATL _x};
         private _samples=[0,0,0];
         private _stops=[0,0,0];
@@ -225,7 +225,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
         };
         // Observations only: a speed threshold crossing is not a completed start or collision.
         // Preserve the excluded warm-up window without inventing an unvalidated acceptance limit.
-        diag_log format ["WAIT CORTEX QA MATRIX STARTUP: case=%1 windowSeconds=%2 firstMoveSeconds=%3 restarts=%4 stopsAfterMove=%5 positions=%6 speeds=%7",_id,diag_tickTime-_start,_startupFirstMove,_startupRestarts,_startupStopsAfterMove,_vehicles apply {getPosATL _x},_vehicles apply {speed _x}];
+        diag_log format ["CBE CORTEX QA MATRIX STARTUP: case=%1 windowSeconds=%2 firstMoveSeconds=%3 restarts=%4 stopsAfterMove=%5 positions=%6 speeds=%7",_id,diag_tickTime-_start,_startupFirstMove,_startupRestarts,_startupStopsAfterMove,_vehicles apply {getPosATL _x},_vehicles apply {speed _x}];
         [_id+"-startup-no-loop",!_startupTurned && {!_startupBackwards},str [_startupTurned,_startupBackwards]] call _check;
         while {diag_tickTime-_start < 80} do {
             if (_baseline && {diag_tickTime >= _nextFollow}) then {
@@ -246,7 +246,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                     private _tolerance=(_targetGap*0.2) max 3;
                     private _low=(_targetGap-_tolerance) max (_bodyLengths*0.5+5);
                     private _high=_targetGap+_tolerance;
-                    _x setVariable ["WAIT_CortexQA_GapBand",[_low,_high],true];
+                    _x setVariable ["CBE_CortexQA_GapBand",[_low,_high],true];
                     if (_gap >= _low && {_gap <= _high}) then {_gapInBand set [_slot,(_gapInBand select _slot)+1]};
                     _minimumGaps set [_slot,(_minimumGaps select _slot) min _gap];
                     _maximumGaps set [_slot,(_maximumGaps select _slot) max _gap];
@@ -264,7 +264,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             // Audit-only bounded timing, aligned with the controller cadence. The existing
             // five-second aggregate can miss a complete start/stop cycle between samples.
             private _timingOwnerLocal=local _group;
-            private _timingController=if (_timingOwnerLocal) then {_group getVariable ["WAIT_Convoy_LocalState",createHashMap]} else {createHashMap};
+            private _timingController=if (_timingOwnerLocal) then {_group getVariable ["CBE_Convoy_LocalState",createHashMap]} else {createHashMap};
             private _timingLimits=_timingController getOrDefault ["speedLimits",createHashMap];
             private _timingFollowers=_timingController getOrDefault ["followers",createHashMap];
             private _timing=_vehicles apply {
@@ -294,22 +294,22 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                     _longitudinal,netId _operator,currentCommand _operator,expectedDestination _operator,
                     _controllerEvidence]
             };
-            diag_log format ["WAIT CORTEX QA CONVOY TIMING: %1",[_id,serverTime,diag_tickTime-_start,_timing]];
+            diag_log format ["CBE CORTEX QA CONVOY TIMING: %1",[_id,serverTime,diag_tickTime-_start,_timing]];
             _count=_count+1;
             if (diag_tickTime >= _nextLog) then {
                 _nextLog=diag_tickTime+5;
-                private _convoyBrain=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
-                diag_log format ["WAIT CORTEX QA CONVOY ADMISSION: case=%1 groupOwner=%2 epoch=%3 brainEpoch=%4 lastStep=%5 pending=%6 queuedAt=%7 skipped=%8",_id,groupOwner _group,
-                    _group getVariable ["WAIT_AIPass_Epoch",0],_convoyBrain getOrDefault ["ownerEpoch",-1],
+                private _convoyBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+                diag_log format ["CBE CORTEX QA CONVOY ADMISSION: case=%1 groupOwner=%2 epoch=%3 brainEpoch=%4 lastStep=%5 pending=%6 queuedAt=%7 skipped=%8",_id,groupOwner _group,
+                    _group getVariable ["CBE_AIPass_Epoch",0],_convoyBrain getOrDefault ["ownerEpoch",-1],
                     _convoyBrain getOrDefault ["lastStepAt",-1],_convoyBrain getOrDefault ["pending",false],
                     _convoyBrain getOrDefault ["queuedAt",-1],_convoyBrain getOrDefault ["skippedReason",""]];
                 private _localPacing=if (local _group) then {
-                    private _controller=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
+                    private _controller=_group getVariable ["CBE_Convoy_LocalState",createHashMap];
                     private _limits=_controller getOrDefault ["speedLimits",createHashMap];
                     _vehicles apply {[netId _x,_limits getOrDefault [netId _x,[]],velocityModelSpace _x]}
                 } else {["UNAVAILABLE_REMOTE_OWNER",groupOwner _group]};
-                diag_log format ["WAIT CORTEX QA CONVOY PACING: case=%1 owner=%2 local=%3 vehicleLimitTimeModelVelocity=%4",_id,groupOwner _group,local _group,_localPacing];
-                diag_log format ["WAIT CORTEX QA CONVOY MATRIX: case=%1 speeds=%2 forced=%3 gaps=%4 motion=%5 formation=%6 steering=%7",_id,_vehicles apply {speed _x},_vehicles apply {getForcedSpeed _x},[(_vehicles select 1) distance2D (_vehicles select 0),(_vehicles select 2) distance2D (_vehicles select 1)],_vehicles apply {[getDir _x,currentCommand driver _x,expectedDestination driver _x,getPosATL _x]},formation _group,_vehicles apply {isAISteeringComponentEnabled _x}];
+                diag_log format ["CBE CORTEX QA CONVOY PACING: case=%1 owner=%2 local=%3 vehicleLimitTimeModelVelocity=%4",_id,groupOwner _group,local _group,_localPacing];
+                diag_log format ["CBE CORTEX QA CONVOY MATRIX: case=%1 speeds=%2 forced=%3 gaps=%4 motion=%5 formation=%6 steering=%7",_id,_vehicles apply {speed _x},_vehicles apply {getForcedSpeed _x},[(_vehicles select 1) distance2D (_vehicles select 0),(_vehicles select 2) distance2D (_vehicles select 1)],_vehicles apply {[getDir _x,currentCommand driver _x,expectedDestination driver _x,getPosATL _x]},formation _group,_vehicles apply {isAISteeringComponentEnabled _x}];
             };
             sleep 1;
         };
@@ -321,7 +321,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
         // require proportional real travel, never merely an accepted speed setting.
         private _minimumAverage=_requestedSpeed*0.6;
         private _minimumTravel=_minimumAverage/3.6*60;
-        diag_log format ["WAIT CORTEX QA CONVOY SPEED: case=%1 requestedKmh=%2 spacingM=%3 minimumAverageKmh=%4 minimumTravelM=%5",_id,_requestedSpeed,_spacing,_minimumAverage,_minimumTravel];
+        diag_log format ["CBE CORTEX QA CONVOY SPEED: case=%1 requestedKmh=%2 spacingM=%3 minimumAverageKmh=%4 minimumTravelM=%5",_id,_requestedSpeed,_spacing,_minimumAverage,_minimumTravel];
         [_id+"-continuous-speed",_count >= 40 && {_averages findIf {!finite _x || {_x < _minimumAverage}} < 0},str _averages] call _check;
         [_id+"-stop-fraction",_count >= 40 && {_stops findIf {_x/(_count max 1) > 0.1} < 0},str [_stops,_count]] call _check;
         [_id+"-restart-count",_restartCounts findIf {_x > 2} < 0,str _restartCounts] call _check;
@@ -332,19 +332,19 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
         } forEach _vehicles;
         [_id+"-physical-progress",_travelled,str (_vehicles apply {getPosATL _x})] call _check;
         if (!_baseline) then {
-            diag_log format ["WAIT CORTEX QA HALT SEATS BEFORE: case=%1 seats=%2",_id,_vehicles apply {fullCrew [_x,"",false]}];
-            [_group,0,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
-            private _registeredHalt=(missionNamespace getVariable ["WAIT_Convoy_Registry",[]]) select {(_x select 0) == _group};
-            diag_log format ["WAIT CORTEX QA HALT REQUEST: case=%1 registry=%2",_id,_registeredHalt];
+            diag_log format ["CBE CORTEX QA HALT SEATS BEFORE: case=%1 seats=%2",_id,_vehicles apply {fullCrew [_x,"",false]}];
+            [_group,0,_spacing,true] call CBE_fnc_SimpleAiConvoy;
+            private _registeredHalt=(missionNamespace getVariable ["CBE_Convoy_Registry",[]]) select {(_x select 0) == _group};
+            diag_log format ["CBE CORTEX QA HALT REQUEST: case=%1 registry=%2",_id,_registeredHalt];
             private _halted=[{_vehicles findIf {abs speed _x > 1} < 0},20] call _wait;
             [_id+"-halt-stationary",_halted,str (_vehicles apply {[speed _x,getForcedSpeed _x,currentCommand driver _x,expectedDestination driver _x,owner _x]})] call _check;
             {
-                diag_log format ["WAIT CORTEX QA HALT COMMANDERS: case=%1 vehicle=%2 effective=%3 crew=%4",_id,_forEachIndex,effectiveCommander _x,
+                diag_log format ["CBE CORTEX QA HALT COMMANDERS: case=%1 vehicle=%2 effective=%3 crew=%4",_id,_forEachIndex,effectiveCommander _x,
                     (crew _x) apply {[assignedVehicleRole _x,currentCommand _x,expectedDestination _x]}];
             } forEach _vehicles;
             private _restartOrigins=_vehicles apply {getPosATL _x};
             [_id+" restart","Same straight route after a deliberate stop: every vehicle must resume forwards without a U-turn or long hold. Heading and actual destinations are recorded.",getPosATL (_vehicles select 1)] call _phase;
-            [_id+"-resume-accepted",[_group,_requestedSpeed,_spacing,true] call WAIT_fnc_SimpleAiConvoy] call _check;
+            [_id+"-resume-accepted",[_group,_requestedSpeed,_spacing,true] call CBE_fnc_SimpleAiConvoy] call _check;
             private _turned=false;
             private _resumed=[{
                 private _moving=true;
@@ -368,12 +368,12 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             private _reverseLead=_vehicles select 0;
             private _reverseFollower=_vehicles select 1;
             [_id+" reverse yield","Diagnostic stimulus: native BACK input is applied to the lead. Actual backward travel must occur, then the follower must physically yield and both must resume forward. No velocity or position is assigned.",getPosATL _reverseFollower] call _phase;
-            [_group,0,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
+            [_group,0,_spacing,true] call CBE_fnc_SimpleAiConvoy;
             private _columnStopped=[{_vehicles findIf {abs speed _x > 1} < 0},20] call _wait;
-            private _slowAccepted=[_group,5,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
-            private _slowRevision=_group getVariable ["WAIT_Convoy_Revision",-1];
+            private _slowAccepted=[_group,5,_spacing,true] call CBE_fnc_SimpleAiConvoy;
+            private _slowRevision=_group getVariable ["CBE_Convoy_Revision",-1];
             private _slowApplied=[{
-                private _receipt=_reverseLead getVariable ["WAIT_Convoy_OwnedSpeed",[]];
+                private _receipt=_reverseLead getVariable ["CBE_Convoy_OwnedSpeed",[]];
                 count _receipt == 3 && {(_receipt select 0) == _group}
                     && {(_receipt select 1) == _slowRevision}
                     && {getForcedSpeed _reverseLead > 0}
@@ -415,7 +415,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             [_id+"-reverse-physical-prerequisite",_reverseReal,str [_leadStopped,_slowAccepted,_slowApplied,_clearanceSafe,_reverseSamples,_backwardTravel]] call _check;
             [_id+"-reverse-follower-physical-yield",_reverseReal && {_yieldSamples >= 4} && {_maximumFollowerSpeed <= 1},str [_yieldSamples,_maximumFollowerSpeed,getPosATL _reverseFollower]] call _check;
             _reverseLead sendSimpleCommand "STOP";
-            [_group,_requestedSpeed,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
+            [_group,_requestedSpeed,_spacing,true] call CBE_fnc_SimpleAiConvoy;
             _reverseLead sendSimpleCommand "FORWARD";
             private _forwardOrigins=[getPosATL _reverseLead,getPosATL _reverseFollower];
             [_id+"-reverse-forward-recovery",[{
@@ -433,7 +433,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             private _incapacitated=_driverStimulusReady && {[{_drivers findIf {lifeState _x != "INCAPACITATED"} < 0},8] call _wait};
             [_id+"-driver-incapacity-prerequisite",_incapacitated,str (_drivers apply {[netId _x,lifeState _x,owner _x]})] call _check;
             private _immobile=[{
-                private _entry=(missionNamespace getVariable ["WAIT_Convoy_Registry",[]]) select {(_x select 0) == _group};
+                private _entry=(missionNamespace getVariable ["CBE_Convoy_Registry",[]]) select {(_x select 0) == _group};
                 _entry isNotEqualTo [] && {private _cfg=(_entry select 0) select 1;
                     (_cfg select 5) == "HALT" && {(_cfg param [8,""]) == "IMMOBILE"}}
             },20] call _wait;
@@ -443,12 +443,12 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             {_x setUnconscious false} forEach (_drivers select {local _x && {alive _x}});
             private _recovered=[{_drivers findIf {lifeState _x == "INCAPACITATED" || {!alive _x}} < 0},8] call _wait;
             sleep 3;
-            private _heldRegistry=(missionNamespace getVariable ["WAIT_Convoy_Registry",[]]) select {(_x select 0) == _group};
+            private _heldRegistry=(missionNamespace getVariable ["CBE_Convoy_Registry",[]]) select {(_x select 0) == _group};
             private _remainedHeld=_heldRegistry isNotEqualTo [] && {(((_heldRegistry select 0) select 1) select 5) == "HALT"}
                 && {_vehicles findIf {abs speed _x > 1} < 0};
             [_id+"-driver-recovery-retains-halt",_incapacitated && {_immobile} && {_recovered} && {_remainedHeld}] call _check;
             private _recoveryOrigins=_vehicles apply {getPosATL _x};
-            private _resumeRecovered=[_group,_requestedSpeed,_spacing,true] call WAIT_fnc_SimpleAiConvoy;
+            private _resumeRecovered=[_group,_requestedSpeed,_spacing,true] call CBE_fnc_SimpleAiConvoy;
             private _recoveryTravel=[{
                 private _allMoving=true;
                 {
@@ -458,14 +458,14 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             },60] call _wait;
             [_id+"-driver-recovery-explicit-physical-resume",_recovered && {_resumeRecovered} && {_recoveryTravel},str (_vehicles apply {getPosATL _x})] call _check;
         };
-        [_id+"-operating-crew-retained",_fixtureCrew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0 && {_vehicles findIf {(_x getVariable ["WAIT_CortexQA_Exits",[]]) isNotEqualTo []} < 0},str (_vehicles apply {_x getVariable ["WAIT_CortexQA_Exits",[]]})] call _check;
-        if (!_baseline) then {[_group,0,_spacing,true,true] call WAIT_fnc_SimpleAiConvoy};
+        [_id+"-operating-crew-retained",_fixtureCrew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0 && {_vehicles findIf {(_x getVariable ["CBE_CortexQA_Exits",[]]) isNotEqualTo []} < 0},str (_vehicles apply {_x getVariable ["CBE_CortexQA_Exits",[]]})] call _check;
+        if (!_baseline) then {[_group,0,_spacing,true,true] call CBE_fnc_SimpleAiConvoy};
         // Delete the original fixture roster, including anyone now on foot or in another seat.
         {deleteVehicle (_x select 0)} forEach _fixtureCrew;
         [_id+"-fixture-cleanup",[{_fixtureCrew findIf {!isNull (_x select 0)} < 0},10] call _wait] call _check;
-        missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+        missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
         {private _v=_x; {deleteVehicle _x} forEach crew _v; deleteVehicle _v} forEach _vehicles;
         deleteGroup _group;
-        missionNamespace setVariable ["WAIT_CortexQA_ConvoyVehicles",[],true];
+        missionNamespace setVariable ["CBE_CortexQA_ConvoyVehicles",[],true];
     } forEach (if (_speedCase || {_diagnostic}) then {[30]} else {if (_columnOnly) then {[30,50]} else {[[15,30,50,75],[50]] select _baseline}});
 } forEach _types;

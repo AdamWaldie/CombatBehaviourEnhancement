@@ -3,7 +3,7 @@
  * Purpose: Observe production ordinary driving around an empty parked hull and a wreck,
  * then physically board a blocker during an active bypass and require invalidation.
  * Locality/authority: scheduled server-only normal batch. Creates disposable native MOVE
- * fixtures; WAIT discovery and its real operation FSM own all follower movement.
+ * fixtures; CBE discovery and its real operation FSM own all follower movement.
  * Repeat/JIP: fresh actors per case; restores tuning, deletes crews/vehicles/groups and
  * clears public observer labels. No owner migration or historical command replay.
  * Arguments: 0 check <CODE>; 1 phase <CODE>; 2 wait <CODE>, required audit callbacks.
@@ -12,15 +12,15 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAParkedBypass.sqf";
  */
 params ["_check","_phase","_wait"];
-if (!isServer || {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]}) exitWith {};
+if (!isServer || {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]}) exitWith {};
 private _previous=createHashMapFromArray [
-    ["WAIT_AIPass_Enable",missionNamespace getVariable ["WAIT_AIPass_Enable",true]],
-    ["WAIT_AIPass_Contact_Enable",missionNamespace getVariable ["WAIT_AIPass_Contact_Enable",true]],
-    ["WAIT_AIPass_DrivingAssist_Enable",missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_Enable",true]],
-    ["WAIT_AIPass_DrivingAssist_Recovery_Enable",missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_Recovery_Enable",true]]
+    ["CBE_AIPass_Enable",missionNamespace getVariable ["CBE_AIPass_Enable",true]],
+    ["CBE_AIPass_Contact_Enable",missionNamespace getVariable ["CBE_AIPass_Contact_Enable",true]],
+    ["CBE_AIPass_DrivingAssist_Enable",missionNamespace getVariable ["CBE_AIPass_DrivingAssist_Enable",true]],
+    ["CBE_AIPass_DrivingAssist_Recovery_Enable",missionNamespace getVariable ["CBE_AIPass_DrivingAssist_Recovery_Enable",true]]
 ];
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],
-    ["WAIT_AIPass_DrivingAssist_Enable",true],["WAIT_AIPass_DrivingAssist_Recovery_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],
+    ["CBE_AIPass_DrivingAssist_Enable",true],["CBE_AIPass_DrivingAssist_Recovery_Enable",true]]] call CBE_fnc_CortexTuning;
 private _northBounds={
     params ["_object"];
     private _bounds=boundingBoxReal _object;private _low=_bounds select 0;private _high=_bounds select 1;
@@ -40,19 +40,19 @@ private _northBounds={
     if (_mode == "WRECK") then {_blocker setDamage 1};
     createVehicleCrew _vehicle;
     private _group=group driver _vehicle;
-    _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _group setVariable ["acex_headless_blacklist",true,true];
     _group setBehaviour "SAFE";_group setCombatMode "BLUE";_group setSpeedMode "FULL";
     private _boardingGroup=createGroup [east,true];
-    _boardingGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _boardingGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _boardingGroup setVariable ["acex_headless_blacklist",true,true];
-    _boardingGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+    _boardingGroup setVariable ["CBE_AIPass_Exclude",true,true];
     _boardingGroup setBehaviour "CARELESS";_boardingGroup setCombatMode "BLUE";
     private _wp=_group addWaypoint [_destination,0];_wp setWaypointType "MOVE";_wp setWaypointCompletionRadius 5;
     _group setCurrentWaypoint _wp;
-    (driver _vehicle) setVariable ["WAIT_CortexQA_Label","PARKED BYPASS "+_mode,true];
-    (driver _vehicle) setVariable ["WAIT_CortexQA_Target",_destination,true];
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[_vehicle,_blocker,driver _vehicle],true];
+    (driver _vehicle) setVariable ["CBE_CortexQA_Label","PARKED BYPASS "+_mode,true];
+    (driver _vehicle) setVariable ["CBE_CortexQA_Target",_destination,true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[_vehicle,_blocker,driver _vehicle],true];
     ["Ordinary bypass: "+_mode,"The truck must use production discovery and physically pass the parked hull with lateral clearance and no damage. In OCCUPIED, a native boarding order starts only after real bypass work exists; crew entry must invalidate it. No bypass path or result is injected.",getPosATL _blocker] call _phase;
     private _ready=!isNull driver _vehicle && {local _vehicle} && {local _group}
         && {simulationEnabled _vehicle} && {simulationEnabled _blocker}
@@ -65,8 +65,8 @@ private _northBounds={
     private _invalidated=false;private _passed=false;private _until=time+150;
     while {time < _until && {!_passed} && {!_invalidated}} do {
         sleep 0.5;
-        private _work=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
-        private _result=_vehicle getVariable ["WAIT_DrivingBypass_Result",[]];
+        private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+        private _result=_vehicle getVariable ["CBE_DrivingBypass_Result",[]];
         private _thisActive=count _work > 0 && {(_work getOrDefault ["obstacle",objNull]) == _blocker};
         if (_thisActive) then {_active=true};
         if (_mode == "OCCUPIED" && {_thisActive} && {!_boardingStarted}) then {
@@ -84,7 +84,7 @@ private _northBounds={
             && {(_result param [2,objNull]) == _blocker};
         _invalidated=_mode == "OCCUPIED" && {_active} && {_boarded} && {count _work == 0}
             && {(_result param [0,""]) == "OBSTACLE_CHANGED"} && {(_result param [2,objNull]) == _blocker};
-        diag_log format ["WAIT PARKED BYPASS: mode=%1 t=%2 position=%3 speed=%4 active=%5 lateral=%6 tail=%7 clear=%8 boarded=%9 result=%10",
+        diag_log format ["CBE PARKED BYPASS: mode=%1 t=%2 position=%3 speed=%4 active=%5 lateral=%6 tail=%7 clear=%8 boarded=%9 result=%10",
             _mode,time,getPosASL _vehicle,speed _vehicle,_thisActive,_lateral,_tail,_clear,_boarded,_result];
     };
     ["DRIVING-parked-"+_mode+"-production-bypass-started",_ready && {_active}] call _check;
@@ -94,9 +94,9 @@ private _northBounds={
     } else {
         ["DRIVING-parked-"+_mode+"-actual-full-hull-passage",_ready && {_passed} && {_clear},str [_lateral,_tail,getPosASL _vehicle]] call _check;
     };
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
     {private _object=_x;{deleteVehicle _x} forEach crew _object;deleteVehicle _object} forEach [_vehicle,_blocker];
     {deleteVehicle _x} forEach units _boardingGroup;
     {deleteGroup _x} forEach [_group,_boardingGroup];
 } forEach ["EMPTY","WRECK","OCCUPIED"];
-[_previous] call WAIT_fnc_CortexTuning;
+[_previous] call CBE_fnc_CortexTuning;

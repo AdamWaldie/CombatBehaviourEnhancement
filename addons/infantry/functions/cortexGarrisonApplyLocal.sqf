@@ -7,12 +7,12 @@
  * locks them there, and installs the duck-under-fire handlers.
  *
  * disableAI and event handlers exist only on the machine that set them, so this runs on the original
- * owner and again on any new owner (WAIT_fnc_CortexDiscover). Interior arrival requires a
+ * owner and again on any new owner (CBE_fnc_CortexDiscover). Interior arrival requires a
  * 1.5 m/0.75 m floor-aware visit within the building bounds without an intervening building wall.
  * Exterior arrival requires a 2 m/0.75 m supported exterior pose with an actual observation ray.
  * Other actors retain their native approach. Only validated physical arrival locks PATH; a fixed safety deadline records
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
- * Arrival and failure release only an unchanged WAIT approach speed cap; newer speed commands survive.
+ * Arrival and failure release only an unchanged CBE approach speed cap; newer speed commands survive.
  * Saved and applied speed values are published with the actor so owner adoption preserves restoration.
  * Approach stance also has a public applied-value lease for unchanged-stance restoration on release.
  * Transform-bound assignments are checked before initial/deferred commands and alternate-slot selection.
@@ -75,15 +75,15 @@
  * Nothing
  *
  * Example:
- * [_group] call WAIT_fnc_CortexGarrisonApplyLocal;
+ * [_group] call CBE_fnc_CortexGarrisonApplyLocal;
  * Result: the garrison is live on this machine.
  *
- * Current callers: WAIT_fnc_CortexGarrison, WAIT_fnc_CortexGarrisonRefill and WAIT_fnc_CortexDiscover.
+ * Current callers: CBE_fnc_CortexGarrison, CBE_fnc_CortexGarrisonRefill and CBE_fnc_CortexDiscover.
  */
 
 params [["_group", grpNull, [grpNull]],["_freshActors",[],[[]]]];
 if (count _freshActors > 64 || {_freshActors findIf {!(_x isEqualType objNull)} >= 0}) exitWith {};
-if (isNull _group || {!local _group} || {!([_group] call WAIT_fnc_CortexIsEligible)}) exitWith {};
+if (isNull _group || {!local _group} || {!([_group] call CBE_fnc_CortexIsEligible)}) exitWith {};
 private _assignmentValid = {
     params ["_assignment"];
     private _transform=_assignment param [3,[]];
@@ -92,52 +92,52 @@ private _assignmentValid = {
     !isNull _building && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
 };
 private _invalidActors=(units _group) select {
-    local _x && {!([_x getVariable ["WAIT_AIPass_GarrisonPos",[]]] call _assignmentValid)}
+    local _x && {!([_x getVariable ["CBE_AIPass_GarrisonPos",[]]] call _assignmentValid)}
 };
-if (_invalidActors isNotEqualTo []) then {[_group,true,_invalidActors] call WAIT_fnc_CortexGarrisonRelease};
-if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []) exitWith {};
-private _deadline=_group getVariable ["WAIT_Cortex_GarrisonDeadline",-1];
+if (_invalidActors isNotEqualTo []) then {[_group,true,_invalidActors] call CBE_fnc_CortexGarrisonRelease};
+if ((_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []) exitWith {};
+private _deadline=_group getVariable ["CBE_Cortex_GarrisonDeadline",-1];
 if (_deadline < 0) then {
     _deadline=serverTime+240;
-    _group setVariable ["WAIT_Cortex_GarrisonDeadline",_deadline,true];
+    _group setVariable ["CBE_Cortex_GarrisonDeadline",_deadline,true];
 };
-private _generation = (_group getVariable ["WAIT_AIPass_GarrisonGeneration", 0]) + 1;
-_group setVariable ["WAIT_AIPass_GarrisonGeneration", _generation];
-_group setVariable ["WAIT_AIPass_GarrisonApplied", true];
-_group setVariable ["WAIT_Cortex_GarrisonPending",-1,true];
+private _generation = (_group getVariable ["CBE_AIPass_GarrisonGeneration", 0]) + 1;
+_group setVariable ["CBE_AIPass_GarrisonGeneration", _generation];
+_group setVariable ["CBE_AIPass_GarrisonApplied", true];
+_group setVariable ["CBE_Cortex_GarrisonPending",-1,true];
 private _routes = createHashMap;
-private _buildingTopologyCache=missionNamespace getVariable ["WAIT_Cortex_GarrisonTopology",createHashMap];
+private _buildingTopologyCache=missionNamespace getVariable ["CBE_Cortex_GarrisonTopology",createHashMap];
 // Every later movement write is guarded again because an external controller can take
 // ownership after this application passed its initial eligibility check.
 private _mayIssueMovement = {
     params ["_actor"];
-    private _free=!([_actor] call WAIT_fnc_CortexActorMoveReserved);
+    private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
     private _command=currentCommand _actor;
-    private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
-    private _assignment=_actor getVariable ["WAIT_AIPass_GarrisonPos",[]];
+    private _receipt=_actor getVariable ["CBE_Cortex_GarrisonMove",[]];
+    private _assignment=_actor getVariable ["CBE_AIPass_GarrisonPos",[]];
     private _live=(expectedDestination _actor) param [0,[]];
     private _receiptValid=_receipt isEqualType [] && {count _receipt == 5}
         && {(_receipt select 0) == _group}
         && {[1,2] findIf {!((_receipt select _x) isEqualType 0) || {!finite (_receipt select _x)} || {(_receipt select _x) < 0}} < 0}
-        && {(_receipt select 2) <= (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_receipt select 2) <= (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_receipt select 4) isEqualTo _assignment}
         && {(_receipt select 3) isEqualType []} && {count (_receipt select 3) == 3}
         && {(_receipt select 3) findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
     private _commandOwned=_actor in _freshActors || {_command == ""}
         || {_command == "MOVE" && {_receiptValid} && {count _live == 3}
             && {count (_receipt select 3) == 3} && {_live vectorDistance (_receipt select 3) <= 0.25}}
-        || {_command == "STOP" && {_receiptValid} && {_actor getVariable ["WAIT_AIPass_GarrisonDisabledPath",false]}
-            && {!(_actor checkAIFeature "PATH")} && {[_actor,_assignment] call WAIT_fnc_CortexGarrisonArrived}};
-    _commandOwned && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
+        || {_command == "STOP" && {_receiptValid} && {_actor getVariable ["CBE_AIPass_GarrisonDisabledPath",false]}
+            && {!(_actor checkAIFeature "PATH")} && {[_actor,_assignment] call CBE_fnc_CortexGarrisonArrived}};
+    _commandOwned && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
-        && {[_actor] call WAIT_fnc_CortexCombatEffective}
-        && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+        && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 private _rememberMove = {
     params ["_actor","_target"];
-    _actor setVariable ["WAIT_Cortex_GarrisonMove",[_group,_group getVariable ["WAIT_AIPass_GarrisonGeneration",-1],_group getVariable ["WAIT_AIPass_Epoch",0],+_target,+(_actor getVariable ["WAIT_AIPass_GarrisonPos",[]])],true];
+    _actor setVariable ["CBE_Cortex_GarrisonMove",[_group,_group getVariable ["CBE_AIPass_GarrisonGeneration",-1],_group getVariable ["CBE_AIPass_Epoch",0],+_target,+(_actor getVariable ["CBE_AIPass_GarrisonPos",[]])],true];
 };
 private _buildingEntries = {
     params ["_building","_unit","_destination"];
@@ -159,7 +159,7 @@ private _buildingEntries = {
     _entries
 };
 // Shared read-only predicate also fences casualty promotions against lost exit observation.
-private _assignmentArrived=WAIT_fnc_CortexGarrisonArrived;
+private _assignmentArrived=CBE_fnc_CortexGarrisonArrived;
 private _buildingAnchor = {
     params ["_building","_entry","_destination"];
     if (isNull _building || {_entry isEqualTo []}) exitWith {_destination};
@@ -174,7 +174,7 @@ private _buildingAnchor = {
         || {(_cached select 2) isNotEqualTo _transform}) then {
         _cached=[_damage,+(_building buildingPos -1),_transform];
         _buildingTopologyCache set [_cacheKey,_cached];
-        missionNamespace setVariable ["WAIT_Cortex_GarrisonTopology",_buildingTopologyCache];
+        missionNamespace setVariable ["CBE_Cortex_GarrisonTopology",_buildingTopologyCache];
     };
     private _positions=+(_cached select 1);
     if (_positions isEqualTo []) exitWith {_destination};
@@ -183,89 +183,89 @@ private _buildingAnchor = {
 };
 {
     private _unit = _x;
-    private _assignment = _unit getVariable ["WAIT_AIPass_GarrisonPos", []];
+    private _assignment = _unit getVariable ["CBE_AIPass_GarrisonPos", []];
     if (local _unit && {!isPlayer _unit} && {_assignment isNotEqualTo []} && {serverTime > _deadline}
         && {!([_unit,_assignment] call _assignmentArrived)}) then {
         // Expired adoption does not enter the ordinary route callback. Retire an unchanged
         // approach cap here, using the same actor-authority guard before any speed write.
         if ([_unit] call _mayIssueMovement
-            && {!isNil {_unit getVariable "WAIT_Cortex_GarrisonForcedSpeed"}}
-            && {abs ((getForcedSpeed _unit)-(_unit getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",-2])) <= 0.1}) then {
-            _unit forceSpeed (_unit getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+            && {!isNil {_unit getVariable "CBE_Cortex_GarrisonForcedSpeed"}}
+            && {abs ((getForcedSpeed _unit)-(_unit getVariable ["CBE_Cortex_GarrisonAppliedSpeed",-2])) <= 0.1}) then {
+            _unit forceSpeed (_unit getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
         };
-        _unit setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
+        _unit setVariable ["CBE_AIPass_GarrisonFailed",true,true];
     };
-    if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
-        && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
-        && {_assignment isNotEqualTo []} && {!(_unit getVariable ["WAIT_AIPass_GarrisonFailed",false])}
+    if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
+        && {!([_group,false,_unit] call CBE_fnc_CortexExternalTakeover)}
+        && {_assignment isNotEqualTo []} && {!(_unit getVariable ["CBE_AIPass_GarrisonFailed",false])}
         && {[_unit] call _mayIssueMovement}) then {
-        if (isNil {_unit getVariable "WAIT_AIPass_GarrisonStance"}) then {_unit setVariable ["WAIT_AIPass_GarrisonStance", unitPos _unit, true]};
-        if (isNil {_unit getVariable "WAIT_Cortex_GarrisonForcedSpeed"}) then {
-            _unit setVariable ["WAIT_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit,true];
+        if (isNil {_unit getVariable "CBE_AIPass_GarrisonStance"}) then {_unit setVariable ["CBE_AIPass_GarrisonStance", unitPos _unit, true]};
+        if (isNil {_unit getVariable "CBE_Cortex_GarrisonForcedSpeed"}) then {
+            _unit setVariable ["CBE_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit,true];
         };
-        private _heldInPlace=(_unit getVariable ["WAIT_AIPass_GarrisonDisabledPath",false])
+        private _heldInPlace=(_unit getVariable ["CBE_AIPass_GarrisonDisabledPath",false])
             && {!(_unit checkAIFeature "PATH")}
             && {!(currentCommand _unit in ["MOVE","FOLLOW"])}
             && {[_unit,_assignment] call _assignmentArrived};
-        if (_unit getVariable ["WAIT_AIPass_GarrisonDisabledPath", false] && {!_heldInPlace}) then {_unit enableAI "PATH"};
-        if !(_unit getVariable ["WAIT_AIPass_GarrisonHandlers", false]) then {
-            _unit setVariable ["WAIT_AIPass_GarrisonHandlers", true];
+        if (_unit getVariable ["CBE_AIPass_GarrisonDisabledPath", false] && {!_heldInPlace}) then {_unit enableAI "PATH"};
+        if !(_unit getVariable ["CBE_AIPass_GarrisonHandlers", false]) then {
+            _unit setVariable ["CBE_AIPass_GarrisonHandlers", true];
             private _duck = {
                 params ["_unit"];
-                if (!local _unit || {isPlayer _unit} || {!([_unit] call WAIT_fnc_CortexCombatEffective)} || {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo []}
-                    || {!([group _unit] call WAIT_fnc_CortexIsEligible)} || {[group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover}) exitWith {};
+                if (!local _unit || {isPlayer _unit} || {!([_unit] call CBE_fnc_CortexCombatEffective)} || {(_unit getVariable ["CBE_AIPass_GarrisonPos", []]) isEqualTo []}
+                    || {!([group _unit] call CBE_fnc_CortexIsEligible)} || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}) exitWith {};
                 // A stale garrison marker grants no posture authority over another task.
                 if (!isNull objectParent _unit || {!isNull remoteControlled _unit}
-                    || {[_unit] call WAIT_fnc_CortexActorMoveReserved}
+                    || {[_unit] call CBE_fnc_CortexActorMoveReserved}
                     || {toUpperANSI currentCommand _unit in ["MOVE","FOLLOW","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {};
-                if (time < (_unit getVariable ["WAIT_AIPass_DuckUntil", -1])) exitWith {};
+                if (time < (_unit getVariable ["CBE_AIPass_DuckUntil", -1])) exitWith {};
                 private _priorStance=unitPos _unit;
                 // Already prone is not a reason to raise the soldier under incoming fire.
                 if (toUpperANSI _priorStance == "DOWN") exitWith {};
                 private _duckGroup=group _unit;
-                private _duckGeneration=_duckGroup getVariable ["WAIT_AIPass_GarrisonGeneration",-1];
-                private _duckEpoch=_duckGroup getVariable ["WAIT_AIPass_Epoch",0];
-                private _duckAssignment=+(_unit getVariable ["WAIT_AIPass_GarrisonPos",[]]);
+                private _duckGeneration=_duckGroup getVariable ["CBE_AIPass_GarrisonGeneration",-1];
+                private _duckEpoch=_duckGroup getVariable ["CBE_AIPass_Epoch",0];
+                private _duckAssignment=+(_unit getVariable ["CBE_AIPass_GarrisonPos",[]]);
                 private _duckBuilding=_duckAssignment param [2,objNull];
                 private _duckTransform=_duckAssignment param [3,[]];
                 if (_duckTransform isNotEqualTo [] && {isNull _duckBuilding
                     || {_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding]}}) exitWith {};
                 private _until = time + 4 + random 4;
-                _unit setVariable ["WAIT_AIPass_DuckUntil", _until];
+                _unit setVariable ["CBE_AIPass_DuckUntil", _until];
                 private _duckStance=["MIDDLE", "DOWN"] select ((unitPos _unit) == "MIDDLE");
-                _unit setVariable ["WAIT_Cortex_GarrisonDuckStance",_duckStance,true];
+                _unit setVariable ["CBE_Cortex_GarrisonDuckStance",_duckStance,true];
                 _unit setUnitPos _duckStance;
                 [{
                     params ["_unit", "_until", "_priorStance", "_duckGroup", "_duckGeneration", "_duckEpoch", "_duckAssignment"];
-                    if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit} && {(_unit getVariable ["WAIT_AIPass_DuckUntil", -1]) == _until}
+                    if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit} && {(_unit getVariable ["CBE_AIPass_DuckUntil", -1]) == _until}
                         && {group _unit == _duckGroup} && {local _duckGroup}
-                        && {(_duckGroup getVariable ["WAIT_AIPass_GarrisonGeneration",-2]) == _duckGeneration}
-                        && {(_duckGroup getVariable ["WAIT_AIPass_Epoch",0]) == _duckEpoch}
+                        && {(_duckGroup getVariable ["CBE_AIPass_GarrisonGeneration",-2]) == _duckGeneration}
+                        && {(_duckGroup getVariable ["CBE_AIPass_Epoch",0]) == _duckEpoch}
                         && {isNull objectParent _unit} && {isNull remoteControlled _unit}
-                        && {!([_unit] call WAIT_fnc_CortexActorMoveReserved)}
+                        && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}
                         && {!(toUpperANSI currentCommand _unit in ["MOVE","FOLLOW","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
-                        && {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo _duckAssignment}
+                        && {(_unit getVariable ["CBE_AIPass_GarrisonPos", []]) isEqualTo _duckAssignment}
                         && {
                             private _building=_duckAssignment param [2,objNull];
                             private _transform=_duckAssignment param [3,[]];
                             _transform isEqualTo [] || {!isNull _building
                                 && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
                         }
-                        && {[group _unit] call WAIT_fnc_CortexIsEligible}
-                        && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) then {
-                        if (unitPos _unit == (_unit getVariable ["WAIT_Cortex_GarrisonDuckStance", ""])) then {
+                        && {[group _unit] call CBE_fnc_CortexIsEligible}
+                        && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}) then {
+                        if (unitPos _unit == (_unit getVariable ["CBE_Cortex_GarrisonDuckStance", ""])) then {
                             _unit setUnitPos _priorStance;
                         };
-                        _unit setVariable ["WAIT_Cortex_GarrisonDuckStance",nil,true];
+                        _unit setVariable ["CBE_Cortex_GarrisonDuckStance",nil,true];
                     };
                 }, [_unit,_until,_priorStance,_duckGroup,_duckGeneration,_duckEpoch,_duckAssignment], _until - time] call CBA_fnc_waitAndExecute;
             };
-            _unit setVariable ["WAIT_AIPass_GarrisonHandlerIds", [
+            _unit setVariable ["CBE_AIPass_GarrisonHandlerIds", [
                 ["Suppressed", _unit addEventHandler ["Suppressed", _duck]],
                 ["Hit", _unit addEventHandler ["Hit", _duck]]
             ]];
         };
-        // Release the former formation task only while WAIT still owns movement. A curator or
+        // Release the former formation task only while CBE still owns movement. A curator or
         // specialist can take over between setup and this first individual building command.
         if (!_heldInPlace && {_unit in _freshActors} && {[_unit] call _mayIssueMovement}) then {doStop _unit};
         private _destination = _assignment select 0;
@@ -288,12 +288,12 @@ private _buildingAnchor = {
             [_unit,_holdReceiptTarget] call _rememberMove;
         };
         if (!_atPost && {[_unit] call _mayIssueMovement}) then {
-            _unit setVariable ["WAIT_Cortex_GarrisonAppliedStance","UP",true];
+            _unit setVariable ["CBE_Cortex_GarrisonAppliedStance","UP",true];
             _unit setUnitPos "UP";
             _unit forceSpeed 4;
-            // Record the exact value WAIT applied.  Release restores the previous value only
+            // Record the exact value CBE applied.  Release restores the previous value only
             // while this lease is still intact, so a later controller's forced speed survives.
-            _unit setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4,true];
+            _unit setVariable ["CBE_Cortex_GarrisonAppliedSpeed",4,true];
             _unit doMove _target; [_unit,_target] call _rememberMove;
         };
     };
@@ -303,72 +303,72 @@ private _buildingAnchor = {
     private _group = _job get "group";
     private _rememberMove = _job get "rememberMove";
     private _buildingTopologyCache = _job get "buildingTopologyCache";
-    if (isNull _group || {!local _group} || {(_group getVariable ["WAIT_AIPass_Garrison", []]) isEqualTo []}) exitWith {-1};
-    if ((_group getVariable ["WAIT_AIPass_GarrisonGeneration", -1]) != (_job get "generation")) exitWith {-1};
+    if (isNull _group || {!local _group} || {(_group getVariable ["CBE_AIPass_Garrison", []]) isEqualTo []}) exitWith {-1};
+    if ((_group getVariable ["CBE_AIPass_GarrisonGeneration", -1]) != (_job get "generation")) exitWith {-1};
     // Retire the hold immediately when a player, Zeus or specialist controller owns the group.
-    // Returning a delay alone would leave WAIT's PATH lock and published assignment behind.
-    if !([_group] call WAIT_fnc_CortexIsEligible) exitWith {
-        [_group,false] call WAIT_fnc_CortexGarrisonRelease;
+    // Returning a delay alone would leave CBE's PATH lock and published assignment behind.
+    if !([_group] call CBE_fnc_CortexIsEligible) exitWith {
+        [_group,false] call CBE_fnc_CortexGarrisonRelease;
         -1
     };
     private _assignmentValid=_job get "assignmentValid";
     private _assignmentArrived=_job get "assignmentArrived";
     private _invalidActors=(units _group) select {
-        local _x && {!([_x getVariable ["WAIT_AIPass_GarrisonPos",[]]] call _assignmentValid)}
+        local _x && {!([_x getVariable ["CBE_AIPass_GarrisonPos",[]]] call _assignmentValid)}
     };
-    if (_invalidActors isNotEqualTo []) then {[_group,true,_invalidActors] call WAIT_fnc_CortexGarrisonRelease};
-    if ((_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []) exitWith {-1};
+    if (_invalidActors isNotEqualTo []) then {[_group,true,_invalidActors] call CBE_fnc_CortexGarrisonRelease};
+    if ((_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []) exitWith {-1};
     private _mayIssueMovement = {
         params ["_actor"];
-        private _free=!([_actor] call WAIT_fnc_CortexActorMoveReserved);
+        private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
         private _command=currentCommand _actor;
-        private _receipt=_actor getVariable ["WAIT_Cortex_GarrisonMove",[]];
+        private _receipt=_actor getVariable ["CBE_Cortex_GarrisonMove",[]];
         private _live=(expectedDestination _actor) param [0,[]];
         private _commandOwned=_command in ["","STOP"]
             || {_command == "MOVE" && {count _receipt == 5}
-                && {(_receipt select 4) isEqualTo (_actor getVariable ["WAIT_AIPass_GarrisonPos",[]])}
+                && {(_receipt select 4) isEqualTo (_actor getVariable ["CBE_AIPass_GarrisonPos",[]])}
                 && {(_receipt select 0) == _group}
                 && {(_receipt select 1) == (_job get "generation")}
-                && {(_receipt select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_receipt select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
                 && {count _live == 3} && {count (_receipt select 3) == 3}
                 && {_live vectorDistance (_receipt select 3) <= 0.25}};
-        !([_group] call WAIT_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
+        !([_group] call CBE_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
             && {_commandOwned} && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
-            && {[_actor] call WAIT_fnc_CortexCombatEffective}
-            && {!([_group,false,_actor] call WAIT_fnc_CortexExternalTakeover)}
+            && {[_actor] call CBE_fnc_CortexCombatEffective}
+            && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
     private _pending = 0;
     private _exteriorSearchBudget=1;
     {
-        private _assignment = _x getVariable ["WAIT_AIPass_GarrisonPos", []];
+        private _assignment = _x getVariable ["CBE_AIPass_GarrisonPos", []];
         if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR_PENDING"
-            && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}) then {
+            && {!(_x getVariable ["CBE_AIPass_GarrisonFailed",false])}) then {
             private _actor=_x;
-            private _attempts=_actor getVariable ["WAIT_Cortex_GarrisonExteriorAttempts",0];
+            private _attempts=_actor getVariable ["CBE_Cortex_GarrisonExteriorAttempts",0];
             if (serverTime > (_job get "deadline") || {_attempts >= 3}) then {
-                _actor setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
-                diag_log format ["[WAIT] Garrison exterior selection failed unit=%1 attempts=%2",_actor,_attempts];
+                _actor setVariable ["CBE_AIPass_GarrisonFailed",true,true];
+                diag_log format ["[CBE] Garrison exterior selection failed unit=%1 attempts=%2",_actor,_attempts];
             } else {
                 _pending=_pending+1;
                 if (_exteriorSearchBudget > 0 && {_actor checkAIFeature "PATH"} && {[_actor] call _mayIssueMovement}) then {
                     _exteriorSearchBudget=0;
-                    _actor setVariable ["WAIT_Cortex_GarrisonExteriorAttempts",_attempts+1,true];
-                    private _history=+((_actor getVariable ["WAIT_Cortex_GarrisonExteriorTried",[]]) select [0,3]);
-                    private _targetHistory=+((_actor getVariable ["WAIT_Cortex_GarrisonExteriorTargets",[]]) select [0,6]);
+                    _actor setVariable ["CBE_Cortex_GarrisonExteriorAttempts",_attempts+1,true];
+                    private _history=+((_actor getVariable ["CBE_Cortex_GarrisonExteriorTried",[]]) select [0,3]);
+                    private _targetHistory=+((_actor getVariable ["CBE_Cortex_GarrisonExteriorTargets",[]]) select [0,6]);
                     private _buildings=[];
                     {
                         private _building=_x param [2,objNull];
                         if (!isNull _building && {[_x] call _assignmentValid}) then {_buildings pushBackUnique _building};
-                    } forEach ((_group getVariable ["WAIT_Cortex_GarrisonCandidates",[]]) select [0,64]);
+                    } forEach ((_group getVariable ["CBE_Cortex_GarrisonCandidates",[]]) select [0,64]);
                     private _exitCounts=createHashMap;
                     private _observerLanes=[];
                     private _taken=+_targetHistory;
                     {
-                        private _other=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
-                        if (_x != _actor && {[_x] call WAIT_fnc_CortexCombatEffective}
-                            && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}
+                        private _other=_x getVariable ["CBE_AIPass_GarrisonPos",[]];
+                        if (_x != _actor && {[_x] call CBE_fnc_CortexCombatEffective}
+                            && {!(_x getVariable ["CBE_AIPass_GarrisonFailed",false])}
                             && {_other isNotEqualTo []}) then {
                             _taken pushBack (_other select 0);
                             if ((_other param [4,"INTERIOR"]) == "EXTERIOR") then {
@@ -395,14 +395,14 @@ private _buildingAnchor = {
                         private _building=_row select 4;
                         private _entry=_row select 5;
                         _history pushBackUnique [_building,+_entry];
-                        _actor setVariable ["WAIT_Cortex_GarrisonExteriorTried",_history,true];
+                        _actor setVariable ["CBE_Cortex_GarrisonExteriorTried",_history,true];
                         private _bounds=boundingBoxReal _building;
                         private _centre=_building modelToWorld (((_bounds select 0) vectorAdd (_bounds select 1)) vectorMultiply 0.5);
                         private _outward=_centre getDir _entry;
                         private _search=_entry getPos [7,_outward];
                         private _watch=_entry getPos [2,_outward];
                         _watch set [2,(_entry select 2)+1.2];
-                        private _cover=[_search,_centre,12,_taken,_group] call WAIT_fnc_CortexFindCover;
+                        private _cover=[_search,_centre,12,_taken,_group] call CBE_fnc_CortexFindCover;
                         private _target=_cover select 0;
                         _targetHistory pushBackUnique +_target;
                         private _covered=_cover select 1;
@@ -414,27 +414,27 @@ private _buildingAnchor = {
                                 _entries pushBackUnique _exit;
                             };
                         };
-                        private _valid=[_actor,_building,_target,_entry,_watch,_entries,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate;
+                        private _valid=[_actor,_building,_target,_entry,_watch,_entries,_taken,_observerLanes] call CBE_fnc_BuildingExteriorCandidate;
                         if (!_valid) then {
-                            private _empty=[_actor,_search,_entry,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorProposal;
+                            private _empty=[_actor,_search,_entry,_taken,_observerLanes] call CBE_fnc_BuildingExteriorProposal;
                             if (count _empty == 3) then {
                                 // This is a ground exterior proposal, never a fabricated interior node.
                                 _empty set [2,0];
                                 _targetHistory pushBackUnique +_empty;
-                                if ([_actor,_building,_empty,_entry,_watch,_entries,_taken,_observerLanes] call WAIT_fnc_BuildingExteriorCandidate) then {
+                                if ([_actor,_building,_empty,_entry,_watch,_entries,_taken,_observerLanes] call CBE_fnc_BuildingExteriorCandidate) then {
                                     _target=+_empty; _valid=true; _covered=false;
                                 };
                             };
                         };
-                        _actor setVariable ["WAIT_Cortex_GarrisonExteriorTargets",_targetHistory,true];
+                        _actor setVariable ["CBE_Cortex_GarrisonExteriorTargets",_targetHistory,true];
                         if (_valid && {[_actor] call _mayIssueMovement}) then {
                             _assignment=[+_target,_target getDir _watch,_building,
                                 [getPosWorld _building,vectorDir _building,vectorUp _building],"EXTERIOR",+_watch,+_entry,_covered];
-                            _actor setVariable ["WAIT_AIPass_GarrisonPos",_assignment,true];
+                            _actor setVariable ["CBE_AIPass_GarrisonPos",_assignment,true];
                             (_job get "routes") set [netId _actor,[+_target,false,getPosATL _actor,time,0,[str _target],0,[],-1,[],false]];
-                            _actor setVariable ["WAIT_Cortex_GarrisonAppliedStance","UP",true];
+                            _actor setVariable ["CBE_Cortex_GarrisonAppliedStance","UP",true];
                             _actor setUnitPos "UP";
-                            _actor setVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4,true];
+                            _actor setVariable ["CBE_Cortex_GarrisonAppliedSpeed",4,true];
                             _actor forceSpeed 4;
                             _actor doMove _target; [_actor,_target] call _rememberMove;
                         };
@@ -450,37 +450,37 @@ private _buildingAnchor = {
         };
         // A reservation defers both route retries and arrival locking. Retain the job
         // until the original public deadline; never mint another approach window.
-        if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
+        if ([_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
             && {group _x == _group} && {_assignment isNotEqualTo []}
             && {(_assignment param [4,"INTERIOR"]) != "EXTERIOR_PENDING"}
-            && {_x checkAIFeature "PATH"} && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}
+            && {_x checkAIFeature "PATH"} && {!(_x getVariable ["CBE_AIPass_GarrisonFailed",false])}
             && {!([_x] call _mayIssueMovement)}) then {
             if (serverTime <= (_job get "deadline")) then {
                 _pending=_pending+1;
                 private _deferredRoute=(_job get "routes") getOrDefault [netId _x,[]];
                 if (_deferredRoute isNotEqualTo []) then {_deferredRoute set [3,time]};
             } else {
-                _x setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
+                _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
             };
         };
-        if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
-            && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}
+        if ([_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
+            && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}
             && {_assignment isNotEqualTo []} && {(_assignment param [4,"INTERIOR"]) != "EXTERIOR_PENDING"}
-            && {_x checkAIFeature "PATH"} && {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])}
+            && {_x checkAIFeature "PATH"} && {!(_x getVariable ["CBE_AIPass_GarrisonFailed",false])}
             && {group _x == _group} && {[_x] call _mayIssueMovement}) then {
             private _openedDoor = if ((_assignment param [4,"INTERIOR"]) != "EXTERIOR" && {[_x] call _mayIssueMovement}) then {
-                [_x,_assignment param [2,objNull],["GARRISON",_job get "generation"]] call WAIT_fnc_CortexBuildingDoor
+                [_x,_assignment param [2,objNull],["GARRISON",_job get "generation"]] call CBE_fnc_CortexBuildingDoor
             } else {false};
             if ([_x,_assignment] call _assignmentArrived) then {
                 // Arrival locks are movement ownership too. Do not freeze or retask a soldier
                 // whose group changed owner while this bounded callback was already running.
                 if ([_x] call _mayIssueMovement) then {
                     doStop _x;
-                    if (!isNil {_x getVariable "WAIT_Cortex_GarrisonForcedSpeed"}
-                        && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
-                        _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+                    if (!isNil {_x getVariable "CBE_Cortex_GarrisonForcedSpeed"}
+                        && {abs ((getForcedSpeed _x)-(_x getVariable ["CBE_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
+                        _x forceSpeed (_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
                     };
-                    _x setVariable ["WAIT_AIPass_GarrisonDisabledPath", true, true];
+                    _x setVariable ["CBE_AIPass_GarrisonDisabledPath", true, true];
                     _x disableAI "PATH";
                     private _watch=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {_assignment select 5} else {(_assignment select 0) getPos [50,_assignment select 1]};
                     _x doWatch _watch;
@@ -488,12 +488,12 @@ private _buildingAnchor = {
             } else {
                 if (serverTime > (_job get "deadline")) then {
                     if ([_x] call _mayIssueMovement
-                        && {!isNil {_x getVariable "WAIT_Cortex_GarrisonForcedSpeed"}}
-                        && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
-                        _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+                        && {!isNil {_x getVariable "CBE_Cortex_GarrisonForcedSpeed"}}
+                        && {abs ((getForcedSpeed _x)-(_x getVariable ["CBE_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
+                        _x forceSpeed (_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
                     };
-                    _x setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
-                    diag_log format ["[WAIT] Garrison arrival failed unit=%1 remaining=%2",_x,_x distance (_assignment select 0)];
+                    _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
+                    diag_log format ["[CBE] Garrison arrival failed unit=%1 remaining=%2",_x,_x distance (_assignment select 0)];
                 } else {
                     _pending = _pending + 1;
                     private _route = (_job get "routes") getOrDefault [netId _x,[_assignment select 0,false,getPosATL _x,time,0,[str (_assignment select 0)],0,[],-1,[],false]];
@@ -542,13 +542,13 @@ private _buildingAnchor = {
                                         _route set [9,[_assignment param [2,objNull],_nextTarget,_assignment select 0] call (_job get "buildingAnchor")];
                                         _route set [10,false];
                                         _x doMove _nextTarget; [_x,_nextTarget] call _rememberMove;
-                                        diag_log format ["[WAIT] Garrison trying alternate entrance unit=%1 entrance=%2/%3 remaining=%4",_x,_nextEntry+1,count _entries,_x distance (_assignment select 0)];
+                                        diag_log format ["[CBE] Garrison trying alternate entrance unit=%1 entrance=%2/%3 remaining=%4",_x,_nextEntry+1,count _entries,_x distance (_assignment select 0)];
                                     } else {
                                     private _occupied=(units _group) apply {
-                                        private _otherAssignment=_x getVariable ["WAIT_AIPass_GarrisonPos",[]];
+                                        private _otherAssignment=_x getVariable ["CBE_AIPass_GarrisonPos",[]];
                                         if (_otherAssignment isEqualTo []) then {""} else {str (_otherAssignment select 0)}
                                     };
-                                    private _alternatives=(_group getVariable ["WAIT_Cortex_GarrisonCandidates",[]]) select {
+                                    private _alternatives=(_group getVariable ["CBE_Cortex_GarrisonCandidates",[]]) select {
                                         private _key=str (_x select 0);
                                         !(_key in _attempted) && {!(_key in _occupied)} && {[_x] call _assignmentValid}
                                             && {(_x param [4,"INTERIOR"]) == (_assignment param [4,"INTERIOR"])}
@@ -567,18 +567,18 @@ private _buildingAnchor = {
                                             [_replacementBuilding,_replacementTarget,_replacementDestination] call (_job get "buildingAnchor")
                                         } else {[]};
                                         _attempted pushBackUnique (str _replacementDestination);
-                                        _x setVariable ["WAIT_AIPass_GarrisonPos",_replacement,true];
+                                        _x setVariable ["CBE_AIPass_GarrisonPos",_replacement,true];
                                         _route=[_replacementTarget,_replacementApproach,getPosATL _x,time,0,_attempted,_reassignments+1,_replacementEntries,_replacementEntryIndex,_replacementAnchor,false];
                                         _x doMove _replacementTarget; [_x,_replacementTarget] call _rememberMove;
-                                        diag_log format ["[WAIT] Garrison reassigned unit=%1 remaining=%2 alternative=%3",_x,_x distance (_assignment select 0),_replacementDestination];
+                                        diag_log format ["[CBE] Garrison reassigned unit=%1 remaining=%2 alternative=%3",_x,_x distance (_assignment select 0),_replacementDestination];
                                     } else {
                                         if ([_x] call _mayIssueMovement
-                        && {!isNil {_x getVariable "WAIT_Cortex_GarrisonForcedSpeed"}}
-                        && {abs ((getForcedSpeed _x)-(_x getVariable ["WAIT_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
-                        _x forceSpeed (_x getVariable ["WAIT_Cortex_GarrisonForcedSpeed",-1]);
+                        && {!isNil {_x getVariable "CBE_Cortex_GarrisonForcedSpeed"}}
+                        && {abs ((getForcedSpeed _x)-(_x getVariable ["CBE_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
+                        _x forceSpeed (_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
                     };
-                    _x setVariable ["WAIT_AIPass_GarrisonFailed",true,true];
-                                        diag_log format ["[WAIT] Garrison arrival failed unit=%1 attempted=%2 remaining=%3",_x,count _attempted,_x distance (_assignment select 0)];
+                    _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
+                                        diag_log format ["[CBE] Garrison arrival failed unit=%1 attempted=%2 remaining=%3",_x,count _attempted,_x distance (_assignment select 0)];
                                     };
                                     };
                                 };
@@ -591,18 +591,18 @@ private _buildingAnchor = {
             };
         };
     } forEach units _group;
-    _group setVariable ["WAIT_Cortex_GarrisonPending",_pending,true];
+    _group setVariable ["CBE_Cortex_GarrisonPending",_pending,true];
     if (_pending == 0) then {
         private _assigned=(units _group) select {
-            alive _x && {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []}
+            alive _x && {(_x getVariable ["CBE_AIPass_GarrisonPos",[]]) isNotEqualTo []}
         };
-        if (_assigned isNotEqualTo [] && {_assigned findIf {!(_x getVariable ["WAIT_AIPass_GarrisonFailed",false])} < 0}) then {
-            private _evidence=(_assigned select [0,16]) apply {[netId _x,getPosATL _x,+(_x getVariable ["WAIT_AIPass_GarrisonPos",[]])]};
-            _group setVariable ["WAIT_Cortex_GarrisonResult",[_job get "generation","INCOMPLETE","ALL_ROUTES_FAILED",serverTime,_evidence],true];
-            diag_log format ["[WAIT] Garrison incomplete: all routes failed group=%1 evidence=%2",_group,_evidence];
-            [_group] call WAIT_fnc_CortexGarrisonRelease;
+        if (_assigned isNotEqualTo [] && {_assigned findIf {!(_x getVariable ["CBE_AIPass_GarrisonFailed",false])} < 0}) then {
+            private _evidence=(_assigned select [0,16]) apply {[netId _x,getPosATL _x,+(_x getVariable ["CBE_AIPass_GarrisonPos",[]])]};
+            _group setVariable ["CBE_Cortex_GarrisonResult",[_job get "generation","INCOMPLETE","ALL_ROUTES_FAILED",serverTime,_evidence],true];
+            diag_log format ["[CBE] Garrison incomplete: all routes failed group=%1 evidence=%2",_group,_evidence];
+            [_group] call CBE_fnc_CortexGarrisonRelease;
         };
     };
     [2, -1] select (_pending == 0)
-}, createHashMapFromArray [["group", _group], ["assignmentValid",_assignmentValid], ["assignmentArrived",_assignmentArrived], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", _deadline], ["generation", _generation]], 1] call WAIT_fnc_CortexQueueJob;
+}, createHashMapFromArray [["group", _group], ["assignmentValid",_assignmentValid], ["assignmentArrived",_assignmentArrived], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", _deadline], ["generation", _generation]], 1] call CBE_fnc_CortexQueueJob;
 

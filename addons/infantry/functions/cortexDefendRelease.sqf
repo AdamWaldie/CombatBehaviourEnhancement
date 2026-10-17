@@ -28,10 +28,10 @@
  * Boolean - true when released or forwarded
  *
  * Example:
- * [_group] call WAIT_fnc_CortexDefendRelease;
+ * [_group] call CBE_fnc_CortexDefendRelease;
  * Result: the defenders leave the line and move with their leader.
  *
- * Current callers: WAIT_fnc_CortexGroupTick, the AI Orders ZEN module and mission scripts.
+ * Current callers: CBE_fnc_CortexGroupTick, the AI Orders ZEN module and mission scripts.
  */
 
 params [["_group", grpNull, [grpNull, objNull]],["_restore",true,[true]],["_recallHeld",true,[true]]];
@@ -39,25 +39,25 @@ if (_group isEqualType objNull) then {_group = group _group};
 if (isNull _group) exitWith {false};
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 if (!local _group) exitWith {
-    if (isServer) then {[_group,_restore,_recallHeld] remoteExecCall ["WAIT_fnc_CortexDefendRelease", groupOwner _group]; true} else {false};
+    if (isServer) then {[_group,_restore,_recallHeld] remoteExecCall ["CBE_fnc_CortexDefendRelease", groupOwner _group]; true} else {false};
 };
 // No Cortex assignment means there is nothing for this release to restore.
-if ((_group getVariable ["WAIT_AIPass_Defend",[]]) isEqualTo [] && {units _group findIf {(_x getVariable ["WAIT_AIPass_DefendPos",[]]) isNotEqualTo []} < 0}) exitWith {false};
-// Clear only WAIT's published order after an external takeover. A normal feature gate change
+if ((_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo [] && {units _group findIf {(_x getVariable ["CBE_AIPass_DefendPos",[]]) isNotEqualTo []} < 0}) exitWith {false};
+// Clear only CBE's published order after an external takeover. A normal feature gate change
 // still returns the released defence element to formation; it is not an external movement order.
-private _externalTakeover = [_group] call WAIT_fnc_CortexExternalTakeover;
+private _externalTakeover = [_group] call CBE_fnc_CortexExternalTakeover;
 private _canRestore = _restore && {!_externalTakeover};
-private _leader = [_group] call WAIT_fnc_CortexGroupAnchor;
+private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 {
     private _command = toUpperANSI currentCommand _x;
-    private _assignment=_x getVariable ["WAIT_AIPass_DefendPos",[]];
-    private _receipt=_x getVariable ["WAIT_Cortex_DefendMove",[]];
+    private _assignment=_x getVariable ["CBE_AIPass_DefendPos",[]];
+    private _receipt=_x getVariable ["CBE_Cortex_DefendMove",[]];
     private _receiptValid=_receipt isEqualType [] && {count _receipt == 6}
         && {(_receipt select 0) isEqualTo _group} && {_assignment isNotEqualTo []}
         && {(_receipt select 4) isEqualTo _assignment}
         && {[1,2] findIf {!((_receipt select _x) isEqualType 0) || {!finite (_receipt select _x)} || {(_receipt select _x) < 0}} < 0}
-        && {(_receipt select 2) <= (_group getVariable ["WAIT_AIPass_Epoch",0])}
+        && {(_receipt select 2) <= (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_receipt select 3) isEqualType []} && {count (_receipt select 3) == 3}
         && {(_receipt select 3) findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
     private _live=(expectedDestination _x) param [0,[],[[]]];
@@ -66,25 +66,25 @@ if (isNull _leader) then {_leader=leader _group};
     private _ownedHold=_receiptValid && {_command in ["","STOP"]} && {(_receipt select 5) == "HOLD"}
         && {(getPosATL _x) vectorDistance (_receipt select 3) <= 3};
     private _ownedCommand=_ownedMove || {_ownedHold} || {_receiptValid && {_command == ""}};
-    private _reservationFree=!([_x] call WAIT_fnc_CortexActorMoveReserved);
+    private _reservationFree=!([_x] call CBE_fnc_CortexActorMoveReserved);
     private _nativeTask=currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
-    if ([_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
+    if ([_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {_reservationFree} && {!_nativeTask} && {_ownedCommand} && {isNull objectParent _x}
         && {isNull remoteControlled _x}
-        && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}) then {
+        && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}) then {
         if (!_externalTakeover) then {_x doWatch objNull;};
         if (_canRestore || {_recallHeld && {!_externalTakeover && {_ownedHold && {_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]}}}}) then {
             _x doFollow _leader
         };
     };
-    _x setVariable ["WAIT_AIPass_DefendPos", nil, true];
-    _x setVariable ["WAIT_Cortex_DefendMove",nil,true];
-    _x setVariable ["WAIT_AIPass_DefendFailed",nil,true];
-    _x setVariable ["WAIT_AIPass_DefendHolding", nil];
-    _x setVariable ["WAIT_AIPass_DefendRouteGeneration",nil];
+    _x setVariable ["CBE_AIPass_DefendPos", nil, true];
+    _x setVariable ["CBE_Cortex_DefendMove",nil,true];
+    _x setVariable ["CBE_AIPass_DefendFailed",nil,true];
+    _x setVariable ["CBE_AIPass_DefendHolding", nil];
+    _x setVariable ["CBE_AIPass_DefendRouteGeneration",nil];
 } forEach units _group;
-_group setVariable ["WAIT_AIPass_Defend", nil, true];
-_group setVariable ["WAIT_Cortex_DefendNativeRoute",nil,true];
-_group setVariable ["WAIT_AIPass_DefendApplied", nil];
-diag_log format ["[WAIT] %1 defence released", _group];
+_group setVariable ["CBE_AIPass_Defend", nil, true];
+_group setVariable ["CBE_Cortex_DefendNativeRoute",nil,true];
+_group setVariable ["CBE_AIPass_DefendApplied", nil];
+diag_log format ["[CBE] %1 defence released", _group];
 true

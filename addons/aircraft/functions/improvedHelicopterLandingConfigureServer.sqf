@@ -16,13 +16,13 @@
  *
  * Return Value: BOOL - true when accepted on the server; a forwarded client request returns false.
  *
- * Example: [[true, 50, 30, 4, 25, 5, 150, 8, 10, 1, 8]] call WAIT_fnc_ImprovedHelicopterLandingConfigureServer;
+ * Example: [[true, 50, 30, 4, 25, 5, 150, 8, 10, 1, 8]] call CBE_fnc_ImprovedHelicopterLandingConfigureServer;
  * Result: the server publishes this landing profile to current and joining clients.
  * Current callers: mission scripts that intentionally change the live global landing profile.
  */
 
 params [["_settings", [], [[]]]];
-if (!isServer) exitWith {[_settings] remoteExecCall ["WAIT_fnc_ImprovedHelicopterLandingConfigureServer", 2]; false};
+if (!isServer) exitWith {[_settings] remoteExecCall ["CBE_fnc_ImprovedHelicopterLandingConfigureServer", 2]; false};
 private _authorized = remoteExecutedOwner <= 0 || {remoteExecutedOwner == 2};
 if (!_authorized) then {
     private _sender = remoteExecutedOwner;
@@ -34,19 +34,19 @@ if (count _settings != 11 || {!((_settings select 0) isEqualType true)}) exitWit
 if ((_settings select [1,10]) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0) exitWith {false};
 _settings params ["_enabled", "_minimumDistance", "_transitAltitude", "_glideRatio", "_treeRadius", "_treeBuffer", "_goAroundHeight", "_maxClimb", "_maxDescent", "_maxGoArounds", "_touchdownHold"];
 private _updates = [
-    ["WAIT_ImprovedHelicopterLanding_Enable", _enabled],
-    ["WAIT_ImprovedHelicopterLanding_MinimumActivationDistance", (_minimumDistance max 50) min 500],
-    ["WAIT_ImprovedHelicopterLanding_TransitAltitude", (_transitAltitude max 15) min 150],
-    ["WAIT_ImprovedHelicopterLanding_GlideSlopeRatio", (_glideRatio max 2) min 10],
-    ["WAIT_ImprovedHelicopterLanding_TreeScanRadius", (_treeRadius max 0) min 75],
-    ["WAIT_ImprovedHelicopterLanding_TreeSafetyBuffer", (_treeBuffer max 0) min 25],
-    ["WAIT_ImprovedHelicopterLanding_GoAroundHeight", (_goAroundHeight max 50) min 500],
-    ["WAIT_ImprovedHelicopterLanding_MaximumClimbRate", (_maxClimb max 1) min 20],
-    ["WAIT_ImprovedHelicopterLanding_MaximumDescentRate", (_maxDescent max 1) min 25],
-    ["WAIT_ImprovedHelicopterLanding_MaximumGoArounds", round ((_maxGoArounds max 0) min 3)],
-    ["WAIT_ImprovedHelicopterLanding_TouchdownHoldSeconds", (_touchdownHold max 0) min 60]
+    ["CBE_ImprovedHelicopterLanding_Enable", _enabled],
+    ["CBE_ImprovedHelicopterLanding_MinimumActivationDistance", (_minimumDistance max 50) min 500],
+    ["CBE_ImprovedHelicopterLanding_TransitAltitude", (_transitAltitude max 15) min 150],
+    ["CBE_ImprovedHelicopterLanding_GlideSlopeRatio", (_glideRatio max 2) min 10],
+    ["CBE_ImprovedHelicopterLanding_TreeScanRadius", (_treeRadius max 0) min 75],
+    ["CBE_ImprovedHelicopterLanding_TreeSafetyBuffer", (_treeBuffer max 0) min 25],
+    ["CBE_ImprovedHelicopterLanding_GoAroundHeight", (_goAroundHeight max 50) min 500],
+    ["CBE_ImprovedHelicopterLanding_MaximumClimbRate", (_maxClimb max 1) min 20],
+    ["CBE_ImprovedHelicopterLanding_MaximumDescentRate", (_maxDescent max 1) min 25],
+    ["CBE_ImprovedHelicopterLanding_MaximumGoArounds", round ((_maxGoArounds max 0) min 3)],
+    ["CBE_ImprovedHelicopterLanding_TouchdownHoldSeconds", (_touchdownHold max 0) min 60]
 ];
 {_x params ["_name", "_value"]; missionNamespace setVariable [_name, _value, true];} forEach _updates;
-["WAIT_AITweaks_LandingReconfigure", []] call CBA_fnc_globalEvent;
-diag_log format ["[WAIT AI LANDING] Runtime configuration applied enabled=%1", _enabled];
+["CBE_AITweaks_LandingReconfigure", []] call CBA_fnc_globalEvent;
+diag_log format ["[CBE AI LANDING] Runtime configuration applied enabled=%1", _enabled];
 true

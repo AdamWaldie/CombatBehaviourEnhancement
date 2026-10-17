@@ -6,7 +6,7 @@
  * Arguments: 0: observer <OBJECT>, objNull; 1: range metres <NUMBER>, 800.
  * Return Value: Array [enemy OBJECT, believed ATL ARRAY, active danger BOOL], or [] when no recent hostile is known.
  * Current callers: ConvoyTick and ConvoyCrewLocal.
- * Example: private _report = [gunner tank1] call WAIT_fnc_ConvoyThreat;
+ * Example: private _report = [gunner tank1] call CBE_fnc_ConvoyThreat;
  */
 params [["_observer", objNull, [objNull]], ["_range", 800, [0]]];
 if (isNull _observer || {!local _observer} || {!alive _observer}) exitWith {[]};

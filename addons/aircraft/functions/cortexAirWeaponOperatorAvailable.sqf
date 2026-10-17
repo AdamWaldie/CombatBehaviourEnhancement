@@ -9,18 +9,18 @@
  * Return: BOOL, local combat-effective owned operator with no protected task/reservation,
  * specialist/player/remote control or individual BLUE/GREEN fire restriction.
  * Current callers: CortexAirAttackPlan and CortexAirAttack execution/Fired observation.
- * Example: [heli1,group driver heli1,gunner heli1] call WAIT_fnc_CortexAirWeaponOperatorAvailable;
+ * Example: [heli1,group driver heli1,gunner heli1] call CBE_fnc_CortexAirWeaponOperatorAvailable;
  */
 params [["_aircraft",objNull,[objNull]],["_group",grpNull,[grpNull]],["_operator",objNull,[objNull]]];
 if (isNull _aircraft || {isNull _group} || {isNull _operator}
     || {!local _aircraft} || {!local _group} || {!local _operator}) exitWith {false};
 alive _aircraft && {vehicle _operator == _aircraft} && {group _operator == _group}
-    && {[_operator] call WAIT_fnc_CortexCombatEffective}
+    && {[_operator] call CBE_fnc_CortexCombatEffective}
     && {simulationEnabled _operator} && {!isObjectHidden _operator}
     && {!isPlayer _operator} && {isNull remoteControlled _operator}
     && {isNull (_operator getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-    && {([_operator] call WAIT_fnc_CortexExternalOwner) == ""}
-    && {!([_operator] call WAIT_fnc_CompatibilityExternalControl)}
-    && {!([_group,false,_operator] call WAIT_fnc_CortexExternalTakeover)}
-    && {[_operator] call WAIT_fnc_CortexActorFireTaskAvailable}
+    && {([_operator] call CBE_fnc_CortexExternalOwner) == ""}
+    && {!([_operator] call CBE_fnc_CompatibilityExternalControl)}
+    && {!([_group,false,_operator] call CBE_fnc_CortexExternalTakeover)}
+    && {[_operator] call CBE_fnc_CortexActorFireTaskAvailable}
     && {!(unitCombatMode _operator in ["BLUE","GREEN"])}

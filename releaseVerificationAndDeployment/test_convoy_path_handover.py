@@ -6,14 +6,14 @@ class ConvoyPathHandoverTests(unittest.TestCase):
     def test_path_receipt_is_created_only_at_actual_path_write(self):
         s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
         block=s.split('_vehicle setDriveOnPath _path;',1)[1].split('_progress set [6',1)[0]
-        for key in ['WAIT_Convoy_PathLease','_group,_revision','WAIT_AIPass_Epoch',
+        for key in ['CBE_Convoy_PathLease','_group,_revision','CBE_AIPass_Epoch',
                     'driver _vehicle,_movementOperator','expectedDestination _movementOperator']:
             self.assertIn(key,block)
     def test_release_requires_exact_context_and_keeps_new_native_moves(self):
         s=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         block=s.split('private _pathOwned=',1)[1]
         for guard in ['count _pathLease == 7','_navigation getOrDefault ["revision",-1]',
-                      'WAIT_AIPass_Epoch','(_pathLease select 3) == _driver',
+                      'CBE_AIPass_Epoch','(_pathLease select 3) == _driver',
                       '(_pathLease select 4) == _movementOperator','isEqualTo (_pathLease select 5)',
                       '!(_vehicle in _keepCrew)','_taskFree','_mayStopOwned && {_pathOwned}',
                       '_live vectorDistance _committed <= 0.25']:

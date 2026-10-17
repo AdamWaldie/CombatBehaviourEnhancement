@@ -4,7 +4,7 @@ from report_cortex_audit import summarize, attach_assessments, render_markdown
 
 class AssessmentTests(unittest.TestCase):
     def test_review_preserves_failure(self):
-        report = summarize({'server.rpt': 'WAIT CORTEX QA|advance-deadline|FAIL|travel=80'})
+        report = summarize({'server.rpt': 'CBE CORTEX QA|advance-deadline|FAIL|travel=80'})
         attach_assessments(report, {'advance-deadline': {'category': 'partial_success', 'reason': 'Movement occurred; completion unproved', 'evidence': 'server.rpt:1 travel=80'}})
         self.assertEqual(report['status'], 'FAIL')
         self.assertEqual(report['cases'][0]['result'], 'FAIL')
@@ -15,19 +15,19 @@ class AssessmentTests(unittest.TestCase):
             attach_assessments(summarize({}), {'missing': {}})
 
     def test_evidence_required(self):
-        report = summarize({'rpt': 'WAIT CORTEX QA|case|FAIL|'})
+        report = summarize({'rpt': 'CBE CORTEX QA|case|FAIL|'})
         with self.assertRaises(ValueError):
             attach_assessments(report, {'case': {'category': 'test_problem', 'reason': 'Suspected timeout'}})
 
     def test_unreviewed_failure_is_not_classified_as_broken_feature(self):
-        report = summarize({'server.rpt': 'WAIT CORTEX QA|arrival|FAIL|travel=80'})
+        report = summarize({'server.rpt': 'CBE CORTEX QA|arrival|FAIL|travel=80'})
         rendered = '\n'.join(render_markdown(report))
         self.assertIn('functional failure: 0', rendered)
         self.assertIn('Failed case IDs awaiting evidence review: 1', rendered)
         self.assertEqual(report['status'], 'FAIL')
 
     def test_partial_review_reduces_unreviewed_count_without_hiding_failure(self):
-        report = summarize({'server.rpt': 'WAIT CORTEX QA|arrival|FAIL|travel=80'})
+        report = summarize({'server.rpt': 'CBE CORTEX QA|arrival|FAIL|travel=80'})
         attach_assessments(report, {'arrival': {'category': 'partial_success',
             'reason': 'Moved but did not reach the destination', 'evidence': 'server.rpt:1 travel=80'}})
         rendered = '\n'.join(render_markdown(report))
@@ -36,7 +36,7 @@ class AssessmentTests(unittest.TestCase):
         self.assertIn('Failed checks:', rendered)
 
     def test_detection_blocked_does_not_pass_response(self):
-        report = summarize({'server.rpt': 'WAIT CORTEX QA|response|FAIL|knowledge=0'})
+        report = summarize({'server.rpt': 'CBE CORTEX QA|response|FAIL|knowledge=0'})
         attach_assessments(report, {'response': {'category': 'detection_blocked',
             'reason': 'Native enemy knowledge prerequisite was absent',
             'evidence': 'server.rpt:1 knowledge=0'}})

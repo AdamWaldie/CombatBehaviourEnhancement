@@ -7,7 +7,7 @@ class GarrisonPlacementTests(unittest.TestCase):
         source=(ROOT/'addons/infantry/functions/cortexGarrison.sqf').read_text()
         self.assertIn('_options getOrDefault ["teleport",false]',source)
         self.assertIn('_teleport && {_inPlace}',source)
-        self.assertLess(source.index('_teleport isEqualType true'),source.index('call WAIT_fnc_CortexReleaseGroup'))
+        self.assertLess(source.index('_teleport isEqualType true'),source.index('call CBE_fnc_CortexReleaseGroup'))
         placement=source.split('if (_teleport) then {',1)[1].split('forEach _units;',1)[0]
         for guard in ('local _group','local _unit','CortexExternalTakeover','CortexCombatEffective','_free','remoteControlled','objectParent','currentCommand','getPosWorld _building'):
             self.assertIn(guard,placement)

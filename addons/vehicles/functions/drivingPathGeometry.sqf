@@ -13,7 +13,7 @@
  * Terrain and static decks may support proposals; vehicle/person surfaces and moving props cannot.
  * This is discrete sampled geometry, not continuous swept-volume or steering feasibility proof.
  * Current callers: DrivingCorridorGeometry and DrivingBypassPlan.
- * Example: [truck1,_guideASL,2.5,3] call WAIT_fnc_DrivingPathGeometry;
+ * Example: [truck1,_guideASL,2.5,3] call CBE_fnc_DrivingPathGeometry;
  */
 params [["_vehicle",objNull,[objNull]],["_guide",[],[[]]],["_halfWidth",2,[0]],
     ["_height",2,[0]],["_ignored",objNull,[objNull]]];

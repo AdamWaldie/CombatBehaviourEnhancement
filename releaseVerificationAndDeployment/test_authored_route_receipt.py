@@ -14,8 +14,8 @@ class AuthoredRouteTests(unittest.TestCase):
         self.assertIn('waypointName _x != _ownedName',s)
     def test_air_controller_compares_same_receipt_before_flight_commands(self):
         s=(ROOT/'addons/aircraft/functions/cortexAirAttack.sqf').read_text()
-        self.assertIn('private _routeSignature=[_group] call WAIT_fnc_AuthoredRouteReceipt',s)
-        self.assertIn('private _currentRoute=[_group,_ownedWaypointName] call WAIT_fnc_AuthoredRouteReceipt',s)
+        self.assertIn('private _routeSignature=[_group] call CBE_fnc_AuthoredRouteReceipt',s)
+        self.assertIn('private _currentRoute=[_group,_ownedWaypointName] call CBE_fnc_AuthoredRouteReceipt',s)
         self.assertLess(s.index('if (_currentRoute isNotEqualTo'),s.index('_aircraft limitSpeed (_stageSpeeds'))
         self.assertIn('["AUTHORED_ROUTE_CHANGED"] call _finish',s)
 if __name__=='__main__': unittest.main()
@@ -37,7 +37,7 @@ class AirCleanupReceiptTests(unittest.TestCase):
         s=(ROOT/'addons/aircraft/functions/cortexAirAttack.sqf').read_text(encoding='utf-8')
         finish=s.split('private _finish={',1)[1].split('private _mayControlAircraft',1)[0]
         self.assertLess(finish.index('private _preserveEditedLeg='),finish.index('deleteWaypoint _ownedWaypoint'))
-        self.assertIn('[_finishGroup,_finishOwnedName,true] call WAIT_fnc_AuthoredRouteReceipt',finish)
+        self.assertIn('[_finishGroup,_finishOwnedName,true] call CBE_fnc_AuthoredRouteReceipt',finish)
         self.assertIn('private _claimed=_preserveEditedLeg',finish)
         self.assertIn('if (_resume && {!_preserveEditedLeg}',finish)
         self.assertIn('if (!_preserveEditedLeg && {',finish)

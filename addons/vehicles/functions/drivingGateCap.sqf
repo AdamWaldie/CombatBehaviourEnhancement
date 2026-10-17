@@ -8,7 +8,7 @@
  * 2 authoritative server recheck <BOOL, false> permits remote-vehicle geometry on server.
  * Return Value: ARRAY [cap m/s, gate OBJECT, hull gap m, sampledAt, rays]. No gate is objNull.
  * Current callers: DrivingGateOpenServer; other executors consume both shared observations directly.
- * Example: private _gate=[truck1,15] call WAIT_fnc_DrivingGateCap;
+ * Example: private _gate=[truck1,15] call CBE_fnc_DrivingGateCap;
  */
 params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]]];
-([_vehicle,_requested,_serverCheck] call WAIT_fnc_DrivingGeometryCap) select 0
+([_vehicle,_requested,_serverCheck] call CBE_fnc_DrivingGeometryCap) select 0

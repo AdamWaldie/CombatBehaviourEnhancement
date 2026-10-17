@@ -19,7 +19,7 @@ class SchedulerSampleTests(unittest.TestCase):
         self.assertIn('select [0,160]',recording)
         for forbidden in ('sort ','spawn','remoteExec','nearEntities','allGroups'):
             self.assertNotIn(forbidden,recording)
-        self.assertLess(s.index('"WAIT_AIPass_CallbackSamples",_samples'),s.index('if (!isNil "_delay"'))
+        self.assertLess(s.index('"CBE_AIPass_CallbackSamples",_samples'),s.index('if (!isNil "_delay"'))
     def test_report_is_on_demand_and_does_not_claim_frame_budget_acceptance(self):
         s=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text(encoding='utf-8')
         self.assertIn('"cortex-callback-samples"',s)
@@ -30,7 +30,7 @@ class SchedulerSampleTests(unittest.TestCase):
     def test_distributed_sampler_reads_retired_callback_ring_in_matching_clock_window(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runPerformanceOwner.sqf').read_text(encoding='utf-8')
         sample=s.split('while {diag_tickTime < _until',1)[1].split('sleep 1;',1)[0]
-        self.assertIn('WAIT_AIPass_CallbackSamples', sample)
+        self.assertIn('CBE_AIPass_CallbackSamples', sample)
         self.assertIn('(_completed select [0,256])', sample)
         self.assertIn('(_x select 4) >= _sampleStartedTick', sample)
         self.assertIn('(_x select 4) <= _observedAt', sample)

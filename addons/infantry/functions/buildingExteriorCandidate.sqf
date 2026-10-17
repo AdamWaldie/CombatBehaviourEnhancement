@@ -12,8 +12,8 @@
  * Diagnostic mode returns the same acceptance result with read-only check measurements.
  * Return Value: BOOL by default; diagnostic mode returns [BOOL, named check pairs ARRAY].
  * Supported observation geometry never establishes path arrival or room safety.
- * Current callers: WAIT_fnc_BuildingOperationStep and WAIT_fnc_CortexGarrisonApplyLocal.
- * Example: [_unit,_house,_spot,_exit,_watch,[_exit],[]] call WAIT_fnc_BuildingExteriorCandidate;
+ * Current callers: CBE_fnc_BuildingOperationStep and CBE_fnc_CortexGarrisonApplyLocal.
+ * Example: [_unit,_house,_spot,_exit,_watch,[_exit],[]] call CBE_fnc_BuildingExteriorCandidate;
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
     ["_target",[],[[]]],["_entry",[],[[]]],["_watch",[],[[]]],

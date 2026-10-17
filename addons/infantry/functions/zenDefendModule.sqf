@@ -7,8 +7,8 @@
  * Selection is a one-shot snapshot, revalidated at dispatch/execution. No addon setting changes.
  * Arguments: 0 centre ATL <ARRAY>, []; 1 attached target <OBJECT>, objNull.
  * Return: BOOL - dialog opened, not acceptance or physical defence completion.
- * Current callers: ZEN registration and WAIT_fnc_ModuleGarrison for WAIT_ModuleDefend.
- * Example: [getMarkerPos "ridge",soldier1] call WAIT_fnc_ZenDefendModule;
+ * Current callers: ZEN registration and CBE_fnc_ModuleGarrison for CBE_ModuleDefend.
+ * Example: [getMarkerPos "ridge",soldier1] call CBE_fnc_ZenDefendModule;
  */
 params [["_position",[],[[]]],["_target",objNull,[objNull]]];
 if (!hasInterface || {isNil "zen_dialog_fnc_create"} || {count _position != 3}) exitWith {false};
@@ -20,7 +20,7 @@ if (!isNull _target && {_target isKindOf "CAManBase"} && {!isPlayer _target}) th
     _groups=[_selected]+(_groups-[_selected]);
 };
 if (_groups isEqualTo []) exitWith {
-    ["DEFEND","No selectable AI squad. Place the module on an AI soldier to include its squad explicitly.","ERROR"] call WAIT_fnc_AITweaksNotifyLocal;
+    ["DEFEND","No selectable AI squad. Place the module on an AI soldier to include its squad explicitly.","ERROR"] call CBE_fnc_AITweaksNotifyLocal;
     false
 };
 [
@@ -33,7 +33,7 @@ if (_groups isEqualTo []) exitWith {
     {
         params ["_values","_position"];
         _values params ["_group","_facing","_width"];
-        [[["order","DEFEND"],["group",_group],["position",_position],["facing",round _facing],["width",round _width]],clientOwner] call WAIT_fnc_CortexOrderDispatch;
+        [[["order","DEFEND"],["group",_group],["position",_position],["facing",round _facing],["width",round _width]],clientOwner] call CBE_fnc_CortexOrderDispatch;
     },{},+_position
 ] call zen_dialog_fnc_create;
 true

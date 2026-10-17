@@ -6,10 +6,10 @@ class ClearNativeTaskHandoverTests(unittest.TestCase):
     def test_non_move_leader_releases_native_formation_without_fabricated_route(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
         handback=s.split('if (_reason == "NEW_ORDER"',1)[1].split('forEach _handbacks;',1)[0]
-        for guard in ('local _group','WAIT_AIPass_Epoch','WAIT_AIPass_ClearGeneration',
+        for guard in ('local _group','CBE_AIPass_Epoch','CBE_AIPass_ClearGeneration',
                       'currentCommand _actor == _command','_destination vectorDistance _target <= 0.25',
                       'call _actorAvailable','call _actorTaskFree','CortexExternalTakeover',
-                      'call WAIT_fnc_NativeOrderReceipt','count (_group getVariable ["WAIT_Operation"'):
+                      'call CBE_fnc_NativeOrderReceipt','count (_group getVariable ["CBE_Operation"'):
             self.assertIn(guard,handback)
         leader=handback.split('if (_actor == leader _group) then {',1)[1]
         self.assertIn('waypointType _waypoint == "MOVE"',leader)

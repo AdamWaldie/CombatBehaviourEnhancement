@@ -18,7 +18,7 @@
  * Return Value: BOOL - an opening was commanded or an existing opening was shared; not passability.
  * Canonical Door_N_sound_source metadata only, N=1..8, at most 64 source definitions inspected.
  * Current callers: DrivingGateRequest on the server or current headless vehicle/group owner.
- * Example: [_payload] remoteExecCall ["WAIT_fnc_DrivingGateOpenServer",2];
+ * Example: [_payload] remoteExecCall ["CBE_fnc_DrivingGateOpenServer",2];
  */
 params [["_payload",[],[[]]]];
 if (!isServer || {count _payload != 9} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
@@ -50,34 +50,34 @@ if (isNull _driver || {_driver != _requestedDriver} || {_commander != _requested
     || {!simulationEnabled _driver} || {isObjectHidden _driver}
     || {!simulationEnabled _commander} || {isObjectHidden _commander} || {group _driver != _group} || {group _commander != _group}
     || {isPlayer _driver} || {isPlayer _commander} || {!isNull remoteControlled _driver}
-    || {!isNull remoteControlled _commander} || {!([_driver] call WAIT_fnc_CortexCombatEffective)}
-    || {!([_commander] call WAIT_fnc_CortexCombatEffective)}
-    || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
-    || {!([_group,false,false,_revision >= 0] call WAIT_fnc_CortexIsEligible)}
-    || {[] call WAIT_fnc_CortexIsPaused}
-    || {_route isEqualTo []} || {([_group] call WAIT_fnc_DrivingRouteReceipt) isNotEqualTo _route}
+    || {!isNull remoteControlled _commander} || {!([_driver] call CBE_fnc_CortexCombatEffective)}
+    || {!([_commander] call CBE_fnc_CortexCombatEffective)}
+    || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+    || {!([_group,false,false,_revision >= 0] call CBE_fnc_CortexIsEligible)}
+    || {[] call CBE_fnc_CortexIsPaused}
+    || {_route isEqualTo []} || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}
     || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
     || {abs speed _vehicle > 8}) exitWith {false};
 if ([_driver,_commander] findIf {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]
     || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} >= 0) exitWith {false};
 if (_revision >= 0) then {
-    private _registry=missionNamespace getVariable ["WAIT_Convoy_Registry",[]];
+    private _registry=missionNamespace getVariable ["CBE_Convoy_Registry",[]];
     private _index=_registry findIf {(_x select 0) == _group};
     if (_index < 0) exitWith {_revision=-2};
     private _config=(_registry select _index) select 1;
     if ((_config select 0) != _revision || {(_config select 5) != "TRAVEL"}
         || {!(_vehicle in (_config select 4))}
-        || {!([_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) then {_revision=-2};
+        || {!([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 } else {
-    if (!(missionNamespace getVariable ["WAIT_AIPass_Active",false])
-        || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
-        || {!([_group,true] call WAIT_fnc_DrivingMovementAvailable)}
-        || {!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) then {_revision=-2};
+    if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])
+        || {_vehicle getVariable ["CBE_Convoy_Active",false]}
+        || {!([_group,true] call CBE_fnc_DrivingMovementAvailable)}
+        || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 };
-if (_revision == -2 || {_revision < 0 && {!([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent)}}) exitWith {false};
+if (_revision == -2 || {_revision < 0 && {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}}) exitWith {false};
 // Check the server-local attempt history before geometry/config work. A delivery retry
 // receives the original outcome; it never becomes another animation or geometry scan.
-private _receipt=_vehicle getVariable ["WAIT_DrivingGate_ServerAttempts",[]];
+private _receipt=_vehicle getVariable ["CBE_DrivingGate_ServerAttempts",[]];
 private _attempts=if (count _receipt == 4 && {(_receipt select 0) == _group} && {(_receipt select 1) isEqualTo _route} && {(_receipt select 2) == _revision}) then {+(_receipt select 3)} else {[]};
 private _key=[_gate,+_transform];
 private _attemptIndex=_attempts findIf {(_x select [0,2]) isEqualTo _key};
@@ -86,11 +86,11 @@ private _publishResult={
     if (_attemptIndex >= 0) then {
         private _row=_attempts select _attemptIndex;
         _row set [2,_reason]; _row set [3,_until];
-        _vehicle setVariable ["WAIT_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
+        _vehicle setVariable ["CBE_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
     };
     private _ack=[_gate,_reason,_until,_group,+_route,_revision,+_transform];
-    if ((_vehicle getVariable ["WAIT_DrivingGate_Result",[]]) isNotEqualTo _ack) then {
-        _vehicle setVariable ["WAIT_DrivingGate_Result",_ack,true];
+    if ((_vehicle getVariable ["CBE_DrivingGate_Result",[]]) isNotEqualTo _ack) then {
+        _vehicle setVariable ["CBE_DrivingGate_Result",_ack,true];
     };
 };
 if (_attemptIndex >= 0) exitWith {
@@ -101,11 +101,11 @@ if (_attemptIndex >= 0) exitWith {
     false
 };
 if (count _attempts >= 16) exitWith {["ROUTE_GATE_BUDGET",serverTime] call _publishResult;false};
-private _observed=[_vehicle,0,true] call WAIT_fnc_DrivingGateCap;
+private _observed=[_vehicle,0,true] call CBE_fnc_DrivingGateCap;
 if ((_observed select 1) != _gate || {(_observed select 2) > 12} || {(_observed select 2) < 0}) exitWith {false};
 _attemptIndex=count _attempts;
 _attempts pushBack [_gate,+_transform,"VALIDATING",serverTime+5];
-_vehicle setVariable ["WAIT_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
+_vehicle setVariable ["CBE_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
 private _sources=[];
 private _definitions="true" configClasses ((configOf _gate) >> "AnimationSources");
 if (count _definitions <= 64) then {
@@ -130,7 +130,7 @@ if (_reason != "READY") exitWith {
     [_reason,serverTime] call _publishResult;
     false
 };
-private _opening=_gate getVariable ["WAIT_DrivingGate_ServerOpening",[]];
+private _opening=_gate getVariable ["CBE_DrivingGate_ServerOpening",[]];
 if (count _opening == 4 && {(_opening select 0) isEqualTo _transform} && {serverTime < (_opening select 2)}) exitWith {
     ["SHARED_OPENING",_opening select 2] call _publishResult;
     true
@@ -140,19 +140,19 @@ if (_sources findIf {(_x select 2) < 0.1} < 0) exitWith {
     false
 };
 // Final mutation boundary: no delayed opening or stale transform survives a new order/lock.
-if ((_revision < 0 && {!([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent)
-        || {!([_group,true] call WAIT_fnc_DrivingMovementAvailable)}})
+if ((_revision < 0 && {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)
+        || {!([_group,true] call CBE_fnc_DrivingMovementAvailable)}})
     || {call _locked} || {!alive _gate} || {driver _vehicle != _driver}
     || {(effectiveCommander _vehicle) isNotEqualTo _requestedCommander && {!isNull effectiveCommander _vehicle}}
     || {group _driver != _group} || {isPlayer _driver} || {!isNull remoteControlled _driver}
     || {_sender > 0 && {_sender != 2} && {_sender != groupOwner _group || {_sender != owner _vehicle}}}
     || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
-    || {([_group] call WAIT_fnc_DrivingRouteReceipt) isNotEqualTo _route}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {
+    || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {
     ["REQUEST_REPLACED",serverTime] call _publishResult;
     false
 };
-_gate setVariable ["WAIT_DrivingGate_ServerOpening",[+_transform,+_sources,serverTime+12,_group]];
+_gate setVariable ["CBE_DrivingGate_ServerOpening",[+_transform,+_sources,serverTime+12,_group]];
 {
     if ((_x select 2) < 0.1) then {_gate animateSource [_x select 1,1]};
 } forEach _sources;

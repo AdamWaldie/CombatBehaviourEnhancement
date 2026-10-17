@@ -20,30 +20,30 @@
  * 2 release <BOOL, false> retires a matching journal without further native action.
  * Return Value: BOOL - an admitted native seat action is pending, not restored mobility.
  * Current callers: DrivingOperationStep and DrivingOperationFinish.
- * Example: [group commander truck1,_brain] call WAIT_fnc_DrivingCrewStep;
+ * Example: [group commander truck1,_brain] call CBE_fnc_DrivingCrewStep;
  */
 params [["_group",grpNull,[grpNull]],["_brain",createHashMap,[createHashMap]],["_release",false,[true]]];
 if (remoteExecutedOwner > 0 || {isNull _group} || {!local _group}
-    || {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isNotEqualTo _brain}
-    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {false};
+    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {false};
 private _previousVehicle=_brain getOrDefault ["crewVehicle",objNull];
 if (!_release && {!isNull _previousVehicle} && {_previousVehicle != vehicle leader _group}) then {
-    [_group,_brain,true] call WAIT_fnc_DrivingCrewStep;
+    [_group,_brain,true] call CBE_fnc_DrivingCrewStep;
 };
 private _vehicle=if (_release) then {_brain getOrDefault ["crewVehicle",objNull]} else {vehicle leader _group};
 if (isNull _vehicle || {_vehicle == leader _group} || {!(_vehicle isKindOf "LandVehicle")} || {_vehicle isKindOf "StaticWeapon"}) exitWith {false};
-private _work=_vehicle getVariable ["WAIT_DrivingCrew_Work",createHashMap];
+private _work=_vehicle getVariable ["CBE_DrivingCrew_Work",createHashMap];
 private _driver=driver _vehicle;
 // Normal healthy drivers incur no route snapshot or crew enumeration here.
 if (!_release && {count _work == 0} && {!isNull _driver} && {alive _driver}) exitWith {false};
-private _route=if (_release) then {[]} else {[_group] call WAIT_fnc_DrivingRouteReceipt};
+private _route=if (_release) then {[]} else {[_group] call CBE_fnc_DrivingRouteReceipt};
 if (_release) exitWith {
     if (count _work > 0 && {(_work get "group") == _group}
         && {(_work get "route") isEqualTo (_brain getOrDefault ["route",[]])}
-        && {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain}
+        && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
         && {!((_work get "phase") in ["COMPLETE","CANCELLED","EXPIRED"])}) then {
         _work set ["phase","CANCELLED"];_work set ["ended",serverTime];
-        _vehicle setVariable ["WAIT_DrivingCrew_Work",_work,true];
+        _vehicle setVariable ["CBE_DrivingCrew_Work",_work,true];
     };
     false
 };
@@ -56,7 +56,7 @@ private _terminal=count _work > 0 && {(_work get "phase") in ["COMPLETE","CANCEL
 if (_terminal && {!isNull _driver} && {_driver != (_work get "driver")} && {!alive _driver}) then {
     _work=createHashMap;_terminal=false;_changed=true;
 };
-private _publish={if (_changed) then {_vehicle setVariable ["WAIT_DrivingCrew_Work",_work,true]}};
+private _publish={if (_changed) then {_vehicle setVariable ["CBE_DrivingCrew_Work",_work,true]}};
 if (_terminal || {count _work == 0 && {!isNull _driver} && {alive _driver}}) exitWith {call _publish;false};
 private _candidate=if (count _work > 0) then {_work get "candidate"} else {objNull};
 private _phase=if (count _work > 0) then {_work get "phase"} else {""};
@@ -80,25 +80,25 @@ private _available={
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle} && {!lockedDriver _vehicle}
         && {vehicle leader _group == _vehicle}
         && {currentCommand leader _group != "STOP"}
-        && {(_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain}
-        && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
-        && {!(_brain getOrDefault ["cancelled",false])} && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
-        && {[_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-        && {[_group,"WAIT_AIPass_DrivingAssist_Recovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-        && {[_group] call WAIT_fnc_DrivingMovementAvailable}
-        && {!([_group] call WAIT_fnc_CortexZeusHeld)} && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-        && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
-        && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
+        && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
+        && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {!(_brain getOrDefault ["cancelled",false])} && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group] call CBE_fnc_DrivingMovementAvailable}
+        && {!([_group] call CBE_fnc_CortexZeusHeld)} && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
+        && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         && {count _crew <= 20} && {count _driverSeat >= 6}
         && {isNull _assignedDriver || {!alive _assignedDriver} || {_assignedDriver == _candidate}}
-        && {isNull _candidate || {!([_candidate] call WAIT_fnc_CortexActorMoveReserved)}}
+        && {isNull _candidate || {!([_candidate] call CBE_fnc_CortexActorMoveReserved)}}
         && {_route isNotEqualTo []}
-        && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
+        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
         && {_crew findIf {
             private _actor=_x select 0;
             isPlayer _actor || {!isNull remoteControlled _actor}
                 || {!isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-                || {[_actor] call WAIT_fnc_CortexExternalOwner != ""}
+                || {[_actor] call CBE_fnc_CortexExternalOwner != ""}
                 || {alive _actor && {group _actor != _group || {!local _actor}
                     || {currentCommand _actor in _tasks}
                     || {currentCommand _actor == "ACTION" && {!(_actor == _candidate && {_phase == "SWITCHING"})}}}}
@@ -122,8 +122,8 @@ if (count _work == 0) then {
     private _choices=_crew select {
         private _actor=_x select 0;
         alive _actor && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
-            && {[_actor] call WAIT_fnc_CortexCombatEffective}
-            && {!([_actor] call WAIT_fnc_CortexActorMoveReserved)}
+            && {[_actor] call CBE_fnc_CortexCombatEffective}
+            && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
             && {assignedVehicle _actor in [objNull,_vehicle]}
             && {currentCommand _actor != "STOP"}
@@ -142,10 +142,10 @@ if (count _work == 0) then {
 };
 if (count _work == 0) exitWith {call _publish;false};
 _brain set ["crewVehicle",_vehicle];
-if (driver _vehicle == _candidate && {[_candidate] call WAIT_fnc_CortexCombatEffective}) exitWith {["COMPLETE"] call _finish};
+if (driver _vehicle == _candidate && {[_candidate] call CBE_fnc_CortexCombatEffective}) exitWith {["COMPLETE"] call _finish};
 if (serverTime >= (_work get "deadline")) exitWith {["EXPIRED"] call _finish};
 if (isNull _candidate || {!local _candidate} || {vehicle _candidate != _vehicle}
-    || {!([_candidate] call WAIT_fnc_CortexCombatEffective)}
+    || {!([_candidate] call CBE_fnc_CortexCombatEffective)}
     || {!simulationEnabled _candidate} || {isObjectHidden _candidate}
     || {!(_candidate checkAIFeature "MOVE")} || {!(_candidate checkAIFeature "PATH")}
     || {leader _group != (_work get "leader")}
@@ -157,8 +157,8 @@ if (isNull _candidate || {!local _candidate} || {vehicle _candidate != _vehicle}
 if (!isNull _driver && {_driver != (_work get "driver") || {alive _driver}}) exitWith {["CANCELLED"] call _finish};
 // Seat vacancy and native order proof are checked atomically with each action.
 private _commandsOwned={
-    vehicle _candidate == _vehicle && {[_candidate] call WAIT_fnc_CortexCombatEffective}
-        && {!([_candidate] call WAIT_fnc_CortexActorMoveReserved)}
+    vehicle _candidate == _vehicle && {[_candidate] call CBE_fnc_CortexCombatEffective}
+        && {!([_candidate] call CBE_fnc_CortexActorMoveReserved)}
         && {simulationEnabled _candidate} && {!isObjectHidden _candidate}
         && {_candidate checkAIFeature "MOVE"} && {_candidate checkAIFeature "PATH"}
         && {leader _group == (_work get "leader")}

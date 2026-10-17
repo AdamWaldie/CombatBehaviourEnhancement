@@ -6,54 +6,54 @@
  * Arguments: 0: firing vehicle <OBJECT>, objNull; 1: gunner <OBJECT>, objNull.
  * Return Value: Boolean, detection processed.
  * Current callers: ArtilleryShellFired handler.
- * Example: [_vehicle, gunner _vehicle] call WAIT_fnc_CortexCounterBattery;
+ * Example: [_vehicle, gunner _vehicle] call CBE_fnc_CortexCounterBattery;
  */
 params [["_vehicle", objNull, [objNull]], ["_gunner", objNull, [objNull]]];
-if (!isServer || {isNull _vehicle} || {!(missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Enable", false])}
-    || {[] call WAIT_fnc_CortexIsPaused}) exitWith {false};
+if (!isServer || {isNull _vehicle} || {!(missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable", false])}
+    || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
 private _position = getPosATL _vehicle;
 // Private raw event evidence is not actionable relocation knowledge; qualified side receipts below are.
-_vehicle setVariable ["WAIT_AIPass_LastEmission", [time, +_position]];
-private _eventDue=time >= (_vehicle getVariable ["WAIT_AIPass_CounterEventAt", -1]);
+_vehicle setVariable ["CBE_AIPass_LastEmission", [time, +_position]];
+private _eventDue=time >= (_vehicle getVariable ["CBE_AIPass_CounterEventAt", -1]);
 if (_eventDue) then {
-    _vehicle setVariable ["WAIT_AIPass_CounterEventAt", time + ((missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Interval", 60]) max 10)];
+    _vehicle setVariable ["CBE_AIPass_CounterEventAt", time + ((missionNamespace getVariable ["CBE_AIPass_CounterBattery_Interval", 60]) max 10)];
 };
 private _enemySide = side group _gunner;
 private _sides = [];
 {
     private _side = side group gunner _x;
-    if (alive gunner _x && {_side getFriend _enemySide < 0.6} && {[_x, "COUNTER"] call WAIT_fnc_CortexArtilleryRole}) then {_sides pushBackUnique _side};
-} forEach (missionNamespace getVariable ["WAIT_AIPass_AllArtillery", []]);
+    if (alive gunner _x && {_side getFriend _enemySide < 0.6} && {[_x, "COUNTER"] call CBE_fnc_CortexArtilleryRole}) then {_sides pushBackUnique _side};
+} forEach (missionNamespace getVariable ["CBE_AIPass_AllArtillery", []]);
 {
     private _side = _x;
-    private _pendingKey = "WAIT_AIPass_CounterPending_" + str _side;
+    private _pendingKey = "CBE_AIPass_CounterPending_" + str _side;
         private _sideKey = switch (_side) do {case west: {"WEST"}; case east: {"EAST"}; case independent: {"GUER"}; default {"CIV"}};
-        private _radar = (missionNamespace getVariable ["WAIT_AIPass_CounterBatteryRadars", []]) findIf {
+        private _radar = (missionNamespace getVariable ["CBE_AIPass_CounterBatteryRadars", []]) findIf {
             _x params ["_object", "_radarSide"];
-            alive _object && {_radarSide == _sideKey} && {_object distance2D _position <= (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_RadarRange", 8000])}
+            alive _object && {_radarSide == _sideKey} && {_object distance2D _position <= (missionNamespace getVariable ["CBE_AIPass_CounterBattery_RadarRange", 8000])}
         } >= 0;
         if (_radar) then {
-            _vehicle setVariable ["WAIT_AIPass_DetectedEmission_" + str _side,[serverTime,+_position,30,"RADAR"]];
+            _vehicle setVariable ["CBE_AIPass_DetectedEmission_" + str _side,[serverTime,+_position,30,"RADAR"]];
         };
     // Observation remains available while a response is active; only admission is cooled down.
     if (_eventDue && {_radar} && {time >= (_vehicle getVariable [_pendingKey, -1])}
-        && {time >= (_vehicle getVariable ["WAIT_AIPass_CounterUntil_" + str _side, -1])}) then {
-        private _normalDelay = (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Delay", 60]) max 1;
-        private _delay = if (_radar) then {((missionNamespace getVariable ["WAIT_AIPass_CounterBattery_RadarDelay", 20]) max 1) min _normalDelay} else {_normalDelay};
+        && {time >= (_vehicle getVariable ["CBE_AIPass_CounterUntil_" + str _side, -1])}) then {
+        private _normalDelay = (missionNamespace getVariable ["CBE_AIPass_CounterBattery_Delay", 60]) max 1;
+        private _delay = if (_radar) then {((missionNamespace getVariable ["CBE_AIPass_CounterBattery_RadarDelay", 20]) max 1) min _normalDelay} else {_normalDelay};
         _vehicle setVariable [_pendingKey, time + _delay + 1];
         [{
             params ["_vehicle", "_side", "_position", "_generation"];
-            if (_generation != (missionNamespace getVariable ["WAIT_AIPass_CounterGeneration", 0])) exitWith {};
-            if (isNull _vehicle || {!(missionNamespace getVariable ["WAIT_AIPass_Active", false])}
-                || {!(missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Enable", false])}
-                || {[] call WAIT_fnc_CortexIsPaused}) exitWith {};
+            if (_generation != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0])) exitWith {};
+            if (isNull _vehicle || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])}
+                || {!(missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable", false])}
+                || {[] call CBE_fnc_CortexIsPaused}) exitWith {};
             {
                 if (side group gunner _x == _side && {
-                    [_x, _position, 30, "HE", missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Rounds", 4],
-                        missionNamespace getVariable ["WAIT_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", objNull, _vehicle] call WAIT_fnc_CortexArtilleryFire
+                    [_x, _position, 30, "HE", missionNamespace getVariable ["CBE_AIPass_CounterBattery_Rounds", 4],
+                        missionNamespace getVariable ["CBE_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", objNull, _vehicle] call CBE_fnc_CortexArtilleryFire
                 }) exitWith {};
-            } forEach (missionNamespace getVariable ["WAIT_AIPass_AllArtillery", []]);
-        }, [_vehicle, _side, +_position, missionNamespace getVariable ["WAIT_AIPass_CounterGeneration", 0]], _delay] call CBA_fnc_waitAndExecute;
+            } forEach (missionNamespace getVariable ["CBE_AIPass_AllArtillery", []]);
+        }, [_vehicle, _side, +_position, missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0]], _delay] call CBA_fnc_waitAndExecute;
     };
 } forEach _sides;
 // An uncovered emission wakes observers; it never grants them the hidden gun position.
@@ -61,13 +61,13 @@ private _sides = [];
 if (_eventDue && {_sides isNotEqualTo []}) then {
     [{
         params ["_vehicle","_generation"];
-        if (_generation != (missionNamespace getVariable ["WAIT_AIPass_CounterGeneration",0])
+        if (_generation != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])
             || {isNull _vehicle} || {!alive _vehicle}
-            || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
-            || {!(missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Enable",false])}
-            || {[] call WAIT_fnc_CortexIsPaused}) exitWith {};
-        [_vehicle] remoteExecCall ["WAIT_fnc_CortexCounterObserve",0];
-    },[_vehicle,missionNamespace getVariable ["WAIT_AIPass_CounterGeneration",0]],
-        (missionNamespace getVariable ["WAIT_AIPass_CounterBattery_Delay",60]) max 1] call CBA_fnc_waitAndExecute;
+            || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+            || {!(missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable",false])}
+            || {[] call CBE_fnc_CortexIsPaused}) exitWith {};
+        [_vehicle] remoteExecCall ["CBE_fnc_CortexCounterObserve",0];
+    },[_vehicle,missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0]],
+        (missionNamespace getVariable ["CBE_AIPass_CounterBattery_Delay",60]) max 1] call CBA_fnc_waitAndExecute;
 };
 true

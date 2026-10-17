@@ -46,7 +46,7 @@ class ClearEgressBatchingTests(unittest.TestCase):
         self.assertIn('"egressPending",[]',journal)
         self.assertIn('"egressExitUses",createHashMap',journal)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
-        observation=qa.split('private _exit=_group getVariable ["WAIT_Cortex_ClearEgress",[]];',1)[1].split('forEach _egressAssignments;',1)[0]
+        observation=qa.split('private _exit=_group getVariable ["CBE_Cortex_ClearEgress",[]];',1)[1].split('forEach _egressAssignments;',1)[0]
         self.assertIn('count _exit in [4,10,13]',observation)
         self.assertIn('_egressAssignments findIf',observation)
         self.assertIn('_egressAssignments pushBack +_x',observation)
@@ -54,7 +54,7 @@ class ClearEgressBatchingTests(unittest.TestCase):
 
     def test_hc_fixture_requires_pending_roster_and_actual_exit_for_every_worker(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
-        case=qa.split('// Separate headless-batch acceptance:',1)[1].split('if (local _group) then {[_group] call WAIT_fnc_CortexClearRelease}',1)[0]
+        case=qa.split('// Separate headless-batch acceptance:',1)[1].split('if (local _group) then {[_group] call CBE_fnc_CortexClearRelease}',1)[0]
         for marker in ('HC-CLEAR-EGRESS-pending-observed','private _pendingBefore=+',
                        'count _expectedActors == count _members',
                        'count _currentActors != count _expectedActors',

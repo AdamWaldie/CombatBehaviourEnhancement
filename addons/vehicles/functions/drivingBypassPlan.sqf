@@ -16,7 +16,7 @@
  * The radius deliberately overbounds turn footprint; no turning-radius or native steering success
  * is implied. Unsupported terrain/moving objects, large hulls or missing support refuse.
  * Current callers: DrivingBypassStep and trusted diagnostic/script preflight.
- * Example: [truck1,_solidObservation,-1] call WAIT_fnc_DrivingBypassPlan;
+ * Example: [truck1,_solidObservation,-1] call CBE_fnc_DrivingBypassPlan;
  */
 params [["_vehicle",objNull,[objNull]],["_observed",[],[[]]],["_side",1,[0]],["_envelope",[],[[]]]];
 private _fail={params ["_reason",["_rays",0]];[false,_reason,[],[],[],[],_rays]};
@@ -28,7 +28,7 @@ if (count _observed != 9 || {!(_side in [-1,1])}
     }}}) exitWith {["INVALID_OBSERVATION"] call _fail};
 private _obstacle=_observed select 1;
 if (!(_obstacle isEqualType objNull) || {isNull _obstacle} || {(_observed select 5) != "STATIC"}
-    || {!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)} || {abs speed _vehicle > 8}) exitWith {["NOT_STATIC_BYPASS"] call _fail};
+    || {!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)} || {abs speed _vehicle > 8}) exitWith {["NOT_STATIC_BYPASS"] call _fail};
 private _sampled=_observed select 3;private _gap=_observed select 2;
 if (!(_sampled isEqualType 0) || {!finite _sampled} || {_sampled > time} || {time-_sampled > 1.5}
     || {!(_gap isEqualType 0)} || {!finite _gap} || {_gap < 0} || {_gap > 50}) exitWith {["STALE_OBSERVATION"] call _fail};
@@ -72,9 +72,9 @@ for "_i" from 1 to (count _anchors-1) do {
 };
 if (_overBudget) exitWith {["PATH_BUDGET"] call _fail};
 // Circumscribed support/body clearance overbounds corners without pretending a point fits a hull.
-private _geometry=[_vehicle,_guide,_radius,_height] call WAIT_fnc_DrivingPathGeometry;
+private _geometry=[_vehicle,_guide,_radius,_height] call CBE_fnc_DrivingPathGeometry;
 if (!(_geometry select 0)) exitWith {[_geometry select 1,_geometry select 4] call _fail};
-if (!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)
+if (!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)
     || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo _transform}
     || {[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle] isNotEqualTo _vehicleTransform}) exitWith {
     ["GEOMETRY_CHANGED",_geometry select 4] call _fail

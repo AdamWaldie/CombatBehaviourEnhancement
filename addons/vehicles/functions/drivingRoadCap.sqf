@@ -13,7 +13,7 @@
  * Native discovery cost is engine-dependent. Heading-based branch selection is a heuristic,
  * not the native planned route. Missing bridge endpoint geometry lowers the cap conservatively.
  * Current callers: DrivingAssistStart and ConvoyTick.
- * Example: private _road = [truck1,70] call WAIT_fnc_DrivingRoadCap;
+ * Example: private _road = [truck1,70] call CBE_fnc_DrivingRoadCap;
  */
 params [["_vehicle",objNull,[objNull]],["_requested",70,[0]]];
 if (!finite _requested) then {_requested=0};

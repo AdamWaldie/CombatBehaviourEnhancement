@@ -2,7 +2,7 @@
 /*%FSM<HEAD>*/
 /*
 item0[] = {"Start_Danger",0,250,-75.000000,-175.000000,25.000000,-125.000000,0.000000,"Start Danger"};
-item1[] = {"WAIT_DANGER_FSM",-1,250,-675.000000,-175.000000,-225.000000,-100.000000,0.000000,"WAIT DANGER FSM" \n "v.2.6.2"};
+item1[] = {"CBE_DANGER_FSM",-1,250,-675.000000,-175.000000,-225.000000,-100.000000,0.000000,"CBE DANGER FSM" \n "v.2.6.2"};
 item2[] = {"true",8,218,-75.000000,-75.000000,25.000000,-25.000000,0.000000,"true"};
 item3[] = {"Init",2,250,-75.000000,50.000000,25.000000,100.000000,0.000000,"Init"};
 item4[] = {"Vehicle",4,218,-325.000000,150.000000,-225.000000,200.000000,0.000000,"Vehicle"};
@@ -125,7 +125,7 @@ class FSM
                 {
                         name = "Start_Danger";
                         itemno = 0;
-                        init = /*%FSM<STATEINIT""">*/"_this setVariable [""WAIT_Danger_EngineEntry"",[time,_dangerCause,_dangerPos,_dangerUntil,(_this getVariable [""WAIT_Danger_EngineEntryCount"",0])+1]]; _this setVariable [""WAIT_Danger_EngineEntryCount"",((_this getVariable [""WAIT_Danger_EngineEntryCount"",0])+1) min 100000]; _queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]+(_queue select [0,11]); _selected=[]; _mode=""ASSESS""; _accepted=false; _deadline=time;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_this setVariable [""CBE_Danger_EngineEntry"",[time,_dangerCause,_dangerPos,_dangerUntil,(_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1]]; _this setVariable [""CBE_Danger_EngineEntryCount"",((_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1) min 100000]; _queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]+(_queue select [0,11]); _selected=[]; _mode=""ASSESS""; _accepted=false; _deadline=time;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -136,7 +136,7 @@ class FSM
                                         priority = 2.000000;
                                         to="End_Danger_1";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"!([_this,true] call WAIT_fnc_DangerEngineCanContinue)"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"!([_this,true] call CBE_fnc_DangerEngineCanContinue)"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -159,7 +159,7 @@ class FSM
                 {
                         name = "Init";
                         itemno = 3;
-                        init = /*%FSM<STATEINIT""">*/"_records=+(_queue select [0,12]); _queue=[]; _selected=[_records] call WAIT_fnc_DangerEngineSelect; _mode=[_this,_selected] call WAIT_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call WAIT_fnc_DangerEngineSubmit;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_records=+(_queue select [0,12]); _queue=[]; _selected=[_records] call CBE_fnc_DangerEngineSelect; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -204,7 +204,7 @@ class FSM
                 {
                         name = "Evaluate_Vehicle";
                         itemno = 7;
-                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""VEHICLE"",_selected] call WAIT_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""VEHICLE"",_selected] call CBE_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -215,7 +215,7 @@ class FSM
                                         priority = 0.000000;
                                         to="Reset_vehicle";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -227,7 +227,7 @@ class FSM
                 {
                         name = "Reset_vehicle";
                         itemno = 9;
-                        init = /*%FSM<STATEINIT""">*/"_followUp=[_this,_mode,_selected] call WAIT_fnc_DangerEngineRecycle; if (_followUp isNotEqualTo []) then {_queue pushBack _followUp};"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_followUp=[_this,_mode,_selected] call CBE_fnc_DangerEngineRecycle; if (_followUp isNotEqualTo []) then {_queue pushBack _followUp};"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -317,7 +317,7 @@ class FSM
                 {
                         name = "Roll_dodge";
                         itemno = 15;
-                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""IMMEDIATE"",_selected] call WAIT_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""IMMEDIATE"",_selected] call CBE_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -328,7 +328,7 @@ class FSM
                                         priority = 0.000000;
                                         to="Reset_foot";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -340,7 +340,7 @@ class FSM
                 {
                         name = "Stay_firm";
                         itemno = 16;
-                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""HIDE"",_selected] call WAIT_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""HIDE"",_selected] call CBE_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -351,7 +351,7 @@ class FSM
                                         priority = 0.000000;
                                         to="Reset_foot";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -363,7 +363,7 @@ class FSM
                 {
                         name = "Attack";
                         itemno = 17;
-                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""ENGAGE"",_selected] call WAIT_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""ENGAGE"",_selected] call CBE_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -374,7 +374,7 @@ class FSM
                                         priority = 0.000000;
                                         to="Reset_foot";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -386,7 +386,7 @@ class FSM
                 {
                         name = "Check_self";
                         itemno = 18;
-                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""FORCED"",_selected] call WAIT_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""FORCED"",_selected] call CBE_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -397,7 +397,7 @@ class FSM
                                         priority = 0.000000;
                                         to="Check_self_2";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -409,7 +409,7 @@ class FSM
                 {
                         name = "End_Danger";
                         itemno = 19;
-                        init = /*%FSM<STATEINIT""">*/"[_this] call WAIT_fnc_DangerEngineRelease;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"[_this] call CBE_fnc_DangerEngineRelease;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -421,7 +421,7 @@ class FSM
                 {
                         name = "Reset_foot";
                         itemno = 23;
-                        init = /*%FSM<STATEINIT""">*/"_followUp=[_this,_mode,_selected] call WAIT_fnc_DangerEngineRecycle; if (_followUp isNotEqualTo []) then {_queue pushBack _followUp};"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_followUp=[_this,_mode,_selected] call CBE_fnc_DangerEngineRecycle; if (_followUp isNotEqualTo []) then {_queue pushBack _followUp};"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -500,7 +500,7 @@ class FSM
                 {
                         name = "End_Danger_vehic";
                         itemno = 29;
-                        init = /*%FSM<STATEINIT""">*/"[_this] call WAIT_fnc_DangerEngineRelease;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"[_this] call CBE_fnc_DangerEngineRelease;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -512,7 +512,7 @@ class FSM
                 {
                         name = "Check_self_1";
                         itemno = 31;
-                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""ASSESS"",_selected] call WAIT_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_deadline=time+([_this,""ASSESS"",_selected] call CBE_fnc_DangerEngineAct);"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -523,7 +523,7 @@ class FSM
                                         priority = 0.000000;
                                         to="Reset_foot";
                                         precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
-                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}"/*%FSM</CONDITION""">*/;
                                         action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
                                 };
                                 /*%FSM</LINK>*/
@@ -581,7 +581,7 @@ class FSM
                 {
                         name = "End_Danger_1";
                         itemno = 39;
-                        init = /*%FSM<STATEINIT""">*/"[_this] call WAIT_fnc_DangerEngineRelease;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"[_this] call CBE_fnc_DangerEngineRelease;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -593,7 +593,7 @@ class FSM
                 {
                         name = "End_Forced";
                         itemno = 40;
-                        init = /*%FSM<STATEINIT""">*/"[_this] call WAIT_fnc_DangerEngineRelease;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"[_this] call CBE_fnc_DangerEngineRelease;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {

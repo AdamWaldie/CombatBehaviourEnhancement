@@ -8,18 +8,18 @@
  * Arguments: 0: soldier <OBJECT>, objNull; 1: vehicle <OBJECT>, objNull; 2: boarding <BOOL>, false.
  * Return Value: Boolean.
  * Current callers: ConvoyCrewLocal, Vehicles and RestoreCalm.
- * Example: [_unit, _vehicle] call WAIT_fnc_CortexPassengerReady;
+ * Example: [_unit, _vehicle] call CBE_fnc_CortexPassengerReady;
  */
 params [["_unit", objNull, [objNull]], ["_vehicle", objNull, [objNull]], ["_boarding", false, [true]]];
 if (isNull _vehicle || {!alive _vehicle} || {!local _unit} || {isPlayer _unit}
-    || {!([_unit] call WAIT_fnc_CortexCombatEffective)}
-    || {[group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover}
-    || {"ALL" in ((group _unit) getVariable ["WAIT_AIPass_DisabledFeatures", []])}
+    || {!([_unit] call CBE_fnc_CortexCombatEffective)}
+    || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}
+    || {"ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures", []])}
     || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}
     || {abs speed _vehicle >= 1}) exitWith {false};
 // A finite actor-level task owns this soldier independently of the passenger group's
 // contact episode. Routine dismount/remount must not supersede its cover or recovery move.
-private _reservation=_unit getVariable ["WAIT_Cortex_ActorMove",[]];
+private _reservation=_unit getVariable ["CBE_Cortex_ActorMove",[]];
 private _reserved=_reservation isNotEqualTo [] && {
     !(_reservation isEqualType []) || {count _reservation != 3}
         || {!((_reservation select 0) isEqualType "")}

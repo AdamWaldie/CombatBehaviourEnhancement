@@ -5,7 +5,7 @@
  * Repeat/JIP: Stateless and repeat-safe; clients use the same addon catalogue on joining.
  * Arguments: None. Return Value: ARRAY of [section key <STRING>, page <STRING>, heading <STRING>].
  * Current callers: AITweaksRegisterSettings; parity checker reads these literals for generated guides.
- * Example: private _sections = [] call WAIT_fnc_AITweaksSettingsSections;
+ * Example: private _sections = [] call CBE_fnc_AITweaksSettingsSections;
  */
 [
     ["GENERAL", "01 General", "01 Participation and ownership"],

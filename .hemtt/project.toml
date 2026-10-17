@@ -1,5 +1,5 @@
-name = "Waldos AI Tweaks"
-prefix = "waldo_ai_tweaks"
+name = "Combat Behaviour Enhancement (CBE)"
+prefix = "cbe"
 mainprefix = "z"
 
 [version]
@@ -9,7 +9,7 @@ patch = 0
 git_hash = 0
 
 [files]
-include = ["README.md", "LICENSE", "CONTRIBUTING.md", "docs/*.md"]
+include = ["README.md", "LICENSE", "CONTRIBUTING.md", "docs/*.md", "images/branding/*.paa"]
 
 [properties]
 author = "WaldoTheWarfighter"

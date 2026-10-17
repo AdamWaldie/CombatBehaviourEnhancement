@@ -1,4 +1,4 @@
-"""Package provenance, disposable audit staging and release evidence for WAIT."""
+"""Package provenance, disposable audit staging and release evidence for CBE."""
 from pathlib import Path
 import argparse
 import hashlib
@@ -29,7 +29,7 @@ def inventory(folder):
     for path in sorted(folder.rglob('*')):
         if path.is_symlink():
             raise ValueError(f'Packaged content cannot contain links: {path}')
-        if path.is_file() and path.name != 'wait-build.json':
+        if path.is_file() and path.name != 'cbe-build.json':
             rows[path.relative_to(folder).as_posix()] = digest(path)
     if not any(name.startswith('addons/') and name.endswith('.pbo') for name in rows):
         raise ValueError('No packaged addon PBO found')
@@ -44,11 +44,11 @@ def seal(folder, root=ROOT):
     record = dict(schema=1, commit=commit, dirty=dirty,
                   version='.'.join(str(version[k]) for k in ('major', 'minor', 'patch')),
                   files=rows, fingerprint=hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest())
-    (folder/'wait-build.json').write_text(json.dumps(record, indent=2)+'\n')
+    (folder/'cbe-build.json').write_text(json.dumps(record, indent=2)+'\n')
     return record
 
 def verify(folder):
-    record = json.loads((folder/'wait-build.json').read_text())
+    record = json.loads((folder/'cbe-build.json').read_text())
     rows = inventory(folder)
     if rows != record['files'] or record['fingerprint'] != hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest():
         raise ValueError('Package changed after sealing; rebuild and stage a fresh audit')
@@ -91,8 +91,8 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
     if destination.exists():
         raise ValueError('Audit destination already exists; each run needs a fresh directory')
     destination.mkdir(parents=True)
-    shutil.copytree(package, destination/'@WaldosAITweaks')
-    mission = destination/f'WAIT_Audit.{world}'
+    shutil.copytree(package, destination/'@CBE')
+    mission = destination/f'CBE_Audit.{world}'
     shutil.copytree(root/'releaseVerificationAndDeployment/auditMission', mission)
     for path in (root/'releaseVerificationAndDeployment/cortexQA').glob('run*.sqf'):
         suffix = path.stem[3:]
@@ -108,24 +108,24 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
  * Example: call compile preprocessFileLineNumbers "auditIdentity.sqf";
  */
 '''
-        f'diag_log "WAIT CORTEX QA SOURCE|fingerprint={record["fingerprint"]}";\n'
-        'diag_log format ["WAIT AUDIT DEPENDENCIES|owner=%1|server=%2|interface=%3|patches=%4|observerClass=%5",clientOwner,isServer,hasInterface,["A3_Characters_F","A3_Characters_F_BLUFOR","A3_Map_VR"] apply {[_x,isClass (configFile >> "CfgPatches" >> _x)]},isClass (configFile >> "CfgVehicles" >> "B_Soldier_F")];\n'
-        'diag_log format ["WAIT AUDIT CHARACTER CONFIG|owner=%1|sources=%2|danger=%3|required=%4",clientOwner,["Man","CAManBase","SoldierWB","SoldierEB","SoldierGB","B_Soldier_F"] apply {[_x,configSourceAddonList (configFile >> "CfgVehicles" >> _x)]},getText (configFile >> "CfgVehicles" >> "B_Soldier_F" >> "fsmDanger"),["A3_Characters_F","A3_Characters_F_BLUFOR","WAIT_danger"] apply {[_x,getArray (configFile >> "CfgPatches" >> _x >> "requiredAddons"),count getArray (configFile >> "CfgPatches" >> _x >> "units"),(getArray (configFile >> "CfgPatches" >> _x >> "units")) select [0,8]]}];\n'
-        'call {private _activated=activatedAddons apply {toLowerANSI _x}; diag_log format ["WAIT AUDIT ADDON ACTIVATION|owner=%1|patches=%2|observerRequired=%3",clientOwner,["A3_Characters_F","A3_Characters_F_BLUFOR","A3_Map_VR","WAIT_danger"] apply {[_x,(toLowerANSI _x) in _activated]},unitAddons "B_Soldier_F"]};\n'
-        f'if (isServer) then {{missionNamespace setVariable ["WAIT_CortexQA_Focus","{focus}",true]; missionNamespace setVariable ["WAIT_CortexQA_HeadlessBatch",{str(batch_mode == "headless").lower()},true]}};\n')
+        f'diag_log "CBE CORTEX QA SOURCE|fingerprint={record["fingerprint"]}";\n'
+        'diag_log format ["CBE AUDIT DEPENDENCIES|owner=%1|server=%2|interface=%3|patches=%4|observerClass=%5",clientOwner,isServer,hasInterface,["A3_Characters_F","A3_Characters_F_BLUFOR","A3_Map_VR"] apply {[_x,isClass (configFile >> "CfgPatches" >> _x)]},isClass (configFile >> "CfgVehicles" >> "B_Soldier_F")];\n'
+        'diag_log format ["CBE AUDIT CHARACTER CONFIG|owner=%1|sources=%2|danger=%3|required=%4",clientOwner,["Man","CAManBase","SoldierWB","SoldierEB","SoldierGB","B_Soldier_F"] apply {[_x,configSourceAddonList (configFile >> "CfgVehicles" >> _x)]},getText (configFile >> "CfgVehicles" >> "B_Soldier_F" >> "fsmDanger"),["A3_Characters_F","A3_Characters_F_BLUFOR","CBE_danger"] apply {[_x,getArray (configFile >> "CfgPatches" >> _x >> "requiredAddons"),count getArray (configFile >> "CfgPatches" >> _x >> "units"),(getArray (configFile >> "CfgPatches" >> _x >> "units")) select [0,8]]}];\n'
+        'call {private _activated=activatedAddons apply {toLowerANSI _x}; diag_log format ["CBE AUDIT ADDON ACTIVATION|owner=%1|patches=%2|observerRequired=%3",clientOwner,["A3_Characters_F","A3_Characters_F_BLUFOR","A3_Map_VR","CBE_danger"] apply {[_x,(toLowerANSI _x) in _activated]},unitAddons "B_Soldier_F"]};\n'
+        f'if (isServer) then {{missionNamespace setVariable ["CBE_CortexQA_Focus","{focus}",true]; missionNamespace setVariable ["CBE_CortexQA_HeadlessBatch",{str(batch_mode == "headless").lower()},true]}};\n')
     if focus == 'standaloneperformance':
         for name in ('initServer.sqf', 'initPlayerLocal.sqf', 'mission.sqm'):
             shutil.copyfile(root/'releaseVerificationAndDeployment/standalonePerformance'/name, mission/name)
         with (mission/'auditIdentity.sqf').open('a') as identity:
-            identity.write(f'if (isServer) then {{missionNamespace setVariable ["WAIT_QA_PerfExpectedLoaded",{str(not native_baseline).lower()},true]}};\n')
-            identity.write(f'if (isServer) then {{missionNamespace setVariable ["WAIT_QA_PerfComposition","{performance_composition}",true]}};\n')
+            identity.write(f'if (isServer) then {{missionNamespace setVariable ["CBE_QA_PerfExpectedLoaded",{str(not native_baseline).lower()},true]}};\n')
+            identity.write(f'if (isServer) then {{missionNamespace setVariable ["CBE_QA_PerfComposition","{performance_composition}",true]}};\n')
     if focus == 'nativebuildings':
         for name in ('initServer.sqf', 'initPlayerLocal.sqf', 'mission.sqm'):
             shutil.copyfile(root/'releaseVerificationAndDeployment/standalonePerformance'/name, mission/name)
         server_init = mission/'initServer.sqf'
         server_init.write_text(server_init.read_text().replace('cortexQAStandalonePerformance.sqf', 'cortexQANativeBuildings.sqf'), encoding='utf-8')
         with (mission/'initPlayerLocal.sqf').open('a') as client_init:
-            client_init.write('\nplayer setCaptive true;\n[] execVM "cortexQAGuide.sqf";\ndiag_log "WAIT CORTEX QA CLIENT COMPLETE: 0 finding(s) []";\n')
+            client_init.write('\nplayer setCaptive true;\n[] execVM "cortexQAGuide.sqf";\ndiag_log "CBE CORTEX QA CLIENT COMPLETE: 0 finding(s) []";\n')
     if focus == 'roadpassing':
         # A normal observer mission has no HC slots; keep the addon-dependent audit initializers.
         shutil.copyfile(root/'releaseVerificationAndDeployment/standalonePerformance/mission.sqm',mission/'mission.sqm')
@@ -170,9 +170,9 @@ def release_gate(package, evidence):
     record = verify(package)
     report = json.loads(evidence.read_text())
     if report.get('focus') == 'nativebuildings':
-        raise ValueError('Native building diagnostics cannot accept a WAIT release')
+        raise ValueError('Native building diagnostics cannot accept a CBE release')
     if report.get('focus') in ('indooractors','indooractorshc','indoornatural'):
-        raise ValueError('Focused individual indoor fixtures cannot accept a WAIT release')
+        raise ValueError('Focused individual indoor fixtures cannot accept a CBE release')
     if record['dirty']:
         raise ValueError('Release requires a clean committed build')
     if report.get('status') != 'PASS' or not report.get('complete'):

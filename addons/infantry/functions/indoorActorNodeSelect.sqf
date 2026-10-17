@@ -10,8 +10,8 @@
  * 2 believed ATL position <ARRAY>, []; 3 reserved ATL destinations <ARRAY>, [].
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
  * Navigation metadata and roof ownership do not establish accessibility or a safe room.
- * Current callers: WAIT_fnc_IndoorActorOperation SELECT phase, including natural dispatch.
- * Example: private _node=[soldier1,house1,[100,100,2],[]] call WAIT_fnc_IndoorActorNodeSelect;
+ * Current callers: CBE_fnc_IndoorActorOperation SELECT phase, including natural dispatch.
+ * Example: private _node=[soldier1,house1,[100,100,2],[]] call CBE_fnc_IndoorActorNodeSelect;
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
     ["_belief",[],[[]]],["_reserved",[],[[]]]];
@@ -25,14 +25,14 @@ if (isNull _actor || {!local _actor} || {!local group _actor}
 // Reject unknown reservations rather than sending a second actor to an unverified destination.
 if (_reserved findIf {!(_x call _positionValid)} >= 0) exitWith {[]};
 private _failedNodes=[];
-private _epoch=(group _actor) getVariable ["WAIT_AIPass_Epoch",0];
+private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
 private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
 {
     if (_x isEqualType [] && {count _x == 5} && {(_x select 0) isEqualTo _building}
         && {(_x select 1) isEqualTo _transform} && {(_x select 2) call _positionValid}
         && {(_x select 3) isEqualType 0} && {finite (_x select 3)} && {serverTime < (_x select 3)}
         && {(_x select 4) isEqualTo _epoch}) then {_failedNodes pushBack +(_x select 2)};
-} forEach ((_actor getVariable ["WAIT_IndoorActor_NodeFailures",[]]) select [0,4]);
+} forEach ((_actor getVariable ["CBE_IndoorActor_NodeFailures",[]]) select [0,4]);
 private _positions=_building buildingPos -1;
 if (count _positions > 512) exitWith {[]};
 private _bounds=boundingBoxReal _building;

@@ -6,7 +6,7 @@
  * Separate commander/driver seats require symmetric local task eligibility. Native commander
  * approach hands to an owned two-actor stop/fixed path; crossing watches both command receipts.
  * New acquisition requires both actors idle or route-matching MOVE; native STOP, FOLLOW,
- * ATTACK and unowned WAIT remain authoritative. APPROACH permits its owned arrival wait but
+ * ATTACK and unowned CBE remain authoritative. APPROACH permits its owned arrival wait but
  * rejects a new STOP/other native task before taking fixed steering. CROSS owns its own doStop.
  * Individual actor reservations on either seat veto acquisition and every later command.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
@@ -19,7 +19,7 @@
  * metadata selection, bounded to 231 rays. Failed proposals and terminal episodes cool down for
  * 120 seconds by exact area revision/transform/route context. No added scheduler or global scan.
  * Current callers: DrivingAssistStart and ConvoyTick; registered areas come from server task dispatch.
- * Example: private _corridor=[_group,_vehicle,_brain] call WAIT_fnc_DrivingCorridorStep;
+ * Example: private _corridor=[_group,_vehicle,_brain] call CBE_fnc_DrivingCorridorStep;
  */
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],
     ["_brain",createHashMap,[createHashMap]],["_controller","ORDINARY",[""]]];
@@ -28,18 +28,18 @@ if (isRemoteExecuted || {!(_controller in ["ORDINARY","CONVOY"])}) exitWith {_in
 private _convoy=_controller == "CONVOY";
 private _configuration=_brain getOrDefault ["configuration",[]];
 private _controllerReceipt=[_controller,if (_convoy) then {_configuration param [0,-1]} else {-1}];
-private _route=[_group] call WAIT_fnc_DrivingRouteReceipt;
+private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
 private _driver=driver _vehicle;
 private _operator=effectiveCommander _vehicle;
 // A separate commander is an independent command boundary, not permission to bypass its task.
 private _crewReady={
     [_driver,_operator] findIf {
         isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
-            || {!([_x] call WAIT_fnc_CortexCombatEffective)}
-            || {[_x] call WAIT_fnc_CortexActorMoveReserved} || {isPlayer _x}
+            || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {[_x] call CBE_fnc_CortexActorMoveReserved} || {isPlayer _x}
             || {!isNull remoteControlled _x}
             || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-            || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
             || {!simulationEnabled _x} || {isObjectHidden _x}
             || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
@@ -48,7 +48,7 @@ private _crewReady={
     } < 0
 };
 // Before any alternate movement exists, only idle or route-matching native MOVE
-// commands authorize acquisition. STOP/FOLLOW/ATTACK and unowned WAIT are not consent.
+// commands authorize acquisition. STOP/FOLLOW/ATTACK and unowned CBE are not consent.
 private _nativeAdmissionReady={
     private _destination=waypointPosition [_group,currentWaypoint _group];
     [_driver,_operator] findIf {
@@ -66,50 +66,50 @@ private _approachTasksReady={
 private _controllerCurrent={
     if (_convoy) exitWith {
         private _mobile=(_configuration param [4,[]]) select {
-            alive _x && {canMove _x} && {[driver _x] call WAIT_fnc_CortexCombatEffective}
+            alive _x && {canMove _x} && {[driver _x] call CBE_fnc_CortexCombatEffective}
                 && {group driver _x == _group}
         };
-        (_group getVariable ["WAIT_Convoy_Brain",createHashMap]) isEqualTo _brain
-            && {(_brain getOrDefault ["registryRevision",-1]) == (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2])}
-            && {(_brain getOrDefault ["jobToken",""]) isEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])}
-            && {(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {
+        (_group getVariable ["CBE_Convoy_Brain",createHashMap]) isEqualTo _brain
+            && {(_brain getOrDefault ["registryRevision",-1]) == (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2])}
+            && {(_brain getOrDefault ["jobToken",""]) isEqualTo (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+            && {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
                 (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
             } >= 0}
             && {(_configuration param [5,""]) == "TRAVEL"}
             && {count (_configuration param [4,[]]) <= 20}
             && {_mobile isNotEqualTo []} && {(_mobile select 0) isEqualTo _vehicle}
             && {_mobile findIf {!local _x || {!local driver _x}} < 0}
-            && {_vehicle getVariable ["WAIT_Convoy_Active",false]}
-            && {(_vehicle getVariable ["WAIT_Convoy_Group",grpNull]) == _group}
-            && {[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-            && {[_group,false,false,true] call WAIT_fnc_CortexIsEligible}
+            && {_vehicle getVariable ["CBE_Convoy_Active",false]}
+            && {(_vehicle getVariable ["CBE_Convoy_Group",grpNull]) == _group}
+            && {[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+            && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     };
-    (_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain
-        && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+    (_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain
+        && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_brain getOrDefault ["route",[]]) isEqualTo _route}
-        && {[_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-        && {[_group] call WAIT_fnc_DrivingMovementAvailable}
-        && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
+        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group] call CBE_fnc_DrivingMovementAvailable}
+        && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
         && {vehicle leader _group isEqualTo _vehicle}
 };
 private _mayWrite={
     !isNull _group && {local _group} && {!isNull _vehicle} && {local _vehicle}
         && {count _brain > 0} && {!(_brain getOrDefault ["cancelled",false])}
         && {call _controllerCurrent} && {_route isNotEqualTo []}
-        && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
-        && {_convoy || {missionNamespace getVariable ["WAIT_AIPass_Active",false]}}
-        && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-        && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
+        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
+        && {_convoy || {missionNamespace getVariable ["CBE_AIPass_Active",false]}}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+        && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         && {alive _vehicle} && {canMove _vehicle}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {call _crewReady}
         && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
         && {isAISteeringComponentEnabled _vehicle}
 };
-if (!isNil {_vehicle getVariable "WAIT_DrivingBypass_Work"}) exitWith {_inactive};
-private _work=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
+if (!isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}) exitWith {_inactive};
+private _work=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
 if !(call _mayWrite) exitWith {
-    [_vehicle,_group,"OWNER_OR_ORDER_CHANGED",false] call WAIT_fnc_DrivingCorridorRelease;
+    [_vehicle,_group,"OWNER_OR_ORDER_CHANGED",false] call CBE_fnc_DrivingCorridorRelease;
     _inactive
 };
 // Only an ungated authored MOVE can authorize an alternate path or its native handback.
@@ -122,11 +122,11 @@ private _plain=waypointType _waypoint == "MOVE" && {_condition == "true"}
     && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
     && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []};
 if (!_plain) exitWith {
-    [_vehicle,_group,"GATED_ORDER",false] call WAIT_fnc_DrivingCorridorRelease;_inactive
+    [_vehicle,_group,"GATED_ORDER",false] call CBE_fnc_DrivingCorridorRelease;_inactive
 };
 // A new current driver group can retire an obsolete journal, never its old movement command.
 if (count _work > 0 && {(_work getOrDefault ["group",grpNull]) != _group}) then {
-    _vehicle setVariable ["WAIT_DrivingCorridor_Work",nil,true];_work=createHashMap;
+    _vehicle setVariable ["CBE_DrivingCorridor_Work",nil,true];_work=createHashMap;
 };
 if (count _work > 0) exitWith {
     private _area=_work get "area";private _definition=_work get "definition";
@@ -143,17 +143,17 @@ if (count _work > 0) exitWith {
         _reason="CONTROLLER_CHANGED";
     };
     if (_reason isEqualTo "" && {isNull _area || {
-        (_area getVariable ["WAIT_DrivingCorridor_Task",[]]) isNotEqualTo _definition
+        (_area getVariable ["CBE_DrivingCorridor_Task",[]]) isNotEqualTo _definition
         || {[getPosWorld _area,vectorDir _area,vectorUp _area] isNotEqualTo (_work get "transform")}
     }}) then {_reason="AREA_CHANGED"};
     if (_reason isEqualTo "" && {serverTime >= (_work get "deadline")}) then {_reason="TIMEOUT"};
     if (_reason isNotEqualTo "") exitWith {
-        [_vehicle,_group,_reason,_reason != "COMMAND_CHANGED"] call WAIT_fnc_DrivingCorridorRelease;_inactive
+        [_vehicle,_group,_reason,_reason != "COMMAND_CHANGED"] call CBE_fnc_DrivingCorridorRelease;_inactive
     };
     // Adoption changes only bookkeeping. It cannot restart the original command or clock.
-    private _epoch=_group getVariable ["WAIT_AIPass_Epoch",0];
+    private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
     if ((_work get "epoch") != _epoch) then {
-        _work set ["epoch",_epoch];_vehicle setVariable ["WAIT_DrivingCorridor_Work",_work,true];
+        _work set ["epoch",_epoch];_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
     };
     private _points=_work get "points";private _asl=_work get "asl";
     private _phase=_work get "phase";
@@ -173,7 +173,7 @@ if (count _work > 0) exitWith {
             _work set ["command",+(expectedDestination _operator)];
             _work set ["driverCommand",+(expectedDestination _driver)];
             _work set ["deadline",(_work get "hardDeadline") min (serverTime+(_definition select 1)+45)];
-            _vehicle setVariable ["WAIT_DrivingCorridor_Work",_work,true];_phase="CROSS";
+            _vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];_phase="CROSS";
         };
     };
     if (_phase == "CROSS") then {
@@ -200,38 +200,38 @@ if (count _work > 0) exitWith {
         // An exit pose alone cannot prove corridor passage after a detour around the area.
         // Observe the near plane in order, preserve it across migration, and reject lateral departure.
         if (!_withinWidth && {abs _projection <= _halfLength}) exitWith {
-            [_vehicle,_group,"CORRIDOR_DEPARTED"] call WAIT_fnc_DrivingCorridorRelease;
+            [_vehicle,_group,"CORRIDOR_DEPARTED"] call CBE_fnc_DrivingCorridorRelease;
         };
         if (!(_work getOrDefault ["entered",false]) && {_projection >= -_halfLength}
             && {_projection <= (-_halfLength+15)} && {_withinWidth}) then {
-            _work set ["entered",true];_vehicle setVariable ["WAIT_DrivingCorridor_Work",_work,true];
+            _work set ["entered",true];_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
         };
         private _exit=_asl select ((count _asl)-1);
         if (_crossed && {_work getOrDefault ["entered",false]} && {_withinWidth} && {(getPosASL _vehicle) distance2D _exit <= 20}
             && {abs (((getPosASL _vehicle) select 2)-(_exit select 2)) <= 2}) exitWith {
-            [_vehicle,_group,"PHYSICALLY_CROSSED"] call WAIT_fnc_DrivingCorridorRelease;
+            [_vehicle,_group,"PHYSICALLY_CROSSED"] call CBE_fnc_DrivingCorridorRelease;
         };
     };
-    if (isNil {_vehicle getVariable "WAIT_DrivingCorridor_Work"}) then {_inactive}
+    if (isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}) then {_inactive}
     else {[true,(_definition select 3)/3.6,"CORRIDOR_"+_phase]}
 };
 // An unfinished column passage owns this area episode after its lead has handed back.
 // Do not admit a second lead corridor while the same revision still has vehicles inside/approaching.
-private _passage=_group getVariable ["WAIT_Convoy_CorridorPassage",createHashMap];
+private _passage=_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap];
 if (_convoy && {count _passage > 0} && {(_passage get "revision") == (_configuration param [0,-1])}
     && {serverTime < (_passage get "deadline")}) exitWith {_inactive};
 private _destination=waypointPosition _waypoint;
 // Do not replace a newer individual MOVE merely because its group route is unchanged.
 if !(call _nativeAdmissionReady) exitWith {_inactive};
-private _snapshot=missionNamespace getVariable ["WAIT_DrivingCorridor_Snapshot",[0,[]]];
+private _snapshot=missionNamespace getVariable ["CBE_DrivingCorridor_Snapshot",[0,[]]];
 private _records=_snapshot param [1,[]];
 if (count _records > 32) exitWith {_inactive};
-private _cooldown=(_vehicle getVariable ["WAIT_DrivingCorridor_Cooldown",[]]) select {(_x select 1) > serverTime};
+private _cooldown=(_vehicle getVariable ["CBE_DrivingCorridor_Cooldown",[]]) select {(_x select 1) > serverTime};
 private _selected=[];private _best=1e9;
 {
     _x params ["_area","_definition"];
     if (!isNull _area && {count _definition == 4}
-        && {(_area getVariable ["WAIT_DrivingCorridor_Task",[]]) isEqualTo _definition}) then {
+        && {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo _definition}) then {
         private _transform=[getPosWorld _area,vectorDir _area,vectorUp _area];
         private _context=[_area,_definition,_transform,_route,_controllerReceipt];
         if (_cooldown findIf {(_x select 0) isEqualTo _context} < 0) then {
@@ -271,12 +271,12 @@ if (_convoy) then {
         };
     } forEach (_configuration param [4,[]]);
 };
-private _proposal=[_vehicle,_area,_definition,_side,_envelope] call WAIT_fnc_DrivingCorridorGeometry;
+private _proposal=[_vehicle,_area,_definition,_side,_envelope] call CBE_fnc_DrivingCorridorGeometry;
 if (!(_proposal select 0)) exitWith {
     if (count _cooldown >= 32) then {_cooldown deleteAt 0};
     _cooldown pushBack [_context,serverTime+120];
-    _vehicle setVariable ["WAIT_DrivingCorridor_Cooldown",_cooldown,true];
-    _vehicle setVariable ["WAIT_DrivingCorridor_Result",[_proposal select 1,serverTime,_area,"ADMISSION"],true];_inactive
+    _vehicle setVariable ["CBE_DrivingCorridor_Cooldown",_cooldown,true];
+    _vehicle setVariable ["CBE_DrivingCorridor_Result",[_proposal select 1,serverTime,_area,"ADMISSION"],true];_inactive
 };
 if (!(call _mayWrite) || {(expectedDestination _operator) isNotEqualTo _native}
     || {_vehicle distance2D ((_proposal select 2) select 0) > 400}
@@ -298,8 +298,8 @@ if (_convoy) then {_requiredRoom=_requiredRoom+(waypointCompletionRadius _waypoi
 if (_exitRoom < _requiredRoom) exitWith {
     if (count _cooldown >= 32) then {_cooldown deleteAt 0};
     _cooldown pushBack [_context,serverTime+120];
-    _vehicle setVariable ["WAIT_DrivingCorridor_Cooldown",_cooldown,true];
-    _vehicle setVariable ["WAIT_DrivingCorridor_Result",["DESTINATION_CLEARANCE",serverTime,_area,"ADMISSION"],true];
+    _vehicle setVariable ["CBE_DrivingCorridor_Cooldown",_cooldown,true];
+    _vehicle setVariable ["CBE_DrivingCorridor_Result",["DESTINATION_CLEARANCE",serverTime,_area,"ADMISSION"],true];
     _inactive
 };
 private _tailSpeed=((_definition select 3) min (_configuration param [1,_definition select 3]))/3.6;
@@ -308,10 +308,10 @@ if (!(call _mayWrite) || {!(call _nativeAdmissionReady)}) exitWith {_inactive};
 _operator doMove (_points select 0);
 _work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
     ["route",_route],["area",_area],["definition",_definition],["transform",_transform],
-    ["context",_context],["epoch",_group getVariable ["WAIT_AIPass_Epoch",0]],
+    ["context",_context],["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
     ["points",_points],["asl",_asl],["travel",_axis vectorMultiply (-_side)],
     ["far",(getPosASL _area) vectorDiff (_axis vectorMultiply ((_definition select 1)*_side))],
     ["tailDeadline",_tailDeadline],["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
     ["command",+(expectedDestination _operator)]];
-_vehicle setVariable ["WAIT_DrivingCorridor_Work",_work,true];
+_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
 [true,(_definition select 3)/3.6,"CORRIDOR_APPROACH"]

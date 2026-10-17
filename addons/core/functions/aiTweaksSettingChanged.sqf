@@ -1,76 +1,76 @@
 /*
  * Author: WaldoTheWarfighter
- * Applies side effects after CBA changes a Waldos AI Tweaks setting.
+ * Applies side effects after CBA changes a Combat Behaviour Enhancement (CBE) setting.
  * Locality / Authority: Called on every machine by a global CBA setting callback. Each machine may
  * only start or stop work it owns; the server remains responsible for cross-group coordination.
  * Repeat/JIP: Idempotent. PreInit callbacks update values but defer runtime work until postInit.
  * Arguments: 0 setting name <STRING>; 1 new value <ANY>.
  * Return Value: BOOL - true when the change was accepted.
- * Current callers: callbacks registered by WAIT_fnc_AITweaksRegisterSettings.
- * Example: ["WAIT_AIPass_Enable", false] call WAIT_fnc_AITweaksSettingChanged;
+ * Current callers: callbacks registered by CBE_fnc_AITweaksRegisterSettings.
+ * Example: ["CBE_AIPass_Enable", false] call CBE_fnc_AITweaksSettingChanged;
  */
 
 params [["_name", "", [""]], "_value"];
 if (_name == "") exitWith {false};
 missionNamespace setVariable [_name, _value];
-if !(missionNamespace getVariable ["WAIT_AITweaks_PostInitComplete", false]) exitWith {true};
+if !(missionNamespace getVariable ["CBE_AITweaks_PostInitComplete", false]) exitWith {true};
 
-if (_name == "WAIT_AIPass_Enable") then {
-    if (_value) then {[] call WAIT_fnc_CortexInit} else {[] call WAIT_fnc_CortexStop};
+if (_name == "CBE_AIPass_Enable") then {
+    if (_value) then {[] call CBE_fnc_CortexInit} else {[] call CBE_fnc_CortexStop};
 };
 // These optional handlers must follow CBA changes immediately, including disable/re-enable.
 // Reuse the guarded owner-local installer; ordinary tuning values remain live reads.
-if (_name in ["WAIT_AIPass_GrenadeEvasion_Enable", "WAIT_AIPass_CivilianReaction_Enable"]
-    && {missionNamespace getVariable ["WAIT_AIPass_Active", false]}) then {
-    [] call WAIT_fnc_CortexInit;
+if (_name in ["CBE_AIPass_GrenadeEvasion_Enable", "CBE_AIPass_CivilianReaction_Enable"]
+    && {missionNamespace getVariable ["CBE_AIPass_Active", false]}) then {
+    [] call CBE_fnc_CortexInit;
 };
 // Danger assessment is a LIVE setting.  Discovery runs sparsely by design, so relying on its next
 // sweep would leave disabled observers active, or newly enabled groups unobserved, for up to a
 // full discovery interval.  Reuse the bounded, repeat-safe per-group installer on the current
 // owner only; this changes listeners and the finite FSM generation, never the scheduler or route.
-if (_name == "WAIT_AIPass_Danger_Enable" && {missionNamespace getVariable ["WAIT_AIPass_Active", false]}) then {
-    {if (local _x) then {[_x] call WAIT_fnc_DangerSetup}} forEach allGroups;
+if (_name == "CBE_AIPass_Danger_Enable" && {missionNamespace getVariable ["CBE_AIPass_Active", false]}) then {
+    {if (local _x) then {[_x] call CBE_fnc_DangerSetup}} forEach allGroups;
 };
-if (_name find "WAIT_AIRebalance_" == 0 || {_name in ["WAIT_AI_InfantryDispersion", "WAIT_AI_VehicleCrewAimMultiplier", "WAIT_AI_VehicleCrewDispersion", "WAIT_AI_AirCrewDispersion"]}) then {
-    if (missionNamespace getVariable ["WAIT_AIRebalance_Enable", true]) then {
+if (_name find "CBE_AIRebalance_" == 0 || {_name in ["CBE_AI_InfantryDispersion", "CBE_AI_VehicleCrewAimMultiplier", "CBE_AI_VehicleCrewDispersion", "CBE_AI_AirCrewDispersion"]}) then {
+    if (missionNamespace getVariable ["CBE_AIRebalance_Enable", true]) then {
         [
-            missionNamespace getVariable ["WAIT_AIRebalance_Mode", "AUTO"],
-            missionNamespace getVariable ["WAIT_AIRebalance_Profile", "LINE"]
-        ] call WAIT_fnc_AIRebalanceInit;
+            missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"],
+            missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"]
+        ] call CBE_fnc_AIRebalanceInit;
     } else {
-        [] call WAIT_fnc_AIRebalanceStop;
+        [] call CBE_fnc_AIRebalanceStop;
     };
 };
-if (_name == "WAIT_ImprovedHelicopterLanding_Enable") then {
+if (_name == "CBE_ImprovedHelicopterLanding_Enable") then {
     if (_value) then {
-        [] call WAIT_fnc_ImprovedHelicopterLandingInit;
-        private _install = missionNamespace getVariable ["WAIT_ImprovedHelicopterLanding_InstallLocal", {}];
+        [] call CBE_fnc_ImprovedHelicopterLandingInit;
+        private _install = missionNamespace getVariable ["CBE_ImprovedHelicopterLanding_InstallLocal", {}];
         {if (local _x) then {[_x] call _install}} forEach vehicles;
     } else {
         {if (local _x && {_x isKindOf "Helicopter"}) then {
-            _x setVariable ["WAIT_ImprovedHelicopterLanding_TrackerGenerationLocal", (_x getVariable ["WAIT_ImprovedHelicopterLanding_TrackerGenerationLocal",0])+1];
-            _x setVariable ["WAIT_ImprovedHelicopterLanding_TrackedLocal", false];
-            [_x, false, "", true] call WAIT_fnc_ImprovedHelicopterLandingRestoreLocal;
+            _x setVariable ["CBE_ImprovedHelicopterLanding_TrackerGenerationLocal", (_x getVariable ["CBE_ImprovedHelicopterLanding_TrackerGenerationLocal",0])+1];
+            _x setVariable ["CBE_ImprovedHelicopterLanding_TrackedLocal", false];
+            [_x, false, "", true] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
         }} forEach vehicles;
-        missionNamespace setVariable ["WAIT_Aircraft_LandingSchedulerActive", false];
-        [] call WAIT_fnc_SchedulerReconcile;
+        missionNamespace setVariable ["CBE_Aircraft_LandingSchedulerActive", false];
+        [] call CBE_fnc_SchedulerReconcile;
     };
 };
-if (_name == "WAIT_HelicopterDeceleration_Enable") then {
+if (_name == "CBE_HelicopterDeceleration_Enable") then {
     if (_value) then {
-        [] call WAIT_fnc_HelicopterDecelerationInit;
-        private _install = missionNamespace getVariable ["WAIT_HelicopterDeceleration_InstallLocal", {}];
+        [] call CBE_fnc_HelicopterDecelerationInit;
+        private _install = missionNamespace getVariable ["CBE_HelicopterDeceleration_InstallLocal", {}];
         {if (local _x) then {[_x] call _install}} forEach vehicles;
     } else {
         // Retire generations before removing their jobs.  A re-enable therefore creates fresh
         // owner-local sampling rather than retaining a stale tracked flag or correction lease.
         {if (local _x && {_x isKindOf "Helicopter" || {_x isKindOf "VTOL_Base_F"}}) then {
-            _x setVariable ["WAIT_HelicopterDeceleration_GenerationLocal", (_x getVariable ["WAIT_HelicopterDeceleration_GenerationLocal",0])+1];
-            _x setVariable ["WAIT_HelicopterDeceleration_TrackedLocal", false];
-            _x setVariable ["WAIT_HelicopterDeceleration_Active", false, true];
+            _x setVariable ["CBE_HelicopterDeceleration_GenerationLocal", (_x getVariable ["CBE_HelicopterDeceleration_GenerationLocal",0])+1];
+            _x setVariable ["CBE_HelicopterDeceleration_TrackedLocal", false];
+            _x setVariable ["CBE_HelicopterDeceleration_Active", false, true];
         }} forEach vehicles;
-        missionNamespace setVariable ["WAIT_Aircraft_DecelerationSchedulerActive", false];
-        [] call WAIT_fnc_SchedulerReconcile;
+        missionNamespace setVariable ["CBE_Aircraft_DecelerationSchedulerActive", false];
+        [] call CBE_fnc_SchedulerReconcile;
     };
 };
 true

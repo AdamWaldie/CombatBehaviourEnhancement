@@ -63,7 +63,7 @@ class ReverseTurnTests(unittest.TestCase):
                 self.assertIn(f'["{vehicle}","{turn}","{family}"]',case)
         for proof in ['_samples >= 3 && {_travel >= 1} && {_maxHeading >= 3}',
                       '_vehicle sendSimpleCommand "BACK";',
-                      '_group setVariable ["WAIT_AIPass_Exclude",true,true]']:
+                      '_group setVariable ["CBE_AIPass_Exclude",true,true]']:
             self.assertIn(proof,case)
         self.assertNotIn('setVelocity',case)
         self.assertNotIn('setPos',case)

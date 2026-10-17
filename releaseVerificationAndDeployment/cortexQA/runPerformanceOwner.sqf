@@ -3,7 +3,7 @@
  * Installs the owner-local sampler and workload activator used by the distributed Cortex
  * performance audit.
  * Locality/authority: compiled on the server and every connected headless client during audit
- * mission initialization. WAIT_CortexQA_PerformanceSampleOwner samples only groups local to that machine.
+ * mission initialization. CBE_CortexQA_PerformanceSampleOwner samples only groups local to that machine.
  * Queue diagnostics sample queue depth and the existing 256-entry executed-callback ring once
  * per second, including terminal jobs. Ring entries overwritten between samples can be missed;
  * diagnostics never establish performance acceptance.
@@ -12,39 +12,39 @@
  * audit runner. A public owner heartbeat distinguishes an attached HC from one whose simulation
  * thread has stopped advancing. This disposable helper is never staged outside the generated QA mission.
  *
- * Arguments to WAIT_CortexQA_PerformanceSampleOwner:
+ * Arguments to CBE_CortexQA_PerformanceSampleOwner:
  * 0: sample id <STRING>
  * 1: duration <NUMBER> (default 60 seconds)
- * Arguments to WAIT_CortexQA_PerformanceDeleteGroup:
+ * Arguments to CBE_CortexQA_PerformanceDeleteGroup:
  * 0: emptied subject group <GROUP>; deletion waits for replicated unit removal on its owner.
- * Arguments to WAIT_CortexQA_PerformanceStartGroup:
+ * Arguments to CBE_CortexQA_PerformanceStartGroup:
  * 0: locally owned subject group <GROUP>; 1: hostile target <OBJECT> (default objNull);
  * 2: destination ATL <ARRAY>; 3: whether this is a live-contact group <BOOL> (default false).
  *
- * Return Value: Nothing. Publishes WAIT_CortexQA_PerformanceResult_<sample id>_<owner id>.
- * WAIT_CortexQA_PerformanceStartGroup installs group-wide first-shot evidence and starts the
+ * Return Value: Nothing. Publishes CBE_CortexQA_PerformanceResult_<sample id>_<owner id>.
+ * CBE_CortexQA_PerformanceStartGroup installs group-wide first-shot evidence and starts the
  * owner-local MOVE/SAD workload only after ownership and measurement baselines are ready.
  * Current callers: runPerformanceContact.sqf through remoteExecCall.
- * Example: ["ON1",60] call WAIT_CortexQA_PerformanceSampleOwner;
- * Example: [_finishedGroup] call WAIT_CortexQA_PerformanceDeleteGroup;
- * Example: [_group,_target,[200,410,0],true] call WAIT_CortexQA_PerformanceStartGroup;
+ * Example: ["ON1",60] call CBE_CortexQA_PerformanceSampleOwner;
+ * Example: [_finishedGroup] call CBE_CortexQA_PerformanceDeleteGroup;
+ * Example: [_group,_target,[200,410,0],true] call CBE_CortexQA_PerformanceStartGroup;
  */
-WAIT_CortexQA_PerformanceSampleOwner = {
+CBE_CortexQA_PerformanceSampleOwner = {
     params [["_sampleId","",[""]],["_duration",60,[0]]];
     if (remoteExecutedOwner != 2 && {!(isServer && {remoteExecutedOwner == 0})}) exitWith {};
     if (_sampleId == "" || {!finite _duration} || {_duration <= 0} || {_duration > 600}) exitWith {};
-    private _oldHandler=missionNamespace getVariable ["WAIT_CortexQA_PerformanceFrameHandler",-1];
+    private _oldHandler=missionNamespace getVariable ["CBE_CortexQA_PerformanceFrameHandler",-1];
     if (_oldHandler >= 0) then {removeMissionEventHandler ["EachFrame",_oldHandler]};
-    private _generation=(missionNamespace getVariable ["WAIT_CortexQA_PerformanceGeneration",0])+1;
-    missionNamespace setVariable ["WAIT_CortexQA_PerformanceGeneration",_generation];
-    missionNamespace setVariable ["WAIT_CortexQA_PerformanceFrameSamples",[]];
-    private _heartbeatKey=format ["WAIT_CortexQA_PerformanceHeartbeat_%1_%2",_sampleId,clientOwner];
+    private _generation=(missionNamespace getVariable ["CBE_CortexQA_PerformanceGeneration",0])+1;
+    missionNamespace setVariable ["CBE_CortexQA_PerformanceGeneration",_generation];
+    missionNamespace setVariable ["CBE_CortexQA_PerformanceFrameSamples",[]];
+    private _heartbeatKey=format ["CBE_CortexQA_PerformanceHeartbeat_%1_%2",_sampleId,clientOwner];
     missionNamespace setVariable [_heartbeatKey,serverTime,true];
     private _handler=addMissionEventHandler ["EachFrame",{
-        private _samples=missionNamespace getVariable ["WAIT_CortexQA_PerformanceFrameSamples",[]];
+        private _samples=missionNamespace getVariable ["CBE_CortexQA_PerformanceFrameSamples",[]];
         if (count _samples < 180000) then {_samples pushBack (diag_deltaTime*1000)};
     }];
-    missionNamespace setVariable ["WAIT_CortexQA_PerformanceFrameHandler",_handler];
+    missionNamespace setVariable ["CBE_CortexQA_PerformanceFrameHandler",_handler];
     [_sampleId,_duration,_generation,clientOwner,_heartbeatKey] spawn {
         params ["_sampleId","_duration","_generation","_sampleOwner","_heartbeatKey"];
         private _maxOverdue=0;
@@ -53,9 +53,9 @@ WAIT_CortexQA_PerformanceSampleOwner = {
         private _maxCompletedLatency=0;
         private _peakQueued=0;
         private _until=diag_tickTime+_duration;
-        while {diag_tickTime < _until && {(missionNamespace getVariable ["WAIT_CortexQA_PerformanceGeneration",-1]) == _generation}} do {
+        while {diag_tickTime < _until && {(missionNamespace getVariable ["CBE_CortexQA_PerformanceGeneration",-1]) == _generation}} do {
             missionNamespace setVariable [_heartbeatKey,serverTime,true];
-            private _queued=missionNamespace getVariable ["WAIT_AIPass_Jobs",[]];
+            private _queued=missionNamespace getVariable ["CBE_AIPass_Jobs",[]];
             _peakQueued=_peakQueued max count _queued;
             {
                 _maxOverdue=_maxOverdue max (time-(_x param [0,time]));
@@ -64,7 +64,7 @@ WAIT_CortexQA_PerformanceSampleOwner = {
             // existing bounded owner-local history rather than reporting zero from queued jobs.
             // diag_tickTime matches the ring clock; mission time is not interchangeable.
             private _observedAt=diag_tickTime;
-            private _completed=+(missionNamespace getVariable ["WAIT_AIPass_CallbackSamples",[]]);
+            private _completed=+(missionNamespace getVariable ["CBE_AIPass_CallbackSamples",[]]);
             {
                 if (count _x == 5 && {(_x select 4) >= _sampleStartedTick}
                     && {(_x select 4) <= _observedAt}) then {
@@ -74,11 +74,11 @@ WAIT_CortexQA_PerformanceSampleOwner = {
             } forEach (_completed select [0,256]);
             sleep 1;
         };
-        if ((missionNamespace getVariable ["WAIT_CortexQA_PerformanceGeneration",-1]) != _generation) exitWith {};
-        private _handler=missionNamespace getVariable ["WAIT_CortexQA_PerformanceFrameHandler",-1];
+        if ((missionNamespace getVariable ["CBE_CortexQA_PerformanceGeneration",-1]) != _generation) exitWith {};
+        private _handler=missionNamespace getVariable ["CBE_CortexQA_PerformanceFrameHandler",-1];
         if (_handler >= 0) then {removeMissionEventHandler ["EachFrame",_handler]};
-        missionNamespace setVariable ["WAIT_CortexQA_PerformanceFrameHandler",-1];
-        private _samples=missionNamespace getVariable ["WAIT_CortexQA_PerformanceFrameSamples",[]];
+        missionNamespace setVariable ["CBE_CortexQA_PerformanceFrameHandler",-1];
+        private _samples=missionNamespace getVariable ["CBE_CortexQA_PerformanceFrameSamples",[]];
         _samples sort true;
         private _count=count _samples;
         private _percentile={
@@ -88,7 +88,7 @@ WAIT_CortexQA_PerformanceSampleOwner = {
         };
         private _localGroups=allGroups select {
             local _x
-            && {_x getVariable ["WAIT_CortexQA_PerformanceGroup",false]}
+            && {_x getVariable ["CBE_CortexQA_PerformanceGroup",false]}
             && {units _x isNotEqualTo []}
         };
         private _localUnits=0;
@@ -99,14 +99,14 @@ WAIT_CortexQA_PerformanceSampleOwner = {
         // Diagnostic snapshots can miss ring entries overwritten between samples. These values
         // include observed retired callbacks, but cannot prove a whole-run maximum or budget.
         private _queueDiagnostic=[_sampleId,_sampleOwner,_maxOverdue,_maxCallbackMs,_maxCompletedLatency,_peakQueued];
-        missionNamespace setVariable [format ["WAIT_CortexQA_PerformanceQueue_%1_%2",_sampleId,_sampleOwner],_queueDiagnostic,true];
-        diag_log format ["WAIT PERFORMANCE QUEUE DIAGNOSTIC: %1",_queueDiagnostic];
-        missionNamespace setVariable [format ["WAIT_CortexQA_PerformanceResult_%1_%2",_sampleId,_sampleOwner],_result,true];
-        missionNamespace setVariable ["WAIT_CortexQA_PerformanceFrameSamples",nil];
+        missionNamespace setVariable [format ["CBE_CortexQA_PerformanceQueue_%1_%2",_sampleId,_sampleOwner],_queueDiagnostic,true];
+        diag_log format ["CBE PERFORMANCE QUEUE DIAGNOSTIC: %1",_queueDiagnostic];
+        missionNamespace setVariable [format ["CBE_CortexQA_PerformanceResult_%1_%2",_sampleId,_sampleOwner],_result,true];
+        missionNamespace setVariable ["CBE_CortexQA_PerformanceFrameSamples",nil];
     };
 };
 
-WAIT_CortexQA_PerformanceDeleteGroup = {
+CBE_CortexQA_PerformanceDeleteGroup = {
     params [["_group",grpNull,[grpNull]]];
     if (remoteExecutedOwner != 2 && {!(isServer && {remoteExecutedOwner == 0})}) exitWith {};
     if (isNull _group || {!local _group}) exitWith {};
@@ -118,7 +118,7 @@ WAIT_CortexQA_PerformanceDeleteGroup = {
     };
 };
 
-WAIT_CortexQA_PerformanceStartGroup = {
+CBE_CortexQA_PerformanceStartGroup = {
     params [
         ["_group",grpNull,[grpNull]],
         ["_target",objNull,[objNull]],
@@ -127,16 +127,16 @@ WAIT_CortexQA_PerformanceStartGroup = {
     ];
     if (remoteExecutedOwner != 2 && {!(isServer && {remoteExecutedOwner == 0})}) exitWith {};
     if (isNull _group || {!local _group}) exitWith {};
-    _group setVariable ["WAIT_CortexQA_PerformanceFired",false,true];
+    _group setVariable ["CBE_CortexQA_PerformanceFired",false,true];
     {
-        // allowDamage is locality-sensitive. Reapply it after WAIT transfers the group so the
+        // allowDamage is locality-sensitive. Reapply it after CBE transfers the group so the
         // performance fixture cannot turn crossfire casualties into an apparent workload loss.
         _x allowDamage false;
         _x addEventHandler ["FiredMan",{
             params ["_unit"];
             private _group=group _unit;
-            if !(_group getVariable ["WAIT_CortexQA_PerformanceFired",false]) then {
-                _group setVariable ["WAIT_CortexQA_PerformanceFired",true,true];
+            if !(_group getVariable ["CBE_CortexQA_PerformanceFired",false]) then {
+                _group setVariable ["CBE_CortexQA_PerformanceFired",true,true];
             };
         }];
     } forEach units _group;
@@ -163,5 +163,5 @@ WAIT_CortexQA_PerformanceStartGroup = {
     _waypoint setWaypointType (["MOVE","SAD"] select _contact);
     _waypoint setWaypointSpeed "FULL";
     _group setCurrentWaypoint _waypoint;
-    _group setVariable ["WAIT_CortexQA_PerformanceStarted",true,true];
+    _group setVariable ["CBE_CortexQA_PerformanceStarted",true,true];
 };

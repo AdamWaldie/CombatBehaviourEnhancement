@@ -21,7 +21,7 @@
  * On attack entry an independently aimed turret, helicopter pilot weapon or air-to-air operator
  * receives one native target instruction using only knowledge the aircraft group already possessed
  * when the finite plan was selected. A fixed-wing pilot surface station relies on the attached
- * native DESTROY order so WAIT does not create a second ATTACK movement owner.
+ * native DESTROY order so CBE does not create a second ATTACK movement owner.
  * Fixed-wing pilots prosecute the object-attached native attack order. Once the live delivery basket
  * is valid, Cortex issues one bounded native doFire request to the selected pilot; independently
  * aimed turrets use fireAtTarget. This joins route geometry to the engine's weapon FSM instead of
@@ -53,8 +53,8 @@
  * salvo or a gun burst. It never waits indefinitely for a single engine fire callback.
  * A lack of travel, solution or fire aborts the run; elapsed time alone
  * never completes it. Zeus priority, locality loss, explicit exclusions, runtime disablement or a
- * changed curator waypoint end the lease immediately. The named WAIT leg also has a metadata
- * receipt; an edit yields and removes only its WAIT name, preserving the edited native waypoint.
+ * changed curator waypoint end the lease immediately. The named CBE leg also has a metadata
+ * receipt; an edit yields and removes only its CBE name, preserving the edited native waypoint.
  * Every cleanup path repeats that check, including early cancellation before normal route comparison. Cleanup deletes only that named temporary
  * waypoint. A successful run hands the aircraft back toward its unchanged original waypoint.
  * During direct Zeus handover, cleanup clears this attack's target commands, preserves the native
@@ -71,8 +71,8 @@
  * Arguments: 0: scheduler job <HASHMAP>; aircraft <OBJECT> is required; target <OBJECT> is optional
  * when an authenticated combined-arms opportunity already selected it.
  * Return Value: NUMBER delay for the owning FSM, or -1 after cleanup.
- * Current caller: WAIT_fnc_AirAttackOperationStep through the shared scheduler.
- * Example: [createHashMapFromArray [["aircraft",_plane]]] call WAIT_fnc_CortexAirAttack;
+ * Current caller: CBE_fnc_AirAttackOperationStep through the shared scheduler.
+ * Example: [createHashMapFromArray [["aircraft",_plane]]] call CBE_fnc_CortexAirAttack;
  */
 params [["_job",createHashMap,[createHashMap]]];
 private _aircraft=_job getOrDefault ["aircraft",objNull];
@@ -98,15 +98,15 @@ private _finish={
     private _finishOwnedName=_job getOrDefault ["ownedWaypointName",""];
     private _preserveEditedLeg=!isNull _finishGroup && {_finishOwnedName != ""}
         && {!isNil {_job get "ownedWaypointReceipt"}}
-        && {([_finishGroup,_finishOwnedName,true] call WAIT_fnc_AuthoredRouteReceipt)
+        && {([_finishGroup,_finishOwnedName,true] call CBE_fnc_AuthoredRouteReceipt)
             isNotEqualTo (_job get "ownedWaypointReceipt")};
-    if (!isNull _finishGroup && {"token" in _job}) then {[_finishGroup,_job,"ENDED",_reason] call WAIT_fnc_CortexDrillSetStage};
+    if (!isNull _finishGroup && {"token" in _job}) then {[_finishGroup,_job,"ENDED",_reason] call CBE_fnc_CortexDrillSetStage};
     private _handler=_job getOrDefault ["firedHandler",-1];
     if (_handler >= 0) then {_aircraft removeEventHandler ["Fired",_handler]};
     private _guidanceTarget=_job getOrDefault ["guidanceTarget",objNull];
     if (!isNull _guidanceTarget) then {deleteVehicle _guidanceTarget};
     if (local _aircraft) then {
-        private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid
+        private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call CBE_fnc_FlightLeaseValid
             && {group driver _aircraft == _finishGroup};
         // A newer flight controller owns speed and pilot features. Retire only our bookkeeping.
         if (_ownsFlight) then {_aircraft limitSpeed (2 * getNumber (configOf _aircraft >> "maxSpeed"))};
@@ -116,8 +116,8 @@ private _finish={
         if (!isNull _finishGroup && {_ownedWaypointName != ""}) then {
             private _ownedWaypointIndex=(waypoints _finishGroup) findIf {waypointName _x == _ownedWaypointName};
             if (_ownedWaypointIndex >= 0) then {private _ownedWaypoint=(waypoints _finishGroup) select _ownedWaypointIndex;
-                    private _snapshot=_finishGroup getVariable ["WAIT_Cortex_ZeusOrderSnapshot",[]];
-                    private _hold=_finishGroup getVariable ["WAIT_AIPass_ZeusHold",[]];
+                    private _snapshot=_finishGroup getVariable ["CBE_Cortex_ZeusOrderSnapshot",[]];
+                    private _hold=_finishGroup getVariable ["CBE_AIPass_ZeusHold",[]];
                     private _claimed=_preserveEditedLeg || {_reason == "OWNED_ROUTE_CHANGED"} || {count _snapshot == 7 && {count _hold == 2}
                         && {(_snapshot select 0) == (_hold select 0)}
                         && {(_snapshot select 5) == (_ownedWaypoint select 1)}};
@@ -130,13 +130,13 @@ private _finish={
         if (_ownsFlight && {!isNull _finishPilot} && {alive _finishPilot} && {local _finishPilot}
             && {group _finishPilot == _finishGroup} && {vehicle _finishPilot == _aircraft}
             && {!isPlayer _finishPilot} && {isNull (remoteControlled _finishPilot)}
-            && {([_finishPilot] call WAIT_fnc_CortexExternalOwner) == ""}
-            && {!([_finishPilot] call WAIT_fnc_CompatibilityExternalControl)}
-            && {[_finishPilot] call WAIT_fnc_CortexActorFireTaskAvailable}
+            && {([_finishPilot] call CBE_fnc_CortexExternalOwner) == ""}
+            && {!([_finishPilot] call CBE_fnc_CompatibilityExternalControl)}
+            && {[_finishPilot] call CBE_fnc_CortexActorFireTaskAvailable}
             && {(_job getOrDefault ["lateralPilotReceipt",[]]) isNotEqualTo []}
-            && {(_finishPilot getVariable ["WAIT_AirPilotFeatureReceipt",[]]) isEqualTo (_job get "lateralPilotReceipt")}) then {
+            && {(_finishPilot getVariable ["CBE_AirPilotFeatureReceipt",[]]) isEqualTo (_job get "lateralPilotReceipt")}) then {
             {_finishPilot enableAI _x} forEach (_job getOrDefault ["lateralPilotFeatures",[]]);
-            _finishPilot setVariable ["WAIT_AirPilotFeatureReceipt",nil,true];
+            _finishPilot setVariable ["CBE_AirPilotFeatureReceipt",nil,true];
         };
         // Direct Zeus input owns the aircraft immediately. Do not clear target or watch state here:
         // the curator or external controller may have replaced it before this scheduled cleanup ran.
@@ -145,7 +145,7 @@ private _finish={
         if (_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED"]) then {
             private _handoverPilot=driver _aircraft;
             private _handoverGroup=group _handoverPilot;
-            private _snapshot=_handoverGroup getVariable ["WAIT_Cortex_ZeusOrderSnapshot",[]];
+            private _snapshot=_handoverGroup getVariable ["CBE_Cortex_ZeusOrderSnapshot",[]];
             private _handoverPosition=+(_snapshot param [1,[]]);
             private _handoverWaypoints=waypoints _handoverGroup;
             private _authoredWaypointOffset=_handoverWaypoints findIf {
@@ -192,28 +192,28 @@ private _finish={
                     _handoverGroup move _handoverPosition;
                 };
             };
-            _aircraft setVariable ["WAIT_Cortex_AirHandoverLease",nil,true];
-            _aircraft setVariable ["WAIT_Cortex_AirHandoverRecovery",nil,true];
-            _aircraft setVariable ["WAIT_Cortex_AirHandoverResult",[
+            _aircraft setVariable ["CBE_Cortex_AirHandoverLease",nil,true];
+            _aircraft setVariable ["CBE_Cortex_AirHandoverRecovery",nil,true];
+            _aircraft setVariable ["CBE_Cortex_AirHandoverResult",[
                 serverTime,if (count _handoverPosition >= 2) then {_aircraft distance2D _handoverPosition} else {-1},
                 behaviour _handoverPilot,unitCombatMode _handoverPilot,currentCommand _handoverPilot,
                 "ZEUS_IMMEDIATE_HANDOVER",expectedDestination _handoverPilot
             ],true];
         };
-        // On an ordinary finite end, retire only the exact hostile WAIT assigned and only while no
+        // On an ordinary finite end, retire only the exact hostile CBE assigned and only while no
         // player, curator or specialist has claimed the group. A newer target survives cleanup.
         if (!_preserveEditedLeg && {!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"])}) then {
             private _assignment=_job getOrDefault ["targetAssignment",[objNull,objNull]];
             private _ownedOperator=_assignment param [0,objNull];
             private _ownedTarget=_assignment param [1,objNull];
-            private _cleanupExternal=[_finishGroup] call WAIT_fnc_CortexExternalTakeover
-                || {[_finishGroup] call WAIT_fnc_CortexZeusHeld};
+            private _cleanupExternal=[_finishGroup] call CBE_fnc_CortexExternalTakeover
+                || {[_finishGroup] call CBE_fnc_CortexZeusHeld};
             if (_ownsFlight && {!_cleanupExternal} && {!isNull _ownedTarget}) then {
                 {
                     if (_x == _ownedOperator && {alive _x} && {local _x} && {!isPlayer _x} && {group _x == _finishGroup} && {isNull (remoteControlled _x)}
-                        && {!([group _x,false,_x] call WAIT_fnc_CortexExternalTakeover)}
-                        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
-                        && {[_x] call WAIT_fnc_CortexActorFireTaskAvailable}
+                        && {!([group _x,false,_x] call CBE_fnc_CortexExternalTakeover)}
+                        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
                         && {assignedTarget _x isEqualTo _ownedTarget}) then {
                         _x doTarget objNull;
                         _x doWatch objNull;
@@ -230,8 +230,8 @@ private _finish={
             // The shared takeover boundary includes player occupants, Zeus and specialist markers
             // on every crew group. A completed attack must not re-form the aircraft over any one
             // of those newer owners merely because its own operation reached a normal release.
-            private _resumeExternal = [_resumeGroup] call WAIT_fnc_CortexExternalTakeover
-                || {(crew _aircraft) findIf {[group _x] call WAIT_fnc_CortexExternalTakeover} >= 0};
+            private _resumeExternal = [_resumeGroup] call CBE_fnc_CortexExternalTakeover
+                || {(crew _aircraft) findIf {[group _x] call CBE_fnc_CortexExternalTakeover} >= 0};
             if (count _resumePosition >= 2 && {!_resumeExternal}) then {
                 {if (alive _x && {!isPlayer _x}) then {_x doFollow leader _resumeGroup}} forEach crew _aircraft;
                 if (_resumeWaypointIndex >= 0 && {_resumeWaypointIndex < count waypoints _resumeGroup}) then {
@@ -243,38 +243,38 @@ private _finish={
             };
         };
     };
-    _aircraft setVariable ["WAIT_Cortex_AirAttackOutcome",[
+    _aircraft setVariable ["CBE_Cortex_AirAttackOutcome",[
         _reason,serverTime,_job getOrDefault ["pattern",""],_job getOrDefault ["shots",0],
         _job getOrDefault ["releaseDetail",[]],getPosATL _aircraft,velocity _aircraft
     ],true];
     // Prevent immediate rediscovery of the same known contact after a finite run. This is a short
     // re-attack interval, not a movement controller or Zeus order guard.
-    _aircraft setVariable ["WAIT_Cortex_AirAttackBlockedUntil",serverTime+(
+    _aircraft setVariable ["CBE_Cortex_AirAttackBlockedUntil",serverTime+(
         if (_preserveEditedLeg || {_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"]}) then {5}
         else {if (_reason in ["COMPLETE","TARGET_DESTROYED"]) then {20}
             else {if (_reason == "DELIVERY_SAFETY_FLOOR") then {120} else {35}}}
-    ) max (_aircraft getVariable ["WAIT_Cortex_AirAttackBlockedUntil",0])];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackPlan",nil,true];
-    _aircraft setVariable ["WAIT_Cortex_AirFireSolution",nil,true];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackTarget",nil];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackGuidedWeapon",nil];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackGuidanceTarget",nil];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackSelectedWeapon",nil];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackSelectedMagazine",nil];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackJob",nil];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackToken",nil];
+    ) max (_aircraft getVariable ["CBE_Cortex_AirAttackBlockedUntil",0])];
+    _aircraft setVariable ["CBE_Cortex_AirAttackPlan",nil,true];
+    _aircraft setVariable ["CBE_Cortex_AirFireSolution",nil,true];
+    _aircraft setVariable ["CBE_Cortex_AirAttackTarget",nil];
+    _aircraft setVariable ["CBE_Cortex_AirAttackGuidedWeapon",nil];
+    _aircraft setVariable ["CBE_Cortex_AirAttackGuidanceTarget",nil];
+    _aircraft setVariable ["CBE_Cortex_AirAttackSelectedWeapon",nil];
+    _aircraft setVariable ["CBE_Cortex_AirAttackSelectedMagazine",nil];
+    _aircraft setVariable ["CBE_Cortex_AirAttackJob",nil];
+    _aircraft setVariable ["CBE_Cortex_AirAttackToken",nil];
     // The flight waypoint has already been removed above. The common operation result records
     // whether that finite native attempt completed; stale or externally cancelled generations
     // are intentionally a no-op.
     private _operationGeneration=_job getOrDefault ["operationGeneration",-1];
     if (!isNull _finishGroup && {local _finishGroup} && {_operationGeneration >= 0}) then {
         if (_reason in ["COMPLETE","TARGET_DESTROYED"]) then {
-            [_finishGroup,_operationGeneration,"COMPLETE",_reason] call WAIT_fnc_OperationRelease;
+            [_finishGroup,_operationGeneration,"COMPLETE",_reason] call CBE_fnc_OperationRelease;
         } else {
-            [_finishGroup,_operationGeneration,_reason] call WAIT_fnc_OperationCancel;
+            [_finishGroup,_operationGeneration,_reason] call CBE_fnc_OperationCancel;
         };
     };
-    [_job getOrDefault ["lateralPilot",objNull],_job getOrDefault ["lateralPilotReceipt",[]]] call WAIT_fnc_CortexAirPilotFeatureRelease;
+    [_job getOrDefault ["lateralPilot",objNull],_job getOrDefault ["lateralPilotReceipt",[]]] call CBE_fnc_CortexAirPilotFeatureRelease;
     -1
 };
 private _pilot=driver _aircraft;
@@ -292,21 +292,21 @@ private _setOperationPhase={
     params ["_phase"];
     private _generation=_job getOrDefault ["operationGeneration",-1];
     if (_generation < 0 || {isNull _group} || {!local _group}) exitWith {};
-    private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
     if (count _operation > 0 && {(_operation getOrDefault ["generation",-2]) == _generation}
         && {(_operation getOrDefault ["phase",""]) != _phase}) then {
         // Stable flight samples do not retransmit the common operation payload.
         _operation set ["phase",_phase];
-        _group setVariable ["WAIT_Operation",_operation,true];
+        _group setVariable ["CBE_Operation",_operation,true];
     };
 };
 // Generic eligibility is a start gate. Re-evaluating every broad filter during a finite owned run
 // allowed a transient locality/filter marker to cancel a valid attack just before weapon release.
 // Runtime master/feature changes, locality, explicit exclusions and Zeus still release immediately.
-private _explicitlyExcluded=[_group] call WAIT_fnc_CompatibilityExternalControl
-    || {"ALL" in (_group getVariable ["WAIT_AIPass_DisabledFeatures",[]])}
-    || {_group getVariable ["WAIT_AI_Exclude",false]}
-    || {_group getVariable ["WAIT_AIPass_Exclude",false]};
+private _explicitlyExcluded=[_group] call CBE_fnc_CompatibilityExternalControl
+    || {"ALL" in (_group getVariable ["CBE_AIPass_DisabledFeatures",[]])}
+    || {_group getVariable ["CBE_AI_Exclude",false]}
+    || {_group getVariable ["CBE_AIPass_Exclude",false]};
 // Planning can inspect weapon and terrain facts for a full scheduler slice.  Keep ownership cheap
 // to recheck at each native-command boundary so that a curator, player controller or specialist
 // that claims the aircraft during planning receives an immediate release rather than one stale
@@ -314,36 +314,36 @@ private _explicitlyExcluded=[_group] call WAIT_fnc_CompatibilityExternalControl
 private _mayControlAircraft = {
     private _livePilot=driver _aircraft;
     local _aircraft && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
-        && {[_livePilot] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
-        && {local _livePilot} && {[_livePilot] call WAIT_fnc_CortexActorFireTaskAvailable}
-        && {missionNamespace getVariable ["WAIT_AIPass_Active",false]} && {!([] call WAIT_fnc_CortexIsPaused)}
-        && {[_aircraft,"AIR_ATTACK",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid}
-        && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-        && {!([_group] call WAIT_fnc_CortexZeusHeld)}
+        && {[_livePilot] call CBE_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
+        && {local _livePilot} && {[_livePilot] call CBE_fnc_CortexActorFireTaskAvailable}
+        && {missionNamespace getVariable ["CBE_AIPass_Active",false]} && {!([] call CBE_fnc_CortexIsPaused)}
+        && {[_aircraft,"AIR_ATTACK",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {!([_group] call CBE_fnc_CortexZeusHeld)}
 };
 if (_job getOrDefault ["flightLeaseLost",false]
-    || {!([_aircraft,"AIR_ATTACK",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid)}) exitWith {
-    _job set ["releaseDetail",["flightLease",_aircraft getVariable ["WAIT_FlightLease",createHashMap]]];
+    || {!([_aircraft,"AIR_ATTACK",_flightLeaseToken] call CBE_fnc_FlightLeaseValid)}) exitWith {
+    _job set ["releaseDetail",["flightLease",_aircraft getVariable ["CBE_FlightLease",createHashMap]]];
     ["FLIGHT_OWNER_CHANGED"] call _finish
 };
-private _allowed=local _aircraft && {local _group} && {alive _aircraft} && {!isNull _pilot} && {[_pilot] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _pilot}
-    && {local _pilot} && {[_pilot] call WAIT_fnc_CortexActorFireTaskAvailable}
-    && {!unitIsUAV _aircraft} && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
-    && {!([] call WAIT_fnc_CortexIsPaused)}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-    && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-    && {[_group,"WAIT_Cortex_AirAttack_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+private _allowed=local _aircraft && {local _group} && {alive _aircraft} && {!isNull _pilot} && {[_pilot] call CBE_fnc_CortexCombatEffective} && {!isPlayer _pilot}
+    && {local _pilot} && {[_pilot] call CBE_fnc_CortexActorFireTaskAvailable}
+    && {!unitIsUAV _aircraft} && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+    && {!([] call CBE_fnc_CortexIsPaused)}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {!([_group] call CBE_fnc_CortexZeusHeld)}
+    && {[_group,"CBE_Cortex_AirAttack_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {!_explicitlyExcluded}
-    && {_stage != "" || {[_group] call WAIT_fnc_CortexIsEligible}};
+    && {_stage != "" || {[_group] call CBE_fnc_CortexIsEligible}};
 if (!_allowed) exitWith {
     // Preserve the exact authority/control gate which ended the run. Without this, locality loss,
     // a curator interruption and an explicit exclusion all appeared as the same opaque failure in
-    // the WAIT diagnostics and audit overlay.
+    // the CBE diagnostics and audit overlay.
     _job set ["releaseDetail",[
         "local",local _aircraft,"aircraftAlive",alive _aircraft,"pilotAlive",!isNull _pilot && {alive _pilot},
-        "runtime",missionNamespace getVariable ["WAIT_AIPass_Active",false],
-        "paused",[] call WAIT_fnc_CortexIsPaused,"zeus",[_group] call WAIT_fnc_CortexZeusHeld,
-        "feature",[_group,"WAIT_Cortex_AirAttack_Enable",true] call WAIT_fnc_CortexFeatureEnabled,
+        "runtime",missionNamespace getVariable ["CBE_AIPass_Active",false],
+        "paused",[] call CBE_fnc_CortexIsPaused,"zeus",[_group] call CBE_fnc_CortexZeusHeld,
+        "feature",[_group,"CBE_Cortex_AirAttack_Enable",true] call CBE_fnc_CortexFeatureEnabled,
         "excluded",_explicitlyExcluded,"stage",_stage,"vehicleOwner",owner _aircraft,"groupOwner",groupOwner _group
     ]];
     ["CONTROL_RELEASED"] call _finish
@@ -366,12 +366,12 @@ if (_stage == "") then {
     };
     if (isNull _target) then {_startFailure="NO_TARGET"};
     if (_startFailure == "" && {(_group knowsAbout _target) <= 0}) then {_startFailure="NO_KNOWN_TARGET"};
-    private _plan=if (_startFailure == "") then {[_aircraft,_target] call WAIT_fnc_CortexAirAttackPlan} else {createHashMap};
+    private _plan=if (_startFailure == "") then {[_aircraft,_target] call CBE_fnc_CortexAirAttackPlan} else {createHashMap};
     if (_startFailure == "" && {count _plan == 0}) then {_startFailure="NO_PLAN"};
     if (_startFailure == "" && {!([] call _mayControlAircraft)}) then {_startFailure="CONTROL_RELEASED"};
     // An unresolved snapshot belongs to an earlier operation, even when the native features
     // are currently disabled. Never capture that leaked state as a new baseline.
-    if (_startFailure == "" && {(_pilot getVariable ["WAIT_AirPilotFeatureReceipt",[]]) isNotEqualTo []}) then {
+    if (_startFailure == "" && {(_pilot getVariable ["CBE_AirPilotFeatureReceipt",[]]) isNotEqualTo []}) then {
         _startFailure="PILOT_FEATURE_HANDOVER_PENDING";
     };
     if (_startFailure == "") then {
@@ -380,7 +380,7 @@ if (_stage == "") then {
     if (_waypointIndex >= 0 && {_waypointIndex < count waypoints _group}) then {_resumePosition=waypointPosition [_group,_waypointIndex]};
     // Capture authored route content rather than currentWaypoint. The engine advances that index as
     // an aircraft flies, which previously looked like a replacement order and cancelled valid runs.
-    private _routeSignature=[_group] call WAIT_fnc_AuthoredRouteReceipt;
+    private _routeSignature=[_group] call CBE_fnc_AuthoredRouteReceipt;
     _job set ["target",_target]; _job set ["points",_plan get "points"];
     _job set ["pattern",_plan get "pattern"]; _job set ["token",_plan get "token"];
     if ((_plan get "pattern") == "LATERAL") then {
@@ -392,7 +392,7 @@ if (_stage == "") then {
             // owner/token are public recovery evidence. No route or attack request is replayable.
             private _receipt=[2,_pilot,_aircraft,_group,_flightLeaseToken,clientOwner,+_lateralPilotFeatures,-1];
             _job set ["lateralPilotReceipt",_receipt];
-            _pilot setVariable ["WAIT_AirPilotFeatureReceipt",_receipt,true];
+            _pilot setVariable ["CBE_AirPilotFeatureReceipt",_receipt,true];
         };
         {_pilot disableAI _x} forEach _lateralPilotFeatures;
         _pilot doTarget objNull;
@@ -441,15 +441,15 @@ if (_stage == "") then {
     _job set ["type","AIR_ATTACK"]; _job set ["stage",""]; _job set ["deadline",serverTime+75]; _job set ["shots",0];
     _job set ["origin",getPosATL _aircraft]; _job set ["resumePosition",_resumePosition];
     _job set ["resumeWaypointIndex",_waypointIndex]; _job set ["routeSignature",_routeSignature];
-    // The temporary waypoint belongs to this finite WAIT lease. A namespace-specific name keeps
+    // The temporary waypoint belongs to this finite CBE lease. A namespace-specific name keeps
     // route-diff and cleanup ownership unambiguous when an unrelated controller adds waypoints.
-    _job set ["ownedWaypointName",format ["WAIT_AIR_%1",_plan get "token"]];
+    _job set ["ownedWaypointName",format ["CBE_AIR_%1",_plan get "token"]];
     _job set ["previousAttackEnabled",attackEnabled _group];
     private _participants=(crew _aircraft) select {
         alive _x && {local _x} && {!isPlayer _x} && {lifeState _x != "INCAPACITATED"}
     };
     private _operation=[_group,format ["AIR_%1",_plan get "pattern"],_target,_participants,
-        +(_plan get "points"),"INGRESS"] call WAIT_fnc_OperationStart;
+        +(_plan get "points"),"INGRESS"] call CBE_fnc_OperationStart;
     if (count _operation == 0) then {
         _startFailure="OPERATION_UNAVAILABLE";
     } else {
@@ -457,28 +457,28 @@ if (_stage == "") then {
     };
     // Record the authored policy for exact cleanup, but do not disable it. Disabling group attacks
     // prevented native pilots and turrets from building a valid solution while Cortex waited to fire.
-    _aircraft setVariable ["WAIT_Cortex_AirAttackToken",_plan get "token"];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackTarget",_target];
+    _aircraft setVariable ["CBE_Cortex_AirAttackToken",_plan get "token"];
+    _aircraft setVariable ["CBE_Cortex_AirAttackTarget",_target];
     // simulation=shotMissile also covers unguided rockets and bombs. Only a planner-classified
     // GUIDED station may receive missile target commands; assigning them to bombs prevented normal
     // fuzing, while assigning them to fixed rockets contradicted their delivery geometry.
-    _aircraft setVariable ["WAIT_Cortex_AirAttackGuidedWeapon",
+    _aircraft setVariable ["CBE_Cortex_AirAttackGuidedWeapon",
         ["",_plan getOrDefault ["selectedWeapon",""]] select ((_plan getOrDefault ["selectedWeaponClass",""]) == "GUIDED")];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackGuidanceTarget",_target];
+    _aircraft setVariable ["CBE_Cortex_AirAttackGuidanceTarget",_target];
     // A native group may fire other weapons while it is approaching the finite attack leg. Only
     // the exact loaded station selected by this plan may advance its delivery counter: accepting
     // any non-countermeasure Fired event let defensive or unrelated native fire make a failed
     // rocket, bomb or guided pass look complete and begin egress early.
-    _aircraft setVariable ["WAIT_Cortex_AirAttackSelectedWeapon",_plan getOrDefault ["selectedWeapon",""]];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackSelectedMagazine",_plan getOrDefault ["selectedMagazine",""]];
+    _aircraft setVariable ["CBE_Cortex_AirAttackSelectedWeapon",_plan getOrDefault ["selectedWeapon",""]];
+    _aircraft setVariable ["CBE_Cortex_AirAttackSelectedMagazine",_plan getOrDefault ["selectedMagazine",""]];
     private _handler=_aircraft addEventHandler ["Fired",{
         params ["_aircraft","_weapon","","","","_magazine","_projectile",["_operator",objNull]];
         if (isNull _operator) then {_operator=currentPilot _aircraft};
-        private _selectedWeapon=_aircraft getVariable ["WAIT_Cortex_AirAttackSelectedWeapon",""];
-        private _selectedMagazine=_aircraft getVariable ["WAIT_Cortex_AirAttackSelectedMagazine",""];
+        private _selectedWeapon=_aircraft getVariable ["CBE_Cortex_AirAttackSelectedWeapon",""];
+        private _selectedMagazine=_aircraft getVariable ["CBE_Cortex_AirAttackSelectedMagazine",""];
         private _selectedRelease=_weapon == _selectedWeapon
             && {_selectedMagazine != ""} && {_magazine == _selectedMagazine};
-        private _brain=_aircraft getVariable ["WAIT_AirAttack_Brain",createHashMap];
+        private _brain=_aircraft getVariable ["CBE_AirAttack_Brain",createHashMap];
         private _liveJob=_brain getOrDefault ["job",createHashMap];
         private _fireGroup=_liveJob getOrDefault ["group",grpNull];
         if (isNull _fireGroup) then {_fireGroup=group currentPilot _aircraft};
@@ -489,21 +489,21 @@ if (_stage == "") then {
             && {!(_brain getOrDefault ["cancelled",false])}
             && {_operator == _expectedOperator}
             && {_operator == (_liveJob getOrDefault ["selectedOperator",objNull])}
-            && {[_aircraft,_fireGroup,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}
+            && {[_aircraft,_fireGroup,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable}
             && {!isNull _operator} && {local _operator} && {!isPlayer _operator}
             && {isNull remoteControlled _operator}
-            && {([_operator] call WAIT_fnc_CortexExternalOwner) == ""}
-            && {!([_operator] call WAIT_fnc_CompatibilityExternalControl)}
-            && {[_aircraft,"AIR_ATTACK",_liveJob getOrDefault ["flightLeaseToken",""]] call WAIT_fnc_FlightLeaseValid}
-            && {!isNull _fireGroup} && {!([_fireGroup] call WAIT_fnc_CortexZeusHeld)}
-            && {!([_fireGroup] call WAIT_fnc_CortexExternalTakeover)};
+            && {([_operator] call CBE_fnc_CortexExternalOwner) == ""}
+            && {!([_operator] call CBE_fnc_CompatibilityExternalControl)}
+            && {[_aircraft,"AIR_ATTACK",_liveJob getOrDefault ["flightLeaseToken",""]] call CBE_fnc_FlightLeaseValid}
+            && {!isNull _fireGroup} && {!([_fireGroup] call CBE_fnc_CortexZeusHeld)}
+            && {!([_fireGroup] call CBE_fnc_CortexExternalTakeover)};
         if (_selectedRelease && {_ownsRelease}) then {
-            _aircraft setVariable ["WAIT_Cortex_AirAttackShots",(_aircraft getVariable ["WAIT_Cortex_AirAttackShots",0])+1];
+            _aircraft setVariable ["CBE_Cortex_AirAttackShots",(_aircraft getVariable ["CBE_Cortex_AirAttackShots",0])+1];
             // Preserve native ballistics and seeker behaviour, but give the projectile the hostile
             // already selected by its operator. fireAtTarget alone can launch a guided pylon round
             // without a missile target, producing the observed straight-line ground and A2A misses.
-            private _guidedWeapon=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidedWeapon",""];
-            private _guidedTarget=_aircraft getVariable ["WAIT_Cortex_AirAttackGuidanceTarget",objNull];
+            private _guidedWeapon=_aircraft getVariable ["CBE_Cortex_AirAttackGuidedWeapon",""];
+            private _guidedTarget=_aircraft getVariable ["CBE_Cortex_AirAttackGuidanceTarget",objNull];
             if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}
                 && {(_liveJob getOrDefault ["stage",""]) in ["INGRESS","ATTACK"]}
                 && {!captive _guidedTarget} && {(side _fireGroup) getFriend side _guidedTarget < 0.6}
@@ -524,25 +524,25 @@ if (_stage == "") then {
                         _guidanceDecision="MANUAL_POINT_REQUESTED";
                     };
                 };
-                _aircraft setVariable ["WAIT_Cortex_AirGuidanceAssignment",[
+                _aircraft setVariable ["CBE_Cortex_AirGuidanceAssignment",[
                     serverTime,_weapon,_targetAccepted,missileTarget _projectile,missileTargetPos _projectile,_guidanceDecision
                 ],true];
             };
         };
     }];
-    _aircraft setVariable ["WAIT_Cortex_AirAttackShots",0];
+    _aircraft setVariable ["CBE_Cortex_AirAttackShots",0];
     _job set ["firedHandler",_handler];
-    [_group,_job,"INGRESS","PLAN_ACCEPTED"] call WAIT_fnc_CortexDrillSetStage;
+    [_group,_job,"INGRESS","PLAN_ACCEPTED"] call CBE_fnc_CortexDrillSetStage;
         _stage="INGRESS";
     };
 };
 if (_startFailure != "") exitWith {[_startFailure] call _finish};
 private _ownedWaypointName=_job getOrDefault ["ownedWaypointName",""];
-private _currentRoute=[_group,_ownedWaypointName] call WAIT_fnc_AuthoredRouteReceipt;
+private _currentRoute=[_group,_ownedWaypointName] call CBE_fnc_AuthoredRouteReceipt;
 if (_currentRoute isNotEqualTo (_job getOrDefault ["routeSignature",_currentRoute])) exitWith {["AUTHORED_ROUTE_CHANGED"] call _finish};
 // Compare the excluded leg too: edits/deletion/duplicate names yield before another flight write.
 // Attached target movement changes position naturally; the shared receipt compares identity instead.
-private _currentOwnedReceipt=[_group,_ownedWaypointName,true] call WAIT_fnc_AuthoredRouteReceipt;
+private _currentOwnedReceipt=[_group,_ownedWaypointName,true] call CBE_fnc_AuthoredRouteReceipt;
 if (!isNil {_job get "ownedWaypointReceipt"} && {_currentOwnedReceipt isNotEqualTo (_job get "ownedWaypointReceipt")}) exitWith {
     ["OWNED_ROUTE_CHANGED"] call _finish
 };
@@ -566,7 +566,7 @@ if (_targetUnavailable && {!(_job getOrDefault ["targetDestroyed",false])}) then
     // Treat a destroyed target as this run's result when the aircraft physically fired during the
     // attack, without requiring the damage event and the ATTACK label to land on the same scheduler
     // tick. A target lost before real weapon fire remains a failed run.
-    private _liveShots=_aircraft getVariable ["WAIT_Cortex_AirAttackShots",0];
+    private _liveShots=_aircraft getVariable ["CBE_Cortex_AirAttackShots",0];
     // A present wreck is an unambiguous successful end condition even when another friendly
     // weapon lands the final blow between scheduler ticks. Requiring this controller's Fired EH
     // to win that race mislabeled a destroyed objective as TARGET_LOST and could strand the
@@ -577,12 +577,12 @@ if (_targetUnavailable && {!(_job getOrDefault ["targetDestroyed",false])}) then
         // A turret can validly destroy a contact while the pilot is still closing. Record that
         // physical fire as ATTACK before beginning egress so a real kill is not labelled TARGET_LOST.
         if (_stage == "INGRESS") then {
-            [_group,_job,"ATTACK","ACTUAL_FIRE"] call WAIT_fnc_CortexDrillSetStage;
+            [_group,_job,"ATTACK","ACTUAL_FIRE"] call CBE_fnc_CortexDrillSetStage;
             _stage="ATTACK";
             ["ATTACK"] call _setOperationPhase;
         };
         if (_stage == "ATTACK") then {
-            [_group,_job,"EGRESS","TARGET_DESTROYED"] call WAIT_fnc_CortexDrillSetStage;
+            [_group,_job,"EGRESS","TARGET_DESTROYED"] call CBE_fnc_CortexDrillSetStage;
             _job set ["commandedStage",""];
             _job set ["egressStartPosition",getPosATL _aircraft];
             _job set ["egressStartedAt",serverTime];
@@ -636,7 +636,7 @@ private _destination=_points select _stageIndex;
 if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) then {
     private _leadSeconds=[16,5] select (_stage == "ATTACK");
     private _knowers=((units _group) select [0,8]) select {
-        local _x && {[_x] call WAIT_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
+        local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
     };
     private _knower=_knowers param [0,objNull,[objNull]];
     if (isNull _knower) exitWith {_job set ["interceptEstimateLost",true]};
@@ -680,7 +680,7 @@ private _stageDistance=_aircraft distance2D _destination;
 private _closestKey="closest"+_stage;
 private _stageClosest=(_job getOrDefault [_closestKey,_stageDistance]) min _stageDistance;
 _job set [_closestKey,_stageClosest];
-private _shots=_aircraft getVariable ["WAIT_Cortex_AirAttackShots",0];
+private _shots=_aircraft getVariable ["CBE_Cortex_AirAttackShots",0];
 _job set ["shots",_shots];
 // Surface profiles deliberately place the ATTACK waypoint beyond the objective so native flight
 // remains smooth through release. Measure the aircraft against that immutable delivery axis as
@@ -751,7 +751,7 @@ if (_commandedStage != _stage) then {
         _ownedWaypoint setWaypointType "MOVE";
     };
     _group setCurrentWaypoint _ownedWaypoint;
-    _job set ["ownedWaypointReceipt",[_group,_ownedWaypointName,true] call WAIT_fnc_AuthoredRouteReceipt];
+    _job set ["ownedWaypointReceipt",[_group,_ownedWaypointName,true] call CBE_fnc_AuthoredRouteReceipt];
     _job set ["commandedStage",_stage];
     _job set ["commandedDestination",+_destination];
     _job set ["commandedAt",serverTime];
@@ -783,15 +783,15 @@ if (_stage in ["INGRESS","ATTACK"]) then {
 };
 if (_job getOrDefault ["operatorChanged",false]) exitWith {["WEAPON_OPERATOR_CHANGED"] call _finish};
 if (_stage == "ATTACK"
-    && {!([_aircraft,_group,_attackOperator] call WAIT_fnc_CortexAirWeaponOperatorAvailable)}) exitWith {
+    && {!([_aircraft,_group,_attackOperator] call CBE_fnc_CortexAirWeaponOperatorAvailable)}) exitWith {
     ["WEAPON_OPERATOR_UNAVAILABLE"] call _finish
 };
 if (_stage == "ATTACK") then {
     private _station=_job getOrDefault ["selectedTurret",[]];
     private _weaponOperator=if (_station isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _station};
-    _job set ["weaponOperatorEligible",[_weaponOperator] call WAIT_fnc_CortexCombatEffective
+    _job set ["weaponOperatorEligible",[_weaponOperator] call CBE_fnc_CortexCombatEffective
         && {local _weaponOperator} && {!isPlayer _weaponOperator} && {isNull remoteControlled _weaponOperator}
-        && {[group _weaponOperator,false,false,true,_weaponOperator] call WAIT_fnc_CortexIsEligible}];
+        && {[group _weaponOperator,false,false,true,_weaponOperator] call CBE_fnc_CortexIsEligible}];
 };
 if (_stage == "ATTACK" && {!(_job getOrDefault ["weaponOperatorEligible",false])}) exitWith {
     ["WEAPON_OPERATOR_RELEASED"] call _finish
@@ -815,11 +815,11 @@ if (_stage == "ATTACK") then {
     // callback restarts native weapon handling while the pilot or gunner is still acquiring the
     // same target, producing the observed pause/fire/pause cycle and refused releases.
     if (_weapon != "" && {!(_job getOrDefault ["weaponSelected",false])}
-        && {[_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}) then {
+        && {[_aircraft,_group,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable}) then {
         _aircraft selectWeaponTurret [_weapon,_turret];
         _job set ["weaponSelected",true];
     };
-    if ([_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable
+    if ([_aircraft,_group,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable
         && {!(_job getOrDefault ["targetCommanded",false])}) then {
         // The object-attached DESTROY waypoint is already the fixed-wing pilot's native attack
         // owner. A duplicate doTarget on that pilot can replace the committed run with ATTACK pursuit
@@ -990,7 +990,7 @@ if (_stage == "ATTACK") then {
         _deliveryAlong,_deliveryPassed];
     _job set ["fireSolution",_solution];
     _job set ["deliveryLoaded",_loaded];
-    _aircraft setVariable ["WAIT_Cortex_AirFireSolution",_solution,true];
+    _aircraft setVariable ["CBE_Cortex_AirFireSolution",_solution,true];
     // Turrets use fireAtTarget after their operator has tracked the hostile. Fixed-wing pilot
     // stations retain the native attached DESTROY order for flight, then receive one doFire request
     // once a real delivery basket exists. The Fired handler is the sole proof of either release
@@ -1012,7 +1012,7 @@ if (_stage == "ATTACK") then {
         || {!_requestPending && {_requestAttempts < 2}};
     private _pilotSurfaceRelease=_pilotSurfaceStation;
     if (_validSolution && {_pilotSurfaceRelease} && {_requestAvailable}
-        && {[_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}
+        && {[_aircraft,_group,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable}
         && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
         // The attached DESTROY waypoint establishes the run but does not consistently ask a
         // pilot-operated fixed station to release. Request native fire once; a Fired event remains
@@ -1032,7 +1032,7 @@ if (_stage == "ATTACK") then {
         _job set ["nextWeaponFire",serverTime+_pilotFireDelay];
     };
     if (_validSolution && {!_pilotSurfaceRelease} && {_requestAvailable}
-        && {[_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}
+        && {[_aircraft,_group,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable}
         && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
         // One native request at a time for an independently aimed turret. Fixed-wing pilots are
         // already controlled by the native attached DESTROY order above.
@@ -1056,20 +1056,20 @@ if (_stage == "ATTACK") then {
     };
 };
 
-private _flareSetting=[_group,"WAIT_Cortex_AttackRunFlares_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+private _flareSetting=[_group,"CBE_Cortex_AttackRunFlares_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 private _flareKey="flare"+_stage;
 private _flareCount=_job getOrDefault [_flareKey,0];
 private _flareNextKey="flareNext"+_stage;
 private _flareNext=_job getOrDefault [_flareNextKey,serverTime];
 if (_flareSetting && {_stage in ["INGRESS","EGRESS"]} && {_flareCount < 3} && {serverTime >= _flareNext}) then {
-    _aircraft setVariable ["WAIT_Cortex_AttackFlarePhase",["APPROACH","DEPARTURE"] select (_stage == "EGRESS"),true];
-    if ([_aircraft] call WAIT_fnc_CortexFireCountermeasure) then {
+    _aircraft setVariable ["CBE_Cortex_AttackFlarePhase",["APPROACH","DEPARTURE"] select (_stage == "EGRESS"),true];
+    if ([_aircraft] call CBE_fnc_CortexFireCountermeasure) then {
         _job set [_flareKey,_flareCount+1];
     };
     // Avoid synchronized salvos across aircraft and respect launcher cycle time.
     _job set [_flareNextKey,serverTime+0.8+random 0.8];
 };
-_aircraft setVariable ["WAIT_Cortex_AirAttackPlan",[
+_aircraft setVariable ["CBE_Cortex_AirAttackPlan",[
     _job get "token",_job get "pattern",_stage,_target,_destination,_aircraft distance2D _destination,
     _shots,count ((_job getOrDefault ["aaPositions",[]])),speed _aircraft,getPosATL _aircraft select 2,
     _job getOrDefault ["flareINGRESS",0],_job getOrDefault ["flareEGRESS",0],
@@ -1094,12 +1094,12 @@ if (_stage == "ATTACK" && {_attackShots > 0} && {(_job getOrDefault ["firstAttac
 };
 if ((_job getOrDefault ["pattern",""]) == "STANDOFF" && {_stage == "ATTACK"} && {_attackShots <= 0}
     && {serverTime > (_job getOrDefault ["attackStartedAt",serverTime])+25}) exitWith {
-    _aircraft setVariable ["WAIT_Cortex_AirStandoffBlockedUntil",serverTime+90];
+    _aircraft setVariable ["CBE_Cortex_AirStandoffBlockedUntil",serverTime+90];
     // Failure to release is not permission to abandon the escape leg over the threat.
     // Keep the failed-delivery reason, fly the immutable exit, then release native control.
     _job set ["deliveryMissed",true];
     _job set ["deliveryFailureReason","NO_FIRE_SOLUTION"];
-    [_group,_job,"EGRESS","NO_FIRE_SOLUTION"] call WAIT_fnc_CortexDrillSetStage;
+    [_group,_job,"EGRESS","NO_FIRE_SOLUTION"] call CBE_fnc_CortexDrillSetStage;
     ["EGRESS"] call _setOperationPhase;
     _job set ["commandedStage",""];
     _job set ["egressStartPosition",getPosATL _aircraft];
@@ -1155,7 +1155,7 @@ switch _stage do {
         // Accept entering or physically passing a bounded capture area; elapsed time alone still
         // cannot advance the state.
         if (_stageDistance <= _effectiveCapture || {_stagePassed} || {_ingressBehind} || {_lateralWeaponEntry}) then {
-            [_group,_job,"ATTACK","INGRESS_ARRIVAL"] call WAIT_fnc_CortexDrillSetStage;
+            [_group,_job,"ATTACK","INGRESS_ARRIVAL"] call CBE_fnc_CortexDrillSetStage;
             _stage="ATTACK";
             ["ATTACK"] call _setOperationPhase;
             _job set ["commandedStage",""];
@@ -1169,11 +1169,11 @@ switch _stage do {
             // The public plan drives diagnostics and Fired-event attribution. Publish the accepted
             // transition immediately instead of leaving it one budget tick behind the real job;
             // otherwise successful rounds are incorrectly labelled as ingress fire.
-            private _publishedPlan=_aircraft getVariable ["WAIT_Cortex_AirAttackPlan",[]];
+            private _publishedPlan=_aircraft getVariable ["CBE_Cortex_AirAttackPlan",[]];
             if (_publishedPlan isNotEqualTo []) then {
                 _publishedPlan set [2,"ATTACK"];
                 _publishedPlan set [4,_points select 1];
-                _aircraft setVariable ["WAIT_Cortex_AirAttackPlan",_publishedPlan,true];
+                _aircraft setVariable ["CBE_Cortex_AirAttackPlan",_publishedPlan,true];
             };
         };
     };
@@ -1230,34 +1230,34 @@ switch _stage do {
             && {_standoffRange <= _standoffMinimumRange+150} && {_standoffForwardAlignment > 0.75};
         if (_attackShots <= 0 && {_deliveryPassed || {_standoffWindowClosed}}) then {
             _job set ["deliveryMissed",true];
-            [_group,_job,"EGRESS","DELIVERY_WINDOW_PASSED"] call WAIT_fnc_CortexDrillSetStage;
+            [_group,_job,"EGRESS","DELIVERY_WINDOW_PASSED"] call CBE_fnc_CortexDrillSetStage;
             _stage="EGRESS";
             ["EGRESS"] call _setOperationPhase;
             _job set ["commandedStage",""];
             _job set ["egressStartPosition",getPosATL _aircraft];
             _job set ["egressStartedAt",serverTime];
             _job set ["deadline",serverTime+75];
-            private _publishedPlan=_aircraft getVariable ["WAIT_Cortex_AirAttackPlan",[]];
+            private _publishedPlan=_aircraft getVariable ["CBE_Cortex_AirAttackPlan",[]];
             if (_publishedPlan isNotEqualTo []) then {
                 _publishedPlan set [2,"EGRESS"];
                 _publishedPlan set [4,_points select 2];
-                _aircraft setVariable ["WAIT_Cortex_AirAttackPlan",_publishedPlan,true];
+                _aircraft setVariable ["CBE_Cortex_AirAttackPlan",_publishedPlan,true];
             };
         };
         if (_attackShots > 0 && {_attackDwell >= (_job getOrDefault ["attackMinimum",2])}
             && {_deliveryComplete}) then {
-            [_group,_job,"EGRESS","ACTUAL_FIRE"] call WAIT_fnc_CortexDrillSetStage;
+            [_group,_job,"EGRESS","ACTUAL_FIRE"] call CBE_fnc_CortexDrillSetStage;
             _stage="EGRESS";
             ["EGRESS"] call _setOperationPhase;
             _job set ["commandedStage",""];
             _job set ["egressStartPosition",getPosATL _aircraft];
             _job set ["egressStartedAt",serverTime];
             _job set ["deadline",serverTime+75];
-            private _publishedPlan=_aircraft getVariable ["WAIT_Cortex_AirAttackPlan",[]];
+            private _publishedPlan=_aircraft getVariable ["CBE_Cortex_AirAttackPlan",[]];
             if (_publishedPlan isNotEqualTo []) then {
                 _publishedPlan set [2,"EGRESS"];
                 _publishedPlan set [4,_points select 2];
-                _aircraft setVariable ["WAIT_Cortex_AirAttackPlan",_publishedPlan,true];
+                _aircraft setVariable ["CBE_Cortex_AirAttackPlan",_publishedPlan,true];
             };
         };
     };

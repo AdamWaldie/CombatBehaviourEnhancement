@@ -12,14 +12,14 @@
  * READY_PROPOSAL means all slices were sampled and the final observer found no conflict;
  * it grants no owner agreement, swept-volume guarantee, native steering or movement authority.
  * Current callers: trusted script preflight and experimental DrivingPassAdmission; physical acceptance remains outstanding.
- * Example: _work=[_proposal,_work] call WAIT_fnc_DrivingPassPrepare;
+ * Example: _work=[_proposal,_work] call CBE_fnc_DrivingPassPrepare;
  */
 params [["_proposal",createHashMap,[createHashMap]],["_work",createHashMap,[createHashMap]]];
 private _refuse={params ["_reason",["_phase","REFUSED"]];_work set ["phase",_phase];_work set ["reason",_reason];_work};
 if (isRemoteExecuted) exitWith {["REMOTE_EXECUTION"] call _refuse};
 if (count _work == 0) then {
     private _vehicles=_proposal getOrDefault ["vehicles",[]];
-    private _context=[_vehicles] call WAIT_fnc_DrivingPassContext;
+    private _context=[_vehicles] call CBE_fnc_DrivingPassContext;
     private _guide=_proposal getOrDefault ["guideASL",[]];
     private _at=_proposal getOrDefault ["observedAt",-1];
     private _budget=[_proposal getOrDefault ["estimatedSeconds",-1],
@@ -59,7 +59,7 @@ private _budget=[_proposal getOrDefault ["estimatedSeconds",-1],
     _proposal getOrDefault ["requiredTravel",-1],_proposal getOrDefault ["maximumSeconds",-1],_proposal getOrDefault ["returnIndex",-1]];
 if ((_proposal getOrDefault ["status",""]) != "PROPOSAL"
     || {_budget isNotEqualTo (_work getOrDefault ["budget",[]])}
-    || {([_vehicles] call WAIT_fnc_DrivingPassContext) isNotEqualTo (_work getOrDefault ["context",[]])}
+    || {([_vehicles] call CBE_fnc_DrivingPassContext) isNotEqualTo (_work getOrDefault ["context",[]])}
     || {(_proposal getOrDefault ["context",[]]) isNotEqualTo (_work getOrDefault ["context",[]])}
     || {(_proposal getOrDefault ["guideASL",[]]) isNotEqualTo (_work getOrDefault ["guide",[]])}
     || {(_proposal getOrDefault ["observedAt",-1]) isNotEqualTo (_work getOrDefault ["proposalAt",-2])}
@@ -70,7 +70,7 @@ if (count _vehicles == 2 && {group driver (_vehicles select 0) == group driver (
 // explicit while refusing local controller/mission conflicts before costly geometry.
 private _remoteOwners=[];
 private _localRefused=_vehicles findIf {
-    if (local _x) exitWith {!([_x] call WAIT_fnc_DrivingPassCanConsent)};
+    if (local _x) exitWith {!([_x] call CBE_fnc_DrivingPassCanConsent)};
     _remoteOwners pushBackUnique (owner _x);
     false
 };
@@ -78,7 +78,7 @@ if (_localRefused >= 0) exitWith {["LOCAL_CONSENT_REFUSED"] call _refuse};
 _work set ["requiredRemoteOwners",_remoteOwners];
 if (_phase == "SCANNING") exitWith {
     private _cursor=_work getOrDefault ["cursor",-1];
-    private _slice=[_proposal,_cursor] call WAIT_fnc_DrivingPassGeometry;
+    private _slice=[_proposal,_cursor] call CBE_fnc_DrivingPassGeometry;
     _work set ["rayCount",(_work getOrDefault ["rayCount",0])+(_slice getOrDefault ["rayCount",0])];
     if ((_slice getOrDefault ["status",""]) != "SLICE_PROPOSAL") exitWith {[_slice getOrDefault ["reason","GEOMETRY_REFUSED"]] call _refuse};
     if (serverTime >= _deadline) exitWith {["PREPARATION_DEADLINE","EXPIRED"] call _refuse};
@@ -89,7 +89,7 @@ if (_phase == "SCANNING") exitWith {
     _work
 };
 if (_phase == "TRAFFIC") exitWith {
-    private _traffic=[_proposal] call WAIT_fnc_DrivingPassTraffic;
+    private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
     _work set ["traffic",_traffic];
     if (serverTime >= _deadline) exitWith {["PREPARATION_DEADLINE","EXPIRED"] call _refuse};
     if ((_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION" || {_traffic getOrDefault ["blocked",true]}) exitWith {[_traffic getOrDefault ["reason","TRAFFIC_REFUSED"]] call _refuse};

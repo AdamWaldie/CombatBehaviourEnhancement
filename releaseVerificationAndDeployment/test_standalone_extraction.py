@@ -13,7 +13,7 @@ class StandaloneExtractionContracts(unittest.TestCase):
         self.assertGreater(len(paths), 100)
         for relative in paths:
             relative = relative.replace("\\", "/")
-            relative = relative.removeprefix("/z/waldo_ai_tweaks/")
+            relative = relative.removeprefix("/z/cbe/")
             path = ROOT / relative
             self.assertTrue(path.is_file(), relative)
             header = path.read_text(encoding="utf-8")[:8000]
@@ -25,13 +25,13 @@ class StandaloneExtractionContracts(unittest.TestCase):
         config = (ROOT / "addons/main/config.cpp").read_text(encoding="utf-8")
         pre = (ROOT / "addons/main/XEH_preInit.sqf").read_text(encoding="utf-8")
         post = (ROOT / "addons/main/XEH_postInit.sqf").read_text(encoding="utf-8")
-        self.assertIn('requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "WAIT_core", "WAIT_danger", "WAIT_infantry", "WAIT_vehicles", "WAIT_aircraft", "WAIT_support", "WAIT_compatibility"}', config)
+        self.assertIn('requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"}', config)
         self.assertIn("Extended_PreInit_EventHandlers", config)
         self.assertIn("Extended_PostInit_EventHandlers", config)
         self.assertIn("addons\\main\\settings\\aiConfig.sqf", pre)
-        self.assertIn('WAIT_AITweaks_SettingsReady", true', pre)
-        self.assertIn("WAIT_fnc_CortexInit", post)
-        self.assertIn("WAIT_fnc_CortexZeusWatchLocal", post)
+        self.assertIn('CBE_AITweaks_SettingsReady", true', pre)
+        self.assertIn("CBE_fnc_CortexInit", post)
+        self.assertIn("CBE_fnc_CortexZeusWatchLocal", post)
 
     def test_wait_systems_are_outside_the_standalone_tree(self):
         forbidden = ("DynamicAA", "DynamicAO", "Economy", "TransportServices", "Paradrop")
@@ -46,12 +46,12 @@ class StandaloneExtractionContracts(unittest.TestCase):
             if path.suffix in {".sqf", ".hpp"}
         )
         for private_name in (
-            "WAIT_DynamicAA_",
-            "WAIT_DynamicAO_",
-            "WAIT_TransportService_",
-            "WAIT_Paradrop_",
-            "WAIT_Gunship_",
-            "WAIT_ServerOwnedFeature",
+            "CBE_DynamicAA_",
+            "CBE_DynamicAO_",
+            "CBE_TransportService_",
+            "CBE_Paradrop_",
+            "CBE_Gunship_",
+            "CBE_ServerOwnedFeature",
         ):
             self.assertNotIn(private_name, production)
         self.assertIn("Waldo_AI_ExternalControl", production)
@@ -61,10 +61,10 @@ class StandaloneExtractionContracts(unittest.TestCase):
         self.assertTrue((ROOT / ".hemtt/project.toml").is_file())
         self.assertEqual(
             (ROOT / "addons/main/$PBOPREFIX$").read_text(encoding="utf-8").strip(),
-            "z\\waldo_ai_tweaks\\addons\\main",
+            "z\\cbe\\addons\\main",
         )
         config = (ROOT / "addons/main/config.cpp").read_text(encoding="utf-8")
-        self.assertIn("class WAIT_AI_Tweaks_Main", config)
+        self.assertIn("class CBE_AI_Tweaks_Main", config)
         self.assertNotIn("zen_main", config)
 
     def test_cba_settings_and_compatibility_are_native_addon_services(self):
@@ -72,11 +72,11 @@ class StandaloneExtractionContracts(unittest.TestCase):
         functions = (ROOT / "addons/main/CfgFunctions.hpp").read_text(encoding="utf-8")
         settings = (ROOT / "addons/core/functions/aiTweaksRegisterSettings.sqf").read_text(encoding="utf-8")
         compat = (ROOT / "addons/compatibility/functions/aiTweaksDetectCompatibility.sqf").read_text(encoding="utf-8")
-        self.assertIn("WAIT_fnc_AITweaksRegisterSettings", pre)
-        self.assertIn("WAIT_fnc_AITweaksDetectCompatibility", pre)
+        self.assertIn("CBE_fnc_AITweaksRegisterSettings", pre)
+        self.assertIn("CBE_fnc_AITweaksDetectCompatibility", pre)
         self.assertIn("AITweaksRegisterSettings", functions)
         self.assertIn("CBA_fnc_addSetting", settings)
-        self.assertIn("_this] call WAIT_fnc_AITweaksSettingChanged", settings)
+        self.assertIn("_this] call CBE_fnc_AITweaksSettingChanged", settings)
         self.assertNotIn("params ['_value']", settings)
         self.assertNotIn('"zen_main"', (ROOT / "addons/main/config.cpp").read_text(encoding="utf-8"))
         for capability in ("meleeBackend", "specialistBackend"):
@@ -102,14 +102,14 @@ class StandaloneExtractionContracts(unittest.TestCase):
         native = (ROOT / "addons/vehicles/functions/moduleConvoy.sqf").read_text(encoding="utf-8")
         watcher = (ROOT / "addons/core/functions/cortexZeusWatchLocal.sqf").read_text(encoding="utf-8")
         dialog = (ROOT / "addons/vehicles/functions/zenConvoyModule.sqf").read_text(encoding="utf-8")
-        for name in ("WAIT_ModuleConvoyStart", "WAIT_ModuleConvoyHold", "WAIT_ModuleConvoyRelease"):
+        for name in ("CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease"):
             self.assertIn(name, config)
         self.assertIn("Extended_DisplayLoad_EventHandlers", config)
         self.assertIn("RscDisplayCurator", config)
-        self.assertIn('WAIT_AIPass_ZeusInstallLocal', watcher)
+        self.assertIn('CBE_AIPass_ZeusInstallLocal', watcher)
         self.assertIn('attachedTo _logic', native)
         self.assertIn('!local _logic', native)
-        self.assertIn('WAIT_processed', native)
+        self.assertIn('CBE_processed', native)
         self.assertNotIn('nearest', native.lower().replace('no nearby vehicle', ''))
         self.assertNotIn('zen_dialog_fnc_create', native)
         self.assertIn('isNil "zen_dialog_fnc_create"', dialog)

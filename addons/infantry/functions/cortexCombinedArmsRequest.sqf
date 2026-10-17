@@ -8,8 +8,8 @@
  * Invalid payloads reject before local cooldown or server reservation; no live-target fallback is used.
  * Arguments: 0: observing group <GROUP>; 1: group state <HASHMAP>; 2: visible contacts <ARRAY>.
  * Return Value: Boolean, true when a valid opportunity was sent to the server.
- * Current callers: WAIT_fnc_CortexGroupTick.
- * Example: [_group,_state,_visible] call WAIT_fnc_CortexCombinedArmsRequest;
+ * Current callers: CBE_fnc_CortexGroupTick.
+ * Example: [_group,_state,_visible] call CBE_fnc_CortexCombinedArmsRequest;
  */
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_visible",[],[[]]]];
 if (!local _group || {_visible isEqualTo []}) exitWith {false};
@@ -22,5 +22,5 @@ private _confidence=_contact param [5,1,[0]];
 if (isNull _target || {!alive _target} || {!finite _age} || {_age < 0} || {_age > 5} || {!finite _confidence} || {_confidence <= 0} || {_confidence > 4} || {count _position != 3}
     || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}) exitWith {false};
 _state set ["combinedArmsDue",serverTime+20+random 8];
-[_group,_target,+_position,serverTime-_age,_confidence min 2.5] remoteExecCall ["WAIT_fnc_CortexCombinedArmsServer",2];
+[_group,_target,+_position,serverTime-_age,_confidence min 2.5] remoteExecCall ["CBE_fnc_CortexCombinedArmsServer",2];
 true

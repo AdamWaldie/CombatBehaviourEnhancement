@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Tests mid-order master disable, authored movement, restart, active investigation/search/retreat
  * migration and published handover reasons on the server and two headless owners.
- * Locality/authority: server fixture; WAIT migration and production owner-local defence/release paths.
+ * Locality/authority: server fixture; CBE migration and production owner-local defence/release paths.
  * Ordinary waypoints are issued after returning the group to the server while Cortex is disabled.
  * Also checks that a refused HC-to-HC transfer preserves actual ownership and honours the provider's registry policy.
  * Repeat/JIP: fresh group and public destination markers; caller restores tuning; fixture cleaned here.
@@ -11,11 +11,11 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQALifecycle.sqf";
  */
 params ["_recordCheck","_phase","_wait"];
-private _owners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
-if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
+private _owners=(missionNamespace getVariable ["CBE_Headless_Clients",[]]) apply {_x select 0};
+if (missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
 ["LIFE-two-headless-clients",count _owners >= 2] call _recordCheck;
 } else {_owners=[]};
-private _nativeProvider=missionNamespace getVariable ["WAIT_QA_NativeHeadlessInstalled",false];
+private _nativeProvider=missionNamespace getVariable ["CBE_QA_NativeHeadlessInstalled",false];
 private _nativeReady=true;
 if (_nativeProvider) then {
     _nativeReady=[{
@@ -32,25 +32,25 @@ private _variants=[["",2]];
 {
 _x params ["_prefix","_targetOwner"];
 private _check={params ["_id","_passed",["_detail",""]]; [_prefix+_id,_passed,_detail] call _recordCheck};
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],["WAIT_AIPass_Regroup_Enable",false]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],["CBE_AIPass_Regroup_Enable",false]]] call CBE_fnc_CortexTuning;
 private _group=createGroup [east,true];
-_group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_group setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _group setVariable ["acex_headless_blacklist",true,true];
 _group setCombatMode "BLUE";
 private _units=[];
 for "_i" from 0 to 1 do {
     private _unit=_group createUnit ["O_Soldier_F",[2100+_i*3,1700,0],[],0,"NONE"];
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["LIFECYCLE SOLDIER %1",_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["LIFECYCLE SOLDIER %1",_i+1],true];
     _units pushBack _unit;
 };
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_units,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_units,true];
 _group setGroupIdGlobal ["QA LIFECYCLE "+(["SERVER",_prefix] select (_targetOwner != 2))];
 private _migrate={
     params ["_owner"];
-    _group setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+    _group setVariable ["CBE_Headless_ExcludeGroup",false,true];
     {_x setVariable ["acex_headless_blacklist",false,true]} forEach _units;
-    private _requested=[_group,_owner] call WAIT_fnc_HeadlessMigrateGroup;
+    private _requested=[_group,_owner] call CBE_fnc_HeadlessMigrateGroup;
     private _adopted=[{groupOwner _group == _owner && {_units findIf {owner _x != _owner} < 0}},30] call _wait;
     [_prefix+"LIFE-owner-"+str _owner,_requested && {_adopted},str groupOwner _group] call _recordCheck;
 };
@@ -58,11 +58,11 @@ if (_targetOwner != 2) then {
     [_targetOwner] call _migrate;
     private _otherOwners=_owners select {_x != _targetOwner};
     if (_otherOwners isNotEqualTo []) then {
-        _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
-        if (missionNamespace getVariable ["WAIT_QA_NativeHeadlessInstalled",false]) then {
+        _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
+        if (missionNamespace getVariable ["CBE_QA_NativeHeadlessInstalled",false]) then {
             _group setVariable ["Waldo_Headless_ExcludeGroup",true,true];
         };
-        private _refused=!([_group,_otherOwners select 0] call WAIT_fnc_HeadlessMigrateGroup);
+        private _refused=!([_group,_otherOwners select 0] call CBE_fnc_HeadlessMigrateGroup);
         sleep 2;
         // Integration evidence must read the actual companion manager's registry.
         // Standalone engine transfers do not manufacture a substitute registry.
@@ -70,7 +70,7 @@ if (_targetOwner != 2) then {
         private _records=_registry select {(_x select 0) == _group};
         ["LIFE-refused-transfer-owner-retained",_refused && {groupOwner _group == _targetOwner}
             && {_units findIf {owner _x != _targetOwner} < 0},str [groupOwner _group,_units apply {owner _x}]] call _check;
-        if (missionNamespace getVariable ["WAIT_QA_NativeHeadlessInstalled",false]) then {
+        if (missionNamespace getVariable ["CBE_QA_NativeHeadlessInstalled",false]) then {
             // The native provider removes excluded groups from its management registry while
             // retaining their actual owner. Do not demand the standalone adapter's policy.
             ["LIFE-refused-transfer-registry-pruned",_refused && {_records isEqualTo []},str _records] call _check;
@@ -80,105 +80,105 @@ if (_targetOwner != 2) then {
         } else {
             ["LIFE-standalone-no-native-registry",_refused && {_records isEqualTo []},str _records] call _check;
         };
-        _group setVariable ["WAIT_Headless_ExcludeGroup",false,true];
-        if (missionNamespace getVariable ["WAIT_QA_NativeHeadlessInstalled",false]) then {
+        _group setVariable ["CBE_Headless_ExcludeGroup",false,true];
+        if (missionNamespace getVariable ["CBE_QA_NativeHeadlessInstalled",false]) then {
             _group setVariable ["Waldo_Headless_ExcludeGroup",false,true];
         };
     };
 };
-[{missionNamespace getVariable ["WAIT_AIPass_Active",false]},20] call _wait;
+[{missionNamespace getVariable ["CBE_AIPass_Active",false]},20] call _wait;
 ["Lifecycle: disable during movement","Both soldiers start a real defence move north. Cortex will be disabled after visible travel, before arrival. The following ordinary waypoint must take control.",[2100,1730,0]] call _phase;
 private _start=_units apply {getPosATL _x};
-private _accepted=[_group,[2100,1780,0],0,10] call WAIT_fnc_CortexDefend;
+private _accepted=[_group,[2100,1780,0],0,10] call CBE_fnc_CortexDefend;
 private _moving=[{
     private _allMoved=true;
     {if (!alive _x || {_x distance2D (_start select _forEachIndex) < 10}) then {_allMoved=false}} forEach _units;
     _allMoved
 },30] call _wait;
 ["LIFE-defence-physical-start",_accepted && {_moving}] call _check;
-[createHashMapFromArray [["WAIT_AIPass_Enable",false]]] call WAIT_fnc_CortexTuning;
-["LIFE-master-stopped",[{!(missionNamespace getVariable ["WAIT_AIPass_Active",true])},20] call _wait] call _check;
+[createHashMapFromArray [["CBE_AIPass_Enable",false]]] call CBE_fnc_CortexTuning;
+["LIFE-master-stopped",[{!(missionNamespace getVariable ["CBE_AIPass_Active",true])},20] call _wait] call _check;
 private _stopRecorded=[{
-    private _transition=_group getVariable ["WAIT_Cortex_PhaseTransition",[]];
+    private _transition=_group getVariable ["CBE_Cortex_PhaseTransition",[]];
     count _transition == 5 && {(_transition select 2) == "CALM"} && {(_transition select 3) == "CORTEX_STOPPED"}
 },20] call _wait;
-["LIFE-stop-transition-reason",_stopRecorded,str (_group getVariable ["WAIT_Cortex_PhaseTransition",[]])] call _check;
+["LIFE-stop-transition-reason",_stopRecorded,str (_group getVariable ["CBE_Cortex_PhaseTransition",[]])] call _check;
 ["LIFE-owner-cleared-assignment",[{
-    (_group getVariable ["WAIT_AIPass_Defend",[]]) isEqualTo []
-        && {_units findIf {(_x getVariable ["WAIT_AIPass_DefendPos",[]]) isNotEqualTo []} < 0}
+    (_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []
+        && {_units findIf {(_x getVariable ["CBE_AIPass_DefendPos",[]]) isNotEqualTo []} < 0}
 },20] call _wait] call _check;
 if (_targetOwner != 2) then {[2] call _migrate};
-_group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_group setVariable ["CBE_Headless_ExcludeGroup",true,true];
 private _destination=[2040,1730,0];
-{_x setVariable ["WAIT_CortexQA_Target",_destination,true]} forEach _units;
+{_x setVariable ["CBE_CortexQA_Target",_destination,true]} forEach _units;
 private _wp=_group addWaypoint [_destination,0]; _wp setWaypointType "MOVE"; _wp setWaypointCompletionRadius 3; _group setCurrentWaypoint _wp;
 {_x doFollow leader _group} forEach _units;
 ["Lifecycle: ordinary waypoint owns movement","Cortex is off. Both soldiers must physically reach the west marker using a normal group waypoint. They must not remain frozen at, or return to, their former defence positions.",_destination] call _phase;
 private _arrived=[{_units findIf {!alive _x || {_x distance2D _destination > 10}} < 0},90] call _wait;
 ["LIFE-disabled-authored-arrival",_arrived,str (_units apply {getPosATL _x})] call _check;
-[createHashMapFromArray [["WAIT_AIPass_Enable",true]]] call WAIT_fnc_CortexTuning;
-[{missionNamespace getVariable ["WAIT_AIPass_Active",false]},20] call _wait;
+[createHashMapFromArray [["CBE_AIPass_Enable",true]]] call CBE_fnc_CortexTuning;
+[{missionNamespace getVariable ["CBE_AIPass_Active",false]},20] call _wait;
 private _drift=0;
 for "_i" from 1 to 15 do {sleep 1; {_drift=_drift max (_x distance2D _destination)} forEach _units};
 ["LIFE-no-old-order-resurrection",_arrived && {_drift <= 12},str _drift] call _check;
 if (_targetOwner != 2) then {[_targetOwner] call _migrate};
 private _newPosition=[2040,1800,0];
-{_x setVariable ["WAIT_CortexQA_Target",_newPosition,true]} forEach _units;
+{_x setVariable ["CBE_CortexQA_Target",_newPosition,true]} forEach _units;
 ["Lifecycle: new order after restart","A new defence order must move both soldiers north from the west marker. This verifies restart does not leave stale jobs, movement locks or ownership behind.",_newPosition] call _phase;
-_accepted=[_group,_newPosition,0,10] call WAIT_fnc_CortexDefend;
+_accepted=[_group,_newPosition,0,10] call CBE_fnc_CortexDefend;
 _arrived=[{_units findIf {!alive _x || {_x distance2D _newPosition > 10}} < 0},90] call _wait;
 ["LIFE-restarted-new-physical-order",_accepted && {_arrived},str (_units apply {getPosATL _x})] call _check;
 // Exercise the production takeover marker without a waypoint flag. This tests
 // the owner cleanup path; actual curator event delivery remains a separate UI case.
-private _curatorGenerationBefore=_group getVariable ["WAIT_OperationGeneration",0];
-[_group,false] call WAIT_fnc_CortexZeusMark;
+private _curatorGenerationBefore=_group getVariable ["CBE_OperationGeneration",0];
+[_group,false] call CBE_fnc_CortexZeusMark;
 private _curatorGenerationAdvanced=[{
-    (_group getVariable ["WAIT_OperationGeneration",0]) == _curatorGenerationBefore+1
+    (_group getVariable ["CBE_OperationGeneration",0]) == _curatorGenerationBefore+1
 },10] call _wait;
 ["LIFE-zeus-idle-generation-invalidated",_curatorGenerationAdvanced,
-    str [_curatorGenerationBefore,_group getVariable ["WAIT_OperationGeneration",0]]] call _check;
-private _curatorGenerationAfter=_group getVariable ["WAIT_OperationGeneration",0];
+    str [_curatorGenerationBefore,_group getVariable ["CBE_OperationGeneration",0]]] call _check;
+private _curatorGenerationAfter=_group getVariable ["CBE_OperationGeneration",0];
 if (local _group) then {
-    [_group,false,"ZEUS_TAKEOVER"] call WAIT_fnc_CortexReleaseGroup;
+    [_group,false,"ZEUS_TAKEOVER"] call CBE_fnc_CortexReleaseGroup;
 } else {
-    [_group,false,"ZEUS_TAKEOVER"] remoteExecCall ["WAIT_fnc_CortexReleaseGroup",groupOwner _group];
+    [_group,false,"ZEUS_TAKEOVER"] remoteExecCall ["CBE_fnc_CortexReleaseGroup",groupOwner _group];
 };
 sleep 2;
 ["LIFE-zeus-repeat-cleanup-generation-stable",_curatorGenerationAdvanced
-    && {(_group getVariable ["WAIT_OperationGeneration",0]) == _curatorGenerationAfter},
+    && {(_group getVariable ["CBE_OperationGeneration",0]) == _curatorGenerationAfter},
     "Bookkeeping diagnostic; physical replacement arrival is tested separately below"] call _check;
 ["Lifecycle: Zeus interrupts defence","Zeus takeover now interrupts the held defence without a waypoint-change flag. The owner must release the holding order. After return to server, both soldiers must physically obey a replacement waypoint.",_newPosition] call _phase;
 private _zeusReleased=[{
-    (_group getVariable ["WAIT_AIPass_Defend",[]]) isEqualTo []
-    && {_units findIf {(_x getVariable ["WAIT_AIPass_DefendPos",[]]) isNotEqualTo []} < 0}
+    (_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []
+    && {_units findIf {(_x getVariable ["CBE_AIPass_DefendPos",[]]) isNotEqualTo []} < 0}
 },20] call _wait;
 ["LIFE-zeus-no-waypoint-releases-defence",_zeusReleased] call _check;
 private _zeusRecorded=[{
-    private _transition=_group getVariable ["WAIT_Cortex_PhaseTransition",[]];
+    private _transition=_group getVariable ["CBE_Cortex_PhaseTransition",[]];
     count _transition == 5 && {(_transition select 2) == "CALM"} && {(_transition select 3) == "ZEUS_TAKEOVER"}
 },20] call _wait;
-["LIFE-zeus-transition-reason",_zeusRecorded,str (_group getVariable ["WAIT_Cortex_PhaseTransition",[]])] call _check;
+["LIFE-zeus-transition-reason",_zeusRecorded,str (_group getVariable ["CBE_Cortex_PhaseTransition",[]])] call _check;
 if (_targetOwner != 2) then {[2] call _migrate};
 private _zeusDestination=[2130,1800,0];
 private _zeusWP=_group addWaypoint [_zeusDestination,0];
 _zeusWP setWaypointType "MOVE"; _zeusWP setWaypointCompletionRadius 3;
 _group setCurrentWaypoint _zeusWP;
-{_x setVariable ["WAIT_CortexQA_Target",_zeusDestination,true]} forEach _units;
+{_x setVariable ["CBE_CortexQA_Target",_zeusDestination,true]} forEach _units;
 private _zeusArrived=[{_units findIf {!alive _x || {_x distance2D _zeusDestination > 12}} < 0},90] call _wait;
 ["LIFE-zeus-replacement-physical-arrival",_zeusReleased && {_zeusArrived},str (_units apply {getPosATL _x})] call _check;
-diag_log format ["WAIT CORTEX QA ZEUS HANDOVER: owner=%1 currentWP=%2 waypoints=%3 adoption=%4 units=%5",
+diag_log format ["CBE CORTEX QA ZEUS HANDOVER: owner=%1 currentWP=%2 waypoints=%3 adoption=%4 units=%5",
     groupOwner _group,currentWaypoint _group,(waypoints _group) apply {[_x select 1,waypointPosition _x,waypointDescription _x]},
     _group getVariable ["Waldo_Headless_LastAdoption",[]],
     _units apply {[netId _x,currentCommand _x,expectedDestination _x,_x checkAIFeature "PATH",behaviour _x]}];
 // Keep the held-order case above; this additional case interrupts physical travel.
 if (_targetOwner == 2) then {
     private _movingStart=_units apply {getPosATL _x};
-    [[ ["order","DEFEND"],["group",_group],["position",[2130,1920,0]],["radius",10],["facing",0] ],2] call WAIT_fnc_CortexOrderDispatch;
+    [[ ["order","DEFEND"],["group",_group],["position",[2130,1920,0]],["radius",10],["facing",0] ],2] call CBE_fnc_CortexOrderDispatch;
     ["Lifecycle: Zeus interrupts moving soldiers","Both soldiers must first travel at least 10 m towards a fresh defence order. Zeus then replaces it while they are still moving; watch their trails turn towards the west marker.",[2130,1860,0]] call _phase;
     private _started=[{
         private _travelled=true;
         {if (!alive _x || {_x distance2D (_movingStart select _forEachIndex) < 10}) then {_travelled=false}} forEach _units;
-        _travelled && {(_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo []}
+        _travelled && {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}
     },30] call _wait;
     private _beforeArrival=_units findIf {_x distance2D [2130,1920,0] < 30} < 0;
     ["LIFE-zeus-midmove-stimulus",_started && {_beforeArrival}] call _check;
@@ -186,61 +186,61 @@ if (_targetOwner == 2) then {
     private _replacementWP=_group addWaypoint [_replacement,0];
     _replacementWP setWaypointType "MOVE"; _replacementWP setWaypointCompletionRadius 3;
     _group setCurrentWaypoint _replacementWP;
-    [_group,true,_replacementWP select 1] call WAIT_fnc_CortexZeusMark;
-    {_x setVariable ["WAIT_CortexQA_Target",_replacement,true]} forEach _units;
+    [_group,true,_replacementWP select 1] call CBE_fnc_CortexZeusMark;
+    {_x setVariable ["CBE_CortexQA_Target",_replacement,true]} forEach _units;
     private _replacementReached=[{_units findIf {!alive _x || {_x distance2D _replacement > 12}} < 0},90] call _wait;
     ["LIFE-zeus-midmove-replacement-arrival",_started && {_beforeArrival} && {_replacementReached},str (_units apply {getPosATL _x})] call _check;
     private _maxDrift=0;
     for "_sample" from 1 to 15 do {sleep 1; {_maxDrift=_maxDrift max (_x distance2D _replacement)} forEach _units};
     ["LIFE-zeus-midmove-no-resurrection",_replacementReached && {_maxDrift <= 15}
-        && {(_group getVariable ["WAIT_AIPass_Defend",[]]) isEqualTo []},str _maxDrift] call _check;
-    // Independent live route: edit the actual WAIT waypoint rather than adding another one.
+        && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []},str _maxDrift] call _check;
+    // Independent live route: edit the actual CBE waypoint rather than adding another one.
     private _editGroup=createGroup [east,true];
-    _editGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _editGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _editGroup setVariable ["acex_headless_blacklist",true,true];
     _editGroup setCombatMode "BLUE";
     private _editActor=_editGroup createUnit ["O_Soldier_F",[1990,1930,0],[],0,"NONE"];
     _editActor setVariable ["acex_headless_blacklist",true,true];
-    _editActor setVariable ["WAIT_CortexQA_Label","EDITED WAIT ROUTE",true];
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[_editActor],true];
+    _editActor setVariable ["CBE_CortexQA_Label","EDITED CBE ROUTE",true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[_editActor],true];
     private _editOrigin=getPosATL _editActor;
-    private _editWP=[_editGroup,[2100,1930,0],3,"MOVE"] call WAIT_fnc_CortexGroupMove;
+    private _editWP=[_editGroup,[2100,1930,0],3,"MOVE"] call CBE_fnc_CortexGroupMove;
     private _editStarted=[{_editActor distance2D _editOrigin >= 10},30] call _wait;
     private _editDestination=[1990,2030,0];
     private _editValid=count _editWP == 2 && {(_editWP select 0) == _editGroup}
         && {(_editWP select 1) >= 0} && {(_editWP select 1) < count waypoints _editGroup}
-        && {waypointDescription _editWP == "WAIT AI PASS"}
+        && {waypointDescription _editWP == "CBE AI PASS"}
         && {waypointPosition _editWP distance2D [2100,1930,0] < 1};
     ["LIFE-edited-route-physical-prerequisite",_editValid && {_editStarted},str [_editWP,getPosATL _editActor]] call _check;
     if (_editValid) then {
         _editWP setWaypointPosition [_editDestination,0];
-        [_editGroup,true,_editWP select 1] call WAIT_fnc_CortexZeusMark;
+        [_editGroup,true,_editWP select 1] call CBE_fnc_CortexZeusMark;
         ["LIFE-edited-route-order-preserved",(_editWP select 1) < count waypoints _editGroup
             && {waypointPosition _editWP distance2D _editDestination < 1}
             && {waypointType _editWP == "MOVE"}
-            && {waypointDescription _editWP != "WAIT AI PASS"},str (waypoints _editGroup)] call _check;
-        _editActor setVariable ["WAIT_CortexQA_Target",_editDestination,true];
+            && {waypointDescription _editWP != "CBE AI PASS"},str (waypoints _editGroup)] call _check;
+        _editActor setVariable ["CBE_CortexQA_Target",_editDestination,true];
         private _editArrived=[{_editActor distance2D _editDestination <= 12},90] call _wait;
         ["LIFE-edited-route-physical-arrival",_editStarted && {_editArrived},str (getPosATL _editActor)] call _check;
     };
     deleteVehicle _editActor;
     deleteGroup _editGroup;
 };
-[_group] call WAIT_fnc_CortexDefendRelease;
+[_group] call CBE_fnc_CortexDefendRelease;
 {deleteVehicle _x} forEach _units; deleteGroup _group;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 
 
 // Separate casualty fixture retains the requested owner through death and arrival.
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],["WAIT_AIPass_Morale_Enable",false],["WAIT_AIPass_Regroup_Enable",false]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],["CBE_AIPass_Morale_Enable",false],["CBE_AIPass_Regroup_Enable",false]]] call CBE_fnc_CortexTuning;
 _group=createGroup [east,true];
-_group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_group setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _group setVariable ["acex_headless_blacklist",true,true];
 _units=[];
 for "_i" from 0 to 1 do {
     private _unit=_group createUnit ["O_Soldier_F",[2100+_i*3,2000,0],[],0,"NONE"];
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",["CASUALTY LEADER","SUCCESSOR / MUST CONTINUE"] select _i,true];
+    _unit setVariable ["CBE_CortexQA_Label",["CASUALTY LEADER","SUCCESSOR / MUST CONTINUE"] select _i,true];
     _unit disableAI "PATH";
     _units pushBack _unit;
 };
@@ -253,8 +253,8 @@ private _casualtyWP=_group addWaypoint [_casualtyDestination,0];
 _casualtyWP setWaypointType "MOVE";
 _casualtyWP setWaypointCompletionRadius 3;
 _group setCurrentWaypoint _casualtyWP;
-_successor setVariable ["WAIT_CortexQA_Target",_casualtyDestination,true];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_units,true];
+_successor setVariable ["CBE_CortexQA_Target",_casualtyDestination,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_units,true];
 if (_targetOwner != 2) then {[_targetOwner] call _migrate};
 ["Lifecycle: leader casualty on "+str _targetOwner,"The leader dies on the current server or HC owner. The survivor must become leader and physically continue to the destination without transferring back to the server.",[2100,2040,0]] call _phase;
 private _beforeTravel=getPosATL _successor;
@@ -269,7 +269,7 @@ private _continued=[{alive _successor && {_successor distance2D _casualtyDestina
 ["LIFE-casualty-physical-continuation",_succession && {_continued} && {groupOwner _group == _targetOwner},str [getPosATL _successor,groupOwner _group]] call _check;
 {deleteVehicle _x} forEach _units;
 deleteGroup _group;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 
 } forEach _variants;
 
@@ -278,73 +278,73 @@ missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
 // transfer it while moving, and require the new owner to continue the same bounded episode.
 if (_owners isNotEqualTo []) then {
     [createHashMapFromArray [
-        ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
-        ["WAIT_AIPass_ContactReports_Enable",true],["WAIT_AIPass_Investigate_Enable",true],
-        ["WAIT_AIPass_PostContact_Enable",true],["WAIT_AIPass_Morale_Enable",false],
-        ["WAIT_AIPass_Regroup_Enable",false]
-    ]] call WAIT_fnc_CortexTuning;
+        ["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],
+        ["CBE_AIPass_ContactReports_Enable",true],["CBE_AIPass_Investigate_Enable",true],
+        ["CBE_AIPass_PostContact_Enable",true],["CBE_AIPass_Morale_Enable",false],
+        ["CBE_AIPass_Regroup_Enable",false]
+    ]] call CBE_fnc_CortexTuning;
     private _stateGroup=createGroup [east,true];
-    _stateGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _stateGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _stateGroup setVariable ["acex_headless_blacklist",true,true];
     _stateGroup setCombatMode "BLUE";
     private _stateUnits=[];
     for "_i" from 0 to 2 do {
         private _unit=_stateGroup createUnit ["O_Soldier_F",[2320+_i*3,1700,0],[],0,"NONE"];
         _unit setVariable ["acex_headless_blacklist",true,true];
-        _unit setVariable ["WAIT_CortexQA_Label",format ["STATE HANDOFF %1",_i+1],true];
+        _unit setVariable ["CBE_CortexQA_Label",format ["STATE HANDOFF %1",_i+1],true];
         _stateUnits pushBack _unit;
     };
     _stateGroup setGroupIdGlobal ["QA STATE HANDOFF"];
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",+_stateUnits,true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",+_stateUnits,true];
     private _reportTarget=[2440,1700,0];
-    {_x setVariable ["WAIT_CortexQA_Target",_reportTarget,true]} forEach _stateUnits;
+    {_x setVariable ["CBE_CortexQA_Target",_reportTarget,true]} forEach _stateUnits;
     ["Lifecycle: investigation crosses ownership","A validated contact report starts a physical investigation. While the squad is moving, ownership transfers to a headless client. The same deadline and phase must continue without an artificial calm state.",_reportTarget] call _phase;
-    _stateGroup setVariable ["WAIT_AIPass_AreaReport",[+_reportTarget,serverTime,serverTime+30,"REPORT"],true];
+    _stateGroup setVariable ["CBE_AIPass_AreaReport",[+_reportTarget,serverTime,serverTime+30,"REPORT"],true];
     private _investigating=[{
-        (_stateGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "INVESTIGATE"
-            && {count (_stateGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]) == 6}
+        (_stateGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "INVESTIGATE"
+            && {count (_stateGroup getVariable ["CBE_Cortex_TransitionIntent",[]]) == 6}
     },30] call _wait;
-    ["LIFE-state-investigation-start",_investigating,str [_stateGroup getVariable ["WAIT_AIPass_PublicPhase",""],_stateGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]]] call _recordCheck;
-    private _intentBefore=+(_stateGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]);
+    ["LIFE-state-investigation-start",_investigating,str [_stateGroup getVariable ["CBE_AIPass_PublicPhase",""],_stateGroup getVariable ["CBE_Cortex_TransitionIntent",[]]]] call _recordCheck;
+    private _intentBefore=+(_stateGroup getVariable ["CBE_Cortex_TransitionIntent",[]]);
     private _deadlineBefore=_intentBefore param [3,-1];
     private _handoffStart=getPosATL leader _stateGroup;
     private _stateOwner=_owners select 0;
-    _stateGroup setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+    _stateGroup setVariable ["CBE_Headless_ExcludeGroup",false,true];
     {_x setVariable ["acex_headless_blacklist",false,true]} forEach _stateUnits;
-    private _migrationRequested=[_stateGroup,_stateOwner] call WAIT_fnc_HeadlessMigrateGroup;
+    private _migrationRequested=[_stateGroup,_stateOwner] call CBE_fnc_HeadlessMigrateGroup;
     private _stateAdopted=[{
         groupOwner _stateGroup == _stateOwner
             && {_stateUnits findIf {owner _x != _stateOwner} < 0}
-            && {(_stateGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "INVESTIGATE"}
-            && {private _entry=_stateGroup getVariable ["WAIT_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "OWNERSHIP_RESUME"} && {(_entry select 4) == _stateOwner}}
+            && {(_stateGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "INVESTIGATE"}
+            && {private _entry=_stateGroup getVariable ["CBE_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "OWNERSHIP_RESUME"} && {(_entry select 4) == _stateOwner}}
     },35] call _wait;
-    ["LIFE-state-owner-resume",_migrationRequested && {_stateAdopted},str [groupOwner _stateGroup,_stateGroup getVariable ["WAIT_Cortex_PhaseTransition",[]]]] call _recordCheck;
-    private _intentAfter=+(_stateGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]);
+    ["LIFE-state-owner-resume",_migrationRequested && {_stateAdopted},str [groupOwner _stateGroup,_stateGroup getVariable ["CBE_Cortex_PhaseTransition",[]]]] call _recordCheck;
+    private _intentAfter=+(_stateGroup getVariable ["CBE_Cortex_TransitionIntent",[]]);
     ["LIFE-state-deadline-preserved",_stateAdopted && {count _intentAfter == 6} && {abs ((_intentAfter select 3)-_deadlineBefore) < 0.25},str [_deadlineBefore,_intentAfter]] call _recordCheck;
     private _continued=[{leader _stateGroup distance2D _handoffStart >= 10},35] call _wait;
     ["LIFE-state-physical-continuation",_stateAdopted && {_continued},str [_handoffStart,getPosATL leader _stateGroup]] call _recordCheck;
 
     // Curator replacement is the terminal authority boundary for the resumed episode.
     ["Lifecycle: Zeus replaces resumed investigation","After visible post-handoff movement, Zeus replaces the investigation. The squad must reach the replacement marker and the old INVESTIGATE intent must stay retired.",[2320,1780,0]] call _phase;
-    [_stateGroup,true] call WAIT_fnc_CortexZeusMark;
+    [_stateGroup,true] call CBE_fnc_CortexZeusMark;
     private _replacement=[2320,1780,0];
     private _replacementWP=_stateGroup addWaypoint [_replacement,0];
     _replacementWP setWaypointType "MOVE";
     _replacementWP setWaypointCompletionRadius 4;
     _stateGroup setCurrentWaypoint _replacementWP;
-    {_x setVariable ["WAIT_CortexQA_Target",_replacement,true]} forEach _stateUnits;
+    {_x setVariable ["CBE_CortexQA_Target",_replacement,true]} forEach _stateUnits;
     private _replacementArrived=[{_stateUnits findIf {!alive _x || {_x distance2D _replacement > 12}} < 0},90] call _wait;
     ["LIFE-state-zeus-replacement-arrival",_replacementArrived,str (_stateUnits apply {getPosATL _x})] call _recordCheck;
     private _stayedReleased=true;
     for "_sample" from 1 to 12 do {
         sleep 1;
-        if ((_stateGroup getVariable ["WAIT_AIPass_PublicPhase","CALM"]) == "INVESTIGATE"
-            || {(_stateGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]) isNotEqualTo []}) then {_stayedReleased=false};
+        if ((_stateGroup getVariable ["CBE_AIPass_PublicPhase","CALM"]) == "INVESTIGATE"
+            || {(_stateGroup getVariable ["CBE_Cortex_TransitionIntent",[]]) isNotEqualTo []}) then {_stayedReleased=false};
     };
-    ["LIFE-state-zeus-no-resurrection",_replacementArrived && {_stayedReleased},str [_stateGroup getVariable ["WAIT_AIPass_PublicPhase",""],_stateGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]]] call _recordCheck;
+    ["LIFE-state-zeus-no-resurrection",_replacementArrived && {_stayedReleased},str [_stateGroup getVariable ["CBE_AIPass_PublicPhase",""],_stateGroup getVariable ["CBE_Cortex_TransitionIntent",[]]]] call _recordCheck;
     {deleteVehicle _x} forEach _stateUnits;
     deleteGroup _stateGroup;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 };
 
 // Exercise the other two durable combat intents through their production entry paths. SEARCH is
@@ -353,28 +353,28 @@ if (_owners isNotEqualTo []) then {
 if (_owners isNotEqualTo []) then {
     private _stateOwner=_owners select 0;
     [createHashMapFromArray [
-        ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
-        ["WAIT_AIPass_PostContact_Enable",true],["WAIT_AIPass_PostContact_LostSeconds",3],
-        ["WAIT_AIPass_PostContact_SecuritySeconds",2],["WAIT_AIPass_PostContact_SearchSeconds",60],
-        ["WAIT_AIPass_Morale_Enable",false],["WAIT_AIPass_Flank_Enable",false],
-        ["WAIT_AIPass_Advance_Enable",false],["WAIT_AIPass_CoordinatedAssault_Enable",false],
-        ["WAIT_AIPass_Reinforce_Enable",false]
-    ]] call WAIT_fnc_CortexTuning;
+        ["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],
+        ["CBE_AIPass_PostContact_Enable",true],["CBE_AIPass_PostContact_LostSeconds",3],
+        ["CBE_AIPass_PostContact_SecuritySeconds",2],["CBE_AIPass_PostContact_SearchSeconds",60],
+        ["CBE_AIPass_Morale_Enable",false],["CBE_AIPass_Flank_Enable",false],
+        ["CBE_AIPass_Advance_Enable",false],["CBE_AIPass_CoordinatedAssault_Enable",false],
+        ["CBE_AIPass_Reinforce_Enable",false]
+    ]] call CBE_fnc_CortexTuning;
     private _searchGroup=createGroup [east,true];
     private _searchEnemyGroup=createGroup [west,true];
     {
-        _x setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+        _x setVariable ["CBE_Headless_ExcludeGroup",true,true];
         _x setVariable ["acex_headless_blacklist",true,true];
         _x setCombatMode "BLUE";
     } forEach [_searchGroup,_searchEnemyGroup];
-    _searchEnemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+    _searchEnemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
     private _searchUnits=[];
     for "_i" from 0 to 3 do {
         private _unit=_searchGroup createUnit ["O_Soldier_F",[2600+_i*3,1700,0],[],0,"NONE"];
         _unit setDir 0;
         _unit allowDamage false;
         _unit setVariable ["acex_headless_blacklist",true,true];
-        _unit setVariable ["WAIT_CortexQA_Label",format ["SEARCH HANDOFF %1",_i+1],true];
+        _unit setVariable ["CBE_CortexQA_Label",format ["SEARCH HANDOFF %1",_i+1],true];
         _searchUnits pushBack _unit;
     };
     private _searchEnemy=_searchEnemyGroup createUnit ["B_Soldier_F",[2600,1840,0],[],0,"NONE"];
@@ -382,55 +382,55 @@ if (_owners isNotEqualTo []) then {
     _searchEnemy allowDamage false;
     _searchEnemy disableAI "PATH";
     _searchEnemy setVariable ["acex_headless_blacklist",true,true];
-    _searchEnemy setVariable ["WAIT_CortexQA_Label","SEARCH CONTACT",true];
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",_searchUnits+[_searchEnemy],true];
+    _searchEnemy setVariable ["CBE_CortexQA_Label","SEARCH CONTACT",true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",_searchUnits+[_searchEnemy],true];
     ["Lifecycle: search crosses ownership","The squad must naturally detect the visible opponent. After contact is removed, its two-soldier search starts on the server and continues on a headless client with the original deadline.",getPosATL _searchEnemy] call _phase;
-    private _searchContact=[{(_searchGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "CONTACT"},35] call _wait;
+    private _searchContact=[{(_searchGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "CONTACT"},35] call _wait;
     ["LIFE-search-natural-contact",_searchContact,str (_searchUnits apply {_x knowsAbout _searchEnemy})] call _recordCheck;
     private _searchTarget=getPosATL _searchEnemy;
     deleteVehicle _searchEnemy;
     private _searchStarted=[{
-        (_searchGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "SEARCH"
-            && {private _intent=_searchGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]; count _intent == 6 && {(_intent select 5) isNotEqualTo []}}
+        (_searchGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "SEARCH"
+            && {private _intent=_searchGroup getVariable ["CBE_Cortex_TransitionIntent",[]]; count _intent == 6 && {(_intent select 5) isNotEqualTo []}}
     },45] call _wait;
-    ["LIFE-search-production-start",_searchContact && {_searchStarted},str [_searchGroup getVariable ["WAIT_AIPass_PublicPhase",""],_searchGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]]] call _recordCheck;
-    private _searchIntentBefore=+(_searchGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]);
+    ["LIFE-search-production-start",_searchContact && {_searchStarted},str [_searchGroup getVariable ["CBE_AIPass_PublicPhase",""],_searchGroup getVariable ["CBE_Cortex_TransitionIntent",[]]]] call _recordCheck;
+    private _searchIntentBefore=+(_searchGroup getVariable ["CBE_Cortex_TransitionIntent",[]]);
     private _searchDeadline=_searchIntentBefore param [3,-1];
     private _searchTeam=+(_searchIntentBefore param [5,[]]);
     private _searchStarts=_searchTeam apply {getPosATL _x};
-    _searchGroup setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+    _searchGroup setVariable ["CBE_Headless_ExcludeGroup",false,true];
     {_x setVariable ["acex_headless_blacklist",false,true]} forEach _searchUnits;
-    private _searchMigration=[_searchGroup,_stateOwner] call WAIT_fnc_HeadlessMigrateGroup;
+    private _searchMigration=[_searchGroup,_stateOwner] call CBE_fnc_HeadlessMigrateGroup;
     private _searchAdopted=[{
         groupOwner _searchGroup == _stateOwner
-            && {(_searchGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "SEARCH"}
-            && {private _entry=_searchGroup getVariable ["WAIT_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "OWNERSHIP_RESUME"} && {(_entry select 4) == _stateOwner}}
+            && {(_searchGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "SEARCH"}
+            && {private _entry=_searchGroup getVariable ["CBE_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "OWNERSHIP_RESUME"} && {(_entry select 4) == _stateOwner}}
     },35] call _wait;
-    ["LIFE-search-owner-resume",_searchMigration && {_searchAdopted},str [groupOwner _searchGroup,_searchGroup getVariable ["WAIT_Cortex_PhaseTransition",[]]]] call _recordCheck;
-    private _searchIntentAfter=+(_searchGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]);
+    ["LIFE-search-owner-resume",_searchMigration && {_searchAdopted},str [groupOwner _searchGroup,_searchGroup getVariable ["CBE_Cortex_PhaseTransition",[]]]] call _recordCheck;
+    private _searchIntentAfter=+(_searchGroup getVariable ["CBE_Cortex_TransitionIntent",[]]);
     ["LIFE-search-deadline-preserved",_searchAdopted && {count _searchIntentAfter == 6}
         && {abs ((_searchIntentAfter select 3)-_searchDeadline) < 0.25},str [_searchDeadline,_searchIntentAfter]] call _recordCheck;
     private _searchTravel=[{
         _searchTeam findIf {private _index=_searchTeam find _x; !alive _x || {_x distance2D (_searchStarts select _index) < 8}} < 0
     },40] call _wait;
     ["LIFE-search-physical-continuation",_searchAdopted && {_searchTravel},str [_searchTarget,_searchTeam apply {getPosATL _x}]] call _recordCheck;
-    [_searchGroup,true] call WAIT_fnc_CortexZeusMark;
+    [_searchGroup,true] call CBE_fnc_CortexZeusMark;
     private _searchReleased=[{
-        (_searchGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "CALM"
-            && {(_searchGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]) isEqualTo []}
+        (_searchGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "CALM"
+            && {(_searchGroup getVariable ["CBE_Cortex_TransitionIntent",[]]) isEqualTo []}
     },20] call _wait;
-    ["LIFE-search-zeus-release",_searchReleased,str [_searchGroup getVariable ["WAIT_AIPass_PublicPhase",""],_searchGroup getVariable ["WAIT_Cortex_TransitionIntent",[]]]] call _recordCheck;
+    ["LIFE-search-zeus-release",_searchReleased,str [_searchGroup getVariable ["CBE_AIPass_PublicPhase",""],_searchGroup getVariable ["CBE_Cortex_TransitionIntent",[]]]] call _recordCheck;
     {deleteVehicle _x} forEach _searchUnits;
     deleteGroup _searchGroup;
     deleteGroup _searchEnemyGroup;
 
     [createHashMapFromArray [
-        ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
-        ["WAIT_AIPass_Morale_Enable",true],["WAIT_AIPass_Surrender_Enable",false],
-        ["WAIT_AIPass_Morale_RetreatDistance",100],["WAIT_AIPass_Artillery_Enable",false]
-    ]] call WAIT_fnc_CortexTuning;
+        ["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],
+        ["CBE_AIPass_Morale_Enable",true],["CBE_AIPass_Surrender_Enable",false],
+        ["CBE_AIPass_Morale_RetreatDistance",100],["CBE_AIPass_Artillery_Enable",false]
+    ]] call CBE_fnc_CortexTuning;
     private _retreatGroup=createGroup [east,true];
-    _retreatGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _retreatGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _retreatGroup setVariable ["acex_headless_blacklist",true,true];
     _retreatGroup setCombatMode "YELLOW";
     private _retreatUnits=[];
@@ -439,91 +439,91 @@ if (_owners isNotEqualTo []) then {
         _unit allowDamage false;
         _unit addMagazine "SmokeShell";
         _unit setVariable ["acex_headless_blacklist",true,true];
-        _unit setVariable ["WAIT_CortexQA_Label",format ["RETREAT HANDOFF %1",_i+1],true];
+        _unit setVariable ["CBE_CortexQA_Label",format ["RETREAT HANDOFF %1",_i+1],true];
         _unit addEventHandler ["FiredMan",{
             params ["_unit","_weapon","_muzzle","_mode","_ammo","_magazine","_projectile"];
             if (getText (configFile >> "CfgAmmo" >> _ammo >> "simulation") in ["shotSmoke","shotSmokeX"] && {!isNull _projectile}) then {
-                private _records=_unit getVariable ["WAIT_CortexQA_SmokeThrows",[]];
+                private _records=_unit getVariable ["CBE_CortexQA_SmokeThrows",[]];
                 _records pushBack [_ammo,serverTime,getPosATL _projectile];
-                _unit setVariable ["WAIT_CortexQA_SmokeThrows",_records,true];
+                _unit setVariable ["CBE_CortexQA_SmokeThrows",_records,true];
             };
         }];
         _retreatUnits pushBack _unit;
     };
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",+_retreatUnits,true];
-    private _retreatState=[_retreatGroup] call WAIT_fnc_CortexGroupState;
+    missionNamespace setVariable ["CBE_CortexQA_Actors",+_retreatUnits,true];
+    private _retreatState=[_retreatGroup] call CBE_fnc_CortexGroupState;
     _retreatState set ["enemyPos",[2860,1800,0]];
     private _retreatOrigin=getPosATL leader _retreatGroup;
     ["Lifecycle: withdrawal crosses ownership","The common withdrawal controller starts on the server, throws its one smoke screen and moves away from the threat. Ownership then transfers without replaying smoke or extending the episode.",_retreatOrigin getPos [100,180]] call _phase;
-    private _retreatAccepted=[_retreatGroup,_retreatState] call WAIT_fnc_CortexRetreat;
+    private _retreatAccepted=[_retreatGroup,_retreatState] call CBE_fnc_CortexRetreat;
     private _retreatStarted=[{
-        (_retreatGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "RETREAT"
-            && {count (_retreatGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]) == 7}
+        (_retreatGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "RETREAT"
+            && {count (_retreatGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]) == 7}
             && {leader _retreatGroup distance2D _retreatOrigin >= 8}
     },35] call _wait;
-    ["LIFE-retreat-production-start",_retreatAccepted && {_retreatStarted},str [_retreatGroup getVariable ["WAIT_AIPass_PublicPhase",""],_retreatGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]]] call _recordCheck;
-    private _smokeObserved=[{_retreatUnits findIf {(_x getVariable ["WAIT_CortexQA_SmokeThrows",[]]) isNotEqualTo []} >= 0},10] call _wait;
-    ["LIFE-retreat-initial-smoke",_smokeObserved,str (_retreatUnits apply {_x getVariable ["WAIT_CortexQA_SmokeThrows",[]]})] call _recordCheck;
+    ["LIFE-retreat-production-start",_retreatAccepted && {_retreatStarted},str [_retreatGroup getVariable ["CBE_AIPass_PublicPhase",""],_retreatGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]]] call _recordCheck;
+    private _smokeObserved=[{_retreatUnits findIf {(_x getVariable ["CBE_CortexQA_SmokeThrows",[]]) isNotEqualTo []} >= 0},10] call _wait;
+    ["LIFE-retreat-initial-smoke",_smokeObserved,str (_retreatUnits apply {_x getVariable ["CBE_CortexQA_SmokeThrows",[]]})] call _recordCheck;
     private _smokeCountBefore=0;
-    {_smokeCountBefore=_smokeCountBefore+count (_x getVariable ["WAIT_CortexQA_SmokeThrows",[]])} forEach _retreatUnits;
-    private _withdrawalBefore=+(_retreatGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]);
+    {_smokeCountBefore=_smokeCountBefore+count (_x getVariable ["CBE_CortexQA_SmokeThrows",[]])} forEach _retreatUnits;
+    private _withdrawalBefore=+(_retreatGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]);
     private _retreatStartedAt=_withdrawalBefore param [4,-1];
     private _retreatHandoffStart=getPosATL leader _retreatGroup;
-    _retreatGroup setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+    _retreatGroup setVariable ["CBE_Headless_ExcludeGroup",false,true];
     {_x setVariable ["acex_headless_blacklist",false,true]} forEach _retreatUnits;
-    private _retreatMigration=[_retreatGroup,_stateOwner] call WAIT_fnc_HeadlessMigrateGroup;
+    private _retreatMigration=[_retreatGroup,_stateOwner] call CBE_fnc_HeadlessMigrateGroup;
     private _retreatAdopted=[{
         groupOwner _retreatGroup == _stateOwner
-            && {(_retreatGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "RETREAT"}
-            && {private _entry=_retreatGroup getVariable ["WAIT_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "OWNERSHIP_RESUME"} && {(_entry select 4) == _stateOwner}}
+            && {(_retreatGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "RETREAT"}
+            && {private _entry=_retreatGroup getVariable ["CBE_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "OWNERSHIP_RESUME"} && {(_entry select 4) == _stateOwner}}
     },35] call _wait;
-    ["LIFE-retreat-owner-resume",_retreatMigration && {_retreatAdopted},str [groupOwner _retreatGroup,_retreatGroup getVariable ["WAIT_Cortex_PhaseTransition",[]]]] call _recordCheck;
-    private _withdrawalAfter=+(_retreatGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]);
+    ["LIFE-retreat-owner-resume",_retreatMigration && {_retreatAdopted},str [groupOwner _retreatGroup,_retreatGroup getVariable ["CBE_Cortex_PhaseTransition",[]]]] call _recordCheck;
+    private _withdrawalAfter=+(_retreatGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]);
     ["LIFE-retreat-start-preserved",_retreatAdopted && {count _withdrawalAfter == 7}
         && {abs ((_withdrawalAfter select 4)-_retreatStartedAt) < 0.25},str [_retreatStartedAt,_withdrawalAfter]] call _recordCheck;
     private _retreatContinued=[{leader _retreatGroup distance2D _retreatHandoffStart >= 10},35] call _wait;
     ["LIFE-retreat-physical-continuation",_retreatAdopted && {_retreatContinued},str [_retreatHandoffStart,getPosATL leader _retreatGroup]] call _recordCheck;
     sleep 6;
     private _smokeCountAfter=0;
-    {_smokeCountAfter=_smokeCountAfter+count (_x getVariable ["WAIT_CortexQA_SmokeThrows",[]])} forEach _retreatUnits;
+    {_smokeCountAfter=_smokeCountAfter+count (_x getVariable ["CBE_CortexQA_SmokeThrows",[]])} forEach _retreatUnits;
     ["LIFE-retreat-no-smoke-replay",_smokeObserved && {_smokeCountAfter == _smokeCountBefore},str [_smokeCountBefore,_smokeCountAfter]] call _recordCheck;
-    [_retreatGroup,true] call WAIT_fnc_CortexZeusMark;
+    [_retreatGroup,true] call CBE_fnc_CortexZeusMark;
     private _retreatReleased=[{
-        (_retreatGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "CALM"
-            && {(_retreatGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]) isEqualTo []}
+        (_retreatGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "CALM"
+            && {(_retreatGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]) isEqualTo []}
     },20] call _wait;
     private _retreatStayedReleased=_retreatReleased;
     for "_sample" from 1 to 12 do {
         sleep 1;
-        if ((_retreatGroup getVariable ["WAIT_AIPass_PublicPhase","CALM"]) == "RETREAT"
-            || {(_retreatGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]) isNotEqualTo []}) then {_retreatStayedReleased=false};
+        if ((_retreatGroup getVariable ["CBE_AIPass_PublicPhase","CALM"]) == "RETREAT"
+            || {(_retreatGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]) isNotEqualTo []}) then {_retreatStayedReleased=false};
     };
-    ["LIFE-retreat-zeus-no-resurrection",_retreatStayedReleased,str [_retreatGroup getVariable ["WAIT_AIPass_PublicPhase",""],_retreatGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]]] call _recordCheck;
+    ["LIFE-retreat-zeus-no-resurrection",_retreatStayedReleased,str [_retreatGroup getVariable ["CBE_AIPass_PublicPhase",""],_retreatGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]]] call _recordCheck;
     {deleteVehicle _x} forEach _retreatUnits;
     deleteGroup _retreatGroup;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 };
 
 // Negative target-admission regression: deliberately seed an observed hostile-side logic.
 // This fixture stimulus is explicit; it does not claim natural combat detection.
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true]]] call CBE_fnc_CortexTuning;
 private _logicGroup=createGroup [west,true];
 private _logic=_logicGroup createUnit ["Logic",[3000,2200,0],[],0,"NONE"];
 private _physicalGroup=createGroup [east,true];
-_physicalGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_physicalGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 private _physicalActor=_physicalGroup createUnit ["O_Soldier_F",[2940,2200,0],[],0,"NONE"];
 _physicalGroup reveal [_logic,4];
-_physicalGroup setVariable ["WAIT_Danger_ObservedContacts",[[_logic,time+30,_physicalActor]]];
-private _knowledge=[_physicalGroup] call WAIT_fnc_CortexKnowledge;
+_physicalGroup setVariable ["CBE_Danger_ObservedContacts",[[_logic,time+30,_physicalActor]]];
+private _knowledge=[_physicalGroup] call CBE_fnc_CortexKnowledge;
 ["LIFE-logic-contact-excluded",(_knowledge select 0) isEqualTo []
-    && {(_physicalGroup getVariable ["WAIT_Danger_ObservedContacts",[]]) isEqualTo []},
+    && {(_physicalGroup getVariable ["CBE_Danger_ObservedContacts",[]]) isEqualTo []},
     str _knowledge] call _recordCheck;
 private _logicOrigin=getPosATL _physicalActor;
 private _logicWaypoint=_physicalGroup addWaypoint [[2940,2260,0],0];
 _logicWaypoint setWaypointType "MOVE";
 private _logicTravel=[{_physicalActor distance2D _logicOrigin >= 25},30] call _wait;
 ["LIFE-logic-contact-authored-movement",_logicTravel,
-    str [_logicOrigin,getPosATL _physicalActor,_physicalGroup getVariable ["WAIT_AIPass_PublicPhase",""]]] call _recordCheck;
+    str [_logicOrigin,getPosATL _physicalActor,_physicalGroup getVariable ["CBE_AIPass_PublicPhase",""]]] call _recordCheck;
 deleteVehicle _physicalActor;
 deleteGroup _physicalGroup;
 deleteVehicle _logic;
@@ -534,13 +534,13 @@ deleteGroup _logicGroup;
 {
     private _intent=_x;
     private _group=createGroup [east,true];
-    _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
     private _unit=_group createUnit ["O_Soldier_F",[3100,2300+_forEachIndex*20,0],[],0,"NONE"];
     private _vehicle=createVehicle ["O_MRAP_02_F",[3112,2300+_forEachIndex*20,0],[],0,"NONE"];
     _vehicle setDir 0;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[_unit,_vehicle],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[_unit,_vehicle],true];
     ["Hold release: "+_intent+" to native boarding", "Explicit cleanup boundary: a newer cargo task must survive hold release and physically board. This does not validate building placement."] call _phase;
-    private _groupKey="WAIT_AIPass_"+_intent;
+    private _groupKey="CBE_AIPass_"+_intent;
     private _unitKey=_groupKey+"Pos";
     _group setVariable [_groupKey,[getPosATL _unit],true];
     _unit setVariable [_unitKey,[getPosATL _unit,0],true];
@@ -549,7 +549,7 @@ deleteGroup _logicGroup;
     private _taskReady=[{currentCommand _unit == "GET IN"},8] call _wait;
     ["LIFE-"+_intent+"-boarding-prerequisite",_taskReady,str [currentCommand _unit,assignedVehicle _unit]] call _recordCheck;
     if (_taskReady) then {
-        if (_intent == "Garrison") then {[_group,true] call WAIT_fnc_CortexGarrisonRelease} else {[_group,true] call WAIT_fnc_CortexDefendRelease};
+        if (_intent == "Garrison") then {[_group,true] call CBE_fnc_CortexGarrisonRelease} else {[_group,true] call CBE_fnc_CortexDefendRelease};
         ["LIFE-"+_intent+"-boarding-task-retained",currentCommand _unit == "GET IN" && {assignedVehicle _unit == _vehicle},str [currentCommand _unit,assignedVehicle _unit]] call _recordCheck;
         private _boarded=[{vehicle _unit == _vehicle},30] call _wait;
         ["LIFE-"+_intent+"-physical-boarding",_boarded,str [vehicle _unit,currentCommand _unit]] call _recordCheck;
@@ -558,5 +558,5 @@ deleteGroup _logicGroup;
     deleteVehicle _unit;
     deleteVehicle _vehicle;
     deleteGroup _group;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 } forEach ["Garrison","Defend"];

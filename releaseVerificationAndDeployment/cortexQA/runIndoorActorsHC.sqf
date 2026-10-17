@@ -10,9 +10,9 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIndoorActorsHC.sqf";
  */
 params ["_check","_phase","_wait"];
-if (!isServer || {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])}
-    || {isNil "Waldo_fnc_HeadlessMigrateGroup"} || {isNil "WAIT_CortexQA_IndoorActorOwner"}
-    || {!(missionNamespace getVariable ["WAIT_CortexQA_OwnerHelpersInstalled",false])}) exitWith {
+if (!isServer || {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])}
+    || {isNil "Waldo_fnc_HeadlessMigrateGroup"} || {isNil "CBE_CortexQA_IndoorActorOwner"}
+    || {!(missionNamespace getVariable ["CBE_CortexQA_OwnerHelpersInstalled",false])}) exitWith {
     ["HC-INDOOR-real-provider-prerequisite",false] call _check;
 };
 private _registered=[{
@@ -31,18 +31,18 @@ private _request={
     _serial=_serial+1;
     private _id=_serial;
     private _expires=serverTime+8;
-    _actor setVariable ["WAIT_CortexQA_IndoorAck",nil];
-    _actor setVariable ["WAIT_CortexQA_IndoorPending",[_id,_mode,_owner,_expires]];
+    _actor setVariable ["CBE_CortexQA_IndoorAck",nil];
+    _actor setVariable ["CBE_CortexQA_IndoorPending",[_id,_mode,_owner,_expires]];
     if (_owner == 2) then {
-        [_actor,_mode,_id,_owner,_expires,_goal] call WAIT_CortexQA_IndoorActorOwner;
+        [_actor,_mode,_id,_owner,_expires,_goal] call CBE_CortexQA_IndoorActorOwner;
     } else {
-        [_actor,_mode,_id,_owner,_expires,_goal] remoteExecCall ["WAIT_CortexQA_IndoorActorOwner",_owner];
+        [_actor,_mode,_id,_owner,_expires,_goal] remoteExecCall ["CBE_CortexQA_IndoorActorOwner",_owner];
     };
     private _received=[{
-        private _ack=_actor getVariable ["WAIT_CortexQA_IndoorAck",[]];
+        private _ack=_actor getVariable ["CBE_CortexQA_IndoorAck",[]];
         count _ack == 5 && {(_ack select 0) == _id} && {(_ack select 1) == _mode} && {(_ack select 2) == _owner}
     },9] call _wait;
-    if (_received) then {_actor getVariable ["WAIT_CortexQA_IndoorAck",[]]} else {[]}
+    if (_received) then {_actor getVariable ["CBE_CortexQA_IndoorAck",[]]} else {[]}
 };
 private _physicalVisit={
     params ["_actor","_house","_target"];
@@ -84,27 +84,27 @@ private _physicalVisit={
     };
     private _group=createGroup [east,true];
     _group setVariable ["Waldo_Headless_ExcludeGroup",true,true];
-    _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _group setVariable ["acex_headless_blacklist",true,true];
     _group setCombatMode "YELLOW";
     private _actor=_group createUnit ["O_Soldier_F",_site vectorAdd [0,-35,0],[],0,"NONE"];
     _actor setVariable ["acex_headless_blacklist",true,true];
-    _actor setVariable ["WAIT_CortexQA_Label",_label,true];
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[_actor],true];
+    _actor setVariable ["CBE_CortexQA_Label",_label,true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[_actor],true];
     { _x addCuratorEditableObjects [[_house,_actor],true] } forEach allCurators;
     [_label+" transfer and return","A real server-owned investigation must be in outside APPROACH before provider transfer. The HC must retire it, obey a fresh native move, then return the same actor for a new physical investigation. No journal reset, door assistance or actor relocation is injected.",getPosATL _house] call _phase;
     private _ready=[{
-        local _group && {local _actor} && {_group getVariable ["WAIT_AIPass_Adopted",false]}
-            && {(_group getVariable ["WAIT_AIPass_Epoch",0]) > 0}
+        local _group && {local _actor} && {_group getVariable ["CBE_AIPass_Adopted",false]}
+            && {(_group getVariable ["CBE_AIPass_Epoch",0]) > 0}
             && {currentCommand _actor == ""} && {getUnitState _actor != "BUSY"}
     },30] call _wait;
     [_label+"-server-ready",_ready && {_rooms isNotEqualTo []}] call _check;
     private _accepted=false;
     if (_rooms isNotEqualTo []) then {
-        _accepted=["START",_actor,createHashMapFromArray [["building",_house],["belief",[+(_rooms select 0),serverTime]]]] call WAIT_fnc_IndoorActorOperation;
+        _accepted=["START",_actor,createHashMapFromArray [["building",_house],["belief",[+(_rooms select 0),serverTime]]]] call CBE_fnc_IndoorActorOperation;
     };
     private _approach=[{
-        private _order=_actor getVariable ["WAIT_IndoorActor_Order",[]];
+        private _order=_actor getVariable ["CBE_IndoorActor_Order",[]];
         private _bounds=boundingBoxReal _house; private _model=_house worldToModel (getPosATL _actor);
         private _low=_bounds select 0; private _high=_bounds select 1;
         private _outside=(_model select 0) < (_low select 0) || {(_model select 0) > (_high select 0)}
@@ -113,7 +113,7 @@ private _physicalVisit={
             && {currentCommand _actor == "MOVE"} && {_actor distance (_order select 6) > 10}
     },5] call _wait;
     [_label+"-real-approach",_ready && {_accepted} && {_approach}] call _check;
-    private _before=_actor getVariable ["WAIT_IndoorActor_Order",[]];
+    private _before=_actor getVariable ["CBE_IndoorActor_Order",[]];
     private _oldGeneration=_before param [0,-1];
     private _oldDeadline=_before param [4,-1];
     private _requested=false; private _adopted=false; private _cancelled=false;
@@ -121,18 +121,18 @@ private _physicalVisit={
     private _transferAt=serverTime;
     if (_approach) then {
         _group setVariable ["Waldo_Headless_ExcludeGroup",false,true];
-        _group setVariable ["WAIT_Headless_ExcludeGroup",false,true];
-        _requested=[_group,_owner] call WAIT_fnc_HeadlessMigrateGroup;
+        _group setVariable ["CBE_Headless_ExcludeGroup",false,true];
+        _requested=[_group,_owner] call CBE_fnc_HeadlessMigrateGroup;
         _adopted=[{
-            private _journal=_actor getVariable ["WAIT_IndoorActor_Order",[]];
+            private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
             if (count _journal == 9 && {(_journal select 4) != _oldDeadline}) then {_deadlineKept=false};
-            private _adoption=_group getVariable ["WAIT_AI_LastHeadlessAdoption",[]];
+            private _adoption=_group getVariable ["CBE_AI_LastHeadlessAdoption",[]];
             count _adoption >= 7 && {groupOwner _group == _owner} && {owner _actor == _owner}
                 && {(_adoption select 0) == _owner} && {(_adoption select 4) >= _transferAt}
                 && {(_adoption select 5) == "COMPANION"} && {(_adoption select 6) >= 0}
         },20] call _wait;
     };
-    [_label+"-provider-adopted",_requested && {_adopted},str [_owner,groupOwner _group,_group getVariable ["WAIT_AI_LastHeadlessAdoption",[]]]] call _check;
+    [_label+"-provider-adopted",_requested && {_adopted},str [_owner,groupOwner _group,_group getVariable ["CBE_AI_LastHeadlessAdoption",[]]]] call _check;
     if (_adopted) then {
         private _ack=[_actor,"STATUS",_owner] call _request;
         private _data=_ack param [3,[],[[]]];
@@ -143,14 +143,14 @@ private _physicalVisit={
         // Require both rather than assuming either packet arrives first.
         if (_localRetired) then {
             _cancelled=[{
-                (_actor getVariable ["WAIT_IndoorActor_Order",[]]) isEqualTo []
-                    && {((_actor getVariable ["WAIT_IndoorActor_Result",[]]) param [0,-1]) == _oldGeneration}
-                    && {(_actor getVariable ["WAIT_IndoorActor_Cooldown",-1]) >= _transferAt}
+                (_actor getVariable ["CBE_IndoorActor_Order",[]]) isEqualTo []
+                    && {((_actor getVariable ["CBE_IndoorActor_Result",[]]) param [0,-1]) == _oldGeneration}
+                    && {(_actor getVariable ["CBE_IndoorActor_Cooldown",-1]) >= _transferAt}
             },5] call _wait;
         };
     };
     [_label+"-owner-cancelled",_requested && {_adopted} && {_cancelled} && {_deadlineKept},
-        str [_before,_actor getVariable ["WAIT_IndoorActor_Order",[]],_actor getVariable ["WAIT_IndoorActor_Result",[]]]] call _check;
+        str [_before,_actor getVariable ["CBE_IndoorActor_Order",[]],_actor getVariable ["CBE_IndoorActor_Result",[]]]] call _check;
     private _moveOrigin=getPosATL _actor;
     private _moveGoal=_moveOrigin vectorAdd [-12,-8,0];
     private _moveIssued=false; private _moved=false; private _ownerStable=true;
@@ -160,7 +160,7 @@ private _physicalVisit={
         _moveIssued=count _data == 9 && {_data select 0};
         if (_moveIssued) then {
             _moved=[{
-                if ((_actor getVariable ["WAIT_IndoorActor_Order",[]]) isNotEqualTo []) then {_replayed=true};
+                if ((_actor getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []) then {_replayed=true};
                 if (groupOwner _group != _owner || {owner _actor != _owner}) then {_ownerStable=false};
                 _actor distance _moveGoal <= 2 && {(getPosATL _actor) vectorDistance _moveOrigin > 8}
             },30] call _wait;
@@ -168,42 +168,42 @@ private _physicalVisit={
     };
     [_label+"-hc-native-physical",_moveIssued && {_moved} && {_ownerStable} && {!_replayed},str [getPosATL _actor,_moveGoal]] call _check;
     private _returnAt=serverTime;
-    private _returnRequested=[_group,2] call WAIT_fnc_HeadlessMigrateGroup;
+    private _returnRequested=[_group,2] call CBE_fnc_HeadlessMigrateGroup;
     private _returned=[{
-        private _adoption=_group getVariable ["WAIT_AI_LastHeadlessAdoption",[]];
+        private _adoption=_group getVariable ["CBE_AI_LastHeadlessAdoption",[]];
         local _group && {local _actor} && {count _adoption >= 7}
             && {(_adoption select 0) == 2} && {(_adoption select 4) >= _returnAt}
             && {(_adoption select 5) == "COMPANION"}
     },20] call _wait;
     _group setVariable ["Waldo_Headless_ExcludeGroup",true,true];
-    _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
-    private _pointerFree=count (_actor getVariable ["WAIT_IndoorActor_Brain",createHashMap]) == 0
-        && {isNil {_actor getVariable "WAIT_IndoorActor_FSM"}};
+    _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
+    private _pointerFree=count (_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) == 0
+        && {isNil {_actor getVariable "CBE_IndoorActor_FSM"}};
     [_label+"-return-pointer-retired",_returnRequested && {_returned} && {_pointerFree},str [_returned,_pointerFree]] call _check;
     private _repeatReady=false;
     if (_returned) then {
         _repeatReady=[{
-            if ((_actor getVariable ["WAIT_IndoorActor_Order",[]]) isNotEqualTo []) then {_replayed=true};
-            serverTime >= (_actor getVariable ["WAIT_IndoorActor_Cooldown",-1])
+            if ((_actor getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []) then {_replayed=true};
+            serverTime >= (_actor getVariable ["CBE_IndoorActor_Cooldown",-1])
                 && {currentCommand _actor == ""} && {getUnitState _actor != "BUSY"}
-                && {count (_actor getVariable ["WAIT_IndoorActor_Brain",createHashMap]) == 0}
-                && {(_actor getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}
+                && {count (_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) == 0}
+                && {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
         },30] call _wait;
     };
     [_label+"-return-idle-cooldown-ready",_returned && {_repeatReady},
-        str [serverTime,_actor getVariable ["WAIT_IndoorActor_Cooldown",-1],currentCommand _actor,
-            getUnitState _actor,count (_actor getVariable ["WAIT_IndoorActor_Brain",createHashMap])]] call _check;
+        str [serverTime,_actor getVariable ["CBE_IndoorActor_Cooldown",-1],currentCommand _actor,
+            getUnitState _actor,count (_actor getVariable ["CBE_IndoorActor_Brain",createHashMap])]] call _check;
     private _overlap=serverTime < _oldDeadline;
     [_label+"-old-callback-overlap",_cancelled && {_returned} && {_repeatReady} && {_overlap},str [serverTime,_oldDeadline]] call _check;
     private _repeatAccepted=false; private _visited=false; private _done=false;
     private _target=[]; private _targetKept=true; private _repeatGeneration=-1; private _repeatDeadline=-1; private _generationKept=true;
     if (_repeatReady && {_rooms isNotEqualTo []}) then {
-        _repeatAccepted=["START",_actor,createHashMapFromArray [["building",_house],["belief",[+(_rooms select 0),serverTime]]]] call WAIT_fnc_IndoorActorOperation;
-        private _order=_actor getVariable ["WAIT_IndoorActor_Order",[]];
+        _repeatAccepted=["START",_actor,createHashMapFromArray [["building",_house],["belief",[+(_rooms select 0),serverTime]]]] call CBE_fnc_IndoorActorOperation;
+        private _order=_actor getVariable ["CBE_IndoorActor_Order",[]];
         _repeatGeneration=_order param [0,-1]; _repeatDeadline=_order param [4,-1];
         if (_repeatAccepted) then {
             _done=[{
-                private _journal=_actor getVariable ["WAIT_IndoorActor_Order",[]];
+                private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
                 if (count _journal == 9) then {
                     if ((_journal select 0) != _repeatGeneration || {(_journal select 4) != _repeatDeadline}) then {_generationKept=false};
                     if (_journal select 8) then {
@@ -217,18 +217,18 @@ private _physicalVisit={
             },45] call _wait;
         };
     };
-    private _result=_actor getVariable ["WAIT_IndoorActor_Result",[]];
+    private _result=_actor getVariable ["CBE_IndoorActor_Result",[]];
     [_label+"-returned-repeat-physical",_returnRequested && {_returned} && {_pointerFree}
         && {_repeatReady} && {_repeatAccepted} && {_done} && {_visited} && {_generationKept}
         && {_targetKept} && {_target in _rooms} && {!_replayed}
         && {_repeatGeneration > _oldGeneration} && {(_result param [0,-1]) == _repeatGeneration}
         && {(_result param [1,""]) == "VISITED"},str [_target,_result]] call _check;
-    if (local _actor) then {["FINISH",_actor,createHashMap] call WAIT_fnc_IndoorActorOperation};
+    if (local _actor) then {["FINISH",_actor,createHashMap] call CBE_fnc_IndoorActorOperation};
     private _cleanupOwner=groupOwner _group;
     deleteVehicle _actor;
     if (local _group) then {deleteGroup _group} else {
-        if (_cleanupOwner >= 2) then {[_group] remoteExecCall ["WAIT_CortexQA_PerformanceDeleteGroup",_cleanupOwner]};
+        if (_cleanupOwner >= 2) then {[_group] remoteExecCall ["CBE_CortexQA_PerformanceDeleteGroup",_cleanupOwner]};
     };
     deleteVehicle _house;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 } forEach _owners;

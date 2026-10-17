@@ -22,7 +22,7 @@ class ClearEarlyExitTests(unittest.TestCase):
         self.assertIn('from 0 to (_proposalCount-1)',planner)
         self.assertIn('_entries select [0,4]',planner)
         self.assertIn('_entries select [0,4]',planner)
-        self.assertIn('call WAIT_fnc_BuildingExteriorCandidate',planner)
+        self.assertIn('call CBE_fnc_BuildingExteriorCandidate',planner)
         self.assertNotIn('doMove',planner)
 
     def test_phase_writers_do_not_restart_early_leg(self):
@@ -31,7 +31,7 @@ class ClearEarlyExitTests(unittest.TestCase):
         self.assertIn('if (_key in _earlyExits) then {continue}',s)
         final = s.split('// Defer expensive exterior planning;',1)[1]
         self.assertIn('if (_early isNotEqualTo []) then',final)
-        self.assertNotIn('doMove',final.split('_group setVariable ["WAIT_Cortex_ClearStatus"',1)[0])
+        self.assertNotIn('doMove',final.split('_group setVariable ["CBE_Cortex_ClearStatus"',1)[0])
         service = s.split('private _earlyExits=',1)[1].split('if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS")',1)[0]
         self.assertIn('serverTime >= _deadline',service)
         self.assertIn('_record set [3,"FAILED"]',service)
@@ -46,7 +46,7 @@ class ClearEarlyExitTests(unittest.TestCase):
                      'serverTime-(_motion select 1) >= 8',
                      '!(_record param [4,false,[true]])',
                      '[_actor] call _exitMovementOwned',
-                     'call WAIT_fnc_RecoveryStep', '_record set [4,true]']:
+                     'call CBE_fnc_RecoveryStep', '_record set [4,true]']:
             self.assertIn(gate,service)
         self.assertNotIn('_record set [2,',service)
         self.assertNotIn('doMove',service)
@@ -60,7 +60,7 @@ class ClearEarlyExitTests(unittest.TestCase):
         for gate in ['== "ARRIVED"', 'earlyExitViewCursor', 'serverTime+2', 'eyePos _actor',
                      'terrainIntersectASL', '"VIEW","NONE"', 'call _actorAvailable', 'call _actorTaskFree',
                      'call _mayIssueMovement', 'serverTime-_blockedSince >= 3',
-                     'WAIT_Cortex_ClearExitWatchLocal', '_actor doWatch _watch']:
+                     'CBE_Cortex_ClearExitWatchLocal', '_actor doWatch _watch']:
             self.assertIn(gate,block)
         self.assertEqual(block.count('lineIntersectsSurfaces'),1)
         self.assertNotIn('doMove',block)

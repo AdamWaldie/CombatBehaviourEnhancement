@@ -2,12 +2,12 @@
   "schema": 1,
   "configuration_surface": "CBA",
   "native_classes": [
-    "WAIT_ModuleConvoyStart",
-    "WAIT_ModuleConvoyHold",
-    "WAIT_ModuleConvoyRelease",
-    "WAIT_ModuleGarrison",
-    "WAIT_ModuleDefend",
-    "WAIT_ModuleDrivingCorridor"
+    "CBE_ModuleConvoyStart",
+    "CBE_ModuleConvoyHold",
+    "CBE_ModuleConvoyRelease",
+    "CBE_ModuleGarrison",
+    "CBE_ModuleDefend",
+    "CBE_ModuleDrivingCorridor"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -30,7 +30,7 @@
         "addons/vehicles/functions/moduleConvoy.sqf",
         "addons/vehicles/functions/zenConvoyModule.sqf"
       ],
-      "executor": "WAIT_fnc_SimpleAiConvoy",
+      "executor": "CBE_fnc_SimpleAiConvoy",
       "authority": "Existing convoy server request validation and group-owner execution",
       "termination": "Task release, replacement order, ownership loss or convoy termination",
       "guide": "docs/Smart-AI-Pass.md",
@@ -48,7 +48,7 @@
         "addons/infantry/functions/moduleGarrison.sqf",
         "addons/infantry/functions/zenGarrisonModule.sqf"
       ],
-      "executor": "WAIT_fnc_CortexOrderDispatch",
+      "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Server-authenticated curator, current-owner garrison executor and acknowledgement",
       "termination": "Replacement task, native/Zeus handover, release, casualty/morale break or invalid structures",
       "guide": "docs/Smart-AI-Pass.md",
@@ -65,7 +65,7 @@
         "addons/infantry/functions/moduleGarrison.sqf",
         "addons/infantry/functions/zenDefendModule.sqf"
       ],
-      "executor": "WAIT_fnc_CortexOrderDispatch",
+      "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Authenticated curator/server request, preflighted current-owner CortexDefend execution and acknowledgement",
       "termination": "New task/native/Zeus control, release, casualty/morale break or owner handover",
       "guide": "docs/Smart-AI-Pass.md",
@@ -81,7 +81,7 @@
       "handlers": [
         "addons/infantry/functions/zenClearModule.sqf"
       ],
-      "executor": "WAIT_fnc_CortexOrderDispatch",
+      "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Authenticated curator/server task validation and current-owner CortexClearBuilding acknowledgement",
       "termination": "Replacement/native/Zeus control, release, moved/deleted building, finite result or deadline",
       "guide": "docs/Smart-AI-Pass.md",
@@ -89,7 +89,7 @@
     },
     {
       "behaviour": "Navigation corridor create, update or remove",
-      "target": "Explicit empty-ground position or editable WAIT corridor area; no nearest-area fallback",
+      "target": "Explicit empty-ground position or editable CBE corridor area; no nearest-area fallback",
       "parameters": [
         "task action",
         "axis facing",
@@ -101,7 +101,7 @@
         "addons/vehicles/functions/moduleDrivingCorridor.sqf",
         "addons/vehicles/functions/zenDrivingCorridorModule.sqf"
       ],
-      "executor": "WAIT_fnc_DrivingCorridorDispatch",
+      "executor": "CBE_fnc_DrivingCorridorDispatch",
       "authority": "Authenticated curator/server validation, revisioned passive definitions and current-owner ordinary/convoy lead execution",
       "termination": "Area removal/transform change, finite deadline, new order/controller, HALT/release or actual lead crossing; followers retain predecessor trails",
       "guide": "docs/Smart-AI-Pass.md",

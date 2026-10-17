@@ -8,7 +8,7 @@
  * encounter and speed reduction within eight seconds, then onward travel. Missing encounters fail
  * their prerequisite; sampled hull separation/damage cannot establish continuous collision freedom.
  * This observer adds two eight-corner projections at 5 Hz during at most 150 s; not a performance arm.
- * Arguments: None. WAIT_CortexQA_Focus selects the staged batch; airskills runs aircraft and
+ * Arguments: None. CBE_CortexQA_Focus selects the staged batch; airskills runs aircraft and
  * AI-profile/vehicle-crew mechanics together, while supportflows runs coordinated manoeuvre plus
  * combined-arms composition in one process without unrelated feature suites. dangerload is the short
  * packaged engine-FSM gate; dangerparity batches immediate contact, tactical selection and vehicle
@@ -17,12 +17,12 @@
  * Return: Nothing (scheduled script).
  * Current callers: staged audit continuation. Example: [] execVM "cortexQAServer.sqf";
  */
-if (!isServer || {missionNamespace getVariable ["WAIT_CortexQA_ServerRunning",false]}) exitWith {};
-missionNamespace setVariable ["WAIT_CortexQA_ServerRunning",true];
-waitUntil {sleep 0.5; !isNil "WAIT_fnc_CortexTuning" && {missionNamespace getVariable ["WAIT_AITweaks_SettingsReady",false]} && {missionNamespace getVariable ["WAIT_AITweaks_PostInitComplete",false]}};
+if (!isServer || {missionNamespace getVariable ["CBE_CortexQA_ServerRunning",false]}) exitWith {};
+missionNamespace setVariable ["CBE_CortexQA_ServerRunning",true];
+waitUntil {sleep 0.5; !isNil "CBE_fnc_CortexTuning" && {missionNamespace getVariable ["CBE_AITweaks_SettingsReady",false]} && {missionNamespace getVariable ["CBE_AITweaks_PostInitComplete",false]}};
 private _failures = [];
-private _focus = missionNamespace getVariable ["WAIT_CortexQA_Focus","all"];
-missionNamespace setVariable ["WAIT_CortexQA_Results",[],true];
+private _focus = missionNamespace getVariable ["CBE_CortexQA_Focus","all"];
+missionNamespace setVariable ["CBE_CortexQA_Results",[],true];
 private _phase = {
     params ["_title","_expected",["_position",[],[[]]]];
     // Zeus camera travel does not move the player used by production distance tiers.
@@ -34,59 +34,59 @@ private _phase = {
             };
         } forEach allPlayers;
     };
-    missionNamespace setVariable ["WAIT_CortexQA_Phase",[_title,_expected,_position,serverTime],true];
+    missionNamespace setVariable ["CBE_CortexQA_Phase",[_title,_expected,_position,serverTime],true];
     sleep 8;
 };
 private _readyUntil = diag_tickTime + ([120,5] select (_focus == "dangerload"));
-waitUntil {sleep 0.5; missionNamespace getVariable ["WAIT_CortexQA_GuideReady",false] || {diag_tickTime > _readyUntil}};
-private _check = {params ["_id","_ok",["_detail",""]]; diag_log format ["WAIT CORTEX QA|%1|%2|%3",_id,["FAIL","PASS"] select _ok,_detail]; if (!_ok) then {_failures pushBack _id}; private _results = missionNamespace getVariable ["WAIT_CortexQA_Results",[]]; _results pushBack [_id,["FAIL","PASS"] select _ok]; missionNamespace setVariable ["WAIT_CortexQA_Results",_results,true]};
+waitUntil {sleep 0.5; missionNamespace getVariable ["CBE_CortexQA_GuideReady",false] || {diag_tickTime > _readyUntil}};
+private _check = {params ["_id","_ok",["_detail",""]]; diag_log format ["CBE CORTEX QA|%1|%2|%3",_id,["FAIL","PASS"] select _ok,_detail]; if (!_ok) then {_failures pushBack _id}; private _results = missionNamespace getVariable ["CBE_CortexQA_Results",[]]; _results pushBack [_id,["FAIL","PASS"] select _ok]; missionNamespace setVariable ["CBE_CortexQA_Results",_results,true]};
 [_check] call compile preprocessFileLineNumbers "cortexQAAddon.sqf";
 // Addon and command-boundary prerequisites are authoritative for every later case. Abort this
 // packaged batch immediately when one fails; otherwise a shared runtime error can turn hundreds
 // of physical checks into misleading movement timeouts and waste an entire long-form run.
 if (_failures isNotEqualTo []) exitWith {
-    missionNamespace setVariable ["WAIT_CortexQA_ServerDone",true,true];
-    missionNamespace setVariable ["WAIT_CortexQA_ServerFailures",_failures,true];
-    diag_log format ["WAIT CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
 private _wait = {params ["_condition",["_seconds",15]]; private _until = diag_tickTime + _seconds; waitUntil {sleep 0.2; call _condition || {diag_tickTime >= _until}}; call _condition};
-private _saved = createHashMapFromArray (([] call WAIT_fnc_CortexTuningSpec) apply {[_x select 0,missionNamespace getVariable [_x select 0,_x select 5]]});
+private _saved = createHashMapFromArray (([] call CBE_fnc_CortexTuningSpec) apply {[_x select 0,missionNamespace getVariable [_x select 0,_x select 5]]});
 if (_focus == "roadpassing") exitWith {
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQARoadPassing.sqf";
-    [_saved] call WAIT_fnc_CortexTuning;
-    missionNamespace setVariable ["WAIT_CortexQA_ServerDone",true,true];
-    missionNamespace setVariable ["WAIT_CortexQA_ServerFailures",_failures,true];
-    diag_log format ["WAIT CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
 if (_focus == "indooractorshc") exitWith {
-    [createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],
-        ["WAIT_AIPass_Regroup_Enable",false],["WAIT_AIPass_BuildingCombat_Enable",true],
-        ["WAIT_AIPass_Assault_Enable",true]]] call WAIT_fnc_CortexTuning;
+    [createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],
+        ["CBE_AIPass_Regroup_Enable",false],["CBE_AIPass_BuildingCombat_Enable",true],
+        ["CBE_AIPass_Assault_Enable",true]]] call CBE_fnc_CortexTuning;
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIndoorActorsHC.sqf";
-    [_saved] call WAIT_fnc_CortexTuning;
-    missionNamespace setVariable ["WAIT_CortexQA_ServerDone",true,true];
-    missionNamespace setVariable ["WAIT_CortexQA_ServerFailures",_failures,true];
-    diag_log format ["WAIT CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
 if (_focus == "indoornatural") exitWith {
-    [createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
-        ["WAIT_AIPass_Regroup_Enable",false],["WAIT_AIPass_BuildingCombat_Enable",true],
-        ["WAIT_AIPass_Assault_Enable",true]]] call WAIT_fnc_CortexTuning;
+    [createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],
+        ["CBE_AIPass_Regroup_Enable",false],["CBE_AIPass_BuildingCombat_Enable",true],
+        ["CBE_AIPass_Assault_Enable",true]]] call CBE_fnc_CortexTuning;
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIndoorNatural.sqf";
-    [_saved] call WAIT_fnc_CortexTuning;
-    missionNamespace setVariable ["WAIT_CortexQA_ServerDone",true,true];
-    missionNamespace setVariable ["WAIT_CortexQA_ServerFailures",_failures,true];
-    diag_log format ["WAIT CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
 if (_focus == "indooractors") exitWith {
-    [createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],
-        ["WAIT_AIPass_Regroup_Enable",false],["WAIT_AIPass_BuildingCombat_Enable",true],
-        ["WAIT_AIPass_Assault_Enable",true]]] call WAIT_fnc_CortexTuning;
+    [createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],
+        ["CBE_AIPass_Regroup_Enable",false],["CBE_AIPass_BuildingCombat_Enable",true],
+        ["CBE_AIPass_Assault_Enable",true]]] call CBE_fnc_CortexTuning;
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIndoorActors.sqf";
-    [_saved] call WAIT_fnc_CortexTuning;
-    missionNamespace setVariable ["WAIT_CortexQA_ServerDone",true,true];
-    missionNamespace setVariable ["WAIT_CortexQA_ServerFailures",_failures,true];
-    diag_log format ["WAIT CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
 if (_focus == "dangerload") then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQADangerLoad.sqf"};
 if (_focus == "terrain") then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQATerrain.sqf"};
@@ -97,120 +97,120 @@ _group = createGroup [east,true];
 private _u1 = _group createUnit ["O_Soldier_F",[6000,6000,0],[],0,"NONE"];
 private _u2 = _group createUnit ["O_Soldier_F",[6003,6000,0],[],0,"NONE"];
 _group setGroupIdGlobal ["Cortex QA Infantry"];
-missionNamespace setVariable ["WAIT_CortexQA_Infantry",_group,true];
+missionNamespace setVariable ["CBE_CortexQA_Infantry",_group,true];
 _house = missionNamespace getVariable ["qa_cortex_path_house",objNull];
 if (isNull _house) then {_house = createVehicle ["Land_i_House_Small_03_V1_F",[6025,6000,0],[],0,"NONE"]};
 _house enableSimulationGlobal true;
-diag_log format ["WAIT CORTEX QA BUILDING NEIGHBOURS: %1",(nearestObjects [_house,["House","Building"],20,true]) apply {[typeOf _x,netId _x,getPosATL _x,simulationEnabled _x]}];
-diag_log format ["WAIT CORTEX QA BUILDING: class=%1 simulation=%2 pos=%3 positions=%4",typeOf _house,simulationEnabled _house,getPosATL _house,_house buildingPos -1];
+diag_log format ["CBE CORTEX QA BUILDING NEIGHBOURS: %1",(nearestObjects [_house,["House","Building"],20,true]) apply {[typeOf _x,netId _x,getPosATL _x,simulationEnabled _x]}];
+diag_log format ["CBE CORTEX QA BUILDING: class=%1 simulation=%2 pos=%3 positions=%4",typeOf _house,simulationEnabled _house,getPosATL _house,_house buildingPos -1];
 private _baselineGroup = createGroup [east,true];
-_baselineGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-_baselineGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_baselineGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_baselineGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _baselineGroup setVariable ["acex_headless_blacklist",true,true];
 _baselineGroup setGroupIdGlobal ["QA scheduler-excluded comparison"];
 private _baseline = _baselineGroup createUnit ["O_Soldier_F",[(getPosATL _house select 0),(getPosATL _house select 1)-35,0],[],0,"NONE"];
 _baseline setVariable ["acex_headless_blacklist",true,true];
 private _baselineTarget = (_house buildingPos -1) param [2,[]];
 // Runtime exclusion cannot undo the addon-level fsmDanger config replacement. This comparison
-// isolates WAIT scheduled building control, not the complete addon-absent native AI baseline.
-diag_log format ["WAIT CORTEX QA BUILDING CONTROL|kind=SCHEDULER_EXCLUDED|dangerFSM=%1|formationFSM=%2|nativeBaseline=false",getText (configOf _baseline >> "fsmDanger"),getText (configOf _baseline >> "fsmFormation")];
+// isolates CBE scheduled building control, not the complete addon-absent native AI baseline.
+diag_log format ["CBE CORTEX QA BUILDING CONTROL|kind=SCHEDULER_EXCLUDED|dangerFSM=%1|formationFSM=%2|nativeBaseline=false",getText (configOf _baseline >> "fsmDanger"),getText (configOf _baseline >> "fsmFormation")];
 if (_baselineTarget isNotEqualTo []) then {doStop _baseline; _baseline doMove _baselineTarget};
 ["Infantry orders","The two soldiers defend, occupy the house, then release those orders. An empty garrison request must preserve defence.",[6010,6000,0]] call _phase;
-[createHashMapFromArray [["WAIT_AIPass_Enable",false]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",false]]] call CBE_fnc_CortexTuning;
 sleep 2;
-["ORD-01-disabled-explanation",([_group,"DEFEND"] call WAIT_fnc_CortexOrderReason) find "disabled" >= 0] call _check;
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],["WAIT_AIPass_Regroup_Enable",false]]] call WAIT_fnc_CortexTuning;
-[{missionNamespace getVariable ["WAIT_AIPass_Active",false]},20] call _wait;
-private _order = {params ["_action",["_position",[6000,6010,0]],["_building",objNull]]; [[["order",_action],["group",_group],["position",_position],["building",_building],["radius",40],["facing",90]],2] call WAIT_fnc_CortexOrderDispatch; sleep 2};
+["ORD-01-disabled-explanation",([_group,"DEFEND"] call CBE_fnc_CortexOrderReason) find "disabled" >= 0] call _check;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],["CBE_AIPass_Regroup_Enable",false]]] call CBE_fnc_CortexTuning;
+[{missionNamespace getVariable ["CBE_AIPass_Active",false]},20] call _wait;
+private _order = {params ["_action",["_position",[6000,6010,0]],["_building",objNull]]; [[["order",_action],["group",_group],["position",_position],["building",_building],["radius",40],["facing",90]],2] call CBE_fnc_CortexOrderDispatch; sleep 2};
 ["DEFEND"] call _order;
-["ORD-02-defend-accepted",(_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo []] call _check;
+["ORD-02-defend-accepted",(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []] call _check;
 private _atAssigned = {
     params ["_key",["_distance",3]];
     private _members = units _group;
-    if (diag_tickTime >= (missionNamespace getVariable ["WAIT_CortexQA_NextInfantryDiagnostic",0])) then {
-        missionNamespace setVariable ["WAIT_CortexQA_NextInfantryDiagnostic",diag_tickTime+10];
-        diag_log format ["WAIT CORTEX QA INFANTRY: key=%1 owner=%2 units=%3",_key,groupOwner _group,_members apply {[_x,getPosATL _x,_x getVariable [_key,[]],currentCommand _x,expectedDestination _x,speed _x,_x checkAIFeature "PATH",alive _x]}];
+    if (diag_tickTime >= (missionNamespace getVariable ["CBE_CortexQA_NextInfantryDiagnostic",0])) then {
+        missionNamespace setVariable ["CBE_CortexQA_NextInfantryDiagnostic",diag_tickTime+10];
+        diag_log format ["CBE CORTEX QA INFANTRY: key=%1 owner=%2 units=%3",_key,groupOwner _group,_members apply {[_x,getPosATL _x,_x getVariable [_key,[]],currentCommand _x,expectedDestination _x,speed _x,_x checkAIFeature "PATH",alive _x]}];
     };
     count _members == 2 && {_members findIf {private _assignment = _x getVariable [_key,[]]; !alive _x || {_assignment isEqualTo []} || {_x distance (_assignment select 0) > _distance}} < 0}
 };
 ["Defence movement","Both soldiers must walk to their assigned defensive positions and stay there. An accepted order alone does not pass this stage.",[6000,6020,0]] call _phase;
-["ORD-02b-defence-arrival",[{["WAIT_AIPass_DefendPos",3.5] call _atAssigned},95] call _wait] call _check;
+["ORD-02b-defence-arrival",[{["CBE_AIPass_DefendPos",3.5] call _atAssigned},95] call _wait] call _check;
 sleep 5;
-["ORD-02c-defence-hold",["WAIT_AIPass_DefendPos",3.5] call _atAssigned] call _check;
+["ORD-02c-defence-hold",["CBE_AIPass_DefendPos",3.5] call _atAssigned] call _check;
 ["GARRISON",[8000,8000,0]] call _order;
-["ORD-03-empty-garrison-preserves-defend",(_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo [] && {(_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []}] call _check;
+["ORD-03-empty-garrison-preserves-defend",(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo [] && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}] call _check;
 ["GARRISON",getPosATL _house] call _order;
 private _housePositions=_house buildingPos -1;
 private _atHouse={
     // Sample only this two-person fixture; never add a production scan or move an actor.
-    if (diag_tickTime >= (missionNamespace getVariable ["WAIT_CortexQA_NextBuildingDiagnostic",0])) then {
-        missionNamespace setVariable ["WAIT_CortexQA_NextBuildingDiagnostic",diag_tickTime+10];
-        diag_log format ["WAIT CORTEX QA BUILDING MOVEMENT|groupOwner=%1|actors=%2|comparison=%3",groupOwner _group,
+    if (diag_tickTime >= (missionNamespace getVariable ["CBE_CortexQA_NextBuildingDiagnostic",0])) then {
+        missionNamespace setVariable ["CBE_CortexQA_NextBuildingDiagnostic",diag_tickTime+10];
+        diag_log format ["CBE CORTEX QA BUILDING MOVEMENT|groupOwner=%1|actors=%2|comparison=%3",groupOwner _group,
             units _group apply {[_x,owner _x,getPosATL _x,currentCommand _x,expectedDestination _x,speed _x,
                 _x checkAIFeature "MOVE",_x checkAIFeature "PATH",getForcedSpeed _x,
-                _x getVariable ["WAIT_Cortex_ActorMove",[]],_x getVariable ["WAIT_Danger_EngineResponse",[]],
-                _x getVariable ["WAIT_AIPass_GarrisonPos",[]],_x getVariable ["WAIT_AIPass_GarrisonFailed",false]]},
+                _x getVariable ["CBE_Cortex_ActorMove",[]],_x getVariable ["CBE_Danger_EngineResponse",[]],
+                _x getVariable ["CBE_AIPass_GarrisonPos",[]],_x getVariable ["CBE_AIPass_GarrisonFailed",false]]},
             [owner _baseline,getPosATL _baseline,currentCommand _baseline,expectedDestination _baseline,
                 _baseline checkAIFeature "MOVE",_baseline checkAIFeature "PATH",getForcedSpeed _baseline,
-                _baseline getVariable ["WAIT_Danger_EngineResponse",[]]]];
+                _baseline getVariable ["CBE_Danger_EngineResponse",[]]]];
     };
     _housePositions isNotEqualTo [] && {units _group findIf {
         private _unit=_x;
         !alive _unit || {_housePositions findIf {_unit distance _x <= 2.5} < 0}
     } < 0}
 };
-private _garrisonAccepted=(_group getVariable ["WAIT_AIPass_Garrison",[]]) isNotEqualTo []
-    && {units _group findIf {(_x getVariable ["WAIT_AIPass_GarrisonPos",[]]) isNotEqualTo []} >= 0};
+private _garrisonAccepted=(_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []
+    && {units _group findIf {(_x getVariable ["CBE_AIPass_GarrisonPos",[]]) isNotEqualTo []} >= 0};
 ["ORD-04-garrison-accepted",_garrisonAccepted] call _check;
-["Garrison movement","The public Zeus order must use WAIT's garrison operation. Both soldiers must physically enter and hold real building positions; an accepted assignment alone does not pass.",getPosATL _house] call _phase;
+["Garrison movement","The public Zeus order must use CBE's garrison operation. Both soldiers must physically enter and hold real building positions; an accepted assignment alone does not pass.",getPosATL _house] call _phase;
 ["ORD-04b-garrison-arrival",[{call _atHouse},95] call _wait,str (units _group apply {[getPosATL _x,currentCommand _x,expectedDestination _x]})] call _check;
 sleep 5;
 ["ORD-04c-garrison-hold",call _atHouse,str (units _group apply {getPosATL _x})] call _check;
-["FIXTURE-engine-building-path",_baselineTarget isNotEqualTo [] && {_baseline distance _baselineTarget <= 2.5},format ["scheduler-excluded unit; WAIT danger config remains loaded; pos=%1 target=%2 command=%3 expected=%4",getPosATL _baseline,_baselineTarget,currentCommand _baseline,expectedDestination _baseline]] call _check;
+["FIXTURE-engine-building-path",_baselineTarget isNotEqualTo [] && {_baseline distance _baselineTarget <= 2.5},format ["scheduler-excluded unit; CBE danger config remains loaded; pos=%1 target=%2 command=%3 expected=%4",getPosATL _baseline,_baselineTarget,currentCommand _baseline,expectedDestination _baseline]] call _check;
 // Diagnostic comparison: retain the closed-door result; opening doors is not a production fix.
 private _doorCount = getNumber (configOf _house >> "numberOfDoors");
-diag_log format ["WAIT CORTEX QA DOORS: count=%1 owner=%2 baselineOwner=%3 states=%4",_doorCount,owner _house,groupOwner _baselineGroup,(animationNames _house) select {toLower _x find "door" >= 0} apply {[_x,_house animationPhase _x]}];
+diag_log format ["CBE CORTEX QA DOORS: count=%1 owner=%2 baselineOwner=%3 states=%4",_doorCount,owner _house,groupOwner _baselineGroup,(animationNames _house) select {toLower _x find "door" >= 0} apply {[_x,_house animationPhase _x]}];
 ["Garrison open-door comparison","The original garrison result remains recorded. Doors are now opened for this separate diagnostic: watch whether both soldiers enter and reach their markers.",getPosATL _house] call _phase;
 for "_door" from 1 to _doorCount do {
     [_house,_door,1] call BIS_fnc_door;
     sleep 1;
 };
 sleep 2;
-diag_log format ["WAIT CORTEX QA DOORS OPEN: states=%1",(animationNames _house) select {toLower _x find "door" >= 0} apply {[_x,_house animationPhase _x]}];
+diag_log format ["CBE CORTEX QA DOORS OPEN: states=%1",(animationNames _house) select {toLower _x find "door" >= 0} apply {[_x,_house animationPhase _x]}];
 ["GARRISON",getPosATL _house] call _order;
 if (local _baseline && {_baselineTarget isNotEqualTo []}) then {doStop _baseline; _baseline doMove _baselineTarget};
 ["DIAG-open-door-garrison",[{call _atHouse},95] call _wait,str (units _group apply {[getPosATL _x,currentCommand _x,expectedDestination _x]})] call _check;
 ["DIAG-open-door-engine",local _baseline && {_baselineTarget isNotEqualTo []} && {_baseline distance _baselineTarget <= 2.5},format ["owner=%1 pos=%2 target=%3 command=%4",groupOwner _baselineGroup,getPosATL _baseline,_baselineTarget,currentCommand _baseline]] call _check;
 ["EXCLUDE"] call _order;
-["ORD-05-hand-back",_group getVariable ["WAIT_AIPass_Exclude",false]
-    && {(_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []}
-    && {(_group getVariable ["WAIT_AIPass_Defend",[]]) isEqualTo []}] call _check;
+["ORD-05-hand-back",_group getVariable ["CBE_AIPass_Exclude",false]
+    && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}
+    && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}] call _check;
 ["RETURN"] call _order;
-["ORD-06-return",!(_group getVariable ["WAIT_AIPass_Exclude",false])] call _check;
+["ORD-06-return",!(_group getVariable ["CBE_AIPass_Exclude",false])] call _check;
 [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
-if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
-[{count (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) >= 2},90] call _wait;
+if (missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
+[{count (missionNamespace getVariable ["CBE_Headless_Clients",[]]) >= 2},90] call _wait;
 ["Headless ownership","The infantry changes owner to each headless client, accepts defence, then returns to the server. See the owner checks below.",[6010,6000,0]] call _phase;
-private _owners = (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+private _owners = (missionNamespace getVariable ["CBE_Headless_Clients",[]]) apply {_x select 0};
 ["HC-01-two-registered",count _owners >= 2] call _check;
 {
     private _owner = _x;
-    [_group,_owner] call WAIT_fnc_HeadlessMigrateGroup;
+    [_group,_owner] call CBE_fnc_HeadlessMigrateGroup;
     // Adoption is owner-local. The following real defence movement proves the new owner runs it.
     private _moved = [{groupOwner _group == _owner},20] call _wait;
     [format ["HC-02-transfer-%1",_owner],_moved] call _check;
     ["DEFEND",[6000,6040+(_forEachIndex*30),0]] call _order;
-    [format ["HC-03-order-%1",_owner],(_group getVariable ["WAIT_AIPass_Defend",[]]) isNotEqualTo [] && {count (missionNamespace getVariable ["WAIT_AIPass_OrderPending",createHashMap]) == 0}] call _check;
-    [format ["HC-03b-defence-movement-%1",_owner],[{["WAIT_AIPass_DefendPos",3.5] call _atAssigned},95] call _wait] call _check;
+    [format ["HC-03-order-%1",_owner],(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo [] && {count (missionNamespace getVariable ["CBE_AIPass_OrderPending",createHashMap]) == 0}] call _check;
+    [format ["HC-03b-defence-movement-%1",_owner],[{["CBE_AIPass_DefendPos",3.5] call _atAssigned},95] call _wait] call _check;
     ["RELEASE"] call _order;
 } forEach (_owners select [0,2]);
-[_group,2] call WAIT_fnc_HeadlessMigrateGroup;
+[_group,2] call CBE_fnc_HeadlessMigrateGroup;
 ["HC-04-return-server",[{local _group},20] call _wait] call _check;
 };
 deleteVehicle _baseline; deleteGroup _baselineGroup;
 {deleteVehicle _x} forEach [_u1,_u2];
 deleteGroup _group;
-missionNamespace setVariable ["WAIT_CortexQA_Infantry",grpNull,true];
+missionNamespace setVariable ["CBE_CortexQA_Infantry",grpNull,true];
 };
 private _convoy = grpNull;
 private _cargoGroup = grpNull;
@@ -222,14 +222,14 @@ _convoy = createGroup [east,true];
 _cargoGroup = createGroup [east,true];
 _vehicles = [];
 {private _v = createVehicle [_x,[6200,6000-_forEachIndex*35,0],[],0,"NONE"]; createVehicleCrew _v; {[_x] joinSilent _convoy} forEach crew _v; _vehicles pushBack _v} forEach ["O_MRAP_02_hmg_F","O_APC_Tracked_02_cannon_F","O_Truck_03_transport_F"];
-missionNamespace setVariable ["WAIT_CortexQA_ConvoyVehicles",+_vehicles,true];
+missionNamespace setVariable ["CBE_CortexQA_ConvoyVehicles",+_vehicles,true];
 private _lengths = _vehicles apply {private _box=boundingBoxReal _x; abs (((_box select 1) select 1)-((_box select 0) select 1))};
 {
     if (_forEachIndex > 0) then {
         private _bodyGap=((_lengths select _forEachIndex)+(_lengths select (_forEachIndex-1)))*0.5+5;
         private _target=30 max _bodyGap;
         private _tolerance=(_target*0.2) max 3;
-        _x setVariable ["WAIT_CortexQA_GapBand",[(_target-_tolerance) max _bodyGap,_target+_tolerance],true];
+        _x setVariable ["CBE_CortexQA_GapBand",[(_target-_tolerance) max _bodyGap,_target+_tolerance],true];
     };
 } forEach _vehicles;
 private _operatingCrew = [];
@@ -254,12 +254,12 @@ private _passengers = [_passenger];
 {
 _x addEventHandler ["GetOutMan", {
     params ["_unit","_role","_vehicle"];
-    private _convoy = _vehicle getVariable ["WAIT_Convoy_Group",grpNull];
-    private _registry = missionNamespace getVariable ["WAIT_Convoy_Registry",[]];
+    private _convoy = _vehicle getVariable ["CBE_Convoy_Group",grpNull];
+    private _registry = missionNamespace getVariable ["CBE_Convoy_Registry",[]];
     private _index = _registry findIf {(_x select 0) == _convoy};
     private _phase = if (_index < 0) then {"UNREGISTERED"} else {((_registry select _index) select 1) select 5};
-    diag_log format ["WAIT CORTEX QA PASSENGER EXIT: phase=%1 role=%2 command=%3 vehicle=%4",_phase,_role,currentCommand _unit,typeOf _vehicle];
-    if (_phase == "TRAVEL") then {_unit setVariable ["WAIT_CortexQA_EarlyExit",true]};
+    diag_log format ["CBE CORTEX QA PASSENGER EXIT: phase=%1 role=%2 command=%3 vehicle=%4",_phase,_role,currentCommand _unit,typeOf _vehicle];
+    if (_phase == "TRAVEL") then {_unit setVariable ["CBE_CortexQA_EarlyExit",true]};
 }];
 } forEach _passengers;
 ["CNV-00b-two-cargo-squads",count _passengers == 4 && {_passengers findIf {vehicle _x != (_vehicles select 2)} < 0}] call _check;
@@ -270,7 +270,7 @@ _x addEventHandler ["GetOutMan", {
 private _corner = _convoy addWaypoint [[6200,6400,0],0]; _corner setWaypointType "MOVE";
 private _wp = _convoy addWaypoint [[6400,6400,0],0]; _wp setWaypointType "MOVE"; _convoy setCurrentWaypoint _corner;
 private _starts = _vehicles apply {getPosATL _x};
-["CNV-01-start",[_convoy,25,30,true] call WAIT_fnc_SimpleAiConvoy] call _check;
+["CNV-01-start",[_convoy,25,30,true] call CBE_fnc_SimpleAiConvoy] call _check;
 ["CNV-02-movement",[{private _moved = 0; {if (_x distance2D (_starts select _forEachIndex) > 10) then {_moved = _moved + 1}} forEach _vehicles; _moved == count _vehicles},60] call _wait] call _check;
 private _column = [{
     private _aligned = true;
@@ -302,7 +302,7 @@ private _averages = _travel apply {_x/_elapsed*3.6};
 ["Convoy corner","Each vehicle should trace its predecessor around the right-angle corner, remaining in single file. Passengers stay aboard.",[6200,6400,0]] call _phase;
 // Normal-only physical observation: no added movement, speed or controller callback.
 // HC ownership acceptance remains in its separate batch, without server-local cap inference.
-if !(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
+if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
     private _cornerUntil=diag_tickTime+150;
     private _cornerDamage=_vehicles apply {damage _x};
     private _cornerEvents=[[],[]];
@@ -360,7 +360,7 @@ if !(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
             if (!alive _x || {!simulationEnabled _x} || {damage _x > (_cornerDamage select _forEachIndex)+0.01}) then {_cornerDamageClear=false};
         } forEach _vehicles;
         if (diag_tickTime >= _cornerNextLog) then {
-            diag_log format ["WAIT CONVOY CORNER PHYSICAL: t=%1 rows=%2 sampledClear=%3 damageClear=%4",time,_rows,_cornerClear,_cornerDamageClear];
+            diag_log format ["CBE CONVOY CORNER PHYSICAL: t=%1 rows=%2 sampledClear=%3 damageClear=%4",time,_rows,_cornerClear,_cornerDamageClear];
             _cornerNextLog=diag_tickTime+1;
         };
         _cornerReached=_vehicles findIf {((getPosATL _x) select 0) < 6240 || {abs (((getPosATL _x) select 1)-6400) > 15}} < 0;
@@ -381,7 +381,7 @@ if !(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
 };
 ["CNV-02b-travel-cargo-mounted",_passengers findIf {!alive _x || {vehicle _x != (_vehicles select 2)}} < 0] call _check;
 ["Convoy manual halt","This test deliberately stops the convoy. The passenger should get out and move clear of the vehicles; drivers and weapon crew must remain aboard.",getPosATL (_vehicles select 0)] call _phase;
-[_convoy,0] call WAIT_fnc_SimpleAiConvoy;
+[_convoy,0] call CBE_fnc_SimpleAiConvoy;
 ["CNV-03-cargo-unload",[{_passengers findIf {!alive _x || {vehicle _x != _x}} < 0},30] call _wait] call _check;
 private _manualExits = _passengers apply {getPosATL _x};
 ["CNV-03b-clear-vehicles",[{
@@ -396,17 +396,17 @@ private _manualExits = _passengers apply {getPosATL _x};
 ["CNV-06-arrival-cargo-mounted",_passengers findIf {vehicle _x != (_vehicles select 2)} < 0] call _check;
 _wp setWaypointPosition [(_vehicles select 0) getPos [70,0],0];
 _wp setWaypointCompletionRadius 15;
-["CNV-07-resume",[_convoy,25,30,true] call WAIT_fnc_SimpleAiConvoy] call _check;
-if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
-private _convoyOwners = (missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+["CNV-07-resume",[_convoy,25,30,true] call CBE_fnc_SimpleAiConvoy] call _check;
+if (missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
+private _convoyOwners = (missionNamespace getVariable ["CBE_Headless_Clients",[]]) apply {_x select 0};
 if (_convoyOwners isNotEqualTo []) then {
     private _convoyOwner = _convoyOwners select 0;
     if (count _convoyOwners >= 2) then {
         private _cargoOwner = _convoyOwners select 1;
-        [_secondCargoGroup,_cargoOwner] call WAIT_fnc_HeadlessMigrateGroup;
+        [_secondCargoGroup,_cargoOwner] call CBE_fnc_HeadlessMigrateGroup;
         ["CNV-07d-separate-cargo-owner",[{groupOwner _secondCargoGroup == _cargoOwner},20] call _wait] call _check;
     };
-    [_convoy,_convoyOwner] call WAIT_fnc_HeadlessMigrateGroup;
+    [_convoy,_convoyOwner] call CBE_fnc_HeadlessMigrateGroup;
     ["CNV-07c-headless-transfer",[{groupOwner _convoy == _convoyOwner && {_vehicles findIf {owner _x != _convoyOwner || {owner driver _x != _convoyOwner}} < 0}},25] call _wait] call _check;
 } else {["CNV-07c-headless-transfer",false,"No connected headless owner"] call _check};
 };
@@ -415,14 +415,14 @@ private _prematureUnload = false;
 private _arrived = [{
     if (diag_tickTime >= _nextArrivalLog) then {
         _nextArrivalLog = diag_tickTime + 15;
-        diag_log format ["WAIT CORTEX QA ARRIVAL: waypoint=%1/%2 destination=%3 held=%4 paused=%5 passengerVehicle=%6 vehicles=%7",currentWaypoint _convoy,count waypoints _convoy,waypointPosition _wp,[_convoy] call WAIT_fnc_CortexZeusHeld,[] call WAIT_fnc_CortexIsPaused,typeOf vehicle _passenger,_vehicles apply {[typeOf _x,getPosATL _x,speed _x,local _x,isNull driver _x,expectedDestination driver _x,getForcedSpeed _x,currentCommand driver _x,driver _x == leader _convoy]}];
+        diag_log format ["CBE CORTEX QA ARRIVAL: waypoint=%1/%2 destination=%3 held=%4 paused=%5 passengerVehicle=%6 vehicles=%7",currentWaypoint _convoy,count waypoints _convoy,waypointPosition _wp,[_convoy] call CBE_fnc_CortexZeusHeld,[] call CBE_fnc_CortexIsPaused,typeOf vehicle _passenger,_vehicles apply {[typeOf _x,getPosATL _x,speed _x,local _x,isNull driver _x,expectedDestination driver _x,getForcedSpeed _x,currentCommand driver _x,driver _x == leader _convoy]}];
     };
-    private _registry = missionNamespace getVariable ["WAIT_Convoy_Registry",[]];
+    private _registry = missionNamespace getVariable ["CBE_Convoy_Registry",[]];
     private _index = _registry findIf {(_x select 0) == _convoy};
     if (_index >= 0 && {(((_registry select _index) select 1) select 5) == "TRAVEL"} && {_passengers findIf {vehicle _x != (_vehicles select 2)} >= 0}) then {_prematureUnload = true};
     _index >= 0 && {(((_registry select _index) select 1) select 8) == "ARRIVED"}
 },120] call _wait;
-["CNV-07b-no-premature-unload",!_prematureUnload && {_passengers findIf {_x getVariable ["WAIT_CortexQA_EarlyExit",false]} < 0}] call _check;
+["CNV-07b-no-premature-unload",!_prematureUnload && {_passengers findIf {_x getVariable ["CBE_CortexQA_EarlyExit",false]} < 0}] call _check;
 ["CNV-08-destination-halt",_arrived] call _check;
 ["CNV-09-destination-unload",_arrived && {[{_passengers findIf {!alive _x || {vehicle _x != _x}} < 0},30] call _wait}] call _check;
 private _arrivalExits = _passengers apply {getPosATL _x};
@@ -432,10 +432,10 @@ private _arrivalExits = _passengers apply {getPosATL _x};
     _clear
 },30] call _wait}] call _check;
 ["CNV-10-destination-crew",_operatingCrew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0] call _check;
-[_convoy,0,30,true,true] call WAIT_fnc_SimpleAiConvoy;
-["CNV-05-release",!(_convoy getVariable ["WAIT_Convoy_Active",false])] call _check;
-if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
-[_convoy,2] call WAIT_fnc_HeadlessMigrateGroup;
+[_convoy,0,30,true,true] call CBE_fnc_SimpleAiConvoy;
+["CNV-05-release",!(_convoy getVariable ["CBE_Convoy_Active",false])] call _check;
+if (missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
+[_convoy,2] call CBE_fnc_HeadlessMigrateGroup;
 [{local _convoy},20] call _wait;
 };
 // Real enemy fire and a disabled rear vehicle exercise contact drills without writing controller state.
@@ -443,7 +443,7 @@ call {
     private _contactGroup = createGroup [east,true];
     private _contactCargo = createGroup [east,true];
     private _attackers = createGroup [west,true];
-    _attackers setVariable ["WAIT_AIPass_Exclude",true,true];
+    _attackers setVariable ["CBE_AIPass_Exclude",true,true];
     _attackers setCombatMode "BLUE";
     private _contactVehicles = [];
     {private _v = createVehicle [_x,[6400,7000-_forEachIndex*40,0],[],0,"NONE"]; createVehicleCrew _v; {[_x] joinSilent _contactGroup; _x allowDamage false} forEach crew _v; _contactVehicles pushBack _v} forEach ["O_MRAP_02_hmg_F","O_Truck_03_transport_F"];
@@ -458,114 +458,114 @@ call {
     for "_i" from 0 to 1 do {
         private _attacker = _attackers createUnit ["B_soldier_AR_F",[6460,7000+_i*12,0],[],0,"NONE"];
         _attacker allowDamage false; _attacker setSkill 1; _attacker disableAI "PATH";
-        _attacker addEventHandler ["Fired",{params ["_unit"]; _unit setVariable ["WAIT_CortexQA_Shots",(_unit getVariable ["WAIT_CortexQA_Shots",0])+1]}];
+        _attacker addEventHandler ["Fired",{params ["_unit"]; _unit setVariable ["CBE_CortexQA_Shots",(_unit getVariable ["CBE_CortexQA_Shots",0])+1]}];
         _attackUnits pushBack _attacker;
     };
-    _escort addEventHandler ["Fired",{params ["_vehicle"]; _vehicle setVariable ["WAIT_CortexQA_Shots",(_vehicle getVariable ["WAIT_CortexQA_Shots",0])+1]}];
+    _escort addEventHandler ["Fired",{params ["_vehicle"]; _vehicle setVariable ["CBE_CortexQA_Shots",(_vehicle getVariable ["CBE_CortexQA_Shots",0])+1]}];
     private _contactWP = _contactGroup addWaypoint [[6400,7800,0],0]; _contactWP setWaypointType "MOVE";
     ["Convoy moving contact","Enemy riflemen fire at the convoy. Vehicles should keep moving, the escort should return fire and the passenger should stay aboard.",[6400,7000,0]] call _phase;
-    [_contactGroup,25,30,true] call WAIT_fnc_SimpleAiConvoy;
+    [_contactGroup,25,30,true] call CBE_fnc_SimpleAiConvoy;
     private _contactStart = getPosATL _escort;
     _attackers setCombatMode "RED";
     {private _target = _contactVehicles select _forEachIndex; _x doTarget _target; _x doFire _target} forEach _attackUnits;
-    ["AMB-01-real-enemy-fire",[{_attackUnits findIf {(_x getVariable ["WAIT_CortexQA_Shots",0]) > 2} >= 0},30] call _wait] call _check;
+    ["AMB-01-real-enemy-fire",[{_attackUnits findIf {(_x getVariable ["CBE_CortexQA_Shots",0]) > 2} >= 0},30] call _wait] call _check;
     ["AMB-02-push-through",[{_escort distance2D _contactStart > 15 && {vehicle _rider == _truck}},30] call _wait] call _check;
-    ["AMB-03-mounted-response",[{(_escort getVariable ["WAIT_CortexQA_Shots",0]) > 0},30] call _wait] call _check;
+    ["AMB-03-mounted-response",[{(_escort getVariable ["CBE_CortexQA_Shots",0]) > 0},30] call _wait] call _check;
     ["Convoy pinned contact","The rear truck loses fuel while under fire. After the pinned interval the convoy should halt, unload its passenger and move them clear. Weapon crew remain aboard.",getPosATL _truck] call _phase;
     _truck setFuel 0;
-    private _pinnedShots = _attackUnits apply {_x getVariable ["WAIT_CortexQA_Shots",0]};
+    private _pinnedShots = _attackUnits apply {_x getVariable ["CBE_CortexQA_Shots",0]};
     private _nextPinnedLog = 0;
     private _pinnedHalt = [{
         if (time >= _nextPinnedLog) then {
             _nextPinnedLog=time+5;
-            private _state=_contactGroup getVariable ["WAIT_Convoy_LocalState",createHashMap];
-            diag_log format ["WAIT CORTEX QA PINNED: contact=%1 reports=%2 progress=%3 shots=%4 speeds=%5",_state getOrDefault ["contact",false],_contactVehicles apply {[driver _x] call WAIT_fnc_ConvoyThreat},_state getOrDefault ["contactProgress",[]],_attackUnits apply {_x getVariable ["WAIT_CortexQA_Shots",0]},_contactVehicles apply {speed _x}];
+            private _state=_contactGroup getVariable ["CBE_Convoy_LocalState",createHashMap];
+            diag_log format ["CBE CORTEX QA PINNED: contact=%1 reports=%2 progress=%3 shots=%4 speeds=%5",_state getOrDefault ["contact",false],_contactVehicles apply {[driver _x] call CBE_fnc_ConvoyThreat},_state getOrDefault ["contactProgress",[]],_attackUnits apply {_x getVariable ["CBE_CortexQA_Shots",0]},_contactVehicles apply {speed _x}];
         };
-        private _r = missionNamespace getVariable ["WAIT_Convoy_Registry",[]]; private _i = _r findIf {(_x select 0) == _contactGroup}; _i >= 0 && {(((_r select _i) select 1) select 8) == "AMBUSH"}},60] call _wait;
-    ["AMB-04a-pinned-live-fire",(_attackUnits select 1) getVariable ["WAIT_CortexQA_Shots",0] > (_pinnedShots select 1),"Rear attacker must continue firing during the pinned interval"] call _check;
+        private _r = missionNamespace getVariable ["CBE_Convoy_Registry",[]]; private _i = _r findIf {(_x select 0) == _contactGroup}; _i >= 0 && {(((_r select _i) select 1) select 8) == "AMBUSH"}},60] call _wait;
+    ["AMB-04a-pinned-live-fire",(_attackUnits select 1) getVariable ["CBE_CortexQA_Shots",0] > (_pinnedShots select 1),"Rear attacker must continue firing during the pinned interval"] call _check;
     ["AMB-04-pinned-halt",_pinnedHalt] call _check;
     ["AMB-05-cargo-unload",_pinnedHalt && {[{vehicle _rider == _rider},30] call _wait}] call _check;
     private _contactExit = getPosATL _rider;
     ["AMB-06-dismount-movement",_pinnedHalt && {[{_rider distance2D _contactExit >= 4 && {_contactVehicles findIf {_rider distance2D _x < 6} < 0}},30] call _wait}] call _check;
     ["AMB-07-operating-crew",_contactCrew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0] call _check;
-    [_contactGroup,0,30,true,true] call WAIT_fnc_SimpleAiConvoy;
+    [_contactGroup,0,30,true,true] call CBE_fnc_SimpleAiConvoy;
     {deleteVehicle _x} forEach (units _contactGroup + units _contactCargo + _attackUnits);
     {deleteVehicle _x} forEach _contactVehicles;
     {deleteGroup _x} forEach [_contactGroup,_contactCargo,_attackers];
 };
-[_convoy,0,30,true,true] call WAIT_fnc_SimpleAiConvoy;
+[_convoy,0,30,true,true] call CBE_fnc_SimpleAiConvoy;
 {deleteVehicle _x} forEach (_passengers+(_operatingCrew apply {_x select 0}));
 {deleteVehicle _x} forEach _vehicles;
 {deleteGroup _x} forEach [_convoy,_cargoGroup,_secondCargoGroup];
-missionNamespace setVariable ["WAIT_CortexQA_ConvoyVehicles",[],true];
+missionNamespace setVariable ["CBE_CortexQA_ConvoyVehicles",[],true];
 };
 if (_focus in ["all","features","convoy","convoymatrix","convoycolumn","convoytracked","convoydiagnostic","convoyfollow"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAConvoyMatrix.sqf"};
 private _gun = objNull;
 if (_focus in ["all","features","artillery"]) then {
 private _spotterGroup=createGroup [east,true];
-_spotterGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_spotterGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _spotterGroup setVariable ["acex_headless_blacklist",true,true];
 // This is the server-owned firing baseline. Its local Fired counters cannot
 // establish HC firing; keep ownership explicit and test migration separately.
 private _retainServerGun={
     params ["_vehicle"];
     private _crewGroup=group gunner _vehicle;
-    _crewGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _crewGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _crewGroup setVariable ["acex_headless_blacklist",true,true];
     {_x setVariable ["acex_headless_blacklist",true,true]} forEach crew _vehicle;
 };
 private _spotter=_spotterGroup createUnit ["O_Soldier_F",[7100,6000,0],[],0,"NONE"];
 _spotter allowDamage false;
-[createHashMapFromArray [["WAIT_AIPass_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true]]] call CBE_fnc_CortexTuning;
 _gun = createVehicle ["O_Mortar_01_F",[6500,6000,0],[],0,"NONE"]; createVehicleCrew _gun;
 [_gun] call _retainServerGun;
-_gun setVariable ["WAIT_CortexQA_Shots",0];
-_gun addEventHandler ["Fired",{params ["_gun"]; _gun setVariable ["WAIT_CortexQA_Shots",(_gun getVariable ["WAIT_CortexQA_Shots",0])+1]}];
-[createHashMapFromArray [["WAIT_AIPass_Artillery_Enable",true],["WAIT_AIPass_Artillery_Bursts",1],["WAIT_AIPass_Artillery_Rounds",2]]] call WAIT_fnc_CortexTuning;
+_gun setVariable ["CBE_CortexQA_Shots",0];
+_gun addEventHandler ["Fired",{params ["_gun"]; _gun setVariable ["CBE_CortexQA_Shots",(_gun getVariable ["CBE_CortexQA_Shots",0])+1]}];
+[createHashMapFromArray [["CBE_AIPass_Artillery_Enable",true],["CBE_AIPass_Artillery_Bursts",1],["CBE_AIPass_Artillery_Rounds",2]]] call CBE_fnc_CortexTuning;
 sleep 2;
 ["Finite artillery burst","Watch the mortar: exactly two rounds, then no further rounds during the observation period. This case does not test counter-battery.",[6500,6000,0]] call _phase;
-["ART-01-assign-spotter",[_spotter,true] call WAIT_fnc_CortexSetSpotter] call _check;
-missionNamespace setVariable ["WAIT_CortexQA_HEWarnings",[]];
+["ART-01-assign-spotter",[_spotter,true] call CBE_fnc_CortexSetSpotter] call _check;
+missionNamespace setVariable ["CBE_CortexQA_HEWarnings",[]];
 private _redHandler=addMissionEventHandler ["ProjectileCreated",{
     params ["_projectile"];
     if (typeOf _projectile == "SmokeShellRed") then {
-        private _events=missionNamespace getVariable ["WAIT_CortexQA_HEWarnings",[]];
+        private _events=missionNamespace getVariable ["CBE_CortexQA_HEWarnings",[]];
         _events pushBack [time,_projectile];
-        missionNamespace setVariable ["WAIT_CortexQA_HEWarnings",_events];
+        missionNamespace setVariable ["CBE_CortexQA_HEWarnings",_events];
     };
 }];
-_gun setVariable ["WAIT_CortexQA_FirstShot",-1];
+_gun setVariable ["CBE_CortexQA_FirstShot",-1];
 private _firstShotHandler=_gun addEventHandler ["Fired",{
     params ["_gun"];
-    if ((_gun getVariable ["WAIT_CortexQA_FirstShot",-1]) < 0) then {_gun setVariable ["WAIT_CortexQA_FirstShot",time]};
+    if ((_gun getVariable ["CBE_CortexQA_FirstShot",-1]) < 0) then {_gun setVariable ["CBE_CortexQA_FirstShot",time]};
 }];
-private _queued = [_gun,[7200,6000,0],20,"HE",2,false,"SUPPORT",_spotter] call WAIT_fnc_CortexArtilleryFire;
-private _warned=[{count (missionNamespace getVariable ["WAIT_CortexQA_HEWarnings",[]]) >= 4},15] call _wait;
-private _redEvents=+(missionNamespace getVariable ["WAIT_CortexQA_HEWarnings",[]]);
-["ART-HE-warning-before-shot",_queued && {_warned} && {(_gun getVariable ["WAIT_CortexQA_FirstShot",-1]) < 0}] call _check;
+private _queued = [_gun,[7200,6000,0],20,"HE",2,false,"SUPPORT",_spotter] call CBE_fnc_CortexArtilleryFire;
+private _warned=[{count (missionNamespace getVariable ["CBE_CortexQA_HEWarnings",[]]) >= 4},15] call _wait;
+private _redEvents=+(missionNamespace getVariable ["CBE_CortexQA_HEWarnings",[]]);
+["ART-HE-warning-before-shot",_queued && {_warned} && {(_gun getVariable ["CBE_CortexQA_FirstShot",-1]) < 0}] call _check;
 ["ART-HE-warning-ring",count _redEvents == 4 && {_redEvents findIf {isNull (_x select 1) || {abs (((_x select 1) distance2D [7200,6000,0])-25) > 3}} < 0},str (_redEvents apply {getPosATL (_x select 1)})] call _check;
 ["ART-02-queue",_queued] call _check;
-["ART-03-real-rounds",[{(_gun getVariable ["WAIT_CortexQA_Shots",0]) >= 2},100] call _wait] call _check;
+["ART-03-real-rounds",[{(_gun getVariable ["CBE_CortexQA_Shots",0]) >= 2},100] call _wait] call _check;
 sleep 12;
-["ART-04-finite-burst",(_gun getVariable ["WAIT_CortexQA_Shots",0]) == 2] call _check;
-["ART-HE-warning-once",count (missionNamespace getVariable ["WAIT_CortexQA_HEWarnings",[]]) == 4 && {(_gun getVariable ["WAIT_CortexQA_Shots",0]) == 2}] call _check;
-["ART-HE-warning-delay",count _redEvents == 4 && {(_gun getVariable ["WAIT_CortexQA_FirstShot",-1])-(_redEvents select 3 select 0) >= 10}] call _check;
+["ART-04-finite-burst",(_gun getVariable ["CBE_CortexQA_Shots",0]) == 2] call _check;
+["ART-HE-warning-once",count (missionNamespace getVariable ["CBE_CortexQA_HEWarnings",[]]) == 4 && {(_gun getVariable ["CBE_CortexQA_Shots",0]) == 2}] call _check;
+["ART-HE-warning-delay",count _redEvents == 4 && {(_gun getVariable ["CBE_CortexQA_FirstShot",-1])-(_redEvents select 3 select 0) >= 10}] call _check;
 removeMissionEventHandler ["ProjectileCreated",_redHandler];
 _gun removeEventHandler ["Fired",_firstShotHandler];
-missionNamespace setVariable ["WAIT_CortexQA_HEWarnings",nil];
+missionNamespace setVariable ["CBE_CortexQA_HEWarnings",nil];
 // Remove the support observer before counter-battery: it can otherwise occupy the
 // counter-battery ranging ring and correctly trigger friendly-fire rejection.
-[_spotter,false] call WAIT_fnc_CortexSetSpotter;
+[_spotter,false] call CBE_fnc_CortexSetSpotter;
 deleteVehicle _spotter;
 deleteGroup _spotterGroup;
 // A useful static mortar must react through the same finite mission FSM even while optional
 // squad-requested artillery is disabled. The hostile fires real rounds and must be acquired
 // naturally; no reveal, target assignment or direct fire request is injected by the fixture.
 [createHashMapFromArray [
-    ["WAIT_AIPass_Artillery_Enable",false],["WAIT_AIPass_Danger_Enable",true],
-    ["WAIT_AIPass_Contact_Enable",true],
-    ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleGunnery_Enable",true]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_Artillery_Enable",false],["CBE_AIPass_Danger_Enable",true],
+    ["CBE_AIPass_Contact_Enable",true],
+    ["CBE_AIPass_Vehicles_Enable",true],["CBE_AIPass_VehicleGunnery_Enable",true]
+]] call CBE_fnc_CortexTuning;
 private _dangerEnemyGroup=createGroup [west,true];
 _dangerEnemyGroup setCombatMode "RED";
 private _dangerEnemy=_dangerEnemyGroup createUnit ["B_Soldier_F",[6900,6000,0],[],0,"NONE"];
@@ -574,33 +574,33 @@ _dangerEnemy allowDamage false;
 _dangerEnemy setDir 270;
 _dangerEnemy setSkill ["aimingAccuracy",0.05];
 _dangerEnemy setSkill ["aimingShake",0.05];
-_dangerEnemy setVariable ["WAIT_CortexQA_Shots",0,true];
+_dangerEnemy setVariable ["CBE_CortexQA_Shots",0,true];
 _dangerEnemy addEventHandler ["Fired",{
     params ["_unit"];
-    _unit setVariable ["WAIT_CortexQA_Shots",(_unit getVariable ["WAIT_CortexQA_Shots",0])+1,true];
+    _unit setVariable ["CBE_CortexQA_Shots",(_unit getVariable ["CBE_CortexQA_Shots",0])+1,true];
 }];
-_gun setVariable ["WAIT_CortexQA_Shots",0];
-_gun setVariable ["WAIT_AIPass_NextDangerFire",nil,true];
-missionNamespace setVariable ["WAIT_CortexQA_HEWarnings",[]];
+_gun setVariable ["CBE_CortexQA_Shots",0];
+_gun setVariable ["CBE_AIPass_NextDangerFire",nil,true];
+missionNamespace setVariable ["CBE_CortexQA_HEWarnings",[]];
 private _dangerRedHandler=addMissionEventHandler ["ProjectileCreated",{
     params ["_projectile"];
     if (typeOf _projectile == "SmokeShellRed") then {
-        private _events=missionNamespace getVariable ["WAIT_CortexQA_HEWarnings",[]];
+        private _events=missionNamespace getVariable ["CBE_CortexQA_HEWarnings",[]];
         _events pushBack [time,_projectile];
-        missionNamespace setVariable ["WAIT_CortexQA_HEWarnings",_events];
+        missionNamespace setVariable ["CBE_CortexQA_HEWarnings",_events];
     };
 }];
 private _dangerFirstShot=-1;
 private _dangerShotHandler=_gun addEventHandler ["Fired",{
     params ["_gun"];
-    if ((_gun getVariable ["WAIT_CortexQA_DangerFirstShot",-1]) < 0) then {
-        _gun setVariable ["WAIT_CortexQA_DangerFirstShot",time,true];
+    if ((_gun getVariable ["CBE_CortexQA_DangerFirstShot",-1]) < 0) then {
+        _gun setVariable ["CBE_CortexQA_DangerFirstShot",time,true];
     };
 }];
-_gun setVariable ["WAIT_CortexQA_DangerFirstShot",-1,true];
+_gun setVariable ["CBE_CortexQA_DangerFirstShot",-1,true];
 ["Danger mortar: finite self-defence","The hostile fires naturally at the useful mortar. The crew must retain the emplacement, acquire the attacker, enter one finite DANGER mission, receive the lethal-burst red warning, fire one real HE round and release without enabling optional artillery support.",[6500,6000,0]] call _phase;
 private _dangerSightline=(lineIntersectsSurfaces [eyePos _dangerEnemy,aimPos _gun,_dangerEnemy,_gun,true,1,"VIEW","NONE"]) isEqualTo [];
-private _dangerHE=[_gun,false] call WAIT_fnc_CortexArtilleryAmmo;
+private _dangerHE=[_gun,false] call CBE_fnc_CortexArtilleryAmmo;
 private _dangerRange=_dangerHE != "" && {(getPosATL _dangerEnemy) inRangeOfArtillery [[_gun],_dangerHE]};
 ["DANGER-MORTAR-contact-fixture",_dangerSightline && {_dangerRange}
     && {primaryWeapon _dangerEnemy != ""} && {magazines _dangerEnemy isNotEqualTo []}
@@ -610,38 +610,38 @@ private _dangerRange=_dangerHE != "" && {(getPosATL _dangerEnemy) inRangeOfArtil
 private _dangerFireUntil=time+12;
 while {time < _dangerFireUntil && {alive _dangerEnemy}} do {
     // The seated operator can be occluded by the emplacement. Fire at the occupied
-    // static weapon; WAIT's crew still has to acquire the real attacker natively.
+    // static weapon; CBE's crew still has to acquire the real attacker natively.
     _dangerEnemy doWatch _gun;
     _dangerEnemy doTarget _gun;
     _dangerEnemy doFire _gun;
     sleep 1;
 };
-private _dangerEnemyFired=(_dangerEnemy getVariable ["WAIT_CortexQA_Shots",0]) > 0;
-["DANGER-MORTAR-real-hostile-fire",_dangerEnemyFired,str (_dangerEnemy getVariable ["WAIT_CortexQA_Shots",0])] call _check;
+private _dangerEnemyFired=(_dangerEnemy getVariable ["CBE_CortexQA_Shots",0]) > 0;
+["DANGER-MORTAR-real-hostile-fire",_dangerEnemyFired,str (_dangerEnemy getVariable ["CBE_CortexQA_Shots",0])] call _check;
 private _dangerKnown=[{effectiveCommander _gun knowsAbout _dangerEnemy > 0},20] call _wait;
 ["DANGER-MORTAR-natural-knowledge",_dangerKnown,str (effectiveCommander _gun knowsAbout _dangerEnemy)] call _check;
 private _dangerMission=[{
-    private _mission=(missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap]) getOrDefault [netId _gun,createHashMap];
+    private _mission=(missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]) getOrDefault [netId _gun,createHashMap];
     count _mission > 0 && {(_mission getOrDefault ["purpose",""]) == "DANGER"}
 },30] call _wait;
-["DANGER-MORTAR-finite-owner",_dangerMission,str ((missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap]) getOrDefault [netId _gun,createHashMap])] call _check;
-private _dangerWarned=[{count (missionNamespace getVariable ["WAIT_CortexQA_HEWarnings",[]]) == 4},20] call _wait;
-["DANGER-MORTAR-lethal-warning",_dangerWarned,str (missionNamespace getVariable ["WAIT_CortexQA_HEWarnings",[]])] call _check;
-private _dangerFired=[{(_gun getVariable ["WAIT_CortexQA_Shots",0]) == 1},90] call _wait;
-["DANGER-MORTAR-one-real-round",_dangerFired,str (_gun getVariable ["WAIT_CortexQA_Shots",0])] call _check;
-private _dangerReleased=[{!((netId _gun) in (missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap]))},45] call _wait;
-["DANGER-MORTAR-finite-release",_dangerFired && {_dangerReleased} && {(_gun getVariable ["WAIT_CortexQA_Shots",0]) == 1},str [_gun getVariable ["WAIT_CortexQA_Shots",0],_gun getVariable ["WAIT_AIPass_FireToken",""]]] call _check;
+["DANGER-MORTAR-finite-owner",_dangerMission,str ((missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]) getOrDefault [netId _gun,createHashMap])] call _check;
+private _dangerWarned=[{count (missionNamespace getVariable ["CBE_CortexQA_HEWarnings",[]]) == 4},20] call _wait;
+["DANGER-MORTAR-lethal-warning",_dangerWarned,str (missionNamespace getVariable ["CBE_CortexQA_HEWarnings",[]])] call _check;
+private _dangerFired=[{(_gun getVariable ["CBE_CortexQA_Shots",0]) == 1},90] call _wait;
+["DANGER-MORTAR-one-real-round",_dangerFired,str (_gun getVariable ["CBE_CortexQA_Shots",0])] call _check;
+private _dangerReleased=[{!((netId _gun) in (missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]))},45] call _wait;
+["DANGER-MORTAR-finite-release",_dangerFired && {_dangerReleased} && {(_gun getVariable ["CBE_CortexQA_Shots",0]) == 1},str [_gun getVariable ["CBE_CortexQA_Shots",0],_gun getVariable ["CBE_AIPass_FireToken",""]]] call _check;
 ["DANGER-MORTAR-crew-retained",alive gunner _gun && {vehicle (gunner _gun) == _gun},str [gunner _gun,vehicle (gunner _gun)]] call _check;
-["DANGER-MORTAR-support-remained-disabled",!(missionNamespace getVariable ["WAIT_AIPass_Artillery_Enable",true])] call _check;
+["DANGER-MORTAR-support-remained-disabled",!(missionNamespace getVariable ["CBE_AIPass_Artillery_Enable",true])] call _check;
 removeMissionEventHandler ["ProjectileCreated",_dangerRedHandler];
 _gun removeEventHandler ["Fired",_dangerShotHandler];
-{if (!isNull _x) then {deleteVehicle _x}} forEach (missionNamespace getVariable ["WAIT_CortexQA_HEWarnings",[]] apply {_x select 1});
-missionNamespace setVariable ["WAIT_CortexQA_HEWarnings",nil];
+{if (!isNull _x) then {deleteVehicle _x}} forEach (missionNamespace getVariable ["CBE_CortexQA_HEWarnings",[]] apply {_x select 1});
+missionNamespace setVariable ["CBE_CortexQA_HEWarnings",nil];
 deleteVehicle _dangerEnemy;
 deleteGroup _dangerEnemyGroup;
 // Real enemy artillery events exercise acquisition with and without a radar.
-[_gun,"SUPPORT"] call WAIT_fnc_CortexSetArtilleryRole;
-[createHashMapFromArray [["WAIT_AIPass_CounterBattery_Enable",true],["WAIT_AIPass_CounterBattery_Delay",8],["WAIT_AIPass_CounterBattery_RadarDelay",2],["WAIT_AIPass_CounterBattery_Rounds",2],["WAIT_AIPass_CounterBattery_ShootAndScoot",false]]] call WAIT_fnc_CortexTuning;
+[_gun,"SUPPORT"] call CBE_fnc_CortexSetArtilleryRole;
+[createHashMapFromArray [["CBE_AIPass_CounterBattery_Enable",true],["CBE_AIPass_CounterBattery_Delay",8],["CBE_AIPass_CounterBattery_RadarDelay",2],["CBE_AIPass_CounterBattery_Rounds",2],["CBE_AIPass_CounterBattery_ShootAndScoot",false]]] call CBE_fnc_CortexTuning;
 {
     private _withRadar = _x;
     private _case = ["CB-NORMAL","CB-RADAR"] select _withRadar;
@@ -649,31 +649,31 @@ deleteGroup _dangerEnemyGroup;
     private _emitter = createVehicle ["B_Mortar_01_F",[7400,6100,0],[],0,"NONE"]; createVehicleCrew _emitter;
     [_counterGun] call _retainServerGun;
     [_emitter] call _retainServerGun;
-    [_counterGun,"COUNTER"] call WAIT_fnc_CortexSetArtilleryRole;
-    [_emitter,"SUPPORT"] call WAIT_fnc_CortexSetArtilleryRole;
+    [_counterGun,"COUNTER"] call CBE_fnc_CortexSetArtilleryRole;
+    [_emitter,"SUPPORT"] call CBE_fnc_CortexSetArtilleryRole;
     private _radar = objNull;
     if (_withRadar) then {
         _radar = createVehicle ["Land_SatellitePhone_F",[6500,6150,0],[],0,"NONE"];
-        [format ["%1-register",_case],[_radar,east] call WAIT_fnc_CortexRegisterRadar] call _check;
+        [format ["%1-register",_case],[_radar,east] call CBE_fnc_CortexRegisterRadar] call _check;
     };
-    _counterGun setVariable ["WAIT_CortexQA_Shots",0];
-    _counterGun addEventHandler ["Fired",{params ["_gun"]; _gun setVariable ["WAIT_CortexQA_Shots",(_gun getVariable ["WAIT_CortexQA_Shots",0])+1]}];
-    [format ["%1-discovery",_case],[{_counterGun in (missionNamespace getVariable ["WAIT_AIPass_AllArtillery",[]])},30] call _wait] call _check;
+    _counterGun setVariable ["CBE_CortexQA_Shots",0];
+    _counterGun addEventHandler ["Fired",{params ["_gun"]; _gun setVariable ["CBE_CortexQA_Shots",(_gun getVariable ["CBE_CortexQA_Shots",0])+1]}];
+    [format ["%1-discovery",_case],[{_counterGun in (missionNamespace getVariable ["CBE_AIPass_AllArtillery",[]])},30] call _wait] call _check;
     [_case,"The enemy mortar fires once. The Cortex battery should answer with two rounds; radar shortens acquisition from eight seconds to two.",[6500,6100,0]] call _phase;
-    private _magazine = [_emitter,false] call WAIT_fnc_CortexArtilleryAmmo;
+    private _magazine = [_emitter,false] call CBE_fnc_CortexArtilleryAmmo;
     _emitter doArtilleryFire [[8100,6100,0],_magazine,1];
-    [format ["%1-real-emission",_case],[{(_emitter getVariable ["WAIT_AIPass_LastEmission",[]]) isNotEqualTo []},35] call _wait] call _check;
-    private _emission = _emitter getVariable ["WAIT_AIPass_LastEmission",[]];
-    private _pending = _emitter getVariable ["WAIT_AIPass_CounterPending_EAST",-1];
+    [format ["%1-real-emission",_case],[{(_emitter getVariable ["CBE_AIPass_LastEmission",[]]) isNotEqualTo []},35] call _wait] call _check;
+    private _emission = _emitter getVariable ["CBE_AIPass_LastEmission",[]];
+    private _pending = _emitter getVariable ["CBE_AIPass_CounterPending_EAST",-1];
     private _expectedDelay = [8,2] select _withRadar;
     [format ["%1-acquisition-delay",_case],count _emission >= 2 && {abs (_pending-(_emission select 0)-_expectedDelay-1) < 0.5}] call _check;
-    private _responded=[{(_counterGun getVariable ["WAIT_CortexQA_Shots",0]) >= 2},70] call _wait;
-    private _responseMission=(missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap]) getOrDefault [netId _counterGun,createHashMap];
-    [format ["%1-response",_case],_responded,format ["shots=%1 owner=%2 gunnerOwner=%3 mission=%4",_counterGun getVariable ["WAIT_CortexQA_Shots",0],owner _counterGun,owner gunner _counterGun,_responseMission]] call _check;
+    private _responded=[{(_counterGun getVariable ["CBE_CortexQA_Shots",0]) >= 2},70] call _wait;
+    private _responseMission=(missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]) getOrDefault [netId _counterGun,createHashMap];
+    [format ["%1-response",_case],_responded,format ["shots=%1 owner=%2 gunnerOwner=%3 mission=%4",_counterGun getVariable ["CBE_CortexQA_Shots",0],owner _counterGun,owner gunner _counterGun,_responseMission]] call _check;
     sleep 12;
-    [format ["%1-finite",_case],(_counterGun getVariable ["WAIT_CortexQA_Shots",0]) == 2] call _check;
+    [format ["%1-finite",_case],(_counterGun getVariable ["CBE_CortexQA_Shots",0]) == 2] call _check;
     [format ["%1-server-owner-retained",_case],local _counterGun && {local gunner _counterGun} && {local _emitter} && {local gunner _emitter},str [owner _counterGun,owner gunner _counterGun,owner _emitter,owner gunner _emitter]] call _check;
-    if (!isNull _radar) then {[_radar,east,false] call WAIT_fnc_CortexRegisterRadar; deleteVehicle _radar};
+    if (!isNull _radar) then {[_radar,east,false] call CBE_fnc_CortexRegisterRadar; deleteVehicle _radar};
     {private _crew = crew _x; private _crewGroup = group gunner _x; {deleteVehicle _x} forEach _crew; deleteVehicle _x; deleteGroup _crewGroup} forEach [_counterGun,_emitter];
 } forEach [false,true];
 private _gunGroup=group gunner _gun;
@@ -690,11 +690,11 @@ if (_focus in ["all","features","compatibility"]) then {[_check,_phase,_wait] ca
 if (_focus in ["all","features","performance"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAPerformance.sqf"};
 if (_focus == "performancecontact") then {
     [_check,_phase,_wait,false] call compile preprocessFileLineNumbers "cortexQAPerformanceContact.sqf";
-    ["PERF-CONTACT-run-completed",missionNamespace getVariable ["WAIT_CortexQA_PerformanceContactCompleted",false]] call _check;
+    ["PERF-CONTACT-run-completed",missionNamespace getVariable ["CBE_CortexQA_PerformanceContactCompleted",false]] call _check;
 };
 if (_focus == "performancemixed") then {
     [_check,_phase,_wait,true] call compile preprocessFileLineNumbers "cortexQAPerformanceContact.sqf";
-    ["PERF-MIXED-run-completed",missionNamespace getVariable ["WAIT_CortexQA_PerformanceContactCompleted",false]] call _check;
+    ["PERF-MIXED-run-completed",missionNamespace getVariable ["CBE_CortexQA_PerformanceContactCompleted",false]] call _check;
 };
 if (_focus in ["all","features","profiles"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAProfiles.sqf"};
 if (_focus in ["all","features","lighting"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQALighting.sqf"};
@@ -703,8 +703,8 @@ if (_focus in ["all","features","artillerysmoke"]) then {[_check,_phase,_wait] c
 if (_focus in ["all","features","crossing"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQACrossing.sqf"};
 if (_focus in ["all","features","contact","dangerparity","dangerbuildings"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAContact.sqf"};
 if (_focus in ["buildings","dangerbuildings","clearance","clearlarge","cleartransform"]) then {
-    [createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],["WAIT_AIPass_Regroup_Enable",false]]] call WAIT_fnc_CortexTuning;
-    [{missionNamespace getVariable ["WAIT_AIPass_Active",false]},20] call _wait;
+    [createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],["CBE_AIPass_Regroup_Enable",false]]] call CBE_fnc_CortexTuning;
+    [{missionNamespace getVariable ["CBE_AIPass_Active",false]},20] call _wait;
     // Focused retests share identical production settings and fixtures.
     // Original controls remain available in buildings and nativebuildings.
     if (_focus == "cleartransform") then {
@@ -740,8 +740,8 @@ if (_focus in ["all","features","mechanics","airborne"]) then {
 };
 if (_focus in ["all","features","mechanics","vehicles","stateflows","dangerparity","dangerbuildings"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAVehicles.sqf"};
 if (_focus in ["all","features","mechanics","vehicles"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQADrivingTraffic.sqf"};
-if (_focus in ["all","features","mechanics","vehicles","parkedbypass"] && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])}) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAParkedBypass.sqf"};
-if (_focus in ["all","features","mechanics","vehicles","drivercrew"] && {!(missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])}) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQADrivingCrew.sqf"};
+if (_focus in ["all","features","mechanics","vehicles","parkedbypass"] && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])}) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAParkedBypass.sqf"};
+if (_focus in ["all","features","mechanics","vehicles","drivercrew"] && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])}) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQADrivingCrew.sqf"};
 if (_focus in ["all","features","mechanics","vehicles","naval"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQANaval.sqf"};
 if (_focus in ["all","features","mechanics","fire"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAFire.sqf"};
 if (_focus in ["all","features","mechanics","fire","grenades"]) then {[_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAGrenades.sqf"};
@@ -765,8 +765,8 @@ if (_focus in ["all","features","coordinated","supportflows"]) then {
     private _recordContactCheck=_check;
     private _contactCheck={params ["_id","_passed",["_detail",""]]; ["CONTACT-"+_id,_passed,_detail] call _recordContactCheck};
     [_contactCheck,_phase,_wait,[],true] call _coordinated;
-    if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
-    private _responderOwners=((missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0}) select [0,2];
+    if (missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
+    private _responderOwners=((missionNamespace getVariable ["CBE_Headless_Clients",[]]) apply {_x select 0}) select [0,2];
     ["COORD-two-headless-owners",count _responderOwners == 2] call _check;
     if (count _responderOwners == 2) then {
         private _recordCoordinatedCheck=_check;
@@ -776,23 +776,23 @@ if (_focus in ["all","features","coordinated","supportflows"]) then {
     };
 };
 // Exercise the public read-only diagnostics path twice; UI report rows are not behaviour passes.
-private _diagnostics=[] call WAIT_fnc_AIGetDiagnostics;
+private _diagnostics=[] call CBE_fnc_AIGetDiagnostics;
 private _diagnosticRows=_diagnostics getOrDefault ["checks",[]];
-private _gateSpec=([] call WAIT_fnc_CortexTuningSpec) select {(_x select 3) == "CHECKBOX"};
+private _gateSpec=([] call CBE_fnc_CortexTuningSpec) select {(_x select 3) == "CHECKBOX"};
 ["DIAG-all-feature-gates",_gateSpec findIf {private _id="cortex-setting-"+(_x select 0); _diagnosticRows findIf {(_x select 1) == _id} < 0} < 0] call _check;
 ["DIAG-owner-scope-explicit",_diagnosticRows findIf {(_x select 1) == "cortex-snapshot-scope"} >= 0] call _check;
-private _diagnosticGateSaved=createHashMapFromArray [["WAIT_AIPass_Vehicles_Enable",missionNamespace getVariable ["WAIT_AIPass_Vehicles_Enable",true]],["WAIT_AIPass_VehicleDismount_Enable",missionNamespace getVariable ["WAIT_AIPass_VehicleDismount_Enable",true]]];
-[createHashMapFromArray [["WAIT_AIPass_Vehicles_Enable",false],["WAIT_AIPass_VehicleDismount_Enable",true]]] call WAIT_fnc_CortexTuning;
-private _blockedDiagnostic=[] call WAIT_fnc_AIGetDiagnostics;
-["DIAG-feature-parent-blocker",(_blockedDiagnostic get "checks") findIf {(_x select 1) == "cortex-setting-WAIT_AIPass_VehicleDismount_Enable" && {(_x select 2) == "UNCONFIGURED"}} >= 0] call _check;
-[_diagnosticGateSaved] call WAIT_fnc_CortexTuning;
-private _diagnosticsAgain=[] call WAIT_fnc_AIGetDiagnostics;
+private _diagnosticGateSaved=createHashMapFromArray [["CBE_AIPass_Vehicles_Enable",missionNamespace getVariable ["CBE_AIPass_Vehicles_Enable",true]],["CBE_AIPass_VehicleDismount_Enable",missionNamespace getVariable ["CBE_AIPass_VehicleDismount_Enable",true]]];
+[createHashMapFromArray [["CBE_AIPass_Vehicles_Enable",false],["CBE_AIPass_VehicleDismount_Enable",true]]] call CBE_fnc_CortexTuning;
+private _blockedDiagnostic=[] call CBE_fnc_AIGetDiagnostics;
+["DIAG-feature-parent-blocker",(_blockedDiagnostic get "checks") findIf {(_x select 1) == "cortex-setting-CBE_AIPass_VehicleDismount_Enable" && {(_x select 2) == "UNCONFIGURED"}} >= 0] call _check;
+[_diagnosticGateSaved] call CBE_fnc_CortexTuning;
+private _diagnosticsAgain=[] call CBE_fnc_AIGetDiagnostics;
 ["DIAG-repeat-schema",(_diagnosticsAgain getOrDefault ["schema",-1]) == (_diagnostics getOrDefault ["schema",-2]) && {(_diagnosticsAgain getOrDefault ["feature",""]) == "ai"}] call _check;
-[_saved] call WAIT_fnc_CortexTuning;
+[_saved] call CBE_fnc_CortexTuning;
 ["Server checks finished","Fixtures are being removed. Client UI checks follow; these are functional checks, not a mouse or layout assessment.",[]] call _phase;
 {deleteVehicle _x} forEach (units _group + units _cargoGroup + units _secondCargoGroup + units _convoy + crew _gun);
 {deleteVehicle _x} forEach (_vehicles + [_gun,_house]);
 {deleteGroup _x} forEach [_group,_cargoGroup,_secondCargoGroup,_convoy];
-missionNamespace setVariable ["WAIT_CortexQA_ServerDone",true,true];
-missionNamespace setVariable ["WAIT_CortexQA_ServerFailures",_failures,true];
-diag_log format ["WAIT CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];

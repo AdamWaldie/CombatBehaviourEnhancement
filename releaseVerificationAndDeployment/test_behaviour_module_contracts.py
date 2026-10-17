@@ -46,7 +46,7 @@ def validate_contracts(root):
             source = (root/path).read_text()
             if contract['executor'] not in source:
                 errors.append(f'Handler has no declared task dispatch: {path}')
-            if re.search(r'CBA_fnc_(?:addSetting|setSetting)|WAIT_fnc_CortexTuning|WAIT_fnc_DrivingControl', source, re.I):
+            if re.search(r'CBA_fnc_(?:addSetting|setSetting)|CBE_fnc_CortexTuning|CBE_fnc_DrivingControl', source, re.I):
                 errors.append(f'Settings control in behaviour handler: {path}')
         if not (root/contract['guide']).is_file():
             errors.append('Missing behaviour guide')
@@ -60,7 +60,7 @@ class BehaviourModuleContractTests(unittest.TestCase):
     def test_inventory_detects_new_modules_and_inherited_variants(self):
         native, zen = module_inventory('''class NewTask: Module_F { };
             class Variant: NewTask {}; class Unrelated: Thing {};''',
-            '["Waldos AI Tweaks", "New task", {}] call zen_custom_modules_fnc_register;')
+            '["Combat Behaviour Enhancement (CBE)", "New task", {}] call zen_custom_modules_fnc_register;')
         self.assertEqual(native, {'NewTask', 'Variant'})
         self.assertEqual(zen, {'New task'})
 
@@ -68,8 +68,8 @@ class BehaviourModuleContractTests(unittest.TestCase):
         config = (ROOT/'addons/main/config.cpp').read_text()
         registration = (ROOT/'addons/main/bootstrap/zenRegister.sqf').read_text()
         before = module_inventory(config, registration)
-        after = module_inventory(config+'\nclass WAIT_ModuleDrivingEnable: Module_F {};',
-                                 registration+'\n["Waldos AI Tweaks", "Driving: enable", {}];')
+        after = module_inventory(config+'\nclass CBE_ModuleDrivingEnable: Module_F {};',
+                                 registration+'\n["Combat Behaviour Enhancement (CBE)", "Driving: enable", {}];')
         self.assertNotEqual(before, after)
 
 

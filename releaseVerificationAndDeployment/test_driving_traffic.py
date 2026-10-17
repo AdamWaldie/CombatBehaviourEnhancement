@@ -43,9 +43,9 @@ class DrivingTrafficTests(unittest.TestCase):
 
     def test_convoy_observes_external_hulls_without_replacing_predecessor_spacing(self):
         s=src('convoyTick')
-        self.assertIn('[_lead,_leadLimit/3.6] call WAIT_fnc_DrivingFollowingCap',s)
-        self.assertIn('[_vehicle,_limit/3.6,_front] call WAIT_fnc_DrivingFollowingCap',s)
-        self.assertEqual(s.count('call WAIT_fnc_DrivingFollowingCap'),2)
+        self.assertIn('[_lead,_leadLimit/3.6] call CBE_fnc_DrivingFollowingCap',s)
+        self.assertIn('[_vehicle,_limit/3.6,_front] call CBE_fnc_DrivingFollowingCap',s)
+        self.assertEqual(s.count('call CBE_fnc_DrivingFollowingCap'),2)
         observer=src('drivingFollowingCap')
         admission=observer.split('if (_other != _vehicle',1)[1].split('then {',1)[0]
         self.assertNotIn('_predecessor',admission)
@@ -94,9 +94,9 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('&& {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {abs speed _vehicle < 1',s)
         self.assertIn('["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited',s)
         self.assertIn('_progressPosition=getPosATL _vehicle;_progressAt=time;',s)
-        self.assertIn('WAIT_DrivingAssist_Traffic',s.split('getForcedSpeed _vehicle == 0',1)[1].split('then {_release=true}',1)[0])
+        self.assertIn('CBE_DrivingAssist_Traffic',s.split('getForcedSpeed _vehicle == 0',1)[1].split('then {_release=true}',1)[0])
         self.assertIn('_capMps=_capMps min (_traffic select 0)',s)
-        self.assertLess(s.index('call WAIT_fnc_DrivingFollowingCap'),s.index('_vehicle forceSpeed _capMps'))
+        self.assertLess(s.index('call CBE_fnc_DrivingFollowingCap'),s.index('_vehicle forceSpeed _capMps'))
         self.assertIn('time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))',s)
     def test_fsm_uses_existing_queue_and_cleanup_clears_observation(self):
         step=src('drivingOperationStep')
@@ -105,7 +105,7 @@ class DrivingTrafficTests(unittest.TestCase):
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
         self.assertIn('class TrafficFollowing',fsm)
         self.assertIn('to="TrafficFollowing"',fsm)
-        self.assertIn('setVariable ["WAIT_DrivingAssist_Traffic",nil]',src('drivingAssistRelease'))
+        self.assertIn('setVariable ["CBE_DrivingAssist_Traffic",nil]',src('drivingAssistRelease'))
     def test_convoy_low_speed_smoothing_retains_raw_safety_caps(self):
         s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
         smoothing=s.split('// Tracks accelerate and brake unevenly.',1)[1].split('_limit = [_vehicle',1)[0]
@@ -148,9 +148,9 @@ class DrivingTrafficTests(unittest.TestCase):
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text()
         for case in ('physical-approach','physical-separated-hold','release-physical-resume','repeat-physical-stop','repeat-physical-resume','disabled-observation-cleanup'):
             self.assertIn('DRIVING-traffic-'+case,audit)
-        self.assertNotIn('call WAIT_fnc_DrivingAssistStart',audit)
-        self.assertNotIn('call WAIT_fnc_DrivingOperationStep',audit)
-        self.assertNotIn('setVariable ["WAIT_DrivingAssist_State"',audit)
+        self.assertNotIn('call CBE_fnc_DrivingAssistStart',audit)
+        self.assertNotIn('call CBE_fnc_DrivingOperationStep',audit)
+        self.assertNotIn('setVariable ["CBE_DrivingAssist_State"',audit)
         self.assertNotIn('setPosATL',audit)
         self.assertNotIn('setVelocity',audit)
         self.assertIn('_stableSamples >= 12',audit)
@@ -175,12 +175,12 @@ class DrivingTrafficTests(unittest.TestCase):
     def test_corner_physical_acceptance_requires_real_encounter_braking_and_travel(self):
         source=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text(encoding='utf-8')
         block=source.split('// Normal-only physical observation:',1)[1].split('["CNV-02b-travel-cargo-mounted"',1)[0]
-        for marker in ('WAIT_CortexQA_HeadlessBatch','diag_tickTime+150','_angle > 25','_closing > 0.5',
+        for marker in ('CBE_CortexQA_HeadlessBatch','diag_tickTime+150','_angle > 25','_closing > 0.5',
                        '_actualSpeed > 1.5','_event isEqualTo []','diag_tickTime-(_event select 1) <= 8',
                        '_actualSpeed <= (_event select 0)-1','_room < 0','damage _x >',
                        'CNV-corner-turning-predecessor-prerequisite','CNV-corner-physical-onward-travel'):
             self.assertIn(marker,block)
-        for forbidden in ('forceSpeed','doMove','setPos','setVelocity','call WAIT_fnc_ConvoyTick','call WAIT_fnc_DrivingFollowingCap'):
+        for forbidden in ('forceSpeed','doMove','setPos','setVelocity','call CBE_fnc_ConvoyTick','call CBE_fnc_DrivingFollowingCap'):
             self.assertNotIn(forbidden,block)
 
 if __name__=='__main__': unittest.main()

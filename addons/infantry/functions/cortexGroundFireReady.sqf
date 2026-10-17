@@ -18,7 +18,7 @@
  * Return Value: BOOL, station has usable damaging ammunition for the supplied target,
  * or any damaging ammunition when target is omitted; not proof of firing/effect.
  * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
- * Example: [_vehicle,gunner _vehicle,_enemy] call WAIT_fnc_CortexGroundFireReady;
+ * Example: [_vehicle,gunner _vehicle,_enemy] call CBE_fnc_CortexGroundFireReady;
  */
 params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]]];
 _observation set ["reloadInProgress",false];

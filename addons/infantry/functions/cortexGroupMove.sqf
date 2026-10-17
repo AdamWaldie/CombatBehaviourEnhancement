@@ -1,21 +1,21 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Commits one WAIT-owned temporary waypoint without replacing it again while the
+ * Purpose: Commits one CBE-owned temporary waypoint without replacing it again while the
  * requested destination, radius and mode remain materially the same. This avoids command churn
  * that makes an engine group stop, turn around or continuously re-form.
  * Locality/authority: Call on the current group owner. The function exits without issuing a
  * command if the group is not local or has become ineligible; addWaypoint and setCurrentWaypoint
  * must remain owner-local. A protected native task on a living member blocks a new group waypoint,
- * because a group waypoint cannot exclude that actor; independent actor operations remain available. The shared gate prevents delayed callbacks from adding a WAIT route after
+ * because a group waypoint cannot exclude that actor; independent actor operations remain available. The shared gate prevents delayed callbacks from adding a CBE route after
  * Zeus, a player, or an external controller has taken ownership.
  * Repeat/JIP: The public intent record survives locality transfer. The new owner can reuse a
  * still-valid waypoint instead of injecting a duplicate. A materially changed request replaces
- * only the existing WAIT waypoint; authored mission and Zeus waypoints are never removed.
+ * only the existing CBE waypoint; authored mission and Zeus waypoints are never removed.
  *
  * An inserted waypoint uses normal engine movement: the group moves in formation, and when it completes the waypoint it carries on with
- * its own patrol or task waypoints. WAIT pass waypoints retain the WAIT description marker so
+ * its own patrol or task waypoints. CBE pass waypoints retain the CBE description marker so
  * existing saved operations and validation can identify them; the owning intent record is the
- * authoritative removal scope. Only one WAIT pass waypoint exists per group at a time.
+ * authoritative removal scope. Only one CBE pass waypoint exists per group at a time.
  *
  * Arguments:
  * 0: group <GROUP>
@@ -28,7 +28,7 @@
  * Array - the waypoint [group, index], or [grpNull,-1] when refused before movement
  *
  * Example:
- * [_group, _rallyPoint] call WAIT_fnc_CortexGroupMove;
+ * [_group, _rallyPoint] call CBE_fnc_CortexGroupMove;
  * Result: the group moves to the rally point, then resumes its own waypoints.
  *
  * Current callers: retreat, reinforcement, coordinated assault, investigation, vehicle withdrawal and
@@ -38,24 +38,24 @@
 params [["_group", grpNull, [grpNull]], ["_position", [], [[]]], ["_radius", 25, [0]], ["_type", "MOVE", [""]], ["_operationGeneration", -1, [0]]];
 if (isNull _group || {!local _group} || {!(count _position in [2,3])}
     || {_position findIf {!(_x isEqualType 0)} >= 0}
-    || {!([_group,false,false,true] call WAIT_fnc_CortexIsEligible)}) exitWith {[grpNull, -1]};
+    || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {[grpNull, -1]};
 // A vehicle-specific driving controller need not own every actor in its crew group.
 // A group waypoint still affects that vehicle, so reject it without disabling other domains.
 private _externalDriving={
     private _movementMembers=units _group;
     _movementMembers findIf {
         private _vehicle=objectParent _x;
-        !isNull _vehicle && {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
+        !isNull _vehicle && {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
             && {driver _vehicle in _movementMembers || {effectiveCommander _vehicle in _movementMembers}}
     } >= 0
 };
 if (call _externalDriving) exitWith {[grpNull,-1]};
 // Establish the owner epoch before committing an unscoped route on a newly spawned
 // group. Later periodic discovery must not treat this active route as pre-adoption work.
-if !(_group getVariable ["WAIT_AIPass_Adopted",false]) then {
-    [_group,true] call WAIT_fnc_CortexLocality;
+if !(_group getVariable ["CBE_AIPass_Adopted",false]) then {
+    [_group,true] call CBE_fnc_CortexLocality;
 };
-if (!local _group || {!([_group,false,false,true] call WAIT_fnc_CortexIsEligible)}) exitWith {[grpNull,-1]};
+if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {[grpNull,-1]};
 // A group-wide route cannot preserve an individual boarding, treatment or supply command.
 // Do not convert that native task into MOVE, even when the group's general eligibility is valid.
 // This does not disable sensing, firing or independently eligible actor-level operations.
@@ -66,7 +66,7 @@ if ((units _group) findIf {
 // operation is active, bind this route to its current generation automatically; ordinary mission
 // support moves remain intentionally unscoped.
 if (_operationGeneration < 0) then {
-    _operationGeneration=(_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["generation",-1];
+    _operationGeneration=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["generation",-1];
 };
 
 private _desired = +_position;
@@ -74,7 +74,7 @@ if (count _desired == 2) then {_desired pushBack 0};
 _desired resize 3;
 _radius = _radius max 1;
 _type = toUpper _type;
-private _intent = _group getVariable ["WAIT_Cortex_GroupMoveIntent", createHashMap];
+private _intent = _group getVariable ["CBE_Cortex_GroupMoveIntent", createHashMap];
 private _previousWaypoint = _intent getOrDefault ["waypoint", []];
 private _previousPosition = _intent getOrDefault ["position", []];
 private _previousRadius = _intent getOrDefault ["radius", -1];
@@ -83,17 +83,17 @@ private _hasOwnedWaypoint = count _previousWaypoint == 2
     && {(_previousWaypoint select 0) isEqualTo _group}
     && {(_previousWaypoint select 1) >= 0}
     && {(_previousWaypoint select 1) < count waypoints _group}
-    && {waypointDescription _previousWaypoint == "WAIT AI PASS"};
+    && {waypointDescription _previousWaypoint == "CBE AI PASS"};
 
 // The internal description is not sufficient ownership proof: Zeus or mission code can
-// edit an existing WAIT waypoint without changing its label. Treat that edit as a newer order
+// edit an existing CBE waypoint without changing its label. Treat that edit as a newer order
 // before adopting this route or inserting another waypoint ahead of it.
 if (_hasOwnedWaypoint && {count _previousPosition < 2
     || {waypointPosition _previousWaypoint distance2D _previousPosition > 1}
     || {abs (((waypointPosition _previousWaypoint) param [2,0])-(_previousPosition param [2,0])) > 1.5}
     || {waypointType _previousWaypoint != _previousType}
     || {abs (waypointCompletionRadius _previousWaypoint-_previousRadius) > 0.1}}) exitWith {
-    [_group,true,_previousWaypoint select 1] call WAIT_fnc_CortexZeusMark;
+    [_group,true,_previousWaypoint select 1] call CBE_fnc_CortexZeusMark;
     [grpNull,-1]
 };
 
@@ -111,15 +111,15 @@ if (_sameRequest) exitWith {
     // but bind cleanup to its current generation; an unscoped old token otherwise survives cancel.
     if ((_intent getOrDefault ["operationGeneration",-1]) != _operationGeneration) then {
         _intent set ["operationGeneration",_operationGeneration];
-        _group setVariable ["WAIT_Cortex_GroupMoveIntent",_intent,true];
+        _group setVariable ["CBE_Cortex_GroupMoveIntent",_intent,true];
     };
     _previousWaypoint
 };
 // A curator, player or specialist can take the group after the earlier eligibility gate but before
-// the waypoint write. Recheck at the mutation boundary so no delayed WAIT route is inserted over it.
-if ([_group] call WAIT_fnc_CortexExternalTakeover || {call _externalDriving}) exitWith {[grpNull, -1]};
-[_group] call WAIT_fnc_CortexGroupMoveClear;
-if ([_group] call WAIT_fnc_CortexExternalTakeover || {call _externalDriving}) exitWith {[grpNull, -1]};
+// the waypoint write. Recheck at the mutation boundary so no delayed CBE route is inserted over it.
+if ([_group] call CBE_fnc_CortexExternalTakeover || {call _externalDriving}) exitWith {[grpNull, -1]};
+[_group] call CBE_fnc_CortexGroupMoveClear;
+if ([_group] call CBE_fnc_CortexExternalTakeover || {call _externalDriving}) exitWith {[grpNull, -1]};
 // Radius-zero placement may be adjusted by the engine. Explicit elevated destinations need
 // exact ASL placement; ordinary ground routes retain native safe placement.
 private _elevated=abs (_desired select 2) > 1.5;
@@ -128,9 +128,9 @@ private _placementRadius=[0,-1] select _elevated;
 private _waypoint = _group addWaypoint [_placement, _placementRadius, currentWaypoint _group];
 _waypoint setWaypointType _type;
 _waypoint setWaypointCompletionRadius _radius;
-_waypoint setWaypointDescription "WAIT AI PASS";
+_waypoint setWaypointDescription "CBE AI PASS";
 _group setCurrentWaypoint _waypoint;
-_group setVariable ["WAIT_Cortex_GroupMoveIntent", createHashMapFromArray [
+_group setVariable ["CBE_Cortex_GroupMoveIntent", createHashMapFromArray [
     ["waypoint", _waypoint],
     ["position", waypointPosition _waypoint],
     ["requestedPosition", _desired],

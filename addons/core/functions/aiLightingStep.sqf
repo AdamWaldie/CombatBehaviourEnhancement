@@ -5,36 +5,36 @@
  * Repeat/JIP: One generation-bound job per owner; stop invalidates it. Joining owners register local AI.
  * Arguments: 0 state <HASHMAP> containing subsystem SKILLS and generation <NUMBER>.
  * Return Value: NUMBER - next delay in seconds, or -1 when disabled or superseded.
- * Current callers: WAIT_fnc_AIRebalanceInit through WAIT_fnc_CortexQueueJob.
- * Example: [createHashMapFromArray [["subsystem","SKILLS"],["generation",1]]] call WAIT_fnc_AILightingStep;
+ * Current callers: CBE_fnc_AIRebalanceInit through CBE_fnc_CortexQueueJob.
+ * Example: [createHashMapFromArray [["subsystem","SKILLS"],["generation",1]]] call CBE_fnc_AILightingStep;
  */
 params [["_state", createHashMap, [createHashMap]]];
-if !(missionNamespace getVariable ["WAIT_AI_RebalanceActive", false]) exitWith {-1};
-if ((_state getOrDefault ["generation", -1]) != (missionNamespace getVariable ["WAIT_AI_LightingGeneration", 0])) exitWith {-1};
-private _units = missionNamespace getVariable ["WAIT_Cortex_LightingUnits",[]];
-private _cursor = missionNamespace getVariable ["WAIT_Cortex_LightingCursor",0];
+if !(missionNamespace getVariable ["CBE_AI_RebalanceActive", false]) exitWith {-1};
+if ((_state getOrDefault ["generation", -1]) != (missionNamespace getVariable ["CBE_AI_LightingGeneration", 0])) exitWith {-1};
+private _units = missionNamespace getVariable ["CBE_Cortex_LightingUnits",[]];
+private _cursor = missionNamespace getVariable ["CBE_Cortex_LightingCursor",0];
 if (_cursor >= count _units) then {
-    _units = _units select {!isNull _x && {alive _x} && {local _x} && {!isPlayer _x || {!isNil {_x getVariable "WAIT_AI_OriginalSkills"}}}};
-    missionNamespace setVariable ["WAIT_Cortex_LightingUnits",_units];
+    _units = _units select {!isNull _x && {alive _x} && {local _x} && {!isPlayer _x || {!isNil {_x getVariable "CBE_AI_OriginalSkills"}}}};
+    missionNamespace setVariable ["CBE_Cortex_LightingUnits",_units];
     _cursor = 0;
 };
-private _mode = missionNamespace getVariable ["WAIT_AIRebalance_Mode","AUTO"];
-private _dark = (getLighting select 1) <= (missionNamespace getVariable ["WAIT_AI_DarknessThreshold",5]);
+private _mode = missionNamespace getVariable ["CBE_AIRebalance_Mode","AUTO"];
+private _dark = (getLighting select 1) <= (missionNamespace getVariable ["CBE_AI_DarknessThreshold",5]);
 for "_i" from _cursor to ((_cursor + 9) min ((count _units)-1)) do {
     private _unit = _units select _i;
     private _seat = assignedVehicleRole _unit;
     private _profileVehicle = vehicle _unit;
     private _profileSeat = toUpperANSI (_seat param [0,""]);
-    private _precisionExcluded = [_unit] call WAIT_fnc_CompatibilityPrecisionExcluded;
+    private _precisionExcluded = [_unit] call CBE_fnc_CompatibilityPrecisionExcluded;
     private _signature = [_mode,_dark,hmd _unit,netId _profileVehicle,_profileSeat,_precisionExcluded];
     private _humanControl=isPlayer _unit || {!isNull remoteControlled _unit}
         || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])};
-    private _profileBlocked=_humanControl || {_unit getVariable ["WAIT_AI_Exclude",false]}
-        || {[_unit] call WAIT_fnc_CortexExternalOwner != ""};
-    if (local _unit && {_profileBlocked}) then {[_unit] call WAIT_fnc_AIRestoreProfile};
-    if (local _unit && {alive _unit} && {!_profileBlocked} && {_signature isNotEqualTo (_unit getVariable ["WAIT_Cortex_LightingSignature",[]])}) then {
-        [_unit] call WAIT_fnc_AIApplyProfile;
+    private _profileBlocked=_humanControl || {_unit getVariable ["CBE_AI_Exclude",false]}
+        || {[_unit] call CBE_fnc_CortexExternalOwner != ""};
+    if (local _unit && {_profileBlocked}) then {[_unit] call CBE_fnc_AIRestoreProfile};
+    if (local _unit && {alive _unit} && {!_profileBlocked} && {_signature isNotEqualTo (_unit getVariable ["CBE_Cortex_LightingSignature",[]])}) then {
+        [_unit] call CBE_fnc_AIApplyProfile;
     };
 };
-missionNamespace setVariable ["WAIT_Cortex_LightingCursor",_cursor+10];
+missionNamespace setVariable ["CBE_Cortex_LightingCursor",_cursor+10];
 1

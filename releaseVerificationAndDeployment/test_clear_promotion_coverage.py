@@ -7,7 +7,7 @@ class ClearPromotionCoverageTests(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         gate=s.split('private _mayPromoteReserve=',1)[1].split('private _pairRosterChanged=',1)[0]
         for marker in ('_observer != _candidate','call _reserveReady','isEqualTo _exit',
-                       'WAIT_Cortex_ClearExitWatchLocal','vectorDistance (AGLToASL _post) <= 2',
+                       'CBE_Cortex_ClearExitWatchLocal','vectorDistance (AGLToASL _post) <= 2',
                        '<= 0.75','terrainIntersectASL','"VIEW","NONE"'):
             self.assertIn(marker,gate)
         self.assertIn('if ((_stage param [2,""]) != "ARRIVED") exitWith {true}',gate)
@@ -74,7 +74,7 @@ class ClearReserveAdmissionTests(unittest.TestCase):
     def test_reserve_admission_retires_on_terminal_or_explicit_release(self):
         for name in ('buildingOperationStep.sqf','cortexClearRelease.sqf'):
             source=(ROOT/'addons/infantry/functions'/name).read_text()
-            self.assertIn('setVariable ["WAIT_Cortex_ClearReserveAdmission",nil,true]',source)
+            self.assertIn('setVariable ["CBE_Cortex_ClearReserveAdmission",nil,true]',source)
 
 class ClearReplacementEntryTests(unittest.TestCase):
     def test_historical_entry_needs_a_live_original_interior_survivor(self):
@@ -104,7 +104,7 @@ class ExteriorPromotionFacingTests(unittest.TestCase):
         garrison=(ROOT/'addons/infantry/functions/cortexGarrisonRefill.sqf').read_text()
         alternate=garrison.split('_spare=_living findIf',1)[1].split('} >= 0;',1)[0]
         self.assertIn('getDir _x-(_x getDir _watch)',alternate)
-        self.assertLess(alternate.index('getDir _x-(_x getDir _watch)'),alternate.index('call WAIT_fnc_CortexGarrisonArrived'))
+        self.assertLess(alternate.index('getDir _x-(_x getDir _watch)'),alternate.index('call CBE_fnc_CortexGarrisonArrived'))
         arrival=(ROOT/'addons/infantry/functions/cortexGarrisonArrived.sqf').read_text()
         self.assertNotIn('getDir _actor',arrival)
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()

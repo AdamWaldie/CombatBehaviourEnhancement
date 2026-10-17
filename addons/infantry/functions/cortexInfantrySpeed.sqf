@@ -11,7 +11,7 @@
  * eight corners each; a speed-dependent query is capped at 250 m. Nominal braking and four-second
  * response allowance are conservative policy, not measured native braking or crossing prediction.
  * Current callers: ConvoyTick, DrivingAssistStart, convoy avoidance audit.
- * Example: private _speed = [_truck,30,group driver _truck,true] call WAIT_fnc_CortexInfantrySpeed;
+ * Example: private _speed = [_truck,30,group driver _truck,true] call CBE_fnc_CortexInfantrySpeed;
  */
 params [["_vehicle",objNull,[objNull]],["_requested",0,[0]],
     ["_group",grpNull,[grpNull]],["_ordinary",false,[false]],["_travelIntent",0,[0]]];
@@ -19,8 +19,8 @@ if (!finite _requested) exitWith {0};
 _requested=(_requested max 0) min 126;
 if (isNull _vehicle || {isNull _group} || {!local _vehicle}) exitWith {_requested};
 private _enabled=if (_ordinary) then {
-    [_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled
-} else {[_group,"WAIT_Convoy_AvoidInfantry_Enable",false] call WAIT_fnc_CortexFeatureEnabled};
+    [_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled
+} else {[_group,"CBE_Convoy_AvoidInfantry_Enable",false] call CBE_fnc_CortexFeatureEnabled};
 if (!_enabled) exitWith {_requested};
 private _bounds=boundingBoxReal _vehicle;
 private _low=_bounds select 0;private _high=_bounds select 1;

@@ -11,19 +11,19 @@
 params ["_check","_phase","_wait"];
 
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Danger_Enable",true],["WAIT_AIPass_Contact_Enable",true],
-    ["WAIT_AIPass_Flank_Enable",true],["WAIT_AIPass_Advance_Enable",true],["WAIT_AIPass_Assault_Enable",true],
-    ["WAIT_AIPass_Morale_Enable",false],["WAIT_AIPass_Regroup_Enable",false],["WAIT_AIPass_Reinforce_Enable",false],
-    ["WAIT_AIPass_CoordinatedAssault_Enable",false],["WAIT_AIPass_Artillery_Enable",false],
-    ["WAIT_AIPass_ContactReports_Enable",false]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_Enable",true],["CBE_AIPass_Danger_Enable",true],["CBE_AIPass_Contact_Enable",true],
+    ["CBE_AIPass_Flank_Enable",true],["CBE_AIPass_Advance_Enable",true],["CBE_AIPass_Assault_Enable",true],
+    ["CBE_AIPass_Morale_Enable",false],["CBE_AIPass_Regroup_Enable",false],["CBE_AIPass_Reinforce_Enable",false],
+    ["CBE_AIPass_CoordinatedAssault_Enable",false],["CBE_AIPass_Artillery_Enable",false],
+    ["CBE_AIPass_ContactReports_Enable",false]
+]] call CBE_fnc_CortexTuning;
 
 private _newGroup = {
     params ["_position","_label",["_count",6]];
     private _group=createGroup [east,true];
-    _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _group setVariable ["acex_headless_blacklist",true,true];
-    _group setVariable ["WAIT_AIPass_Profile","ELITE",true];
+    _group setVariable ["CBE_AIPass_Profile","ELITE",true];
     _group setGroupIdGlobal [_label];
     private _actors=[];
     for "_index" from 0 to (_count-1) do {
@@ -36,12 +36,12 @@ private _newGroup = {
         _actor allowDamage false;
         _actor setDir 0;
         _actor setVariable ["acex_headless_blacklist",true,true];
-        _actor setVariable ["WAIT_CortexQA_Label",format ["%1 / %2",_label,_index+1],true];
-        _actor setVariable ["WAIT_CortexQA_Shots",0];
+        _actor setVariable ["CBE_CortexQA_Label",format ["%1 / %2",_label,_index+1],true];
+        _actor setVariable ["CBE_CortexQA_Shots",0];
         _actor addEventHandler ["FiredMan",{
             params ["_actor","_weapon"];
             if !(_weapon in ["Throw","Put"]) then {
-                _actor setVariable ["WAIT_CortexQA_Shots",(_actor getVariable ["WAIT_CortexQA_Shots",0])+1];
+                _actor setVariable ["CBE_CortexQA_Shots",(_actor getVariable ["CBE_CortexQA_Shots",0])+1];
             };
         }];
         _actors pushBack _actor;
@@ -57,7 +57,7 @@ private _deleteGroupActors = {
 
 private _assessmentMatches = {
     params ["_group","_intent","_reason",["_status",""]];
-    private _assessment=_group getVariable ["WAIT_Cortex_TacticalAssessment",[]];
+    private _assessment=_group getVariable ["CBE_Cortex_TacticalAssessment",[]];
     count _assessment >= 6
         && {(_assessment select 0) == _intent}
         && {(_assessment select 1) == _reason}
@@ -71,22 +71,22 @@ _armourFixture params ["_armourGroup","_armourActors"];
 private _armour=createVehicle ["B_APC_Wheeled_01_cannon_F",[1700,2020,0],[],0,"NONE"];
 createVehicleCrew _armour;
 private _armourEnemyGroup=group effectiveCommander _armour;
-_armourEnemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-_armourEnemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_armourEnemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_armourEnemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _armour allowDamage false;
 {_x allowDamage false; _x setVariable ["acex_headless_blacklist",true,true]} forEach crew _armour;
 _armour setDir 180;
-_armour setVariable ["WAIT_CortexQA_Label","LIVE ARMOURED THREAT",true];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_armourActors+[_armour],true];
+_armour setVariable ["CBE_CortexQA_Label","LIVE ARMOURED THREAT",true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_armourActors+[_armour],true];
 private _armourOrigins=_armourActors apply {getPosATL _x};
-["Tactical assessment: armour overmatch","Six riflemen face a live protected vehicle without anti-armour weapons. WAIT must make one short screened reposition, retain native engagement and support discovery, then reassess. It must not rifle-assault the vehicle or repeatedly fall back.",getPosATL leader _armourGroup] call _phase;
+["Tactical assessment: armour overmatch","Six riflemen face a live protected vehicle without anti-armour weapons. CBE must make one short screened reposition, retain native engagement and support discovery, then reassess. It must not rifle-assault the vehicle or repeatedly fall back.",getPosATL leader _armourGroup] call _phase;
 private _armourContact=[{
-    private _knowledge=[_armourGroup] call WAIT_fnc_CortexKnowledge;
+    private _knowledge=[_armourGroup] call CBE_fnc_CortexKnowledge;
     ((_knowledge select 0) findIf {vehicle (_x select 0) == _armour}) >= 0
 },35] call _wait;
 private _armourDecision=[{[_armourGroup,"REPOSITION","ARMOUR_OVERMATCH","STARTED"] call _assessmentMatches},25] call _wait;
 private _armourProgress=[{
-    private _record=_armourGroup getVariable ["WAIT_Cortex_TacticalReposition",[]];
+    private _record=_armourGroup getVariable ["CBE_Cortex_TacticalReposition",[]];
     count _record >= 6 && {(_record select 0) in ["MOVING","COMPLETE"]}
         && {leader _armourGroup distance2D (_record select 4) >= 15}
 },35] call _wait;
@@ -101,18 +101,18 @@ private _armourElementProgress=[{
     } forEach _armourActors;
     _moved >= ceil ((count _armourActors)*0.5)
 },30] call _wait;
-private _armourDrill=((_armourGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap]);
+private _armourDrill=((_armourGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap]);
 private _armourTravel=0;
 {_armourTravel=_armourTravel max ((_armourOrigins select _forEachIndex) distance2D (getPosATL _x))} forEach _armourActors;
-["TACTICAL-armour-real-contact",_armourContact,str ([_armourGroup] call WAIT_fnc_CortexKnowledge)] call _check;
-["TACTICAL-armour-overmatch-reposition",_armourDecision && {_armourProgress} && {count _armourDrill == 0},str [_armourGroup getVariable ["WAIT_Cortex_TacticalAssessment",[]],_armourGroup getVariable ["WAIT_Cortex_TacticalReposition",[]],_armourDrill]] call _check;
+["TACTICAL-armour-real-contact",_armourContact,str ([_armourGroup] call CBE_fnc_CortexKnowledge)] call _check;
+["TACTICAL-armour-overmatch-reposition",_armourDecision && {_armourProgress} && {count _armourDrill == 0},str [_armourGroup getVariable ["CBE_Cortex_TacticalAssessment",[]],_armourGroup getVariable ["CBE_Cortex_TacticalReposition",[]],_armourDrill]] call _check;
 ["TACTICAL-armour-reposition-element-physical-travel",_armourElementProgress,
     str (_armourActors apply {getPosATL _x})] call _check;
-["TACTICAL-armour-no-WAIT-rifle-rush",_armourTravel < 90,format ["maximum travel=%1",_armourTravel]] call _check;
+["TACTICAL-armour-no-CBE-rifle-rush",_armourTravel < 90,format ["maximum travel=%1",_armourTravel]] call _check;
 private _armourCrew=crew _armour;
 {deleteVehicle _x} forEach _armourCrew;
 deleteVehicle _armour;
-[_armourGroup] call WAIT_fnc_CortexReleaseGroup;
+[_armourGroup] call CBE_fnc_CortexReleaseGroup;
 [_armourGroup] call _deleteGroupActors;
 deleteGroup _armourEnemyGroup;
 
@@ -124,8 +124,8 @@ _airFixture params ["_airGroup","_airActors"];
 private _aircraft=createVehicle ["B_Heli_Attack_01_F",[1700,3200,180],[],0,"FLY"];
 createVehicleCrew _aircraft;
 private _airEnemyGroup=group effectiveCommander _aircraft;
-_airEnemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-_airEnemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_airEnemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_airEnemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _aircraft allowDamage false;
 // FLY selects an engine spawn height; apply the intended initial fixture altitude explicitly.
 _aircraft setPosATL [1700,3200,180];
@@ -137,7 +137,7 @@ private _airTransit=_airEnemyGroup addWaypoint [[1700,1800,180],0];
 _airTransit setWaypointType "MOVE";
 _airTransit setWaypointSpeed "NORMAL";
 {_x allowDamage false; _x setVariable ["acex_headless_blacklist",true,true]} forEach crew _aircraft;
-_aircraft setVariable ["WAIT_CortexQA_Label","LIVE ARMED AIR THREAT",true];
+_aircraft setVariable ["CBE_CortexQA_Label","LIVE ARMED AIR THREAT",true];
 private _airArmed=(weapons _aircraft) findIf {
     private _weapon=_x;
     (magazinesAllTurrets _aircraft) findIf {
@@ -148,29 +148,29 @@ private _airArmed=(weapons _aircraft) findIf {
 private _airReady=count crew _aircraft > 0 && {_airArmed} && {isEngineOn _aircraft}
     && {(getPosATL _aircraft select 2) > 100} && {speed _aircraft > 20};
 ["TACTICAL-air-fixture-ready",_airReady,str [typeOf _aircraft,count crew _aircraft,weapons _aircraft,magazinesAllTurrets _aircraft,getPosATL _aircraft,speed _aircraft]] call _check;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_airActors+[_aircraft],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_airActors+[_aircraft],true];
 private _airOrigins=_airActors apply {getPosATL _x};
-["Tactical assessment: air overmatch","Six riflemen without live AA face an armed aircraft already flying inside the tactical envelope. WAIT must seek concealment laterally, retain native awareness and reassess. It must not stand exposed, chase the aircraft or automatically withdraw from the battle.",getPosATL leader _airGroup] call _phase;
+["Tactical assessment: air overmatch","Six riflemen without live AA face an armed aircraft already flying inside the tactical envelope. CBE must seek concealment laterally, retain native awareness and reassess. It must not stand exposed, chase the aircraft or automatically withdraw from the battle.",getPosATL leader _airGroup] call _phase;
 private _airContact=[{
-    private _knowledge=[_airGroup] call WAIT_fnc_CortexKnowledge;
+    private _knowledge=[_airGroup] call CBE_fnc_CortexKnowledge;
     ((_knowledge select 0) findIf {vehicle (_x select 0) == _aircraft}) >= 0
 },40] call _wait;
 private _airDecision=[{[_airGroup,"REPOSITION","AIR_OVERMATCH","STARTED"] call _assessmentMatches},30] call _wait;
 private _airProgress=[{
-    private _record=_airGroup getVariable ["WAIT_Cortex_TacticalReposition",[]];
+    private _record=_airGroup getVariable ["CBE_Cortex_TacticalReposition",[]];
     count _record >= 6 && {(_record select 0) in ["MOVING","COMPLETE"]}
         && {leader _airGroup distance2D (_record select 4) >= 15}
 },40] call _wait;
-private _airDrill=((_airGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap]);
+private _airDrill=((_airGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap]);
 private _airTravel=0;
 {_airTravel=_airTravel max ((_airOrigins select _forEachIndex) distance2D (getPosATL _x))} forEach _airActors;
-["TACTICAL-air-real-contact",_airContact,str ([_airGroup] call WAIT_fnc_CortexKnowledge)] call _check;
-["TACTICAL-air-overmatch-reposition",_airReady && {_airDecision} && {_airProgress} && {count _airDrill == 0},str [_airGroup getVariable ["WAIT_Cortex_TacticalAssessment",[]],_airGroup getVariable ["WAIT_Cortex_TacticalReposition",[]],_airDrill]] call _check;
-["TACTICAL-air-no-WAIT-chase",_airTravel < 110,format ["maximum travel=%1",_airTravel]] call _check;
+["TACTICAL-air-real-contact",_airContact,str ([_airGroup] call CBE_fnc_CortexKnowledge)] call _check;
+["TACTICAL-air-overmatch-reposition",_airReady && {_airDecision} && {_airProgress} && {count _airDrill == 0},str [_airGroup getVariable ["CBE_Cortex_TacticalAssessment",[]],_airGroup getVariable ["CBE_Cortex_TacticalReposition",[]],_airDrill]] call _check;
+["TACTICAL-air-no-CBE-chase",_airTravel < 110,format ["maximum travel=%1",_airTravel]] call _check;
 private _airCrew=crew _aircraft;
 {deleteVehicle _x} forEach _airCrew;
 deleteVehicle _aircraft;
-[_airGroup] call WAIT_fnc_CortexReleaseGroup;
+[_airGroup] call CBE_fnc_CortexReleaseGroup;
 [_airGroup] call _deleteGroupActors;
 deleteGroup _airEnemyGroup;
 
@@ -181,32 +181,32 @@ _orderFixture params ["_orderGroup","_orderActors"];
 private _orderVehicle=createVehicle ["B_APC_Wheeled_01_cannon_F",[1850,2020,0],[],0,"NONE"];
 createVehicleCrew _orderVehicle;
 private _orderEnemyGroup=group effectiveCommander _orderVehicle;
-_orderEnemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-_orderEnemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_orderEnemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_orderEnemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _orderVehicle allowDamage false;
 {_x allowDamage false; _x setVariable ["acex_headless_blacklist",true,true]} forEach crew _orderVehicle;
 _orderVehicle setDir 180;
-_orderVehicle setVariable ["WAIT_CortexQA_Label","LIVE VEHICLE CONTACT / OBJECTIVE CONTEXT",true];
+_orderVehicle setVariable ["CBE_CortexQA_Label","LIVE VEHICLE CONTACT / OBJECTIVE CONTEXT",true];
 private _orderOrigin=getPosATL leader _orderGroup;
 private _waypoint=_orderGroup addWaypoint [[1850,2160,0],0];
 _waypoint setWaypointType "MOVE";
 _waypoint setWaypointDescription "QA AUTHORED FORWARD ORDER";
 _orderGroup setCurrentWaypoint _waypoint;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_orderActors+[_orderVehicle],true];
-["Tactical assessment: authored movement","An ordinary MOVE order exists beyond a live protected vehicle. WAIT must preserve that mission intent, select ADVANCE with AUTHORED_FORWARD_ORDER and make physical forward progress rather than treating armour restraint as a global stop.",getPosATL leader _orderGroup] call _phase;
+missionNamespace setVariable ["CBE_CortexQA_Actors",_orderActors+[_orderVehicle],true];
+["Tactical assessment: authored movement","An ordinary MOVE order exists beyond a live protected vehicle. CBE must preserve that mission intent, select ADVANCE with AUTHORED_FORWARD_ORDER and make physical forward progress rather than treating armour restraint as a global stop.",getPosATL leader _orderGroup] call _phase;
 private _orderContact=[{
-    private _knowledge=[_orderGroup] call WAIT_fnc_CortexKnowledge;
+    private _knowledge=[_orderGroup] call CBE_fnc_CortexKnowledge;
     ((_knowledge select 0) findIf {vehicle (_x select 0) == _orderVehicle}) >= 0
 },35] call _wait;
 private _orderDecision=[{[_orderGroup,"ADVANCE","AUTHORED_FORWARD_ORDER","STARTED"] call _assessmentMatches},55] call _wait;
 private _orderProgress=[{alive leader _orderGroup && {leader _orderGroup distance2D _orderOrigin >= 20}},55] call _wait;
-["TACTICAL-authored-vehicle-contact",_orderContact,str ([_orderGroup] call WAIT_fnc_CortexKnowledge)] call _check;
-["TACTICAL-authored-order-selected",_orderDecision,str (_orderGroup getVariable ["WAIT_Cortex_TacticalAssessment",[]])] call _check;
+["TACTICAL-authored-vehicle-contact",_orderContact,str ([_orderGroup] call CBE_fnc_CortexKnowledge)] call _check;
+["TACTICAL-authored-order-selected",_orderDecision,str (_orderGroup getVariable ["CBE_Cortex_TacticalAssessment",[]])] call _check;
 ["TACTICAL-authored-order-physical-progress",_orderProgress,format ["travel=%1 destination=%2",leader _orderGroup distance2D _orderOrigin,waypointPosition [_orderGroup,currentWaypoint _orderGroup]]] call _check;
 private _orderCrew=crew _orderVehicle;
 {deleteVehicle _x} forEach _orderCrew;
 deleteVehicle _orderVehicle;
-[_orderGroup] call WAIT_fnc_CortexReleaseGroup;
+[_orderGroup] call CBE_fnc_CortexReleaseGroup;
 [_orderGroup] call _deleteGroupActors;
 deleteGroup _orderEnemyGroup;
 
@@ -221,8 +221,8 @@ if (_elevatedReady) then {
     private _elevatedFixture=[[2000,1500,0],"TACTICAL ELEVATED RESTRAINT",6] call _newGroup;
     _elevatedFixture params ["_elevatedGroup","_elevatedActors"];
     private _elevatedEnemyGroup=createGroup [west,true];
-    _elevatedEnemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-    _elevatedEnemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _elevatedEnemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
+    _elevatedEnemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     private _elevatedPosition=_towerPositions select 0;
     {_elevatedPosition=[_elevatedPosition,_x] select ((_x select 2) > (_elevatedPosition select 2))} forEach _towerPositions;
     private _elevatedEnemy=_elevatedEnemyGroup createUnit ["B_Soldier_F",_elevatedPosition,[],0,"NONE"];
@@ -230,34 +230,34 @@ if (_elevatedReady) then {
     _elevatedEnemy disableAI "PATH";
     _elevatedEnemy setDir 180;
     _elevatedEnemy setVariable ["acex_headless_blacklist",true,true];
-    _elevatedEnemy setVariable ["WAIT_CortexQA_Label","LIVE ELEVATED INFANTRY",true];
+    _elevatedEnemy setVariable ["CBE_CortexQA_Label","LIVE ELEVATED INFANTRY",true];
     private _elevatedRange=leader _elevatedGroup distance2D _elevatedEnemy;
     private _elevatedHeight=(getPosATL _elevatedEnemy select 2)-(getPosATL leader _elevatedGroup select 2);
     private _elevatedGeometry=_elevatedRange >= 300 && {_elevatedHeight >= 15};
     ["TACTICAL-elevated-fixture-geometry",_elevatedGeometry,str [_elevatedRange,_elevatedHeight,getPosATL leader _elevatedGroup,getPosATL _elevatedEnemy]] call _check;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",_elevatedActors+[_elevatedEnemy],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",_elevatedActors+[_elevatedEnemy],true];
     private _elevatedOrigins=_elevatedActors apply {getPosATL _x};
-    ["Tactical assessment: elevated threat","A live hostile occupies a physical tower more than 300 metres away. WAIT must make one lateral screened reposition, retain native engagement and then reassess instead of rushing uphill or remaining inert.",getPosATL leader _elevatedGroup] call _phase;
+    ["Tactical assessment: elevated threat","A live hostile occupies a physical tower more than 300 metres away. CBE must make one lateral screened reposition, retain native engagement and then reassess instead of rushing uphill or remaining inert.",getPosATL leader _elevatedGroup] call _phase;
     private _elevatedContact=[{
-        private _knowledge=[_elevatedGroup] call WAIT_fnc_CortexKnowledge;
+        private _knowledge=[_elevatedGroup] call CBE_fnc_CortexKnowledge;
         ((_knowledge select 0) findIf {(_x select 0) == _elevatedEnemy}) >= 0
     },45] call _wait;
     private _elevatedDecision=[{_elevatedGeometry && {[_elevatedGroup,"REPOSITION","ELEVATED_FIRE_POSITION","STARTED"] call _assessmentMatches}},30] call _wait;
     private _elevatedProgress=[{
-        private _record=_elevatedGroup getVariable ["WAIT_Cortex_TacticalReposition",[]];
+        private _record=_elevatedGroup getVariable ["CBE_Cortex_TacticalReposition",[]];
         count _record >= 6 && {(_record select 0) in ["MOVING","COMPLETE"]}
             && {leader _elevatedGroup distance2D (_record select 4) >= 15}
     },40] call _wait;
-    private _elevatedDrill=((_elevatedGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap]);
+    private _elevatedDrill=((_elevatedGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap]);
     private _elevatedTravel=0;
     {_elevatedTravel=_elevatedTravel max ((_elevatedOrigins select _forEachIndex) distance2D (getPosATL _x))} forEach _elevatedActors;
-    ["TACTICAL-elevated-real-contact",_elevatedContact,str ([_elevatedGroup] call WAIT_fnc_CortexKnowledge)] call _check;
-    ["TACTICAL-elevated-reposition",_elevatedDecision && {_elevatedProgress} && {count _elevatedDrill == 0},str [_elevatedGroup getVariable ["WAIT_Cortex_TacticalAssessment",[]],_elevatedGroup getVariable ["WAIT_Cortex_TacticalReposition",[]],_elevatedDrill]] call _check;
-    ["TACTICAL-elevated-no-WAIT-rush",_elevatedTravel < 95,format ["maximum travel=%1 shots=%2",_elevatedTravel,_elevatedActors apply {_x getVariable ["WAIT_CortexQA_Shots",0]}]] call _check;
-    [_elevatedGroup] call WAIT_fnc_CortexReleaseGroup;
+    ["TACTICAL-elevated-real-contact",_elevatedContact,str ([_elevatedGroup] call CBE_fnc_CortexKnowledge)] call _check;
+    ["TACTICAL-elevated-reposition",_elevatedDecision && {_elevatedProgress} && {count _elevatedDrill == 0},str [_elevatedGroup getVariable ["CBE_Cortex_TacticalAssessment",[]],_elevatedGroup getVariable ["CBE_Cortex_TacticalReposition",[]],_elevatedDrill]] call _check;
+    ["TACTICAL-elevated-no-CBE-rush",_elevatedTravel < 95,format ["maximum travel=%1 shots=%2",_elevatedTravel,_elevatedActors apply {_x getVariable ["CBE_CortexQA_Shots",0]}]] call _check;
+    [_elevatedGroup] call CBE_fnc_CortexReleaseGroup;
     [_elevatedGroup] call _deleteGroupActors;
     {deleteVehicle _x} forEach units _elevatedEnemyGroup;
     deleteGroup _elevatedEnemyGroup;
 };
 deleteVehicle _tower;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];

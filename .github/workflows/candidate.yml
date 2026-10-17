@@ -49,7 +49,7 @@ jobs:
         run: python releaseVerificationAndDeployment/sign_release.py .hemttout/release --signer "$RUNNER_TEMP/armake2/bin/armake2" --output releases/signed-candidate
       - uses: actions/upload-artifact@v4
         with:
-          name: WAIT-signed-candidate
+          name: CBE-signed-candidate
           path: releases/signed-candidate/
           if-no-files-found: error
           retention-days: 3

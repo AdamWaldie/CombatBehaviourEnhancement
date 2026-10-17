@@ -22,7 +22,7 @@
  *
  * Arguments:
  * 0: group <GROUP>
- * 1: state <HASHMAP> - from WAIT_fnc_CortexGroupState
+ * 1: state <HASHMAP> - from CBE_fnc_CortexGroupState
  *
  * 2: allow remount <BOOL>, true; false during stop, ownership restoration or external takeover.
  * 3: yield to external order <BOOL>, false; when true Cortex removes its owned controls and
@@ -32,7 +32,7 @@
  *    phase even though its fresh local state already begins in CALM.
  * 6: preserve phase during adoption <BOOL>, false; internal locality continuation only.
  *    Suppresses an artificial CALM record while a validated unfinished drill is reconstructed.
- * Repeat/JIP: removes only WAIT transient orders and restores recorded values.
+ * Repeat/JIP: removes only CBE transient orders and restores recorded values.
  * Explicitly tracked Cortex holds and their public actor markers restore PATH and resume formation
  * even if local state vanished during migration or combat relabelled doStop as ATTACK/FIRE.
  * Search teams never restore PATH because Cortex did not disable it for that action;
@@ -46,32 +46,32 @@
  * Nothing
  *
  * Example:
- * [_group, _state] call WAIT_fnc_CortexRestoreCalm;
+ * [_group, _state] call CBE_fnc_CortexRestoreCalm;
  * Result: the group carries on with its mission as it was before contact.
  *
  * Current callers: CortexGroupTick, CortexReleaseGroup, CortexLocality and CortexOnboardContact.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_allowRemount",true,[true]], ["_yieldToExternal",false,[true]], ["_reason","RESTORED",[""]], ["_forcePhase",false,[true]], ["_preservePhase",false,[true]]];
-private _reverseCleanup=_group getVariable ["WAIT_VehicleReverse",[]];
+private _reverseCleanup=_group getVariable ["CBE_VehicleReverse",[]];
 if (local _group && {count _reverseCleanup == 9}) then {
-    [_group,_state,objNull,[],"RELEASE",_reverseCleanup select 1] call WAIT_fnc_CortexVehicleReverseStep;
+    [_group,_state,objNull,[],"RELEASE",_reverseCleanup select 1] call CBE_fnc_CortexVehicleReverseStep;
 };
 if (isNull _group || {!local _group}) exitWith {};
-// A cleanup can run before the engine elects a replacement leader. All WAIT-owned followers use
+// A cleanup can run before the engine elects a replacement leader. All CBE-owned followers use
 // this viable local anchor; external handovers still suppress the follow command below.
-private _leader=[_group] call WAIT_fnc_CortexGroupAnchor;
+private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 // A pending drill step may not run until after a checkpoint or ownership change.
 // Restore its movement restrictions now, before clearing the checkpoint below.
 if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
-    [_group,_state,"CALM"] call WAIT_fnc_CortexFlankEnd;
+    [_group,_state,"CALM"] call CBE_fnc_CortexFlankEnd;
 };
 // Generic engagement cleanup is not the owner of every finite actor task. An
 // unknown reservation is also not permission to issue a return-to-formation order.
 private _actorMoveFree={
     params ["_actor"];
-    private _move=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _move=_actor getVariable ["CBE_Cortex_ActorMove",[]];
     if (_move isEqualTo []) exitWith {true};
     _move isEqualType [] && {count _move == 3} && {(_move select 0) isEqualType ""}
         && {(_move select 1) isEqualType []} && {count (_move select 1) == 3}
@@ -82,19 +82,19 @@ private _actorMoveFree={
 private _releaseOwnedHold={
     params ["_unit",["_restorePath",true],["_returnSearchTeam",false]];
     if (_restorePath && {local _unit} && {group _unit == _group}) then {
-        _unit setVariable ["WAIT_Cortex_SupportPathHold",nil,true];
+        _unit setVariable ["CBE_Cortex_SupportPathHold",nil,true];
     };
     if (local _unit && {group _unit == _group} && {!isPlayer _unit}
-        && {isNull (remoteControlled _unit)} && {([_unit] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_unit] call WAIT_fnc_CompatibilityExternalControl)}) then {
+        && {isNull (remoteControlled _unit)} && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}) then {
         if (_restorePath) then {
             _unit enableAI "PATH";
-            _unit setVariable ["WAIT_Cortex_SupportPathHold",nil,true];
+            _unit setVariable ["CBE_Cortex_SupportPathHold",nil,true];
         };
         private _command=toUpperANSI currentCommand _unit;
         private _ownedHold=_command in ["","STOP","ATTACK","FIRE","SUPPRESS"];
         // A replacement controller may intentionally leave a unit stationary, firing or holding
-        // position. Remove only WAIT's PATH lease during that handover; do not turn a neutral
+        // position. Remove only CBE's PATH lease during that handover; do not turn a neutral
         // engine command into a new follow order.
         if (((!_yieldToExternal && {_ownedHold}) || {_returnSearchTeam && {!_yieldToExternal}})
             && {[_unit] call _actorMoveFree}) then {
@@ -104,19 +104,19 @@ private _releaseOwnedHold={
 };
 private _supportHeld=_state getOrDefault ["supportHeld",[]];
 {
-    if (_x getVariable ["WAIT_Cortex_SupportPathHold",false]) then {_supportHeld pushBackUnique _x};
+    if (_x getVariable ["CBE_Cortex_SupportPathHold",false]) then {_supportHeld pushBackUnique _x};
 } forEach units _group;
 {[_x,true,false] call _releaseOwnedHold} forEach _supportHeld;
 _state deleteAt "supportHeld";
 _state deleteAt "supportBoundSequence";
 // Withdrawals, calm restoration and external handovers retire the shared assignment.
-private _supportLease=_group getVariable ["WAIT_AIPass_SupportLease",[]];
+private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 if (count _supportLease == 6 && {(_state getOrDefault ["supportToken",""]) == (_supportLease select 0)}) then {
-    [_group,_supportLease select 0,false,_supportLease,clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAck",2];
+    [_group,_supportLease select 0,false,_supportLease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
 };
-[_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
+[_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
 private _movementOwner=(_state getOrDefault ["movementLease",[]]) param [0,""];
-if (_movementOwner != "") then {[_group,_movementOwner,false] call WAIT_fnc_CortexOwnershipLease};
+if (_movementOwner != "") then {[_group,_movementOwner,false] call CBE_fnc_CortexOwnershipLease};
 {_state deleteAt _x} forEach ["supportHeld","supportBoundSequence","supportToken","responding","assaulting","respondingTo","respondUntil"];
 // Zeus may deliberately replace Cortex's disabled autonomous-attack state while taking over.
 // The external handover owns that setting, just as it owns replacement movement and ROE.
@@ -125,7 +125,7 @@ private _retreatModeLease = _state getOrDefault ["retreatCombatMode",[]];
 if (!_yieldToExternal && {count _retreatModeLease == 2} && {combatMode _group == (_retreatModeLease select 1)}) then {
     _group setCombatMode (_retreatModeLease select 0);
 };
-[_group] call WAIT_fnc_CortexGroupMoveClear;
+[_group] call CBE_fnc_CortexGroupMoveClear;
 // Search movement never disables PATH. Do not enable a mission-disabled feature while
 // returning a search team. During an ordinary handback its Cortex MOVE is explicitly
 // retired; during a Zeus takeover a MOVE may already be the curator's replacement order.
@@ -134,27 +134,27 @@ if (!_yieldToExternal && {count _retreatModeLease == 2} && {combatMode _group ==
 // including Zeus takeover, while preserving a newer individual command.
 {if (alive _x) then {[_x,true,false] call _releaseOwnedHold}} forEach (_state getOrDefault ["holders", []]);
 {
-    if (local _x && {_x getVariable ["WAIT_AIPass_StanceSet", false]}) then {
+    if (local _x && {_x getVariable ["CBE_AIPass_StanceSet", false]}) then {
         if (!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}
-            && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}) then {
-            if (toUpperANSI (unitPos _x) == (_x getVariable ["WAIT_Cortex_AppliedStance",""])) then {_x setUnitPos "AUTO"};
+            && {([_x] call CBE_fnc_CortexExternalOwner) == ""}) then {
+            if (toUpperANSI (unitPos _x) == (_x getVariable ["CBE_Cortex_AppliedStance",""])) then {_x setUnitPos "AUTO"};
         };
-        _x setVariable ["WAIT_Cortex_AppliedStance",nil,true];
-        _x setVariable ["WAIT_AIPass_StanceSet", nil, true];
+        _x setVariable ["CBE_Cortex_AppliedStance",nil,true];
+        _x setVariable ["CBE_AIPass_StanceSet", nil, true];
     };
     if (local _x) then {
-        private _target = _x getVariable ["WAIT_AIPass_VehicleTarget",objNull];
+        private _target = _x getVariable ["CBE_AIPass_VehicleTarget",objNull];
         if (!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}
-            && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
+            && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
             && {!isNull _target} && {assignedTarget _x == _target}) then {_x doTarget objNull};
-        _x setVariable ["WAIT_AIPass_VehicleTarget",nil,true];
-        _x setVariable ["WAIT_AIPass_TargetHold",nil];
+        _x setVariable ["CBE_AIPass_VehicleTarget",nil,true];
+        _x setVariable ["CBE_AIPass_TargetHold",nil];
         // Feature-specific release below retains its own tag/actor checks. Do not
         // erase a live successor's proof merely because group contact has ended.
-        if ([_x] call _actorMoveFree) then {_x setVariable ["WAIT_Cortex_ActorMove",nil]};
+        if ([_x] call _actorMoveFree) then {_x setVariable ["CBE_Cortex_ActorMove",nil]};
     };
 } forEach units _group;
-private _staticSupport=_group getVariable ["WAIT_Danger_StaticSupport",[]];
+private _staticSupport=_group getVariable ["CBE_Danger_StaticSupport",[]];
 if (count _staticSupport >= 7) then {
     private _staticActor=_staticSupport param [1,objNull,[objNull]];
     private _staticWeapon=_staticSupport param [2,objNull,[objNull]];
@@ -165,9 +165,9 @@ if (count _staticSupport >= 7) then {
         if (vehicle _staticActor == _staticWeapon) then {_staticActor action ["GetOut",_staticWeapon]};
     };
 };
-_group setVariable ["WAIT_Danger_StaticSupport",nil,true];
-_group setVariable ["WAIT_Danger_StaticAttempt",nil,true];
-private _staticDeployment=_group getVariable ["WAIT_Danger_StaticDeployment",[]];
+_group setVariable ["CBE_Danger_StaticSupport",nil,true];
+_group setVariable ["CBE_Danger_StaticAttempt",nil,true];
+private _staticDeployment=_group getVariable ["CBE_Danger_StaticDeployment",[]];
 if (count _staticDeployment >= 10) then {
     private _deployGunner=_staticDeployment param [2,objNull,[objNull]];
     private _deployedWeapon=_staticDeployment param [7,objNull,[objNull]];
@@ -176,10 +176,10 @@ if (count _staticDeployment >= 10) then {
         if (_packHandler >= 0) then {_deployGunner removeEventHandler ["WeaponDisassembled",_packHandler]};
         private _assemblyHandler=_staticDeployment param [12,-1,[0]];
         if (_assemblyHandler >= 0) then {_deployGunner removeEventHandler ["WeaponAssembled",_assemblyHandler]};
-        _deployGunner setVariable ["WAIT_Danger_StaticPackContext",nil];
-        private _deployMove=_deployGunner getVariable ["WAIT_Cortex_ActorMove",[]];
+        _deployGunner setVariable ["CBE_Danger_StaticPackContext",nil];
+        private _deployMove=_deployGunner getVariable ["CBE_Cortex_ActorMove",[]];
         if ((_deployMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]) then {
-            _deployGunner setVariable ["WAIT_Cortex_ActorMove",nil];
+            _deployGunner setVariable ["CBE_Cortex_ActorMove",nil];
         };
         if (!_yieldToExternal && {!isNull _deployedWeapon}
             && {assignedVehicle _deployGunner == _deployedWeapon}) then {
@@ -192,29 +192,29 @@ if (count _staticDeployment >= 10) then {
     };
     private _deployAssistant=_staticDeployment param [3,objNull,[objNull]];
     if (!isNull _deployAssistant && {local _deployAssistant}) then {
-        private _assistantMove=_deployAssistant getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _assistantMove=_deployAssistant getVariable ["CBE_Cortex_ActorMove",[]];
         if ((_assistantMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]) then {
-            _deployAssistant setVariable ["WAIT_Cortex_ActorMove",nil];
+            _deployAssistant setVariable ["CBE_Cortex_ActorMove",nil];
         };
     };
 };
-_group setVariable ["WAIT_Danger_StaticDeployment",nil,true];
-_group setVariable ["WAIT_Danger_StaticDeployAttempt",nil,true];
+_group setVariable ["CBE_Danger_StaticDeployment",nil,true];
+_group setVariable ["CBE_Danger_StaticDeployAttempt",nil,true];
 private _vehicleJink=_state getOrDefault ["vehicleDangerJink",[]];
 private _jinkVehicle=_vehicleJink param [1,objNull,[objNull]];
 if (!isNull _jinkVehicle && {local _jinkVehicle}) then {
-    private _jinkMarker=_jinkVehicle getVariable ["WAIT_Danger_VehicleJink",[]];
+    private _jinkMarker=_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]];
     if (_jinkMarker param [1,grpNull,[grpNull]] == _group) then {
-        _jinkVehicle setVariable ["WAIT_Danger_VehicleJink",nil,true];
+        _jinkVehicle setVariable ["CBE_Danger_VehicleJink",nil,true];
     };
 };
 private _vehicleOrient=_state getOrDefault ["vehicleDangerOrient",[]];
 private _orientVehicle=_vehicleOrient param [1,objNull,[objNull]];
 if (!isNull _orientVehicle && {local _orientVehicle}) then {
-    private _orientMarker=_orientVehicle getVariable ["WAIT_Danger_VehicleOrient",[]];
+    private _orientMarker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
     if (_orientMarker param [1,grpNull,[grpNull]] == _group) then {
         if (!_yieldToExternal) then {_orientVehicle sendSimpleCommand "STOPTURNING"};
-        _orientVehicle setVariable ["WAIT_Danger_VehicleOrient",nil,true];
+        _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];
     };
 };
 if (!_yieldToExternal && {_state getOrDefault ["behaviourChanged", false]} && {behaviour _leader in ["COMBAT", "AWARE"]}) then {
@@ -231,34 +231,34 @@ if (!_yieldToExternal && {count _retreatSpeedLease == 2}
 };
 {
     _x params ["_unit", "_vehicle"];
-    if (_allowRemount && {[_group,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled} && {group _unit == _group} && {isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}} && {[_group, "WAIT_AIPass_VehicleRemount_Enable", true] call WAIT_fnc_CortexFeatureEnabled} && {[_unit, _vehicle, true] call WAIT_fnc_CortexPassengerReady}) then {
+    if (_allowRemount && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled} && {group _unit == _group} && {isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}} && {[_group, "CBE_AIPass_VehicleRemount_Enable", true] call CBE_fnc_CortexFeatureEnabled} && {[_unit, _vehicle, true] call CBE_fnc_CortexPassengerReady}) then {
         _unit assignAsCargo _vehicle;
         [_unit] orderGetIn true;
     };
 } forEach (_state getOrDefault ["dismounted", []]);
 // Retain boarding intent until seats are actually occupied. The public record lets
 // a new HC owner continue the bounded attempt; it never moves units into seats.
-_group setVariable ["WAIT_Cortex_DismountContinuation",nil,true];
+_group setVariable ["CBE_Cortex_DismountContinuation",nil,true];
 private _boarding = _state getOrDefault ["dismounted", []];
 if (_allowRemount && {_boarding isNotEqualTo []}) then {
-    _group setVariable ["WAIT_Cortex_Remount",[serverTime+60,+_boarding],true];
+    _group setVariable ["CBE_Cortex_Remount",[serverTime+60,+_boarding],true];
 };
 if (!_allowRemount) then {
-    {private _unit=_x select 0; if (local _unit && {vehicle _unit == _unit} && {assignedVehicle _unit == (_x select 1)}) then {[_unit] orderGetIn false; unassignVehicle _unit}} forEach ((_group getVariable ["WAIT_Cortex_Remount",[0,[]]]) select 1);
-    _group setVariable ["WAIT_Cortex_Remount",nil,true];
+    {private _unit=_x select 0; if (local _unit && {vehicle _unit == _unit} && {assignedVehicle _unit == (_x select 1)}) then {[_unit] orderGetIn false; unassignVehicle _unit}} forEach ((_group getVariable ["CBE_Cortex_Remount",[0,[]]]) select 1);
+    _group setVariable ["CBE_Cortex_Remount",nil,true];
 };
 {_state deleteAt _x} forEach [
     "consolidationRoutes", "baseAttack", "attackChanged", "areaInvestigation", "enemyPos", "behaviourChanged", "speedChanged", "searchTeam", "dismounted", "onboardContactUntil", "reinforceRequested", "reinforceDispatchedAt",
     "withdrawn", "contactLeader", "lastSeen", "contactKnowledge", "dangerDismount", "holders", "baseBehaviour", "baseSpeed", "armourSeen",
     "armourRequested", "antiArmourRelocation", "coordinated", "coordinatedPendingUntil", "retreatCombatMode", "retreatSpeedMode", "retreatRetryAt", "movementLease", "retreatStart", "retreatTarget", "retreatProgress", "withdrawOperationGeneration", "vehicleDangerJink", "vehicleDangerOrient", "reserveCommitted", "arrivedAt", "assaulting", "hadContact"
 ];
-_group setVariable ["WAIT_Cortex_Withdrawal",nil,true];
-_group setVariable ["WAIT_Cortex_WithdrawalIntent",nil,true];
-_group setVariable ["WAIT_Cortex_TransitionIntent",nil,true];
-_group setVariable ["WAIT_AIPass_Checkpoint", [], true];
+_group setVariable ["CBE_Cortex_Withdrawal",nil,true];
+_group setVariable ["CBE_Cortex_WithdrawalIntent",nil,true];
+_group setVariable ["CBE_Cortex_TransitionIntent",nil,true];
+_group setVariable ["CBE_AIPass_Checkpoint", [], true];
 // Explicit terminal handovers remain observable even when the tactical phase was already CALM.
 _forcePhase=_forcePhase || {_reason in ["CORTEX_STOPPED","ZEUS_TAKEOVER","EXTERNAL_TAKEOVER"]};
 if (!_preservePhase || {_reason != "OWNERSHIP_ADOPTED"}) then {
-    [_group,_state,"CALM",_reason,time,_forcePhase] call WAIT_fnc_CortexSetPhase;
+    [_group,_state,"CALM",_reason,time,_forcePhase] call CBE_fnc_CortexSetPhase;
 };
-if (missionNamespace getVariable ["WAIT_AIPass_Debug", false]) then {diag_log format ["[WAIT] %1 CALM restored", _group]};
+if (missionNamespace getVariable ["CBE_AIPass_Debug", false]) then {diag_log format ["[CBE] %1 CALM restored", _group]};

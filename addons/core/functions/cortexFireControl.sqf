@@ -9,11 +9,11 @@
  * into them. Arma translates that pair into an ATTACK pursuit command which replaces their doMove,
  * fragments the fire team and makes movement recovery fight Cortex's own fire-control order.
  * Target distribution: when two or more enemies are visible, soldiers whose target already has more
- * than WAIT_AIPass_FireControl_MaxShootersPerTarget shooters switch to an enemy nobody is engaging.
+ * than CBE_AIPass_FireControl_MaxShootersPerTarget shooters switch to an enemy nobody is engaging.
  * A switched soldier keeps his target for 6 s, so orders do not flicker.
  * Suppression: at an enemy that is known but not currently seen (last seen 3-30 s ago), at the
  * drill's enemy while a flank is running, or at a distant native-known contact which has just
- * produced a finite CANFIRE danger response, up to WAIT_AIPass_FireControl_MaxSuppressors soldiers
+ * produced a finite CANFIRE danger response, up to CBE_AIPass_FireControl_MaxSuppressors soldiers
  * (machine gunners first) fire suppressively. One eligible suppressor is ordered at a time; the group
  * rotates through its candidates at a 2.5-4 s interval. The first order receives a 0.25-2.25 s
  * short per-group random delay, so separate squads do not produce an uncanny global volley. This models
@@ -21,7 +21,7 @@
  * A suppressor needs at least two nonempty spare magazines and 60 rounds
  * for his weapon, must currently hold a loaded primary bullet muzzle, must not himself be heavily
  * suppressed, and must have a clear line of fire
- * (WAIT_fnc_CortexLineOfFireClear keeps friendlies, including the flanking element, and civilians out
+ * (CBE_fnc_CortexLineOfFireClear keeps friendlies, including the flanking element, and civilians out
  * of the cone). Each suppressor rests 8 s between bursts. Flank element members are left alone.
  * The pass adds no detection. A live coordinated role may suppress its reported position
  * without assigning an unseen object target; all normal fire safety and ammo limits apply.
@@ -35,36 +35,36 @@
  * Arguments:
  * 0: group <GROUP>
  * 1: state <HASHMAP>
- * 2: enemies <ARRAY> - from WAIT_fnc_CortexKnowledge
+ * 2: enemies <ARRAY> - from CBE_fnc_CortexKnowledge
  *
  * Return Value:
  * Number - orders issued
  *
  * Example:
- * [_group, _state, _enemies] call WAIT_fnc_CortexFireControl;
+ * [_group, _state, _enemies] call CBE_fnc_CortexFireControl;
  * Result: fire is spread across visible enemies and a hidden enemy is kept under suppression.
  *
- * Current caller: WAIT_fnc_CortexGroupTick.
+ * Current caller: CBE_fnc_CortexGroupTick.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]]];
-if (isNull _group || {!local _group} || {!([_group] call WAIT_fnc_CortexIsEligible)}
-    || {!([_group,"WAIT_AIPass_FireControl_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
+if (isNull _group || {!local _group} || {!([_group] call CBE_fnc_CortexIsEligible)}
+    || {!([_group,"CBE_AIPass_FireControl_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     ) exitWith {0};
 private _reported = [];
-private _role = _group getVariable ["WAIT_Cortex_SupportRole",[]];
-private _lease = _group getVariable ["WAIT_AIPass_SupportLease",[]];
+private _role = _group getVariable ["CBE_Cortex_SupportRole",[]];
+private _lease = _group getVariable ["CBE_AIPass_SupportLease",[]];
 if (count _role == 5 && {count _lease == 6}
     && {(_role select 0) == (_lease select 0)}
     && {(_role select 0) == (_state getOrDefault ["supportToken",""])}
     && {serverTime < (_lease select 2)} && {_state getOrDefault ["assaulting",false]}
-    && {[_group,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) then {
+    && {[_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
     _reported = +(_role select 4);
 };
 if (_enemies isEqualTo [] && {_reported isEqualTo []}) exitWith {
     // A later contact receives a fresh phase rather than inheriting an overdue
     // window which would make every group fire together on reacquisition.
-    _group setVariable ["WAIT_AIPass_NextSuppress",nil];
+    _group setVariable ["CBE_AIPass_NextSuppress",nil];
     0
 };
 if (!(combatMode _group in ["YELLOW","RED"])) exitWith {0};
@@ -93,11 +93,11 @@ private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 // Physical capability does not imply firing authority. Evaluate specialist ownership once
 // per roster member, before any scripted targeting or suppression command in this callback.
 private _eligible = (units _group) select {
-    ([_x] call WAIT_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
+    ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
         && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-        && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+        && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x}
         && {!(_x in _recovering)} && {primaryWeapon _x != ""}
         && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
@@ -106,10 +106,10 @@ private _eligible = (units _group) select {
 // must not receive an ATTACK/SUPPRESS command over its current destination.
 // Unknown ownership must not become permission to replace an actor's route. Only the
 // shared typed, finite reservation predicate can establish that a lease has expired.
-private _reservedActors=_eligible select {[_x] call WAIT_fnc_CortexActorMoveReserved};
-private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+private _reservedActors=_eligible select {[_x] call CBE_fnc_CortexActorMoveReserved};
+private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if ((_operation getOrDefault ["intent",""]) in ["CLEAR","MEDICAL_AID","WITHDRAW"]
-    && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+    && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
     _reservedActors append (_operation getOrDefault ["participants",[]]);
 };
 _drillUnits=(_drillUnits+_reservedActors) arrayIntersect (_drillUnits+_reservedActors);
@@ -117,7 +117,7 @@ private _members = _eligible - _drillUnits;
 private _movingMembers = _eligible arrayIntersect _drillUnits;
 if (_members isEqualTo [] && {_movingMembers isEqualTo []}) exitWith {0};
 private _orders = 0;
-private _held = {(_this getVariable ["WAIT_AIPass_TargetHold", -1]) > _now};
+private _held = {(_this getVariable ["CBE_AIPass_TargetHold", -1]) > _now};
 
 // Close threat first for stationary and covering members. Moving actors retain normal
 // TARGET/AUTOTARGET/FIREWEAPON behavior, but an explicit doTarget/doFire pair would
@@ -132,11 +132,11 @@ private _held = {(_this getVariable ["WAIT_AIPass_TargetHold", -1]) > _now};
     } forEach _enemies;
     if (!isNull _closest && {assignedTarget _unit != _closest}
         && {alive _closest} && {!captive _closest}
-        && {[_unit,aimPos _closest] call WAIT_fnc_CortexLineOfFireClear}) then {
+        && {[_unit,aimPos _closest] call CBE_fnc_CortexLineOfFireClear}) then {
         _unit doTarget _closest;
-        _unit setVariable ["WAIT_Cortex_FireTarget",[_group,_group getVariable ["WAIT_AIPass_Epoch",0],_closest]];
+        _unit setVariable ["CBE_Cortex_FireTarget",[_group,_group getVariable ["CBE_AIPass_Epoch",0],_closest]];
         _unit doFire _closest;
-        _unit setVariable ["WAIT_AIPass_TargetHold", _now + 6];
+        _unit setVariable ["CBE_AIPass_TargetHold", _now + 6];
         _orders = _orders + 1;
     };
 } forEach _members;
@@ -144,7 +144,7 @@ private _held = {(_this getVariable ["WAIT_AIPass_TargetHold", -1]) > _now};
 // Target distribution across visible enemies.
 private _visible = (_enemies select {(_x select 2) <= 3}) apply {_x select 0};
 if (count _visible >= 2) then {
-    private _maximum = (missionNamespace getVariable ["WAIT_AIPass_FireControl_MaxShootersPerTarget", 2]) max 1;
+    private _maximum = (missionNamespace getVariable ["CBE_AIPass_FireControl_MaxShootersPerTarget", 2]) max 1;
     // Parallel arrays keyed by object: `find` compares objects directly, with no string keys.
     private _targets = [];
     private _counts = [];
@@ -165,15 +165,15 @@ if (count _visible >= 2) then {
         private _unit = _x;
         private _target = assignedTarget _unit;
         if (!isNull _target && {!(_unit call _held)} && {(_target call _shootersOn) > _maximum}
-            && {([_unit] call WAIT_fnc_CortexUnitRole) != "AT"}) then {
+            && {([_unit] call CBE_fnc_CortexUnitRole) != "AT"}) then {
             private _freeIndex = _visible findIf {(_x call _shootersOn) == 0};
             if (_freeIndex >= 0 && {alive (_visible select _freeIndex)}
                 && {!captive (_visible select _freeIndex)}
-                && {[_unit,aimPos (_visible select _freeIndex)] call WAIT_fnc_CortexLineOfFireClear}) then {
+                && {[_unit,aimPos (_visible select _freeIndex)] call CBE_fnc_CortexLineOfFireClear}) then {
                 private _free = _visible select _freeIndex;
                 _unit doTarget _free;
-                _unit setVariable ["WAIT_Cortex_FireTarget",[_group,_group getVariable ["WAIT_AIPass_Epoch",0],_free]];
-                _unit setVariable ["WAIT_AIPass_TargetHold", _now + 6];
+                _unit setVariable ["CBE_Cortex_FireTarget",[_group,_group getVariable ["CBE_AIPass_Epoch",0],_free]];
+                _unit setVariable ["CBE_AIPass_TargetHold", _now + 6];
                 [_target, -1] call _addShooter;
                 [_free, 1] call _addShooter;
                 _orders = _orders + 1;
@@ -194,8 +194,8 @@ if (_suppressPos isEqualTo [] && {count _drill > 0}) then {_suppressPos = _drill
 // danger lease only authorises an early burst before the ordinary hidden/drill cases exist.
 if (_suppressPos isEqualTo []) then {
     private _dangerResponse=_state getOrDefault ["dangerResponse",[]];
-    private _dangerGeneration=_group getVariable ["WAIT_Danger_Generation",-1];
-    private _assaultRange=(missionNamespace getVariable ["WAIT_AIPass_Assault_Range",80]) min 100;
+    private _dangerGeneration=_group getVariable ["CBE_Danger_Generation",-1];
+    private _assaultRange=(missionNamespace getVariable ["CBE_AIPass_Assault_Range",80]) min 100;
     private _canFireWindow=count _dangerResponse == 5
         && {(_dangerResponse select 0) == "CANFIRE"}
         && {(_dangerResponse select 4) == _dangerGeneration}
@@ -209,24 +209,24 @@ if (_suppressPos isEqualTo []) then {
 };
 if (_suppressPos isNotEqualTo []) then {
     private _targetASL = ATLToASL _suppressPos;
-    private _limit = missionNamespace getVariable ["WAIT_AIPass_FireControl_MaxSuppressors", 2];
-    private _active = {(_x getVariable ["WAIT_AIPass_LastSuppress", -1e6]) > _now - 8} count _members;
-    private _nextWindow = _group getVariable ["WAIT_AIPass_NextSuppress",-1];
+    private _limit = missionNamespace getVariable ["CBE_AIPass_FireControl_MaxSuppressors", 2];
+    private _active = {(_x getVariable ["CBE_AIPass_LastSuppress", -1e6]) > _now - 8} count _members;
+    private _nextWindow = _group getVariable ["CBE_AIPass_NextSuppress",-1];
     if (_nextWindow < 0) then {
         _nextWindow = _now + 0.25 + random 2;
-        _group setVariable ["WAIT_AIPass_NextSuppress",_nextWindow];
+        _group setVariable ["CBE_AIPass_NextSuppress",_nextWindow];
     };
     if (_now >= _nextWindow && {_active < _limit}) then {
         private _ranked = [];
-        {_ranked pushBack [[1, 0] select (([_x] call WAIT_fnc_CortexUnitRole) == "MG"), _forEachIndex]} forEach _members;
+        {_ranked pushBack [[1, 0] select (([_x] call CBE_fnc_CortexUnitRole) == "MG"), _forEachIndex]} forEach _members;
         _ranked sort true;
-        private _cursor = (_group getVariable ["WAIT_AIPass_SuppressCursor",0]) mod (count _ranked max 1);
+        private _cursor = (_group getVariable ["CBE_AIPass_SuppressCursor",0]) mod (count _ranked max 1);
         private _ordered = (_ranked select [_cursor]) + (_ranked select [0,_cursor]);
         private _issued = false;
         {
             if (_issued) exitWith {};
             private _unit = _members select (_x select 1);
-            if ((_unit getVariable ["WAIT_AIPass_LastSuppress", -1e6]) <= _now - 8 && {getSuppression _unit < 0.5}) then {
+            if ((_unit getVariable ["CBE_AIPass_LastSuppress", -1e6]) <= _now - 8 && {getSuppression _unit < 0.5}) then {
                 private _weapon = primaryWeapon _unit;
                 // A carried rifle reserve does not qualify a pistol, empty muzzle or selected
                 // underbarrel launcher. Leave weapon selection/reloading to the current owner.
@@ -246,19 +246,19 @@ if (_suppressPos isNotEqualTo []) then {
                 };
                 private _rounds = _loaded;
                 {_rounds = _rounds + (_x select 1)} forEach _spare;
-                if (_rifleReady && {count _spare >= 2} && {_rounds >= 60} && {[_unit, _targetASL] call WAIT_fnc_CortexLineOfFireClear}) then {
+                if (_rifleReady && {count _spare >= 2} && {_rounds >= 60} && {[_unit, _targetASL] call CBE_fnc_CortexLineOfFireClear}) then {
                     _unit doSuppressiveFire _targetASL;
-                    _unit setVariable ["WAIT_AIPass_LastSuppress", _now];
-                    _group setVariable ["WAIT_AIPass_SuppressCursor",(_cursor + 1) mod count _ranked];
-                    _group setVariable ["WAIT_AIPass_NextSuppress",_now + 2.5 + random 1.5];
+                    _unit setVariable ["CBE_AIPass_LastSuppress", _now];
+                    _group setVariable ["CBE_AIPass_SuppressCursor",(_cursor + 1) mod count _ranked];
+                    _group setVariable ["CBE_AIPass_NextSuppress",_now + 2.5 + random 1.5];
                     _issued = true;
                     _orders = _orders + 1;
                 };
             };
         } forEach _ordered;
-        if (!_issued) then {_group setVariable ["WAIT_AIPass_NextSuppress",_now + 1]};
+        if (!_issued) then {_group setVariable ["CBE_AIPass_NextSuppress",_now + 1]};
     };
 } else {
-    _group setVariable ["WAIT_AIPass_NextSuppress",nil];
+    _group setVariable ["CBE_AIPass_NextSuppress",nil];
 };
 _orders

@@ -7,7 +7,7 @@
  * Return: BOOL - true and records the point if no prior point is strictly closer than separation.
  * Current callers: CortexGarrison and CortexClearBuilding admission; each limits input to 512 points.
  * Work: 27 neighboring cells, at most eight admitted positions per cell; no growing full-list scan.
- * Example: private _grid=createHashMap; [getPosASL soldier1,_grid,0.5] call WAIT_fnc_PositionBucketAdmit;
+ * Example: private _grid=createHashMap; [getPosASL soldier1,_grid,0.5] call CBE_fnc_PositionBucketAdmit;
  */
 params [["_position",[],[[]]],["_grid",createHashMap,[createHashMap]],["_separation",1,[0]]];
 if (count _position != 3 || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}

@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Restores recorded formation, attack permission, vehicle speed and unload settings;
  * retires only exact-owned follower paths before guarded native handback. A speed baseline is restored only when the
- * vehicle is leaving WAIT control, WAIT still owns the current cap and no newer controller owns it.
+ * vehicle is leaving CBE control, CBE still owns the current cap and no newer controller owns it.
  * Unload policy restores from its exact lease only while its applied value remains current;
  * missing leases never authorize a guessed baseline restoration. Retained successor vehicles
  * keep their leases. Attack permission restores only while its convoy-applied value remains current.
@@ -18,41 +18,41 @@
  * A mounted crew is never recalled toward an on-foot leader. Authored waypoint metadata is retained.
  * Arguments: 0: group <GROUP>, grpNull; 1: forget baseline <BOOL>, true; 2: baseline <ARRAY>, [] reads the locally received baseline; 3: still-controlled vehicles <ARRAY>, []; 4: cancellation reason <STRING, RELEASED>.
  * Return Value: Nothing.
- * Current callers: WAIT_fnc_ConvoySync, WAIT_fnc_ConvoyTick and the convoy operation FSM.
- * Example: [convoyGroup] call WAIT_fnc_ConvoyReleaseLocal;
+ * Current callers: CBE_fnc_ConvoySync, CBE_fnc_ConvoyTick and the convoy operation FSM.
+ * Example: [convoyGroup] call CBE_fnc_ConvoyReleaseLocal;
  */
 params [["_group", grpNull, [grpNull]], ["_forget", true, [true]], ["_restore", [], [[]]], ["_keepCrew", [], [[]]], ["_reason", "RELEASED", [""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 private _preserveMoves=toUpperANSI _reason == "NEW_NATIVE_ORDER";
-private _navigation=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
+private _navigation=_group getVariable ["CBE_Convoy_LocalState",createHashMap];
 if (_keepCrew isEqualTo [] && {local _group}) then {
-    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call WAIT_fnc_ConvoyCorridorStep;
-    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call WAIT_fnc_ConvoyBypassStep;
+    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call CBE_fnc_ConvoyCorridorStep;
+    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call CBE_fnc_ConvoyBypassStep;
 };
-private _brain=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
+private _brain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
 if (count _brain > 0 && {_forget || {toUpperANSI _reason in ["ZEUS","PLAYER","EXTERNAL","EXTERNAL_OWNER","OWNERSHIP_LOST"]}}) then {
     _brain set ["cancelled",true];
     _brain set ["cancelReason",toUpperANSI _reason];
 };
 if (_forget) then {
-    _group setVariable ["WAIT_Convoy_Brain",nil];
-    _group setVariable ["WAIT_Convoy_Brain_FSM",nil];
+    _group setVariable ["CBE_Convoy_Brain",nil];
+    _group setVariable ["CBE_Convoy_Brain_FSM",nil];
 };
 if (local _group) then {
-    private _state = _group getVariable ["WAIT_Convoy_LocalState",createHashMap];
+    private _state = _group getVariable ["CBE_Convoy_LocalState",createHashMap];
     private _generation = _state getOrDefault ["operationGeneration",-1];
-    private _operation = _group getVariable ["WAIT_Operation",createHashMap];
+    private _operation = _group getVariable ["CBE_Operation",createHashMap];
     if (_generation >= 0 && {(_operation getOrDefault ["intent",""]) == "CONVOY"}) then {
-        [_group,_generation,toUpperANSI _reason] call WAIT_fnc_OperationCancel;
+        [_group,_generation,toUpperANSI _reason] call CBE_fnc_OperationCancel;
     };
 };
-if (_restore isEqualTo []) then {_restore = _group getVariable ["WAIT_Convoy_Restore", []]};
+if (_restore isEqualTo []) then {_restore = _group getVariable ["CBE_Convoy_Restore", []]};
 if (_restore isNotEqualTo []) then {
     _restore params ["_formation", "_attack", "_vehicles"];
     // A feature shutdown must restore the column's own baseline. A route, curator,
     // player or specialist controller is different: it owns the replacement order and
     // the saved convoy formation, attack permission and follower paths are evidence only.
-    private _externalTakeover = local _group && {[_group] call WAIT_fnc_CortexExternalTakeover};
+    private _externalTakeover = local _group && {[_group] call CBE_fnc_CortexExternalTakeover};
     private _mayRestoreGroup=local _group && {!_externalTakeover};
     if (_mayRestoreGroup && {!_preserveMoves}) then {
         if (formation _group == "COLUMN") then {_group setFormation _formation};
@@ -60,29 +60,29 @@ if (_restore isNotEqualTo []) then {
     };
     {
         _x params ["_vehicle", "_speed", "_unload"];
-        if (_forget && {isServer} && {!(_vehicle in _keepCrew)} && {(_vehicle getVariable ["WAIT_Convoy_Group", grpNull]) == _group}) then {
-            _vehicle setVariable ["WAIT_Convoy_Group", nil, true];
-            _vehicle setVariable ["WAIT_Convoy_Active", nil, true];
+        if (_forget && {isServer} && {!(_vehicle in _keepCrew)} && {(_vehicle getVariable ["CBE_Convoy_Group", grpNull]) == _group}) then {
+            _vehicle setVariable ["CBE_Convoy_Group", nil, true];
+            _vehicle setVariable ["CBE_Convoy_Active", nil, true];
         };
         {
             private _unit = _x;
-            if (local _unit && {_forget} && {((_unit getVariable ["WAIT_Convoy_PassengerRevision",[]]) param [0,grpNull]) == _group}) then {
-                _unit setVariable ["WAIT_Convoy_PassengerRevision",nil,true];
+            if (local _unit && {_forget} && {((_unit getVariable ["CBE_Convoy_PassengerRevision",[]]) param [0,grpNull]) == _group}) then {
+                _unit setVariable ["CBE_Convoy_PassengerRevision",nil,true];
             };
-            private _target = _unit getVariable ["WAIT_Convoy_Target", objNull];
+            private _target = _unit getVariable ["CBE_Convoy_Target", objNull];
             if (local _unit && {!isPlayer _unit} && {!isNull _target}) then {
-                if ([_unit] call WAIT_fnc_CortexCombatEffective
-                    && {!([group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover)}
+                if ([_unit] call CBE_fnc_CortexCombatEffective
+                    && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}
                     && {assignedTarget _unit == _target}) then {_unit doTarget objNull};
-                _unit setVariable ["WAIT_Convoy_Target", nil, true];
+                _unit setVariable ["CBE_Convoy_Target", nil, true];
             };
         } forEach crew _vehicle;
         if (!(_vehicle in _keepCrew) && {local _vehicle}
-            && {(_vehicle getVariable ["WAIT_Convoy_HitEHOwner",[]]) isEqualTo [_group,clientOwner]}) then {
-            private _hitEH = _vehicle getVariable ["WAIT_Convoy_HitEH", -1];
+            && {(_vehicle getVariable ["CBE_Convoy_HitEHOwner",[]]) isEqualTo [_group,clientOwner]}) then {
+            private _hitEH = _vehicle getVariable ["CBE_Convoy_HitEH", -1];
             if (_hitEH >= 0) then {_vehicle removeEventHandler ["Hit", _hitEH]};
-            _vehicle setVariable ["WAIT_Convoy_HitEH", nil];
-            _vehicle setVariable ["WAIT_Convoy_HitEHOwner",nil];
+            _vehicle setVariable ["CBE_Convoy_HitEH", nil];
+            _vehicle setVariable ["CBE_Convoy_HitEHOwner",nil];
         };
         if (local _vehicle) then {
             private _driver = driver _vehicle;
@@ -91,15 +91,15 @@ if (_restore isNotEqualTo []) then {
                 // The release can run after a replacement controller claimed just one crew
                 // member. Do not issue a formation recall to that vehicle unless every crew
                 // group remains outside the common Zeus/player/specialist handover boundary.
-                [_crewGroup] call WAIT_fnc_CortexExternalTakeover
+                [_crewGroup] call CBE_fnc_CortexExternalTakeover
             } >= 0;
             private _movementOperator=effectiveCommander _vehicle;
             if (isNull _movementOperator) then {_movementOperator=_driver};
             private _reassignedVehicle=!isNull _movementOperator && {group _movementOperator != _group};
             private _externalVehicle=_reassignedVehicle
-                || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
-                || {[_group] call WAIT_fnc_CompatibilityExternalControl};
-            private _ownedSpeed=_vehicle getVariable ["WAIT_Convoy_OwnedSpeed",[]];
+                || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+                || {[_group] call CBE_fnc_CompatibilityExternalControl};
+            private _ownedSpeed=_vehicle getVariable ["CBE_Convoy_OwnedSpeed",[]];
             private _ownsCurrentSpeed=count _ownedSpeed == 3
                 && {(_ownedSpeed select 0) isEqualTo _group}
                 && {abs ((getForcedSpeed _vehicle)-(_ownedSpeed select 2)) <= 0.1};
@@ -108,41 +108,41 @@ if (_restore isNotEqualTo []) then {
                     _vehicle forceSpeed _speed;
                 };
                 if (count _ownedSpeed >= 1 && {(_ownedSpeed select 0) isEqualTo _group}) then {
-                    _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",nil];
+                    _vehicle setVariable ["CBE_Convoy_OwnedSpeed",nil];
                 };
                 private _restoreUnload=!_externalTakeover && {!_externalCrew} && {!_externalVehicle};
-                [_vehicle,_group,"RELEASE",-1,_restoreUnload] call WAIT_fnc_ConvoyUnloadPolicy;
+                [_vehicle,_group,"RELEASE",-1,_restoreUnload] call CBE_fnc_ConvoyUnloadPolicy;
             };
-            private _corridor=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
+            private _corridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
             if (!(_vehicle in _keepCrew)
                 && {((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY"}) then {
-                [_vehicle,_group,"CONVOY_RELEASED",!_preserveMoves,_preserveMoves] call WAIT_fnc_DrivingCorridorRelease;
+                [_vehicle,_group,"CONVOY_RELEASED",!_preserveMoves,_preserveMoves] call CBE_fnc_DrivingCorridorRelease;
             };
-            private _bypass=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
+            private _bypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
             if (!(_vehicle in _keepCrew) && {((_bypass getOrDefault ["controller",[]]) param [0,""]) == "CONVOY"}) then {
-                [_vehicle,_group,"CONVOY_RELEASED",!_preserveMoves,_preserveMoves,_navigation getOrDefault ["revision",-1]] call WAIT_fnc_DrivingBypassRelease;
+                [_vehicle,_group,"CONVOY_RELEASED",!_preserveMoves,_preserveMoves,_navigation getOrDefault ["revision",-1]] call CBE_fnc_DrivingBypassRelease;
             };
             // Retire an exact-owned steering path before native handback. Readiness is
             // insufficient: the engine can report unitReady while a fixed path still runs.
             if (!(_vehicle in _keepCrew)) then {
-                [_vehicle,_group,["CONVOY"],true,_navigation getOrDefault ["revision",-1]] call WAIT_fnc_DrivingNativePathWatch;
+                [_vehicle,_group,["CONVOY"],true,_navigation getOrDefault ["revision",-1]] call CBE_fnc_DrivingNativePathWatch;
             };
-            private _movementReceipt=_vehicle getVariable ["WAIT_Convoy_MovementReceipt",[]];
+            private _movementReceipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
             if (!(_vehicle in _keepCrew) && {count _movementReceipt == 5}
                 && {(_movementReceipt select 0) == _group}
                 && {(_movementReceipt select 1) == (_navigation getOrDefault ["revision",-1])}) then {
-                _vehicle setVariable ["WAIT_Convoy_MovementReceipt",nil,true];
+                _vehicle setVariable ["CBE_Convoy_MovementReceipt",nil,true];
             };
-            private _pathLease=_vehicle getVariable ["WAIT_Convoy_PathLease",[]];
+            private _pathLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
             private _pathOwned=!isNull _driver && {!isNull _movementOperator} && {count _pathLease == 7}
                 && {(_pathLease select 0) == _group}
                 && {(_pathLease select 1) == (_navigation getOrDefault ["revision",-1])}
-                && {(_pathLease select 2) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+                && {(_pathLease select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
                 && {(_pathLease select 3) == _driver} && {(_pathLease select 4) == _movementOperator}
                 && {(expectedDestination _movementOperator) isEqualTo (_pathLease select 5)};
             private _taskFree=[_driver,_movementOperator] findIf {
                 isNull _x || {!local _x} || {isPlayer _x} || {!isNull remoteControlled _x}
-                    || {!([_x] call WAIT_fnc_CortexCombatEffective)}
+                    || {!([_x] call CBE_fnc_CortexCombatEffective)}
                     || {!simulationEnabled _x} || {isObjectHidden _x}
                     || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
                     || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
@@ -150,19 +150,19 @@ if (_restore isNotEqualTo []) then {
             private _mayHandBack=!_preserveMoves && {_mayRestoreGroup} && {!_externalCrew} && {!_externalVehicle}
                 && {!(_vehicle in _keepCrew)} && {_taskFree}
                 && {group _driver == _group} && {group _movementOperator == _group}
-                && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+                && {!([_group] call CBE_fnc_CortexExternalTakeover)};
             private _endedPath=false;
             private _mayStopOwned=_mayRestoreGroup && {!_externalCrew} && {!_externalVehicle}
                 && {!(_vehicle in _keepCrew)} && {_taskFree}
                 && {group _driver == _group} && {group _movementOperator == _group}
-                && {!([_group] call WAIT_fnc_CortexExternalTakeover)};
+                && {!([_group] call CBE_fnc_CortexExternalTakeover)};
             if (_mayStopOwned && {_pathOwned}) then {
                 doStop _driver;
                 _endedPath=true;
             };
             if (!(_vehicle in _keepCrew) && {count _pathLease == 7} && {(_pathLease select 0) == _group}
-                && {(_vehicle getVariable ["WAIT_Convoy_PathLease",[]]) isEqualTo _pathLease}) then {
-                _vehicle setVariable ["WAIT_Convoy_PathLease",nil,true];
+                && {(_vehicle getVariable ["CBE_Convoy_PathLease",[]]) isEqualTo _pathLease}) then {
+                _vehicle setVariable ["CBE_Convoy_PathLease",nil,true];
             };
             // A newer native MOVE is independent of the old convoy path. Do not turn it
             // into a formation recall merely because group/vehicle ownership stayed the same.
@@ -193,7 +193,7 @@ if (_restore isNotEqualTo []) then {
                                 && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
                                 && {(synchronizedTriggers _waypoint) isEqualTo []}
                                 && {(synchronizedWaypoints _waypoint) isEqualTo []}
-                                && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
+                                && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
                                 _movementOperator doMove waypointPosition _waypoint;
                             };
                         };
@@ -203,5 +203,5 @@ if (_restore isNotEqualTo []) then {
         };
     } forEach _vehicles;
 };
-_group setVariable ["WAIT_Convoy_LocalState", nil];
-if (_forget) then {_group setVariable ["WAIT_Convoy_Restore", nil]};
+_group setVariable ["CBE_Convoy_LocalState", nil];
+if (_forget) then {_group setVariable ["CBE_Convoy_Restore", nil]};

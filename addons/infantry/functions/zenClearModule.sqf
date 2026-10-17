@@ -7,7 +7,7 @@
  * Arguments: 0 module centre ATL <ARRAY>, []; 1 attached target <OBJECT>, objNull.
  * Return: BOOL - dialog opened, not task acceptance, building entry or hostile-room clearance.
  * Current callers: optional ZEN custom module registration.
- * Example: [getPosATL house1,house1] call WAIT_fnc_ZenClearModule;
+ * Example: [getPosATL house1,house1] call CBE_fnc_ZenClearModule;
  */
 params [["_position",[],[[]]],["_target",objNull,[objNull]]];
 if (!hasInterface || {isNil "zen_dialog_fnc_create"} || {count _position != 3}
@@ -27,7 +27,7 @@ if (!isNull _target && {_target isKindOf "House"} && {alive _target}
     _buildings=[_target]+(_buildings-[_target]);
 };
 if (_groups isEqualTo [] || {_buildings isEqualTo []}) exitWith {
-    ["CLEAR","No selectable squad or building reporting interior positions. Place on an AI soldier or building to include it explicitly.","ERROR"] call WAIT_fnc_AITweaksNotifyLocal;
+    ["CLEAR","No selectable squad or building reporting interior positions. Place on an AI soldier or building to include it explicitly.","ERROR"] call CBE_fnc_AITweaksNotifyLocal;
     false
 };
 private _labels=_buildings apply {
@@ -44,7 +44,7 @@ private _labels=_buildings apply {
     {
         params ["_values"];
         _values params ["_group","_building"];
-        [[["order","CLEAR"],["group",_group],["building",_building]],clientOwner] call WAIT_fnc_CortexOrderDispatch;
+        [[["order","CLEAR"],["group",_group],["building",_building]],clientOwner] call CBE_fnc_CortexOrderDispatch;
     },{},[]
 ] call zen_dialog_fnc_create;
 true

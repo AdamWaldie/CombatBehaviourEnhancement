@@ -30,7 +30,7 @@ class DrivingGeometryTests(unittest.TestCase):
 
     def test_gate_adapter_preserves_only_gate_result_and_barriers_need_sources(self):
         s=(ROOT/'addons/vehicles/functions/drivingGateCap.sqf').read_text()
-        self.assertIn('call WAIT_fnc_DrivingGeometryCap) select 0',s)
+        self.assertIn('call CBE_fnc_DrivingGeometryCap) select 0',s)
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         self.assertIn('_gateClasses getOrDefault',s)
         self.assertIn('for "_index" from 1 to 8',s)
@@ -39,15 +39,15 @@ class DrivingGeometryTests(unittest.TestCase):
     def test_solid_constraints_reuse_existing_writers_and_fsm_queue(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
-        self.assertEqual(ordinary.count('call WAIT_fnc_DrivingGeometryCap'),1)
-        self.assertEqual(convoy.count('call WAIT_fnc_DrivingGeometryCap'),2)
+        self.assertEqual(ordinary.count('call CBE_fnc_DrivingGeometryCap'),1)
+        self.assertEqual(convoy.count('call CBE_fnc_DrivingGeometryCap'),2)
         self.assertIn('_traffic=_obstacleObservation select [0,5]',ordinary)
         self.assertIn('_leadTraffic=_leadObstacle select [0,5]',convoy)
         self.assertIn('_traffic=_vehicleObstacle select [0,5]',convoy)
         for path in ('drivingOperation','convoyOperation'):
             self.assertIn('""OBSTACLE""',(ROOT/f'addons/main/fsm/{path}.fsm').read_text())
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
-        self.assertIn('WAIT_DrivingAssist_Obstacle",nil',release)
+        self.assertIn('CBE_DrivingAssist_Obstacle",nil',release)
 
     def test_turn_prediction_is_bounded_read_only_and_keeps_absolute_hull_rows(self):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
@@ -71,7 +71,7 @@ class DrivingGeometryTests(unittest.TestCase):
         for forbidden in ('setVariable','spawn','waitUntil','doMove','forceSpeed','lineIntersectsSurfaces'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
         for name in ('drivingAssistStart','convoyTick'):
-            self.assertIn('call WAIT_fnc_DrivingTurnTrack',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
+            self.assertIn('call CBE_fnc_DrivingTurnTrack',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
 
     def test_ordinary_measurements_are_per_vehicle_and_prune_departed_roster(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
@@ -92,7 +92,7 @@ class DrivingGeometryTests(unittest.TestCase):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
         self.assertNotRegex(s.split('params [[',1)[1],r'setVariable\s*\[[^\n]*,\s*true\s*\]')
         for name in ('drivingAssistRelease','convoyReleaseLocal'):
-            self.assertIn('call WAIT_fnc_DrivingNativePathWatch',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
+            self.assertIn('call CBE_fnc_DrivingNativePathWatch',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
 
     def test_native_path_lookahead_is_distance_bounded_for_dense_and_sparse_nodes(self):
         s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text(encoding='utf-8')
@@ -114,15 +114,15 @@ class DrivingGeometryTests(unittest.TestCase):
     def test_native_path_subscription_expires_before_copy_and_feature_off_retires_old_revision(self):
         s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text()
         event=s.split('private _id=_driver addEventHandler',1)[1].split('_record=[_group',1)[0]
-        for marker in ('WAIT_DrivingNativePath_ValidUntil','CortexFeatureEnabled',
+        for marker in ('CBE_DrivingNativePath_ValidUntil','CortexFeatureEnabled',
                        'bis_fnc_moduleRemoteControl_owner','CortexExternalOwner'):
             self.assertLess(event.index(marker),event.index('_path select [0,64]'))
         self.assertIn('[_unit,effectiveCommander _vehicle] findIf',event)
         self.assertIn('[_driver,_operator] findIf',s)
-        self.assertIn('"WAIT_DrivingNativePath_ValidUntil",time+6',s)
-        self.assertIn('"WAIT_DrivingNativePath_ValidUntil",nil',s)
+        self.assertIn('"CBE_DrivingNativePath_ValidUntil",time+6',s)
+        self.assertIn('"CBE_DrivingNativePath_ValidUntil",nil',s)
         tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
-        self.assertIn('["CONVOY"],true] call WAIT_fnc_DrivingNativePathWatch',tick)
+        self.assertIn('["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch',tick)
         release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         self.assertIn('["CONVOY"],true,_navigation getOrDefault ["revision",-1]',release)
 
@@ -156,7 +156,7 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertIn('count _committed <= 11',gate)
         self.assertIn('abs ((_origin select 2)-(_pointASL select 2)) <= 1.5',gate)
         self.assertIn('if (_captureRuns != 1) then {_nearest=-1}',gate)
-        self.assertLess(gate.index('_captureRuns != 1'),gate.index('call WAIT_fnc_DrivingPathGeometry'))
+        self.assertLess(gate.index('_captureRuns != 1'),gate.index('call CBE_fnc_DrivingPathGeometry'))
         self.assertNotIn('doMove',gate)
         self.assertNotIn('setDriveOnPath',gate)
         def runs(points):

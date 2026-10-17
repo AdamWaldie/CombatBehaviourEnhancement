@@ -15,8 +15,8 @@
  *   transform ARRAY, rayCount NUMBER]. Maximum 20 support stations, 60 support rays and
  *   171 body rays (231 total). Samples are a proposal, not proof of swept-volume passability.
  * Current callers: DrivingCorridorStep, at admission only.
- * Example: [truck1,corridorLogic,corridorLogic getVariable ["WAIT_DrivingCorridor_Task",[]],1]
- *   call WAIT_fnc_DrivingCorridorGeometry;
+ * Example: [truck1,corridorLogic,corridorLogic getVariable ["CBE_DrivingCorridor_Task",[]],1]
+ *   call CBE_fnc_DrivingCorridorGeometry;
  */
 params [["_vehicle",objNull,[objNull]],["_area",objNull,[objNull]],
     ["_definition",[],[[]]],["_side",1,[0]],["_envelope",[],[[]]]];
@@ -28,7 +28,7 @@ if (count _definition != 4 || {_definition findIf {!(_x isEqualType 0) || {!fini
 _definition params ["_revision","_halfLength","_halfWidth","_speed"];
 if (_halfLength < 5 || {_halfLength > 45} || {_halfWidth < 2} || {_halfWidth > 20}
     || {_speed < 5} || {_speed > 30}
-    || {!((_area getVariable ["WAIT_DrivingCorridor_Task",[]]) isEqualTo _definition)}) exitWith {
+    || {!((_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo _definition)}) exitWith {
     ["STALE_DEFINITION"] call _failure
 };
 private _transform=[getPosWorld _area,vectorDir _area,vectorUp _area];
@@ -58,10 +58,10 @@ for "_station" from 0 to _segments do {
     private _along=(_halfLength+_extension-(_span*_station/_segments))*_side;
     _guide pushBack (_centre vectorAdd (_axis vectorMultiply _along));
 };
-private _geometry=[_vehicle,_guide,_hullWidth,_height,_area] call WAIT_fnc_DrivingPathGeometry;
+private _geometry=[_vehicle,_guide,_hullWidth,_height,_area] call CBE_fnc_DrivingPathGeometry;
 private _rays=_geometry select 4;
 if (!(_geometry select 0)) exitWith {[_geometry select 1,_rays] call _failure};
-if (!((_area getVariable ["WAIT_DrivingCorridor_Task",[]]) isEqualTo _definition)
+if (!((_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo _definition)
     || {!([getPosWorld _area,vectorDir _area,vectorUp _area] isEqualTo _transform)}) exitWith {
     ["AREA_CHANGED",_rays] call _failure
 };

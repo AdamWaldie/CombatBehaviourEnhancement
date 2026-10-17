@@ -12,12 +12,12 @@
  * Boolean - true while ENDEX or SafeStart is active
  *
  * Example:
- * if ([] call WAIT_fnc_CortexIsPaused) exitWith {};
+ * if ([] call CBE_fnc_CortexIsPaused) exitWith {};
  * Result: behaviour code does nothing while the mission is frozen.
  *
- * Current callers: WAIT_fnc_CortexSchedulerTick and WAIT_fnc_CortexRegroupOnKill.
+ * Current callers: CBE_fnc_CortexSchedulerTick and CBE_fnc_CortexRegroupOnKill.
  */
 
-(missionNamespace getVariable ["WAIT_ENDEX_Active", false])
-|| {missionNamespace getVariable ["WAIT_SafeStart_Active", false]}
+(missionNamespace getVariable ["CBE_ENDEX_Active", false])
+|| {missionNamespace getVariable ["CBE_SafeStart_Active", false]}
 

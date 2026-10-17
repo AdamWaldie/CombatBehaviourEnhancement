@@ -6,7 +6,7 @@ def src(n):return (ROOT/'addons/infantry/functions'/f'{n}.sqf').read_text(encodi
 class ClearActorMinimumTests(unittest.TestCase):
     def test_natural_request_uses_real_strength_and_keeps_four(self):
         s=src('cortexBuildingContact')
-        self.assertIn('[_x] call WAIT_fnc_CortexCombatEffective',s)
+        self.assertIn('[_x] call CBE_fnc_CortexCombatEffective',s)
         self.assertIn('count _capable < 4',s)
         self.assertIn('["minimumActors",4]',s)
         refusal=s.split('if (_accepted) then {',1)[1].split('} else {',1)[1]
@@ -15,8 +15,8 @@ class ClearActorMinimumTests(unittest.TestCase):
         s=src('cortexClearBuilding')
         check=s.index('if (count _available < _minimumActors)')
         self.assertLess(s.index('private _available ='),check)
-        self.assertLess(check,s.index('call WAIT_fnc_CortexReleaseGroup'))
-        self.assertLess(check,s.index('call WAIT_fnc_CortexGarrisonRelease'))
+        self.assertLess(check,s.index('call CBE_fnc_CortexReleaseGroup'))
+        self.assertLess(check,s.index('call CBE_fnc_CortexGarrisonRelease'))
         self.assertIn('INSUFFICIENT_ELIGIBLE_ACTORS',s)
         self.assertIn('["minimumActors",1]',s)
         self.assertIn('_minimumActors != floor _minimumActors',s)

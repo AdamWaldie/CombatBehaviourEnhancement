@@ -14,7 +14,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
     def test_rear_observation_applies_before_speed_write_without_extending_deadline(self):
         s=src('drivingAssistStart')
         sample=s.split('if (_reverseLeg) then {',1)[1].split('private _trafficLimited=',1)[0]
-        self.assertIn('[_vehicle,8] call WAIT_fnc_DrivingRearClear',sample)
+        self.assertIn('[_vehicle,8] call CBE_fnc_DrivingRearClear',sample)
         self.assertIn('_traffic=[0,_vehicle,-1,time,0]',sample)
         self.assertNotIn('_recoveryUntil=',sample)
         self.assertLess(s.index('private _rearObservation='),s.index('_vehicle forceSpeed _capMps'))
@@ -52,24 +52,24 @@ class DrivingRearMonitorTests(unittest.TestCase):
 
     def test_tracked_reverse_commands_bind_seats_destinations_and_route(self):
         s=src('cortexVehicleReverseStep')
-        for marker in ('WAIT_VehicleReverse_Command','driver _ownedVehicle == (_commandReceipt select 1)',
+        for marker in ('CBE_VehicleReverse_Command','driver _ownedVehicle == (_commandReceipt select 1)',
                        'effectiveCommander _ownedVehicle == (_commandReceipt select 2)',
                        'expectedDestination (_commandReceipt select 1)',
                        'expectedDestination (_commandReceipt select 2)',
-                       'WAIT_fnc_DrivingRouteReceipt','COMMAND_OR_SEATS_CHANGED',
+                       'CBE_fnc_DrivingRouteReceipt','COMMAND_OR_SEATS_CHANGED',
                        '"RELEASED"','bis_fnc_moduleRemoteControl_owner'):
             self.assertIn(marker,s)
         release=s.split('private _release={',1)[1].split('if (toUpperANSI _mode',1)[0]
         self.assertLess(release.index('call _commandsUnchanged'),release.index('sendSimpleCommand'))
         self.assertNotIn('(_record select 2) == (_group getVariable',release)
-        self.assertIn('getVariable ["WAIT_VehicleReverse",[]]) isEqualTo _record',release)
+        self.assertIn('getVariable ["CBE_VehicleReverse",[]]) isEqualTo _record',release)
         vehicle=src('cortexVehicles')
         self.assertIn('if (_reverse == "FALLBACK") then',vehicle)
         self.assertIn('["RELEASED","FALLBACK"] select _fallbackAuthority',s)
         self.assertLess(s.index('COMMAND_OR_SEATS_CHANGED'),s.index('if (!_eligible) exitWith'))
         self.assertIn('_fallbackAuthority && {!_handover}',s)
         fallback=s.split('private _fallbackAuthority=',1)[1].split('private _eligible=',1)[0]
-        for gate in ('ownerEpoch','WAIT_AIPass_Epoch','CortexExternalTakeover','WAIT_ExternalDrivingOwner'):
+        for gate in ('ownerEpoch','CBE_AIPass_Epoch','CortexExternalTakeover','CBE_ExternalDrivingOwner'):
             self.assertIn(gate,fallback)
         group=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text(encoding='utf-8')
         self.assertIn('_reverseResult in ["COMPLETE","FALLBACK"]',group)
@@ -78,7 +78,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
 
     def test_ordinary_recovery_has_owned_cleanup_and_original_stage_schedule(self):
         s=src('drivingAssistStart')
-        for marker in ('WAIT_DrivingRecovery_Work','WAIT_DrivingRecovery_Yield',
+        for marker in ('CBE_DrivingRecovery_Work','CBE_DrivingRecovery_Yield',
                        'serverTime+96','_hard-66','_hard-60','["REFRESH"] call _recordRecovery',
                        '["FINAL"] call _recordRecovery','ADOPTED_RECOVERY','_recoveryStage != 2 &&'):
             self.assertIn(marker,s)
@@ -89,8 +89,8 @@ class DrivingRearMonitorTests(unittest.TestCase):
             self.assertIn(marker,release)
         for forbidden in ('addWaypoint','deleteWaypoint','enableAI','setVelocity','setPos','spawn','waitUntil'):
             self.assertNotIn(forbidden,release.split('params [[',1)[1])
-        self.assertIn('call WAIT_fnc_DrivingRecoveryRelease',src('drivingAssistRelease'))
-        self.assertIn('WAIT_DrivingRecovery_Yield',src('drivingOperationStart'))
+        self.assertIn('call CBE_fnc_DrivingRecoveryRelease',src('drivingAssistRelease'))
+        self.assertIn('CBE_DrivingRecovery_Yield',src('drivingOperationStart'))
 
 
     def test_close_static_blockage_uses_fresh_dwell_and_existing_rear_executor(self):
@@ -103,13 +103,13 @@ class DrivingRearMonitorTests(unittest.TestCase):
             self.assertIn(guard,contact)
         self.assertNotIn('lineIntersectsSurfaces',contact)
         self.assertNotIn('nearEntities',contact)
-        self.assertNotIn(',true]',next(line for line in contact.splitlines() if 'setVariable ["WAIT_DrivingSolidSeen",[' in line))
+        self.assertNotIn(',true]',next(line for line in contact.splitlines() if 'setVariable ["CBE_DrivingSolidSeen",[' in line))
         self.assertIn('_trafficLimited && {!_solidCandidate}',s)
         self.assertIn('!_trafficLimited || {_solidReady} || {_reverseHandback}',s)
         self.assertIn('private _reverseHandback=_reverseComplete && {_reverseIssued}',s)
-        self.assertIn('[_vehicle,8] call WAIT_fnc_DrivingRearClear',s)
+        self.assertIn('[_vehicle,8] call CBE_fnc_DrivingRearClear',s)
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
-        self.assertIn('setVariable ["WAIT_DrivingSolidSeen",nil]',release)
+        self.assertIn('setVariable ["CBE_DrivingSolidSeen",nil]',release)
 
     def test_rear_solid_beams_include_tall_hull_height_with_fixed_bound(self):
         s=src('drivingRearClear')

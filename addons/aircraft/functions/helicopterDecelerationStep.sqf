@@ -10,18 +10,18 @@
  * Repeat/JIP: A generation mismatch, locality change, disablement or deletion retires this job.
  * Arguments: 0: state <HASHMAP> with aircraft, generation, lastSpeed and lastAltitude.
  * Return Value: NUMBER - next sampling delay or -1 when retired.
- * Current callers: WAIT_fnc_HelicopterDecelerationInit through WAIT_fnc_CortexQueueJob.
- * Example: [WAIT_fnc_HelicopterDecelerationStep,createHashMapFromArray [["aircraft",_heli],["generation",2]],0,"WAIT_DECEL_1"] call WAIT_fnc_CortexQueueJob;
+ * Current callers: CBE_fnc_HelicopterDecelerationInit through CBE_fnc_CortexQueueJob.
+ * Example: [CBE_fnc_HelicopterDecelerationStep,createHashMapFromArray [["aircraft",_heli],["generation",2]],0,"CBE_DECEL_1"] call CBE_fnc_CortexQueueJob;
  */
 params [['_state',createHashMap,[createHashMap]]];
 private _aircraft=_state getOrDefault ['aircraft',objNull];
 private _generation=_state getOrDefault ['generation',-1];
 if (isNull _aircraft || {!alive _aircraft} || {!local _aircraft}
-    || {(_aircraft getVariable ['WAIT_HelicopterDeceleration_GenerationLocal',0]) != _generation}
-    || {!(missionNamespace getVariable ['WAIT_HelicopterDeceleration_Enable',false])}) exitWith {
-    if (!isNull _aircraft && {local _aircraft} && {(_aircraft getVariable ['WAIT_HelicopterDeceleration_GenerationLocal',0]) == _generation}) then {
-        _aircraft setVariable ['WAIT_HelicopterDeceleration_TrackedLocal',false];
-        _aircraft setVariable ['WAIT_HelicopterDeceleration_Active',false,true];
+    || {(_aircraft getVariable ['CBE_HelicopterDeceleration_GenerationLocal',0]) != _generation}
+    || {!(missionNamespace getVariable ['CBE_HelicopterDeceleration_Enable',false])}) exitWith {
+    if (!isNull _aircraft && {local _aircraft} && {(_aircraft getVariable ['CBE_HelicopterDeceleration_GenerationLocal',0]) == _generation}) then {
+        _aircraft setVariable ['CBE_HelicopterDeceleration_TrackedLocal',false];
+        _aircraft setVariable ['CBE_HelicopterDeceleration_Active',false,true];
     };
     -1
 };
@@ -43,23 +43,23 @@ private _lastAltitude=_state getOrDefault ['lastAltitude',_altitudeASL];
 private _eligible=!isNull _pilot && {alive _pilot} && {_pilotAwake} && {!isPlayer _pilot}
     && {isNull remoteControlled _pilot}
     && {_aircraft isKindOf 'Helicopter'
-        || {(missionNamespace getVariable ['WAIT_HelicopterDeceleration_IncludeVTOL',false]) && {_aircraft isKindOf 'VTOL_Base_F'}}};
-_eligible=_eligible && {!(_aircraft getVariable ['WAIT_HelicopterDeceleration_Exclude',false])}
-    && {!(_aircraft getVariable ['WAIT_Cortex_AirAttackJob',false])}
-    && {isNil {_aircraft getVariable 'WAIT_Cortex_AirAttackToken'}}
-    && {isNil {_aircraft getVariable 'WAIT_Cortex_MissileDefenceActive'}}
-    && {!([group _pilot] call WAIT_fnc_CortexExternalTakeover)}
-    && {!(_aircraft getVariable ['WAIT_HelicopterDeceleration_Active',false])}
-    && {!(_aircraft getVariable ['WAIT_ImprovedHelicopterLanding_Active',false])}
+        || {(missionNamespace getVariable ['CBE_HelicopterDeceleration_IncludeVTOL',false]) && {_aircraft isKindOf 'VTOL_Base_F'}}};
+_eligible=_eligible && {!(_aircraft getVariable ['CBE_HelicopterDeceleration_Exclude',false])}
+    && {!(_aircraft getVariable ['CBE_Cortex_AirAttackJob',false])}
+    && {isNil {_aircraft getVariable 'CBE_Cortex_AirAttackToken'}}
+    && {isNil {_aircraft getVariable 'CBE_Cortex_MissileDefenceActive'}}
+    && {!([group _pilot] call CBE_fnc_CortexExternalTakeover)}
+    && {!(_aircraft getVariable ['CBE_HelicopterDeceleration_Active',false])}
+    && {!(_aircraft getVariable ['CBE_ImprovedHelicopterLanding_Active',false])}
     && {!([_aircraft] call _isLandingOrder)}
     && {isEngineOn _aircraft} && {canMove _aircraft}
     && {fuel _aircraft > 0} && {!isTouchingGround _aircraft} && {isNull getSlingLoad _aircraft};
 if (_eligible && {
-    _speed >= (missionNamespace getVariable ['WAIT_HelicopterDeceleration_MinimumSpeed',80])
-    && {((getPosATL _aircraft) select 2) >= (missionNamespace getVariable ['WAIT_HelicopterDeceleration_MinimumAltitude',25])}
-    && {_lastSpeed-_speed >= (missionNamespace getVariable ['WAIT_HelicopterDeceleration_MinimumSpeedLoss',4])}
-    && {_altitudeASL-_lastAltitude >= (missionNamespace getVariable ['WAIT_HelicopterDeceleration_MinimumAltitudeGain',0.5])}
-    && {(vectorDir _aircraft select 2) >= (missionNamespace getVariable ['WAIT_HelicopterDeceleration_MinimumNoseUp',0.02])}
-}) then {[_aircraft,_speed,_altitudeASL,_isLandingOrder,_generation] spawn WAIT_fnc_HelicopterDecelerationCorrectLocal};
+    _speed >= (missionNamespace getVariable ['CBE_HelicopterDeceleration_MinimumSpeed',80])
+    && {((getPosATL _aircraft) select 2) >= (missionNamespace getVariable ['CBE_HelicopterDeceleration_MinimumAltitude',25])}
+    && {_lastSpeed-_speed >= (missionNamespace getVariable ['CBE_HelicopterDeceleration_MinimumSpeedLoss',4])}
+    && {_altitudeASL-_lastAltitude >= (missionNamespace getVariable ['CBE_HelicopterDeceleration_MinimumAltitudeGain',0.5])}
+    && {(vectorDir _aircraft select 2) >= (missionNamespace getVariable ['CBE_HelicopterDeceleration_MinimumNoseUp',0.02])}
+}) then {[_aircraft,_speed,_altitudeASL,_isLandingOrder,_generation] spawn CBE_fnc_HelicopterDecelerationCorrectLocal};
 _state set ['lastSpeed',_speed]; _state set ['lastAltitude',_altitudeASL];
-(missionNamespace getVariable ['WAIT_HelicopterDeceleration_SampleInterval',0.5]) max 0.1
+(missionNamespace getVariable ['CBE_HelicopterDeceleration_SampleInterval',0.5]) max 0.1

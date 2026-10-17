@@ -110,9 +110,9 @@ class ClearHolderOwnershipTests(unittest.TestCase):
     def test_prior_drill_reunion_retires_successor_owned_holders(self):
         source=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         gate=source.split('private _ownedMovers =',1)[1].split('private _holders =',1)[0]
-        for marker in ('if (_ordered)', 'WAIT_OperationGeneration','WAIT_AIPass_Epoch',
-                       '"participants",[]','"cancelReason",""','WAIT_Cortex_ClearHold',
-                       'WAIT_AIPass_ClearGeneration','call WAIT_fnc_NativeOrderReceipt'):
+        for marker in ('if (_ordered)', 'CBE_OperationGeneration','CBE_AIPass_Epoch',
+                       '"participants",[]','"cancelReason",""','CBE_Cortex_ClearHold',
+                       'CBE_AIPass_ClearGeneration','call CBE_fnc_NativeOrderReceipt'):
             self.assertIn(marker,gate)
         self.assertNotIn('doFollow',gate)
         self.assertNotIn('doStop',gate)
@@ -185,7 +185,7 @@ class ClearSingleSurvivorTests(unittest.TestCase):
     def test_single_survivor_fixture_uses_actual_entry_and_both_original_slots(self):
         source=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         case=source.split('// Normal-only single-survivor regression.',1)[1].split('// Exercise door handling',1)[0]
-        for required in ('!('+'missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false])',
+        for required in ('!('+'missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])',
                          'forEach [0,1]','call _observedRoomVisit','_casualty setDamage 1',
                          'vectorDistance _start >= 3','!((_rooms find _x) in _before)',
                          '"-original-hard-deadline"','"-no-reserve-replacement"'):
@@ -193,8 +193,8 @@ class ClearSingleSurvivorTests(unittest.TestCase):
         self.assertIn('count _job > 0 && {_originalDeadline > 0}',case)
         self.assertIn('(_job getOrDefault ["generation",-2]) == _originalGeneration',case)
         self.assertIn('[_pair select 0,_house,_x] call _observedRoomVisit',case)
-        for forbidden in ('doMove','doFollow','setPos','setDriveOnPath','WAIT_fnc_BuildingOperationStep',
-                          'setVariable ["WAIT_Cortex_ClearResult"','setVariable ["WAIT_ActorMoveLease"'):
+        for forbidden in ('doMove','doFollow','setPos','setDriveOnPath','CBE_fnc_BuildingOperationStep',
+                          'setVariable ["CBE_Cortex_ClearResult"','setVariable ["CBE_ActorMoveLease"'):
             self.assertNotIn(forbidden,case)
 
 if __name__=='__main__': unittest.main()

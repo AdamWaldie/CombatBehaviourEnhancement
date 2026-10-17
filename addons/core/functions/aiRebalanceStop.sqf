@@ -14,7 +14,7 @@
  * Return Value: Nothing.
  *
  * Example:
- * [] call WAIT_fnc_AIRebalanceStop;
+ * [] call CBE_fnc_AIRebalanceStop;
  * Result: Stops future application, restores captured values where requested by the server,
  * and clears the previous baseline for a later explicit restart.
  *
@@ -22,19 +22,19 @@
  */
 
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
-if (isServer && {missionNamespace getVariable ["WAIT_AIRebalance_Enable", true]}) exitWith {
-    [createHashMapFromArray [["WAIT_AIRebalance_Enable", false]]] call WAIT_fnc_CortexTuning;
+if (isServer && {missionNamespace getVariable ["CBE_AIRebalance_Enable", true]}) exitWith {
+    [createHashMapFromArray [["CBE_AIRebalance_Enable", false]]] call CBE_fnc_CortexTuning;
 };
-missionNamespace setVariable ["WAIT_AI_RebalanceInitPending", false];
-missionNamespace setVariable ["WAIT_AI_RebalanceActive", false];
-missionNamespace setVariable ["WAIT_AI_LightingGeneration",
-    (missionNamespace getVariable ["WAIT_AI_LightingGeneration", 0]) + 1];
-missionNamespace setVariable ["WAIT_AI_LightingQueued", false];
-[] call WAIT_fnc_SchedulerReconcile;
-missionNamespace setVariable ["WAIT_Cortex_LightingUnits",[]];
-missionNamespace setVariable ["WAIT_Cortex_LightingCursor",0];
-if (missionNamespace getVariable ["WAIT_AI_RestoreOnStop", true]) then {
+missionNamespace setVariable ["CBE_AI_RebalanceInitPending", false];
+missionNamespace setVariable ["CBE_AI_RebalanceActive", false];
+missionNamespace setVariable ["CBE_AI_LightingGeneration",
+    (missionNamespace getVariable ["CBE_AI_LightingGeneration", 0]) + 1];
+missionNamespace setVariable ["CBE_AI_LightingQueued", false];
+[] call CBE_fnc_SchedulerReconcile;
+missionNamespace setVariable ["CBE_Cortex_LightingUnits",[]];
+missionNamespace setVariable ["CBE_Cortex_LightingCursor",0];
+if (missionNamespace getVariable ["CBE_AI_RestoreOnStop", true]) then {
     {
-        if (local _x) then {[_x] call WAIT_fnc_AIRestoreProfile};
+        if (local _x) then {[_x] call CBE_fnc_AIRestoreProfile};
     } forEach allUnits;
 };

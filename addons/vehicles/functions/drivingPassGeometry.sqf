@@ -15,7 +15,7 @@
  * Oriented width and length traces replace an isotropic radius; no continuous swept-volume,
  * traffic prediction, owner agreement or native steering success is implied.
  * Current callers: trusted script preflight and experimental DrivingPassAdmission; physical acceptance remains outstanding.
- * Example: private _slice=[_proposal,0] call WAIT_fnc_DrivingPassGeometry;
+ * Example: private _slice=[_proposal,0] call CBE_fnc_DrivingPassGeometry;
  */
 params [["_proposal",createHashMap,[createHashMap]],["_cursor",0,[0]]];
 private _fail={params ["_reason",["_rays",0]];createHashMapFromArray [["status","REFUSED"],["reason",_reason],["rayCount",_rays]]};
@@ -26,7 +26,7 @@ if (!(_vehicles isEqualType []) || {count _vehicles != 2}
 private _vehicle=_vehicles select 0;
 if (!local _vehicle) exitWith {["OWNER_UNAVAILABLE"] call _fail};
 private _context=_proposal getOrDefault ["context",[]];
-private _sameContext={_context isNotEqualTo [] && {([_vehicles] call WAIT_fnc_DrivingPassContext) isEqualTo _context}};
+private _sameContext={_context isNotEqualTo [] && {([_vehicles] call CBE_fnc_DrivingPassContext) isEqualTo _context}};
 if !(call _sameContext) exitWith {["CONTEXT_CHANGED"] call _fail};
 private _observed=_proposal getOrDefault ["observedAt",-1];
 private _fresh={_observed isEqualType 0 && {finite _observed} && {serverTime >= _observed} && {serverTime-_observed <= 2}};
@@ -42,7 +42,7 @@ private _halfLength=(abs (_low select 1)) max (abs (_high select 1));
 if (_halfLength > 20) exitWith {["HULL_FOOTPRINT_BUDGET"] call _fail};
 private _width=_halfWidth+0.5;
 private _height=((_high select 2)-(_low select 2)) max 1;
-private _geometry=[_vehicle,_slice,_width,_height] call WAIT_fnc_DrivingPathGeometry;
+private _geometry=[_vehicle,_slice,_width,_height] call CBE_fnc_DrivingPathGeometry;
 private _rays=_geometry select 4;
 if (!(_geometry select 0)) exitWith {[_geometry select 1,_rays] call _fail};
 // Width is not a turning circle. Check actual longitudinal hull extent at every

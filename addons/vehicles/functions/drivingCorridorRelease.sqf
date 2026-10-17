@@ -13,19 +13,19 @@
  * 4 stopOnly <BOOL, false> - retire an exact owned path without waking a route (lead replacement).
  * Return Value: BOOL - whether this matching episode was retired, not physical success.
  * Current callers: DrivingCorridorStep, DrivingAssistRelease, ConvoyCrewLocal and ConvoyReleaseLocal.
- * Example: [truck1,group driver truck1,"AREA_CHANGED"] call WAIT_fnc_DrivingCorridorRelease;
+ * Example: [truck1,group driver truck1,"AREA_CHANGED"] call CBE_fnc_DrivingCorridorRelease;
  */
 params [["_vehicle",objNull,[objNull]],["_group",grpNull,[grpNull]],
     ["_reason","RELEASED",[""]],["_resume",true,[true]],["_stopOnly",false,[true]]];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle} || {isNull _group} || {!local _group}) exitWith {false};
-private _work=_vehicle getVariable ["WAIT_DrivingCorridor_Work",createHashMap];
+private _work=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
 if (count _work == 0 || {(_work getOrDefault ["group",grpNull]) != _group}) exitWith {false};
 private _driver=_work getOrDefault ["driver",objNull];
 private _operator=_work getOrDefault ["operator",objNull];
 private _route=_work getOrDefault ["route",[]];
 private _controller=_work getOrDefault ["controller",["ORDINARY",-1]];
 private _convoy=(_controller param [0,""]) == "CONVOY";
-private _currentConvoy=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
+private _currentConvoy=_group getVariable ["CBE_Convoy_Brain",createHashMap];
 private _convoyConfiguration=_currentConvoy getOrDefault ["configuration",[]];
 // Cleanup may follow deregistration. A different active revision is a successor, not ours.
 private _successor=_convoy && {_convoyConfiguration isNotEqualTo []}
@@ -37,25 +37,25 @@ private _transition=_reason in ["CONTROLLER_CHANGED","CONVOY_LEAD_CHANGED"];
 private _owned=!isNull _driver && {!isNull _operator} && {local _driver} && {local _operator}
     && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
     && {group _driver == _group} && {group _operator == _group}
-    && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
+    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
     && {(expectedDestination _operator) isEqualTo (_work getOrDefault ["command",[]])}
     && {(_work getOrDefault ["phase",""]) != "CROSS" || {
         (expectedDestination _driver) isEqualTo (_work getOrDefault ["driverCommand",[]])
     }}
-    && {_convoy || {_transition} || {[_group] call WAIT_fnc_DrivingMovementAvailable}}
+    && {_convoy || {_transition} || {[_group] call CBE_fnc_DrivingMovementAvailable}}
     && {!_successor || {_transition}}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-    && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-    && {_convoy || {_transition} || {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}}
-    && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {!([_group] call CBE_fnc_CortexZeusHeld)}
+    && {_convoy || {_transition} || {!(_vehicle getVariable ["CBE_Convoy_Active",false])}}
+    && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     && {alive _vehicle} && {canMove _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle};
 {
     private _actor=_x;
-    _owned=_owned && {[_actor] call WAIT_fnc_CortexCombatEffective}
-        && {!([_actor] call WAIT_fnc_CortexActorMoveReserved)} && {!isPlayer _actor}
+    _owned=_owned && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _actor}
         && {isNull remoteControlled _actor}
         && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-        && {[_actor] call WAIT_fnc_CortexExternalOwner == ""}
+        && {[_actor] call CBE_fnc_CortexExternalOwner == ""}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
             "REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID",
@@ -67,9 +67,9 @@ if (_owned && {_resume || {_stopOnly}}) then {
     if (_operator != _driver) then {doStop _operator};
     private _index=currentWaypoint _group;
     if (_resume && {_index > 0} && {_index < count waypoints _group}
-        && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
+        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
         && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
-        && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
         if (_convoy || {vehicle leader _group isEqualTo _vehicle}) then {
             // Rejoin only the same-vehicle owned commander before its unchanged native route.
             // A mounted driver must never be recalled toward an on-foot or remote leader.
@@ -83,12 +83,12 @@ if (_owned && {_resume || {_stopOnly}}) then {
     };
 };
 private _key=_work get "context";
-private _cooldown=(_vehicle getVariable ["WAIT_DrivingCorridor_Cooldown",[]]) select {
+private _cooldown=(_vehicle getVariable ["CBE_DrivingCorridor_Cooldown",[]]) select {
     (_x select 1) > serverTime && {(_x select 0) isNotEqualTo _key}
 };
 if (count _cooldown >= 32) then {_cooldown deleteAt 0};
 _cooldown pushBack [_key,serverTime+120];
-_vehicle setVariable ["WAIT_DrivingCorridor_Cooldown",_cooldown,true];
-_vehicle setVariable ["WAIT_DrivingCorridor_Result",[_reason,serverTime,_work get "area",_work get "phase"],true];
-_vehicle setVariable ["WAIT_DrivingCorridor_Work",nil,true];
+_vehicle setVariable ["CBE_DrivingCorridor_Cooldown",_cooldown,true];
+_vehicle setVariable ["CBE_DrivingCorridor_Result",[_reason,serverTime,_work get "area",_work get "phase"],true];
+_vehicle setVariable ["CBE_DrivingCorridor_Work",nil,true];
 true

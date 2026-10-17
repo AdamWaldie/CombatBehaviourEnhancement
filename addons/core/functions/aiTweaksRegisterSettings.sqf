@@ -1,22 +1,22 @@
 /*
  * Author: WaldoTheWarfighter
- * Registers Waldos AI Tweaks mission options with CBA Settings.
+ * Registers Combat Behaviour Enhancement (CBE) mission options with CBA Settings.
  * Locality / Authority: Runs during CBA preInit on every machine. CBA owns authoritative server and
  * mission values, persistence and JIP synchronization; callbacks only start or stop owner-local work.
  * Repeat/JIP: Guarded per machine. CBA replays the authoritative values to joining machines.
  * Arguments: None.
  * Return Value: NUMBER - count of settings registered on this machine.
  * Current callers: XEH_preInit.sqf.
- * Example: [] call WAIT_fnc_AITweaksRegisterSettings;
+ * Example: [] call CBE_fnc_AITweaksRegisterSettings;
  */
 
-if (missionNamespace getVariable ["WAIT_AITweaks_CBASettingsRegistered", false]) exitWith {0};
-missionNamespace setVariable ["WAIT_AITweaks_CBASettingsRegistered", true];
+if (missionNamespace getVariable ["CBE_AITweaks_CBASettingsRegistered", false]) exitWith {0};
+missionNamespace setVariable ["CBE_AITweaks_CBASettingsRegistered", true];
 
-private _sections = [] call WAIT_fnc_AITweaksSettingsSections;
+private _sections = [] call CBE_fnc_AITweaksSettingsSections;
 private _layout = createHashMap;
-{_x params ["_key", "_page", "_heading"]; _layout set [_key, ["Waldos AI Tweaks - " + _page, _heading]]} forEach _sections;
-private _spec = [] call WAIT_fnc_CortexTuningSpec;
+{_x params ["_key", "_page", "_heading"]; _layout set [_key, ["Combat Behaviour Enhancement (CBE) - " + _page, _heading]]} forEach _sections;
+private _spec = [] call CBE_fnc_CortexTuningSpec;
 private _ordered = [];
 // Group controls by use case; enable gates appear before tuning without renaming persisted keys.
 {
@@ -52,7 +52,7 @@ private _registered = 0;
         };
     };
     private _callback = compile format [
-        "['%1', _this] call WAIT_fnc_AITweaksSettingChanged;",
+        "['%1', _this] call CBE_fnc_AITweaksSettingChanged;",
         _name
     ];
     [_name, _cbaType, [_label, _help], _category, _valueInfo, true, _callback, _activation == "RESTART_REQUIRED"]
@@ -60,5 +60,5 @@ private _registered = 0;
     _registered = _registered + 1;
 } forEach _ordered;
 
-diag_log format ["[Waldos AI Tweaks] Registered %1 global CBA settings.", _registered];
+diag_log format ["[Combat Behaviour Enhancement (CBE)] Registered %1 global CBA settings.", _registered];
 _registered

@@ -39,7 +39,7 @@ class FollowThroughOccupancyTests(unittest.TestCase):
                      '_yielded pushBackUnique _blockerKey']:
             self.assertIn(gate, block)
         self.assertNotIn('set ["deadline"',block)
-        self.assertNotIn('call WAIT_fnc_RecoveryStep',block)
+        self.assertNotIn('call CBE_fnc_RecoveryStep',block)
         self.assertNotIn('_failedTargets pushBack',block)
         self.assertIn('_yieldContext+[+_yielded]',block)
         self.assertIn('(_yieldReceipt select [0,3]) isEqualTo _yieldContext',source)

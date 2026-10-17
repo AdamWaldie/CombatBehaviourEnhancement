@@ -3,7 +3,7 @@
  * Purpose: Runs one finite ordinary/convoy-lead bypass PLAN/FOLLOW step through the existing controller.
  * Locality / Authority: Internal synchronous owner callback only. Current driving brain and the
  * caller's fresh authority predicate and internal plain-route/crew gates protect every command. Never remote.
- * New PLAN acquisition preserves native STOP/FOLLOW/ATTACK/unowned WAIT on either seat;
+ * New PLAN acquisition preserves native STOP/FOLLOW/ATTACK/unowned CBE on either seat;
  * its two actors must be idle or moving to the full three-dimensional authored destination. Owned FOLLOW-phase
  * doStop receipts retain their separate retirement contract.
  * Individual actor reservations on either seat veto acquisition and every later command.
@@ -21,7 +21,7 @@
  * command/owner changes, obstacle crew/engine/attachment changes and deadline expiry retain failure; no elapsed-time or ready success.
  * Current callers: DrivingAssistStart and ConvoyTick. Convoy followers retain predecessor trails.
  * Neither path acceptance nor this API is physical QA.
- * Example: [_group,_vehicle,_brain,_solid,_mayRecoverRoute] call WAIT_fnc_DrivingBypassStep;
+ * Example: [_group,_vehicle,_brain,_solid,_mayRecoverRoute] call CBE_fnc_DrivingBypassStep;
  */
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],["_brain",createHashMap,[createHashMap]],
     ["_observed",[],[[]]],["_authority",{false},[{}]],["_controller","ORDINARY",[""]]];
@@ -31,15 +31,15 @@ if (!(_controller in ["ORDINARY","CONVOY"])) exitWith {_inactive};
 private _convoy=_controller == "CONVOY";
 private _configuration=_brain getOrDefault ["configuration",[]];
 private _controllerReceipt=[_controller,if (_convoy) then {_configuration param [0,-1]} else {-1}];
-private _route=[_group] call WAIT_fnc_DrivingRouteReceipt;
+private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 private _seatsAvailable={
     [_driver,_operator] findIf {
         isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
-            || {!([_x] call WAIT_fnc_CortexCombatEffective)}
-            || {[_x] call WAIT_fnc_CortexActorMoveReserved} || {isPlayer _x}
+            || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {[_x] call CBE_fnc_CortexActorMoveReserved} || {isPlayer _x}
             || {!isNull remoteControlled _x} || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-            || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}
             || {!simulationEnabled _x} || {isObjectHidden _x}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
             || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
@@ -60,7 +60,7 @@ private _plainRoute={
         && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []}
 };
 // Before any alternate movement exists, only idle or route-matching native MOVE
-// commands authorize acquisition. STOP/FOLLOW/ATTACK and unowned WAIT are not consent.
+// commands authorize acquisition. STOP/FOLLOW/ATTACK and unowned CBE are not consent.
 private _nativeAdmissionReady={
     private _destination=waypointPosition [_group,currentWaypoint _group];
     [_driver,_operator] findIf {
@@ -75,63 +75,63 @@ private _nativeAdmissionReady={
 private _controllerCurrent={
     if (_convoy) exitWith {
         private _mobile=(_configuration param [4,[]]) select {
-            alive _x && {canMove _x} && {[driver _x] call WAIT_fnc_CortexCombatEffective}
+            alive _x && {canMove _x} && {[driver _x] call CBE_fnc_CortexCombatEffective}
                 && {group driver _x == _group}
         };
-        (_group getVariable ["WAIT_Convoy_Brain",createHashMap]) isEqualTo _brain
-            && {(_brain getOrDefault ["registryRevision",-1]) == (missionNamespace getVariable ["WAIT_Convoy_ReceivedRevision",-2])}
-            && {(_brain getOrDefault ["jobToken",""]) isEqualTo (_group getVariable ["WAIT_Convoy_LocalJobToken",""])}
-            && {(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {
+        (_group getVariable ["CBE_Convoy_Brain",createHashMap]) isEqualTo _brain
+            && {(_brain getOrDefault ["registryRevision",-1]) == (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2])}
+            && {(_brain getOrDefault ["jobToken",""]) isEqualTo (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+            && {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
                 (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
             } >= 0}
             && {(_configuration param [5,""]) == "TRAVEL"}
             && {count (_configuration param [4,[]]) <= 20}
             && {_mobile isNotEqualTo []} && {(_mobile select 0) isEqualTo _vehicle}
             && {_mobile findIf {!local _x || {!local driver _x}} < 0}
-            && {_vehicle getVariable ["WAIT_Convoy_Active",false]}
-            && {(_vehicle getVariable ["WAIT_Convoy_Group",grpNull]) == _group}
-            && {[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-            && {[_group,false,false,true] call WAIT_fnc_CortexIsEligible}
+            && {_vehicle getVariable ["CBE_Convoy_Active",false]}
+            && {(_vehicle getVariable ["CBE_Convoy_Group",grpNull]) == _group}
+            && {[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+            && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     };
-    (_group getVariable ["WAIT_Driving_Brain",createHashMap]) isEqualTo _brain
-        && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
+    (_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain
+        && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_brain getOrDefault ["route",[]]) isEqualTo _route}
-        && {[_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-        && {[_group] call WAIT_fnc_DrivingMovementAvailable}
-        && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
+        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group] call CBE_fnc_DrivingMovementAvailable}
+        && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
         && {vehicle leader _group isEqualTo _vehicle}
 };
 private _mayWrite={
     !isNull _group && {local _group} && {!isNull _vehicle} && {local _vehicle}
         && {call _controllerCurrent}
         && {!(_brain getOrDefault ["cancelled",false])}
-        && {_route isNotEqualTo []} && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
+        && {_route isNotEqualTo []} && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
         && {call _plainRoute} && {call _authority} && {call _seatsAvailable}
-        && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}
-        && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
+        && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {alive _vehicle} && {canMove _vehicle} && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
-        && {[_group,["WAIT_AIPass_DrivingAssist_Recovery_Enable","WAIT_Convoy_RouteRecovery_Enable"] select _convoy,true] call WAIT_fnc_CortexFeatureEnabled}
+        && {[_group,["CBE_AIPass_DrivingAssist_Recovery_Enable","CBE_Convoy_RouteRecovery_Enable"] select _convoy,true] call CBE_fnc_CortexFeatureEnabled}
         && {isAISteeringComponentEnabled _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
-        && {isNil {_vehicle getVariable "WAIT_DrivingCorridor_Work"}}
+        && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}
 };
 private _captureOwner=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["jobToken",""],_brain getOrDefault ["generation",-1]];
-private _work=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
+private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
 if (!(call _mayWrite)) exitWith {
     if ((_work getOrDefault ["controller",["ORDINARY",-1]]) isEqualTo _controllerReceipt) then {
-        [_vehicle,_group,"AUTHORITY_ENDED"] call WAIT_fnc_DrivingBypassRelease;
+        [_vehicle,_group,"AUTHORITY_ENDED"] call CBE_fnc_DrivingBypassRelease;
     };_inactive
 };
 if (count _work > 0 && {(_work get "group") != _group}) then {
-    _vehicle setVariable ["WAIT_DrivingBypass_Work",nil,true];_work=createHashMap;
+    _vehicle setVariable ["CBE_DrivingBypass_Work",nil,true];_work=createHashMap;
 };
 if (count _work > 0 && {(_work getOrDefault ["controller",["ORDINARY",-1]]) isNotEqualTo _controllerReceipt}) then {
-    [_vehicle,_group,"CONTROLLER_CHANGED",false,true] call WAIT_fnc_DrivingBypassRelease;_work=createHashMap;
+    [_vehicle,_group,"CONTROLLER_CHANGED",false,true] call CBE_fnc_DrivingBypassRelease;_work=createHashMap;
 };
-if (count _work == 0 && {!_convoy || {isNil {_group getVariable "WAIT_Convoy_BypassPassage"}}}) then {
+if (count _work == 0 && {!_convoy || {isNil {_group getVariable "CBE_Convoy_BypassPassage"}}}) then {
     if (count _observed == 9 && {(_observed select 5) == "STATIC"} && {!isNull (_observed select 1)}
         && {abs speed _vehicle <= 8}) then {
         private _context=[_group,_route,_observed select 1,_driver,_operator,_controllerReceipt];
-        private _cooldown=_vehicle getVariable ["WAIT_DrivingBypass_Cooldown",[]];
+        private _cooldown=_vehicle getVariable ["CBE_DrivingBypass_Cooldown",[]];
         private _command=expectedDestination _operator;
         if (_cooldown findIf {(_x select 0) isEqualTo _context && {(_x select 1) > serverTime}} < 0
             && {call _nativeAdmissionReady}) then {
@@ -140,7 +140,7 @@ if (count _work == 0 && {!_convoy || {isNil {_group getVariable "WAIT_Convoy_Byp
                 ["deadline",serverTime+90],["side",1],["phase","PLAN"],["index",0],
                 ["command",+_command],["driverCommand",+(expectedDestination _driver)],
                 ["driverTask",toUpperANSI currentCommand _driver],["operatorTask",toUpperANSI currentCommand _operator]];
-            _vehicle setVariable ["WAIT_DrivingBypass_Work",_work,true];
+            _vehicle setVariable ["CBE_DrivingBypass_Work",_work,true];
         };
     };
 };
@@ -152,13 +152,13 @@ if ((_work get "route") isNotEqualTo _route || {(_work get "driver") != _driver}
     || {(toUpperANSI currentCommand _driver) != (_work getOrDefault ["driverTask","__MISSING__"])}
     || {(toUpperANSI currentCommand _operator) != (_work getOrDefault ["operatorTask","__MISSING__"])}) then {_reason="COMMAND_CHANGED"};
 if (_reason == "" && {(_work get "phase") == "PLAN"} && {!(call _nativeAdmissionReady)}) then {_reason="COMMAND_CHANGED"};
-if (_reason == "" && {!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)
+if (_reason == "" && {!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)
     || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo (_work get "transform")}}) then {_reason="OBSTACLE_CHANGED"};
 if (_reason == "" && {serverTime >= (_work get "deadline")}) then {_reason="TIMEOUT"};
-if (_reason != "") exitWith {[_vehicle,_group,_reason,_reason != "COMMAND_CHANGED"] call WAIT_fnc_DrivingBypassRelease;_inactive};
+if (_reason != "") exitWith {[_vehicle,_group,_reason,_reason != "COMMAND_CHANGED"] call CBE_fnc_DrivingBypassRelease;_inactive};
 if ((_work get "phase") == "PLAN") exitWith {
     if (count _observed != 9 || {(_observed select 1) != _obstacle} || {(_observed select 8) isNotEqualTo (_work get "transform")}) exitWith {
-        [_vehicle,_group,"OBSERVATION_CHANGED"] call WAIT_fnc_DrivingBypassRelease;_inactive
+        [_vehicle,_group,"OBSERVATION_CHANGED"] call CBE_fnc_DrivingBypassRelease;_inactive
     };
     private _envelope=[];private _columnLength=0;
     if (_convoy) then {
@@ -171,21 +171,21 @@ if ((_work get "phase") == "PLAN") exitWith {
             _columnLength=_columnLength+((_hi select 1)-(_lo select 1))+(_configuration param [2,30]);
         } forEach (_configuration param [4,[]]);
     };
-    private _proposal=[_vehicle,_observed,_work get "side",_envelope] call WAIT_fnc_DrivingBypassPlan;
+    private _proposal=[_vehicle,_observed,_work get "side",_envelope] call CBE_fnc_DrivingBypassPlan;
     if (!(_proposal select 0)) exitWith {
         if ((_work get "side") == 1) then {
-            _work set ["side",-1];_vehicle setVariable ["WAIT_DrivingBypass_Work",_work,true];
+            _work set ["side",-1];_vehicle setVariable ["CBE_DrivingBypass_Work",_work,true];
             [true,8/3.6,"BYPASS_PLAN",false]
-        } else {[_vehicle,_group,_proposal select 1] call WAIT_fnc_DrivingBypassRelease;_inactive}
+        } else {[_vehicle,_group,_proposal select 1] call CBE_fnc_DrivingBypassRelease;_inactive}
     };
     private _points=_proposal select 2;private _asl=_proposal select 3;
     private _destination=ATLToASL waypointPosition [_group,currentWaypoint _group];
     private _forward=vectorDir _vehicle;_forward set [2,0];_forward=vectorNormalized _forward;
     private _exit=_asl select ((count _asl)-1);
     if ((_destination vectorDiff _exit) vectorDotProduct _forward < _columnLength+(waypointCompletionRadius [_group,currentWaypoint _group] max 20)+10) exitWith {
-        [_vehicle,_group,"DESTINATION_CLEARANCE"] call WAIT_fnc_DrivingBypassRelease;_inactive
+        [_vehicle,_group,"DESTINATION_CLEARANCE"] call CBE_fnc_DrivingBypassRelease;_inactive
     };
-    if (!(call _mayWrite) || {!([_obstacle] call WAIT_fnc_DrivingBypassObstacleAvailable)} || {!(call _nativeAdmissionReady)} || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
+    if (!(call _mayWrite) || {!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)} || {!(call _nativeAdmissionReady)} || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
         || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}) exitWith {_inactive};
     private _box=boundingBoxReal _vehicle;private _low=_box select 0;private _high=_box select 1;
     private _halfWidth=((abs (_low select 0)) max (abs (_high select 0))) max (_envelope param [0,0]);
@@ -200,7 +200,7 @@ if ((_work get "phase") == "PLAN") exitWith {
     _work set ["forward",_forward];_work set ["far",_exit vectorDiff (_forward vectorMultiply (_radius+10))];
     _work set ["command",+(expectedDestination _operator)];_work set ["driverCommand",+(expectedDestination _driver)];
     _work set ["driverTask",toUpperANSI currentCommand _driver];_work set ["operatorTask",toUpperANSI currentCommand _operator];
-    _vehicle setVariable ["WAIT_DrivingBypass_Work",_work,true];
+    _vehicle setVariable ["CBE_DrivingBypass_Work",_work,true];
     [true,8/3.6,"BYPASS_FOLLOW",false]
 };
 private _points=_work get "points";private _index=_work get "index";private _origin=getPosASL _vehicle;
@@ -225,17 +225,17 @@ for "_i" from 1 to 4 do {
     _lastFraction=_fraction;_index=_index+1;
 };
 _work set ["capture",[+_origin,serverTime,+_captureOwner]];
-if (_index != (_work get "index")) then {_work set ["index",_index];_vehicle setVariable ["WAIT_DrivingBypass_Work",_work,true]};
+if (_index != (_work get "index")) then {_work set ["index",_index];_vehicle setVariable ["CBE_DrivingBypass_Work",_work,true]};
 if (_index >= count _points) exitWith {
     private _box=boundingBoxReal _vehicle;private _low=_box select 0;private _high=_box select 1;private _clear=true;
     {private _xCoord=_x;{private _yCoord=_x;{
         private _corner=_vehicle modelToWorldWorld [_xCoord,_yCoord,_x];
         if ((_corner vectorDiff (_work get "far")) vectorDotProduct (_work get "forward") < 5) then {_clear=false};
     } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];} forEach [_low select 0,_high select 0];
-    if (_clear) then {[_vehicle,_group,"PHYSICALLY_PASSED"] call WAIT_fnc_DrivingBypassRelease;_inactive}
+    if (_clear) then {[_vehicle,_group,"PHYSICALLY_PASSED"] call CBE_fnc_DrivingBypassRelease;_inactive}
     else {[true,8/3.6,"BYPASS_FOLLOW",false]}
 };
 private _next=_points select _index;
-private _health=[_vehicle,[_origin,_next],_work get "radius",_work get "height"] call WAIT_fnc_DrivingPathGeometry;
-if (!(_health select 0)) exitWith {[_vehicle,_group,"LEG_"+(_health select 1)] call WAIT_fnc_DrivingBypassRelease;_inactive};
+private _health=[_vehicle,[_origin,_next],_work get "radius",_work get "height"] call CBE_fnc_DrivingPathGeometry;
+if (!(_health select 0)) exitWith {[_vehicle,_group,"LEG_"+(_health select 1)] call CBE_fnc_DrivingBypassRelease;_inactive};
 [true,8/3.6,"BYPASS_FOLLOW",true]

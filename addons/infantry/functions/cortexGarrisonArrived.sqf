@@ -6,7 +6,7 @@
  * Arguments: 0 actor <OBJECT>, objNull; 1 assignment <ARRAY>, [] (position, facing, building, transform, role, watch, exit).
  * Return: BOOL - physically at the post with the required geometry; not proof of hostile-room clearance.
  * Current callers: CortexGarrisonApplyLocal and CortexGarrisonRefill.
- * Example: [soldier1,soldier1 getVariable ["WAIT_AIPass_GarrisonPos",[]]] call WAIT_fnc_CortexGarrisonArrived;
+ * Example: [soldier1,soldier1 getVariable ["CBE_AIPass_GarrisonPos",[]]] call CBE_fnc_CortexGarrisonArrived;
  */
 params [["_actor",objNull,[objNull]],["_assignment",[],[[]]]];
 if (isNull _actor || {!alive _actor}) exitWith {false};

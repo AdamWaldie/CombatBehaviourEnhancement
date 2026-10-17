@@ -13,20 +13,20 @@ private _results=[];
 // Both arms retain the loaded addon configuration. Report this as a runtime-toggle
 // comparison, never as the full addon overhead versus a separate native-AI launch.
 private _baselineDanger=getText (configFile >> "CfgVehicles" >> "O_Soldier_F" >> "fsmDanger");
-missionNamespace setVariable ["WAIT_CortexQA_PerformanceComparisonScope","RUNTIME_TOGGLE",true];
-diag_log format ["WAIT PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=false|dangerFSM=%1",_baselineDanger];
+missionNamespace setVariable ["CBE_CortexQA_PerformanceComparisonScope","RUNTIME_TOGGLE",true];
+diag_log format ["CBE PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=false|dangerFSM=%1",_baselineDanger];
 
 {
     private _enabled=_x;
     private _arm=_forEachIndex;
     // Autonomous group management is part of the measured enabled workload; do not inherit
     // Contact OFF from the preceding lifecycle case, which deliberately releases that owner.
-    [createHashMapFromArray [["WAIT_AIPass_Enable",_enabled],["WAIT_AIPass_Contact_Enable",true]]] call WAIT_fnc_CortexTuning;
-    private _ready=[{(missionNamespace getVariable ["WAIT_AIPass_Active",false]) == _enabled},20] call _wait;
+    [createHashMapFromArray [["CBE_AIPass_Enable",_enabled],["CBE_AIPass_Contact_Enable",true]]] call CBE_fnc_CortexTuning;
+    private _ready=[{(missionNamespace getVariable ["CBE_AIPass_Active",false]) == _enabled},20] call _wait;
     private _groups=[]; private _actors=[];
     for "_i" from 0 to 49 do {
         private _g=createGroup [east,true];
-        _g setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+        _g setVariable ["CBE_Headless_ExcludeGroup",true,true];
         _g setVariable ["acex_headless_blacklist",true,true];
         private _origin=[800+(_i mod 10)*35,800+floor (_i/10)*35,0];
         for "_j" from 0 to 5 do {
@@ -41,15 +41,15 @@ diag_log format ["WAIT PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=fa
         _groups pushBack _g;
         sleep 0.01;
     };
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors select [0,18],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",_actors select [0,18],true];
     [format ["Performance: arm %1 / Cortex %2",_arm+1,["OFF","ON"] select _enabled],"50 six-soldier squads patrol on the server. Only 18 soldiers have overlays to limit UI cost. After warm-up, record 60 seconds of frame times and physical movement. This matched flat baseline isolates scheduler cost; separate terrain and mixed-force audits establish behaviour.",[950,1000,0]] call _phase;
     sleep 20;
     private _managedMinimum=50;
     private _eligibleAll=true;
     private _origins=_groups apply {getPosATL leader _x};
-    missionNamespace setVariable ["WAIT_CortexQA_FrameSamples",[]];
+    missionNamespace setVariable ["CBE_CortexQA_FrameSamples",[]];
     private _handler=addMissionEventHandler ["EachFrame",{
-        private _samples=missionNamespace getVariable ["WAIT_CortexQA_FrameSamples",[]];
+        private _samples=missionNamespace getVariable ["CBE_CortexQA_FrameSamples",[]];
         if (count _samples < 120000) then {_samples pushBack (diag_deltaTime*1000)};
     }];
     private _overdue=0;
@@ -57,13 +57,13 @@ diag_log format ["WAIT PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=fa
     while {diag_tickTime < _until} do {
         sleep 1;
         // Identical observation cost in both arms; master-off eligibility is not an acceptance gate.
-        _managedMinimum=_managedMinimum min ({_x getVariable ["WAIT_AIPass_Managed",false]} count _groups);
-        private _eligibleCount={[_x] call WAIT_fnc_CortexIsEligible} count _groups;
+        _managedMinimum=_managedMinimum min ({_x getVariable ["CBE_AIPass_Managed",false]} count _groups);
+        private _eligibleCount={[_x] call CBE_fnc_CortexIsEligible} count _groups;
         if (_eligibleCount != 50) then {_eligibleAll=false};
-        {_overdue=_overdue max (time-(_x select 0))} forEach (missionNamespace getVariable ["WAIT_AIPass_Jobs",[]]);
+        {_overdue=_overdue max (time-(_x select 0))} forEach (missionNamespace getVariable ["CBE_AIPass_Jobs",[]]);
     };
     removeMissionEventHandler ["EachFrame",_handler];
-    private _samples=missionNamespace getVariable ["WAIT_CortexQA_FrameSamples",[]];
+    private _samples=missionNamespace getVariable ["CBE_CortexQA_FrameSamples",[]];
     _samples sort true;
     private _count=count _samples;
     private _median=if (_count > 0) then {_samples select floor ((_count-1)*0.5)} else {1e9};
@@ -75,22 +75,22 @@ diag_log format ["WAIT PERFORMANCE BASELINE|scope=RUNTIME_TOGGLE|nativeLaunch=fa
     [format ["PERF-50-patrol-arm-%1-valid",_arm],_valid,format ["frames=%1 medianMs=%2 p95Ms=%3 maxOverdueSeconds=%4 allGroupsMoved=%5 minimumManaged=%6 allEligible=%7",_count,_median,_p95,_overdue,_moved,_managedMinimum,_eligibleAll]] call _check;
     if (_enabled && {_managedMinimum != 50}) then {
         // Failure-only evidence: no per-frame logging or artificial controller wake-up.
-        diag_log format ["WAIT PERFORMANCE MANAGEMENT FAILURE|arm=%1|active=%2|jobs=%3|groups=%4",
-            _arm,missionNamespace getVariable ["WAIT_AIPass_Active",false],
-            count (missionNamespace getVariable ["WAIT_AIPass_Jobs",[]]),
+        diag_log format ["CBE PERFORMANCE MANAGEMENT FAILURE|arm=%1|active=%2|jobs=%3|groups=%4",
+            _arm,missionNamespace getVariable ["CBE_AIPass_Active",false],
+            count (missionNamespace getVariable ["CBE_AIPass_Jobs",[]]),
             (_groups select [0,3]) apply {[
-                groupOwner _x,_x getVariable ["WAIT_AIPass_Adopted",false],
-                _x getVariable ["WAIT_AIPass_Managed",false],
-                _x getVariable ["WAIT_AIPass_Epoch",-1],
-                _x getVariable ["WAIT_GroupBrain_State",[]],
-                _x getVariable ["WAIT_GroupBrain",createHashMap]
+                groupOwner _x,_x getVariable ["CBE_AIPass_Adopted",false],
+                _x getVariable ["CBE_AIPass_Managed",false],
+                _x getVariable ["CBE_AIPass_Epoch",-1],
+                _x getVariable ["CBE_GroupBrain_State",[]],
+                _x getVariable ["CBE_GroupBrain",createHashMap]
             ]}];
     };
     [format ["PERF-50-patrol-arm-%1-no-starvation",_arm],_overdue <= 10,str _overdue] call _check;
     _results pushBack [_median,_p95,_valid,_overdue];
     {deleteVehicle _x} forEach _actors; {deleteGroup _x} forEach _groups;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
-    missionNamespace setVariable ["WAIT_CortexQA_FrameSamples",nil];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+    missionNamespace setVariable ["CBE_CortexQA_FrameSamples",nil];
     sleep 10;
 } forEach [false,true,true,false];
 private _baseMedian=((_results select 0 select 0)+(_results select 3 select 0))/2;

@@ -18,24 +18,24 @@
  * equal-distance ties within one stretch retain the first segment rather than jumping ahead.
  * A captured path grants neither movement nor physical completion.
  * Current callers: DrivingAssistStart, ConvoyTick, DrivingAssistRelease and ConvoyReleaseLocal.
- * Example: private _hint=[truck1,_group,["ORDINARY",_route,_epoch]] call WAIT_fnc_DrivingNativePathWatch;
+ * Example: private _hint=[truck1,_group,["ORDINARY",_route,_epoch]] call CBE_fnc_DrivingNativePathWatch;
  */
 params [["_vehicle",objNull,[objNull]],["_group",grpNull,[grpNull]],["_context",[],[[]]],
     ["_release",false,[true]],["_expectedRevision",-1,[0]]];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}) exitWith {[]};
-private _record=_vehicle getVariable ["WAIT_DrivingNativePath_Watch",[]];
+private _record=_vehicle getVariable ["CBE_DrivingNativePath_Watch",[]];
 private _remove={
     if (count _record == 4) then {
         _record params ["_oldGroup","_identity","_actor","_id"];
         private _binding=[_vehicle,_oldGroup,_identity,_id];
-        if (!isNull _actor && {(_actor getVariable ["WAIT_DrivingNativePath_Binding",[]]) isEqualTo _binding}) then {
+        if (!isNull _actor && {(_actor getVariable ["CBE_DrivingNativePath_Binding",[]]) isEqualTo _binding}) then {
             _actor removeEventHandler ["PathCalculated",_id];
-            _actor setVariable ["WAIT_DrivingNativePath_Binding",nil];
+            _actor setVariable ["CBE_DrivingNativePath_Binding",nil];
         };
-        if ((_vehicle getVariable ["WAIT_DrivingNativePath_Watch",[]]) isEqualTo _record) then {
-            _vehicle setVariable ["WAIT_DrivingNativePath_Watch",nil];
-            _vehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
-            _vehicle setVariable ["WAIT_DrivingNativePath_ValidUntil",nil];
+        if ((_vehicle getVariable ["CBE_DrivingNativePath_Watch",[]]) isEqualTo _record) then {
+            _vehicle setVariable ["CBE_DrivingNativePath_Watch",nil];
+            _vehicle setVariable ["CBE_DrivingNativePath_Segment",nil];
+            _vehicle setVariable ["CBE_DrivingNativePath_ValidUntil",nil];
         };
     };
 };
@@ -46,8 +46,8 @@ if (_release) exitWith {
 };
 private _mode=_context param [0,""];
 if (!(_mode in ["ORDINARY","CONVOY"])) exitWith {[]};
-private _feature=["WAIT_AIPass_DrivingAssist_Enable","WAIT_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
-if (!([_group,_feature,true] call WAIT_fnc_CortexFeatureEnabled)) exitWith {
+private _feature=["CBE_AIPass_DrivingAssist_Enable","CBE_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
+if (!([_group,_feature,true] call CBE_fnc_CortexFeatureEnabled)) exitWith {
     if (count _record == 4 && {(_record select 0) == _group}
         && {(((_record select 1) select 0) param [0,""]) == _mode}) then {call _remove};[]
 };
@@ -57,58 +57,58 @@ if (isNull _group || {!local _group} || {isNull _driver} || {!local _driver}
         isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
             || {isPlayer _x} || {!isNull remoteControlled _x}
             || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-            || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}
     } >= 0}) exitWith {[]};
 private _identity=[_context,_driver,_operator,clientOwner];
 if (count _record != 4 || {(_record select 0) != _group} || {(_record select 1) isNotEqualTo _identity}) then {
     call _remove;
     // A driver can leave a deleted vehicle before its owner callback cleans up. Retire that
     // driver's exact local handler before binding a new vehicle; do not accumulate inert handlers.
-    private _oldBinding=_driver getVariable ["WAIT_DrivingNativePath_Binding",[]];
+    private _oldBinding=_driver getVariable ["CBE_DrivingNativePath_Binding",[]];
     if (count _oldBinding == 4) then {
         _driver removeEventHandler ["PathCalculated",_oldBinding select 3];
         private _oldVehicle=_oldBinding select 0;
-        private _oldWatch=_oldVehicle getVariable ["WAIT_DrivingNativePath_Watch",[]];
+        private _oldWatch=_oldVehicle getVariable ["CBE_DrivingNativePath_Watch",[]];
         if (count _oldWatch == 4 && {(_oldWatch select 2) == _driver}
             && {(_oldWatch select 3) == (_oldBinding select 3)}) then {
-            _oldVehicle setVariable ["WAIT_DrivingNativePath_Watch",nil];
-            _oldVehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
-            _oldVehicle setVariable ["WAIT_DrivingNativePath_ValidUntil",nil];
+            _oldVehicle setVariable ["CBE_DrivingNativePath_Watch",nil];
+            _oldVehicle setVariable ["CBE_DrivingNativePath_Segment",nil];
+            _oldVehicle setVariable ["CBE_DrivingNativePath_ValidUntil",nil];
         };
-        _driver setVariable ["WAIT_DrivingNativePath_Binding",nil];
+        _driver setVariable ["CBE_DrivingNativePath_Binding",nil];
     };
     private _id=_driver addEventHandler ["PathCalculated",{
         params ["_unit","_path"];
-        private _binding=_unit getVariable ["WAIT_DrivingNativePath_Binding",[]];
+        private _binding=_unit getVariable ["CBE_DrivingNativePath_Binding",[]];
         if (count _binding != 4 || {(_binding select 3) != _thisEventHandler}) exitWith {};
         _binding params ["_vehicle","_group","_identity"];
         if (!local _unit || {!local _vehicle} || {!local _group} || {driver _vehicle != _unit}
-            || {(_vehicle getVariable ["WAIT_DrivingNativePath_Watch",[]]) isNotEqualTo [_group,_identity,_unit,_thisEventHandler]}) exitWith {};
+            || {(_vehicle getVariable ["CBE_DrivingNativePath_Watch",[]]) isNotEqualTo [_group,_identity,_unit,_thisEventHandler]}) exitWith {};
         private _mode=(_identity select 0) param [0,""];
-        private _feature=["WAIT_AIPass_DrivingAssist_Enable","WAIT_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
-        if (time > (_vehicle getVariable ["WAIT_DrivingNativePath_ValidUntil",-1])
-            || {!([_group,_feature,true] call WAIT_fnc_CortexFeatureEnabled)}
+        private _feature=["CBE_AIPass_DrivingAssist_Enable","CBE_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
+        if (time > (_vehicle getVariable ["CBE_DrivingNativePath_ValidUntil",-1])
+            || {!([_group,_feature,true] call CBE_fnc_CortexFeatureEnabled)}
             || {[_unit,effectiveCommander _vehicle] findIf {
                 isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
                     || {isPlayer _x} || {!isNull remoteControlled _x}
                     || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-                    || {[_x] call WAIT_fnc_CortexExternalOwner != ""}
+                    || {[_x] call CBE_fnc_CortexExternalOwner != ""}
             } >= 0}) exitWith {
-            _vehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
+            _vehicle setVariable ["CBE_DrivingNativePath_Segment",nil];
         };
         private _nodes=_path select [0,64];
-        _vehicle setVariable ["WAIT_DrivingNativePath_Segment",nil];
+        _vehicle setVariable ["CBE_DrivingNativePath_Segment",nil];
         if (count _nodes < 2 || {_nodes findIf {!(_x isEqualType []) || {count _x != 3}
             || {_x findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}} >= 0}) exitWith {};
-        _vehicle setVariable ["WAIT_DrivingNativePath_Segment",[_identity,time,
+        _vehicle setVariable ["CBE_DrivingNativePath_Segment",[_identity,time,
             +(expectedDestination _unit),+(expectedDestination effectiveCommander _vehicle),_nodes]];
     }];
     _record=[_group,_identity,_driver,_id];
-    _vehicle setVariable ["WAIT_DrivingNativePath_Watch",_record];
-    _driver setVariable ["WAIT_DrivingNativePath_Binding",[_vehicle,_group,_identity,_id]];
+    _vehicle setVariable ["CBE_DrivingNativePath_Watch",_record];
+    _driver setVariable ["CBE_DrivingNativePath_Binding",[_vehicle,_group,_identity,_id]];
 };
-_vehicle setVariable ["WAIT_DrivingNativePath_ValidUntil",time+6];
-private _segment=_vehicle getVariable ["WAIT_DrivingNativePath_Segment",[]];
+_vehicle setVariable ["CBE_DrivingNativePath_ValidUntil",time+6];
+private _segment=_vehicle getVariable ["CBE_DrivingNativePath_Segment",[]];
 if (count _segment != 5 || {(_segment select 0) isNotEqualTo _identity} || {time-(_segment select 1) > 5}
     || {time < (_segment select 1)} || {(expectedDestination _driver) isNotEqualTo (_segment select 2)}
     || {(expectedDestination _operator) isNotEqualTo (_segment select 3)}) exitWith {[]};

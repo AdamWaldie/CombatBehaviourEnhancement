@@ -1,24 +1,24 @@
-# Waldos AI Tweaks
+# Combat Behaviour Enhancement (CBE)
 
-Waldos AI Tweaks is a standalone CBA mod for Arma 3. Its goal is aggressive, dynamic and tactically
+Combat Behaviour Enhancement (CBE) is a standalone CBA mod for Arma 3. Its goal is aggressive, dynamic and tactically
 sound AI with bounded, locality-aware work that remains subordinate to Zeus and authored mission
 orders.
 
 ## Current foundation
 
-The repository now builds as a conventional `z\waldo_ai_tweaks\addons\main` addon:
+The repository now builds as a conventional `z\cbe\addons\main` addon:
 
 - CBA extended pre-init loads guarded defaults on every machine;
 - CBA extended post-init starts only the systems enabled for that owner;
-- the established `WAIT_fnc_*` API remains available through `CfgFunctions`;
+- public functions use the sole `CBE_fnc_*` namespace through `CfgFunctions`;
 - CBA Settings owns global addon configuration and JIP synchronization;
 - Native Zeus orders are included; optional ZEN supplies an extended convoy dialog;
 - the standalone settings request validates the requesting curator and updates the CBA server layer;
 - HEMTT owns packaging and version metadata.
 
-Run `hemtt build` from the repository root to create the mod package. Arma 3 2.18+ and CBA_A3 are required; ZEN is optional. WAIT supplies the base-soldier danger FSM and treats another replacement of that engine slot as incompatible. No external AI addon is required or bundled.
+Run `hemtt build` from the repository root to create the mod package. Arma 3 2.18+ and CBA_A3 are required; ZEN is optional. CBE supplies the base-soldier danger FSM and treats another replacement of that engine slot as incompatible. No external AI addon is required or bundled.
 
-The new function and settings API uses `WAIT_*` with no forwarding aliases. See
+This first release uses `CBE_fnc_*` functions and `CBE_*` settings/state. No previous product-name aliases are registered. See
 [API migration](docs/API-MIGRATION.md), [addon lifecycle](docs/ADDON-LIFECYCLE.md) and the
 [capability registry](docs/CAPABILITY-REGISTRY.md) and the [delivery goal](docs/DELIVERY-GOAL.md).
 
@@ -36,13 +36,13 @@ This repository owns AI behaviour:
 - AI diagnostics, ZEN controls and the Cortex QA suite.
 
 Mission-specific systems retain Dynamic AA, Dynamic AO, logistics, transport, paradrop, economy,
-UI and their diagnostics. WAIT may mark an object, unit or group with the public
+UI and their diagnostics. CBE may mark an object, unit or group with the public
 `Waldo_AI_ExternalControl` flag while another system owns its behaviour. Independent weapon systems
 may set `Waldo_AI_PrecisionExclude` when they intentionally own lethality. AI Tweaks contains no
 Dynamic AA or Dynamic AO implementation and does not inspect their private state.
 
 An integrating mission must yield AI skill, convoy, landing, deceleration and Cortex ownership when
-`WAIT_AI_Tweaks_Main` is present. WAIT will release its work immediately when another eligible system
+`CBE_AI_Tweaks_Main` is present. CBE will release its work immediately when another eligible system
 records external ownership.
 
 ## Authority and Zeus
@@ -65,12 +65,12 @@ and [the standalone boundary](docs/EXTRACTION-BOUNDARY.md).
 
 See [modding and operations](docs/MODDING-AND-OPERATIONS.md) for packaged local audits,
 signed release promotion and the execution-method assessment.
-See [matched performance validation](docs/PERFORMANCE-VALIDATION.md) for native/WAIT patrol pairs and their acceptance limits.
+See [matched performance validation](docs/PERFORMANCE-VALIDATION.md) for native/CBE patrol pairs and their acceptance limits.
 
 See [contribution and documentation requirements](CONTRIBUTING.md) and [all CBA settings](docs/SETTINGS-REFERENCE.md).
 
 Native Zeus provides **Convoy: start / resume**, **Convoy: hold and unload passengers**, and
-**Convoy: release control** under Waldos AI Tweaks. Place the order directly on a crewed AI land
+**Convoy: release control** under Combat Behaviour Enhancement (CBE). Place the order directly on a crewed AI land
 vehicle; group at least two AI-driven vehicles and give the leader its route before starting.
 New convoys use the CBA default speed, separation and push-through options. Resume preserves
 existing convoy settings. Optional ZEN adds a dialog for per-convoy settings. Neither interface
@@ -91,9 +91,9 @@ Current implementation, physical acceptance and progression blockers are recorde
 
 ## Optional engine policy
 
-The packaged optionals folder contains a separate AI Turret Aiming addon. Load that optional mod alongside WAIT to apply a restart-required AI turret aiming-error ceiling of 0.12 radians. It changes no weapon dispersion, ammunition, projectile or recoil properties. CBA switches cannot unload an engine configuration patch; remove the optional mod and restart to restore the base configuration. Default WAIT installation does not load it. Physical lethality, player precision and compatibility acceptance remain pending.
+The packaged optionals folder contains a separate AI Turret Aiming addon. Load that optional mod alongside CBE to apply a restart-required AI turret aiming-error ceiling of 0.12 radians. It changes no weapon dispersion, ammunition, projectile or recoil properties. CBA switches cannot unload an engine configuration patch; remove the optional mod and restart to restore the base configuration. Default CBE installation does not load it. Physical lethality, player precision and compatibility acceptance remain pending.
 
-For packaged audit comparisons, use the checked-in launcher with -EnginePolicies turret_aiming for the policy arm and omit it for the default arm. The launcher records the selection and uses the same sealed optional addon on every participating machine; native baseline runs reject WAIT engine policies.
+For packaged audit comparisons, use the checked-in launcher with -EnginePolicies turret_aiming for the policy arm and omit it for the default arm. The launcher records the selection and uses the same sealed optional addon on every participating machine; native baseline runs reject CBE engine policies.
 
 Navigation corridors are available as a native Zeus behaviour task and optional ZEN dialog.
 They define an explicit area, facing, dimensions and task speed for ordinary/convoy lead routing;
@@ -106,7 +106,11 @@ Signed candidates reuse the external `WaldoTheWarfighter` pair. The pinned publi
 
 The encrypted Actions secret `WALDO_SIGNING_KEYPAIR` contains JSON fields `privateKey` and `publicKey`, each base64 encoded. Configure it through stdin, never a command-line value or committed file. Signing removes the secret from the environment before invoking tools, decodes into a temporary directory outside the checkout and removes that directory afterward. Only the public `.bikey` and PBO `.bisign` files enter the package.
 
-The candidate workflow pins armake2 commit `3cc3362101900ff41504db3e780dd1625634cf94` with the retained file-ordering and compiled-SQF patch. Local signing may use the fingerprint-pinned Bohemia DSSignFile executable. `sign_release.py` independently checks every PBO with HEMTT, rejects damaged signature copies, seals file hashes and exports `wait-candidate.zip`, its SHA-256 and `signing-verification.json`. Promotion repeats pinned-key verification on the exact candidate. These checks prove packaging/signatures, not AI or performance acceptance. Candidate generation does not publish a release or upload to Steam.
+The candidate workflow pins armake2 commit `3cc3362101900ff41504db3e780dd1625634cf94` with the retained file-ordering and compiled-SQF patch. Local signing may use the fingerprint-pinned Bohemia DSSignFile executable. `sign_release.py` independently checks every PBO with HEMTT, rejects damaged signature copies, seals file hashes and exports `cbe-candidate.zip`, its SHA-256 and `signing-verification.json`. Promotion repeats pinned-key verification on the exact candidate. These checks prove packaging/signatures, not AI or performance acceptance. Candidate generation does not publish a release or upload to Steam.
 
 
 Candidate signing and independent verification cover every PBO recursively, including optional addon folders. An unsigned optional addon prevents export just as an unsigned main addon does. The earlier local `permanent-key-final-20261016` artifact omitted the optional turret policy signature and is superseded; do not distribute it.
+
+## CBE naming and artwork
+
+CBE abbreviates Combat Behaviour Enhancement. The selected logo and Workshop banner are in `artwork/branding/`. See [CBE migration](docs/CBE-MIGRATION.md) for function names and retained mission contracts.

@@ -18,7 +18,7 @@
  * group keeps the role either way)
  *
  * Example:
- * [this, "COUNTER"] call WAIT_fnc_CortexSetArtilleryRole;
+ * [this, "COUNTER"] call CBE_fnc_CortexSetArtilleryRole;
  * Result: from the gun's init field, this mortar only fires counter-battery.
  *
  * Current callers: mission init fields and scripts, and the AI Orders ZEN module.
@@ -30,17 +30,17 @@ _role = toUpperANSI _role;
 if !(_role in ["SUPPORT", "COUNTER", "BOTH"]) exitWith {false};
 if (_battery isEqualType grpNull) exitWith {
     if (isNull _battery) exitWith {false};
-    _battery setVariable ["WAIT_AIPass_ArtilleryRole", _role, true];
+    _battery setVariable ["CBE_AIPass_ArtilleryRole", _role, true];
     private _guns = 0;
     {
         private _vehicle = vehicle _x;
         if (_vehicle != _x && {getNumber (configOf _vehicle >> "artilleryScanner") == 1}) then {
-            _vehicle setVariable ["WAIT_AIPass_ArtilleryRole", _role, true];
+            _vehicle setVariable ["CBE_AIPass_ArtilleryRole", _role, true];
             _guns = _guns + 1;
         };
     } forEach units _battery;
     _guns > 0
 };
 if (isNull _battery) exitWith {false};
-_battery setVariable ["WAIT_AIPass_ArtilleryRole", _role, true];
+_battery setVariable ["CBE_AIPass_ArtilleryRole", _role, true];
 true

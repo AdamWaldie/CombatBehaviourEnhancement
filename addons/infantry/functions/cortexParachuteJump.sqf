@@ -22,21 +22,21 @@
  * Boolean - true when the soldier jumped
  *
  * Example:
- * [_soldier, _helicopter] call WAIT_fnc_CortexParachuteJump;
+ * [_soldier, _helicopter] call CBE_fnc_CortexParachuteJump;
  * Result: the soldier drops behind the helicopter and his parachute opens.
  *
- * Current caller: WAIT_fnc_CortexAirborneDropStep.
+ * Current caller: CBE_fnc_CortexAirborneDropStep.
  */
 
 params [["_unit", objNull, [objNull]], ["_aircraft", objNull, [objNull]]];
 if (isNull _unit || {!alive _unit} || {!local _unit} || {isPlayer _unit} || {vehicle _unit != _aircraft}) exitWith {false};
 // Direct calls and a queued drop both preserve individual controller ownership at exit.
-if (!([_unit] call WAIT_fnc_CortexCombatEffective)
-    || {[_unit] call WAIT_fnc_CortexActorMoveReserved}
+if (!([_unit] call CBE_fnc_CortexCombatEffective)
+    || {[_unit] call CBE_fnc_CortexActorMoveReserved}
     || {!isNull remoteControlled _unit}
     || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-    || {([_unit] call WAIT_fnc_CortexExternalOwner) != ""}
-    || {[_unit] call WAIT_fnc_CompatibilityExternalControl}) exitWith {false};
+    || {([_unit] call CBE_fnc_CortexExternalOwner) != ""}
+    || {[_unit] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
 private _chuteClass = missionNamespace getVariable ["WALDO_STATIC_STATICCHUTE", "NonSteerable_Parachute_F"];
 // Backpack classes also exist in CfgVehicles but cannot carry a jumper.
 if !(isClass (configFile >> "CfgVehicles" >> _chuteClass) && {_chuteClass isKindOf "ParachuteBase"}) then {

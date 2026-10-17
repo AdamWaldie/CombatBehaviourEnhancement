@@ -9,7 +9,7 @@ class CorridorFoundationTests(unittest.TestCase):
         body = source.split('params [[', 1)[1]
         self.assertIn('if (!isServer)', body)
         self.assertIn('getAssignedCuratorLogic', body)
-        self.assertIn('WAIT_DrivingCorridorArea', body)
+        self.assertIn('CBE_DrivingCorridorArea', body)
         self.assertIn('curatorEditableObjects _curator', body)
         self.assertIn('count _records >= 32', body)
         self.assertLess(body.index('_area setVariable'), body.index('missionNamespace setVariable'))
@@ -48,8 +48,8 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertNotIn(forbidden, source)
     def test_controller_owns_one_writer_and_suppresses_route_recovery(self):
         source = (ROOT / 'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
-        self.assertIn('call WAIT_fnc_DrivingCorridorStep', source)
-        self.assertIn('[_vehicle,_group,"ROUTE_AUTHORITY_ENDED"] call WAIT_fnc_DrivingCorridorRelease', source)
+        self.assertIn('call CBE_fnc_DrivingCorridorStep', source)
+        self.assertIn('[_vehicle,_group,"ROUTE_AUTHORITY_ENDED"] call CBE_fnc_DrivingCorridorRelease', source)
         self.assertIn('_capMps=_capMps min (_corridor select 1)', source)
         self.assertIn('&& {!_corridorActive} && {!_hadCorridor}', source)
         fsm = (ROOT / 'addons/main/fsm/drivingOperation.fsm').read_text()
@@ -57,7 +57,7 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertIn(phase, fsm)
         release = (ROOT / 'addons/vehicles/functions/drivingCorridorRelease.sqf').read_text()
         self.assertLess(release.index('expectedDestination _operator'), release.index('doStop _driver;'))
-        self.assertIn('call WAIT_fnc_CortexExternalTakeover', release)
+        self.assertIn('call CBE_fnc_CortexExternalTakeover', release)
     def test_full_hull_completion_does_not_accept_centre_only_crossing(self):
         # A centre ten metres past the plane still leaves a 16-metre half-length hull behind it.
         for half_length in (2, 8, 16, 23):
@@ -68,17 +68,17 @@ class CorridorFoundationTests(unittest.TestCase):
     def test_convoy_lead_keeps_one_executor_and_predecessor_followers(self):
         tick = (ROOT / 'addons/vehicles/functions/convoyTick.sqf').read_text()
         step = (ROOT / 'addons/vehicles/functions/drivingCorridorStep.sqf').read_text()
-        call = '[_group,_lead,_group getVariable ["WAIT_Convoy_Brain",createHashMap],"CONVOY"]'
+        call = '[_group,_lead,_group getVariable ["CBE_Convoy_Brain",createHashMap],"CONVOY"]'
         self.assertEqual(tick.count(call), 1)
         self.assertLess(tick.index(call), tick.index('private _routeWatch='))
         self.assertIn('if (!_corridorActive && {!_hadCorridor}', tick)
         self.assertIn('if (!_routeDone && {!_corridorActive} && {!_hadCorridor}', tick)
         self.assertIn('_leadLimit=_leadLimit min ((_corridor select 1)*3.6)', tick)
-        for guard in ('WAIT_Convoy_LocalRegistry', 'WAIT_Convoy_LocalJobToken',
-                      'WAIT_Convoy_ReceivedRevision', '(_mobile select 0) isEqualTo _vehicle',
-                      'WAIT_Convoy_DrivingAssist_Enable'):
+        for guard in ('CBE_Convoy_LocalRegistry', 'CBE_Convoy_LocalJobToken',
+                      'CBE_Convoy_ReceivedRevision', '(_mobile select 0) isEqualTo _vehicle',
+                      'CBE_Convoy_DrivingAssist_Enable'):
             self.assertIn(guard, step)
-        self.assertIn('_convoy || {missionNamespace getVariable ["WAIT_AIPass_Active",false]}', step)
+        self.assertIn('_convoy || {missionNamespace getVariable ["CBE_AIPass_Active",false]}', step)
     def test_convoy_halt_release_and_lead_replacement_retire_only_matching_work(self):
         crew = (ROOT / 'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
         release = (ROOT / 'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
@@ -86,7 +86,7 @@ class CorridorFoundationTests(unittest.TestCase):
         halt = crew.split('if (_phase == "HALT"', 1)[1]
         self.assertLess(halt.index('doStop driver _vehicle;'), halt.index('"CONVOY_HALT",false'))
         self.assertIn('if (!(_vehicle in _keepCrew)', release)
-        self.assertIn('"CONVOY_RELEASED",!_preserveMoves,_preserveMoves] call WAIT_fnc_DrivingCorridorRelease', release)
+        self.assertIn('"CONVOY_RELEASED",!_preserveMoves,_preserveMoves] call CBE_fnc_DrivingCorridorRelease', release)
         self.assertIn('"CONVOY_LEAD_CHANGED",false,true', tick)
         fsm = (ROOT / 'addons/main/fsm/convoyOperation.fsm').read_text()
         for phase in ('CORRIDOR_APPROACH', 'CORRIDOR_CROSS'):
@@ -96,12 +96,12 @@ class CorridorFoundationTests(unittest.TestCase):
         release = (ROOT / 'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
         guard = release.split('private _corridor=', 1)[1].split('private _restore=', 1)[0]
         self.assertIn('param [0,""]) == "ORDINARY"', guard)
-        self.assertLess(guard.index('== "ORDINARY"'), guard.index('call WAIT_fnc_DrivingCorridorRelease'))
+        self.assertLess(guard.index('== "ORDINARY"'), guard.index('call CBE_fnc_DrivingCorridorRelease'))
 
     def test_convoy_uses_worst_hull_without_multiplying_geometry_probes(self):
         step = (ROOT / 'addons/vehicles/functions/drivingCorridorStep.sqf').read_text()
         geometry = (ROOT / 'addons/vehicles/functions/drivingCorridorGeometry.sqf').read_text()
-        self.assertEqual(step.count('call WAIT_fnc_DrivingCorridorGeometry'), 1)
+        self.assertEqual(step.count('call CBE_fnc_DrivingCorridorGeometry'), 1)
         self.assertIn('count (_configuration param [4,[]]) <= 20', step)
         for dimension in range(3):
             self.assertIn(f'_envelope set [{dimension}', step)
@@ -120,22 +120,22 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('_serial == (_previous select 0)', dispatch)
         self.assertIn('count _receipts >= 64', dispatch)
         self.assertLess(dispatch.index('Corridor area budget reached'), dispatch.index('createGroup [sideLogic,true]'))
-        self.assertIn('WAIT_DrivingCorridor_LocalSerial', dispatch)
+        self.assertIn('CBE_DrivingCorridor_LocalSerial', dispatch)
         self.assertIn('addCuratorEditableObjects', dispatch)
         self.assertIn('createGroup [sideLogic,true]', dispatch)
         self.assertIn('setGroupOwner _replyOwner', dispatch)
         self.assertNotIn('createVehicle [', dispatch)
-        self.assertIn('"WAIT_DrivingCorridorArea"', dispatch)
+        self.assertIn('"CBE_DrivingCorridorArea"', dispatch)
         self.assertNotIn('setDriveOnPath', dispatch)
     def test_native_module_is_disposable_and_persistent_area_has_no_recursive_module_function(self):
         config = (ROOT / 'addons/main/config.cpp').read_text()
-        area = config.split('class WAIT_DrivingCorridorArea: Logic {', 1)[1].split('};', 1)[0]
+        area = config.split('class CBE_DrivingCorridorArea: Logic {', 1)[1].split('};', 1)[0]
         self.assertNotIn('function =', area)
         module = (ROOT / 'addons/vehicles/functions/moduleDrivingCorridor.sqf').read_text()
         self.assertIn('!_activated', module)
-        self.assertIn('WAIT_processed', module)
+        self.assertIn('CBE_processed', module)
         self.assertIn('deleteVehicle _logic;', module)
-        self.assertIn('[_position,_target,_facing] call WAIT_fnc_ZenDrivingCorridorModule', module)
+        self.assertIn('[_position,_target,_facing] call CBE_fnc_ZenDrivingCorridorModule', module)
 
     def test_tail_passage_has_no_second_movement_or_speed_writer(self):
         source = (ROOT / 'addons/vehicles/functions/convoyCorridorStep.sqf').read_text().split('params [[',1)[1]
@@ -161,7 +161,7 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('waypointCompletionRadius _waypoint max 20', step)
     def test_tail_caps_and_settlement_use_existing_convoy_callback(self):
         tick = (ROOT / 'addons/vehicles/functions/convoyTick.sqf').read_text()
-        self.assertEqual(tick.count('call WAIT_fnc_ConvoyCorridorStep'), 1)
+        self.assertEqual(tick.count('call CBE_fnc_ConvoyCorridorStep'), 1)
         self.assertIn('private _settled = !_passageActive && {!_bypassPassageActive} && {_routeDone}', tick)
         self.assertLess(tick.index('_limit=_limit min ((_passageCaps'), tick.index('_vehicle forceSpeed _ownedSpeed'))
         self.assertIn('"CORRIDOR_TAIL"', (ROOT / 'addons/main/fsm/convoyOperation.fsm').read_text())
@@ -169,8 +169,8 @@ class CorridorFoundationTests(unittest.TestCase):
         passage = (ROOT / 'addons/vehicles/functions/convoyCorridorStep.sqf').read_text()
         self.assertIn('(_episode get "revision") == _revision', passage)
         self.assertIn('currentWaypoint _group < _index', passage)
-        self.assertIn('WAIT_AIPass_ZeusHold', passage)
-        self.assertIn('WAIT_fnc_AuthoredRouteReceipt', passage)
+        self.assertIn('CBE_AIPass_ZeusHold', passage)
+        self.assertIn('CBE_fnc_AuthoredRouteReceipt', passage)
         crew = (ROOT / 'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
         self.assertIn('_revision >= (_passage get "revision")', crew)
 

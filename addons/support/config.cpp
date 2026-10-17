@@ -1,6 +1,6 @@
 class CfgPatches {
-    class WAIT_support {
-        name = "Waldos AI Tweaks - Support";
+    class CBE_support {
+        name = "Combat Behaviour Enhancement (CBE) - Support";
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main"};

@@ -28,7 +28,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
     def test_follower_handover_retires_owned_reverse_before_stage_reset(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         follower=s.split('vehicle leader _group isNotEqualTo _vehicle}) then {',1)[1].split('if (_state isNotEqualTo [] && {call _nativeWaiting})',1)[0]
-        self.assertLess(follower.index('call WAIT_fnc_DrivingRecoveryRelease'),follower.index('_state set [6,0]'))
+        self.assertLess(follower.index('call CBE_fnc_DrivingRecoveryRelease'),follower.index('_state set [6,0]'))
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
         for guard in ('driverCommand','expectedDestination _operator','DrivingRouteReceipt','CortexExternalTakeover','CortexZeusHeld'):
             self.assertIn(guard,release)
@@ -52,13 +52,13 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertIn('serverTime-(_jamSeen select 2) <= 6',jam)
         self.assertIn('serverTime >= (_jamSeen select 2)',jam)
         self.assertIn('if (!_jamContinuous ||',jam)
-        seen=next(line for line in jam.splitlines() if 'setVariable ["WAIT_DrivingTrafficSeen"' in line)
+        seen=next(line for line in jam.splitlines() if 'setVariable ["CBE_DrivingTrafficSeen"' in line)
         self.assertNotIn(',true]',seen)
         reset=jam.split('if (!_jamContinuous ||',1)[1].split('};',1)[0]
         self.assertNotIn('"deadline"',reset)
         self.assertNotIn('"attempts"',reset)
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
-        self.assertIn('setVariable ["WAIT_DrivingTrafficSeen",nil]',release)
+        self.assertIn('setVariable ["CBE_DrivingTrafficSeen",nil]',release)
     def test_stationary_dwell_uses_episode_anchors_not_sliding_samples(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         dwell=s.split('private _jamOwnPose=',1)[1].split('if (_jamEligible) then {',1)[0]
@@ -134,7 +134,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertNotIn('if (_exhausted) then {_phase="HANDBACK"',step)
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
         state=fsm.split('class RecoveryExhausted {name=',1)[1].split('class Recovery {name=',1)[0]
-        self.assertIn('call WAIT_fnc_DrivingOperationQueue',state)
+        self.assertIn('call CBE_fnc_DrivingOperationQueue',state)
         self.assertNotIn('DrivingOperationFinish',state)
 
     def test_driving_and_gate_server_share_strict_movement_lease_boundary(self):
@@ -147,9 +147,9 @@ class DrivingPlanningGraceTests(unittest.TestCase):
             self.assertIn(guard,s)
         self.assertNotIn('setVariable',s)
         gate=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
-        self.assertEqual(gate.count('[_group,true] call WAIT_fnc_DrivingMovementAvailable'),2)
+        self.assertEqual(gate.count('[_group,true] call CBE_fnc_DrivingMovementAvailable'),2)
         final=gate.split('// Final mutation boundary:',1)[1].split('_gate setVariable',1)[0]
-        self.assertIn('call WAIT_fnc_DrivingMovementAvailable',final)
+        self.assertIn('call CBE_fnc_DrivingMovementAvailable',final)
         self.assertNotIn('_lease select 1',gate)
 
     def test_discovery_cannot_erase_unknown_leases_or_renew_deadlines(self):
@@ -159,12 +159,12 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertIn('finite (_movementLease select 1)',block)
         self.assertIn('serverTime >= (_movementLease select 1)',block)
         self.assertIn('[_group,_movementLease select 0,false]',block)
-        self.assertEqual(block.count('call WAIT_fnc_CortexOwnershipLease'),1)
+        self.assertEqual(block.count('call CBE_fnc_CortexOwnershipLease'),1)
         self.assertNotIn('select 0,true',block)
         lease=(ROOT/'addons/compatibility/functions/cortexOwnershipLease.sqf').read_text()
         self.assertLess(lease.index('if (_lease isNotEqualTo [] && {!_typed})'),lease.index('if (_acquire)'))
         self.assertIn('!finite _expires',lease)
-        final=lease.split('call WAIT_fnc_DrivingOperationFinish',1)[1].split('setVariable ["WAIT_Cortex_MovementLease"',1)[0]
+        final=lease.split('call CBE_fnc_DrivingOperationFinish',1)[1].split('setVariable ["CBE_Cortex_MovementLease"',1)[0]
         self.assertIn('isNotEqualTo _lease',final)
         self.assertIn('!local _group',final)
 

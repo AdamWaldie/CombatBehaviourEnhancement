@@ -49,16 +49,16 @@ class EarlyExitNativeTaskTests(unittest.TestCase):
         self.assertIn('_record set [3,"DIVERTED"]',service)
         self.assertIn('_job set ["egressFailed",true]',service)
         recovery=service.split('serverTime-(_motion select 1) >= 8',1)[1]
-        self.assertLess(recovery.index('call _exitMovementOwned'),recovery.index('call WAIT_fnc_RecoveryStep'))
+        self.assertLess(recovery.index('call _exitMovementOwned'),recovery.index('call CBE_fnc_RecoveryStep'))
 
 
 class DoorObservationAuthorityTests(unittest.TestCase):
     def test_metadata_discovery_cannot_open_or_consume_cooldown(self):
         s=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
         cutoff=s.index('if (_metadataOnly) exitWith {false};')
-        self.assertLess(s.index('WAIT_Cortex_DoorDefinitions'),cutoff)
+        self.assertLess(s.index('CBE_Cortex_DoorDefinitions'),cutoff)
         self.assertLess(cutoff,s.index('call BIS_fnc_door'))
-        self.assertLess(cutoff,s.index('setVariable ["WAIT_Cortex_DoorRequestUntil"'))
+        self.assertLess(cutoff,s.index('setVariable ["CBE_Cortex_DoorRequestUntil"'))
         final=s.split('if (_near && {_visible}',1)[1].split('call BIS_fnc_door',1)[0]
         for gate in ('currentCommand _unit != "STOP"','local _unit','simulationEnabled _unit',
                      '!isObjectHidden _unit','checkAIFeature "MOVE"','checkAIFeature "PATH"',
@@ -66,16 +66,16 @@ class DoorObservationAuthorityTests(unittest.TestCase):
             self.assertIn(gate,final)
         caller=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
         discovery=caller.split('// Before exterior actors commit',1)[1].split('private _allLocked=',1)[0]
-        self.assertIn('["CLEAR",_job get "generation"],true] call WAIT_fnc_CortexBuildingDoor',discovery)
+        self.assertIn('["CLEAR",_job get "generation"],true] call CBE_fnc_CortexBuildingDoor',discovery)
 
     def test_context_binds_actual_building_assignment_and_native_task(self):
         s=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
         context=s.split('private _key=switch',1)[1].split('if (isNull _unit',1)[0]
-        for guard in ('call WAIT_fnc_CortexActorMoveReserved','currentCommand _unit in ["","MOVE"]',
-                      'getOrDefault ["building",objNull]) == _building','WAIT_AIPass_GarrisonPos',
+        for guard in ('call CBE_fnc_CortexActorMoveReserved','currentCommand _unit in ["","MOVE"]',
+                      'getOrDefault ["building",objNull]) == _building','CBE_AIPass_GarrisonPos',
                       '(_assignment select 2) == _building','(_assignment select 3) isEqualTo',
-                      'WAIT_Cortex_GarrisonMove','_live vectorDistance (_receipt select 3) <= 0.25',
-                      'call WAIT_fnc_NativeOrderReceipt','getOrDefault ["team",[]]'):
+                      'CBE_Cortex_GarrisonMove','_live vectorDistance (_receipt select 3) <= 0.25',
+                      'call CBE_fnc_NativeOrderReceipt','getOrDefault ["team",[]]'):
             self.assertIn(guard,context)
         garrison=(ROOT/'addons/infantry/functions/cortexGarrisonApplyLocal.sqf').read_text()
         delayed=garrison.split('private _commandOwned=',1)[1].split('private _pending =',1)[0]
@@ -88,7 +88,7 @@ class DoorObservationAuthorityTests(unittest.TestCase):
         admission=s.split('private _mayIssueMovement = {',1)[1].split('private _rememberMove =',1)[0]
         for guard in ('_actor in _freshActors','count _receipt == 5',
                       '(_receipt select 4) isEqualTo _assignment','_live vectorDistance (_receipt select 3) <= 0.25',
-                      'call WAIT_fnc_CortexGarrisonArrived'):
+                      'call CBE_fnc_CortexGarrisonArrived'):
             self.assertIn(guard,admission)
         self.assertIn('!_heldInPlace && {_unit in _freshActors}',s)
         self.assertIn('private _atPost=[_unit,_assignment] call _assignmentArrived;',s)
@@ -98,10 +98,10 @@ class DoorObservationAuthorityTests(unittest.TestCase):
         self.assertIn('currentCommand _unit == "MOVE"',hold)
         self.assertIn('(expectedDestination _unit) param [0,_destination]',hold)
         explicit=(ROOT/'addons/infantry/functions/cortexGarrison.sqf').read_text()
-        self.assertIn('[_group,_units] call WAIT_fnc_CortexGarrisonApplyLocal',explicit)
-        self.assertIn('call WAIT_fnc_CortexActorMoveReserved',explicit.split('private _units =',1)[1].split('if (_units isEqualTo',1)[0])
+        self.assertIn('[_group,_units] call CBE_fnc_CortexGarrisonApplyLocal',explicit)
+        self.assertIn('call CBE_fnc_CortexActorMoveReserved',explicit.split('private _units =',1)[1].split('if (_units isEqualTo',1)[0])
         refill=(ROOT/'addons/infantry/functions/cortexGarrisonRefill.sqf').read_text()
-        self.assertIn('[_group,[_actor]] call WAIT_fnc_CortexGarrisonApplyLocal',refill)
+        self.assertIn('[_group,[_actor]] call CBE_fnc_CortexGarrisonApplyLocal',refill)
         self.assertIn('currentCommand _actor in ["","STOP"]',refill)
         discover=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text()
-        self.assertIn('[_group] call WAIT_fnc_CortexGarrisonApplyLocal',discover)
+        self.assertIn('[_group] call CBE_fnc_CortexGarrisonApplyLocal',discover)

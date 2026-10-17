@@ -9,25 +9,25 @@
  * Repeat/JIP: One contact-episode lease records the exact actor, weapon and assignment. A contact is
  * sampled once after an eligible actor is available; temporary actor reservations remain retryable.
  * Failed physical attempts are not retried until a later contact. Locality change
- * discards engine commands and lets the new owner reassess. Cleanup cancels only WAIT's exact still-
+ * discards engine commands and lets the new owner reassess. Cleanup cancels only CBE's exact still-
  * matching assignment; Zeus, player, specialist, medical, equipment and newer actor movement ownership are never overwritten.
  * Arguments: 0 group <GROUP>; 1 group state <HASHMAP>; 2 known enemies <ARRAY>.
  * Return Value: STRING - DISABLED, IDLE, MOVING, ACTIVE, FAILED or YIELDED.
- * Current callers: WAIT_fnc_CortexGroupTick while a group is in confirmed CONTACT.
- * Example: [group player, [group player] call WAIT_fnc_CortexGroupState, []] call WAIT_fnc_CortexStaticSupport;
+ * Current callers: CBE_fnc_CortexGroupTick while a group is in confirmed CONTACT.
+ * Example: [group player, [group player] call CBE_fnc_CortexGroupState, []] call CBE_fnc_CortexStaticSupport;
  */
 
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]]];
 if (isNull _group || {!local _group}) exitWith {"YIELDED"};
-private _lease=_group getVariable ["WAIT_Danger_StaticSupport",[]];
+private _lease=_group getVariable ["CBE_Danger_StaticSupport",[]];
 private _clearActorMove={
     params ["_actor"];
     if (!isNull _actor && {local _actor}) then {
-        private _actorMove=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
         if (count _lease >= 7 && {(_lease select 1) == _actor}
             && {count _actorMove == 3} && {(_actorMove select 0) == "STATIC_SUPPORT"}
             && {(_actorMove select 2) == (_lease select 4)}) then {
-            _actor setVariable ["WAIT_Cortex_ActorMove",nil];
+            _actor setVariable ["CBE_Cortex_ActorMove",nil];
         };
     };
 };
@@ -40,26 +40,26 @@ private _release={
         private _ownedBoarding=_command == "GET IN" && {!isNull _weapon}
             && {assignedVehicle _actor == _weapon};
         private _protectedTask=!_ownedBoarding && {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
-        private _actorMove=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
         private _newMove=count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time}
             && {(_actorMove select 0) != "STATIC_SUPPORT" || {(_actorMove select 2) != (_lease select 4)}};
         [_actor] call _clearActorMove;
         if (!_external && {!_protectedTask} && {!_newMove} && {!isNull _actor} && {alive _actor} && {local _actor}
             && {!isPlayer _actor} && {group _actor == _group}
-            && {[_actor] call WAIT_fnc_CortexCombatEffective}
-            && {!([_actor] call WAIT_fnc_CompatibilityExternalControl)}
+            && {[_actor] call CBE_fnc_CortexCombatEffective}
+            && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
             && {!isNull _weapon} && {assignedVehicle _actor == _weapon}) then {
             [_actor] orderGetIn false;
             unassignVehicle _actor;
             if (vehicle _actor == _weapon) then {_actor action ["GetOut",_weapon]};
         };
     };
-    _group setVariable ["WAIT_Danger_StaticSupport",nil,true];
+    _group setVariable ["CBE_Danger_StaticSupport",nil,true];
 };
 
-private _enabled=missionNamespace getVariable ["WAIT_AIPass_Active",false]
-    && {[_group,"WAIT_AIPass_StaticSupport_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
-private _external=[_group] call WAIT_fnc_CortexExternalTakeover;
+private _enabled=missionNamespace getVariable ["CBE_AIPass_Active",false]
+    && {[_group,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+private _external=[_group] call CBE_fnc_CortexExternalTakeover;
 private _phase=toUpperANSI (_state getOrDefault ["phase","CALM"]);
 private _holdFire=combatMode _group in ["BLUE","GREEN"];
 if (!_enabled || {_phase != "CONTACT"} || {_holdFire} || {_enemies isEqualTo []} || {_external}) exitWith {
@@ -68,18 +68,18 @@ if (!_enabled || {_phase != "CONTACT"} || {_holdFire} || {_enemies isEqualTo []}
     // must not retire the carried deployment through this wrapper's default no-pack call.
     // Explicit disable, hold-fire and external takeover still clean up immediately.
     if (!(_phase == "SECURITY" && {_enabled} && {!_holdFire} && {!_external})) then {
-        [_group,_state,[]] call WAIT_fnc_CortexStaticDeployStep;
+        [_group,_state,[]] call CBE_fnc_CortexStaticDeployStep;
     };
     ["IDLE","YIELDED"] select _external
 };
 
 private _episode=_state getOrDefault ["phaseStart",time];
-if ((_group getVariable ["WAIT_Danger_StaticDeployment",[]]) isNotEqualTo []) exitWith {
-    [_group,_state,_enemies] call WAIT_fnc_CortexStaticDeployStep
+if ((_group getVariable ["CBE_Danger_StaticDeployment",[]]) isNotEqualTo []) exitWith {
+    [_group,_state,_enemies] call CBE_fnc_CortexStaticDeployStep
 };
 if (count _lease >= 7) exitWith {
     _lease params ["_leaseEpisode","_actor","_weapon","_issuedAt","_deadline","_status","_startPosition"];
-    private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _operationConflict=count _operation > 0 && {
         (_operation getOrDefault ["intent",""]) in ["WITHDRAW","VEHICLE_WITHDRAW"]
             || {_actor in (_operation getOrDefault ["participants",[]])}
@@ -88,7 +88,7 @@ if (count _lease >= 7) exitWith {
         [true] call _release;
         "YIELDED"
     };
-    if (!isNull _actor && {[_actor] call WAIT_fnc_CompatibilityExternalControl}) exitWith {
+    if (!isNull _actor && {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {
         [true] call _release;
         "YIELDED"
     };
@@ -102,31 +102,31 @@ if (count _lease >= 7) exitWith {
         [_actor] call _clearActorMove;
         if (_status != "ACTIVE") then {
             _lease set [5,"ACTIVE"];
-            _group setVariable ["WAIT_Danger_StaticSupport",_lease,true];
+            _group setVariable ["CBE_Danger_StaticSupport",_lease,true];
         };
         "ACTIVE"
     };
     if (time >= _deadline) exitWith {
         [false] call _release;
-        _group setVariable ["WAIT_Danger_StaticAttempt",[_episode,"FAILED",serverTime],true];
+        _group setVariable ["CBE_Danger_StaticAttempt",[_episode,"FAILED",serverTime],true];
         "FAILED"
     };
     "MOVING"
 };
 
-private _attempt=_group getVariable ["WAIT_Danger_StaticAttempt",[]];
+private _attempt=_group getVariable ["CBE_Danger_StaticAttempt",[]];
 if ((_attempt param [0,-1,[0]]) == _episode) exitWith {_attempt param [1,"IDLE",[""]]};
 // An existing group operation already owns its participant set. Static support is selected before a
 // new manoeuvre starts and then composes beside it; it never removes an actor from a live operation.
-if (count (_group getVariable ["WAIT_Operation",createHashMap]) > 0) exitWith {
+if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0) exitWith {
     // Temporary operation ownership is not a failed contact-episode attempt.
     "IDLE"
 };
 // Retry temporary reservations without repeatedly scanning nearby world objects.
 // Existing seat/deployment leases were advanced above; only new opportunity discovery backs off.
-private _retry=_group getVariable ["WAIT_Danger_StaticRetry",[]];
+private _retry=_group getVariable ["CBE_Danger_StaticRetry",[]];
 if (count _retry == 2 && {(_retry select 0) == _episode} && {time < (_retry select 1)}) exitWith {"IDLE"};
-private _anchor=[_group] call WAIT_fnc_CortexGroupAnchor;
+private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _anchor) then {_anchor=leader _group};
 if (isNull _anchor) exitWith {"IDLE"};
 private _sideIndex=switch (side _group) do {case west:{1}; case east:{0}; case independent:{2}; default {3}};
@@ -138,13 +138,13 @@ private _weapons=(nearestObjects [_anchor,["StaticWeapon"],75,true]) select {
         && {getNumber (configOf _x >> "side") in [_sideIndex,3]}
 };
 if (_weapons isEqualTo []) exitWith {
-    private _deploy=[_group,_state,_enemies] call WAIT_fnc_CortexStaticDeployStep;
+    private _deploy=[_group,_state,_enemies] call CBE_fnc_CortexStaticDeployStep;
     // Deployment owns its active phases; only terminal outcomes belong in this parent cache.
     if (_deploy in ["FAILED","NO_PRIMARY_BAG","NO_BASE_BAG","NO_SAFE_SECTOR"]) then {
-        _group setVariable ["WAIT_Danger_StaticAttempt",[_episode,_deploy,serverTime],true];
+        _group setVariable ["CBE_Danger_StaticAttempt",[_episode,_deploy,serverTime],true];
     } else {
         if (_deploy in ["IDLE","YIELDED"]) then {
-            _group setVariable ["WAIT_Danger_StaticRetry",[_episode,time+3]];
+            _group setVariable ["CBE_Danger_StaticRetry",[_episode,time+3]];
         };
     };
     _deploy
@@ -154,26 +154,26 @@ _rankedWeapons sort true;
 private _weapon=(_rankedWeapons select 0) select 1;
 private _candidates=(units _group) select {
     alive _x && {local _x} && {!isPlayer _x} && {_x != leader _group}
-        && {[_x] call WAIT_fnc_CortexCombatEffective} && {vehicle _x == _x}
-        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+        && {[_x] call CBE_fnc_CortexCombatEffective} && {vehicle _x == _x}
+        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {isNull assignedVehicle _x}
         // Native contact commands such as TARGET and WATCH are transient observations, not an
         // external movement owner. Reject only concrete actor tasks which boarding would actually
         // interrupt; the group-level Zeus/mission-order gate above already protects authored work.
         && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
-        && {(_x getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}
+        && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
 };
 if (_candidates isEqualTo []) exitWith {
     private _potential=(units _group) findIf {
         alive _x && {local _x} && {!isPlayer _x} && {_x != leader _group}
-            && {[_x] call WAIT_fnc_CortexCombatEffective} && {isNull objectParent _x}
-            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+            && {[_x] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _x}
+            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
     } >= 0;
     if (_potential) exitWith {
-        _group setVariable ["WAIT_Danger_StaticRetry",[_episode,time+3]];
+        _group setVariable ["CBE_Danger_StaticRetry",[_episode,time+3]];
         "IDLE"
     };
-    _group setVariable ["WAIT_Danger_StaticAttempt",[_episode,"NO_ACTOR",serverTime],true];
+    _group setVariable ["CBE_Danger_StaticAttempt",[_episode,"NO_ACTOR",serverTime],true];
     "IDLE"
 };
 private _rankedActors=_candidates apply {[_x distance2D _weapon,_x]};
@@ -182,8 +182,8 @@ private _actor=(_rankedActors select 0) select 1;
 private _deadline=time+20;
 _actor assignAsGunner _weapon;
 [_actor] orderGetIn true;
-_actor setVariable ["WAIT_Cortex_ActorMove",["STATIC_SUPPORT",getPosATL _weapon,_deadline]];
+_actor setVariable ["CBE_Cortex_ActorMove",["STATIC_SUPPORT",getPosATL _weapon,_deadline]];
 _lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor];
-_group setVariable ["WAIT_Danger_StaticSupport",_lease,true];
-_group setVariable ["WAIT_Danger_StaticAttempt",[_episode,"MOVING",serverTime],true];
+_group setVariable ["CBE_Danger_StaticSupport",_lease,true];
+_group setVariable ["CBE_Danger_StaticAttempt",[_episode,"MOVING",serverTime],true];
 "MOVING"

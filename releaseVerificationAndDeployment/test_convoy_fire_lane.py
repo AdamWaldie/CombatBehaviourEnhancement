@@ -6,11 +6,11 @@ class ConvoyFireLaneTests(unittest.TestCase):
     def test_mounted_fire_uses_shared_veto_and_retires_only_matching_target(self):
         source=(ROOT/'addons/vehicles/functions/convoyCrewLocal.sqf').read_text(encoding='utf-8')
         fire=source.split('if (_fireReady &&',1)[1].split('} forEach fullCrew',1)[0]
-        self.assertLess(fire.index('call WAIT_fnc_CortexLineOfFireClear'),fire.index('_unit doFire _enemy'))
+        self.assertLess(fire.index('call CBE_fnc_CortexLineOfFireClear'),fire.index('_unit doFire _enemy'))
         refusal=fire.split('} else {',1)[1]
         self.assertIn('assignedTarget _unit == _previous',refusal)
         self.assertIn('_unit doTarget objNull',refusal)
-        self.assertIn('WAIT_Convoy_Target',refusal)
+        self.assertIn('CBE_Convoy_Target',refusal)
         for forbidden in ('doMove','doFollow','setCombatMode','disableAI','forceSpeed'):
             self.assertNotIn(forbidden,fire)
     def test_operator_and_platform_availability_precede_fire(self):

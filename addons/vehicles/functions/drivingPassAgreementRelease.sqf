@@ -9,12 +9,12 @@
  * 2 expected token <STRING>, empty permits current local receipt; supplied tokens fence stale work.
  * Return: BOOL - a matching local receipt was retired and broker release requested.
  * Current callers: DrivingAssistRelease and trusted cancellation scripts.
- * Example: [truck1,group driver truck1] call WAIT_fnc_DrivingPassAgreementRelease;
+ * Example: [truck1,group driver truck1] call CBE_fnc_DrivingPassAgreementRelease;
  */
 params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]],["_expectedToken","",[""]]];
 if (isNull _vehicle || {!local _vehicle} || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
-private _consent=_vehicle getVariable ["WAIT_DrivingPass_Consent",[]];
-private _agreement=_vehicle getVariable ["WAIT_DrivingPass_Agreement",[]];
+private _consent=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];
+private _agreement=_vehicle getVariable ["CBE_DrivingPass_Agreement",[]];
 private _token="";private _context=[];
 if (_consent isNotEqualTo []) then {
     if (_consent isEqualType [] && {count _consent == 5}
@@ -41,16 +41,16 @@ if (!(_driverReceipt isEqualType []) || {count _driverReceipt != 10}
     || {!((_driverReceipt select 2) isEqualType grpNull)}
     || {!isNull _expectedGroup && {(_driverReceipt select 2) != _expectedGroup}}) exitWith {false};
 // Retire only matching local observations. A newer token/request must survive stale cleanup.
-if (_consent isNotEqualTo [] && {(_vehicle getVariable ["WAIT_DrivingPass_Consent",[]]) isEqualTo _consent}) then {
-    _vehicle setVariable ["WAIT_DrivingPass_Consent",nil];
+if (_consent isNotEqualTo [] && {(_vehicle getVariable ["CBE_DrivingPass_Consent",[]]) isEqualTo _consent}) then {
+    _vehicle setVariable ["CBE_DrivingPass_Consent",nil];
 };
 if (_agreement isEqualType [] && {count _agreement == 5} && {(_agreement select 0) isEqualTo _token}
-    && {(_vehicle getVariable ["WAIT_DrivingPass_Agreement",[]]) isEqualTo _agreement}) then {
-    _vehicle setVariable ["WAIT_DrivingPass_Agreement",nil];
+    && {(_vehicle getVariable ["CBE_DrivingPass_Agreement",[]]) isEqualTo _agreement}) then {
+    _vehicle setVariable ["CBE_DrivingPass_Agreement",nil];
 };
-private _request=_vehicle getVariable ["WAIT_DrivingPass_Request",[]];
+private _request=_vehicle getVariable ["CBE_DrivingPass_Request",[]];
 if (_request isEqualType [] && {count _request == 3} && {(_request select 0) isEqualTo _context}) then {
-    _vehicle setVariable ["WAIT_DrivingPass_Request",nil];
+    _vehicle setVariable ["CBE_DrivingPass_Request",nil];
 };
-["RELEASE",[_token]] remoteExecCall ["WAIT_fnc_DrivingPassAgreementServer",2];
+["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingPassAgreementServer",2];
 true

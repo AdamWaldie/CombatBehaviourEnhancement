@@ -14,21 +14,21 @@
  * its building worker retains per-room failure evidence and the generation retry budget stays spent.
  * Locality/authority: Current group owner only; it never creates a replacement route or issues a movement order.
  * Repeat/JIP: Updates the current generation only. Changed progress, roster and recovery state are public; unchanged no-progress observations are not rebroadcast. Cadence is local and rebuilt after migration.
- * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 minimum progress <NUMBER, 3>; 3 stale seconds <NUMBER, 12>; 4 allow own WAIT feature <BOOL, false>.
+ * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 minimum progress <NUMBER, 3>; 3 stale seconds <NUMBER, 12>; 4 allow own CBE feature <BOOL, false>.
  * Return Value: STRING - ACTIVE, STALLED, LOST_OWNER, ZEUS, EXTERNAL or COMPLETE.
  * Current callers: shared group operation jobs.
- * Example: [group player,4] call WAIT_fnc_OperationStep;
+ * Example: [group player,4] call CBE_fnc_OperationStep;
  */
 params [["_group",grpNull,[grpNull]],["_generation",-1,[0]],["_minimum",3,[0]],["_staleSeconds",12,[0]],["_allowFeatureOwner",false,[true]]];
 if (isNull _group || {!local _group}) exitWith {"LOST_OWNER"};
-private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _generation}) exitWith {"REPLACED"};
 // The route and callback belong to the owner epoch that created them.  Locality handlers normally
 // retire that generation before discovery rebuilds semantic intent, but this guard also covers an
 // out-of-order Local event or an HC handoff that races a queued callback.
-if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])) exitWith {"LOST_OWNER"};
-if ([_group] call WAIT_fnc_CortexZeusHeld) exitWith {"ZEUS"};
-if !([_group,false,false,_allowFeatureOwner] call WAIT_fnc_CortexIsEligible) exitWith {"EXTERNAL"};
+if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])) exitWith {"LOST_OWNER"};
+if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {"ZEUS"};
+if !([_group,false,false,_allowFeatureOwner] call CBE_fnc_CortexIsEligible) exitWith {"EXTERNAL"};
 // Progress belongs to the actors committed to this operation, not automatically to the group
 // leader. A leader can deliberately provide exterior security during CLEAR while the entry element
 // is advancing through rooms; leader-only accounting would misclassify that working operation as stalled.
@@ -39,9 +39,9 @@ private _legacyFoot=!("participantPlatforms" in _operation);
 if (!(_platforms isEqualType createHashMap)) then {_platforms=createHashMap};
 private _originalParticipants=_declaredParticipants select {
     private _platform=_platforms getOrDefault [netId _x,[objNull,_x] select _legacyFoot];
-    [_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x} && {group _x == _group}
-        && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x} && {group _x == _group}
+        && {isNull (remoteControlled _x)} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {_platform isEqualType objNull} && {!isNull _platform} && {vehicle _x == _platform}
 };
 // A recovery order has one bounded observation window. If its actor remains stationary after that
@@ -69,7 +69,7 @@ if (count _recovery > 0) then {
     private _actor=_x;
     private _key=netId _actor;
     private _record=_recovery getOrDefault [_key,[]];
-    private _reserved=[_actor] call WAIT_fnc_CortexActorMoveReserved;
+    private _reserved=[_actor] call CBE_fnc_CortexActorMoveReserved;
     private _nativeTask=currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
     private _suspended=!simulationEnabled _actor || {isObjectHidden _actor}
         || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")};
@@ -179,7 +179,7 @@ if (_progressed) then {
     if (!isNull _progressActor) then {_operation set ["lastProgressPosition",getPosATL _progressActor]};
     _operation set ["lastProgressAt",time];
     _operation set ["replans",0];
-    _group setVariable ["WAIT_Operation",_operation,true];
+    _group setVariable ["CBE_Operation",_operation,true];
     "ACTIVE"
 } else {
     private _changed=_recoveryChanged || {count _unavailable != _unavailableCount}
@@ -187,7 +187,7 @@ if (_progressed) then {
     _operation set ["participantProgress",_updated];
     _operation set ["recovery",_recovery];
     _operation set ["unavailable",_unavailable];
-    if (_changed) then {_group setVariable ["WAIT_Operation",_operation,true]};
+    if (_changed) then {_group setVariable ["CBE_Operation",_operation,true]};
     if (_participantsRequired && {_participants isEqualTo []}) then {
         // An isolated retry owns one bounded observation window. An empty aggregate
         // roster must not cancel that fresh attempt before it can physically execute.

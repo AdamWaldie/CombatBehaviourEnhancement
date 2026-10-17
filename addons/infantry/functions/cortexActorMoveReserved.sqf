@@ -10,11 +10,11 @@
  * CortexGarrison instant placement, CortexGarrisonApplyLocal, CortexDefendApplyLocal,
  * CortexClearRelease/DefendRelease/GarrisonRelease, DangerEngineRelease, OperationStep
  * and RecoveryStep; CortexFireControl protects the same reservations from injected targeting.
- * Example: private _reserved=[soldier1] call WAIT_fnc_CortexActorMoveReserved;
+ * Example: private _reserved=[soldier1] call CBE_fnc_CortexActorMoveReserved;
  */
 params [["_actor",objNull,[objNull]]];
 if (isNull _actor || {!local _actor}) exitWith {true};
-private _lease=_actor getVariable ["WAIT_Cortex_ActorMove",[]];
+private _lease=_actor getVariable ["CBE_Cortex_ActorMove",[]];
 if (_lease isEqualTo []) exitWith {false};
 private _expired=_lease isEqualType [] && {count _lease == 3}
     && {(_lease select 0) isEqualType ""}

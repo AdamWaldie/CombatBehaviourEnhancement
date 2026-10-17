@@ -27,7 +27,7 @@
  * never proves an entire path clear. Predicted turns, narrow/low geometry, slopes and actual braking
  * need physical validation. This observes approach constraints, not a bypass/detour executor.
  * Current callers: DrivingAssistStart, ConvoyTick and DrivingGateCap's server-compatible adapter.
- * Example: private _observed=[truck1,15] call WAIT_fnc_DrivingGeometryCap;
+ * Example: private _observed=[truck1,15] call CBE_fnc_DrivingGeometryCap;
  */
 params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]],["_measured",[],[[]]]];
 if (!finite _requested) then {_requested=0};
@@ -128,7 +128,7 @@ _heights=_heights arrayIntersect _heights;
                 private _cached=_staticHulls getOrDefault [_key,-1];
                 if (_cached isEqualType true) then {_staticHull=_cached} else {
                     if (count _staticHulls < 16) then {
-                        _staticHull=[_object] call WAIT_fnc_DrivingBypassObstacleAvailable;
+                        _staticHull=[_object] call CBE_fnc_DrivingBypassObstacleAvailable;
                         _staticHulls set [_key,_staticHull];
                     };
                 };

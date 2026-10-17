@@ -7,11 +7,11 @@
  * Arguments: 0 title <STRING>; 1 message <STRING>; 2 severity <STRING>, optional; remaining legacy fields ignored.
  * Return Value: BOOL - true when displayed, false without an interface.
  * Current callers: AI order results, convoy warnings and optional ZEN modules.
- * Example: ["CONVOY", "Vehicle blocked", "WARNING"] call WAIT_fnc_AITweaksNotifyLocal;
+ * Example: ["CONVOY", "Vehicle blocked", "WARNING"] call CBE_fnc_AITweaksNotifyLocal;
  */
 
 params [
-    ["_title", "Waldos AI Tweaks", [""]],
+    ["_title", "Combat Behaviour Enhancement (CBE)", [""]],
     ["_message", "", [""]],
     ["_severity", "INFO", [""]]
 ];

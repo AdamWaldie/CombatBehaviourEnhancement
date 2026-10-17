@@ -11,7 +11,7 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIndoorActors.sqf";
  */
 params ["_check","_phase","_wait"];
-if (!isServer || {missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]}) exitWith {
+if (!isServer || {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]}) exitWith {
     ["INDOOR-normal-server-prerequisite",false] call _check;
 };
 private _site=[9000,9800,0];
@@ -42,7 +42,7 @@ private _actors=[];
 private _makeGroup={
     params ["_count","_offset","_label"];
     private _group=createGroup [east,true];
-    _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _group setVariable ["acex_headless_blacklist",true,true];
     _group setCombatMode "YELLOW";
     _groups pushBack _group;
@@ -50,7 +50,7 @@ private _makeGroup={
     for "_i" from 0 to (_count-1) do {
         private _unit=_group createUnit ["O_Soldier_F",_site vectorAdd [_offset+_i*3,-30,0],[],0,"NONE"];
         _unit setVariable ["acex_headless_blacklist",true,true];
-        _unit setVariable ["WAIT_CortexQA_Label",format ["%1 / %2",_label,_i+1],true];
+        _unit setVariable ["CBE_CortexQA_Label",format ["%1 / %2",_label,_i+1],true];
         _members pushBack _unit; _actors pushBack _unit;
     };
     _members
@@ -58,19 +58,19 @@ private _makeGroup={
 private _pair=[2,-4,"INDOOR pair"] call _makeGroup;
 private _negative=([1,30,"INDOOR negative"] call _makeGroup) select 0;
 private _interrupted=([1,-30,"INDOOR interruption"] call _makeGroup) select 0;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_actors,true];
 {_x addCuratorEditableObjects [[_house]+_actors,true]} forEach allCurators;
 private _ready={
     params ["_unit"];
     local _unit && {local group _unit} && {groupOwner group _unit == 2}
-        && {(group _unit) getVariable ["WAIT_AIPass_Adopted",false]}
-        && {((group _unit) getVariable ["WAIT_AIPass_Epoch",0]) > 0}
+        && {(group _unit) getVariable ["CBE_AIPass_Adopted",false]}
+        && {((group _unit) getVariable ["CBE_AIPass_Epoch",0]) > 0}
         && {currentCommand _unit == ""} && {getUnitState _unit != "BUSY"}
         && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
-        && {[_unit] call WAIT_fnc_CortexCombatEffective}
-        && {[group _unit] call WAIT_fnc_CortexIsEligible}
-        && {(_unit getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}
-        && {serverTime >= (_unit getVariable ["WAIT_IndoorActor_Cooldown",-1])}
+        && {[_unit] call CBE_fnc_CortexCombatEffective}
+        && {[group _unit] call CBE_fnc_CortexIsEligible}
+        && {(_unit getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+        && {serverTime >= (_unit getVariable ["CBE_IndoorActor_Cooldown",-1])}
 };
 private _context={params ["_position"]; createHashMapFromArray [["building",_house],["belief",[+_position,serverTime]]]};
 private _visit={
@@ -92,12 +92,12 @@ private _visit={
 };
 ["Individual indoor actors: physical entry","Two independently owned investigations must choose separated native positions and physically enter. Accepted flags and VISITED results cannot replace live pose/geometry observations. No forced doors, actor relocation or completion assistance.",getPosATL _house] call _phase;
 private _allReady=[{_pair findIf {!([_x] call _ready)} < 0},35] call _wait;
-["INDOOR-idle-owner-prerequisite",_allReady,str (_actors apply {[local _x,currentCommand _x,getUnitState _x,(group _x) getVariable ["WAIT_AIPass_Epoch",0]]})] call _check;
+["INDOOR-idle-owner-prerequisite",_allReady,str (_actors apply {[local _x,currentCommand _x,getUnitState _x,(group _x) getVariable ["CBE_AIPass_Epoch",0]]})] call _check;
 private _starts=_pair apply {getPosATL _x};
-private _accepted=_pair apply {["START",_x,[_rooms select 0] call _context] call WAIT_fnc_IndoorActorOperation};
+private _accepted=_pair apply {["START",_x,[_rooms select 0] call _context] call CBE_fnc_IndoorActorOperation};
 ["INDOOR-pair-start",_allReady && {_accepted findIf {!_x} < 0},str _accepted] call _check;
-private _generations=_pair apply {(_x getVariable ["WAIT_IndoorActor_Order",[]]) param [0,-1]};
-private _deadlines=_pair apply {(_x getVariable ["WAIT_IndoorActor_Order",[]]) param [4,-1]};
+private _generations=_pair apply {(_x getVariable ["CBE_IndoorActor_Order",[]]) param [0,-1]};
+private _deadlines=_pair apply {(_x getVariable ["CBE_IndoorActor_Order",[]]) param [4,-1]};
 private _targets=[[],[]];
 private _visits=[false,false];
 private _travel=[0,0];
@@ -106,7 +106,7 @@ private _targetsStable=true;
 private _ownerKept=true;
 private _terminal=[{
     {
-        private _order=_x getVariable ["WAIT_IndoorActor_Order",[]];
+        private _order=_x getVariable ["CBE_IndoorActor_Order",[]];
         if (count _order == 9) then {
             if ((_order select 4) != (_deadlines select _forEachIndex)) then {_deadlineKept=false};
             if (_order select 8) then {
@@ -121,9 +121,9 @@ private _terminal=[{
         _travel set [_forEachIndex,(_travel select _forEachIndex) max ((getPosATL _x) vectorDistance (_starts select _forEachIndex))];
         if (!local _x || {groupOwner group _x != 2}) then {_ownerKept=false};
     } forEach _pair;
-    _pair findIf {(_x getVariable ["WAIT_IndoorActor_Order",[]]) isNotEqualTo []} < 0
+    _pair findIf {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []} < 0
 },55] call _wait;
-private _results=_pair apply {_x getVariable ["WAIT_IndoorActor_Result",[]]};
+private _results=_pair apply {_x getVariable ["CBE_IndoorActor_Result",[]]};
 private _resultsMatch=true;
 {
     private _result=_results select _forEachIndex;
@@ -147,12 +147,12 @@ private _repeatAccepted=false;
 private _repeatVisited=false;
 private _repeatTarget=[];
 if (_alternatives isNotEqualTo []) then {
-    _repeatAccepted=["START",_repeat,[_alternatives select 0] call _context] call WAIT_fnc_IndoorActorOperation;
+    _repeatAccepted=["START",_repeat,[_alternatives select 0] call _context] call CBE_fnc_IndoorActorOperation;
 };
-private _repeatGeneration=(_repeat getVariable ["WAIT_IndoorActor_Order",[]]) param [0,-1];
+private _repeatGeneration=(_repeat getVariable ["CBE_IndoorActor_Order",[]]) param [0,-1];
 private _repeatDone=false;
 if (_repeatAccepted) then {_repeatDone=[{
-    private _order=_repeat getVariable ["WAIT_IndoorActor_Order",[]];
+    private _order=_repeat getVariable ["CBE_IndoorActor_Order",[]];
     if (count _order == 9 && {_order select 8}) then {_repeatTarget=+(_order select 6)};
     if ([_repeat,_repeatTarget] call _visit) then {_repeatVisited=true};
     _order isEqualTo []
@@ -160,39 +160,39 @@ if (_repeatAccepted) then {_repeatDone=[{
 ["INDOOR-same-actor-repeat",_repeatReady && {_repeatAccepted} && {_repeatDone} && {_repeatVisited}
     && {_repeatTarget isNotEqualTo _previousTarget}
     && {_repeatGeneration > (_generations select 0)}
-    && {((_repeat getVariable ["WAIT_IndoorActor_Result",[]]) param [0,-1]) == _repeatGeneration}
-    && {((_repeat getVariable ["WAIT_IndoorActor_Result",[]]) param [1,""]) == "VISITED"},str [_repeatTarget,_repeat getVariable ["WAIT_IndoorActor_Result",[]]]] call _check;
+    && {((_repeat getVariable ["CBE_IndoorActor_Result",[]]) param [0,-1]) == _repeatGeneration}
+    && {((_repeat getVariable ["CBE_IndoorActor_Result",[]]) param [1,""]) == "VISITED"},str [_repeatTarget,_repeat getVariable ["CBE_IndoorActor_Result",[]]]] call _check;
 // Negative cases require a fresh idle eligible actor, so a previous cooldown cannot pass them.
 ["Individual indoor actor: refusal guards","A fresh idle actor must refuse stale belief and a conflicting actor reservation without changing that reservation or its native destination. These are negative fixtures, not combat outcomes.",getPosATL _negative] call _phase;
 private _negativeReady=[{[_negative] call _ready},30] call _wait;
 private _beforeDestination=expectedDestination _negative;
 private _stale=createHashMapFromArray [["building",_house],["belief",[+(_rooms select 0),serverTime-6]]];
-private _staleAccepted=["START",_negative,_stale] call WAIT_fnc_IndoorActorOperation;
+private _staleAccepted=["START",_negative,_stale] call CBE_fnc_IndoorActorOperation;
 ["INDOOR-stale-belief-refused",_negativeReady && {!_staleAccepted}
-    && {(_negative getVariable ["WAIT_IndoorActor_Order",[]]) isEqualTo []}
+    && {(_negative getVariable ["CBE_IndoorActor_Order",[]]) isEqualTo []}
     && {(expectedDestination _negative) isEqualTo _beforeDestination}] call _check;
 private _foreignLease=["AUDIT_OTHER_TASK",getPosATL _negative,time+60];
-_negative setVariable ["WAIT_Cortex_ActorMove",[_foreignLease select 0,+(_foreignLease select 1),_foreignLease select 2]];
-private _reservedAccepted=["START",_negative,[_rooms select 0] call _context] call WAIT_fnc_IndoorActorOperation;
+_negative setVariable ["CBE_Cortex_ActorMove",[_foreignLease select 0,+(_foreignLease select 1),_foreignLease select 2]];
+private _reservedAccepted=["START",_negative,[_rooms select 0] call _context] call CBE_fnc_IndoorActorOperation;
 ["INDOOR-reservation-refused",_negativeReady && {!_reservedAccepted}
-    && {(_negative getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo _foreignLease}
+    && {(_negative getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _foreignLease}
     && {(expectedDestination _negative) isEqualTo _beforeDestination}] call _check;
 // Restore only this fixture's still-exact synthetic marker.
-if ((_negative getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo _foreignLease) then {_negative setVariable ["WAIT_Cortex_ActorMove",nil]};
+if ((_negative getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _foreignLease) then {_negative setVariable ["CBE_Cortex_ActorMove",nil]};
 doStop _negative;
 private _stopped=[{currentCommand _negative == "STOP"},3] call _wait;
-private _stopAccepted=["START",_negative,[_rooms select 0] call _context] call WAIT_fnc_IndoorActorOperation;
+private _stopAccepted=["START",_negative,[_rooms select 0] call _context] call CBE_fnc_IndoorActorOperation;
 ["INDOOR-stop-refused",_negativeReady && {_stopped} && {!_stopAccepted}
     && {currentCommand _negative == "STOP"}
-    && {(_negative getVariable ["WAIT_IndoorActor_Order",[]]) isEqualTo []}] call _check;
+    && {(_negative getVariable ["CBE_IndoorActor_Order",[]]) isEqualTo []}] call _check;
 // Real native replacement while still outside. No authored waypoint edit is needed to exercise
 // the individual expectedDestination boundary; the old cleanup must not issue follow over it.
 ["Individual indoor actor: native replacement","Once the actor is genuinely approaching, issue an ordinary move away. The old investigation must retire and the soldier must physically follow that new move. Missing APPROACH cannot pass interruption.",getPosATL _interrupted] call _phase;
 private _interruptReady=[{[_interrupted] call _ready},30] call _wait;
-private _interruptAccepted=["START",_interrupted,[_rooms select 0] call _context] call WAIT_fnc_IndoorActorOperation;
-private _interruptGeneration=(_interrupted getVariable ["WAIT_IndoorActor_Order",[]]) param [0,-1];
+private _interruptAccepted=["START",_interrupted,[_rooms select 0] call _context] call CBE_fnc_IndoorActorOperation;
+private _interruptGeneration=(_interrupted getVariable ["CBE_IndoorActor_Order",[]]) param [0,-1];
 private _approach=[{
-    private _order=_interrupted getVariable ["WAIT_IndoorActor_Order",[]];
+    private _order=_interrupted getVariable ["CBE_IndoorActor_Order",[]];
     private _bounds=boundingBoxReal _house;
     private _model=_house worldToModel (getPosATL _interrupted);
     private _low=_bounds select 0; private _high=_bounds select 1;
@@ -212,7 +212,7 @@ if (_approach) then {
         private _destination=(expectedDestination _interrupted) param [0,[],[[]]];
         if (_interrupted distance _newGoal >= 2 && {count _destination != 3
             || {_destination vectorDistance _newGoal > 0.25}}) then {_destinationKept=false};
-        (_interrupted getVariable ["WAIT_IndoorActor_Order",[]]) isEqualTo []
+        (_interrupted getVariable ["CBE_IndoorActor_Order",[]]) isEqualTo []
     },4] call _wait;
     _followed=[{
         private _destination=(expectedDestination _interrupted) param [0,[],[[]]];
@@ -223,14 +223,14 @@ if (_approach) then {
 };
 ["INDOOR-native-move-handover",_interruptReady && {_interruptAccepted} && {_approach} && {_released} && {_followed} && {_destinationKept}
     && {(getPosATL _interrupted) vectorDistance _replacementOrigin > 8}
-    && {(_interrupted getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}
-    && {((_interrupted getVariable ["WAIT_IndoorActor_Result",[]]) param [0,-1]) == _interruptGeneration}
-    && {((_interrupted getVariable ["WAIT_IndoorActor_Result",[]]) param [1,""]) == "NATIVE_TASK"},
-    str [_approach,_released,getPosATL _interrupted,expectedDestination _interrupted,_interrupted getVariable ["WAIT_IndoorActor_Result",[]]]] call _check;
+    && {(_interrupted getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+    && {((_interrupted getVariable ["CBE_IndoorActor_Result",[]]) param [0,-1]) == _interruptGeneration}
+    && {((_interrupted getVariable ["CBE_IndoorActor_Result",[]]) param [1,""]) == "NATIVE_TASK"},
+    str [_approach,_released,getPosATL _interrupted,expectedDestination _interrupted,_interrupted getVariable ["CBE_IndoorActor_Result",[]]]] call _check;
 {
-    ["FINISH",_x,createHashMap] call WAIT_fnc_IndoorActorOperation;
+    ["FINISH",_x,createHashMap] call CBE_fnc_IndoorActorOperation;
     deleteVehicle _x;
 } forEach _actors;
 {deleteGroup _x} forEach _groups;
 deleteVehicle _house;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];

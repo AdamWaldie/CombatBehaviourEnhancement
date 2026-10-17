@@ -8,45 +8,45 @@
  * Arguments: 0: group <GROUP>, grpNull; 1: force cleanup <BOOL>, false.
  * Return Value: Nothing.
  * Current callers: Discover, Stop and Locality.
- * Example: [_group] call WAIT_fnc_CortexHearingLocal;
+ * Example: [_group] call CBE_fnc_CortexHearingLocal;
  */
 params [["_group",grpNull,[grpNull]],["_cleanup",false,[true]]];
-private _tracked = _group getVariable ["WAIT_AIPass_HearingHandler",[]];
+private _tracked = _group getVariable ["CBE_AIPass_HearingHandler",[]];
 private _leader = leader _group;
-private _waypointObservation=(_group getVariable ["WAIT_AIPass_ZeusControlKind",""]) == "WAYPOINT"
-    && {_group getVariable ["WAIT_AIPass_ZeusWaypoints",false]};
+private _waypointObservation=(_group getVariable ["CBE_AIPass_ZeusControlKind",""]) == "WAYPOINT"
+    && {_group getVariable ["CBE_AIPass_ZeusWaypoints",false]};
 private _enabled = !_cleanup && {local _group} && {alive _leader} && {!isPlayer _leader}
-    && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
-    && {[_group,_waypointObservation,true] call WAIT_fnc_CortexIsEligible} && {[_group,"WAIT_AIPass_Hearing_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
+    && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+    && {[_group,_waypointObservation,true] call CBE_fnc_CortexIsEligible} && {[_group,"CBE_AIPass_Hearing_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 if (_tracked isNotEqualTo [] && {!_enabled || {(_tracked select 0) != _leader}}) then {
     (_tracked select 0) removeEventHandler ["FiredNear",_tracked select 1];
-    _group setVariable ["WAIT_AIPass_HearingHandler",nil]; _tracked = [];
+    _group setVariable ["CBE_AIPass_HearingHandler",nil]; _tracked = [];
 };
 if (!_enabled || {_tracked isNotEqualTo []}) exitWith {};
 private _handler = _leader addEventHandler ["FiredNear",{
     params ["_observer","_firer","_distance","_weapon","_muzzle","_mode","_ammo"];
     private _group = group _observer;
-    private _waypointObservation=(_group getVariable ["WAIT_AIPass_ZeusControlKind",""]) == "WAYPOINT"
-        && {_group getVariable ["WAIT_AIPass_ZeusWaypoints",false]};
-    if (!local _observer || {isNull _firer} || {!alive _observer} || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
-        || {[] call WAIT_fnc_CortexIsPaused} || {!([_group,_waypointObservation,true] call WAIT_fnc_CortexIsEligible)}
-        || {!([_group,"WAIT_AIPass_Hearing_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
+    private _waypointObservation=(_group getVariable ["CBE_AIPass_ZeusControlKind",""]) == "WAYPOINT"
+        && {_group getVariable ["CBE_AIPass_ZeusWaypoints",false]};
+    if (!local _observer || {isNull _firer} || {!alive _observer} || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        || {[] call CBE_fnc_CortexIsPaused} || {!([_group,_waypointObservation,true] call CBE_fnc_CortexIsEligible)}
+        || {!([_group,"CBE_AIPass_Hearing_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
         // FiredNear may report a vehicle weapon source. Compare the source object's actual side so
         // hostile platform fire is neither discarded nor treated as an infantry-only event.
         || {(side _group) getFriend (side _firer) >= 0.6}
-        || {serverTime < (_group getVariable ["WAIT_AIPass_HearingDue",0])}) exitWith {};
+        || {serverTime < (_group getVariable ["CBE_AIPass_HearingDue",0])}) exitWith {};
     private _items = weaponsItems _firer;
     private _index = _items findIf {(_x select 0) == _weapon};
     private _suppressed = _index >= 0 && {((_items select _index) param [1,""]) != ""};
     private _audible = getNumber (configFile >> "CfgAmmo" >> _ammo >> "audibleFire");
     if ((_suppressed || {_audible > 0 && {_audible <= 3}}) && {_distance > 20}) exitWith {};
-    _group setVariable ["WAIT_AIPass_HearingDue",serverTime+10];
+    _group setVariable ["CBE_AIPass_HearingDue",serverTime+10];
     private _position = getPosATL _firer;
     // Deliberately quantize the report; never retain the firing object or follow later movement.
     _position = [50*round ((_position select 0)/50),50*round ((_position select 1)/50),0];
-    private _old = _group getVariable ["WAIT_AIPass_AreaReport",[]];
+    private _old = _group getVariable ["CBE_AIPass_AreaReport",[]];
     if (_old isEqualTo [] || {serverTime >= (_old select 2)} || {(_old select 3) == "SOUND"}) then {
-        _group setVariable ["WAIT_AIPass_AreaReport",[_position,serverTime,serverTime+20,"SOUND"],true];
+        _group setVariable ["CBE_AIPass_AreaReport",[_position,serverTime,serverTime+20,"SOUND"],true];
     };
 }];
-_group setVariable ["WAIT_AIPass_HearingHandler",[_leader,_handler]];
+_group setVariable ["CBE_AIPass_HearingHandler",[_leader,_handler]];

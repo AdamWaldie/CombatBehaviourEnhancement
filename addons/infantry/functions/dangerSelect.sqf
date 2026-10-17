@@ -6,8 +6,8 @@
  * Arguments: 0: events <ARRAY>, []; 1: local time <NUMBER>, time.
  * Return Value: Array - selected event [cause, position, created, expires, hostile source,
  * response observer, source observer] or [].
- * Current callers: WAIT_fnc_DangerStep and danger acceptance fixtures.
- * Example: [[]] call WAIT_fnc_DangerSelect;
+ * Current callers: CBE_fnc_DangerStep and danger acceptance fixtures.
+ * Example: [[]] call CBE_fnc_DangerSelect;
  */
 
 params [["_events",[],[[]]],["_now",time,[0]]];

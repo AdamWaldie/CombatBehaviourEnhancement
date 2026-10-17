@@ -13,12 +13,12 @@
  * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact reverse handback.
  * Return Value: BOOL - matching journal retired, never physical recovery success.
  * Current callers: DrivingAssistStart and DrivingAssistRelease.
- * Example: [truck1,group driver truck1,"DRIVING_RELEASED"] call WAIT_fnc_DrivingRecoveryRelease;
+ * Example: [truck1,group driver truck1,"DRIVING_RELEASED"] call CBE_fnc_DrivingRecoveryRelease;
  */
 params [["_vehicle",objNull,[objNull]],["_group",grpNull,[grpNull]],
     ["_reason","RELEASED",[""]],["_resume",true,[true]]];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}) exitWith {false};
-private _work=_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap];
+private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 private _driver=_work get "driver";private _operator=_work get "operator";
 private _owned=_resume && {(_work get "kind") == "REVERSE"}
@@ -26,17 +26,17 @@ private _owned=_resume && {(_work get "kind") == "REVERSE"}
     && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
     && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
     && {(expectedDestination _operator) isEqualTo (_work get "command")}
-    && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-    && {[_group] call WAIT_fnc_DrivingMovementAvailable}
-    && {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}
-    && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}};
+    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+    && {[_group] call CBE_fnc_DrivingMovementAvailable}
+    && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
+    && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}};
 {
     _owned=_owned && {!isNull _x} && {local _x} && {group _x == _group} && {vehicle _x == _vehicle}
-        && {[_x] call WAIT_fnc_CortexCombatEffective}
-        && {!([_x] call WAIT_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
+        && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-        && {[_x] call WAIT_fnc_CortexExternalOwner == ""} && {simulationEnabled _x} && {!isObjectHidden _x}
+        && {[_x] call CBE_fnc_CortexExternalOwner == ""} && {simulationEnabled _x} && {!isObjectHidden _x}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
         && {currentCommand _x != "STOP"}
         && {toUpperANSI currentCommand _x in ["","MOVE","WAIT"]}
@@ -58,8 +58,8 @@ if (_owned) then {
         };
     };
 };
-if ((_vehicle getVariable ["WAIT_DrivingRecovery_Work",createHashMap]) isEqualTo _work) then {
-    _vehicle setVariable ["WAIT_DrivingRecovery_Result",[_reason,serverTime,_group,_work get "kind",_work get "hardDeadline"],true];
-    _vehicle setVariable ["WAIT_DrivingRecovery_Work",nil,true];
+if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work) then {
+    _vehicle setVariable ["CBE_DrivingRecovery_Result",[_reason,serverTime,_group,_work get "kind",_work get "hardDeadline"],true];
+    _vehicle setVariable ["CBE_DrivingRecovery_Work",nil,true];
 };
 true

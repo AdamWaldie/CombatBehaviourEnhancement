@@ -7,33 +7,33 @@
  * Arguments: 0: battery <OBJECT>; 1: aim ATL <ARRAY>; 2: magazine <STRING>; 3: purpose <STRING>; 4: mode <STRING>; 5: token <STRING>.
  * Return Value: Boolean, firing command issued.
  * Current callers: ArtilleryMissionStep.
- * Example: [_gun, _aim, _mag, "SUPPORT", "HE", _token] remoteExecCall ["WAIT_fnc_CortexArtilleryShot", owner _gun];
+ * Example: [_gun, _aim, _mag, "SUPPORT", "HE", _token] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _gun];
  */
 params ["_battery", "_aim", "_magazine", "_purpose", "_mode", "_token"];
 if (remoteExecutedOwner != 2) exitWith {false};
 private _reject = {
-    [_battery, _token, clientOwner] remoteExecCall ["WAIT_fnc_CortexArtilleryRejected", 2];
+    [_battery, _token, clientOwner] remoteExecCall ["CBE_fnc_CortexArtilleryRejected", 2];
     false
 };
 private _danger=_purpose == "DANGER";
 private _operator=gunner _battery;
 private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner _battery};
-if (!local _battery || {!alive _battery} || {!([_operator] call WAIT_fnc_CortexCombatEffective)}
+if (!local _battery || {!alive _battery} || {!([_operator] call CBE_fnc_CortexCombatEffective)}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}
-    || {(_battery getVariable ["WAIT_AIPass_FireToken", ""]) != _token}
-    || {!(missionNamespace getVariable ["WAIT_AIPass_Active", false])} || {[] call WAIT_fnc_CortexIsPaused}
-    || {!([group gunner _battery] call WAIT_fnc_CortexIsEligible)}
-    || {_mode == "SMOKE" && {!([_crewGroup,"WAIT_AIPass_ArtillerySmoke_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}}
-    || {!_danger && {!([_battery, _purpose] call WAIT_fnc_CortexArtilleryRole)}}
+    || {(_battery getVariable ["CBE_AIPass_FireToken", ""]) != _token}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])} || {[] call CBE_fnc_CortexIsPaused}
+    || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}
+    || {_mode == "SMOKE" && {!([_crewGroup,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}
+    || {!_danger && {!([_battery, _purpose] call CBE_fnc_CortexArtilleryRole)}}
     || {if (_danger) then {
-        !([_crewGroup,"WAIT_AIPass_Danger_Enable",true] call WAIT_fnc_CortexFeatureEnabled)
-        || {!([_crewGroup,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
-        || {!([_crewGroup,"WAIT_AIPass_VehicleGunnery_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
-        || {[_crewGroup] call WAIT_fnc_CortexExternalTakeover}
+        !([_crewGroup,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)
+        || {!([_crewGroup,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        || {!([_crewGroup,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        || {[_crewGroup] call CBE_fnc_CortexExternalTakeover}
     } else {
-        !([_crewGroup, ["WAIT_AIPass_Artillery_Enable", "WAIT_AIPass_CounterBattery_Enable"] select (_purpose == "COUNTER"), false] call WAIT_fnc_CortexFeatureEnabled)
+        !([_crewGroup, ["CBE_AIPass_Artillery_Enable", "CBE_AIPass_CounterBattery_Enable"] select (_purpose == "COUNTER"), false] call CBE_fnc_CortexFeatureEnabled)
     }}) exitWith {call _reject};
-private _minimum = if (_mode == "SMOKE") then {50} else {missionNamespace getVariable [["WAIT_AIPass_Artillery_MinFriendlyDistance", "WAIT_AIPass_CounterBattery_MinFriendlyDistance"] select (_purpose == "COUNTER"), 200]};
+private _minimum = if (_mode == "SMOKE") then {50} else {missionNamespace getVariable [["CBE_AIPass_Artillery_MinFriendlyDistance", "CBE_AIPass_CounterBattery_MinFriendlyDistance"] select (_purpose == "COUNTER"), 200]};
 private _side = side group gunner _battery;
 if ((_aim nearEntities [["CAManBase", "LandVehicle", "Air", "Ship"], _minimum]) findIf {
     private _entity = _x;
@@ -43,9 +43,9 @@ if (!(_magazine in getArtilleryAmmo [_battery]) || {(magazinesAllTurrets [_batte
     || {_battery getArtilleryETA [_aim, _magazine] < 0}) exitWith {call _reject};
 // Safety/munition checks are not a lease over the operating crew or mission token.
 if (!local _battery || {gunner _battery != _operator}
-    || {!([_operator] call WAIT_fnc_CortexCombatEffective)}
-    || {(_battery getVariable ["WAIT_AIPass_FireToken",""]) != _token}
-    || {!([group _operator] call WAIT_fnc_CortexIsEligible)}
-    || {_mode == "SMOKE" && {!([group _operator,"WAIT_AIPass_ArtillerySmoke_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}}) exitWith {call _reject};
+    || {!([_operator] call CBE_fnc_CortexCombatEffective)}
+    || {(_battery getVariable ["CBE_AIPass_FireToken",""]) != _token}
+    || {!([group _operator] call CBE_fnc_CortexIsEligible)}
+    || {_mode == "SMOKE" && {!([group _operator,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}) exitWith {call _reject};
 _battery doArtilleryFire [_aim, _magazine, 1];
 true

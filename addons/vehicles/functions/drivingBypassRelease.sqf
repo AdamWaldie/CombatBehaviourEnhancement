@@ -14,25 +14,25 @@
  * 5 expected revision <NUMBER, -1> optionally limits convoy cleanup to its original revision.
  * Return Value: BOOL - matching episode retired, never proof of actual passage.
  * Current callers: DrivingBypassStep, DrivingAssistRelease, ConvoyTick, ConvoyCrewLocal and ConvoyReleaseLocal.
- * Example: [truck1,group driver truck1,"OBSTACLE_CHANGED"] call WAIT_fnc_DrivingBypassRelease;
+ * Example: [truck1,group driver truck1,"OBSTACLE_CHANGED"] call CBE_fnc_DrivingBypassRelease;
  */
 params [["_vehicle",objNull,[objNull]],["_group",grpNull,[grpNull]],
     ["_reason","RELEASED",[""]],["_resume",true,[true]],["_stopOnly",false,[true]],["_expectedRevision",-1,[0]]];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}
     || {isNull _group} || {!local _group}) exitWith {false};
-private _work=_vehicle getVariable ["WAIT_DrivingBypass_Work",createHashMap];
+private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 private _controller=_work getOrDefault ["controller",["ORDINARY",-1]];
 private _convoy=(_controller param [0,""]) == "CONVOY";
 if (_expectedRevision >= 0 && {(!_convoy) || {(_controller param [1,-2]) != _expectedRevision}}) exitWith {false};
-private _current=_group getVariable ["WAIT_Convoy_Brain",createHashMap];
+private _current=_group getVariable ["CBE_Convoy_Brain",createHashMap];
 private _currentConfiguration=_current getOrDefault ["configuration",[]];
 private _successor=_convoy && {_currentConfiguration isNotEqualTo []}
     && {(_currentConfiguration param [0,-1]) != (_controller param [1,-2])}
     && {!(_current getOrDefault ["cancelled",false])};
 private _haltCleanup=_reason == "CONVOY_HALT" && {_expectedRevision == (_controller param [1,-2])}
     && {(_currentConfiguration param [5,""]) == "HALT"}
-    && {(missionNamespace getVariable ["WAIT_Convoy_LocalRegistry",[]]) findIf {
+    && {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
         (_x select 0) == _group && {(_x select 1) isEqualTo _currentConfiguration}
     } >= 0};
 if (_successor && {!_haltCleanup} && {!(_reason in ["CONTROLLER_CHANGED","CONVOY_LEAD_CHANGED"])}) exitWith {false};
@@ -41,22 +41,22 @@ private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly}}
     && {!isNull _driver} && {!isNull _operator} && {local _driver} && {local _operator}
     && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
     && {group _driver == _group} && {group _operator == _group}
-    && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
+    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
     && {(expectedDestination _operator) isEqualTo (_work get "command")}
     && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
     && {(toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])}
     && {(toUpperANSI currentCommand _operator) == (_work getOrDefault ["operatorTask","__MISSING__"])}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)} && {!([_group] call WAIT_fnc_CortexZeusHeld)}
-    && {_convoy || {[_group] call WAIT_fnc_DrivingMovementAvailable}}
-    && {_convoy || {!(_vehicle getVariable ["WAIT_Convoy_Active",false])}}
-    && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}};
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+    && {_convoy || {[_group] call CBE_fnc_DrivingMovementAvailable}}
+    && {_convoy || {!(_vehicle getVariable ["CBE_Convoy_Active",false])}}
+    && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}};
 {
     _owned=_owned && {!isNull _x} && {local _x} && {vehicle _x == _vehicle}
-        && {[_x] call WAIT_fnc_CortexCombatEffective}
-        && {!([_x] call WAIT_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
+        && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {simulationEnabled _x} && {!isObjectHidden _x}
-        && {[_x] call WAIT_fnc_CortexExternalOwner == ""}
+        && {[_x] call CBE_fnc_CortexExternalOwner == ""}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
@@ -66,19 +66,19 @@ if (_owned) then {
     private _index=currentWaypoint _group;
     if (_resume && {_index > 0} && {_index < count waypoints _group}
         && {_convoy || {vehicle leader _group == _vehicle}}
-        && {([_group] call WAIT_fnc_DrivingRouteReceipt) isEqualTo _route}
-        && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) then {
+        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
         if (_driver != _operator) then {_driver doFollow _operator};
         _operator doMove waypointPosition [_group,_index];
     };
 };
 private _context=_work get "context";
-private _cooldown=(_vehicle getVariable ["WAIT_DrivingBypass_Cooldown",[]]) select {
+private _cooldown=(_vehicle getVariable ["CBE_DrivingBypass_Cooldown",[]]) select {
     (_x select 1) > serverTime && {(_x select 0) isNotEqualTo _context}
 };
 if (count _cooldown >= 32) then {_cooldown deleteAt 0};
 _cooldown pushBack [_context,serverTime+120];
-_vehicle setVariable ["WAIT_DrivingBypass_Cooldown",_cooldown,true];
-_vehicle setVariable ["WAIT_DrivingBypass_Result",[_reason,serverTime,_work get "obstacle",_work get "index"],true];
-_vehicle setVariable ["WAIT_DrivingBypass_Work",nil,true];
+_vehicle setVariable ["CBE_DrivingBypass_Cooldown",_cooldown,true];
+_vehicle setVariable ["CBE_DrivingBypass_Result",[_reason,serverTime,_work get "obstacle",_work get "index"],true];
+_vehicle setVariable ["CBE_DrivingBypass_Work",nil,true];
 true

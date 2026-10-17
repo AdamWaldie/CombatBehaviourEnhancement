@@ -11,9 +11,9 @@ REQUIRED_CASE_FIELDS = {
     "live_evidence", "automation", "executable_sources", "production_sources",
 }
 PUBLIC_RUNTIME_CONTROLS = {
-    "WAIT_AIPass_Exclude",
-    "WAIT_AIPass_Profile",
-    "WAIT_HelicopterDeceleration_Exclude",
+    "CBE_AIPass_Exclude",
+    "CBE_AIPass_Profile",
+    "CBE_HelicopterDeceleration_Exclude",
 }
 
 
@@ -57,7 +57,7 @@ def audit(root=ROOT):
     data = json.loads((qa / "coverage.json").read_text(encoding="utf-8"))
     launcher = (tools / "mod_pipeline.py").read_text(encoding="utf-8")
     server = (qa / "runServer.sqf").read_text(encoding="utf-8")
-    settings = set(re.findall(r'^\s*\["(WAIT_[^"]+)"\s*,',
+    settings = set(re.findall(r'^\s*\["(CBE_[^"]+)"\s*,',
         (root / "addons/main/settings/aiConfig.sqf").read_text(encoding="utf-8"), re.M))
     assigned = [key for case in data["cases"] for key in case["settings"]]
     errors = []

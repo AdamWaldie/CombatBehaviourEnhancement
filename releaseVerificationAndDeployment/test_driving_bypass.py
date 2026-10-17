@@ -15,10 +15,10 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('count _staticHulls < 16',geometry)
         self.assertIn('"LandVehicle" && {!_staticHull}',geometry)
         plan=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
-        self.assertEqual(plan.count('call WAIT_fnc_DrivingBypassObstacleAvailable'),2)
+        self.assertEqual(plan.count('call CBE_fnc_DrivingBypassObstacleAvailable'),2)
         step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
-        self.assertEqual(step.count('call WAIT_fnc_DrivingBypassObstacleAvailable'),2)
-        self.assertLess(step.rindex('call WAIT_fnc_DrivingBypassObstacleAvailable'),step.index('_vehicle setDriveOnPath'))
+        self.assertEqual(step.count('call CBE_fnc_DrivingBypassObstacleAvailable'),2)
+        self.assertLess(step.rindex('call CBE_fnc_DrivingBypassObstacleAvailable'),step.index('_vehicle setDriveOnPath'))
         following=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text(encoding='utf-8')
         self.assertNotIn('DrivingBypassObstacleAvailable',following)
 
@@ -29,9 +29,9 @@ class DrivingBypassTests(unittest.TestCase):
                        '_boarder assignAsDriver _blocker','[_boarder] orderGetIn true',
                        'vehicle _boarder == _blocker','"OBSTACLE_CHANGED"','time+150'):
             self.assertIn(marker,s)
-        for forbidden in ('call WAIT_fnc_DrivingBypassStep','call WAIT_fnc_DrivingBypassPlan',
-                          'setDriveOnPath','moveInDriver','setVariable ["WAIT_DrivingBypass_Result"',
-                          'setVariable ["WAIT_DrivingBypass_Work"','forceSpeed','setPos'):
+        for forbidden in ('call CBE_fnc_DrivingBypassStep','call CBE_fnc_DrivingBypassPlan',
+                          'setDriveOnPath','moveInDriver','setVariable ["CBE_DrivingBypass_Result"',
+                          'setVariable ["CBE_DrivingBypass_Work"','forceSpeed','setPos'):
             self.assertNotIn(forbidden,s)
         server=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text(encoding='utf-8')
         self.assertIn('"parkedbypass"',server)
@@ -73,9 +73,9 @@ class DrivingBypassTests(unittest.TestCase):
         for gate in ('time-_sampled > 1.5','_gap > 50','abs speed _vehicle > 8',
                      '(_observed select 5) != "STATIC"','_observed select 8','boundingBoxReal _obstacle',
                      'modelToWorldWorld','_radius > 12','count _guide+_segments > 24',
-                     '"GEOMETRY_CHANGED"','call WAIT_fnc_DrivingPathGeometry'):
+                     '"GEOMETRY_CHANGED"','call CBE_fnc_DrivingPathGeometry'):
             self.assertIn(gate,body)
-        self.assertEqual(body.count('call WAIT_fnc_DrivingPathGeometry'),1)
+        self.assertEqual(body.count('call CBE_fnc_DrivingPathGeometry'),1)
         self.assertNotIn('lineIntersectsSurfaces',body.split('params [[',1)[1])
     def test_shared_validator_keeps_three_body_heights_and_bounded_support(self):
         s=(ROOT/'addons/vehicles/functions/drivingPathGeometry.sqf').read_text()
@@ -84,7 +84,7 @@ class DrivingBypassTests(unittest.TestCase):
                      '[0.5,(_height+0.5)*0.5,_height]','forEach _bodyHeights','ASLToATL _x'):
             self.assertIn(gate,s)
         corridor=(ROOT/'addons/vehicles/functions/drivingCorridorGeometry.sqf').read_text()
-        self.assertIn('call WAIT_fnc_DrivingPathGeometry',corridor)
+        self.assertIn('call CBE_fnc_DrivingPathGeometry',corridor)
         self.assertNotIn('lineIntersectsSurfaces',corridor)
     def test_sampling_bounds_match_declared_limits(self):
         self.assertEqual(24*3+23*9,279)
@@ -115,14 +115,14 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertNotIn('["authority",',s)
     def test_controller_preserves_other_constraints_and_excludes_other_paths(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
-        self.assertEqual(s.count('call WAIT_fnc_DrivingBypassStep'),1)
+        self.assertEqual(s.count('call CBE_fnc_DrivingBypassStep'),1)
         self.assertIn('!_hadBypass',s)
         self.assertIn('_traffic=+_withoutObstacle;',s)
         self.assertIn('_bypass select 3',s)
         self.assertIn('_obstacleObservation select 8',s)
         self.assertIn('_capMps=_capMps min (_bypass select 1)',s)
         self.assertIn('_pedestrianCap/3.6 < (_traffic select 0)',s)
-        self.assertIn('WAIT_DrivingBypass_Work',(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text())
+        self.assertIn('CBE_DrivingBypass_Work',(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text())
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
         for phase in ('BYPASS_PLAN','BYPASS_FOLLOW'):self.assertIn(phase,fsm)
     def test_release_requires_owned_follow_and_both_native_receipts(self):
@@ -141,7 +141,7 @@ class DrivingBypassTests(unittest.TestCase):
                        'waypointTimeout','waypointAttachedVehicle','waypointAttachedObject',
                        'synchronizedWaypoints','synchronizedTriggers','call _plainRoute',
                        'DrivingMovementAvailable','CortexExternalTakeover','CortexZeusHeld',
-                       'WAIT_ExternalDrivingOwner','WAIT_Convoy_Active','vehicle leader _group isEqualTo _vehicle'):
+                       'CBE_ExternalDrivingOwner','CBE_Convoy_Active','vehicle leader _group isEqualTo _vehicle'):
             self.assertIn(marker,gate)
         seats=s.split('private _seatsAvailable={',1)[1].split('private _plainRoute={',1)[0]
         self.assertIn('[_driver,_operator] findIf',seats)
@@ -153,15 +153,15 @@ class DrivingBypassTests(unittest.TestCase):
 
     def test_convoy_lead_requires_its_own_registry_and_feature_gates(self):
         s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
-        for marker in ('WAIT_Convoy_Brain','WAIT_Convoy_ReceivedRevision','WAIT_Convoy_LocalJobToken',
-                       'WAIT_Convoy_LocalRegistry','WAIT_Convoy_RouteRecovery_Enable',
-                       'WAIT_Convoy_DrivingAssist_Enable','_mobile select 0','_controllerReceipt',
+        for marker in ('CBE_Convoy_Brain','CBE_Convoy_ReceivedRevision','CBE_Convoy_LocalJobToken',
+                       'CBE_Convoy_LocalRegistry','CBE_Convoy_RouteRecovery_Enable',
+                       'CBE_Convoy_DrivingAssist_Enable','_mobile select 0','_controllerReceipt',
                        '_columnLength','_envelope','"tailDeadline"'):
             self.assertIn(marker,s)
-        self.assertEqual(s.count('call WAIT_fnc_DrivingBypassPlan'),1)
+        self.assertEqual(s.count('call CBE_fnc_DrivingBypassPlan'),1)
         tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
-        self.assertEqual(tick.count('call WAIT_fnc_DrivingBypassStep'),1)
-        self.assertIn('"CONVOY"] call WAIT_fnc_DrivingBypassStep',tick)
+        self.assertEqual(tick.count('call CBE_fnc_DrivingBypassStep'),1)
+        self.assertIn('"CONVOY"] call CBE_fnc_DrivingBypassStep',tick)
         self.assertIn('!_bypassPassageActive',tick)
         self.assertIn('!_hadBypass',tick)
         self.assertIn('!_bypassActive',tick)
@@ -173,7 +173,7 @@ class DrivingBypassTests(unittest.TestCase):
         for marker in ('_episode get "obstacle"','_episode get "transform"','_progress param [10,[]]',
                        'expectedDestination driver _vehicle','expectedDestination _movementOperator',
                        '_nearest+1 < count _committed','vectorDotProduct _forward',
-                       'call WAIT_fnc_DrivingPathGeometry','!_bypassLegClear'):
+                       'call CBE_fnc_DrivingPathGeometry','!_bypassLegClear'):
             self.assertIn(marker,leg)
         self.assertNotIn('forceSpeed',leg)
         self.assertNotIn('setDriveOnPath',leg)
@@ -190,25 +190,25 @@ class DrivingBypassTests(unittest.TestCase):
             self.assertIn(phase,(ROOT/'addons/main/fsm/convoyOperation.fsm').read_text())
     def test_convoy_cleanup_cannot_claim_ordinary_or_successor_work(self):
         s=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
-        for marker in ('_expectedRevision','_successor','_stopOnly','_haltCleanup','WAIT_Convoy_LocalRegistry'):
+        for marker in ('_expectedRevision','_successor','_stopOnly','_haltCleanup','CBE_Convoy_LocalRegistry'):
             self.assertIn(marker,s)
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
         self.assertIn('_bypass getOrDefault ["controller",["ORDINARY",-1]]',ordinary)
         for filename in ('convoyReleaseLocal','convoyCrewLocal'):
             body=(ROOT/f'addons/vehicles/functions/{filename}.sqf').read_text()
-            self.assertIn('WAIT_fnc_DrivingBypassRelease',body)
-            self.assertIn('WAIT_fnc_ConvoyBypassStep',body)
+            self.assertIn('CBE_fnc_DrivingBypassRelease',body)
+            self.assertIn('CBE_fnc_ConvoyBypassStep',body)
 
     def test_new_follower_move_yields_before_crew_and_path_writes(self):
         tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
         gate=tick.index('private _commandYield=')
-        self.assertLess(gate,tick.index('call WAIT_fnc_ConvoyCrewLocal'))
-        for marker in ('WAIT_Convoy_MovementReceipt','WAIT_Convoy_CommandYield',
+        self.assertLess(gate,tick.index('call CBE_fnc_ConvoyCrewLocal'))
+        for marker in ('CBE_Convoy_MovementReceipt','CBE_Convoy_CommandYield',
                        'currentCommand _operator == "MOVE"','_was vectorDistance _now > 0.25',
                        '"NEW_NATIVE_ORDER"','(_commandYield param [0,-1]) == _revision'):
             self.assertIn(marker,tick)
         crew=(ROOT/'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
-        self.assertLess(crew.index('WAIT_Convoy_CommandYield'),crew.index('WAIT_Convoy_CrewDue'))
+        self.assertLess(crew.index('CBE_Convoy_CommandYield'),crew.index('CBE_Convoy_CrewDue'))
         release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         self.assertIn('private _mayHandBack=!_preserveMoves',release)
         self.assertIn('if (_mayRestoreGroup && {!_preserveMoves})',release)
@@ -246,7 +246,7 @@ class DrivingBypassTests(unittest.TestCase):
                 self.assertLess(step.index('doStop _driver'), step.index('_vehicle setDriveOnPath _points'))
                 self.assertNotIn('currentCommand '+actor+' != "STOP"', release)
                 for guard in ('expectedDestination _driver', 'expectedDestination _operator',
-                              'WAIT_fnc_CortexZeusHeld', 'WAIT_fnc_CortexExternalTakeover'):
+                              'CBE_fnc_CortexZeusHeld', 'CBE_fnc_CortexExternalTakeover'):
                     self.assertIn(guard, release)
 
 
@@ -299,10 +299,10 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
                        'serverTime-(_capture select 1) <= 3',
                        '_origin vectorDistance (_capture select 0) <= 12',
                        '_fraction < _lastFraction','_closest distance2D _point > 3.5',
-                       '_group setVariable ["WAIT_Convoy_BypassCapture",nil]',
+                       '_group setVariable ["CBE_Convoy_BypassCapture",nil]',
                        'private _nextCaptures=createHashMap'):
             self.assertIn(marker,source)
-        self.assertNotIn('WAIT_Convoy_BypassCapture",[_captureIdentity,_nextCaptures],true',source)
+        self.assertNotIn('CBE_Convoy_BypassCapture",[_captureIdentity,_nextCaptures],true',source)
         self.assertIn('if (_changed) then',source)
 
     def test_individual_tail_clearance_still_follows_checkpoint_capture(self):

@@ -24,7 +24,7 @@ Source through 406b0ed passed 660 tests and full build gates. All 65 feature fam
 
 Earlier evidence follows and must not be treated as current launch state.
 
-# WAIT completion status
+# CBE completion status
 
 Current evidence - 2026-10-13: all 65 feature families remain partial. Source through 8c7d7c7 passed 654 tests and full build gates. Normal CQB candidate 8c7d7c7 is running in runtime-20261013-045724-829 with zero HCs. Two prior resumed normal batches retained 13 and 12 findings respectively: twelve-person clearance remained incomplete, and whole-pair casualty entry failed. Narrow two/six-person cases passed; single-casualty entry varied between runs. This does not establish repeatability. Recent corrections cover planned formation fallback and removal of geometry-only room offsets; their physical acceptance is pending. The wall negative-control fixture still fails after spawn displacement and is being repaired. Later historical statements that audits are paused do not describe current authorization or runtime state. Counter-battery source now uses qualified delayed native observers and side-specific radar receipts; physical acceptance remains pending.
 
@@ -35,7 +35,7 @@ Current offline follow-up through c4f8606 passed 654 tests and the full build ga
 
 Recent source changes through 4023e01 passed 653 tests and full offline gates, with no new physical acceptance. CQB reserve staging uses bounded scene cover, three finite searches, owned approach timeout and generation-scoped migration journals built only on transitions. Clearance command readiness, reserve selection, room evidence and egress now account for hidden/simulation-disabled actors separately from roster/restoration ownership. Common recovery yields dormant actors without consuming retries; aggregate operation progress requires active observers. Dormant admission, recovery-observation expiry and wake baselines remain open. Convoy lateral recovery respects the closing cap, but mixed tracked/wheeled stop/start remains unresolved. Reinforcement need uses combat-effective strength; aircraft command boundaries require capable pilots. Grenade launch diagnostics and an isolated cardinal/stance fixture are unrun. Audits remain paused. Garrison now records exact movement receipts, fences continuation/release against replacement MOVE/FOLLOW, releases only diverted actors and their PATH locks, handles native service tasks, and retires the final empty group order. Defence arrival requires 3D distance and a floor match. Coordination uses believed drill contact geometry and transports confirmed-contact age through server/helper new-attack gates; already executing assault adoption remains separate without refreshing age/expiry. Migration, fresh per-target provenance, ongoing contact updates, dynamic allocation and all physical handovers remain incomplete.
 
-Status checked on 2026-10-13. WAIT is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
+Status checked on 2026-10-13. CBE is not production-ready. All 65 registered feature families remain `implemented_partial`. None has complete acceptance. This registry label covers both substantial controllers and capabilities with missing implementation, so it is not a completion percentage.
 
 Current evidence (2026-10-13):
 
@@ -159,7 +159,7 @@ The category table below gives feature-level detail. Blockers B1-B7 define the p
 
 | Category | Implementation present | Acceptance and remaining work |
 | --- | --- | --- |
-| Standalone addon and configuration | Eight addon PBOs, WAIT namespace, CBA settings, optional ZEN, native Zeus orders; nine FSM source files | Build gates pass. Complete CBA persistence, live-change, server enforcement, JIP and module parity remain unaccepted. |
+| Standalone addon and configuration | Eight addon PBOs, CBE namespace, CBA settings, optional ZEN, native Zeus orders; nine FSM source files | Build gates pass. Complete CBA persistence, live-change, server enforcement, JIP and module parity remain unaccepted. |
 | Danger foundation | Engine danger FSM, bounded observations, actor/witness identity, finite reactions and shared group handoff | Real contact, close-contact handoff and hold-fire subcases pass. Friendly blast intake, observer cover, cleanup and full response-depth parity remain unresolved. Highest behavioural priority. |
 | Operation lifecycle and scheduler | Generations, owner epochs, cancellation, committed movement, one shared owner-local budget | Multiple Zeus replacement and disable/restart cases pass. Every operation phase, queue growth, low-FPS response and full migration coverage remain pending. |
 | Skill, lighting and lethality | Skill profiles, darkness/NVG/light heuristics and operating-crew tuning | Full equipment/mod variation and infantry/vehicle/aircraft lethality acceptance remain pending. |
@@ -180,7 +180,7 @@ The category table below gives feature-level detail. Blockers B1-B7 define the p
 | Civilian, airborne and naval | Event-driven civilian escape; finite parachute/boat delivery and passenger handover | Richer civilian behaviour and complete delivery-to-ground-combat transitions remain unaccepted. |
 | Specialist interoperability | Per-actor ownership/exclusion and operation release; squad hide acquisition now excludes specialist actors | Actual specialist coexistence, activation/release, mixed groups, JIP and HC cases remain pending. Detection is not acceptance. |
 | Native headless integration | Real provider staging, hashes, registration/transfer/adoption fixture and ownership bridge | Provider now loads. Native HC registration failed, so transfer/adoption acceptance did not run. Saved server evidence confirms installation but has no registration result; RPC receipt/policy and provider rejection remain unresolved. The queued diagnostic wrapper retains the original provider call and return, rather than substituting registration. Standalone engine transfer success does not establish native integration. |
-| Performance and simulation | Shared budgets, caches, distance tiers and matched native/WAIT benchmark pipeline | Infantry patrol measurements matched at 21 ms median and 23 ms p95, but startup warnings invalidated comparison. Mixed/combat load, queue stability and the 5%/10% limits remain unaccepted. No new culling/simulation shortcut accepted. |
+| Performance and simulation | Shared budgets, caches, distance tiers and matched native/CBE benchmark pipeline | Infantry patrol measurements matched at 21 ms median and 23 ms p95, but startup warnings invalidated comparison. Mixed/combat load, queue stability and the 5%/10% limits remain unaccepted. No new culling/simulation shortcut accepted. |
 | Optional engine policies | Runtime skill/dispersion controls and policy requirements | A separate optional AI Turret Aiming PBO is now packaged outside the default addons folder. It changes only the AI turret aiming-error ceiling. Other engine policies, physical lethality, player precision and compatibility acceptance remain outstanding. |
 | Documentation and delivery | Static validators, tests, wiki generation, parity checks, package seals, audit launch/reporting and signed-candidate workflow | 559 static tests and package checks pass. No accepted release candidate. Some inventories describe earlier snapshots; full history cleanup has not been re-audited here. |
 
@@ -188,11 +188,11 @@ The category table below gives feature-level detail. Blockers B1-B7 define the p
 
 ### B1: runtime integrity
 
-The startup `a3_characters_f` warning occurs in both native and WAIT runs. Removing the generic declared mission dependency and headless slots did not remove it. Registration diagnostics are prepared but have not been exercised. A clean package is necessary for performance and release acceptance.
+The startup `a3_characters_f` warning occurs in both native and CBE runs. Removing the generic declared mission dependency and headless slots did not remove it. Registration diagnostics are prepared but have not been exercised. A clean package is necessary for performance and release acceptance.
 
 ### B2: danger and ownership
 
-Resolve danger intake, response-depth and exact actor/stance cleanup. CBA disablement ends WAIT's response but does not replace the loaded fsmDanger config; no WAIT command/lease is a necessary disabled-state result, not proof of native danger equivalence. Matched baseline performance must continue using the addon-absent native candidate. Verify newer orders, players and specialist owners through real transitions. This is the behavioural prerequisite for infantry, building and coordination acceptance.
+Resolve danger intake, response-depth and exact actor/stance cleanup. CBA disablement ends CBE's response but does not replace the loaded fsmDanger config; no CBE command/lease is a necessary disabled-state result, not proof of native danger equivalence. Matched baseline performance must continue using the addon-absent native candidate. Verify newer orders, players and specialist owners through real transitions. This is the behavioural prerequisite for infantry, building and coordination acceptance.
 
 Implementation: [engine danger FSM](../addons/danger/danger.fsm), [operation start](../addons/core/functions/operationStart.sqf), [operation restoration](../addons/core/functions/operationRestore.sqf).
 
@@ -231,7 +231,7 @@ Evidence contract: [performance validation](PERFORMANCE-VALIDATION.md), [all 65 
 - `runtime-20261010-123843-079`, candidate `20fd9d7`: completed broad batch, 755 checks, 62 server findings, zero client findings, no matched SQF/fatal errors, one loader warning. Remains FAIL.
 - `runtime-20261010-143646-413`, candidate `c9f6657`: processes exited without either completion marker. Partial report has 171 checks and 19 failed checks; no matched SQF/fatal errors and one loader warning. Building/vehicle stages did not complete.
 - `runtime-20261010-151701-617`, candidate `62d86bd`: completed native-provider batch, 300 checks, one server finding, zero client findings, no matched SQF/fatal errors and one loader warning. Native registration failed its prerequisite; physical native transfers were not accepted.
-- `6308d3f` infantry patrol pair: native and WAIT both observed 21 ms median and 23 ms p95. Strict comparison is INVALID because both contain the loader warning. Patrol results do not establish combat performance.
+- `6308d3f` infantry patrol pair: native and CBE both observed 21 ms median and 23 ms p95. Strict comparison is INVALID because both contain the loader warning. Patrol results do not establish combat performance.
 - `runtime-20261010-214346-432`, clean candidate `89812ab`: observer Zeus and 3840x2160 mission entry verified. Batch remains active: an unrestricted process check confirmed all four original PIDs and fresh building-stage RPT entries. An earlier restricted-shell inventory falsely appeared empty and its partial reporter snapshot must not be treated as terminal evidence. Completion and final results remain pending.
 
 The latest observed partial snapshot records 1528 checks, 4231 SQF error trace lines,

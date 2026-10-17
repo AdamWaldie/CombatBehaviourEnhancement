@@ -7,12 +7,12 @@
  * Arguments: 0: battery <OBJECT>, default objNull; 1: smoke <BOOL>, default false.
  * Return Value: String magazine class, or empty string.
  * Current callers: ArtilleryFire and ArtilleryShot.
- * Example: private _mag = [_gun, false] call WAIT_fnc_CortexArtilleryAmmo;
+ * Example: private _mag = [_gun, false] call CBE_fnc_CortexArtilleryAmmo;
  */
 params [["_battery", objNull, [objNull]], ["_smoke", false, [true]]];
 private _best = "";
 private _available = (magazinesAllTurrets [_battery,true]) select {(_x select 2) > 0};
-private _cache = missionNamespace getVariable ["WAIT_AIPass_ArtilleryAmmoProfiles",createHashMap];
+private _cache = missionNamespace getVariable ["CBE_AIPass_ArtilleryAmmoProfiles",createHashMap];
 private _bestHit = -1;
 // Mortar smoke can be a shotDeploy carrier rather than a direct smoke projectile.
 // Inspect only immutable config, bounded against recursive addon payload definitions.
@@ -71,6 +71,6 @@ private _classifySmoke = {
     _profile params ["_isSmoke","_special","_hit"];
     if (_isSmoke == _smoke && {_smoke || {!_special && {_hit > _bestHit}}}) then {_best = _x; _bestHit = _hit};
 } forEach ((getArtilleryAmmo [_battery]) select {private _magazine = _x; _available findIf {(_x select 0) == _magazine} >= 0});
-missionNamespace setVariable ["WAIT_AIPass_ArtilleryAmmoProfiles",_cache];
+missionNamespace setVariable ["CBE_AIPass_ArtilleryAmmoProfiles",_cache];
 
 _best

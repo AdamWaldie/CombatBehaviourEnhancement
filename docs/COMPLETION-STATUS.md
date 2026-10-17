@@ -1,7 +1,7 @@
-# WAIT completion status
+# CBE completion status
 
 Checked against the feature registry and local build evidence on 17 October 2026.
-WAIT is not production-ready. All **65 feature families remain partial; 0/65 have full acceptance**.
+CBE is not production-ready. All **65 feature families remain partial; 0/65 have full acceptance**.
 This is an acceptance count, not a claim that implementation is zero percent. The former
 implementation percentages were withdrawn because source inventories, registration and offline
 test counts did not measure delivered AI behaviour. No defensible overall implementation or

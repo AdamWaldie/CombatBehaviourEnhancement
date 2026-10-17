@@ -9,7 +9,7 @@ from mod_pipeline import ROOT, seal, stage, verify, release_gate, supported_focu
 class PackagePipelineTests(unittest.TestCase):
     def test_road_passing_stage_requires_real_terrain_and_separate_normal_batch(self):
         mission=stage(self.folder,Path(self.temp.name)/'road-pass','roadpassing',world='Altis')
-        self.assertEqual(mission.name,'WAIT_Audit.Altis')
+        self.assertEqual(mission.name,'CBE_Audit.Altis')
         sqm=(mission/'mission.sqm').read_text(encoding='utf-8')
         self.assertIn('A3_Map_Altis',sqm)
         self.assertNotIn('HeadlessClient_F',sqm)
@@ -24,7 +24,7 @@ class PackagePipelineTests(unittest.TestCase):
 
     def test_terrain_building_baseline_uses_altis_mission_identity(self):
         mission=stage(self.folder,Path(self.temp.name)/'terrain-buildings','nativebuildings',native_baseline=True,world='Altis')
-        self.assertEqual(mission.name,'WAIT_Audit.Altis')
+        self.assertEqual(mission.name,'CBE_Audit.Altis')
         sqm=(mission/'mission.sqm').read_text()
         self.assertIn('A3_Map_Altis',sqm)
         self.assertNotIn('A3_Map_VR',sqm)
@@ -79,17 +79,17 @@ class PackagePipelineTests(unittest.TestCase):
         identity = (mission/'auditIdentity.sqf').read_text()
         self.assertIn(self.record['fingerprint'], identity)
         self.assertIn('"airskills"', identity)
-        self.assertTrue((mission.parent/'@WaldosAITweaks/addons/main.pbo').is_file())
+        self.assertTrue((mission.parent/'@CBE/addons/main.pbo').is_file())
         with self.assertRaises(ValueError): stage(self.folder, mission.parent, 'airskills')
 
     def test_standalone_native_stage_has_no_addon_function_dependency(self):
         mission=stage(self.folder,Path(self.temp.name)/'native','standaloneperformance',native_baseline=True)
         manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
         self.assertTrue(manifest['native_baseline'])
-        self.assertIn('"WAIT_QA_PerfExpectedLoaded",false',(mission/'auditIdentity.sqf').read_text())
+        self.assertIn('"CBE_QA_PerfExpectedLoaded",false',(mission/'auditIdentity.sqf').read_text())
         for name in ('initServer.sqf','initPlayerLocal.sqf','cortexQAStandalonePerformance.sqf'):
-            self.assertNotIn('WAIT_fnc_', (mission/name).read_text())
-        self.assertIn('WAIT AUDIT OBSERVER ZEUS READY',(mission/'initServer.sqf').read_text())
+            self.assertNotIn('CBE_fnc_', (mission/name).read_text())
+        self.assertIn('CBE AUDIT OBSERVER ZEUS READY',(mission/'initServer.sqf').read_text())
         self.assertNotIn('HeadlessClient_F',(mission/'mission.sqm').read_text())
         self.assertIn('B_Soldier_F',(mission/'mission.sqm').read_text())
         with self.assertRaises(ValueError):
@@ -106,7 +106,7 @@ class PackagePipelineTests(unittest.TestCase):
     def test_fsm_is_config_syntax_and_budgeted(self):
         fsm = (ROOT/'addons/main/fsm/tacticalDrill.fsm').read_text()
         self.assertNotIn('\\"', fsm)
-        self.assertIn('call WAIT_fnc_CortexQueueJob', fsm)
+        self.assertIn('call CBE_fnc_CortexQueueJob', fsm)
         self.assertNotIn('class TokenChanged', fsm)
         launcher = (ROOT/'addons/infantry/functions/cortexDrillStart.sqf').read_text()
         self.assertIn('}) exitWith {true};', launcher)
@@ -119,7 +119,7 @@ class PackagePipelineTests(unittest.TestCase):
 
     def test_launcher_keeps_packaged_content_and_resolution(self):
         launcher = (ROOT/'releaseVerificationAndDeployment/launch_mod_audit.ps1').read_text()
-        for expected in ('-noBattlEye','3840','2160','WAIT AUDIT SERVER READY','StageOnly','@WaldosAITweaks'):
+        for expected in ('-noBattlEye','3840','2160','CBE AUDIT SERVER READY','StageOnly','@CBE'):
             self.assertIn(expected, launcher)
         self.assertNotIn('Stop-Process', launcher)
         self.assertNotIn('-filePatching', launcher)
@@ -130,18 +130,18 @@ class PackagePipelineTests(unittest.TestCase):
         self.assertLess(gate, launcher.index("$server=Start-AuditProcess"))
 
         self.assertIn("if ($Interactive) {'Normal'} else {'Hidden'}", launcher)
-        self.assertIn("'-name=WAIT_Audit',$modArg) -Interactive", launcher)
-        self.assertIn('"-name=WAIT_HC$i"', launcher)
+        self.assertIn("'-name=CBE_Audit',$modArg) -Interactive", launcher)
+        self.assertIn('"-name=CBE_HC$i"', launcher)
         for option in ('-cfg=$clientConfig', '-x=$ResolutionWidth', '-y=$ResolutionHeight', '-noPause'):
             self.assertIn(option, launcher)
         self.assertIn('ClientReadyTimeoutSeconds=180', launcher)
-        self.assertIn("'WAIT AUDIT OBSERVER ZEUS READY'", launcher)
+        self.assertIn("'CBE AUDIT OBSERVER ZEUS READY'", launcher)
         self.assertIn('this batch is not valid', launcher)
         self.assertIn("$ServerOnly -and $Focus -ne 'dangerload'", launcher)
-        self.assertIn('WAIT danger loader diagnostic entered WAIT_Audit.VR server-side', launcher)
+        self.assertIn('CBE danger loader diagnostic entered CBE_Audit.VR server-side', launcher)
         self.assertIn('$stageDefaultDependencies=!$Mods.Count', launcher)
         self.assertIn("Join-Path $stagedMod 'meta.cpp'", launcher)
-        self.assertIn("@((Join-Path $runtime '@WaldosAITweaks'))+$launchMods", launcher)
+        self.assertIn("@((Join-Path $runtime '@CBE'))+$launchMods", launcher)
 
     def test_observer_has_curator_on_join_and_respawn(self):
         server = (ROOT/'releaseVerificationAndDeployment/auditMission/initServer.sqf').read_text()
@@ -150,7 +150,7 @@ class PackagePipelineTests(unittest.TestCase):
         self.assertIn('getAssignedCuratorLogic _current != _curator', server)
         self.assertIn('_current assignCurator _curator', server)
         self.assertIn('addCuratorEditableObjects [allUnits + vehicles,true]', server)
-        self.assertIn('WAIT_CortexQA_Focus", "all"]) isEqualTo "dangerload"', server)
+        self.assertIn('CBE_CortexQA_Focus", "all"]) isEqualTo "dangerload"', server)
 
     def test_phase_observer_placement_preserves_production_distance_gates(self):
         server=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text()
@@ -218,11 +218,11 @@ class PackagePipelineTests(unittest.TestCase):
         evidence.write_text(json.dumps(dict(status='PASS',complete=True,source_fingerprint=record['fingerprint'])))
         release_gate(self.folder, evidence)
         record['dirty']=True
-        (self.folder/'wait-build.json').write_text(json.dumps(record))
+        (self.folder/'cbe-build.json').write_text(json.dumps(record))
         with self.assertRaises(ValueError): release_gate(self.folder,evidence)
 
     def test_optional_policy_is_sealed_staged_and_requires_its_own_signature(self):
-        policy=self.folder/'optionals/@waldo_ai_tweaks_turret_aiming/addons/policy.pbo'
+        policy=self.folder/'optionals/@cbe_turret_aiming/addons/policy.pbo'
         policy.parent.mkdir(parents=True)
         policy.write_bytes(b'optional policy fixture')
         (self.folder/'addons/main.pbo.fixture.bisign').write_bytes(b'core signature fixture')
@@ -242,7 +242,7 @@ class PackagePipelineTests(unittest.TestCase):
         reseal()
         release_gate(self.folder,evidence)
         mission=stage(self.folder,Path(self.temp.name)/'optional-stage','all')
-        staged=mission.parent/'@WaldosAITweaks'/policy.relative_to(self.folder)
+        staged=mission.parent/'@CBE'/policy.relative_to(self.folder)
         self.assertEqual(staged.read_bytes(),policy.read_bytes())
         policy.write_bytes(b'changed optional policy')
         with self.assertRaisesRegex(ValueError,'changed after sealing'):
@@ -252,7 +252,7 @@ class PackagePipelineTests(unittest.TestCase):
             mission=stage(self.folder,Path(self.temp.name)/('batch-'+mode),'all',batch_mode=mode)
             manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
             self.assertEqual(manifest['batch_mode'],mode)
-            self.assertIn('"WAIT_CortexQA_HeadlessBatch",'+value,(mission/'auditIdentity.sqf').read_text())
+            self.assertIn('"CBE_CortexQA_HeadlessBatch",'+value,(mission/'auditIdentity.sqf').read_text())
         with self.assertRaisesRegex(ValueError,'dedicated headless batch'):
             stage(self.folder,Path(self.temp.name)/'invalid-normal','lifecycle',headless_provider=Path(self.temp.name))
 

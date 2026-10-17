@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Verify WAIT's standalone danger-FSM ownership, exclusive finite movement lease and
+ * Purpose: Verify CBE's standalone danger-FSM ownership, exclusive finite movement lease and
  * clean Zeus replacement using physical group movement.
  * Locality / Authority: Dedicated server creates and owns the fixture. Movement and lease changes
  * run only on the current group owner; public audit labels are observer diagnostics.
@@ -16,103 +16,103 @@ private _configuredDanger=[];
 {
     private _configured=toLowerANSI getText (configFile >> "CfgVehicles" >> _x >> "fsmDanger");
     _configuredDanger pushBack [_x,_configured];
-    ["COMPAT-exclusive-danger-fsm-"+toLowerANSI _x,_configured find "z\wait\danger\danger.fsm" >= 0,_configured] call _check;
+    ["COMPAT-exclusive-danger-fsm-"+toLowerANSI _x,_configured find "z\cbe\addons\danger\danger.fsm" >= 0,_configured] call _check;
 } forEach ["SoldierWB","SoldierEB","SoldierGB"];
-["COMPAT-exclusive-danger-fsm",_configuredDanger findIf {(_x select 1) find "z\wait\danger\danger.fsm" < 0} < 0,str _configuredDanger] call _check;
+["COMPAT-exclusive-danger-fsm",_configuredDanger findIf {(_x select 1) find "z\cbe\addons\danger\danger.fsm" < 0} < 0,str _configuredDanger] call _check;
 
 private _group=createGroup [east,true];
-_group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_group setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _group setVariable ["acex_headless_blacklist",true,true];
-_group setGroupIdGlobal ["WAIT QA ownership handover"];
+_group setGroupIdGlobal ["CBE QA ownership handover"];
 private _units=[];
 for "_i" from 0 to 2 do {
     private _unit=_group createUnit ["O_Soldier_F",[2600+(_i*3),2400,0],[],0,"NONE"];
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["OWNERSHIP SOLDIER %1",_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["OWNERSHIP SOLDIER %1",_i+1],true];
     _units pushBack _unit;
 };
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_units,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_units,true];
 
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],
-    ["WAIT_AIPass_Contact_Enable",false],
-    ["WAIT_AIPass_Regroup_Enable",false]
-]] call WAIT_fnc_CortexTuning;
-[{missionNamespace getVariable ["WAIT_AIPass_Active",false]},20] call _wait;
+    ["CBE_AIPass_Enable",true],
+    ["CBE_AIPass_Contact_Enable",false],
+    ["CBE_AIPass_Regroup_Enable",false]
+]] call CBE_fnc_CortexTuning;
+[{missionNamespace getVariable ["CBE_AIPass_Active",false]},20] call _wait;
 
-// Ownership diagnostic only: an active marker tests WAIT's boundary, not the external mod.
+// Ownership diagnostic only: an active marker tests CBE's boundary, not the external mod.
 // Real specialist animation, damage, release and locality acceptance remain separate requirements.
 private _ordinaryActor=_units select 0;
 private _specialistActor=_units select 2;
 _specialistActor setVariable ["IMS_ISAI",true];
 ["COMPAT: mixed actor ownership diagnostic","An explicit specialist marker must exclude that actor and block group orders while an ordinary member retains actor-local danger eligibility. This does not validate an external mod's behaviour.",getPosATL _ordinaryActor] call _phase;
 ["COMPAT-mixed-ordinary-actor-danger-eligible",
-    [_group,false,true,false,_ordinaryActor] call WAIT_fnc_CortexIsEligible,
+    [_group,false,true,false,_ordinaryActor] call CBE_fnc_CortexIsEligible,
     "Actor-local permission with a specialist teammate"] call _check;
 ["COMPAT-mixed-specialist-actor-excluded",
-    !([_group,false,true,false,_specialistActor] call WAIT_fnc_CortexIsEligible),
+    !([_group,false,true,false,_specialistActor] call CBE_fnc_CortexIsEligible),
     "Specialist actor must retain its controller"] call _check;
-["COMPAT-mixed-group-orders-excluded",!([_group] call WAIT_fnc_CortexIsEligible),
+["COMPAT-mixed-group-orders-excluded",!([_group] call CBE_fnc_CortexIsEligible),
     "Default whole-group permission remains restricted"] call _check;
 private _mixedWaypointCount=count waypoints _group;
-private _mixedRoute=[_group,[2600,2470,0],5] call WAIT_fnc_CortexGroupMove;
+private _mixedRoute=[_group,[2600,2470,0],5] call CBE_fnc_CortexGroupMove;
 ["COMPAT-mixed-group-route-rejected",_mixedRoute isEqualTo [grpNull,-1]
     && {count waypoints _group == _mixedWaypointCount},str _mixedRoute] call _check;
 _specialistActor setVariable ["IMS_ISAI",nil];
-["COMPAT-mixed-marker-release-eligibility",[_group] call WAIT_fnc_CortexIsEligible,
+["COMPAT-mixed-marker-release-eligibility",[_group] call CBE_fnc_CortexIsEligible,
     "Removing the diagnostic marker restores ordinary group eligibility"] call _check;
 
 private _hold=[2600,2470,0];
-{_x setVariable ["WAIT_CortexQA_Target",_hold,true]} forEach _units;
-["COMPAT: standalone WAIT movement","The whole squad must move north and hold separate defence positions. An accepted order alone cannot pass.",_hold] call _phase;
+{_x setVariable ["CBE_CortexQA_Target",_hold,true]} forEach _units;
+["COMPAT: standalone CBE movement","The whole squad must move north and hold separate defence positions. An accepted order alone cannot pass.",_hold] call _phase;
 private _starts=_units apply {getPosATL _x};
-private _accepted=[_group,_hold,0,14] call WAIT_fnc_CortexDefend;
+private _accepted=[_group,_hold,0,14] call CBE_fnc_CortexDefend;
 private _arrived=[{
     (_units findIf {
-        private _assignment=_x getVariable ["WAIT_AIPass_DefendPos",[]];
+        private _assignment=_x getVariable ["CBE_AIPass_DefendPos",[]];
         !alive _x || {_assignment isEqualTo []} || {_x distance2D (_assignment select 0) > 5}
     }) < 0
 },90] call _wait;
 private _travelled=true;
 {if (_x distance2D (_starts select _forEachIndex) < 35) then {_travelled=false}} forEach _units;
 ["COMPAT-standalone-physical-arrival",_accepted && {_arrived} && {_travelled},str (_units apply {getPosATL _x})] call _check;
-[_group] call WAIT_fnc_CortexDefendRelease;
+[_group] call CBE_fnc_CortexDefendRelease;
 
-_group setVariable ["WAIT_Cortex_MovementLease",nil,true];
-private _leased=[_group,"QA-PRIMARY",true,serverTime+60] call WAIT_fnc_CortexOwnershipLease;
-private _competingRefused=!([_group,"QA-COMPETING",true,serverTime+60] call WAIT_fnc_CortexOwnershipLease);
-private _lease=_group getVariable ["WAIT_Cortex_MovementLease",[]];
+_group setVariable ["CBE_Cortex_MovementLease",nil,true];
+private _leased=[_group,"QA-PRIMARY",true,serverTime+60] call CBE_fnc_CortexOwnershipLease;
+private _competingRefused=!([_group,"QA-COMPETING",true,serverTime+60] call CBE_fnc_CortexOwnershipLease);
+private _lease=_group getVariable ["CBE_Cortex_MovementLease",[]];
 ["COMPAT-movement-lease-exclusive",_leased && {_competingRefused}
     && {count _lease == 2} && {(_lease select 0) == "QA-PRIMARY"}] call _check;
-private _wrongReleaseRefused=!([_group,"QA-COMPETING",false] call WAIT_fnc_CortexOwnershipLease);
-private _released=[_group,"QA-PRIMARY",false] call WAIT_fnc_CortexOwnershipLease;
+private _wrongReleaseRefused=!([_group,"QA-COMPETING",false] call CBE_fnc_CortexOwnershipLease);
+private _released=[_group,"QA-PRIMARY",false] call CBE_fnc_CortexOwnershipLease;
 ["COMPAT-movement-lease-release",_wrongReleaseRefused && {_released}
-    && {(_group getVariable ["WAIT_Cortex_MovementLease",[]]) isEqualTo []}] call _check;
+    && {(_group getVariable ["CBE_Cortex_MovementLease",[]]) isEqualTo []}] call _check;
 
 private _handoverStart=_units apply {getPosATL _x};
 private _waitDestination=[2670,2470,0];
-[_group,_waitDestination,5] call WAIT_fnc_CortexGroupMove;
-["COMPAT: Zeus replacement","The squad must begin the eastward WAIT move, then follow the south-west Zeus waypoint without old-route resurrection.",_waitDestination] call _phase;
+[_group,_waitDestination,5] call CBE_fnc_CortexGroupMove;
+["COMPAT: Zeus replacement","The squad must begin the eastward CBE move, then follow the south-west Zeus waypoint without old-route resurrection.",_waitDestination] call _phase;
 private _started=[{
     private _all=true;
     {if (_x distance2D (_handoverStart select _forEachIndex) < 10) then {_all=false}} forEach _units;
     _all
 },35] call _wait;
 ["COMPAT-zeus-handover-stimulus",_started] call _check;
-[_group,true] call WAIT_fnc_CortexZeusMark;
+[_group,true] call CBE_fnc_CortexZeusMark;
 private _replacement=[2540,2425,0];
 private _wp=_group addWaypoint [_replacement,0];
 _wp setWaypointType "MOVE";
 _wp setWaypointCompletionRadius 4;
 _group setCurrentWaypoint _wp;
-{_x setVariable ["WAIT_CortexQA_Target",_replacement,true]; _x doFollow leader _group} forEach _units;
+{_x setVariable ["CBE_CortexQA_Target",_replacement,true]; _x doFollow leader _group} forEach _units;
 private _replacementReached=[{(_units findIf {!alive _x || {_x distance2D _replacement > 12}}) < 0},90] call _wait;
 ["COMPAT-zeus-replacement-physical-arrival",_started && {_replacementReached},str (_units apply {getPosATL _x})] call _check;
 private _maxDrift=0;
 for "_sample" from 1 to 12 do {sleep 1; {_maxDrift=_maxDrift max (_x distance2D _replacement)} forEach _units};
 ["COMPAT-zeus-clean-release",_replacementReached && {_maxDrift <= 15},str _maxDrift] call _check;
 
-[_group] call WAIT_fnc_CortexReleaseGroup;
+[_group] call CBE_fnc_CortexReleaseGroup;
 {deleteVehicle _x} forEach _units;
 deleteGroup _group;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];

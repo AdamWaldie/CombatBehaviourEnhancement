@@ -10,7 +10,7 @@
  * expected destination, plus the full authored route receipt. Missing crew use an empty row.
  * Current callers: DrivingPassPlan, DrivingPassGeometry, DrivingPassTraffic, DrivingPassPrepare,
  * DrivingPassAgreementServer and DrivingPassAgreementOwner.
- * Example: private _receipt=[[truck1,truck2]] call WAIT_fnc_DrivingPassContext;
+ * Example: private _receipt=[[truck1,truck2]] call CBE_fnc_DrivingPassContext;
  */
 params [["_vehicles",[],[[]]]];
 if (count _vehicles != 2 || {(_vehicles select 0) isEqualTo (_vehicles select 1)}
@@ -20,9 +20,9 @@ private _actorReceipt={
     params ["_actor"];
     if (isNull _actor) exitWith {[]};
     private _group=group _actor;
-    [_actor,owner _actor,_group,groupOwner _group,_group getVariable ["WAIT_AIPass_Epoch",0],
+    [_actor,owner _actor,_group,groupOwner _group,_group getVariable ["CBE_AIPass_Epoch",0],
         isPlayer _actor,remoteControlled _actor,currentCommand _actor,+(expectedDestination _actor),
-        [_group] call WAIT_fnc_NativeOrderReceipt]
+        [_group] call CBE_fnc_NativeOrderReceipt]
 };
 [clientOwner,_vehicles apply {
     private _operator=effectiveCommander _x;

@@ -20,11 +20,11 @@
  * Boolean - true when a launcher firing request was dispatched; Fired events establish actual fire
  *
  * Example:
- * [_vehicle] call WAIT_fnc_CortexFireCountermeasure;
+ * [_vehicle] call CBE_fnc_CortexFireCountermeasure;
  * Result: a damaged APC pops its smoke screen before withdrawing.
  *
- * Current callers: WAIT_fnc_CortexVehicles, WAIT_fnc_CortexAirAttack and the aircraft flare
- * handler in WAIT_fnc_CortexDiscover.
+ * Current callers: CBE_fnc_CortexVehicles, CBE_fnc_CortexAirAttack and the aircraft flare
+ * handler in CBE_fnc_CortexDiscover.
  */
 
 params [["_vehicle", objNull, [objNull]]];
@@ -42,7 +42,7 @@ private _entry = ["", []];
     if (_index >= 0) exitWith {_entry = [_weapons select _index, _turret]};
 } forEach ([[-1]] + allTurrets [_vehicle, true]);
 _entry params ["_weapon", "_turret"];
-if (_weapon == "") exitWith {_vehicle setVariable ["WAIT_Cortex_CountermeasureLastRequest",[serverTime,false,"NO_AMMO_OR_LAUNCHER"],true]; false};
+if (_weapon == "") exitWith {_vehicle setVariable ["CBE_Cortex_CountermeasureLastRequest",[serverTime,false,"NO_AMMO_OR_LAUNCHER"],true]; false};
 [_vehicle, _weapon, _turret] call BIS_fnc_fire;
-_vehicle setVariable ["WAIT_Cortex_CountermeasureLastRequest",[serverTime,true,_weapon,_turret],true];
+_vehicle setVariable ["CBE_Cortex_CountermeasureLastRequest",[serverTime,true,_weapon,_turret],true];
 true

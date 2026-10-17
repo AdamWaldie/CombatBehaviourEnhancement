@@ -8,36 +8,36 @@
  * Arguments: 0 vehicle <OBJECT>, objNull.
  * Return: BOOL - local ordinary-route eligibility, never authority to execute a pass.
  * Current callers: DrivingPassPrepare and authenticated DrivingPassAgreementOwner verification.
- * Example: private _eligible=[truck1] call WAIT_fnc_DrivingPassCanConsent;
+ * Example: private _eligible=[truck1] call CBE_fnc_DrivingPassCanConsent;
  */
 params [["_vehicle",objNull,[objNull]]];
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}
     || {!canMove _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
-    || {!isNil {_vehicle getVariable "WAIT_DrivingPass_Leg"}}
-    || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
-    || {!isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}}) exitWith {false};
+    || {!isNil {_vehicle getVariable "CBE_DrivingPass_Leg"}}
+    || {_vehicle getVariable ["CBE_Convoy_Active",false]}
+    || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}) exitWith {false};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _operator) then {_operator=_driver};
 if (isNull _driver || {isNull _operator}) exitWith {false};
 private _group=group _driver;
 if (isNull _group || {!local _group} || {group _operator != _group}
     || {behaviour leader _group in ["COMBAT","STEALTH"]}
-    || {!([_group] call WAIT_fnc_CortexIsEligible)}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}
-    || {!([_group] call WAIT_fnc_DrivingMovementAvailable)}
-    || {!([_group,"WAIT_AIPass_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {false};
+    || {!([_group] call CBE_fnc_CortexIsEligible)}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}
+    || {!([_group] call CBE_fnc_DrivingMovementAvailable)}
+    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {false};
 if ([_driver,_operator] findIf {!local _x || {isPlayer _x} || {!isNull remoteControlled _x}
     || {!simulationEnabled _x} || {isObjectHidden _x}
-    || {!([_x] call WAIT_fnc_CortexCombatEffective)}
-    || {[_x] call WAIT_fnc_CortexActorMoveReserved}
+    || {!([_x] call CBE_fnc_CortexCombatEffective)}
+    || {[_x] call CBE_fnc_CortexActorMoveReserved}
     || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
     || {!(currentCommand _x in ["","MOVE","WAIT"])}} >= 0) exitWith {false};
-if (["WAIT_DrivingRecovery_Work","WAIT_DrivingBypass_Work","WAIT_DrivingCorridor_Work"] findIf {
+if (["CBE_DrivingRecovery_Work","CBE_DrivingBypass_Work","CBE_DrivingCorridor_Work"] findIf {
     count (_vehicle getVariable [_x,createHashMap]) > 0
 } >= 0) exitWith {false};
-// Consent cannot displace a newer direct driver/commander destination or native WAIT.
-private _route=[_group] call WAIT_fnc_DrivingRouteReceipt;
-if !([_group,_vehicle,_route] call WAIT_fnc_DrivingGateIntent) exitWith {false};
+// Consent cannot displace a newer direct driver/commander destination or native CBE.
+private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
+if !([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent) exitWith {false};
 private _index=currentWaypoint _group;
 if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
 private _waypoint=[_group,_index];private _statements=waypointStatements _waypoint;

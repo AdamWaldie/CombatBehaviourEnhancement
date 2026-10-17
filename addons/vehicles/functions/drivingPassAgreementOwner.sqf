@@ -10,20 +10,20 @@
  * VERIFY: [token, vehicles, context, handshakeDeadline, consentExpiry, serial]; RESULT adds phase.
  * Return: BOOL - reply/result handled, not physical passing or authority to disable safety.
  * Current callers: DrivingPassAgreementServer only.
- * Example: ["VERIFY",_payload] remoteExecCall ["WAIT_fnc_DrivingPassAgreementOwner",_owner];
+ * Example: ["VERIFY",_payload] remoteExecCall ["CBE_fnc_DrivingPassAgreementOwner",_owner];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
 if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT"])}
     || {count _payload != ([6,7] select (_mode == "RESULT"))}) exitWith {false};
 _payload params ["_token","_vehicles","_context","_deadline","_expires","_serial"];
-private _live=[_vehicles] call WAIT_fnc_DrivingPassContext;
+private _live=[_vehicles] call CBE_fnc_DrivingPassContext;
 if (_live isEqualTo [] || {count _context != 2} || {count (_context select 1) != 2}) exitWith {false};
 // An already-installed result is not a new request to reinterpret native commands.
 // In particular, our own later fixed-path command must not make duplicate delivery revoke consent.
 if (_mode == "RESULT" && {(_payload select 6) == "AGREED"}) then {
     private _local=_vehicles select {local _x};
     private _installed=_local isNotEqualTo [] && {_local findIf {
-        private _old=_x getVariable ["WAIT_DrivingPass_Consent",[]];
+        private _old=_x getVariable ["CBE_DrivingPass_Consent",[]];
         !(_old isEqualType []) || {count _old != 5} || {(_old select 0) isNotEqualTo _token}
             || {(_old select 4) isNotEqualTo "AGREED"}
     } < 0};
@@ -37,13 +37,13 @@ for "_i" from 0 to 1 do {
     if (local _vehicle) then {
         _owned pushBack _vehicle;
         if (_vehicle == (_vehicles select 0)) then {
-            private _request=_vehicle getVariable ["WAIT_DrivingPass_Request",[]];
+            private _request=_vehicle getVariable ["CBE_DrivingPass_Request",[]];
             if (count _request != 3 || {(_request select 2) != _serial}
                 || {(_request select 0) isNotEqualTo _context}) then {_accepted=false};
         };
         if (((_live select 1) select _i) isNotEqualTo ((_context select 1) select _i)
-            || {!([_vehicle] call WAIT_fnc_DrivingPassCanConsent)}) then {_accepted=false};
-        private _old=_vehicle getVariable ["WAIT_DrivingPass_Consent",[]];
+            || {!([_vehicle] call CBE_fnc_DrivingPassCanConsent)}) then {_accepted=false};
+        private _old=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];
         if (_old isNotEqualTo []) then {
             private _valid=_old isEqualType [] && {count _old == 5}
                 && {(_old select 0) isEqualType ""} && {(_old select 1) isEqualType []}
@@ -63,31 +63,31 @@ for "_i" from 0 to 1 do {
 if (_owned isEqualTo []) exitWith {false};
 if (_mode == "VERIFY") exitWith {
     if (_accepted) then {
-        {_x setVariable ["WAIT_DrivingPass_Consent",[_token,_context,_deadline,_expires,"PENDING"]]} forEach _owned;
+        {_x setVariable ["CBE_DrivingPass_Consent",[_token,_context,_deadline,_expires,"PENDING"]]} forEach _owned;
     };
-    ["ACK",[_token,_accepted]] remoteExecCall ["WAIT_fnc_DrivingPassAgreementServer",2];
+    ["ACK",[_token,_accepted]] remoteExecCall ["CBE_fnc_DrivingPassAgreementServer",2];
     true
 };
 private _phase=_payload select 6;
 {
-    private _old=_x getVariable ["WAIT_DrivingPass_Consent",[]];
+    private _old=_x getVariable ["CBE_DrivingPass_Consent",[]];
     if (count _old == 5 && {(_old select 0) == _token}) then {
         if (_accepted && {_phase == "AGREED"}) then {
-            _x setVariable ["WAIT_DrivingPass_Consent",[_token,_context,_deadline,_expires,"AGREED"]];
+            _x setVariable ["CBE_DrivingPass_Consent",[_token,_context,_deadline,_expires,"AGREED"]];
             if (_x == (_vehicles select 0)) then {
-                private _request=_x getVariable ["WAIT_DrivingPass_Request",[]];
+                private _request=_x getVariable ["CBE_DrivingPass_Request",[]];
                 if (count _request == 3 && {(_request select 2) == _serial} && {(_request select 0) isEqualTo _context}) then {
-                    _x setVariable ["WAIT_DrivingPass_Agreement",[_token,_vehicles,_context,_expires,"AGREED"]];
+                    _x setVariable ["CBE_DrivingPass_Agreement",[_token,_vehicles,_context,_expires,"AGREED"]];
                 };
             };
         } else {
-            _x setVariable ["WAIT_DrivingPass_Consent",nil];
-            private _agreement=_x getVariable ["WAIT_DrivingPass_Agreement",[]];
-            if (count _agreement == 5 && {(_agreement select 0) == _token}) then {_x setVariable ["WAIT_DrivingPass_Agreement",nil]};
+            _x setVariable ["CBE_DrivingPass_Consent",nil];
+            private _agreement=_x getVariable ["CBE_DrivingPass_Agreement",[]];
+            if (count _agreement == 5 && {(_agreement select 0) == _token}) then {_x setVariable ["CBE_DrivingPass_Agreement",nil]};
         };
     };
 } forEach _owned;
 if (_phase == "AGREED" && {!_accepted}) then {
-    ["RELEASE",[_token]] remoteExecCall ["WAIT_fnc_DrivingPassAgreementServer",2];
+    ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingPassAgreementServer",2];
 };
 true

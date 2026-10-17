@@ -8,7 +8,7 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAArtillerySmoke.sqf";
  */
 params ["_check","_phase","_wait"];
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Artillery_Enable",true],["WAIT_AIPass_ArtillerySmoke_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Artillery_Enable",true],["CBE_AIPass_ArtillerySmoke_Enable",true]]] call CBE_fnc_CortexTuning;
 private _gun=createVehicle ["O_Mortar_01_F",[1800,700,0],[],0,"NONE"];
 createVehicleCrew _gun;
 private _crew=crew _gun;
@@ -17,48 +17,48 @@ private _requester=createGroup [east,true];
 private _caller=_requester createUnit ["O_Soldier_F",[1800,1100,0],[],0,"NONE"];
 // Exercise the optional provider boundary independently of shell delivery. Restore the
 // exact mission hook before requesting artillery; these checks cannot bypass live jamming.
-private _hadJammingHook=!isNil {missionNamespace getVariable "WAIT_AITweaks_JammingFactor"};
-private _savedJammingHook=missionNamespace getVariable ["WAIT_AITweaks_JammingFactor",{0}];
-missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",nil];
-["ART-SMOKE-radio-without-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
-missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{}];
-["ART-SMOKE-radio-unavailable-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
-missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{0.49}];
-["ART-SMOKE-radio-clear-provider",[_caller] call WAIT_fnc_CortexCanTransmit] call _check;
-missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",{0.5}];
-["ART-SMOKE-radio-jammed-provider",!([_caller] call WAIT_fnc_CortexCanTransmit)] call _check;
+private _hadJammingHook=!isNil {missionNamespace getVariable "CBE_AITweaks_JammingFactor"};
+private _savedJammingHook=missionNamespace getVariable ["CBE_AITweaks_JammingFactor",{0}];
+missionNamespace setVariable ["CBE_AITweaks_JammingFactor",nil];
+["ART-SMOKE-radio-without-provider",[_caller] call CBE_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["CBE_AITweaks_JammingFactor",{}];
+["ART-SMOKE-radio-unavailable-provider",[_caller] call CBE_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["CBE_AITweaks_JammingFactor",{0.49}];
+["ART-SMOKE-radio-clear-provider",[_caller] call CBE_fnc_CortexCanTransmit] call _check;
+missionNamespace setVariable ["CBE_AITweaks_JammingFactor",{0.5}];
+["ART-SMOKE-radio-jammed-provider",!([_caller] call CBE_fnc_CortexCanTransmit)] call _check;
 if (_hadJammingHook) then {
-    missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",_savedJammingHook];
-} else {missionNamespace setVariable ["WAIT_AITweaks_JammingFactor",nil]};
+    missionNamespace setVariable ["CBE_AITweaks_JammingFactor",_savedJammingHook];
+} else {missionNamespace setVariable ["CBE_AITweaks_JammingFactor",nil]};
 {
-    _x setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _x setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _x setVariable ["acex_headless_blacklist",true,true];
     _x setCombatMode "YELLOW";
 } forEach [_batteryGroup,_requester];
 {_x setVariable ["acex_headless_blacklist",true,true]} forEach (_crew+[_caller]);
-[_gun,"SUPPORT"] call WAIT_fnc_CortexSetArtilleryRole;
-_gun setVariable ["WAIT_CortexQA_Label","SMOKE BATTERY: TWO ROUNDS ONLY",true];
-_gun setVariable ["WAIT_CortexQA_SmokeShots",[],true];
-_gun setVariable ["WAIT_CortexQA_SmokeGround",[],true];
+[_gun,"SUPPORT"] call CBE_fnc_CortexSetArtilleryRole;
+_gun setVariable ["CBE_CortexQA_Label","SMOKE BATTERY: TWO ROUNDS ONLY",true];
+_gun setVariable ["CBE_CortexQA_SmokeShots",[],true];
+_gun setVariable ["CBE_CortexQA_SmokeGround",[],true];
 _gun addEventHandler ["Fired",{
     params ["_gun","","","","_ammo","","_projectile"];
-    private _shots=_gun getVariable ["WAIT_CortexQA_SmokeShots",[]];
+    private _shots=_gun getVariable ["CBE_CortexQA_SmokeShots",[]];
     _shots pushBack _ammo;
-    _gun setVariable ["WAIT_CortexQA_SmokeShots",_shots,true];
+    _gun setVariable ["CBE_CortexQA_SmokeShots",_shots,true];
     private _shotIndex=count _shots-1;
-    private _payloadKey=format ["WAIT_CortexQA_SmokePayload_%1",_shotIndex];
+    private _payloadKey=format ["CBE_CortexQA_SmokePayload_%1",_shotIndex];
     _gun setVariable [_payloadKey,[_projectile]];
-    _projectile setVariable ["WAIT_CortexQA_SmokeSource",[_gun,_payloadKey]];
+    _projectile setVariable ["CBE_CortexQA_SmokeSource",[_gun,_payloadKey]];
     _projectile addEventHandler ["SubmunitionCreated",{
         params ["_carrier","_payload"];
-        (_carrier getVariable ["WAIT_CortexQA_SmokeSource",[objNull,""]]) params ["_gun","_key"];
+        (_carrier getVariable ["CBE_CortexQA_SmokeSource",[objNull,""]]) params ["_gun","_key"];
         if (isNull _gun) exitWith {};
         private _payloads=_gun getVariable [_key,[]];
         _payloads pushBack _payload;
         _gun setVariable [_key,_payloads];
-        diag_log format ["WAIT CORTEX QA SMOKE PAYLOAD: %1 at %2",typeOf _payload,getPosATL _payload];
+        diag_log format ["CBE CORTEX QA SMOKE PAYLOAD: %1 at %2",typeOf _payload,getPosATL _payload];
     }];
-    diag_log format ["WAIT CORTEX QA SMOKE FIRED: %1 shot %2",_ammo,_shotIndex+1];
+    diag_log format ["CBE CORTEX QA SMOKE FIRED: %1 shot %2",_ammo,_shotIndex+1];
     [_gun,_payloadKey] spawn {
         params ["_gun","_payloadKey"];
         private _until=diag_tickTime+150;
@@ -70,9 +70,9 @@ _gun addEventHandler ["Fired",{
                 && {(getPosATL _x select 2) < 3} && {_x distance2D _gun > 100}
             };
             if (_index >= 0) exitWith {
-                private _ground=_gun getVariable ["WAIT_CortexQA_SmokeGround",[]];
+                private _ground=_gun getVariable ["CBE_CortexQA_SmokeGround",[]];
                 _ground pushBack getPosATL (_payloads select _index);
-                _gun setVariable ["WAIT_CortexQA_SmokeGround",_ground,true];
+                _gun setVariable ["CBE_CortexQA_SmokeGround",_ground,true];
                 true
             };
             isNull _gun || {diag_tickTime >= _until}
@@ -80,42 +80,42 @@ _gun addEventHandler ["Fired",{
     };
 }];
 private _target=[1800,1500,0];
-missionNamespace setVariable ["WAIT_CortexQA_RedWarningEvents",[]];
+missionNamespace setVariable ["CBE_CortexQA_RedWarningEvents",[]];
 private _warningHandler=addMissionEventHandler ["ProjectileCreated",{
     params ["_entity"];
     if (typeOf _entity == "SmokeShellRed") then {
-        private _events=missionNamespace getVariable ["WAIT_CortexQA_RedWarningEvents",[]];
+        private _events=missionNamespace getVariable ["CBE_CortexQA_RedWarningEvents",[]];
         _events pushBack [time,_entity];
-        missionNamespace setVariable ["WAIT_CortexQA_RedWarningEvents",_events];
+        missionNamespace setVariable ["CBE_CortexQA_RedWarningEvents",_events];
     };
 }];
-_gun setVariable ["WAIT_CortexQA_ShotTimes",[]];
+_gun setVariable ["CBE_CortexQA_ShotTimes",[]];
 private _timingHandler=_gun addEventHandler ["Fired",{
     params ["_gun"];
-    private _times=_gun getVariable ["WAIT_CortexQA_ShotTimes",[]];
+    private _times=_gun getVariable ["CBE_CortexQA_ShotTimes",[]];
     _times pushBack time;
-    _gun setVariable ["WAIT_CortexQA_ShotTimes",_times];
+    _gun setVariable ["CBE_CortexQA_ShotTimes",_times];
 }];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[_gun,_caller],true];
-_caller setVariable ["WAIT_CortexQA_Label","SMOKE REQUESTER",true];
-_caller setVariable ["WAIT_CortexQA_Target",_target,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[_gun,_caller],true];
+_caller setVariable ["CBE_CortexQA_Label","SMOKE REQUESTER",true];
+_caller setVariable ["CBE_CortexQA_Target",_target,true];
 ["Artillery smoke gates","The battery must not fire when parent artillery or smoke support is disabled. Enabling both later must produce exactly two smoke shells, with no HE substitution. Watch the target marker for the smoke screen.",_target] call _phase;
-[{missionNamespace getVariable ["WAIT_AIPass_Active",false]},20] call _wait;
-private _request={[_gun,_target,0,"SMOKE",2,false,"SUPPORT",objNull,objNull,_requester] call WAIT_fnc_CortexArtilleryFire};
-[createHashMapFromArray [["WAIT_AIPass_Artillery_Enable",false]]] call WAIT_fnc_CortexTuning;
+[{missionNamespace getVariable ["CBE_AIPass_Active",false]},20] call _wait;
+private _request={[_gun,_target,0,"SMOKE",2,false,"SUPPORT",objNull,objNull,_requester] call CBE_fnc_CortexArtilleryFire};
+[createHashMapFromArray [["CBE_AIPass_Artillery_Enable",false]]] call CBE_fnc_CortexTuning;
 ["ART-SMOKE-parent-disabled-reject",!(call _request)] call _check;
-[createHashMapFromArray [["WAIT_AIPass_Artillery_Enable",true],["WAIT_AIPass_ArtillerySmoke_Enable",false]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Artillery_Enable",true],["CBE_AIPass_ArtillerySmoke_Enable",false]]] call CBE_fnc_CortexTuning;
 ["ART-SMOKE-child-disabled-reject",!(call _request)] call _check;
 sleep 10;
-["ART-SMOKE-disabled-no-shots",(_gun getVariable ["WAIT_CortexQA_SmokeShots",[]]) isEqualTo []] call _check;
-[createHashMapFromArray [["WAIT_AIPass_ArtillerySmoke_Enable",true]]] call WAIT_fnc_CortexTuning;
-diag_log format ["WAIT CORTEX QA SMOKE INVENTORY: %1",magazinesAllTurrets [_gun,true]];
+["ART-SMOKE-disabled-no-shots",(_gun getVariable ["CBE_CortexQA_SmokeShots",[]]) isEqualTo []] call _check;
+[createHashMapFromArray [["CBE_AIPass_ArtillerySmoke_Enable",true]]] call CBE_fnc_CortexTuning;
+diag_log format ["CBE CORTEX QA SMOKE INVENTORY: %1",magazinesAllTurrets [_gun,true]];
 {
     private _ammo=getText (configFile >> "CfgMagazines" >> _x >> "ammo");
     private _cfg=configFile >> "CfgAmmo" >> _ammo;
-    diag_log format ["WAIT CORTEX QA AMMO PROFILE: %1",[_x,_ammo,getText (_cfg >> "simulation"),getNumber (_cfg >> "aiAmmoUsageFlags"),getArray (_cfg >> "smokeColor"),getText (_cfg >> "effectsSmoke"),getText (_cfg >> "explosionEffects"),getText (_cfg >> "submunitionAmmo"),getNumber (_cfg >> "hit"),getNumber (_cfg >> "indirectHit")]];
+    diag_log format ["CBE CORTEX QA AMMO PROFILE: %1",[_x,_ammo,getText (_cfg >> "simulation"),getNumber (_cfg >> "aiAmmoUsageFlags"),getArray (_cfg >> "smokeColor"),getText (_cfg >> "effectsSmoke"),getText (_cfg >> "explosionEffects"),getText (_cfg >> "submunitionAmmo"),getNumber (_cfg >> "hit"),getNumber (_cfg >> "indirectHit")]];
 } forEach getArtilleryAmmo [_gun];
-private _magazine=[_gun,true] call WAIT_fnc_CortexArtilleryAmmo;
+private _magazine=[_gun,true] call CBE_fnc_CortexArtilleryAmmo;
 private _smokeStores=(magazinesAllTurrets [_gun,true]) select {(_x select 0) == _magazine};
 private _smokeTurret=if (_smokeStores isEqualTo []) then {[]} else {+(_smokeStores select 0 select 1)};
 ["ART-SMOKE-ammunition-prerequisite",_magazine != ""] call _check;
@@ -124,38 +124,38 @@ _batteryGroup setCombatMode "BLUE";
 ["ART-SMOKE-never-fire-rejected",!(call _request)] call _check;
 _batteryGroup setCombatMode "YELLOW";
 {_x setUnitCombatMode "YELLOW"} forEach _crew;
-private _busyBeforeRejected=_gun getVariable ["WAIT_AIPass_BusyUntil",-1];
+private _busyBeforeRejected=_gun getVariable ["CBE_AIPass_BusyUntil",-1];
 private _outOfRangeAccepted=[_gun,[1000000,1000000,0],0,"SMOKE",2,false,"SUPPORT",objNull,objNull,_requester]
-    call WAIT_fnc_CortexArtilleryFire;
+    call CBE_fnc_CortexArtilleryFire;
 ["ART-SMOKE-out-of-range-rejected",!_outOfRangeAccepted] call _check;
-["ART-SMOKE-out-of-range-no-reservation",!((netId _gun) in (missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap]))
-    && {(_gun getVariable ["WAIT_AIPass_BusyUntil",-1]) == _busyBeforeRejected}] call _check;
+["ART-SMOKE-out-of-range-no-reservation",!((netId _gun) in (missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]))
+    && {(_gun getVariable ["CBE_AIPass_BusyUntil",-1]) == _busyBeforeRejected}] call _check;
 private _initialAccepted=call _request;
 private _requestEvidence=[
-    ["radio",!isNull ([_requester] call WAIT_fnc_CortexGroupTransmitter)],
-    ["requesterEligible",[_requester] call WAIT_fnc_CortexIsEligible],
-    ["batteryEligible",[_batteryGroup] call WAIT_fnc_CortexIsEligible],
-    ["requesterGates",[_requester,"WAIT_AIPass_Artillery_Enable",false] call WAIT_fnc_CortexFeatureEnabled,
-        [_requester,"WAIT_AIPass_ArtillerySmoke_Enable",true] call WAIT_fnc_CortexFeatureEnabled],
-    ["batteryGate",[_batteryGroup,"WAIT_AIPass_Artillery_Enable",false] call WAIT_fnc_CortexFeatureEnabled],
-    ["role",[_gun,"SUPPORT"] call WAIT_fnc_CortexArtilleryRole],
-    ["paused",[] call WAIT_fnc_CortexIsPaused],
+    ["radio",!isNull ([_requester] call CBE_fnc_CortexGroupTransmitter)],
+    ["requesterEligible",[_requester] call CBE_fnc_CortexIsEligible],
+    ["batteryEligible",[_batteryGroup] call CBE_fnc_CortexIsEligible],
+    ["requesterGates",[_requester,"CBE_AIPass_Artillery_Enable",false] call CBE_fnc_CortexFeatureEnabled,
+        [_requester,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled],
+    ["batteryGate",[_batteryGroup,"CBE_AIPass_Artillery_Enable",false] call CBE_fnc_CortexFeatureEnabled],
+    ["role",[_gun,"SUPPORT"] call CBE_fnc_CortexArtilleryRole],
+    ["paused",[] call CBE_fnc_CortexIsPaused],
     ["crew",_crew apply {[alive _x,local _x,unitCombatMode _x,currentCommand _x]}],
     ["groupMode",combatMode _batteryGroup],
     ["magazine",_magazine],
     ["inRange",_target inRangeOfArtillery [[_gun],_magazine]],
-    ["reserved",(netId _gun) in (missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap])]
+    ["reserved",(netId _gun) in (missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap])]
 ];
 ["ART-SMOKE-request-accepted",_initialAccepted,str _requestEvidence] call _check;
 ["Artillery smoke delivery","Observe two actual smoke shells reaching the marked area. No HE is permitted. The test measures fired ammunition and smoke payloads arriving below 3 m near the target, then checks that firing stops.",_target] call _phase;
-private _delivered=if (_initialAccepted) then {[{count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) >= 2},150] call _wait} else {false};
-private _positions=_gun getVariable ["WAIT_CortexQA_SmokeGround",[]];
+private _delivered=if (_initialAccepted) then {[{count (_gun getVariable ["CBE_CortexQA_SmokeGround",[]]) >= 2},150] call _wait} else {false};
+private _positions=_gun getVariable ["CBE_CortexQA_SmokeGround",[]];
 ["ART-SMOKE-physical-ground-delivery",_delivered && {_positions findIf {_x distance2D _target > 70} < 0},str _positions] call _check;
 sleep 20;
-private _shots=_gun getVariable ["WAIT_CortexQA_SmokeShots",[]];
+private _shots=_gun getVariable ["CBE_CortexQA_SmokeShots",[]];
 private _expectedAmmo=getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
 ["ART-SMOKE-finite-two-smoke-only",count _shots == 2 && {_shots findIf {_x != _expectedAmmo} < 0},str _shots] call _check;
-["ART-SMOKE-no-red-warning",(missionNamespace getVariable ["WAIT_CortexQA_RedWarningEvents",[]]) isEqualTo [],"Non-lethal smoke support must not create an HE warning spread"] call _check;
+["ART-SMOKE-no-red-warning",(missionNamespace getVariable ["CBE_CortexQA_RedWarningEvents",[]]) isEqualTo [],"Non-lethal smoke support must not create an HE warning spread"] call _check;
 // A smoke-only battery must never have its smoke magazine selected for an HE mission.
 if (_magazine != "") then {
     {
@@ -163,37 +163,37 @@ if (_magazine != "") then {
         if (_class != _magazine) then {_gun removeMagazineTurret [_class,_turret]};
     } forEach magazinesAllTurrets [_gun,true];
 };
-["ART-SMOKE-no-HE-substitution",_magazine != "" && {([_gun,false] call WAIT_fnc_CortexArtilleryAmmo) == ""} && {([_gun,true] call WAIT_fnc_CortexArtilleryAmmo) == _magazine}] call _check;
+["ART-SMOKE-no-HE-substitution",_magazine != "" && {([_gun,false] call CBE_fnc_CortexArtilleryAmmo) == ""} && {([_gun,true] call CBE_fnc_CortexArtilleryAmmo) == _magazine}] call _check;
 ["Artillery smoke: empty battery","The previous finite mission must release the battery. All remaining magazines are then removed: a new smoke request must be refused, with no extra projectile fired.",getPosATL _gun] call _phase;
-private _released=[{!((netId _gun) in (missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap]))},60] call _wait;
+private _released=[{!((netId _gun) in (missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]))},60] call _wait;
 ["ART-SMOKE-completed-lock-released",_released] call _check;
 {_gun removeMagazineTurret [_x select 0,_x select 1]} forEach magazinesAllTurrets [_gun,true];
 ["ART-SMOKE-empty-inventory",(magazinesAllTurrets [_gun,true]) findIf {(_x select 2) > 0} < 0] call _check;
-["ART-SMOKE-empty-request-rejected",_released && {!(call _request)} && {([_gun,true] call WAIT_fnc_CortexArtilleryAmmo) == ""}] call _check;
-private _beforeEmpty=count (_gun getVariable ["WAIT_CortexQA_SmokeShots",[]]);
+["ART-SMOKE-empty-request-rejected",_released && {!(call _request)} && {([_gun,true] call CBE_fnc_CortexArtilleryAmmo) == ""}] call _check;
+private _beforeEmpty=count (_gun getVariable ["CBE_CortexQA_SmokeShots",[]]);
 sleep 8;
-["ART-SMOKE-empty-no-projectile",count (_gun getVariable ["WAIT_CortexQA_SmokeShots",[]]) == _beforeEmpty] call _check;
+["ART-SMOKE-empty-no-projectile",count (_gun getVariable ["CBE_CortexQA_SmokeShots",[]]) == _beforeEmpty] call _check;
 // Resupply the same battery; repeat through the public request and real projectile path.
 if (_magazine != "" && {_released}) then {
     ["Artillery smoke: resupply and repeat","The same exhausted mortar receives smoke ammunition. It must deliver another two-round screen and release its mission lock again. Earlier shells cannot satisfy this check.",_target] call _phase;
     _gun addMagazineTurret [_magazine,_smokeTurret];
-    private _repeatShots=count (_gun getVariable ["WAIT_CortexQA_SmokeShots",[]]);
-    private _repeatGround=count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]);
+    private _repeatShots=count (_gun getVariable ["CBE_CortexQA_SmokeShots",[]]);
+    private _repeatGround=count (_gun getVariable ["CBE_CortexQA_SmokeGround",[]]);
     private _accepted=call _request;
     ["ART-SMOKE-resupplied-request",_accepted] call _check;
-    private _repeatDelivered=if (_accepted) then {[{count (_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) >= _repeatGround+2},150] call _wait} else {false};
-    private _newPositions=(_gun getVariable ["WAIT_CortexQA_SmokeGround",[]]) select [_repeatGround];
+    private _repeatDelivered=if (_accepted) then {[{count (_gun getVariable ["CBE_CortexQA_SmokeGround",[]]) >= _repeatGround+2},150] call _wait} else {false};
+    private _newPositions=(_gun getVariable ["CBE_CortexQA_SmokeGround",[]]) select [_repeatGround];
     ["ART-SMOKE-repeat-ground-delivery",_accepted && {_repeatDelivered} && {_newPositions findIf {_x distance2D _target > 70} < 0},str _newPositions] call _check;
     sleep 20;
-    ["ART-SMOKE-repeat-finite",count (_gun getVariable ["WAIT_CortexQA_SmokeShots",[]]) == _repeatShots+2] call _check;
-    ["ART-SMOKE-repeat-no-red-warning",(missionNamespace getVariable ["WAIT_CortexQA_RedWarningEvents",[]]) isEqualTo []] call _check;
-    ["ART-SMOKE-repeat-lock-released",[{!((netId _gun) in (missionNamespace getVariable ["WAIT_AIPass_FireMissions",createHashMap]))},60] call _wait] call _check;
+    ["ART-SMOKE-repeat-finite",count (_gun getVariable ["CBE_CortexQA_SmokeShots",[]]) == _repeatShots+2] call _check;
+    ["ART-SMOKE-repeat-no-red-warning",(missionNamespace getVariable ["CBE_CortexQA_RedWarningEvents",[]]) isEqualTo []] call _check;
+    ["ART-SMOKE-repeat-lock-released",[{!((netId _gun) in (missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]))},60] call _wait] call _check;
 } else {
     ["ART-SMOKE-resupplied-request",false,"Missing smoke ammunition class or previous mission did not release"] call _check;
 };
 removeMissionEventHandler ["ProjectileCreated",_warningHandler];
 _gun removeEventHandler ["Fired",_timingHandler];
-missionNamespace setVariable ["WAIT_CortexQA_RedWarningEvents",nil];
+missionNamespace setVariable ["CBE_CortexQA_RedWarningEvents",nil];
 {deleteVehicle _x} forEach (_crew+[_gun,_caller]);
 deleteGroup _batteryGroup; deleteGroup _requester;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];

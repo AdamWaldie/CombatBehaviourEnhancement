@@ -9,16 +9,16 @@
  * 3 reason <STRING, ZEUS> - ZEUS or RELEASE only.
  * Return: BOOL - true when the matching drill was released.
  * Current callers: finite tacticalDrill.fsm interrupt transitions.
- * Example: [group soldier1,"drill-17",3,"ZEUS"] call WAIT_fnc_CortexDrillInterrupt;
+ * Example: [group soldier1,"drill-17",3,"ZEUS"] call CBE_fnc_CortexDrillInterrupt;
  */
 params [["_group",grpNull,[grpNull]],["_token","",[""]],["_epoch",-1,[0]],["_reason","ZEUS",[""]]];
 if (isNull _group || {!local _group} || {_token == ""}
-    || {(_group getVariable ["WAIT_AIPass_Epoch",0]) != _epoch}
+    || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _epoch}
     || {!(_reason in ["ZEUS","RELEASE"])}) exitWith {false};
-private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
+private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
 private _drill=_state getOrDefault ["drill",createHashMap];
 if ((_drill getOrDefault ["token",""]) != _token) exitWith {false};
 // This one-shot cleanup must not wait behind a delayed tactical job. FlankEnd restores
 // only matching owned overrides; ZEUS prohibits doFollow or replacement movement.
-[_group,_state,_reason] call WAIT_fnc_CortexFlankEnd;
+[_group,_state,_reason] call CBE_fnc_CortexFlankEnd;
 true

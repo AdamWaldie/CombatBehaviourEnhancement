@@ -10,8 +10,8 @@
  * 2: maximum belief range <NUMBER>, 100, finite and positive (clamped to 1000).
  * Return Value: Array [building OBJECT, hostile OBJECT, [believed ATL ARRAY, server timestamp]]
  * or [] if no qualifying observation. Metadata/topology does not prove physical access.
- * Current callers: WAIT_fnc_CortexBuildingContact.
- * Example: private _contact=[group player,_knowledge,100] call WAIT_fnc_BuildingContactSelect;
+ * Current callers: CBE_fnc_CortexBuildingContact.
+ * Example: private _contact=[group player,_knowledge,100] call CBE_fnc_BuildingContactSelect;
  */
 params [["_group",grpNull,[grpNull]],["_enemies",[],[[]]],["_range",100,[0]]];
 if (isNull _group || {!local _group} || {!finite _range} || {_range <= 0}) exitWith {[]};

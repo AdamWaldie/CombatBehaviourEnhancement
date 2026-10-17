@@ -10,12 +10,12 @@ This is a disposable, state-mutating audit. It creates its own remote infantry, 
 
 During the run, a test card states what to watch and shows the latest recorded results. Open Zeus and choose **Inspect current test in Zeus** to move the camera to the fixtures. Ownership transfers can take several seconds; **Transferring** is a pending state. A persistent mismatch or failed adoption requires investigation. The briefing diary retains the server results and client summary.
 
-The scripts emit `WAIT CORTEX QA|case|PASS/FAIL|detail`, followed by separate server and client completion summaries. A missing completion marker is an incomplete run, never a pass. Inspect all four RPT files for SQF errors as well as case results.
+The scripts emit `CBE CORTEX QA|case|PASS/FAIL|detail`, followed by separate server and client completion summaries. A missing completion marker is an incomplete run, never a pass. Inspect all four RPT files for SQF errors as well as case results.
 
 | Cases | Assertions |
 | --- | --- |
 | ORD-01 through ORD-06 | Disabled-state explanation, defence, empty garrison preserving a prior order, physical defence arrival and hold, three-dimensional building arrival and hold, immediate hand-back cleanup, return to automatic eligibility |
-| HC-01 through HC-04 | Two registered owners, real WAIT migration and adoption, acknowledged owner-local orders and physical defence arrival on each HC, return to server |
+| HC-01 through HC-04 | Two registered owners, real CBE migration and adoption, acknowledged owner-local orders and physical defence arrival on each HC, return to server |
 | CNV-00 through CNV-10 | Cargo starts and stays aboard; every mixed-convoy vehicle moves after controller startup; manual halt unloads cargo and passengers move clear; resume adopts script-seated cargo, transfers the convoy to an HC, reaches the final waypoint and unloads; operating crew remain aboard; release removes the controller |
 | ART-01 through ART-04 | Explicit spotter assignment, real fire request, actual Fired events, finite round count |
 | CB-NORMAL and CB-RADAR | Real enemy mortar emission, measured acquisition delay, two real response rounds and no additional rounds; radar registration and removal |
@@ -62,7 +62,7 @@ Use `-CortexFocus combat` for real contact, flank/assault and waypoint advance. 
 
 The default `-CortexFocus all` retains infantry, both headless clients, convoy travel and ambushes, artillery, counterbattery, combat movement, mechanics and client UI checks. Focused runs are diagnostic subsets, never substitutes for full acceptance. The convoy subset includes moving contact and pinned contact as well as travel and unloading.
 
-The compatibility audit uses the same saved fixture in two arms. Run `-CortexAudit -CortexFocus compatibility` without optional providers to prove WAIT's standalone physical movement, then repeat with `-IncludeCompatibility -HeadlessClients 2` to load the installed controller fixture. The loaded arm verifies that WAIT refuses groups already owned by an external queued/running tactic, forced move or waypoint task; clean finite leases restore the prior group state; a real HC owner adopts, renews and releases the lease; and a Zeus replacement order physically takes control without route resurrection. Both arms are required before compatibility is accepted.
+The compatibility audit uses the same saved fixture in two arms. Run `-CortexAudit -CortexFocus compatibility` without optional providers to prove CBE's standalone physical movement, then repeat with `-IncludeCompatibility -HeadlessClients 2` to load the installed controller fixture. The loaded arm verifies that CBE refuses groups already owned by an external queued/running tactic, forced move or waypoint task; clean finite leases restore the prior group state; a real HC owner adopts, renews and releases the lease; and a Zeus replacement order physically takes control without route resurrection. Both arms are required before compatibility is accepted.
 
 Use `-CortexAudit -CortexFocus lighting -HeadlessClients 2` for the dedicated visibility audit. It discovers NVG-capable and ordinary HMD classes from configuration instead of matching mod class names, transfers the observer to an HC to verify owner-local reapplication, and performs an actual dark engagement with a flashlight. The forward target must be acquired and fired upon after physical illumination while an equally distant rear target remains outside the beam. The observer's global spotting skill must not rise when the light turns on. This is additive to the profile skill checks and remains unaccepted until the fresh mission completes it.
 
@@ -120,7 +120,7 @@ The following additive focuses are staged in the launcher and `all`, but have no
 - `scheduler`: twelve queued jobs must each start and physically move their own soldier; a queued flag is insufficient.
 - `profiles`: configuration precedence, probability boundaries and unchanged unit skill. This is a configuration test, not evidence of tactical movement.
 - `coordinated`: natural contact must draw two supporting squads through a rally and into separate assault approaches while the base element remains behind.
-- `lifecycle`: retain the server case and repeat on each of two WAIT headless owners. Disable Cortex during physical defence movement, check owner-cleared assignments, return to server for an ordinary waypoint, re-enable without resurrecting the old order, then return to the selected owner for a fresh defence order. This does not test ACE-managed transfer or HC disconnect.
+- `lifecycle`: retain the server case and repeat on each of two CBE headless owners. Disable Cortex during physical defence movement, check owner-cleared assignments, return to server for an ordinary waypoint, re-enable without resurrecting the old order, then return to the selected owner for a fresh defence order. This does not test ACE-managed transfer or HC disconnect.
 
 Gunnery fixtures assert that both threat soldiers initially face the APC and require natural AT detection. The standoff overlay separately reports detection, vehicle travel and gained threat separation. The normal-play card instructs the operator to open Zeus before using the inspection button. Detection has its own procedure card so it cannot appear to be a stalled preparation or firing stage.
 
@@ -138,7 +138,7 @@ seconds. Flare counts are observed in both flights, but a flare alone does not e
 causation because the native pilot can also deploy one. The fixture supplies the managed-aircraft
 eligibility marker; creation through the actual gunship service remains a separate integration test.
 
-The coordinated-assault focus retains its server case and then repeats with the responder squads on separate WAIT headless clients. Actual unit and group owners are checked before contact. After support disable and cleanup, the HC groups return to the server for ordinary waypoint handover commands; this does not claim to test Zeus waypoint delivery to an HC. Every helper must physically advance and subsequently travel under the new orders.
+The coordinated-assault focus retains its server case and then repeats with the responder squads on separate CBE headless clients. Actual unit and group owners are checked before contact. After support disable and cleanup, the HC groups return to the server for ordinary waypoint handover commands; this does not claim to test Zeus waypoint delivery to an HC. Every helper must physically advance and subsequently travel under the new orders.
 
 ## Performance pilot
 
@@ -146,11 +146,11 @@ Use `-CortexAudit -CortexFocus performance` for the server patrol OFF/ON/ON/OFF 
 
 Use `-CortexFocus performancecontact -HeadlessClients 2` for the primary 50-squad infantry comparison. Use `-CortexFocus performancemixed -HeadlessClients 2` for the separate 50-group combined-force comparison: 30 infantry squads, ten ground vehicles, six helicopters and four jets. Both run OFF/ON/ON/OFF, require physical work and actual fire, sample the server, both HCs and the rendered client, and apply the 5% median / 10% p95 budget only when every arm is comparable.
 
-The lifecycle focus also includes refused HC-to-HC transfer cases. Once a squad is on an HC, the fixture temporarily excludes it from migration, requests the other HC, and requires both the original actual ownership and exactly one matching WAIT ownership record to remain. Existing disable, physical movement and restart checks follow. These refusal cases passed in the completed 2026-09-27 lifecycle runs; they do not establish ACE-managed transfer coverage.
+The lifecycle focus also includes refused HC-to-HC transfer cases. Once a squad is on an HC, the fixture temporarily excludes it from migration, requests the other HC, and requires both the original actual ownership and exactly one matching CBE ownership record to remain. Existing disable, physical movement and restart checks follow. These refusal cases passed in the completed 2026-09-27 lifecycle runs; they do not establish ACE-managed transfer coverage.
 
 ### Zeus interruption coverage
 
-The lifecycle focus retains the existing disable/restart cases and adds held-defence takeover on the server and two WAIT headless owners. It invokes the production takeover marker without a waypoint-change flag, requires assignment cleanup, returns HC groups to the server, and measures arrival at a new ordinary waypoint. Runtime `20260927-093717` completed 50 checks with zero findings and zero SQF errors. The preceding run had an HC2 replacement-arrival failure; retain that evidence as an intermittent issue.
+The lifecycle focus retains the existing disable/restart cases and adds held-defence takeover on the server and two CBE headless owners. It invokes the production takeover marker without a waypoint-change flag, requires assignment cleanup, returns HC groups to the server, and measures arrival at a new ordinary waypoint. Runtime `20260927-093717` completed 50 checks with zero findings and zero SQF errors. The preceding run had an HC2 replacement-arrival failure; retain that evidence as an intermittent issue.
 
 An additional server case interrupts defence after at least 10 m of actual travel and before arrival. It issues the replacement waypoint immediately, before waiting for cleanup, then measures arrival and 15 seconds without the cancelled order resuming. Runtime `20260927-094454` completed 53 checks with zero findings and zero SQF errors, including all three new mid-movement checks. Neither case establishes real curator UI event delivery, interruption of every action, or replacement movement while still owned by an HC.
 
@@ -231,7 +231,7 @@ The staged native-context extension adds observation-only same-contact paths and
 The separate normal-only `indoornatural` focus enables CONTACT and observes the real group decision path with two soldiers and a firing hostile inside a fresh house. It never calls indoor START/dispatch or injects knowledge. It requires native knowledge, contact-bound journals, independently measured interior entry and travel for both soldiers. Invulnerability isolates routing from casualty timing, so this is not combat-effectiveness acceptance. Missing discovery, admission or movement remains a failure. This new focus is unrun; it cannot promote a whole-addon release.
 
 
-Fresh clearance fixtures now log `WAIT CLEAR FIRST PHYSICAL ENTRY` once per observed soldier and a final `WAIT CLEAR PHYSICAL ENTRY TIMING` summary. Times come from the existing independent physical room-visit collector, with no extra geometry scan or injected task state. Rows retain original pair membership, admitted-worker status and missing-entry sentinels, so exterior duty can be distinguished from a late or absent clearing partner. These measurements are diagnostic; no arbitrary universal entry-time threshold replaces the existing physical assertions. The new timing evidence remains unrun while audits are paused.
+Fresh clearance fixtures now log `CBE CLEAR FIRST PHYSICAL ENTRY` once per observed soldier and a final `CBE CLEAR PHYSICAL ENTRY TIMING` summary. Times come from the existing independent physical room-visit collector, with no extra geometry scan or injected task state. Rows retain original pair membership, admitted-worker status and missing-entry sentinels, so exterior duty can be distinguished from a late or absent clearing partner. These measurements are diagnostic; no arbitrary universal entry-time threshold replaces the existing physical assertions. The new timing evidence remains unrun while audits are paused.
 
 
 The normal clearance batch includes two single-survivor casualty cases, one for each original

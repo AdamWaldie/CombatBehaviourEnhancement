@@ -48,70 +48,70 @@
  * it never treats an extrapolated destination as evidence of an observed predecessor path.
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, km/h, gap, pushThrough, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
- * Diagnostic capture: owner-local WAIT_Convoy_CaptureControl=true retains only the latest
+ * Diagnostic capture: owner-local CBE_Convoy_CaptureControl=true retains only the latest
  * follower samples in local-state controlSamples (at most nineteen); false removes them.
  * Samples expose each limiting stage and actual writes, including later trail-cap writes.
  * Follower fields9/10 retain bounded navigation-write receipts and pre-write native state;
  * they distinguish repeated path requests from spacing caps without recording full paths.
  * No publication, logger, additional world scan or movement writer is installed.
  * Return Value: Nothing.
- * Current caller: WAIT_fnc_ConvoyOperationStep through the shared owner-local scheduler.
- * Example: [_group, _configuration] call WAIT_fnc_ConvoyTick;
+ * Current caller: CBE_fnc_ConvoyOperationStep through the shared owner-local scheduler.
+ * Example: [_group, _configuration] call CBE_fnc_ConvoyTick;
  */
 params ["_group", "_configuration"];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 if (isNull _group) exitWith {};
 _configuration params ["_revision", "_speed", "_separation", "_pushThrough", "_registered", "_phase", "_cargo", "_restore"];
-if (time < (_group getVariable ["WAIT_Convoy_NextTick", -1])) exitWith {};
-_group setVariable ["WAIT_Convoy_NextTick", time + 1];
-private _state = _group getVariable ["WAIT_Convoy_LocalState", createHashMap];
+if (time < (_group getVariable ["CBE_Convoy_NextTick", -1])) exitWith {};
+_group setVariable ["CBE_Convoy_NextTick", time + 1];
+private _state = _group getVariable ["CBE_Convoy_LocalState", createHashMap];
 // Convoy may own its own active marker, but must otherwise yield before it reaches crew, route or
 // formation commands. A later eligible tick starts from the current native route rather than
 // cancelling a possibly newer external order.
-if !([_group,false,false,true] call WAIT_fnc_CortexIsEligible) exitWith {
+if !([_group,false,false,true] call CBE_fnc_CortexIsEligible) exitWith {
     _state set ["ownerSuspended",true];
-    _group setVariable ["WAIT_Convoy_LocalState",_state];
-    _group setVariable ["WAIT_Convoy_Suspended",true];
+    _group setVariable ["CBE_Convoy_LocalState",_state];
+    _group setVariable ["CBE_Convoy_Suspended",true];
 };
 if (_state getOrDefault ["ownerSuspended",false]) then {
     // Eligibility can return after another explicit operation has claimed the group.
     // A historical suspended convoy generation cannot erase that successor.
     private _suspendedGeneration=_state getOrDefault ["operationGeneration",-1];
-    private _liveOperation=_group getVariable ["WAIT_Operation",createHashMap];
+    private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
     if (_suspendedGeneration >= 0
         && {(_liveOperation getOrDefault ["intent",""]) == "CONVOY"}
         && {(_liveOperation getOrDefault ["generation",-2]) == _suspendedGeneration}
-        && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
-        _group setVariable ["WAIT_Operation",nil,true];
+        && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+        _group setVariable ["CBE_Operation",nil,true];
     };
     _state set ["ownerSuspended",false];
     _state set ["revision",-1];
     _state set ["reacquire",true];
 };
-private _externalCrew = _registered findIf {(crew _x) findIf {[_x] call WAIT_fnc_CortexExternalOwner != ""} >= 0} >= 0;
-private _globalPaused = [] call WAIT_fnc_CortexIsPaused;
-private _paused = _globalPaused || {[_group] call WAIT_fnc_CompatibilityExternalControl} || {_externalCrew} || {"ALL" in (_group getVariable ["WAIT_AIPass_DisabledFeatures",[]])};
+private _externalCrew = _registered findIf {(crew _x) findIf {[_x] call CBE_fnc_CortexExternalOwner != ""} >= 0} >= 0;
+private _globalPaused = [] call CBE_fnc_CortexIsPaused;
+private _paused = _globalPaused || {[_group] call CBE_fnc_CompatibilityExternalControl} || {_externalCrew} || {"ALL" in (_group getVariable ["CBE_AIPass_DisabledFeatures",[]])};
 private _playerCrew = _registered findIf {(crew _x) findIf {isPlayer _x || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}} >= 0} >= 0;
-private _zeus = [_group] call WAIT_fnc_CortexZeusHeld;
+private _zeus = [_group] call CBE_fnc_CortexZeusHeld;
 if (_paused || {_playerCrew} || {_zeus}) exitWith {
-    [_group,_configuration,true] call WAIT_fnc_ConvoyDismountLocal;
-    if (!(_group getVariable ["WAIT_Convoy_Suspended", false])) then {
+    [_group,_configuration,true] call CBE_fnc_ConvoyDismountLocal;
+    if (!(_group getVariable ["CBE_Convoy_Suspended", false])) then {
         private _reason = if (_zeus) then {"ZEUS"} else {if (_playerCrew) then {"PLAYER"} else {
-            if (_globalPaused && {!_externalCrew} && {!([_group] call WAIT_fnc_CompatibilityExternalControl)}) then {"PAUSED"} else {"EXTERNAL_OWNER"}
+            if (_globalPaused && {!_externalCrew} && {!([_group] call CBE_fnc_CompatibilityExternalControl)}) then {"PAUSED"} else {"EXTERNAL_OWNER"}
         }};
-        [_group, false, _restore, [], _reason] call WAIT_fnc_ConvoyReleaseLocal;
-        _group setVariable ["WAIT_Convoy_Suspended", true];
-        if (local _group) then {_group setVariable ["WAIT_Convoy_ContactProgress", nil, true]};
+        [_group, false, _restore, [], _reason] call CBE_fnc_ConvoyReleaseLocal;
+        _group setVariable ["CBE_Convoy_Suspended", true];
+        if (local _group) then {_group setVariable ["CBE_Convoy_ContactProgress", nil, true]};
     };
 };
-_group setVariable ["WAIT_Convoy_Suspended", false];
+_group setVariable ["CBE_Convoy_Suspended", false];
 // A new individual MOVE is a replacement order, not a stalled convoy leg. Keep this
 // revision yielded across later ticks and owner migration; only a new server revision may re-admit.
-private _commandYield=_group getVariable ["WAIT_Convoy_CommandYield",[]];
+private _commandYield=_group getVariable ["CBE_Convoy_CommandYield",[]];
 if ((_commandYield param [0,-1]) != _revision) then {
     private _diverted=objNull;private _diversion=[];
     {
-        private _vehicle=_x;private _receipt=_vehicle getVariable ["WAIT_Convoy_MovementReceipt",[]];
+        private _vehicle=_x;private _receipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
         private _operator=effectiveCommander _vehicle;
         if (isNull _diverted && {local _vehicle} && {count _receipt == 5}
             && {(_receipt select 0) == _group} && {(_receipt select 1) == _revision}
@@ -125,25 +125,25 @@ if ((_commandYield param [0,-1]) != _revision) then {
     } forEach _registered;
     if (!isNull _diverted) then {
         _commandYield=[_revision,_diverted,_diversion,serverTime];
-        _group setVariable ["WAIT_Convoy_CommandYield",_commandYield,true];
-        [_group,false,_restore,[],"NEW_NATIVE_ORDER"] call WAIT_fnc_ConvoyReleaseLocal;
+        _group setVariable ["CBE_Convoy_CommandYield",_commandYield,true];
+        [_group,false,_restore,[],"NEW_NATIVE_ORDER"] call CBE_fnc_ConvoyReleaseLocal;
     };
 };
 if ((_commandYield param [0,-1]) == _revision) exitWith {
-    _state=_group getVariable ["WAIT_Convoy_LocalState",createHashMap];
-    _state set ["ownerSuspended",true];_group setVariable ["WAIT_Convoy_LocalState",_state];
-    _group setVariable ["WAIT_Convoy_Suspended",true];
+    _state=_group getVariable ["CBE_Convoy_LocalState",createHashMap];
+    _state set ["ownerSuspended",true];_group setVariable ["CBE_Convoy_LocalState",_state];
+    _group setVariable ["CBE_Convoy_Suspended",true];
 };
-[_group, _configuration] call WAIT_fnc_ConvoyCrewLocal;
+[_group, _configuration] call CBE_fnc_ConvoyCrewLocal;
 if (_phase == "HALT") exitWith {
     _state set ["reacquire",true];
-    _group setVariable ["WAIT_Convoy_LocalState",_state];
+    _group setVariable ["CBE_Convoy_LocalState",_state];
     if (local _group) then {
         private _generation = _state getOrDefault ["operationGeneration",-1];
         private _reason = toUpperANSI (_configuration param [8,"MANUAL"]);
         if (_generation >= 0) then {
-            if (_reason == "ARRIVED") then {[_group,_generation,"COMPLETE","ARRIVED"] call WAIT_fnc_OperationRelease}
-            else {[_group,_generation,_reason] call WAIT_fnc_OperationCancel};
+            if (_reason == "ARRIVED") then {[_group,_generation,"COMPLETE","ARRIVED"] call CBE_fnc_OperationRelease}
+            else {[_group,_generation,_reason] call CBE_fnc_OperationCancel};
         };
     };
 };
@@ -152,7 +152,7 @@ if (!local _group) exitWith {};
 // Recheck ownership at each command boundary so a curator or specialist controller that arrives
 // during that work receives an immediate clean handover rather than a stale speed or route update.
 private _mayIssueDriving = {
-    !([_group] call WAIT_fnc_CortexExternalTakeover)
+    !([_group] call CBE_fnc_CortexExternalTakeover)
 };
 // Recovery must not replay authored scripts, conditions, timers or trigger waits.
 // These values are inspected, never compiled or executed by the convoy controller.
@@ -196,24 +196,24 @@ private _classifyStall = {
 // Eligibility and locality are separate questions. An incapacitated driver must
 // not count as a remotely owned capable vehicle and freeze every convoy step.
 private _mobile = _registered select {alive _x && {canMove _x}
-    && {[driver _x] call WAIT_fnc_CortexCombatEffective} && {group driver _x == _group}};
+    && {[driver _x] call CBE_fnc_CortexCombatEffective} && {group driver _x == _group}};
 private _vehicles = _mobile select {local _x && {local driver _x}};
 // Only a real split among eligible vehicles defers local movement.
 if (count _vehicles < count _mobile) exitWith {};
 if (_vehicles isEqualTo []) exitWith {
     if (time >= (_state getOrDefault ["haltRequest", -1])) then {
-        [_group, _revision, "IMMOBILE"] remoteExecCall ["WAIT_fnc_ConvoyHaltServer", 2];
+        [_group, _revision, "IMMOBILE"] remoteExecCall ["CBE_fnc_ConvoyHaltServer", 2];
         _state set ["haltRequest", time + 5];
-        _group setVariable ["WAIT_Convoy_LocalState", _state];
+        _group setVariable ["CBE_Convoy_LocalState", _state];
     };
 };
 private _lead = _vehicles select 0;
 private _previousLead=_state getOrDefault ["lead",objNull];
 if (!isNull _previousLead && {_previousLead != _lead} && {local _previousLead}) then {
     // Stop only the old lead's exact-owned corridor; its replacement/follower acquires its own path.
-    [_previousLead,_group,"CONVOY_LEAD_CHANGED",false,true] call WAIT_fnc_DrivingCorridorRelease;
-    [_previousLead,_group,"CONVOY_LEAD_CHANGED",false,true] call WAIT_fnc_DrivingBypassRelease;
-    [_group,[_revision],"CONVOY_LEAD_CHANGED"] call WAIT_fnc_ConvoyBypassStep;
+    [_previousLead,_group,"CONVOY_LEAD_CHANGED",false,true] call CBE_fnc_DrivingCorridorRelease;
+    [_previousLead,_group,"CONVOY_LEAD_CHANGED",false,true] call CBE_fnc_DrivingBypassRelease;
+    [_group,[_revision],"CONVOY_LEAD_CHANGED"] call CBE_fnc_ConvoyBypassStep;
 };
 private _leadOperator=effectiveCommander _lead;
 if (isNull _leadOperator) then {_leadOperator=driver _lead};
@@ -233,19 +233,19 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     {private _v=_x; private _key=netId _v; private _record=_resumeFollowers getOrDefault [_key,[]]; if (_record isNotEqualTo []) then {_record set [0,getPosATL _v]; _record set [1,time]; _record set [2,-1]; _record set [5,[]]; _record set [6,[]]; _record set [7,false]}} forEach _vehicles;
     };
     // A revision alone does not relinquish driving authority to native formation.
-    if (count _state > 0 && {!_sameLine}) then {[_group, false, _restore, _registered] call WAIT_fnc_ConvoyReleaseLocal};
-    private _savedProgress = _group getVariable ["WAIT_Convoy_ContactProgress", []];
+    if (count _state > 0 && {!_sameLine}) then {[_group, false, _restore, _registered] call CBE_fnc_ConvoyReleaseLocal};
+    private _savedProgress = _group getVariable ["CBE_Convoy_ContactProgress", []];
     private _progress = if (_savedProgress isNotEqualTo [] && {(_savedProgress select 0) == _revision}) then {+(_savedProgress select 1)} else {[]};
     if !([] call _mayIssueDriving) exitWith {
-        [_group,false,_restore,_registered,"EXTERNAL"] call WAIT_fnc_ConvoyReleaseLocal;
+        [_group,false,_restore,_registered,"EXTERNAL"] call CBE_fnc_ConvoyReleaseLocal;
     };
     _state = createHashMapFromArray [["revision", _revision], ["lead", _lead], ["frontTrails", _resumeTrails],
         ["heading", getDir _lead], ["vehicles", +_vehicles], ["followers", _resumeFollowers], ["speedLimits", _resumeSpeedLimits], ["contactProgress", _progress]];
     private _objective = if (count waypoints _group > 0) then {waypointPosition [_group,(count waypoints _group)-1]} else {getPosATL _lead};
-    private _operation = [_group,"CONVOY",_objective,[],[_objective],"TRAVEL"] call WAIT_fnc_OperationStart;
+    private _operation = [_group,"CONVOY",_objective,[],[_objective],"TRAVEL"] call CBE_fnc_OperationStart;
     _state set ["operationGeneration",_operation getOrDefault ["generation",-1]];
     _state set ["operationDue",time];
-    _group setVariable ["WAIT_Convoy_LocalState", _state];
+    _group setVariable ["CBE_Convoy_LocalState", _state];
     private _specs = createHashMap;
     {
         private _bounds = boundingBoxReal _x;
@@ -264,16 +264,16 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
         // Tracked HALT explicitly replaced vehicle movement with a current-position move.
         // Following the commander cannot supersede that vehicle-level destination reliably.
         // Restart only our matching halt once, toward the unchanged ordinary route waypoint.
-        private _haltOwner=_lead getVariable ["WAIT_Convoy_HaltOwner",[]];
+        private _haltOwner=_lead getVariable ["CBE_Convoy_HaltOwner",[]];
         private _resumeWaypoint=[_group,currentWaypoint _group];
         if (count _haltOwner == 3 && {(_haltOwner select 0) == _group}
             && {(_haltOwner select 2) == clientOwner} && {waypointType _resumeWaypoint == "MOVE"}
             && {[] call _mayIssueDriving}) then {
             _lead move waypointPosition _resumeWaypoint;
-            _lead setVariable ["WAIT_Convoy_HaltOwner",nil];
+            _lead setVariable ["CBE_Convoy_HaltOwner",nil];
         };
     };
-    {[_x,_group,"ACQUIRE",_revision] call WAIT_fnc_ConvoyUnloadPolicy} forEach _vehicles;
+    {[_x,_group,"ACQUIRE",_revision] call CBE_fnc_ConvoyUnloadPolicy} forEach _vehicles;
     private _initialPathOwners=_resumePathOwners;
     {
         if (_forEachIndex > 0) then {
@@ -304,14 +304,14 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
 private _operationGeneration = _state getOrDefault ["operationGeneration",-1];
 private _operationEndReason = "";
 if (_operationGeneration >= 0 && {time >= (_state getOrDefault ["operationDue",time])}) then {
-    private _operationState = [_group,_operationGeneration,3,120,true] call WAIT_fnc_OperationStep;
+    private _operationState = [_group,_operationGeneration,3,120,true] call CBE_fnc_OperationStep;
     _state set ["operationDue",time+5];
     if (_operationState in ["ZEUS","EXTERNAL","LOST_OWNER","REPLACED"]) then {_operationEndReason = _operationState};
 };
 // Leave the function before formation, contact or movement can be written. An exitWith nested
 // inside the cadence block only left that block and allowed a released convoy to keep driving.
 if (_operationEndReason != "") exitWith {
-    [_group,false,_restore,_registered,_operationEndReason] call WAIT_fnc_ConvoyReleaseLocal;
+    [_group,false,_restore,_registered,_operationEndReason] call CBE_fnc_ConvoyReleaseLocal;
 };
 // Active waypoints can change formation after initial setup. Enforce the convoy
 // formation only while this owner controls travel; suspension above preserves Zeus control.
@@ -324,14 +324,14 @@ if (time >= (_state getOrDefault ["contactDue", -1])) then {
     {
         private _observer = gunner _x;
         if (isNull _observer || {!local _observer} || {!alive _observer}) then {_observer = driver _x};
-        private _candidate = [_observer] call WAIT_fnc_ConvoyThreat;
+        private _candidate = [_observer] call CBE_fnc_ConvoyThreat;
         if (_candidate isNotEqualTo []) then {
             if (_report isEqualTo [] || {_candidate select 2}) then {_report = _candidate};
         };
         if (_report isNotEqualTo [] && {_report select 2}) exitWith {};
     } forEach _registered;
     private _contact = _report isNotEqualTo [] && {_report select 2};
-    _contact = _contact || {_registered findIf {serverTime - (_x getVariable ["WAIT_Convoy_HitAt", -1e9]) <= 15} >= 0}
+    _contact = _contact || {_registered findIf {serverTime - (_x getVariable ["CBE_Convoy_HitAt", -1e9]) <= 15} >= 0}
         || {(units _group) findIf {alive _x && {getSuppression _x > 0.2}} >= 0};
     _state set ["contact", _contact];
     _state set ["threat", if (_report isEqualTo []) then {[]} else {+(_report select 1)}];
@@ -355,12 +355,12 @@ if (_contact) then {
 _state set ["contactProgress", _contactProgress];
 if (time >= (_state getOrDefault ["checkpointDue", -1])) then {
     private _checkpoint = [_revision, _contactProgress apply {+_x}];
-    if (_checkpoint isNotEqualTo (_group getVariable ["WAIT_Convoy_ContactProgress", []])) then {_group setVariable ["WAIT_Convoy_ContactProgress", _checkpoint, true]};
+    if (_checkpoint isNotEqualTo (_group getVariable ["CBE_Convoy_ContactProgress", []])) then {_group setVariable ["CBE_Convoy_ContactProgress", _checkpoint, true]};
     _state set ["checkpointDue", time + 5];
 };
-if (_contact && {!_pushThrough || {_pinned}} && {[_group,"WAIT_Convoy_ContactHalt_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) exitWith {
+if (_contact && {!_pushThrough || {_pinned}} && {[_group,"CBE_Convoy_ContactHalt_Enable",true] call CBE_fnc_CortexFeatureEnabled}) exitWith {
     if (time >= (_state getOrDefault ["haltRequest", -1])) then {
-        [_group, _revision, "AMBUSH", _state getOrDefault ["threat", []]] remoteExecCall ["WAIT_fnc_ConvoyHaltServer", 2];
+        [_group, _revision, "AMBUSH", _state getOrDefault ["threat", []]] remoteExecCall ["CBE_fnc_ConvoyHaltServer", 2];
         _state set ["haltRequest", time + 5];
     };
 };
@@ -378,26 +378,26 @@ for "_i" from 0 to (count _vehicles - 1) do {
         _gaps pushBack (_separation max (_lengths * 0.5 + 5));
     };
 };
-private _hadBypass=!isNil {_lead getVariable "WAIT_DrivingBypass_Work"};
+private _hadBypass=!isNil {_lead getVariable "CBE_DrivingBypass_Work"};
 private _bypass=[false,1e6,"",false];
-private _hadBypassPassage=!isNil {_group getVariable "WAIT_Convoy_BypassPassage"};
-private _bypassPassage=[_group,_configuration] call WAIT_fnc_ConvoyBypassStep;
+private _hadBypassPassage=!isNil {_group getVariable "CBE_Convoy_BypassPassage"};
+private _bypassPassage=[_group,_configuration] call CBE_fnc_ConvoyBypassStep;
 private _bypassPassageActive=_bypassPassage select 0;
 private _bypassCaps=_bypassPassage select 1;
 if (_hadBypassPassage && {!_bypassPassageActive}) then {
-    [_lead,_group,"CONVOY_PASSAGE_ENDED",true,false,_revision] call WAIT_fnc_DrivingBypassRelease;
+    [_lead,_group,"CONVOY_PASSAGE_ENDED",true,false,_revision] call CBE_fnc_DrivingBypassRelease;
 };
 private _corridor=[false,1e6,""];
-private _hadCorridor=!isNil {_lead getVariable "WAIT_DrivingCorridor_Work"};
-if ([_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled
+private _hadCorridor=!isNil {_lead getVariable "CBE_DrivingCorridor_Work"};
+if ([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled
     && {!_hadBypass} && {!_bypassPassageActive} && {[] call _mayIssueDriving}) then {
-    _corridor=[_group,_lead,_group getVariable ["WAIT_Convoy_Brain",createHashMap],"CONVOY"] call WAIT_fnc_DrivingCorridorStep;
+    _corridor=[_group,_lead,_group getVariable ["CBE_Convoy_Brain",createHashMap],"CONVOY"] call CBE_fnc_DrivingCorridorStep;
 } else {
-    if (_hadCorridor) then {[_lead,_group,"CONVOY_ASSIST_RELEASED"] call WAIT_fnc_DrivingCorridorRelease};
+    if (_hadCorridor) then {[_lead,_group,"CONVOY_ASSIST_RELEASED"] call CBE_fnc_DrivingCorridorRelease};
 };
 private _corridorActive=_corridor select 0;
 _state set ["corridorPhase",_corridor select 2];
-private _passage=[_group,_configuration] call WAIT_fnc_ConvoyCorridorStep;
+private _passage=[_group,_configuration] call CBE_fnc_ConvoyCorridorStep;
 private _passageActive=_passage select 0;
 private _passageCaps=_passage select 1;
 if (!_corridorActive && {_passageActive}) then {_state set ["corridorPhase","CORRIDOR_TAIL"]};
@@ -405,19 +405,19 @@ private _lastWaypoint = [_group, (count waypoints _group) - 1];
 if (count waypoints _group > 1 && {currentWaypoint _group < count waypoints _group}
     && {waypointType _lastWaypoint == "MOVE"}) then {
     _state set ["routeWatch",[(count waypoints _group)-1,waypointPosition _lastWaypoint,waypointCompletionRadius _lastWaypoint,
-        [_group,"",false,_lastWaypoint select 1] call WAIT_fnc_AuthoredRouteReceipt]];
+        [_group,"",false,_lastWaypoint select 1] call CBE_fnc_AuthoredRouteReceipt]];
 };
 private _routeWatch=_state getOrDefault ["routeWatch",[]];
-if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActive} && {[_group,"WAIT_Convoy_RouteRecovery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActive} && {[_group,"CBE_Convoy_RouteRecovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {_routeWatch isNotEqualTo []} && {currentWaypoint _group >= count waypoints _group}
     && {time >= (_state getOrDefault ["routeRecoveryAt",-1])}) then {
     _routeWatch params ["_watchedIndex","_watchedPosition","_watchedRadius",["_watchedReceipt",[]]];
     // A Zeus edit changes or deletes the stored waypoint and therefore fails this identity check.
-    // The Zeus suspension path above also clears local state before WAIT may resume.
+    // The Zeus suspension path above also clears local state before CBE may resume.
     if (_watchedIndex < count waypoints _group) then {
         private _watchedWaypoint=[_group,_watchedIndex];
         if (_watchedReceipt isNotEqualTo []
-            && {([_group,"",false,_watchedIndex] call WAIT_fnc_AuthoredRouteReceipt) isEqualTo _watchedReceipt}
+            && {([_group,"",false,_watchedIndex] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _watchedReceipt}
             && {[_watchedWaypoint] call _mayRecoverWaypoint}
             && {waypointType _watchedWaypoint == "MOVE"}
             && {waypointPosition _watchedWaypoint distance2D _watchedPosition < 2}
@@ -426,8 +426,8 @@ if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActi
                 _group setCurrentWaypoint _watchedWaypoint;
                 _leadOperator doMove _watchedPosition;
                 _state set ["routeRecoveryAt",time+15];
-                private _recoveries=(_group getVariable ["WAIT_Convoy_RouteRecoveries",0])+1;
-                _group setVariable ["WAIT_Convoy_RouteRecoveries",_recoveries,true];
+                private _recoveries=(_group getVariable ["CBE_Convoy_RouteRecoveries",0])+1;
+                _group setVariable ["CBE_Convoy_RouteRecoveries",_recoveries,true];
             };
         };
     };
@@ -441,7 +441,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
 if (!_settled) then {_state set ["arrivalAt", time + 5]};
 if (_settled && {time >= (_state getOrDefault ["arrivalAt", time + 5])}) exitWith {
     if (time >= (_state getOrDefault ["haltRequest", -1])) then {
-        [_group, _revision, "ARRIVED"] remoteExecCall ["WAIT_fnc_ConvoyHaltServer", 2];
+        [_group, _revision, "ARRIVED"] remoteExecCall ["CBE_fnc_ConvoyHaltServer", 2];
         _state set ["haltRequest", time + 5];
     };
 };
@@ -460,7 +460,7 @@ private _frontTrails = _state get "frontTrails";
     };
     _frontTrails set [_key, _record];
 } forEach _vehicles;
-private _captureControl=(_group getVariable ["WAIT_Convoy_CaptureControl",false]) isEqualTo true;
+private _captureControl=(_group getVariable ["CBE_Convoy_CaptureControl",false]) isEqualTo true;
 _state deleteAt "leadControlSample";
 private _turn = abs (((getDir _lead - (_state get "heading") + 540) mod 360) - 180);
 _state set ["heading", getDir _lead];
@@ -488,10 +488,10 @@ for "_i" from 1 to (count _vehicles - 1) do {
 // multiplying raycasts or schedulers per vehicle. It influences speed only: Arma retains route
 // choice, collision handling and the ability to remain stopped behind a deliberate roadblock.
 private _roadCap = _maximum;
-private _trafficAssistEnabled=[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+private _trafficAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 if (_trafficAssistEnabled) then {
     if (time >= (_state getOrDefault ["roadLookAt",-1])) then {
-        private _roadObservation=[_lead,_maximum] call WAIT_fnc_DrivingRoadCap;
+        private _roadObservation=[_lead,_maximum] call CBE_fnc_DrivingRoadCap;
         _roadCap=_roadObservation select 0;
         _state set ["roadAssist",_roadObservation];
         _state set ["roadLookAt",time+3];
@@ -504,7 +504,7 @@ private _leadLimit = ((_maximum - ((_stretch - 1.2) max 0) * 5 - (_turn min 60) 
 // ordered km/h cap observations, and whether this callback actually wrote the lead speed.
 private _leadControl=[];
 if (_captureControl) then {
-    _leadControl=[serverTime,_revision,[clientOwner,_group getVariable ["WAIT_AIPass_Epoch",0]],
+    _leadControl=[serverTime,_revision,[clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]],
         [(velocityModelSpace _lead select 1)*3.6,_maximum,_stretch,_turn,_routeDone,_contact],
         [["road",_roadCap],["stretchTurn",_leadLimit]],false];
 };
@@ -552,17 +552,17 @@ if (!_routeDone && {_leadLimit > (_leadSpeedState select 0)}) then {
 };
 if (_captureControl) then {(_leadControl select 4) pushBack ["accelerationAndArrival",_leadLimit]};
 private _leadTraffic=if (_trafficAssistEnabled) then {
-    [_lead,_leadLimit/3.6] call WAIT_fnc_DrivingFollowingCap
+    [_lead,_leadLimit/3.6] call CBE_fnc_DrivingFollowingCap
 } else {[_leadLimit/3.6,objNull,-1,time,0]};
 private _geometryTracks=_state getOrDefault ["geometryTracks",createHashMap];
-private _geometryContext=[_group,_revision,_group getVariable ["WAIT_AIPass_Epoch",0],[_group] call WAIT_fnc_DrivingRouteReceipt];
-private _leadTurn=[_lead,_geometryTracks getOrDefault [netId _lead,[]],_geometryContext] call WAIT_fnc_DrivingTurnTrack;
+private _geometryContext=[_group,_revision,_group getVariable ["CBE_AIPass_Epoch",0],[_group] call CBE_fnc_DrivingRouteReceipt];
+private _leadTurn=[_lead,_geometryTracks getOrDefault [netId _lead,[]],_geometryContext] call CBE_fnc_DrivingTurnTrack;
 _geometryTracks set [netId _lead,_leadTurn select 1];_state set ["geometryTracks",_geometryTracks];
 private _leadNativeHint=if (_trafficAssistEnabled) then {
-    [_lead,_group,["CONVOY",_revision,_geometryContext]] call WAIT_fnc_DrivingNativePathWatch
-} else {[_lead,_group,["CONVOY"],true] call WAIT_fnc_DrivingNativePathWatch};
+    [_lead,_group,["CONVOY",_revision,_geometryContext]] call CBE_fnc_DrivingNativePathWatch
+} else {[_lead,_group,["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch};
 private _leadCurveHint=if (_leadNativeHint isEqualTo []) then {[_leadTurn select 0]} else {_leadNativeHint};
-private _leadGeometry=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6,false,_leadCurveHint] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+private _leadGeometry=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6,false,_leadCurveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
 private _leadGate=_leadGeometry select 0;private _leadObstacle=_leadGeometry select 1;
 if (_leadGate isNotEqualTo [] && {(_leadGate select 0) < (_leadTraffic select 0)}) then {_leadTraffic=_leadGate};
 private _leadWithoutObstacle=+_leadTraffic;
@@ -574,19 +574,19 @@ if (_leadObstacleLimited) then {
 // One lead writer; existing trail writers remain solely responsible for followers.
 private _bypassAuthority={[] call _mayIssueDriving && {[[_group,currentWaypoint _group]] call _mayRecoverWaypoint}};
 if (!_corridorActive && {!_hadCorridor} && {!_passageActive} && {[] call _mayIssueDriving}) then {
-    _bypass=[_group,_lead,_group getVariable ["WAIT_Convoy_Brain",createHashMap],_leadObstacle,_bypassAuthority,"CONVOY"] call WAIT_fnc_DrivingBypassStep;
+    _bypass=[_group,_lead,_group getVariable ["CBE_Convoy_Brain",createHashMap],_leadObstacle,_bypassAuthority,"CONVOY"] call CBE_fnc_DrivingBypassStep;
 } else {
-    if (_hadBypass) then {[_lead,_group,"CONVOY_ASSIST_RELEASED"] call WAIT_fnc_DrivingBypassRelease};
+    if (_hadBypass) then {[_lead,_group,"CONVOY_ASSIST_RELEASED"] call CBE_fnc_DrivingBypassRelease};
 };
 private _bypassActive=_bypass select 0;
 // Existing episodes were advanced once above. Only newly committed lead work needs admission here.
 if (!_bypassPassageActive && {!_hadBypassPassage}) then {
-    _bypassPassage=[_group,_configuration] call WAIT_fnc_ConvoyBypassStep;
+    _bypassPassage=[_group,_configuration] call CBE_fnc_ConvoyBypassStep;
 };
 _bypassPassageActive=_bypassPassage select 0;_bypassCaps=_bypassPassage select 1;
 _state set ["bypassPhase",if (_bypassActive) then {_bypass select 2} else {if (_bypassPassageActive) then {"BYPASS_TAIL"} else {""}}];
 if (_bypassActive && {_bypass select 3} && {count _leadObstacle == 9}) then {
-    private _work=_lead getVariable ["WAIT_DrivingBypass_Work",createHashMap];
+    private _work=_lead getVariable ["CBE_DrivingBypass_Work",createHashMap];
     if ((_leadObstacle select 1) == (_work getOrDefault ["obstacle",objNull])
         && {(_leadObstacle select 8) isEqualTo (_work getOrDefault ["transform",[]])}) then {
         _leadTraffic=+_leadWithoutObstacle;_leadObstacleLimited=false;
@@ -599,22 +599,22 @@ _state set ["obstacleLimited",_leadObstacleLimited];
 private _leadTrafficBlocked=!isNull (_leadTraffic select 1);
 _leadLimit=_leadLimit min ((_leadTraffic select 0)*3.6);
 if (_captureControl) then {(_leadControl select 4) pushBack ["trafficGeometry",_leadLimit]};
-_leadLimit = [_lead,_leadLimit,_group] call WAIT_fnc_CortexInfantrySpeed;
+_leadLimit = [_lead,_leadLimit,_group] call CBE_fnc_CortexInfantrySpeed;
 if (_captureControl) then {(_leadControl select 4) pushBack ["infantry",_leadLimit]};
 _state set ["leadSpeedLimit",[_leadLimit,time]];
 if ([] call _mayIssueDriving) then {
     private _ownedSpeed=_leadLimit/3.6;
     _lead forceSpeed _ownedSpeed;
     if (_captureControl) then {_leadControl set [5,true]};
-    if (_leadGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_lead,_leadGate,_revision] call WAIT_fnc_DrivingGateRequest};
-    _lead setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
+    if (_leadGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_lead,_leadGate,_revision] call CBE_fnc_DrivingGateRequest};
+    _lead setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
 };
 if (_captureControl) then {_state set ["leadControlSample",_leadControl]};
 // Speed limits cannot restart an engine movement order that stopped short. Retry only
 // after ten seconds without progress, while a real route destination remains active.
 private _leadProgress = _state getOrDefault ["leadProgress", [getPosATL _lead, time, 0]];
 private _waypointIndex = currentWaypoint _group;
-private _leadRouteReceipt=[_group,"",false,_waypointIndex] call WAIT_fnc_AuthoredRouteReceipt;
+private _leadRouteReceipt=[_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt;
 if (_leadRouteReceipt isNotEqualTo (_state getOrDefault ["leadRouteReceipt",[]])) then {
     _leadProgress=[getPosATL _lead,time,0];
     _state set ["leadRouteReceipt",_leadRouteReceipt];
@@ -627,9 +627,9 @@ if (!_routeDone && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && 
     if ([_waypoint] call _mayRecoverWaypoint && {_lead distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
         private _attempts=(_leadProgress param [2,0])+1;
         if (_attempts > 3) then {
-            [_group,_revision,([_lead] call _classifyStall),[],_lead] remoteExecCall ["WAIT_fnc_ConvoyHaltServer",2];
+            [_group,_revision,([_lead] call _classifyStall),[],_lead] remoteExecCall ["CBE_fnc_ConvoyHaltServer",2];
         } else {if ([] call _mayIssueDriving && {currentWaypoint _group == _waypointIndex}
-            && {([_group,"",false,_waypointIndex] call WAIT_fnc_AuthoredRouteReceipt) isEqualTo _leadRouteReceipt}) then {_leadOperator doMove _destination}};
+            && {([_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _leadRouteReceipt}) then {_leadOperator doMove _destination}};
         _leadProgress set [2,_attempts];
     };
     _leadProgress set [0,getPosATL _lead]; _leadProgress set [1,time];
@@ -638,7 +638,7 @@ _state set ["leadProgress", _leadProgress];
 private _followers = _state get "followers";
 private _speedLimits = _state get "speedLimits";
 private _pathOwners = _state getOrDefault ["pathOwners",createHashMap];
-private _pathAssistEnabled=[_group,"WAIT_Convoy_DrivingAssist_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+private _pathAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 _state set ["pathOwners",_pathOwners];
 // Internal audit capture is local to this owner and resets each travelling callback.
 // It cannot grant authority, change any cap, or retain an unbounded time series.
@@ -741,21 +741,21 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Preserve normal aligned predecessor spacing. Its turning/reversing hull and
     // contact-range occupancy still constrain us, as do all other occupied vehicles.
     private _traffic=if (_trafficAssistEnabled) then {
-        [_vehicle,_limit/3.6,_front] call WAIT_fnc_DrivingFollowingCap
+        [_vehicle,_limit/3.6,_front] call CBE_fnc_DrivingFollowingCap
     } else {[_limit/3.6,objNull,-1,time,0]};
-    private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],_geometryContext] call WAIT_fnc_DrivingTurnTrack;
+    private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],_geometryContext] call CBE_fnc_DrivingTurnTrack;
     _geometryTracks set [netId _vehicle,_turn select 1];
     private _nativeHint=if (_trafficAssistEnabled) then {
-        [_vehicle,_group,["CONVOY",_revision,_geometryContext]] call WAIT_fnc_DrivingNativePathWatch
-    } else {[_vehicle,_group,["CONVOY"],true] call WAIT_fnc_DrivingNativePathWatch};
+        [_vehicle,_group,["CONVOY",_revision,_geometryContext]] call CBE_fnc_DrivingNativePathWatch
+    } else {[_vehicle,_group,["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch};
     private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
-    private _vehicleGeometry=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6,false,_curveHint] call WAIT_fnc_DrivingGeometryCap} else {[[],[]]};
+    private _vehicleGeometry=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6,false,_curveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
     private _vehicleGate=_vehicleGeometry select 0;private _vehicleObstacle=_vehicleGeometry select 1;
     if (_vehicleGate isNotEqualTo [] && {(_vehicleGate select 0) < (_traffic select 0)}) then {_traffic=_vehicleGate};
     // Source-constraint yielding requires this follower's unchanged committed trail, actual
     // alignment and a fresh hull-sized next segment, never merely the lead's successful proposal.
     private _bypassLegClear=false;
-    private _episode=_group getVariable ["WAIT_Convoy_BypassPassage",createHashMap];
+    private _episode=_group getVariable ["CBE_Convoy_BypassPassage",createHashMap];
     if (_bypassPassageActive && {count _vehicleObstacle == 9}
         && {(_vehicleObstacle select 1) == (_episode get "obstacle")}
         && {(_vehicleObstacle select 8) isEqualTo (_episode get "transform")}) then {
@@ -784,7 +784,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     private _bounds=boundingBoxReal _vehicle;private _low=_bounds select 0;private _high=_bounds select 1;
                     private _width=(abs (_low select 0)) max (abs (_high select 0));
                     private _length=(abs (_low select 1)) max (abs (_high select 1));
-                    private _health=[_vehicle,[_origin,_next],sqrt ((_width^2)+(_length^2))+1,(_high select 2)-(_low select 2)] call WAIT_fnc_DrivingPathGeometry;
+                    private _health=[_vehicle,[_origin,_next],sqrt ((_width^2)+(_length^2))+1,(_high select 2)-(_low select 2)] call CBE_fnc_DrivingPathGeometry;
                     _bypassLegClear=_health select 0;
                 };
             };
@@ -800,7 +800,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
     _limit=_limit min ((_passageCaps getOrDefault [netId _vehicle,1e6])*3.6);
     _limit=_limit min ((_bypassCaps getOrDefault [netId _vehicle,1e6])*3.6);
     private _preInfantryLimit=_limit;
-    _limit = [_vehicle,_limit,_group] call WAIT_fnc_CortexInfantrySpeed;
+    _limit = [_vehicle,_limit,_group] call CBE_fnc_CortexInfantrySpeed;
     if (_captureControl) then {
         (_controlSample select 6) append [["trafficGeometry",(_traffic select 0)*3.6],
             ["passage",(_passageCaps getOrDefault [netId _vehicle,1e6])*3.6],
@@ -812,8 +812,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
         private _ownedSpeed=_limit/3.6;
         _vehicle forceSpeed _ownedSpeed;
         if (_captureControl) then {(_controlSample select 7) pushBack ["PACE",_limit];_controlSample set [8,true]};
-        if (_vehicleGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_vehicle,_vehicleGate,_revision] call WAIT_fnc_DrivingGateRequest};
-        _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
+        if (_vehicleGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_vehicle,_vehicleGate,_revision] call CBE_fnc_DrivingGateRequest};
+        _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
     };
     _speedLimits set [_key,[_limit,time]];
     // Keep the committed native and steering-path destinations when progress is made. Rebuilding
@@ -829,7 +829,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
         && {_frontSpeed > 1 || {_gap > _gapHigh}}) then {
         private _attempts=(_progress param [4,0])+1;
         if (_attempts > 3) then {
-            [_group,_revision,([_vehicle] call _classifyStall),[],_vehicle] remoteExecCall ["WAIT_fnc_ConvoyHaltServer",2];
+            [_group,_revision,([_vehicle] call _classifyStall),[],_vehicle] remoteExecCall ["CBE_fnc_ConvoyHaltServer",2];
         } else {
             if ([] call _mayIssueDriving) then {
                 // Recovery must retain predecessor intent, not re-enter native group formation.
@@ -857,7 +857,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             // Refresh the same seat/destination receipt used by normal commits.
                             _progress set [10,[driver _vehicle,_movementOperator,
                                 +(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                            _vehicle setVariable ["WAIT_Convoy_MovementReceipt",[_group,_revision,
+                            _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,
                                 driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
                         } else {
                             // A native doMove competes with the retained steering path.
@@ -974,7 +974,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     private _ownedSpeed=_limit/3.6;
                     _vehicle forceSpeed _ownedSpeed;
                     if (_captureControl) then {(_controlSample select 7) pushBack ["TRAIL",_limit];_controlSample set [8,true]};
-                    _vehicle setVariable ["WAIT_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
+                    _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
                 };
                 _speedLimits set [_key,[_limit,time]];
             };
@@ -1025,7 +1025,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         _progress set [12,+_recordedDestination];
                         _progress set [9,+_path];
                         _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                        _vehicle setVariable ["WAIT_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
+                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
                         _progress set [7,false];
                     };
                 };
@@ -1053,13 +1053,13 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             // This is movement ownership evidence, never proof the path executed.
                             // Capture the native command state after the sole path write so release
                             // cannot cancel a later native destination or a changed driver/operator.
-                            _vehicle setVariable ["WAIT_Convoy_PathLease",[_group,_revision,
-                                _group getVariable ["WAIT_AIPass_Epoch",0],driver _vehicle,_movementOperator,
+                            _vehicle setVariable ["CBE_Convoy_PathLease",[_group,_revision,
+                                _group getVariable ["CBE_AIPass_Epoch",0],driver _vehicle,_movementOperator,
                                 +(expectedDestination _movementOperator),+_pathDestination],true];
                             _progress set [6,+_pathDestination];
                             _progress set [9,+_path];
                             _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                        _vehicle setVariable ["WAIT_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
+                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
                         };
                     };
                     _progress set [2, time + 1];

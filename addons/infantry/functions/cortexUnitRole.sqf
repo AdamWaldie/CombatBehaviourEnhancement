@@ -15,23 +15,23 @@
  * String - "LEADER", "MG", "AT", "MEDIC" or "RIFLE"
  *
  * Example:
- * if (([_unit] call WAIT_fnc_CortexUnitRole) == "MG") then {...};
+ * if (([_unit] call CBE_fnc_CortexUnitRole) == "MG") then {...};
  * Result: machine gunners are preferred for suppression and kept in the base of fire.
  *
- * Current callers: WAIT_fnc_CortexFlankStart, WAIT_fnc_CortexFireControl and WAIT_fnc_CortexAntiArmour.
+ * Current callers: CBE_fnc_CortexFlankStart, CBE_fnc_CortexFireControl and CBE_fnc_CortexAntiArmour.
  */
 
 params [["_unit", objNull, [objNull]]];
 if (isNull _unit) exitWith {"RIFLE"};
 if (leader group _unit == _unit) exitWith {"LEADER"};
-if ("AT" in ([_unit] call WAIT_fnc_CortexCapabilities)) exitWith {"AT"};
-private _cache = missionNamespace getVariable ["WAIT_AIPass_MagazineSizes", createHashMap];
+if ("AT" in ([_unit] call CBE_fnc_CortexCapabilities)) exitWith {"AT"};
+private _cache = missionNamespace getVariable ["CBE_AIPass_MagazineSizes", createHashMap];
 private _magazine = (primaryWeaponMagazine _unit) param [0, ""];
 private _size = _cache getOrDefault [_magazine, -1];
 if (_size < 0) then {
     _size = getNumber (configFile >> "CfgMagazines" >> _magazine >> "count");
     _cache set [_magazine, _size];
-    missionNamespace setVariable ["WAIT_AIPass_MagazineSizes", _cache];
+    missionNamespace setVariable ["CBE_AIPass_MagazineSizes", _cache];
 };
 if (_size >= 75) exitWith {"MG"};
 if (_unit getUnitTrait "Medic" || {(_unit getVariable ["ace_medical_medicClass", 0]) > 0}) exitWith {"MEDIC"};

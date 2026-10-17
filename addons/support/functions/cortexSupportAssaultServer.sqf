@@ -7,7 +7,7 @@
  * the support line. Approach radii scale from live requester/contact and responder/contact
  * distances, bounded to 45-250 m with six candidates per responder and no additional scans.
  * Candidate approach points remain separated by 60 m, then
- * WAIT_fnc_CortexSelectAvenue rejects routes entering the requester's
+ * CBE_fnc_CortexSelectAvenue rejects routes entering the requester's
  * 30 m firing corridor or changing sides. The shared bounded scorer distinguishes terrain/solid
  * ballistic screening from visual concealment. It runs once per dispatch, not per tick or soldier.
  * Accepted responders need not finish the optional rally first. Route selection starts at each
@@ -23,19 +23,19 @@
  * 3: confirmed contact time <NUMBER>, default -1, serverTime clock; missing/stale contact declines attack.
  * Return Value: Nothing.
  * Current callers: CoordinatedAssault.
- * Example: [_group,_enemyPos,clientOwner,_confirmedAt] remoteExecCall ["WAIT_fnc_CortexSupportAssaultServer",2];
+ * Example: [_group,_enemyPos,clientOwner,_confirmedAt] remoteExecCall ["CBE_fnc_CortexSupportAssaultServer",2];
  */
 params [["_requester",grpNull,[grpNull]],["_enemy",[],[[]]],["_replyOwner",-1,[0]],["_confirmedAt",-1,[0]]];
-private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;
-if (!isServer || {isNull _requester} || {([_replyOwner,groupOwner _requester] call WAIT_fnc_HeadlessResolveSender) < 0}
-    || {!(missionNamespace getVariable ["WAIT_AIPass_Enable",false])}
-    || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])} || {[] call WAIT_fnc_CortexIsPaused}
-    || {!([_requester] call WAIT_fnc_CortexIsEligible)}
-    || {!([_requester,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
+private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;
+if (!isServer || {isNull _requester} || {([_replyOwner,groupOwner _requester] call CBE_fnc_HeadlessResolveSender) < 0}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Enable",false])}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}
+    || {!([_requester] call CBE_fnc_CortexIsEligible)}
+    || {!([_requester,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {isNull _requesterTransmitter}
     || {count _enemy != 3} || {_enemy findIf {!(_x isEqualType 0)} >= 0} || {_requesterTransmitter distance2D _enemy > 400}) exitWith {};
 if (_confirmedAt < 0 || {_confirmedAt > serverTime+1} || {serverTime-_confirmedAt > 60}) exitWith {};
-private _requests = missionNamespace getVariable ["WAIT_AIPass_SupportRequests",createHashMap];
+private _requests = missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap];
 private _job = _requests getOrDefault [netId _requester,createHashMap];
 if (count _job == 0 || {_job getOrDefault ["assaultIssued",false]} || {serverTime >= (_job get "expiry")}) exitWith {};
 private _sent = 0;
@@ -50,20 +50,20 @@ private _approaches=[];
 private _dispatched=[];
 {
     _x params ["_helper","_token","","","_accepted"];
-    private _lease = _helper getVariable ["WAIT_AIPass_SupportLease",[]];
-    private _status = _helper getVariable ["WAIT_AIPass_SupportStatus",[]];
-    private _eligibility=_helper getVariable ["WAIT_Cortex_SupportEligibility",[]];
+    private _lease = _helper getVariable ["CBE_AIPass_SupportLease",[]];
+    private _status = _helper getVariable ["CBE_AIPass_SupportStatus",[]];
+    private _eligibility=_helper getVariable ["CBE_Cortex_SupportEligibility",[]];
     private _prepared=count _eligibility == 3 && {(_eligibility select 0) == _token}
         && {(_eligibility select 1) == groupOwner _helper} && {serverTime < (_eligibility select 2)};
     private _executing=count _status == 4 && {(_status select 0) == _token} && {_status select 2};
     if (_accepted == "ACCEPTED" && {count _lease == 6} && {(_lease select 0) == _token}
         && {_prepared || {_executing}}
-        && {!isNull ([_helper] call WAIT_fnc_CortexGroupTransmitter)}
-        && {count ((units _helper) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}
-        && {[_helper] call WAIT_fnc_CortexIsEligible} && {[_helper,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) then {
+        && {!isNull ([_helper] call CBE_fnc_CortexGroupTransmitter)}
+        && {count ((units _helper) select {[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}
+        && {[_helper] call CBE_fnc_CortexIsEligible} && {[_helper,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
         // A coordinated route always begins at the squad's physical live position. The lease's
         // optional rally coordinate is reservation metadata and must never become a synthetic start.
-        private _helperTransmitter = [_helper] call WAIT_fnc_CortexGroupTransmitter;
+        private _helperTransmitter = [_helper] call CBE_fnc_CortexGroupTransmitter;
         private _routeOrigin=getPosATL _helperTransmitter;
         private _originX=(_routeOrigin select 0)-(_supportOrigin select 0);
         private _originY=(_routeOrigin select 1)-(_supportOrigin select 1);
@@ -96,14 +96,14 @@ private _dispatched=[];
             };
         } forEach [[_approachRadius,90],[_outerRadius,90],[_obliqueRadius,135],
             [_approachRadius,-90],[_outerRadius,-90],[_obliqueRadius,-135]];
-        private _selected=[_routeOrigin,_candidateRoutes,_enemy,[_supportOrigin]] call WAIT_fnc_CortexSelectAvenue;
+        private _selected=[_routeOrigin,_candidateRoutes,_enemy,[_supportOrigin]] call CBE_fnc_CortexSelectAvenue;
         private _attack=if (_selected isEqualTo []) then {[]} else {+(_selected select ((count _selected)-1))};
         if (_attack isNotEqualTo []) then {
             _approaches pushBack +_attack;
             _lease = +_lease; _lease set [2,_job get "expiry"]; _lease set [5,_attack];
-            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+_enemy,_confirmedAt],true];
-            _helper setVariable ["WAIT_AIPass_SupportLease",_lease,true];
-            [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",groupOwner _helper];
+            _helper setVariable ["CBE_Cortex_SupportContact",[_token,+_enemy,_confirmedAt],true];
+            _helper setVariable ["CBE_AIPass_SupportLease",_lease,true];
+            [_helper,_lease] remoteExecCall ["CBE_fnc_CortexSupportLocal",groupOwner _helper];
             _dispatched pushBack _x;
             _sent = _sent+1;
         };
@@ -116,36 +116,36 @@ if (_sent > 0) then {
     {
         _x params ["_helper","_token"];
         if (_dispatched findIf {(_x select 0) == _helper && {(_x select 1) == _token}} < 0) then {
-            private _lease=_helper getVariable ["WAIT_AIPass_SupportLease",[]];
+            private _lease=_helper getVariable ["CBE_AIPass_SupportLease",[]];
             if (count _lease == 6 && {(_lease select 0) == _token}) then {
-                _helper setVariable ["WAIT_Cortex_SupportContact",nil,true]; _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
-                _helper setVariable ["WAIT_Cortex_SupportRole",nil,true];
-            _helper setVariable ["WAIT_Cortex_SupportEligibility",nil,true];
+                _helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true];
+                _helper setVariable ["CBE_Cortex_SupportRole",nil,true];
+            _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true];
             };
         };
     } forEach (_job get "leases");
     _job set ["leases",_dispatched];
-    _requester setVariable ["WAIT_Cortex_SupportResponders",_dispatched apply {[_x select 0,_x select 1]},true];
-    _requester setVariable ["WAIT_Cortex_SupportRequestState",[_job get "serial","ACTIVE",_job get "expiry"],true];
-    _job set ["boundMaxConcurrent",(round (missionNamespace getVariable ["WAIT_AIPass_CoordinatedAssault_MaxMovers",2])) max 1 min 4];
+    _requester setVariable ["CBE_Cortex_SupportResponders",_dispatched apply {[_x select 0,_x select 1]},true];
+    _requester setVariable ["CBE_Cortex_SupportRequestState",[_job get "serial","ACTIVE",_job get "expiry"],true];
+    _job set ["boundMaxConcurrent",(round (missionNamespace getVariable ["CBE_AIPass_CoordinatedAssault_MaxMovers",2])) max 1 min 4];
     _job set ["assaultIssued",true];
-    [_job,_dispatched] call WAIT_fnc_CortexSupportCoordinateStep;
+    [_job,_dispatched] call CBE_fnc_CortexSupportCoordinateStep;
 } else {
     // Route geometry is evaluated from live positions. If no accepted responder has a safe avenue,
     // do not leave those squads in an invisible rally/planning state until the five-minute request
     // expires. Retire the request now so every group can immediately resume its own contact drill.
     {
         _x params ["_helper","_token"];
-        private _lease=_helper getVariable ["WAIT_AIPass_SupportLease",[]];
+        private _lease=_helper getVariable ["CBE_AIPass_SupportLease",[]];
         if (count _lease == 6 && {(_lease select 0) == _token}) then {
-            _helper setVariable ["WAIT_Cortex_SupportContact",nil,true]; _helper setVariable ["WAIT_AIPass_SupportLease",nil,true];
-            _helper setVariable ["WAIT_Cortex_SupportRole",nil,true];
-            _helper setVariable ["WAIT_Cortex_SupportEligibility",nil,true];
+            _helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true];
+            _helper setVariable ["CBE_Cortex_SupportRole",nil,true];
+            _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true];
         };
     } forEach (_job get "leases");
     _job set ["leases",[]];
     _job set ["expiry",serverTime];
-    _requester setVariable ["WAIT_Cortex_SupportResponders",nil,true];
-    _requester setVariable ["WAIT_Cortex_SupportRequestState",[_job get "serial","NO_SAFE_ROUTE",serverTime],true];
+    _requester setVariable ["CBE_Cortex_SupportResponders",nil,true];
+    _requester setVariable ["CBE_Cortex_SupportRequestState",[_job get "serial","NO_SAFE_ROUTE",serverTime],true];
     _requests deleteAt (_job get "key");
 };

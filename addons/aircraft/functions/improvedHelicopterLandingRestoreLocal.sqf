@@ -1,13 +1,13 @@
 /*
  * Author: WaldoTheWarfighter
- * Releases WAIT vector-flight control and restores only the AI systems changed during an approach.
+ * Releases CBE vector-flight control and restores only the AI systems changed during an approach.
  * A normal airborne abort does not impose a new flight height: the current waypoint/Zeus order is
  * allowed to resume with the aircraft's existing altitude policy. A ground anchor is different
  * because it deliberately used forced height zero; only that path receives a safe, non-forced
  * release height. This prevents moved waypoints and newly grouped formations being driven down to
  * the old 30 metre landing-transit value. Cleanup is safe after landing, cancellation, locality
  * migration, pilot takeover or feature stop.
- * Locality and authority: Runs on the current helicopter owner and restores only WAIT's
+ * Locality and authority: Runs on the current helicopter owner and restores only CBE's
  * local approach changes. It rejects a null or non-local aircraft.
  * Repeat/JIP: Safe to call after the controller stops; cleanup of the published active/anchor
  * flags is visible to JIP clients without replaying a past flight action.
@@ -17,11 +17,11 @@
  * 1: landed successfully <BOOL> (default false)
  * 2: waypoint type <STRING> (default "")
  * 3: stabilise airborne handoff <BOOL> (default false) - removes only downward velocity left by
- *    WAIT when formation/group control supersedes an active approach.
+ *    CBE when formation/group control supersedes an active approach.
  *
  * Return Value: BOOL - true when a local living helicopter was restored.
  *
- * Example: [_helicopter, true, "GETOUT"] call WAIT_fnc_ImprovedHelicopterLandingRestoreLocal;
+ * Example: [_helicopter, true, "GETOUT"] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
  * Result: Returns true when a living local helicopter is restored, otherwise false.
  * Current callers: the landing controller and local tracker cleanup.
  */
@@ -34,21 +34,21 @@ params [
 ];
 if (isNull _helicopter) exitWith {false};
 if (!local _helicopter) exitWith {false};
-private _releasedRevision=_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision",0];
-[_helicopter,"LANDING",str _releasedRevision,["ABORTED","LANDED"] select _landed] call WAIT_fnc_FlightLeaseRelease;
+private _releasedRevision=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",0];
+[_helicopter,"LANDING",str _releasedRevision,["ABORTED","LANDED"] select _landed] call CBE_fnc_FlightLeaseRelease;
 // Invalidate the exact scheduled approach/anchor that previously owned the aircraft. A Boolean
 // alone is insufficient because a rapid retask can set it true for a new controller before the old
 // scheduled loop notices the intervening false state.
 _helicopter setVariable [
-    "WAIT_ImprovedHelicopterLanding_ControlRevision",
-    (_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", 0]) + 1,
+    "CBE_ImprovedHelicopterLanding_ControlRevision",
+    (_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", 0]) + 1,
     true
 ];
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_Active", false, true];
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_GearLocal", false];
-private _wasGroundAnchored = _helicopter getVariable ["WAIT_ImprovedHelicopterLanding_GroundAnchored", false];
-private _releaseHeight = _helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ReleaseHeight", 100];
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_GroundAnchored", false, true];
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active", false, true];
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal", false];
+private _wasGroundAnchored = _helicopter getVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored", false];
+private _releaseHeight = _helicopter getVariable ["CBE_ImprovedHelicopterLanding_ReleaseHeight", 100];
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored", false, true];
 if (!alive _helicopter) exitWith {false};
 _helicopter enableAI "MOVE";
 _helicopter enableAI "PATH";
@@ -64,7 +64,7 @@ if (_landed) then {
         private _velocity = velocity _helicopter;
         // The vector controller may have issued a strong descent immediately before Zeus grouped
         // the aircraft. Arma formation control does not reliably arrest that inherited velocity in
-        // time. Preserve horizontal flight and any climb, but remove WAIT's residual dive.
+        // time. Preserve horizontal flight and any climb, but remove CBE's residual dive.
         _helicopter setVelocity [_velocity select 0, _velocity select 1, (_velocity select 2) max 0];
     };
     if (
@@ -76,7 +76,7 @@ if (_landed) then {
     ) then {
         // The anchor used forced height zero, which must be replaced before a new route can take
         // effect. Use the pre-approach height without forcing it: vanilla collision avoidance and
-        // formation spacing retain priority after WAIT releases ownership.
+        // formation spacing retain priority after CBE releases ownership.
         _helicopter flyInHeight ((_releaseHeight max 20) min 500);
     };
 };

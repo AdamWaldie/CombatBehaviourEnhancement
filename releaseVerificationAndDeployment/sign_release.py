@@ -1,4 +1,4 @@
-"""Fixed-authority signing and independent verification of WAIT candidates."""
+"""Fixed-authority signing and independent verification of CBE candidates."""
 import argparse
 import base64
 import hashlib
@@ -66,7 +66,7 @@ def seal_signed(package, source):
     rows=inventory(package)
     record=dict(source,files=rows,fingerprint=hashlib.sha256(json.dumps(rows,sort_keys=True).encode()).hexdigest())
     record['signing']={'authority':IDENTITY['authority'],'publicKeySHA256':IDENTITY['publicKeySHA256']}
-    (package/'wait-build.json').write_text(json.dumps(record,indent=2)+'\n')
+    (package/'cbe-build.json').write_text(json.dumps(record,indent=2)+'\n')
     return record
 
 def sign(package, signer, hemtt, keys=None, native=False):
@@ -114,7 +114,7 @@ def main():
     else: record=verify(package); checks=check(package,args.hemtt)
     if args.output:
         args.output.mkdir(parents=True,exist_ok=False)
-        archive=args.output/'wait-candidate.zip'
+        archive=args.output/'cbe-candidate.zip'
         with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as zipped:
             for path in sorted(package.rglob('*')):
                 if path.is_file(): zipped.write(path,path.relative_to(package).as_posix())
@@ -123,11 +123,11 @@ def main():
                 if hashlib.sha256(zipped.read(name)).hexdigest()!=hashlib.sha256((package/name).read_bytes()).hexdigest():
                     raise ValueError('Archive hash mismatch')
         sha=hashlib.sha256(archive.read_bytes()).hexdigest()
-        (args.output/'wait-candidate.zip.sha256').write_text(sha+'  wait-candidate.zip\n')
+        (args.output/'cbe-candidate.zip.sha256').write_text(sha+'  cbe-candidate.zip\n')
         (args.output/'signing-verification.json').write_text(json.dumps({'sourceCommit':record['commit'],'sourceDirty':record['dirty'],'packageFingerprint':record['fingerprint'],'archiveSHA256':sha,'publicKeySHA256':IDENTITY['publicKeySHA256'],'checks':checks,'published':False},indent=2)+'\n')
-    print('WAIT fixed-key signing/verification passed')
+    print('CBE fixed-key signing/verification passed')
 
 if __name__=='__main__':
     try: main()
     except (ValueError,OSError,KeyError):
-        raise SystemExit('WAIT signing failed; check key identity, package and pinned tools. Secret/tool output suppressed.') from None
+        raise SystemExit('CBE signing failed; check key identity, package and pinned tools. Secret/tool output suppressed.') from None

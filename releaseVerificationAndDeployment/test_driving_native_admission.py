@@ -15,27 +15,27 @@ class NativeAdmissionTests(unittest.TestCase):
     def test_ordinary_recovery_preserves_individual_seat_reservations(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         helper=assist.split('private _nativeTaskFree={',1)[1].split('private _routeIdentity=',1)[0]
-        self.assertIn('!([_actor] call WAIT_fnc_CortexActorMoveReserved)',helper)
+        self.assertIn('!([_actor] call CBE_fnc_CortexActorMoveReserved)',helper)
         for seat in ['_driver','_movementOperator']:
             self.assertGreaterEqual(assist.count(f'[{seat}] call _nativeTaskFree'),2)
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
         guard=release.split('} forEach [_driver,_operator];',1)[0]
-        self.assertIn('!([_x] call WAIT_fnc_CortexActorMoveReserved)',guard)
-        self.assertLess(release.index('WAIT_fnc_CortexActorMoveReserved'),release.index('doStop _driver'))
-        self.assertNotIn('setVariable ["WAIT_Cortex_ActorMove",nil]',release)
+        self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',guard)
+        self.assertLess(release.index('CBE_fnc_CortexActorMoveReserved'),release.index('doStop _driver'))
+        self.assertNotIn('setVariable ["CBE_Cortex_ActorMove",nil]',release)
 
     def test_alternate_paths_preserve_seat_reservations_during_execution_and_cleanup(self):
         for name,helper in [('drivingBypassStep','_seatsAvailable'),('drivingCorridorStep','_crewReady')]:
             text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
             readiness=text.split(f'private {helper}={{',1)[1].split('} < 0',1)[0]
             self.assertIn('[_driver,_operator] findIf',readiness)
-            self.assertIn('[_x] call WAIT_fnc_CortexActorMoveReserved',readiness)
+            self.assertIn('[_x] call CBE_fnc_CortexActorMoveReserved',readiness)
             writer=text.split('private _mayWrite={',1)[1].split('};',1)[0]
             self.assertIn(f'call {helper}',writer)
         for name,actor in [('drivingBypassRelease','_x'),('drivingCorridorRelease','_actor')]:
             text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
-            self.assertLess(text.index(f'!([{actor}] call WAIT_fnc_CortexActorMoveReserved)'),text.index('doStop _driver'))
-            self.assertNotIn('setVariable ["WAIT_Cortex_ActorMove",nil]',text)
+            self.assertLess(text.index(f'!([{actor}] call CBE_fnc_CortexActorMoveReserved)'),text.index('doStop _driver'))
+            self.assertNotIn('setVariable ["CBE_Cortex_ActorMove",nil]',text)
 
     def test_recovery_admission_and_handback_both_preserve_all_trigger_links(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')

@@ -18,7 +18,7 @@ class GroupCommunicationTests(unittest.TestCase):
         self.assertIn('private _leader = leader _group;', transmitter)
         self.assertIn('_members = [_leader] + (_members - [_leader]);', transmitter)
         self.assertIn('(_members select [0, 12])', transmitter)
-        self.assertIn('[_x] call WAIT_fnc_CortexCanTransmit', transmitter)
+        self.assertIn('[_x] call CBE_fnc_CortexCanTransmit', transmitter)
         for forbidden in ['reveal ', 'doMove', 'doFollow', 'setVariable']:
             self.assertNotIn(forbidden, transmitter)
 
@@ -29,18 +29,18 @@ class GroupCommunicationTests(unittest.TestCase):
             'cortexReportLocal', 'cortexArtilleryFire', 'cortexRetreat',
         ]
         for caller in callers:
-            self.assertIn('WAIT_fnc_CortexGroupTransmitter', source(caller), caller)
+            self.assertIn('CBE_fnc_CortexGroupTransmitter', source(caller), caller)
         report = source('cortexReportServer')
         report_local = source('cortexReportLocal')
-        self.assertIn('private _transmitter = [_sender] call WAIT_fnc_CortexGroupTransmitter;', report)
+        self.assertIn('private _transmitter = [_sender] call CBE_fnc_CortexGroupTransmitter;', report)
         self.assertIn('private _senderPosition = getPosATL ([_transmitter, leader _sender] select isNull _transmitter);', report)
         self.assertIn('_receiverAnchor distance2D _senderPosition <= _range', report)
-        self.assertIn('private _receiverTransmitter = [_receiver] call WAIT_fnc_CortexGroupTransmitter;', report_local)
+        self.assertIn('private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;', report_local)
         self.assertIn('private _receiverPosition = getPosATL ([_receiverTransmitter, leader _receiver] select isNull _receiverTransmitter);', report_local)
         self.assertIn('_receiverPosition distance2D _senderPosition > _range', report_local)
         self.assertNotIn(' reveal ', report)
         self.assertNotIn('doTarget', report)
-        self.assertIn('private _receiverTransmitter = [_receiver] call WAIT_fnc_CortexGroupTransmitter;', report)
+        self.assertIn('private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;', report)
         self.assertIn('_receiverAnchor distance2D _senderPosition <= _range', report)
 
     def test_support_and_combined_arms_use_live_communication_anchors(self):
@@ -52,14 +52,14 @@ class GroupCommunicationTests(unittest.TestCase):
         self.assertIn('private _requesterPosition=getPosATL _requesterTransmitter;', support)
         self.assertIn('_candidateTransmitter distance2D _requesterPosition', support)
         self.assertIn('_groupTransmitter distance2D _requesterTransmitter', apply)
-        self.assertIn('private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;', step)
-        self.assertIn('private _helperTransmitter = [_helper] call WAIT_fnc_CortexGroupTransmitter;', step)
+        self.assertIn('private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;', step)
+        self.assertIn('private _helperTransmitter = [_helper] call CBE_fnc_CortexGroupTransmitter;', step)
         self.assertIn('private _supportOrigin=getPosATL _requesterTransmitter;', assault)
         self.assertIn('private _routeOrigin=getPosATL _helperTransmitter;', assault)
         self.assertIn('private _requesterAnchor=if (isNull _requesterTransmitter)', combined)
         self.assertIn('_candidateAnchor distance2D _requesterAnchor', combined)
-        self.assertIn('[_candidate] call WAIT_fnc_CortexGroupTransmitter', source('cortexCombinedAirFallbackServer'))
-        self.assertIn('private _requesterTransmitter=[_requester] call WAIT_fnc_CortexGroupTransmitter;', source('cortexSupportCoordinateStep'))
+        self.assertIn('[_candidate] call CBE_fnc_CortexGroupTransmitter', source('cortexCombinedAirFallbackServer'))
+        self.assertIn('private _requesterTransmitter=[_requester] call CBE_fnc_CortexGroupTransmitter;', source('cortexSupportCoordinateStep'))
 
     def test_group_transmitter_is_registered_as_a_wait_function(self):
         config = (ROOT / 'addons/main/CfgFunctions.hpp').read_text(encoding='utf-8')
