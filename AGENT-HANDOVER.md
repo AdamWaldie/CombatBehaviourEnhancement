@@ -282,3 +282,7 @@ HBQ debug helper review completed in releaseVerificationAndDeployment/referenceR
 ## 2026-10-17 HBQ unstuck loop review
 
 Completed the full source loop comparison in `releaseVerificationAndDeployment/referenceReviews/hbq-unstuck-loop-20261017.json`; source hash and private semantic index updated. RouteLost bypasses intentional-wait/loading/PATH admission and normal give-up thresholds. Ordinary step-three logs/counters do not establish successful relocation; visible repeated repair/nudge has no finite attempt limit. WAIT already retains plain authored MOVE admission and a durable exhausted stage, so no unsafe fast path was imported. Native reverse versus U-turn, multi-owner jam room and physical/performance acceptance remain open. Source-only change; audits remain paused.
+
+## 2026-10-17 Failed parachute boarding cleanup
+
+Parachute exit now applies inherited chute velocity only after actual seat occupancy. A failed boarding deletes only the just-created chute when local and empty, preserving occupied/transferred objects. Damage restoration remains scheduled; overlapping damage protection and mid-exit locality continuation are still unresolved. Full Build passed, exit 0; log: .qa/workshop-evaluation-20261016/parachute-failed-boarding-build.log. No physical audit run. Latest signed candidate remains 655728a and predates this change.

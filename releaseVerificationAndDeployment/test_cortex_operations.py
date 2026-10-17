@@ -7697,6 +7697,15 @@ class CortexOperations(unittest.TestCase):
             self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
             self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
 
+    def test_parachute_failed_boarding_cleans_only_empty_owned_chute(self):
+        jump=source('cortexParachuteJump')
+        boarding=jump.split('_unit moveInDriver _chute;',1)[1]
+        self.assertLess(boarding.index('if (vehicle _unit == _chute)'),boarding.index('_chute setVelocity'))
+        cleanup=boarding.split('} else {',1)[1].split('deleteVehicle _chute',1)[0]
+        for guard in ['!isNull _chute','local _chute','crew _chute isEqualTo []']:
+            self.assertIn(guard,cleanup)
+        self.assertIn('[_unit, _damageAllowed]',boarding)
+
     def test_combat_gunner_replacement_preserves_actor_controller_ownership(self):
         text=source('cortexVehicleCrewRecover')
         ownership=text.split('if ([_candidate] call WAIT_fnc_CortexActorMoveReserved',1)[1].split('private _command=',1)[0]
