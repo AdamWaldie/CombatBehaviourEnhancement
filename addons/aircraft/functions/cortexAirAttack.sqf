@@ -3,6 +3,7 @@
  * Selected operators retain live same-group/local/task authority at each weapon boundary.
  * Operator replacement cancels the old plan before retained targeting/release state can transfer.
  * Target cleanup is scoped to the actor/target actually commanded by this job.
+ * Pilot actor reservations/service tasks veto admission and later flight mutations.
  * Release readiness requires actual native selected-weapon state with the exact planned
  * magazine and positive rounds; reserve turret stock grants no release permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
@@ -127,7 +128,8 @@ private _finish={
         if (_ownsFlight && {!isNull _finishPilot} && {alive _finishPilot} && {local _finishPilot}
             && {!isPlayer _finishPilot} && {isNull (remoteControlled _finishPilot)}
             && {([_finishPilot] call WAIT_fnc_CortexExternalOwner) == ""}
-            && {!([_finishPilot] call WAIT_fnc_CompatibilityExternalControl)}) then {
+            && {!([_finishPilot] call WAIT_fnc_CompatibilityExternalControl)}
+            && {[_finishPilot] call WAIT_fnc_CortexActorFireTaskAvailable}) then {
             {_finishPilot enableAI _x} forEach (_job getOrDefault ["lateralPilotFeatures",[]]);
         };
         // Direct Zeus input owns the aircraft immediately. Do not clear target or watch state here:
@@ -306,6 +308,7 @@ private _mayControlAircraft = {
     private _livePilot=driver _aircraft;
     local _aircraft && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
         && {[_livePilot] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
+        && {local _livePilot} && {[_livePilot] call WAIT_fnc_CortexActorFireTaskAvailable}
         && {missionNamespace getVariable ["WAIT_AIPass_Active",false]} && {!([] call WAIT_fnc_CortexIsPaused)}
         && {[_aircraft,"AIR_ATTACK",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid}
         && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
@@ -317,6 +320,7 @@ if (_job getOrDefault ["flightLeaseLost",false]
     ["FLIGHT_OWNER_CHANGED"] call _finish
 };
 private _allowed=local _aircraft && {local _group} && {alive _aircraft} && {!isNull _pilot} && {[_pilot] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _pilot}
+    && {local _pilot} && {[_pilot] call WAIT_fnc_CortexActorFireTaskAvailable}
     && {!unitIsUAV _aircraft} && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
     && {!([] call WAIT_fnc_CortexIsPaused)}
     && {!([_group] call WAIT_fnc_CortexExternalTakeover)}

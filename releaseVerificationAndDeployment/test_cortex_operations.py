@@ -7714,6 +7714,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_pilot_task_authority_precedes_admission_flight_and_feature_cleanup(self):
+        job=source('cortexAirAttack')
+        admission=job.split('private _allowed=',1)[1].split('if (!_allowed)',1)[0]
+        self.assertIn('local _pilot',admission)
+        self.assertIn('[_pilot] call WAIT_fnc_CortexActorFireTaskAvailable',admission)
+        boundary=job.split('private _mayControlAircraft = {',1)[1].split('};',1)[0]
+        self.assertIn('local _livePilot',boundary)
+        self.assertIn('[_livePilot] call WAIT_fnc_CortexActorFireTaskAvailable',boundary)
+        cleanup=job.split('private _finishPilot=driver _aircraft;',1)[1].split('_finishPilot enableAI',1)[0]
+        self.assertIn('[_finishPilot] call WAIT_fnc_CortexActorFireTaskAvailable',cleanup)
+
     def test_air_target_cleanup_only_retires_recorded_actor_assignment(self):
         job=source('cortexAirAttack')
         cleanup=job.split('private _assignment=_job getOrDefault ["targetAssignment"',1)[1].split('} forEach crew _aircraft',1)[0]
