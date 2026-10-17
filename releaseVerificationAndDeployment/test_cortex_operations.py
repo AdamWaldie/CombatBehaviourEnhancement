@@ -7714,6 +7714,23 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_feature_adoption_uses_actual_actor_locality_without_flight_replay(self):
+        adopt=source('cortexAirPilotFeatureAdopt')
+        self.assertIn('!_gained || {!local _actor}',adopt)
+        self.assertIn('WAIT_AirPilotFeatureLocalEpoch',adopt)
+        self.assertIn('WAIT_AirPilotFeatureAdoption",nil',adopt)
+        self.assertIn('(_receipt select 1) isNotEqualTo _actor',adopt)
+        self.assertIn('WAIT_AirPilotFeatureAdoption",+_receipt',adopt)
+        self.assertNotIn('set [5,',adopt)
+        self.assertNotIn('doMove',adopt)
+        release=source('cortexAirPilotFeatureRelease')
+        self.assertIn('_issuer isNotEqualTo clientOwner && {(_actor getVariable ["WAIT_AirPilotFeatureAdoption",[]]) isNotEqualTo _receipt}',release)
+        init=(ROOT/'addons/main/XEH_postInit.sqf').read_text(encoding='utf-8')
+        hook=init.split('["CAManBase","init",{',1)[1].split('call CBA_fnc_addClassEventHandler',1)[0]
+        self.assertIn('addEventHandler ["Local"',hook)
+        self.assertIn('isNil {_actor getVariable "WAIT_AirPilotFeatureLocalEH"}',hook)
+        self.assertIn('},true,[],true]',hook)
+
     def test_air_fsm_terminal_path_releases_original_receipt_without_replaying_executor(self):
         fsm=(ROOT/'addons/main/fsm/airAttackOperation.fsm').read_text(encoding='utf-8').replace('""','"')
         finished=fsm.split('class Finished {',1)[1]
@@ -7731,6 +7748,8 @@ class CortexOperations(unittest.TestCase):
                       'WAIT_AirPilotFeatureReleaseStarted','UNRESOLVED','isNotEqualTo _receipt']:
             self.assertIn(guard,helper)
         self.assertIn('call CBA_fnc_waitAndExecute',helper)
+        self.assertIn('_epoch != _liveEpoch',helper)
+        self.assertIn('[_actor,+_receipt,_attempt+1,_epoch]',helper)
         self.assertNotIn('CortexQueueJob',helper)
         self.assertNotIn('allUnits',helper)
         self.assertNotIn('doMove',helper)

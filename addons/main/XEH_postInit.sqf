@@ -14,6 +14,18 @@ if !(missionNamespace getVariable ["WAIT_AITweaks_SettingsReady", false]) exitWi
 if (missionNamespace getVariable ["WAIT_AITweaks_PostInitComplete", false]) exitWith {true};
 missionNamespace setVariable ["WAIT_AITweaks_PostInitComplete", true];
 [] call WAIT_fnc_AITweaksDetectCompatibility;
+// Recovery observation remains installed when tactics stops. Native events do no scanning or
+// movement; a receipt-free actor costs only its init/Local callback and one handler slot.
+["CAManBase","init",{
+    params ["_actor"];
+    if (isNil {_actor getVariable "WAIT_AirPilotFeatureLocalEH"}) then {
+        _actor setVariable ["WAIT_AirPilotFeatureLocalEH",_actor addEventHandler ["Local",{
+            _this call WAIT_fnc_CortexAirPilotFeatureAdopt;
+        }]];
+    };
+    [_actor,local _actor] call WAIT_fnc_CortexAirPilotFeatureAdopt;
+},true,[],true] call CBA_fnc_addClassEventHandler;
+
 
 if (missionNamespace getVariable ["WAIT_AIRebalance_Enable", true]) then {
     [

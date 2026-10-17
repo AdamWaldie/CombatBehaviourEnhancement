@@ -1665,6 +1665,7 @@
         "addons/aircraft/functions/cortexAirAttackPlan.sqf",
         "addons/aircraft/functions/cortexAirWeaponOperatorAvailable.sqf",
         "addons/aircraft/functions/cortexAirPilotFeatureRelease.sqf",
+        "addons/aircraft/functions/cortexAirPilotFeatureAdopt.sqf",
         "addons/infantry/functions/cortexAirHandoverRestoreLocal.sqf",
         "addons/aircraft/functions/airAttackOperationStart.sqf",
         "addons/aircraft/functions/airAttackOperationQueue.sqf",
