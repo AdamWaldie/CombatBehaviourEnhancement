@@ -51,7 +51,8 @@ if (count _clearHold == 4) then {
                 if (local _x && {group _x == _group} && {!isPlayer _x}
                     && {currentCommand _x == "STOP"} && {isNull remoteControlled _x}
                     && {[_x] call CBE_fnc_CortexCombatEffective}
-                    && {isNull objectParent _x} && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+                    && {isNull objectParent _x} && {simulationEnabled _x} && {!isObjectHidden _x}
+                    && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
                     && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                     && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
                     && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}) then {
@@ -66,11 +67,18 @@ if (count _clearHold == 4) then {
                         _x doFollow _leader;
                     };
                 };
-                // A newer individual order retires the old hold. A still-owned STOP
-                // under a temporary actor reservation must retain its handover receipt.
-                if (local _x && {group _x == _group} && {!isPlayer _x}
-                    && {currentCommand _x == "STOP"}
-                    && {[_x] call CBE_fnc_CortexActorMoveReserved}) then {
+                // A newer individual order retires the old hold. A living soldier's unchanged
+                // STOP retains proof across temporary unavailability, not just reservations.
+                // The normal group callback retries; no extra observer or movement replay is added.
+                if (local _x && {group _x == _group} && {alive _x} && {!isPlayer _x}
+                    && {isNull objectParent _x} && {currentCommand _x == "STOP"}
+                    && {isNull remoteControlled _x}
+                    && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                    && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}
+                    && {[_x] call CBE_fnc_CortexActorMoveReserved
+                        || {!simulationEnabled _x} || {isObjectHidden _x}
+                        || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+                        || {!([_x] call CBE_fnc_CortexCombatEffective)}}) then {
                     _deferred pushBackUnique _x;
                 };
             } forEach (_clearHold select 3);

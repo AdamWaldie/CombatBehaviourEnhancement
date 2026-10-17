@@ -9160,6 +9160,24 @@ class CortexOperations(unittest.TestCase):
         for guard in ['CBE_AIPass_ClearGeneration','(_clearHold select 1) == _epoch','CBE_fnc_NativeOrderReceipt','currentCommand _x == "STOP"','CBE_fnc_CortexExternalTakeover','CBE_fnc_CompatibilityExternalControl','CBE_fnc_CortexActorMoveReserved','count (_group getVariable ["CBE_Operation",createHashMap]) == 0']:
             self.assertIn(guard,branch)
         self.assertLess(branch.index('CBE_Cortex_ClearHold",nil'),branch.index('_x doFollow _leader'))
+    def test_post_clear_hold_defers_temporary_motion_loss_without_stale_recall(self):
+        branch=source('groupBrainStep').split('private _clearHold=',1)[1].split('private _legacyJob=',1)[0]
+        issue=branch.split('// A newer individual order retires',1)[0]
+        for guard in ('simulationEnabled _x','!isObjectHidden _x'):
+            self.assertLess(issue.index(guard),issue.index('_x doMove'))
+            self.assertLess(issue.index(guard),issue.index('_x doFollow'))
+        defer=branch.split('// A newer individual order retires',1)[1]
+        for guard in ('alive _x','isNull objectParent _x','currentCommand _x == "STOP"',
+                      'CortexActorMoveReserved','!simulationEnabled _x','isObjectHidden _x',
+                      '!(_x checkAIFeature "MOVE")','!(_x checkAIFeature "PATH")',
+                      '!([_x] call CBE_fnc_CortexCombatEffective)',
+                      'CortexExternalTakeover','CompatibilityExternalControl'):
+            self.assertIn(guard,defer)
+        self.assertIn('_deferred pushBackUnique _x',defer)
+        self.assertIn('_clearHold select 2,_deferred',defer)
+        for forbidden in ('doMove','doFollow','waitAndExecute','execFSM','enableAI'):
+            self.assertNotIn(forbidden,defer)
+
     def test_post_clear_hold_shutdown_releases_only_owned_stop(self):
         text=source('cortexReleaseGroup')
         branch=text.split('private _clearHold=',1)[1].split('// New curator intent',1)[0]
