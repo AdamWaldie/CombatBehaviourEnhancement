@@ -13,4 +13,4 @@ include = ["README.md", "LICENSE", "CONTRIBUTING.md", "docs/*.md", "images/brand
 
 [properties]
 author = "WaldoTheWarfighter"
-url = "https://github.com/AdamWaldie/WaldosAITweaks"
+url = "https://github.com/AdamWaldie/CombatBehaviourEnhancement"

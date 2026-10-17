@@ -23,13 +23,13 @@ Priorities and constraints:
 
 WAIT root: `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`
 
-Remote: `https://github.com/AdamWaldie/WaldosAITweaks.git`
+Remote: `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`
 
 Branch: `Adam/owner-local-fsm-signing-20261016`
 
 Latest committed implementation at refresh: `48a77bb9db94d8a7496c1aabdfec5dcc3ad13d11`. Later evidence-only handover commits may follow; resolve HEAD before editing. The exact signed candidate below is tied to this source, never a later metadata commit.
 
-[PR 16](https://github.com/AdamWaldie/WaldosAITweaks/pull/16) is open and draft. The verified remote head is `d37db04d1013756338bc537263963eedbfdc92ef` after one coherent checkpoint push; later local handover commits may be unpushed. Revalidate the live head and inspect `git log origin/Adam/owner-local-fsm-signing-20261016..HEAD` for outstanding commits. This handover is tracked with the driving review checkpoint and excluded from player packages. Preserve any unrelated dirty files.
+[PR 16](https://github.com/AdamWaldie/CombatBehaviourEnhancement/pull/16) is open and draft. The verified remote head is `d37db04d1013756338bc537263963eedbfdc92ef` after one coherent checkpoint push; later local handover commits may be unpushed. Revalidate the live head and inspect `git log origin/Adam/owner-local-fsm-signing-20261016..HEAD` for outstanding commits. This handover is tracked with the driving review checkpoint and excluded from player packages. Preserve any unrelated dirty files.
 
 The chat is attached to WMP at `C:/Users/AdamW/OneDrive/Documents/GitHub/WaldosMissionPack`. That checkout has unrelated work. Do not put WAIT changes there. The execution sandbox may require escalation for writes, Git and builds in WAIT. Elevated GitHub CLI works. A non-elevated authentication failure can be misleading.
 
@@ -450,3 +450,7 @@ PR14 and PR16 are confirmed merged into main at d725923e14675deffc2dd0efcbf4acbb
 CortexAirPilotFeatureRelease can now retire the exact previous-owner AIR_ATTACK lease that blocked pilot feature restoration after locality transfer. Requires both local actor and local aircraft, immutable receipt issuer/token/controller match, unchanged receipt/epoch and deadline, existing task/external safeguards, and no active local attack brain. Unscheduled retirement prevents a suspended check/write; a current-owner successor, including a colliding generation token, cannot be cleared. Generic FlightLeaseRelease retains its current-owner check. No movement or attack replay.
 
 Full local build .qa/cbe-aircraft-owner-release-build.log passed1115 tests/all offline gates,313 SQF/9 PBOs, exit0. Package fingerprint f1161d6d85c098de08dd04b75f809a131a0d8e39e12ed8c3021737c191c27cad. This receipt describes the pre-commit local build. No new signed release or physical validation. Audits remain paused. Remaining issues include split actor/airframe ownership, late receipt beyond bounded lookup, departed original pilots and external same-value feature ownership. Preserve unrelated untracked branding alternatives.
+
+## 2026-10-17 Repository renamed
+
+User renamed the remote repository to AdamWaldie/CombatBehaviourEnhancement. Origin now uses https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; ls-remote confirms HEAD d725923e14675deffc2dd0efcbf4acbb3502065b. Product metadata, wiki generator defaults and documentation links use the new address. The local checkout remains C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; no source folder, protected references or signing authority was moved. Current follow-up branch and paused-audit status are unchanged.

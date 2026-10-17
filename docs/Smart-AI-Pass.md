@@ -224,7 +224,7 @@ or air combat. Those require the packaged, damage-enabled audit batches.
 
 <!-- CBE-WIKI-NAV -->
 ---
-[Wiki home](https://github.com/AdamWaldie/WaldosAITweaks/wiki/Home) · [Installation and setup](../README.md) · [Capability registry](CAPABILITY-REGISTRY.md)
+[Wiki home](https://github.com/AdamWaldie/CombatBehaviourEnhancement/wiki/Home) · [Installation and setup](../README.md) · [Capability registry](CAPABILITY-REGISTRY.md)
 
 ### Passenger remount cooperation
 
