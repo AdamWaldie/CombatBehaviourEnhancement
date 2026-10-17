@@ -27,7 +27,7 @@ Remote: `https://github.com/AdamWaldie/WaldosAITweaks.git`
 
 Branch: `Adam/owner-local-fsm-signing-20261016`
 
-Latest committed implementation at refresh: `655728a46859e94641b32a6ec8bb12009d88d0c7`. Later evidence-only handover commits may follow; resolve HEAD before editing. The exact signed candidate below is tied to this source, never a later metadata commit.
+Latest committed implementation at refresh: `48a77bb9db94d8a7496c1aabdfec5dcc3ad13d11`. Later evidence-only handover commits may follow; resolve HEAD before editing. The exact signed candidate below is tied to this source, never a later metadata commit.
 
 [PR 16](https://github.com/AdamWaldie/WaldosAITweaks/pull/16) is open and draft. The verified remote head is `d37db04d1013756338bc537263963eedbfdc92ef` after one coherent checkpoint push; later local handover commits may be unpushed. Revalidate the live head and inspect `git log origin/Adam/owner-local-fsm-signing-20261016..HEAD` for outstanding commits. This handover is tracked with the driving review checkpoint and excluded from player packages. Preserve any unrelated dirty files.
 
@@ -41,17 +41,17 @@ Read `AGENTS.md` and `CONTRIBUTING.md`. Every changed SQF file needs its require
 
 ## Latest validation and signed package
 
-Current clean signed review source: `655728a46859e94641b32a6ec8bb12009d88d0c7`.
+Current clean signed review source: `48a77bb9db94d8a7496c1aabdfec5dcc3ad13d11`.
 
-- Complete Release: 1,083 tests and all offline gates passed; no physical acceptance added.
-- Artifact: `releases/review-cqb-airborne-655728a/wait-candidate.zip`.
-- Report: `releases/review-cqb-airborne-655728a/signing-verification.json`.
-- ZIP SHA-256: `016dc0763b69f6991e1140ddc8fe7c1738b2e99757b41702b70593bcdda5121e`.
-- Signed package fingerprint: `79838ad796282a4108a5c31f3dd477f23305d870d99d1a860383c4fbe657b300`.
-- Existing pinned key/signer used. Independent HEMTT accepted all nine signatures and rejected all nine damaged controls, both before and after ZIP extraction. Package hashes and public-only key inventory verified; temporary extracted files removed.
-- Release log: `.qa/workshop-evaluation-20261016/cqb-airborne-checkpoint-release.log`.
-- Includes strict actor ownership across smoke, drill refill, support and crew; airborne takeover/episode protection; stronger independent CQB observation; bounded entry diagnostics; unchanged-owned-MOVE readiness fix.
-- Audits remain paused. CQB flow, native reverse/queues, airborne mid-exit migration/protection and performance remain unaccepted. No release/Steam publication.
+- Complete Release: 1,089 tests and all offline gates passed; no physical acceptance added.
+- Artifact: `releases/review-cqb-driving-48a77bb/wait-candidate.zip`.
+- Reports: `releases/review-cqb-driving-48a77bb/signing-verification.json` and `archive-verification.json`.
+- ZIP SHA-256: `9478f257d077589658558d1859492c005be254564a068e0144ee984cfd58108d`.
+- Signed package fingerprint: `362ee48362d6bf37d0ace6a5ae7b8aac9495288d08e12fde1dbaeb9fbd4a5f18`.
+- Existing pinned signer/key used. Independent HEMTT accepted nine signatures and rejected nine damaged controls, both before and after ZIP extraction. Sealed hashes and public-only key inventory verified; temporary extraction removed.
+- Logs: `.qa/workshop-evaluation-20261016/cqb-driving-48a77bb-release.log` and `cqb-driving-48a77bb-signing.log`.
+- Includes CQB request cadence/progress-clock and replacement-entry cache fixes; crew actor reservations across ordinary recovery/bypass/corridors; trigger-linked route protection; failed chute boarding cleanup; HBQ recovery review and low-credit handover policy.
+- Audits remain paused. CQB flow, fixed-path takeover, native reverse/queues, airborne damage overlap/migration and performance remain unaccepted. No release/Steam publication.
 
 Previous checkpoint details below are historical, not the latest candidate.
 

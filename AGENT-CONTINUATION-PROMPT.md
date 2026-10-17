@@ -37,14 +37,14 @@ Paths below are relative to the WAIT root unless absolute. Private local materia
 
 ## Current checkpoint and next work
 
-Latest implementation checkpoint before this handover: `edc039f`. The last complete offline Build passed 1,084 tests and all gates. Logs are under `.qa/workshop-evaluation-20261016/`. Audits have not run for these changes.
+Latest implementation checkpoint before this handover: `48a77bb`. Its complete Release passed 1,089 tests and all offline gates. Logs are under `.qa/workshop-evaluation-20261016/`. Audits have not run for these changes.
 
-CQB now preserves unchanged owned MOVE requests through readiness changes. An ended command with the same retained destination waits for timed retries. Buddy separation no longer resets the room mover's progress clock.
+CQB now preserves unchanged owned MOVE requests through readiness changes. An ended command with the same retained destination waits for timed retries. Buddy separation no longer resets the room mover's progress clock. Casualty replacement invalidates only the changed lane's cached buddy-entry proposal for fresh occupancy selection. Driving recovery/bypass/corridors preserve seat actor reservations; trigger-linked routes remain under authored control. Failed chute boarding cleans only the created empty local chute.
 
 Bounded entry diagnostics capture intended/native destinations, physical pose, command, speed and readiness. Fresh-clearance fixtures enable them. These source repairs do not establish that the reported stalls or stragglers are fixed. Trace actual failure evidence when audits resume. Avoid speculative spacing/timing edits.
 
 Other open work includes physical native reverse/queue recovery, shared-aircraft arbitration, parachute damage-protection overlap and mid-exit migration. The HBQ debug-helper review is recorded in `releaseVerificationAndDeployment/referenceReviews/hbq-debug-lifecycle-20261017.json`. It records cache collisions, stale display and lifecycle/cost limits, with no production implementation claim.
 
-Latest signed candidate is source `655728a46859e94641b32a6ec8bb12009d88d0c7`, under `releases/review-cqb-airborne-655728a/`. All nine signatures verified and all nine damaged controls were rejected again after extraction. Later CQB commits are absent from that ZIP. Never relabel it as current HEAD. Permanent-key rules and fingerprints are in `AGENT-HANDOVER.md` and `releaseVerificationAndDeployment/signing-identity.json`. Never print or commit private keys or encoded secrets.
+Latest signed candidate is source `48a77bb9db94d8a7496c1aabdfec5dcc3ad13d11`, under `releases/review-cqb-driving-48a77bb/`. All nine signatures verified and all nine damaged controls were rejected again after extraction. Later handover commits are absent from that ZIP. Never relabel it as current HEAD. Permanent-key rules and fingerprints are in `AGENT-HANDOVER.md` and `releaseVerificationAndDeployment/signing-identity.json`. Never print or commit private keys or encoded secrets.
 
 Use `releaseVerificationAndDeployment/build_mod.ps1` for required sequential gates. Run one build at a time and poll its actual live handle to completion. Static checks, signed packages and prepared fixtures are not physical acceptance. Preserve unrelated files, stage exact paths and update the handover with changed behaviour, validation, remaining failures and the next concrete action.
