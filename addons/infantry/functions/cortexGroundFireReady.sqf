@@ -11,13 +11,16 @@
  * Optional caller-local observation is reset per call; reload evidence grants no firing permission.
  * Arguments: 0 platform <OBJECT, objNull>; 1 selected gunner <OBJECT, objNull>;
  * 2 target <OBJECT, objNull>, omitted means the station-only ammunition check;
- * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles.
+ * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles;
+ * 4 selection pass <BOOL, false>, permits completed failed-scan reuse in this local frame only.
+ * Selection snapshots never authorize firing: the caller must repeat a fresh default check.
+ * No native rows are collected or reused by default; optional rows remain caller-local and <=32.
  * Return Value: BOOL, station has usable damaging ammunition for the supplied target,
  * or any damaging ammunition when target is omitted; not proof of firing/effect.
  * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
  * Example: [_vehicle,gunner _vehicle,_enemy] call WAIT_fnc_CortexGroundFireReady;
  */
-params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]]];
+params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]]];
 _observation set ["reloadInProgress",false];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
@@ -54,10 +57,41 @@ private _targetSuitable={
     };
     getNumber (_ammo >> "airLock") <= 0
 };
+private _evaluateState={
+    params ["_state","_weapon","_muzzle"];
+    private _magazine=_state param [3,"",[""]];
+    private _rounds=_state param [4,0,[0]];
+    private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
+    private _suitable=_magazine != ""
+        && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
+        && {[_ammo] call _targetSuitable};
+    private _reload=_state param [6,0,[0]];
+    if (count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
+        && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1}) then {
+        _observation set ["reloadInProgress",true];
+    };
+    count _state >= 5 && {(_state select 0) == _weapon}
+        && {(_state select 1) == _muzzle}
+        && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable}
+};
+private _cached=_observation getOrDefault ["stationSnapshot",[]];
+private _reuse=_selectionPass && {_cached isEqualType []} && {count _cached == 6}
+    && {(_cached select 0) == _asset} && {(_cached select 1) == _gunner}
+    && {(_cached select 2) == clientOwner} && {(_cached select 3) == diag_frameNo}
+    && {(_cached select 4) isEqualTo _station}
+    && {(_cached select 5) isEqualType []} && {count (_cached select 5) <= 32}
+    && {(_cached select 5) findIf {
+        !(_x isEqualType []) || {count _x != 3} || {!((_x select 0) isEqualType "")}
+            || {!((_x select 1) isEqualType "")} || {!((_x select 2) isEqualType [])}
+    } < 0};
+if (_reuse) exitWith {
+    (_cached select 5) findIf {[_x select 2,_x select 0,_x select 1] call _evaluateState} >= 0
+};
+_observation deleteAt "stationSnapshot";
 // Inventory membership does not prove a magazine is loaded. Query each native
 // station muzzle directly, including an unselected coaxial/secondary weapon.
-private _queries=0;
-(_weapons select [0,16]) findIf {
+private _queries=0;private _rows=[];private _frame=diag_frameNo;
+private _ready=(_weapons select [0,16]) findIf {
     private _weapon=_x;
     private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");
     if (_muzzles isEqualTo []) then {_muzzles=["this"]};
@@ -66,19 +100,13 @@ private _queries=0;
         _queries=_queries+1;
         private _muzzle=[_x,_weapon] select (_x == "this");
         private _state=weaponState [_asset,_station,_weapon,_muzzle];
-        private _magazine=_state param [3,"",[""]];
-        private _rounds=_state param [4,0,[0]];
-        private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
-        private _suitable=_magazine != ""
-            && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
-            && {[_ammo] call _targetSuitable};
-        private _reload=_state param [6,0,[0]];
-        if (count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
-            && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1}) then {
-            _observation set ["reloadInProgress",true];
-        };
-        count _state >= 5 && {(_state select 0) == _weapon}
-            && {(_state select 1) == _muzzle}
-            && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable}
+        if (_selectionPass) then {_rows pushBack [_weapon,_muzzle,+_state]};
+        [_state,_weapon,_muzzle] call _evaluateState
     } >= 0
-} >= 0
+} >= 0;
+// Success can short-circuit: only a completed failed scan contains every queried
+// muzzle in the supported budget. Never cache a partial successful station scan.
+if (_selectionPass && {!_ready} && {diag_frameNo == _frame}) then {
+    _observation set ["stationSnapshot",[_asset,_gunner,clientOwner,_frame,+_station,_rows]];
+};
+_ready

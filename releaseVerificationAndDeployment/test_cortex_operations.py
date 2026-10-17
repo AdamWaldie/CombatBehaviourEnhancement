@@ -5175,7 +5175,7 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexVehicles')
         selection=text.split('private _target=objNull;',1)[1].split('private _standoff',1)[0]
         self.assertIn('forEach (_ranked select [0,8])',selection)
-        self.assertIn('[_vehicle,_gunner,_candidate] call WAIT_fnc_CortexGroundFireReady',selection)
+        self.assertIn('[_vehicle,_gunner,_candidate,_stationSelection,true] call WAIT_fnc_CortexGroundFireReady',selection)
         self.assertIn('[_gunner,aimPos _candidate] call WAIT_fnc_CortexLineOfFireClear',selection)
         self.assertIn('exitWith {\n                    _target=_candidate;',selection)
         self.assertLess(selection.index('if (!isNull _target)'),selection.index('_gunner doTarget _target'))
@@ -5199,7 +5199,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_vehicle_gunnery_refreshes_fire_when_contact_was_already_shared(self):
         vehicles=source('cortexVehicles')
-        target_change=vehicles.index('if ([] call _mayIssueVehicle && {assignedTarget _gunner != _target}) then {')
+        target_change=vehicles.index('if (_freshStationReady && {[] call _mayIssueVehicle} && {assignedTarget _gunner != _target}) then {')
         target_change_end=vehicles.index('};',target_change)
         fire=vehicles.index('_gunner doFire _target;',target_change)
         hold=vehicles.index('_gunner setVariable ["WAIT_AIPass_TargetHold", time + 8]',fire)
@@ -7713,6 +7713,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('count _ammoWeapons == 1',diagnostic)
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
+
+    def test_station_selection_reuse_requires_complete_same_frame_scan_and_fresh_fire_check(self):
+        ready=source('cortexGroundFireReady')
+        for guard in ['(_cached select 0) == _asset','(_cached select 1) == _gunner',
+                      '(_cached select 2) == clientOwner','(_cached select 3) == diag_frameNo',
+                      '(_cached select 4) isEqualTo _station','count (_cached select 5) <= 32',
+                      '_selectionPass && {!_ready} && {diag_frameNo == _frame}']:
+            self.assertIn(guard,ready)
+        self.assertIn('if (_selectionPass) then {_rows pushBack',ready)
+        vehicles=source('cortexVehicles')
+        fire=vehicles.split('private _target=objNull;',1)[1].split('private _standoff',1)[0]
+        self.assertIn('private _stationSelection=createHashMap',fire)
+        self.assertIn('[_vehicle,_gunner,_target] call WAIT_fnc_CortexGroundFireReady',fire)
+        self.assertLess(fire.index('private _freshStationReady='),fire.index('_gunner doTarget'))
+        self.assertIn('if (_freshStationReady && {[] call _mayIssueVehicle}) then {',fire)
 
     def test_ground_reload_admission_reuses_tick_and_preserves_route_and_report_age(self):
         local=source('cortexCombinedArmsLocal')

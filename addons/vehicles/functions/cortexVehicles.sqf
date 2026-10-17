@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ground contact ranking may reuse a completed failed station scan within the same frame;
+ * the selected target receives a fresh default ammunition check before target/fire commands.
  * Vehicle drills for a squad in contact: dismount infantry under fire, and pull a
  * damaged vehicle back behind smoke. A targetless hit, explosion or suppression may invoke only
  * the safe-stop and passenger-exit path; target work, movement and reporting remain unavailable.
@@ -660,20 +662,25 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
             // an unusable first contact must not starve the next safe, compatible target.
             // Each candidate gets at most one station/lane observation; stop on first success.
             private _target=objNull;
+            private _stationSelection=createHashMap;
             {
                 private _candidate=(_enemies select (_x select 2)) select 0;
                 private _stationReady=!(_vehicle isKindOf "LandVehicle")
-                    || {[_vehicle,_gunner,_candidate] call WAIT_fnc_CortexGroundFireReady};
+                    || {[_vehicle,_gunner,_candidate,_stationSelection,true] call WAIT_fnc_CortexGroundFireReady};
                 if (_stationReady && {[_gunner,aimPos _candidate] call WAIT_fnc_CortexLineOfFireClear}) exitWith {
                     _target=_candidate;
                 };
             } forEach (_ranked select [0,8]);
             if (!isNull _target) then {
-                if ([] call _mayIssueVehicle && {assignedTarget _gunner != _target}) then {
+                // Selection may reuse one complete same-frame observation. It is not
+                // fire authority: fresh native rounds must still qualify this target.
+                private _freshStationReady=!(_vehicle isKindOf "LandVehicle")
+                    || {[_vehicle,_gunner,_target] call WAIT_fnc_CortexGroundFireReady};
+                if (_freshStationReady && {[] call _mayIssueVehicle} && {assignedTarget _gunner != _target}) then {
                     _gunner doTarget _target;
                 };
                 // A shared target still needs its own bounded native fire request.
-                if ([] call _mayIssueVehicle) then {
+                if (_freshStationReady && {[] call _mayIssueVehicle}) then {
                     _gunner doFire _target;
                     _gunner setVariable ["WAIT_AIPass_TargetHold", time + 8];
                     _gunner setVariable ["WAIT_AIPass_VehicleTarget", _target, true];
