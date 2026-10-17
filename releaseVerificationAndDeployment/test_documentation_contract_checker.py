@@ -43,9 +43,9 @@ class DocumentationContractTests(unittest.TestCase):
     def test_detects_duplicate_settings_and_bypassed_shared_spec(self):
         self.copy_settings_contract()
         p=self.root/'addons/core/functions/cortexTuningSpec.sqf'
-        s=p.read_text(); s=s.replace('["WAIT_HelicopterDeceleration_Enable",','["WAIT_ImprovedHelicopterLanding_Enable",'); p.write_text(s)
+        s=p.read_text(); s=s.replace('["CBE_HelicopterDeceleration_Enable",','["CBE_ImprovedHelicopterLanding_Enable",'); p.write_text(s)
         p=self.root/'addons/core/functions/aiTweaksRegisterSettings.sqf'
-        p.write_text(p.read_text().replace('call WAIT_fnc_CortexTuningSpec','call WAIT_fnc_Unrelated'))
+        p.write_text(p.read_text().replace('call CBE_fnc_CortexTuningSpec','call CBE_fnc_Unrelated'))
         problems=parity.audit(self.root)
         self.assertTrue(any('duplicate setting' in f for f in problems))
         self.assertTrue(any('bypasses' in f for f in problems))
@@ -62,10 +62,10 @@ class DocumentationContractTests(unittest.TestCase):
         spec=(self.root/'addons/core/functions/cortexTuningSpec.sqf').read_text()
         self.assertLess(sections.index('"GENERAL", "01 General", "01 Participation and ownership"'),sections.index('"PROFILE", "01 General", "02 Tactical profile"'))
         self.assertLess(sections.index('"PROFILE", "01 General", "02 Tactical profile"'),sections.index('"PERFORMANCE", "01 General", "03 Performance"'))
-        for name in ['WAIT_AIPass_BehaviourProfile','WAIT_AIPass_Aggression','WAIT_AIPass_Cohesion','WAIT_AIPass_ReactionSpeed','WAIT_AIPass_EngageRange','WAIT_AIPass_ZeusHoldSeconds']:
+        for name in ['CBE_AIPass_BehaviourProfile','CBE_AIPass_Aggression','CBE_AIPass_Cohesion','CBE_AIPass_ReactionSpeed','CBE_AIPass_EngageRange','CBE_AIPass_ZeusHoldSeconds']:
             row=next(line for line in spec.splitlines() if line.lstrip().startswith('["'+name+'"'))
             self.assertIn('"PROFILE", "NEXT_OPERATION"',row)
-        row=next(line for line in spec.splitlines() if line.lstrip().startswith('["WAIT_Cortex_CombinedArms_AirRange"'))
+        row=next(line for line in spec.splitlines() if line.lstrip().startswith('["CBE_Cortex_CombinedArms_AirRange"'))
         self.assertIn('"COORD", "NEXT_OPERATION"',row)
 
     def test_rejects_unknown_setting_sections(self):
@@ -80,9 +80,9 @@ class DocumentationContractTests(unittest.TestCase):
         self.assertEqual(8,len({row[0] for row in layout.values()}))
         self.assertEqual(len(rows),sum(sum(row[6]==section for row in rows) for section in layout))
         for row in rows:
-            if row[0].startswith('WAIT_Convoy_'):
+            if row[0].startswith('CBE_Convoy_'):
                 self.assertEqual('06 Convoys',layout[row[6]][0])
-            if row[0].startswith('WAIT_AIPass_Vehicle'):
+            if row[0].startswith('CBE_AIPass_Vehicle'):
                 self.assertEqual('05 Vehicles',layout[row[6]][0])
         registration=(ROOT/'addons/core/functions/aiTweaksRegisterSettings.sqf').read_text()
         self.assertLess(registration.index('find "_Enable" >= 0'), registration.index('find "_Enable" < 0'))
@@ -108,8 +108,8 @@ class DocumentationContractTests(unittest.TestCase):
         self.assertNotIn('CortexSettingsLocal',tuning)
         self.assertFalse((ROOT/'addons/core/functions/cortexSettingsLocal.sqf').exists())
         controls={row[0]:row[-1] for row in parity.settings()}
-        self.assertEqual(controls['WAIT_AIPass_TickBudgetMs'],'LIVE')
-        self.assertEqual(controls['WAIT_AIPass_Morale_RetreatDistance'],'NEXT_OPERATION')
-        self.assertNotIn('WAIT_AIPass_InfantryOwnership',controls)
+        self.assertEqual(controls['CBE_AIPass_TickBudgetMs'],'LIVE')
+        self.assertEqual(controls['CBE_AIPass_Morale_RetreatDistance'],'NEXT_OPERATION')
+        self.assertNotIn('CBE_AIPass_InfantryOwnership',controls)
 
 if __name__=='__main__': unittest.main()

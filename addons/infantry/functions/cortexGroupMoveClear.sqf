@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Removes only WAIT-owned temporary waypoints and clears their committed intent.
+ * Purpose: Removes only CBE-owned temporary waypoints and clears their committed intent.
  * Locality/authority: Call on the group owner. deleteWaypoint is global, but owner-local use
  * prevents a stale machine from cancelling a newer owner's route.
  * Repeat/JIP: The public intent record is cleared before waypoint removal. Repeated cleanup is
@@ -8,7 +8,7 @@
  *
  * Deleting the current waypoint makes the engine continue with the group's next waypoint, so the
  * group's own orders resume. The function first removes the waypoint recorded by
- * WAIT_fnc_CortexGroupMove, then cleans up only remaining legacy WAIT pass markers from the end
+ * CBE_fnc_CortexGroupMove, then cleans up only remaining legacy CBE pass markers from the end
  * of the list so indices stay valid while deleting.
  *
  * Arguments:
@@ -19,27 +19,27 @@
  * Number - waypoints removed
  *
  * Example:
- * [_group] call WAIT_fnc_CortexGroupMoveClear;
+ * [_group] call CBE_fnc_CortexGroupMoveClear;
  * Result: the group goes back to its own waypoints.
  *
- * Current callers: WAIT_fnc_CortexGroupMove, WAIT_fnc_CortexGroupTick and WAIT_fnc_CortexReleaseGroup.
+ * Current callers: CBE_fnc_CortexGroupMove, CBE_fnc_CortexGroupTick and CBE_fnc_CortexReleaseGroup.
  */
 
 params [["_group", grpNull, [grpNull]], ["_operationGeneration", -1, [0]]];
 if (isNull _group || {!local _group}) exitWith {0};
-private _intent = _group getVariable ["WAIT_Cortex_GroupMoveIntent", createHashMap];
+private _intent = _group getVariable ["CBE_Cortex_GroupMoveIntent", createHashMap];
 // A delayed operation may only clear the waypoint it originally committed. Generic feature cleanup
 // still passes -1 and uses the current intent, but generation-bound lifecycle cleanup must yield
 // when a later operation has replaced this route.
 if (_operationGeneration >= 0 && {(_intent getOrDefault ["operationGeneration",-1]) != _operationGeneration}) exitWith {0};
 private _ownedWaypoint = _intent getOrDefault ["waypoint", []];
-_group setVariable ["WAIT_Cortex_GroupMoveIntent", nil, true];
+_group setVariable ["CBE_Cortex_GroupMoveIntent", nil, true];
 private _removed = 0;
 if (count _ownedWaypoint == 2 && {(_ownedWaypoint select 0) isEqualTo _group}) then {
     private _index = _ownedWaypoint select 1;
-    if (_index >= 0 && {_index < count waypoints _group} && {waypointDescription _ownedWaypoint == "WAIT AI PASS"}) then {
-        private _snapshot=_group getVariable ["WAIT_Cortex_ZeusOrderSnapshot",[]];
-        private _hold=_group getVariable ["WAIT_AIPass_ZeusHold",[]];
+    if (_index >= 0 && {_index < count waypoints _group} && {waypointDescription _ownedWaypoint == "CBE AI PASS"}) then {
+        private _snapshot=_group getVariable ["CBE_Cortex_ZeusOrderSnapshot",[]];
+        private _hold=_group getVariable ["CBE_AIPass_ZeusHold",[]];
         private _curatorClaim=count _snapshot == 7 && {count _hold == 2}
             && {(_snapshot select 0) == (_hold select 0)} && {(_snapshot select 5) == _index};
         private _position=_intent getOrDefault ["position",[]];
@@ -60,7 +60,7 @@ if (count _ownedWaypoint == 2 && {(_ownedWaypoint select 0) isEqualTo _group}) t
 };
 if (_operationGeneration < 0) then {
 for "_index" from (count waypoints _group - 1) to 0 step -1 do {
-    if (waypointDescription [_group, _index] == "WAIT AI PASS") then {
+    if (waypointDescription [_group, _index] == "CBE AI PASS") then {
         deleteWaypoint [_group, _index];
         _removed = _removed + 1;
     };

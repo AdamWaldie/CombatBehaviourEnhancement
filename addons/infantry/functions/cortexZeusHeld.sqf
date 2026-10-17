@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
- * Reports whether Zeus currently has priority over a group (see WAIT_fnc_CortexZeusMark).
+ * Reports whether Zeus currently has priority over a group (see CBE_fnc_CortexZeusMark).
  *
  * A group is held while either of these exclusive ownership modes remains active:
  * - DIRECT: its latest Zeus hold token is younger than its duration, timed on this machine's own
@@ -9,11 +9,11 @@
  * - WAYPOINT: Zeus changed its waypoints and it still has waypoints ahead that the pass did not add
  *   (a cycling Zeus patrol therefore stays Zeus's until the curator returns it with AI Orders).
  * When those Zeus waypoints are finished, the owning machine clears the flag and local timer. A
- * completed waypoint therefore returns to WAIT immediately instead of creating an unexplained
- * WAIT_AIPass_ZeusHoldSeconds pause. Native Arma target acquisition and fire are never disabled.
- * WAIT_fnc_CortexIsEligible calls this, so a held group is skipped by every behaviour: it is not
+ * completed waypoint therefore returns to CBE immediately instead of creating an unexplained
+ * CBE_AIPass_ZeusHoldSeconds pause. Native Arma target acquisition and fire are never disabled.
+ * CBE_fnc_CortexIsEligible calls this, so a held group is skipped by every behaviour: it is not
  * managed, flanked, merged, sent to reinforce or used for artillery. Zeus can also exclude a group
- * permanently with AI Orders, which sets WAIT_AIPass_Exclude.
+ * permanently with AI Orders, which sets CBE_AIPass_Exclude.
  * Locality and authority: read-mostly; callable anywhere. It writes only this machine's timing cache,
  * plus the one broadcast when the waypoint flag is cleared by the owner.
  *
@@ -24,31 +24,31 @@
  * Boolean - true while Zeus has priority
  *
  * Example:
- * if ([_group] call WAIT_fnc_CortexZeusHeld) exitWith {};
+ * if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {};
  * Result: the pass does nothing with a group Zeus is commanding.
  *
- * Current callers: WAIT_fnc_CortexIsEligible and WAIT_fnc_CortexGroupTick.
+ * Current callers: CBE_fnc_CortexIsEligible and CBE_fnc_CortexGroupTick.
  */
 
 params [["_group", grpNull, [grpNull]]];
 if (isNull _group) exitWith {false};
-private _token = _group getVariable ["WAIT_AIPass_ZeusHold", []];
-if (_token isNotEqualTo [] && {(_group getVariable ["WAIT_AIPass_ZeusSeenToken", -1]) != (_token select 0)}) then {
-    _group setVariable ["WAIT_AIPass_ZeusSeenToken", _token select 0];
-    _group setVariable ["WAIT_AIPass_ZeusLocalUntil", time + (_token select 1)];
+private _token = _group getVariable ["CBE_AIPass_ZeusHold", []];
+if (_token isNotEqualTo [] && {(_group getVariable ["CBE_AIPass_ZeusSeenToken", -1]) != (_token select 0)}) then {
+    _group setVariable ["CBE_AIPass_ZeusSeenToken", _token select 0];
+    _group setVariable ["CBE_AIPass_ZeusLocalUntil", time + (_token select 1)];
 };
-private _kind=_group getVariable ["WAIT_AIPass_ZeusControlKind",["DIRECT","WAYPOINT"] select (_group getVariable ["WAIT_AIPass_ZeusWaypoints",false])];
-if (_kind == "WAYPOINT" && {_group getVariable ["WAIT_AIPass_ZeusWaypoints",false]}) exitWith {
+private _kind=_group getVariable ["CBE_AIPass_ZeusControlKind",["DIRECT","WAYPOINT"] select (_group getVariable ["CBE_AIPass_ZeusWaypoints",false])];
+if (_kind == "WAYPOINT" && {_group getVariable ["CBE_AIPass_ZeusWaypoints",false]}) exitWith {
     private _remaining=false;
     for "_index" from (currentWaypoint _group) to ((count waypoints _group)-1) do {
-        if (!_remaining && {waypointDescription [_group,_index] != "WAIT AI PASS"}) then {_remaining=true};
+        if (!_remaining && {waypointDescription [_group,_index] != "CBE AI PASS"}) then {_remaining=true};
     };
     if (!_remaining && {local _group}) then {
-        _group setVariable ["WAIT_AIPass_ZeusWaypoints",false,true];
-        _group setVariable ["WAIT_AIPass_ZeusControlKind",nil,true];
-        _group setVariable ["WAIT_AIPass_ZeusLocalUntil",-1];
+        _group setVariable ["CBE_AIPass_ZeusWaypoints",false,true];
+        _group setVariable ["CBE_AIPass_ZeusControlKind",nil,true];
+        _group setVariable ["CBE_AIPass_ZeusLocalUntil",-1];
     };
     _remaining
 };
-time < (_group getVariable ["WAIT_AIPass_ZeusLocalUntil",-1])
+time < (_group getVariable ["CBE_AIPass_ZeusLocalUntil",-1])
 

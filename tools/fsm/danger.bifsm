@@ -32,7 +32,7 @@ class GraphItems
 	{
 		class ItemInfo
 		{
-			Text="WAIT DANGER FSM" \n
+			Text="CBE DANGER FSM" \n
  "v.2.6.2";
 			FontFace="Arial";
 			FontHeight=16;
@@ -89,7 +89,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=3;
-				InitCode="_records=+(_queue select [0,12]); _queue=[]; _selected=[_records] call WAIT_fnc_DangerEngineSelect; _mode=[_this,_selected] call WAIT_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call WAIT_fnc_DangerEngineSubmit;";
+				InitCode="_records=+(_queue select [0,12]); _queue=[]; _selected=[_records] call CBE_fnc_DangerEngineSelect; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;";
 			};
 		};
 		Left=-75;
@@ -200,7 +200,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=7;
-				InitCode="_deadline=time+([_this,""VEHICLE"",_selected] call WAIT_fnc_DangerEngineAct);";
+				InitCode="_deadline=time+([_this,""VEHICLE"",_selected] call CBE_fnc_DangerEngineAct);";
 			};
 		};
 		Left=-325;
@@ -227,7 +227,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=8;
-				Condition="(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}";
+				Condition="(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}";
 			};
 		};
 		Left=-550;
@@ -254,7 +254,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=9;
-				InitCode="_followUp=[_this,_mode,_selected] call WAIT_fnc_DangerEngineRecycle; if (_followUp isNotEqualTo []) then {_queue pushBack _followUp};";
+				InitCode="_followUp=[_this,_mode,_selected] call CBE_fnc_DangerEngineRecycle; if (_followUp isNotEqualTo []) then {_queue pushBack _followUp};";
 			};
 		};
 		Left=-550;
@@ -419,7 +419,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=15;
-				InitCode="_deadline=time+([_this,""IMMEDIATE"",_selected] call WAIT_fnc_DangerEngineAct);";
+				InitCode="_deadline=time+([_this,""IMMEDIATE"",_selected] call CBE_fnc_DangerEngineAct);";
 			};
 		};
 		Left=-175;
@@ -446,7 +446,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=16;
-				InitCode="_deadline=time+([_this,""HIDE"",_selected] call WAIT_fnc_DangerEngineAct);";
+				InitCode="_deadline=time+([_this,""HIDE"",_selected] call CBE_fnc_DangerEngineAct);";
 			};
 		};
 		Left=0;
@@ -473,7 +473,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=17;
-				InitCode="_deadline=time+([_this,""ENGAGE"",_selected] call WAIT_fnc_DangerEngineAct);";
+				InitCode="_deadline=time+([_this,""ENGAGE"",_selected] call CBE_fnc_DangerEngineAct);";
 			};
 		};
 		Left=175;
@@ -500,7 +500,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=18;
-				InitCode="_deadline=time+([_this,""FORCED"",_selected] call WAIT_fnc_DangerEngineAct);";
+				InitCode="_deadline=time+([_this,""FORCED"",_selected] call CBE_fnc_DangerEngineAct);";
 			};
 		};
 		Left=175;
@@ -527,7 +527,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=19;
-				InitCode="[_this] call WAIT_fnc_DangerEngineRelease;";
+				InitCode="[_this] call CBE_fnc_DangerEngineRelease;";
 			};
 		};
 		Left=700;
@@ -582,7 +582,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=21;
-				Condition="(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}";
+				Condition="(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}";
 			};
 		};
 		Left=175;
@@ -609,7 +609,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=22;
-				Condition="(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}";
+				Condition="(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}";
 			};
 		};
 		Left=-175;
@@ -636,7 +636,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=23;
-				InitCode="_followUp=[_this,_mode,_selected] call WAIT_fnc_DangerEngineRecycle; if (_followUp isNotEqualTo []) then {_queue pushBack _followUp};";
+				InitCode="_followUp=[_this,_mode,_selected] call CBE_fnc_DangerEngineRecycle; if (_followUp isNotEqualTo []) then {_queue pushBack _followUp};";
 			};
 		};
 		Left=-375;
@@ -799,7 +799,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=29;
-				InitCode="[_this] call WAIT_fnc_DangerEngineRelease;";
+				InitCode="[_this] call CBE_fnc_DangerEngineRelease;";
 			};
 		};
 		Left=-775;
@@ -853,7 +853,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=31;
-				InitCode="_deadline=time+([_this,""ASSESS"",_selected] call WAIT_fnc_DangerEngineAct);";
+				InitCode="_deadline=time+([_this,""ASSESS"",_selected] call CBE_fnc_DangerEngineAct);";
 			};
 		};
 		Left=-325;
@@ -880,7 +880,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=32;
-				Condition="(time >= _deadline) || {!([_this] call WAIT_fnc_DangerEngineCanContinue)}";
+				Condition="(time >= _deadline) || {!([_this] call CBE_fnc_DangerEngineCanContinue)}";
 			};
 		};
 		Left=500;
@@ -1043,7 +1043,7 @@ class GraphItems
 			{
 				Id=38;
 				Priority=2;
-				Condition="!([_this] call WAIT_fnc_DangerEngineCanContinue)";
+				Condition="!([_this] call CBE_fnc_DangerEngineCanContinue)";
 			};
 		};
 		Left=175;
@@ -1070,7 +1070,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=39;
-				InitCode="[_this] call WAIT_fnc_DangerEngineRelease;";
+				InitCode="[_this] call CBE_fnc_DangerEngineRelease;";
 			};
 		};
 		Left=175;
@@ -1097,7 +1097,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=40;
-				InitCode="[_this] call WAIT_fnc_DangerEngineRelease;";
+				InitCode="[_this] call CBE_fnc_DangerEngineRelease;";
 			};
 		};
 		Left=1025;

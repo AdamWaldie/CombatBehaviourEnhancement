@@ -1,28 +1,28 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Sample one addon-independent 50-group infantry or mixed patrol for matched native/WAIT launches.
- * Locality/authority: Dedicated server owns fixtures and sampling; no WAIT functions are required.
+ * Purpose: Sample one addon-independent 50-group infantry or mixed patrol for matched native/CBE launches.
+ * Locality/authority: Dedicated server owns fixtures and sampling; no CBE functions are required.
  * Repeat/JIP: One guarded run per mission. Removes its frame handler and all created actors/groups.
  * Arguments: None. Return Value: Nothing; results are written to the server RPT.
  * Current callers: Standalone performance mission initServer.sqf.
  * Example: [] execVM "cortexQAStandalonePerformance.sqf";
  */
-if (!isServer || {missionNamespace getVariable ["WAIT_QA_StandalonePerfRunning",false]}) exitWith {};
-missionNamespace setVariable ["WAIT_QA_StandalonePerfRunning",true];
-private _loaded=isClass (configFile >> "CfgPatches" >> "WAIT_AI_Tweaks_Main");
-private _expectedLoaded=missionNamespace getVariable ["WAIT_QA_PerfExpectedLoaded",_loaded];
-if (_loaded != _expectedLoaded) exitWith {diag_log "WAIT STANDALONE PERF INVALID: addon identity mismatch"};
+if (!isServer || {missionNamespace getVariable ["CBE_QA_StandalonePerfRunning",false]}) exitWith {};
+missionNamespace setVariable ["CBE_QA_StandalonePerfRunning",true];
+private _loaded=isClass (configFile >> "CfgPatches" >> "CBE_AI_Tweaks_Main");
+private _expectedLoaded=missionNamespace getVariable ["CBE_QA_PerfExpectedLoaded",_loaded];
+if (_loaded != _expectedLoaded) exitWith {diag_log "CBE STANDALONE PERF INVALID: addon identity mismatch"};
 private _fsm=getText (configFile >> "CfgVehicles" >> "O_Soldier_F" >> "fsmDanger");
-private _composition=missionNamespace getVariable ["WAIT_QA_PerfComposition","infantry"];
-if (!(_composition in ["infantry","mixed"])) exitWith {diag_log "WAIT STANDALONE PERF INVALID: composition"};
+private _composition=missionNamespace getVariable ["CBE_QA_PerfComposition","infantry"];
+if (!(_composition in ["infantry","mixed"])) exitWith {diag_log "CBE STANDALONE PERF INVALID: composition"};
 private _initialObservers=allPlayers select {!(_x isKindOf "HeadlessClient_F")};
 if (count _initialObservers != 1 || {!alive (_initialObservers select 0)}) exitWith {
-    diag_log "WAIT STANDALONE PERF INVALID: initial observer";
+    diag_log "CBE STANDALONE PERF INVALID: initial observer";
 };
 private _benchmarkObserver=_initialObservers select 0;
-missionNamespace setVariable ["WAIT_QA_StandaloneObserverLost",false];
+missionNamespace setVariable ["CBE_QA_StandaloneObserverLost",false];
 private _observerKilledHandler=_benchmarkObserver addMPEventHandler ["MPKilled",{
-    if (isServer) then {missionNamespace setVariable ["WAIT_QA_StandaloneObserverLost",true]};
+    if (isServer) then {missionNamespace setVariable ["CBE_QA_StandaloneObserverLost",true]};
 }];
 private _vehicles=[];
 private _aircraft=[];
@@ -32,7 +32,7 @@ private _actors=[];
 for "_i" from 0 to 49 do {
     private _group=createGroup [east,true];
     // Identical ownership exclusions in both launches; no automatic HC provider may redistribute.
-    _group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _group setVariable ["acex_headless_blacklist",true,true];
     private _origin=[800+(_i mod 10)*35,800+floor (_i/10)*35,0];
     private _legLength=2000;
@@ -93,19 +93,19 @@ private _fixtureComposition=[count _groups,
     {typeOf _x == "O_APC_Tracked_02_cannon_F"} count _vehicles,
     {typeOf _x == "O_Heli_Attack_02_dynamicLoadout_F"} count _vehicles,
     {typeOf _x == "O_Plane_CAS_02_dynamicLoadout_F"} count _vehicles];
-diag_log format ["WAIT STANDALONE PERF COMPOSITION: %1",_fixtureComposition];
+diag_log format ["CBE STANDALONE PERF COMPOSITION: %1",_fixtureComposition];
 private _scenario=["INFANTRY_PATROL","MIXED_PATROL"] select (_composition == "mixed");
-diag_log format ["WAIT STANDALONE PERF IDENTITY: %1",[_loaded,_fsm,50,_expectedActors,_scenario,groupOwner (_groups select 0)]];
+diag_log format ["CBE STANDALONE PERF IDENTITY: %1",[_loaded,_fsm,50,_expectedActors,_scenario,groupOwner (_groups select 0)]];
 sleep 20;
 private _origins=_groups apply {getPosATL leader _x};
-missionNamespace setVariable ["WAIT_QA_StandaloneSamples",[]];
+missionNamespace setVariable ["CBE_QA_StandaloneSamples",[]];
 private _handler=addMissionEventHandler ["EachFrame",{
-    private _samples=missionNamespace getVariable ["WAIT_QA_StandaloneSamples",[]];
+    private _samples=missionNamespace getVariable ["CBE_QA_StandaloneSamples",[]];
     if (count _samples < 120000) then {_samples pushBack (diag_deltaTime*1000)};
 }];
 sleep 60;
 removeMissionEventHandler ["EachFrame",_handler];
-private _samples=+(missionNamespace getVariable ["WAIT_QA_StandaloneSamples",[]]);
+private _samples=+(missionNamespace getVariable ["CBE_QA_StandaloneSamples",[]]);
 _samples sort true;
 private _quantile={
     params ["_fraction"];
@@ -121,19 +121,19 @@ private _owned=0;
     if (groupOwner _x == 2) then {_owned=_owned+1};
 } forEach _groups;
 private _observers=allPlayers select {!(_x isKindOf "HeadlessClient_F")};
-private _observerLost=missionNamespace getVariable ["WAIT_QA_StandaloneObserverLost",true];
+private _observerLost=missionNamespace getVariable ["CBE_QA_StandaloneObserverLost",true];
 private _observerValid=count _observers == 1 && {(_observers select 0) == _benchmarkObserver}
     && {alive _benchmarkObserver} && {!_observerLost};
-diag_log format ["WAIT STANDALONE PERF OBSERVER CONTINUITY: %1",[
+diag_log format ["CBE STANDALONE PERF OBSERVER CONTINUITY: %1",[
     netId _benchmarkObserver,_observers apply {netId _x},_observerLost,_observerValid]];
 if (!isNull _benchmarkObserver) then {_benchmarkObserver removeMPEventHandler ["MPKilled",_observerKilledHandler]};
 private _airValid=_aircraft findIf {!canMove _x || {(getPosATL _x) select 2 < 50} || {abs speed _x < 80}} < 0;
 private _valid=_airValid && {_fixtureValid} && {_vehicles findIf {!alive _x || {!simulationEnabled _x}} < 0} && {_observerValid} && {count _samples >= 100} && {_moving == 50} && {_alive == _expectedActors} && {_owned == 50};
-diag_log format ["WAIT STANDALONE PERF RESULT: %1",[_loaded,_valid,count _samples,
+diag_log format ["CBE STANDALONE PERF RESULT: %1",[_loaded,_valid,count _samples,
     [0.5] call _quantile,[0.95] call _quantile,[0.99] call _quantile,_moving,_alive,_owned,count _observers,_observerValid]];
 {deleteVehicle _x} forEach _actors;
 {deleteGroup _x} forEach _groups;
 {deleteVehicle _x} forEach _vehicles;
-missionNamespace setVariable ["WAIT_QA_StandaloneSamples",nil];
-missionNamespace setVariable ["WAIT_QA_StandalonePerfCompleted",true,true];
-diag_log "WAIT STANDALONE PERF COMPLETE";
+missionNamespace setVariable ["CBE_QA_StandaloneSamples",nil];
+missionNamespace setVariable ["CBE_QA_StandalonePerfCompleted",true,true];
+diag_log "CBE STANDALONE PERF COMPLETE";

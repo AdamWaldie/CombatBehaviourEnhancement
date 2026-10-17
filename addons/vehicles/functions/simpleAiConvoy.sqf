@@ -3,7 +3,7 @@
  * Registers mixed land convoys; speed <= 0 holds vehicles and unloads passengers except a STALLED or OBSTRUCTION recovery halt. Release removes the controller.
  * Locality/authority: server validates requests and owns registry/baselines; each owner applies local effects.
  * Repeat/JIP: versioned snapshots include halt cargo and restoration data; reconfigure explicitly resumes travel.
- * General Driving and Convoy are separate WAIT use cases. A registered convoy owns its eligible vehicles;
+ * General Driving and Convoy are separate CBE use cases. A registered convoy owns its eligible vehicles;
  * player, Zeus, specialist and neutral external-control ownership still cause an immediate release.
  * Accepted halt transitions notify assigned Zeus players once through the shared UI; no historical JIP alerts.
  * Arguments: 0: group <GROUP>, grpNull; 1: maximum km/h <NUMBER>, 30; 2: separation metres <NUMBER>, 30;
@@ -11,10 +11,10 @@
  * 5: halt context <ARRAY>, [] of named reason/threat pairs, used by ConvoyHaltServer.
  * Return Value: Boolean server acceptance; forwarded calls return dispatch acceptance.
  * Current callers: mission scripts, ConvoyHaltServer and authenticated convoy Zeus control.
- * Example: [convoyGroup, 0] call WAIT_fnc_SimpleAiConvoy; // hold and unload cargo, keep operating crew
+ * Example: [convoyGroup, 0] call CBE_fnc_SimpleAiConvoy; // hold and unload cargo, keep operating crew
  */
 params [["_group", grpNull, [grpNull]], ["_speed", 30, [0]], ["_separation", 30, [0]], ["_pushThrough", true, [true]], ["_release", false, [true]], ["_haltContext", [], [[]]]];
-if (!isServer) exitWith {_this remoteExecCall ["WAIT_fnc_SimpleAiConvoy", 2]; true};
+if (!isServer) exitWith {_this remoteExecCall ["CBE_fnc_SimpleAiConvoy", 2]; true};
 if (isNull _group) exitWith {false};
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) then {
     private _sender = remoteExecutedOwner;
@@ -32,7 +32,7 @@ private _blockedVehicle = _context getOrDefault ["blockedVehicle",objNull];
 if !(_blockedVehicle isEqualType objNull) exitWith {false};
 if (!(_reason in ["MANUAL", "ARRIVED", "AMBUSH", "IMMOBILE", "STALLED", "OBSTRUCTION"]) || {!(_threat isEqualType [])}
     || {!(count _threat in [0, 3])} || {_threat findIf {!(_x isEqualType 0)} >= 0}) exitWith {false};
-private _registry = +(missionNamespace getVariable ["WAIT_Convoy_Registry", []]);
+private _registry = +(missionNamespace getVariable ["CBE_Convoy_Registry", []]);
 private _oldIndex = _registry findIf {(_x select 0) == _group};
 private _old = if (_oldIndex >= 0) then {(_registry select _oldIndex) select 1} else {[]};
 if ((_release || {_speed <= 0}) && {_old isEqualTo []}) exitWith {false};
@@ -41,11 +41,11 @@ if (_speed > 0 && {!_release}) then {
     {private _v = vehicle _x; if (_v isKindOf "LandVehicle" && {!(_v isKindOf "StaticWeapon")} && {alive driver _v} && {group driver _v == _group}) then {_vehicles pushBackUnique _v}} forEach units _group;
 };
 if (_speed > 0 && {!_release} && {count _vehicles < ([1, 2] select (_old isEqualTo [])) || {count _vehicles > 20}
-    || {[_group] call WAIT_fnc_CompatibilityExternalControl} || {(units _group) findIf {isPlayer _x} >= 0}
-    || {_vehicles findIf {(crew _x) findIf {isPlayer _x} >= 0 || {[_x] call WAIT_fnc_CompatibilityExternalControl}
-        || {_x getVariable ["WAIT_Convoy_Active", false] && {(_x getVariable ["WAIT_Convoy_Group", grpNull]) != _group}}} >= 0}}) exitWith {false};
+    || {[_group] call CBE_fnc_CompatibilityExternalControl} || {(units _group) findIf {isPlayer _x} >= 0}
+    || {_vehicles findIf {(crew _x) findIf {isPlayer _x} >= 0 || {[_x] call CBE_fnc_CompatibilityExternalControl}
+        || {_x getVariable ["CBE_Convoy_Active", false] && {(_x getVariable ["CBE_Convoy_Group", grpNull]) != _group}}} >= 0}}) exitWith {false};
 if (!_release && {_speed <= 0} && {(_old param [5, "TRAVEL"]) == "HALT"}) exitWith {true};
-private _revision = (_group getVariable ["WAIT_Convoy_Revision", 0]) + 1;
+private _revision = (_group getVariable ["CBE_Convoy_Revision", 0]) + 1;
 private _configuration = [];
 if (!_release) then {
     if (_speed <= 0) then {
@@ -80,17 +80,17 @@ _registry = _registry select {!isNull (_x select 0) && {(_x select 0) != _group}
 if (!_release) then {
     _registry pushBack [_group, _configuration];
     {
-        _x setVariable ["WAIT_Convoy_Group", _group, true];
-        _x setVariable ["WAIT_Convoy_Active", true, true];
+        _x setVariable ["CBE_Convoy_Group", _group, true];
+        _x setVariable ["CBE_Convoy_Active", true, true];
     } forEach (_configuration select 4);
 };
-_group setVariable ["WAIT_Convoy_Revision", _revision, true];
-_group setVariable ["WAIT_Convoy_Active", !_release, true];
-_group setVariable ["WAIT_Convoy_ContactProgress", nil, true];
-missionNamespace setVariable ["WAIT_Convoy_Registry", _registry];
-private _registryRevision = (missionNamespace getVariable ["WAIT_Convoy_RegistryRevision", 0]) + 1;
-missionNamespace setVariable ["WAIT_Convoy_RegistryRevision", _registryRevision];
-[_registryRevision, _registry] remoteExecCall ["WAIT_fnc_ConvoySync", 0, "WAIT_Convoy_RegistrySync"];
+_group setVariable ["CBE_Convoy_Revision", _revision, true];
+_group setVariable ["CBE_Convoy_Active", !_release, true];
+_group setVariable ["CBE_Convoy_ContactProgress", nil, true];
+missionNamespace setVariable ["CBE_Convoy_Registry", _registry];
+private _registryRevision = (missionNamespace getVariable ["CBE_Convoy_RegistryRevision", 0]) + 1;
+missionNamespace setVariable ["CBE_Convoy_RegistryRevision", _registryRevision];
+[_registryRevision, _registry] remoteExecCall ["CBE_fnc_ConvoySync", 0, "CBE_Convoy_RegistrySync"];
 // Report accepted state transitions, not repeated ticks or duplicate halt requests.
 if (!_release && {_speed <= 0}) then {
     private _description = switch (_reason) do {
@@ -111,7 +111,7 @@ if (!_release && {_speed <= 0}) then {
     } forEach allCurators;
     {
         ["CORTEX CONVOY STOPPED",format ["%1 — %2. Grid %3. %4",groupId _group,_description,_location,["Cargo dismount ordered; operating crew stays aboard.","Passengers and operating crew remain aboard."] select (_reason in ["STALLED", "OBSTRUCTION"])],
-            "WARNING"] remoteExecCall ["WAIT_fnc_AITweaksNotifyLocal",_x];
+            "WARNING"] remoteExecCall ["CBE_fnc_AITweaksNotifyLocal",_x];
     } forEach _recipients;
 };
 true

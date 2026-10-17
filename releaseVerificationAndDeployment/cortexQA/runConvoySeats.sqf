@@ -74,7 +74,7 @@ _x params ["_prefix","_leadClass"];
 private _check={params ["_id","_passed",["_detail",""]]; [_prefix+_id,_passed,_detail] call _recordCheck};
 private _convoy=createGroup [east,true];
 private _cargoGroup=createGroup [east,true];
-{_x setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _x setVariable ["acex_headless_blacklist",true,true]} forEach [_convoy,_cargoGroup];
+{_x setVariable ["CBE_Headless_ExcludeGroup",true,true]; _x setVariable ["acex_headless_blacklist",true,true]} forEach [_convoy,_cargoGroup];
 _convoy setGroupIdGlobal ["QA SEATS operating crew + same-group cargo"];
 _cargoGroup setGroupIdGlobal ["QA SEATS separate cargo squad"];
 private _vehicles=[];
@@ -96,49 +96,49 @@ private _passengers=[];
         // Intentional setup: physically mounted cargo with no orderGetIn repair by the test.
         // Production must adopt that actual seat, including a separate-group squad leader.
         _u moveInCargo _truck;
-        _u setVariable ["WAIT_CortexQA_Label",["SAME-GROUP CARGO","SEPARATE-GROUP CARGO"] select (_g == _cargoGroup),true];
+        _u setVariable ["CBE_CortexQA_Label",["SAME-GROUP CARGO","SEPARATE-GROUP CARGO"] select (_g == _cargoGroup),true];
         _passengers pushBack _u;
     };
 } forEach [_convoy,_cargoGroup];
 private _actors=(_crew apply {_x select 0})+_passengers;
-{(_x select 0) setVariable ["WAIT_CortexQA_Label","OPERATING CREW: STAYS ABOARD",true]} forEach _crew;
+{(_x select 0) setVariable ["CBE_CortexQA_Label","OPERATING CREW: STAYS ABOARD",true]} forEach _crew;
 {
     _x setVariable ["acex_headless_blacklist",true,true];
-    _x setVariable ["WAIT_CortexQA_ExitEvents",[],true];
+    _x setVariable ["CBE_CortexQA_ExitEvents",[],true];
     _x addEventHandler ["GetOutMan",{
         params ["_u","_role","_v"];
-        private _phase=missionNamespace getVariable ["WAIT_CortexQA_SeatPhase","SETUP"];
-        private _events=_u getVariable ["WAIT_CortexQA_ExitEvents",[]];
+        private _phase=missionNamespace getVariable ["CBE_CortexQA_SeatPhase","SETUP"];
+        private _events=_u getVariable ["CBE_CortexQA_ExitEvents",[]];
         _events pushBack [_phase,_role,serverTime];
-        _u setVariable ["WAIT_CortexQA_ExitEvents",_events,true];
-        diag_log format ["WAIT CORTEX QA SEAT EXIT: label=%1 phase=%2 role=%3 command=%4 assignedRole=%5",_u getVariable ["WAIT_CortexQA_Label",""],_phase,_role,currentCommand _u,assignedVehicleRole _u];
+        _u setVariable ["CBE_CortexQA_ExitEvents",_events,true];
+        diag_log format ["CBE CORTEX QA SEAT EXIT: label=%1 phase=%2 role=%3 command=%4 assignedRole=%5",_u getVariable ["CBE_CortexQA_Label",""],_phase,_role,currentCommand _u,assignedVehicleRole _u];
     }];
 } forEach _actors;
 _convoy selectLeader driver (_vehicles select 0);
 {_x setCombatMode "BLUE"} forEach [_convoy,_cargoGroup];
 private _wp=_convoy addWaypoint [[[4000,5000,0]] call _terrainPosition,0]; _wp setWaypointType "MOVE";
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_actors,true];
-missionNamespace setVariable ["WAIT_CortexQA_ConvoyVehicles",_vehicles,true];
-missionNamespace setVariable ["WAIT_CortexQA_SeatPhase","TRAVEL",true];
-["SEATS-start",[_convoy,30,50,true] call WAIT_fnc_SimpleAiConvoy] call _check;
+missionNamespace setVariable ["CBE_CortexQA_Actors",_actors,true];
+missionNamespace setVariable ["CBE_CortexQA_ConvoyVehicles",_vehicles,true];
+missionNamespace setVariable ["CBE_CortexQA_SeatPhase","TRAVEL",true];
+["SEATS-start",[_convoy,30,50,true] call CBE_fnc_SimpleAiConvoy] call _check;
 ["Convoy seat retention","Two operating vehicles carry both same-group cargo and a separate mounted squad over the measured terrain route. All labelled actors must stay aboard throughout travel. No test command repairs their seats after setup.",[[4000,2475,0]] call _terrainPosition] call _phase;
 private _start=getPosATL _truck;
 sleep 60;
 ["SEATS-real-travel",_truck distance2D _start > 150,str getPosATL _truck] call _check;
-["SEATS-travel-no-exits",_actors findIf {(_x getVariable ["WAIT_CortexQA_ExitEvents",[]]) isNotEqualTo []} < 0,str (_actors apply {[_x getVariable ["WAIT_CortexQA_Label",""],_x getVariable ["WAIT_CortexQA_ExitEvents",[]]]})] call _check;
+["SEATS-travel-no-exits",_actors findIf {(_x getVariable ["CBE_CortexQA_ExitEvents",[]]) isNotEqualTo []} < 0,str (_actors apply {[_x getVariable ["CBE_CortexQA_Label",""],_x getVariable ["CBE_CortexQA_ExitEvents",[]]]})] call _check;
 ["SEATS-all-cargo-still-mounted",_passengers findIf {!alive _x || {vehicle _x != _truck}} < 0] call _check;
 ["SEATS-operating-crew-still-mounted",_crew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)}} < 0] call _check;
 // Split the vehicle controller and the separate passenger squad across real owners.
-if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
-private _owners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
+if (missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
+private _owners=(missionNamespace getVariable ["CBE_Headless_Clients",[]]) apply {_x select 0};
 ["SEATS-two-headless-clients",count _owners >= 2] call _check;
 if (count _owners >= 2) then {
     private _convoyOwner=_owners select 0;
     private _cargoOwner=_owners select 1;
     // Release the fixture-only server pin before exercising the real migration API.
-    {_x setVariable ["WAIT_Headless_ExcludeGroup",false,true]} forEach [_convoy,_cargoGroup];
-    [_cargoGroup,_cargoOwner] call WAIT_fnc_HeadlessMigrateGroup;
-    [_convoy,_convoyOwner] call WAIT_fnc_HeadlessMigrateGroup;
+    {_x setVariable ["CBE_Headless_ExcludeGroup",false,true]} forEach [_convoy,_cargoGroup];
+    [_cargoGroup,_cargoOwner] call CBE_fnc_HeadlessMigrateGroup;
+    [_convoy,_convoyOwner] call CBE_fnc_HeadlessMigrateGroup;
     ["SEATS-split-owner-adoption",[{
         groupOwner _cargoGroup == _cargoOwner && {groupOwner _convoy == _convoyOwner}
         && {_vehicles findIf {owner _x != _convoyOwner || {owner driver _x != _convoyOwner}} < 0}
@@ -157,12 +157,12 @@ if (count _owners >= 2) then {
     ["SEATS-split-owner-real-travel",_truck distance2D _splitStart > 100,str getPosATL _truck] call _check;
 };
 };
-missionNamespace setVariable ["WAIT_CortexQA_SeatPhase","MANUAL HALT",true];
+missionNamespace setVariable ["CBE_CortexQA_SeatPhase","MANUAL HALT",true];
 ["Convoy commanded unload","A deliberate halt now requires all four cargo soldiers to exit and move clear. Driver, gunner and commander must stay aboard. Labels distinguish their roles.",getPosATL _truck] call _phase;
 private _haltPassengerOrigins=_passengers apply {getPosATL _x};
-[_convoy,0,50,true] call WAIT_fnc_SimpleAiConvoy;
+[_convoy,0,50,true] call CBE_fnc_SimpleAiConvoy;
 ["SEATS-same-and-separate-cargo-exit",[{_passengers findIf {!alive _x || {vehicle _x != _x}} < 0},40] call _wait] call _check;
-["SEATS-halt-operating-crew-retained",_crew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)} || {((_x select 0) getVariable ["WAIT_CortexQA_ExitEvents",[]]) isNotEqualTo []}} < 0] call _check;
+["SEATS-halt-operating-crew-retained",_crew findIf {!alive (_x select 0) || {vehicle (_x select 0) != (_x select 1)} || {((_x select 0) getVariable ["CBE_CortexQA_ExitEvents",[]]) isNotEqualTo []}} < 0] call _check;
 // Actor labels and accepted cover records cannot pass: require real post-exit clearance.
 ["SEATS-every-passenger-physical-clearance",[{
     private _clear=true;
@@ -173,13 +173,13 @@ private _haltPassengerOrigins=_passengers apply {getPosATL _x};
     _clear
 },30] call _wait] call _check;
 sleep 10;
-[_convoy,0,50,true,true] call WAIT_fnc_SimpleAiConvoy;
+[_convoy,0,50,true,true] call CBE_fnc_SimpleAiConvoy;
 {deleteVehicle _x} forEach _actors;
 {deleteVehicle _x} forEach _vehicles;
 deleteGroup _convoy; deleteGroup _cargoGroup;
 ["SEATS-cleanup-includes-dismounted",[{_actors findIf {!isNull _x} < 0},10] call _wait] call _check;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
-missionNamespace setVariable ["WAIT_CortexQA_ConvoyVehicles",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_ConvoyVehicles",[],true];
 
 } forEach [["","O_MRAP_02_hmg_F"],["TRACKED-","O_APC_Tracked_02_cannon_F"]];
 };

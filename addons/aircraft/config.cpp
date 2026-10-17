@@ -1,6 +1,6 @@
 class CfgPatches {
-    class WAIT_aircraft {
-        name = "Waldos AI Tweaks - Aircraft";
+    class CBE_aircraft {
+        name = "Combat Behaviour Enhancement (CBE) - Aircraft";
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main"};

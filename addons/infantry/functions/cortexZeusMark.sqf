@@ -3,9 +3,9 @@
  * Repeat/JIP: Repeated input updates the current hold marker; newer commands supersede earlier ownership. Public group state survives JIP.
  * Marks an AI group as under Zeus control so the Smart AI Pass steps back from it.
  *
- * Called on the curator's own machine by the handlers WAIT_fnc_CortexZeusWatchLocal installs. Any
- * direct control interaction holds it for WAIT_AIPass_ZeusHoldSeconds (default 120): opening
- * attributes or moving a unit. A waypoint owns WAIT movement and tactical planning only until the
+ * Called on the curator's own machine by the handlers CBE_fnc_CortexZeusWatchLocal installs. Any
+ * direct control interaction holds it for CBE_AIPass_ZeusHoldSeconds (default 120): opening
+ * attributes or moving a unit. A waypoint owns CBE movement and tactical planning only until the
  * authored waypoint chain finishes. Plain selection does not cancel behaviour, allowing
  * curators to inspect active squads. Dependent jobs stop issuing commands once the hold reaches
  * their owner. The marker immediately asks the current group owner to release Cortex state, avoiding
@@ -35,23 +35,23 @@
  * Nothing
  *
  * Example:
- * [_group, true, _waypointID] call WAIT_fnc_CortexZeusMark;
+ * [_group, true, _waypointID] call CBE_fnc_CortexZeusMark;
  * Result: the group follows the Zeus waypoint without the pass interfering until it is complete.
  *
- * Current caller: curator event handlers installed by WAIT_fnc_CortexZeusWatchLocal.
+ * Current caller: curator event handlers installed by CBE_fnc_CortexZeusWatchLocal.
  */
 
 params [["_group", grpNull, [grpNull]], ["_waypoints", false, [false]], ["_waypointIndex",-1,[0]]];
-if (isNull _group || {!(missionNamespace getVariable ["WAIT_AIPass_Enable", false])}) exitWith {};
+if (isNull _group || {!(missionNamespace getVariable ["CBE_AIPass_Enable", false])}) exitWith {};
 if ((units _group) findIf {isPlayer _x} >= 0 || {(units _group) findIf {alive _x} < 0}) exitWith {};
 // Coalesce repeated direct edits only within the same control domain. A direct edit after a
 // waypoint is a newer owner, even inside ten seconds, and must invalidate its route snapshot now.
-if (!_waypoints && {(_group getVariable ["WAIT_AIPass_ZeusControlKind",""]) == "DIRECT"}
-    && {time - (_group getVariable ["WAIT_AIPass_ZeusMarkedAt", -1e6]) < 10}) exitWith {};
-_group setVariable ["WAIT_AIPass_ZeusMarkedAt", time];
-private _hold=[random 1e6, missionNamespace getVariable ["WAIT_AIPass_ZeusHoldSeconds", 120]];
-_group setVariable ["WAIT_AIPass_ZeusHold", _hold, true];
-_group setVariable ["WAIT_AIPass_ZeusControlKind",["DIRECT","WAYPOINT"] select _waypoints,true];
+if (!_waypoints && {(_group getVariable ["CBE_AIPass_ZeusControlKind",""]) == "DIRECT"}
+    && {time - (_group getVariable ["CBE_AIPass_ZeusMarkedAt", -1e6]) < 10}) exitWith {};
+_group setVariable ["CBE_AIPass_ZeusMarkedAt", time];
+private _hold=[random 1e6, missionNamespace getVariable ["CBE_AIPass_ZeusHoldSeconds", 120]];
+_group setVariable ["CBE_AIPass_ZeusHold", _hold, true];
+_group setVariable ["CBE_AIPass_ZeusControlKind",["DIRECT","WAYPOINT"] select _waypoints,true];
 if (_waypoints) then {
     if (_waypointIndex < 0) then {_waypointIndex=currentWaypoint _group};
     private _groupWaypoints=waypoints _group;
@@ -59,7 +59,7 @@ if (_waypoints) then {
         private _waypoint=[_group,_waypointIndex];
         // This is immutable evidence from the curator event boundary. Do not derive it later from
         // currentWaypoint: the engine may make a former scripted waypoint current during cleanup.
-        _group setVariable ["WAIT_Cortex_ZeusOrderSnapshot",[
+        _group setVariable ["CBE_Cortex_ZeusOrderSnapshot",[
             _hold select 0,
             waypointPosition _waypoint,
             waypointBehaviour _waypoint,
@@ -69,42 +69,42 @@ if (_waypoints) then {
             waypointCombatMode _waypoint
         ],true];
     } else {
-        _group setVariable ["WAIT_Cortex_ZeusOrderSnapshot",nil,true];
+        _group setVariable ["CBE_Cortex_ZeusOrderSnapshot",nil,true];
     };
 } else {
     // A later attributes/object edit supersedes any earlier waypoint event. Clearing the snapshot
     // prevents an old route being reused during this newer, non-waypoint Zeus takeover.
-    _group setVariable ["WAIT_Cortex_ZeusOrderSnapshot",nil,true];
-    _group setVariable ["WAIT_AIPass_ZeusWaypoints",false,true];
+    _group setVariable ["CBE_Cortex_ZeusOrderSnapshot",nil,true];
+    _group setVariable ["CBE_AIPass_ZeusWaypoints",false,true];
 };
-if (_waypoints && {!(_group getVariable ["WAIT_AIPass_ZeusWaypoints", false])}) then {
-    _group setVariable ["WAIT_AIPass_ZeusWaypoints", true, true];
+if (_waypoints && {!(_group getVariable ["CBE_AIPass_ZeusWaypoints", false])}) then {
+    _group setVariable ["CBE_AIPass_ZeusWaypoints", true, true];
 };
-private _combinedRole = _group getVariable ["WAIT_Cortex_CombinedRole", []];
+private _combinedRole = _group getVariable ["CBE_Cortex_CombinedRole", []];
 if (_combinedRole isNotEqualTo []) then {
-    _group setVariable ["WAIT_Cortex_CombinedResult", [
+    _group setVariable ["CBE_Cortex_CombinedResult", [
         _combinedRole param [0,""], _combinedRole param [4,""], "ZEUS_TAKEOVER", serverTime,
         _combinedRole param [2,objNull]
     ], true];
-    _group setVariable ["WAIT_Cortex_CombinedRole", nil, true];
-    _group setVariable ["WAIT_Cortex_CombinedApplied", nil, true];
+    _group setVariable ["CBE_Cortex_CombinedRole", nil, true];
+    _group setVariable ["CBE_Cortex_CombinedApplied", nil, true];
 };
-if ((_group getVariable ["WAIT_Cortex_CombinedOpportunity", []]) isNotEqualTo []) then {
-    _group setVariable ["WAIT_Cortex_CombinedOpportunity", nil, true];
+if ((_group getVariable ["CBE_Cortex_CombinedOpportunity", []]) isNotEqualTo []) then {
+    _group setVariable ["CBE_Cortex_CombinedOpportunity", nil, true];
 };
-private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if (count _operation > 0) then {
     private _generation=_operation getOrDefault ["generation",-1];
     if (local _group) then {
-        [_group,_generation,"ZEUS"] call WAIT_fnc_OperationCancel;
+        [_group,_generation,"ZEUS"] call CBE_fnc_OperationCancel;
     } else {
-        [_group,_generation,"ZEUS"] remoteExecCall ["WAIT_fnc_OperationCancel",groupOwner _group];
+        [_group,_generation,"ZEUS"] remoteExecCall ["CBE_fnc_OperationCancel",groupOwner _group];
     };
 };
 // Publish the hold before cleanup so CortexReleaseGroup recognises an external takeover and
 // restores only Cortex-owned state without replacing the curator's movement, behaviour or speed.
 if (local _group) then {
-    [_group,false,"ZEUS_TAKEOVER"] call WAIT_fnc_CortexReleaseGroup;
+    [_group,false,"ZEUS_TAKEOVER"] call CBE_fnc_CortexReleaseGroup;
 } else {
-    [_group,false,"ZEUS_TAKEOVER"] remoteExecCall ["WAIT_fnc_CortexReleaseGroup",groupOwner _group];
+    [_group,false,"ZEUS_TAKEOVER"] remoteExecCall ["CBE_fnc_CortexReleaseGroup",groupOwner _group];
 };

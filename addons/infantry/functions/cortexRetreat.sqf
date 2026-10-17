@@ -2,16 +2,16 @@
  * Author: WaldoTheWarfighter
  * Pulls a broken squad back, away from the enemy, under smoke.
  *
- * The retreat point is WAIT_AIPass_Morale_RetreatDistance (scaled by the behaviour profile's
+ * The retreat point is CBE_AIPass_Morale_RetreatDistance (scaled by the behaviour profile's
  * retreatScale) from the leader. Five bounded escape candidates spread up to 60 degrees around the
  * direction away from the enemy; Cortex rejects water and selects the shortest screened avenue
  * through terrain, solid cover or concealment. If that full-distance fan is water-blocked, three
  * shorter eight-direction fans seek a dry escape instead of silently leaving a broken squad idle.
  * A completely trapped squad reports BLOCKED and keeps fighting while GroupTick applies a bounded
  * retry delay. The squad moves through an inserted waypoint
- * (WAIT_fnc_CortexGroupMove) at FULL speed, so its own waypoints resume afterwards. Soldiers holding
+ * (CBE_fnc_CortexGroupMove) at FULL speed, so its own waypoints resume afterwards. Soldiers holding
  * ground from a drill fall back with it. One soldier throws smoke towards the enemy, and with
- * artillery support and WAIT_AIPass_ArtillerySmoke_Enable on, a friendly battery selected by the server across owners
+ * artillery support and CBE_AIPass_ArtillerySmoke_Enable on, a friendly battery selected by the server across owners
  * lays a smoke screen between the squad and the enemy, never within 50 m of friendlies. A carried-smoke throw is opportunistic:
  * it never pauses, replaces or reissues the committed withdrawal route. Any flank drill ends because the phase
  * leaves CONTACT. Individual attack assignments are suspended and behaviour set to AWARE for
@@ -38,29 +38,29 @@
  * Boolean - true when the squad started retreating
  *
  * Example:
- * [_group, _state] call WAIT_fnc_CortexRetreat;
+ * [_group, _state] call CBE_fnc_CortexRetreat;
  * Result: the survivors fall back 200 m and regroup.
  *
- * Current callers: WAIT_fnc_CortexGroupTick and WAIT_fnc_CortexLocality.
+ * Current callers: CBE_fnc_CortexGroupTick and CBE_fnc_CortexLocality.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_resume",[],[[]]]];
 // Validate authority before route geometry, ending support or changing combat settings. A
 // rejected native service task must not become a partially applied withdrawal.
 if (isNull _group || {!local _group}
-    || {!([_group,false,false,true] call WAIT_fnc_CortexIsEligible)}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
+    || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
 if ((units _group) findIf {
     alive _x && {toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
 } >= 0) exitWith {false};
 // Use a local combat-effective anchor so leader loss or reassignment does not suppress an otherwise viable manoeuvre.
-private _leader = [_group] call WAIT_fnc_CortexGroupAnchor;
+private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
-if (!([_leader] call WAIT_fnc_CortexCombatEffective) || {!local _leader} || {group _leader != _group}) exitWith {false};
+if (!([_leader] call CBE_fnc_CortexCombatEffective) || {!local _leader} || {group _leader != _group}) exitWith {false};
 private _resuming = count _resume == 7 && {(_resume select 0) == "INFANTRY"};
 private _enemyPos = if (_resuming) then {_resume select 3} else {_state getOrDefault ["enemyPos", []]};
 if (count _enemyPos < 2) exitWith {false};
-private _distance = (missionNamespace getVariable ["WAIT_AIPass_Morale_RetreatDistance", 200]) * ([_group, "retreatScale"] call WAIT_fnc_CortexProfile);
+private _distance = (missionNamespace getVariable ["CBE_AIPass_Morale_RetreatDistance", 200]) * ([_group, "retreatScale"] call CBE_fnc_CortexProfile);
 private _away = _enemyPos getDir _leader;
 private _point = if (_resuming) then {+(_resume select 2)} else {[]};
 if (!_resuming) then {
@@ -69,7 +69,7 @@ if (!_resuming) then {
     {
         _candidates pushBack [_origin getPos [_distance, _away+_x]];
     } forEach [0, 30, -30, 60, -60];
-    private _legs=[_origin,_candidates,_enemyPos] call WAIT_fnc_CortexSelectAvenue;
+    private _legs=[_origin,_candidates,_enemyPos] call CBE_fnc_CortexSelectAvenue;
     // Coastlines, islands and flooded terrain can invalidate every ideal endpoint. Search
     // progressively shorter rings in all directions; this remains bounded and only runs when a
     // morale transition starts. It never teleports the group or pretends that travel occurred.
@@ -80,42 +80,42 @@ if (!_resuming) then {
             {
                 _fallbackCandidates pushBack [_origin getPos [_fallbackDistance,_away+_x]];
             } forEach [0,45,-45,90,-90,135,-135,180];
-            _legs=[_origin,_fallbackCandidates,_enemyPos] call WAIT_fnc_CortexSelectAvenue;
+            _legs=[_origin,_fallbackCandidates,_enemyPos] call CBE_fnc_CortexSelectAvenue;
             if (_legs isNotEqualTo []) exitWith {};
         } forEach [0.75,0.5,0.25];
     };
     if (_legs isNotEqualTo []) then {_point=+(_legs select ((count _legs)-1))};
 };
 if (_point isEqualTo []) exitWith {
-    _group setVariable ["WAIT_Cortex_Withdrawal",["BLOCKED",0,0],true];
+    _group setVariable ["CBE_Cortex_Withdrawal",["BLOCKED",0,0],true];
     false
 };
 // Finish any manoeuvre before acquiring its attack-setting restoration record.
 if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
-    [_group,_state,"RETREAT"] call WAIT_fnc_CortexFlankEnd;
+    [_group,_state,"RETREAT"] call CBE_fnc_CortexFlankEnd;
 };
 // Withdrawals, calm restoration and external handovers retire the shared assignment.
-private _supportLease=_group getVariable ["WAIT_AIPass_SupportLease",[]];
+private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 if (count _supportLease == 6 && {(_state getOrDefault ["supportToken",""]) == (_supportLease select 0)}) then {
-    [_group,_supportLease select 0,false,_supportLease,clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAck",2];
+    [_group,_supportLease select 0,false,_supportLease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
 };
-[_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
+[_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
 private _remainingLease=(120-((serverTime-(if (_resuming) then {_resume select 4} else {serverTime})) max 0)) max 3;
-if !([_group,"INFANTRY_WITHDRAW",true,serverTime+_remainingLease] call WAIT_fnc_CortexOwnershipLease) exitWith {
-    _group setVariable ["WAIT_Cortex_Withdrawal",["EXTERNAL_BUSY",0,0],true];
+if !([_group,"INFANTRY_WITHDRAW",true,serverTime+_remainingLease] call CBE_fnc_CortexOwnershipLease) exitWith {
+    _group setVariable ["CBE_Cortex_Withdrawal",["EXTERNAL_BUSY",0,0],true];
     false
 };
 private _supportHeld=_state getOrDefault ["supportHeld",[]];
 {
-    if (_x getVariable ["WAIT_Cortex_SupportPathHold",false]) then {_supportHeld pushBackUnique _x};
+    if (_x getVariable ["CBE_Cortex_SupportPathHold",false]) then {_supportHeld pushBackUnique _x};
 } forEach units _group;
 {
-    if (local _x && {group _x == _group}) then {_x setVariable ["WAIT_Cortex_SupportPathHold",nil,true]};
+    if (local _x && {group _x == _group}) then {_x setVariable ["CBE_Cortex_SupportPathHold",nil,true]};
         if (local _x && {group _x == _group} && {!isPlayer _x}
-            && {isNull (remoteControlled _x)} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}) then {
+            && {isNull (remoteControlled _x)} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}) then {
         _x enableAI "PATH";
-        _x setVariable ["WAIT_Cortex_SupportPathHold",nil,true];
+        _x setVariable ["CBE_Cortex_SupportPathHold",nil,true];
         // supportHeld is an explicit Cortex ownership record. A withdrawal replaces that
         // hold with a group route, so every surviving member must rejoin the leader first.
         _x doFollow _leader;
@@ -130,18 +130,18 @@ private _participants=(units _group) select {
     alive _x && {local _x} && {!isPlayer _x} && {vehicle _x == _x}
         && {lifeState _x != "INCAPACITATED"}
 };
-private _operation=[_group,"WITHDRAW",_point,_participants,[_point],"MOVING"] call WAIT_fnc_OperationStart;
+private _operation=[_group,"WITHDRAW",_point,_participants,[_point],"MOVING"] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {
-    [_group,"INFANTRY_WITHDRAW",false] call WAIT_fnc_CortexOwnershipLease;
-    _group setVariable ["WAIT_Cortex_Withdrawal",["OWNER_LOST",0,0],true];
+    [_group,"INFANTRY_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
+    _group setVariable ["CBE_Cortex_Withdrawal",["OWNER_LOST",0,0],true];
     false
 };
 private _generation=_operation get "generation";
-private _waypoint=[_group,_point,30,"MOVE",_generation] call WAIT_fnc_CortexGroupMove;
+private _waypoint=[_group,_point,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
 if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) exitWith {
-    [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call WAIT_fnc_OperationRelease;
-    [_group,"INFANTRY_WITHDRAW",false] call WAIT_fnc_CortexOwnershipLease;
-    _group setVariable ["WAIT_Cortex_Withdrawal",["MOVEMENT_REJECTED",0,0],true];
+    [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+    [_group,"INFANTRY_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
+    _group setVariable ["CBE_Cortex_Withdrawal",["MOVEMENT_REJECTED",0,0],true];
     false
 };
 _state set ["withdrawOperationGeneration",_generation];
@@ -175,9 +175,9 @@ _state set ["movementLease",["INFANTRY_WITHDRAW",time+_remaining]];
 _state set ["retreatStart",_origin];
 _state set ["retreatTarget",_point];
 _state set ["retreatProgress",[time,_bestTravel,_replans]];
-_group setVariable ["WAIT_Cortex_Withdrawal",["MOVING",round (_leader distance2D _origin),_replans],true];
+_group setVariable ["CBE_Cortex_Withdrawal",["MOVING",round (_leader distance2D _origin),_replans],true];
 private _withdrawalIntent=["INFANTRY",_origin,_point,_enemyPos,_startedAt,_replans,_bestTravel];
-_group setVariable ["WAIT_Cortex_WithdrawalIntent",_withdrawalIntent,true];
+_group setVariable ["CBE_Cortex_WithdrawalIntent",_withdrawalIntent,true];
 if (speedMode _group != "FULL") then {
     if !(_state getOrDefault ["speedChanged", false]) then {_state set ["baseSpeed", speedMode _group]};
     _state set ["speedChanged", true];
@@ -194,11 +194,11 @@ if (!_resuming) then {
     _smokers=(_smokers select {_x != _leader})+(_smokers select {_x == _leader});
     // Use one available carried smoke, rather than selecting a possibly empty carrier.
     {
-        if ([_x, _enemyPos, "SMOKE"] call WAIT_fnc_CortexThrowGrenade) exitWith {};
+        if ([_x, _enemyPos, "SMOKE"] call CBE_fnc_CortexThrowGrenade) exitWith {};
     } forEach _smokers;
     // A communicating retreating squad asks server-coordinated artillery for smoke; no radio item is required.
-    if ((missionNamespace getVariable ["WAIT_AIPass_Artillery_Enable", false]) && {[_group,"WAIT_AIPass_ArtillerySmoke_Enable", true] call WAIT_fnc_CortexFeatureEnabled}
-        && {!isNull ([_group] call WAIT_fnc_CortexGroupTransmitter)}) then {
+    if ((missionNamespace getVariable ["CBE_AIPass_Artillery_Enable", false]) && {[_group,"CBE_AIPass_ArtillerySmoke_Enable", true] call CBE_fnc_CortexFeatureEnabled}
+        && {!isNull ([_group] call CBE_fnc_CortexGroupTransmitter)}) then {
         private _screen = _enemyPos getPos [((_enemyPos distance2D _leader) * 0.4) min 80, _enemyPos getDir _leader];
         private _side = side _group;
         private _friendlyNear = (_screen nearEntities [["CAManBase", "LandVehicle"], 50]) findIf {
@@ -206,7 +206,7 @@ if (!_resuming) then {
             alive _x && {_otherSide == civilian || {_side getFriend _otherSide >= 0.6}}
         } >= 0;
         if (!_friendlyNear) then {
-            [objNull,_screen,0,"SMOKE",-1,-1,"SUPPORT",objNull,objNull,_group] call WAIT_fnc_CortexArtilleryFire;
+            [objNull,_screen,0,"SMOKE",-1,-1,"SUPPORT",objNull,objNull,_group] call CBE_fnc_CortexArtilleryFire;
         };
     };
 };
@@ -214,7 +214,7 @@ private _withdrawReason=if (_resuming) then {"OWNERSHIP_RESUME"} else {
     _state getOrDefault ["withdrawReason","MORALE_WITHDRAWAL"]
 };
 _state deleteAt "withdrawReason";
-[_group,_state,"RETREAT",_withdrawReason,time-_elapsed,_resuming] call WAIT_fnc_CortexSetPhase;
-if (!_resuming) then {missionNamespace setVariable ["WAIT_AIPass_Retreats", (missionNamespace getVariable ["WAIT_AIPass_Retreats", 0]) + 1]};
-if (missionNamespace getVariable ["WAIT_AIPass_Debug", false]) then {diag_log format ["[WAIT] %1 RETREAT to %2", _group, _point]};
+[_group,_state,"RETREAT",_withdrawReason,time-_elapsed,_resuming] call CBE_fnc_CortexSetPhase;
+if (!_resuming) then {missionNamespace setVariable ["CBE_AIPass_Retreats", (missionNamespace getVariable ["CBE_AIPass_Retreats", 0]) + 1]};
+if (missionNamespace getVariable ["CBE_AIPass_Debug", false]) then {diag_log format ["[CBE] %1 RETREAT to %2", _group, _point]};
 true

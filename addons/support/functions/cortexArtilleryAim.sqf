@@ -6,14 +6,14 @@
  * Arguments: 0: mission <HASHMAP>, required; keys fix, battery, offset, bearing, opening, mode, magazine.
  * Return Value: Array ATL aim, or [] if all eight candidates fail.
  * Current callers: ArtilleryMissionStep.
- * Example: private _aim = [_mission] call WAIT_fnc_CortexArtilleryAim;
+ * Example: private _aim = [_mission] call CBE_fnc_CortexArtilleryAim;
  */
 params ["_mission"];
 (_mission get "fix") params ["_centre", "_error"];
 private _battery = _mission get "battery";
 private _opening = (_mission get "opening") && {(_mission get "mode") != "SMOKE"};
-private _safe = (missionNamespace getVariable ["WAIT_AIPass_Artillery_OpeningSafeDistance", 200]) max 100;
-private _buffer = (missionNamespace getVariable ["WAIT_AIPass_Artillery_OpeningBuffer", 100]) max 50;
+private _safe = (missionNamespace getVariable ["CBE_AIPass_Artillery_OpeningSafeDistance", 200]) max 100;
+private _buffer = (missionNamespace getVariable ["CBE_AIPass_Artillery_OpeningBuffer", 100]) max 50;
 private _players = if (_opening) then {(allPlayers select {alive _x && {!(_x isKindOf "HeadlessClient_F")}}) apply {getPosATL vehicle _x}} else {[]};
 private _radius = (_mission get "offset") + (_error max 0);
 if (_opening) then {_radius = _radius max (_safe + _buffer)};

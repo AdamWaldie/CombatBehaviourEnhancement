@@ -20,50 +20,50 @@
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
  * Arguments: 0: request job <HASHMAP>.
  * Return Value: Next delay in seconds, or -1 on cleanup.
- * Current caller: WAIT_fnc_SupportRequestStep as one bounded action under the support request FSM.
- * Example: [_job] call WAIT_fnc_CortexSupportStep;
+ * Current caller: CBE_fnc_SupportRequestStep as one bounded action under the support request FSM.
+ * Example: [_job] call CBE_fnc_CortexSupportStep;
  */
 params ["_job"];
 if (!isServer) exitWith {-1};
 private _requester = _job get "requester";
 private _leases = _job get "leases";
-private _requests = missionNamespace getVariable ["WAIT_AIPass_SupportRequests",createHashMap];
-private _observedPhase = _requester getVariable ["WAIT_AIPass_PublicPhase","CALM"];
+private _requests = missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap];
+private _observedPhase = _requester getVariable ["CBE_AIPass_PublicPhase","CALM"];
 if (_observedPhase != "CALM") then {_job set ["sawContact",true]};
-private _requesterReinforce = !isNull _requester && {[_requester,"WAIT_AIPass_Reinforce_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
-private _requesterCoordinated = !isNull _requester && {[_requester,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
+private _requesterReinforce = !isNull _requester && {[_requester,"CBE_AIPass_Reinforce_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+private _requesterCoordinated = !isNull _requester && {[_requester,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 private _requesterSupport = _requesterReinforce || {_requesterCoordinated};
-private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;
+private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;
 private _valid = !isNull _requester && {!isNull _requesterTransmitter} && {serverTime < (_job get "expiry")}
-    && {missionNamespace getVariable ["WAIT_AIPass_Enable",false]}
-    && {[_requester,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+    && {missionNamespace getVariable ["CBE_AIPass_Enable",false]}
+    && {[_requester,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {_requesterSupport}
-    && {[_requester] call WAIT_fnc_CortexIsEligible}
+    && {[_requester] call CBE_fnc_CortexIsEligible}
     && {!(_job getOrDefault ["sawContact",false]) || {_observedPhase != "CALM"}};
 private _kept = [];
 {
     _x params ["_helper","_token","_owner","_ackBy","_status"];
-    private _lease = _helper getVariable ["WAIT_AIPass_SupportLease",[]];
-    private _footFit = (units _helper) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}};
-    private _helperReinforce = !isNull _helper && {[_helper,"WAIT_AIPass_Reinforce_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
-    private _helperCoordinated = !isNull _helper && {[_helper,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
+    private _lease = _helper getVariable ["CBE_AIPass_SupportLease",[]];
+    private _footFit = (units _helper) select {[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}};
+    private _helperReinforce = !isNull _helper && {[_helper,"CBE_AIPass_Reinforce_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+    private _helperCoordinated = !isNull _helper && {[_helper,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
     private _sharedReinforce = _requesterReinforce && {_helperReinforce};
     private _sharedCoordinated = _requesterCoordinated && {_helperCoordinated};
     private _helperSupport = _sharedReinforce || {_sharedCoordinated};
-    private _helperTransmitter = [_helper] call WAIT_fnc_CortexGroupTransmitter;
+    private _helperTransmitter = [_helper] call CBE_fnc_CortexGroupTransmitter;
     private _keep = _valid && {!isNull _helper} && {!isNull _helperTransmitter} && {_status != "REJECTED"}
         && {count _footFit >= 3}
-        && {[_helper] call WAIT_fnc_CortexIsEligible}
-        && {[_helper,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+        && {[_helper] call CBE_fnc_CortexIsEligible}
+        && {[_helper,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
         && {_helperSupport}
         && {_lease isNotEqualTo [] && {(_lease select 0) == _token}};
     if (_keep && {groupOwner _helper != _owner}) then {
         _owner = groupOwner _helper; _ackBy = serverTime+15; _status = "PENDING";
-        [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",_owner];
+        [_helper,_lease] remoteExecCall ["CBE_fnc_CortexSupportLocal",_owner];
     };
     if (_keep && {_status == "PENDING"} && {serverTime >= _ackBy}) then {_keep = false};
     if (_keep) then {_kept pushBack [_helper,_token,_owner,_ackBy,_status]} else {
-        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["WAIT_Cortex_SupportContact",nil,true]; _helper setVariable ["WAIT_AIPass_SupportLease",nil,true]; _helper setVariable ["WAIT_Cortex_SupportRole",nil,true]; _helper setVariable ["WAIT_Cortex_SupportEligibility",nil,true]};
+        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true]; _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true]};
     };
 } forEach _leases;
 _job set ["leases",_kept];
@@ -71,15 +71,15 @@ if (!_valid) exitWith {
     private _reason=call {
         if (isNull _requester) exitWith {"REQUESTER_DELETED"};
         if (serverTime >= (_job get "expiry")) exitWith {"EXPIRED"};
-        if (!(missionNamespace getVariable ["WAIT_AIPass_Enable",false]) || {!_requesterSupport}
-            || {!([_requester,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {"DISABLED"};
+        if (!(missionNamespace getVariable ["CBE_AIPass_Enable",false]) || {!_requesterSupport}
+            || {!([_requester,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {"DISABLED"};
         if (isNull _requesterTransmitter) exitWith {"NO_TRANSMITTER"};
         if (_job getOrDefault ["sawContact",false] && {_observedPhase == "CALM"}) exitWith {"CONTACT_LOST"};
         "REQUESTER_INELIGIBLE"
     };
     _job set ["terminationReason",_reason];
-    _requester setVariable ["WAIT_Cortex_SupportResponders",nil,true];
-    _requester setVariable ["WAIT_Cortex_SupportRequestState",nil,true];
+    _requester setVariable ["CBE_Cortex_SupportResponders",nil,true];
+    _requester setVariable ["CBE_Cortex_SupportRequestState",nil,true];
     _requests deleteAt (_job get "key");
     -1
 };
@@ -89,15 +89,15 @@ for "_i" from 1 to 8 do {
     if (_cursor >= count _candidates || {count _kept >= (_job get "maximum")}) exitWith {};
     private _helper = (_candidates select _cursor) select 2;
     _cursor = _cursor+1;
-    private _helperReinforce = !isNull _helper && {[_helper,"WAIT_AIPass_Reinforce_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
-    private _helperCoordinated = !isNull _helper && {[_helper,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
+    private _helperReinforce = !isNull _helper && {[_helper,"CBE_AIPass_Reinforce_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+    private _helperCoordinated = !isNull _helper && {[_helper,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
     private _sharedReinforce = _requesterReinforce && {_helperReinforce};
     private _sharedCoordinated = _requesterCoordinated && {_helperCoordinated};
     private _helperSupport = _sharedReinforce || {_sharedCoordinated};
-    private _helperTransmitter = [_helper] call WAIT_fnc_CortexGroupTransmitter;
-    if (!isNull _helper && {!isNull _helperTransmitter} && {(_helper getVariable ["WAIT_AIPass_SupportLease",[]]) isEqualTo []}
-        && {count ((units _helper) select {[_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}
-        && {[_helper] call WAIT_fnc_CortexIsEligible} && {[_helper,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+    private _helperTransmitter = [_helper] call CBE_fnc_CortexGroupTransmitter;
+    if (!isNull _helper && {!isNull _helperTransmitter} && {(_helper getVariable ["CBE_AIPass_SupportLease",[]]) isEqualTo []}
+        && {count ((units _helper) select {[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}
+        && {[_helper] call CBE_fnc_CortexIsEligible} && {[_helper,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
         && {_helperSupport}) then {
         // The request rally is an area anchor, never a common squad destination.
         // Reserve the footprint in the lease so migration preserves the same area.
@@ -114,7 +114,7 @@ for "_i" from 1 to 8 do {
                 private _centre = (_job get "rally") getPos [110*_row,_axis+180];
                 _centre = _centre getPos [55,_axis+([-90,90] select (_slot mod 2))];
                 private _occupied = _kept findIf {
-                    private _other = (_x select 0) getVariable ["WAIT_AIPass_SupportLease",[]];
+                    private _other = (_x select 0) getVariable ["CBE_AIPass_SupportLease",[]];
                     count _other == 6 && {(_other select 3) distance2D _centre < 109}
                 } >= 0;
                 if (!_occupied && {!surfaceIsWater _centre} && {((surfaceNormal _centre) select 2) >= 0.55}) then {
@@ -123,7 +123,7 @@ for "_i" from 1 to 8 do {
             };
             if (_rallyCandidates isNotEqualTo []) then {
                 private _selected=[getPosATL _helperTransmitter,_rallyCandidates,
-                    _job getOrDefault ["enemy",getPosATL _requesterTransmitter]] call WAIT_fnc_CortexSelectAvenue;
+                    _job getOrDefault ["enemy",getPosATL _requesterTransmitter]] call CBE_fnc_CortexSelectAvenue;
                 if (_selected isNotEqualTo []) then {_rally=+(_selected select 0)};
             };
         };
@@ -131,26 +131,26 @@ for "_i" from 1 to 8 do {
             private _token = format ["%1:%2",_job get "serial",_cursor];
             private _lease = [_token,_requester,_job get "expiry",_rally,_job get "at",[]];
             // A retired older operation must not abort this replacement reservation.
-            _helper setVariable ["WAIT_Cortex_SupportAbort",nil,true];
-            _helper setVariable ["WAIT_Cortex_SupportContact",[_token,+(_job get "enemy")],true];
-            _helper setVariable ["WAIT_AIPass_SupportLease",_lease,true];
+            _helper setVariable ["CBE_Cortex_SupportAbort",nil,true];
+            _helper setVariable ["CBE_Cortex_SupportContact",[_token,+(_job get "enemy")],true];
+            _helper setVariable ["CBE_AIPass_SupportLease",_lease,true];
             _kept pushBack [_helper,_token,groupOwner _helper,serverTime+15,"PENDING"];
-            [_helper,_lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal",groupOwner _helper];
+            [_helper,_lease] remoteExecCall ["CBE_fnc_CortexSupportLocal",groupOwner _helper];
         };
     };
 };
 _job set ["cursor",_cursor];
 _job set ["leases",_kept];
 private _responders = _kept apply {[_x select 0,_x select 1]};
-if (_responders isNotEqualTo (_requester getVariable ["WAIT_Cortex_SupportResponders",[]])) then {
-    _requester setVariable ["WAIT_Cortex_SupportResponders",_responders,true];
+if (_responders isNotEqualTo (_requester getVariable ["CBE_Cortex_SupportResponders",[]])) then {
+    _requester setVariable ["CBE_Cortex_SupportResponders",_responders,true];
 };
 if (_cursor >= count _candidates && {_kept isEqualTo []}) exitWith {
     _job set ["terminationReason","NO_RESPONDER"];
-    _requester setVariable ["WAIT_Cortex_SupportResponders",nil,true];
-    _requester setVariable ["WAIT_Cortex_SupportRequestState",[_job get "serial","NO_RESPONDER",serverTime],true];
+    _requester setVariable ["CBE_Cortex_SupportResponders",nil,true];
+    _requester setVariable ["CBE_Cortex_SupportRequestState",[_job get "serial","NO_RESPONDER",serverTime],true];
     _requests deleteAt (_job get "key");
     -1
 };
-[_job,_kept] call WAIT_fnc_CortexSupportCoordinateStep;
+[_job,_kept] call CBE_fnc_CortexSupportCoordinateStep;
 2

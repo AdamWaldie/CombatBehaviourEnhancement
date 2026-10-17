@@ -1,11 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
- * Runs one airborne insertion started by WAIT_fnc_CortexAirborneCheck: soldiers jump one at a time,
+ * Runs one airborne insertion started by CBE_fnc_CortexAirborneCheck: soldiers jump one at a time,
  * then the squad is sent to fight once it is on the ground.
  *
- * DROP: every WAIT_AIPass_Airborne_JumpInterval seconds the next soldier still aboard jumps
- * (WAIT_fnc_CortexParachuteJump). The drop pauses while the aircraft is below
- * WAIT_AIPass_Airborne_MinAltitude or over water, and stops if the aircraft is lost or another
+ * DROP: every CBE_AIPass_Airborne_JumpInterval seconds the next soldier still aboard jumps
+ * (CBE_fnc_CortexParachuteJump). The drop pauses while the aircraft is below
+ * CBE_AIPass_Airborne_MinAltitude or over water, and stops if the aircraft is lost or another
  * controller takes the squad; anyone still aboard then stays with the aircraft.
  * LAND: once every living member of the squad is on the ground (or 180 s after the start), the squad
  * returns to normal pass management. If it has no waypoints of its own left, it gets a SAD waypoint
@@ -15,6 +15,8 @@
  *
  * Review contract: Both DROP and LAND recheck eligibility. A landing timeout ends tracking without assigning a ground attack to soldiers still airborne.
  *
+ * Exact insertion episodes and owner epochs guard execution and cleanup; legacy jobs retire silently.
+ * Every DROP step rechecks live pilot/commander takeover before another passenger exits.
  * Repeat/JIP: current-owner eligibility and automatic feature gates are rechecked before each jump.
  * Arguments:
  * 0: job state <HASHMAP> - group, aircraft, jumpers, index, phase, target, deadline
@@ -23,45 +25,75 @@
  * Number - seconds until the next step, or -1 when finished
  *
  * Example:
- * [WAIT_fnc_CortexAirborneDropStep, _job, 0] call WAIT_fnc_CortexQueueJob;
+ * [CBE_fnc_CortexAirborneDropStep, _job, 0] call CBE_fnc_CortexQueueJob;
  * Result: the squad parachutes out one soldier at a time.
  *
- * Current caller: WAIT_fnc_CortexAirborneCheck (through the scheduler).
+ * Current caller: CBE_fnc_CortexAirborneCheck (through the scheduler).
  */
 
 params [["_job", createHashMap, [createHashMap]]];
 private _group = _job getOrDefault ["group", grpNull];
 private _aircraft = _job getOrDefault ["aircraft", objNull];
+private _episode=_job getOrDefault ["episode",[]];
+// Obsolete or legacy jobs cannot execute or retire a successor's insertion state.
+if (isNull _group || {!local _group} || {_episode isEqualTo []}
+    || {(_job getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+    || {_episode isNotEqualTo (_group getVariable ["CBE_AIPass_DropEpisode",[]])}) exitWith {-1};
 private _finish = {
     // A stale owner must not clear the successor's insertion bookkeeping. The shared
     // scheduler captures ownerEpoch when queuing this group job.
     private _sameOwner=!isNull _group && {local _group}
-        && {(_job getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])};
+        && {(_job getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_episode isEqualTo (_group getVariable ["CBE_AIPass_DropEpisode",[]])};
     if (_sameOwner) then {
-        _group setVariable ["WAIT_AIPass_Dropping",nil];
-        if (!isNull _aircraft && {local _aircraft}) then {_aircraft setVariable ["WAIT_AIPass_DropUntil",nil]};
+        _group setVariable ["CBE_AIPass_Dropping",nil];
+        _group setVariable ["CBE_AIPass_DropEpisode",nil,true];
+        if (!isNull _aircraft && {local _aircraft}
+            && {_episode isEqualTo (_aircraft getVariable ["CBE_AIPass_DropEpisode",[]])}) then {
+            _aircraft setVariable ["CBE_AIPass_DropUntil",nil];
+            _aircraft setVariable ["CBE_AIPass_DropEpisode",nil,true];
+        };
     };
     -1
 };
-if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["WAIT_AIPass_Active", false])}
-    || {!([_group] call WAIT_fnc_CortexIsEligible)}
-    || {!(_job getOrDefault ["forced",false]) && {!([_group,"WAIT_AIPass_Airborne_Enable",false] call WAIT_fnc_CortexFeatureEnabled)}}) exitWith {call _finish};
+if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])}
+    || {!([_group] call CBE_fnc_CortexIsEligible)}
+    || {!(_job getOrDefault ["forced",false]) && {!([_group,"CBE_AIPass_Airborne_Enable",false] call CBE_fnc_CortexFeatureEnabled)}}) exitWith {call _finish};
 
+if (_episode isNotEqualTo (_aircraft getVariable ["CBE_AIPass_DropEpisode",[]])) exitWith {call _finish};
 if ((_job get "phase") == "DROP") exitWith {
-    private _jumpers = (_job get "jumpers") select {alive _x && {local _x} && {vehicle _x == _aircraft}};
+    private _jumpers = (_job get "jumpers") select {
+        local _x && {vehicle _x == _aircraft} && {!isPlayer _x}
+            && {[_x] call CBE_fnc_CortexCombatEffective}
+            && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+            && {isNull remoteControlled _x}
+            && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+    };
     if (_jumpers isEqualTo [] || {!alive _aircraft}) exitWith {
         _job set ["phase", "LAND"];
         3
     };
+    // Aircraft control can change after admission while the passenger squad remains AI-owned.
+    private _pilot=driver _aircraft;
+    private _commander=effectiveCommander _aircraft;
+    if (!([_pilot] call CBE_fnc_CortexCombatEffective) || {isPlayer _pilot}
+        || {isPlayer _commander} || {!isNull remoteControlled _pilot}
+        || {!isNull remoteControlled _commander}
+        || {!isNull (_pilot getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {!isNull (_commander getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {[group _pilot] call CBE_fnc_CortexExternalTakeover}
+        || {[group _commander] call CBE_fnc_CortexExternalTakeover}) exitWith {call _finish};
     // The jump itself is an owned action. Stop it before the next passenger leaves if Zeus, a
     // player or a specialist controller takes the group; anyone still aboard remains where that
-    // new controller expects rather than completing WAIT's earlier drop plan.
-    if (time > (_job get "deadline") || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {call _finish};
-    if (((getPos _aircraft) select 2) < (missionNamespace getVariable ["WAIT_AIPass_Airborne_MinAltitude", 120])
+    // new controller expects rather than completing CBE's earlier drop plan.
+    if (time > (_job get "deadline") || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {call _finish};
+    if (((getPos _aircraft) select 2) < (missionNamespace getVariable ["CBE_AIPass_Airborne_MinAltitude", 120])
         || {surfaceIsWater getPos _aircraft}) exitWith {1};
-    [_jumpers select 0, _aircraft] call WAIT_fnc_CortexParachuteJump;
-    _aircraft setVariable ["WAIT_AIPass_DropUntil", time + 30];
-    (missionNamespace getVariable ["WAIT_AIPass_Airborne_JumpInterval", 1]) max 0.5
+    [_jumpers select 0, _aircraft] call CBE_fnc_CortexParachuteJump;
+    _aircraft setVariable ["CBE_AIPass_DropUntil", time + 30];
+    (missionNamespace getVariable ["CBE_AIPass_Airborne_JumpInterval", 1]) max 0.5
 };
 
 // LAND
@@ -71,16 +103,16 @@ if (!_landed && {time < (_job get "deadline")}) exitWith {3};
 // A landing can take long enough for a curator or another controller to issue an order after the
 // last jumper left. Do not create a SAD waypoint over that replacement order merely because the
 // original automatic drop had no route when it started.
-if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {call _finish};
+if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {call _finish};
 if (_landed && {_alive isNotEqualTo []} && {currentWaypoint _group >= count waypoints _group}) then {
     private _waypoint = _group addWaypoint [_job get "target", 30];
     _waypoint setWaypointType "SAD";
     _group setCurrentWaypoint _waypoint;
 };
 if (_landed && {_alive isNotEqualTo []}) then {
-    missionNamespace setVariable ["WAIT_AIPass_AirborneDrops", (missionNamespace getVariable ["WAIT_AIPass_AirborneDrops", 0]) + 1];
-    diag_log format ["[WAIT] %1 airborne insertion complete (%2 on the ground).", _group, count _alive];
+    missionNamespace setVariable ["CBE_AIPass_AirborneDrops", (missionNamespace getVariable ["CBE_AIPass_AirborneDrops", 0]) + 1];
+    diag_log format ["[CBE] %1 airborne insertion complete (%2 on the ground).", _group, count _alive];
 } else {
-    diag_log format ["[WAIT] %1 airborne insertion INCOMPLETE: landing deadline expired or no survivors.", _group];
+    diag_log format ["[CBE] %1 airborne insertion INCOMPLETE: landing deadline expired or no survivors.", _group];
 };
 call _finish

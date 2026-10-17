@@ -1,10 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
+ * Finite indoor actors release only their exact journal-owned native legs before group cleanup.
  * Hands a group back to its own orders and removes everything the pass applied to it.
  *
  * Ends any flank drill (re-enabling only the AI features the drill itself disabled), rejoins the
  * search team, removes pass waypoints, restores behaviour and speed without ordering passengers to board,
- * and releases both scoped SPLIT-mode and blanket WAIT-mode COMPAT ownership. Explicit building
+ * and releases both scoped SPLIT-mode and blanket CBE-mode COMPAT ownership. Explicit building
  * orders remain in place during ordinary cleanup; a detected Zeus takeover releases them before
  * restoring the rest of Cortex state so no old controller competes with the curator.
  * Locality and authority: call where the group is local; state and flags are machine-local.
@@ -22,8 +23,8 @@
  * exact zero-speed lease remains current and no newer controller owns the group. The crew also
  * retracts its targetless onboard danger report so another passenger owner cannot consume stale work.
  * Ordinary vehicle unload-in-combat leases are released for the tracked exact vehicles. The previous
- * value is restored only without external takeover and only while WAIT's applied value is unchanged.
- * Naval cleanup restores the exact boat forced speed and removes only the token-matched WAIT plan.
+ * value is restored only without external takeover and only while CBE's applied value is unchanged.
+ * Naval cleanup restores the exact boat forced speed and removes only the token-matched CBE plan.
  * Arguments:
  * 0: group <GROUP>
  * 1: forget <BOOL> - also clear the managed flag so discovery may pick the group up again
@@ -38,7 +39,7 @@
  * Nothing
  *
  * Example:
- * [_group] call WAIT_fnc_CortexReleaseGroup;
+ * [_group] call CBE_fnc_CortexReleaseGroup;
  * Result: the group behaves exactly as it would without the pass.
  *
  * Current callers: Cortex eligibility/stop cleanup, Zeus and AI-order handovers, surrender,
@@ -47,49 +48,55 @@
 
 params [["_group", grpNull, [grpNull]], ["_forget", true, [false]], ["_reason", "", [""]], ["_keepBrain",false,[false]]];
 if (isNull _group) exitWith {};
+{
+    private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
+    if (count _indoor > 0 || {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}) then {
+        ["FINISH",_x,_indoor] call CBE_fnc_IndoorActorOperation;
+    };
+} forEach units _group;
 // Contact disablement releases autonomous state without rebuilding the same independent
 // safety/aid brain every discovery cycle. Full, external and locality releases still retire it.
 _keepBrain=_keepBrain && {!_forget} && {local _group}
-    && {!([_group] call WAIT_fnc_CortexExternalTakeover)}
-    && {!([_group] call WAIT_fnc_CortexZeusHeld)};
-private _state = _group getVariable ["WAIT_AIPass_State", createHashMap];
-private _brain=_group getVariable ["WAIT_GroupBrain",createHashMap];
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {!([_group] call CBE_fnc_CortexZeusHeld)};
+private _state = _group getVariable ["CBE_AIPass_State", createHashMap];
+private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
 if (count _brain > 0 && {!_keepBrain}) then {
     _brain set ["cancelled",true];
     _brain set ["cancelReason",if (_reason == "") then {"RELEASED"} else {_reason}];
     _brain set ["wakeAt",time];
     // Retire this FSM's identity synchronously. Its later Finished state must not
     // release a replacement CLEAR or other operation started in this same frame.
-    _group setVariable ["WAIT_GroupBrain_Generation",(_group getVariable ["WAIT_GroupBrain_Generation",0])+1];
-    _group setVariable ["WAIT_GroupBrain",nil];
-    _group setVariable ["WAIT_GroupBrain_FSM",nil];
-    _group setVariable ["WAIT_Cortex_GroupJob",nil];
+    _group setVariable ["CBE_GroupBrain_Generation",(_group getVariable ["CBE_GroupBrain_Generation",0])+1];
+    _group setVariable ["CBE_GroupBrain",nil];
+    _group setVariable ["CBE_GroupBrain_FSM",nil];
+    _group setVariable ["CBE_Cortex_GroupJob",nil];
 };
-private _yieldToZeus=local _group && {[_group] call WAIT_fnc_CortexZeusHeld};
+private _yieldToZeus=local _group && {[_group] call CBE_fnc_CortexZeusHeld};
 // The helper covers player members, curator possession, specialist ownership and explicit
-// compatibility markers. Do not restore a stale WAIT formation or posture when any one of those
+// compatibility markers. Do not restore a stale CBE formation or posture when any one of those
 // arrives between the original operation and this release.
-private _yieldToExternal=local _group && {!_yieldToZeus} && {[_group] call WAIT_fnc_CortexExternalTakeover};
+private _yieldToExternal=local _group && {!_yieldToZeus} && {[_group] call CBE_fnc_CortexExternalTakeover};
 if (_reason == "") then {
     _reason=if (_yieldToZeus) then {"ZEUS_TAKEOVER"} else {if (_yieldToExternal) then {"EXTERNAL_TAKEOVER"} else {"RELEASED"}};
 };
 private _externalTakeover=_yieldToZeus || {_yieldToExternal} || {_reason in ["ZEUS_TAKEOVER","EXTERNAL_TAKEOVER"]};
 // Full shutdown must release a native STOP acquired after a successful clear.
 // Ordinary contact-state cleanup does not undo the explicit post-clear hold.
-private _clearHold=_group getVariable ["WAIT_Cortex_ClearHold",[]];
+private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
 if (local _group && {count _clearHold == 4} && {_externalTakeover || {_reason == "CORTEX_STOPPED"}}) then {
-    _group setVariable ["WAIT_Cortex_ClearHold",nil,true];
-    if (!_externalTakeover && {(_clearHold select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])}
-        && {(_clearHold select 1) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
-        && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}) then {
+    _group setVariable ["CBE_Cortex_ClearHold",nil,true];
+    if (!_externalTakeover && {(_clearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
+        && {(_clearHold select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
         private _anchor=leader _group;
         {
             if (local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
                 && {isNull objectParent _x} && {isNull remoteControlled _x}
-                && {[_x] call WAIT_fnc_CortexCombatEffective}
-                && {!([_group,true,_x] call WAIT_fnc_CortexExternalTakeover)}
-                && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
-                && {(_x getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}) then {
+                && {[_x] call CBE_fnc_CortexCombatEffective}
+                && {!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)}
+                && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}) then {
                 _x doFollow _anchor;
             };
         } forEach (_clearHold select 3);
@@ -98,80 +105,80 @@ if (local _group && {count _clearHold == 4} && {_externalTakeover || {_reason ==
 // New curator intent invalidates pending operation work even when no common record
 // is active. Advance on the owner once per token; repeated cleanup is a no-op here.
 if (local _group && {_reason == "ZEUS_TAKEOVER"}) then {
-    private _curatorToken=_group getVariable ["WAIT_AIPass_ZeusHold",[]];
+    private _curatorToken=_group getVariable ["CBE_AIPass_ZeusHold",[]];
     if (count _curatorToken == 2
-        && {(_group getVariable ["WAIT_OperationCuratorToken",-1]) != (_curatorToken select 0)}) then {
+        && {(_group getVariable ["CBE_OperationCuratorToken",-1]) != (_curatorToken select 0)}) then {
         // Release exact-owned drill feature holds before invalidating their generation.
         // ZEUS suppresses posture, mode and formation restoration; the curator keeps its order.
         if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
-            [_group,_state,"ZEUS"] call WAIT_fnc_CortexFlankEnd;
+            [_group,_state,"ZEUS"] call CBE_fnc_CortexFlankEnd;
         };
-        _group setVariable ["WAIT_OperationCuratorToken",_curatorToken select 0];
-        _group setVariable ["WAIT_OperationGeneration",(_group getVariable ["WAIT_OperationGeneration",0])+1,true];
+        _group setVariable ["CBE_OperationCuratorToken",_curatorToken select 0];
+        _group setVariable ["CBE_OperationGeneration",(_group getVariable ["CBE_OperationGeneration",0])+1,true];
     };
 };
 // Explicit holding orders can survive without a tactical map while contact automation is off.
 // A terminal release still needs one authoritative diagnostic record, not a stale checkpoint.
 if (local _group && {count _state == 0}
     && {_reason in ["CORTEX_STOPPED","ZEUS_TAKEOVER","EXTERNAL_TAKEOVER"]}) then {
-    _state set ["phase",_group getVariable ["WAIT_AIPass_PublicPhase","CALM"]];
+    _state set ["phase",_group getVariable ["CBE_AIPass_PublicPhase","CALM"]];
 };
-private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if (local _group && {count _operation > 0}) then {
-    [_group,_operation getOrDefault ["generation",-1],_reason] call WAIT_fnc_OperationCancel;
+    [_group,_operation getOrDefault ["generation",-1],_reason] call CBE_fnc_OperationCancel;
 };
 if ((_state getOrDefault ["navalOperation",[]]) isNotEqualTo []
-    || {(_group getVariable ["WAIT_Cortex_NavalOperation",[]]) isNotEqualTo []}) then {
-    [_group,_state] call WAIT_fnc_CortexNavalRelease;
+    || {(_group getVariable ["CBE_Cortex_NavalOperation",[]]) isNotEqualTo []}) then {
+    [_group,_state] call CBE_fnc_CortexNavalRelease;
 };
 // Defence in depth for every caller, including a release delivered after locality migration. The
 // curator client normally retires these public tokens before dispatch, but cleanup must never depend
 // on that client-side write arriving first.
 if (_externalTakeover) then {
-    _group setVariable ["WAIT_Cortex_CombinedRole",nil,true];
-    _group setVariable ["WAIT_Cortex_CombinedApplied",nil,true];
-    _group setVariable ["WAIT_Cortex_CombinedOpportunity",nil,true];
+    _group setVariable ["CBE_Cortex_CombinedRole",nil,true];
+    _group setVariable ["CBE_Cortex_CombinedApplied",nil,true];
+    _group setVariable ["CBE_Cortex_CombinedOpportunity",nil,true];
 };
-// WAIT building operations are movement owners too. Zeus replacement orders terminate them before
+// CBE building operations are movement owners too. Zeus replacement orders terminate them before
 // general group state is restored.
 if (_externalTakeover) then {
     // Defence is an explicit movement owner too. Retire its public assignment so
     // discovery/locality replay cannot restore the old line after a curator edit.
-    [_group,false] call WAIT_fnc_CortexDefendRelease;
-    [_group,false] call WAIT_fnc_CortexClearRelease;
-    [_group,false] call WAIT_fnc_CortexGarrisonRelease;
+    [_group,false] call CBE_fnc_CortexDefendRelease;
+    [_group,false] call CBE_fnc_CortexClearRelease;
+    [_group,false] call CBE_fnc_CortexGarrisonRelease;
 };
-private _markedSupportHold=(units _group) findIf {_x getVariable ["WAIT_Cortex_SupportPathHold",false]} >= 0;
-if (local _group && {count _state > 0 || {_markedSupportHold} || {(_group getVariable ["WAIT_Cortex_Remount",[]]) isNotEqualTo []}}) then {
-    if (count (_state getOrDefault ["drill", createHashMap]) > 0) then {[_group, _state, ["RELEASE","ZEUS"] select _externalTakeover] call WAIT_fnc_CortexFlankEnd};
-    [_group, _state, false, _externalTakeover, _reason] call WAIT_fnc_CortexRestoreCalm;
+private _markedSupportHold=(units _group) findIf {_x getVariable ["CBE_Cortex_SupportPathHold",false]} >= 0;
+if (local _group && {count _state > 0 || {_markedSupportHold} || {(_group getVariable ["CBE_Cortex_Remount",[]]) isNotEqualTo []}}) then {
+    if (count (_state getOrDefault ["drill", createHashMap]) > 0) then {[_group, _state, ["RELEASE","ZEUS"] select _externalTakeover] call CBE_fnc_CortexFlankEnd};
+    [_group, _state, false, _externalTakeover, _reason] call CBE_fnc_CortexRestoreCalm;
 };
 if (local _group && {!_keepBrain}) then {
-    _group setVariable ["WAIT_Cortex_DismountContinuation",nil,true];
-    [_group,-1,false,""] call WAIT_fnc_DangerGroupHideStep;
-    _group setVariable ["WAIT_Danger_CoverPending",nil];
-    private _dangerCoverLease=_group getVariable ["WAIT_Danger_CoverLease",[]];
+    _group setVariable ["CBE_Cortex_DismountContinuation",nil,true];
+    [_group,-1,false,""] call CBE_fnc_DangerGroupHideStep;
+    _group setVariable ["CBE_Danger_CoverPending",nil];
+    private _dangerCoverLease=_group getVariable ["CBE_Danger_CoverLease",[]];
     if (count _dangerCoverLease >= 2) then {
-        [_group,_dangerCoverLease select 0,[],_dangerCoverLease select 1,true] call WAIT_fnc_DangerCoverStep;
+        [_group,_dangerCoverLease select 0,[],_dangerCoverLease select 1,true] call CBE_fnc_DangerCoverStep;
     };
-    private _dangerActor=[_group] call WAIT_fnc_CortexGroupAnchor;
+    private _dangerActor=[_group] call CBE_fnc_CortexGroupAnchor;
     if (isNull _dangerActor) then {_dangerActor=leader _group};
-    [_dangerActor,"RELEASE"] call WAIT_fnc_DangerReact;
+    [_dangerActor,"RELEASE"] call CBE_fnc_DangerReact;
     // The engine FSM may have applied a separate weak stance to any local member, including an
     // observer which is not the current group anchor. Retire every exact actor lease now so a
-    // feature shutdown restores WAIT-owned posture and an external takeover simply discards it.
+    // feature shutdown restores CBE-owned posture and an external takeover simply discards it.
     {
-        if (local _x) then {[_x] call WAIT_fnc_DangerEngineRelease};
+        if (local _x) then {[_x] call CBE_fnc_DangerEngineRelease};
     } forEach units _group;
-    [_group,"",false] call WAIT_fnc_CortexOwnershipLease;
+    [_group,"",false] call CBE_fnc_CortexOwnershipLease;
     // A release or Zeus takeover invalidates any still-published danger handoff before another
     // controller can consume it. Event handlers will create a fresh, owner-local response later.
-    _group setVariable ["WAIT_Danger_Response",nil,true];
-    _group setVariable ["WAIT_Danger_ResponseEvent",nil];
-    _group setVariable ["WAIT_Danger_Action",nil,true];
-    _group setVariable ["WAIT_Danger_Contact",nil,true];
-    _group setVariable ["WAIT_Danger_VehicleContext",nil,true];
-    private _currentBrain=_group getVariable ["WAIT_GroupBrain",createHashMap];
+    _group setVariable ["CBE_Danger_Response",nil,true];
+    _group setVariable ["CBE_Danger_ResponseEvent",nil];
+    _group setVariable ["CBE_Danger_Action",nil,true];
+    _group setVariable ["CBE_Danger_Contact",nil,true];
+    _group setVariable ["CBE_Danger_VehicleContext",nil,true];
+    private _currentBrain=_group getVariable ["CBE_GroupBrain",createHashMap];
     if (count _currentBrain > 0) then {_currentBrain deleteAt "responsiveUntil"};
 };
 // General driving owns a speed cap, never a route. Its former vehicle may no longer contain this
@@ -179,14 +186,17 @@ if (local _group && {!_keepBrain}) then {
 // local set as well as currently occupied vehicles.
 if (local _group) then {
     if (!_keepBrain) then {
-        {[_x,_group] call WAIT_fnc_DrivingAssistRelease} forEach (_group getVariable ["WAIT_DrivingAssist_Vehicles",[]]);
-        _group setVariable ["WAIT_DrivingAssist_Vehicles",nil];
+        private _drivingBrain=_group getVariable ["CBE_Driving_Brain",createHashMap];
+        if (count _drivingBrain > 0) then {[_drivingBrain,_reason] call CBE_fnc_DrivingOperationFinish};
+        _group setVariable ["CBE_Driving_Brain",nil];
+        {[_x,_group] call CBE_fnc_DrivingAssistRelease} forEach (_group getVariable ["CBE_DrivingAssist_Vehicles",[]]);
+        _group setVariable ["CBE_DrivingAssist_Vehicles",nil];
     };
     {
         if (local _x) then {
-            [_x,_group,"RELEASE",!_externalTakeover] call WAIT_fnc_CortexVehicleUnloadPolicy;
+            [_x,_group,"RELEASE",!_externalTakeover] call CBE_fnc_CortexVehicleUnloadPolicy;
         };
-    } forEach +(_group getVariable ["WAIT_Cortex_UnloadPolicyVehicles",[]]);
+    } forEach +(_group getVariable ["CBE_Cortex_UnloadPolicyVehicles",[]]);
 };
 // Release an interrupted cross-group dismount without stranding the vehicle at forced speed zero.
 private _releasedVehicles=[];
@@ -195,23 +205,23 @@ private _releasedVehicles=[];
     if (_vehicle != _x && {!(_vehicle in _releasedVehicles)}
         && {local _vehicle} && {effectiveCommander _vehicle in units _group}) then {
         _releasedVehicles pushBack _vehicle;
-        private _saved=_vehicle getVariable ["WAIT_Cortex_DismountForcedSpeed",[]];
+        private _saved=_vehicle getVariable ["CBE_Cortex_DismountForcedSpeed",[]];
         private _ownedStop=_saved param [1,-2];
         if (!_externalTakeover && {_saved isNotEqualTo []} && {_ownedStop >= 0}
             && {abs ((getForcedSpeed _vehicle)-_ownedStop) <= 0.1}) then {
             _vehicle forceSpeed (_saved param [0,-1]);
         };
-        _vehicle setVariable ["WAIT_Cortex_DismountForcedSpeed",nil];
-        _vehicle setVariable ["WAIT_Cortex_DismountStopOrder",nil,true];
-        _vehicle setVariable ["WAIT_Cortex_DismountStopRequest",nil,true];
-        _vehicle setVariable ["WAIT_Cortex_OnboardDanger",nil,true];
+        _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",nil];
+        _vehicle setVariable ["CBE_Cortex_DismountStopOrder",nil,true];
+        _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
+        _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
     };
 } forEach units _group;
-_group setVariable ["WAIT_AIPass_State", nil];
+_group setVariable ["CBE_AIPass_State", nil];
 if (_forget) then {
-    _group setVariable ["WAIT_AIPass_Managed",nil];
-    _group setVariable ["WAIT_GroupBrain_Generation",(_group getVariable ["WAIT_GroupBrain_Generation",0])+1];
-    _group setVariable ["WAIT_GroupBrain",nil];
-    _group setVariable ["WAIT_GroupBrain_FSM",nil];
-    _group setVariable ["WAIT_Cortex_GroupJob",nil];
+    _group setVariable ["CBE_AIPass_Managed",nil];
+    _group setVariable ["CBE_GroupBrain_Generation",(_group getVariable ["CBE_GroupBrain_Generation",0])+1];
+    _group setVariable ["CBE_GroupBrain",nil];
+    _group setVariable ["CBE_GroupBrain_FSM",nil];
+    _group setVariable ["CBE_Cortex_GroupJob",nil];
 };

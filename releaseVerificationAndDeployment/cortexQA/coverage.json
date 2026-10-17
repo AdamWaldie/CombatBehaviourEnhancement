@@ -7,7 +7,7 @@
     "order replacement and cancellation",
     "repeated start and cleanup",
     "server owner",
-    "WAIT HC transfer",
+    "CBE HC transfer",
     "ACE HC transfer",
     "HC disconnect",
     "JIP observer",
@@ -51,17 +51,17 @@
       "setup": "Use ordinary, excluded, player-led, Zeus-controlled and feature-owned squads. Toggle Cortex and transfer ownership during movement.",
       "expected": "Only eligible squads receive orders; disabled/excluded squads retain authored orders; old-owner jobs stop and one new owner resumes.",
       "settings": [
-        "WAIT_AIPass_Enable",
-        "WAIT_AIPass_IncludedSides",
-        "WAIT_AIPass_ZeusHoldSeconds"
+        "CBE_AIPass_Enable",
+        "CBE_AIPass_IncludedSides",
+        "CBE_AIPass_ZeusHoldSeconds"
       ],
       "controls": [
-        "WAIT_AIPass_Exclude"
+        "CBE_AIPass_Exclude"
       ],
       "status": "implemented_partial",
       "live_evidence": [
         "runtime-20260927-032658: CORE MASTER/GROUP/UNIT/EXTERNAL/SIDE refusal and physical arrival passed.",
-        "runtime-20260927-094454: 53 lifecycle checks passed, zero SQF errors, server and client complete. Held-defence Zeus takeover and replacement arrival passed for server and two WAIT HC variants after return to server. Added server mid-movement interruption, replacement arrival and 15-second no-resurrection checks passed. Real curator event delivery and interruption during every feature remain unverified; prior HC replacement failure retained."
+        "runtime-20260927-094454: 53 lifecycle checks passed, zero SQF errors, server and client complete. Held-defence Zeus takeover and replacement arrival passed for server and two CBE HC variants after return to server. Added server mid-movement interruption, replacement arrival and 15-second no-resurrection checks passed. Real curator event delivery and interruption during every feature remain unverified; prior HC replacement failure retained."
       ],
       "automation": "runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks.",
       "executable_sources": [
@@ -70,6 +70,7 @@
       ],
       "production_sources": [
         "addons/infantry/functions/cortexCombatEffective.sqf",
+        "addons/infantry/functions/cortexActorMoveReserved.sqf",
         "addons/core/functions/cortexDiscover.sqf",
         "addons/infantry/functions/cortexFeatureEnabled.sqf",
         "addons/infantry/functions/cortexGroupState.sqf",
@@ -107,14 +108,14 @@
     {
       "id": "COMPAT",
       "title": "Specialist ownership and alternative-controller handover",
-      "setup": "Run a fresh dedicated-server squad audit with WAIT's exclusive engine danger FSM, then load supported specialist and alternative movement controllers with two headless clients. Exercise active specialist ownership, a finite alternative movement lease, owner migration and Zeus replacement order.",
-      "expected": "WAIT physically moves and holds the complete squad using its own danger and building operations. Specialist actors are excluded while their controller is active. A finite independent movement lease preserves its exact baseline, survives owner migration and releases before Zeus replacement movement. No shared danger or building controller is supported.",
+      "setup": "Run a fresh dedicated-server squad audit with CBE's exclusive engine danger FSM, then load supported specialist and alternative movement controllers with two headless clients. Exercise active specialist ownership, a finite alternative movement lease, owner migration and Zeus replacement order.",
+      "expected": "CBE physically moves and holds the complete squad using its own danger and building operations. Specialist actors are excluded while their controller is active. A finite independent movement lease preserves its exact baseline, survives owner migration and releases before Zeus replacement movement. No shared danger or building controller is supported.",
       "settings": [],
       "status": "implemented_partial",
       "live_evidence": [
         "Historical script-pack evidence is retained separately; the exclusive engine danger FSM and native building ownership require a fresh packaged-mod acceptance batch."
       ],
-      "automation": "runCompatibility.sqf checks the configured WAIT danger FSM, physical standalone movement, exclusive finite WAIT movement leases and Zeus handover. runBuildingComparison.sqf tests only WAIT-owned garrison and CQB behaviour. Source regressions cover start, renewal, completion, expiry and locality resume. Packaged physical acceptance, HC distribution, disconnect, JIP and broader terrain/controller combinations remain pending.",
+      "automation": "runCompatibility.sqf checks the configured CBE danger FSM, physical standalone movement, exclusive finite CBE movement leases and Zeus handover. runBuildingComparison.sqf tests only CBE-owned garrison and CQB behaviour. Source regressions cover start, renewal, completion, expiry and locality resume. Packaged physical acceptance, HC distribution, disconnect, JIP and broader terrain/controller combinations remain pending.",
       "executable_sources": [
         "runCompatibility.sqf",
         "runBuildingComparison.sqf"
@@ -136,17 +137,17 @@
       "setup": "Use 50 groups as the primary acceptance load, with separate six-soldier infantry and mixed infantry, ground vehicle, helicopter and jet fixtures. Repeat OFF/ON/ON/OFF for the server-only scheduler baseline and under distributed HC ownership, collecting frame-time distributions, queue age and physical response latency. Preserve prior 100-group runs as historical saturation evidence rather than repeating them in the routine full audit.",
       "expected": "All 50 groups must remain responsive without significant overhead versus the matched native baseline. User-confirmed budget: <=5% median and <=10% p95 added frame time at 50 groups, with no stalled AI jobs. No starvation, duplicate controllers, or disabled-feature work. The twelve one-unit queue fixture and historical 100-group results are not primary scale acceptance.",
       "settings": [
-        "WAIT_AIPass_Debug",
-        "WAIT_AIPass_DiscoveryInterval",
-        "WAIT_AIPass_FarRange",
-        "WAIT_AIPass_LowFpsThreshold",
-        "WAIT_AIPass_NearRange",
-        "WAIT_AIPass_ReactionSpeed",
-        "WAIT_AIPass_TickBudgetMs",
-        "WAIT_AIPass_TickContact",
-        "WAIT_AIPass_TickFar",
-        "WAIT_AIPass_TickMid",
-        "WAIT_AIPass_TickNear"
+        "CBE_AIPass_Debug",
+        "CBE_AIPass_DiscoveryInterval",
+        "CBE_AIPass_FarRange",
+        "CBE_AIPass_LowFpsThreshold",
+        "CBE_AIPass_NearRange",
+        "CBE_AIPass_ReactionSpeed",
+        "CBE_AIPass_TickBudgetMs",
+        "CBE_AIPass_TickContact",
+        "CBE_AIPass_TickFar",
+        "CBE_AIPass_TickMid",
+        "CBE_AIPass_TickNear"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -175,13 +176,13 @@
       "setup": "Exercise each profile, faction override and group override; repeat with aggression zero and maximum.",
       "expected": "Precedence is correct; zero excludes proactive starts; positive flank/advance values choose a tactic instead of independently rejecting action; skill values remain independent.",
       "settings": [
-        "WAIT_AIPass_Aggression",
-        "WAIT_AIPass_BehaviourProfile",
-        "WAIT_AIPass_FactionProfiles",
-        "WAIT_AIPass_ProfileBehaviour"
+        "CBE_AIPass_Aggression",
+        "CBE_AIPass_BehaviourProfile",
+        "CBE_AIPass_FactionProfiles",
+        "CBE_AIPass_ProfileBehaviour"
       ],
       "controls": [
-        "WAIT_AIPass_Profile"
+        "CBE_AIPass_Profile"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -201,20 +202,20 @@
       "setup": "Spawn eligible and filtered units before/after enabling; sample actual subskills, day/night variants and restoration.",
       "expected": "Expected units receive configured skills once, variance remains stable, excluded/player units retain their values and stop restores captured values.",
       "settings": [
-        "WAIT_AIRebalance_Enable",
-        "WAIT_AIRebalance_Profile",
-        "WAIT_AI_ApplyMode",
-        "WAIT_AI_ExcludedClasses",
-        "WAIT_AI_ExcludedFactions",
-        "WAIT_AI_IncludedFactions",
-        "WAIT_AI_IncludedSides",
-        "WAIT_AI_ProfileDisplayNames",
-        "WAIT_AI_RestoreOnStop",
-        "WAIT_AI_SkillVariance",
-        "WAIT_AI_InfantryDispersion",
-        "WAIT_AI_VehicleCrewAimMultiplier",
-        "WAIT_AI_VehicleCrewDispersion",
-        "WAIT_AI_AirCrewDispersion"
+        "CBE_AIRebalance_Enable",
+        "CBE_AIRebalance_Profile",
+        "CBE_AI_ApplyMode",
+        "CBE_AI_ExcludedClasses",
+        "CBE_AI_ExcludedFactions",
+        "CBE_AI_IncludedFactions",
+        "CBE_AI_IncludedSides",
+        "CBE_AI_ProfileDisplayNames",
+        "CBE_AI_RestoreOnStop",
+        "CBE_AI_SkillVariance",
+        "CBE_AI_InfantryDispersion",
+        "CBE_AI_VehicleCrewAimMultiplier",
+        "CBE_AI_VehicleCrewDispersion",
+        "CBE_AI_AirCrewDispersion"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -236,27 +237,27 @@
       "setup": "Fly a crewed helicopter to real LAND/GETOUT waypoints over clear and obstructed terrain; delete/replace the waypoint in flight.",
       "expected": "Aircraft physically approaches, touches down and holds; terrain clearance, bounded go-around and cleanup survive transfer/deletion.",
       "settings": [
-        "WAIT_ImprovedHelicopterLanding_ControlInterval",
-        "WAIT_ImprovedHelicopterLanding_Enable",
-        "WAIT_ImprovedHelicopterLanding_FinalCommitDistance",
-        "WAIT_ImprovedHelicopterLanding_GlideSlopeRatio",
-        "WAIT_ImprovedHelicopterLanding_GoAroundExitDistance",
-        "WAIT_ImprovedHelicopterLanding_GoAroundHeight",
-        "WAIT_ImprovedHelicopterLanding_GoAroundSpeed",
-        "WAIT_ImprovedHelicopterLanding_GoAroundTriggerDistance",
-        "WAIT_ImprovedHelicopterLanding_MaximumClimbRate",
-        "WAIT_ImprovedHelicopterLanding_MaximumDescentRate",
-        "WAIT_ImprovedHelicopterLanding_MaximumGoArounds",
-        "WAIT_ImprovedHelicopterLanding_MaximumTreeHoverHeight",
-        "WAIT_ImprovedHelicopterLanding_MinimumActivationDistance",
-        "WAIT_ImprovedHelicopterLanding_MinimumApproachSpeed",
-        "WAIT_ImprovedHelicopterLanding_TouchdownHoldSeconds",
-        "WAIT_ImprovedHelicopterLanding_TouchdownRadius",
-        "WAIT_ImprovedHelicopterLanding_TransitAltitude",
-        "WAIT_ImprovedHelicopterLanding_TreeSafetyBuffer",
-        "WAIT_ImprovedHelicopterLanding_TreeScanRadius",
-        "WAIT_ImprovedHelicopterLanding_TriggerDistance",
-        "WAIT_ImprovedHelicopterLanding_TriggerSpeedFactor"
+        "CBE_ImprovedHelicopterLanding_ControlInterval",
+        "CBE_ImprovedHelicopterLanding_Enable",
+        "CBE_ImprovedHelicopterLanding_FinalCommitDistance",
+        "CBE_ImprovedHelicopterLanding_GlideSlopeRatio",
+        "CBE_ImprovedHelicopterLanding_GoAroundExitDistance",
+        "CBE_ImprovedHelicopterLanding_GoAroundHeight",
+        "CBE_ImprovedHelicopterLanding_GoAroundSpeed",
+        "CBE_ImprovedHelicopterLanding_GoAroundTriggerDistance",
+        "CBE_ImprovedHelicopterLanding_MaximumClimbRate",
+        "CBE_ImprovedHelicopterLanding_MaximumDescentRate",
+        "CBE_ImprovedHelicopterLanding_MaximumGoArounds",
+        "CBE_ImprovedHelicopterLanding_MaximumTreeHoverHeight",
+        "CBE_ImprovedHelicopterLanding_MinimumActivationDistance",
+        "CBE_ImprovedHelicopterLanding_MinimumApproachSpeed",
+        "CBE_ImprovedHelicopterLanding_TouchdownHoldSeconds",
+        "CBE_ImprovedHelicopterLanding_TouchdownRadius",
+        "CBE_ImprovedHelicopterLanding_TransitAltitude",
+        "CBE_ImprovedHelicopterLanding_TreeSafetyBuffer",
+        "CBE_ImprovedHelicopterLanding_TreeScanRadius",
+        "CBE_ImprovedHelicopterLanding_TriggerDistance",
+        "CBE_ImprovedHelicopterLanding_TriggerSpeedFactor"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -282,23 +283,23 @@
       "setup": "Brake eligible helicopters and optional VTOL at high/low altitude, including rising terrain ahead.",
       "expected": "Correction occurs only inside the configured envelope, remains bounded and releases; no correction for excluded airframes or unsafe clearance.",
       "settings": [
-        "WAIT_HelicopterDeceleration_ControlInterval",
-        "WAIT_HelicopterDeceleration_Debug",
-        "WAIT_HelicopterDeceleration_Enable",
-        "WAIT_HelicopterDeceleration_IncludeVTOL",
-        "WAIT_HelicopterDeceleration_MaximumClimbRate",
-        "WAIT_HelicopterDeceleration_MaximumCorrectionAcceleration",
-        "WAIT_HelicopterDeceleration_MaximumCorrectionSeconds",
-        "WAIT_HelicopterDeceleration_MinimumAltitude",
-        "WAIT_HelicopterDeceleration_MinimumAltitudeGain",
-        "WAIT_HelicopterDeceleration_MinimumNoseUp",
-        "WAIT_HelicopterDeceleration_MinimumSpeed",
-        "WAIT_HelicopterDeceleration_MinimumSpeedLoss",
-        "WAIT_HelicopterDeceleration_SampleInterval",
-        "WAIT_HelicopterDeceleration_TerrainClearance"
+        "CBE_HelicopterDeceleration_ControlInterval",
+        "CBE_HelicopterDeceleration_Debug",
+        "CBE_HelicopterDeceleration_Enable",
+        "CBE_HelicopterDeceleration_IncludeVTOL",
+        "CBE_HelicopterDeceleration_MaximumClimbRate",
+        "CBE_HelicopterDeceleration_MaximumCorrectionAcceleration",
+        "CBE_HelicopterDeceleration_MaximumCorrectionSeconds",
+        "CBE_HelicopterDeceleration_MinimumAltitude",
+        "CBE_HelicopterDeceleration_MinimumAltitudeGain",
+        "CBE_HelicopterDeceleration_MinimumNoseUp",
+        "CBE_HelicopterDeceleration_MinimumSpeed",
+        "CBE_HelicopterDeceleration_MinimumSpeedLoss",
+        "CBE_HelicopterDeceleration_SampleInterval",
+        "CBE_HelicopterDeceleration_TerrainClearance"
       ],
       "controls": [
-        "WAIT_HelicopterDeceleration_Exclude"
+        "CBE_HelicopterDeceleration_Exclude"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -318,15 +319,15 @@
       "setup": "Create losses in a full squad near a compatible host, a deliberate two-person team and a full host.",
       "expected": "Only eligible remnants merge; members physically approach or report documented timeout fallback; no oversized or incompatible host merge.",
       "settings": [
-        "WAIT_AIPass_Regroup_Enable",
-        "WAIT_AIPass_Regroup_JoinDistance",
-        "WAIT_AIPass_Regroup_MaxGroupSize",
-        "WAIT_AIPass_Regroup_MaxRemnantSize",
-        "WAIT_AIPass_Regroup_MinimumPeakSize",
-        "WAIT_AIPass_Regroup_SearchRadius",
-        "WAIT_AIPass_Regroup_SettleSeconds",
-        "WAIT_AIPass_Regroup_StuckSeconds",
-        "WAIT_AIPass_Regroup_TimeoutSeconds"
+        "CBE_AIPass_Regroup_Enable",
+        "CBE_AIPass_Regroup_JoinDistance",
+        "CBE_AIPass_Regroup_MaxGroupSize",
+        "CBE_AIPass_Regroup_MaxRemnantSize",
+        "CBE_AIPass_Regroup_MinimumPeakSize",
+        "CBE_AIPass_Regroup_SearchRadius",
+        "CBE_AIPass_Regroup_SettleSeconds",
+        "CBE_AIPass_Regroup_StuckSeconds",
+        "CBE_AIPass_Regroup_TimeoutSeconds"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -343,12 +344,12 @@
       "id": "MEDICAL",
       "title": "Finite squad medical assistance",
       "setup": "Use a local on-foot medic and one injured squad-mate in CALM and SECURITY. Repeat with active contact, a Zeus replacement order, a specialist medical owner, no medic, a vehicle passenger, and an unreachable casualty.",
-      "expected": "Only an eligible medic physically approaches and uses native treatment during CALM or SECURITY. WAIT never changes health, teleports, merges groups or holds an assault. Contact, a newer Zeus order, specialist medical ownership, loss of an actor or no physical progress cancel the matching finite operation without replacing an external command.",
+      "expected": "Only an eligible medic physically approaches and uses native treatment during CALM or SECURITY. CBE never changes health, teleports, merges groups or holds an assault. Contact, a newer Zeus order, specialist medical ownership, loss of an actor or no physical progress cancel the matching finite operation without replacing an external command.",
       "settings": [
-        "WAIT_AIPass_MedicalAssist_Enable",
-        "WAIT_AIPass_MedicalAssist_Range",
-        "WAIT_AIPass_MedicalAssist_DamageThreshold",
-        "WAIT_AIPass_MedicalAssist_Timeout"
+        "CBE_AIPass_MedicalAssist_Enable",
+        "CBE_AIPass_MedicalAssist_Range",
+        "CBE_AIPass_MedicalAssist_DamageThreshold",
+        "CBE_AIPass_MedicalAssist_Timeout"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -364,21 +365,21 @@
       "id": "CONTACT",
       "title": "Contact detection",
       "setup": "Expose real enemies, then occlude them; compare live engine knowledge and Cortex phase. Separately expose a firing-capable squad with an authored HOLD or SENTRY waypoint.",
-      "expected": "Real sightings trigger contact; no omniscient acquisition; contact-off leaves explicit orders usable. Authored HOLD/SENTRY permits native observation and fire but blocks every autonomous WAIT movement owner and replacement waypoint.",
+      "expected": "Real sightings trigger contact; no omniscient acquisition; contact-off leaves explicit orders usable. Authored HOLD/SENTRY permits native observation and fire but blocks every autonomous CBE movement owner and replacement waypoint.",
       "settings": [
-        "WAIT_AIPass_Contact_Enable",
-        "WAIT_AIPass_EngageRange",
-        "WAIT_AIPass_Danger_Enable",
-        "WAIT_AIPass_DangerSmoke_Enable",
-        "WAIT_AIPass_StaticSupport_Enable",
-        "WAIT_AIPass_StaticDeploy_Enable",
-        "WAIT_AIPass_DangerEvasion_Enable",
-        "WAIT_AIPass_DangerObservation_Enable",
-        "WAIT_AIPass_DangerConcealment_Enable"
+        "CBE_AIPass_Contact_Enable",
+        "CBE_AIPass_EngageRange",
+        "CBE_AIPass_Danger_Enable",
+        "CBE_AIPass_DangerSmoke_Enable",
+        "CBE_AIPass_StaticSupport_Enable",
+        "CBE_AIPass_StaticDeploy_Enable",
+        "CBE_AIPass_DangerEvasion_Enable",
+        "CBE_AIPass_DangerObservation_Enable",
+        "CBE_AIPass_DangerConcealment_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runContact.sqf first disables the live danger gate and detonates a real grenade beside an isolated soldier, requiring no WAIT stance, cover, response or CONTACT ownership before re-enabling the feature. It proves a targetless explosion preserves explicit BLUE hold-fire without CONTACT, then exposes the same BLUE/STEALTH group to a naturally known hostile and requires awareness plus a finite weak low-profile stance without WAIT movement, fire, artillery, reinforcement, combined-arms or manoeuvre ownership. A separate four-rifleman fixture holds an ordinary HOLD waypoint while naturally detecting and firing on a real hostile; it requires real shots, continued HOLD ownership, less than 20 metres dispersion and no WAIT operation, drill, support reservation or replacement waypoint. It kills a real same-group actor to require native HIDE delivery while the survivor remains CALM and BLUE with no invented contact. A separate CARELESS soldier receives a real grenade stimulus and must preserve the authored state without an accepted group record or CONTACT transition. A real targetless grenade beside another isolated invulnerable soldier and a solid wall requires native engine-FSM submission, an observed physical crouch/prone reflex, an actual bounded move behind cover, exact authored-AUTO restoration, prompt CALM release, no acquired enemy and no SECURITY/SEARCH transition. A separated-wingman explosion requires exact-observer cover, at least two additional idle group members to receive finite generation-owned low-profile leases, exact stance restoration, and natural FSM completion with observer, mounted context, response and action identities physically gone. The same fixture then commits a real route through another explosion and requires physical progress without a forced-prone stall. A real hostile at 25 metres must produce native fire, end the immediate actor reflex after its fixed two-cycle budget and hand continuing contact back to native AI and the persistent group brain without reveal, target, fire or synthetic-danger injection. A separate soldier receives a native GET IN task before a real grenade and must physically board without an accepted group danger record, WAIT response or CONTACT transition. runTacticalAssessment.sqf adds three real-contact selection cases: riflemen without anti-armour capability must record ARMOUR_OVERMATCH and create no WAIT manoeuvre; the same vehicle contact under an authored forward MOVE must select ADVANCE and make physical progress; exposed infantry on a physical tower must record ELEVATED_FIRE_POSITION without a WAIT-authored uphill rush. runVehicleDrills.sqf adds a three-person armoured crew facing a real hostile, requires mounted persistence to remain exclusive to the effective commander while vehicle gunnery is disabled, then enables the production vehicle layer and requires confirmed CONTACT, one exact-platform generation-scoped safe suppression response and real fire without audit-injected target commands. That immediate response changes no route, speed or waypoint. The production group step may issue cover movement only to an idle actor with no native command, active WAIT operation, Zeus hold or specialist owner; casualty and scream evidence cannot authorise it, and exact-generation cleanup runs during ordinary and external handover. The remainder covers real wall occlusion, no hidden acquisition, enemy physical exposure, natural sighting, re-occlusion, sight ageing, reacquisition and post-contact interruption. Added, not live-verified. Active Zeus replacement now requires immediate danger cleanup plus physical replacement-waypoint arrival with no resurrection; active-response leader loss requires a living successor and ordinary-route continuation. External ownership and HC migration variants remain outstanding; runCombat.sqf is retained. The scheduler diagnostic uses a fresh ordinary MOVE squad and production discovery/listeners to measure wake latency, priority, expiry, no target reveal, route preservation, disabled rejection, listener cleanup and Zeus priority. Synthetic HIT submission remains scheduler-only diagnostics; real explosion and hostile-contact cases cover native engine delivery and finite response lifecycle. A saved static-support fixture places an empty armed friendly emplacement within 75 metres during natural contact and requires one nonleader to physically occupy its gunner seat while other squad members continue the engagement; disabled, failed-mount, contact-cleanup and Zeus-replacement cases must leave no stale assignment. A saved carried-support fixture requires a compatible two-person bag team to physically assemble its weapon, place the original carrier in the real gunner seat, fire the real weapon, natively disassemble it during post-contact security, recover both original bags and release exact ownership. None of the newly added assessment fixtures has been executed against the current package; failed assembly, failed bag recovery, renewed-contact interruption, Zeus interruption and locality migration remain explicit cases.",
+      "automation": "runContact.sqf first disables the live danger gate and detonates a real grenade beside an isolated soldier, requiring no CBE stance, cover, response or CONTACT ownership before re-enabling the feature. It proves a targetless explosion preserves explicit BLUE hold-fire without CONTACT, then exposes the same BLUE/STEALTH group to a naturally known hostile and requires awareness plus a finite weak low-profile stance without CBE movement, fire, artillery, reinforcement, combined-arms or manoeuvre ownership. A separate four-rifleman fixture holds an ordinary HOLD waypoint while naturally detecting and firing on a real hostile; it requires real shots, continued HOLD ownership, less than 20 metres dispersion and no CBE operation, drill, support reservation or replacement waypoint. It kills a real same-group actor to require native HIDE delivery while the survivor remains CALM and BLUE with no invented contact. A separate CARELESS soldier receives a real grenade stimulus and must preserve the authored state without an accepted group record or CONTACT transition. A real targetless grenade beside another isolated invulnerable soldier and a solid wall requires native engine-FSM submission, an observed physical crouch/prone reflex, an actual bounded move behind cover, exact authored-AUTO restoration, prompt CALM release, no acquired enemy and no SECURITY/SEARCH transition. A separated-wingman explosion requires exact-observer cover, at least two additional idle group members to receive finite generation-owned low-profile leases, exact stance restoration, and natural FSM completion with observer, mounted context, response and action identities physically gone. The same fixture then commits a real route through another explosion and requires physical progress without a forced-prone stall. A real hostile at 25 metres must produce native fire, end the immediate actor reflex after its fixed two-cycle budget and hand continuing contact back to native AI and the persistent group brain without reveal, target, fire or synthetic-danger injection. A separate soldier receives a native GET IN task before a real grenade and must physically board without an accepted group danger record, CBE response or CONTACT transition. runTacticalAssessment.sqf adds three real-contact selection cases: riflemen without anti-armour capability must record ARMOUR_OVERMATCH and create no CBE manoeuvre; the same vehicle contact under an authored forward MOVE must select ADVANCE and make physical progress; exposed infantry on a physical tower must record ELEVATED_FIRE_POSITION without a CBE-authored uphill rush. runVehicleDrills.sqf adds a three-person armoured crew facing a real hostile, requires mounted persistence to remain exclusive to the effective commander while vehicle gunnery is disabled, then enables the production vehicle layer and requires confirmed CONTACT, one exact-platform generation-scoped safe suppression response and real fire without audit-injected target commands. That immediate response changes no route, speed or waypoint. The production group step may issue cover movement only to an idle actor with no native command, active CBE operation, Zeus hold or specialist owner; casualty and scream evidence cannot authorise it, and exact-generation cleanup runs during ordinary and external handover. The remainder covers real wall occlusion, no hidden acquisition, enemy physical exposure, natural sighting, re-occlusion, sight ageing, reacquisition and post-contact interruption. Added, not live-verified. Active Zeus replacement now requires immediate danger cleanup plus physical replacement-waypoint arrival with no resurrection; active-response leader loss requires a living successor and ordinary-route continuation. External ownership and HC migration variants remain outstanding; runCombat.sqf is retained. The scheduler diagnostic uses a fresh ordinary MOVE squad and production discovery/listeners to measure wake latency, priority, expiry, no target reveal, route preservation, disabled rejection, listener cleanup and Zeus priority. Synthetic HIT submission remains scheduler-only diagnostics; real explosion and hostile-contact cases cover native engine delivery and finite response lifecycle. A saved static-support fixture places an empty armed friendly emplacement within 75 metres during natural contact and requires one nonleader to physically occupy its gunner seat while other squad members continue the engagement; disabled, failed-mount, contact-cleanup and Zeus-replacement cases must leave no stale assignment. A saved carried-support fixture requires a compatible two-person bag team to physically assemble its weapon, place the original carrier in the real gunner seat, fire the real weapon, natively disassemble it during post-contact security, recover both original bags and release exact ownership. None of the newly added assessment fixtures has been executed against the current package; failed assembly, failed bag recovery, renewed-contact interruption, Zeus interruption and locality migration remain explicit cases.",
       "executable_sources": [
         "runContact.sqf",
         "runCombat.sqf",
@@ -416,11 +417,11 @@
       "setup": "Let a contacted enemy leave sight, then reappear during security, search and regroup.",
       "expected": "Correct sequence and timing; search team physically approaches last known position; renewed contact interrupts and cleanup restores orders.",
       "settings": [
-        "WAIT_AIPass_PostContact_Enable",
-        "WAIT_AIPass_PostContact_LostSeconds",
-        "WAIT_AIPass_PostContact_RegroupSeconds",
-        "WAIT_AIPass_PostContact_SearchSeconds",
-        "WAIT_AIPass_PostContact_SecuritySeconds"
+        "CBE_AIPass_PostContact_Enable",
+        "CBE_AIPass_PostContact_LostSeconds",
+        "CBE_AIPass_PostContact_RegroupSeconds",
+        "CBE_AIPass_PostContact_SearchSeconds",
+        "CBE_AIPass_PostContact_SecuritySeconds"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -437,14 +438,14 @@
       "setup": "Six-person squad faces a live enemy at eligible range; block one planned bound in a separate failure case.",
       "expected": "Selected element physically reaches successive spots; base of fire remains; a blocked bound ends STALLED without completion credit.",
       "settings": [
-        "WAIT_AIPass_Flank_BoundDistance",
-        "WAIT_AIPass_Flank_BoundPause",
-        "WAIT_AIPass_Flank_BoundTimeout",
-        "WAIT_AIPass_Flank_Cooldown",
-        "WAIT_AIPass_Flank_Enable",
-        "WAIT_AIPass_Flank_MaxRange",
-        "WAIT_AIPass_Flank_MinGroupSize",
-        "WAIT_AIPass_Flank_MinRange"
+        "CBE_AIPass_Flank_BoundDistance",
+        "CBE_AIPass_Flank_BoundPause",
+        "CBE_AIPass_Flank_BoundTimeout",
+        "CBE_AIPass_Flank_Cooldown",
+        "CBE_AIPass_Flank_Enable",
+        "CBE_AIPass_Flank_MaxRange",
+        "CBE_AIPass_Flank_MinGroupSize",
+        "CBE_AIPass_Flank_MinRange"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -469,7 +470,7 @@
       "setup": "Place the manoeuvre route across a real road with smoke available, unavailable and friendlies nearby.",
       "expected": "Element reaches near edge, uses permitted smoke and crosses; unsafe throws and disabled crossing add no scripted behaviour.",
       "settings": [
-        "WAIT_AIPass_StreetCrossing_Enable"
+        "CBE_AIPass_StreetCrossing_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -487,9 +488,9 @@
       "setup": "Use multiple visible and recently obscured threats, BLUE/YELLOW/RED rules and varying suppressor limits.",
       "expected": "Actual Fired events and assigned targets match limits and rules; suppression does not reveal hidden targets or continue after disable.",
       "settings": [
-        "WAIT_AIPass_FireControl_Enable",
-        "WAIT_AIPass_FireControl_MaxShootersPerTarget",
-        "WAIT_AIPass_FireControl_MaxSuppressors"
+        "CBE_AIPass_FireControl_Enable",
+        "CBE_AIPass_FireControl_MaxShootersPerTarget",
+        "CBE_AIPass_FireControl_MaxSuppressors"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -508,9 +509,9 @@
       "setup": "Apply controlled casualties and real suppression, then allow recovery; compare cohesive and fragile profiles.",
       "expected": "Broken squads physically withdraw and recover; intentional hold/clear ownership is respected and disabling restores changed controls.",
       "settings": [
-        "WAIT_AIPass_Cohesion",
-        "WAIT_AIPass_Morale_Enable",
-        "WAIT_AIPass_Morale_RetreatDistance"
+        "CBE_AIPass_Cohesion",
+        "CBE_AIPass_Morale_Enable",
+        "CBE_AIPass_Morale_RetreatDistance"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -531,7 +532,7 @@
       "setup": "Leave eligible broken isolated survivors, then repeat with nearby support and the feature off.",
       "expected": "Only eligible survivors surrender; weapons/captive state match design and repeat handling does not duplicate actions.",
       "settings": [
-        "WAIT_AIPass_Surrender_Enable"
+        "CBE_AIPass_Surrender_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -552,7 +553,7 @@
       "setup": "Throw real nearby grenades with and without sight; include mounted, incapacitated and excluded units.",
       "expected": "Eligible infantry physically leaves the danger area; no reaction to unknown or irrelevant projectiles and no permanent movement changes.",
       "settings": [
-        "WAIT_AIPass_GrenadeEvasion_Enable"
+        "CBE_AIPass_GrenadeEvasion_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -572,12 +573,12 @@
       "id": "CIVILIAN",
       "title": "Civilian danger response and external ownership",
       "setup": "Use an ordinary unarmed civilian near a threat with reactions disabled and enabled, then replace the active flee order with a Zeus movement order. Repeat under supported specialist, specialist and external civilian controller dependencies when installed.",
-      "expected": "Disabled civilians remain in place. Enabled ordinary civilians choose one finite dry, passable escape avenue, physically move away once, allow a real explosion or hit to replace weaker gunfire without destination churn, recover once from a stall, and yield immediately to a later Zeus order. external controller custom actors, active specialist actors and external civilian controller civilians remain externally owned and receive no WAIT movement, animation or combat commands.",
+      "expected": "Disabled civilians remain in place. Enabled ordinary civilians choose one finite dry, passable escape avenue, physically move away once, allow a real explosion or hit to replace weaker gunfire without destination churn, recover once from a stall, and yield immediately to a later Zeus order. external controller custom actors, active specialist actors and external civilian controller civilians remain externally owned and receive no CBE movement, animation or combat commands.",
       "settings": [
-        "WAIT_AIPass_CivilianReaction_Enable",
-        "WAIT_AIPass_CivilianReaction_Radius",
-        "WAIT_AIPass_CivilianReaction_Distance",
-        "WAIT_AIPass_CivilianReaction_Cooldown"
+        "CBE_AIPass_CivilianReaction_Enable",
+        "CBE_AIPass_CivilianReaction_Radius",
+        "CBE_AIPass_CivilianReaction_Distance",
+        "CBE_AIPass_CivilianReaction_Cooldown"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -598,8 +599,8 @@
       "setup": "Provide AT/AA/dual-role launchers and overrides against real vehicles, with a friendly in the backblast corridor; separately expose a rifle squad with no usable launcher to close heavy armour.",
       "expected": "Capable gunner engages the appropriate target; unsafe backblast and unsupported ammunition prevent the scripted shot. A squad with no AT physically withdraws from fresh close heavy armour instead of starting an assault, advance or flank, while an authored HOLD or SENTRY remains authoritative.",
       "settings": [
-        "WAIT_AIPass_AmmoCapabilityOverrides",
-        "WAIT_AIPass_AntiArmour_Enable"
+        "CBE_AIPass_AmmoCapabilityOverrides",
+        "CBE_AIPass_AntiArmour_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -617,10 +618,10 @@
       "setup": "Use mixed passenger/crew groups in contact, including ground vehicles and separate/combined boat groups on a measured real coastline.",
       "expected": "Only eligible mounted groups receive changes. Boats make a finite shallow-water approach, unload infantry onto dry ground, retain operating crew and restore authored orders; the parent gate and external owner release all controls.",
       "settings": [
-        "WAIT_AIPass_NavalAssault_Enable",
-        "WAIT_AIPass_Vehicles_Enable",
-        "WAIT_AIPass_VehicleJink_Enable",
-        "WAIT_AIPass_Vehicles_StandoffDistance"
+        "CBE_AIPass_NavalAssault_Enable",
+        "CBE_AIPass_Vehicles_Enable",
+        "CBE_AIPass_VehicleJink_Enable",
+        "CBE_AIPass_Vehicles_StandoffDistance"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -649,7 +650,7 @@
       "setup": "Bring moving, stopped, airborne and waterborne carriers into contact with mixed cargo, FFV and operating crew.",
       "expected": "Only safe, capable passengers unload; drivers/gunners remain aboard and moving/airborne/water cases refuse unsafe exits.",
       "settings": [
-        "WAIT_AIPass_VehicleDismount_Enable"
+        "CBE_AIPass_VehicleDismount_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -668,7 +669,7 @@
       "setup": "End contact after a valid dismount; move/delete/replace the carrier and incapacitate one passenger.",
       "expected": "Only safe capable original passengers board valid available seats; no teleport, unwanted convoy resume or incapacitated boarding.",
       "settings": [
-        "WAIT_AIPass_VehicleRemount_Enable"
+        "CBE_AIPass_VehicleRemount_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -686,11 +687,11 @@
       "setup": "Damage a mobile armed vehicle under contact, with and without smoke ammunition.",
       "expected": "Vehicle physically withdraws, uses only available smoke and restores controls; immobilized or deleted vehicles terminate safely.",
       "settings": [
-        "WAIT_AIPass_VehicleReverse_Enable",
-        "WAIT_AIPass_VehicleReverse_Distance",
-        "WAIT_AIPass_VehicleReverse_Timeout",
-        "WAIT_AIPass_VehicleReverse_FacingTolerance",
-        "WAIT_AIPass_VehicleWithdraw_Enable"
+        "CBE_AIPass_VehicleReverse_Enable",
+        "CBE_AIPass_VehicleReverse_Distance",
+        "CBE_AIPass_VehicleReverse_Timeout",
+        "CBE_AIPass_VehicleReverse_FacingTolerance",
+        "CBE_AIPass_VehicleWithdraw_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -710,7 +711,7 @@
       "setup": "Offer walls, steep slopes, occupied spots, water and open ground to a moving element.",
       "expected": "Chosen spots have usable clearance and appropriate facing; units physically reach them; bounded fallback remains available.",
       "settings": [
-        "WAIT_AIPass_CoverValidation_Enable"
+        "CBE_AIPass_CoverValidation_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -727,22 +728,73 @@
     {
       "id": "VEH-DRIVING",
       "title": "Ordinary vehicle route safety",
-      "setup": "Send an AI ground-vehicle group through flat, rolling and steep terrain with the feature disabled and enabled, then replace its waypoint through Zeus and transfer ownership.",
-      "expected": "Enabled vehicles retain the same native route and slow only for sampled grades. Convoys remain under their own controller; player, Zeus and external driving ownership release the cap immediately.",
+      "setup": "Exercise ordinary driver-led and commander-led ground vehicles across grades, bends, stopped/crossing traffic, placed static obstacles, gates and registered corridors. Replace native/Zeus orders, change locality and test dead, unconscious, locked and already-assigned driver seats. Keep normal and HC batches separate.",
+      "expected": "Preserve authored waypoint metadata and newer native/Zeus/external authority. Apply current braking, hull, pedestrian, geometry and terrain constraints through one owner-local driving FSM. Alternate paths and recovery require finite owned work and actual progress; timestamps, accepted commands, caps and roles cannot pass physical execution. Driver handover requires actual vacant-seat replacement and resumed route movement. Restore only owned state and retain failures.",
       "settings": [
-        "WAIT_AIPass_DrivingAssist_Enable",
-        "WAIT_AIPass_DrivingAssist_MaxSpeed",
-        "WAIT_AIPass_DrivingAssist_Recovery_Enable"
+        "CBE_AIPass_DrivingAssist_Enable",
+        "CBE_AIPass_DrivingAssist_Passing_Enable",
+        "CBE_AIPass_DrivingAssist_MaxSpeed",
+        "CBE_AIPass_DrivingAssist_Recovery_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "Queued: compare native waypoint identity and physical progress across terrain with disabled/enabled state, then validate Zeus replacement, locality migration and exact forced-speed restoration. No live acceptance claimed.",
+      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions and automatic gate closure remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success.",
       "executable_sources": [
-        "runVehicleDrills.sqf"
+        "runVehicleDrills.sqf",
+        "runDrivingTraffic.sqf",
+        "runParkedBypass.sqf",
+        "runRoadPassing.sqf",
+        "runDrivingCrew.sqf"
       ],
       "production_sources": [
         "addons/vehicles/functions/drivingAssistStart.sqf",
-        "addons/vehicles/functions/drivingAssistRelease.sqf"
+        "addons/vehicles/functions/drivingAssistRelease.sqf",
+        "addons/vehicles/functions/drivingRouteReceipt.sqf",
+        "addons/vehicles/functions/drivingOperationStart.sqf",
+        "addons/vehicles/functions/drivingOperationQueue.sqf",
+        "addons/vehicles/functions/drivingOperationStep.sqf",
+        "addons/vehicles/functions/drivingOperationFinish.sqf",
+        "addons/vehicles/functions/drivingRearClear.sqf",
+        "addons/vehicles/functions/drivingMovementAvailable.sqf",
+        "addons/vehicles/functions/drivingFollowingCap.sqf",
+        "addons/vehicles/functions/drivingRoadCap.sqf",
+        "addons/vehicles/functions/drivingGateCap.sqf",
+        "addons/vehicles/functions/drivingGateIntent.sqf",
+        "addons/vehicles/functions/drivingGateRequest.sqf",
+        "addons/vehicles/functions/drivingGateOpenServer.sqf",
+        "addons/vehicles/functions/drivingCorridorRegister.sqf",
+        "addons/vehicles/functions/drivingCorridorGeometry.sqf",
+        "addons/vehicles/functions/drivingCorridorStep.sqf",
+        "addons/vehicles/functions/drivingCorridorRelease.sqf",
+        "addons/vehicles/functions/drivingCorridorDispatch.sqf",
+        "addons/vehicles/functions/zenDrivingCorridorModule.sqf",
+        "addons/vehicles/functions/moduleDrivingCorridor.sqf",
+        "addons/vehicles/functions/drivingGeometryCap.sqf",
+        "addons/vehicles/functions/drivingPathGeometry.sqf",
+        "addons/vehicles/functions/drivingBypassPlan.sqf",
+        "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf",
+        "addons/vehicles/functions/drivingPassPlan.sqf",
+        "addons/vehicles/functions/drivingPassAdmission.sqf",
+        "addons/vehicles/functions/drivingPassGeometry.sqf",
+        "addons/vehicles/functions/drivingPassContext.sqf",
+        "addons/vehicles/functions/drivingPassTraffic.sqf",
+        "addons/vehicles/functions/drivingPassPrepare.sqf",
+        "addons/vehicles/functions/drivingPassCanConsent.sqf",
+        "addons/vehicles/functions/drivingPassAgreementRequest.sqf",
+        "addons/vehicles/functions/drivingPassAgreementRelease.sqf",
+        "addons/vehicles/functions/drivingPassBegin.sqf",
+        "addons/vehicles/functions/drivingPassStep.sqf",
+        "addons/vehicles/functions/drivingPassFinish.sqf",
+        "addons/vehicles/functions/drivingPassRetireInherited.sqf",
+        "addons/vehicles/functions/drivingPassCommandWatch.sqf",
+        "addons/vehicles/functions/drivingPassAgreementServer.sqf",
+        "addons/vehicles/functions/drivingPassAgreementOwner.sqf",
+        "addons/vehicles/functions/drivingBypassStep.sqf",
+        "addons/vehicles/functions/drivingBypassRelease.sqf",
+        "addons/vehicles/functions/drivingTurnTrack.sqf",
+        "addons/vehicles/functions/drivingNativePathWatch.sqf",
+        "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+        "addons/vehicles/functions/drivingCrewStep.sqf"
       ]
     },
     {
@@ -751,15 +803,15 @@
       "setup": "Run tracked and wheeled leaders/followers through straight roads, corners, stops, route edits and a blocked leader.",
       "expected": "Each traces its predecessor, maintains spacing and makes progress without wedge formation; recovery is bounded.",
       "settings": [
-        "WAIT_Convoy_DrivingAssist_Enable",
-        "WAIT_Convoy_RouteRecovery_Enable",
-        "WAIT_Convoy_DefaultSpeed",
-        "WAIT_Convoy_DefaultSeparation",
-        "WAIT_Convoy_DefaultPushThrough"
+        "CBE_Convoy_DrivingAssist_Enable",
+        "CBE_Convoy_RouteRecovery_Enable",
+        "CBE_Convoy_DefaultSpeed",
+        "CBE_Convoy_DefaultSeparation",
+        "CBE_Convoy_DefaultPushThrough"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runServer.sqf CNV-* and runConvoyMatrix.sqf CNVM-*; continuity and restart failures retained. Outside VR the matrix performs one bounded search across eight headings for its complete 1.8 km straight-and-corner route, requires at least 30 m of relief and rejects water, unsafe vehicle surface normals and grades above 0.8. Startup direction, lateral offset, vehicle order and restart-turn measurements are projected onto the selected route axes rather than hard-coded world X/Y. One bounded road walk per convoy every three seconds anticipates curves, junctions and grades; followers reuse predecessor trail geometry and speed changes are damped without replacing route or obstacle authority. The route watchdog stores only the final MOVE identity and may re-select it after premature engine completion when its type and position remain unchanged and the convoy is still over 75 m outside the completion radius. external controller steering, unstuck and crew-return ownership is paused only for WAIT-controlled convoy vehicles and exact variable presence/value is restored on final release. Dependency-loaded physical acceptance remains pending. Queued: native curator START/HOLD/RELEASE placement with CBA-only and optional-dialog batches; vary CBA defaults and confirm resulting authoritative convoy configuration, physical movement, unloading and release. No live acceptance claimed.",
+      "automation": "runServer.sqf CNV-* and runConvoyMatrix.sqf CNVM-*; continuity and restart failures retained. Outside VR the matrix performs one bounded search across eight headings for its complete 1.8 km straight-and-corner route, requires at least 30 m of relief and rejects water, unsafe vehicle surface normals and grades above 0.8. Startup direction, lateral offset, vehicle order and restart-turn measurements are projected onto the selected route axes rather than hard-coded world X/Y. One bounded road walk per convoy every three seconds anticipates curves, junctions and grades; followers reuse predecessor trail geometry and speed changes are damped without replacing route or obstacle authority. The route watchdog stores only the final MOVE identity and may re-select it after premature engine completion when its type and position remain unchanged and the convoy is still over 75 m outside the completion radius. No source-specific external driving pause/restore adapter is present in the current executable convoy path. Generic external ownership markers can make CBE yield, but do not stop an undeclared controller. Dependency-loaded handover implementation and physical acceptance remain outstanding. Queued: native curator START/HOLD/RELEASE placement with CBA-only and optional-dialog batches; vary CBA defaults and confirm resulting authoritative convoy configuration, physical movement, unloading and release. No live acceptance claimed. Convoy lead corridor execution now shares the ordinary-driving corridor helpers (owned by VEH-DRIVING in this single-owner source inventory); followers retain predecessor trails. Physical convoy corridor passage, lead changes, HALT/resume, reconfiguration and HC handover remain unrun. Whole-column passage now retains per-vehicle ordered entry and full-hull exit evidence, with original finite tail deadlines and follower caps after lead handback. Lead completion alone cannot pass. Area/order/crew loss and timeout retain failure/cancellation. Physical tail flow remains unrun. Convoy bypass now composes the shared finite lead executor with predecessor-trail following, per-follower fresh committed-leg geometry, ordered whole-column checkpoint/tail receipts and revision-scoped cleanup. Physical mixed-column flow, interruption, repeatability and runtime performance remain unverified.",
       "executable_sources": [
         "runServer.sqf",
         "runConvoyMatrix.sqf"
@@ -771,7 +823,10 @@
         "addons/vehicles/functions/convoyOperationStart.sqf",
         "addons/vehicles/functions/convoyOperationQueue.sqf",
         "addons/vehicles/functions/convoyOperationStep.sqf",
-        "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf"
+        "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf",
+        "addons/vehicles/functions/convoyUnloadPolicy.sqf",
+        "addons/vehicles/functions/convoyCorridorStep.sqf",
+        "addons/vehicles/functions/convoyBypassStep.sqf"
       ]
     },
     {
@@ -780,7 +835,7 @@
       "setup": "Attack a moving mixed convoy from its flank under each fire rule.",
       "expected": "Gunners remain mounted and actually engage valid known threats without stealing driver movement; disabled mode leaves targeting alone.",
       "settings": [
-        "WAIT_Convoy_MountedFire_Enable"
+        "CBE_Convoy_MountedFire_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -798,7 +853,7 @@
       "setup": "Unload passengers on manual halt, destination and pinned contact, with obstacles nearby.",
       "expected": "Passengers physically move clear of vehicles and take valid available cover; no operating-crew dismount.",
       "settings": [
-        "WAIT_Convoy_Cover_Enable"
+        "CBE_Convoy_Cover_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -812,9 +867,9 @@
       "id": "CNV-AVOID",
       "title": "Convoy infantry avoidance",
       "setup": "Cross friendly infantry in front of a travelling vehicle, then move them away.",
-      "expected": "Vehicle yields inside the short corridor and resumes after clearance; disabled mode adds no WAIT avoidance stop.",
+      "expected": "Vehicle yields inside the short corridor and resumes after clearance; disabled mode adds no CBE avoidance stop.",
       "settings": [
-        "WAIT_Convoy_AvoidInfantry_Enable"
+        "CBE_Convoy_AvoidInfantry_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -832,7 +887,7 @@
       "setup": "Fire on mobile and immobilized convoys, retaining the configured pinned delay.",
       "expected": "Mobile convoy pushes through; pinned convoy halts/unloads only after delay; combat halt requires explicit resume.",
       "settings": [
-        "WAIT_Convoy_ContactHalt_Enable"
+        "CBE_Convoy_ContactHalt_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -850,11 +905,11 @@
       "setup": "Start with assigned and script-seated passengers; travel, halt, resume and reach the final waypoint.",
       "expected": "Cargo stays aboard during travel and unloads at valid halts; crew stay mounted; disabled unload preserves seating.",
       "settings": [
-        "WAIT_Convoy_Unload_Enable"
+        "CBE_Convoy_Unload_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
-        "runtime-20260927-034106: all 12 SEATS checks passed, including server travel, split WAIT HC ownership, cargo-only halt and original-roster cleanup. ACE automatic transfer, disconnect and combat variants remain unverified."
+        "runtime-20260927-034106: all 12 SEATS checks passed, including server travel, split CBE HC ownership, cargo-only halt and original-roster cleanup. ACE automatic transfer, disconnect and combat variants remain unverified."
       ],
       "automation": "runConvoySeats.sqf SEATS-*: same-group and separate-group cargo, actual travel exits, manual unload and operating-crew retention. runServer.sqf CNV/AMB covers arrival, contact and HC cargo. Wheeled and tracked variants repeat the complete seat and two-HC sequence. VR retains deterministic coordinates; terrain worlds rotate the full 2.5 km journey over a measured dry three-lane corridor with relief and reject unsafe surface normals and grades. Latest seat run pending; other variants remain outstanding.",
       "executable_sources": [
@@ -873,7 +928,7 @@
       "setup": "Fire behind an occluder inside/outside hearing range with no line of sight.",
       "expected": "Receivers get an uncertain area, not target reveal; response respects investigation gate and range.",
       "settings": [
-        "WAIT_AIPass_Hearing_Enable"
+        "CBE_AIPass_Hearing_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -891,10 +946,10 @@
       "setup": "Use observing and receiving squads with voice proximity, separated communication and active jamming.",
       "expected": "Reports use permitted communication, preserve uncertainty and do not depend on a vanilla radio item.",
       "settings": [
-        "WAIT_AIPass_ContactReports_Enable",
-        "WAIT_AIPass_ContactReports_Radius",
-        "WAIT_AIPass_ContactReports_RequireRadio",
-        "WAIT_AIPass_ContactReports_VoiceRange"
+        "CBE_AIPass_ContactReports_Enable",
+        "CBE_AIPass_ContactReports_Radius",
+        "CBE_AIPass_ContactReports_RequireRadio",
+        "CBE_AIPass_ContactReports_VoiceRange"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -915,9 +970,9 @@
       "setup": "Contact one squad near idle, busy, excluded and remotely owned friendlies.",
       "expected": "Only eligible squads with at least three combat-effective dismounted infantry accept reinforcement movement; vehicle crews and mounted passenger groups retain their dedicated controllers. Request, acknowledgement, rejection and timeout release ownership cleanly.",
       "settings": [
-        "WAIT_AIPass_Reinforce_Enable",
-        "WAIT_AIPass_Reinforce_MaxResponders",
-        "WAIT_AIPass_Reinforce_Radius"
+        "CBE_AIPass_Reinforce_Enable",
+        "CBE_AIPass_Reinforce_MaxResponders",
+        "CBE_AIPass_Reinforce_Radius"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -935,19 +990,19 @@
       "setup": "Assign a visible spotter and battery; observe real impacts over finite bursts, then lose the spotter or move the target.",
       "expected": "Opening aim/impact safety is measured, corrections require observation, last report remains usable, bursts stop at configured count and relocation resets ranging.",
       "settings": [
-        "WAIT_AIPass_Artillery_Bursts",
-        "WAIT_AIPass_Artillery_Cooldown",
-        "WAIT_AIPass_Artillery_DefaultRole",
-        "WAIT_AIPass_Artillery_Enable",
-        "WAIT_AIPass_Artillery_LocationResetDistance",
-        "WAIT_AIPass_Artillery_MaxError",
-        "WAIT_AIPass_Artillery_MinFriendlyDistance",
-        "WAIT_AIPass_Artillery_OpeningBuffer",
-        "WAIT_AIPass_Artillery_OpeningSafeDistance",
-        "WAIT_AIPass_Artillery_RoundInterval",
-        "WAIT_AIPass_Artillery_Rounds",
-        "WAIT_AIPass_Artillery_ShootAndScoot",
-        "WAIT_AIPass_Artillery_WarningInterval"
+        "CBE_AIPass_Artillery_Bursts",
+        "CBE_AIPass_Artillery_Cooldown",
+        "CBE_AIPass_Artillery_DefaultRole",
+        "CBE_AIPass_Artillery_Enable",
+        "CBE_AIPass_Artillery_LocationResetDistance",
+        "CBE_AIPass_Artillery_MaxError",
+        "CBE_AIPass_Artillery_MinFriendlyDistance",
+        "CBE_AIPass_Artillery_OpeningBuffer",
+        "CBE_AIPass_Artillery_OpeningSafeDistance",
+        "CBE_AIPass_Artillery_RoundInterval",
+        "CBE_AIPass_Artillery_Rounds",
+        "CBE_AIPass_Artillery_ShootAndScoot",
+        "CBE_AIPass_Artillery_WarningInterval"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -982,16 +1037,16 @@
       "setup": "Fire a real enemy gun with no radar, covered radar and destroyed/out-of-range radar; relocate it between missions.",
       "expected": "Measured acquisition is quicker with valid radar; finite bursts start off target at each new location and respect safety/cooldown.",
       "settings": [
-        "WAIT_AIPass_CounterBattery_Delay",
-        "WAIT_AIPass_CounterBattery_Enable",
-        "WAIT_AIPass_CounterBattery_Interval",
-        "WAIT_AIPass_CounterBattery_MaxError",
-        "WAIT_AIPass_CounterBattery_MinFriendlyDistance",
-        "WAIT_AIPass_CounterBattery_Mode",
-        "WAIT_AIPass_CounterBattery_RadarDelay",
-        "WAIT_AIPass_CounterBattery_RadarRange",
-        "WAIT_AIPass_CounterBattery_Rounds",
-        "WAIT_AIPass_CounterBattery_ShootAndScoot"
+        "CBE_AIPass_CounterBattery_Delay",
+        "CBE_AIPass_CounterBattery_Enable",
+        "CBE_AIPass_CounterBattery_Interval",
+        "CBE_AIPass_CounterBattery_MaxError",
+        "CBE_AIPass_CounterBattery_MinFriendlyDistance",
+        "CBE_AIPass_CounterBattery_Mode",
+        "CBE_AIPass_CounterBattery_RadarDelay",
+        "CBE_AIPass_CounterBattery_RadarRange",
+        "CBE_AIPass_CounterBattery_Rounds",
+        "CBE_AIPass_CounterBattery_ShootAndScoot"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -1011,12 +1066,12 @@
       "setup": "Fly AI cargo and operating crew toward known contact above/below minimum altitude.",
       "expected": "Only eligible passengers jump at correct spacing and land; crew stay aboard, unsafe altitude refuses and transfer does not duplicate jumps.",
       "settings": [
-        "WAIT_AIPass_Airborne_Altitude",
-        "WAIT_AIPass_Airborne_ApproachDistance",
-        "WAIT_AIPass_Airborne_DeployDistance",
-        "WAIT_AIPass_Airborne_Enable",
-        "WAIT_AIPass_Airborne_JumpInterval",
-        "WAIT_AIPass_Airborne_MinAltitude"
+        "CBE_AIPass_Airborne_Altitude",
+        "CBE_AIPass_Airborne_ApproachDistance",
+        "CBE_AIPass_Airborne_DeployDistance",
+        "CBE_AIPass_Airborne_Enable",
+        "CBE_AIPass_Airborne_JumpInterval",
+        "CBE_AIPass_Airborne_MinAltitude"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -1037,13 +1092,13 @@
       "setup": "Use multiple placed and terrain-native buildings, floors, doors and blocked entries; repeat in-place Dynamic AO assignment.",
       "expected": "Every assigned soldier physically reaches the correct slot/floor and holds; timeout reports failure, break/release restores only owned restrictions.",
       "settings": [
-        "WAIT_AIPass_Garrison_BreakFraction"
+        "CBE_AIPass_Garrison_BreakFraction"
       ],
       "status": "implemented_partial",
       "live_evidence": [
         "20260929-184640: physical garrison arrival and hold failed on model 2; independent direct/replan entry reached its first slot. Model 1 failed all independent methods. Unresolved."
       ],
-      "automation": "runServer.sqf ORD-04* now validates the public COMPAT backend plus physical arrival and hold. runBuildingComparison.sqf retains native fallback across multiple models. Earlier native physical arrival failed; rebuilt primary and fallback acceptance is pending.",
+      "automation": "runServer.sqf ORD-04* now validates the public COMPAT backend plus physical arrival and hold. runBuildingComparison.sqf retains native fallback across multiple models. Earlier native physical arrival failed; rebuilt primary and fallback acceptance is pending. Settled garrison jobs now permit one owner-local interior vacancy refill from an available reinforcement or duplicate exterior exit post, preserving sole exit coverage and walking to the new slot. Physical casualty/refill, coverage retention, native handover and HC replay remain unverified.",
       "executable_sources": [
         "runServer.sqf",
         "runBuildingComparison.sqf"
@@ -1051,7 +1106,9 @@
       "production_sources": [
         "addons/infantry/functions/cortexGarrison.sqf",
         "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
-        "addons/infantry/functions/cortexGarrisonRelease.sqf"
+        "addons/infantry/functions/cortexGarrisonRelease.sqf",
+        "addons/infantry/functions/cortexGarrisonRefill.sqf",
+        "addons/infantry/functions/cortexGarrisonArrived.sqf"
       ]
     },
     {
@@ -1060,7 +1117,7 @@
       "setup": "Launch real missiles at supported aircraft with and without countermeasure ammunition.",
       "expected": "Actual countermeasure release responds to valid threats, uses finite ammunition and leaves unsupported/excluded aircraft alone.",
       "settings": [
-        "WAIT_AIPass_AircraftFlares_Enable"
+        "CBE_AIPass_AircraftFlares_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1082,9 +1139,9 @@
       "setup": "Provide a legitimate area report without a sighting at near/far distances and then reveal a real enemy.",
       "expected": "Appropriate team/group physically investigates without perfect enemy knowledge; contact interrupts and timeout releases controls.",
       "settings": [
-        "WAIT_AIPass_Investigate_Enable",
-        "WAIT_AIPass_Investigate_Range",
-        "WAIT_AIPass_Investigate_Seconds"
+        "CBE_AIPass_Investigate_Enable",
+        "CBE_AIPass_Investigate_Range",
+        "CBE_AIPass_Investigate_Seconds"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -1103,8 +1160,8 @@
       "setup": "Complete a real flank or advance into assault range, and begin from a fresh known dismounted infantry hostile inside the ordinary manoeuvre minimum range, with and without grenades/friendlies near the enemy. Separately present a close occupied combat vehicle to a launcher-capable squad.",
       "expected": "After an eligible advance or flank, or immediately against an already-close fresh dismounted infantry threat, troops approach the reported objective in paired elements, optionally deploy a carried grenade safely, clear through beyond the objective, and consolidate. Vehicles, mounted crew and static weapons are refused as direct infantry clear-through objectives and remain with anti-armour, fire-control, standoff, flank or withdrawal logic. Require physical travel and cohesion; flags, accepted orders and controller completion alone are insufficient. Zeus and gate changes must release owned state.",
       "settings": [
-        "WAIT_AIPass_Assault_Enable",
-        "WAIT_AIPass_Assault_Range"
+        "CBE_AIPass_Assault_Enable",
+        "CBE_AIPass_Assault_Range"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1126,9 +1183,9 @@
       "setup": "Give a six-person squad a distant authored waypoint and real contact; isolate advance from flanking.",
       "expected": "After the contact delay, a fire team physically bounds toward the waypoint while others engage; authored route survives.",
       "settings": [
-        "WAIT_AIPass_Advance_Enable",
-        "WAIT_AIPass_Advance_MinContactSeconds",
-        "WAIT_AIPass_Advance_Cooldown"
+        "CBE_AIPass_Advance_Enable",
+        "CBE_AIPass_Advance_MinContactSeconds",
+        "CBE_AIPass_Advance_Cooldown"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1152,8 +1209,8 @@
       "setup": "Use two eligible responders on separate owners and a supported squad in real contact.",
       "expected": "Responders accept communicated contact and begin separated approaches from their live positions without an intermediate assembly or all-responder readiness gate; rejection, loss and disable release every affected lease independently.",
       "settings": [
-        "WAIT_AIPass_CoordinatedAssault_Enable",
-        "WAIT_AIPass_CoordinatedAssault_MaxMovers"
+        "CBE_AIPass_CoordinatedAssault_Enable",
+        "CBE_AIPass_CoordinatedAssault_MaxMovers"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1163,7 +1220,7 @@
         "runtime-20260927-081755 completed server/client: 21 checks, one arrival failure, zero SQF errors. Opposite sides passed independently. Both leases remained assaulting; two soldiers were 63-66 m from objective. Finite MOVE with 10 m radius replaces SAD/20 m; responder-priority guards added to flank/advance. Fresh live retest pending.",
         "runtime-20260927-082342: finite MOVE did not resolve arrival. One squad reached 26-30 m; the other remained 71-127 m away with MOVE commands and valid assault leases. Arrival failed; side geometry passed. Added disable/release and fresh-order physical-travel checks for next run.",
         "runtime-20260927-082929: support disable removed leases/status/temporary orders, but physical fresh-order travel failed as well as assault arrival and opposite-side geometry. Source candidate removes forced COMBAT on active assault contact entry, preserving native AUTOCOMBAT. Retest pending.",
-        "runtime-20260927-083701: after removing forced COMBAT on assault contact entry, all six soldiers travelled 166-182 m and reached within 50 m on opposite sides. Disable cleanup passed; fresh ordinary-order travel still failed. Added identical separate-HC responder variant via WAIT migration plus per-soldier handover diagnostics; next run pending.",
+        "runtime-20260927-083701: after removing forced COMBAT on assault contact entry, all six soldiers travelled 166-182 m and reached within 50 m on opposite sides. Disable cleanup passed; fresh ordinary-order travel still failed. Added identical separate-HC responder variant via CBE migration plus per-soldier handover diagnostics; next run pending.",
         "runtime-20260927-084452 completed: 38 total checks, eight failures, zero SQF errors. Server assault arrival and fresh-order travel failed; HC variant also failed one ownership transfer, rally, disabled advance and side geometry. HC refusal was server-owned-feature; detailed boundary diagnostics added for next retest. Not accepted.",
         "runtime-20260927-091514 completed: 38 checks, three failures, zero SQF errors. Physical rally passed server and separate-HC responders; HC assault arrival passed. Server assault arrival and both fresh-order handovers failed. Later autonomous attack-order suppression/restoration is not covered by this run.",
         "runtime-20260927-181516: 34 checks, four findings, zero SQF errors; server and client complete. Physical rally, squad role exchange, inter/intra-squad covering fire passed; complete advance and both handovers failed. Natural sight during rally failed its prerequisite. Movement pursuit candidate is being retested in 183219; no acceptance claimed."
@@ -1194,7 +1251,7 @@
       "setup": "Fight behind low/high cover and on open ground with initial mission-set stances.",
       "expected": "Stance follows actual cover while eligible; disable/release restores only Cortex changes.",
       "settings": [
-        "WAIT_AIPass_Stance_Enable"
+        "CBE_AIPass_Stance_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -1212,8 +1269,8 @@
       "setup": "Deplete a recipient beside compatible/incompatible donors inside/outside sharing distance.",
       "expected": "Actual magazine inventories change conservatively with no duplication; unsuitable donors and disabled sharing do nothing.",
       "settings": [
-        "WAIT_AIPass_AmmoShare_Distance",
-        "WAIT_AIPass_AmmoShare_Enable"
+        "CBE_AIPass_AmmoShare_Distance",
+        "CBE_AIPass_AmmoShare_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -1233,7 +1290,7 @@
       "setup": "Present an armed vehicle with known AT infantry and other enemies at different ranges under each fire rule.",
       "expected": "Real shots/targets follow permitted priority and standoff movement without dismounting operating crew.",
       "settings": [
-        "WAIT_AIPass_VehicleGunnery_Enable"
+        "CBE_AIPass_VehicleGunnery_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1251,7 +1308,7 @@
       "setup": "Withdraw infantry with a smoke-capable battery, then repeat without ammunition or parent artillery enabled.",
       "expected": "Real finite smoke mission screens withdrawal only when permitted; no accidental HE substitution.",
       "settings": [
-        "WAIT_AIPass_ArtillerySmoke_Enable"
+        "CBE_AIPass_ArtillerySmoke_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1269,7 +1326,7 @@
       "setup": "Fire real missiles at supported aircraft over safe and unsafe terrain envelopes.",
       "expected": "Aircraft physically changes flight path within limits and returns controls; no effect when disabled or owner changes invalidate the job.",
       "settings": [
-        "WAIT_AIPass_AircraftBreak_Enable"
+        "CBE_AIPass_AircraftBreak_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1290,7 +1347,7 @@
       "settings": [],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runServer.sqf ORD-02* and HC-03b*; server and WAIT owner movement passed",
+      "automation": "runServer.sqf ORD-02* and HC-03b*; server and CBE owner movement passed Native and optional ZEN Defend area task controls now dispatch an explicit squad, centre, facing and line width through the authenticated owner executor. UI, actual posture/coverage/reserve, interruption, repeat and migration remain unverified.",
       "executable_sources": [
         "runServer.sqf"
       ],
@@ -1298,7 +1355,8 @@
         "addons/infantry/functions/cortexDefend.sqf",
         "addons/infantry/functions/cortexDefendApplyLocal.sqf",
         "addons/infantry/functions/cortexDefendRelease.sqf",
-        "addons/infantry/functions/cortexDefendStep.sqf"
+        "addons/infantry/functions/cortexDefendStep.sqf",
+        "addons/infantry/functions/zenDefendModule.sqf"
       ]
     },
     {
@@ -1307,21 +1365,27 @@
       "setup": "Use enterable multi-room buildings with live enemies, blocked rooms and different owners.",
       "expected": "Team physically visits required positions and engages; inaccessible rooms produce INCOMPLETE, never cleared-by-timeout.",
       "settings": [
-        "WAIT_AIPass_BuildingCombat_Enable",
-        "WAIT_AIPass_BuildingCombat_Range"
+        "CBE_AIPass_BuildingCombat_Enable",
+        "CBE_AIPass_BuildingCombat_Range"
       ],
       "status": "implemented_partial",
       "live_evidence": [
         "20260929-184640: only one of four room positions visited; clearance incomplete. Outside-start prerequisite also failed, so fresh-group cases are required.",
         "20261011-231043-192: 2/6-person clearance and handover pass; active 12-person native replacement order remains unaccepted."
       ],
-      "automation": "runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete.",
+      "automation": "runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete. The separate normal-only indooractors focus exercises the staged individual executor: independent physical entry, distinct destinations, same-actor repeat, stale/reserved/STOP refusals and an in-flight native movement replacement. These fixtures are unrun and do not establish automatic dispatch, HC or performance acceptance. Separate indooractorshc fixtures require two real-provider HCs, outside-approach transfer, destination-local cancellation proof, physical native movement, return-pointer retirement and a fresh physical investigation across the old deadline. These fixtures remain unrun.",
       "executable_sources": [
-        "runBuildingComparison.sqf"
+        "runBuildingComparison.sqf",
+        "runIndoorActors.sqf",
+        "runIndoorActorsHC.sqf",
+        "runIndoorNatural.sqf"
       ],
       "production_sources": [
         "addons/infantry/functions/cortexBuildingDoor.sqf",
         "addons/infantry/functions/cortexBuildingContact.sqf",
+        "addons/infantry/functions/buildingContactSelect.sqf",
+        "addons/infantry/functions/indoorActorNodeSelect.sqf",
+        "addons/infantry/functions/indoorActorOperation.sqf",
         "addons/infantry/functions/cortexClearBuilding.sqf",
         "addons/infantry/functions/buildingOperationStart.sqf",
         "addons/infantry/functions/buildingOperationQueue.sqf",
@@ -1330,7 +1394,12 @@
         "addons/infantry/functions/buildingExteriorProposal.sqf",
         "addons/infantry/functions/cortexClearRelease.sqf",
         "addons/core/functions/nativeOrderReceipt.sqf",
-        "addons/infantry/functions/combatPairs.sqf"
+        "addons/infantry/functions/combatPairs.sqf",
+        "addons/infantry/functions/zenClearModule.sqf",
+        "addons/core/functions/positionBucketAdmit.sqf",
+        "addons/infantry/functions/indoorActorNativeContext.sqf",
+        "addons/infantry/functions/indoorActorGroupAvailable.sqf",
+        "addons/infantry/functions/indoorActorDispatch.sqf"
       ]
     },
     {
@@ -1341,26 +1410,28 @@
       "settings": [],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runClient.sqf UI-* checks CBA registration and effective-state validity; interactive Addon Options, persistence and JIP acceptance pending",
+      "automation": "runClient.sqf UI-* checks CBA registration and effective-state validity; interactive Addon Options, persistence and JIP acceptance pending Garrison area native and optional ZEN task controls now dispatch radius and walking/instant placement through the authenticated current-owner executor. Dialog, authentication, stale/duplicate rejection and physical acceptance remain pending; static registration earns no behaviour credit.",
       "executable_sources": [
         "runClient.sqf"
       ],
       "production_sources": [
-        "addons/core/functions/aiGetDiagnostics.sqf"
+        "addons/core/functions/aiGetDiagnostics.sqf",
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenGarrisonModule.sqf"
       ]
     },
     {
       "id": "LIFECYCLE",
       "title": "Transfer, disconnect and JIP",
-      "setup": "During each active behaviour, transfer by WAIT and ACE, disconnect its HC, then join a client.",
+      "setup": "During each active behaviour, transfer by CBE and ACE, disconnect its HC, then join a client.",
       "expected": "One owner executes each action, restored controls match prior state, public results replay and jobs/handlers do not leak.",
       "settings": [],
       "status": "implemented_partial",
       "live_evidence": [
         "runtime-20260927-072844: stale defence resurrection failed with 64.154 m drift after restart.",
         "runtime-20260927-073245: master-stop release fix; all five server defence lifecycle checks and client checks passed, 18 total, zero SQF errors.",
-        "runtime-20260927-073840: server and two WAIT headless owners passed physical defence start, owner-cleared shutdown, ordinary waypoint movement on server, no stale return and new physical defence order after returning to the selected owner. ACE transfers, disconnect and JIP untested.",
-        "runtime-20260927-090833 completed: 44 checks PASS, zero SQF errors. Server and both WAIT HC variants physically started defence, released on master disable, followed ordinary orders and accepted new orders after restart. Both rejected HC-to-HC transfers preserved actual ownership and registry entries. ACE-owned migration, disconnect and JIP variants remain outstanding.",
+        "runtime-20260927-073840: server and two CBE headless owners passed physical defence start, owner-cleared shutdown, ordinary waypoint movement on server, no stale return and new physical defence order after returning to the selected owner. ACE transfers, disconnect and JIP untested.",
+        "runtime-20260927-090833 completed: 44 checks PASS, zero SQF errors. Server and both CBE HC variants physically started defence, released on master disable, followed ordinary orders and accepted new orders after restart. Both rejected HC-to-HC transfers preserved actual ownership and registry entries. ACE-owned migration, disconnect and JIP variants remain outstanding.",
         "runtime-20260927-092754 completed: 50 checks, one failure, zero SQF errors. No-waypoint Zeus takeover cleared defence on server and both HCs. Replacement travel passed server/HC1 but failed after HC2 returned to server; soldiers moved toward an older position. Detailed waypoint/expected-destination/adoption diagnostics added; interruption acceptance remains incomplete.",
         "runLifecycle.sqf: runtime-20260927-105913 completed 64 checks with zero findings or SQF errors. Disable/restart and Zeus replacement retained; moving leader casualty selected a living successor and physically continued on server, HC1 and HC2 without ownership change. ACE migration, disconnect, JIP, deletion and other action phases remain open."
       ],
@@ -1460,7 +1531,7 @@
       "setup": "Compare daylight and darkness with unaided AI, NVG-capable mod equipment, ordinary HMDs and active/inactive flashlights. Repeat equipment changes and ownership transfer. Use real opposing targets inside and outside the beam.",
       "expected": "Automatic lighting follows ambient conditions without compounded penalties; NVG capability is classname independent; flashlights do not grant omnidirectional vision. Record actual acquisition and shots independently of skill values.",
       "settings": [
-        "WAIT_AIRebalance_Mode"
+        "CBE_AIRebalance_Mode"
       ],
       "status": "implemented_partial",
       "automation": "runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated.",
@@ -1518,7 +1589,7 @@
       "setup": "Place an observing infantry squad, two communicating armed ground vehicles and a moving armed aircraft near a naturally observed hostile. Do not inject rally points, role waypoints or readiness flags.",
       "expected": "Fresh contact immediately offers independent finite roles to capable nearby assets. Infantry continues without waiting; one ground vehicle retains its route as direct fire while the second physically manoeuvres on a safe side of that fire lane; aircraft use the finite attack controller. Missing, rejected or interrupted support cannot block infantry action.",
       "settings": [
-        "WAIT_Cortex_CombinedArms_AirRange"
+        "CBE_Cortex_CombinedArms_AirRange"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -1534,7 +1605,8 @@
         "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
         "addons/infantry/functions/cortexCombinedRejectServer.sqf",
         "addons/infantry/functions/cortexCombinedGroundStep.sqf",
-        "addons/infantry/functions/cortexGroundFireReady.sqf"
+        "addons/infantry/functions/cortexGroundFireReady.sqf",
+        "addons/infantry/functions/cortexActorFireTaskAvailable.sqf"
       ]
     },
     {
@@ -1557,7 +1629,7 @@
       "setup": "Fly an armed helicopter and plane towards an assigned hostile target, with separate enabled and disabled runs.",
       "expected": "Actual countermeasure releases on approach and departure with finite ammunition, no flight-path intervention, and no releases for excluded or interrupted aircraft.",
       "settings": [
-        "WAIT_Cortex_AttackRunFlares_Enable"
+        "CBE_Cortex_AttackRunFlares_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
@@ -1577,27 +1649,31 @@
       "setup": "Launch moving armed helicopters and planes against live ground and airborne hostile targets with forced-pattern, low-threat and observed-AA variants. Interrupt one active run with a replacement Zeus order.",
       "expected": "Aircraft select strafe, hook, offset, standoff, capability-gated helicopter lateral or air-contact intercept geometry from platform, observed AA and live ammunition. Every pattern has distinct three-leg positions, altitude, speed, capture and firing dwell; the aircraft must physically fly ingress/attack/egress, fire real weapons, retain crew and safe clearance, then hand back to an unchanged route. Zeus interruption retires the pattern without reviving it.",
       "settings": [
-        "WAIT_Cortex_AirAttack_Enable"
+        "CBE_Cortex_AirAttack_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
         "runtime-20261002-043144: forced helicopter LATERAL was rejected as STANDOFF, helicopter STANDOFF timed out in INGRESS, plane AA STANDOFF reached ATTACK but fired zero, natural waypoint-index progress was misread as authored route replacement, and the Zeus fixture passed an invalid argument type. This failed/stopped run is diagnostic evidence only.",
         "runtime-20261004-083928: the completed batch recorded 35 server findings. Every fixed-wing surface profile reached ATTACK but released no weapon; GUIDED exposed a valid loaded, aligned solution before native fireAtTarget rejected the pilot-fixed release. The moving air-to-air intercept did release a real missile. This is failure evidence, not acceptance."
       ],
-      "automation": "runAircraft.sqf provides moving airborne fixtures and physical flight/fire/countermeasure evidence, including forced helicopter lateral and fixed-wing strafe, offset, hook, bomb and guided passes, an observed-AA variant, a moving airborne intercept and Zeus replacement. It records the entire three-leg profile and quarter-second physical speed, altitude, destination and firing-solution samples; forced patterns must expose distinct geometry, produce physical profile change, release a real weapon and damage or destroy the target. Pilot-fixed surface weapons now use the engine operator release only after the existing range, angle, alignment, terrain and ballistic gates pass; turret weapons retain native fireAtTarget. A plane that crosses the target without a real Fired event records DELIVERY_MISSED and egresses instead of circling, with a separate no-post-target-circle assertion. These changes await a rebuilt live run; target loss and HC migration remain open.",
+      "automation": "runAircraft.sqf provides moving airborne fixtures and physical flight/fire/countermeasure evidence, including forced helicopter lateral and fixed-wing strafe, offset, hook, bomb and guided passes, an observed-AA variant, a moving airborne intercept and Zeus replacement. It records the entire three-leg profile and quarter-second physical speed, altitude, destination and firing-solution samples; forced patterns must expose distinct geometry, produce physical profile change, release a real weapon and damage or destroy the target. Pilot-fixed surface weapons now use the engine operator release only after the existing range, angle, alignment, terrain and ballistic gates pass; turret weapons retain native fireAtTarget. A plane that crosses the target without a real Fired event records DELIVERY_MISSED and egresses instead of circling, with a separate no-post-target-circle assertion. These changes await a rebuilt live run; target loss and HC migration remain open. Authored air routes now compare waypoint metadata, script/trigger synchronization and attachment identities while excluding the owned attack leg and current-index progression. Script/Zeus metadata-only replacement, moving attachments and cost on long routes remain unverified; DESTROY vehicle attachment is not documented as guaranteed engine support.",
       "executable_sources": [
         "runAircraft.sqf"
       ],
       "production_sources": [
         "addons/aircraft/functions/cortexAirAttack.sqf",
         "addons/aircraft/functions/cortexAirAttackPlan.sqf",
+        "addons/aircraft/functions/cortexAirWeaponOperatorAvailable.sqf",
+        "addons/aircraft/functions/cortexAirPilotFeatureRelease.sqf",
+        "addons/aircraft/functions/cortexAirPilotFeatureAdopt.sqf",
         "addons/infantry/functions/cortexAirHandoverRestoreLocal.sqf",
         "addons/aircraft/functions/airAttackOperationStart.sqf",
         "addons/aircraft/functions/airAttackOperationQueue.sqf",
         "addons/aircraft/functions/airAttackOperationStep.sqf",
         "addons/aircraft/functions/flightLeaseAcquire.sqf",
         "addons/aircraft/functions/flightLeaseValid.sqf",
-        "addons/aircraft/functions/flightLeaseRelease.sqf"
+        "addons/aircraft/functions/flightLeaseRelease.sqf",
+        "addons/core/functions/authoredRouteReceipt.sqf"
       ]
     }
   ]

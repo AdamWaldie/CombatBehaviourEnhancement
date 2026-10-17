@@ -7,26 +7,26 @@
  * Arguments: 0 group <GROUP, grpNull>; 1 checkpoint <ARRAY, []>; 2 retry deadline <NUMBER, -1>; 3 inspect only <BOOL, false>.
  * Return Value: BOOL - resumed or queued for bounded actor-locality settling; false when refused.
  * Current callers: CortexLocality and its finite shared-scheduler locality-settling callback.
- * Example: [_group,_checkpoint getOrDefault ["drillIntent",[]]] call WAIT_fnc_CortexDrillResume;
+ * Example: [_group,_checkpoint getOrDefault ["drillIntent",[]]] call CBE_fnc_CortexDrillResume;
  */
 params [["_group",grpNull,[grpNull]],["_checkpoint",[],[[]]],["_waitUntil",-1,[0]],["_inspectOnly",false,[true]]];
 if (isNull _group || {!local _group} || {count _checkpoint != 5}
     || {_waitUntil >= 0 && {serverTime >= _waitUntil}}) exitWith {false};
 _checkpoint params ["_sourceGeneration","_sourceToken","_pairs","_deadline","_pauseDeadline"];
-if (_sourceGeneration != (_group getVariable ["WAIT_OperationGeneration",-1])
-    || {!_inspectOnly && {count (_group getVariable ["WAIT_Operation",createHashMap]) > 0}}
-    || {!([_group] call WAIT_fnc_CortexIsEligible)}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
+if (_sourceGeneration != (_group getVariable ["CBE_OperationGeneration",-1])
+    || {!_inspectOnly && {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}}
+    || {!([_group] call CBE_fnc_CortexIsEligible)}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
 private _drill=createHashMapFromArray _pairs;
 private _type=_drill getOrDefault ["type",""];
 private _target=_drill getOrDefault ["target",objNull];
 private _gate=switch (_type) do {
-    case "ADVANCE": {"WAIT_AIPass_Advance_Enable"};
-    case "FLANK": {"WAIT_AIPass_Flank_Enable"};
-    case "ASSAULT": {"WAIT_AIPass_Assault_Enable"};
+    case "ADVANCE": {"CBE_AIPass_Advance_Enable"};
+    case "FLANK": {"CBE_AIPass_Flank_Enable"};
+    case "ASSAULT": {"CBE_AIPass_Assault_Enable"};
     default {""};
 };
-if (_gate == "" || {!([_group,_gate,true] call WAIT_fnc_CortexFeatureEnabled)}
+if (_gate == "" || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
     || {isNull _target} || {!alive _target} || {_target isKindOf "Logic"}
     || {captive _target} || {(side _group) getFriend (side _target) >= 0.6}
     || {_target getVariable ["ace_captives_isSurrendering",false]}
@@ -48,47 +48,47 @@ private _living=_units select {alive _x && {group _x == _group}};
 if (_living findIf {!local _x} >= 0) exitWith {
     if (_waitUntil >= 0) exitWith {false};
     private _settleUntil=serverTime+5;
-    if !([_group,"TACTICAL_DRILL",true,_settleUntil] call WAIT_fnc_CortexOwnershipLease) exitWith {false};
-    private _state=[_group] call WAIT_fnc_CortexGroupState;
+    if !([_group,"TACTICAL_DRILL",true,_settleUntil] call CBE_fnc_CortexOwnershipLease) exitWith {false};
+    private _state=[_group] call CBE_fnc_CortexGroupState;
     _state set ["movementLease",["TACTICAL_DRILL",time+5]];
     _state set ["enemyPos",+(_drill get "enemyPos")];
-    [_group,_state,"CONTACT","DRILL_LOCALITY_SETTLING",time,true] call WAIT_fnc_CortexSetPhase;
+    [_group,_state,"CONTACT","DRILL_LOCALITY_SETTLING",time,true] call CBE_fnc_CortexSetPhase;
     [{
         params ["_job"];
         private _group=_job get "group";
         private _checkpoint=_job get "checkpoint";
         private _until=_job get "until";
-        if ([_group,_checkpoint,_until] call WAIT_fnc_CortexDrillResume) exitWith {-1};
+        if ([_group,_checkpoint,_until] call CBE_fnc_CortexDrillResume) exitWith {-1};
         if (local _group && {serverTime < _until}
-            && {(_checkpoint select 0) == (_group getVariable ["WAIT_OperationGeneration",-1])}
-            && {!([_group] call WAIT_fnc_CortexExternalTakeover)}) exitWith {0.2};
-        if (local _group && {(_checkpoint select 0) == (_group getVariable ["WAIT_OperationGeneration",-1])}) then {
-            [_group,"TACTICAL_DRILL",false] call WAIT_fnc_CortexOwnershipLease;
-            private _state=[_group] call WAIT_fnc_CortexGroupState;
+            && {(_checkpoint select 0) == (_group getVariable ["CBE_OperationGeneration",-1])}
+            && {!([_group] call CBE_fnc_CortexExternalTakeover)}) exitWith {0.2};
+        if (local _group && {(_checkpoint select 0) == (_group getVariable ["CBE_OperationGeneration",-1])}) then {
+            [_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease;
+            private _state=[_group] call CBE_fnc_CortexGroupState;
             _state deleteAt "movementLease";
-            [_group,_state,false,[_group] call WAIT_fnc_CortexExternalTakeover,"DRILL_MIGRATION_REFUSED",true] call WAIT_fnc_CortexRestoreCalm;
+            [_group,_state,false,[_group] call CBE_fnc_CortexExternalTakeover,"DRILL_MIGRATION_REFUSED",true] call CBE_fnc_CortexRestoreCalm;
         };
         -1
     },createHashMapFromArray [["group",_group],["checkpoint",_checkpoint],["until",_settleUntil]],0.2,
-        format ["DRILL_ADOPT:%1",netId _group]] call WAIT_fnc_CortexQueueJob;
+        format ["DRILL_ADOPT:%1",netId _group]] call CBE_fnc_CortexQueueJob;
     true
 };
 private _capable=_living select {
-    [_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}
+    [_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}
         && {!isPlayer _x} && {isNull remoteControlled _x}
-        && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+        && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
 };
 if (count _capable < 2) exitWith {false};
-if !([_group,"TACTICAL_DRILL",true,serverTime+90] call WAIT_fnc_CortexOwnershipLease) exitWith {false};
+if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLease) exitWith {false};
 private _operationPhase=["MANOEUVRE","ASSAULT"] select (_type == "ASSAULT" || {_drill getOrDefault ["assaulting",false]});
-private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase] call WAIT_fnc_OperationStart;
-if (count _operation == 0) exitWith {[_group,"TACTICAL_DRILL",false] call WAIT_fnc_CortexOwnershipLease; false};
+private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase] call CBE_fnc_OperationStart;
+if (count _operation == 0) exitWith {[_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease; false};
 _operation set ["unavailable",_drill getOrDefault ["resumeUnavailable",[]]];
 _operation set ["recoveryAttempts",createHashMapFromArray (_drill getOrDefault ["resumeAttempts",[]])];
-_group setVariable ["WAIT_Operation",_operation,true];
-private _serial=(missionNamespace getVariable ["WAIT_Cortex_DrillSerial",0])+1;
-missionNamespace setVariable ["WAIT_Cortex_DrillSerial",_serial];
+_group setVariable ["CBE_Operation",_operation,true];
+private _serial=(missionNamespace getVariable ["CBE_Cortex_DrillSerial",0])+1;
+missionNamespace setVariable ["CBE_Cortex_DrillSerial",_serial];
 private _token=format ["%1:%2",clientOwner,_serial];
 private _stage=_drill getOrDefault ["stage","START"];
 // Destinations and retry counts belong to the current moving bound only. A completed bound's
@@ -110,13 +110,13 @@ _drill set ["pauseUntil",time+(_pauseDeadline-serverTime)];
 if (_deadline >= 0) then {_drill set ["boundDeadline",time+(_deadline-serverTime)]};
 _drill set ["recovery",(_drill getOrDefault ["resumeRecovery",[]]) apply {[_x select 0,_x select 1,time]}];
 _drill set ["stage",""];
-private _state=[_group] call WAIT_fnc_CortexGroupState;
+private _state=[_group] call CBE_fnc_CortexGroupState;
 _state set ["drill",_drill];
 _state set ["enemyPos",+(_drill get "enemyPos")];
 _state set ["movementLease",["TACTICAL_DRILL",time+90]];
-[_group,_state,"CONTACT","DRILL_OWNERSHIP_RESUME",time,true] call WAIT_fnc_CortexSetPhase;
-[_group,_drill,if (_stage in ["PAUSE","HOLD"]) then {_stage} else {"START"},"OWNERSHIP_RESUME"] call WAIT_fnc_CortexDrillSetStage;
-[_group] call WAIT_fnc_CortexCheckpoint;
-_group setVariable ["WAIT_Cortex_DrillMigration",[_sourceToken,_token,_sourceGeneration,_operation get "generation",serverTime,_index,_deadline],true];
-[_group,_token] call WAIT_fnc_CortexDrillStart;
+[_group,_state,"CONTACT","DRILL_OWNERSHIP_RESUME",time,true] call CBE_fnc_CortexSetPhase;
+[_group,_drill,if (_stage in ["PAUSE","HOLD"]) then {_stage} else {"START"},"OWNERSHIP_RESUME"] call CBE_fnc_CortexDrillSetStage;
+[_group] call CBE_fnc_CortexCheckpoint;
+_group setVariable ["CBE_Cortex_DrillMigration",[_sourceToken,_token,_sourceGeneration,_operation get "generation",serverTime,_index,_deadline],true];
+[_group,_token] call CBE_fnc_CortexDrillStart;
 true

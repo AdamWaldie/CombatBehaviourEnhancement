@@ -29,7 +29,7 @@ The release candidate is successful only when it provides the following in real 
 
 1. **One movement owner.** Every operation records its owner, generation, participants, route,
    physical progress and cancellation reason. A later Zeus, player, mission or compatible specialist
-   order invalidates WAIT work before it issues another movement command.
+   order invalidates CBE work before it issues another movement command.
 2. **Continuous intent.** Planning may be delayed under load, but current physical movement and
    immediate danger response are never delayed behind a scheduled rally, grenade animation or an
    unreachable straggler.

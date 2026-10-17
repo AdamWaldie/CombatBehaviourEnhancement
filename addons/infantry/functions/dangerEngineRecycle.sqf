@@ -12,12 +12,12 @@
  * 2: selected engine record <ARRAY>, [].
  * Return Value: Array - one follow-up engine record, or [] when the response should drain and end.
  * Current callers: Engine-loaded infantry danger FSM Recycle state.
- * Example: [cursorObject,"ENGAGE",[0,getPosATL cursorObject,time + 1,objNull]] call WAIT_fnc_DangerEngineRecycle;
+ * Example: [cursorObject,"ENGAGE",[0,getPosATL cursorObject,time + 1,objNull]] call CBE_fnc_DangerEngineRecycle;
  */
 
 params [['_actor',objNull,[objNull]],['_mode','ASSESS',['']],['_record',[],[[]]]];
 if (isNull _actor || {!local _actor} || {!alive _actor} || {isPlayer _actor}
-    || {count _record < 4} || {!([_actor] call WAIT_fnc_DangerEngineCanContinue)}) exitWith {[]};
+    || {count _record < 4} || {!([_actor] call CBE_fnc_DangerEngineCanContinue)}) exitWith {[]};
 
 private _group=group _actor;
 private _source=_record param [3,objNull,[objNull]];
@@ -37,7 +37,7 @@ private _maxCycles=switch (_mode) do {
     default {0};
 };
 if (_cycle >= _maxCycles) exitWith {
-    private _stats=_group getVariable ['WAIT_Danger_EngineStats',createHashMap];
+    private _stats=_group getVariable ['CBE_Danger_EngineStats',createHashMap];
     _stats set ['boundedRecycleEnds',((_stats getOrDefault ['boundedRecycleEnds',0])+1) min 100000];
     _stats set ['lastRecycleCycles',_cycle];
     // Per-mode evidence prevents a later zero-cycle IMMEDIATE record from erasing proof that the
@@ -48,7 +48,7 @@ if (_cycle >= _maxCycles) exitWith {
     private _cyclesByMode=_stats getOrDefault ['lastRecycleCyclesByMode',createHashMap];
     _cyclesByMode set [_mode,_cycle];
     _stats set ['lastRecycleCyclesByMode',_cyclesByMode];
-    _group setVariable ['WAIT_Danger_EngineStats',_stats];
+    _group setVariable ['CBE_Danger_EngineStats',_stats];
     []
 };
 private _follow=false;
@@ -77,7 +77,7 @@ if (_position isEqualTo [0,0,0]) exitWith {[]};
 if (count _position == 2) then {_position pushBack ((getPosATL _actor) select 2)};
 if (count _position != 3) exitWith {[]};
 
-private _stats=_group getVariable ['WAIT_Danger_EngineStats',createHashMap];
+private _stats=_group getVariable ['CBE_Danger_EngineStats',createHashMap];
 _stats set ['recycles',((_stats getOrDefault ['recycles',0])+1) min 100000];
 _stats set ['lastRecycleAt',time];
 _stats set ['lastRecycleActor',_actor];
@@ -89,7 +89,7 @@ if (_mode == 'VEHICLE') then {
     _actors resize ((count _actors) min 4);
     _stats set ['vehicleRecycleActors',_actors];
 };
-_group setVariable ['WAIT_Danger_EngineStats',_stats];
+_group setVariable ['CBE_Danger_EngineStats',_stats];
 // Retain the cause which justified the response. Collapsing a continuing hit or near-round event
 // into DETECTED made the next group handoff lose its safety priority and could prematurely retire
 // a mounted response even though the same known hostile remained actionable.

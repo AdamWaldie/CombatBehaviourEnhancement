@@ -7,8 +7,8 @@
  * Repeat/JIP: Pure classification. A new owner recomputes the profile from the current vehicle.
  * Arguments: 0: actor <OBJECT>, objNull.
  * Return Value: STRING - FOOT, AIR, ARTILLERY, STATIC, ARMOURED, ARMED or TRANSPORT.
- * Current callers: WAIT_fnc_DangerEngineAct and WAIT_fnc_DangerStep.
- * Example: [effectiveCommander vehicle player] call WAIT_fnc_DangerVehicleProfile;
+ * Current callers: CBE_fnc_DangerEngineAct and CBE_fnc_DangerStep.
+ * Example: [effectiveCommander vehicle player] call CBE_fnc_DangerVehicleProfile;
  */
 
 params [["_actor",objNull,[objNull]]];

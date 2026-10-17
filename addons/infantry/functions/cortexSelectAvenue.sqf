@@ -35,15 +35,15 @@
  * Return Value:
  * Array - selected ordered leg endpoints, or [] when no candidate is safe
  *
- * Current callers: WAIT_fnc_CortexFlankStart, WAIT_fnc_CortexFlankStep,
- * WAIT_fnc_CortexAdvanceStart, WAIT_fnc_CortexRetreat, WAIT_fnc_CortexGroupTick,
- * WAIT_fnc_CortexSupportAssaultServer, WAIT_fnc_CortexSupportCoordinateStep,
- * WAIT_fnc_CortexCombinedArmsLocal, WAIT_fnc_CortexVehicles and
- * WAIT_fnc_CortexArtilleryScoot.
+ * Current callers: CBE_fnc_CortexFlankStart, CBE_fnc_CortexFlankStep,
+ * CBE_fnc_CortexAdvanceStart, CBE_fnc_CortexRetreat, CBE_fnc_CortexGroupTick,
+ * CBE_fnc_CortexSupportAssaultServer, CBE_fnc_CortexSupportCoordinateStep,
+ * CBE_fnc_CortexCombinedArmsLocal, CBE_fnc_CortexVehicles and
+ * CBE_fnc_CortexArtilleryScoot.
  *
  * Example:
  * private _legs = [_start, [[_goal],[_screen,_goal]], _enemyPos, [_baseOrigin], _target]
- *     call WAIT_fnc_CortexSelectAvenue;
+ *     call CBE_fnc_CortexSelectAvenue;
  */
 
 params [

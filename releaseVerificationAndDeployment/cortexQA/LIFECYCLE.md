@@ -40,9 +40,9 @@ ledger; the ledger is evidence of ordering and never substitutes for movement, f
 
 ## Confirmed gaps and changes
 
-- Automatic drill migration remains restore-and-reassess. Investigation, search and withdrawal now have explicit continuation policies; WAIT and ACE transfer/disconnect tests must prove them physically.
+- Automatic drill migration remains restore-and-reassess. Investigation, search and withdrawal now have explicit continuation policies; CBE and ACE transfer/disconnect tests must prove them physically.
 - RestoreCalm previously cleared checkpoint data before a pending drill had necessarily restored disabled capabilities. It now ends the drill synchronously before clearing temporary waypoints/checkpoints. Static regression added; live transition/migration acceptance pending.
-- Retreat now records actual travel and bounded replans in `WAIT_Cortex_Withdrawal`; a vanished waypoint below 30 m cannot count as withdrawal. The 120-second escape remains an explicit `INCOMPLETE` result. Live blockage, casualty and network acceptance remains pending.
+- Retreat now records actual travel and bounded replans in `CBE_Cortex_Withdrawal`; a vanished waypoint below 30 m cannot count as withdrawal. The 120-second escape remains an explicit `INCOMPLETE` result. Live blockage, casualty and network acceptance remains pending.
 - Post-contact ownership now waits for an active local drill, reinforcement approach or coordinated assault to finish or abort. Smoke, terrain or a temporary sighting gap cannot silently switch the group to SECURITY during that bounded action.
 - Zeus cleanup preserves a replacement autonomous-attack setting as well as replacement movement, behaviour, speed and ROE. Static ownership regression is present; live operator acceptance remains pending.
 - Contact can invoke fire control, stance, anti-armour and movement systems during the same tick. Fire control and stance exclude drill actors; anti-armour movement needs an explicit ownership review. Do not assume all concurrent actions respect the same actor reservation.
@@ -58,7 +58,7 @@ ledger; the ledger is evidence of ordering and never substitutes for movement, f
 
 Complete individual lifecycle rows and transition tests for artillery/spotters/counter-battery, convoy/cargo/armed crews/recovery, airborne insertion, aircraft flares/break-away/deceleration/landing, grenade evasion/throws, cover/stance/fire control/anti-armour, ammunition sharing, remounting, survivor merging, lighting/profile refresh and UI/settings replay. Keep coverage.json cases and existing visual fixtures; this review is additive.
 
-Required test dimensions: natural trigger, refused start, actual work, successful physical finish, timeout, blocked actor, casualty, gate closure, repeated start, replacement, Zeus intervention, WAIT HC, ACE HC, disconnect, JIP and another module controlling the same actor. Each transition checks outgoing cleanup AND the incoming physical outcome.
+Required test dimensions: natural trigger, refused start, actual work, successful physical finish, timeout, blocked actor, casualty, gate closure, repeated start, replacement, Zeus intervention, CBE HC, ACE HC, disconnect, JIP and another module controlling the same actor. Each transition checks outgoing cleanup AND the incoming physical outcome.
 
 ## Stuck and separated actors
 
@@ -72,7 +72,7 @@ FLANK-ZEUS and ADVANCE-ZEUS require 8 m physical movement before invoking the pr
 
 Runtime 133856 passed replacement formation arrival for both cases and formation stability for Flank; the original fixed-radius findings remain recorded. These are direct-handler server cases, not proof of real curator event delivery, ongoing-fire handover or headless migration. FLANK-ZEUS-CONSOLIDATE additionally waits for the normal clear-through/consolidation transition and requires 8 metres of support-element travel before replacement. That new case is staged in runtime 142945 but has not yet completed.
 
-Remaining live operator checks must use actual Zeus orders during approach, grenade hold, clear-through and consolidation. Confirm the curator event reaches the owner, old restrictions are restored, replacement movement physically occurs, and no old job resumes. Repeat on WAIT and ACE headless ownership and during owner disconnect. A direct function call cannot substitute for these UI and network checks.
+Remaining live operator checks must use actual Zeus orders during approach, grenade hold, clear-through and consolidation. Confirm the curator event reaches the owner, old restrictions are restored, replacement movement physically occurs, and no old job resumes. Repeat on CBE and ACE headless ownership and during owner disconnect. A direct function call cannot substitute for these UI and network checks.
 
 ## Observable manoeuvre acceptance
 

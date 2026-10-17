@@ -7,8 +7,8 @@
  * assignment because helicopters commonly give the attack target to the gunner rather than pilot.
  * Arguments: 0: job <HASHMAP>, empty default; aircraft <OBJECT> is required.
  * Return: NUMBER, next sampling delay or -1 to retire.
- * Current callers: WAIT_fnc_CortexDiscover through the budgeted Cortex scheduler.
- * Example: [createHashMapFromArray [["aircraft",_plane]]] call WAIT_fnc_CortexAttackRunFlares;
+ * Current callers: CBE_fnc_CortexDiscover through the budgeted Cortex scheduler.
+ * Example: [createHashMapFromArray [["aircraft",_plane]]] call CBE_fnc_CortexAttackRunFlares;
  */
 params [["_job",createHashMap,[createHashMap]]];
 private _aircraft=_job getOrDefault ["aircraft",objNull];
@@ -17,14 +17,14 @@ private _pilot=driver _aircraft;
 private _group=group _pilot;
 private _allowed=local _aircraft && {alive _aircraft} && {!isNull _pilot} && {alive _pilot}
     && {!isPlayer _pilot} && {!unitIsUAV _aircraft}
-    && {missionNamespace getVariable ["WAIT_AIPass_Active",false]}
-    && {!([] call WAIT_fnc_CortexIsPaused)}
-    && {[_group,"WAIT_Cortex_AttackRunFlares_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-    && {[_group] call WAIT_fnc_CortexIsEligible || {[_aircraft] call WAIT_fnc_CortexAircraftEligible}};
-if (!_allowed) exitWith {_aircraft setVariable ["WAIT_Cortex_AttackFlareJob",false]; -1};
+    && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+    && {!([] call CBE_fnc_CortexIsPaused)}
+    && {[_group,"CBE_Cortex_AttackRunFlares_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+    && {[_group] call CBE_fnc_CortexIsEligible || {[_aircraft] call CBE_fnc_CortexAircraftEligible}};
+if (!_allowed) exitWith {_aircraft setVariable ["CBE_Cortex_AttackFlareJob",false]; -1};
 // The adaptive attack controller owns approach/departure bursts while it holds a finite plan.
 // Keeping this sampler idle avoids duplicate releases without removing its fallback coverage.
-if !((_aircraft getVariable ["WAIT_Cortex_AirAttackPlan",[]]) isEqualTo []) exitWith {1};
+if !((_aircraft getVariable ["CBE_Cortex_AirAttackPlan",[]]) isEqualTo []) exitWith {1};
 if (isTouchingGround _aircraft || {speed _aircraft < 40}) exitWith {_job deleteAt "target"; _job deleteAt "burst"; 1};
 if (combatMode _group in ["BLUE","GREEN"]) exitWith {_job deleteAt "target"; _job deleteAt "burst"; 1};
 private _target=_job getOrDefault ["target",objNull];
@@ -41,15 +41,15 @@ if (isNull _target) then {
     if (isNull _target || {!alive _target} || {(side _group) getFriend (side _target) >= 0.6}) exitWith {};
     private _offset=(getPosASL _target) vectorDiff (getPosASL _aircraft);
     if (vectorMagnitude _offset <= 1500 && {(velocity _aircraft) vectorDotProduct _offset > 0}
-        && {serverTime >= (_aircraft getVariable ["WAIT_Cortex_AttackFlareCooldown",0])}) then {
+        && {serverTime >= (_aircraft getVariable ["CBE_Cortex_AttackFlareCooldown",0])}) then {
         _job set ["target",_target];
         _job set ["expires",serverTime+90];
         _job set ["closest",_aircraft distance _target];
         _job set ["burst",3];
         _job set ["burstExpires",serverTime+8];
         _job set ["burstNext",serverTime];
-        _aircraft setVariable ["WAIT_Cortex_AttackFlareCooldown",serverTime+30,true];
-        _aircraft setVariable ["WAIT_Cortex_AttackFlarePhase","APPROACH",true];
+        _aircraft setVariable ["CBE_Cortex_AttackFlareCooldown",serverTime+30,true];
+        _aircraft setVariable ["CBE_Cortex_AttackFlarePhase","APPROACH",true];
     };
 } else {
     private _distance=_aircraft distance _target;
@@ -60,8 +60,8 @@ if (isNull _target) then {
         _job set ["burstExpires",serverTime+8];
         _job set ["burstNext",serverTime];
         _job deleteAt "target";
-        _aircraft setVariable ["WAIT_Cortex_AttackFlareCooldown",serverTime+30,true];
-        _aircraft setVariable ["WAIT_Cortex_AttackFlarePhase","DEPARTURE",true];
+        _aircraft setVariable ["CBE_Cortex_AttackFlareCooldown",serverTime+30,true];
+        _aircraft setVariable ["CBE_Cortex_AttackFlarePhase","DEPARTURE",true];
     } else {
         if (serverTime > (_job getOrDefault ["expires",0])) then {_job deleteAt "target"};
     };
@@ -71,7 +71,7 @@ if (_burst > 0 && {serverTime <= (_job getOrDefault ["burstExpires",serverTime])
     && {serverTime >= (_job getOrDefault ["burstNext",0])}) then {
     // A launcher may reject a request while cycling. Count only an actual release; bounded retries
     // keep fast jets from silently spending their whole departure burst between scheduler samples.
-    if ([_aircraft] call WAIT_fnc_CortexFireCountermeasure) then {
+    if ([_aircraft] call CBE_fnc_CortexFireCountermeasure) then {
         _job set ["burst",_burst-1];
     };
     _job set ["burstNext",serverTime+0.8+random 0.8];

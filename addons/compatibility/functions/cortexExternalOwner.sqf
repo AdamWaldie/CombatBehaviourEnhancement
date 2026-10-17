@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Identifies AI whose movement, animation or combat state belongs to a supported external system.
- * WAIT uses this one read-only gate before any tactic so specialist skeletons, creatures, droids and
+ * CBE uses this one read-only gate before any tactic so specialist skeletons, creatures, droids and
  * active melee actors never receive competing movement, animation or damage commands.
  * Ordinary infantry remains eligible when those addons are merely loaded.
  *
@@ -14,10 +14,10 @@
  * Return Value:
  * String - empty when Cortex may proceed; otherwise the external owner identifier.
  *
- * Current callers: WAIT_fnc_CortexIsEligible and AI diagnostics.
+ * Current callers: CBE_fnc_CortexIsEligible and AI diagnostics.
  *
  * Example:
- * private _owner = [_unit] call WAIT_fnc_CortexExternalOwner;
+ * private _owner = [_unit] call CBE_fnc_CortexExternalOwner;
  * Result: "SPECIALIST" for a specialist droid and "" for an ordinary NATO rifleman.
  */
 
@@ -40,7 +40,7 @@ private _wbkMarker=!(isNil {_unit getVariable "WBK_AI_ISZombie"})
     || {!(isNil {_unit getVariable "WBK_Droids_VoiceType"})}
     || {!(isNil {_unit getVariable "WBK_AI_ZombieMoveSet"})};
 // A non-standard movement config alone is not a specialist contract. Several ordinary content
-// packs use custom movement sets, and excluding them would silently disable WAIT for unrelated AI.
+// packs use custom movement sets, and excluding them would silently disable CBE for unrelated AI.
 // Match only the specialist's own public runtime markers, class/faction identity or declared author.
 if (_wbkMarker || {_class find "WBK_" == 0} || {_faction in _wbkFactions}
     || {_subcategory == "WBK_MeleeAi_SPACE_MARINES"} || {_author find "webknight" >= 0}) exitWith {"SPECIALIST"};

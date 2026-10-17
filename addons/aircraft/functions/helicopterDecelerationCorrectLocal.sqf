@@ -24,9 +24,9 @@
  * Return Value: BOOL - true if at least one correction impulse was applied.
  *
  * Example: [_helicopter, speed _helicopter, getPosASL _helicopter # 2, {false}]
- *     spawn WAIT_fnc_HelicopterDecelerationCorrectLocal;
+ *     spawn CBE_fnc_HelicopterDecelerationCorrectLocal;
  * Result: Returns true after at least one bounded impulse, or false when no correction is applied.
- * Current caller: WAIT_fnc_HelicopterDecelerationStep when its sampled braking envelope is met.
+ * Current caller: CBE_fnc_HelicopterDecelerationStep when its sampled braking envelope is met.
  */
 
 params [
@@ -36,9 +36,9 @@ params [
     ["_isLandingOrder", {false}, [{}]],
     ["_generation",-1,[0]]
 ];
-if (isNull _aircraft || {!local _aircraft} || {_aircraft getVariable ["WAIT_HelicopterDeceleration_Active", false]}) exitWith {false};
+if (isNull _aircraft || {!local _aircraft} || {_aircraft getVariable ["CBE_HelicopterDeceleration_Active", false]}) exitWith {false};
 
-if (_generation < 0) then {_generation=_aircraft getVariable ["WAIT_HelicopterDeceleration_GenerationLocal",0]};
+if (_generation < 0) then {_generation=_aircraft getVariable ["CBE_HelicopterDeceleration_GenerationLocal",0]};
 private _entryPilot=currentPilot _aircraft;
 if (isNull _entryPilot) exitWith {false};
 private _entryGroup=group _entryPilot;
@@ -54,23 +54,23 @@ private _entryDistance=if (_brakingTarget isEqualTo []) then {0} else {_aircraft
 private _entryVelocity=velocity _aircraft;
 private _entryHorizontal=sqrt ((_entryVelocity select 0)^2+(_entryVelocity select 1)^2);
 private _ownsOrder={
-    local _aircraft && {(_aircraft getVariable ["WAIT_HelicopterDeceleration_GenerationLocal",0]) == _generation}
+    local _aircraft && {(_aircraft getVariable ["CBE_HelicopterDeceleration_GenerationLocal",0]) == _generation}
         && {currentPilot _aircraft == _entryPilot} && {group _entryPilot == _entryGroup}
         && {(call _orderSignature) isEqualTo _entryOrder}
-        && {!([_entryGroup] call WAIT_fnc_CortexExternalTakeover)}
+        && {!([_entryGroup] call CBE_fnc_CortexExternalTakeover)}
 };
 if !(call _ownsOrder) exitWith {false};
 private _flightLeaseToken=str _generation;
-if !([_aircraft,"DECELERATION",_flightLeaseToken,100] call WAIT_fnc_FlightLeaseAcquire) exitWith {false};
-_aircraft setVariable ["WAIT_HelicopterDeceleration_Active", true, true];
+if !([_aircraft,"DECELERATION",_flightLeaseToken,100] call CBE_fnc_FlightLeaseAcquire) exitWith {false};
+_aircraft setVariable ["CBE_HelicopterDeceleration_Active", true, true];
 private _start = diag_tickTime;
-private _deadline = _start + ((missionNamespace getVariable ["WAIT_HelicopterDeceleration_MaximumCorrectionSeconds", 4]) max 0.1);
-private _interval = (missionNamespace getVariable ["WAIT_HelicopterDeceleration_ControlInterval", 0.02]) max 0.01;
-private _maximumAcceleration = (missionNamespace getVariable ["WAIT_HelicopterDeceleration_MaximumCorrectionAcceleration", 2.5]) max 0;
-private _maximumClimbRate = missionNamespace getVariable ["WAIT_HelicopterDeceleration_MaximumClimbRate", 0.5];
-private _minimumAltitude = (missionNamespace getVariable ["WAIT_HelicopterDeceleration_MinimumAltitude", 25]) max 0;
-private _clearance = (missionNamespace getVariable ["WAIT_HelicopterDeceleration_TerrainClearance", 25]) max 0;
-private _debug = missionNamespace getVariable ["WAIT_HelicopterDeceleration_Debug", false];
+private _deadline = _start + ((missionNamespace getVariable ["CBE_HelicopterDeceleration_MaximumCorrectionSeconds", 4]) max 0.1);
+private _interval = (missionNamespace getVariable ["CBE_HelicopterDeceleration_ControlInterval", 0.02]) max 0.01;
+private _maximumAcceleration = (missionNamespace getVariable ["CBE_HelicopterDeceleration_MaximumCorrectionAcceleration", 2.5]) max 0;
+private _maximumClimbRate = missionNamespace getVariable ["CBE_HelicopterDeceleration_MaximumClimbRate", 0.5];
+private _minimumAltitude = (missionNamespace getVariable ["CBE_HelicopterDeceleration_MinimumAltitude", 25]) max 0;
+private _clearance = (missionNamespace getVariable ["CBE_HelicopterDeceleration_TerrainClearance", 25]) max 0;
+private _debug = missionNamespace getVariable ["CBE_HelicopterDeceleration_Debug", false];
 private _correcting = true;
 private _applied = false;
 private _reason = "TIMEOUT";
@@ -81,12 +81,12 @@ private _correctionDeltaV = 0;
 private _brakingDeltaV = 0;
 private _nextBrakeLog = 0;
 
-_aircraft setVariable ["WAIT_HelicopterDeceleration_LastResult", ["ACTIVE", clientOwner, diag_tickTime, _detectedSpeed, _detectedAltitude], true];
-if (_debug) then {diag_log format ["[WAIT AI DECEL] Acquired owner=%1 aircraft=%2 speed=%3 altitudeASL=%4 order=%5 approachDistance=%6", clientOwner, netId _aircraft, round _detectedSpeed, round _detectedAltitude, _entryOrder, _entryDistance]};
+_aircraft setVariable ["CBE_HelicopterDeceleration_LastResult", ["ACTIVE", clientOwner, diag_tickTime, _detectedSpeed, _detectedAltitude], true];
+if (_debug) then {diag_log format ["[CBE AI DECEL] Acquired owner=%1 aircraft=%2 speed=%3 altitudeASL=%4 order=%5 approachDistance=%6", clientOwner, netId _aircraft, round _detectedSpeed, round _detectedAltitude, _entryOrder, _entryDistance]};
 
 while {_correcting && {diag_tickTime < _deadline}} do {
     if !(call _ownsOrder) exitWith {
-        if (_debug) then {diag_log format ["[WAIT AI DECEL] Order released entry=%1 live=%2 pilotChanged=%3",_entryOrder,call _orderSignature,currentPilot _aircraft != _entryPilot]};
+        if (_debug) then {diag_log format ["[CBE AI DECEL] Order released entry=%1 live=%2 pilotChanged=%3",_entryOrder,call _orderSignature,currentPilot _aircraft != _entryPilot]};
         _reason="ORDER_CHANGED"; _correcting=false
     };
     private _pilot = currentPilot _aircraft;
@@ -95,20 +95,20 @@ while {_correcting && {diag_tickTime < _deadline}} do {
     };
     if (
         !local _aircraft || {!alive _aircraft}
-        || {!(missionNamespace getVariable ["WAIT_HelicopterDeceleration_Enable", false])}
-        || {!(_aircraft isKindOf "Helicopter") && {!(missionNamespace getVariable ["WAIT_HelicopterDeceleration_IncludeVTOL",false]) || {!(_aircraft isKindOf "VTOL_Base_F")}}}
-        || {_aircraft getVariable ["WAIT_HelicopterDeceleration_Exclude", false]}
-        || {_aircraft getVariable ["WAIT_Cortex_AirAttackJob", false]}
-        || {!isNil {_aircraft getVariable "WAIT_Cortex_AirAttackToken"}}
-        || {!isNil {_aircraft getVariable "WAIT_Cortex_MissileDefenceActive"}}
-        || {_aircraft getVariable ["WAIT_ImprovedHelicopterLanding_Active", false]}
-        || {!([_aircraft,"DECELERATION",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid)}
+        || {!(missionNamespace getVariable ["CBE_HelicopterDeceleration_Enable", false])}
+        || {!(_aircraft isKindOf "Helicopter") && {!(missionNamespace getVariable ["CBE_HelicopterDeceleration_IncludeVTOL",false]) || {!(_aircraft isKindOf "VTOL_Base_F")}}}
+        || {_aircraft getVariable ["CBE_HelicopterDeceleration_Exclude", false]}
+        || {_aircraft getVariable ["CBE_Cortex_AirAttackJob", false]}
+        || {!isNil {_aircraft getVariable "CBE_Cortex_AirAttackToken"}}
+        || {!isNil {_aircraft getVariable "CBE_Cortex_MissileDefenceActive"}}
+        || {_aircraft getVariable ["CBE_ImprovedHelicopterLanding_Active", false]}
+        || {!([_aircraft,"DECELERATION",_flightLeaseToken] call CBE_fnc_FlightLeaseValid)}
         || {[_aircraft] call _isLandingOrder}
         || {isNull _pilot} || {!alive _pilot} || {!_pilotAwake} || {isPlayer _pilot}
         || {!isNull (remoteControlled _pilot)} || {!isEngineOn _aircraft} || {!canMove _aircraft}
         || {fuel _aircraft <= 0} || {isTouchingGround _aircraft} || {!isNull (getSlingLoad _aircraft)}
     ) then {
-        _reason = if (_aircraft getVariable ["WAIT_ImprovedHelicopterLanding_Active", false] || {[_aircraft] call _isLandingOrder}) then {"LANDING_PRIORITY"} else {"INELIGIBLE"};
+        _reason = if (_aircraft getVariable ["CBE_ImprovedHelicopterLanding_Active", false] || {[_aircraft] call _isLandingOrder}) then {"LANDING_PRIORITY"} else {"INELIGIBLE"};
         _correcting = false;
     };
 
@@ -142,12 +142,12 @@ while {_correcting && {diag_tickTime < _deadline}} do {
             if (
                 _acceleration > 0
                 && {call _ownsOrder}
-                && {!(_aircraft getVariable ["WAIT_Cortex_AirAttackJob", false])}
-                && {isNil {_aircraft getVariable "WAIT_Cortex_AirAttackToken"}}
-                && {isNil {_aircraft getVariable "WAIT_Cortex_MissileDefenceActive"}}
-                && {!(_aircraft getVariable ["WAIT_ImprovedHelicopterLanding_Active", false])}
+                && {!(_aircraft getVariable ["CBE_Cortex_AirAttackJob", false])}
+                && {isNil {_aircraft getVariable "CBE_Cortex_AirAttackToken"}}
+                && {isNil {_aircraft getVariable "CBE_Cortex_MissileDefenceActive"}}
+                && {!(_aircraft getVariable ["CBE_ImprovedHelicopterLanding_Active", false])}
                 && {!([_aircraft] call _isLandingOrder)}
-                && {[_aircraft,"DECELERATION",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid}
+                && {[_aircraft,"DECELERATION",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
             ) then {
                 // Scheduled sleeps are a minimum delay, not the elapsed simulation time.
                 // Integrate elapsed time so scheduler load does not weaken the correction.
@@ -170,7 +170,7 @@ while {_correcting && {diag_tickTime < _deadline}} do {
                             _brake=((_horizontalSpeed-_desiredSpeed) max 0) min (_maximumAcceleration*_elapsed);
                             if (_debug && {diag_tickTime >= _nextBrakeLog}) then {
                                 _nextBrakeLog=diag_tickTime+1;
-                                diag_log format ["[WAIT AI DECEL] Approach distance=%1 entryDistance=%2 horizontal=%3 desired=%4 brakeDeltaV=%5",_distance,_entryDistance,_horizontalSpeed,_desiredSpeed,_brake];
+                                diag_log format ["[CBE AI DECEL] Approach distance=%1 entryDistance=%2 horizontal=%3 desired=%4 brakeDeltaV=%5",_distance,_entryDistance,_horizontalSpeed,_desiredSpeed,_brake];
                             };
                         };
                     };
@@ -182,7 +182,7 @@ while {_correcting && {diag_tickTime < _deadline}} do {
                     _applied = true;
                 };
             } else {
-                if (_aircraft getVariable ["WAIT_ImprovedHelicopterLanding_Active", false] || {[_aircraft] call _isLandingOrder}) then {
+                if (_aircraft getVariable ["CBE_ImprovedHelicopterLanding_Active", false] || {[_aircraft] call _isLandingOrder}) then {
                     _reason = "LANDING_PRIORITY";
                     _correcting = false;
                 };
@@ -192,12 +192,12 @@ while {_correcting && {diag_tickTime < _deadline}} do {
     if (_correcting) then {uiSleep _interval};
 };
 
-if (!isNull _aircraft && {local _aircraft} && {(_aircraft getVariable ["WAIT_HelicopterDeceleration_GenerationLocal",0]) == _generation}) then {
-    _aircraft setVariable ["WAIT_HelicopterDeceleration_Active", false, true];
-    _aircraft setVariable ["WAIT_HelicopterDeceleration_LastResult", [_reason, clientOwner, diag_tickTime, abs speed _aircraft, (getPosASL _aircraft) select 2], true];
+if (!isNull _aircraft && {local _aircraft} && {(_aircraft getVariable ["CBE_HelicopterDeceleration_GenerationLocal",0]) == _generation}) then {
+    _aircraft setVariable ["CBE_HelicopterDeceleration_Active", false, true];
+    _aircraft setVariable ["CBE_HelicopterDeceleration_LastResult", [_reason, clientOwner, diag_tickTime, abs speed _aircraft, (getPosASL _aircraft) select 2], true];
 };
 if (!isNull _aircraft && {local _aircraft}) then {
-    [_aircraft,"DECELERATION",_flightLeaseToken,_reason] call WAIT_fnc_FlightLeaseRelease;
+    [_aircraft,"DECELERATION",_flightLeaseToken,_reason] call CBE_fnc_FlightLeaseRelease;
 };
-if (_debug) then {diag_log format ["[WAIT AI DECEL] Released owner=%1 aircraft=%2 reason=%3 applied=%4 correctionDeltaV=%5 brakingDeltaV=%6", clientOwner, if (isNull _aircraft) then {"NULL"} else {netId _aircraft}, _reason, _applied, _correctionDeltaV, _brakingDeltaV]};
+if (_debug) then {diag_log format ["[CBE AI DECEL] Released owner=%1 aircraft=%2 reason=%3 applied=%4 correctionDeltaV=%5 brakingDeltaV=%6", clientOwner, if (isNull _aircraft) then {"NULL"} else {netId _aircraft}, _reason, _applied, _correctionDeltaV, _brakingDeltaV]};
 _applied

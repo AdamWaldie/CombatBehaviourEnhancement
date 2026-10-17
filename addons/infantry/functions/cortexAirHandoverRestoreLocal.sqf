@@ -16,10 +16,10 @@
  * final curator-authored behaviour <STRING>, default "". A valid final behaviour is restored to
  * both the group and pilot after a compatible bounded handover guard.
  * Return Value: BOOL true when the current lease was restored, otherwise false.
- * Current callers: bounded Zeus transit-guard cleanup in WAIT_fnc_CortexAirAttack and compatibility
- * cleanup for missions already carrying WAIT_Cortex_AirHandoverLease.
+ * Current callers: bounded Zeus transit-guard cleanup in CBE_fnc_CortexAirAttack and compatibility
+ * cleanup for missions already carrying CBE_Cortex_AirHandoverLease.
  * Example: [_heli,driver _heli,"heli:2:10.5",["AUTOTARGET"],"RED","RED",true,"","","AWARE"]
- *     call WAIT_fnc_CortexAirHandoverRestoreLocal;
+ *     call CBE_fnc_CortexAirHandoverRestoreLocal;
  */
 params [
     ["_aircraft",objNull,[objNull]],
@@ -34,7 +34,7 @@ params [
     ["_finalBehaviour","",[""]]
 ];
 if (isNull _aircraft || {!local _aircraft} || {_token == ""}) exitWith {false};
-private _lease=_aircraft getVariable ["WAIT_Cortex_AirHandoverLease",[]];
+private _lease=_aircraft getVariable ["CBE_Cortex_AirHandoverLease",[]];
 if (count _lease != 2 || {(_lease select 0) != _token}) exitWith {false};
 private _originOwner=_lease select 1;
 if (remoteExecutedOwner > 0
@@ -67,5 +67,5 @@ if (!isNull _group && {local _group} && {combatMode _group == "BLUE"}) then {
 if (!isNull _group && {local _group} && {!attackEnabled _group}) then {
     _group enableAttack _previousAttackEnabled;
 };
-_aircraft setVariable ["WAIT_Cortex_AirHandoverLease",nil,true];
+_aircraft setVariable ["CBE_Cortex_AirHandoverLease",nil,true];
 true

@@ -1,14 +1,14 @@
 /*
  * Author: WaldoTheWarfighter
- * Owns the engine unload-in-combat policy for one ordinary WAIT-controlled ground vehicle.
+ * Owns the engine unload-in-combat policy for one ordinary CBE-controlled ground vehicle.
  *
- * ACQUIRE prevents the engine from independently unloading cargo while WAIT is responsible for
+ * ACQUIRE prevents the engine from independently unloading cargo while CBE is responsible for
  * deliberate contact dismounts. The exact crew group, group epoch, previous value and applied value
  * are recorded on the vehicle. A later owner adopts the unchanged lease without reissuing the
- * command. If any other controller changes the value, WAIT drops its lease and blocks reacquisition
+ * command. If any other controller changes the value, CBE drops its lease and blocks reacquisition
  * for that group epoch instead of fighting the newer owner.
  * RELEASE restores the previous value only when requested, the vehicle is local, the lease still
- * belongs to the supplied group and the current value still exactly matches WAIT's applied value.
+ * belongs to the supplied group and the current value still exactly matches CBE's applied value.
  * Zeus, player and specialist handovers use release without restoration. Convoys retain their own
  * independent unload policy and are never acquired here.
  *
@@ -25,13 +25,13 @@
  * 3: restore previous value <BOOL> - RELEASE only, default true
  *
  * Return Value:
- * Boolean - true when WAIT owns or cleanly released the matching lease
+ * Boolean - true when CBE owns or cleanly released the matching lease
  *
- * Current callers: WAIT_fnc_CortexVehicles, WAIT_fnc_CortexReleaseGroup and WAIT_fnc_CortexStop.
+ * Current callers: CBE_fnc_CortexVehicles, CBE_fnc_CortexReleaseGroup and CBE_fnc_CortexStop.
  *
  * Example:
- * [_truck, group effectiveCommander _truck, "ACQUIRE"] call WAIT_fnc_CortexVehicleUnloadPolicy;
- * Result: the engine keeps passengers aboard until WAIT deliberately dismounts them or yields.
+ * [_truck, group effectiveCommander _truck, "ACQUIRE"] call CBE_fnc_CortexVehicleUnloadPolicy;
+ * Result: the engine keeps passengers aboard until CBE deliberately dismounts them or yields.
  */
 
 params [
@@ -42,13 +42,13 @@ params [
 ];
 if (isNull _vehicle || {isNull _group} || {!local _vehicle}) exitWith {false};
 _action=toUpperANSI _action;
-private _lease=_vehicle getVariable ["WAIT_Cortex_UnloadPolicyLease",[]];
+private _lease=_vehicle getVariable ["CBE_Cortex_UnloadPolicyLease",[]];
 private _removeTracked={
-    private _tracked=(_group getVariable ["WAIT_Cortex_UnloadPolicyVehicles",[]]) - [_vehicle];
+    private _tracked=(_group getVariable ["CBE_Cortex_UnloadPolicyVehicles",[]]) - [_vehicle];
     if (_tracked isEqualTo []) then {
-        _group setVariable ["WAIT_Cortex_UnloadPolicyVehicles",nil,true];
+        _group setVariable ["CBE_Cortex_UnloadPolicyVehicles",nil,true];
     } else {
-        _group setVariable ["WAIT_Cortex_UnloadPolicyVehicles",_tracked,true];
+        _group setVariable ["CBE_Cortex_UnloadPolicyVehicles",_tracked,true];
     };
 };
 
@@ -61,40 +61,40 @@ if (_action == "RELEASE") exitWith {
     if (_restore && {getUnloadInCombat _vehicle isEqualTo _applied}) then {
         _vehicle setUnloadInCombat _previous;
     };
-    _vehicle setVariable ["WAIT_Cortex_UnloadPolicyLease",nil,true];
-    _vehicle setVariable ["WAIT_Cortex_UnloadPolicyBlocked",nil,true];
+    _vehicle setVariable ["CBE_Cortex_UnloadPolicyLease",nil,true];
+    _vehicle setVariable ["CBE_Cortex_UnloadPolicyBlocked",nil,true];
     call _removeTracked;
     true
 };
 
-if (_action != "ACQUIRE" || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
+if (_action != "ACQUIRE" || {_vehicle getVariable ["CBE_Convoy_Active",false]}
     || {!local _group} || {!((effectiveCommander _vehicle) in units _group)}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
-private _epoch=_group getVariable ["WAIT_AIPass_Epoch",0];
-private _blocked=_vehicle getVariable ["WAIT_Cortex_UnloadPolicyBlocked",[]];
+    || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _blocked=_vehicle getVariable ["CBE_Cortex_UnloadPolicyBlocked",[]];
 if (count _blocked == 2 && {(_blocked select 0) == _group} && {(_blocked select 1) == _epoch}) exitWith {false};
 
 if (count _lease == 5 && {(_lease select 0) != _group}) exitWith {false};
 if (count _lease == 5 && {getUnloadInCombat _vehicle isNotEqualTo (_lease select 3)}) exitWith {
     // A newer controller changed the engine policy. Preserve its value and do not reacquire
     // until this group's next ownership epoch.
-    _vehicle setVariable ["WAIT_Cortex_UnloadPolicyLease",nil,true];
-    _vehicle setVariable ["WAIT_Cortex_UnloadPolicyBlocked",[_group,_epoch],true];
+    _vehicle setVariable ["CBE_Cortex_UnloadPolicyLease",nil,true];
+    _vehicle setVariable ["CBE_Cortex_UnloadPolicyBlocked",[_group,_epoch],true];
     call _removeTracked;
     false
 };
 if (count _lease == 5) then {
     _lease set [1,_epoch];
     _lease set [4,clientOwner];
-    _vehicle setVariable ["WAIT_Cortex_UnloadPolicyLease",_lease,true];
+    _vehicle setVariable ["CBE_Cortex_UnloadPolicyLease",_lease,true];
 } else {
     private _previous=getUnloadInCombat _vehicle;
     private _applied=[false,false];
     _vehicle setUnloadInCombat _applied;
-    _vehicle setVariable ["WAIT_Cortex_UnloadPolicyLease",[_group,_epoch,_previous,_applied,clientOwner],true];
-    _vehicle setVariable ["WAIT_Cortex_UnloadPolicyBlocked",nil,true];
+    _vehicle setVariable ["CBE_Cortex_UnloadPolicyLease",[_group,_epoch,_previous,_applied,clientOwner],true];
+    _vehicle setVariable ["CBE_Cortex_UnloadPolicyBlocked",nil,true];
 };
-private _tracked=_group getVariable ["WAIT_Cortex_UnloadPolicyVehicles",[]];
+private _tracked=_group getVariable ["CBE_Cortex_UnloadPolicyVehicles",[]];
 _tracked pushBackUnique _vehicle;
-_group setVariable ["WAIT_Cortex_UnloadPolicyVehicles",_tracked,true];
+_group setVariable ["CBE_Cortex_UnloadPolicyVehicles",_tracked,true];
 true

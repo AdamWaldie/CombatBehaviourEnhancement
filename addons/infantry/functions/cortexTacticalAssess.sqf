@@ -5,8 +5,8 @@
  * Repeat/JIP: Pure assessment. The caller stores the result for diagnostics and starts any operation through the normal generation owner.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: known enemies <ARRAY>; 3: flank enabled <BOOL>; 4: advance enabled <BOOL>; 5: assault enabled <BOOL>.
  * Return Value: HashMap with intent, reason, selected index, candidate order and bounded evidence.
- * Current callers: WAIT_fnc_CortexTacticalStart.
- * Example: private _assessment=[group player,_state,_enemies,true,true,true] call WAIT_fnc_CortexTacticalAssess;
+ * Current callers: CBE_fnc_CortexTacticalStart.
+ * Example: private _assessment=[group player,_state,_enemies,true,true,true] call CBE_fnc_CortexTacticalAssess;
  */
 
 params [
@@ -22,7 +22,7 @@ private _result=createHashMapFromArray [
     ["candidates",[]],["evidence",[]]
 ];
 if (isNull _group || {!local _group} || {_enemies isEqualTo []}) exitWith {_result};
-private _leader=[_group] call WAIT_fnc_CortexGroupAnchor;
+private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 if (isNull _leader || {!alive _leader}) exitWith {_result};
 // Group manoeuvres issue group destinations. A fully mounted group or operating crew mixed with
@@ -55,11 +55,11 @@ if (_moraleState == "SHAKEN") exitWith {
 
 private _waypointIndex=currentWaypoint _group;
 private _forwardOrder=_waypointIndex < count waypoints _group
-    && {waypointDescription [_group,_waypointIndex] != "WAIT AI PASS"}
+    && {waypointDescription [_group,_waypointIndex] != "CBE AI PASS"}
     && {waypointType [_group,_waypointIndex] in ["MOVE","SAD","DESTROY"]}
     && {_leader distance2D waypointPosition [_group,_waypointIndex] > 80};
 private _foot=(units _group) select {
-    [_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
+    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
 };
 private _armedFoot=_foot select {primaryWeapon _x != ""};
 if (count _armedFoot < 2) exitWith {
@@ -70,13 +70,13 @@ if (count _armedFoot < 2) exitWith {
     _result set ["evidence",[count _foot,count _armedFoot]];
     _result
 };
-private _capableAT=_foot findIf {"AT" in ([_x] call WAIT_fnc_CortexCapabilities)} >= 0;
-private _capableAA=_foot findIf {"AA" in ([_x] call WAIT_fnc_CortexCapabilities)} >= 0;
+private _capableAT=_foot findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
+private _capableAA=_foot findIf {"AA" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
 private _houses=(getPosATL _leader) getEnvSoundController "houses";
 private _trees=(getPosATL _leader) getEnvSoundController "trees";
 private _forest=(getPosATL _leader) getEnvSoundController "forest";
 private _concealment=(_houses+_trees+(_forest*0.5)) min 1;
-private _closeRange=(missionNamespace getVariable ["WAIT_AIPass_Assault_Range",80]) min 60;
+private _closeRange=(missionNamespace getVariable ["CBE_AIPass_Assault_Range",80]) min 60;
 private _manoeuvre=[];
 private _armourIndex=-1;
 private _airIndex=-1;

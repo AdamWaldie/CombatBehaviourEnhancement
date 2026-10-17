@@ -10,8 +10,8 @@
  * Arguments: 0 group <GROUP>; 1 state <HASHMAP>; 2 vehicle <OBJECT>; 3 threat position <ARRAY>;
  * 4 threat object <OBJECT, default objNull>; 5 danger generation <NUMBER, default -1>.
  * Return Value: BOOL - true only when the physical jink operation was started.
- * Current callers: WAIT_fnc_CortexVehicles for the exact platform carried by native danger.
- * Example: [group driver apc1,state,apc1,getPosATL enemy1,enemy1,4] call WAIT_fnc_CortexVehicleJink;
+ * Current callers: CBE_fnc_CortexVehicles for the exact platform carried by native danger.
+ * Example: [group driver apc1,state,apc1,getPosATL enemy1,enemy1,4] call CBE_fnc_CortexVehicleJink;
  */
 
 params [
@@ -26,13 +26,13 @@ private _refuse={
 };
 if (isNull _group || {!local _group} || {isNull _vehicle} || {!local _vehicle}
     || {count _threatPosition < 2} || {_dangerGeneration < 0}) exitWith {["INVALID_OWNER"] call _refuse};
-if !([_group,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled
-    && {[_group,"WAIT_AIPass_VehicleJink_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) exitWith {["DISABLED"] call _refuse};
-if ([_group] call WAIT_fnc_CortexExternalTakeover
-    || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
+if !([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled
+    && {[_group,"CBE_AIPass_VehicleJink_Enable",true] call CBE_fnc_CortexFeatureEnabled}) exitWith {["DISABLED"] call _refuse};
+if ([_group] call CBE_fnc_CortexExternalTakeover
+    || {_vehicle getVariable ["CBE_Convoy_Active",false]}
     || {_vehicle isKindOf "StaticWeapon"} || {!(_vehicle isKindOf "LandVehicle")}
     || {!alive _vehicle} || {!canMove _vehicle} || {abs speed _vehicle > 25}
-    || {count (_group getVariable ["WAIT_Operation",createHashMap]) > 0}
+    || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     || {(_state getOrDefault ["movementLease",[]]) isNotEqualTo []}) exitWith {["MOVEMENT_OR_PLATFORM"] call _refuse};
 private _driver=driver _vehicle;
 if (isNull _driver || {!alive _driver} || {!local _driver} || {isPlayer _driver}
@@ -58,25 +58,25 @@ private _candidates=[];
 {
     _candidates pushBack [_origin getPos [_x select 0,_awayBearing+(_x select 1)]];
 } forEach [[35,0],[40,-30],[40,30],[45,-55],[45,55]];
-private _route=[_origin,_candidates,_threatPosition,[],_threat,"VEHICLE"] call WAIT_fnc_CortexSelectAvenue;
+private _route=[_origin,_candidates,_threatPosition,[],_threat,"VEHICLE"] call CBE_fnc_CortexSelectAvenue;
 if (_route isEqualTo []) exitWith {["NO_ROUTE"] call _refuse};
 private _destination=+(_route select -1);
-if !([_group,"VEHICLE_JINK",true,serverTime+25] call WAIT_fnc_CortexOwnershipLease) exitWith {["LEASE_BUSY"] call _refuse};
-private _operation=[_group,"VEHICLE_JINK",_threat,crew _vehicle,[_destination],"MOVING"] call WAIT_fnc_OperationStart;
+if !([_group,"VEHICLE_JINK",true,serverTime+25] call CBE_fnc_CortexOwnershipLease) exitWith {["LEASE_BUSY"] call _refuse};
+private _operation=[_group,"VEHICLE_JINK",_threat,crew _vehicle,[_destination],"MOVING"] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {
-    [_group,"VEHICLE_JINK",false] call WAIT_fnc_CortexOwnershipLease;
+    [_group,"VEHICLE_JINK",false] call CBE_fnc_CortexOwnershipLease;
     ["OPERATION_REFUSED"] call _refuse
 };
 private _generation=_operation get "generation";
-private _waypoint=[_group,_destination,25,"MOVE",_generation] call WAIT_fnc_CortexGroupMove;
+private _waypoint=[_group,_destination,25,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
 if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) exitWith {
-    [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call WAIT_fnc_OperationRelease;
-    [_group,"VEHICLE_JINK",false] call WAIT_fnc_CortexOwnershipLease;
+    [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+    [_group,"VEHICLE_JINK",false] call CBE_fnc_CortexOwnershipLease;
     ["MOVEMENT_REJECTED"] call _refuse
 };
 _state deleteAt "vehicleJinkRefusal";
 _state set ["movementLease",["VEHICLE_JINK",time+25]];
 _state set ["vehicleOperationGeneration",_operation get "generation"];
-_vehicle setVariable ["WAIT_Danger_VehicleJink",[_dangerGeneration,_group,_destination,serverTime+25],true];
+_vehicle setVariable ["CBE_Danger_VehicleJink",[_dangerGeneration,_group,_destination,serverTime+25],true];
 true
 

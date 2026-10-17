@@ -1,15 +1,15 @@
 class FSM {
-    fsmName = "WAIT danger assessment";
+    fsmName = "CBE danger assessment";
     class States {
         class Start {
             name = "Start";
-            init = "_group = _this param [0,grpNull]; _epoch = _this param [1,-1]; _generation = _this param [2,-1]; _delay = -1; _nextAt = time; _zeusToken = +(_group getVariable [""WAIT_AIPass_ZeusHold"",[]]);";
+            init = "_group = _this param [0,grpNull]; _epoch = _this param [1,-1]; _generation = _this param [2,-1]; _delay = -1; _nextAt = time; _zeusToken = +(_group getVariable [""CBE_AIPass_ZeusHold"",[]]);";
             precondition = "";
             class Links { class Assess { priority = 0; to = "Assessment"; condition = "true"; action = ""; }; };
         };
         class Assessment {
             name = "Assessment";
-            init = "_delay = [_group,_epoch,_generation] call WAIT_fnc_DangerStep; _nextAt = time + (_delay max 0);";
+            init = "_delay = [_group,_epoch,_generation] call CBE_fnc_DangerStep; _nextAt = time + (_delay max 0);";
             precondition = "";
             class Links {
                 class Done { priority = 2; to = "Finished"; condition = "_delay < 0"; action = ""; };
@@ -21,7 +21,7 @@ class FSM {
             class Links {
                 class Interrupted {
                     priority = 2; to = "Finished";
-                    condition = "isNull _group || {!local _group} || {_epoch != (_group getVariable [""WAIT_AIPass_Epoch"",0])} || {_generation != (_group getVariable [""WAIT_Danger_Generation"",0])} || {!(missionNamespace getVariable [""WAIT_AIPass_Active"",false])} || {_zeusToken isNotEqualTo (_group getVariable [""WAIT_AIPass_ZeusHold"",[]])} || {_group getVariable [""WAIT_AIPass_ZeusWaypoints"",false]}";
+                    condition = "isNull _group || {!local _group} || {_epoch != (_group getVariable [""CBE_AIPass_Epoch"",0])} || {_generation != (_group getVariable [""CBE_Danger_Generation"",0])} || {!(missionNamespace getVariable [""CBE_AIPass_Active"",false])} || {_zeusToken isNotEqualTo (_group getVariable [""CBE_AIPass_ZeusHold"",[]])} || {_group getVariable [""CBE_AIPass_ZeusWaypoints"",false]}";
                     action = "";
                 };
                 class Due { priority = 0; to = "Assessment"; condition = "time >= _nextAt"; action = ""; };
@@ -29,7 +29,7 @@ class FSM {
         };
         class Finished {
             name = "Finished";
-            init = "if (!isNull _group && {local _group} && {_epoch == (_group getVariable [""WAIT_AIPass_Epoch"",0])} && {_generation == (_group getVariable [""WAIT_Danger_Generation"",0])}) then {_dangerActor=[_group] call WAIT_fnc_CortexGroupAnchor; if (isNull _dangerActor) then {_dangerActor=leader _group}; [_dangerActor,""RELEASE""] call WAIT_fnc_DangerReact; _group setVariable [""WAIT_Danger_FSM"",nil]; _group setVariable [""WAIT_Danger_Events"",nil]; _group setVariable [""WAIT_Danger_LastAssessment"",nil]; _group setVariable [""WAIT_Danger_Response"",nil,true]; _group setVariable [""WAIT_Danger_Action"",nil,true]; _group setVariable [""WAIT_Danger_Contact"",nil,true]; _group setVariable [""WAIT_Danger_VehicleContext"",nil,true]; _brain=_group getVariable [""WAIT_GroupBrain"",createHashMap]; if (count _brain > 0) then {_brain deleteAt ""responsiveUntil""}};";
+            init = "if (!isNull _group && {local _group} && {_epoch == (_group getVariable [""CBE_AIPass_Epoch"",0])} && {_generation == (_group getVariable [""CBE_Danger_Generation"",0])}) then {_dangerActor=[_group] call CBE_fnc_CortexGroupAnchor; if (isNull _dangerActor) then {_dangerActor=leader _group}; [_dangerActor,""RELEASE""] call CBE_fnc_DangerReact; _group setVariable [""CBE_Danger_FSM"",nil]; _group setVariable [""CBE_Danger_Events"",nil]; _group setVariable [""CBE_Danger_LastAssessment"",nil]; _group setVariable [""CBE_Danger_Response"",nil,true]; _group setVariable [""CBE_Danger_Action"",nil,true]; _group setVariable [""CBE_Danger_Contact"",nil,true]; _group setVariable [""CBE_Danger_VehicleContext"",nil,true]; _brain=_group getVariable [""CBE_GroupBrain"",createHashMap]; if (count _brain > 0) then {_brain deleteAt ""responsiveUntil""}};";
             precondition = ""; class Links {};
         };
     };

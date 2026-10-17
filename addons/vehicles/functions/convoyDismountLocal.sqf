@@ -10,7 +10,7 @@
  * Arguments: 3: full reservation cargo <ARRAY>, [] uses configuration cargo; read-only exclusion roster.
  * Return Value: Nothing. At most two new cover searches per convoy/owner/five-second crew step.
  * Current callers: ConvoyCrewLocal and ConvoySync cleanup.
- * Example: [_group, _configuration] call WAIT_fnc_ConvoyDismountLocal;
+ * Example: [_group, _configuration] call CBE_fnc_ConvoyDismountLocal;
  */
 params ["_group", "_configuration", ["_cleanup", false, [true]],["_reservationCargo",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
@@ -19,29 +19,29 @@ private _budget = 2;
 private _reserved = [];
 if (_reservationCargo isEqualTo []) then {_reservationCargo=_cargo};
 {
-    private _job = (_x select 0) getVariable ["WAIT_Convoy_Dismount", []];
+    private _job = (_x select 0) getVariable ["CBE_Convoy_Dismount", []];
     if (count _job == 4 && {(_job select 0) == _group} && {(_job select 1) == _revision}
         && {serverTime < (_job select 2)} && {(_job select 3) isNotEqualTo []}) then {_reserved pushBack (_job select 3)};
 } forEach _reservationCargo;
 {
     _x params ["_unit", "_vehicle"];
     if (local _unit && {!isPlayer _unit}) then {
-        private _job = _unit getVariable ["WAIT_Convoy_Dismount", []];
+        private _job = _unit getVariable ["CBE_Convoy_Dismount", []];
         private _ours = count _job == 4 && {(_job select 0) == _group} && {(_job select 1) == _revision};
         private _capable = alive _unit && {!(_unit getVariable ["ACE_isUnconscious", false])} && {lifeState _unit != "INCAPACITATED"};
         // Passenger cover is a temporary convoy-owned order. The common handover helper protects a
         // Zeus/player/specialist order on any member of this passenger group from a later convoy
-        // release or remount cleanup, while this local flag still honours an explicit WAIT disable.
+        // release or remount cleanup, while this local flag still honours an explicit CBE disable.
         private _command=toUpperANSI currentCommand _unit;
         private _ownedExit=_ours && {_command == "GET OUT"} && {vehicle _unit == _vehicle}
             && {(_job select 3) isEqualTo []};
         private _nativeTask=!_ownedExit && {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
-        private _actorMove=_unit getVariable ["WAIT_Cortex_ActorMove",[]];
+        private _actorMove=_unit getVariable ["CBE_Cortex_ActorMove",[]];
         private _reservedMove=count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time};
         private _operator = _nativeTask || {_reservedMove}
-            || {[group _unit,false,_unit] call WAIT_fnc_CortexExternalTakeover}
-            || {"ALL" in ((group _unit) getVariable ["WAIT_AIPass_DisabledFeatures",[]])};
-        private _end = _cleanup || {!([group _unit,"WAIT_Convoy_Cover_Enable",true] call WAIT_fnc_CortexFeatureEnabled)} || {!([_group,"WAIT_Convoy_Cover_Enable",true] call WAIT_fnc_CortexFeatureEnabled)} || {_phase != "HALT"} || {serverTime >= _deadline}
+            || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}
+            || {"ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures",[]])};
+        private _end = _cleanup || {!([group _unit,"CBE_Convoy_Cover_Enable",true] call CBE_fnc_CortexFeatureEnabled)} || {!([_group,"CBE_Convoy_Cover_Enable",true] call CBE_fnc_CortexFeatureEnabled)} || {_phase != "HALT"} || {serverTime >= _deadline}
             || {_operator} || {!_capable} || {vehicle _unit != _unit && {vehicle _unit != _vehicle || {_ours && {(_job select 3) isNotEqualTo []}}}};
         if (_end) then {
             if (_ours) then {
@@ -50,8 +50,8 @@ if (_reservationCargo isEqualTo []) then {_reservationCargo=_cargo};
                     && {currentCommand _unit in ["MOVE","STOP",""]}
                     && {private _live=(expectedDestination _unit) param [0,[]];
                         count _live == 3 && {count _destination == 3} && {_live vectorDistance _destination <= 0.25}}) then {_unit doFollow leader group _unit};
-                _unit setVariable ["WAIT_Convoy_Dismount", nil, true];
-                _unit setVariable ["WAIT_Convoy_DismountApplied", nil];
+                _unit setVariable ["CBE_Convoy_Dismount", nil, true];
+                _unit setVariable ["CBE_Convoy_DismountApplied", nil];
             };
         } else {
             // CrewLocal creates this record before unassigning the passenger, protecting the handoff to cover.
@@ -63,7 +63,7 @@ if (_reservationCargo isEqualTo []) then {_reservationCargo=_cargo};
                     if (_threat isNotEqualTo []) then {
                         private _away = _threat getDir _anchor;
                         private _search = _anchor getPos [8, _away + ((_forEachIndex mod 5) - 2) * 20];
-                        ([_search, _threat, 12, _reserved, _group] call WAIT_fnc_CortexFindCover) params ["_cover", "_found"];
+                        ([_search, _threat, 12, _reserved, _group] call CBE_fnc_CortexFindCover) params ["_cover", "_found"];
                         if (_found && {_unit distance2D _cover <= 25} && {_vehicle distance2D _cover >= 6}) then {_destination = _cover};
                     };
                     // Without verified cover, disperse a short distance. Do not claim the fallback is protected.
@@ -75,18 +75,18 @@ if (_reservationCargo isEqualTo []) then {_reservationCargo=_cargo};
                     };
                     if (_destination isEqualTo []) then {
                         // One search attempt per passenger; ordinary AI handles an obstructed dismount area.
-                        _unit setVariable ["WAIT_Convoy_Dismount", nil, true];
+                        _unit setVariable ["CBE_Convoy_Dismount", nil, true];
                     } else {
                         _job set [3, _destination];
-                        _unit setVariable ["WAIT_Convoy_Dismount", _job, true];
+                        _unit setVariable ["CBE_Convoy_Dismount", _job, true];
                         _reserved pushBack _destination;
                     };
                 };
                 if (_destination isNotEqualTo [] && {_unit distance2D _destination > 3}
-                    && {(_unit getVariable ["WAIT_Convoy_DismountApplied", []]) isNotEqualTo [_group, _revision, _destination]}
-                    && {!([group _unit] call WAIT_fnc_CortexExternalTakeover)}) then {
+                    && {(_unit getVariable ["CBE_Convoy_DismountApplied", []]) isNotEqualTo [_group, _revision, _destination]}
+                    && {!([group _unit] call CBE_fnc_CortexExternalTakeover)}) then {
                     _unit doMove _destination;
-                    _unit setVariable ["WAIT_Convoy_DismountApplied", [_group, _revision, _destination]];
+                    _unit setVariable ["CBE_Convoy_DismountApplied", [_group, _revision, _destination]];
                 };
             };
         };

@@ -7,13 +7,13 @@
  * 4: reply owner <NUMBER>, default -1; HC callers supply clientOwner.
  * Return Value: Nothing.
  * Current callers: SupportApply.
- * Example: [_group, _token, true, _lease, clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAck", 2];
+ * Example: [_group, _token, true, _lease, clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck", 2];
  */
 params [["_group",grpNull,[grpNull]],["_token","",[""]],["_accepted",false,[true]],["_snapshot",[],[[]]],["_replyOwner",-1,[0]]];
-if (!isServer || {isNull _group} || {([_replyOwner,groupOwner _group] call WAIT_fnc_HeadlessResolveSender) < 0}) exitWith {};
-private _lease = _group getVariable ["WAIT_AIPass_SupportLease",[]];
+if (!isServer || {isNull _group} || {([_replyOwner,groupOwner _group] call CBE_fnc_HeadlessResolveSender) < 0}) exitWith {};
+private _lease = _group getVariable ["CBE_AIPass_SupportLease",[]];
 if (count _lease != 6 || {(_lease select 0) != _token} || {_lease isNotEqualTo _snapshot}) exitWith {};
-private _requests = missionNamespace getVariable ["WAIT_AIPass_SupportRequests",createHashMap];
+private _requests = missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap];
 private _job = _requests getOrDefault [netId (_lease select 1),createHashMap];
 if (count _job == 0) exitWith {};
 // A delayed owner reply may arrive after either finite deadline. Keep a matching
@@ -27,13 +27,13 @@ if (_index >= 0) then {
     // Prepared contact peers own no movement yet. Publish authenticated eligibility separately
     // from SupportStatus, which describes an operation that has actually started on its owner.
     private _prepared=_accepted && {(_lease select 5) isEqualTo []}
-        && {[_group,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
-        && {[_lease select 1,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
+        && {[_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_lease select 1,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
     private _eligibility=if (_prepared) then {[_token,groupOwner _group,_lease select 2]} else {[]};
-    if (_prepared && {_eligibility isNotEqualTo (_group getVariable ["WAIT_Cortex_SupportEligibility",[]])}) then {
+    if (_prepared && {_eligibility isNotEqualTo (_group getVariable ["CBE_Cortex_SupportEligibility",[]])}) then {
         // Evidence only: the receipt remains after execution consumes eligibility, allowing
         // a slower audit/JIP observer to see the genuine authenticated preparation transition.
-        _group setVariable ["WAIT_Cortex_SupportPreparedReceipt",[_token,groupOwner _group,serverTime,_lease select 2],true];
+        _group setVariable ["CBE_Cortex_SupportPreparedReceipt",[_token,groupOwner _group,serverTime,_lease select 2],true];
     };
-    _group setVariable ["WAIT_Cortex_SupportEligibility",if (_prepared) then {_eligibility} else {nil},true];
+    _group setVariable ["CBE_Cortex_SupportEligibility",if (_prepared) then {_eligibility} else {nil},true];
 };

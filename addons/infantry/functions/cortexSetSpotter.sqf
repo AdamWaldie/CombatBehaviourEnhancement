@@ -6,10 +6,10 @@
  * Arguments: 0: unit <OBJECT>, default objNull; 1: enabled <BOOL>, default true.
  * Return Value: Boolean, assignment accepted.
  * Current callers: server mission scripts and AI Orders.
- * Example: if (isServer) then {[spotter1, true] call WAIT_fnc_CortexSetSpotter;};
+ * Example: if (isServer) then {[spotter1, true] call CBE_fnc_CortexSetSpotter;};
  */
 params [["_unit", objNull, [objNull]], ["_enabled", true, [true]]];
 if (!isServer || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
 if (isNull _unit || {!(_unit isKindOf "CAManBase")} || {isPlayer _unit}) exitWith {false};
-_unit setVariable ["WAIT_AIPass_Spotter", _enabled, true];
+_unit setVariable ["CBE_AIPass_Spotter", _enabled, true];
 true

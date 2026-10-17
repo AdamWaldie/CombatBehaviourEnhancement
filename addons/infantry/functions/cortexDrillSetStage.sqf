@@ -13,7 +13,7 @@
  * Current callers: CortexFlankStart, CortexAdvanceStart, CortexAssaultStart, CortexSupportBoundStart,
  * CortexFlankStep and CortexFlankEnd.
  * Example:
- * [_group, _drill, "MOVE", "BOUND_ISSUED"] call WAIT_fnc_CortexDrillSetStage;
+ * [_group, _drill, "MOVE", "BOUND_ISSUED"] call CBE_fnc_CortexDrillSetStage;
  * Result: the owner enters MOVE and Zeus can distinguish a live bound from an idle controller.
  */
 
@@ -28,17 +28,17 @@ if (isNull _group || {!local _group} || {count _drill == 0} || {_next == ""}) ex
 // cannot change its stage or overwrite the current operation's diagnostic transition.
 private _generation=_drill getOrDefault ["operationGeneration",-1];
 private _epoch=_drill getOrDefault ["ownerEpoch",-1];
-if (_generation >= 0 && {_generation != (_group getVariable ["WAIT_OperationGeneration",0])}) exitWith {false};
-if (_epoch >= 0 && {_epoch != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {false};
+if (_generation >= 0 && {_generation != (_group getVariable ["CBE_OperationGeneration",0])}) exitWith {false};
+if (_epoch >= 0 && {_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {false};
 private _previous=_drill getOrDefault ["stage",""];
 if (_previous == _next) exitWith {false};
 _drill set ["stage",_next];
 // Publish semantic progress into the matching parent lifecycle only at a real stage change.
 // ENDED belongs to release/cancellation; a child must never complete its coordinated parent.
 if (_next in ["START","MOVE","PAUSE","HOLD"] && {_generation >= 0}) then {
-    private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
     if ((_operation getOrDefault ["generation",-2]) == _generation
-        && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
+        && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
         private _phase=switch (_next) do {
             case "PAUSE": {"SUPPORT"};
             case "HOLD": {"SECURITY"};
@@ -49,7 +49,7 @@ if (_next in ["START","MOVE","PAUSE","HOLD"] && {_generation >= 0}) then {
         };
         if ((_operation getOrDefault ["phase",""]) != _phase) then {
             _operation set ["phase",_phase];
-            _group setVariable ["WAIT_Operation",_operation,true];
+            _group setVariable ["CBE_Operation",_operation,true];
         };
     };
 };
@@ -65,9 +65,9 @@ private _entry=[
     _drill getOrDefault ["operationGeneration",-1],
     _drill getOrDefault ["ownerEpoch",-1]
 ];
-private _history=_group getVariable ["WAIT_Cortex_DrillTransitions",[]];
+private _history=_group getVariable ["CBE_Cortex_DrillTransitions",[]];
 _history pushBack _entry;
 if (count _history > 64) then {_history deleteRange [0,count _history-64]};
-_group setVariable ["WAIT_Cortex_DrillTransition",_entry,true];
-_group setVariable ["WAIT_Cortex_DrillTransitions",_history,true];
+_group setVariable ["CBE_Cortex_DrillTransition",_entry,true];
+_group setVariable ["CBE_Cortex_DrillTransitions",_history,true];
 true

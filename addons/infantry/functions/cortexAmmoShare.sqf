@@ -3,7 +3,7 @@
  * Redistributes rifle magazines inside a squad.
  *
  * A soldier with one spare magazine or fewer for his primary weapon receives one from a squad-mate
- * within WAIT_AIPass_AmmoShare_Distance who has at least four spare magazines his weapon accepts.
+ * within CBE_AIPass_AmmoShare_Distance who has at least four spare magazines his weapon accepts.
  * The magazine keeps its actual round count, and is only moved if the receiver has room for it. At
  * most two transfers happen per call, and a squad is checked at most every 20 s. Vehicle cargo is not
  * used.
@@ -19,16 +19,16 @@
  * Number - magazines transferred
  *
  * Example:
- * [_group, _state] call WAIT_fnc_CortexAmmoShare;
+ * [_group, _state] call CBE_fnc_CortexAmmoShare;
  * Result: the rifleman who has shot himself dry gets a magazine from the machine gunner's assistant.
  *
- * Current caller: WAIT_fnc_CortexGroupTick.
+ * Current caller: CBE_fnc_CortexGroupTick.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]]];
-if ([_state, "ammo"] call WAIT_fnc_CortexCooldown) exitWith {0};
-[_state, "ammo", 20] call WAIT_fnc_CortexCooldown;
-private _range = missionNamespace getVariable ["WAIT_AIPass_AmmoShare_Distance", 10];
+if ([_state, "ammo"] call CBE_fnc_CortexCooldown) exitWith {0};
+[_state, "ammo", 20] call CBE_fnc_CortexCooldown;
+private _range = missionNamespace getVariable ["CBE_AIPass_AmmoShare_Distance", 10];
 private _members = (units _group) select {alive _x && {local _x} && {isNull objectParent _x} && {primaryWeapon _x != ""}};
 private _transfers = 0;
 {
@@ -65,6 +65,6 @@ private _transfers = 0;
     };
 } forEach _members;
 if (_transfers > 0) then {
-    missionNamespace setVariable ["WAIT_AIPass_MagazinesShared", (missionNamespace getVariable ["WAIT_AIPass_MagazinesShared", 0]) + _transfers];
+    missionNamespace setVariable ["CBE_AIPass_MagazinesShared", (missionNamespace getVariable ["CBE_AIPass_MagazinesShared", 0]) + _transfers];
 };
 _transfers

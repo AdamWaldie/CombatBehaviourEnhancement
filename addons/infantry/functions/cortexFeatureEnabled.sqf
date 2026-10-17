@@ -6,10 +6,10 @@
  * Arguments: 0: group <GROUP>, grpNull; 1: setting name <STRING>, empty; 2: fallback <BOOL>, false.
  * Return Value: Boolean.
  * Current callers: AI behaviours, convoy controller and shared passenger checks.
- * Example: [_group, "WAIT_AIPass_Reinforce_Enable", true] call WAIT_fnc_CortexFeatureEnabled;
+ * Example: [_group, "CBE_AIPass_Reinforce_Enable", true] call CBE_fnc_CortexFeatureEnabled;
  */
 params [["_group", grpNull, [grpNull]], ["_setting", "", [""]], ["_default", false, [true]]];
 if !(missionNamespace getVariable [_setting, _default]) exitWith {false};
 if (isNull _group) exitWith {true};
-private _disabled = _group getVariable ["WAIT_AIPass_DisabledFeatures", []];
-!([_group] call WAIT_fnc_CompatibilityExternalControl) && {!("ALL" in _disabled)} && {!(_setting in _disabled)}
+private _disabled = _group getVariable ["CBE_AIPass_DisabledFeatures", []];
+!([_group] call CBE_fnc_CompatibilityExternalControl) && {!("ALL" in _disabled)} && {!(_setting in _disabled)}

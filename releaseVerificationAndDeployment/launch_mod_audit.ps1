@@ -28,6 +28,8 @@ if (!$Package) { $Package=Join-Path $repo '.hemttout/build' }
 if ($BatchMode -eq 'normal' -and $HeadlessClients -ne 0) {throw 'Normal batches require zero HCs; use BatchMode headless for migration tests'}
 if ($BatchMode -eq 'headless' -and $HeadlessClients -ne 2) {throw 'Headless batches require two HCs for split-owner acceptance'}
 if ($Focus -in @('performancecontact','performancemixed') -and $BatchMode -ne 'headless') {throw 'Multi-owner performance requires a dedicated headless batch; use standaloneperformance for normal comparisons'}
+if ($Focus -eq 'indooractorshc' -and ($BatchMode -ne 'headless' -or $HeadlessClients -ne 2 -or !$HeadlessProvider)) {throw 'Individual indoor HC fixtures require BatchMode headless, HeadlessClients 2 and a real HeadlessProvider'}
+if ($Focus -in @('indooractors','indoornatural') -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Individual indoor normal fixtures require BatchMode normal and HeadlessClients 0'}
 if ($ServerOnly -and $Focus -ne 'dangerload') {throw 'ServerOnly is restricted to the dangerload loader diagnostic.'}
 if (!$ArmaPath) {
     $ArmaPath=(Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\bohemia interactive\arma 3').main
@@ -35,7 +37,7 @@ if (!$ArmaPath) {
 if (!$StageOnly -and (Get-Process arma3*,arma3server* -ErrorAction SilentlyContinue)) {
     throw 'An Arma process is already running. Finish that session before launching this batch.'
 }
-if ($NativeBaseline -and $EnginePolicies.Count) {throw 'NativeBaseline cannot load WAIT engine policies'}
+if ($NativeBaseline -and $EnginePolicies.Count) {throw 'NativeBaseline cannot load CBE engine policies'}
 if ($NativeBaseline -and $Focus -notin @('standaloneperformance','nativebuildings')) {throw 'NativeBaseline requires an addon-independent focus'}
 if ($Focus -eq 'standaloneperformance' -and $HeadlessClients -ne 0) {throw 'Standalone server-owned performance requires HeadlessClients 0; use the migration audit for headless cases'}
 $stageDefaultDependencies=!$Mods.Count
@@ -71,7 +73,7 @@ if ($stageDefaultDependencies) {
 # These paths join the one shared mod argument used by server, client and every headless client.
 $policyMods=@()
 foreach ($policy in ($EnginePolicies | Select-Object -Unique)) {
-    $policyMod=Join-Path $runtime ("@WaldosAITweaks/optionals/@waldo_ai_tweaks_"+$policy)
+    $policyMod=Join-Path $runtime ("@CBE/optionals/@cbe_"+$policy)
     if (!(Test-Path -LiteralPath (Join-Path $policyMod 'addons')) -or
         !(Get-ChildItem -LiteralPath (Join-Path $policyMod 'addons') -Filter '*.pbo')) {
         throw "Selected engine policy is missing from the sealed package: $policy"
@@ -92,14 +94,14 @@ if ($manifest.package.dirty -ne $false -or $manifest.package.commit -notmatch '^
     throw 'Audit launch requires a clean committed package. Commit validated source, rebuild its seal, and stage a fresh candidate before launching.'
 }
 
-$mission=Join-Path $runtime "WAIT_Audit.$World"
-$installedMission=Join-Path $ArmaPath ('MPMissions/WAIT_Audit_'+(Split-Path $runtime -Leaf)+'.'+$World)
+$mission=Join-Path $runtime "CBE_Audit.$World"
+$installedMission=Join-Path $ArmaPath ('MPMissions/CBE_Audit_'+(Split-Path $runtime -Leaf)+'.'+$World)
 Copy-Item -LiteralPath $mission -Destination $installedMission -Recurse
 $missionName=Split-Path $installedMission -Leaf
 $missionName=[System.IO.Path]::GetFileNameWithoutExtension($missionName)
 $config=Join-Path $runtime 'server.cfg'
 @"
-hostname="WAIT packaged audit";
+hostname="CBE packaged audit";
 password="";
 passwordAdmin="";
 maxPlayers=3;
@@ -112,7 +114,7 @@ persistent=1;
 class Missions {class Audit {template="$missionName.$World"; difficulty="Regular";};};
 "@ | Set-Content $config
 $modArg=if ($NativeBaseline) {'-mod='+($launchMods -join ';')} else {
-    '-mod='+(@((Join-Path $runtime '@WaldosAITweaks'))+$launchMods -join ';')
+    '-mod='+(@((Join-Path $runtime '@CBE'))+$launchMods -join ';')
 }
 function Start-AuditProcess([string]$exe,[string[]]$arguments,[switch]$Interactive) {
     $quoted=$arguments | ForEach-Object {'"'+$_+'"'}
@@ -162,7 +164,7 @@ $networkReady=$false
 while ((Get-Date) -lt $deadline -and !$server.HasExited) {
     $logs=Get-ChildItem $serverProfile -Filter '*.rpt' -Recurse -ErrorAction SilentlyContinue
     foreach ($log in $logs) {
-        if (Select-String -LiteralPath $log.FullName -SimpleMatch 'WAIT AUDIT SERVER READY' -Quiet) {$ready=$true}
+        if (Select-String -LiteralPath $log.FullName -SimpleMatch 'CBE AUDIT SERVER READY' -Quiet) {$ready=$true}
         if (Select-String -LiteralPath $log.FullName -SimpleMatch 'Connected to Steam servers' -Quiet) {$networkReady=$true}
     }
     if ($ready -and ($ServerOnly -or $networkReady)) {break}
@@ -171,11 +173,11 @@ while ((Get-Date) -lt $deadline -and !$server.HasExited) {
 if (!$ready -or (!$ServerOnly -and !$networkReady)) {throw "Server did not reach mission and network readiness (mission=$ready network=$networkReady). Inspect $runtime; recorded processes have been left available for inspection."}
 if ($ServerOnly) {
     @{runtime=$runtime; mission=$installedMission; process_ids=$processes; fingerprint=$manifest.package.fingerprint} | ConvertTo-Json | Set-Content (Join-Path $runtime 'launch.json')
-    Write-Output "WAIT danger loader diagnostic entered WAIT_Audit.VR server-side. Runtime: $runtime"
+    Write-Output "CBE danger loader diagnostic entered CBE_Audit.VR server-side. Runtime: $runtime"
     return
 }
 for ($i=1; $i -le $HeadlessClients; $i++) {
-    $hc=Start-AuditProcess 'arma3server_x64.exe' @('-client','-noBattlEye','-netlog','-connect=127.0.0.1',"-port=$Port",("-profiles="+(Join-Path $runtime "hc$i")),"-name=WAIT_HC$i",$modArg)
+    $hc=Start-AuditProcess 'arma3server_x64.exe' @('-client','-noBattlEye','-netlog','-connect=127.0.0.1',"-port=$Port",("-profiles="+(Join-Path $runtime "hc$i")),"-name=CBE_HC$i",$modArg)
     $processes+=$hc.Id
     $auditProcessHandles+=$hc
     # Preserve each successful partial launch if a later HC/client fails to start.
@@ -193,7 +195,7 @@ resolutionH=$ResolutionHeight;
 Windowed=1;
 "@ | Set-Content (Join-Path $clientProfile 'Arma3.cfg')
 $clientConfig=Join-Path $clientProfile 'Arma3.cfg'
-$client=Start-AuditProcess 'arma3_x64.exe' @('-noBattlEye','-netlog','-window','-noPause','-skipIntro','-noSplash','-showScriptErrors','-world=empty','-connect=127.0.0.1',"-port=$Port","-profiles=$clientProfile","-cfg=$clientConfig","-x=$ResolutionWidth","-y=$ResolutionHeight","-windowWidth=$ResolutionWidth","-windowHeight=$ResolutionHeight",'-name=WAIT_Audit',$modArg) -Interactive
+$client=Start-AuditProcess 'arma3_x64.exe' @('-noBattlEye','-netlog','-window','-noPause','-skipIntro','-noSplash','-showScriptErrors','-world=empty','-connect=127.0.0.1',"-port=$Port","-profiles=$clientProfile","-cfg=$clientConfig","-x=$ResolutionWidth","-y=$ResolutionHeight","-windowWidth=$ResolutionWidth","-windowHeight=$ResolutionHeight",'-name=CBE_Audit',$modArg) -Interactive
 $processes+=$client.Id
 $auditProcessHandles+=$client
 @{runtime=$runtime; mission=$installedMission; process_ids=$processes; fingerprint=$manifest.package.fingerprint} | ConvertTo-Json | Set-Content (Join-Path $runtime 'launch.json')
@@ -203,7 +205,7 @@ $observerReady=$false
 while ((Get-Date) -lt $clientDeadline -and !$client.HasExited -and !$server.HasExited) {
     $logs=Get-ChildItem $serverProfile -Filter '*.rpt' -Recurse -ErrorAction SilentlyContinue
     foreach ($log in $logs) {
-        if (Select-String -LiteralPath $log.FullName -SimpleMatch 'WAIT AUDIT OBSERVER ZEUS READY' -Quiet) {$observerReady=$true; break}
+        if (Select-String -LiteralPath $log.FullName -SimpleMatch 'CBE AUDIT OBSERVER ZEUS READY' -Quiet) {$observerReady=$true; break}
     }
     if ($observerReady) {break}
     Start-Sleep -Seconds 1
@@ -223,11 +225,11 @@ if (!$observerReady) {
 }
 $client.Refresh()
 if ($client.MainWindowHandle -eq [IntPtr]::Zero -or !$([WaitAuditWindow]::IsWindowVisible($client.MainWindowHandle))) {
-    throw "Client entered WAIT_Audit.$World but its interactive window is no longer visible. Inspect $runtime; this batch is not valid."
+    throw "Client entered CBE_Audit.$World but its interactive window is no longer visible. Inspect $runtime; this batch is not valid."
 }
 [WaitAuditWindow]::ShowWindowAsync($client.MainWindowHandle,9) | Out-Null
 [WaitAuditWindow]::SetForegroundWindow($client.MainWindowHandle) | Out-Null
-Write-Output "WAIT batch entered WAIT_Audit.$World in a visible ${ResolutionWidth}x${ResolutionHeight} client window. The audit mission skips role selection and assigns the sole observer Zeus slot automatically. Runtime: $runtime"
+Write-Output "CBE batch entered CBE_Audit.$World in a visible ${ResolutionWidth}x${ResolutionHeight} client window. The audit mission skips role selection and assigns the sole observer Zeus slot automatically. Runtime: $runtime"
 if ($WaitForCompletion) {
     # Retain the actual Process handles: a later process inventory cannot recover exit codes
     # and PID reuse must not make an unrelated application look like this audit.
@@ -242,8 +244,8 @@ if ($WaitForCompletion) {
         $serverComplete=$false
         $clientComplete=$false
         foreach ($rpt in (Get-ChildItem $runtime -Filter '*.rpt' -Recurse)) {
-            if (Select-String -LiteralPath $rpt.FullName -Pattern 'WAIT CORTEX QA SERVER COMPLETE:|WAIT STANDALONE PERF COMPLETE' -Quiet) {$serverComplete=$true}
-            if (Select-String -LiteralPath $rpt.FullName -SimpleMatch 'WAIT CORTEX QA CLIENT COMPLETE:' -Quiet) {$clientComplete=$true}
+            if (Select-String -LiteralPath $rpt.FullName -Pattern 'CBE CORTEX QA SERVER COMPLETE:|CBE STANDALONE PERF COMPLETE' -Quiet) {$serverComplete=$true}
+            if (Select-String -LiteralPath $rpt.FullName -SimpleMatch 'CBE CORTEX QA CLIENT COMPLETE:' -Quiet) {$clientComplete=$true}
         }
         if ($serverComplete -and ($clientComplete -or $Focus -eq 'standaloneperformance')) {$batchState='COMPLETED'}
         elseif ($server.HasExited -or $client.HasExited) {$batchState='PROCESS_EXIT_BEFORE_COMPLETION'}
@@ -253,5 +255,5 @@ if ($WaitForCompletion) {
         } | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $runtime 'batch-status.json')
         if ($batchState -eq 'RUNNING') {Start-Sleep -Seconds 2}
     } while ($batchState -eq 'RUNNING')
-    Write-Output "WAIT batch observation: $batchState. Processes are left untouched. Evidence: $runtime/batch-status.json"
+    Write-Output "CBE batch observation: $batchState. Processes are left untouched. Evidence: $runtime/batch-status.json"
 }

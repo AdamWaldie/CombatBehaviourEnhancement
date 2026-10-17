@@ -31,14 +31,14 @@
  * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>.
  * Return Value: Retry delay in seconds or -1 after acknowledgement.
  * Current callers: SupportLocal through the existing scheduler.
- * Example: [_job] call WAIT_fnc_CortexSupportApply;
+ * Example: [_job] call CBE_fnc_CortexSupportApply;
  * Result: a valid reservation becomes one owner-local rally or coordinated-assault assignment.
  */
 params ["_job"];
 private _group = _job get "group";
 private _lease = _job get "lease";
 if (!local _group) exitWith {-1};
-private _current = _group getVariable ["WAIT_AIPass_SupportLease",[]];
+private _current = _group getVariable ["CBE_AIPass_SupportLease",[]];
 if (_current isNotEqualTo _lease) exitWith {
     if (serverTime < (_job get "waitUntil")) then {0.25} else {
         // A superseded delivery must not reject a newer order with the same reservation token.
@@ -46,8 +46,8 @@ if (_current isNotEqualTo _lease) exitWith {
     }
 };
 _lease params ["_token","_requester","_expiry","_rally","_needAT","_attack"];
-private _state = [_group] call WAIT_fnc_CortexGroupState;
-private _publicStatus=_group getVariable ["WAIT_AIPass_SupportStatus",[]];
+private _state = [_group] call CBE_fnc_CortexGroupState;
+private _publicStatus=_group getVariable ["CBE_AIPass_SupportStatus",[]];
 private _adopting=_job getOrDefault ["adopt",false]
     && {count _publicStatus == 4}
     && {(_publicStatus select 0) == _token}
@@ -57,7 +57,7 @@ private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
 private _movementLeaseActive = count _movementLease == 2 && {time < (_movementLease select 1)};
 private _supportOwnsMovement = _same && {_movementOwner in ["SUPPORT_RALLY","COORDINATED_ASSAULT"]};
-private _fit = (units _group) select {[_x] call WAIT_fnc_CortexCombatEffective};
+private _fit = (units _group) select {[_x] call CBE_fnc_CortexCombatEffective};
 private _footFit = _fit select {isNull objectParent _x};
 // Group-level rally destinations also reach native operating crews. A foot subset alone does
 // not make that authority safe: vehicle support retains its own movement operation.
@@ -67,23 +67,23 @@ private _operatingCrew = (units _group) findIf {
         && {_x in [driver _platform,gunner _platform,commander _platform]}
 } >= 0;
 private _phase = _state getOrDefault ["phase","CALM"];
-private _requesterReinforce = !isNull _requester && {[_requester,"WAIT_AIPass_Reinforce_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
-private _requesterCoordinated = !isNull _requester && {[_requester,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
-private _responderReinforce = [_group,"WAIT_AIPass_Reinforce_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
-private _responderCoordinated = [_group,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+private _requesterReinforce = !isNull _requester && {[_requester,"CBE_AIPass_Reinforce_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+private _requesterCoordinated = !isNull _requester && {[_requester,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+private _responderReinforce = [_group,"CBE_AIPass_Reinforce_Enable",true] call CBE_fnc_CortexFeatureEnabled;
+private _responderCoordinated = [_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 private _sharedReinforce = _requesterReinforce && {_responderReinforce};
 private _sharedCoordinated = _requesterCoordinated && {_responderCoordinated};
 private _contactPeer = _phase in ["CONTACT","SECURITY"] && {_sharedCoordinated};
 private _supportEnabled = _sharedReinforce || {_sharedCoordinated};
-private _groupTransmitter = [_group] call WAIT_fnc_CortexGroupTransmitter;
-private _requesterTransmitter = [_requester] call WAIT_fnc_CortexGroupTransmitter;
+private _groupTransmitter = [_group] call CBE_fnc_CortexGroupTransmitter;
+private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;
 private _attackAllowed = _attack isNotEqualTo [] && {_sharedCoordinated};
 private _directCoordinationPending = _attack isEqualTo [] && {_sharedCoordinated};
 // Revalidate on the actor owner: proximity to the requester does not imply a shared contact.
 // Keep an existing drill committed when its live target belongs to a different engagement.
 private _localDrill = _state getOrDefault ["drill",createHashMap];
 private _localTarget = _localDrill getOrDefault ["target",objNull];
-private _contactReceipt=_group getVariable ["WAIT_Cortex_SupportContact",[]];
+private _contactReceipt=_group getVariable ["CBE_Cortex_SupportContact",[]];
 private _requestContact=if (count _contactReceipt in [2,3] && {(_contactReceipt select 0) == _token}) then {_contactReceipt select 1} else {[]};
 private _contactConfirmedAt=_contactReceipt param [2,-1,[0]];
 private _contactFresh=count _requestContact == 3 && {count _contactReceipt == 3}
@@ -110,35 +110,35 @@ private _prepareAlongsideDrill=_directCoordinationPending && {_movementOwner == 
     && {count (_state getOrDefault ["drill",createHashMap]) > 0};
 // Communication remains tied to a qualified transmitter, but local tactical readiness must survive
 // the formal leader becoming a casualty before the engine elects a replacement.
-private _anchor=[_group] call WAIT_fnc_CortexGroupAnchor;
+private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _anchor) then {_anchor=leader _group};
-private _okay = missionNamespace getVariable ["WAIT_AIPass_Active",false] && {!([] call WAIT_fnc_CortexIsPaused)}
+private _okay = missionNamespace getVariable ["CBE_AIPass_Active",false] && {!([] call CBE_fnc_CortexIsPaused)}
     && {serverTime < _expiry} && {!isNull _requester} && {side _requester == side _group}
     && {!isNull _groupTransmitter} && {!isNull _requesterTransmitter}
-    && {[_group] call WAIT_fnc_CortexIsEligible} && {[_group,"WAIT_AIPass_Contact_Enable",true] call WAIT_fnc_CortexFeatureEnabled}
+    && {[_group] call CBE_fnc_CortexIsEligible} && {[_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {_supportEnabled} && {!_attackAllowed || {_committedAttack} || {_contactFresh}}
     && {!_operatingCrew} && {count _footFit >= 3} && {!isNull _anchor} && {behaviour _anchor != "CARELESS"} && {!fleeing _anchor}
     && {_same || {getSuppression _anchor <= ([0.2,0.65] select _contactPeer)}}
-    && {_groupTransmitter distance2D _requesterTransmitter <= (missionNamespace getVariable ["WAIT_AIPass_Reinforce_Radius",600])}
-    && {(_group getVariable ["WAIT_AIPass_Garrison",[]]) isEqualTo []} && {(_group getVariable ["WAIT_AIPass_Defend",[]]) isEqualTo []}
-    && {!(_group getVariable ["WAIT_AIPass_ClearBuilding",false])} && {!(_group getVariable ["WAIT_AIPass_RegroupQueued",false])}
+    && {_groupTransmitter distance2D _requesterTransmitter <= (missionNamespace getVariable ["CBE_AIPass_Reinforce_Radius",600])}
+    && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []} && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
+    && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])} && {!(_group getVariable ["CBE_AIPass_RegroupQueued",false])}
     && {_same || {(_phase == "CALM" || {_contactPeer}) && {!(_state getOrDefault ["responding",false])}}}
     // A support order may update its own movement. Only a server-selected attack route may
     // replace the exact local tactical drill; all other movement owners remain authoritative.
     && {!_movementLeaseActive || {_supportOwnsMovement} || {_replaceLocalDrill} || {_prepareAlongsideDrill}}
     && {_fit findIf {private _v = vehicle _x; _v isKindOf "Air" || {_v isKindOf "StaticWeapon"} || {getNumber (configOf _v >> "artilleryScanner") == 1}} < 0}
-    && {!_needAT || {_footFit findIf {"AT" in ([_x] call WAIT_fnc_CortexCapabilities)} >= 0}};
+    && {!_needAT || {_footFit findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0}};
 // Eligibility acknowledgement is not an operation and owns no movement. A route-rejected or
 // delayed coordination request therefore cannot make this responder idle.
 if (_okay && {_directCoordinationPending}) exitWith {
-    [_group,_token,true,_lease,clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAck",2];
+    [_group,_token,true,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
     -1
 };
 if (_okay && {_replaceLocalDrill}) then {
-    [_group,_state,"ROLE_HANDOVER"] call WAIT_fnc_CortexFlankEnd;
+    [_group,_state,"ROLE_HANDOVER"] call CBE_fnc_CortexFlankEnd;
 };
 if (_okay) then {
-    _okay = [_group,"SUPPORT",true,_expiry] call WAIT_fnc_CortexOwnershipLease;
+    _okay = [_group,"SUPPORT",true,_expiry] call CBE_fnc_CortexOwnershipLease;
 };
 if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault ["assaulting",false])}}}) then {
     // The reservation token is durable across locality, but it also needs the shared generation
@@ -148,21 +148,21 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     private _intent=["SUPPORT_RALLY","COORDINATED_ASSAULT"] select _sharedCoordinated;
     // Lease attack is one ATL position, not an array of route points.
     private _objective=if (_attackAllowed) then {+_attack} else {+_rally};
-    private _operation=[_group,_intent,_objective,_footFit,[+_objective],"ACCEPTED"] call WAIT_fnc_OperationStart;
+    private _operation=[_group,_intent,_objective,_footFit,[+_objective],"ACCEPTED"] call CBE_fnc_OperationStart;
     if (count _operation == 0) exitWith {
         _okay=false;
-        [_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
+        [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     };
     private _generation=_operation get "generation";
     private _movementReady=true;
     if (!_attackAllowed) then {
-        private _waypoint=[_group,_rally,10,"MOVE",_generation] call WAIT_fnc_CortexGroupMove;
+        private _waypoint=[_group,_rally,10,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
         _movementReady=!isNull (_waypoint param [0,grpNull,[grpNull]]) && {(_waypoint param [1,-1,[0]]) >= 0};
     };
     if (!_movementReady) exitWith {
         _okay=false;
-        [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call WAIT_fnc_OperationRelease;
-        [_group,"SUPPORT",false] call WAIT_fnc_CortexOwnershipLease;
+        [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+        [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     };
     _state set ["supportOperationGeneration",_generation];
     if (_attackAllowed) then {
@@ -179,5 +179,5 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
         _state set ["supportBoundSequence",-1];
     };
 };
-[_group,_token,_okay,_lease,clientOwner] remoteExecCall ["WAIT_fnc_CortexSupportAck",2];
+[_group,_token,_okay,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
 -1

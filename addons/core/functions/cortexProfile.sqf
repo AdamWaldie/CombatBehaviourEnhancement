@@ -4,16 +4,16 @@
  * Returns the behaviour profile values that apply to a group.
  *
  * Behaviour profiles sit alongside AI Rebalance's skill profiles and use the same names (MILITIA,
- * LINE, VETERAN, ELITE, LEGACY), so choosing a WAIT opposition profile changes morale and optional
+ * LINE, VETERAN, ELITE, LEGACY), so choosing a CBE opposition profile changes morale and optional
  * preparation details as well as how well squads shoot. Skill values are never changed here;
  * live orders, contact geometry and safe avenues choose movement rather than this profile. Resolution order:
- * 1. the group variable WAIT_AIPass_Profile (a mission maker's per-group choice);
- * 2. WAIT_AIPass_FactionProfiles (a map of CfgFactionClasses name to profile) for the leader's faction;
- * 3. WAIT_AIPass_BehaviourProfile, the mission-wide tuning choice ("" to follow AI Rebalance);
- * 4. WAIT_AIRebalance_Profile, the active AI Rebalance profile (PUBLIC and STANDARD map to MILITIA
+ * 1. the group variable CBE_AIPass_Profile (a mission maker's per-group choice);
+ * 2. CBE_AIPass_FactionProfiles (a map of CfgFactionClasses name to profile) for the leader's faction;
+ * 3. CBE_AIPass_BehaviourProfile, the mission-wide tuning choice ("" to follow AI Rebalance);
+ * 4. CBE_AIRebalance_Profile, the active AI Rebalance profile (PUBLIC and STANDARD map to MILITIA
  *    and LINE);
  * 5. LINE.
- * WAIT_AIPass_Aggression (default 1.2, set live by the AI Tuning Zeus module) then scales chance
+ * CBE_AIPass_Aggression (default 1.2, set live by the AI Tuning Zeus module) then scales chance
  * keys, capped at 1. Legacy movement keys are still resolved only for configuration compatibility.
  * Missing keys in a mission-edited profile fall back to LINE's values, and an unknown profile name
  * uses LINE.
@@ -24,7 +24,7 @@
  * assaultChance is the 0-1 chance of preparing an eligible assault with a safe carried grenade,
  * while the enabled assault transition itself remains deterministic after a successful manoeuvre.
  * moraleShaken and moraleBroken (morale thresholds), retreatScale (multiplies
- * WAIT_AIPass_Morale_RetreatDistance), surrenderSurvivors (largest squad that may surrender).
+ * CBE_AIPass_Morale_RetreatDistance), surrenderSurvivors (largest squad that may surrender).
  * Locality and authority: read-only; callable anywhere.
  *
  * Arguments:
@@ -35,22 +35,22 @@
  * HashMap or Number - the resolved profile, or one value from it
  *
  * Example:
- * private _chance = [_group, "assaultChance"] call WAIT_fnc_CortexProfile;
+ * private _chance = [_group, "assaultChance"] call CBE_fnc_CortexProfile;
  * Result: the chance of optional grenade preparation, not permission to begin moving.
  *
  * Current callers: assault preparation, investigation, morale and retreat.
  */
 
 params [["_group", grpNull, [grpNull]], ["_key", "", [""]]];
-private _table = missionNamespace getVariable ["WAIT_AIPass_ProfileBehaviour", createHashMap];
-private _name = _group getVariable ["WAIT_AIPass_Profile", ""];
+private _table = missionNamespace getVariable ["CBE_AIPass_ProfileBehaviour", createHashMap];
+private _name = _group getVariable ["CBE_AIPass_Profile", ""];
 if (_name == "") then {
-    _name = (missionNamespace getVariable ["WAIT_AIPass_FactionProfiles", createHashMap]) getOrDefault [faction leader _group, ""];
+    _name = (missionNamespace getVariable ["CBE_AIPass_FactionProfiles", createHashMap]) getOrDefault [faction leader _group, ""];
 };
-if (_name == "") then {_name = missionNamespace getVariable ["WAIT_AIPass_BehaviourProfile", ""]};
+if (_name == "") then {_name = missionNamespace getVariable ["CBE_AIPass_BehaviourProfile", ""]};
 if (_name == "") then {
-    _name = if (missionNamespace getVariable ["WAIT_AIRebalance_Enable", true]) then {
-        missionNamespace getVariable ["WAIT_AIRebalance_Profile", "LINE"]
+    _name = if (missionNamespace getVariable ["CBE_AIRebalance_Enable", true]) then {
+        missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"]
     } else {"LINE"};
 };
 _name = toUpperANSI _name;
@@ -62,7 +62,7 @@ private _defaults = createHashMapFromArray [
 ];
 private _line = _table getOrDefault ["LINE", createHashMap];
 private _profile = _table getOrDefault [_name, _line];
-private _aggression = (missionNamespace getVariable ["WAIT_AIPass_Aggression", 1.2]) max 0;
+private _aggression = (missionNamespace getVariable ["CBE_AIPass_Aggression", 1.2]) max 0;
 private _chanceKeys = ["flankChance", "assaultChance", "advanceChance", "investigateChance", "coordinatedChance"];
 if (_key != "") exitWith {
     private _value = _profile getOrDefault [_key, _line getOrDefault [_key, _defaults getOrDefault [_key, 0]]];

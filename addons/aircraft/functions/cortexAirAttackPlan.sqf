@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Weapon candidates require local same-group operators with live task/ownership permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
  * Builds one finite, threat-aware Cortex attack plan for an AI aircraft and its assigned target.
  * An airborne hostile receives an intercept plan; a surface target receives a gun strafe, fixed-rocket
@@ -9,8 +10,11 @@
  * position without an exact velocity lead; the live job derives motion from successive estimates,
  * varies height inside a platform-safe envelope and retains a real loaded air-to-air weapon when present.
  * This is an intercept/engage/disengage controller, not a scripted claim to full BFM. A standoff
- * plan retains the real loaded weapon/turret pair. Every surface pattern retains a loaded damaging
+ * plan retains a native loaded weapon/turret pair; the executor rechecks it before release.
+ * Planning reads at most16 stations/16 weapons each and64 native weapon states, without reserve-stock fallback.
+ * Every surface pattern retains a damaging
  * weapon/turret pair suited to its geometry; a lateral pass requires an armed independent turret.
+ * AA threat geometry uses the native reported contact position, never the object's current pose.
  * Observed AA shifts the run away from the threat sector and prefers a usable
  * standoff pair unless that aircraft recently failed to acquire a firing solution.
  * Locality/authority: read-only; called on the aircraft owner. It does not reveal enemies, add
@@ -28,18 +32,18 @@
  * target axis on a climbing exit; LATERAL stays abeam long enough for its retained turret; STANDOFF
  * uses a stable release leg and accelerates away. Repeat/JIP: safe to repeat. Each result is a new
  * owner-local plan and has no JIP side effects.
- * Aircraft may set WAIT_Cortex_AirAttackPattern to STRAFE, OFFSET, HOOK, STANDOFF, BOMB or LATERAL
+ * Aircraft may set CBE_Cortex_AirAttackPattern to STRAFE, OFFSET, HOOK, STANDOFF, BOMB or LATERAL
  * for a finite mission-maker/test override. An incompatible forced type returns no plan instead of
  * silently substituting another weapon or manoeuvre; LATERAL requires a living gun-armed turret.
  * Arguments: 0: aircraft <OBJECT>; 1: hostile target <OBJECT>.
  * Return Value: HASHMAP plan, or an empty HASHMAP when the request is invalid.
- * Current callers: WAIT_fnc_CortexAirAttack.
- * Example: private _plan = [_plane,_tank] call WAIT_fnc_CortexAirAttackPlan;
+ * Current callers: CBE_fnc_CortexAirAttack.
+ * Example: private _plan = [_plane,_tank] call CBE_fnc_CortexAirAttackPlan;
  */
 params [["_aircraft",objNull,[objNull]],["_target",objNull,[objNull]]];
 if (isNull _aircraft || {isNull _target} || {!alive _aircraft} || {!alive _target}) exitWith {createHashMap};
 private _pilot=driver _aircraft;
-if (isNull _pilot || {!([_pilot] call WAIT_fnc_CortexCombatEffective)} || {!local _aircraft}) exitWith {createHashMap};
+if (isNull _pilot || {!([_pilot] call CBE_fnc_CortexCombatEffective)} || {!local _aircraft}) exitWith {createHashMap};
 private _side=side group _pilot;
 // Logic objects can have a hostile side without being a physical combat target.
 // In particular, curator modules must never become weapon-delivery objectives.
@@ -48,7 +52,7 @@ if (_target isKindOf "Logic" || {_target isKindOf "HeadlessClient_F"} || {_side 
     || {_target getVariable ["ace_captives_isHandcuffed",false]}) exitWith {createHashMap};
 private _airToAir=_target isKindOf "Air" && {!isTouchingGround _target};
 
-private _ammoCache=missionNamespace getVariable ["WAIT_Cortex_AirAmmoFacts",createHashMap];
+private _ammoCache=missionNamespace getVariable ["CBE_Cortex_AirAmmoFacts",createHashMap];
 private _ammoFacts={
     params ["_magazine"];
     private _facts=_ammoCache getOrDefault [_magazine,[]];
@@ -117,12 +121,14 @@ private _airWeaponClass="";
 private _airMagazine="";
 private _airWeaponScore=-1;
 private _groundCandidates=[];
-private _loadedMagazines=magazinesAllTurrets _aircraft;
-// Start from actual loaded magazines. Dynamic pylons define their firing weapon through pylonWeapon;
-// compatibleMagazines alone omits valid rocket and bomb racks on several vanilla and modded aircraft.
-// The retained station still has to expose that weapon, preserving a real operator/muzzle pair.
+private _loadedMagazines=[];private _nativeQueries=0;
+// Native weapon state binds the actual magazine to its station weapon. This keeps
+// pylon metadata for ammunition classification without inventing a loaded binding
+// from compatible reserve stock. Missing native state grants no candidate.
 {
     private _turret=_x;
+    private _stationOperator=if (_turret isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _turret};
+    if (!([_aircraft,group _pilot,_stationOperator] call CBE_fnc_CortexAirWeaponOperatorAvailable)) then {continue};
     // Arma exposes fixed-wing and other driver-controlled weapons through `weapons`, while
     // Bohemia defines [-1] as the driver weapon station. Some aircraft expose those weapons through
     // weaponsTurret, while other vehicle/config combinations expose part of the same station through
@@ -132,17 +138,21 @@ private _loadedMagazines=magazinesAllTurrets _aircraft;
         private _driverWeapons=(weapons _aircraft)+(_aircraft weaponsTurret [-1]);
         _driverWeapons arrayIntersect _driverWeapons
     } else {_aircraft weaponsTurret _turret};
+    private _stationMagazines=[];
     {
-        _x params ["_loadedMagazine","_loadedTurret","_rounds"];
+        if (_nativeQueries >= 64) exitWith {};
+        private _weapon=_x;
+        _nativeQueries=_nativeQueries+1;
+        private _native=weaponState [_aircraft,_turret,_weapon];
+        if (count _native >= 5 && {(_native select 0) == _weapon}
+            && {(_native select 3) != ""} && {finite (_native select 4)} && {(_native select 4) > 0}) then {
+            _stationMagazines pushBack [_native select 3,+_turret,_native select 4,_weapon];
+        };
+    } forEach (_stationWeapons select [0,16]);
+    _loadedMagazines append _stationMagazines;
+    {
+        _x params ["_loadedMagazine","_loadedTurret","_rounds","_weapon"];
         if (_loadedTurret isEqualTo _turret && {_rounds > 0}) then {
-            private _pylonWeapon=getText (configFile >> "CfgMagazines" >> _loadedMagazine >> "pylonWeapon");
-            private _weapon="";
-            if (_pylonWeapon != "" && {_pylonWeapon in _stationWeapons}) then {
-                _weapon=_pylonWeapon;
-            } else {
-                private _weaponIndex=_stationWeapons findIf {_loadedMagazine in compatibleMagazines _x};
-                if (_weaponIndex >= 0) then {_weapon=_stationWeapons select _weaponIndex};
-            };
             if (_weapon != "") then {
                 private _airFacts=[_loadedMagazine] call _ammoFacts;
                 if (_airFacts select 0) then {
@@ -170,8 +180,8 @@ private _loadedMagazines=magazinesAllTurrets _aircraft;
                 };
             };
         };
-    } forEach _loadedMagazines;
-} forEach ([[-1]] + allTurrets [_aircraft,true]);
+    } forEach _stationMagazines;
+} forEach (([[-1]] + allTurrets [_aircraft,true]) select [0,16]);
 // A lateral pass needs an independently aimed, occupied turret. A fixed-forward pilot weapon cannot
 // engage abeam and previously made LATERAL a label on an impossible route. Person turrets are troop
 // firing positions, not aircraft weapon stations.
@@ -187,13 +197,13 @@ private _lateralWeaponScore=-1;
         && {!isNull _crew} && {alive _crew}) then {
         {
             private _weapon=_x;
-            private _loaded=(magazinesAllTurrets _aircraft) findIf {
+            private _loaded=_loadedMagazines findIf {
                 (_x select 1) isEqualTo _turret && {(_x select 2) > 0}
-                    && {(_x select 0) in compatibleMagazines _weapon}
+                    && {(_x select 3) == _weapon}
                     && {([_x select 0] call _ammoFacts) select 2}
             };
             if (_loaded >= 0) then {
-                private _facts=[((magazinesAllTurrets _aircraft) select _loaded) select 0] call _ammoFacts;
+                private _facts=[(_loadedMagazines select _loaded) select 0] call _ammoFacts;
                 // Side-on flight requires a traversing gun. A guided missile on a nominal turret
                 // does not make an airframe a gunship and produced the observed stationary circles.
                 private _simulation=_facts select 3;
@@ -213,7 +223,7 @@ private _lateralWeaponScore=-1;
                     _lateralTurretPath=_turret;
                     _lateralWeapon=_weapon;
                     _lateralSimulation=_simulation;
-                    _lateralMagazine=((magazinesAllTurrets _aircraft) select _loaded) select 0;
+                    _lateralMagazine=(_loadedMagazines select _loaded) select 0;
                 };
             };
         } forEach (_aircraft weaponsTurret _turret);
@@ -224,26 +234,30 @@ private _aaPositions=[];
 private _known=(_pilot nearTargets ([8000,5000] select !(_aircraft isKindOf "Plane"))) select [0,16];
 {
     private _contact=_x param [4,objNull];
-    if (!isNull _contact && {alive _contact} && {_side getFriend side _contact < 0.6}) then {
+    private _reportedPosition=_x param [0,[],[[]]];
+    private _validReport=count _reportedPosition == 3 && {
+        _reportedPosition findIf {!(_x isEqualType 0) || {!(finite _x)}} < 0
+    };
+    if (_validReport && {!isNull _contact} && {alive _contact} && {_side getFriend side _contact < 0.6}) then {
         private _antiAir=false;
         if (_contact isKindOf "CAManBase") then {
-            _antiAir="AA" in ([_contact] call WAIT_fnc_CortexCapabilities);
+            _antiAir="AA" in ([_contact] call CBE_fnc_CortexCapabilities);
         } else {
             {
                 _x params ["_magazine","_turret","_rounds"];
                 if (_rounds > 0 && {([_magazine] call _ammoFacts) select 0}) exitWith {_antiAir=true};
             } forEach magazinesAllTurrets _contact;
         };
-        if (_antiAir) then {_aaPositions pushBack getPosATL _contact};
+        if (_antiAir) then {_aaPositions pushBack (+_reportedPosition)};
     };
 } forEach _known;
-missionNamespace setVariable ["WAIT_Cortex_AirAmmoFacts",_ammoCache];
+missionNamespace setVariable ["CBE_Cortex_AirAmmoFacts",_ammoCache];
 
 private _airPos=getPosATL _aircraft;
 private _targetPos=getPosATL _target;
 if (_airToAir) then {
     private _knowers=((units group _pilot) select [0,8]) select {
-        local _x && {[_x] call WAIT_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
+        local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
     };
     private _knower=_knowers param [0,objNull,[objNull]];
     _targetPos=if (isNull _knower) then {[]} else {_knower getHideFrom _target};
@@ -263,7 +277,7 @@ private _threatSide=0;
 // Choose the side opposite the observed AA mass. With no AA, vary the geometry between runs.
 private _sideVector=if (_threatSide > 0) then {_right} else {if (_threatSide < 0) then {_left} else {[ _left,_right] select (random 1 >= 0.5)}};
 private _isPlane=_aircraft isKindOf "Plane";
-private _standoffAvailable=_standoff && {serverTime >= (_aircraft getVariable ["WAIT_Cortex_AirStandoffBlockedUntil",0])};
+private _standoffAvailable=_standoff && {serverTime >= (_aircraft getVariable ["CBE_Cortex_AirStandoffBlockedUntil",0])};
 // Use the retained weapon-family classification rather than the raw simulation string. Some
 // configuration families expose a cannon through a non-standard projectile simulation; that is still
 // a valid STRAFE station once the loadout inspection has classified it as a gun. This keeps plan
@@ -302,7 +316,7 @@ private _pattern=if (_airToAir) then {"INTERCEPT"} else {if (_aaPositions isNotE
         if (_choices isEqualTo []) then {""} else {selectRandomWeighted _choices}
     }
 }};
-private _patternOverride=toUpperANSI (_aircraft getVariable ["WAIT_Cortex_AirAttackPattern","AUTO"]);
+private _patternOverride=toUpperANSI (_aircraft getVariable ["CBE_Cortex_AirAttackPattern","AUTO"]);
 private _overrideValid=_patternOverride in ["STRAFE","OFFSET","HOOK","STANDOFF","BOMB","LATERAL"]
     && {!(_patternOverride == "STRAFE") || {_hasGun}}
     && {!(_patternOverride in ["OFFSET","HOOK"]) || {_hasRocket}}

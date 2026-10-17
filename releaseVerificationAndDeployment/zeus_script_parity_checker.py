@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check WAIT's shared CBA/script settings and generated reference."""
+"""Check CBE's shared CBA/script settings and generated reference."""
 import argparse
 import json
 from pathlib import Path
@@ -14,7 +14,7 @@ def settings(root=ROOT):
     arrays={name:json.loads(raw) for name,raw in re.findall(r'private\s+(_\w+)\s*=\s*(\[[^;]+\]);', source) if name in {'_profiles','_profileLabels','_skillProfiles'}}
     arrays['_skillLabels']=arrays['_skillProfiles']
     for line in (root/'addons/core/functions/cortexTuningSpec.sqf').read_text().splitlines():
-        if re.match(r'\s*\["WAIT_',line):
+        if re.match(r'\s*\["CBE_',line):
             line=re.sub(r'_(?:profiles|profileLabels|skillProfiles|skillLabels)\b', lambda m: json.dumps(arrays[m.group(0)]), line)
             rows.append(json.loads(line.strip().rstrip(',')))
     if not rows:
@@ -74,7 +74,7 @@ def audit(root=ROOT):
         if activation not in {'LIVE','NEXT_OPERATION','RESTART_REQUIRED'}:
             problems.append('invalid setting activation: '+key)
     for name in ['aiTweaksRegisterSettings.sqf','cortexTuning.sqf']:
-        if 'call WAIT_fnc_CortexTuningSpec' not in next((root/'addons').rglob(name)).read_text():
+        if 'call CBE_fnc_CortexTuningSpec' not in next((root/'addons').rglob(name)).read_text():
             problems.append('settings consumer bypasses shared specification: '+name)
     config=(root/'addons/main/CfgFunctions.hpp').read_text()
     exports=re.findall(r'class\s+(\w+)\s*\{\s*file\s*=\s*"([^"]+)"',config)
@@ -82,7 +82,7 @@ def audit(root=ROOT):
     for name,raw in exports:
         if name.lower() in seen_exports: problems.append('duplicate function export: '+name)
         seen_exports.add(name.lower())
-        path=raw.replace('\\','/').removeprefix('/z/waldo_ai_tweaks/')
+        path=raw.replace('\\','/').removeprefix('/z/cbe/')
         if not (root/path).is_file(): problems.append('missing exported source: '+raw)
     ref=root/REFERENCE
     if not ref.exists() or ref.read_text(encoding='utf-8')!=render(rows,layout):

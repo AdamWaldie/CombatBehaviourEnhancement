@@ -1,6 +1,6 @@
 class CfgPatches {
-    class WAIT_vehicles {
-        name = "Waldos AI Tweaks - Vehicles";
+    class CBE_vehicles {
+        name = "Combat Behaviour Enhancement (CBE) - Vehicles";
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main"};

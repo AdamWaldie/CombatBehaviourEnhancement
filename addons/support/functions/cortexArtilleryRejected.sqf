@@ -8,13 +8,13 @@
  * Return Value: Nothing.
  * Qualified replies wake a parked exact mission for finite settlement; no new shot is issued.
  * Current callers: ArtilleryShot rejection paths.
- * Example: [_gun, _token, clientOwner] remoteExecCall ["WAIT_fnc_CortexArtilleryRejected", 2];
+ * Example: [_gun, _token, clientOwner] remoteExecCall ["CBE_fnc_CortexArtilleryRejected", 2];
  */
 params ["_battery", "_token", ["_replyOwner",-1,[0]]];
 if (!isServer) exitWith {};
-private _mission = (missionNamespace getVariable ["WAIT_AIPass_FireMissions", createHashMap]) getOrDefault [netId _battery, createHashMap];
+private _mission = (missionNamespace getVariable ["CBE_AIPass_FireMissions", createHashMap]) getOrDefault [netId _battery, createHashMap];
 if (count _mission == 0 || {(_mission get "token") != _token}
-    || {([_replyOwner,_mission getOrDefault ["gunOwner", -1]] call WAIT_fnc_HeadlessResolveSender) < 0}
+    || {([_replyOwner,_mission getOrDefault ["gunOwner", -1]] call CBE_fnc_HeadlessResolveSender) < 0}
     || {!((_mission get "phase") in ["PENDING", "UNCERTAIN"])}) exitWith {};
 _mission set ["remaining", 0];
 _mission set ["burstsLeft", 0];
@@ -27,5 +27,5 @@ _mission set ["scoot", false];
 if (_mission getOrDefault ["parked",false]) then {
     _mission set ["parked",false];
     _mission set ["deadline",(_mission get "due")+30];
-    [_mission,0] call WAIT_fnc_ArtilleryMissionStart;
+    [_mission,0] call CBE_fnc_ArtilleryMissionStart;
 };

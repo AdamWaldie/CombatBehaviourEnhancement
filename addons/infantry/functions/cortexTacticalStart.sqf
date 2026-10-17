@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Selects and starts one viable local infantry manoeuvre from the squad's live tactical context.
  *
- * WAIT_fnc_CortexTacticalAssess first distinguishes close infantry, authored forward movement,
+ * CBE_fnc_CortexTacticalAssess first distinguishes close infantry, authored forward movement,
  * armour overmatch, fortified or elevated positions, and open versus concealed approaches. It
  * returns at most two candidate intents and one already-known contact. This dispatcher tries those
  * candidates in order, so a failed avenue or cooldown can immediately fall back without leaving a
@@ -17,7 +17,7 @@
  * Arguments:
  * 0: group <GROUP> - local infantry group in contact
  * 1: state <HASHMAP> - current Cortex group state
- * 2: enemies <ARRAY> - current WAIT_fnc_CortexKnowledge result
+ * 2: enemies <ARRAY> - current CBE_fnc_CortexKnowledge result
  * 3: flank enabled <BOOL> - authoritative live feature gate (default true)
  * 4: advance enabled <BOOL> - authoritative live feature gate (default true)
  * 5: assault enabled <BOOL> - authoritative live feature gate (default true)
@@ -25,10 +25,10 @@
  * Return Value:
  * Boolean - true when either manoeuvre started
  *
- * Current caller: WAIT_fnc_CortexGroupTick.
+ * Current caller: CBE_fnc_CortexGroupTick.
  *
  * Example:
- * private _started = [_group, _state, _enemies, true, true, true] call WAIT_fnc_CortexTacticalStart;
+ * private _started = [_group, _state, _enemies, true, true, true] call CBE_fnc_CortexTacticalStart;
  * Result: Cortex follows the live objective/contact context and immediately tries the other viable
  * manoeuvre if the first cannot start.
  */
@@ -44,13 +44,13 @@ params [
 if (isNull _group || {!local _group}) exitWith {false};
 
 if (!_flankEnabled && {!_advanceEnabled} && {!_assaultEnabled}) exitWith {false};
-private _assessment=[_group,_state,_enemies,_flankEnabled,_advanceEnabled,_assaultEnabled] call WAIT_fnc_CortexTacticalAssess;
+private _assessment=[_group,_state,_enemies,_flankEnabled,_advanceEnabled,_assaultEnabled] call CBE_fnc_CortexTacticalAssess;
 private _intent=_assessment getOrDefault ["intent","HOLD"];
 private _reason=_assessment getOrDefault ["reason","NO_VIABLE_CONTACT"];
 private _targetIndex=_assessment getOrDefault ["targetIndex",-1];
 private _candidates=_assessment getOrDefault ["candidates",[]];
 private _evidence=_assessment getOrDefault ["evidence",[]];
-_group setVariable ["WAIT_Cortex_TacticalAssessment",[
+_group setVariable ["CBE_Cortex_TacticalAssessment",[
     _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]}
 ],true];
 if (_targetIndex < 0 || {_candidates isEqualTo []}) exitWith {
@@ -61,7 +61,7 @@ if (_targetIndex < 0 || {_candidates isEqualTo []}) exitWith {
         case "NO_VIABLE_CONTACT": {"NATIVE_CONTACT_HANDOFF"};
         default {"NATIVE_COMBAT_HANDOFF"};
     };
-    _group setVariable ["WAIT_Cortex_TacticalAssessment",[
+    _group setVariable ["CBE_Cortex_TacticalAssessment",[
         _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},_handoff
     ],true];
     false
@@ -77,10 +77,10 @@ private _orderedEnemies=[_enemies,_targetIndex] call _prioritiseContact;
 private _started=false;
 {
     switch (_x) do {
-        case "ASSAULT": {_started=[_group,_state,_orderedEnemies] call WAIT_fnc_CortexAssaultStart};
-        case "FLANK": {_started=[_group,_state,_orderedEnemies] call WAIT_fnc_CortexFlankStart};
-        case "ADVANCE": {_started=[_group,_state,_orderedEnemies] call WAIT_fnc_CortexAdvanceStart};
-        case "REPOSITION": {_started=[_group,_state,_orderedEnemies,0,_reason] call WAIT_fnc_CortexTacticalReposition};
+        case "ASSAULT": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAssaultStart};
+        case "FLANK": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexFlankStart};
+        case "ADVANCE": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAdvanceStart};
+        case "REPOSITION": {_started=[_group,_state,_orderedEnemies,0,_reason] call CBE_fnc_CortexTacticalReposition};
     };
     if (_started) exitWith {};
 } forEach _candidates;
@@ -88,18 +88,18 @@ private _started=false;
 // Do not convert that refusal into an unexplained pause: make one short screened improvement and
 // reassess from there. The helper is generation-owned and cooldown-bound, so it cannot churn routes.
 if (!_started && {!(_intent in ["HOLD","REPOSITION"])} && {_orderedEnemies isNotEqualTo []}) then {
-    _started=[_group,_state,_orderedEnemies,0,"NO_SAFE_MANOEUVRE"] call WAIT_fnc_CortexTacticalReposition;
+    _started=[_group,_state,_orderedEnemies,0,"NO_SAFE_MANOEUVRE"] call CBE_fnc_CortexTacticalReposition;
     if (_started) then {
         _intent="REPOSITION";
         _reason="NO_SAFE_MANOEUVRE";
     };
 };
 if (_started) then {
-    _group setVariable ["WAIT_Cortex_TacticalAssessment",[
+    _group setVariable ["CBE_Cortex_TacticalAssessment",[
         _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},"STARTED"
     ],true];
 } else {
-    _group setVariable ["WAIT_Cortex_TacticalAssessment",[
+    _group setVariable ["CBE_Cortex_TacticalAssessment",[
         _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},"NATIVE_REASSESS"
     ],true];
 };

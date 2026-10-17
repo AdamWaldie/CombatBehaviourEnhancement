@@ -6,30 +6,30 @@
  * Arguments: 0: observer <OBJECT>, objNull; 1: cause <STRING>, GUNFIRE;
  * 2: approximate ATL position <ARRAY>, []; 3: engine-confirmed hostile source <OBJECT>, objNull.
  * Return Value: Boolean - whether the observation was accepted.
- * Current callers: WAIT engine danger intake and the group EnemyDetected observer.
- * Example: [leader _group,"HIT",getPosATL leader _group] call WAIT_fnc_DangerRequest;
+ * Current callers: CBE engine danger intake and the group EnemyDetected observer.
+ * Example: [leader _group,"HIT",getPosATL leader _group] call CBE_fnc_DangerRequest;
  */
 
 params [["_actor",objNull,[objNull]],["_cause","GUNFIRE",[""]],["_position",[],[[]]],["_source",objNull,[objNull]]];
-if (isNull _actor || {!local _actor} || {!([_actor] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _actor}
+if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor}
     || {!(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM"])} || {count _position != 3} || {_position findIf {!(_x isEqualType 0)} >= 0}) exitWith {false};
 // Reject throttled duplicates before the more expensive group ownership scan. Rejected
 // eligibility does not consume cadence; only an accepted observation advances it below.
-private _cadence=_actor getVariable ["WAIT_Danger_EventCadence",createHashMap];
+private _cadence=_actor getVariable ["CBE_Danger_EventCadence",createHashMap];
 if (time < (_cadence getOrDefault [_cause,-1])) exitWith {false};
 private _group=group _actor;
-if (!(missionNamespace getVariable ["WAIT_AIPass_Active",false])
+if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])
     || {!local _group}
-    || {!([_group,"WAIT_AIPass_Danger_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
-    || {!(_group getVariable ["WAIT_AIPass_Managed",false])}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}
-    || {[] call WAIT_fnc_CortexIsPaused}) exitWith {false};
+    || {!([_group,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+    || {!(_group getVariable ["CBE_AIPass_Managed",false])}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}
+    || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
 // Eligibility was checked at observer installation and is rechecked before dispatch. Keep bullet
 // callbacks cheap: cadence rejects duplicates before the ownership scan; accepted events are coalesced by cause and witness.
 // One witness must not throttle or replace another witness in a different occupied domain.
 _cadence set [_cause,time+0.25];
-_actor setVariable ["WAIT_Danger_EventCadence",_cadence];
-private _events=_group getVariable ["WAIT_Danger_Events",[]];
+_actor setVariable ["CBE_Danger_EventCadence",_cadence];
+private _events=_group getVariable ["CBE_Danger_Events",[]];
 private _index=_events findIf {
     _x isEqualType [] && {count _x in [4,5,6,7]}
         && {(_x param [0,"",[""]]) == _cause}
@@ -49,7 +49,7 @@ if (isNull _hostileSource && {_index >= 0}) then {
     private _priorObserver=_prior param [6,_prior param [5,objNull,[objNull]],[objNull]];
     if ((_prior param [3,-1,[0]]) > time && {!isNull _priorSource} && {!(_priorSource isKindOf "Logic")} && {!(_priorSource isKindOf "HeadlessClient_F")} && {alive _priorSource} && {!captive _priorSource}
         && {!(_priorSource getVariable ["ace_captives_isSurrendering",false]) && {!(_priorSource getVariable ["ace_captives_isHandcuffed",false])}}
-        && {[_priorObserver] call WAIT_fnc_CortexCombatEffective} && {local _priorObserver} && {group _priorObserver == _group}
+        && {[_priorObserver] call CBE_fnc_CortexCombatEffective} && {local _priorObserver} && {group _priorObserver == _group}
         && {(side _group) getFriend (side _priorSource) < 0.6}
         && {_priorObserver knowsAbout _priorSource > 0}) then {
         _hostileSource=_priorSource;
@@ -66,22 +66,22 @@ if (_index >= 0) then {_events set [_index,_event]} else {_events pushBack _even
 // Keep the queue bounded while preserving both fresh witnesses and its strongest hazard.
 // Only overflow needs priority work: the normal coalesced path retains its cheap write.
 if (count _events > 16) then {
-    private _previousBest=[_events] call WAIT_fnc_DangerSelect;
-    private _strongest=[[_previousBest,_event]] call WAIT_fnc_DangerSelect;
+    private _previousBest=[_events] call CBE_fnc_DangerSelect;
+    private _strongest=[[_previousBest,_event]] call CBE_fnc_DangerSelect;
     _events=_events select [((count _events)-16) max 0,16];
     if (_strongest isNotEqualTo [] && {!(_strongest in _events)}) then {
         _events deleteAt 0;
         _events pushBack _strongest;
     };
 };
-_group setVariable ["WAIT_Danger_Events",_events];
-private _running=_group getVariable ["WAIT_Danger_FSM",[]];
-if (count _running == 3 && {(_running select 0) == (_group getVariable ["WAIT_AIPass_Epoch",0])}
-    && {(_running select 1) == (_group getVariable ["WAIT_Danger_Generation",0])}
+_group setVariable ["CBE_Danger_Events",_events];
+private _running=_group getVariable ["CBE_Danger_FSM",[]];
+if (count _running == 3 && {(_running select 0) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_running select 1) == (_group getVariable ["CBE_Danger_Generation",0])}
     && {!completedFSM (_running select 2)}) exitWith {true};
-private _generation=(_group getVariable ["WAIT_Danger_Generation",0])+1;
-_group setVariable ["WAIT_Danger_Generation",_generation];
-private _epoch=_group getVariable ["WAIT_AIPass_Epoch",0];
-private _fsm=[_group,_epoch,_generation] execFSM "\z\waldo_ai_tweaks\addons\main\fsm\dangerAssessment.fsm";
-_group setVariable ["WAIT_Danger_FSM",[_epoch,_generation,_fsm]];
+private _generation=(_group getVariable ["CBE_Danger_Generation",0])+1;
+_group setVariable ["CBE_Danger_Generation",_generation];
+private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _fsm=[_group,_epoch,_generation] execFSM "\z\cbe\addons\main\fsm\dangerAssessment.fsm";
+_group setVariable ["CBE_Danger_FSM",[_epoch,_generation,_fsm]];
 true

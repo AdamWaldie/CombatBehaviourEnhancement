@@ -20,10 +20,10 @@
  * Nothing
  *
  * Example:
- * [WAIT_fnc_CortexRegroupStep, createHashMapFromArray [["group", _group]], 5] call WAIT_fnc_CortexQueueJob;
+ * [CBE_fnc_CortexRegroupStep, createHashMapFromArray [["group", _group]], 5] call CBE_fnc_CortexQueueJob;
  * Result: the regroup step runs on this machine about five seconds later.
  *
- * Current callers: WAIT_fnc_CortexRegroupOnKill.
+ * Current callers: CBE_fnc_CortexRegroupOnKill.
  */
 
 params [["_job", {}, [{}]], ["_state", createHashMap, [createHashMap]], ["_delay", 0, [0]], ["_jobKey", "", [""]]];
@@ -40,9 +40,9 @@ if ("group" in _state && {isNull _group}) exitWith {call _rejectFiniteBrain};
 // A queue is not an ownership-adoption boundary. Preserve supplied authority proof:
 // stamping today's epoch onto an old brain would make stale work appear current.
 if (!isNull _group && {!local _group
-    || {(_state getOrDefault ["ownerEpoch",_group getVariable ["WAIT_AIPass_Epoch",0]])
-        != (_group getVariable ["WAIT_AIPass_Epoch",0])}}) exitWith {call _rejectFiniteBrain};
-if (!isNull _group) then {_state set ["ownerEpoch", _group getVariable ["WAIT_AIPass_Epoch", 0]]};
+    || {(_state getOrDefault ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]])
+        != (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {call _rejectFiniteBrain};
+if (!isNull _group) then {_state set ["ownerEpoch", _group getVariable ["CBE_AIPass_Epoch", 0]]};
 if (_jobKey == "") then {_jobKey = _state getOrDefault ["jobKey", ""]};
 if (_jobKey != "") then {_state set ["jobKey", _jobKey]};
 private _dueAt = time + (_delay max 0);
@@ -64,19 +64,19 @@ if (_jobKey != "") then {
             _existingState = _candidateState;
             _found = true;
         };
-    } forEach ((missionNamespace getVariable ["WAIT_AIPass_Jobs", []]) + (missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []]));
+    } forEach ((missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missionNamespace getVariable ["CBE_AIPass_PendingJobs", []]));
 };
 // Function-scope return: an exit inside the key-search block would still append a duplicate.
 if (_found) exitWith {
     private _wakeAt=_dueAt min (_existingState getOrDefault ["wakeAt",_dueAt]);
     {_existingState set [_x, _y]} forEach _state;
     _existingState set ["wakeAt", _wakeAt];
-    private _nextDue = missionNamespace getVariable ["WAIT_AIPass_NextJobDue", -1];
-    if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _dueAt]};
+    private _nextDue = missionNamespace getVariable ["CBE_AIPass_NextJobDue", -1];
+    if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["CBE_AIPass_NextJobDue", _dueAt]};
 };
-private _pending = missionNamespace getVariable ["WAIT_AIPass_PendingJobs", []];
+private _pending = missionNamespace getVariable ["CBE_AIPass_PendingJobs", []];
 _pending pushBack [_dueAt, _job, _state];
-missionNamespace setVariable ["WAIT_AIPass_PendingJobs", _pending];
-private _nextDue = missionNamespace getVariable ["WAIT_AIPass_NextJobDue", -1];
-if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["WAIT_AIPass_NextJobDue", _dueAt]};
+missionNamespace setVariable ["CBE_AIPass_PendingJobs", _pending];
+private _nextDue = missionNamespace getVariable ["CBE_AIPass_NextJobDue", -1];
+if (_nextDue < 0 || {_dueAt < _nextDue}) then {missionNamespace setVariable ["CBE_AIPass_NextJobDue", _dueAt]};
 

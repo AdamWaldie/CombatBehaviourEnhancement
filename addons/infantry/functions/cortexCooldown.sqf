@@ -6,7 +6,7 @@
  * Locality and authority: machine-local.
  *
  * Arguments:
- * 0: state <HASHMAP> - from WAIT_fnc_CortexGroupState
+ * 0: state <HASHMAP> - from CBE_fnc_CortexGroupState
  * 1: name <STRING>
  * 2: seconds <NUMBER> - start a cooldown of this length; omit or -1 to only read (optional, default: -1)
  *
@@ -14,7 +14,7 @@
  * Boolean - true while the cooldown is still running (before any new one is set)
  *
  * Example:
- * if ([_state, "flank"] call WAIT_fnc_CortexCooldown) exitWith {};
+ * if ([_state, "flank"] call CBE_fnc_CortexCooldown) exitWith {};
  * Result: the flank drill is not attempted again until its cooldown ends.
  *
  * Current callers: behaviour functions of the Smart AI Pass.

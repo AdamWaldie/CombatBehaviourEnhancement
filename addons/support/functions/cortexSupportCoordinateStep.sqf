@@ -19,17 +19,17 @@
  * the former four-deep serial queue without turning the whole force into one unsupported rush.
  * Arguments: 0: request <HASHMAP>; 1: accepted leases <ARRAY>, required.
  * Return: Nothing. Current caller: CortexSupportStep.
- * Example: [_job,_kept] call WAIT_fnc_CortexSupportCoordinateStep;
+ * Example: [_job,_kept] call CBE_fnc_CortexSupportCoordinateStep;
  */
 params ["_job","_leases"];
 if (!isServer || {!(_job getOrDefault ["assaultIssued",false])}) exitWith {};
 private _teams=[];
 {
     _x params ["_group","_token","","","_accepted"];
-    private _lease=_group getVariable ["WAIT_AIPass_SupportLease",[]];
+    private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
     if (_accepted == "ACCEPTED" && {count _lease == 6} && {(_lease select 0) == _token}
         && {serverTime < (_lease select 2)} && {(_lease select 5) isNotEqualTo []}
-        && {[_group,"WAIT_AIPass_CoordinatedAssault_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) then {
+        && {[_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
         _teams pushBack [_group,_token,_lease select 5];
     };
 } forEach _leases;
@@ -45,21 +45,21 @@ private _active=if (_activeRaw isEqualTo []) then {[]} else {
 private _stillActive=[];
 {
     _x params ["_group","_sequence","_deadline","_final","_token"];
-    private _result=_group getVariable ["WAIT_Cortex_SupportBoundResult",[]];
+    private _result=_group getVariable ["CBE_Cortex_SupportBoundResult",[]];
     private _finished=count _result == 3 && {(_result select 0) == _token} && {(_result select 1) == _sequence};
     if (_teams findIf {(_x select 0) == _group} < 0 || {_finished} || {serverTime >= _deadline}) then {
         private _outcome=if (_finished) then {_result select 2} else {"TIMEOUT"};
         private _progressed=_outcome in ["COMPLETE","PARTIAL"];
         // A failed mover yields its turn; it cannot freeze or cancel the other squads.
         if (!_progressed) then {
-            _group setVariable ["WAIT_Cortex_SupportRetryAfter",serverTime+8];
+            _group setVariable ["CBE_Cortex_SupportRetryAfter",serverTime+8];
             private _failures=(_failuresByToken getOrDefault [_token,0])+1;
             _failuresByToken set [_token,_failures];
             _job set ["boundFailuresByToken",_failuresByToken];
             if (_failures >= 2) then {
                 _retired pushBackUnique _token;
                 _job set ["boundRetired",_retired];
-                _group setVariable ["WAIT_Cortex_SupportAbort",
+                _group setVariable ["CBE_Cortex_SupportAbort",
                     [_token,serverTime,"BOUND_FAILURES",_failures],true];
             };
         };
@@ -81,18 +81,18 @@ private _routeFailuresByToken=_job getOrDefault ["routeFailuresByToken",createHa
 // Retire it here so it cannot be reconsidered every two seconds until the lease ends.
 {
     _x params ["_group","_token"];
-    private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _unavailable=_operation getOrDefault ["unavailable",[]];
     private _fit=(units _group) select {
-        [_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}
+        [_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}
             && {!(_x in _unavailable)} && {!isPlayer _x} && {isNull remoteControlled _x}
             && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
-            && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+            && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
     };
     if (count _fit < 3 && {!(_token in _completed)} && {!(_token in _retired)}) then {
         _retired pushBackUnique _token;
-        _group setVariable ["WAIT_Cortex_SupportAbort",
+        _group setVariable ["CBE_Cortex_SupportAbort",
             [_token,serverTime,"INSUFFICIENT_STRENGTH",count _fit],true];
     };
 } forEach _teams;
@@ -110,22 +110,22 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
         if (!isNull _next) exitWith {};
         private _index=(_cursor+_offset) mod count _teams;
         (_teams select _index) params ["_group","_token","_goal"];
-        private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+        private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _unavailable=_operation getOrDefault ["unavailable",[]];
     private _fit=(units _group) select {
-        [_x] call WAIT_fnc_CortexCombatEffective && {isNull objectParent _x}
+        [_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}
             && {!(_x in _unavailable)} && {!isPlayer _x} && {isNull remoteControlled _x}
             && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
-            && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-            && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+            && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
     };
         _fit=_fit select {
-            private _reservation=_x getVariable ["WAIT_Cortex_ActorMove",[]];
+            private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
             private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
                 && {(_reservation param [2,1e12,[0]]) <= time}};
             _free && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         };
-        if (count _fit >= 3 && {serverTime >= (_group getVariable ["WAIT_Cortex_SupportRetryAfter",0])}
+        if (count _fit >= 3 && {serverTime >= (_group getVariable ["CBE_Cortex_SupportRetryAfter",0])}
             && {!(_token in _completed)} && {!(_token in _retired)}
             && {_active findIf {(_x select 4) == _token} < 0}
             // Concurrent movers need genuinely different approach lanes. A second squad on the
@@ -147,7 +147,7 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
                 _candidateRoutes pushBack [_centre getPos [_distance,_bearing+_x]];
             } forEach [0,-18,18];
             private _requester=_job getOrDefault ["requester",grpNull];
-            private _requesterTransmitter=[_requester] call WAIT_fnc_CortexGroupTransmitter;
+            private _requesterTransmitter=[_requester] call CBE_fnc_CortexGroupTransmitter;
             private _supportOrigins=if (isNull _requesterTransmitter) then {[]} else {[getPosATL _requesterTransmitter]};
             // Other covering elements also own live fire lanes. Reuse this operation's
             // bounded responder list; do not scan nearby groups or moving elements.
@@ -156,14 +156,14 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
                 if (_coverGroup != _group && {!(_coverToken in _completed)}
                     && {!(_coverToken in _retired)}
                     && {_active findIf {(_x select 0) == _coverGroup} < 0}) then {
-                    private _coverTransmitter=[_coverGroup] call WAIT_fnc_CortexGroupTransmitter;
+                    private _coverTransmitter=[_coverGroup] call CBE_fnc_CortexGroupTransmitter;
                     if (!isNull _coverTransmitter) then {
                         _supportOrigins pushBackUnique (getPosATL _coverTransmitter);
                     };
                 };
             } forEach (_teams select [0,6]);
             private _selected=[_centre,_candidateRoutes,_job get "assaultEnemy",_supportOrigins]
-                call WAIT_fnc_CortexSelectAvenue;
+                call CBE_fnc_CortexSelectAvenue;
             if (_selected isNotEqualTo []) then {
                 _routeFailuresByToken deleteAt _token;
                 _point=+(_selected select ((count _selected)-1));
@@ -171,7 +171,7 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
                 _nextIndex=_index;
                 _sequence=_sequence+1;
                 _job set ["boundSequence",_sequence];
-                private _boundTimeout=missionNamespace getVariable ["WAIT_AIPass_Flank_BoundTimeout",25];
+                private _boundTimeout=missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25];
                 private _watchdog=(((_boundTimeout max 10)*4)+15) min 180;
                 _active pushBack [_group,_sequence,serverTime+_watchdog,_point distance2D _goal < 2,_token,+_point];
             } else {
@@ -179,10 +179,10 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
                 // One delayed retry can exploit changed positions; retire only this element after it.
                 private _routeFailures=(_routeFailuresByToken getOrDefault [_token,0])+1;
                 _routeFailuresByToken set [_token,_routeFailures];
-                _group setVariable ["WAIT_Cortex_SupportRetryAfter",serverTime+8];
+                _group setVariable ["CBE_Cortex_SupportRetryAfter",serverTime+8];
                 if (_routeFailures >= 2) then {
                     _retired pushBackUnique _token;
-                    _group setVariable ["WAIT_Cortex_SupportAbort",[_token,serverTime,"NO_SAFE_BOUND",_routeFailures],true];
+                    _group setVariable ["CBE_Cortex_SupportAbort",[_token,serverTime,"NO_SAFE_BOUND",_routeFailures],true];
                 };
             };
         };
@@ -195,7 +195,7 @@ _job set ["boundCursor",_cursor];
 _job set ["boundActive",_active];
 {
     _x params ["_group","_token","_goal"];
-    private _old=_group getVariable ["WAIT_Cortex_SupportRole",[]];
+    private _old=_group getVariable ["CBE_Cortex_SupportRole",[]];
     private _activeIndex=_active findIf {(_x select 0) == _group && {(_x select 4) == _token}};
     private _moving=_activeIndex >= 0;
     private _role=if (_moving) then {
@@ -211,7 +211,7 @@ _job set ["boundActive",_active];
         [_token,_sequence,"COVER",[],+(_job get "assaultEnemy")]
     };
     if (_old isNotEqualTo _role) then {
-        _group setVariable ["WAIT_Cortex_SupportRole",_role,true];
+        _group setVariable ["CBE_Cortex_SupportRole",_role,true];
     };
 } forEach _teams;
 

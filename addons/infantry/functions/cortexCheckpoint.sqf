@@ -8,11 +8,11 @@
  * Arguments: 0: group <GROUP>, default grpNull.
  * Return Value: Nothing unless a value is explicitly returned below.
  * Current callers: scheduler and locality restoration.
- * Example: [_group] call WAIT_fnc_CortexCheckpoint;
+ * Example: [_group] call CBE_fnc_CortexCheckpoint;
  */
 params [["_group", grpNull, [grpNull]]];
 if (isNull _group || {!local _group}) exitWith {};
-private _state = _group getVariable ["WAIT_AIPass_State", createHashMap];
+private _state = _group getVariable ["CBE_AIPass_State", createHashMap];
 private _saved = [];
 {
     private _value = _state get _x;
@@ -73,7 +73,7 @@ if (count _drill > 0) then {
         };
         _payload pushBack ["resumeRetries",_resumeRetries];
         _payload pushBack ["resumeRecovery",(_drill getOrDefault ["recovery",[]]) apply {[_x select 0,_x select 1]}];
-        private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+        private _operation=_group getVariable ["CBE_Operation",createHashMap];
         _payload pushBack ["resumeUnavailable",+(_operation getOrDefault ["unavailable",[]])];
         private _attempts=_operation getOrDefault ["recoveryAttempts",createHashMap];
         _payload pushBack ["resumeAttempts",(keys _attempts select [0,64]) apply {[_x,_attempts get _x]}];
@@ -81,13 +81,13 @@ if (count _drill > 0) then {
     };
 
 };
-if (_saved isNotEqualTo (_group getVariable ["WAIT_AIPass_Checkpoint", []])) then {
-    _group setVariable ["WAIT_AIPass_Checkpoint", _saved, true];
+if (_saved isNotEqualTo (_group getVariable ["CBE_AIPass_Checkpoint", []])) then {
+    _group setVariable ["CBE_AIPass_Checkpoint", _saved, true];
 };
 
 private _phase = _state getOrDefault ["phase","CALM"];
-if (_phase != (_group getVariable ["WAIT_AIPass_PublicPhase",""])) then {
-    [_group,_state,_phase,"CHECKPOINT_REPAIR",_state getOrDefault ["phaseStart",time],true] call WAIT_fnc_CortexSetPhase;
+if (_phase != (_group getVariable ["CBE_AIPass_PublicPhase",""])) then {
+    [_group,_state,_phase,"CHECKPOINT_REPAIR",_state getOrDefault ["phaseStart",time],true] call CBE_fnc_CortexSetPhase;
 };
 
 // Engine MOVE commands are local to their issuing owner. Preserve the small amount of
@@ -98,24 +98,24 @@ if (_phase in ["INVESTIGATE","SEARCH"]) then {
     private _target = _state getOrDefault ["enemyPos",[]];
     if (count _target >= 2) then {
         private _duration = missionNamespace getVariable [
-            ["WAIT_AIPass_PostContact_SearchSeconds","WAIT_AIPass_Investigate_Seconds"] select (_phase == "INVESTIGATE"),
+            ["CBE_AIPass_PostContact_SearchSeconds","CBE_AIPass_Investigate_Seconds"] select (_phase == "INVESTIGATE"),
             [45,60] select (_phase == "INVESTIGATE")
         ];
         private _startedAt = serverTime-((time-(_state getOrDefault ["phaseStart",time])) max 0);
         _transitionIntent = [_phase,+_target,_startedAt,_startedAt+_duration,_state getOrDefault ["areaInvestigation",""],+(_state getOrDefault ["searchTeam",[]])];
     };
 };
-if (_transitionIntent isNotEqualTo (_group getVariable ["WAIT_Cortex_TransitionIntent",[]])) then {
-    _group setVariable ["WAIT_Cortex_TransitionIntent",_transitionIntent,true];
+if (_transitionIntent isNotEqualTo (_group getVariable ["CBE_Cortex_TransitionIntent",[]])) then {
+    _group setVariable ["CBE_Cortex_TransitionIntent",_transitionIntent,true];
 };
 
 private _token = _state getOrDefault ["supportToken",""];
 private _arrived = _state getOrDefault ["arrivedAt",-1];
 private _status = if (_token == "") then {[]} else {[_token,if (_arrived < 0) then {-1} else {round (serverTime-(time-_arrived))},_state getOrDefault ["responding",false],_state getOrDefault ["assaulting",false]]};
-if (_status isNotEqualTo (_group getVariable ["WAIT_AIPass_SupportStatus",[]])) then {_group setVariable ["WAIT_AIPass_SupportStatus",_status,true]};
+if (_status isNotEqualTo (_group getVariable ["CBE_AIPass_SupportStatus",[]])) then {_group setVariable ["CBE_AIPass_SupportStatus",_status,true]};
 
 // Public tactical roles change only at fire-team transitions, not every movement sample.
 private _teams=if ((_drill getOrDefault ["supportToken",""]) == "") then {[]} else {
     [_drill get "supportToken",_drill get "supportSequence",_drill get "stage",_drill get "teamTurn",_drill get "teams",_drill getOrDefault ["movers",[]]]
 };
-if (_teams isNotEqualTo (_group getVariable ["WAIT_Cortex_SupportTeams",[]])) then {_group setVariable ["WAIT_Cortex_SupportTeams",_teams,true]};
+if (_teams isNotEqualTo (_group getVariable ["CBE_Cortex_SupportTeams",[]])) then {_group setVariable ["CBE_Cortex_SupportTeams",_teams,true]};

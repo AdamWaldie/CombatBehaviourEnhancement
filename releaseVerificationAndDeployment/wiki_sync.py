@@ -18,7 +18,7 @@ FENCE = re.compile(r'(```.*?```)', re.S)
 # Sidebar sections; generated pages missing here are listed under "More guides".
 SECTIONS = [
     ('Start here', ['Home', 'Overview']),
-    ('Using WAIT', ['Smart-AI-Pass', 'Waldos-AI-Tweak', 'SETTINGS-REFERENCE']),
+    ('Using CBE', ['Smart-AI-Pass', 'Waldos-AI-Tweak', 'SETTINGS-REFERENCE']),
     ('Architecture and operations', ['ADDON-LIFECYCLE', 'MODDING-AND-OPERATIONS', 'CAPABILITY-REGISTRY', 'CURRENT-INVENTORY']),
     ('Project status and migration', ['DELIVERY-GOAL', 'IMPLEMENTATION-PROGRESS', 'API-MIGRATION', 'CBA-MIGRATION', 'EXTRACTION-BOUNDARY', 'REFERENCE-BOUNDARY']),
 ]

@@ -1,13 +1,13 @@
 # Mod build, testing and architecture
 
-WAIT requires Arma 3 2.18+ and CBA; ZEN is optional. Other controllers are optional. WAIT configures a
+CBE requires Arma 3 2.18+ and CBA; ZEN is optional. Other controllers are optional. CBE configures a
 bounded engine danger FSM for base soldier classes; packaged physical and compatibility acceptance remains pending.
 
 ## Change validation and local deployment
 
 Use Python 3.11+ and HEMTT **1.22.0**. The modern project definition is `.hemtt/project.toml`.
 The checked-in `build_mod.ps1` runs the regression suite, SQF validation, feature wiring check and
-HEMTT package build sequentially, then writes `wait-build.json` inside the output folder.
+HEMTT package build sequentially, then writes `cbe-build.json` inside the output folder.
 
 ```powershell
 ./releaseVerificationAndDeployment/build_mod.ps1 -Hemtt C:/Tools/hemtt.exe -Python python
@@ -20,14 +20,14 @@ The default output is `.hemttout/build`. The addon currently contains scripts, c
 `--no-bin` keeps builds portable while HEMTT still rapifies the addon config. Add model, animation
 or terrain assets only with the corresponding binarization step restored and verified.
 
-Each audit receives its own `@WaldosAITweaks` folder, mission, profiles, manifest and RPT directory.
+Each audit receives its own `@CBE` folder, mission, profiles, manifest and RPT directory.
 The launcher verifies every packaged file before staging. It uses a dedicated server, an interface
 client, two optional headless clients, `-noBattlEye`, no file patching and a 3840x2160 client profile.
 Dependencies default to the installed CBA folder; `-WithZen` adds the optional dialog provider; `-Mods` accepts an explicit
 array for compatibility batches. `-Package` also accepts a signed release candidate folder.
 An existing Arma session prevents another launch. Processes are left available for inspection.
 
-Join the observer slot and press OK. Confirm VR mission entry, WAIT initialization and matching
+Join the observer slot and press OK. Confirm VR mission entry, CBE initialization and matching
 package fingerprints in the server/client RPTs. Server readiness or a lobby alone does not establish
 successful entry. The observer is protected; combat actors retain each suite's authored setup.
 The retained movement diagnostics and live-battle suites have separate purposes. A diagnostic with
@@ -43,13 +43,13 @@ Those variants remain explicitly pending in `cortexQA/coverage.json`.
 | Pipeline | Trigger | Output and gate |
 | --- | --- | --- |
 | `testing.yml` | Push or PR | Regression, SQF, feature wiring and HEMTT checks; installable PBO artifact with build manifest |
-| `candidate.yml` | Manual dispatch on the intended release commit | Signed PBOs, public key and manifest in `wait-candidate.zip` |
+| `candidate.yml` | Manual dispatch on the intended release commit | Signed PBOs, public key and manifest in `cbe-candidate.zip` |
 | Local packaged audit | One requested batch | RPT evidence, physical outcomes and `cortex-results.json` |
 | `deploy.yml` | GitHub release published | Promotes the exact tested candidate after complete passing evidence, accepted feature coverage, fingerprint, clean commit, version and cryptographic signature checks |
 
 Download the signed candidate, extract it locally, and pass that folder through `-Package`. Do not
 rebuild between acceptance and publication: signatures are part of the package fingerprint. Attach
-`wait-candidate.zip` and the matching `cortex-results.json` to the draft GitHub release, then publish
+`cbe-candidate.zip` and the matching `cortex-results.json` to the draft GitHub release, then publish
 the release with tag `vMAJOR.MINOR.PATCH`. The workflow uploads the installable versioned archive.
 GitHub runners provide packaging checks; they do not run licensed Arma clients or establish combat
 acceptance. Steam Workshop publication remains a separate operator action.
@@ -63,24 +63,24 @@ Preserve keys and signatures for server signature verification. Never distribute
 
 FSM performance depends on its trigger cadence and state costs. Engine danger FSM integration lets
 reaction work follow engine danger causes. Scripted FSM state code can execute unscheduled, so
-expensive work there can evade the shared budget. WAIT's finite tactical FSM queues its existing
+expensive work there can evade the shared budget. CBE's finite tactical FSM queues its existing
 step through the budgeted scheduler and observes completion/locality. It never runs route scans
 directly from a per-frame condition. This change needs a live A/B measurement.
 
 ### Engine feasibility boundary
 
-The design is viable, but WAIT must cooperate with Arma's planners instead of continuously replacing
+The design is viable, but CBE must cooperate with Arma's planners instead of continuously replacing
 their work. The engine supports a configured soldier danger FSM, finite scripted FSMs, owner-local
 movement, suppression, building positions, land-vehicle paths, artillery orders and vehicle weapon
 release. Those are sufficient for event-driven danger response and finite operations.
 
-The engine also defines strict boundaries which WAIT treats as acceptance rules:
+The engine also defines strict boundaries which CBE treats as acceptance rules:
 
 - A danger FSM interrupts the formation FSM. It must finish regularly and cannot become a second
   persistent movement brain.
 - `setDestination` forces a replan. A healthy operation therefore issues one committed movement
   command and retries only after measured physical no-progress.
-- Disabling `PATH` or `MOVE` stops navigation and has locality-sensitive effects. WAIT uses no such
+- Disabling `PATH` or `MOVE` stops navigation and has locality-sensitive effects. CBE uses no such
   lease for ordinary manoeuvre; a terminal garrison hold may use exact-owned `PATH` state and must
   release it on interruption or ownership change.
 - `setDriveOnPath` applies only to compatible land vehicles and any other move command or `doStop`
@@ -93,7 +93,7 @@ The engine also defines strict boundaries which WAIT treats as acceptance rules:
 - Path calculation is advisory, segmented and may report duplicate callbacks. It can score a bounded
   route candidate but cannot be treated as proof that an actor will traverse it.
 
-This makes perfect navigation and guaranteed weapon impact invalid product promises. WAIT's contract
+This makes perfect navigation and guaranteed weapon impact invalid product promises. CBE's contract
 is prompt finite intent, bounded recovery, clean handover and measured physical outcomes. Native
 failure remains visible rather than being hidden by teleportation, forced projectiles or fabricated
 completion.
@@ -102,15 +102,15 @@ completion.
 | --- | --- | --- |
 | Immediate danger and contact | Engine danger FSM with small owner-local decisions | Bounded intake is configured for base soldiers; promote behaviour only after movement, disable, locality, external-owner and Zeus handover tests |
 | Squad tactics and combined arms | Event-fed shared opportunity registry, budgeted decisions, finite leases | Keep communication opportunistic; no compulsory rally or assembly barrier; casualty replacements update roles without restarting the whole attack |
-| CQB and garrison | Cached building topology and engine navigation; finite team movement | Native WAIT task implementation remains the standalone path. Validate rooms, floors, doorway traversal and exit across different buildings before replacing the fallback |
+| CQB and garrison | Cached building topology and engine navigation; finite team movement | Native CBE task implementation remains the standalone path. Validate rooms, floors, doorway traversal and exit across different buildings before replacing the fallback |
 | Turret and launcher policy | Config where supported, owner-local skills for runtime settings | Config cannot be reversed by a CBA toggle. Any new config component must document that distinction and avoid stacking installed external AI controller companion changes |
 | Vehicle driving | Native route commands plus sparse progress/obstruction events | Use sparse route-memory and obstruction sampling; preserve intentional roadblocks, crew ownership and Zeus orders; recovery cannot teleport, repair or remove obstacles |
 | Air combat | Native flight, weapon-config capabilities and sparse finite attack intent | Match weapon, envelope and terrain clearance; aircraft own aiming and actual ordnance. Avoid fixed-angle projectile creation or repeated short steering points |
-| Civilians and specialist actors | Local danger events and explicit external ownership | Externally owned animations and combat retain their actors; WAIT yields instead of layering a competing tactical controller |
-| Skills, lighting and dispersion | CBA settings plus equipment/locality events and cached profiles | Avoid rescanning every unit every frame; preserve WAIT authored skill values where ownership is delegated |
+| Civilians and specialist actors | Local danger events and explicit external ownership | Externally owned animations and combat retain their actors; CBE yields instead of layering a competing tactical controller |
+| Skills, lighting and dispersion | CBA settings plus equipment/locality events and cached profiles | Avoid rescanning every unit every frame; preserve CBE authored skill values where ownership is delegated |
 
 Retain feature gates, intent, locality, cancellation, casualty continuation and diagnostics through
-every conversion. Measure native AI, WAIT fallback, and relevant external-mod handover separately.
+every conversion. Measure native AI, CBE fallback, and relevant external-mod handover separately.
 The agreed initial budget is <=5% added median and <=10% added p95 frame time, starting with 50
 mixed groups. Protect the observer throughout measurement and record server and client separately.
 An isolated fast showcase is insufficient evidence for scale.
@@ -125,10 +125,10 @@ An isolated fast showcase is insufficient evidence for scale.
 - [Bohemia: fireAtTarget](https://community.bohemia.net/wiki/fireAtTarget), [forceWeaponFire](https://community.bohemia.net/wiki/forceWeaponFire) and [targeting configuration](https://community.bohemia.net/wiki/A3_Targeting_config_reference): weapon ownership, aiming and release constraints.
 - [HEMTT configuration](https://hemtt.dev/configuration/index.html), [version](https://hemtt.dev/configuration/version.html), [build](https://hemtt.dev/commands/build.html) and [release](https://hemtt.dev/commands/release.html): project layout, package outputs and signing.
 - [CBA settings implementation](https://github.com/CBATeam/CBA_A3/blob/master/addons/settings/fnc_addSetting.sqf): global settings and callback contract.
-- WAIT local `releaseVerificationAndDeployment/launch_pr_review_audit.ps1`, `testing.yml` and `deploy.yml`: fresh staging, readiness, dedicated/client operation and published-release flow examined for this pipeline.
+- CBE local `releaseVerificationAndDeployment/launch_pr_review_audit.ps1`, `testing.yml` and `deploy.yml`: fresh staging, readiness, dedicated/client operation and published-release flow examined for this pipeline.
 
 These references guide original implementation. Existing compatibility detection does not mean a
-Workshop feature has been recreated or that its physical behaviour passes WAIT acceptance.
+Workshop feature has been recreated or that its physical behaviour passes CBE acceptance.
 
 ## Source and documentation gates
 
@@ -237,3 +237,45 @@ The single-replacement role rule also covers casualties before entry: if neither
 CONTACT continuation now includes the matching live owner/generation CLEAR operation and uncancelled building brain. Loss of sight therefore cannot advance contact cleanup over clearance's movement and autonomous-attack lease. CLEAR still ends through its existing finite deadlines, physical result or immediate replacement/Zeus cancellation; contact cleanup resumes after that owner is gone. This closes a source-level continuation gap found while diagnosing native ATTACK diversion. Physical causality and repair remain pending.
 
 An exterior partner whose one-shot entry recovery has made no approach progress for twenty-four seconds may select one different physically visited current-floor point before full shared room coverage. Selection examines at most twenty-four proven points within thirty metres and stores one public building/hard-deadline/transform receipt per actor, including failed selection, so locality replay cannot replenish this alternative. The same guarded owner-local clearance callback records the shared pair target before issuing movement, including when that pair's room queue has ended. Later pair steps preserve the matching active path; no independent movement worker is added. Changing the target resets its distance baseline but does not renew the progress timestamp, deadline or common recovery budget. No visit is inferred. This addresses partners waiting outside while one unrelated room blocks the later full-coverage follow-through stage; fresh physical validation is pending.
+
+### Friendly infantry around moving vehicles
+
+Ordinary driving assistance now applies the shared friendly-pedestrian speed observer under `CBE_AIPass_DrivingAssist_Enable`. Registered convoys retain their separate, default-off `CBE_Convoy_AvoidInfantry_Enable` option. The existing owner-local operation applies the result after other lower speed caps; no additional movement controller is started. Pedestrian constraints use the existing traffic phase and suppress stuck recovery. Player, Zeus and external-controller handovers retain the driving operation's authority checks.
+
+The observer projects pedestrian hull corners into the vehicle frame, checks lateral and vertical overlap, and measures clearance from the front or rear hull according to actual travel direction. A continuous braking envelope includes a provisional four-second response allowance and mass-adjusted deceleration. Occupied near-hull space requests zero immediately; there is no minimum crawl or small-change filter that can discard a stop. Each observation evaluates at most 32 pedestrian hulls within a speed-dependent radius capped at 250 metres; denser sets request a stop. It retains no clearance cache, handlers or JIP side effects.
+
+This is not crossing prediction, a steering avoidance manoeuvre or proof of collision prevention. Native braking, fast lateral crossings, turning swept hulls, reversing from rest, slopes/bridges, crowd response, repeated restart and locality migration require physical validation. Audits are currently held; performance acceptance remains unmeasured.
+
+Ordinary forward traffic observation also admits occupied vehicle hulls at any heading, including sideways parked vehicles and destroyed vehicle entities. Only aligned, non-reversing predecessors receive a measured forward-speed allowance. Other hulls overlapping the forward lane and vertical corridor are treated as stationary occupied space for the speed ceiling; a centre behind the bumper does not hide a protruding hull. Existing candidate limits, traffic wait/recovery suppression and ownership cleanup remain. This does not predict a crossing before it enters the lane, choose right-of-way, route around wrecks, or guarantee stopping against an approaching vehicle. Those behaviours and physical angled-obstacle tests remain outstanding.
+
+Convoy driving assist now applies the same forward-lane hull observer to the lead and every follower on the existing one-second convoy tick. The exact registered predecessor retains the configured size-aware convoy pacing only while alive, aligned within 25 degrees and not reversing along the follower's forward axis. Its hull is still observed: contact-range bumper room below two metres stops the follower; a turned, reversing or destroyed predecessor receives ordinary occupied-hull constraints. Crossing predictions still apply. Other vehicles and wrecks remain obstacles. This adds at most one predecessor hull evaluation within the existing 64-candidate limit, with no new query or scheduler. Physical cornering, mixed-hull braking and stopping-distance acceptance remain unverified. These caps apply after acceleration/spacing smoothing and before the existing speed writer. Observed traffic and zero-speed holds refresh progress timers and suppress stuck recovery, preventing an immediate stale retry when the road clears. Disabling `CBE_Convoy_DrivingAssist_Enable` removes this observation along with its road/path assistance; convoy spacing and the separate opt-in pedestrian check retain their own scope.
+
+Cost is at most one area query and 64 eight-corner hull projections per convoy vehicle per tick, with a 250 m query-radius cap and a maximum 20 registered vehicles. This bounded cost has not been measured against the frame-time budget. Physical tests must cover unrelated parked and angled obstacles, wrecks, release/restart, configured short gaps, mixed tracked/wheeled braking, bends where other convoy hulls intersect, and HC migration. No crossing priority, passing or timeout-based permission to drive through the blockage is introduced.
+
+Convoy unload policy now has its own exact lease: controlling group, accepted revision, previous policy, applied policy and machine owner. Startup and five-second crew upkeep call the same owner-local helper. Unchanged leases are adopted across revisions and migration without repeating the engine write. If a script changes the current policy, CBE retires its lease and blocks reacquisition for that convoy group until explicit release; HALT/resume does not override the change. Release restores the locally captured previous policy only when the lease still belongs to that group, its applied value remains current and no player/Zeus/external controller owns the handover. A missing lease does not authorize restoration from the older server snapshot. Successor-retained vehicles keep their lease. No settings, handlers or new recurring jobs are added. Live script mutation, release/re-register, successor retention and HC migration still require physical verification.
+
+A physically arrived clearance reserve installs its exit watch only in the callback where its actual eye-to-watch VIEW ray succeeds. A staging-point proposal ray, arrival flag or earlier owner's watch receipt cannot substitute for that check. The existing oldest-due rotation and one-ray-per-callback budget remain; newly arrived or adopted observers wait for their turn. Persistent blocked views retain the existing finite search/reposition budget, and no watch creates room-clearance credit. Physical outside-security, occlusion, casualty and HC validation remain pending while audits are held.
+
+Casualty promotion recognizes physically settled early-exit clearing workers as potential substitutes for an established reserve's doorway watch. Both kinds of substitute must still hold the same exit with current generation/owner watch receipts, remain physically at their post, be available and pass a fresh actual-eye VIEW check. An approaching, diverted or unavailable worker cannot supply cover. A rotated observer roster avoids repeatedly spending the shared one-ray budget on the same blocked first post; at most sixteen reserves and eight early-exit records are considered. This adds no movement writer, ray budget or deadline renewal. If no real substitute exists, the established watch remains protected. Physical casualty flow, blocked views and separate HC validation remain pending.
+
+Natural contact clearance opts into `continueRoute`: only a COMPLETE result with successful participation and egress may return settled actors to their unchanged plain authored MOVE after the common clearance operation releases. Explicit clearance defaults to settlement; scripts may request the typed BOOL option `continueRoute` (default false). The choice persists through room-progress publication and owner resume; older receipts default false. The owner rechecks generation, current brain, unchanged authored metadata, no successor operation, task availability and each actor's actual STOP before handback. The leader must qualify before followers rejoin it. New individual movement, scripted/timed/synchronized/attached routes, missing routes and incomplete results retain their current orders/holds. No waypoint or behaviour/ROE is rewritten, and room visitation does not prove hostiles eliminated. Physical route continuation, combat response, repeat clearance and separate HC cases remain unverified while audits are held.
+
+The building audit retains the original no-route natural-entry case and adds a separate `BUILD-CONTINUE` controller-flow case. One plain patrol waypoint is established before contact. Native knowledge must trigger clearance and independent physical entry before the posted defender becomes vulnerable to real gunfire. A pass additionally requires independently observed visits to all roofed fixture room targets, a real squad-caused casualty, COMPLETE clearance, every living on-foot member travelling at least 25 metres with at least 20 metres of progress toward the unchanged waypoint, and retained authored route identity. No later test-side movement, route replacement or completion assignment assists the handback. Protected attackers mean this does not validate combat effectiveness. The case is prepared but unrun; normal and HC acceptance remain separate.
+
+Terminal clearance clears an observation command only when the actor carries the matching public and local exit-watch receipt for that clearance generation and owner epoch. Interior workers without that receipt are no longer sent a blanket `doWatch objNull`. Existing movement diversion, native-task and external-owner guards still apply; stale watch metadata retires separately. An external script changing an identical watch without replacing an ownership receipt remains indistinguishable to this lease protocol. Physical newer-watch and owner-transition validation remain pending.
+
+Ordinary-driving assistance includes finite static-obstacle bypass and navigation-area passage while retaining the authored waypoint. This does not implement moving-vehicle overtaking or cooperative jam clearance: stopped peers remain occupied hulls, and existing finite native-route retries do not authorize another group to back up. A future cooperative manoeuvre must be admitted by each current owner, preserve route/seat/command receipts, retain fresh physical clearance, and end on expiry or a newer order. Public peer requests alone cannot grant movement authority. These gaps remain unaccepted while physical audits are held.
+
+Prepared normal-convoy corner acceptance now requires a measured turning/closing predecessor encounter, physical speed reduction of at least 1 m/s within eight seconds of the first such event, sampled hull separation without new damage, and all vehicles physically reaching the outgoing leg. A route that never produces the encounter fails the prerequisite instead of passing the braking check. No added fixture movement or direct production callback supplies these results. The observer uses two eight-corner projections at 5 Hz for at most 150 seconds and is not a performance measurement arm. Sampling can miss contacts; zero damage alone does not prove collision freedom. This case is unrun; headless acceptance remains separate.
+
+Finite danger-cover movement now binds its owner epoch, operation generation and full authored native waypoint receipt. A same-index condition, script, attachment or synchronization edit invalidates continuation and return-to-formation cleanup; legacy leases lacking that proof retire metadata only. A new nearby danger observation can retain an unchanged screened route without extending its deadline. The final new move and failed-approach return recheck the order context. This adds authored-route metadata reads on existing cover callbacks, not a new timer or world scan; route enumeration cost still depends on mission waypoint count. Physical route edits, actor interruption and locality handover remain unrun while audits are held.
+
+Shared direct/suppressive-fire protection now queries the complete target corridor instead of a shooter-centred search truncated at 600 metres. A single rectangular area includes live people inside vehicles, then the existing ASL cone projection checks friendly, civilian and protected-captive positions. The shooter's own platform and occupants are excluded. Non-finite/malformed targets, spans above 6000 metres and more than 64 native query candidates refuse fire rather than ignore part of the corridor. No recurring scan or weapon/movement writer is added; native area-query cost remains engine-dependent. This position-based veto does not establish blast, hull, penetration or future-motion safety, and does not authorize destructive building fire. Long-range, mounted-protected-person, steep-terrain and dense-scene physical acceptance remain unrun while audits are held.
+
+Alternate driving-path admission now requires both driver and effective commander to be idle or executing a native MOVE to the current authored destination. Native STOP, FOLLOW, ATTACK and unowned CBE cannot start a static bypass or navigation-corridor approach. Bypass PLAN rechecks this before fixed steering; corridor APPROACH rejects a new STOP or other non-movement task before CROSS. The owned FOLLOW/CROSS phases retain their intentional two-seat `doStop` contract, so this is not a blanket STOP veto. A later external STOP indistinguishable from that owned STOP remains unresolved. Separate-commander native destination propagation, real path acquisition, interruption and handback require physical testing. No timer, query or movement writer was added.
+
+Native driving-path curvature hints now refuse multiple disconnected path stretches within the current three-metre/floor proximity band. At self-crossings or close parallel returns, the observer cannot infer which later stretch belongs to the current approach. It returns no hint and the existing travelled-motion curvature fallback remains in use. Equal-distance ties within one contiguous stretch retain the first segment. Duplicate zero-length nodes do not split a stretch. The existing 64-node/63-segment bound, subscriptions, expiry and route/seat receipts remain unchanged, with no new query, timer or path command. This is ambiguity rejection, not path selection or clearance proof; physical intersection/loop/overpass behaviour remains unrun while audits are held.
+
+Convoy mounted-fire upkeep now uses the shared full-corridor protected-position veto before explicit target/fire requests. Each eligible operating crew member must be combat-effective, visible and simulation-enabled along with its platform. A blocked lane or unavailable operator retires the convoy target only while the current assigned target still matches its recorded assignment. Cargo, ROE, external ownership and the existing five-second cadence remain authoritative. This is not continuous fire cessation, blast safety or proof that a previously ordered burst has stopped. Actual rounds, blocked-lane interruption and resumed mounted fire remain physically unrun.
+
+The current convoy path has no source-specific external driving pause/restore adapter. Generic declared ownership can make CBE yield, but cannot suspend an undeclared external controller. Earlier coverage wording claiming otherwise is withdrawn. Required dependency-loaded controller handovers remain unfinished; compatibility expansion stays deferred behind behaviour foundations.

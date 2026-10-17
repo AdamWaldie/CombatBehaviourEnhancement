@@ -1,12 +1,15 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Starts or replaces one finite WAIT operation without allowing stale work to command the group.
+ * Purpose: Starts or replaces one finite CBE operation without allowing stale work to command the group.
  * Locality/authority: Runs on the current group owner; server forwards only through callers that already own dispatch.
+ * Progress domain: participant platforms are captured at commitment. Foot actors boarding another
+ * vehicle and crews changing vehicle cannot supply progress to the old operation; empty-roster
+ * fallback retains its original foot/vehicle domain without fixing the leader actor identity.
  * Repeat/JIP: Replacing an intent increments a public generation. The durable summary is replayable; local routes and callbacks rebuild on ownership migration.
  * Arguments: 0 group <GROUP>; 1 intent <STRING>; 2 objective <OBJECT or ARRAY>; 3 participants <ARRAY>; 4 route <ARRAY>; 5 state <STRING, PLAN>.
  * Return Value: HASHMAP operation, or an empty HASHMAP when the group cannot be owned here.
  * Current callers: Cortex tactical, building, vehicle and air operation starts.
- * Example: [group player, "ADVANCE", getPosATL player, units group player, [], "PLAN"] call WAIT_fnc_OperationStart;
+ * Example: [group player, "ADVANCE", getPosATL player, units group player, [], "PLAN"] call CBE_fnc_OperationStart;
  */
 params [
     ["_group",grpNull,[grpNull]], ["_intent","",[""]], ["_objective",objNull,[objNull,[]]],
@@ -14,72 +17,74 @@ params [
 ];
 if (isNull _group || {!local _group} || {_intent == ""}) exitWith {createHashMap};
 // The shared lifecycle is the final authority boundary for every feature. Check it before
-// retiring an earlier route: a delayed job must not cancel WAIT state or issue cleanup after
+// retiring an earlier route: a delayed job must not cancel CBE state or issue cleanup after
 // Zeus, a player or a specialist controller has claimed the group.
-if !([_group,false,false,true] call WAIT_fnc_CortexIsEligible) exitWith {createHashMap};
+if !([_group,false,false,true] call CBE_fnc_CortexIsEligible) exitWith {createHashMap};
 // Explicit feature orders can arrive before periodic discovery adopts a fresh local group.
 // Establish its owner epoch first; adopting after publication would cancel this new operation
 // as if it were inherited from another machine. Locality adoption marks itself before resuming
 // durable intents, so any nested operation start sees the already-established owner.
-if (!(_group getVariable ["WAIT_AIPass_Adopted",false])) then {
-    [_group,true] call WAIT_fnc_CortexLocality;
+if (!(_group getVariable ["CBE_AIPass_Adopted",false])) then {
+    [_group,true] call CBE_fnc_CortexLocality;
 };
-if (!local _group || {!([_group,false,false,true] call WAIT_fnc_CortexIsEligible)}) exitWith {createHashMap};
-private _previous=_group getVariable ["WAIT_Operation",createHashMap];
-private _generation=(_group getVariable ["WAIT_OperationGeneration",0])+1;
+if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {createHashMap};
+private _previous=_group getVariable ["CBE_Operation",createHashMap];
+private _generation=(_group getVariable ["CBE_OperationGeneration",0])+1;
 if (count _previous > 0) then {
     // Retire a matching outgoing drill while its generation/epoch still own feature holds.
     // REPLACED suppresses return-to-formation; a new operation supplies its own movement.
-    private _previousState=_group getVariable ["WAIT_AIPass_State",createHashMap];
+    private _previousState=_group getVariable ["CBE_AIPass_State",createHashMap];
     private _previousDrill=_previousState getOrDefault ["drill",createHashMap];
     if (count _previousDrill > 0
         && {(_previousDrill getOrDefault ["operationGeneration",-1]) == (_previous getOrDefault ["generation",-2])}
-        && {(_previousDrill getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["WAIT_AIPass_Epoch",0])}) then {
-        [_group,_previousState,"REPLACED"] call WAIT_fnc_CortexFlankEnd;
+        && {(_previousDrill getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+        [_group,_previousState,"REPLACED"] call CBE_fnc_CortexFlankEnd;
     };
-    [_group,_previous getOrDefault ["generation",-1],"REPLACED"] call WAIT_fnc_OperationCancel;
+    [_group,_previous getOrDefault ["generation",-1],"REPLACED"] call CBE_fnc_OperationCancel;
 };
 // A finite danger posture is meaningful only for an on-foot group. Aircraft, vehicles and boats
 // use this common record too, but must not have their native flight or combat state altered merely
 // because a lifecycle record starts. Retain the decision so release is equally narrow later.
-private _operationAnchor=[_group] call WAIT_fnc_CortexGroupAnchor;
+private _operationAnchor=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _operationAnchor) then {_operationAnchor=leader _group};
 private _dangerPosture=(vehicle _operationAnchor) isEqualTo _operationAnchor;
-private _dangerResponse=_group getVariable ["WAIT_Danger_Response",[]];
+private _dangerResponse=_group getVariable ["CBE_Danger_Response",[]];
 private _liveDanger=if (count _dangerResponse == 5
-    && {(_dangerResponse select 4) == (_group getVariable ["WAIT_Danger_Generation",-1])}
+    && {(_dangerResponse select 4) == (_group getVariable ["CBE_Danger_Generation",-1])}
     && {time < (_dangerResponse select 3)}) then {+_dangerResponse} else {[]};
 private _capable=_participants select {
-    [_x] call WAIT_fnc_CortexCombatEffective && {local _x} && {group _x == _group}
+    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {group _x == _group}
         && {!isPlayer _x} && {isNull (remoteControlled _x)}
-        && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+        && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
 };
-private _pairs=if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) then {[_group,_capable] call WAIT_fnc_CombatPairs} else {[]};
+private _pairs=if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) then {[_group,_capable] call CBE_fnc_CombatPairs} else {[]};
 private _operation=createHashMapFromArray [
-    ["intent",toUpperANSI _intent], ["generation",_generation], ["ownerEpoch",_group getVariable ["WAIT_AIPass_Epoch",0]],
+    ["intent",toUpperANSI _intent], ["generation",_generation], ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
     ["pairs",_pairs], ["objective",_objective], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],
     ["startedAt",time], ["lastProgressAt",time], ["lastProgressPosition",getPosATL _operationAnchor],
     ["participantProgress",_capable apply {[_x,getPosATL _x]}], ["lastProgressActor",objNull],
+    ["participantPlatforms",createHashMapFromArray (_capable apply {[netId _x,vehicle _x]})],
+    ["progressPlatform",vehicle _operationAnchor],["progressOnFoot",_dangerPosture],
     ["replans",0], ["recovery",createHashMap], ["recoveryAttempts",createHashMap], ["unavailable",[]], ["restore",createHashMap],
     ["dangerAtStart",_liveDanger], ["dangerPosture",_dangerPosture], ["cancelReason",""]
 ];
 // Relinquish the old posture before changing its generation proof. Otherwise renewal captures
-// WAIT-applied values as a new baseline and a later release cannot restore the original posture.
+// CBE-applied values as a new baseline and a later release cannot restore the original posture.
 if (_dangerPosture) then {
-    [_operationAnchor,"RELEASE"] call WAIT_fnc_DangerReact;
+    [_operationAnchor,"RELEASE"] call CBE_fnc_DangerReact;
     // Retire weak posture while its original generation still grants restoration authority.
     // New committed movers must not inherit a temporary danger stance as an authored baseline.
     {
-        if (local _x && {count (_x getVariable ["WAIT_Danger_EngineStanceLease",[]]) > 0}) then {
-            [_x] call WAIT_fnc_DangerEngineRelease;
+        if (local _x && {count (_x getVariable ["CBE_Danger_EngineStanceLease",[]]) > 0}) then {
+            [_x] call CBE_fnc_DangerEngineRelease;
         };
     } forEach ((units _group) select [0,64]);
-    [_group,-1,false,""] call WAIT_fnc_DangerGroupHideStep;
+    [_group,-1,false,""] call CBE_fnc_DangerGroupHideStep;
 };
-_group setVariable ["WAIT_OperationGeneration",_generation,true];
-_group setVariable ["WAIT_Operation",_operation,true];
-_group setVariable ["WAIT_OperationResult",[toUpperANSI _intent,"RUNNING",_generation,serverTime],true];
+_group setVariable ["CBE_OperationGeneration",_generation,true];
+_group setVariable ["CBE_Operation",_operation,true];
+_group setVariable ["CBE_OperationResult",[toUpperANSI _intent,"RUNNING",_generation,serverTime],true];
 // The new generation is now authoritative, so a still-live danger response can adopt MAINTAIN
 // without being mistaken for a stale operation. This preserves the committed route while keeping
 // the bounded combat posture across CONTACT -> manoeuvre/CQB/withdrawal transitions. A stale
@@ -87,15 +92,15 @@ _group setVariable ["WAIT_OperationResult",[toUpperANSI _intent,"RUNNING",_gener
 if (_dangerPosture) then {
     if (_liveDanger isNotEqualTo []) then {
         _liveDanger params ["_dangerCause","_dangerPosition"];
-        private _dangerEvent=_group getVariable ["WAIT_Danger_ResponseEvent",[]];
+        private _dangerEvent=_group getVariable ["CBE_Danger_ResponseEvent",[]];
         if (!(count _dangerEvent in [4,5,6,7])
             || {(_dangerEvent param [0,"",[""]]) != _dangerCause}
             || {(_dangerEvent param [2,-1,[0]]) != (_liveDanger select 2)}) then {
             _dangerEvent=_liveDanger select [0,4];
         };
-        private _dangerAction=[_group,_dangerEvent] call WAIT_fnc_DangerActionSelect;
+        private _dangerAction=[_group,_dangerEvent] call CBE_fnc_DangerActionSelect;
         private _dangerObserver=_dangerEvent param [5,_operationAnchor,[objNull]];
-        [_dangerObserver,_dangerCause,_dangerPosition,_dangerAction] call WAIT_fnc_DangerReact;
+        [_dangerObserver,_dangerCause,_dangerPosition,_dangerAction] call CBE_fnc_DangerReact;
     };
 };
 _operation

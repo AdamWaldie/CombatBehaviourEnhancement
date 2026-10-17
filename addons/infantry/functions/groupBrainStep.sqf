@@ -2,14 +2,14 @@
  * Author: WaldoTheWarfighter
  * Purpose: Execute one bounded group decision and publish the semantic phase consumed by the
  * owner-local tactical FSM.
- * Locality / Authority: Runs only through WAIT's shared scheduler on the group owner. It validates
+ * Locality / Authority: Runs only through CBE's shared scheduler on the group owner. It validates
  * locality, generation, Zeus and external ownership before invoking existing bounded feature logic.
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
  * committed delay or a danger wake. A migrated or superseded callback records cancellation only.
- * Arguments: 0: brain <HASHMAP> created by WAIT_fnc_GroupBrainStart.
+ * Arguments: 0: brain <HASHMAP> created by CBE_fnc_GroupBrainStart.
  * Return Value: Number - always -1 because each FSM step is a separate coalesced scheduler job.
- * Current caller: WAIT_fnc_GroupBrainQueue through WAIT_fnc_CortexQueueJob.
- * Example: [_brain] call WAIT_fnc_GroupBrainStep;
+ * Current caller: CBE_fnc_GroupBrainQueue through CBE_fnc_CortexQueueJob.
+ * Example: [_brain] call CBE_fnc_GroupBrainStep;
  */
 
 params [["_brain",createHashMap,[createHashMap]]];
@@ -29,31 +29,32 @@ if (_brain getOrDefault ["cancelled",false]) exitWith {
     [_brain getOrDefault ["cancelReason","CANCELLED"]] call _cancel
 };
 if (!local _group) exitWith {["OWNERSHIP_LOST"] call _cancel};
-if (_epoch != (_group getVariable ["WAIT_AIPass_Epoch",0])) exitWith {["OWNER_EPOCH"] call _cancel};
-if (_generation != (_group getVariable ["WAIT_GroupBrain_Generation",0])
-    || {(_group getVariable ["WAIT_GroupBrain",createHashMap]) isNotEqualTo _brain}) exitWith {["SUPERSEDED"] call _cancel};
-if (!(missionNamespace getVariable ["WAIT_AIPass_Active",false])) exitWith {["DISABLED"] call _cancel};
-if ([_group] call WAIT_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
-if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};
+if (_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])) exitWith {["OWNER_EPOCH"] call _cancel};
+if (_generation != (_group getVariable ["CBE_GroupBrain_Generation",0])
+    || {(_group getVariable ["CBE_GroupBrain",createHashMap]) isNotEqualTo _brain}) exitWith {["SUPERSEDED"] call _cancel};
+if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])) exitWith {["DISABLED"] call _cancel};
+if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
+if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};
 
 // A native STOP survives a new waypoint. Release only our matching post-clear hold
 // when its author order changes, before ordinary tactical processing resumes.
-private _clearHold=_group getVariable ["WAIT_Cortex_ClearHold",[]];
+private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
 if (count _clearHold == 4) then {
-    private _owned=(_clearHold select 0) == (_group getVariable ["WAIT_AIPass_ClearGeneration",0])
+    private _owned=(_clearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])
         && {(_clearHold select 1) == _epoch};
-    if (!_owned || {([_group] call WAIT_fnc_NativeOrderReceipt) isNotEqualTo (_clearHold select 2)}) then {
-        _group setVariable ["WAIT_Cortex_ClearHold",nil,true];
-        if (_owned && {count (_group getVariable ["WAIT_Operation",createHashMap]) == 0}) then {
+    if (!_owned || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_clearHold select 2)}) then {
+        _group setVariable ["CBE_Cortex_ClearHold",nil,true];
+        if (_owned && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
             private _leader=leader _group;
+            private _deferred=[];
             {
                 if (local _x && {group _x == _group} && {!isPlayer _x}
                     && {currentCommand _x == "STOP"} && {isNull remoteControlled _x}
-                    && {[_x] call WAIT_fnc_CortexCombatEffective}
+                    && {[_x] call CBE_fnc_CortexCombatEffective}
                     && {isNull objectParent _x} && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
-                    && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
-                    && {(_x getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo []}
-                    && {!([_group,false,_x] call WAIT_fnc_CortexExternalTakeover)}) then {
+                    && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                    && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+                    && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}) then {
                     if (_x == _leader) then {
                         private _waypointIndex=currentWaypoint _group;
                         private _waypoint=[_group,_waypointIndex];
@@ -65,19 +66,29 @@ if (count _clearHold == 4) then {
                         _x doFollow _leader;
                     };
                 };
+                // A newer individual order retires the old hold. A still-owned STOP
+                // under a temporary actor reservation must retain its handover receipt.
+                if (local _x && {group _x == _group} && {!isPlayer _x}
+                    && {currentCommand _x == "STOP"}
+                    && {[_x] call CBE_fnc_CortexActorMoveReserved}) then {
+                    _deferred pushBackUnique _x;
+                };
             } forEach (_clearHold select 3);
+            if (_deferred isNotEqualTo []) then {
+                _group setVariable ["CBE_Cortex_ClearHold",[_clearHold select 0,_clearHold select 1,_clearHold select 2,_deferred],true];
+            };
         };
     };
 };
 private _legacyJob=createHashMapFromArray [["group",_group]];
 private _responsiveUntil=_brain getOrDefault ["responsiveUntil",0];
 if (_responsiveUntil > time) then {_legacyJob set ["responsiveUntil",_responsiveUntil]};
-private _delay=[_legacyJob] call WAIT_fnc_CortexGroupTick;
+private _delay=[_legacyJob] call CBE_fnc_CortexGroupTick;
 if (isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}) exitWith {
-    [if (_group getVariable ["WAIT_AIPass_Managed",false]) then {"RETIRED"} else {"RELEASED"}] call _cancel
+    [if (_group getVariable ["CBE_AIPass_Managed",false]) then {"RETIRED"} else {"RELEASED"}] call _cancel
 };
 
-private _state=[_group] call WAIT_fnc_CortexGroupState;
+private _state=[_group] call CBE_fnc_CortexGroupState;
 private _legacyPhase=_state getOrDefault ["phase","CALM"];
 private _semanticPhase=switch (_legacyPhase) do {
     case "RETREAT": {"WITHDRAW"};
@@ -89,13 +100,13 @@ private _semanticPhase=switch (_legacyPhase) do {
             private _reason=toUpperANSI (_drill getOrDefault ["stageReason",""]);
             if (_reason find "ASSAULT" >= 0 || {_stage == "ASSAULT"}) then {"ASSAULT"} else {"MANOEUVRE"}
         };
-        if ((_group getVariable ["WAIT_AIPass_SupportLease",[]]) isNotEqualTo []
+        if ((_group getVariable ["CBE_AIPass_SupportLease",[]]) isNotEqualTo []
             || {(_state getOrDefault ["responding",false])}) exitWith {"SUPPORT"};
         "CONTACT"
     };
     default {_legacyPhase};
 };
-if (_group getVariable ["WAIT_AIPass_ClearBuilding",false]) then {_semanticPhase="CLEAR"};
+if (_group getVariable ["CBE_AIPass_ClearBuilding",false]) then {_semanticPhase="CLEAR"};
 _brain set ["legacyPhase",_legacyPhase];
 _brain set ["phase",_semanticPhase];
 _brain set ["lastStepAt",time];
@@ -104,7 +115,7 @@ _brain set ["nextAt",time+_delay];
 _brain set ["wakeAt",time+_delay];
 _brain set ["pending",false];
 _brain set ["completed",true];
-_group setVariable ["WAIT_GroupBrain_State",[
+_group setVariable ["CBE_GroupBrain_State",[
     _semanticPhase,_generation,_epoch,serverTime,
     _state getOrDefault ["phaseReason","STEP"],
     _delay

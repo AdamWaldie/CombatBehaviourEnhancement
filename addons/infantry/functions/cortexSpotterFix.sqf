@@ -6,16 +6,16 @@
  * Arguments: 0: spotter <OBJECT>; 1: enemy <OBJECT>; 2: previous impact ATL <ARRAY>, default [].
  * Return Value: Array [reported ATL, error], or [] without observation.
  * Current callers: ArtilleryRequest and ArtilleryObserve.
- * Example: private _fix = [_spotter, _enemy] call WAIT_fnc_CortexSpotterFix;
+ * Example: private _fix = [_spotter, _enemy] call CBE_fnc_CortexSpotterFix;
  */
 params [["_spotter", objNull, [objNull]], ["_enemy", objNull, [objNull]], ["_impact", [], [[]]]];
 if (!local _spotter || {!alive _spotter} || {isPlayer _spotter} || {!alive _enemy}
-    || {!(_spotter getVariable ["WAIT_AIPass_Spotter", false])}
+    || {!(_spotter getVariable ["CBE_AIPass_Spotter", false])}
     || {!simulationEnabled _spotter} || {isObjectHidden _spotter}
     || {vehicle _spotter != _spotter} || {binocular _spotter == ""}
     || {_spotter getVariable ["ACE_isUnconscious", false]} || {lifeState _spotter == "INCAPACITATED"}
-    || {!([group _spotter] call WAIT_fnc_CortexIsEligible)}) exitWith {[]};
-if (!([_spotter] call WAIT_fnc_CortexCanTransmit)) exitWith {[]};
+    || {!([group _spotter] call CBE_fnc_CortexIsEligible)}) exitWith {[]};
+if (!([_spotter] call CBE_fnc_CortexCanTransmit)) exitWith {[]};
 private _knowledge = _spotter targetKnowledge _enemy;
 if (!(_knowledge select 1) || {_spotter knowsAbout _enemy < 1.5}
     || {time - (_knowledge select 2) > 5}

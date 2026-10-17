@@ -3,7 +3,7 @@ class Mission {
     addOns[]={"A3_Characters_F_BLUFOR","A3_Map_VR"};
     addOnsAuto[]={"A3_Characters_F_BLUFOR","A3_Map_VR"};
     randomSeed=4012026;
-    class Intel {briefingName="WAIT packaged AI audit"; year=2035; month=6; day=24; hour=12; minute=0; startWeather=0; forecastWeather=0;};
+    class Intel {briefingName="CBE packaged AI audit"; year=2035; month=6; day=24; hour=12; minute=0; startWeather=0; forecastWeather=0;};
     class Groups {
         items=1;
         class Item0 {

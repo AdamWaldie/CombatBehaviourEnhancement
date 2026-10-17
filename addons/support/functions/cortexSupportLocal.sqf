@@ -6,8 +6,8 @@
  * Arguments: 0: helper <GROUP>, grpNull; 1: server lease <ARRAY>, [].
  * Return Value: Nothing.
  * Current callers: SupportStep.
- * Example: [_group, _lease] remoteExecCall ["WAIT_fnc_CortexSupportLocal", groupOwner _group];
+ * Example: [_group, _lease] remoteExecCall ["CBE_fnc_CortexSupportLocal", groupOwner _group];
  */
 params [["_group",grpNull,[grpNull]],["_lease",[],[[]]]];
 if (remoteExecutedOwner != 2 || {isNull _group} || {!local _group} || {count _lease != 6}) exitWith {};
-[WAIT_fnc_CortexSupportApply,createHashMapFromArray [["group",_group],["lease",_lease],["waitUntil",serverTime+5]],0] call WAIT_fnc_CortexQueueJob;
+[CBE_fnc_CortexSupportApply,createHashMapFromArray [["group",_group],["lease",_lease],["waitUntil",serverTime+5]],0] call CBE_fnc_CortexQueueJob;

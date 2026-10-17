@@ -1,0 +1,233 @@
+{
+  "reviewed": "2026-10-17",
+  "scope": "Historical five-second mixed-column matrix observations, not current behaviour acceptance",
+  "sourceCommit": "61e136b6e2424beeabff8e2ebf296b31968687bd",
+  "rpt": ".qa/runtime-20261011-184243-432/server/arma3server_x64_2026-10-11_18-42-44.rpt",
+  "rptSHA256": "b4af7f53b401abea1361d22308de4be090aa0d4d241ea45ddfef3e32aa8d2383",
+  "summary": [
+    {
+      "case": "CNVM-BASELINE-MIXED-50",
+      "sampleCount": 12,
+      "actors": [
+        {
+          "slot": 0,
+          "speedMinKmh": 27.6833,
+          "speedMaxKmh": 31.1103,
+          "nearStationarySamples": 0,
+          "positiveCapWhileNearStationary": 0
+        },
+        {
+          "slot": 1,
+          "speedMinKmh": 20.9262,
+          "speedMaxKmh": 41.0831,
+          "nearStationarySamples": 0,
+          "positiveCapWhileNearStationary": 0
+        },
+        {
+          "slot": 2,
+          "speedMinKmh": 19.684,
+          "speedMaxKmh": 39.7109,
+          "nearStationarySamples": 0,
+          "positiveCapWhileNearStationary": 0
+        }
+      ],
+      "gapRangesMetres": [
+        [
+          60.4172,
+          68.1392
+        ],
+        [
+          59.4795,
+          67.5651
+        ]
+      ]
+    },
+    {
+      "case": "CNVM-MIXED-50",
+      "sampleCount": 12,
+      "actors": [
+        {
+          "slot": 0,
+          "speedMinKmh": 5.60649,
+          "speedMaxKmh": 24.4987,
+          "nearStationarySamples": 0,
+          "positiveCapWhileNearStationary": 0
+        },
+        {
+          "slot": 1,
+          "speedMinKmh": -0.132704,
+          "speedMaxKmh": 26.4839,
+          "nearStationarySamples": 4,
+          "positiveCapWhileNearStationary": 4
+        },
+        {
+          "slot": 2,
+          "speedMinKmh": 5.67892,
+          "speedMaxKmh": 30.5715,
+          "nearStationarySamples": 0,
+          "positiveCapWhileNearStationary": 0
+        }
+      ],
+      "gapRangesMetres": [
+        [
+          83.1213,
+          105.237
+        ],
+        [
+          62.7265,
+          72.61
+        ]
+      ]
+    }
+  ],
+  "nearStationarySamples": [
+    {
+      "case": "CNVM-MIXED-50",
+      "rptLine": 1300,
+      "slot": 1,
+      "speedKmh": -0.0673917,
+      "forcedSpeedMps": 8.12628,
+      "gapsMetres": [
+        102.674,
+        67.4029
+      ],
+      "motion": [
+        5.1238,
+        "MOVE",
+        [
+          [
+            2510.78,
+            2604.92,
+            0.011796
+          ],
+          "VEHICLE PLANNED",
+          false
+        ],
+        [
+          2507.23,
+          2560.3,
+          0.00933361
+        ]
+      ],
+      "nativeDestinationDistanceMetres": 44.76099759906336
+    },
+    {
+      "case": "CNVM-MIXED-50",
+      "rptLine": 1302,
+      "slot": 1,
+      "speedKmh": -0.00137277,
+      "forcedSpeedMps": 8.33333,
+      "gapsMetres": [
+        104.7,
+        64.6094
+      ],
+      "motion": [
+        5.03141,
+        "MOVE",
+        [
+          [
+            2511.19,
+            2630.47,
+            0.00965405
+          ],
+          "VEHICLE PLANNED",
+          false
+        ],
+        [
+          2508.21,
+          2570.83,
+          0.0164862
+        ]
+      ],
+      "nativeDestinationDistanceMetres": 59.71440401342258
+    },
+    {
+      "case": "CNVM-MIXED-50",
+      "rptLine": 1310,
+      "slot": 1,
+      "speedKmh": -0.076963,
+      "forcedSpeedMps": 8.33333,
+      "gapsMetres": [
+        100.474,
+        62.7265
+      ],
+      "motion": [
+        0.871449,
+        "MOVE",
+        [
+          [
+            2511.53,
+            2712.54,
+            0.00916767
+          ],
+          "VEHICLE PLANNED",
+          false
+        ],
+        [
+          2510.97,
+          2646.29,
+          0.0131941
+        ]
+      ],
+      "nativeDestinationDistanceMetres": 66.25236687252871
+    },
+    {
+      "case": "CNVM-MIXED-50",
+      "rptLine": 1312,
+      "slot": 1,
+      "speedKmh": -0.132704,
+      "forcedSpeedMps": 8.33333,
+      "gapsMetres": [
+        99.1141,
+        64.3661
+      ],
+      "motion": [
+        0.516713,
+        "MOVE",
+        [
+          [
+            2511.59,
+            2734.17,
+            0.00987291
+          ],
+          "VEHICLE PLANNED",
+          false
+        ],
+        [
+          2510.82,
+          2661.53,
+          0.0183163
+        ]
+      ],
+      "nativeDestinationDistanceMetres": 72.64408146085141
+    }
+  ],
+  "findings": [
+    "The WAIT mixed50 tracked follower is near stationary in four sampled frames with positive forceSpeed; baseline mixed50 has no near-stationary samples.",
+    "Positive speed permission is not actual propulsion or successful path execution. These observations rule out an explicit zero cap as the sole explanation at those instants, not between samples.",
+    "Baseline and WAIT cases are separate runs within the matrix, not matched counterfactual trajectories. No statistical or causal superiority claim is made.",
+    "All four near-stationary tracked samples report native MOVE / VEHICLE PLANNED with destinations 44.76 to72.64 metres away. Those instants are not arrival at a nearby target; neither native MOVE nor a distant destination proves a viable path."
+  ],
+  "limitations": [
+    "Five-second sampling can miss complete stop/start cycles and intervening cap changes.",
+    "No one-second CONVOY TIMING rows in this retained RPT; detailed controller/path write receipts unavailable.",
+    "Source61e136b predates current signed48a77bb and later7f1c4c1 diagnostics. No current regression verdict.",
+    "Native path replanning, steering failure, ground contact and vehicle acceleration remain competing explanations."
+  ],
+  "nextAction": "When audits resume, run normal mixed-column cases with current opt-in control and navigation receipts, correlate physical stops with recent native/fixed-path writes, endpoint distance, constraint stages and predecessor movement before tuning gains.",
+  "physicalAcceptance": false,
+  "auditsLaunched": false,
+  "scenarioSource": "61e136b6e2424beeabff8e2ebf296b31968687bd:releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf",
+  "vehicleClasses": [
+    "O_MRAP_02_F",
+    "O_APC_Tracked_02_cannon_F",
+    "O_Truck_03_transport_F"
+  ],
+  "sourceComparison": {
+    "path": "addons/vehicles/functions/convoyTick.sqf",
+    "historicalCommit": "61e136b6e2424beeabff8e2ebf296b31968687bd",
+    "currentReviewedCommit": "7f1c4c1",
+    "sharedPolicy": "Both versions permit native doMove when the committed destination advances more than eight metres in 2D. This is an issuance opportunity, not a recorded issue count. Current code additionally retains recorded pre-extension destination and exact command receipts.",
+    "limitation": "Sampled expected destinations can change without showing every command issue; no frequency or causal claim is supported by these five-second rows."
+  }
+}

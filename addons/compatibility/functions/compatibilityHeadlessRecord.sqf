@@ -5,8 +5,8 @@
  * Repeat/JIP: Stateless. JIP receives the public record when the compatible manager published one.
  * Arguments: 0 group <GROUP>; 1 owner <NUMBER>, default current group owner.
  * Return Value: ARRAY - [revision, destinationOwner, completed, appliedCount] or [] when unavailable.
- * Current callers: WAIT_fnc_AIGetDiagnostics and WAIT_fnc_CompatibilityHeadlessRevision.
- * Example: [group player] call WAIT_fnc_CompatibilityHeadlessRecord;
+ * Current callers: CBE_fnc_AIGetDiagnostics and CBE_fnc_CompatibilityHeadlessRevision.
+ * Example: [group player] call CBE_fnc_CompatibilityHeadlessRecord;
  */
 params [
     ["_group", grpNull, [grpNull]],

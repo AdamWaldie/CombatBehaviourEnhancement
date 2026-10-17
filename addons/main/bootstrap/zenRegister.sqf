@@ -7,14 +7,26 @@
  * Arguments: None.
  * Return Value: BOOL - true when registered; false when ZEN is unavailable or no interface exists.
  * Current callers: XEH_postInit.sqf after CBA/ZEN initialization.
- * Example: [] execVM "\z\waldo_ai_tweaks\addons\main\bootstrap\zenRegister.sqf";
+ * Example: [] execVM "\z\cbe\addons\main\bootstrap\zenRegister.sqf";
  */
 
 if (!hasInterface || {isNil "zen_custom_modules_fnc_register"}) exitWith {false};
-if (missionNamespace getVariable ["WAIT_AITweaks_ZenRegisteredLocal", false]) exitWith {true};
-missionNamespace setVariable ["WAIT_AITweaks_ZenRegisteredLocal", true];
+if (missionNamespace getVariable ["CBE_AITweaks_ZenRegisteredLocal", false]) exitWith {true};
+missionNamespace setVariable ["CBE_AITweaks_ZenRegisteredLocal", true];
 
-["Waldos AI Tweaks", "Create AI Convoy", {
-    _this call WAIT_fnc_ZenConvoyModule;
+["Combat Behaviour Enhancement (CBE)", "Create AI Convoy", {
+    _this call CBE_fnc_ZenConvoyModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Garrison area", {
+    _this call CBE_fnc_ZenGarrisonModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Defend area", {
+    _this call CBE_fnc_ZenDefendModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Clear building", {
+    _this call CBE_fnc_ZenClearModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Navigation corridor", {
+    _this call CBE_fnc_ZenDrivingCorridorModule;
 }] call zen_custom_modules_fnc_register;
 true

@@ -10,28 +10,28 @@
  */
 params ["_check","_phase","_wait"];
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
-    ["WAIT_AIPass_FireControl_Enable",true],["WAIT_AIPass_FireControl_MaxShootersPerTarget",1],
-    ["WAIT_AIPass_Regroup_Enable",false],["WAIT_AIPass_Flank_Enable",false],
-    ["WAIT_AIPass_Advance_Enable",false],["WAIT_AIPass_Morale_Enable",false],
-    ["WAIT_AIPass_Reinforce_Enable",false],["WAIT_AIPass_Artillery_Enable",false],
-    ["WAIT_AIPass_CoordinatedAssault_Enable",false],["WAIT_AIPass_AntiArmour_Enable",true]
-]] call WAIT_fnc_CortexTuning;
-["FIRE-requested-shooters-per-target",(missionNamespace getVariable ["WAIT_AIPass_FireControl_MaxShootersPerTarget",-1]) == 1,str (missionNamespace getVariable ["WAIT_AIPass_FireControl_MaxShootersPerTarget",-1])] call _check;
+    ["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],
+    ["CBE_AIPass_FireControl_Enable",true],["CBE_AIPass_FireControl_MaxShootersPerTarget",1],
+    ["CBE_AIPass_Regroup_Enable",false],["CBE_AIPass_Flank_Enable",false],
+    ["CBE_AIPass_Advance_Enable",false],["CBE_AIPass_Morale_Enable",false],
+    ["CBE_AIPass_Reinforce_Enable",false],["CBE_AIPass_Artillery_Enable",false],
+    ["CBE_AIPass_CoordinatedAssault_Enable",false],["CBE_AIPass_AntiArmour_Enable",true]
+]] call CBE_fnc_CortexTuning;
+["FIRE-requested-shooters-per-target",(missionNamespace getVariable ["CBE_AIPass_FireControl_MaxShootersPerTarget",-1]) == 1,str (missionNamespace getVariable ["CBE_AIPass_FireControl_MaxShootersPerTarget",-1])] call _check;
 private _group=createGroup [east,true];
 private _enemyGroup=createGroup [west,true];
-{_x setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _x setVariable ["acex_headless_blacklist",true,true]} forEach [_group,_enemyGroup];
-_enemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+{_x setVariable ["CBE_Headless_ExcludeGroup",true,true]; _x setVariable ["acex_headless_blacklist",true,true]} forEach [_group,_enemyGroup];
+_enemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
 private _shooters=[];
 for "_i" from 0 to 3 do {
     private _unit=_group createUnit ["O_Soldier_F",[2100+_i*4,1100,0],[],0,"NONE"];
     _unit allowDamage false; _unit disableAI "PATH";
     _unit setUnitCombatMode "BLUE";
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["FIRE CONTROL %1",_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["FIRE CONTROL %1",_i+1],true];
     _unit addEventHandler ["FiredMan",{
         params ["_unit"];
-        _unit setVariable ["WAIT_CortexQA_ActualShots",(_unit getVariable ["WAIT_CortexQA_ActualShots",0])+1,true];
+        _unit setVariable ["CBE_CortexQA_ActualShots",(_unit getVariable ["CBE_CortexQA_ActualShots",0])+1,true];
     }];
     _shooters pushBack _unit;
 };
@@ -40,15 +40,15 @@ for "_i" from 0 to 1 do {
     private _unit=_enemyGroup createUnit ["B_Soldier_F",[2100+_i*16,1115,0],[],0,"NONE"];
     _unit allowDamage false; _unit disableAI "PATH";
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["VISIBLE TARGET %1",_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["VISIBLE TARGET %1",_i+1],true];
     _unit allowDamage true;
-    _unit setVariable ["WAIT_CortexQA_SourceGroup",_group];
+    _unit setVariable ["CBE_CortexQA_SourceGroup",_group];
     _unit addEventHandler ["HandleDamage",{
         params ["_unit","_selection","_damage","_source","_projectile","_hitIndex","_instigator"];
         private _shooter=if (isNull _instigator) then {_source} else {_instigator};
         if (_projectile != "" && {!isNull _shooter}
-            && {group _shooter == (_unit getVariable ["WAIT_CortexQA_SourceGroup",grpNull])}) then {
-            _unit setVariable ["WAIT_CortexQA_TargetHits",(_unit getVariable ["WAIT_CortexQA_TargetHits",0])+1,true];
+            && {group _shooter == (_unit getVariable ["CBE_CortexQA_SourceGroup",grpNull])}) then {
+            _unit setVariable ["CBE_CortexQA_TargetHits",(_unit getVariable ["CBE_CortexQA_TargetHits",0])+1,true];
         };
         0
     }];
@@ -62,55 +62,75 @@ _protectedBlocker setUnitCombatMode "BLUE";
 _protectedBlocker setCaptive true;
 private _lineShooter=_shooters select 0;
 private _lineTarget=aimPos (_targets select 0);
-["FIRE-protected-captive-blocks-lane",!([_lineShooter,_lineTarget] call WAIT_fnc_CortexLineOfFireClear)] call _check;
+["FIRE-protected-captive-blocks-lane",!([_lineShooter,_lineTarget] call CBE_fnc_CortexLineOfFireClear)] call _check;
 _protectedBlocker setCaptive false;
-["FIRE-hostile-does-not-block-lane",[_lineShooter,_lineTarget] call WAIT_fnc_CortexLineOfFireClear] call _check;
+["FIRE-hostile-does-not-block-lane",[_lineShooter,_lineTarget] call CBE_fnc_CortexLineOfFireClear] call _check;
 deleteVehicle _protectedBlocker;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_shooters+_targets,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_shooters+_targets,true];
 ["Fire control: hold fire","Enemies are within 20 m. Cortex must respect BLUE hold-fire even when close-threat targeting would otherwise order a shot. Observe weapons and actual shots.",[2100,1100,0]] call _phase;
-["FIRE-real-contact",[{((_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""]) == "CONTACT"},35] call _wait] call _check;
+["FIRE-real-contact",[{((_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["phase",""]) == "CONTACT"},35] call _wait] call _check;
 sleep 12;
-["FIRE-hold-fire-no-shots",_shooters findIf {(_x getVariable ["WAIT_CortexQA_ActualShots",0]) > 0} < 0] call _check;
+["FIRE-hold-fire-no-shots",_shooters findIf {(_x getVariable ["CBE_CortexQA_ActualShots",0]) > 0} < 0] call _check;
 _group setCombatMode "RED";
-["Fire control: weapons free","The same live targets remain. The squad must now fire real rounds at both targets. Labels show actual shots and target hit events; assignment alone does not establish effective fire.",[2100,1100,0]] call _phase;
+// Individual BLUE is a separate engine order: release it explicitly at this phase boundary.
+{_x setUnitCombatMode "RED"} forEach _shooters;
+["FIRE-weapons-free-unit-modes",_shooters findIf {unitCombatMode _x != "RED"} < 0,
+    str (_shooters apply {unitCombatMode _x})] call _check;
+// Keep one member under an explicit individual never-fire order while its peers engage.
+// This is a real ROE boundary, not a disabled weapon or test-side fire veto.
+private _heldShooter=_shooters select 3;
+_heldShooter setUnitCombatMode "BLUE";
+private _heldShotBaseline=_heldShooter getVariable ["CBE_CortexQA_ActualShots",0];
+["FIRE-individual-hold-fixture",unitCombatMode _heldShooter == "BLUE"
+    && {combatMode _group == "RED"},str [combatMode _group,unitCombatMode _heldShooter]] call _check;
+["Fire control: weapons free","The same live targets remain. Three soldiers must now fire real rounds at both targets while the fourth retains an individual BLUE never-fire order. Labels show actual shots and target hit events; assignment alone does not establish effective fire.",[2100,1100,0]] call _phase;
 private _engaged=[{
-    (_shooters findIf {(_x getVariable ["WAIT_CortexQA_ActualShots",0]) > 0} >= 0)
-        && {_targets findIf {(_x getVariable ["WAIT_CortexQA_TargetHits",0]) == 0} < 0}
+    (_shooters findIf {(_x getVariable ["CBE_CortexQA_ActualShots",0]) > 0} >= 0)
+        && {_targets findIf {(_x getVariable ["CBE_CortexQA_TargetHits",0]) == 0} < 0}
 },45] call _wait;
 ["FIRE-both-targets-actual-fire",_engaged,str [
-    _shooters apply {_x getVariable ["WAIT_CortexQA_ActualShots",0]},
-    _targets apply {_x getVariable ["WAIT_CortexQA_TargetHits",0]}
+    _shooters apply {_x getVariable ["CBE_CortexQA_ActualShots",0]},
+    _targets apply {_x getVariable ["CBE_CortexQA_TargetHits",0]}
 ]] call _check;
 private _bothHit=[{
     {
-        _x setVariable ["WAIT_CortexQA_Label",format ["TARGET %1 | projectile hit events %2",_forEachIndex+1,_x getVariable ["WAIT_CortexQA_TargetHits",0]],true];
+        _x setVariable ["CBE_CortexQA_Label",format ["TARGET %1 | projectile hit events %2",_forEachIndex+1,_x getVariable ["CBE_CortexQA_TargetHits",0]],true];
     } forEach _targets;
     {
-        _x setVariable ["WAIT_CortexQA_Label",format ["SHOOTER %1 | actual shots %2",_forEachIndex+1,_x getVariable ["WAIT_CortexQA_ActualShots",0]],true];
+        _x setVariable ["CBE_CortexQA_Label",format ["SHOOTER %1 | actual shots %2",_forEachIndex+1,_x getVariable ["CBE_CortexQA_ActualShots",0]],true];
     } forEach _shooters;
-    _targets findIf {(_x getVariable ["WAIT_CortexQA_TargetHits",0]) == 0} < 0
+    _targets findIf {(_x getVariable ["CBE_CortexQA_TargetHits",0]) == 0} < 0
 },30] call _wait;
-["FIRE-both-targets-projectile-hits",_bothHit,str (_targets apply {_x getVariable ["WAIT_CortexQA_TargetHits",0]})] call _check;
+["FIRE-both-targets-projectile-hits",_bothHit,str (_targets apply {_x getVariable ["CBE_CortexQA_TargetHits",0]})] call _check;
+["FIRE-individual-hold-no-shots",unitCombatMode _heldShooter == "BLUE"
+    && {(_heldShooter getVariable ["CBE_CortexQA_ActualShots",0]) == _heldShotBaseline},
+    str [_heldShotBaseline,_heldShooter getVariable ["CBE_CortexQA_ActualShots",0]]] call _check;
+["FIRE-individual-hold-no-scripted-order",
+    (_heldShooter getVariable ["CBE_Cortex_FireTarget",[]]) isEqualTo []
+        && {(_heldShooter getVariable ["CBE_AIPass_LastSuppress",-1]) < 0},
+    str [_heldShooter getVariable ["CBE_Cortex_FireTarget",[]],
+        _heldShooter getVariable ["CBE_AIPass_LastSuppress",-1]]] call _check;
 _group setCombatMode "BLUE";
 {_x setUnitCombatMode "BLUE"; _x doTarget objNull} forEach _shooters;
 sleep 3;
-private _counts=_shooters apply {_x getVariable ["WAIT_CortexQA_ActualShots",0]};
+private _counts=_shooters apply {_x getVariable ["CBE_CortexQA_ActualShots",0]};
 sleep 12;
-["FIRE-return-to-hold-no-new-shots",(_shooters apply {_x getVariable ["WAIT_CortexQA_ActualShots",0]}) isEqualTo _counts] call _check;
-[_group] call WAIT_fnc_CortexReleaseGroup;
+["FIRE-return-to-hold-no-new-shots",(_shooters apply {_x getVariable ["CBE_CortexQA_ActualShots",0]}) isEqualTo _counts] call _check;
+[_group] call CBE_fnc_CortexReleaseGroup;
 {deleteVehicle _x} forEach (_shooters+_targets);
 deleteGroup _group; deleteGroup _enemyGroup;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 
 // Two independent squads acquire the same visible enemy, then retain its last known position after
 // it disappears. The production group ticks must choose and rotate suppressors without a test-injected
 // order. This observer samples existing public state only; it adds no runtime scheduler or coordination.
 private _suppressionGroups=[];
 private _suppressionShooters=[];
+private _reserveStarved=[];
 for "_g" from 0 to 1 do {
     private _suppressionGroup=createGroup [east,true];
     _suppressionGroup setGroupIdGlobal [format ["Cortex QA TALK %1",_g+1]];
-    _suppressionGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _suppressionGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _suppressionGroup setVariable ["acex_headless_blacklist",true,true];
     _suppressionGroup setCombatMode "BLUE";
     private _origin=[2040+_g*60,1300,0];
@@ -123,29 +143,56 @@ for "_g" from 0 to 1 do {
         _unit disableAI "PATH";
         _unit setUnitCombatMode "BLUE";
         _unit setVariable ["acex_headless_blacklist",true,true];
-        _unit setVariable ["WAIT_CortexQA_SuppressOrders",[]];
-        _unit setVariable ["WAIT_CortexQA_SuppressShots",[]];
-        _unit setVariable ["WAIT_CortexQA_Label",format ["SQUAD %1 / SHOOTER %2 | waiting",_g+1,_i+1],true];
+        if (_i == 2) then {
+            // Inventory is deliberately insufficient for rifle suppression despite plentiful GL
+            // magazines. Native firing/reloading remains enabled; no permission flags are faked.
+            removeAllWeapons _unit;
+            {_unit removeMagazines _x} forEach (magazines _unit);
+            _unit addMagazine "30Rnd_65x39_caseless_green";
+            _unit addWeapon "arifle_Katiba_GL_F";
+            _unit addMagazine "30Rnd_65x39_caseless_green";
+            for "_mag" from 1 to 4 do {_unit addMagazine "1Rnd_HE_Grenade_shell"};
+            _unit selectWeapon "arifle_Katiba_GL_F";
+            private _inventory=magazinesAmmoFull _unit;
+            private _rifleSpare=_inventory select {
+                !(_x select 2) && {(_x select 0) == "30Rnd_65x39_caseless_green"} && {(_x select 1) > 0}
+            };
+            private _grenadeSpare=_inventory select {
+                !(_x select 2) && {(_x select 0) == "1Rnd_HE_Grenade_shell"} && {(_x select 1) > 0}
+            };
+            [format ["FIRE-reserve-starved-fixture-%1",_g],count _rifleSpare == 1
+                && {count _grenadeSpare == 4} && {_unit ammo (currentMuzzle _unit) > 0},
+                str _inventory] call _check;
+            _reserveStarved pushBack _unit;
+        };
+        _unit setVariable ["CBE_CortexQA_SuppressOrders",[]];
+        _unit setVariable ["CBE_CortexQA_SuppressShots",[]];
+        _unit setVariable ["CBE_CortexQA_Label",format ["SQUAD %1 / SHOOTER %2 | waiting",_g+1,_i+1],true];
         _unit addEventHandler ["FiredMan",{
-            params ["_unit"];
-            private _shots=_unit getVariable ["WAIT_CortexQA_SuppressShots",[]];
-            _shots pushBack time;
-            _unit setVariable ["WAIT_CortexQA_SuppressShots",_shots,true];
+            params ["_unit","_weapon","_muzzle","_mode","_ammo","_magazine"];
+            private _shots=_unit getVariable ["CBE_CortexQA_SuppressShots",[]];
+            private _orderedAt=_unit getVariable ["CBE_AIPass_LastSuppress",-1];
+            // Record real projectile events, including misses and native fire. Acceptance below
+            // counts only primary bullet shots correlated with an existing production order.
+            _shots pushBack [time,_weapon,_muzzle,_ammo,_magazine,_orderedAt,
+                toUpperANSI (currentCommand _unit)];
+            if (count _shots > 200) then {_shots deleteAt 0};
+            _unit setVariable ["CBE_CortexQA_SuppressShots",_shots,true];
         }];
         _suppressionShooters pushBack _unit;
     };
     _suppressionGroups pushBack _suppressionGroup;
 };
 private _suppressionEnemyGroup=createGroup [west,true];
-_suppressionEnemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-_suppressionEnemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_suppressionEnemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_suppressionEnemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _suppressionEnemyGroup setVariable ["acex_headless_blacklist",true,true];
 _suppressionEnemyGroup setCombatMode "BLUE";
 private _suppressionEnemy=_suppressionEnemyGroup createUnit ["B_Soldier_F",[2100,1355,0],[],0,"NONE"];
 _suppressionEnemy allowDamage false;
 _suppressionEnemy disableAI "PATH";
 _suppressionEnemy setVariable ["acex_headless_blacklist",true,true];
-_suppressionEnemy setVariable ["WAIT_CortexQA_Label","SHARED ENEMY / visible acquisition",true];
+_suppressionEnemy setVariable ["CBE_CortexQA_Label","SHARED ENEMY / visible acquisition",true];
 private _suppressionScreen=[];
 for "_i" from -20 to 20 do {
     private _wall=createVehicle ["Land_CncWall4_F",[2100+_i*4,1415,0],[],0,"CAN_COLLIDE"];
@@ -153,39 +200,54 @@ for "_i" from -20 to 20 do {
     _wall allowDamage false;
     _suppressionScreen pushBack _wall;
 };
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_suppressionShooters+[_suppressionEnemy],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_suppressionShooters+[_suppressionEnemy],true];
 ["Fire control: independent squad cadence","Two stationary squads first acquire the same visible enemy while holding fire. The enemy is then moved behind the concrete screen while their targets are cleared, leaving its old position unobstructed and known. Watch each squad rotate individual suppressors at its own lightly random cadence; cyan labels show Cortex-owned orders and actual shot times. Repeated synchronized squad volleys fail.",[2100,1375,0]] call _phase;
 private _allContact=[{
     _suppressionGroups findIf {
-        ((_x getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""]) != "CONTACT"
+        ((_x getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["phase",""]) != "CONTACT"
     } < 0
 },40] call _wait;
-["FIRE-multi-squad-natural-contact",_allContact,str (_suppressionGroups apply {(_x getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""]})] call _check;
+["FIRE-multi-squad-natural-contact",_allContact,str (_suppressionGroups apply {(_x getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["phase",""]})] call _check;
 _suppressionEnemy setPosATL [2100,1460,0];
 {_x doTarget objNull; _x doWatch objNull} forEach _suppressionShooters;
 {_x setCombatMode "RED"} forEach _suppressionGroups;
+{_x setUnitCombatMode "RED"} forEach _suppressionShooters;
+["FIRE-suppression-unit-modes",_suppressionShooters findIf {unitCombatMode _x != "RED"} < 0,
+    str (_suppressionShooters apply {unitCombatMode _x})] call _check;
+private _hasSuppressionShot={
+    params ["_unit"];
+    (_unit getVariable ["CBE_CortexQA_SuppressShots",[]]) findIf {
+        _x params ["_shotAt","_weapon","_muzzle","_ammo","_magazine","_orderedAt","_command"];
+        _orderedAt >= 0 && {_shotAt >= _orderedAt} && {_shotAt <= _orderedAt+8}
+            && {_weapon == primaryWeapon _unit} && {_command == "SUPPRESS"}
+            && {toLowerANSI getText (configFile >> "CfgAmmo" >> _ammo >> "simulation") == "shotbullet"}
+    } >= 0
+};
 private _deadline=time+35;
 waitUntil {
     {
         private _unit=_x;
-        private _last=_unit getVariable ["WAIT_AIPass_LastSuppress",-1];
-        private _orders=_unit getVariable ["WAIT_CortexQA_SuppressOrders",[]];
+        private _last=_unit getVariable ["CBE_AIPass_LastSuppress",-1];
+        private _orders=_unit getVariable ["CBE_CortexQA_SuppressOrders",[]];
         if (_last >= 0 && {_orders isEqualTo [] || {_last > (_orders select ((count _orders)-1))}}) then {
             _orders pushBack _last;
-            _unit setVariable ["WAIT_CortexQA_SuppressOrders",_orders,true];
+            _unit setVariable ["CBE_CortexQA_SuppressOrders",_orders,true];
         };
         private _groupNumber=(_suppressionGroups find (group _unit))+1;
-        _unit setVariable ["WAIT_CortexQA_Label",format ["SQUAD %1 | orders %2 | shots %3 | last %4",_groupNumber,count _orders,count (_unit getVariable ["WAIT_CortexQA_SuppressShots",[]]),if (_last < 0) then {"none"} else {_last toFixed 1}],true];
+        _unit setVariable ["CBE_CortexQA_Label",format ["SQUAD %1 | orders %2 | shots %3 | last %4",_groupNumber,count _orders,count (_unit getVariable ["CBE_CortexQA_SuppressShots",[]]),if (_last < 0) then {"none"} else {_last toFixed 1}],true];
     } forEach _suppressionShooters;
     private _readyGroups={
         private _group=_x;
-        count ((units _group) select {(_x getVariable ["WAIT_CortexQA_SuppressOrders",[]]) isNotEqualTo []}) >= 2
+        count ((units _group) select {(_x getVariable ["CBE_CortexQA_SuppressOrders",[]]) isNotEqualTo []}) >= 2
     } count _suppressionGroups;
-    _readyGroups == 2 || {time >= _deadline}
+    private _groupsWithShots={
+        (units _x) findIf {[_x] call _hasSuppressionShot} >= 0
+    } count _suppressionGroups;
+    (_readyGroups == 2 && {_groupsWithShots == 2}) || {time >= _deadline}
 };
 private _orderedByGroup=_suppressionGroups apply {
     private _events=[];
-    {_events append (_x getVariable ["WAIT_CortexQA_SuppressOrders",[]])} forEach units _x;
+    {_events append (_x getVariable ["CBE_CortexQA_SuppressOrders",[]])} forEach units _x;
     _events sort true;
     _events
 };
@@ -200,70 +262,75 @@ for "_round" from 0 to (_comparableRounds-1) do {
 private _staggered=_comparableRounds >= 2 && {_roundSpreads findIf {_x >= 0.15} >= 0};
 private _actualSuppression=_suppressionGroups findIf {
     private _group=_x;
-    (units _group) findIf {(_x getVariable ["WAIT_CortexQA_SuppressShots",[]]) isNotEqualTo []} < 0
+    (units _group) findIf {[_x] call _hasSuppressionShot} < 0
 } < 0;
 ["FIRE-talking-guns-rotated-suppressors",_rotated,str _orderedByGroup] call _check;
 ["FIRE-squads-not-global-volley",_staggered,str _roundSpreads] call _check;
-["FIRE-multi-squad-actual-suppression",_actualSuppression,str (_suppressionShooters apply {count (_x getVariable ["WAIT_CortexQA_SuppressShots",[]])})] call _check;
-{[_x] call WAIT_fnc_CortexReleaseGroup} forEach _suppressionGroups;
+["FIRE-multi-squad-actual-suppression",_actualSuppression,str (_suppressionShooters apply {[_x getVariable ["CBE_CortexQA_SuppressShots",[]],[_x] call _hasSuppressionShot]})] call _check;
+// Adequately supplied peers must produce suppression above, so an entirely dormant scheduler
+// cannot satisfy this rejection case. Ordinary native fire by these soldiers is still permitted.
+["FIRE-launcher-reserves-do-not-qualify-rifle",count _reserveStarved == 2
+    && {_reserveStarved findIf {(_x getVariable ["CBE_AIPass_LastSuppress",-1]) >= 0} < 0},
+    str (_reserveStarved apply {[_x getVariable ["CBE_AIPass_LastSuppress",-1],magazinesAmmoFull _x]})] call _check;
+{[_x] call CBE_fnc_CortexReleaseGroup} forEach _suppressionGroups;
 {deleteVehicle _x} forEach (_suppressionShooters+[_suppressionEnemy]+_suppressionScreen);
 {deleteGroup _x} forEach (_suppressionGroups+[_suppressionEnemyGroup]);
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 
 // Separate live AT fixture: real visible armour, clear rear arc and finite ammunition.
-[createHashMapFromArray [["WAIT_AIPass_FireControl_Enable",false],["WAIT_AIPass_AntiArmour_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_FireControl_Enable",false],["CBE_AIPass_AntiArmour_Enable",true]]] call CBE_fnc_CortexTuning;
 _group=createGroup [east,true];
-_group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_group setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _group setVariable ["acex_headless_blacklist",true,true];
 private _gunner=_group createUnit ["O_Soldier_LAT_F",[2100,1100,0],[],0,"NONE"];
 _gunner allowDamage false;
 _gunner setVariable ["acex_headless_blacklist",true,true];
-_gunner setVariable ["WAIT_CortexQA_Label","AT GUNNER - CLEAR REAR ARC",true];
+_gunner setVariable ["CBE_CortexQA_Label","AT GUNNER - CLEAR REAR ARC",true];
 private _armour=createVehicle ["B_APC_Tracked_01_rcws_F",[2100,1250,0],[],0,"NONE"];
 createVehicleCrew _armour;
 _enemyGroup=group driver _armour;
-_enemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_enemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _enemyGroup setVariable ["acex_headless_blacklist",true,true];
-_enemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+_enemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
 _enemyGroup setCombatMode "BLUE";
 {_x disableAI "PATH"; _x allowDamage false; _x setVariable ["acex_headless_blacklist",true,true]} forEach crew _armour;
 _armour allowDamage false;
 _gunner addEventHandler ["FiredMan",{
     params ["_unit","_weapon","","","_ammo"];
     if (_weapon == secondaryWeapon _unit) then {
-        _unit setVariable ["WAIT_CortexQA_ATShots",(_unit getVariable ["WAIT_CortexQA_ATShots",0])+1,true];
-        diag_log format ["WAIT CORTEX QA AT SHOT: weapon=%1 ammo=%2 target=%3",_weapon,_ammo,assignedTarget _unit];
+        _unit setVariable ["CBE_CortexQA_ATShots",(_unit getVariable ["CBE_CortexQA_ATShots",0])+1,true];
+        diag_log format ["CBE CORTEX QA AT SHOT: weapon=%1 ammo=%2 target=%3",_weapon,_ammo,assignedTarget _unit];
     };
 }];
 _group setCombatMode "BLUE";
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[_gunner]+crew _armour,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[_gunner]+crew _armour,true];
 ["Anti-armour: hold fire","A real occupied APC is 150 m north. The launcher soldier must respect hold fire. Watch the weapon and target vehicle; the test does not reveal the target.",[2100,1175,0]] call _phase;
-["AT-visible-contact",[{((_group getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""]) == "CONTACT"},35] call _wait] call _check;
+["AT-visible-contact",[{((_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["phase",""]) == "CONTACT"},35] call _wait] call _check;
 sleep 10;
-["AT-hold-fire-no-launch",(_gunner getVariable ["WAIT_CortexQA_ATShots",0]) == 0] call _check;
+["AT-hold-fire-no-launch",(_gunner getVariable ["CBE_CortexQA_ATShots",0]) == 0] call _check;
 _group setCombatMode "RED";
 ["Anti-armour: actual launch","With a clear rear arc and weapons free, Cortex must select the armour and the soldier must fire a real launcher round. A target assignment alone does not pass.",[2100,1175,0]] call _phase;
 private _orderedAT=false;
 private _launched=[{
-    _orderedAT=_orderedAT || {assignedTarget _gunner == _armour && {(_gunner getVariable ["WAIT_AIPass_TargetHold",-1]) > time}};
-    (_gunner getVariable ["WAIT_CortexQA_ATShots",0]) > 0
+    _orderedAT=_orderedAT || {assignedTarget _gunner == _armour && {(_gunner getVariable ["CBE_AIPass_TargetHold",-1]) > time}};
+    (_gunner getVariable ["CBE_CortexQA_ATShots",0]) > 0
 },60] call _wait;
-["AT-cortex-order-and-actual-launch",_orderedAT && {_launched},str [_orderedAT,_gunner getVariable ["WAIT_CortexQA_ATShots",0]]] call _check;
-[_group] call WAIT_fnc_CortexReleaseGroup;
+["AT-cortex-order-and-actual-launch",_orderedAT && {_launched},str [_orderedAT,_gunner getVariable ["CBE_CortexQA_ATShots",0]]] call _check;
+[_group] call CBE_fnc_CortexReleaseGroup;
 {deleteVehicle _x} forEach ([_gunner]+crew _armour);
 deleteVehicle _armour; deleteGroup _group; deleteGroup _enemyGroup;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 
 // Direct infantry clear-through is valid only against dismounted infantry. A close occupied combat
 // vehicle remains a weapon/support problem even when the squad has a launcher; the tactical selector
 // and the assault operation boundary must both refuse it without moving the squad into the vehicle.
 [createHashMapFromArray [
-    ["WAIT_AIPass_Morale_Enable",false],["WAIT_AIPass_AntiArmour_Enable",true],
-    ["WAIT_AIPass_Flank_Enable",false],["WAIT_AIPass_Advance_Enable",false],
-    ["WAIT_AIPass_Assault_Enable",true]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_Morale_Enable",false],["CBE_AIPass_AntiArmour_Enable",true],
+    ["CBE_AIPass_Flank_Enable",false],["CBE_AIPass_Advance_Enable",false],
+    ["CBE_AIPass_Assault_Enable",true]
+]] call CBE_fnc_CortexTuning;
 _group=createGroup [east,true];
-_group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_group setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _group setVariable ["acex_headless_blacklist",true,true];
 private _vehicleContactSquad=[];
 for "_i" from 0 to 3 do {
@@ -271,7 +338,7 @@ for "_i" from 0 to 3 do {
     private _unit=_group createUnit [_class,[2200+_i*2,1100,0],[],0,"NONE"];
     _unit allowDamage false;
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["VEHICLE CONTACT %1",_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["VEHICLE CONTACT %1",_i+1],true];
     _vehicleContactSquad pushBack _unit;
 };
 _group setCombatMode "YELLOW";
@@ -279,60 +346,60 @@ private _vehicleContactOrigin=getPosATL leader _group;
 _armour=createVehicle ["B_MRAP_01_hmg_F",[2200,1145,0],[],0,"NONE"];
 createVehicleCrew _armour;
 _enemyGroup=group driver _armour;
-_enemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-_enemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_enemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_enemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _enemyGroup setVariable ["acex_headless_blacklist",true,true];
 _enemyGroup setCombatMode "BLUE";
 _armour allowDamage false;
 {_x disableAI "PATH"; _x allowDamage false; _x setUnitCombatMode "BLUE"; _x setVariable ["acex_headless_blacklist",true,true]} forEach crew _armour;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_vehicleContactSquad+crew _armour,true];
-["Assault selection: close vehicle is not a clear-through target","A four-person squad with a launcher naturally detects an occupied armed vehicle at 45 metres. WAIT may engage through native fire or anti-armour logic, but must not create an infantry ASSAULT drill or move the squad through the vehicle.",[2200,1122,0]] call _phase;
+missionNamespace setVariable ["CBE_CortexQA_Actors",_vehicleContactSquad+crew _armour,true];
+["Assault selection: close vehicle is not a clear-through target","A four-person squad with a launcher naturally detects an occupied armed vehicle at 45 metres. CBE may engage through native fire or anti-armour logic, but must not create an infantry ASSAULT drill or move the squad through the vehicle.",[2200,1122,0]] call _phase;
 private _vehicleContactKnown=[{
-    (_group getVariable ["WAIT_AIPass_PublicPhase",""]) == "CONTACT"
-        && {(([_group] call WAIT_fnc_CortexKnowledge) select 0) findIf {vehicle (_x select 0) == _armour} >= 0}
+    (_group getVariable ["CBE_AIPass_PublicPhase",""]) == "CONTACT"
+        && {(([_group] call CBE_fnc_CortexKnowledge) select 0) findIf {vehicle (_x select 0) == _armour} >= 0}
 },30] call _wait;
 sleep 12;
-private _vehicleContactState=_group getVariable ["WAIT_AIPass_State",createHashMap];
+private _vehicleContactState=_group getVariable ["CBE_AIPass_State",createHashMap];
 private _vehicleContactDrill=_vehicleContactState getOrDefault ["drill",createHashMap];
-private _vehicleContactOperation=_group getVariable ["WAIT_Operation",createHashMap];
+private _vehicleContactOperation=_group getVariable ["CBE_Operation",createHashMap];
 private _vehicleContactTravel=0;
 {_vehicleContactTravel=_vehicleContactTravel max (_x distance2D _vehicleContactOrigin)} forEach _vehicleContactSquad;
 ["ASSAULT-close-vehicle-refused",_vehicleContactKnown
     && {(_vehicleContactDrill getOrDefault ["type",""]) != "ASSAULT"}
     && {(_vehicleContactOperation getOrDefault ["intent",""]) != "ASSAULT"}
-    && {_vehicleContactTravel < 20},str [_vehicleContactTravel,_vehicleContactDrill,_vehicleContactOperation,_group getVariable ["WAIT_Cortex_AssaultRefusal",[]]]] call _check;
-[_group] call WAIT_fnc_CortexReleaseGroup;
+    && {_vehicleContactTravel < 20},str [_vehicleContactTravel,_vehicleContactDrill,_vehicleContactOperation,_group getVariable ["CBE_Cortex_AssaultRefusal",[]]]] call _check;
+[_group] call CBE_fnc_CortexReleaseGroup;
 {deleteVehicle _x} forEach (_vehicleContactSquad+crew _armour);
 deleteVehicle _armour; deleteGroup _group; deleteGroup _enemyGroup;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 
 // A rifle squad without a launcher must not enter the ordinary manoeuvre selector against close
 // heavy armour. Natural engine knowledge starts the same finite withdrawal used by morale failure;
 // the fixture neither reveals the APC nor calls the production response directly.
 [createHashMapFromArray [
-    ["WAIT_AIPass_Morale_Enable",true],["WAIT_AIPass_Surrender_Enable",false],
-    ["WAIT_AIPass_AntiArmour_Enable",true],["WAIT_AIPass_FireControl_Enable",false],
-    ["WAIT_AIPass_Flank_Enable",false],["WAIT_AIPass_Advance_Enable",false],
-    ["WAIT_AIPass_Assault_Enable",false],["WAIT_AIPass_Morale_RetreatDistance",120]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_Morale_Enable",true],["CBE_AIPass_Surrender_Enable",false],
+    ["CBE_AIPass_AntiArmour_Enable",true],["CBE_AIPass_FireControl_Enable",false],
+    ["CBE_AIPass_Flank_Enable",false],["CBE_AIPass_Advance_Enable",false],
+    ["CBE_AIPass_Assault_Enable",false],["CBE_AIPass_Morale_RetreatDistance",120]
+]] call CBE_fnc_CortexTuning;
 _group=createGroup [east,true];
 _group setGroupIdGlobal ["Cortex QA NO AT"];
-_group setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_group setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _group setVariable ["acex_headless_blacklist",true,true];
 private _rifleSquad=[];
 for "_i" from 0 to 3 do {
     private _unit=_group createUnit ["O_Soldier_F",[2280+_i*3,1100,0],[],0,"NONE"];
     _unit allowDamage false;
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["NO AT RIFLEMAN %1",_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["NO AT RIFLEMAN %1",_i+1],true];
     _rifleSquad pushBack _unit;
 };
 _group setCombatMode "YELLOW";
 _armour=createVehicle ["B_APC_Tracked_01_rcws_F",[2285,1190,0],[],0,"NONE"];
 createVehicleCrew _armour;
 _enemyGroup=group driver _armour;
-_enemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-_enemyGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_enemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_enemyGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _enemyGroup setVariable ["acex_headless_blacklist",true,true];
 _enemyGroup setCombatMode "BLUE";
 _armour allowDamage false;
@@ -342,18 +409,18 @@ _armour allowDamage false;
     _x setUnitCombatMode "BLUE";
     _x setVariable ["acex_headless_blacklist",true,true];
 } forEach crew _armour;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_rifleSquad+crew _armour,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_rifleSquad+crew _armour,true];
 ["Anti-armour: overmatched rifle squad","Four riflemen without a usable launcher naturally detect close heavy armour. They must enter a finite HEAVY_ARMOUR_NO_AT withdrawal and physically increase separation instead of starting an assault, advance or flank.",[2285,1185,0]] call _phase;
 private _overmatchOrigin=getPosATL leader _group;
 private _overmatchStartDistance=(leader _group) distance2D _armour;
 private _overmatchStarted=[{
-    private _transition=_group getVariable ["WAIT_Cortex_PhaseTransition",[]];
+    private _transition=_group getVariable ["CBE_Cortex_PhaseTransition",[]];
     count _transition >= 4
         && {(_transition select 2) == "RETREAT"}
         && {(_transition select 3) == "HEAVY_ARMOUR_NO_AT"}
-        && {((_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["intent",""]) == "WITHDRAW"}
+        && {((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["intent",""]) == "WITHDRAW"}
 },50] call _wait;
-["AT-no-launcher-overmatch-withdrawal",_overmatchStarted,str (_group getVariable ["WAIT_Cortex_PhaseTransition",[]])] call _check;
+["AT-no-launcher-overmatch-withdrawal",_overmatchStarted,str (_group getVariable ["CBE_Cortex_PhaseTransition",[]])] call _check;
 private _overmatchMoved=[{
     (leader _group) distance2D _overmatchOrigin >= 30
         && {(leader _group) distance2D _armour >= _overmatchStartDistance+20}
@@ -363,9 +430,9 @@ private _overmatchMoved=[{
     (leader _group) distance2D _armour,
     _overmatchStartDistance
 ]] call _check;
-private _overmatchState=_group getVariable ["WAIT_AIPass_State",createHashMap];
+private _overmatchState=_group getVariable ["CBE_AIPass_State",createHashMap];
 ["AT-no-launcher-no-manoeuvre",count (_overmatchState getOrDefault ["drill",createHashMap]) == 0] call _check;
-[_group] call WAIT_fnc_CortexReleaseGroup;
+[_group] call CBE_fnc_CortexReleaseGroup;
 {deleteVehicle _x} forEach (_rifleSquad+crew _armour);
 deleteVehicle _armour; deleteGroup _group; deleteGroup _enemyGroup;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];

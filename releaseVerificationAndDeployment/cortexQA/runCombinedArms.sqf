@@ -1,11 +1,15 @@
 /*
  * Author: WaldoTheWarfighter
  * Runs an additive, phase-visible contact-led combined-arms scenario with infantry, two ground vehicles and an attack helicopter.
+ * A separate disposable ammunition diagnostic distinguishes loaded rounds from reserve stock;
+ * it grants no fire/effect acceptance and ends before scenario actors spawn.
  * No rally, readiness flag, waypoint or scripted assembly is injected. The infantry must acquire the
  * hostile naturally; production communication then gives each nearby capable asset an independent role.
  * Locality/authority: scheduled dedicated-server fixture with server-owned groups and normal production calls.
  * Outside VR a bounded one-time scan rotates both vehicle routes and the contact geometry onto a
  * dry corridor with measurable relief, safe surface normals and vehicle-scale grades.
+ * Shot acceptance requires a damaging native projectile from the assigned operator/token,
+ * directed within 15 degrees of the reported contact. This proves neither a hit nor target effect.
  * Repeat/JIP: disposable actors are labelled publicly and deleted at completion; settings are restored by the parent runner.
  * Arguments: check <CODE>; phase <CODE>; wait <CODE>.
  * Return Value: Nothing.
@@ -82,44 +86,126 @@ private _terrainPosition={
 if (!_terrainScenarioReady) exitWith {};
 private _groups=[];
 private _objects=[];
-private _savedDeceleration=missionNamespace getVariable ["WAIT_HelicopterDeceleration_Enable",false];
-missionNamespace setVariable ["WAIT_HelicopterDeceleration_Enable",false,true];
-private _makeGroup={private _g=createGroup [_this,true]; _g setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _g setVariable ["acex_headless_blacklist",true,true]; _g allowFleeing 0; _groups pushBack _g; _g};
+private _savedDeceleration=missionNamespace getVariable ["CBE_HelicopterDeceleration_Enable",false];
+missionNamespace setVariable ["CBE_HelicopterDeceleration_Enable",false,true];
+private _makeGroup={private _g=createGroup [_this,true]; _g setVariable ["CBE_Headless_ExcludeGroup",true,true]; _g setVariable ["acex_headless_blacklist",true,true]; _g allowFleeing 0; _groups pushBack _g; _g};
 private _publish={
     params ["_stage","_requester","_target","_assets",["_note",""]];
-    missionNamespace setVariable ["WAIT_CortexQA_Combined",[
+    missionNamespace setVariable ["CBE_CortexQA_Combined",[
         "CONTACT-LED OPPORTUNITY",_stage,_requester,_target,_assets,serverTime,_note
     ],true];
 };
+// Isolated capability diagnostic, not the contact-led production behaviour case.
+["Ground station / loaded versus reserve ammunition","Diagnostic only: a disposable gun truck first has native loaded rounds, then empty weapons plus reserve stock. This checks readiness classification, not firing or combat effect.",[3000,3000] call _terrainPosition] call _phase;
+private _ammoTruck=createVehicle ["O_MRAP_02_hmg_F",[3000,3000] call _terrainPosition,[],0,"NONE"];
+createVehicleCrew _ammoTruck;
+private _ammoGroup=group driver _ammoTruck;
+_ammoGroup setVariable ["CBE_AI_Exclude",true,true];
+_ammoGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
+_ammoGroup setVariable ["acex_headless_blacklist",true,true];
+_ammoGroup setCombatMode "BLUE";
+private _ammoGunner=gunner _ammoTruck;
+private _crewRows=fullCrew [_ammoTruck,"",false];
+private _stationRow=_crewRows findIf {(_x select 0) == _ammoGunner};
+private _ammoStation=if (_stationRow >= 0) then {(_crewRows select _stationRow) select 3} else {[]};
+private _ammoWeapons=_ammoTruck weaponsTurret _ammoStation;
+private _ammoWeapon="";private _ammoMagazine="";private _loadedState=[];
+// Keep this independent control unambiguous: a modded multi-muzzle replacement
+// needs its own case rather than hiding an unobserved loaded secondary muzzle.
+private _singleMuzzleFixture=count _ammoWeapons == 1 && {
+    (getArray (configFile >> "CfgWeapons" >> (_ammoWeapons select 0) >> "muzzles")) in [[],["this"]]
+};
+private _loadedFixture=[{
+    _ammoWeapon="";_ammoMagazine="";_loadedState=[];
+    {
+        private _native=weaponState [_ammoTruck,_ammoStation,_x];
+        private _magazine=_native param [3,"",[""]];
+        private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
+        if ((_native param [4,0,[0]]) > 0
+            && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}) exitWith {
+            _ammoWeapon=_x;_ammoMagazine=_magazine;_loadedState=+_native;
+        };
+    } forEach _ammoWeapons;
+    !isNull _ammoGunner && {local _ammoGunner} && {_stationRow >= 0} && {_singleMuzzleFixture} && {_ammoWeapon != ""}
+},15] call _wait;
+["COMBINED-ammo-loaded-native-fixture",_loadedFixture,str [_ammoStation,_loadedState]] call _check;
+["COMBINED-ammo-loaded-ready",_loadedFixture && {[_ammoTruck,_ammoGunner] call CBE_fnc_CortexGroundFireReady},str _loadedState] call _check;
+if (_loadedFixture) then {
+    // Test setup changes ammunition only; no production readiness value is assigned.
+    _ammoTruck setVehicleAmmo 0;
+    _ammoTruck addMagazineTurret [_ammoMagazine,_ammoStation,10];
+    private _stock=magazinesAllTurrets _ammoTruck;
+    private _nativeStates=_ammoWeapons apply {weaponState [_ammoTruck,_ammoStation,_x]};
+    private _reserveFixture=(_stock findIf {(_x select 1) isEqualTo _ammoStation && {(_x select 2) > 0}}) >= 0
+        && {_nativeStates isNotEqualTo []}
+        && {_nativeStates findIf {count _x < 5 || {(_x select 4) > 0}} < 0};
+    ["COMBINED-ammo-reserve-only-native-fixture",_reserveFixture,str [_stock,_nativeStates]] call _check;
+    ["COMBINED-ammo-reserve-only-rejected",_reserveFixture && {!([_ammoTruck,_ammoGunner] call CBE_fnc_CortexGroundFireReady)},str _nativeStates] call _check;
+};
+{deleteVehicle _x} forEach crew _ammoTruck;
+deleteVehicle _ammoTruck;
+deleteGroup _ammoGroup;
+
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
+    ["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],
     // This component case deliberately disables infantry coordinated assault. Armour and aircraft
     // contact support must remain governed by their own enabled features.
-    ["WAIT_AIPass_ContactReports_Enable",true],["WAIT_AIPass_CoordinatedAssault_Enable",false],
-    ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleGunnery_Enable",true],
-    ["WAIT_Cortex_AirAttack_Enable",true],["WAIT_AIPass_Artillery_Enable",false],
-    ["WAIT_AIPass_Reinforce_Enable",false],["WAIT_AIPass_Flank_Enable",false],
-    ["WAIT_AIPass_Advance_Enable",false],["WAIT_AIPass_Morale_Enable",false]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_ContactReports_Enable",true],["CBE_AIPass_CoordinatedAssault_Enable",false],
+    ["CBE_AIPass_Vehicles_Enable",true],["CBE_AIPass_VehicleGunnery_Enable",true],
+    ["CBE_Cortex_AirAttack_Enable",true],["CBE_AIPass_Artillery_Enable",false],
+    ["CBE_AIPass_Reinforce_Enable",false],["CBE_AIPass_Flank_Enable",false],
+    ["CBE_AIPass_Advance_Enable",false],["CBE_AIPass_Morale_Enable",false]
+]] call CBE_fnc_CortexTuning;
 private _infantry=east call _makeGroup;
 for "_i" from 0 to 3 do {
     private _u=_infantry createUnit ["O_Soldier_F",[3600+_i*2,3600] call _terrainPosition,[],0,"NONE"];
     _u setDir _terrainHeading; _u setSkill ["spotDistance",1]; _u setSkill ["spotTime",1]; _u allowDamage false;
-    _u setVariable ["WAIT_CortexQA_Label",format ["OBSERVER %1",_i+1],true]; _objects pushBack _u;
+    _u setVariable ["CBE_CortexQA_Label",format ["OBSERVER %1",_i+1],true]; _objects pushBack _u;
 };
 _infantry setCombatMode "RED";
 _infantry setGroupIdGlobal ["Cortex QA observer"];
 private _infantryWaypoints=count waypoints _infantry;
 private _enemyGroup=west call _makeGroup;
-_enemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+_enemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
 private _enemy=_enemyGroup createUnit ["B_Soldier_F",[3600,3780] call _terrainPosition,[],0,"NONE"];
-_enemy setDir (_terrainHeading+180); _enemy disableAI "PATH"; _enemy allowDamage false; _enemy setVariable ["WAIT_CortexQA_Label","OBSERVED HOSTILE",true]; _objects pushBack _enemy;
+_enemy setDir (_terrainHeading+180); _enemy disableAI "PATH"; _enemy allowDamage false; _enemy setVariable ["CBE_CortexQA_Label","OBSERVED HOSTILE",true]; _objects pushBack _enemy;
+// Normal batch only: observe actual station projectiles on the local firing actor.
+// FiredMan includes vehicle weapons; no camera-range-dependent remote sampler is credited.
+// Reference: https://community.bohemia.net/wiki/Arma_3%3A_Event_Handlers#FiredMan
+private _installStationObserver={
+    params ["_vehicle"];
+    private _unit=gunner _vehicle;
+    if (isNull _unit || {!local _unit}) exitWith {false};
+    private _old=_unit getVariable ["CBE_CortexQA_CombinedFiredManEH",-1];
+    if (_old >= 0) then {_unit removeEventHandler ["FiredMan",_old]};
+    private _handler=_unit addEventHandler ["FiredMan",{
+        params ["_unit","_weapon","_muzzle","","_ammo","_magazine","_projectile","_vehicle"];
+        if (!local _unit || {isNull _vehicle} || {gunner _vehicle != _unit}
+            || {vehicle _unit != _vehicle}) exitWith {};
+        private _shots=_vehicle getVariable ["CBE_CortexQA_Shots",[]];
+        _shots pushBack serverTime;if (count _shots > 128) then {_shots deleteAt 0};
+        _vehicle setVariable ["CBE_CortexQA_Shots",_shots,true];
+        private _role=(group _unit) getVariable ["CBE_Cortex_CombinedRole",[]];
+        private _position=_role param [3,[],[[]]];
+        private _report=if (count _position == 3) then {AGLToASL _position} else {[]};
+        private _origin=[];private _course=[];
+        if (!isNull _projectile) then {_origin=getPosASL _projectile;_course=velocity _projectile};
+        private _records=_vehicle getVariable ["CBE_CortexQA_StationShots",[]];
+        _records pushBack [serverTime,_unit,_weapon,_muzzle,_ammo,_magazine,
+            _role param [0,""],_origin,_course,_report,assignedTarget _unit];
+        if (count _records > 128) then {_records deleteAt 0};
+        _vehicle setVariable ["CBE_CortexQA_StationShots",_records,true];
+    }];
+    _unit setVariable ["CBE_CortexQA_CombinedFiredManEH",_handler];
+    _vehicle setVariable ["CBE_CortexQA_StationObserver",[clientOwner,_unit,_handler,serverTime],true];
+    true
+};
 private _apc=createVehicle ["O_APC_Tracked_02_cannon_F",[3200,3600] call _terrainPosition,[],0,"NONE"];
 _apc setDir (_terrainHeading+90); createVehicleCrew _apc; private _apcGroup=group driver _apc; _groups pushBackUnique _apcGroup;
 _apcGroup setGroupIdGlobal ["Cortex QA ground support"];
-_apcGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _apcGroup setCombatMode "RED"; _apc allowDamage false;
-_apc setVariable ["WAIT_CortexQA_Label","APC / independent fire support",true]; _apc setVariable ["WAIT_CortexQA_Shots",[],true];
-_apc addEventHandler ["Fired",{params ["_vehicle","_weapon","_muzzle","","_ammo","_magazine","","_operator"]; private _shots=_vehicle getVariable ["WAIT_CortexQA_Shots",[]]; _shots pushBack serverTime; if (count _shots > 128) then {_shots deleteAt 0}; _vehicle setVariable ["WAIT_CortexQA_Shots",_shots,true]; private _records=_vehicle getVariable ["WAIT_CortexQA_StationShots",[]]; private _role=(group _operator) getVariable ["WAIT_Cortex_CombinedRole",[]]; _records pushBack [serverTime,_operator,_weapon,_muzzle,_ammo,_magazine,_role param [0,""]]; if (count _records > 128) then {_records deleteAt 0}; _vehicle setVariable ["WAIT_CortexQA_StationShots",_records,true]}]; _objects pushBack _apc; _objects append crew _apc;
+_apcGroup setVariable ["CBE_Headless_ExcludeGroup",true,true]; _apcGroup setCombatMode "RED"; _apc allowDamage false;
+_apc setVariable ["CBE_CortexQA_Label","APC / independent fire support",true]; _apc setVariable ["CBE_CortexQA_Shots",[],true];
+["COMBINED-APC-local-shot-observer",[_apc] call _installStationObserver] call _check; _objects pushBack _apc; _objects append crew _apc;
 private _groundRouteTarget=[4000,3600] call _terrainPosition;
 private _groundRouteStart=_apc distance2D _groundRouteTarget;
 _apc limitSpeed 30;
@@ -127,9 +213,9 @@ _apc limitSpeed 30;
 private _ifv=createVehicle ["O_APC_Wheeled_02_rcws_v2_F",[3200,3480] call _terrainPosition,[],0,"NONE"];
 _ifv setDir (_terrainHeading+90); createVehicleCrew _ifv; private _ifvGroup=group driver _ifv; _groups pushBackUnique _ifvGroup;
 _ifvGroup setGroupIdGlobal ["Cortex QA ground manoeuvre"];
-_ifvGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _ifvGroup setCombatMode "RED"; _ifv allowDamage false;
-_ifv setVariable ["WAIT_CortexQA_Label","IFV / safe-side manoeuvre",true]; _ifv setVariable ["WAIT_CortexQA_Shots",[],true];
-_ifv addEventHandler ["Fired",{params ["_vehicle","_weapon","_muzzle","","_ammo","_magazine","","_operator"]; private _shots=_vehicle getVariable ["WAIT_CortexQA_Shots",[]]; _shots pushBack serverTime; if (count _shots > 128) then {_shots deleteAt 0}; _vehicle setVariable ["WAIT_CortexQA_Shots",_shots,true]; private _records=_vehicle getVariable ["WAIT_CortexQA_StationShots",[]]; private _role=(group _operator) getVariable ["WAIT_Cortex_CombinedRole",[]]; _records pushBack [serverTime,_operator,_weapon,_muzzle,_ammo,_magazine,_role param [0,""]]; if (count _records > 128) then {_records deleteAt 0}; _vehicle setVariable ["WAIT_CortexQA_StationShots",_records,true]}];
+_ifvGroup setVariable ["CBE_Headless_ExcludeGroup",true,true]; _ifvGroup setCombatMode "RED"; _ifv allowDamage false;
+_ifv setVariable ["CBE_CortexQA_Label","IFV / safe-side manoeuvre",true]; _ifv setVariable ["CBE_CortexQA_Shots",[],true];
+["COMBINED-IFV-local-shot-observer",[_ifv] call _installStationObserver] call _check;
 private _ifvStart=getPosATL _ifv;
 private _ifvRouteTarget=[4000,3480] call _terrainPosition;
 private _ifvRouteStart=_ifv distance2D _ifvRouteTarget;
@@ -140,11 +226,11 @@ sleep 1;
 private _heli=createVehicle ["O_Heli_Attack_02_dynamicLoadout_F",[3300,3300,140] call _terrainPosition,[],0,"FLY"];
 _heli setDir (_terrainHeading+45); _heli setVelocityModelSpace [0,55,0]; createVehicleCrew _heli; private _heliGroup=group driver _heli; _groups pushBackUnique _heliGroup;
 _heliGroup setGroupIdGlobal ["Cortex QA air support"];
-_heliGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _heliGroup setCombatMode "RED"; _heli allowDamage false;
+_heliGroup setVariable ["CBE_Headless_ExcludeGroup",true,true]; _heliGroup setCombatMode "RED"; _heli allowDamage false;
 _heli flyInHeight 140; _heli limitSpeed 170; (driver _heli) doMove ([3900,3900,140] call _terrainPosition);
-_heli setVariable ["WAIT_CortexQA_Label","HELICOPTER / opportunity attack",true]; _objects pushBack _heli; _objects append crew _heli;
+_heli setVariable ["CBE_CortexQA_Label","HELICOPTER / opportunity attack",true]; _objects pushBack _heli; _objects append crew _heli;
 private _assets=[[_apcGroup,_apc,"GROUND FIRE"],[_ifvGroup,_ifv,"GROUND MANOEUVRE"],[_heliGroup,_heli,"AIR ATTACK"]];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",(units _infantry)+[_enemy,_apc,_ifv,_heli],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",(units _infantry)+[_enemy,_apc,_ifv,_heli],true];
 ["DETECT",_infantry,_enemy,_assets,"No Cortex support role exists yet. The infantry must see the hostile without injected knowledge."] call _publish;
 ["Combined arms / 1. Detect","The observer squad must acquire the live hostile through the engine. No readiness flag, rally point or support lease is created. Cyan trails show physical travel; blue links show communication candidates, not orders.",[3600,3650] call _terrainPosition] call _phase;
 ["COMBINED-air-fixture-moving",!isTouchingGround _heli && {speed _heli >= 40} && {(getPosATL _heli select 2) >= 80} && {alive driver _heli},
@@ -154,90 +240,95 @@ private _seen=[{(leader _infantry knowsAbout _enemy) >= 1},35] call _wait;
 
 ["DISTRIBUTE",_infantry,_enemy,_assets,"Fresh contact may be shared immediately. Each arm accepts or refuses independently."] call _publish;
 ["Combined arms / 2. Distribute","The fresh contact should create one short-lived opportunity. One ground vehicle provides fire, the other manoeuvres on a safe side, and the flying helicopter may attack independently; the infantry does not wait for any support asset.",[3600,3650] call _terrainPosition] call _phase;
-private _opportunity=[{count (_infantry getVariable ["WAIT_Cortex_CombinedOpportunity",[]]) >= 5},25] call _wait;
-["COMBINED-opportunity-created",_opportunity,str (_infantry getVariable ["WAIT_Cortex_CombinedOpportunity",[]])] call _check;
+private _opportunity=[{count (_infantry getVariable ["CBE_Cortex_CombinedOpportunity",[]]) >= 5},25] call _wait;
+["COMBINED-opportunity-created",_opportunity,str (_infantry getVariable ["CBE_Cortex_CombinedOpportunity",[]])] call _check;
 private _groundEntries=[
     [_apcGroup,_apc,_groundRouteTarget,_groundRouteStart,getPosATL _apc],
     [_ifvGroup,_ifv,_ifvRouteTarget,_ifvRouteStart,_ifvStart]
 ];
 private _groundRoles=[{
-    (_groundEntries findIf {((_x select 0) getVariable ["WAIT_Cortex_CombinedRole",[]]) param [4,""] == "GROUND_FIRE"}) >= 0
-        && {(_groundEntries findIf {((_x select 0) getVariable ["WAIT_Cortex_CombinedRole",[]]) param [4,""] == "GROUND_MANOEUVRE"}) >= 0}
+    (_groundEntries findIf {((_x select 0) getVariable ["CBE_Cortex_CombinedRole",[]]) param [4,""] == "GROUND_FIRE"}) >= 0
+        && {(_groundEntries findIf {((_x select 0) getVariable ["CBE_Cortex_CombinedRole",[]]) param [4,""] == "GROUND_MANOEUVRE"}) >= 0}
 },20] call _wait;
-private _fireIndex=_groundEntries findIf {((_x select 0) getVariable ["WAIT_Cortex_CombinedRole",[]]) param [4,""] == "GROUND_FIRE"};
-private _manoeuvreIndex=_groundEntries findIf {((_x select 0) getVariable ["WAIT_Cortex_CombinedRole",[]]) param [4,""] == "GROUND_MANOEUVRE"};
+private _fireIndex=_groundEntries findIf {((_x select 0) getVariable ["CBE_Cortex_CombinedRole",[]]) param [4,""] == "GROUND_FIRE"};
+private _manoeuvreIndex=_groundEntries findIf {((_x select 0) getVariable ["CBE_Cortex_CombinedRole",[]]) param [4,""] == "GROUND_MANOEUVRE"};
 // Keep later diagnostics safe when dispatch itself fails; the role assertions remain false and
 // the fallback assets expose physical state without generating secondary null-object errors.
 private _fireEntry=if (_fireIndex >= 0) then {_groundEntries select _fireIndex} else {_groundEntries select 0};
 private _manoeuvreEntry=if (_manoeuvreIndex >= 0) then {_groundEntries select _manoeuvreIndex} else {_groundEntries select 1};
 _fireEntry params ["_fireGroup","_fireAsset","_fireRouteTarget","_fireRouteStart","_fireStart"];
 // Capture role identity before other bounded observation waits can outlive it.
-private _fireToken=(_fireGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) param [0,""];
+private _fireToken=(_fireGroup getVariable ["CBE_Cortex_CombinedRole",[]]) param [0,""];
 private _fireOperator=gunner _fireAsset;
 _manoeuvreEntry params ["_manoeuvreGroup","_manoeuvreAsset","_manoeuvreRouteTarget","_manoeuvreRouteStart","_manoeuvreStart"];
-private _airRole=[{((_heliGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) param [4,""]) == "AIR_ATTACK"},20] call _wait;
-["COMBINED-ground-role",_groundRoles,str (_groundEntries apply {(_x select 0) getVariable ["WAIT_Cortex_CombinedRole",[]]})] call _check;
-["COMBINED-ground-manoeuvre-role",_manoeuvreIndex >= 0,str (_groundEntries apply {(_x select 0) getVariable ["WAIT_Cortex_CombinedRole",[]]})] call _check;
-["COMBINED-air-role",_airRole,str (_heliGroup getVariable ["WAIT_Cortex_CombinedRole",[]])] call _check;
+private _airRole=[{((_heliGroup getVariable ["CBE_Cortex_CombinedRole",[]]) param [4,""]) == "AIR_ATTACK"},20] call _wait;
+["COMBINED-ground-role",_groundRoles,str (_groundEntries apply {(_x select 0) getVariable ["CBE_Cortex_CombinedRole",[]]})] call _check;
+["COMBINED-ground-manoeuvre-role",_manoeuvreIndex >= 0,str (_groundEntries apply {(_x select 0) getVariable ["CBE_Cortex_CombinedRole",[]]})] call _check;
+["COMBINED-air-role",_airRole,str (_heliGroup getVariable ["CBE_Cortex_CombinedRole",[]])] call _check;
 ["COMBINED-independent-feature-gates",_groundRoles && {_airRole}
-    && {!(missionNamespace getVariable ["WAIT_AIPass_CoordinatedAssault_Enable",true])},
-    str [_apcGroup getVariable ["WAIT_Cortex_CombinedRole",[]],_heliGroup getVariable ["WAIT_Cortex_CombinedRole",[]]]] call _check;
-["COMBINED-ground-applied",[{!isNull _fireGroup && {((_fireGroup getVariable ["WAIT_Cortex_CombinedResult",[]]) param [2,""]) == "APPLIED"}},15] call _wait,str (_fireGroup getVariable ["WAIT_Cortex_CombinedResult",[]])] call _check;
-["COMBINED-ground-manoeuvre-applied",[{!isNull _manoeuvreGroup && {((_manoeuvreGroup getVariable ["WAIT_Cortex_CombinedResult",[]]) param [2,""]) == "APPLIED"}},15] call _wait,str (_manoeuvreGroup getVariable ["WAIT_Cortex_CombinedResult",[]])] call _check;
-["COMBINED-air-applied",[{((_heliGroup getVariable ["WAIT_Cortex_CombinedResult",[]]) param [2,""]) == "APPLIED"},15] call _wait,str (_heliGroup getVariable ["WAIT_Cortex_CombinedResult",[]])] call _check;
+    && {!(missionNamespace getVariable ["CBE_AIPass_CoordinatedAssault_Enable",true])},
+    str [_apcGroup getVariable ["CBE_Cortex_CombinedRole",[]],_heliGroup getVariable ["CBE_Cortex_CombinedRole",[]]]] call _check;
+["COMBINED-ground-applied",[{!isNull _fireGroup && {((_fireGroup getVariable ["CBE_Cortex_CombinedResult",[]]) param [2,""]) == "APPLIED"}},15] call _wait,str (_fireGroup getVariable ["CBE_Cortex_CombinedResult",[]])] call _check;
+["COMBINED-ground-manoeuvre-applied",[{!isNull _manoeuvreGroup && {((_manoeuvreGroup getVariable ["CBE_Cortex_CombinedResult",[]]) param [2,""]) == "APPLIED"}},15] call _wait,str (_manoeuvreGroup getVariable ["CBE_Cortex_CombinedResult",[]])] call _check;
+["COMBINED-air-applied",[{((_heliGroup getVariable ["CBE_Cortex_CombinedResult",[]]) param [2,""]) == "APPLIED"},15] call _wait,str (_heliGroup getVariable ["CBE_Cortex_CombinedResult",[]])] call _check;
 
 ["ACT",_infantry,_enemy,_assets,"Roles are finite. Watch real ground fire and the aircraft controller while the observer remains unblocked."] call _publish;
 ["Combined arms / 3. Act independently","The APC should physically engage without losing its authored route. The helicopter should enter its finite attack controller. A role or target assignment alone is insufficient for the physical-effect checks.",[3600,3650] call _terrainPosition] call _phase;
 ["COMBINED-no-infantry-assembly",
-    (_infantry getVariable ["WAIT_AIPass_SupportLease",[]]) isEqualTo []
+    (_infantry getVariable ["CBE_AIPass_SupportLease",[]]) isEqualTo []
         && {count waypoints _infantry == _infantryWaypoints}
-        && {(waypoints _infantry) findIf {waypointDescription _x == "WAIT AI PASS"} < 0},
-    format ["supportLease=%1 waypoints=%2",_infantry getVariable ["WAIT_AIPass_SupportLease",[]],waypoints _infantry]
+        && {(waypoints _infantry) findIf {waypointDescription _x == "CBE AI PASS"} < 0},
+    format ["supportLease=%1 waypoints=%2",_infantry getVariable ["CBE_AIPass_SupportLease",[]],waypoints _infantry]
 ] call _check;
 private _groundRemaining=_fireAsset distance2D _fireRouteTarget;
-private _groundState=_fireGroup getVariable ["WAIT_AIPass_State",createHashMap];
+private _groundState=_fireGroup getVariable ["CBE_AIPass_State",createHashMap];
 private _groundLease=_groundState getOrDefault ["movementLease",[]];
-private _groundwaitWaypoint=(waypoints _fireGroup) findIf {waypointDescription _x == "WAIT AI PASS"};
+private _groundwaitWaypoint=(waypoints _fireGroup) findIf {waypointDescription _x == "CBE AI PASS"};
 ["COMBINED-ground-route-preserved",_groundRemaining < _fireRouteStart-50 && {_groundLease isEqualTo []} && {_groundwaitWaypoint < 0},
     format ["target=%1 startRemaining=%2m nowRemaining=%3m lease=%4 current=%5 expected=%6",
         _fireRouteTarget,round _fireRouteStart,round _groundRemaining,_groundLease,currentCommand driver _fireAsset,expectedDestination driver _fireAsset]] call _check;
 ["COMBINED-ground-target-shared",[{_fireGroup knowsAbout _enemy >= 2 || {!isNull assignedTarget gunner _fireAsset}},15] call _wait,
     format ["knowledge=%1 target=%2",_fireGroup knowsAbout _enemy,assignedTarget gunner _fireAsset]] call _check;
 ["COMBINED-ground-actual-fire",[{
-    _fireToken != "" && {_fireAsset getVariable ["WAIT_CortexQA_StationShots",[]] findIf {
+    _fireToken != "" && {_fireAsset getVariable ["CBE_CortexQA_StationShots",[]] findIf {
         private _ammo=configFile >> "CfgAmmo" >> (_x select 4);
+        private _origin=_x param [7,[],[[]]];private _course=_x param [8,[],[[]]];
+        private _report=_x param [9,[],[[]]];
         (_x select 1) == _fireOperator && {(_x select 6) == _fireToken}
             && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
+            && {count _origin == 3} && {count _course == 3} && {count _report == 3}
+            && {vectorMagnitude _course > 1} && {_origin distance _report > 1}
+            && {(vectorNormalized _course) vectorDotProduct (vectorNormalized (_report vectorDiff _origin)) >= cos 15}
     } >= 0}
 },20] call _wait,
-    str (_fireAsset getVariable ["WAIT_CortexQA_StationShots",[]])] call _check;
+    str (_fireAsset getVariable ["CBE_CortexQA_StationShots",[]])] call _check;
 ["COMBINED-ground-manoeuvre-physical-travel",[{_manoeuvreAsset distance2D _manoeuvreStart >= 60},35] call _wait,
     format ["travel=%1m result=%2 command=%3 expected=%4",round (_manoeuvreAsset distance2D _manoeuvreStart),
-        _manoeuvreGroup getVariable ["WAIT_Cortex_CombinedResult",[]],currentCommand driver _manoeuvreAsset,expectedDestination driver _manoeuvreAsset]] call _check;
-["COMBINED-air-controller-started",[{_heli getVariable ["WAIT_Cortex_AirAttackJob",false] || {(_heli getVariable ["WAIT_Cortex_AirAttackPlan",[]]) isNotEqualTo []}},20] call _wait,str (_heli getVariable ["WAIT_Cortex_AirAttackPlan",[]])] call _check;
+        _manoeuvreGroup getVariable ["CBE_Cortex_CombinedResult",[]],currentCommand driver _manoeuvreAsset,expectedDestination driver _manoeuvreAsset]] call _check;
+["COMBINED-air-controller-started",[{_heli getVariable ["CBE_Cortex_AirAttackJob",false] || {(_heli getVariable ["CBE_Cortex_AirAttackPlan",[]]) isNotEqualTo []}},20] call _wait,str (_heli getVariable ["CBE_Cortex_AirAttackPlan",[]])] call _check;
 
 ["HANDOVER",_infantry,_enemy,_assets,"The opportunity expires by itself. No arm may leave an infantry movement lease or permanent role behind."] call _publish;
 ["Combined arms / 4. Handover","After the finite opportunity expires, role tokens must clear without a scheduled rally or shared completion barrier. Existing authored movement remains the owner of movement.",[3600,3650] call _terrainPosition] call _phase;
 private _expired=[{
-    (_infantry getVariable ["WAIT_Cortex_CombinedOpportunity",[]]) isEqualTo []
-        && {(_apcGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) isEqualTo []}
-        && {(_ifvGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) isEqualTo []}
-        && {(_heliGroup getVariable ["WAIT_Cortex_CombinedRole",[]]) isEqualTo []}
+    (_infantry getVariable ["CBE_Cortex_CombinedOpportunity",[]]) isEqualTo []
+        && {(_apcGroup getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
+        && {(_ifvGroup getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
+        && {(_heliGroup getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
 },45] call _wait;
 ["COMBINED-finite-cleanup",_expired,format ["requester=%1 ground=%2 air=%3",
-    _infantry getVariable ["WAIT_Cortex_CombinedOpportunity",[]],
-    [_apcGroup getVariable ["WAIT_Cortex_CombinedRole",[]],_ifvGroup getVariable ["WAIT_Cortex_CombinedRole",[]]],
-    _heliGroup getVariable ["WAIT_Cortex_CombinedRole",[]]
+    _infantry getVariable ["CBE_Cortex_CombinedOpportunity",[]],
+    [_apcGroup getVariable ["CBE_Cortex_CombinedRole",[]],_ifvGroup getVariable ["CBE_Cortex_CombinedRole",[]]],
+    _heliGroup getVariable ["CBE_Cortex_CombinedRole",[]]
 ]] call _check;
 ["COMBINED-no-blocking-state",
-    (_infantry getVariable ["WAIT_AIPass_SupportLease",[]]) isEqualTo []
-        && {(_infantry getVariable ["WAIT_Cortex_CombinedOpportunity",[]]) isEqualTo []},
-    format ["supportLease=%1 opportunity=%2",_infantry getVariable ["WAIT_AIPass_SupportLease",[]],_infantry getVariable ["WAIT_Cortex_CombinedOpportunity",[]]]
+    (_infantry getVariable ["CBE_AIPass_SupportLease",[]]) isEqualTo []
+        && {(_infantry getVariable ["CBE_Cortex_CombinedOpportunity",[]]) isEqualTo []},
+    format ["supportLease=%1 opportunity=%2",_infantry getVariable ["CBE_AIPass_SupportLease",[]],_infantry getVariable ["CBE_Cortex_CombinedOpportunity",[]]]
 ] call _check;
 
-missionNamespace setVariable ["WAIT_CortexQA_Combined",["CONTACT-LED OPPORTUNITY","CLEANUP",grpNull,objNull,[],serverTime,"All fixture-owned roles and actors are being removed."],true];
-missionNamespace setVariable ["WAIT_HelicopterDeceleration_Enable",_savedDeceleration,true];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Combined",["CONTACT-LED OPPORTUNITY","CLEANUP",grpNull,objNull,[],serverTime,"All fixture-owned roles and actors are being removed."],true];
+missionNamespace setVariable ["CBE_HelicopterDeceleration_Enable",_savedDeceleration,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {if (!isNull _x) then {deleteVehicle _x}} forEach _objects;
 {if (!isNull _x) then {deleteGroup _x}} forEach _groups;
-missionNamespace setVariable ["WAIT_CortexQA_Combined",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Combined",[],true];

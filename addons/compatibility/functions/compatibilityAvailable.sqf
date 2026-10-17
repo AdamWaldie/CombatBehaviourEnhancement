@@ -6,8 +6,8 @@
  * Arguments: 0 capability <STRING>, default empty.
  * Return Value: BOOL - capability availability.
  * Current callers: building, profile, locality and diagnostics services.
- * Example: ["specialistBackend"] call WAIT_fnc_CompatibilityAvailable;
+ * Example: ["specialistBackend"] call CBE_fnc_CompatibilityAvailable;
  */
 
 params [["_capability","",[""]]];
-(missionNamespace getVariable ["WAIT_AITweaks_Compatibility",createHashMap]) getOrDefault [_capability,false]
+(missionNamespace getVariable ["CBE_AITweaks_Compatibility",createHashMap]) getOrDefault [_capability,false]

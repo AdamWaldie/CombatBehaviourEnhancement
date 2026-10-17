@@ -10,8 +10,8 @@
  * Arguments: 0 group <GROUP>; 1 state <HASHMAP>; 2 vehicle <OBJECT>; 3 threat position <ARRAY>;
  * 4 threat object <OBJECT>; 5 danger generation <NUMBER, -1>.
  * Return Value: BOOL - true only when the finite orientation operation was started.
- * Current callers: WAIT_fnc_CortexVehicles for the exact tracked platform carried by native danger.
- * Example: [group driver tank1,state,tank1,getPosATL enemy1,enemy1,4] call WAIT_fnc_CortexVehicleOrient;
+ * Current callers: CBE_fnc_CortexVehicles for the exact tracked platform carried by native danger.
+ * Example: [group driver tank1,state,tank1,getPosATL enemy1,enemy1,4] call CBE_fnc_CortexVehicleOrient;
  */
 
 params [
@@ -22,13 +22,13 @@ params [
 if (isNull _group || {!local _group} || {isNull _vehicle} || {!local _vehicle}
     || {isNull _threat} || {!alive _threat} || {count _threatPosition < 2}
     || {_dangerGeneration < 0}) exitWith {false};
-if !([_group,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled
-    && {[_group,"WAIT_AIPass_VehicleGunnery_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) exitWith {false};
-if ([_group] call WAIT_fnc_CortexExternalTakeover
-    || {_vehicle getVariable ["WAIT_Convoy_Active",false]}
+if !([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled
+    && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}) exitWith {false};
+if ([_group] call CBE_fnc_CortexExternalTakeover
+    || {_vehicle getVariable ["CBE_Convoy_Active",false]}
     || {!(_vehicle isKindOf "Tank")} || {!alive _vehicle} || {!canMove _vehicle}
     || {abs speed _vehicle > 5}
-    || {count (_group getVariable ["WAIT_Operation",createHashMap]) > 0}
+    || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     || {(_state getOrDefault ["movementLease",[]]) isNotEqualTo []}) exitWith {false};
 private _commander=effectiveCommander _vehicle;
 private _driver=driver _vehicle;
@@ -38,17 +38,17 @@ if (isNull _commander || {!alive _commander} || {!local _commander} || {isPlayer
 if (_commander knowsAbout _threat <= 0) exitWith {false};
 private _relative=_vehicle getRelDir _threatPosition;
 if (_relative <= 20 || {_relative >= 340}) exitWith {false};
-if !([_group,"VEHICLE_ORIENT",true,serverTime+8] call WAIT_fnc_CortexOwnershipLease) exitWith {false};
-private _operation=[_group,"VEHICLE_ORIENT",_threat,crew _vehicle,[],"ORIENTING"] call WAIT_fnc_OperationStart;
+if !([_group,"VEHICLE_ORIENT",true,serverTime+8] call CBE_fnc_CortexOwnershipLease) exitWith {false};
+private _operation=[_group,"VEHICLE_ORIENT",_threat,crew _vehicle,[],"ORIENTING"] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {
-    [_group,"VEHICLE_ORIENT",false] call WAIT_fnc_CortexOwnershipLease;
+    [_group,"VEHICLE_ORIENT",false] call CBE_fnc_CortexOwnershipLease;
     false
 };
 private _operationGeneration=_operation get "generation";
 _vehicle sendSimpleCommand (["LEFT","RIGHT"] select (_relative < 180));
 _state set ["movementLease",["VEHICLE_ORIENT",time+8]];
 _state set ["vehicleOperationGeneration",_operationGeneration];
-_vehicle setVariable ["WAIT_Danger_VehicleOrient",[
+_vehicle setVariable ["CBE_Danger_VehicleOrient",[
     _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration
 ],true];
 true

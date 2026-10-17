@@ -1,12 +1,12 @@
 /*
  * Author: WaldoTheWarfighter
- * Normalizes standalone AI diagnostics into a stable report without the WAIT diagnostics runtime.
+ * Normalizes standalone AI diagnostics into a stable report without the CBE diagnostics runtime.
  * Locality / Authority: Pure report construction on the caller; no authoritative state is changed.
  * Repeat/JIP: Stateless and safe to repeat; no JIP data is retained.
  * Arguments: 0 feature key <STRING>; 1 rows <ARRAY of [area, feature, state, detail]>.
  * Return Value: HASHMAP containing schema, feature, state, checks, error count, time and locality.
- * Current callers: WAIT_fnc_AIGetDiagnostics.
- * Example: ["ai", [["ai", "cortex", "ACTIVE", "12 managed groups"]]] call WAIT_fnc_AITweaksDiagnosticReport;
+ * Current callers: CBE_fnc_AIGetDiagnostics.
+ * Example: ["ai", [["ai", "cortex", "ACTIVE", "12 managed groups"]]] call CBE_fnc_AITweaksDiagnosticReport;
  */
 
 params [["_feature", "ai", [""]], ["_checks", [], [[]]]];

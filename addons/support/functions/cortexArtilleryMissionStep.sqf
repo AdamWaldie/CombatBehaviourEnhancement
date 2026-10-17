@@ -10,22 +10,22 @@
  * Qualified event/rejection callbacks restart settlement only; parking is not completion.
  * Arguments: 0: mission <HASHMAP>, created by ArtilleryFire.
  * Return Value: Number next delay, or -1 to finish.
- * Current caller: WAIT_fnc_ArtilleryMissionStep as one bounded action under the artillery mission FSM.
- * Example: [_mission] call WAIT_fnc_CortexArtilleryMissionStep;
+ * Current caller: CBE_fnc_ArtilleryMissionStep as one bounded action under the artillery mission FSM.
+ * Example: [_mission] call CBE_fnc_CortexArtilleryMissionStep;
  */
 params ["_mission"];
 if (!isServer) exitWith {-1};
 private _battery = _mission get "battery";
 private _finish = {
     private _counter = (_mission get "purpose") == "COUNTER";
-    private _cooldown = time + (missionNamespace getVariable [["WAIT_AIPass_Artillery_Cooldown", "WAIT_AIPass_CounterBattery_Interval"] select _counter, 120]);
+    private _cooldown = time + (missionNamespace getVariable [["CBE_AIPass_Artillery_Cooldown", "CBE_AIPass_CounterBattery_Interval"] select _counter, 120]);
     private _spotter = _mission get "spotter";
-    if (!isNull _spotter) then {_spotter setVariable ["WAIT_AIPass_NextFireRequest_" + (_mission get "purpose"), _cooldown]};
-    if (_counter && {!isNull (_mission get "enemy")}) then {(_mission get "enemy") setVariable ["WAIT_AIPass_CounterUntil_" + str (_mission get "side"), _cooldown]};
-    if ((_mission get "purpose") == "DANGER") then {_battery setVariable ["WAIT_AIPass_NextDangerFire",time+120,true]};
-    (missionNamespace getVariable ["WAIT_AIPass_FireMissions", createHashMap]) deleteAt (_mission get "key");
-    _battery setVariable ["WAIT_AIPass_FireToken", nil, true];
-    _battery setVariable ["WAIT_AIPass_BusyUntil", nil, true];
+    if (!isNull _spotter) then {_spotter setVariable ["CBE_AIPass_NextFireRequest_" + (_mission get "purpose"), _cooldown]};
+    if (_counter && {!isNull (_mission get "enemy")}) then {(_mission get "enemy") setVariable ["CBE_AIPass_CounterUntil_" + str (_mission get "side"), _cooldown]};
+    if ((_mission get "purpose") == "DANGER") then {_battery setVariable ["CBE_AIPass_NextDangerFire",time+120,true]};
+    (missionNamespace getVariable ["CBE_AIPass_FireMissions", createHashMap]) deleteAt (_mission get "key");
+    _battery setVariable ["CBE_AIPass_FireToken", nil, true];
+    _battery setVariable ["CBE_AIPass_BusyUntil", nil, true];
     -1
 };
 if ((_mission get "phase") in ["PENDING", "UNCERTAIN"] && {alive _battery}
@@ -37,25 +37,27 @@ if ((_mission get "phase") in ["PENDING", "UNCERTAIN"] && {alive _battery}
     _mission set ["burstsLeft",0];
     _mission set ["scoot",false];
     _mission set ["parked",true];
-    diag_log format ["[WAIT] Artillery uncertainty parked token=%1; battery remains reserved",_mission get "token"];
+    diag_log format ["[CBE] Artillery uncertainty parked token=%1; battery remains reserved",_mission get "token"];
     -1
 };
 private _requester=_mission getOrDefault ["requester",grpNull];
 private _danger=(_mission get "purpose") == "DANGER";
 private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner _battery};
-private _requesterBlocked=!isNull _requester && {!([_requester,"WAIT_AIPass_Artillery_Enable",false] call WAIT_fnc_CortexFeatureEnabled) || {!([_requester,"WAIT_AIPass_ArtillerySmoke_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}};
-private _blocked = _requesterBlocked || {!alive _battery} || {!alive gunner _battery}
+private _requesterBlocked=!isNull _requester && {!([_requester,"CBE_AIPass_Artillery_Enable",false] call CBE_fnc_CortexFeatureEnabled) || {!([_requester,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}};
+private _smokeBlocked=(_mission get "mode") == "SMOKE"
+    && {!([_crewGroup,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)};
+private _blocked = _smokeBlocked || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"} || {time > (_mission get "deadline")}
     || {side group gunner _battery != (_mission get "side")}
-    || {!([group gunner _battery] call WAIT_fnc_CortexIsEligible)}
-    || {!_danger && {!([_battery, _mission get "purpose"] call WAIT_fnc_CortexArtilleryRole)}}
+    || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}
+    || {!_danger && {!([_battery, _mission get "purpose"] call CBE_fnc_CortexArtilleryRole)}}
     || {if (_danger) then {
-        !([_crewGroup,"WAIT_AIPass_Danger_Enable",true] call WAIT_fnc_CortexFeatureEnabled)
-        || {!([_crewGroup,"WAIT_AIPass_Vehicles_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
-        || {!([_crewGroup,"WAIT_AIPass_VehicleGunnery_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
-        || {[_crewGroup] call WAIT_fnc_CortexExternalTakeover}
+        !([_crewGroup,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)
+        || {!([_crewGroup,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        || {!([_crewGroup,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        || {[_crewGroup] call CBE_fnc_CortexExternalTakeover}
     } else {
-        !([_crewGroup, ["WAIT_AIPass_Artillery_Enable", "WAIT_AIPass_CounterBattery_Enable"] select ((_mission get "purpose") == "COUNTER"), false] call WAIT_fnc_CortexFeatureEnabled)
+        !([_crewGroup, ["CBE_AIPass_Artillery_Enable", "CBE_AIPass_CounterBattery_Enable"] select ((_mission get "purpose") == "COUNTER"), false] call CBE_fnc_CortexFeatureEnabled)
     }};
 if (_blocked) exitWith {
     if (alive _battery && {(_mission get "phase") in ["PENDING", "UNCERTAIN"]}) then {
@@ -69,7 +71,7 @@ private _phase = _mission get "phase";
 if (time < (_mission get "due")) exitWith {1};
 // A missing firing event is uncertain. Never reissue it, including after an HC disconnect.
 if (_phase in ["PENDING", "UNCERTAIN"]) exitWith {
-    if (_phase == "PENDING") then {diag_log "[WAIT] Unconfirmed artillery shot quarantined; no retry."};
+    if (_phase == "PENDING") then {diag_log "[CBE] Unconfirmed artillery shot quarantined; no retry."};
     _mission set ["phase", "UNCERTAIN"];
     _mission set ["remaining", 0];
     _mission set ["burstsLeft", 0];
@@ -79,28 +81,28 @@ if (_phase in ["PENDING", "UNCERTAIN"]) exitWith {
 if ((_mission get "burstsLeft") <= 0) exitWith {
     if (_mission get "scoot" && {(_mission get "fired") > 0} && {!(_battery isKindOf "StaticWeapon")}) then {
         private _scootToken = _mission get "token";
-        _battery setVariable ["WAIT_Cortex_ArtilleryScootToken",_scootToken,true];
-        _battery setVariable ["WAIT_Cortex_ArtilleryScootDeadline",serverTime+120,true];
-        _battery setVariable ["WAIT_Cortex_ArtilleryScootPurpose",_mission get "purpose",true];
-        [_battery,_scootToken] remoteExecCall ["WAIT_fnc_CortexArtilleryScoot", owner _battery];
+        _battery setVariable ["CBE_Cortex_ArtilleryScootToken",_scootToken,true];
+        _battery setVariable ["CBE_Cortex_ArtilleryScootDeadline",serverTime+120,true];
+        _battery setVariable ["CBE_Cortex_ArtilleryScootPurpose",_mission get "purpose",true];
+        [_battery,_scootToken] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _battery];
     };
     call _finish
 };
 if (_phase == "WAIT") then {
     _mission set ["remaining", _mission get "burstSize"];
     private _spotter = _mission get "spotter";
-    if (alive _spotter && {_spotter getVariable ["WAIT_AIPass_Spotter", false]}) then {
+    if (alive _spotter && {_spotter getVariable ["CBE_AIPass_Spotter", false]}) then {
         _mission set ["phase", "OBSERVE"];
         _mission set ["observerOwner", owner _spotter];
         _mission set ["due", time + 3];
-        [_battery, _mission get "token", _spotter, _mission get "enemy", _mission getOrDefault ["aim", []]] remoteExecCall ["WAIT_fnc_CortexArtilleryObserve", owner _spotter];
+        [_battery, _mission get "token", _spotter, _mission get "enemy", _mission getOrDefault ["aim", []]] remoteExecCall ["CBE_fnc_CortexArtilleryObserve", owner _spotter];
     } else {
         if ((_mission get "purpose") == "COUNTER") then {
             // Relocation needs this side's qualified radar receipt, never a global emission or live transform.
-            private _emission = (_mission get "enemy") getVariable ["WAIT_AIPass_DetectedEmission_" + str (_mission get "side"), []];
+            private _emission = (_mission get "enemy") getVariable ["CBE_AIPass_DetectedEmission_" + str (_mission get "side"), []];
             if (count _emission == 4 && {(_emission select 3) == "RADAR"}
                 && {serverTime >= (_emission select 0)} && {serverTime-(_emission select 0) <= 120}
-                && {(_emission select 1) distance2D (_mission get "location") >= (missionNamespace getVariable ["WAIT_AIPass_Artillery_LocationResetDistance", 150])}) then {
+                && {(_emission select 1) distance2D (_mission get "location") >= (missionNamespace getVariable ["CBE_AIPass_Artillery_LocationResetDistance", 150])}) then {
                 _mission set ["fix", [+(_emission select 1), 30]];
                 _mission set ["location", +(_emission select 1)];
                 _mission set ["offset", 300];
@@ -118,8 +120,8 @@ if (_phase == "WAIT") then {
 };
 if ((_mission get "phase") == "OBSERVE" && {time >= (_mission get "due")}) then {_mission set ["phase", "READY"]};
 if (!((_mission get "phase") in ["READY", "WARNED", "FIRING"])) exitWith {1};
-private _aim = if ((_mission get "phase") in ["WARNED", "FIRING"]) then {_mission get "aim"} else {[_mission] call WAIT_fnc_CortexArtilleryAim};
-if (_aim isEqualTo []) exitWith {diag_log "[WAIT] No safe in-range ranging point; fire mission cancelled."; call _finish};
+private _aim = if ((_mission get "phase") in ["WARNED", "FIRING"]) then {_mission get "aim"} else {[_mission] call CBE_fnc_CortexArtilleryAim};
+if (_aim isEqualTo []) exitWith {diag_log "[CBE] No safe in-range ranging point; fire mission cancelled."; call _finish};
 _mission set ["aim", _aim];
 // Server-owned phase guarantees one spread per burst, including across gun-owner migration.
 // Warn around the reported target, not the deliberately offset opening ranging point.
@@ -135,11 +137,11 @@ if ((_mission get "phase") == "READY" && {(_mission get "mode") == "HE"}) exitWi
     [{params ["_smokes"]; {if (!isNull _x) then {deleteVehicle _x}} forEach _smokes},[_smokes],60] call CBA_fnc_waitAndExecute;
     _mission set ["phase","WARNED"];
     _mission set ["due",time+10];
-    diag_log format ["[WAIT] Artillery warning token=%1 burst=%2 target=%3 smoke=%4",_mission get "token",(_mission get "burstsCompleted")+1,_target,count _smokes];
+    diag_log format ["[CBE] Artillery warning token=%1 burst=%2 target=%3 smoke=%4",_mission get "token",(_mission get "burstsCompleted")+1,_target,count _smokes];
     10
 };
 _mission set ["phase", "PENDING"];
 _mission set ["due", time + 60];
 _mission set ["gunOwner", owner _battery];
-[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token"] remoteExecCall ["WAIT_fnc_CortexArtilleryShot", owner _battery];
+[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token"] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
 1

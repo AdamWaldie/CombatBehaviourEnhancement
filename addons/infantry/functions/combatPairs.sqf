@@ -6,18 +6,18 @@
  * Arguments: 0 group <GROUP, grpNull>; 1 eligible actors <ARRAY of OBJECT, []>, maximum 16.
  * Return Value: ARRAY of one- or two-actor pairs; [] for invalid authority or an oversized request.
  * Current callers: OperationStart, RebalanceRoles and CortexClearBuilding.
- * Example: [group player,[soldier1,soldier2]] call WAIT_fnc_CombatPairs;
+ * Example: [group player,[soldier1,soldier2]] call CBE_fnc_CombatPairs;
  */
 params [["_group",grpNull,[grpNull]],["_actors",[],[[]]]];
 if (isNull _group || {!local _group} || {count _actors > 16}) exitWith {[]};
 private _remaining=(_actors select {
     _x isEqualType objNull && {!isNull _x} && {local _x} && {group _x == _group}
         && {!isPlayer _x} && {isNull objectParent _x}
-        && {[_x] call WAIT_fnc_CortexCombatEffective}
-        && {isNull remoteControlled _x} && {([_x] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+        && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {isNull remoteControlled _x} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
 }) arrayIntersect _actors;
-private _previous=_group getVariable ["WAIT_CombatPairs",[]];
+private _previous=_group getVariable ["CBE_CombatPairs",[]];
 private _pairs=[];
 private _orphans=[];
 // Intact pairs take priority so repairing an orphan cannot steal another partner.
@@ -43,5 +43,5 @@ while {_remaining isNotEqualTo []} do {
     if (_remaining isNotEqualTo []) then {_pair pushBack (_remaining deleteAt 0)};
     _pairs pushBack _pair;
 };
-if (_pairs isNotEqualTo _previous) then {_group setVariable ["WAIT_CombatPairs",_pairs,true]};
+if (_pairs isNotEqualTo _previous) then {_group setVariable ["CBE_CombatPairs",_pairs,true]};
 _pairs

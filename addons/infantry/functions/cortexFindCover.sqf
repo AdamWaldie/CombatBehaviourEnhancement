@@ -23,16 +23,16 @@
  * Array - [screenedPosATL, found <BOOL>] for the selected mode; original position when none qualifies
  *
  * Example:
- * ([_boundPoint, _enemyPos, 12, _taken] call WAIT_fnc_CortexFindCover) params ["_spot", "_found"];
+ * ([_boundPoint, _enemyPos, 12, _taken] call CBE_fnc_CortexFindCover) params ["_spot", "_found"];
  * Result: a nearby spot with solid cover between it and the enemy, if one exists.
  *
- * Current callers: WAIT_fnc_CortexFlankStep, WAIT_fnc_CortexGrenadeCheck, WAIT_fnc_CortexAntiArmour WAIT_fnc_DangerCoverStep and WAIT_fnc_BuildingOperationStep.
+ * Current callers: CBE_fnc_CortexFlankStep, CBE_fnc_CortexGrenadeCheck, CBE_fnc_CortexAntiArmour CBE_fnc_DangerCoverStep and CBE_fnc_BuildingOperationStep.
  */
 
 params [["_position", [], [[]]], ["_threat", [], [[]]], ["_radius", 12, [0]], ["_reserved", [], [[]]], ["_group",grpNull,[grpNull]],["_mode","COVER",[""]]];
 if (count _position < 2 || {count _threat < 2}) exitWith {[_position, false]};
 _radius = (_radius max 1) min 25;
-private _validate = [_group,"WAIT_AIPass_CoverValidation_Enable",true] call WAIT_fnc_CortexFeatureEnabled;
+private _validate = [_group,"CBE_AIPass_CoverValidation_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 _mode=toUpperANSI _mode;
 if !(_mode in ["COVER","CONCEALMENT"]) then {_mode="COVER"};
 private _terrainTypes=if (_mode == "CONCEALMENT") then {["BUSH","TREE","SMALL TREE","HIDE"]} else {

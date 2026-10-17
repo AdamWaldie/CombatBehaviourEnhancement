@@ -13,11 +13,11 @@
  *    step <NUMBER> (optional, default 0).
  * Return Value:
  * NUMBER - seconds until the next finite sample, or -1 when the response is complete/replaced.
- * Current callers: The local IncomingMissile handler installed by WAIT_fnc_CortexDiscover through
- * WAIT_fnc_CortexQueueJob.
+ * Current callers: The local IncomingMissile handler installed by CBE_fnc_CortexDiscover through
+ * CBE_fnc_CortexQueueJob.
  * Example:
- * [WAIT_fnc_CortexMissileDefenceStep,createHashMapFromArray [["aircraft",_aircraft],["missile",_missile],
- * ["generation",4],["side",1],["step",0],["subsystem","TACTICS"]],0] call WAIT_fnc_CortexQueueJob;
+ * [CBE_fnc_CortexMissileDefenceStep,createHashMapFromArray [["aircraft",_aircraft],["missile",_missile],
+ * ["generation",4],["side",1],["step",0],["subsystem","TACTICS"]],0] call CBE_fnc_CortexQueueJob;
  * Result: a local AI aircraft emits bounded countermeasures and applies no more than two safe breaks.
  */
 
@@ -32,41 +32,41 @@ private _step=_state getOrDefault ["step",0];
 private _flightLeaseToken=str _generation;
 
 private _finish={
-    if (!isNull _aircraft && {(_aircraft getVariable ["WAIT_Cortex_FlareBurstGeneration",-1]) == _generation}) then {
-        _aircraft setVariable ["WAIT_Cortex_MissileDefenceActive",nil];
+    if (!isNull _aircraft && {(_aircraft getVariable ["CBE_Cortex_FlareBurstGeneration",-1]) == _generation}) then {
+        _aircraft setVariable ["CBE_Cortex_MissileDefenceActive",nil];
     };
     if (!isNull _aircraft && {local _aircraft}) then {
-        [_aircraft,"MISSILE_DEFENCE",_flightLeaseToken,"THREAT_ENDED"] call WAIT_fnc_FlightLeaseRelease;
+        [_aircraft,"MISSILE_DEFENCE",_flightLeaseToken,"THREAT_ENDED"] call CBE_fnc_FlightLeaseRelease;
     };
     -1
 };
 if (isNull _aircraft || {!local _aircraft}
-    || {(_aircraft getVariable ["WAIT_Cortex_FlareBurstGeneration",-1]) != _generation}
-    || {!([_aircraft] call WAIT_fnc_CortexAircraftEligible)}) exitWith {call _finish};
+    || {(_aircraft getVariable ["CBE_Cortex_FlareBurstGeneration",-1]) != _generation}
+    || {!([_aircraft] call CBE_fnc_CortexAircraftEligible)}) exitWith {call _finish};
 // A known projectile disappearing after the initial sample means the threat has ended. Engines and
 // addon weapons that do not expose the projectile retain the same bounded twelve-sample maximum.
 if (_projectileKnown && {isNull _missile || {!alive _missile}}) exitWith {call _finish};
 
 private _pilot=driver _aircraft;
-private _wantFlares=!isNull _pilot && {[group _pilot,"WAIT_AIPass_AircraftFlares_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
-private _wantBreak=!isNull _pilot && {[group _pilot,"WAIT_AIPass_AircraftBreak_Enable",true] call WAIT_fnc_CortexFeatureEnabled};
+private _wantFlares=!isNull _pilot && {[group _pilot,"CBE_AIPass_AircraftFlares_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+private _wantBreak=!isNull _pilot && {[group _pilot,"CBE_AIPass_AircraftBreak_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 if (!_wantFlares && {!_wantBreak}) exitWith {call _finish};
 // Countermeasures do not own flight correction. A live break disable releases only this
 // response's exact lease, allowing attack or landing to continue while flares remain available.
 private _ownsFlightLease=false;
 if (_wantBreak) then {
-    _ownsFlightLease=[_aircraft,"MISSILE_DEFENCE",_flightLeaseToken,400] call WAIT_fnc_FlightLeaseAcquire;
+    _ownsFlightLease=[_aircraft,"MISSILE_DEFENCE",_flightLeaseToken,400] call CBE_fnc_FlightLeaseAcquire;
 } else {
-    [_aircraft,"MISSILE_DEFENCE",_flightLeaseToken,"BREAK_DISABLED"] call WAIT_fnc_FlightLeaseRelease;
+    [_aircraft,"MISSILE_DEFENCE",_flightLeaseToken,"BREAK_DISABLED"] call CBE_fnc_FlightLeaseRelease;
 };
 if (_wantFlares) then {
-    [_aircraft] call WAIT_fnc_CortexFireCountermeasure;
+    [_aircraft] call CBE_fnc_CortexFireCountermeasure;
 };
 // Two decisive, terrain-checked impulses produce a useful beam/climb without repeatedly replacing
 // native flight intent. Attack, landing and braking controllers remain the flight owner.
 if (_ownsFlightLease && {_step in [0,4]} && {!isNull _pilot}
-    && {[_aircraft,"MISSILE_DEFENCE",_flightLeaseToken] call WAIT_fnc_FlightLeaseValid}
-    && {[group _pilot,"WAIT_AIPass_AircraftBreak_Enable",true] call WAIT_fnc_CortexFeatureEnabled}) then {
+    && {[_aircraft,"MISSILE_DEFENCE",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
+    && {[group _pilot,"CBE_AIPass_AircraftBreak_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
     private _velocity=velocityModelSpace _aircraft;
     private _isPlane=_aircraft isKindOf "Plane";
     private _lateralLimit=[34,58] select _isPlane;
@@ -79,7 +79,7 @@ if (_ownsFlightLease && {_step in [0,4]} && {!isNull _pilot}
     ];
     private _future=_aircraft modelToWorldWorld (_candidate vectorMultiply 2);
     private _clearance=(_future select 2)-(getTerrainHeightASL _future);
-    if (_clearance >= ([30,70] select _isPlane) && {[_aircraft] call WAIT_fnc_CortexAircraftEligible}) then {
+    if (_clearance >= ([30,70] select _isPlane) && {[_aircraft] call CBE_fnc_CortexAircraftEligible}) then {
         _aircraft setVelocityModelSpace _candidate;
     };
 };

@@ -5,6 +5,8 @@
  * calm remount and damaged-armour withdrawal using live vehicles, including an active withdrawal
  * migrating from the server to a real headless owner before Zeus replacement.
  * Standalone driving also measures native travel, a condition-gated wait, resume and disabled cleanup.
+ * Normal-only excluded tracked, wheeled MRAP and truck reverse-turn diagnostics observe real heading/travel and shared
+ * sensor work; it does not validate production stopping, collision avoidance or HC migration.
  * Locality/authority: scheduled server creates disposable fixtures; production Cortex code commands
  * each current owner, and the migration case deliberately transfers its crew group and vehicle.
  * Repeat/JIP: fresh fixtures and public observer state; caller restores tuning, actors are deleted.
@@ -19,9 +21,9 @@ params ["_check","_phase","_wait"];
 private _spawnRealGrenade={
     params [["_position",[0,0,0],[[]]]];
     private _sourceGroup=createGroup [west,true];
-    _sourceGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+    _sourceGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
     _sourceGroup setVariable ["acex_headless_blacklist",true,true];
-    _sourceGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+    _sourceGroup setVariable ["CBE_AIPass_Exclude",true,true];
     _sourceGroup setCombatMode "BLUE";
     private _sourcePosition=+_position;
     _sourcePosition set [2,0];
@@ -33,21 +35,21 @@ private _spawnRealGrenade={
     _source disableAI "TARGET";
     _source disableAI "AUTOTARGET";
     _source setVariable ["acex_headless_blacklist",true,true];
-    _source setVariable ["WAIT_CortexQA_Projectile",objNull];
+    _source setVariable ["CBE_CortexQA_Projectile",objNull];
     _source addMagazine "HandGrenade";
     _source addEventHandler ["FiredMan",{
         params ["_unit","","","","","","_projectile"];
-        _unit setVariable ["WAIT_CortexQA_Projectile",_projectile];
+        _unit setVariable ["CBE_CortexQA_Projectile",_projectile];
     }];
     _source forceWeaponFire ["HandGrenadeMuzzle","HandGrenadeMuzzle"];
     private _deadline=diag_tickTime+2;
     waitUntil {
         sleep 0.05;
-        !isNull (_source getVariable ["WAIT_CortexQA_Projectile",objNull]) || {diag_tickTime >= _deadline}
+        !isNull (_source getVariable ["CBE_CortexQA_Projectile",objNull]) || {diag_tickTime >= _deadline}
     };
-    private _grenade=_source getVariable ["WAIT_CortexQA_Projectile",objNull];
+    private _grenade=_source getVariable ["CBE_CortexQA_Projectile",objNull];
     if (isNull _grenade) then {
-        diag_log "WAIT CORTEX QA FIXTURE ERROR: native grenade firing produced no projectile";
+        diag_log "CBE CORTEX QA FIXTURE ERROR: native grenade firing produced no projectile";
     } else {
         private _spawn=+_position;
         _spawn set [2,(_spawn param [2,0]) + 2];
@@ -63,26 +65,26 @@ private _spawnRealGrenade={
     _grenade
 };
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
-    ["WAIT_AIPass_Regroup_Enable",false],["WAIT_AIPass_Flank_Enable",false],["WAIT_AIPass_Advance_Enable",false],
-    ["WAIT_AIPass_Morale_Enable",false],["WAIT_AIPass_ContactReports_Enable",false],
-    ["WAIT_AIPass_Reinforce_Enable",false],["WAIT_AIPass_CoordinatedAssault_Enable",false],
-    ["WAIT_AIPass_Artillery_Enable",false],["WAIT_AIPass_FireControl_Enable",false],
-    ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleDismount_Enable",false],
-    ["WAIT_AIPass_VehicleRemount_Enable",true],["WAIT_AIPass_VehicleWithdraw_Enable",false],
-    ["WAIT_AIPass_VehicleGunnery_Enable",false],["WAIT_AIPass_PostContact_Enable",false]
-]] call WAIT_fnc_CortexTuning;
-private _pin={params ["_group"]; _group setVariable ["WAIT_Headless_ExcludeGroup",true,true]; _group setVariable ["acex_headless_blacklist",true,true]; {_x setVariable ["acex_headless_blacklist",true,true]} forEach units _group};
+    ["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],
+    ["CBE_AIPass_Regroup_Enable",false],["CBE_AIPass_Flank_Enable",false],["CBE_AIPass_Advance_Enable",false],
+    ["CBE_AIPass_Morale_Enable",false],["CBE_AIPass_ContactReports_Enable",false],
+    ["CBE_AIPass_Reinforce_Enable",false],["CBE_AIPass_CoordinatedAssault_Enable",false],
+    ["CBE_AIPass_Artillery_Enable",false],["CBE_AIPass_FireControl_Enable",false],
+    ["CBE_AIPass_Vehicles_Enable",true],["CBE_AIPass_VehicleDismount_Enable",false],
+    ["CBE_AIPass_VehicleRemount_Enable",true],["CBE_AIPass_VehicleWithdraw_Enable",false],
+    ["CBE_AIPass_VehicleGunnery_Enable",false],["CBE_AIPass_PostContact_Enable",false]
+]] call CBE_fnc_CortexTuning;
+private _pin={params ["_group"]; _group setVariable ["CBE_Headless_ExcludeGroup",true,true]; _group setVariable ["acex_headless_blacklist",true,true]; {_x setVariable ["acex_headless_blacklist",true,true]} forEach units _group};
 private _recordVehicleCheck = _check;
 
 // A separate, enemy-free fixture proves that a native explosion can invoke only passenger safety.
 // It does not inject danger state or target knowledge, and it starts moving before the stimulus.
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Danger_Enable",true],
-    ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleDismount_Enable",true],
-    ["WAIT_AIPass_VehicleRemount_Enable",false],["WAIT_AIPass_VehicleWithdraw_Enable",true],
-    ["WAIT_AIPass_VehicleGunnery_Enable",true]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_Enable",true],["CBE_AIPass_Danger_Enable",true],
+    ["CBE_AIPass_Vehicles_Enable",true],["CBE_AIPass_VehicleDismount_Enable",true],
+    ["CBE_AIPass_VehicleRemount_Enable",false],["CBE_AIPass_VehicleWithdraw_Enable",true],
+    ["CBE_AIPass_VehicleGunnery_Enable",true]
+]] call CBE_fnc_CortexTuning;
 private _dangerTruck=createVehicle ["O_Truck_03_transport_F",[1600,900,0],[],0,"NONE"];
 createVehicleCrew _dangerTruck;
 _dangerTruck allowDamage false;
@@ -96,7 +98,7 @@ private _dangerPassengers=[];
 for "_i" from 0 to 1 do {
     private _unit=_dangerPassengerGroup createUnit ["O_Soldier_F",[1600+_i*2,894,0],[],0,"NONE"];
     _unit allowDamage false;
-    _unit setVariable ["WAIT_CortexQA_Label",format ["TARGETLESS DANGER PASSENGER %1",_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["TARGETLESS DANGER PASSENGER %1",_i+1],true];
     _unit assignAsCargo _dangerTruck;
     [_unit] orderGetIn true;
     _unit moveInCargo _dangerTruck;
@@ -107,12 +109,12 @@ private _dangerWaypoint=_dangerCrewGroup addWaypoint [[1850,900,0],0];
 _dangerWaypoint setWaypointType "MOVE";
 _dangerWaypoint setWaypointCompletionRadius 8;
 _dangerCrewGroup setCurrentWaypoint _dangerWaypoint;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_dangerPassengers+_dangerCrew,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_dangerPassengers+_dangerCrew,true];
 ["Vehicle targetless danger","The moving truck has no enemy. A real explosion must produce a bounded safe stop and passenger exit while its operating crew stays aboard. It must not invent a target, start gunnery or withdraw the vehicle.",[1600,900,0]] call _phase;
 private _dangerReady=[{
-    missionNamespace getVariable ["WAIT_AIPass_Active",false]
-        && {_dangerCrewGroup getVariable ["WAIT_AIPass_Managed",false]}
-        && {_dangerPassengerGroup getVariable ["WAIT_AIPass_Managed",false]}
+    missionNamespace getVariable ["CBE_AIPass_Active",false]
+        && {_dangerCrewGroup getVariable ["CBE_AIPass_Managed",false]}
+        && {_dangerPassengerGroup getVariable ["CBE_AIPass_Managed",false]}
         && {abs speed _dangerTruck > 5}
 },45] call _wait;
 ["DANGER-VEHICLE-fixture-moving",_dangerReady,str [speed _dangerTruck,getPosATL _dangerTruck]] call _check;
@@ -122,15 +124,15 @@ private _dangerSubmitted=false;
 private _dangerLease=false;
 private _dangerStopped=false;
 private _dangerExited=[{
-    private _stats=_dangerCrewGroup getVariable ["WAIT_Danger_EngineStats",createHashMap];
+    private _stats=_dangerCrewGroup getVariable ["CBE_Danger_EngineStats",createHashMap];
     _dangerSubmitted=_dangerSubmitted || {(_stats getOrDefault ["acceptedRecords",0]) > 0 && {"EXPLOSION" in (_stats getOrDefault ["lastCauses",[]])}};
-    private _crewState=_dangerCrewGroup getVariable ["WAIT_AIPass_State",createHashMap];
+    private _crewState=_dangerCrewGroup getVariable ["CBE_AIPass_State",createHashMap];
     _dangerLease=_dangerLease || {count (_crewState getOrDefault ["dangerDismount",[]]) == 7}
-        || {count (_dangerTruck getVariable ["WAIT_Cortex_OnboardDanger",[]]) == 4};
+        || {count (_dangerTruck getVariable ["CBE_Cortex_OnboardDanger",[]]) == 4};
     _dangerStopped=_dangerStopped || {abs speed _dangerTruck < 1};
     _dangerPassengers findIf {!alive _x || {vehicle _x == _dangerTruck}} < 0
 },45] call _wait;
-private _dangerPassengerState=_dangerPassengerGroup getVariable ["WAIT_AIPass_State",createHashMap];
+private _dangerPassengerState=_dangerPassengerGroup getVariable ["CBE_AIPass_State",createHashMap];
 private _dangerOwnedExit=_dangerPassengers findIf {
     private _passenger=_x;
     (_dangerPassengerState getOrDefault ["dismounted",[]]) findIf {(_x select 0) == _passenger && {(_x select 1) == _dangerTruck}} < 0
@@ -138,28 +140,28 @@ private _dangerOwnedExit=_dangerPassengers findIf {
 private _dangerDriver=driver _dangerTruck;
 private _dangerAssignedTarget=assignedTarget _dangerDriver;
 private _dangerNoTarget=isNull _dangerAssignedTarget;
-private _dangerNoWithdrawal=(_dangerCrewGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]) isEqualTo []
-    && {(_dangerCrewGroup getVariable ["WAIT_AIPass_PublicPhase","CALM"]) != "RETREAT"};
-["DANGER-VEHICLE-native-explosion",_dangerSubmitted,str (_dangerCrewGroup getVariable ["WAIT_Danger_EngineStats",createHashMap])] call _check;
-["DANGER-VEHICLE-bounded-safety-lease",_dangerLease,str [_dangerCrewGroup getVariable ["WAIT_AIPass_State",createHashMap],_dangerTruck getVariable ["WAIT_Cortex_OnboardDanger",[]]]] call _check;
-["DANGER-VEHICLE-safe-stop",_dangerStopped,str [speed _dangerTruck,_dangerTruck getVariable ["WAIT_Cortex_DismountStopRequest",[]]]] call _check;
+private _dangerNoWithdrawal=(_dangerCrewGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]) isEqualTo []
+    && {(_dangerCrewGroup getVariable ["CBE_AIPass_PublicPhase","CALM"]) != "RETREAT"};
+["DANGER-VEHICLE-native-explosion",_dangerSubmitted,str (_dangerCrewGroup getVariable ["CBE_Danger_EngineStats",createHashMap])] call _check;
+["DANGER-VEHICLE-bounded-safety-lease",_dangerLease,str [_dangerCrewGroup getVariable ["CBE_AIPass_State",createHashMap],_dangerTruck getVariable ["CBE_Cortex_OnboardDanger",[]]]] call _check;
+["DANGER-VEHICLE-safe-stop",_dangerStopped,str [speed _dangerTruck,_dangerTruck getVariable ["CBE_Cortex_DismountStopRequest",[]]]] call _check;
 ["DANGER-VEHICLE-passengers-physically-exit",_dangerReady && {_dangerExited} && {_dangerOwnedExit},str (_dangerPassengers apply {[vehicle _x,assignedVehicle _x,currentCommand _x]})] call _check;
 ["DANGER-VEHICLE-operating-crew-retained",_dangerCrew findIf {!alive _x || {vehicle _x != _dangerTruck}} < 0,str (_dangerCrew apply {vehicle _x})] call _check;
-["DANGER-VEHICLE-no-invented-combat",_dangerNoTarget && {_dangerNoWithdrawal},str [_dangerAssignedTarget,_dangerCrewGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]],_dangerCrewGroup getVariable ["WAIT_AIPass_PublicPhase",""]]] call _check;
+["DANGER-VEHICLE-no-invented-combat",_dangerNoTarget && {_dangerNoWithdrawal},str [_dangerAssignedTarget,_dangerCrewGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]],_dangerCrewGroup getVariable ["CBE_AIPass_PublicPhase",""]]] call _check;
 deleteVehicle _dangerProjectile;
 {deleteVehicle _x} forEach (_dangerPassengers+_dangerCrew+[_dangerTruck]);
 deleteGroup _dangerPassengerGroup;
 deleteGroup _dangerCrewGroup;
 
 // An armed crew-only vehicle receives the same real explosive danger twice. With the finite jink
-// disabled it must not acquire a WAIT route. Once enabled, the next native danger generation may
+// disabled it must not acquire a CBE route. Once enabled, the next native danger generation may
 // own one short terrain-checked escape. The fixture never injects danger, velocity or a destination.
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Danger_Enable",true],
-    ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleJink_Enable",false],
-    ["WAIT_AIPass_VehicleDismount_Enable",false],["WAIT_AIPass_VehicleWithdraw_Enable",false],
-    ["WAIT_AIPass_VehicleGunnery_Enable",false]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_Enable",true],["CBE_AIPass_Danger_Enable",true],
+    ["CBE_AIPass_Vehicles_Enable",true],["CBE_AIPass_VehicleJink_Enable",false],
+    ["CBE_AIPass_VehicleDismount_Enable",false],["CBE_AIPass_VehicleWithdraw_Enable",false],
+    ["CBE_AIPass_VehicleGunnery_Enable",false]
+]] call CBE_fnc_CortexTuning;
 private _jinkVehicle=createVehicle ["O_APC_Wheeled_02_rcws_v2_F",[1480,880,0],[],0,"NONE"];
 createVehicleCrew _jinkVehicle;
 _jinkVehicle allowDamage false;
@@ -167,41 +169,41 @@ private _jinkGroup=group driver _jinkVehicle;
 [_jinkGroup] call _pin;
 _jinkGroup setCombatMode "BLUE";
 private _jinkCrew=crew _jinkVehicle;
-{_x allowDamage false; _x setVariable ["WAIT_CortexQA_Label",format ["DANGER JINK CREW %1",_forEachIndex+1],true]} forEach _jinkCrew;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_jinkCrew,true];
-["Danger FSM: finite vehicle jink","A crew-only armed APC receives a real nearby explosion. Disabled, WAIT must not take movement. Enabled, one later danger generation may make a short physical terrain-checked escape while retaining every crew member.",getPosATL _jinkVehicle] call _phase;
+{_x allowDamage false; _x setVariable ["CBE_CortexQA_Label",format ["DANGER JINK CREW %1",_forEachIndex+1],true]} forEach _jinkCrew;
+missionNamespace setVariable ["CBE_CortexQA_Actors",_jinkCrew,true];
+["Danger FSM: finite vehicle jink","A crew-only armed APC receives a real nearby explosion. Disabled, CBE must not take movement. Enabled, one later danger generation may make a short physical terrain-checked escape while retaining every crew member.",getPosATL _jinkVehicle] call _phase;
 private _jinkReady=[{
-    missionNamespace getVariable ["WAIT_AIPass_Active",false]
-        && {_jinkGroup getVariable ["WAIT_AIPass_Managed",false]}
+    missionNamespace getVariable ["CBE_AIPass_Active",false]
+        && {_jinkGroup getVariable ["CBE_AIPass_Managed",false]}
         && {count _jinkCrew >= 2}
 },30] call _wait;
 private _jinkDisabledOrigin=getPosATL _jinkVehicle;
 private _jinkDisabledBlast=[_jinkVehicle modelToWorld [7,0,0]] call _spawnRealGrenade;
 sleep 6;
-private _jinkState=_jinkGroup getVariable ["WAIT_AIPass_State",createHashMap];
-private _jinkDisabledNoOwner=(_jinkVehicle getVariable ["WAIT_Danger_VehicleJink",[]]) isEqualTo []
+private _jinkState=_jinkGroup getVariable ["CBE_AIPass_State",createHashMap];
+private _jinkDisabledNoOwner=(_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]]) isEqualTo []
     && {(_jinkState getOrDefault ["movementLease",[]]) param [0,""] != "VEHICLE_JINK"};
-["DANGER-VEHICLE-jink-disabled",_jinkReady && {_jinkDisabledNoOwner},str [_jinkVehicle getVariable ["WAIT_Danger_VehicleJink",[]],_jinkState getOrDefault ["movementLease",[]],_jinkVehicle distance2D _jinkDisabledOrigin]] call _check;
+["DANGER-VEHICLE-jink-disabled",_jinkReady && {_jinkDisabledNoOwner},str [_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]],_jinkState getOrDefault ["movementLease",[]],_jinkVehicle distance2D _jinkDisabledOrigin]] call _check;
 deleteVehicle _jinkDisabledBlast;
-[createHashMapFromArray [["WAIT_AIPass_VehicleJink_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_VehicleJink_Enable",true]]] call CBE_fnc_CortexTuning;
 private _jinkOrigin=getPosATL _jinkVehicle;
 private _jinkBlast=[_jinkVehicle modelToWorld [7,0,0]] call _spawnRealGrenade;
 private _jinkOwned=[{
-    private _state=_jinkGroup getVariable ["WAIT_AIPass_State",createHashMap];
-    count (_jinkVehicle getVariable ["WAIT_Danger_VehicleJink",[]]) == 4
+    private _state=_jinkGroup getVariable ["CBE_AIPass_State",createHashMap];
+    count (_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]]) == 4
         && {(_state getOrDefault ["movementLease",[]]) param [0,""] == "VEHICLE_JINK"}
 },25] call _wait;
 private _jinkMoved=[{
     _jinkVehicle distance2D _jinkOrigin >= 20
 },35] call _wait;
 private _jinkCrewRetained=_jinkCrew findIf {!alive _x || {vehicle _x != _jinkVehicle}} < 0;
-["DANGER-VEHICLE-jink-operation-owned",_jinkReady && {_jinkOwned},str [_jinkVehicle getVariable ["WAIT_Danger_VehicleJink",[]],
-    (_jinkGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["movementLease",[]],
-    (_jinkGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["vehicleDangerJink",[]],
-    (_jinkGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["vehicleJinkRefusal",[]],
-    (_jinkGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["dangerDismount",[]],
-    _jinkGroup getVariable ["WAIT_Danger_VehicleContext",[]],_jinkGroup getVariable ["WAIT_Operation",createHashMap],
-    [_jinkGroup] call WAIT_fnc_CortexExternalTakeover,speed _jinkVehicle]] call _check;
+["DANGER-VEHICLE-jink-operation-owned",_jinkReady && {_jinkOwned},str [_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]],
+    (_jinkGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["movementLease",[]],
+    (_jinkGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["vehicleDangerJink",[]],
+    (_jinkGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["vehicleJinkRefusal",[]],
+    (_jinkGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["dangerDismount",[]],
+    _jinkGroup getVariable ["CBE_Danger_VehicleContext",[]],_jinkGroup getVariable ["CBE_Operation",createHashMap],
+    [_jinkGroup] call CBE_fnc_CortexExternalTakeover,speed _jinkVehicle]] call _check;
 ["DANGER-VEHICLE-jink-physical-travel",_jinkOwned && {_jinkMoved},str [_jinkOrigin,getPosATL _jinkVehicle,_jinkVehicle distance2D _jinkOrigin]] call _check;
 ["DANGER-VEHICLE-jink-crew-retained",_jinkCrewRetained,str (_jinkCrew apply {[vehicle _x,assignedVehicleRole _x]})] call _check;
 deleteVehicle _jinkBlast;
@@ -210,15 +212,15 @@ deleteGroup _jinkGroup;
 // A stopped tracked fighting vehicle must physically turn its hull toward a naturally detected
 // hostile while the gunnery gate is enabled, without receiving a waypoint or changing position.
 // Both targets remain standing 70 m away, 45 degrees off the hull bow.
-// They are excluded from WAIT so target reactions cannot invalidate the detection fixture.
+// They are excluded from CBE so target reactions cannot invalidate the detection fixture.
 // A first naturally detected hostile with the gate disabled proves that danger alone cannot acquire
 // the orientation owner. A replacement hostile then creates a fresh native detection generation.
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Danger_Enable",true],
-    ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleGunnery_Enable",false],
-    ["WAIT_AIPass_VehicleJink_Enable",false],["WAIT_AIPass_VehicleDismount_Enable",false],
-    ["WAIT_AIPass_VehicleWithdraw_Enable",false]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_Enable",true],["CBE_AIPass_Danger_Enable",true],
+    ["CBE_AIPass_Vehicles_Enable",true],["CBE_AIPass_VehicleGunnery_Enable",false],
+    ["CBE_AIPass_VehicleJink_Enable",false],["CBE_AIPass_VehicleDismount_Enable",false],
+    ["CBE_AIPass_VehicleWithdraw_Enable",false]
+]] call CBE_fnc_CortexTuning;
 private _orientVehicle=createVehicle ["O_MBT_02_cannon_F",[1580,880,0],[],0,"NONE"];
 createVehicleCrew _orientVehicle;
 _orientVehicle allowDamage false;
@@ -227,49 +229,49 @@ private _orientGroup=group driver _orientVehicle;
 [_orientGroup] call _pin;
 _orientGroup setCombatMode "RED";
 private _orientCrew=crew _orientVehicle;
-{_x allowDamage false; _x setVariable ["WAIT_CortexQA_Label",format ["DANGER ORIENT CREW %1",_forEachIndex+1],true]} forEach _orientCrew;
+{_x allowDamage false; _x setVariable ["CBE_CortexQA_Label",format ["DANGER ORIENT CREW %1",_forEachIndex+1],true]} forEach _orientCrew;
 private _orientDisabledTargetGroup=createGroup [west,true];
-_orientDisabledTargetGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+_orientDisabledTargetGroup setVariable ["CBE_AIPass_Exclude",true,true];
 [_orientDisabledTargetGroup] call _pin;
 private _orientDisabledTarget=_orientDisabledTargetGroup createUnit ["B_Soldier_F",[1629.5,929.5,0],[],0,"NONE"];
 _orientDisabledTarget setUnitPos "UP";
 removeAllWeapons _orientDisabledTarget;
 _orientDisabledTarget allowDamage false;
 _orientDisabledTarget disableAI "PATH";
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_orientCrew+[_orientDisabledTarget],true];
-["Danger FSM: finite tracked-vehicle orientation","A stationary tank naturally detects a hostile off its bow. Disabled, WAIT must not take orientation ownership. Enabled, a fresh hostile may trigger one bounded hull turn with no waypoint or travel.",getPosATL _orientVehicle] call _phase;
+missionNamespace setVariable ["CBE_CortexQA_Actors",_orientCrew+[_orientDisabledTarget],true];
+["Danger FSM: finite tracked-vehicle orientation","A stationary tank naturally detects a hostile off its bow. Disabled, CBE must not take orientation ownership. Enabled, a fresh hostile may trigger one bounded hull turn with no waypoint or travel.",getPosATL _orientVehicle] call _phase;
 private _orientReady=[{
-    missionNamespace getVariable ["WAIT_AIPass_Active",false]
-        && {_orientGroup getVariable ["WAIT_AIPass_Managed",false]}
+    missionNamespace getVariable ["CBE_AIPass_Active",false]
+        && {_orientGroup getVariable ["CBE_AIPass_Managed",false]}
         && {count _orientCrew >= 3}
 },30] call _wait;
 private _orientDisabledKnown=[{(effectiveCommander _orientVehicle) knowsAbout _orientDisabledTarget > 0},20] call _wait;
 sleep 3;
-private _orientState=_orientGroup getVariable ["WAIT_AIPass_State",createHashMap];
-private _orientDisabledNoOwner=(_orientVehicle getVariable ["WAIT_Danger_VehicleOrient",[]]) isEqualTo []
+private _orientState=_orientGroup getVariable ["CBE_AIPass_State",createHashMap];
+private _orientDisabledNoOwner=(_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) isEqualTo []
     && {(_orientState getOrDefault ["movementLease",[]]) param [0,""] != "VEHICLE_ORIENT"};
 ["DANGER-VEHICLE-orient-disabled",_orientReady && {_orientDisabledKnown} && {_orientDisabledNoOwner},str [_orientVehicle getDir _orientDisabledTarget,_orientState getOrDefault ["movementLease",[]]]] call _check;
 deleteVehicle _orientDisabledTarget;
 deleteGroup _orientDisabledTargetGroup;
-[createHashMapFromArray [["WAIT_AIPass_VehicleGunnery_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_VehicleGunnery_Enable",true]]] call CBE_fnc_CortexTuning;
 private _orientTargetGroup=createGroup [west,true];
-_orientTargetGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+_orientTargetGroup setVariable ["CBE_AIPass_Exclude",true,true];
 [_orientTargetGroup] call _pin;
 private _orientTarget=_orientTargetGroup createUnit ["B_Soldier_F",[1629.5,929.5,0],[],0,"NONE"];
 _orientTarget setUnitPos "UP";
 removeAllWeapons _orientTarget;
 _orientTarget allowDamage false;
 _orientTarget disableAI "PATH";
-_orientTarget setVariable ["WAIT_CortexQA_Label","DANGER ORIENT HOSTILE",true];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_orientCrew+[_orientTarget],true];
+_orientTarget setVariable ["CBE_CortexQA_Label","DANGER ORIENT HOSTILE",true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_orientCrew+[_orientTarget],true];
 private _orientOrigin=getPosATL _orientVehicle;
 private _orientKnown=[{(effectiveCommander _orientVehicle) knowsAbout _orientTarget > 0},20] call _wait;
 ["DANGER-VEHICLE-orient-native-detection-prerequisite",_orientReady && {_orientKnown},
     str [_orientCrew apply {[_x knowsAbout _orientTarget,_x targetKnowledge _orientTarget]},
         getPosATL _orientVehicle,getPosATL _orientTarget]] call _check;
 private _orientOwned=[{
-    count (_orientVehicle getVariable ["WAIT_Danger_VehicleOrient",[]]) == 5
-        && {private _state=_orientGroup getVariable ["WAIT_AIPass_State",createHashMap];
+    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 5
+        && {private _state=_orientGroup getVariable ["CBE_AIPass_State",createHashMap];
             (_state getOrDefault ["movementLease",[]]) param [0,""] == "VEHICLE_ORIENT"}
 },25] call _wait;
 private _orientAligned=[{
@@ -277,7 +279,7 @@ private _orientAligned=[{
     _relative <= 20 || {_relative >= 340}
 },15] call _wait;
 private _orientCrewRetained=_orientCrew findIf {!alive _x || {vehicle _x != _orientVehicle}} < 0;
-["DANGER-VEHICLE-orient-operation-owned",_orientReady && {_orientKnown} && {_orientOwned},str [_orientVehicle getVariable ["WAIT_Danger_VehicleOrient",[]],(_orientGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["movementLease",[]]]] call _check;
+["DANGER-VEHICLE-orient-operation-owned",_orientReady && {_orientKnown} && {_orientOwned},str [_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]],(_orientGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["movementLease",[]]]] call _check;
 ["DANGER-VEHICLE-orient-physical-alignment",_orientOwned && {_orientAligned},str [getDir _orientVehicle,_orientVehicle getDir _orientTarget,_orientVehicle getRelDir _orientTarget]] call _check;
 ["DANGER-VEHICLE-orient-no-travel",_orientVehicle distance2D _orientOrigin < 8,str [_orientOrigin,getPosATL _orientVehicle,_orientVehicle distance2D _orientOrigin]] call _check;
 ["DANGER-VEHICLE-orient-crew-retained",_orientCrewRetained,str (_orientCrew apply {[vehicle _x,assignedVehicleRole _x]})] call _check;
@@ -304,11 +306,11 @@ _emptyStaticGroup setCombatMode "BLUE";
 _armedStaticGroup setCombatMode "BLUE";
 private _emptyStaticCrew=crew _emptyStatic;
 private _armedStaticCrew=crew _armedStatic;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_emptyStaticCrew+_armedStaticCrew,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_emptyStaticCrew+_armedStaticCrew,true];
 ["Danger FSM: static emplacement survival","Two static guns receive real nearby explosions without an enemy. The empty gun must release its own crew; the useful armed gun must remain manned. Neither may receive a target or movement route.",getPosATL _emptyStatic] call _phase;
 private _staticReady=[{
-    _emptyStaticGroup getVariable ["WAIT_AIPass_Managed",false]
-        && {_armedStaticGroup getVariable ["WAIT_AIPass_Managed",false]}
+    _emptyStaticGroup getVariable ["CBE_AIPass_Managed",false]
+        && {_armedStaticGroup getVariable ["CBE_AIPass_Managed",false]}
         && {!someAmmo _emptyStatic} && {someAmmo _armedStatic}
 },30] call _wait;
 private _emptyBlast=[(getPosATL _emptyStatic) vectorAdd [6,0,0]] call _spawnRealGrenade;
@@ -320,8 +322,8 @@ private _armedRetained=_armedStaticCrew findIf {!alive _x || {vehicle _x != _arm
 private _staticNoTargets=(_emptyStaticCrew+_armedStaticCrew) findIf {
     !isNull (assignedTarget _x)
 } < 0;
-["DANGER-STATIC-empty-crew-released",_staticReady && {_emptyReleased},str [_emptyStatic getVariable ["WAIT_Danger_AbandonReason",[]],_emptyStaticCrew apply {vehicle _x}]] call _check;
-["DANGER-STATIC-useful-crew-retained",_staticReady && {_armedRetained},str [_armedStatic getVariable ["WAIT_Danger_AbandonReason",[]],_armedStaticCrew apply {vehicle _x}]] call _check;
+["DANGER-STATIC-empty-crew-released",_staticReady && {_emptyReleased},str [_emptyStatic getVariable ["CBE_Danger_AbandonReason",[]],_emptyStaticCrew apply {vehicle _x}]] call _check;
+["DANGER-STATIC-useful-crew-retained",_staticReady && {_armedRetained},str [_armedStatic getVariable ["CBE_Danger_AbandonReason",[]],_armedStaticCrew apply {vehicle _x}]] call _check;
 ["DANGER-STATIC-no-invented-combat",_staticNoTargets,str ((_emptyStaticCrew+_armedStaticCrew) apply {[assignedTarget _x,currentCommand _x]})] call _check;
 deleteVehicle _emptyBlast;
 deleteVehicle _armedBlast;
@@ -334,11 +336,11 @@ deleteGroup _armedStaticGroup;
 // assign a target, issue fire or inject a danger record. Other crew may receive engine callbacks, but
 // they must finish their reflex instead of multiplying the vehicle response.
 [createHashMapFromArray [
-    ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Danger_Enable",true],
-    ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleDismount_Enable",false],
-    ["WAIT_AIPass_VehicleRemount_Enable",false],["WAIT_AIPass_VehicleWithdraw_Enable",false],
-    ["WAIT_AIPass_VehicleGunnery_Enable",false]
-]] call WAIT_fnc_CortexTuning;
+    ["CBE_AIPass_Enable",true],["CBE_AIPass_Danger_Enable",true],
+    ["CBE_AIPass_Vehicles_Enable",true],["CBE_AIPass_VehicleDismount_Enable",false],
+    ["CBE_AIPass_VehicleRemount_Enable",false],["CBE_AIPass_VehicleWithdraw_Enable",false],
+    ["CBE_AIPass_VehicleGunnery_Enable",false]
+]] call CBE_fnc_CortexTuning;
 private _contactVehicle=createVehicle ["O_APC_Tracked_02_cannon_F",[1650,1050,0],[],0,"NONE"];
 createVehicleCrew _contactVehicle;
 _contactVehicle allowDamage false;
@@ -354,68 +356,68 @@ _contactFootLeader allowDamage false;
 _contactFootLeader disableAI "PATH";
 // Keep native aiming available: disabling TARGET/AUTOTARGET also compromises carried
 // grenade orientation and is unnecessary for testing the mounted observer domain.
-_contactFootLeader setVariable ["WAIT_CortexQA_Label","MIXED GROUP FOOT LEADER",true];
+_contactFootLeader setVariable ["CBE_CortexQA_Label","MIXED GROUP FOOT LEADER",true];
 _contactCrewGroup selectLeader _contactFootLeader;
 private _contactThrowHandler=_contactFootLeader addEventHandler ["FiredMan",{
     params ["_actor","_weapon","_muzzle","_mode","_ammo","_magazine","_projectile"];
     if (_weapon != "Throw") exitWith {};
-    private _contact=(group _actor) getVariable ["WAIT_CortexQA_ThrowContact",objNull];
+    private _contact=(group _actor) getVariable ["CBE_CortexQA_ThrowContact",objNull];
     private _velocity=velocity _projectile;
     private _valid=!isNull _contact && {!isNull _projectile}
         && {((_velocity select 0)^2+(_velocity select 1)^2) > 0.01};
     private _bearing=if (_valid) then {_actor getDir _contact} else {-1};
     private _launch=if (_valid) then {(_velocity select 0) atan2 (_velocity select 1)} else {-1};
     private _error=if (_valid) then {abs (((_launch-_bearing+540) % 360)-180)} else {-1};
-    diag_log format ["WAIT MIXED GROUP THROW: %1",[netId _actor,_magazine,_valid,_bearing,_launch,_error,
-        _actor getVariable ["WAIT_Cortex_ThrowTracePending",[]],currentCommand _actor,
+    diag_log format ["CBE MIXED GROUP THROW: %1",[netId _actor,_magazine,_valid,_bearing,_launch,_error,
+        _actor getVariable ["CBE_Cortex_ThrowTracePending",[]],currentCommand _actor,
         _actor checkAIFeature "TARGET",_actor checkAIFeature "AUTOTARGET"]];
 }];
 private _contactEnemyGroup=createGroup [west,true];
 [_contactEnemyGroup] call _pin;
-_contactEnemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+_contactEnemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
 _contactEnemyGroup setCombatMode "BLUE";
 private _contactEnemy=_contactEnemyGroup createUnit ["B_Soldier_F",[1650,1075,0],[],0,"NONE"];
 _contactEnemy allowDamage false;
-_contactCrewGroup setVariable ["WAIT_CortexQA_ThrowContact",_contactEnemy];
+_contactCrewGroup setVariable ["CBE_CortexQA_ThrowContact",_contactEnemy];
 _contactEnemy disableAI "PATH";
 _contactEnemy setDir 180;
-_contactEnemy setVariable ["WAIT_CortexQA_Label","MOUNTED DANGER HOSTILE",true];
+_contactEnemy setVariable ["CBE_CortexQA_Label","MOUNTED DANGER HOSTILE",true];
 private _contactCrew=crew _contactVehicle;
-{_x allowDamage false; _x setVariable ["WAIT_CortexQA_Label",format ["MOUNTED CREW %1",_forEachIndex+1],true]} forEach _contactCrew;
-_contactVehicle setVariable ["WAIT_CortexQA_DangerShots",0];
-_contactVehicle setVariable ["WAIT_CortexQA_DangerCountermeasures",0];
+{_x allowDamage false; _x setVariable ["CBE_CortexQA_Label",format ["MOUNTED CREW %1",_forEachIndex+1],true]} forEach _contactCrew;
+_contactVehicle setVariable ["CBE_CortexQA_DangerShots",0];
+_contactVehicle setVariable ["CBE_CortexQA_DangerCountermeasures",0];
 private _contactFiredHandler=_contactVehicle addEventHandler ["Fired",{
     params ["_vehicle","_weapon"];
-    _vehicle setVariable ["WAIT_CortexQA_DangerShots",(_vehicle getVariable ["WAIT_CortexQA_DangerShots",0])+1];
+    _vehicle setVariable ["CBE_CortexQA_DangerShots",(_vehicle getVariable ["CBE_CortexQA_DangerShots",0])+1];
     if (toLowerANSI getText (configFile >> "CfgWeapons" >> _weapon >> "simulation") == "cmlauncher") then {
-        _vehicle setVariable ["WAIT_CortexQA_DangerCountermeasures",
-            (_vehicle getVariable ["WAIT_CortexQA_DangerCountermeasures",0])+1];
+        _vehicle setVariable ["CBE_CortexQA_DangerCountermeasures",
+            (_vehicle getVariable ["CBE_CortexQA_DangerCountermeasures",0])+1];
     };
 }];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_contactCrew+[_contactFootLeader,_contactEnemy],true];
-["Danger FSM: mixed-group mounted persistence","A three-person APC crew and separate foot leader face a real hostile at 25 metres. The mounted event must remain a vehicle response owned only by the effective commander, without WAIT vehicle gunnery, target assignment or injected danger.",getPosATL _contactEnemy] call _phase;
+missionNamespace setVariable ["CBE_CortexQA_Actors",_contactCrew+[_contactFootLeader,_contactEnemy],true];
+["Danger FSM: mixed-group mounted persistence","A three-person APC crew and separate foot leader face a real hostile at 25 metres. The mounted event must remain a vehicle response owned only by the effective commander, without CBE vehicle gunnery, target assignment or injected danger.",getPosATL _contactEnemy] call _phase;
 private _contactReady=[{
-    missionNamespace getVariable ["WAIT_AIPass_Active",false]
-        && {_contactCrewGroup getVariable ["WAIT_AIPass_Managed",false]}
+    missionNamespace getVariable ["CBE_AIPass_Active",false]
+        && {_contactCrewGroup getVariable ["CBE_AIPass_Managed",false]}
         && {count _contactCrew >= 2}
         && {!isNull (effectiveCommander _contactVehicle)}
 },30] call _wait;
 ["DANGER-VEHICLE-contact-fixture-ready",_contactReady,str [_contactCrew,effectiveCommander _contactVehicle]] call _check;
-private _contactStatsBefore=_contactCrewGroup getVariable ["WAIT_Danger_EngineStats",createHashMap];
+private _contactStatsBefore=_contactCrewGroup getVariable ["CBE_Danger_EngineStats",createHashMap];
 private _contactRecyclesBefore=_contactStatsBefore getOrDefault ["recycles",0];
 private _mountedDomainSeen=false;
 private _mountedDomainEvidence=[];
 private _mountedPersistent=[{
-    private _assessment=_contactCrewGroup getVariable ["WAIT_Danger_LastAssessment",[]];
-    private _action=_contactCrewGroup getVariable ["WAIT_Danger_Action",[]];
-    private _vehicleContext=_contactCrewGroup getVariable ["WAIT_Danger_VehicleContext",[]];
+    private _assessment=_contactCrewGroup getVariable ["CBE_Danger_LastAssessment",[]];
+    private _action=_contactCrewGroup getVariable ["CBE_Danger_Action",[]];
+    private _vehicleContext=_contactCrewGroup getVariable ["CBE_Danger_VehicleContext",[]];
     if (count _assessment >= 7 && {(_assessment select 5) == effectiveCommander _contactVehicle}
         && {_action param [0,""] == "VEHICLE"} && {count _vehicleContext == 8}
         && {(_vehicleContext select 0) == "ARMOURED"} && {(_vehicleContext select 1) == _contactVehicle}) then {
         _mountedDomainSeen=true;
         _mountedDomainEvidence=[+_assessment,+_action,+_vehicleContext];
     };
-    private _stats=_contactCrewGroup getVariable ["WAIT_Danger_EngineStats",createHashMap];
+    private _stats=_contactCrewGroup getVariable ["CBE_Danger_EngineStats",createHashMap];
     private _actors=_stats getOrDefault ["vehicleRecycleActors",[]];
     private _commander=effectiveCommander _contactVehicle;
     private _commanderId=if (isNull _commander) then {""} else {netId _commander};
@@ -433,43 +435,43 @@ private _mountedPersistent=[{
 ["DANGER-VEHICLE-mixed-observer-domain",_contactReady && {_mountedDomainSeen},
     str [_mountedDomainEvidence,leader _contactCrewGroup,effectiveCommander _contactVehicle]] call _check;
 ["DANGER-VEHICLE-effective-commander-persistence",_contactReady && {_mountedPersistent},
-    str [_contactCrewGroup getVariable ["WAIT_Danger_EngineStats",createHashMap],effectiveCommander _contactVehicle]] call _check;
+    str [_contactCrewGroup getVariable ["CBE_Danger_EngineStats",createHashMap],effectiveCommander _contactVehicle]] call _check;
 // Enable only the existing vehicle combat layer after proving FSM persistence. The same naturally
 // known hostile must now cross the validated danger handoff, enter CONTACT and produce real fire.
 // The opponent is allowed to engage natively so a fresh engine danger generation also proves the
 // exact platform's finite orient/suppress response. The audit never reveals, assigns a target,
 // issues a fire command or injects a group danger record.
-[createHashMapFromArray [["WAIT_AIPass_VehicleGunnery_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_VehicleGunnery_Enable",true]]] call CBE_fnc_CortexTuning;
 _contactEnemyGroup setCombatMode "RED";
 _contactEnemyGroup setBehaviourStrong "COMBAT";
 private _mountedCombat=[{
-    (_contactCrewGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "CONTACT"
-        && {(_contactVehicle getVariable ["WAIT_CortexQA_DangerShots",0]) > 0}
+    (_contactCrewGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "CONTACT"
+        && {(_contactVehicle getVariable ["CBE_CortexQA_DangerShots",0]) > 0}
         && {(crew _contactVehicle) findIf {
-            (_x getVariable ["WAIT_AIPass_VehicleTarget",objNull]) == _contactEnemy
+            (_x getVariable ["CBE_AIPass_VehicleTarget",objNull]) == _contactEnemy
         } >= 0}
 },30] call _wait;
 ["DANGER-VEHICLE-confirmed-contact-enters-combat",_mountedCombat,
-    str [_contactCrewGroup getVariable ["WAIT_AIPass_PublicPhase",""],_contactVehicle getVariable ["WAIT_CortexQA_DangerShots",0],
-        _contactCrew apply {[_x,_x getVariable ["WAIT_AIPass_VehicleTarget",objNull],assignedTarget _x]}]] call _check;
-private _vehicleReaction=_contactVehicle getVariable ["WAIT_Danger_VehicleReaction",[]];
+    str [_contactCrewGroup getVariable ["CBE_AIPass_PublicPhase",""],_contactVehicle getVariable ["CBE_CortexQA_DangerShots",0],
+        _contactCrew apply {[_x,_x getVariable ["CBE_AIPass_VehicleTarget",objNull],assignedTarget _x]}]] call _check;
+private _vehicleReaction=_contactVehicle getVariable ["CBE_Danger_VehicleReaction",[]];
 ["DANGER-VEHICLE-known-hostile-finite-reaction",count _vehicleReaction == 4
         && {(_vehicleReaction select 1) == gunner _contactVehicle}
         && {(_vehicleReaction select 2) == _contactEnemy},
-    str [_vehicleReaction,_contactCrewGroup getVariable ["WAIT_Danger_Generation",-1],
-        _contactCrewGroup getVariable ["WAIT_Danger_Action",[]]]] call _check;
+    str [_vehicleReaction,_contactCrewGroup getVariable ["CBE_Danger_Generation",-1],
+        _contactCrewGroup getVariable ["CBE_Danger_Action",[]]]] call _check;
 // A real explosive stimulus must permit one defensive smoke request without replacing the route or
 // gunner response. The Fired event proves physical launcher use; the generation record proves that
 // repeated danger ticks did not manufacture a persistent countermeasure worker.
 [_contactVehicle modelToWorld [6,0,0]] call _spawnRealGrenade;
 private _dangerCountermeasure=[{
-    (_contactVehicle getVariable ["WAIT_CortexQA_DangerCountermeasures",0]) > 0
-        && {count (_contactVehicle getVariable ["WAIT_Danger_VehicleCountermeasure",[]]) == 5}
+    (_contactVehicle getVariable ["CBE_CortexQA_DangerCountermeasures",0]) > 0
+        && {count (_contactVehicle getVariable ["CBE_Danger_VehicleCountermeasure",[]]) == 5}
 },20] call _wait;
 ["DANGER-VEHICLE-finite-countermeasure",_dangerCountermeasure,
-    str [_contactVehicle getVariable ["WAIT_CortexQA_DangerCountermeasures",0],
-        _contactVehicle getVariable ["WAIT_Danger_VehicleCountermeasure",[]],
-        _contactCrewGroup getVariable ["WAIT_Danger_Generation",-1]]] call _check;
+    str [_contactVehicle getVariable ["CBE_CortexQA_DangerCountermeasures",0],
+        _contactVehicle getVariable ["CBE_Danger_VehicleCountermeasure",[]],
+        _contactCrewGroup getVariable ["CBE_Danger_Generation",-1]]] call _check;
 // A fresh detected contact after losing the primary gunner must recover the weapon with an existing
 // dedicated commander. This uses the engine's internal seat-change action: the audit neither moves a
 // crew member into a seat nor injects a danger record. The driver and current route remain untouched.
@@ -495,22 +497,22 @@ private _recoveryEnemy=_contactEnemyGroup createUnit ["B_Soldier_F",_contactVehi
 _recoveryEnemy allowDamage false;
 _recoveryEnemy disableAI "PATH";
 _recoveryEnemy setDir (_recoveryEnemy getDir _contactVehicle);
-_recoveryEnemy setVariable ["WAIT_CortexQA_Label","FRESH CREW-RECOVERY CONTACT",true];
+_recoveryEnemy setVariable ["CBE_CortexQA_Label","FRESH CREW-RECOVERY CONTACT",true];
 private _gunnerRecovered=[{
-    private _crewState=_contactCrewGroup getVariable ["WAIT_AIPass_State",createHashMap];
+    private _crewState=_contactCrewGroup getVariable ["CBE_AIPass_State",createHashMap];
     private _recovery=_crewState getOrDefault ["vehicleDangerCrewRecovery",[]];
     count _recovery == 4 && {_recovery param [2,false,[true]]}
         && {gunner _contactVehicle == _recoveryCommander}
 },30] call _wait;
 ["DANGER-VEHICLE-gunner-loss-recovered",_recoveryPrerequisite && {_gunnerRecovered},
     str [_recoveryCommander,gunner _contactVehicle,
-        (_contactCrewGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["vehicleDangerCrewRecovery",[]],
-        _contactVehicle getVariable ["WAIT_Danger_CrewRecovery",[]]]] call _check;
+        (_contactCrewGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["vehicleDangerCrewRecovery",[]],
+        _contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]]]] call _check;
 ["DANGER-VEHICLE-driver-role-preserved",_recoveryPrerequisite
         && {alive _recoveryDriver} && {driver _contactVehicle == _recoveryDriver},
     str [_recoveryDriver,driver _contactVehicle,assignedVehicleRole _recoveryDriver]] call _check;
 _contactFootLeader removeEventHandler ["FiredMan",_contactThrowHandler];
-_contactCrewGroup setVariable ["WAIT_CortexQA_ThrowContact",nil];
+_contactCrewGroup setVariable ["CBE_CortexQA_ThrowContact",nil];
 _contactVehicle removeEventHandler ["Fired",_contactFiredHandler];
 {deleteVehicle _x} forEach (_contactCrew+[_contactFootLeader,_contactEnemy,_recoveryEnemy,_contactVehicle]);
 deleteGroup _contactEnemyGroup;
@@ -520,8 +522,8 @@ deleteGroup _contactCrewGroup;
 _x params ["_separate","_freshEnabled",["_nativeBaseline",false],["_stationary",false],["_replacementOrder",false],["_passengerCount",2]];
 private _layout = ["shared crew/passenger group","separate passenger squad"] select _separate;
 private _check = {params ["_id","_passed",["_detail",""]]; [(["","LARGE-"] select (_passengerCount > 2))+(["","REPLACEMENT-"] select _replacementOrder)+(["","STATIONARY-"] select _stationary)+(["","NATIVE-"] select _nativeBaseline)+(["","FRESH-"] select _freshEnabled)+(["","SEPARATE-"] select _separate)+_id,_passed,_detail] call _recordVehicleCheck};
-[createHashMapFromArray [["WAIT_AIPass_Enable",!_nativeBaseline],["WAIT_AIPass_VehicleDismount_Enable",false],
-    ["WAIT_AIPass_VehicleRemount_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",!_nativeBaseline],["CBE_AIPass_VehicleDismount_Enable",false],
+    ["CBE_AIPass_VehicleRemount_Enable",true]]] call CBE_fnc_CortexTuning;
 private _truck=createVehicle ["O_Truck_03_transport_F",[1900,1100,0],[],0,"NONE"];
 createVehicleCrew _truck;
 // Additive safe-stop comparison; keep the original unrestricted fixtures intact.
@@ -541,7 +543,7 @@ private _seatCapacity=_truck emptyPositions "cargo";
 for "_i" from 0 to (_passengerCount-1) do {
     private _unit=_passengerGroup createUnit ["O_Soldier_F",[1900+_i*3,1090,0],[],0,"NONE"];
     _unit setVariable ["acex_headless_blacklist",true,true];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["%1 | PASSENGER %2",_layout,_i+1],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["%1 | PASSENGER %2",_layout,_i+1],true];
     _unit allowDamage false;
     _unit assignAsCargo _truck; [_unit] orderGetIn true; _unit moveInCargo _truck;
     _passengers pushBack _unit;
@@ -550,43 +552,43 @@ private _crew=[driver _truck];
 _truck addEventHandler ["GetOut",{
     params ["_vehicle","_role","_unit","_turret"];
     private _group=group _unit;
-    private _state=_group getVariable ["WAIT_AIPass_State",createHashMap];
+    private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
     private _records=_state getOrDefault ["dismounted",[]];
     private _issued=_records findIf {(_x select 0) == _unit && {(_x select 1) == _vehicle}} >= 0;
     if (!isNull _unit && {alive _unit} && {_role == "cargo" || {_role == "turret"}}) then {
-        _unit setVariable ["WAIT_CortexQA_PhysicalExit",[_vehicle,abs speed _vehicle,_issued,serverTime]];
+        _unit setVariable ["CBE_CortexQA_PhysicalExit",[_vehicle,abs speed _vehicle,_issued,serverTime]];
     };
-    diag_log format ["WAIT CORTEX QA PASSENGER EXIT|unit=%1 role=%2 turret=%3 group=%4 phase=%5 cortexIssued=%6 dismountEnabled=%7 speed=%8 command=%9 assigned=%10",
+    diag_log format ["CBE CORTEX QA PASSENGER EXIT|unit=%1 role=%2 turret=%3 group=%4 phase=%5 cortexIssued=%6 dismountEnabled=%7 speed=%8 command=%9 assigned=%10",
         netId _unit,_role,_turret,_group,_state getOrDefault ["phase",""],_issued,
-        [_group,"WAIT_AIPass_VehicleDismount_Enable",true] call WAIT_fnc_CortexFeatureEnabled,
+        [_group,"CBE_AIPass_VehicleDismount_Enable",true] call CBE_fnc_CortexFeatureEnabled,
         speed _vehicle,currentCommand _unit,assignedVehicle _unit];
-    _unit setVariable ["WAIT_CortexQA_Label",format ["EXIT | %1 | Cortex order %2 | %3",_role,_issued,_state getOrDefault ["phase",""]],true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["EXIT | %1 | Cortex order %2 | %3",_role,_issued,_state getOrDefault ["phase",""]],true];
 }];
 // Independent enabled runs start occupied before introducing contact. The original
 // disabled-to-enabled sequence remains intact to expose unexpected native exits.
 private _enabledStartedMounted=_passengers findIf {!alive _x || {vehicle _x != _truck}} < 0;
 if (_freshEnabled) then {
-    [createHashMapFromArray [["WAIT_AIPass_VehicleDismount_Enable",true]]] call WAIT_fnc_CortexTuning;
+    [createHashMapFromArray [["CBE_AIPass_VehicleDismount_Enable",true]]] call CBE_fnc_CortexTuning;
 };
 // Establish controller readiness before exposing the fresh fixture to enemies.
 // No feature-state injection: wait for ordinary discovery to adopt both groups.
 if (!_nativeBaseline) then {
     private _ready=[{
-        missionNamespace getVariable ["WAIT_AIPass_Active",false]
-            && {_group getVariable ["WAIT_AIPass_Managed",false]}
-            && {_passengerGroup getVariable ["WAIT_AIPass_Managed",false]}
+        missionNamespace getVariable ["CBE_AIPass_Active",false]
+            && {_group getVariable ["CBE_AIPass_Managed",false]}
+            && {_passengerGroup getVariable ["CBE_AIPass_Managed",false]}
     },30] call _wait;
     ["DISMOUNT-fixture-controller-ready",_ready,"Both crew and passenger jobs must be adopted before contact"] call _check;
 };
 private _enemyGroup=createGroup [west,true]; [_enemyGroup] call _pin;
-_enemyGroup setVariable ["WAIT_AIPass_Exclude",true,true]; _enemyGroup setCombatMode "BLUE";
+_enemyGroup setVariable ["CBE_AIPass_Exclude",true,true]; _enemyGroup setCombatMode "BLUE";
 private _enemy=_enemyGroup createUnit ["B_Soldier_F",[1900,1220,0],[],0,"NONE"];
 _enemy setVariable ["acex_headless_blacklist",true,true]; _enemy allowDamage false; _enemy disableAI "PATH";
 // Rear-facing cargo must have a real visible threat too; do not inject shared knowledge.
 private _rearEnemy = _enemyGroup createUnit ["B_Soldier_F",[1900,980,0],[],0,"NONE"];
 _rearEnemy setVariable ["acex_headless_blacklist",true,true]; _rearEnemy allowDamage false; _rearEnemy disableAI "PATH";
 private _opponents = [_enemy,_rearEnemy];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_passengers+_crew+_opponents,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_passengers+_crew+_opponents,true];
 [(["","Native AI baseline: "] select _nativeBaseline)+(["Vehicle dismount disabled: ","Fresh enabled dismount: "] select _freshEnabled)+_layout,(["Observe native seat retention while Cortex dismount is disabled; any engine exit must remain unattributed to Cortex.","A fresh occupied truck tests enabled contact dismount independently of earlier retention observations."] select _freshEnabled)+" Visible opponents are ahead and behind for driver and cargo sightlines.",[1900,1100,0]] call _phase;
 private _passengerSamples=[];
 private _nextPassengerSample=0;
@@ -598,38 +600,38 @@ private _contactSeen=[{
     if (diag_tickTime >= _nextPassengerSample && {count _passengerSamples < 20}) then {
         _nextPassengerSample=diag_tickTime+2;
         _passengerSamples pushBack [serverTime,speed _truck,
-            _passengers apply {[netId _x,vehicle _x == _truck,currentCommand _x,[_x,_truck] call WAIT_fnc_CortexPassengerReady]},
-            [_group,_passengerGroup] apply {private _sampleGroup=_x; [_sampleGroup,(_sampleGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["phase",""],(_opponents apply {leader _sampleGroup knowsAbout _x})]}];
+            _passengers apply {[netId _x,vehicle _x == _truck,currentCommand _x,[_x,_truck] call CBE_fnc_CortexPassengerReady]},
+            [_group,_passengerGroup] apply {private _sampleGroup=_x; [_sampleGroup,(_sampleGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["phase",""],(_opponents apply {leader _sampleGroup knowsAbout _x})]}];
     };
 private _crewSees=(_opponents findIf {(_crew select 0) knowsAbout _x > 1}) >= 0;
 private _passengersSee=(_opponents findIf {leader _passengerGroup knowsAbout _x > 1}) >= 0;
 // Separate cargo relies on the crew report; its own target detection is observation only.
 _crewSees},30] call _wait;
-{diag_log format ["WAIT CORTEX QA PASSENGER SAMPLE %1 [time,speed,occupants,groupKnowledge]: %2",_forEachIndex,_x]} forEach _passengerSamples;
+{diag_log format ["CBE CORTEX QA PASSENGER SAMPLE %1 [time,speed,occupants,groupKnowledge]: %2",_forEachIndex,_x]} forEach _passengerSamples;
 ["DISMOUNT-fixture-natural-contact",_contactSeen,["Shared occupants must naturally detect an opponent","The crew must naturally detect an opponent; the separate passenger squad intentionally relies on the bounded crew report"] select _separate] call _check;
 ["DISMOUNT-driver-detected-contact",_driverDetected,"Measured separately: a crew report cannot originate without crew detection"] call _check;
-diag_log format ["WAIT CORTEX QA ONBOARD CONTACT: separate=%1 native=%2 driverDetected=%3 passengersDetected=%4 crewReport=%5",
-    _separate,_nativeBaseline,_driverDetected,_passengersDetected,_truck getVariable ["WAIT_Cortex_OnboardReport",[]]];
+diag_log format ["CBE CORTEX QA ONBOARD CONTACT: separate=%1 native=%2 driverDetected=%3 passengersDetected=%4 crewReport=%5",
+    _separate,_nativeBaseline,_driverDetected,_passengersDetected,_truck getVariable ["CBE_Cortex_OnboardReport",[]]];
 if (!_freshEnabled) then {
     sleep 15;
-    private _disabledRecords=([_passengerGroup] call WAIT_fnc_CortexGroupState) getOrDefault ["dismounted",[]];
+    private _disabledRecords=([_passengerGroup] call CBE_fnc_CortexGroupState) getOrDefault ["dismounted",[]];
     ["DISMOUNT-disabled-no-controller-order",_disabledRecords isEqualTo [],format ["mounted=%1; native Arma may independently order a shared crew/passenger group out",_passengers findIf {vehicle _x != _truck} < 0]] call _check;
     _enabledStartedMounted=_passengers findIf {!alive _x || {vehicle _x != _truck}} < 0;
 };
 if (_nativeBaseline) then {
     // Preserve the real engine-only retention result. Do not force occupants back in
     // or run enabled transitions on this fixture; compare with the Cortex cases.
-    diag_log format ["WAIT CORTEX QA NATIVE PASSENGERS|separate=%1 occupants=%2",_separate,_passengers apply {[netId _x,vehicle _x,currentCommand _x]}];
+    diag_log format ["CBE CORTEX QA NATIVE PASSENGERS|separate=%1 occupants=%2",_separate,_passengers apply {[netId _x,vehicle _x,currentCommand _x]}];
 } else {
 if (!_enabledStartedMounted) then {
     // This legacy disabled-to-enabled comparison remains additive, but a native exit has already
     // consumed its precondition. Do not mislabel that engine action as a Cortex failure; the fresh
     // enabled fixtures below remain the authoritative transition cases.
-    private _unowned=([_passengerGroup] call WAIT_fnc_CortexGroupState) getOrDefault ["dismounted",[]];
+    private _unowned=([_passengerGroup] call CBE_fnc_CortexGroupState) getOrDefault ["dismounted",[]];
     ["DISMOUNT-native-exit-not-misattributed",_unowned isEqualTo [],"Enabled transition skipped because occupants had already left under native control"] call _check;
 } else {
 ["DISMOUNT-enabled-starts-mounted",_enabledStartedMounted,"Passengers already outside cannot prove an enabled dismount transition"] call _check;
-[createHashMapFromArray [["WAIT_AIPass_VehicleDismount_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_VehicleDismount_Enable",true]]] call CBE_fnc_CortexTuning;
 ["Vehicle contact dismount: "+_layout,"Both passengers must physically exit after the feature is enabled. The driver must remain in the truck.",[1900,1100,0]] call _phase;
 private _peakExitSpeed=0;
 private _safeStopObserved=false;
@@ -639,7 +641,7 @@ private _dismounted=[{
     // Require all living passengers physically on foot, rather than still inside the carrier.
     _passengers findIf {!alive _x || {vehicle _x != _x}} < 0
 },35] call _wait;
-private _exitEvidence=_passengers apply {_x getVariable ["WAIT_CortexQA_PhysicalExit",[]]};
+private _exitEvidence=_passengers apply {_x getVariable ["CBE_CortexQA_PhysicalExit",[]]};
 _safeStopObserved=_exitEvidence isNotEqualTo [] && {_exitEvidence findIf {
     count _x != 4 || {(_x select 0) != _truck} || {(_x select 1) >= 1}
 } < 0};
@@ -647,7 +649,7 @@ _safeStopObserved=_exitEvidence isNotEqualTo [] && {_exitEvidence findIf {
     format ["observedVehiclePeak=%1 stationaryRequested=%2 physicalExits=%3",_peakExitSpeed,_stationary,_exitEvidence]] call _check;
 if (_stationary) then {["DISMOUNT-fixture-stationary-held",_peakExitSpeed < 1,format ["peakSpeed=%1; movement invalidates the stationary comparison",_peakExitSpeed]] call _check};
 ["DISMOUNT-contact-physical-exit",_contactSeen && {_enabledStartedMounted} && {_dismounted},format ["startedMounted=%1 endedDismounted=%2",_enabledStartedMounted,_dismounted]] call _check;
-private _recorded=([_passengerGroup] call WAIT_fnc_CortexGroupState) getOrDefault ["dismounted",[]];
+private _recorded=([_passengerGroup] call CBE_fnc_CortexGroupState) getOrDefault ["dismounted",[]];
 private _ownedExit=_passengers findIf {private _unit=_x; _recorded findIf {(_x select 0) == _unit && {(_x select 1) == _truck}} < 0} < 0;
 ["DISMOUNT-controller-attribution-valid",_ownedExit || {!_separate},["A shared group may execute its native exit first; Cortex does not claim or remount an unowned exit","The separate passenger case must record every exit before issuing it"] select _separate] call _check;
 if (_separate) then {
@@ -657,7 +659,7 @@ if (_separate) then {
 ["DISMOUNT-driver-retained",vehicle (_crew select 0) == _truck] call _check;
 {deleteVehicle _x} forEach _opponents;
 if (!_ownedExit) then {
-    ["REMOUNT-unowned-native-exit-not-reclaimed",(_passengerGroup getVariable ["WAIT_Cortex_Remount",[]]) isEqualTo [],"Cortex must not overwrite an exit it did not initiate"] call _check;
+    ["REMOUNT-unowned-native-exit-not-reclaimed",(_passengerGroup getVariable ["CBE_Cortex_Remount",[]]) isEqualTo [],"Cortex must not overwrite an exit it did not initiate"] call _check;
 } else {
 if (_replacementOrder) then {
     private _replacement=createVehicle ["O_Truck_03_transport_F",_truck getPos [25,90],[],0,"NONE"];
@@ -684,10 +686,10 @@ if (_replacementOrder) then {
 ["Vehicle calm remount: "+_layout,"The enemy is removed. Once contact expires, both recorded passengers must physically board the same truck again. The test never moves them into seats.",[1900,1100,0]] call _phase;
 private _remounted=[{_passengers findIf {!alive _x || {vehicle _x != _truck}} < 0},100] call _wait;
 ["REMOUNT-physical-seat-occupancy",_enabledStartedMounted && {_dismounted} && {_remounted},
-    str ["previouslyDismounted",_dismounted,_passengerGroup getVariable ["WAIT_Cortex_Remount",[]],
-        (_passengerGroup getVariable ["WAIT_AIPass_State",createHashMap]) getOrDefault ["lastRemountEnd",[]],
+    str ["previouslyDismounted",_dismounted,_passengerGroup getVariable ["CBE_Cortex_Remount",[]],
+        (_passengerGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["lastRemountEnd",[]],
         [speed _truck,getForcedSpeed _truck,getPosATL _truck,owner _truck,groupOwner _passengerGroup,
-            _truck getVariable ["WAIT_Cortex_DismountStopRequest",[]]],
+            _truck getVariable ["CBE_Cortex_DismountStopRequest",[]]],
         _passengers apply {[vehicle _x,assignedVehicle _x,currentCommand _x,_x distance2D _truck]}]] call _check;
 ["REMOUNT-group-membership-independent",_passengers findIf {group _x != _passengerGroup} < 0
     && {group (_crew select 0) == _group} && {(_passengerGroup != _group) isEqualTo _separate},
@@ -705,22 +707,22 @@ private _remounted=[{_passengers findIf {!alive _x || {vehicle _x != _truck}} < 
 
 } forEach [[false,false,true],[true,false,true],[false,false],[true,false],[false,true],[true,true],[false,true,false,true],[true,true,false,true],[true,true,false,true,true],[true,true,false,false,false,12],[true,true,false,true,false,12]];
 
-[createHashMapFromArray [["WAIT_AIPass_VehicleDismount_Enable",false],["WAIT_AIPass_VehicleWithdraw_Enable",false]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_VehicleDismount_Enable",false],["CBE_AIPass_VehicleWithdraw_Enable",false]]] call CBE_fnc_CortexTuning;
 private _armour=createVehicle ["O_APC_Tracked_02_cannon_F",[1900,1100,0],[],0,"NONE"];
 createVehicleCrew _armour;
 private _group=group driver _armour; [_group] call _pin;
 _group setCombatMode "BLUE";
 private _crew=crew _armour;
-{_x allowDamage false; _x setVariable ["WAIT_CortexQA_Label","WITHDRAWING CREW",true]} forEach _crew;
+{_x allowDamage false; _x setVariable ["CBE_CortexQA_Label","WITHDRAWING CREW",true]} forEach _crew;
 private _enemyGroup=createGroup [west,true]; [_enemyGroup] call _pin;
-_enemyGroup setVariable ["WAIT_AIPass_Exclude",true,true]; _enemyGroup setCombatMode "BLUE";
+_enemyGroup setVariable ["CBE_AIPass_Exclude",true,true]; _enemyGroup setCombatMode "BLUE";
 private _enemy=_enemyGroup createUnit ["B_Soldier_F",[1900,1250,0],[],0,"NONE"];
 _enemy setVariable ["acex_headless_blacklist",true,true]; _enemy allowDamage false; _enemy disableAI "PATH";
 // Compare independent engine/config views before attributing an empty inventory to the controller.
-diag_log format ["WAIT CORTEX QA ARMOUR IDENTITY: class=%1 config=%2 simulation=%3 simple=%4 crew=%5 allTurrets=%6 fullCrew=%7 magazines=%8",
+diag_log format ["CBE CORTEX QA ARMOUR IDENTITY: class=%1 config=%2 simulation=%3 simple=%4 crew=%5 allTurrets=%6 fullCrew=%7 magazines=%8",
     typeOf _armour,configName (configOf _armour),simulationEnabled _armour,isSimpleObject _armour,
     crew _armour,allTurrets _armour,fullCrew [_armour,"",true],magazinesAllTurrets _armour];
-diag_log format ["WAIT CORTEX QA ARMOUR CONFIG TURRETS: %1",("true" configClasses (configOf _armour >> "Turrets")) apply {
+diag_log format ["CBE CORTEX QA ARMOUR CONFIG TURRETS: %1",("true" configClasses (configOf _armour >> "Turrets")) apply {
     [configName _x,getArray (_x >> "weapons"),getArray (_x >> "magazines")]
 }];
 private _smokeReady=[{
@@ -731,16 +733,16 @@ private _smokeReady=[{
     } >= 0
 },10] call _wait;
 ["WITHDRAW-smoke-inventory-prerequisite",_smokeReady,format ["class=%1 owner=%2 turrets=%3",typeOf _armour,owner _armour,allTurrets [_armour,true]]] call _check;
-diag_log format ["WAIT CORTEX QA COUNTERMEASURE CONFIG: %1",([[-1]]+allTurrets [_armour,true]) apply {
+diag_log format ["CBE CORTEX QA COUNTERMEASURE CONFIG: %1",([[-1]]+allTurrets [_armour,true]) apply {
     private _turret=_x;
     [_turret,(_armour weaponsTurret _turret) apply {[_x,getText (configFile >> "CfgWeapons" >> _x >> "simulation")]},_armour magazinesTurret _turret]
 }];
 _armour addEventHandler ["Fired",{
     params ["_vehicle","_weapon","_muzzle","_mode","_ammo","_magazine"];
-    diag_log format ["WAIT CORTEX QA VEHICLE FIRED: weapon=%1 muzzle=%2 ammo=%3 magazine=%4",_weapon,_muzzle,_ammo,_magazine];
-    if (toLowerANSI getText (configFile >> "CfgWeapons" >> _weapon >> "simulation") == "cmlauncher") then {_vehicle setVariable ["WAIT_CortexQA_SmokeShots",(_vehicle getVariable ["WAIT_CortexQA_SmokeShots",0])+1,true]};
+    diag_log format ["CBE CORTEX QA VEHICLE FIRED: weapon=%1 muzzle=%2 ammo=%3 magazine=%4",_weapon,_muzzle,_ammo,_magazine];
+    if (toLowerANSI getText (configFile >> "CfgWeapons" >> _weapon >> "simulation") == "cmlauncher") then {_vehicle setVariable ["CBE_CortexQA_SmokeShots",(_vehicle getVariable ["CBE_CortexQA_SmokeShots",0])+1,true]};
 }];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",_crew+[_enemy],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_crew+[_enemy],true];
 private _origin=getPosATL _armour;
 _armour setDamage 0.55;
 ["WITHDRAW-mobile-damaged-fixture",alive _armour && {canMove _armour} && {damage _armour >= 0.5}] call _check;
@@ -755,17 +757,17 @@ for "_sample" from 1 to 15 do {
     if (_crew findIf {!alive _x || {vehicle _x != _armour}} >= 0) then {_disabledCrewRetained=false};
 };
 ["WITHDRAW-disabled-holds",_withdrawContact && {_disabledTravel <= 5} && {_disabledCrewRetained},str _disabledTravel] call _check;
-["WITHDRAW-disabled-no-smoke",(_armour getVariable ["WAIT_CortexQA_SmokeShots",0]) == 0] call _check;
+["WITHDRAW-disabled-no-smoke",(_armour getVariable ["CBE_CortexQA_SmokeShots",0]) == 0] call _check;
 _origin=getPosATL _armour;
 private _savedReverseLimits=createHashMapFromArray [
-    ["WAIT_AIPass_VehicleReverse_Enable",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Enable",true]],
-    ["WAIT_AIPass_VehicleReverse_Distance",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Distance",30]],
-    ["WAIT_AIPass_VehicleReverse_Timeout",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Timeout",20]],
-    ["WAIT_AIPass_VehicleReverse_FacingTolerance",missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_FacingTolerance",35]]
+    ["CBE_AIPass_VehicleReverse_Enable",missionNamespace getVariable ["CBE_AIPass_VehicleReverse_Enable",true]],
+    ["CBE_AIPass_VehicleReverse_Distance",missionNamespace getVariable ["CBE_AIPass_VehicleReverse_Distance",30]],
+    ["CBE_AIPass_VehicleReverse_Timeout",missionNamespace getVariable ["CBE_AIPass_VehicleReverse_Timeout",20]],
+    ["CBE_AIPass_VehicleReverse_FacingTolerance",missionNamespace getVariable ["CBE_AIPass_VehicleReverse_FacingTolerance",35]]
 ];
-[createHashMapFromArray [["WAIT_AIPass_VehicleWithdraw_Enable",true],
-    ["WAIT_AIPass_VehicleReverse_Enable",true],["WAIT_AIPass_VehicleReverse_Distance",20],
-    ["WAIT_AIPass_VehicleReverse_Timeout",25],["WAIT_AIPass_VehicleReverse_FacingTolerance",30]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_VehicleWithdraw_Enable",true],
+    ["CBE_AIPass_VehicleReverse_Enable",true],["CBE_AIPass_VehicleReverse_Distance",20],
+    ["CBE_AIPass_VehicleReverse_Timeout",25],["CBE_AIPass_VehicleReverse_FacingTolerance",30]]] call CBE_fnc_CortexTuning;
 ["Damaged armour withdrawal","Withdrawal is now enabled on the same APC. It must fire actual defensive smoke and drive at least 40 m away from the visible threat, retaining all operating crew.",[1900,1100,0]] call _phase;
 private _reversePhysical=false;
 private _reverseFacing=false;
@@ -774,16 +776,16 @@ private _reverseLimitsStable=true;
 private _reverseDeadline=-1;
 private _reverseEditSent=false;
 private _withdrawn=[{
-    private _reverse=_group getVariable ["WAIT_VehicleReverse",[]];
+    private _reverse=_group getVariable ["CBE_VehicleReverse",[]];
     if (count _reverse == 9 && {(_reverse select 0) == _armour}) then {
-        private _limits=(_group getVariable ["WAIT_Operation",createHashMap]) getOrDefault ["reverseLimits",[]];
+        private _limits=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["reverseLimits",[]];
         _reverseLimitsObserved=_reverseLimitsObserved || {_limits isEqualTo [20,25,30]};
         _reverseLimitsStable=_reverseLimitsStable && {_limits isEqualTo [20,25,30]};
         if (!_reverseEditSent) then {
             _reverseDeadline=_reverse select 5;
             _reverseEditSent=true;
-            [createHashMapFromArray [["WAIT_AIPass_VehicleReverse_Distance",50],
-                ["WAIT_AIPass_VehicleReverse_Timeout",5],["WAIT_AIPass_VehicleReverse_FacingTolerance",60]]] call WAIT_fnc_CortexTuning;
+            [createHashMapFromArray [["CBE_AIPass_VehicleReverse_Distance",50],
+                ["CBE_AIPass_VehicleReverse_Timeout",5],["CBE_AIPass_VehicleReverse_FacingTolerance",60]]] call CBE_fnc_CortexTuning;
         } else {
             _reverseLimitsStable=_reverseLimitsStable && {(_reverse select 5) == _reverseDeadline};
         };
@@ -799,37 +801,37 @@ private _withdrawn=[{
 },100] call _wait;
 ["WITHDRAW-tracked-captured-limits",_reverseLimitsObserved] call _check;
 ["WITHDRAW-tracked-next-operation-edit",_reverseEditSent && {_reverseLimitsStable}
-    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Distance",-1]) == 50}
-    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_Timeout",-1]) == 5}
-    && {(missionNamespace getVariable ["WAIT_AIPass_VehicleReverse_FacingTolerance",-1]) == 60}] call _check;
-[_savedReverseLimits] call WAIT_fnc_CortexTuning;
+    && {(missionNamespace getVariable ["CBE_AIPass_VehicleReverse_Distance",-1]) == 50}
+    && {(missionNamespace getVariable ["CBE_AIPass_VehicleReverse_Timeout",-1]) == 5}
+    && {(missionNamespace getVariable ["CBE_AIPass_VehicleReverse_FacingTolerance",-1]) == 60}] call _check;
+[_savedReverseLimits] call CBE_fnc_CortexTuning;
 ["WITHDRAW-tracked-physical-reverse",_withdrawContact && {_reversePhysical},str [getPosATL _armour,vehicleMoveInfo _armour,
-    _group getVariable ["WAIT_VehicleReverseEnd",[]],
-    _group getVariable ["WAIT_VehicleReverseFallback",[]],
-    _group getVariable ["WAIT_VehicleReverse",[]]]] call _check;
+    _group getVariable ["CBE_VehicleReverseEnd",[]],
+    _group getVariable ["CBE_VehicleReverseFallback",[]],
+    _group getVariable ["CBE_VehicleReverse",[]]]] call _check;
 ["WITHDRAW-tracked-threat-facing",_reversePhysical && {_reverseFacing},str [_armour getRelDir (getPosATL _enemy)]] call _check;
 ["WITHDRAW-physical-distance",_withdrawContact && {_withdrawn},str getPosATL _armour] call _check;
-["WITHDRAW-actual-smoke",(_armour getVariable ["WAIT_CortexQA_SmokeShots",0]) > 0] call _check;
+["WITHDRAW-actual-smoke",(_armour getVariable ["CBE_CortexQA_SmokeShots",0]) > 0] call _check;
 ["WITHDRAW-crew-retained",_crew findIf {!alive _x || {vehicle _x != _armour}} < 0] call _check;
 sleep 12;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach (_crew+[_enemy,_armour]); deleteGroup _group; deleteGroup _enemyGroup;
 
 // A separate fixture crosses the owner boundary while the production vehicle withdrawal is active.
 // Keeping it independent preserves the original disabled/enabled comparison and prevents a failed
 // migration precondition from consuming that result.
-private _hcOwners=(missionNamespace getVariable ["WAIT_Headless_Clients",[]]) apply {_x select 0};
-if (missionNamespace getVariable ["WAIT_CortexQA_HeadlessBatch",false]) then {
+private _hcOwners=(missionNamespace getVariable ["CBE_Headless_Clients",[]]) apply {_x select 0};
+if (missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
 ["WITHDRAW-MIGRATION-headless-prerequisite",_hcOwners isNotEqualTo [],str _hcOwners] call _check;
 } else {_hcOwners=[]};
 if (_hcOwners isNotEqualTo []) then {
     private _hcOwner=_hcOwners select 0;
     [createHashMapFromArray [
-        ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
-        ["WAIT_AIPass_Vehicles_Enable",true],["WAIT_AIPass_VehicleWithdraw_Enable",true],
-        ["WAIT_AIPass_VehicleDismount_Enable",false],["WAIT_AIPass_VehicleGunnery_Enable",false],
-        ["WAIT_AIPass_Morale_Enable",false],["WAIT_AIPass_PostContact_Enable",false]
-    ]] call WAIT_fnc_CortexTuning;
+        ["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",true],
+        ["CBE_AIPass_Vehicles_Enable",true],["CBE_AIPass_VehicleWithdraw_Enable",true],
+        ["CBE_AIPass_VehicleDismount_Enable",false],["CBE_AIPass_VehicleGunnery_Enable",false],
+        ["CBE_AIPass_Morale_Enable",false],["CBE_AIPass_PostContact_Enable",false]
+    ]] call CBE_fnc_CortexTuning;
     private _migrateArmour=createVehicle ["O_APC_Tracked_02_cannon_F",[2300,1100,0],[],0,"NONE"];
     createVehicleCrew _migrateArmour;
     private _migrateGroup=group driver _migrateArmour;
@@ -838,19 +840,19 @@ if (_hcOwners isNotEqualTo []) then {
     private _migrateCrew=crew _migrateArmour;
     {
         _x allowDamage false;
-        _x setVariable ["WAIT_CortexQA_Label",format ["VEHICLE WITHDRAW HANDOFF %1",_forEachIndex+1],true];
+        _x setVariable ["CBE_CortexQA_Label",format ["VEHICLE WITHDRAW HANDOFF %1",_forEachIndex+1],true];
     } forEach _migrateCrew;
     private _migrateEnemyGroup=createGroup [west,true];
     [_migrateEnemyGroup] call _pin;
-    _migrateEnemyGroup setVariable ["WAIT_AIPass_Exclude",true,true];
+    _migrateEnemyGroup setVariable ["CBE_AIPass_Exclude",true,true];
     _migrateEnemyGroup setCombatMode "BLUE";
     private _migrateEnemy=_migrateEnemyGroup createUnit ["B_Soldier_LAT_F",[2300,1260,0],[],0,"NONE"];
     _migrateEnemy allowDamage false;
     _migrateEnemy disableAI "PATH";
     _migrateEnemy setVariable ["acex_headless_blacklist",true,true];
-    _migrateEnemy setVariable ["WAIT_CortexQA_Label","WITHDRAW HANDOFF THREAT",true];
+    _migrateEnemy setVariable ["CBE_CortexQA_Label","WITHDRAW HANDOFF THREAT",true];
     _migrateArmour setDamage 0.55;
-    _migrateArmour setVariable ["WAIT_CortexQA_SmokeShots",0,true];
+    _migrateArmour setVariable ["CBE_CortexQA_SmokeShots",0,true];
     private _countermeasureAmmo={
         params ["_vehicle"];
         private _total=0;
@@ -866,34 +868,34 @@ if (_hcOwners isNotEqualTo []) then {
     _migrateArmour addEventHandler ["Fired",{
         params ["_vehicle","_weapon","_muzzle","_mode","_ammo","_magazine"];
         if (toLowerANSI getText (configFile >> "CfgWeapons" >> _weapon >> "simulation") == "cmlauncher") then {
-            _vehicle setVariable ["WAIT_CortexQA_SmokeShots",(_vehicle getVariable ["WAIT_CortexQA_SmokeShots",0])+1,true];
+            _vehicle setVariable ["CBE_CortexQA_SmokeShots",(_vehicle getVariable ["CBE_CortexQA_SmokeShots",0])+1,true];
         };
     }];
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",_migrateCrew+[_migrateEnemy],true];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",_migrateCrew+[_migrateEnemy],true];
     private _migrationOrigin=getPosATL _migrateArmour;
     ["Vehicle withdrawal: active owner handoff","The damaged APC must naturally detect the visible AT threat, start a real withdrawal on the server, then continue under a headless owner without replaying its initial smoke screen. Crew must remain aboard.",_migrationOrigin getPos [120,180]] call _phase;
     private _migrationContact=[{driver _migrateArmour knowsAbout _migrateEnemy > 1},35] call _wait;
     ["WITHDRAW-MIGRATION-natural-contact",_migrationContact,str (driver _migrateArmour knowsAbout _migrateEnemy)] call _check;
     private _migrationStarted=[{
-        (_migrateGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "RETREAT"
-            && {private _intent=_migrateGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]; count _intent == 7 && {(_intent select 0) == "VEHICLE"}}
+        (_migrateGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "RETREAT"
+            && {private _intent=_migrateGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]; count _intent == 7 && {(_intent select 0) == "VEHICLE"}}
             && {_migrateArmour distance2D _migrationOrigin >= 8}
     },45] call _wait;
-    diag_log format ["WAIT WITHDRAW REVERSE END TRACE: %1",[
-        _migrateGroup getVariable ["WAIT_VehicleReverseEnd",[]],
-        _migrateGroup getVariable ["WAIT_VehicleReverseFallback",[]],
-        _migrateGroup getVariable ["WAIT_Cortex_GroupMoveIntent",createHashMap],
+    diag_log format ["CBE WITHDRAW REVERSE END TRACE: %1",[
+        _migrateGroup getVariable ["CBE_VehicleReverseEnd",[]],
+        _migrateGroup getVariable ["CBE_VehicleReverseFallback",[]],
+        _migrateGroup getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap],
         currentCommand driver _migrateArmour,vehicleMoveInfo _migrateArmour]];
-    ["WITHDRAW-MIGRATION-production-start",_migrationContact && {_migrationStarted},str [_migrateGroup getVariable ["WAIT_AIPass_PublicPhase",""],_migrateGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]],getPosATL _migrateArmour]] call _check;
-    private _initialSmoke=[{(_migrateArmour getVariable ["WAIT_CortexQA_SmokeShots",0]) > 0},12] call _wait;
-    ["WITHDRAW-MIGRATION-initial-smoke",_initialSmoke,str (_migrateArmour getVariable ["WAIT_CortexQA_SmokeShots",0])] call _check;
+    ["WITHDRAW-MIGRATION-production-start",_migrationContact && {_migrationStarted},str [_migrateGroup getVariable ["CBE_AIPass_PublicPhase",""],_migrateGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]],getPosATL _migrateArmour]] call _check;
+    private _initialSmoke=[{(_migrateArmour getVariable ["CBE_CortexQA_SmokeShots",0]) > 0},12] call _wait;
+    ["WITHDRAW-MIGRATION-initial-smoke",_initialSmoke,str (_migrateArmour getVariable ["CBE_CortexQA_SmokeShots",0])] call _check;
     // Let the owner's initial launcher burst finish before taking the ammunition baseline. A Fired
     // handler installed on the old owner cannot observe a later HC-local replay, while live magazine
     // depletion remains authoritative across locality and therefore catches one.
     sleep 5;
-    private _smokeBefore=_migrateArmour getVariable ["WAIT_CortexQA_SmokeShots",0];
+    private _smokeBefore=_migrateArmour getVariable ["CBE_CortexQA_SmokeShots",0];
     private _countermeasureAmmoBefore=[_migrateArmour] call _countermeasureAmmo;
-    private _intentBefore=+(_migrateGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]);
+    private _intentBefore=+(_migrateGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]);
     private _startedAt=_intentBefore param [4,-1];
     private _ownerBefore=groupOwner _migrateGroup;
     // Automatic balancing may have adopted this group already. Test an actual boundary,
@@ -905,18 +907,18 @@ if (_hcOwners isNotEqualTo []) then {
         str [_ownerBefore,_hcOwner,owner _migrateArmour]] call _check;
     private _handoffPosition=getPosATL _migrateArmour;
     private _handoffThreatDistance=_migrateArmour distance2D _migrateEnemy;
-    _migrateGroup setVariable ["WAIT_Headless_ExcludeGroup",false,true];
+    _migrateGroup setVariable ["CBE_Headless_ExcludeGroup",false,true];
     {_x setVariable ["acex_headless_blacklist",false,true]} forEach _migrateCrew;
-    private _migrationRequested=[_migrateGroup,_hcOwner] call WAIT_fnc_HeadlessMigrateGroup;
+    private _migrationRequested=[_migrateGroup,_hcOwner] call CBE_fnc_HeadlessMigrateGroup;
     private _migrationAdopted=[{
         groupOwner _migrateGroup == _hcOwner
             && {owner _migrateArmour == _hcOwner}
             && {_migrateCrew findIf {owner _x != _hcOwner} < 0}
-            && {(_migrateGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "RETREAT"}
-            && {private _entry=_migrateGroup getVariable ["WAIT_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "VEHICLE_OWNERSHIP_RESUME"} && {(_entry select 4) == _hcOwner}}
+            && {(_migrateGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "RETREAT"}
+            && {private _entry=_migrateGroup getVariable ["CBE_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "VEHICLE_OWNERSHIP_RESUME"} && {(_entry select 4) == _hcOwner}}
     },40] call _wait;
-    ["WITHDRAW-MIGRATION-owner-resume",_realOwnerBoundary && {_migrationRequested} && {_migrationAdopted},str [groupOwner _migrateGroup,owner _migrateArmour,_migrateCrew apply {owner _x},_migrateGroup getVariable ["WAIT_Cortex_PhaseTransition",[]]]] call _check;
-    private _intentAfter=+(_migrateGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]);
+    ["WITHDRAW-MIGRATION-owner-resume",_realOwnerBoundary && {_migrationRequested} && {_migrationAdopted},str [groupOwner _migrateGroup,owner _migrateArmour,_migrateCrew apply {owner _x},_migrateGroup getVariable ["CBE_Cortex_PhaseTransition",[]]]] call _check;
+    private _intentAfter=+(_migrateGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]);
     ["WITHDRAW-MIGRATION-start-preserved",_migrationAdopted && {count _intentAfter == 7}
         && {abs ((_intentAfter select 4)-_startedAt) < 0.25},str [_startedAt,_intentAfter]] call _check;
     private _continued=[{
@@ -926,18 +928,18 @@ if (_hcOwners isNotEqualTo []) then {
     ["WITHDRAW-MIGRATION-physical-continuation",_realOwnerBoundary && {_migrationAdopted} && {_continued},str [_handoffPosition,getPosATL _migrateArmour,_handoffThreatDistance,_migrateArmour distance2D _migrateEnemy]] call _check;
     sleep 6;
     private _countermeasureAmmoAfter=[_migrateArmour] call _countermeasureAmmo;
-    ["WITHDRAW-MIGRATION-no-smoke-replay",_initialSmoke && {_countermeasureAmmoAfter == _countermeasureAmmoBefore},str [_smokeBefore,_migrateArmour getVariable ["WAIT_CortexQA_SmokeShots",0],_countermeasureAmmoBefore,_countermeasureAmmoAfter]] call _check;
+    ["WITHDRAW-MIGRATION-no-smoke-replay",_initialSmoke && {_countermeasureAmmoAfter == _countermeasureAmmoBefore},str [_smokeBefore,_migrateArmour getVariable ["CBE_CortexQA_SmokeShots",0],_countermeasureAmmoBefore,_countermeasureAmmoAfter]] call _check;
     ["WITHDRAW-MIGRATION-crew-retained",_migrateCrew findIf {!alive _x || {vehicle _x != _migrateArmour}} < 0,str (_migrateCrew apply {vehicle _x})] call _check;
 
     ["Vehicle withdrawal: Zeus replacement","Zeus now replaces the resumed withdrawal. The APC must release RETREAT, drive to the new marker under the replacement waypoint and remain there without reviving the old withdrawal.",[2420,1100,0]] call _phase;
     // Direct takeover releases the old operation first. A waypoint event can only snapshot
-    // a waypoint which already exists; marking the old WAIT route is not a replacement order.
-    [_migrateGroup,false] call WAIT_fnc_CortexZeusMark;
+    // a waypoint which already exists; marking the old CBE route is not a replacement order.
+    [_migrateGroup,false] call CBE_fnc_CortexZeusMark;
     private _released=[{
-        (_migrateGroup getVariable ["WAIT_AIPass_PublicPhase",""]) == "CALM"
-            && {(_migrateGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]) isEqualTo []}
+        (_migrateGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "CALM"
+            && {(_migrateGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]) isEqualTo []}
     },25] call _wait;
-    ["WITHDRAW-MIGRATION-zeus-release",_released,str [_migrateGroup getVariable ["WAIT_AIPass_PublicPhase",""],_migrateGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]]] call _check;
+    ["WITHDRAW-MIGRATION-zeus-release",_released,str [_migrateGroup getVariable ["CBE_AIPass_PublicPhase",""],_migrateGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]]] call _check;
     private _replacement=[2420,1100,0];
     private _replacementWP=_migrateGroup addWaypoint [_replacement,0];
     _replacementWP setWaypointType "MOVE";
@@ -949,12 +951,12 @@ if (_hcOwners isNotEqualTo []) then {
     _replacementHold setWaypointType "HOLD";
     _replacementHold setWaypointCompletionRadius 8;
     _migrateGroup setCurrentWaypoint _replacementWP;
-    [_migrateGroup,true,_replacementWP select 1] call WAIT_fnc_CortexZeusMark;
-    private _zeusSnapshot=_migrateGroup getVariable ["WAIT_Cortex_ZeusOrderSnapshot",[]];
+    [_migrateGroup,true,_replacementWP select 1] call CBE_fnc_CortexZeusMark;
+    private _zeusSnapshot=_migrateGroup getVariable ["CBE_Cortex_ZeusOrderSnapshot",[]];
     ["WITHDRAW-MIGRATION-zeus-exact-order",count _zeusSnapshot == 7
         && {(_zeusSnapshot select 1) distance2D _replacement < 1}
         && {(_zeusSnapshot select 5) == (_replacementWP select 1)},str _zeusSnapshot] call _check;
-    {_x setVariable ["WAIT_CortexQA_Target",_replacement,true]} forEach _migrateCrew;
+    {_x setVariable ["CBE_CortexQA_Target",_replacement,true]} forEach _migrateCrew;
     // Observe the engine completion boundary independently from the final position. A MOVE
     // order does not promise a stationary hold after native waypoint completion.
     private _replacementClosest=1e9;
@@ -967,35 +969,35 @@ if (_hcOwners isNotEqualTo []) then {
         if (_replacementCompleted isEqualTo [] && {_current > (_replacementWP select 1)}) then {
             _replacementCompleted=[time,_current,_distance,getPosATL _migrateArmour];
         };
-        private _move=_migrateGroup getVariable ["WAIT_Cortex_GroupMoveIntent",createHashMap];
+        private _move=_migrateGroup getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
         if (_replacementResumed isEqualTo [] && {count _move > 0}) then {
             _replacementResumed=[time,_current,_distance,+_replacementCompleted,
                 _move getOrDefault ["operationGeneration",-1],_move getOrDefault ["position",[]],
-                _migrateGroup getVariable ["WAIT_AIPass_ZeusWaypoints",false]];
+                _migrateGroup getVariable ["CBE_AIPass_ZeusWaypoints",false]];
         };
         _distance <= 22
     },100] call _wait;
-    diag_log format ["WAIT WITHDRAW ZEUS ORDER TRACE: %1",[
+    diag_log format ["CBE WITHDRAW ZEUS ORDER TRACE: %1",[
         _replacementClosest,_replacementCompleted,_replacementResumed,
         currentWaypoint _migrateGroup,_replacementWP select 1,
         waypointCompletionRadius _replacementWP,
-        _migrateGroup getVariable ["WAIT_AIPass_ZeusWaypoints",false]]];
+        _migrateGroup getVariable ["CBE_AIPass_ZeusWaypoints",false]]];
     ["WITHDRAW-MIGRATION-zeus-physical-replacement",_released && {_replacementArrived},
         str [getPosATL _migrateArmour,getForcedSpeed _migrateArmour,vehicleMoveInfo _migrateArmour,
             currentCommand driver _migrateArmour,behaviour driver _migrateArmour,
             owner _migrateArmour,groupOwner _migrateGroup,
-            _migrateGroup getVariable ["WAIT_VehicleReverse",[]],
-            _migrateArmour getVariable ["WAIT_VehicleReverseOwner",[]],
-            _migrateGroup getVariable ["WAIT_Cortex_GroupMoveIntent",createHashMap]]] call _check;
-    private _stayedReleased=_replacementArrived && {[_migrateGroup] call WAIT_fnc_CortexZeusHeld};
+            _migrateGroup getVariable ["CBE_VehicleReverse",[]],
+            _migrateArmour getVariable ["CBE_VehicleReverseOwner",[]],
+            _migrateGroup getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap]]] call _check;
+    private _stayedReleased=_replacementArrived && {[_migrateGroup] call CBE_fnc_CortexZeusHeld};
     for "_sample" from 1 to 12 do {
         sleep 1;
-        if ((_migrateGroup getVariable ["WAIT_AIPass_PublicPhase","CALM"]) == "RETREAT"
-            || {(_migrateGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]]) isNotEqualTo []}
+        if ((_migrateGroup getVariable ["CBE_AIPass_PublicPhase","CALM"]) == "RETREAT"
+            || {(_migrateGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]]) isNotEqualTo []}
             || {_migrateArmour distance2D _replacement > 25}) then {_stayedReleased=false};
     };
-    ["WITHDRAW-MIGRATION-zeus-no-resurrection",_stayedReleased,str [_migrateGroup getVariable ["WAIT_AIPass_PublicPhase",""],_migrateGroup getVariable ["WAIT_Cortex_WithdrawalIntent",[]],getPosATL _migrateArmour]] call _check;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    ["WITHDRAW-MIGRATION-zeus-no-resurrection",_stayedReleased,str [_migrateGroup getVariable ["CBE_AIPass_PublicPhase",""],_migrateGroup getVariable ["CBE_Cortex_WithdrawalIntent",[]],getPosATL _migrateArmour]] call _check;
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
     {deleteVehicle _x} forEach (_migrateCrew+[_migrateEnemy,_migrateArmour]);
     deleteGroup _migrateGroup;
     deleteGroup _migrateEnemyGroup;
@@ -1005,8 +1007,8 @@ if (_hcOwners isNotEqualTo []) then {
 // Success requires the real native movement to continue after production cleanup; clearing
 // a variable alone cannot pass. This does not substitute for a full convoy contact scenario.
 private _handoverGroup=createGroup [east,true];
-_handoverGroup setVariable ["WAIT_AIPass_Exclude",true,true];
-_handoverGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_handoverGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_handoverGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _handoverGroup setVariable ["acex_headless_blacklist",true,true];
 _handoverGroup setCombatMode "BLUE";
 private _handoverLeader=_handoverGroup createUnit ["O_Soldier_F",[3100,1700,0],[],0,"NONE"];
@@ -1015,43 +1017,43 @@ private _handoverVehicle=createVehicle ["O_Truck_03_transport_F",[3080,1700,0],[
 doStop _handoverLeader;
 private _handoverStart=getPosATL _handoverActor;
 private _handoverDestination=_handoverStart getPos [45,90];
-_handoverActor setVariable ["WAIT_CortexQA_Label","PASSENGER: NEW ACTOR TASK",true];
-_handoverActor setVariable ["WAIT_CortexQA_Target",_handoverDestination,true];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[_handoverLeader,_handoverActor,_handoverVehicle],true];
+_handoverActor setVariable ["CBE_CortexQA_Label","PASSENGER: NEW ACTOR TASK",true];
+_handoverActor setVariable ["CBE_CortexQA_Target",_handoverDestination,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[_handoverLeader,_handoverActor,_handoverVehicle],true];
 ["Passenger cleanup: newer actor task","An old convoy cover record remains while this soldier follows a newer committed destination. Cleanup must remove only its old bookkeeping; the soldier must physically continue away from the stationary leader.",_handoverDestination] call _phase;
 _handoverActor doMove _handoverDestination;
 private _handoverMoving=[{_handoverActor distance2D _handoverStart >= 5},20] call _wait;
-_handoverActor setVariable ["WAIT_Convoy_Dismount",[_handoverGroup,1,serverTime+60,+_handoverDestination],true];
+_handoverActor setVariable ["CBE_Convoy_Dismount",[_handoverGroup,1,serverTime+60,+_handoverDestination],true];
 private _newReservation=["DANGER_COVER",+_handoverDestination,time+90];
-_handoverActor setVariable ["WAIT_Cortex_ActorMove",+_newReservation];
+_handoverActor setVariable ["CBE_Cortex_ActorMove",+_newReservation];
 private _handoverConfiguration=[1,30,20,false,[_handoverVehicle],"HALT",[[_handoverActor,_handoverVehicle]],[],"MANUAL",[],serverTime+60];
-[_handoverGroup,_handoverConfiguration,true] call WAIT_fnc_ConvoyDismountLocal;
+[_handoverGroup,_handoverConfiguration,true] call CBE_fnc_ConvoyDismountLocal;
 ["PASSENGER-cover-cleanup-preserves-reservation",_handoverMoving
-    && {(_handoverActor getVariable ["WAIT_Cortex_ActorMove",[]]) isEqualTo _newReservation}
-    && {(_handoverActor getVariable ["WAIT_Convoy_Dismount",[]]) isEqualTo []},
+    && {(_handoverActor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _newReservation}
+    && {(_handoverActor getVariable ["CBE_Convoy_Dismount",[]]) isEqualTo []},
     str [currentCommand _handoverActor,expectedDestination _handoverActor]] call _check;
 private _handoverArrived=[{_handoverActor distance2D _handoverDestination <= 5
     && {_handoverActor distance2D _handoverStart >= 35}},60] call _wait;
 ["PASSENGER-cover-cleanup-new-task-physical-arrival",_handoverMoving && {_handoverArrived},
     str [getPosATL _handoverActor,_handoverDestination,currentCommand _handoverActor]] call _check;
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach [_handoverActor,_handoverLeader,_handoverVehicle];
 deleteGroup _handoverGroup;
 
 private _drivePreviousSettings=createHashMapFromArray [
-    ["WAIT_AIPass_Enable",missionNamespace getVariable ["WAIT_AIPass_Enable",true]],
-    ["WAIT_AIPass_Contact_Enable",missionNamespace getVariable ["WAIT_AIPass_Contact_Enable",true]],
-    ["WAIT_AIPass_DrivingAssist_Enable",missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_Enable",true]]
+    ["CBE_AIPass_Enable",missionNamespace getVariable ["CBE_AIPass_Enable",true]],
+    ["CBE_AIPass_Contact_Enable",missionNamespace getVariable ["CBE_AIPass_Contact_Enable",true]],
+    ["CBE_AIPass_DrivingAssist_Enable",missionNamespace getVariable ["CBE_AIPass_DrivingAssist_Enable",true]]
 ];
 // Standalone driving is distinct from registered convoy coordination. Exercise native orders,
 // never call the assistance callback manually or assign successful recovery/progress state.
-[createHashMapFromArray [["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",false],
-    ["WAIT_AIPass_DrivingAssist_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_Enable",true],["CBE_AIPass_Contact_Enable",false],
+    ["CBE_AIPass_DrivingAssist_Enable",true]]] call CBE_fnc_CortexTuning;
 private _driveVehicle=createVehicle ["O_Truck_03_transport_F",[3500,1700,0],[],0,"NONE"];
 createVehicleCrew _driveVehicle;
 private _driveDriver=driver _driveVehicle;
 private _driveGroup=group _driveDriver;
-_driveGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_driveGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _driveGroup setVariable ["acex_headless_blacklist",true,true];
 _driveGroup setBehaviour "SAFE";
 _driveGroup setSpeedMode "FULL";
@@ -1067,76 +1069,76 @@ private _driveNext=_driveGroup addWaypoint [_driveOnward,0];
 _driveNext setWaypointType "MOVE";
 _driveNext setWaypointCompletionRadius 5;
 _driveGroup setCurrentWaypoint _driveWP;
-_driveDriver setVariable ["WAIT_CortexQA_Label","STANDALONE DRIVER: CONDITION WAIT",true];
-_driveDriver setVariable ["WAIT_CortexQA_Target",_driveGate,true];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[_driveDriver,_driveVehicle],true];
+_driveDriver setVariable ["CBE_CortexQA_Label","STANDALONE DRIVER: CONDITION CBE",true];
+_driveDriver setVariable ["CBE_CortexQA_Target",_driveGate,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[_driveDriver,_driveVehicle],true];
 ["Standalone driving: authored wait","The truck must travel to its native MOVE waypoint, wait on its false condition, then continue when that condition is released. No convoy or manual assistance callback is used.",_driveGate] call _phase;
 private _driveReady=!isNull _driveDriver && {local _driveVehicle} && {simulationEnabled _driveVehicle}
-    && {count crew _driveVehicle == 1} && {!(_driveVehicle getVariable ["WAIT_Convoy_Active",false])};
+    && {count crew _driveVehicle == 1} && {!(_driveVehicle getVariable ["CBE_Convoy_Active",false])};
 ["DRIVING-native-fixture-ready",_driveReady] call _check;
-["Standalone driving: authored zero-speed hold","The truck has a real MOVE waypoint but an authored zero-speed hold. WAIT must retain that hold, claim no speed lease and issue no recovery that moves it. Releasing the hold then exercises the existing native travel case.",_driveOrigin] call _phase;
+["Standalone driving: authored zero-speed hold","The truck has a real MOVE waypoint but an authored zero-speed hold. CBE must retain that hold, claim no speed lease and issue no recovery that moves it. Releasing the hold then exercises the existing native travel case.",_driveOrigin] call _phase;
 private _driveHoldStable=true;
 for "_sample" from 1 to 6 do {
     sleep 3;
     if (getForcedSpeed _driveVehicle != 0 || {_driveVehicle distance2D _driveOrigin > 2}
-        || {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo []}) then {_driveHoldStable=false};
+        || {(_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo []}) then {_driveHoldStable=false};
 };
 ["DRIVING-authored-zero-hold-retained",_driveReady && {_driveHoldStable}
-    && {_driveGroup getVariable ["WAIT_AIPass_Adopted",false]},
-    str [getForcedSpeed _driveVehicle,getPosATL _driveVehicle,_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]]] call _check;
+    && {_driveGroup getVariable ["CBE_AIPass_Adopted",false]},
+    str [getForcedSpeed _driveVehicle,getPosATL _driveVehicle,_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]]] call _check;
 _driveVehicle forceSpeed -1;
 
 private _driveArrived=[{_driveVehicle distance2D _driveGate <= 12
     && {_driveVehicle distance2D _driveOrigin >= 60}},100] call _wait;
 ["DRIVING-native-physical-travel",_driveReady && {_driveArrived},str getPosATL _driveVehicle] call _check;
-private _driveManaged=(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo [];
+private _driveManaged=(_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo [];
 ["DRIVING-contact-disabled-independent-assistance",_driveArrived && {_driveManaged}] call _check;
 // Ownership boundary checks beside the native movement case: a separate cargo group
 // cannot adopt the driver's cap or release it through stale group-scoped cleanup.
 private _cargoGroup=createGroup [east,true];
-_cargoGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_cargoGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 private _cargoActor=_cargoGroup createUnit ["O_Soldier_F",getPosATL _driveVehicle,[],0,"NONE"];
 _cargoActor moveInCargo _driveVehicle;
 private _cargoReady=objectParent _cargoActor == _driveVehicle && {_cargoGroup != _driveGroup};
 ["DRIVING-passenger-fixture-ready",_cargoReady] call _check;
 private _driverCapBefore=getForcedSpeed _driveVehicle;
-[_cargoGroup] call WAIT_fnc_DrivingAssistStart;
+[_cargoGroup] call CBE_fnc_DrivingAssistStart;
 ["DRIVING-passenger-no-driving-owner",_driveManaged && {_cargoReady}
-    && {(_cargoGroup getVariable ["WAIT_DrivingAssist_Vehicles",[]]) isEqualTo []}
-    && {((_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull]) == _driveGroup}] call _check;
-[_driveVehicle,_cargoGroup] call WAIT_fnc_DrivingAssistRelease;
+    && {(_cargoGroup getVariable ["CBE_DrivingAssist_Vehicles",[]]) isEqualTo []}
+    && {((_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]) param [3,grpNull]) == _driveGroup}] call _check;
+[_driveVehicle,_cargoGroup] call CBE_fnc_DrivingAssistRelease;
 ["DRIVING-stale-group-release-preserves-driver",_driveManaged && {_cargoReady}
     && {getForcedSpeed _driveVehicle == _driverCapBefore}
-    && {((_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) param [3,grpNull]) == _driveGroup}] call _check;
+    && {((_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]) param [3,grpNull]) == _driveGroup}] call _check;
 deleteVehicle _cargoActor;
 deleteGroup _cargoGroup;
 
-private _driveSavedMaxSpeed=missionNamespace getVariable ["WAIT_AIPass_DrivingAssist_MaxSpeed",70];
-[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_MaxSpeed",15]]] call WAIT_fnc_CortexTuning;
+private _driveSavedMaxSpeed=missionNamespace getVariable ["CBE_AIPass_DrivingAssist_MaxSpeed",70];
+[createHashMapFromArray [["CBE_AIPass_DrivingAssist_MaxSpeed",15]]] call CBE_fnc_CortexTuning;
 private _driveLiveCap=[{
-    private _state=_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]];
+    private _state=_driveVehicle getVariable ["CBE_DrivingAssist_State",[]];
     (_state param [0,-1]) > 0 && {(_state param [0,1e6]) <= 15/3.6+0.01}
         && {getForcedSpeed _driveVehicle > 0} && {getForcedSpeed _driveVehicle <= 15/3.6+0.01}
 },15] call _wait;
 ["DRIVING-live-speed-cap-applied",_driveManaged && {_driveLiveCap},
-    str [getForcedSpeed _driveVehicle,_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]]] call _check;
+    str [getForcedSpeed _driveVehicle,_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]]] call _check;
 ["DRIVING-live-speed-edit-retains-route",_driveLiveCap
     && {currentWaypoint _driveGroup == (_driveWP select 1)}
     && {waypointPosition _driveWP distance2D _driveGate <= 1}] call _check;
-[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_MaxSpeed",_driveSavedMaxSpeed]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_DrivingAssist_MaxSpeed",_driveSavedMaxSpeed]]] call CBE_fnc_CortexTuning;
 private _driveHeld=true;
 for "_driveSample" from 1 to 20 do {
     sleep 1;
-    private _driveState=_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]];
+    private _driveState=_driveVehicle getVariable ["CBE_DrivingAssist_State",[]];
     if (_driveVehicle distance2D _driveGate > 15
         || {currentWaypoint _driveGroup != (_driveWP select 1)}
         || {(_driveState param [8,""]) in ["ROUTE_REFRESH","CAUTIOUS_REVERSE","FINAL_ROUTE_RETRY"]}) then {_driveHeld=false};
 };
 ["DRIVING-authored-condition-wait-preserved",_driveArrived && {_driveHeld},
-    str [getPosATL _driveVehicle,currentWaypoint _driveGroup,_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]]] call _check;
+    str [getPosATL _driveVehicle,currentWaypoint _driveGroup,_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]]] call _check;
 // Releasing the real waypoint condition is a fixture input, not fabricated controller success.
 _driveWP setWaypointStatements ["true",""];
-_driveDriver setVariable ["WAIT_CortexQA_Target",_driveOnward,true];
+_driveDriver setVariable ["CBE_CortexQA_Target",_driveOnward,true];
 private _driveResumed=[{_driveVehicle distance2D _driveOnward <= 12
     && {_driveVehicle distance2D _driveGate >= 60}},100] call _wait;
 ["DRIVING-condition-release-physical-resume",_driveArrived && {_driveHeld} && {_driveResumed},str getPosATL _driveVehicle] call _check;
@@ -1145,7 +1147,7 @@ private _driveHold=_driveGroup addWaypoint [_driveHoldPosition,0];
 _driveHold setWaypointType "HOLD";
 _driveHold setWaypointCompletionRadius 5;
 _driveGroup setCurrentWaypoint _driveHold;
-_driveDriver setVariable ["WAIT_CortexQA_Target",_driveHoldPosition,true];
+_driveDriver setVariable ["CBE_CortexQA_Target",_driveHoldPosition,true];
 ["Standalone driving: HOLD and replacement","The native HOLD must remain a deliberate stop. Editing that same waypoint to a new MOVE destination must produce physical travel without an old-route recall.",_driveHoldPosition] call _phase;
 private _driveHoldArrived=[{_driveVehicle distance2D _driveHoldPosition <= 12
     && {_driveVehicle distance2D _driveOnward >= 60}},100] call _wait;
@@ -1153,7 +1155,7 @@ private _driveHoldArrived=[{_driveVehicle distance2D _driveHoldPosition <= 12
 private _driveHoldStable=true;
 for "_driveHoldSample" from 1 to 20 do {
     sleep 1;
-    private _holdState=_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]];
+    private _holdState=_driveVehicle getVariable ["CBE_DrivingAssist_State",[]];
     if (_driveVehicle distance2D _driveHoldPosition > 15
         || {currentWaypoint _driveGroup != (_driveHold select 1)}
         || {(_holdState param [8,""]) in ["ROUTE_REFRESH","CAUTIOUS_REVERSE","FINAL_ROUTE_RETRY"]}) then {_driveHoldStable=false};
@@ -1163,53 +1165,121 @@ private _driveReplacement=[3660,1860,0];
 _driveHold setWaypointPosition [_driveReplacement,0];
 _driveHold setWaypointType "MOVE";
 _driveGroup setCurrentWaypoint _driveHold;
-_driveDriver setVariable ["WAIT_CortexQA_Target",_driveReplacement,true];
+_driveDriver setVariable ["CBE_CortexQA_Target",_driveReplacement,true];
 private _driveReplacementReached=[{_driveVehicle distance2D _driveReplacement <= 12
     && {_driveVehicle distance2D _driveHoldPosition >= 60}},100] call _wait;
 ["DRIVING-same-index-replacement-physical-travel",_driveHoldArrived && {_driveHoldStable}
     && {_driveReplacementReached} && {waypointPosition _driveHold distance2D _driveReplacement <= 1},
     str [getPosATL _driveVehicle,waypointPosition _driveHold,currentWaypoint _driveGroup]] call _check;
-[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_Enable",false]]] call WAIT_fnc_CortexTuning;
-private _driveReleased=[{(_driveVehicle getVariable ["WAIT_DrivingAssist_Restore",[]]) isEqualTo []
-    && {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isEqualTo []}},15] call _wait;
+[createHashMapFromArray [["CBE_AIPass_DrivingAssist_Enable",false]]] call CBE_fnc_CortexTuning;
+private _driveReleased=[{(_driveVehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo []
+    && {(_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]) isEqualTo []}},15] call _wait;
 ["DRIVING-disabled-owned-state-release",_driveManaged && {_driveReleased}] call _check;
-[createHashMapFromArray [["WAIT_AIPass_DrivingAssist_Enable",true]]] call WAIT_fnc_CortexTuning;
+[createHashMapFromArray [["CBE_AIPass_DrivingAssist_Enable",true]]] call CBE_fnc_CortexTuning;
 private _driveTakeoverOrigin=getPosATL _driveVehicle;
 private _driveOldDestination=_driveTakeoverOrigin vectorAdd [80,0,0];
-private _driveTakeoverWP=[_driveGroup,_driveOldDestination,5] call WAIT_fnc_CortexGroupMove;
+private _driveTakeoverWP=[_driveGroup,_driveOldDestination,5] call CBE_fnc_CortexGroupMove;
 ["DRIVING-no-external-owner-route-positive-control",_driveTakeoverWP isNotEqualTo [grpNull,-1]] call _check;
 if (_driveTakeoverWP isEqualTo [grpNull,-1]) exitWith {
-    ["DRIVING-external-handover-prerequisite-unavailable",false,"No valid WAIT route; physical takeover cannot be evaluated"] call _check;
-    missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+    ["DRIVING-external-handover-prerequisite-unavailable",false,"No valid CBE route; physical takeover cannot be evaluated"] call _check;
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
     {deleteVehicle _x} forEach crew _driveVehicle;
     deleteVehicle _driveVehicle;
     deleteGroup _driveGroup;
-    [_drivePreviousSettings] call WAIT_fnc_CortexTuning;
+    [_drivePreviousSettings] call CBE_fnc_CortexTuning;
 };
 private _driveTakeoverMoving=[{_driveVehicle distance2D _driveTakeoverOrigin >= 10
-    && {(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isNotEqualTo []}},45] call _wait;
+    && {(_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo []}},45] call _wait;
 ["DRIVING-external-handover-physical-prerequisite",_driveTakeoverMoving] call _check;
 private _driveLeasedCap=getForcedSpeed _driveVehicle;
-_driveVehicle setVariable ["WAIT_ExternalDrivingOwner","QA_EXTERNAL_DRIVER",true];
+_driveVehicle setVariable ["CBE_ExternalDrivingOwner","QA_EXTERNAL_DRIVER",true];
 private _driveExternalDestination=(getPosATL _driveVehicle) vectorAdd [0,80,0];
 _driveTakeoverWP setWaypointPosition [_driveExternalDestination,0];
 _driveGroup setCurrentWaypoint _driveTakeoverWP;
-_driveDriver setVariable ["WAIT_CortexQA_Target",_driveExternalDestination,true];
+_driveDriver setVariable ["CBE_CortexQA_Target",_driveExternalDestination,true];
 private _driveWaypointCount=count waypoints _driveGroup;
-private _driveRejected=[_driveGroup,_driveOldDestination,5] call WAIT_fnc_CortexGroupMove;
+private _driveRejected=[_driveGroup,_driveOldDestination,5] call CBE_fnc_CortexGroupMove;
 ["DRIVING-external-owner-rejects-wait-route",_driveTakeoverMoving
     && {_driveRejected isEqualTo [grpNull,-1]} && {count waypoints _driveGroup == _driveWaypointCount}] call _check;
-private _driveOwnershipReleased=[{(_driveVehicle getVariable ["WAIT_DrivingAssist_State",[]]) isEqualTo []},15] call _wait;
+private _driveOwnershipReleased=[{(_driveVehicle getVariable ["CBE_DrivingAssist_State",[]]) isEqualTo []},15] call _wait;
 ["DRIVING-external-owner-keeps-current-cap",_driveTakeoverMoving && {_driveOwnershipReleased}
     && {abs ((getForcedSpeed _driveVehicle)-_driveLeasedCap) <= 0.1},str [_driveLeasedCap,getForcedSpeed _driveVehicle]] call _check;
-// The replacement driver now applies its own speed; this is fixture input, not WAIT state.
+// The replacement driver now applies its own speed; this is fixture input, not CBE state.
 _driveVehicle forceSpeed 6;
 private _driveExternalArrived=[{_driveVehicle distance2D _driveExternalDestination <= 12},100] call _wait;
 ["DRIVING-external-owner-physical-route",_driveTakeoverMoving && {_driveOwnershipReleased}
     && {_driveExternalArrived} && {abs ((getForcedSpeed _driveVehicle)-6) <= 0.1},str getPosATL _driveVehicle] call _check;
-_driveVehicle setVariable ["WAIT_ExternalDrivingOwner",nil,true];
-missionNamespace setVariable ["WAIT_CortexQA_Actors",[],true];
+_driveVehicle setVariable ["CBE_ExternalDrivingOwner",nil,true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach crew _driveVehicle;
 deleteVehicle _driveVehicle;
 deleteGroup _driveGroup;
-[_drivePreviousSettings] call WAIT_fnc_CortexTuning;
+[_drivePreviousSettings] call CBE_fnc_CortexTuning;
+
+
+// Sensor diagnostic only: native inputs are fixture stimuli, never a CBE result/brain injection.
+// Keep this distinct from production withdrawal and the intentionally straight convoy case.
+if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
+    {
+        _x params ["_class","_turn","_family"];
+        // Keep legacy tracked IDs; wheeled capabilities have their own results and cannot
+        // inherit a tracked success. These excluded actors are native command diagnostics only.
+        private _case=(["REAR-TURN-","REAR-"+_family+"-TURN-"] select (_family != "TRACKED"))+_turn;
+        private _vehicle=createVehicle [_class,[4300+150*_forEachIndex,3000,0],[],0,"NONE"];
+        _vehicle setDir 0;
+        createVehicleCrew _vehicle;
+        private _group=group driver _vehicle;
+        [_group] call _pin;
+        _group setVariable ["CBE_AIPass_Exclude",true,true];
+        _group setBehaviour "SAFE";_group setCombatMode "BLUE";
+        (driver _vehicle) setVariable ["CBE_CortexQA_Label",_case+" NATIVE SENSOR DIAGNOSTIC",true];
+        missionNamespace setVariable ["CBE_CortexQA_Actors",[_vehicle]+crew _vehicle,true];
+        [_case,"Diagnostic only: actual native backward travel and heading change must occur. Shared rear observation must execute turning rays. This does not pass production braking or collision avoidance.",getPosATL _vehicle] call _phase;
+        private _origin=getPosASL _vehicle;
+        private _heading=getDir _vehicle;
+        private _samples=0;private _turnSamples=0;private _maxHeading=0;private _maxRays=0;
+        private _previousHeading=_heading;private _yawChecks=0;private _yawConsistent=true;
+        private _deadline=time+12;
+        _vehicle engineOn true;
+        _vehicle sendSimpleCommand "BACK";
+        _vehicle sendSimpleCommand _turn;
+        while {time < _deadline && {alive _vehicle} && {local _vehicle}} do {
+            private _delta=(((getDir _vehicle)-_heading+540) mod 360)-180;
+            _maxHeading=_maxHeading max abs _delta;
+            private _backward=(velocityModelSpace _vehicle select 1) < -0.25;
+            if (_backward) then {_samples=_samples+1};
+            private _headingStep=(((getDir _vehicle)-_previousHeading+540) mod 360)-180;
+            private _yaw=(angularVelocityModelSpace _vehicle) param [2,0];
+            if (_backward && {abs _headingStep >= 0.5} && {abs _yaw >= 0.02}) then {
+                _yawChecks=_yawChecks+1;
+                _yawConsistent=_yawConsistent && {_headingStep*_yaw > 0};
+            };
+            _previousHeading=getDir _vehicle;
+            private _observation=[_vehicle,8] call CBE_fnc_DrivingRearClear;
+            _maxRays=_maxRays max (_observation select 3);
+            if (_backward && {abs _delta >= 3} && {(_observation select 3) > 12}) then {
+                _turnSamples=_turnSamples+1;
+            };
+            if (_maxHeading >= 35) exitWith {};
+            sleep 0.2;
+        };
+        _vehicle sendSimpleCommand "STOPTURNING";
+        _vehicle sendSimpleCommand "STOP";
+        private _travel=(getPosASL _vehicle) vectorDistance _origin;
+        private _physical=_samples >= 3 && {_travel >= 1} && {_maxHeading >= 3};
+        [_case+"-native-physical-prerequisite",_physical,str [_samples,_travel,_maxHeading]] call _check;
+        [_case+"-measured-yaw-sign",_physical && {_yawChecks >= 2} && {_yawConsistent},str [_yawChecks,_yawConsistent]] call _check;
+        [_case+"-turning-observer-executed",_physical && {_turnSamples >= 2}
+            && {_maxRays > 12} && {_maxRays <= 60},str [_turnSamples,_maxRays]] call _check;
+        missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+        {deleteVehicle _x} forEach crew _vehicle;
+        deleteVehicle _vehicle;deleteGroup _group;
+    } forEach [
+        ["O_APC_Tracked_02_cannon_F","LEFT","TRACKED"],
+        ["O_APC_Tracked_02_cannon_F","RIGHT","TRACKED"],
+        ["O_MRAP_02_F","LEFT","WHEELED"],
+        ["O_MRAP_02_F","RIGHT","WHEELED"],
+        ["O_Truck_03_transport_F","LEFT","TRUCK"],
+        ["O_Truck_03_transport_F","RIGHT","TRUCK"]
+    ];
+};

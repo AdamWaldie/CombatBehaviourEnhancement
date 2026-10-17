@@ -6,7 +6,7 @@
  * Arguments: 0: soldier <OBJECT>, objNull.
  * Return Value: Boolean.
  * Current callers: Capability, morale, passenger and reinforcement checks.
- * Example: [_soldier] call WAIT_fnc_CortexCombatEffective;
+ * Example: [_soldier] call CBE_fnc_CortexCombatEffective;
  */
 params [["_unit", objNull, [objNull]]];
 !isNull _unit && {alive _unit} && {!(_unit getVariable ["ACE_isUnconscious", false])}

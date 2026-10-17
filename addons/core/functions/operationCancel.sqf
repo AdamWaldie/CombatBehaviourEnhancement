@@ -1,48 +1,48 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Cancels one matching WAIT operation and removes only its owned movement state.
+ * Purpose: Cancels one matching CBE operation and removes only its owned movement state.
  * Locality/authority: Current group owner only; callers forward before invoking when required.
  * Repeat/JIP: A missing or superseded generation is a no-op. Previous-owner work is rejected except for the new owner's explicit OWNERSHIP_LOST cleanup.
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 reason <STRING, CANCELLED>.
  * Return Value: BOOL - true when the matching operation was cancelled.
  * Current callers: OperationStart, Zeus handover, release and recovery failure paths.
- * Example: [group player,4,"ZEUS"] call WAIT_fnc_OperationCancel;
+ * Example: [group player,4,"ZEUS"] call CBE_fnc_OperationCancel;
  */
 params [["_group",grpNull,[grpNull]],["_generation",-1,[0]],["_reason","CANCELLED",[""]]];
 if (isNull _group || {!local _group}) exitWith {false};
-private _operation=_group getVariable ["WAIT_Operation",createHashMap];
+private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _generation}) exitWith {false};
 if (toUpperANSI _reason != "OWNERSHIP_LOST"
-    && {(_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {false};
-[_group,_operation,_reason] call WAIT_fnc_OperationRestore;
-[_group,createHashMap,objNull,[],"RELEASE",_generation] call WAIT_fnc_CortexVehicleReverseStep;
+    && {(_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {false};
+[_group,_operation,_reason] call CBE_fnc_OperationRestore;
+[_group,createHashMap,objNull,[],"RELEASE",_generation] call CBE_fnc_CortexVehicleReverseStep;
 _operation set ["cancelReason",toUpperANSI _reason];
 _operation set ["phase","CANCELLED"];
-[_group,_generation] call WAIT_fnc_CortexGroupMoveClear;
+[_group,_generation] call CBE_fnc_CortexGroupMoveClear;
 // Only an on-foot operation can have acquired a danger posture lease. Air, vehicle and naval
 // operations share the generation record without touching their native combat state on release.
 private _dangerActor=objNull;
 if (_operation getOrDefault ["dangerPosture",false]) then {
-    _dangerActor=[_group] call WAIT_fnc_CortexGroupAnchor;
+    _dangerActor=[_group] call CBE_fnc_CortexGroupAnchor;
     if (isNull _dangerActor) then {_dangerActor=leader _group};
-    [_dangerActor,"RELEASE"] call WAIT_fnc_DangerReact;
+    [_dangerActor,"RELEASE"] call CBE_fnc_DangerReact;
 };
-_group setVariable ["WAIT_Operation",nil,true];
-_group setVariable ["WAIT_OperationResult",[_operation getOrDefault ["intent",""],"CANCELLED",_generation,serverTime,toUpperANSI _reason],true];
+_group setVariable ["CBE_Operation",nil,true];
+_group setVariable ["CBE_OperationResult",[_operation getOrDefault ["intent",""],"CANCELLED",_generation,serverTime,toUpperANSI _reason],true];
 // Cancellation can return a group directly to the still-live contact that began the operation.
 // Re-evaluate only the existing bounded context after clearing the old movement owner; the danger
 // layer itself rejects Zeus, player and specialist ownership and issues no destination or target.
-private _dangerResponse=_group getVariable ["WAIT_Danger_Response",[]];
+private _dangerResponse=_group getVariable ["CBE_Danger_Response",[]];
 if (_operation getOrDefault ["dangerPosture",false] && {count _dangerResponse == 5}
-    && {(_dangerResponse select 4) == (_group getVariable ["WAIT_Danger_Generation",-1])}
+    && {(_dangerResponse select 4) == (_group getVariable ["CBE_Danger_Generation",-1])}
     && {time < (_dangerResponse select 3)}) then {
-    private _dangerEvent=_group getVariable ["WAIT_Danger_ResponseEvent",[]];
+    private _dangerEvent=_group getVariable ["CBE_Danger_ResponseEvent",[]];
     if (!(count _dangerEvent in [4,5,6,7])
         || {(_dangerEvent param [0,"",[""]]) != (_dangerResponse select 0)}
         || {(_dangerEvent param [2,-1,[0]]) != (_dangerResponse select 2)}) then {
         _dangerEvent=_dangerResponse select [0,4];
     };
-    private _dangerAction=[_group,_dangerEvent] call WAIT_fnc_DangerActionSelect;
-    [_dangerActor,_dangerEvent select 0,_dangerEvent select 1,_dangerAction] call WAIT_fnc_DangerReact;
+    private _dangerAction=[_group,_dangerEvent] call CBE_fnc_DangerActionSelect;
+    [_dangerActor,_dangerEvent select 0,_dangerEvent select 1,_dangerAction] call CBE_fnc_DangerReact;
 };
 true

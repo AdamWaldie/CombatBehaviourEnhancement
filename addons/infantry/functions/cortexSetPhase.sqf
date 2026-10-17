@@ -16,7 +16,7 @@
  * Return Value: Boolean - true when the phase changed
  * Current callers: CortexGroupTick, CortexRestoreCalm, CortexRetreat, CortexVehicles and CortexLocality.
  * Example:
- * [_group,_state,"CONTACT","VISIBLE_CONTACT",time] call WAIT_fnc_CortexSetPhase;
+ * [_group,_state,"CONTACT","VISIBLE_CONTACT",time] call CBE_fnc_CortexSetPhase;
  * Result: CONTACT and phaseStart change together and observers receive CALM -> CONTACT evidence.
  */
 
@@ -32,17 +32,17 @@ if (isNull _group || {!local _group} || {count _state == 0}) exitWith {false};
 private _validPhases=["CALM","INVESTIGATE","CONTACT","SECURITY","SEARCH","REGROUP","RETREAT"];
 if !(_next in _validPhases) exitWith {false};
 private _localPrevious=_state getOrDefault ["phase","CALM"];
-private _previous=if (_force) then {_group getVariable ["WAIT_AIPass_PublicPhase",_localPrevious]} else {_localPrevious};
+private _previous=if (_force) then {_group getVariable ["CBE_AIPass_PublicPhase",_localPrevious]} else {_localPrevious};
 if !(_previous in _validPhases) then {_previous=_localPrevious};
 if (_localPrevious == _next && {!_force}) exitWith {false};
 _state set ["phase",_next];
 _state set ["phaseStart",_phaseStart];
 _state set ["phaseReason",_reason];
-_group setVariable ["WAIT_AIPass_PublicPhase",_next,true];
+_group setVariable ["CBE_AIPass_PublicPhase",_next,true];
 private _entry=[serverTime,_previous,_next,_reason,clientOwner];
-private _history=_group getVariable ["WAIT_Cortex_PhaseTransitions",[]];
+private _history=_group getVariable ["CBE_Cortex_PhaseTransitions",[]];
 _history pushBack _entry;
 if (count _history > 32) then {_history deleteRange [0,count _history-32]};
-_group setVariable ["WAIT_Cortex_PhaseTransition",_entry,true];
-_group setVariable ["WAIT_Cortex_PhaseTransitions",_history,true];
+_group setVariable ["CBE_Cortex_PhaseTransition",_entry,true];
+_group setVariable ["CBE_Cortex_PhaseTransitions",_history,true];
 true

@@ -19,22 +19,22 @@
  * Arguments:
  * 0: group <GROUP>
  * 1: state <HASHMAP>
- * 2: enemies <ARRAY> - from WAIT_fnc_CortexKnowledge
+ * 2: enemies <ARRAY> - from CBE_fnc_CortexKnowledge
  *
  * Return Value:
  * Number - stances changed
  *
  * Example:
- * [_group, _state, _enemies] call WAIT_fnc_CortexStance;
+ * [_group, _state, _enemies] call CBE_fnc_CortexStance;
  * Result: a soldier behind a low wall kneels to fire over it instead of standing exposed.
  *
- * Current caller: WAIT_fnc_CortexGroupTick.
+ * Current caller: CBE_fnc_CortexGroupTick.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]]];
 // Direct callers and delayed scheduler callbacks obey the same group ownership boundary.
-if (isNull _group || {!local _group} || {[_group] call WAIT_fnc_CortexZeusHeld}
-    || {[_group] call WAIT_fnc_CompatibilityExternalControl}) exitWith {0};
+if (isNull _group || {!local _group} || {[_group] call CBE_fnc_CortexZeusHeld}
+    || {[_group] call CBE_fnc_CompatibilityExternalControl}) exitWith {0};
 private _enemyPos = _state getOrDefault ["enemyPos", []];
 if (count _enemyPos < 2) exitWith {0};
 private _now = time;
@@ -58,36 +58,36 @@ for "_offset" from 0 to ((_count min 12)-1) do {
     private _unit=_members select _index;
     _state set ["stanceCursor",(_index+1) mod _count];
     private _currentStance=toUpperANSI (unitPos _unit);
-    if (local _unit && {_unit getVariable ["WAIT_AIPass_StanceSet",false]}
-        && {_currentStance != (_unit getVariable ["WAIT_Cortex_AppliedStance",""])}) then {
-        _unit setVariable ["WAIT_AIPass_StanceSet",nil,true];
-        _unit setVariable ["WAIT_Cortex_AppliedStance",nil,true];
+    if (local _unit && {_unit getVariable ["CBE_AIPass_StanceSet",false]}
+        && {_currentStance != (_unit getVariable ["CBE_Cortex_AppliedStance",""])}) then {
+        _unit setVariable ["CBE_AIPass_StanceSet",nil,true];
+        _unit setVariable ["CBE_Cortex_AppliedStance",nil,true];
     };
-    private _reservation=_unit getVariable ["WAIT_Cortex_ActorMove",[]];
+    private _reservation=_unit getVariable ["CBE_Cortex_ActorMove",[]];
     private _reservationFree=_reservation isEqualTo []
         || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= _now}};
     if (!_reservationFree && {count _reservation == 3}
         && {(_reservation select 0) in ["STATIC_DEPLOY","STATIC_PACK","STATIC_SUPPORT","DANGER_COVER"]}
-        && {local _unit} && {_unit getVariable ["WAIT_AIPass_StanceSet",false]}
-        && {_currentStance == (_unit getVariable ["WAIT_Cortex_AppliedStance",""])}
-        && {!([_group,false,_unit] call WAIT_fnc_CortexExternalTakeover)}) then {
+        && {local _unit} && {_unit getVariable ["CBE_AIPass_StanceSet",false]}
+        && {_currentStance == (_unit getVariable ["CBE_Cortex_AppliedStance",""])}
+        && {!([_group,false,_unit] call CBE_fnc_CortexExternalTakeover)}) then {
         _unit setUnitPos "AUTO";
-        _unit setVariable ["WAIT_AIPass_StanceSet",nil,true];
-        _unit setVariable ["WAIT_Cortex_AppliedStance",nil,true];
+        _unit setVariable ["CBE_AIPass_StanceSet",nil,true];
+        _unit setVariable ["CBE_Cortex_AppliedStance",nil,true];
         _changed=_changed+1;
     };
-    if ([_unit] call WAIT_fnc_CortexCombatEffective && {local _unit} && {isNull objectParent _unit}
+    if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {isNull objectParent _unit}
         && {_reservationFree}
         && {!(toUpperANSI currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {!isPlayer _unit} && {isNull (remoteControlled _unit)}
-        && {([_unit] call WAIT_fnc_CortexExternalOwner) == ""}
-        && {!([_unit] call WAIT_fnc_CompatibilityExternalControl)}
+        && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
         && {abs speed _unit < 1} && {!(_unit in _drillUnits)}
-        && {(_unit getVariable ["WAIT_AIPass_GarrisonPos", []]) isEqualTo []}
-        && {_now >= (_unit getVariable ["WAIT_AIPass_StanceAt", -1])}
-        && {_currentStance == "AUTO" || {_unit getVariable ["WAIT_AIPass_StanceSet", false]}}) then {
+        && {(_unit getVariable ["CBE_AIPass_GarrisonPos", []]) isEqualTo []}
+        && {_now >= (_unit getVariable ["CBE_AIPass_StanceAt", -1])}
+        && {_currentStance == "AUTO" || {_unit getVariable ["CBE_AIPass_StanceSet", false]}}) then {
         _sampled=_sampled+1;
-        _unit setVariable ["WAIT_AIPass_StanceAt", _now + 10];
+        _unit setVariable ["CBE_AIPass_StanceAt", _now + 10];
         private _base = getPosASL _unit;
         private _direction = (getPosATL _unit) vectorFromTo _enemyPos;
         _direction set [2, 0];
@@ -110,8 +110,8 @@ for "_offset" from 0 to ((_count min 12)-1) do {
         };
         if (toUpperANSI (unitPos _unit) != _stance) then {
             _unit setUnitPos _stance;
-            _unit setVariable ["WAIT_Cortex_AppliedStance",_stance,true];
-            _unit setVariable ["WAIT_AIPass_StanceSet", _stance != "AUTO", true];
+            _unit setVariable ["CBE_Cortex_AppliedStance",_stance,true];
+            _unit setVariable ["CBE_AIPass_StanceSet", _stance != "AUTO", true];
             _changed = _changed + 1;
         };
     };

@@ -7,29 +7,29 @@
  * Player, specialist and declared actor ownership block restoration; unchanged native permission can hand back to Zeus.
  * Arguments: 0 group <GROUP>, grpNull; 1 operation <HASHMAP>, empty; 2 reason <STRING>, RELEASE.
  * Return: Boolean - true when an unchanged owned setting was restored.
- * Current callers: WAIT_fnc_OperationCancel and WAIT_fnc_OperationRelease.
- * Example: [group player,group player getVariable ["WAIT_Operation",createHashMap],"COMPLETE"] call WAIT_fnc_OperationRestore;
+ * Current callers: CBE_fnc_OperationCancel and CBE_fnc_OperationRelease.
+ * Example: [group player,group player getVariable ["CBE_Operation",createHashMap],"COMPLETE"] call CBE_fnc_OperationRestore;
  */
 params [["_group",grpNull,[grpNull]],["_operation",createHashMap,[createHashMap]],["_reason","RELEASE",[""]]];
 if (isNull _group || {!local _group} || {count _operation == 0}
     || {toUpperANSI _reason == "OWNERSHIP_LOST"}) exitWith {false};
-private _current=_group getVariable ["WAIT_Operation",createHashMap];
+private _current=_group getVariable ["CBE_Operation",createHashMap];
 if ((_current getOrDefault ["generation",-1]) != (_operation getOrDefault ["generation",-2])
-    || {(_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["WAIT_AIPass_Epoch",0])}) exitWith {false};
+    || {(_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {false};
 private _restore=_operation getOrDefault ["restore",createHashMap];
 private _attack=_restore getOrDefault ["groupAttack",[]];
 if (count _attack != 2 || {!((_attack select 0) isEqualType true)} || {!((_attack select 1) isEqualType true)}) exitWith {false};
 private _report={
     params ["_restored","_decision"];
-    _group setVariable ["WAIT_OperationRestoreResult",[
+    _group setVariable ["CBE_OperationRestoreResult",[
         _operation get "generation",toUpperANSI _reason,_decision,serverTime,
         +_attack,attackEnabled _group,_restored],true];
     _restored
 };
 _restore deleteAt "groupAttack";
 private _members=units _group;
-if (count _members > 64 || {[_group] call WAIT_fnc_CompatibilityExternalControl}
-    || {_members findIf {isPlayer _x || {([_x] call WAIT_fnc_CortexExternalOwner) != ""} || {[_x] call WAIT_fnc_CompatibilityExternalControl}} >= 0}) exitWith {[false,"EXTERNAL_OWNER"] call _report};
+if (count _members > 64 || {[_group] call CBE_fnc_CompatibilityExternalControl}
+    || {_members findIf {isPlayer _x || {([_x] call CBE_fnc_CortexExternalOwner) != ""} || {[_x] call CBE_fnc_CompatibilityExternalControl}} >= 0}) exitWith {[false,"EXTERNAL_OWNER"] call _report};
 private _anchor=leader _group;
 if (isNull _anchor) exitWith {[false,"NO_LEADER"] call _report};
 if (attackEnabled _anchor != (_attack select 1)) exitWith {[false,"POLICY_CHANGED"] call _report};

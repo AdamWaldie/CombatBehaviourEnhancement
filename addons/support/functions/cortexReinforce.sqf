@@ -3,11 +3,11 @@
  * Sends idle nearby squads to support a squad in contact, and optionally calls in an airborne drop.
  *
  * Reinforcement has a responder cap and requires a
- * transmission path (WAIT_fnc_CortexCanTransmit; jamming blocks it, inventory radios are not required). A request is made on first
+ * transmission path (CBE_fnc_CortexCanTransmit; jamming blocks it, inventory radios are not required). A request is made on first
  * contact and again if the squad falls below 60% combat-effective strength relative to its peak living roster. When known armour appears
  * one more request is made that only squads with an anti-tank
  * gunner answer, with one extra responder slot. Candidates are considered by distance. Up to
- * WAIT_AIPass_Reinforce_MaxResponders eligible squads may answer across server and HC owners.
+ * CBE_AIPass_Reinforce_MaxResponders eligible squads may answer across server and HC owners.
  * The server reserves slots before dispatch, and the current owner checks capability and accepts.
  * Posted orders, player groups and feature-owned crews are excluded. A shared 300-second expiry
  * bounds the assignment; owner migration revalidates it without creating another reservation.
@@ -26,17 +26,17 @@
  * Number - 0; dispatch is asynchronous and acknowledged by responder owners
  *
  * Example:
- * [_group, _state] call WAIT_fnc_CortexReinforce;
+ * [_group, _state] call CBE_fnc_CortexReinforce;
  * Result: the platoon's other squads move up behind the squad that made contact.
  *
- * Current caller: WAIT_fnc_CortexGroupTick.
+ * Current caller: CBE_fnc_CortexGroupTick.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]]];
-private _effective = {[_x] call WAIT_fnc_CortexCombatEffective} count units _group;
-private _peak = (_group getVariable ["WAIT_AIPass_PeakSize", _effective]) max 1;
+private _effective = {[_x] call CBE_fnc_CortexCombatEffective} count units _group;
+private _peak = (_group getVariable ["CBE_AIPass_PeakSize", _effective]) max 1;
 private _requests = _state getOrDefault ["reinforceRequested", 0];
-private _requestState = _group getVariable ["WAIT_Cortex_SupportRequestState",[]];
+private _requestState = _group getVariable ["CBE_Cortex_SupportRequestState",[]];
 private _requestActive = count _requestState == 3 && {(_requestState select 1) == "ACTIVE"}
     && {serverTime < (_requestState select 2)};
 private _lastDispatch = _state getOrDefault ["reinforceDispatchedAt",-1e6];
@@ -47,10 +47,10 @@ private _armour = _state getOrDefault ["armourSeen", false];
 private _armourCall = _armour && {!(_state getOrDefault ["armourRequested", false])};
 if (!_armourCall && {_requests >= 2 || {_requests == 1 && {!_retryable} && {_effective / _peak >= 0.6}}}) exitWith {0};
 private _enemyPos = _state getOrDefault ["enemyPos", []];
-if (count _enemyPos < 2 || {isNull ([_group] call WAIT_fnc_CortexGroupTransmitter)}) exitWith {0};
+if (count _enemyPos < 2 || {isNull ([_group] call CBE_fnc_CortexGroupTransmitter)}) exitWith {0};
 _state set ["reinforceRequested", _requests + 1];
 _state set ["reinforceDispatchedAt",time];
 if (_armourCall) then {_state set ["armourRequested", true]};
 
-[_group,_enemyPos,_armourCall] remoteExecCall ["WAIT_fnc_CortexSupportServer",2];
+[_group,_enemyPos,_armourCall] remoteExecCall ["CBE_fnc_CortexSupportServer",2];
 0 // Dispatch is asynchronous; acceptance is recorded by SupportAck.

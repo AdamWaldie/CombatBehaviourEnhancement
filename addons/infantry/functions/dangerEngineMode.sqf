@@ -6,19 +6,19 @@
  * Arguments: 0: soldier <OBJECT>, objNull; 1: selected engine danger record <ARRAY>, [].
  * Return Value: String - RELEASE, FORCED, VEHICLE, IMMEDIATE, HIDE, ENGAGE or ASSESS.
  * Current callers: Engine-loaded infantry danger FSM.
- * Example: [cursorObject,[2,getPosATL cursorObject,time + 1,objNull]] call WAIT_fnc_DangerEngineMode;
+ * Example: [cursorObject,[2,getPosATL cursorObject,time + 1,objNull]] call CBE_fnc_DangerEngineMode;
  */
 
 params [["_actor",objNull,[objNull]],["_record",[],[[]]]];
-if (isNull _actor || {!local _actor} || {!([_actor] call WAIT_fnc_CortexCombatEffective)}
-    || {isPlayer _actor} || {[_actor] call WAIT_fnc_CompatibilityExternalControl}
+if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+    || {isPlayer _actor} || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count _record < 3}) exitWith {"RELEASE"};
 private _group=group _actor;
 if (isNull _group || {!local _group}
-    || {!(missionNamespace getVariable ["WAIT_AIPass_Active",false])}
-    || {!([_group,"WAIT_AIPass_Danger_Enable",true] call WAIT_fnc_CortexFeatureEnabled)}
-    || {!([_group,false,true,false,_actor] call WAIT_fnc_CortexIsEligible)}
-    || {[] call WAIT_fnc_CortexIsPaused}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+    || {!([_group,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+    || {!([_group,false,true,false,_actor] call CBE_fnc_CortexIsEligible)}
+    || {[] call CBE_fnc_CortexIsPaused}
     || {behaviour _actor == "CARELESS"}) exitWith {"RELEASE"};
 // ATTACK is also the engine's ordinary autonomous combat command. Treating it as authored
 // ownership made the danger FSM observation-only for the exact actors already fighting. Zeus,
@@ -31,7 +31,7 @@ if (fleeing _actor || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HE
 if (!isNull objectParent _actor) exitWith {"VEHICLE"};
 // Only a live carrier reservation yields immediate danger actions. Ordinary ATTACK and squad
 // manoeuvre remain combat-enabled; a stale reservation cannot suppress the danger response.
-private _carrierTask = _actor getVariable ["WAIT_Cortex_ActorMove",[]];
+private _carrierTask = _actor getVariable ["CBE_Cortex_ActorMove",[]];
 if (count _carrierTask == 3
     && {(_carrierTask select 0) in ["STATIC_DEPLOY","STATIC_PACK","STATIC_SUPPORT"]}
     && {time < (_carrierTask select 2)}) exitWith {"FORCED"};

@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Installs the event-driven WAIT civilian danger response on one owner-local unarmed civilian.
+ * Installs the event-driven CBE civilian danger response on one owner-local unarmed civilian.
  * Player, Zeus, specialist and neutral external-control ownership is left completely untouched.
  * No per-frame or periodic civilian scan is created. FiredNear, Explosion and Hit events request a
  * priority-aware finite reaction through the shared scheduler.
@@ -18,41 +18,41 @@
  * Current callers: Cortex init, EntityCreated and the installed Local event handler.
  *
  * Example:
- * [_civilian] call WAIT_fnc_CortexCivilianSetup;
+ * [_civilian] call CBE_fnc_CortexCivilianSetup;
  * Result: gunfire near that owner-local civilian can trigger one bounded escape command.
  */
 
 params [["_unit",objNull,[objNull]],["_remove",false,[true]]];
 if (isNull _unit || {!(_unit isKindOf "CAManBase")}) exitWith {false};
-private _handlers=_unit getVariable ["WAIT_Cortex_CivilianHandlers",[]];
+private _handlers=_unit getVariable ["CBE_Cortex_CivilianHandlers",[]];
 {_unit removeEventHandler _x} forEach _handlers;
-_unit setVariable ["WAIT_Cortex_CivilianHandlers",nil];
+_unit setVariable ["CBE_Cortex_CivilianHandlers",nil];
 if (_remove) exitWith {true};
 if (!local _unit || {isPlayer _unit} || {side group _unit != civilian}
     || {primaryWeapon _unit != "" || {secondaryWeapon _unit != ""} || {handgunWeapon _unit != ""}}
-    || {!(missionNamespace getVariable ["WAIT_AIPass_CivilianReaction_Enable",true])}
-    || {[group _unit] call WAIT_fnc_CortexExternalTakeover}) exitWith {false};
+    || {!(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true])}
+    || {[group _unit] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
 private _fired=_unit addEventHandler ["FiredNear",{
     params ["_unit","_firer","_distance"];
-    if (_distance <= (missionNamespace getVariable ["WAIT_AIPass_CivilianReaction_Radius",45])) then {
-        [_unit,_firer,"FIRED_NEAR",1] call WAIT_fnc_CortexCivilianReact;
+    if (_distance <= (missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Radius",45])) then {
+        [_unit,_firer,"FIRED_NEAR",1] call CBE_fnc_CortexCivilianReact;
     };
 }];
 private _explosion=_unit addEventHandler ["Explosion",{
     params ["_unit","_damage","_explosionSource"];
     private _threat=if (isNull _explosionSource) then {getPosATL _unit} else {getPosATL _explosionSource};
-    [_unit,_threat,"EXPLOSION",2] call WAIT_fnc_CortexCivilianReact;
+    [_unit,_threat,"EXPLOSION",2] call CBE_fnc_CortexCivilianReact;
 }];
 private _hit=_unit addEventHandler ["Hit",{
     params ["_unit","_source"];
-    [_unit,_source,"HIT",3] call WAIT_fnc_CortexCivilianReact;
+    [_unit,_source,"HIT",3] call CBE_fnc_CortexCivilianReact;
 }];
-_unit setVariable ["WAIT_Cortex_CivilianHandlers",[["FiredNear",_fired],["Explosion",_explosion],["Hit",_hit]]];
-if (isNil {_unit getVariable "WAIT_Cortex_CivilianLocalHandler"}) then {
+_unit setVariable ["CBE_Cortex_CivilianHandlers",[["FiredNear",_fired],["Explosion",_explosion],["Hit",_hit]]];
+if (isNil {_unit getVariable "CBE_Cortex_CivilianLocalHandler"}) then {
     private _local=_unit addEventHandler ["Local",{
         params ["_unit","_isLocal"];
-        if (_isLocal) then {[_unit] call WAIT_fnc_CortexCivilianSetup};
+        if (_isLocal) then {[_unit] call CBE_fnc_CortexCivilianSetup};
     }];
-    _unit setVariable ["WAIT_Cortex_CivilianLocalHandler",_local];
+    _unit setVariable ["CBE_Cortex_CivilianLocalHandler",_local];
 };
 true

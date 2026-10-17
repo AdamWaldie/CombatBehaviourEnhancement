@@ -1,5 +1,5 @@
 class FSM {
-    fsmName = "WAIT owner-local group tactics";
+    fsmName = "CBE owner-local group tactics";
     class States {
         class Start {
             name = "Start";
@@ -16,10 +16,10 @@ class FSM {
             precondition = "";
             class Links {
                 class Cancelled {priority=10; to="Finished"; condition="_brain getOrDefault [""cancelled"",false]"; action="_reason=_brain getOrDefault [""cancelReason"",""CANCELLED""];";};
-                class OwnershipLost {priority=9; to="Finished"; condition="isNull _group || {!local _group} || {_epoch != (_group getVariable [""WAIT_AIPass_Epoch"",0])} || {_generation != (_group getVariable [""WAIT_GroupBrain_Generation"",0])} || {(_group getVariable [""WAIT_GroupBrain"",createHashMap]) isNotEqualTo _brain}"; action="_reason=""OWNERSHIP_LOST"";";};
-                class Zeus {priority=8; to="Finished"; condition="[_group] call WAIT_fnc_CortexZeusHeld"; action="_reason=""ZEUS"";";};
-                class External {priority=7; to="Finished"; condition="[_group] call WAIT_fnc_CortexExternalTakeover"; action="_reason=""EXTERNAL_OWNER"";";};
-                class Disabled {priority=6; to="Finished"; condition="!(missionNamespace getVariable [""WAIT_AIPass_Active"",false])"; action="_reason=""DISABLED"";";};
+                class OwnershipLost {priority=9; to="Finished"; condition="isNull _group || {!local _group} || {_epoch != (_group getVariable [""CBE_AIPass_Epoch"",0])} || {_generation != (_group getVariable [""CBE_GroupBrain_Generation"",0])} || {(_group getVariable [""CBE_GroupBrain"",createHashMap]) isNotEqualTo _brain}"; action="_reason=""OWNERSHIP_LOST"";";};
+                class Zeus {priority=8; to="Finished"; condition="[_group] call CBE_fnc_CortexZeusHeld"; action="_reason=""ZEUS"";";};
+                class External {priority=7; to="Finished"; condition="[_group] call CBE_fnc_CortexExternalTakeover"; action="_reason=""EXTERNAL_OWNER"";";};
+                class Disabled {priority=6; to="Finished"; condition="!(missionNamespace getVariable [""CBE_AIPass_Active"",false])"; action="_reason=""DISABLED"";";};
                 class Delay {priority=5; to="Delay"; condition="time < ((_brain getOrDefault [""nextAt"",time]) min (_brain getOrDefault [""wakeAt"",time]))"; action="";};
                 class Calm {priority=4; to="Calm"; condition="_phase == ""CALM"""; action="";};
                 class Investigate {priority=4; to="Investigate"; condition="_phase == ""INVESTIGATE"""; action="";};
@@ -40,37 +40,37 @@ class FSM {
             init = "";
             precondition = "";
             class Links {
-                class Interrupt {priority=5; to="Router"; condition="_brain getOrDefault [""cancelled"",false] || {isNull _group} || {!local _group} || {_epoch != (_group getVariable [""WAIT_AIPass_Epoch"",0])} || {_generation != (_group getVariable [""WAIT_GroupBrain_Generation"",0])} || {(_group getVariable [""WAIT_GroupBrain"",createHashMap]) isNotEqualTo _brain} || {!(missionNamespace getVariable [""WAIT_AIPass_Active"",false])} || {[_group] call WAIT_fnc_CortexZeusHeld} || {[_group] call WAIT_fnc_CortexExternalTakeover} || {time >= (_brain getOrDefault [""wakeAt"",time])}"; action="";};
+                class Interrupt {priority=5; to="Router"; condition="_brain getOrDefault [""cancelled"",false] || {isNull _group} || {!local _group} || {_epoch != (_group getVariable [""CBE_AIPass_Epoch"",0])} || {_generation != (_group getVariable [""CBE_GroupBrain_Generation"",0])} || {(_group getVariable [""CBE_GroupBrain"",createHashMap]) isNotEqualTo _brain} || {!(missionNamespace getVariable [""CBE_AIPass_Active"",false])} || {[_group] call CBE_fnc_CortexZeusHeld} || {[_group] call CBE_fnc_CortexExternalTakeover} || {time >= (_brain getOrDefault [""wakeAt"",time])}"; action="";};
                 class Due {priority=0; to="Router"; condition="time >= (_brain getOrDefault [""nextAt"",time])"; action="";};
             };
         };
-        class Calm {name="Calm"; init="[_group,_epoch,_generation,_brain,""CALM""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Investigate {name="Investigate"; init="[_group,_epoch,_generation,_brain,""INVESTIGATE""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Contact {name="Contact"; init="[_group,_epoch,_generation,_brain,""CONTACT""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Support {name="Support"; init="[_group,_epoch,_generation,_brain,""SUPPORT""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Manoeuvre {name="Manoeuvre"; init="[_group,_epoch,_generation,_brain,""MANOEUVRE""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Assault {name="Assault"; init="[_group,_epoch,_generation,_brain,""ASSAULT""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Clear {name="Clear"; init="[_group,_epoch,_generation,_brain,""CLEAR""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Security {name="Security"; init="[_group,_epoch,_generation,_brain,""SECURITY""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Search {name="Search"; init="[_group,_epoch,_generation,_brain,""SEARCH""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Regroup {name="Regroup"; init="[_group,_epoch,_generation,_brain,""REGROUP""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
-        class Withdraw {name="Withdraw"; init="[_group,_epoch,_generation,_brain,""WITHDRAW""] call WAIT_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Calm {name="Calm"; init="[_group,_epoch,_generation,_brain,""CALM""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Investigate {name="Investigate"; init="[_group,_epoch,_generation,_brain,""INVESTIGATE""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Contact {name="Contact"; init="[_group,_epoch,_generation,_brain,""CONTACT""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Support {name="Support"; init="[_group,_epoch,_generation,_brain,""SUPPORT""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Manoeuvre {name="Manoeuvre"; init="[_group,_epoch,_generation,_brain,""MANOEUVRE""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Assault {name="Assault"; init="[_group,_epoch,_generation,_brain,""ASSAULT""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Clear {name="Clear"; init="[_group,_epoch,_generation,_brain,""CLEAR""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Security {name="Security"; init="[_group,_epoch,_generation,_brain,""SECURITY""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Search {name="Search"; init="[_group,_epoch,_generation,_brain,""SEARCH""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Regroup {name="Regroup"; init="[_group,_epoch,_generation,_brain,""REGROUP""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+        class Withdraw {name="Withdraw"; init="[_group,_epoch,_generation,_brain,""WITHDRAW""] call CBE_fnc_GroupBrainQueue;"; precondition=""; class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
         class Waiting {
             name = "Waiting";
             init = "";
             precondition = "";
             class Links {
-                class Zeus {priority=9;to="Finished";condition="[_group] call WAIT_fnc_CortexZeusHeld";action="_reason=""ZEUS"";";};
-                class External {priority=8;to="Finished";condition="[_group] call WAIT_fnc_CortexExternalTakeover";action="_reason=""EXTERNAL_OWNER"";";};
+                class Zeus {priority=9;to="Finished";condition="[_group] call CBE_fnc_CortexZeusHeld";action="_reason=""ZEUS"";";};
+                class External {priority=8;to="Finished";condition="[_group] call CBE_fnc_CortexExternalTakeover";action="_reason=""EXTERNAL_OWNER"";";};
                 class Cancelled {priority=7;to="Finished";condition="_brain getOrDefault [""cancelled"",false]";action="_reason=_brain getOrDefault [""cancelReason"",""CANCELLED""];";};
-                class Invalidated {priority=6;to="Finished";condition="isNull _group || {!local _group} || {_epoch != (_group getVariable [""WAIT_AIPass_Epoch"",0])} || {_generation != (_group getVariable [""WAIT_GroupBrain_Generation"",0])} || {(_group getVariable [""WAIT_GroupBrain"",createHashMap]) isNotEqualTo _brain} || {!(missionNamespace getVariable [""WAIT_AIPass_Active"",false])}";action="_reason=""INVALIDATED_WHILE_WAITING"";";};
-                class SchedulerWatchdog {priority=5;to="Router";condition="(_brain getOrDefault [""pending"",false]) && {!(_brain getOrDefault [""completed"",false])} && {time >= ((_brain getOrDefault [""queuedAt"",time])+15)} && {time >= (missionNamespace getVariable [""WAIT_AIPass_ResumeGraceUntil"",-1])} && {!([] call WAIT_fnc_CortexIsPaused)}";action="_brain set [""pending"",false]; _brain set [""watchdogCount"",(_brain getOrDefault [""watchdogCount"",0])+1]; _brain set [""wakeAt"",time]; _brain set [""nextAt"",time]; missionNamespace setVariable [""WAIT_AIPass_NextJobDue"",time];";};
+                class Invalidated {priority=6;to="Finished";condition="isNull _group || {!local _group} || {_epoch != (_group getVariable [""CBE_AIPass_Epoch"",0])} || {_generation != (_group getVariable [""CBE_GroupBrain_Generation"",0])} || {(_group getVariable [""CBE_GroupBrain"",createHashMap]) isNotEqualTo _brain} || {!(missionNamespace getVariable [""CBE_AIPass_Active"",false])}";action="_reason=""INVALIDATED_WHILE_WAITING"";";};
+                class SchedulerWatchdog {priority=5;to="Router";condition="(_brain getOrDefault [""pending"",false]) && {!(_brain getOrDefault [""completed"",false])} && {time >= ((_brain getOrDefault [""queuedAt"",time])+15)} && {time >= (missionNamespace getVariable [""CBE_AIPass_ResumeGraceUntil"",-1])} && {!([] call CBE_fnc_CortexIsPaused)}";action="_brain set [""pending"",false]; _brain set [""watchdogCount"",(_brain getOrDefault [""watchdogCount"",0])+1]; _brain set [""wakeAt"",time]; _brain set [""nextAt"",time]; missionNamespace setVariable [""CBE_AIPass_NextJobDue"",time];";};
                 class Completed {priority=0;to="Router";condition="_brain getOrDefault [""completed"",false]";action="";};
             };
         };
         class Finished {
             name = "Finished";
-            init = "_brain set [""cancelled"",true]; _brain set [""cancelReason"",_reason]; if (!isNull _group && {local _group} && {_generation == (_group getVariable [""WAIT_GroupBrain_Generation"",0])} && {_epoch == (_group getVariable [""WAIT_AIPass_Epoch"",0])} && {(_group getVariable [""WAIT_GroupBrain"",createHashMap]) isEqualTo _brain}) then {_group setVariable [""WAIT_GroupBrain_State"",[_phase,_generation,_epoch,serverTime,_reason],true]; _group setVariable [""WAIT_GroupBrain"",nil]; _group setVariable [""WAIT_GroupBrain_FSM"",nil]; if (_group getVariable [""WAIT_AIPass_Managed"",false]) then {[_group,true,_reason] call WAIT_fnc_CortexReleaseGroup;};};";
+            init = "_brain set [""cancelled"",true]; _brain set [""cancelReason"",_reason]; if (!isNull _group && {local _group} && {_generation == (_group getVariable [""CBE_GroupBrain_Generation"",0])} && {_epoch == (_group getVariable [""CBE_AIPass_Epoch"",0])} && {(_group getVariable [""CBE_GroupBrain"",createHashMap]) isEqualTo _brain}) then {_group setVariable [""CBE_GroupBrain_State"",[_phase,_generation,_epoch,serverTime,_reason],true]; _group setVariable [""CBE_GroupBrain"",nil]; _group setVariable [""CBE_GroupBrain_FSM"",nil]; if (_group getVariable [""CBE_AIPass_Managed"",false]) then {[_group,true,_reason] call CBE_fnc_CortexReleaseGroup;};};";
             precondition = "";
             class Links {};
         };

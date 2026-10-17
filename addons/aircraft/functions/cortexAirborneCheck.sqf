@@ -7,42 +7,43 @@
  * It acts on aircraft the mission maker (or Zeus) already put in
  * the air with AI passengers; nothing is spawned. Its faults are not repeated: the aircraft check
  * works, only hostile sides count (civilians never trigger a drop), soldiers keep their own
- * backpacks (each gets a parachute of his own, WAIT_fnc_CortexParachuteJump), and it runs inside the
+ * backpacks (each gets a parachute of his own, CBE_fnc_CortexParachuteJump), and it runs inside the
  * pass's budgeted scheduler on the machine that owns the squad instead of a loop on every machine.
- * The squad's own knowledge decides (WAIT_fnc_CortexKnowledge); nothing is revealed to it.
- * - Within WAIT_AIPass_Airborne_ApproachDistance of the nearest known enemy the aircraft climbs to
- *   WAIT_AIPass_Airborne_Altitude (flyInHeight, when this machine owns the aircraft).
- * - Within WAIT_AIPass_Airborne_DeployDistance, with the aircraft at least
- *   WAIT_AIPass_Airborne_MinAltitude above ground and not over water, the drop starts
- *   (WAIT_fnc_CortexAirborneDropStep).
+ * The squad's own knowledge decides (CBE_fnc_CortexKnowledge); nothing is revealed to it.
+ * - Within CBE_AIPass_Airborne_ApproachDistance of the nearest known enemy the aircraft climbs to
+ *   CBE_AIPass_Airborne_Altitude (flyInHeight, when this machine owns the aircraft).
+ * - Within CBE_AIPass_Airborne_DeployDistance, with the aircraft at least
+ *   CBE_AIPass_Airborne_MinAltitude above ground and not over water, the drop starts
+ *   (CBE_fnc_CortexAirborneDropStep).
  * Passengers are the cargo seats and the person-turret (FFV) seats many helicopters use for troops;
  * crew never jump. Never drops from an aircraft flown or commanded by a player, while an unload or
  * get-out waypoint is still ahead for the pilots or the squad (the mission maker planned a landing;
- * the aircraft is not climbed either), or from aircraft owned by another WAIT feature (the squad
+ * the aircraft is not climbed either), or from aircraft owned by another CBE feature (the squad
  * would already be ineligible: Transport Services, Paradrop, Gunship). The aircraft keeps the jump
  * altitude afterwards; give it a new flyInHeight in a later waypoint if it should fly lower.
  * Locality and authority: call where the group is local.
  *
+ * Each insertion retains an exact group/serial/owner-epoch episode for stale-job rejection.
  * Repeat/JIP: current feature gates and eligibility are rechecked; owner jobs are retired on migration.
  * Arguments:
  * 0: group <GROUP>
- * 1: state <HASHMAP> - from WAIT_fnc_CortexGroupState
+ * 1: state <HASHMAP> - from CBE_fnc_CortexGroupState
  * 2: force <BOOL> (optional, default: false) - drop now whatever the enemy distance or planned
- *    landing (Zeus and WAIT_fnc_CortexAirborneDrop); altitude, water and AI pilots are still checked
+ *    landing (Zeus and CBE_fnc_CortexAirborneDrop); altitude, water and AI pilots are still checked
  *
  * Return Value:
  * Number - -1 when the squad is not riding an aircraft (the group tick continues normally), otherwise
  * the seconds until the group tick should run again. With force, 0 means the drop started.
  *
  * Example:
- * private _delay = [_group, _state] call WAIT_fnc_CortexAirborneCheck;
+ * private _delay = [_group, _state] call CBE_fnc_CortexAirborneCheck;
  * Result: a squad in a helicopter jumps when its helicopter comes within 700 m of a known enemy.
  *
- * Current callers: WAIT_fnc_CortexGroupTick and WAIT_fnc_CortexAirborneDrop.
+ * Current callers: CBE_fnc_CortexGroupTick and CBE_fnc_CortexAirborneDrop.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_force", false, [false]]];
-if (!_force && {!([_group,"WAIT_AIPass_Airborne_Enable",false] call WAIT_fnc_CortexFeatureEnabled)}) exitWith {-1};
+if (!_force && {!([_group,"CBE_AIPass_Airborne_Enable",false] call CBE_fnc_CortexFeatureEnabled)}) exitWith {-1};
 // Passengers: cargo seats and the person-turret (FFV) seats many helicopters use for troops. Crew
 // (pilots, gunners, commanders) never counts.
 private _passengersOf = {
@@ -59,8 +60,8 @@ private _cargo = _riding select {vehicle _x == _aircraft && {_x in _passengers}}
 if (_cargo isEqualTo []) exitWith {-1};
 
 private _pilot = driver _aircraft;
-if (!alive _aircraft || {!([_pilot] call WAIT_fnc_CortexCombatEffective)} || {isPlayer _pilot} || {isPlayer effectiveCommander _aircraft} || {[group _pilot] call WAIT_fnc_CortexExternalTakeover}) exitWith {[5, -1] select _force};
-if (time < (_aircraft getVariable ["WAIT_AIPass_DropUntil", -1])) exitWith {[5, -1] select _force};
+if (!alive _aircraft || {!([_pilot] call CBE_fnc_CortexCombatEffective)} || {isPlayer _pilot} || {isPlayer effectiveCommander _aircraft} || {[group _pilot] call CBE_fnc_CortexExternalTakeover}) exitWith {[5, -1] select _force};
+if (time < (_aircraft getVariable ["CBE_AIPass_DropUntil", -1])) exitWith {[5, -1] select _force};
 // The mission maker planned a landing: an unload or get-out still ahead on the pilots' or the squad's
 // own waypoints. Zeus and scripted drops (force) are deliberate and override it.
 private _plannedLanding = {
@@ -75,31 +76,36 @@ if (!_force && {[group _pilot] call _plannedLanding || {[_group] call _plannedLa
 
 private _target = getPosATL _aircraft;
 if (!_force) then {
-    private _approach = missionNamespace getVariable ["WAIT_AIPass_Airborne_ApproachDistance", 2000];
-    private _enemies = ([_group, _approach] call WAIT_fnc_CortexKnowledge) select 0;
+    private _approach = missionNamespace getVariable ["CBE_AIPass_Airborne_ApproachDistance", 2000];
+    private _enemies = ([_group, _approach] call CBE_fnc_CortexKnowledge) select 0;
     _target = if (_enemies isEqualTo []) then {[]} else {(_enemies select 0) select 1};
 };
 if (_target isEqualTo []) exitWith {10};
 private _distance = _aircraft distance2D _target;
-if (!_force && {local _aircraft} && {!([group _pilot] call WAIT_fnc_CortexExternalTakeover)} && {!(_aircraft getVariable ["WAIT_AIPass_AirborneClimb", false])}) then {
-    _aircraft setVariable ["WAIT_AIPass_AirborneClimb", true];
-    _aircraft flyInHeight (missionNamespace getVariable ["WAIT_AIPass_Airborne_Altitude", 250]);
+if (!_force && {local _aircraft} && {!([group _pilot] call CBE_fnc_CortexExternalTakeover)} && {!(_aircraft getVariable ["CBE_AIPass_AirborneClimb", false])}) then {
+    _aircraft setVariable ["CBE_AIPass_AirborneClimb", true];
+    _aircraft flyInHeight (missionNamespace getVariable ["CBE_AIPass_Airborne_Altitude", 250]);
 };
 private _height = (getPos _aircraft) select 2;
-private _ready = (_force || {_distance <= (missionNamespace getVariable ["WAIT_AIPass_Airborne_DeployDistance", 700])})
-    && {_height >= (missionNamespace getVariable ["WAIT_AIPass_Airborne_MinAltitude", 120])}
+private _ready = (_force || {_distance <= (missionNamespace getVariable ["CBE_AIPass_Airborne_DeployDistance", 700])})
+    && {_height >= (missionNamespace getVariable ["CBE_AIPass_Airborne_MinAltitude", 120])}
     && {!surfaceIsWater getPos _aircraft};
 if (!_ready) exitWith {[[5, 2] select (_distance < 1200), -1] select _force};
 
 // An event or explicit order may arrive before the discovery sweep. Adopt first,
 // otherwise that sweep invalidates the freshly queued job's owner epoch.
-if !(_group getVariable ["WAIT_AIPass_Adopted",false]) then {[_group,true] call WAIT_fnc_CortexLocality};
-_aircraft setVariable ["WAIT_AIPass_DropUntil", time + 30 + count _cargo * 3];
-_group setVariable ["WAIT_AIPass_Dropping", true];
-[WAIT_fnc_CortexAirborneDropStep, createHashMapFromArray [
-    ["group", _group], ["aircraft", _aircraft], ["jumpers", _cargo], ["index", 0], ["phase", "DROP"],
+if !(_group getVariable ["CBE_AIPass_Adopted",false]) then {[_group,true] call CBE_fnc_CortexLocality};
+private _serial=(_group getVariable ["CBE_AIPass_DropSerial",0])+1;
+_group setVariable ["CBE_AIPass_DropSerial",_serial,true];
+private _episode=[_group,_serial,_group getVariable ["CBE_AIPass_Epoch",0]];
+_group setVariable ["CBE_AIPass_DropEpisode",_episode,true];
+_aircraft setVariable ["CBE_AIPass_DropEpisode",_episode,true];
+_aircraft setVariable ["CBE_AIPass_DropUntil", time + 30 + count _cargo * 3];
+_group setVariable ["CBE_AIPass_Dropping", true];
+[CBE_fnc_CortexAirborneDropStep, createHashMapFromArray [
+    ["episode",_episode], ["group", _group], ["aircraft", _aircraft], ["jumpers", _cargo], ["index", 0], ["phase", "DROP"],
     ["target", _target], ["deadline", time + 180], ["forced", _force]
-], 0] call WAIT_fnc_CortexQueueJob;
-diag_log format ["[WAIT] %1 airborne insertion from %2 (%3 jumpers, %4 m from target, forced=%5).",
+], 0] call CBE_fnc_CortexQueueJob;
+diag_log format ["[CBE] %1 airborne insertion from %2 (%3 jumpers, %4 m from target, forced=%5).",
     _group, typeOf _aircraft, count _cargo, round _distance, _force];
 [3, 0] select _force

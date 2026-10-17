@@ -6,7 +6,7 @@
  * Arguments: 0 claimed owner <NUMBER>, default -1; 1 expected owner <NUMBER>, default -1.
  * Return Value: NUMBER - resolved owner or -1; never returns zero.
  * Current callers: Cortex cross-owner acknowledgements and skill adoption reporting.
- * Example: [clientOwner, groupOwner _group] call WAIT_fnc_HeadlessResolveSender;
+ * Example: [clientOwner, groupOwner _group] call CBE_fnc_HeadlessResolveSender;
  */
 
 params [["_claimed", -1, [0]], ["_expected", -1, [0]]];

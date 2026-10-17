@@ -1,5 +1,5 @@
 <#
-Stops one explicitly selected WAIT audit batch after operator approval.
+Stops one explicitly selected CBE audit batch after operator approval.
 Checks executable, profile path and process start identity before terminating;
 never stops unrelated Arma sessions or trusts a potentially reused PID alone.
 Writes shutdown evidence only after every matching process has exited.

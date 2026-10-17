@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WAIT adaptation of WAIT source-header and documentation contracts."""
+"""CBE adaptation of CBE source-header and documentation contracts."""
 from pathlib import Path
 import re
 import sys

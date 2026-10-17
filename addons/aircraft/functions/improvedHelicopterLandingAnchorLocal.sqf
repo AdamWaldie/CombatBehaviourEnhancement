@@ -22,7 +22,7 @@
  *
  * Return Value: BOOL - true after the local ground-anchor lifecycle ends.
  *
- * Example: [_helicopter, _group, _position, "SCRIPTED", 1, _script, 2, 4] spawn WAIT_fnc_ImprovedHelicopterLandingAnchorLocal;
+ * Example: [_helicopter, _group, _position, "SCRIPTED", 1, _script, 2, 4] spawn CBE_fnc_ImprovedHelicopterLandingAnchorLocal;
  * Result: Maintains a landed aircraft at its touchdown position until an order or ownership
  * change releases it, then returns true at the end of that local lifecycle.
  * Current caller: ImprovedHelicopterLandingExecuteLocal after a validated touchdown.
@@ -44,24 +44,24 @@ if (
     || {count _targetPosition < 2}
     || {!local _helicopter}
     || {_controlRevision < 0}
-    || {(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", -1]) != _controlRevision}
-    || {!([_helicopter,"LANDING",str _controlRevision] call WAIT_fnc_FlightLeaseValid)}
-    || {[_group] call WAIT_fnc_CortexExternalTakeover}
+    || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) != _controlRevision}
+    || {!([_helicopter,"LANDING",str _controlRevision] call CBE_fnc_FlightLeaseValid)}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}
 ) exitWith {false};
 
 private _normalisedType = toUpperANSI _waypointType;
 private _normalisedScript = toLowerANSI _expectedScript;
-private _settleUntil = diag_tickTime + (([_helicopter, "TouchdownHoldSeconds", 8] call WAIT_fnc_ImprovedHelicopterLandingSetting) max 0 min 60);
+private _settleUntil = diag_tickTime + (([_helicopter, "TouchdownHoldSeconds", 8] call CBE_fnc_ImprovedHelicopterLandingSetting) max 0 min 60);
 private _anchorPosition = getPosASL _helicopter;
 private _mass = getMass _helicopter;
 private _nextValidation = 0;
 private _release = false;
 private _releaseReason = "UNKNOWN";
 
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_Active", true, true];
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_GroundAnchored", true, true];
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_GearLocal", false];
-_helicopter setVariable ["WAIT_ImprovedHelicopterLanding_LastResult", ["ANCHORED", _targetPosition, diag_tickTime, 0, (getPosATL _helicopter) select 2], true];
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active", true, true];
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored", true, true];
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal", false];
+_helicopter setVariable ["CBE_ImprovedHelicopterLanding_LastResult", ["ANCHORED", _targetPosition, diag_tickTime, 0, (getPosATL _helicopter) select 2], true];
 _helicopter disableAI "MOVE";
 _helicopter enableAI "PATH";
 _helicopter land "LAND";
@@ -77,19 +77,19 @@ while {!_release} do {
         _releaseReason = "LOCALITY_OR_DESTRUCTION";
     };
     // Something else already reclaimed control and reset our own Active flag - most commonly
-    // WAIT_fnc_TransportDispatchLocal calling WAIT_fnc_ImprovedHelicopterLandingRestoreLocal
+    // An external transport dispatcher calling CBE_fnc_ImprovedHelicopterLandingRestoreLocal
     // directly to start the vehicle's next leg. Release immediately rather than continuing to fight
     // it for up to another 0.25s (the addForce ground-pin below would otherwise keep firing against
     // a helicopter that new dispatch code is already trying to fly away).
-    if !(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Active", false]) exitWith {
+    if !(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]) exitWith {
         _release = true;
         _releaseReason = "SUPERSEDED_EXTERNALLY";
     };
-    if ((_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", -1]) != _controlRevision) exitWith {
+    if ((_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) != _controlRevision) exitWith {
         _release = true;
         _releaseReason = "SUPERSEDED_REVISION";
     };
-    if !([_helicopter,"LANDING",str _controlRevision] call WAIT_fnc_FlightLeaseValid) exitWith {
+    if !([_helicopter,"LANDING",str _controlRevision] call CBE_fnc_FlightLeaseValid) exitWith {
         _release = true;
         _releaseReason = "FLIGHT_OWNER_CHANGED";
     };
@@ -97,7 +97,7 @@ while {!_release} do {
         _release = true;
         _releaseReason = "EXTERNAL_REPOSITION";
     };
-    if ([_group] call WAIT_fnc_CortexExternalTakeover) exitWith {
+    if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {
         _release = true;
         _releaseReason = "EXTERNAL_TAKEOVER";
     };
@@ -114,13 +114,13 @@ while {!_release} do {
             if (!isNil "ace_common_fnc_isAwake") then {[_pilot] call ace_common_fnc_isAwake} else {lifeState _pilot != "INCAPACITATED"}
         };
         if (
-            !(missionNamespace getVariable ["WAIT_ImprovedHelicopterLanding_Enable", true])
-            || {_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Exclude", false]}
+            !(missionNamespace getVariable ["CBE_ImprovedHelicopterLanding_Enable", true])
+            || {_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Exclude", false]}
             || {isNull _pilot}
             || {group _pilot != _group}
             || {!alive _pilot}
             || {!_pilotAwake}
-            || {[_group] call WAIT_fnc_CortexExternalTakeover}
+            || {[_group] call CBE_fnc_CortexExternalTakeover}
         ) then {
             _release = true;
             _releaseReason = "CONTROL_OR_FEATURE_CHANGE";
@@ -180,14 +180,14 @@ if (!isNull _helicopter && {local _helicopter}) then {
     // again would stomp the fresh flyInHeight/orders that new dispatch just applied with a stale
     // global default.
     if (
-        _helicopter getVariable ["WAIT_ImprovedHelicopterLanding_Active", false]
-        && {(_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
+        _helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]
+        && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
     ) then {
-        [_helicopter, false, "", _releaseReason == "MULTI_HELICOPTER_GROUP"] call WAIT_fnc_ImprovedHelicopterLandingRestoreLocal;
+        [_helicopter, false, "", _releaseReason == "MULTI_HELICOPTER_GROUP"] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
     };
-    if ((_helicopter getVariable ["WAIT_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision) then {
-        _helicopter setVariable ["WAIT_ImprovedHelicopterLanding_LastResult", ["RELEASED", _targetPosition, diag_tickTime, _releaseReason, (getPosATL _helicopter) select 2], true];
+    if ((_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision) then {
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_LastResult", ["RELEASED", _targetPosition, diag_tickTime, _releaseReason, (getPosATL _helicopter) select 2], true];
     };
-    diag_log format ["[WAIT AI LANDING] Ground anchor released helicopter=%1 reason=%2", netId _helicopter, _releaseReason];
+    diag_log format ["[CBE AI LANDING] Ground anchor released helicopter=%1 reason=%2", netId _helicopter, _releaseReason];
 };
 true

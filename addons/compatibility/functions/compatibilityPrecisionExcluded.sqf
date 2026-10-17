@@ -1,8 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
- * Resolves the public precision-policy opt-out through WAIT's compatibility boundary. It preserves
+ * Resolves the public precision-policy opt-out through CBE's compatibility boundary. It preserves
  * authored weapon behaviour for an opted-out soldier, operating vehicle or owning group while
- * leaving all other WAIT skill layers available.
+ * leaving all other CBE skill layers available.
  *
  * Locality / Authority: Read-only; callable on any machine for a unit.
  * Repeat/JIP: Safe to repeat. It reads public state only and changes no state.
@@ -13,10 +13,10 @@
  * Return Value:
  * Boolean - true when the unit, its current vehicle or its group explicitly opts out of precision tuning.
  *
- * Current callers: WAIT skill layers and diagnostics.
+ * Current callers: CBE skill layers and diagnostics.
  *
  * Example:
- * if ([_unit] call WAIT_fnc_CompatibilityPrecisionExcluded) then {_unit setCustomAimCoef 1};
+ * if ([_unit] call CBE_fnc_CompatibilityPrecisionExcluded) then {_unit setCustomAimCoef 1};
  */
 params [["_unit", objNull, [objNull]]];
 if (isNull _unit) exitWith {false};
