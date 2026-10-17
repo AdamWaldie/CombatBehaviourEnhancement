@@ -37,6 +37,22 @@ class NativeAdmissionTests(unittest.TestCase):
             self.assertLess(text.index(f'!([{actor}] call CBE_fnc_CortexActorMoveReserved)'),text.index('doStop _driver'))
             self.assertNotIn('setVariable ["CBE_Cortex_ActorMove",nil]',text)
 
+    def test_recovery_release_validates_route_and_mobility_before_any_stop(self):
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        transaction=release.split('private _released=false;',1)[1]
+        self.assertIn('isNil {',transaction)
+        self.assertLess(transaction.index('isNil {'),transaction.index('CBE_DrivingRecovery_Work'))
+        for check in ('alive _vehicle','canMove _vehicle','simulationEnabled _vehicle',
+                      '!isObjectHidden _vehicle','waypointType _waypoint == "MOVE"',
+                      '_condition == "true"','waypointScript _waypoint == ""',
+                      '(synchronizedTriggers _waypoint) isEqualTo []',
+                      '(synchronizedWaypoints _waypoint) isEqualTo []'):
+            self.assertLess(transaction.index(check),transaction.index('doStop _driver'))
+        self.assertLess(transaction.index('doStop _driver'),transaction.index('_operator doMove'))
+        self.assertIn('if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work)',transaction)
+        for forbidden in ('sleep ', 'waitUntil', 'spawn ', 'setCurrentWaypoint', 'deleteWaypoint', 'enableAI'):
+            self.assertNotIn(forbidden,transaction)
+
     def test_recovery_admission_and_handback_both_preserve_all_trigger_links(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         admission=assist.split('private _recoveryOrderFree = {',1)[1].split('private _mayRecoverRoute',1)[0]

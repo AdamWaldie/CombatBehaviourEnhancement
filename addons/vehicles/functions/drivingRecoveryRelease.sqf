@@ -9,6 +9,8 @@
  * and forbids movement cleanup; reservation state is never cleared by recovery release.
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
+ * Admission, route metadata, native command checks and handback execute without suspension.
+ * Disabled simulation, hidden or immobile vehicles receive bookkeeping retirement only.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
  * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact reverse handback.
  * Return Value: BOOL - matching journal retired, never physical recovery success.
@@ -17,11 +19,16 @@
  */
 params [["_vehicle",objNull,[objNull]],["_group",grpNull,[grpNull]],
     ["_reason","RELEASED",[""]],["_resume",true,[true]]];
+// No scheduled yield may separate the ownership proof from native commands or retirement.
+private _released=false;
+isNil {
+    _released=call {
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}) exitWith {false};
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 private _driver=_work get "driver";private _operator=_work get "operator";
 private _owned=_resume && {(_work get "kind") == "REVERSE"}
+    && {alive _vehicle} && {canMove _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
     && {local _group} && {!isNull _driver} && {!isNull _operator}
     && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
     && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
@@ -44,7 +51,6 @@ private _owned=_resume && {(_work get "kind") == "REVERSE"}
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
 } forEach [_driver,_operator];
 if (_owned) then {
-    doStop _driver;if (_operator != _driver) then {doStop _operator};
     private _index=currentWaypoint _group;private _waypoint=[_group,_index];private _statements=waypointStatements _waypoint;
     private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
     if (_index > 0 && {_index < count waypoints _group} && {waypointType _waypoint == "MOVE"} && {_condition == "true"}
@@ -52,6 +58,7 @@ if (_owned) then {
         && {waypointScript _waypoint == ""} && {(waypointTimeout _waypoint param [2,0]) <= 0}
         && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
         && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []}) then {
+        doStop _driver;if (_operator != _driver) then {doStop _operator};
         if (_driver != _operator) then {_driver doFollow _operator};
         if (vehicle leader _group == _vehicle) then {_operator doMove waypointPosition _waypoint} else {
             if (vehicle leader _group isKindOf "LandVehicle") then {_operator doFollow leader _group};
@@ -63,3 +70,7 @@ if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo 
     _vehicle setVariable ["CBE_DrivingRecovery_Work",nil,true];
 };
 true
+
+    };
+};
+_released

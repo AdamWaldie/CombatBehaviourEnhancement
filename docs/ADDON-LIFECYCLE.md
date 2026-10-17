@@ -945,3 +945,7 @@ The current local aircraft owner may retire a previous-owner AIR_ATTACK lease on
 This closes a source-level handover blocker; split actor/aircraft ownership, late receipt delivery and physical multiplayer restoration still require in-engine validation. Audits remain paused.
 
 The recorded pilot may also recover once fully on foot in the original group. This path restores only that actor's recorded features and does not clear the former aircraft lease; another aircraft occupant receives no inherited baseline. GET OUT, movement reservations, specialist or player control and other protected tasks still veto restoration. The final restoration rechecks actual locality, receipt identity, epoch, deadline, live lease and actor/task eligibility together without suspension. Changing groups or boarding a different vehicle remains unresolved rather than guessing restoration authority.
+
+### Ordinary driving recovery handback
+
+Recovery cleanup checks the current journal, vehicle mobility/simulation, original crew seats, native commands, route identity and task authority without suspension before issuing any stop or forward handback. The plain authored MOVE must pass its metadata checks before either crew member receives a stop command. Hidden, immobile or simulation-disabled vehicles retire matching bookkeeping without movement commands. This does not demonstrate successful native reverse or resolve the retained mixed-convoy stalls.
