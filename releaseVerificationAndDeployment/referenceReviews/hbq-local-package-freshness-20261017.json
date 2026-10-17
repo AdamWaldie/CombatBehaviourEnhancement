@@ -1,0 +1,156 @@
+{
+  "checked": "2026-10-17",
+  "workshopId": "3812620045",
+  "localPackage": "E:/SteamLibrary/steamapps/workshop/content/107410/3812620045/addons/hbq_advanced_driving_ai.pbo",
+  "packageSHA256": "30abacaee42340c12accc0b95cf31972f7bb2ad20cc1c6871494b8aa173f9667",
+  "recordedPackageMatches": true,
+  "rows": [
+    {
+      "path": "BIS_AddonInfo.hpp",
+      "sha256": "3656def7ca3f8e9227347d827fab09264756d3682d37677e0f5ee17da9fc193b",
+      "snapshotMatches": true
+    },
+    {
+      "path": "XEH_postInit.sqf",
+      "sha256": "a241dac9739c3f15025e05eb66b502dfebd8cef7b8310048cb4aefb846c737d2",
+      "snapshotMatches": true
+    },
+    {
+      "path": "XEH_preInit.sqf",
+      "sha256": "93f18618cd7e637730b66180e66578513bd313d91f48f0012a4a65ad11c14244",
+      "snapshotMatches": true
+    },
+    {
+      "path": "config.cpp",
+      "sha256": "84e7f3bc495b83d886de5a114cf82f509ad7b14fa7c941d4bf9b5f1e0748daa8",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_crewHold.sqf",
+      "sha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_damageInit.sqf",
+      "sha256": "0f18385e7dfd448b41501c2633f166c1fdedbc72b8850299c0f15917c1d9b081",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_debugText.sqf",
+      "sha256": "591fd3f58fe286a7ea46b7102e006fb7e0255b8b98e719c79138d96c5736640d",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_debugTextClient.sqf",
+      "sha256": "a4e28240e01801419d1b268fdd4d7c0b4c9138c1436260be7cc770a3f7f6bb34",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_driveAssistDebug.sqf",
+      "sha256": "3019209c0705906ad6ff31e89127bd0f01b32ec1400059005bb668b29758f4c4",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_edenDraw.sqf",
+      "sha256": "e1702c464e969d8e88c4a4cdaa243190329a09372d926320da41fd31e8b42ac8",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_enabled.sqf",
+      "sha256": "85376a43ee2e9b07a117a977dea91158da5633a1ad3a9e36b91001f4c898c598",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_feature.sqf",
+      "sha256": "ab58aaf35138921241af0f42813b0e14457f64c5820e758c927b874c0a415b06",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_initVehicle.sqf",
+      "sha256": "a779471f0fd13c55b223a07d6727b147e0b45d6139f151187f9da7e4caffdc40",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_moduleNavArea.sqf",
+      "sha256": "b544b431168d68cadc8e8d5e74e79c8df92149fba61c993668fc0c328d82de4e",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_nearestThreat.sqf",
+      "sha256": "db2d82840137c2ee19eb8b1131c103771325ad84b6ecef023ac4320673a14ec5",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_perfMonitor.sqf",
+      "sha256": "43e1a678a218c7c58960ae0b56a3dd48c3ef0e48d9f1c427eb7fcda962a031dd",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_playersNear.sqf",
+      "sha256": "9ab86035b3b06784c17383ed3efb0892dff55f087166c5079fad49896fedaee1",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_precision.sqf",
+      "sha256": "9d5d28551d748410a419f1ec602845bc3e3b6d653c8dd6179bb10eed71381a9b",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_protectBriefly.sqf",
+      "sha256": "a5968313440ea8292bd0e997547cc6ad10bf7e4f1cd402f75337889717092ba7",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_push.sqf",
+      "sha256": "b3a7710202b7d049b5ffd78d3acd45cd1366f3dccda347f138475bea1cf0f871",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_rearClear.sqf",
+      "sha256": "1b1935da7b23dfb6f04093e7f3601c1cd615e0b1c10c71137978c37dc2d067bc",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_refreshRoute.sqf",
+      "sha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_routeWaiting.sqf",
+      "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_start.sqf",
+      "sha256": "7bf30fd6a7e942a4710b6c829058f9936023c6f65fa7d063408d702603c1fd4b",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_teleportVehicleFree.sqf",
+      "sha256": "4fc5e3240b9477d223002011cb9630355efa05f90a2eb525a01d138aa87f1f02",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_unflipLoop.sqf",
+      "sha256": "856a0430011f16907df54161bc1fac02c64b7d3226ae6c4fb02f10970920107c",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_unstuckLoop.sqf",
+      "sha256": "7b9cccb4641252cc63d249eec33167e41d3e7e000071434a139a3db367a73719",
+      "snapshotMatches": true
+    },
+    {
+      "path": "functions/fn_vehicleUnstuck.sqf",
+      "sha256": "3b179087b1feeb34585905d960c11989357cb0d5a7c634463ea91d1605271ea8",
+      "snapshotMatches": true
+    }
+  ],
+  "snapshotOnlyFiles": [],
+  "limits": "Local installed package check only; does not prove Steam hosts the latest version or implementation parity. Raw extraction stays private. Generated derapified snapshot-only config text is not a packaged source difference."
+}
