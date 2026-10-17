@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Selected operators retain live same-group/local/task authority at each weapon boundary.
  * Release readiness requires actual native selected-weapon state with the exact planned
  * magazine and positive rounds; reserve turret stock grants no release permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
@@ -200,6 +201,7 @@ private _finish={
                     if (alive _x && {local _x} && {!isPlayer _x} && {group _x == _finishGroup} && {isNull (remoteControlled _x)}
                         && {!([group _x,false,_x] call WAIT_fnc_CortexExternalTakeover)}
                         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
+                        && {[_x] call WAIT_fnc_CortexActorFireTaskAvailable}
                         && {assignedTarget _x isEqualTo _ownedTarget}) then {
                         _x doTarget objNull;
                         _x doWatch objNull;
@@ -450,9 +452,13 @@ if (_stage == "") then {
         private _liveJob=_brain getOrDefault ["job",createHashMap];
         private _fireGroup=_liveJob getOrDefault ["group",grpNull];
         if (isNull _fireGroup) then {_fireGroup=group currentPilot _aircraft};
+        private _releaseTurret=_liveJob getOrDefault ["selectedTurret",[]];
+        private _expectedOperator=if (_releaseTurret isEqualTo [-1]) then {driver _aircraft} else {_aircraft turretUnit _releaseTurret};
         private _ownsRelease=(_liveJob getOrDefault ["firedHandler",-1]) == _thisEventHandler
             && {!(_brain getOrDefault ["finished",false])}
             && {!(_brain getOrDefault ["cancelled",false])}
+            && {_operator == _expectedOperator}
+            && {[_aircraft,_fireGroup,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}
             && {!isNull _operator} && {local _operator} && {!isPlayer _operator}
             && {isNull remoteControlled _operator}
             && {([_operator] call WAIT_fnc_CortexExternalOwner) == ""}
@@ -733,6 +739,14 @@ if (_stageDistance <= _stageBest-40) then {
 };
 private _routeStalled=serverTime >= (_job getOrDefault ["stageProgressAt",serverTime])+([35,24] select !_isPlane);
 if (_stage == "ATTACK" && {!([] call _mayControlAircraft)}) exitWith {["CONTROL_RELEASED"] call _finish};
+private _attackTurret=_job getOrDefault ["selectedTurret",[]];
+private _attackOperator=if (_stage != "ATTACK") then {objNull} else {
+    if (_attackTurret isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _attackTurret}
+};
+if (_stage == "ATTACK"
+    && {!([_aircraft,_group,_attackOperator] call WAIT_fnc_CortexAirWeaponOperatorAvailable)}) exitWith {
+    ["WEAPON_OPERATOR_UNAVAILABLE"] call _finish
+};
 if (_stage == "ATTACK") then {
     private _station=_job getOrDefault ["selectedTurret",[]];
     private _weaponOperator=if (_station isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _station};
@@ -761,11 +775,13 @@ if (_stage == "ATTACK") then {
     // Select the retained station once for this attack phase. Re-selecting it on every scheduler
     // callback restarts native weapon handling while the pilot or gunner is still acquiring the
     // same target, producing the observed pause/fire/pause cycle and refused releases.
-    if (_weapon != "" && {!(_job getOrDefault ["weaponSelected",false])}) then {
+    if (_weapon != "" && {!(_job getOrDefault ["weaponSelected",false])}
+        && {[_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}) then {
         _aircraft selectWeaponTurret [_weapon,_turret];
         _job set ["weaponSelected",true];
     };
-    if (!isNull _operator && {alive _operator} && {!(_job getOrDefault ["targetCommanded",false])}) then {
+    if ([_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable
+        && {!(_job getOrDefault ["targetCommanded",false])}) then {
         // The object-attached DESTROY waypoint is already the fixed-wing pilot's native attack
         // owner. A duplicate doTarget on that pilot can replace the committed run with ATTACK pursuit
         // and produce a circle before release. Turrets, helicopters and air-to-air engagements do
@@ -956,6 +972,7 @@ if (_stage == "ATTACK") then {
         || {!_requestPending && {_requestAttempts < 2}};
     private _pilotSurfaceRelease=_pilotSurfaceStation;
     if (_validSolution && {_pilotSurfaceRelease} && {_requestAvailable}
+        && {[_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}
         && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
         // The attached DESTROY waypoint establishes the run but does not consistently ask a
         // pilot-operated fixed station to release. Request native fire once; a Fired event remains
@@ -975,6 +992,7 @@ if (_stage == "ATTACK") then {
         _job set ["nextWeaponFire",serverTime+_pilotFireDelay];
     };
     if (_validSolution && {!_pilotSurfaceRelease} && {_requestAvailable}
+        && {[_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable}
         && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
         // One native request at a time for an independently aimed turret. Fixed-wing pilots are
         // already controlled by the native attached DESTROY order above.

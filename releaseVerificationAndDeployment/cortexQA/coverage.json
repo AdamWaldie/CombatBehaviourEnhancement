@@ -1663,6 +1663,7 @@
       "production_sources": [
         "addons/aircraft/functions/cortexAirAttack.sqf",
         "addons/aircraft/functions/cortexAirAttackPlan.sqf",
+        "addons/aircraft/functions/cortexAirWeaponOperatorAvailable.sqf",
         "addons/infantry/functions/cortexAirHandoverRestoreLocal.sqf",
         "addons/aircraft/functions/airAttackOperationStart.sqf",
         "addons/aircraft/functions/airAttackOperationQueue.sqf",

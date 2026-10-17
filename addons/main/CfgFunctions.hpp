@@ -230,6 +230,7 @@ class CfgFunctions {
             class CortexCooldown {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexCooldown.sqf";};
             class CortexCounterBattery {file = "\z\waldo_ai_tweaks\addons\support\functions\cortexCounterBattery.sqf";};
             class CortexAttackRunFlares {file = "\z\waldo_ai_tweaks\addons\infantry\functions\cortexAttackRunFlares.sqf";};
+            class CortexAirWeaponOperatorAvailable {file = "\z\waldo_ai_tweaks\addons\aircraft\functions\cortexAirWeaponOperatorAvailable.sqf";};
             class CortexAirAttackPlan {file = "\z\waldo_ai_tweaks\addons\aircraft\functions\cortexAirAttackPlan.sqf";};
             class CortexAirAttack {file = "\z\waldo_ai_tweaks\addons\aircraft\functions\cortexAirAttack.sqf";};
             class AirAttackOperationStart {file = "\z\waldo_ai_tweaks\addons\aircraft\functions\airAttackOperationStart.sqf";};

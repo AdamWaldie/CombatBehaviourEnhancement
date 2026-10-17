@@ -9,7 +9,7 @@ Deliver WAIT as a production-ready Arma 3 AI addon built on owner-local danger a
 ## Start here
 
 1. Read `AGENTS.md`, `CONTRIBUTING.md` and `AGENT-HANDOVER.md`. Revalidate the goal status, Git root, remote, branch, working tree and open PR before acting.
-2. Use branch `Adam/owner-local-fsm-signing-20261016`, remote `https://github.com/AdamWaldie/WaldosAITweaks.git`, draft PR16. Last verified remote head: `d37db04d1013756338bc537263963eedbfdc92ef`. Later local commits are intentional. Do not reset them or repeat their changes.
+2. Use branch `Adam/owner-local-fsm-signing-20261016`, remote `https://github.com/AdamWaldie/WaldosAITweaks.git`, draft PR16. Last verified remote head: `05308a649dd971c65e94a99e4fac1aa3a53bf5dd`. Later local commits are intentional. Do not reset them or repeat their changes.
 3. Read the latest dated notes at the end of `AGENT-HANDOVER.md`. Earlier sections and reviews can describe superseded code. Confirm every proposed gap against current source.
 4. Check account usage before starting a long batch. At 20 credits remaining or less, make a safe checkpoint and refresh this prompt instead of starting another batch. Never redeem a reset or purchase credits without explicit approval.
 
@@ -37,7 +37,7 @@ Paths below are relative to the WAIT root unless absolute. Private local materia
 
 ## Current checkpoint and next work
 
-Latest implementation checkpoint before this handover: `48a77bb`. Its complete Release passed 1,089 tests and all offline gates. Logs are under `.qa/workshop-evaluation-20261016/`. Audits have not run for these changes.
+Latest local implementation includes aircraft loaded-state planning/release and selected weapon operator authority. The latest full Build passed 1,100 tests and all offline gates. Read the latest dated handover notes for intervening ground reload/convoy/source review work. The last signed Release is still `48a77bb`, with 1,089 tests. Logs are under `.qa/workshop-evaluation-20261016/`. Audits have not run for these changes.
 
 CQB now preserves unchanged owned MOVE requests through readiness changes. An ended command with the same retained destination waits for timed retries. Buddy separation no longer resets the room mover's progress clock. Casualty replacement invalidates only the changed lane's cached buddy-entry proposal for fresh occupancy selection. Driving recovery/bypass/corridors preserve seat actor reservations; trigger-linked routes remain under authored control. Failed chute boarding cleans only the created empty local chute.
 

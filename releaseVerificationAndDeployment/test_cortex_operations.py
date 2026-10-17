@@ -7087,7 +7087,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_job set ["weaponSelected",true]',controller)
         self.assertIn('_operator doWatch _fireTarget',controller)
         self.assertIn('private _pilotSurfaceStation=_isPlane && {!_airContact} && {_turret isEqualTo [-1]}',controller)
-        target_block=controller.split('if (!isNull _operator && {alive _operator} && {!(_job getOrDefault ["targetCommanded",false])}) then {',1)[1].split('private _range=',1)[0]
+        target_block=controller.split('if ([_aircraft,_group,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable\n        && {!(_job getOrDefault ["targetCommanded",false])}) then {',1)[1].split('private _range=',1)[0]
         self.assertIn('if (!_pilotSurfaceStation) then {',target_block)
         self.assertNotIn('_aircraft doTarget',target_block)
         self.assertNotIn('_aircraft doWatch',target_block)
@@ -7713,6 +7713,26 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('count _ammoWeapons == 1',diagnostic)
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
+
+    def test_air_weapon_operator_authority_covers_planning_mutations_and_shot_credit(self):
+        helper=source('cortexAirWeaponOperatorAvailable')
+        for guard in ['!local _aircraft','!local _group','!local _operator',
+                      'vehicle _operator == _aircraft','group _operator == _group',
+                      'CortexCombatEffective','CortexActorFireTaskAvailable','remoteControlled',
+                      'bis_fnc_moduleRemoteControl_owner','CortexExternalTakeover','unitCombatMode']:
+            self.assertIn(guard,helper)
+        plan=source('cortexAirAttackPlan')
+        self.assertLess(plan.index('call WAIT_fnc_CortexAirWeaponOperatorAvailable'),plan.index('weaponState [_aircraft'))
+        job=source('cortexAirAttack')
+        self.assertIn('WEAPON_OPERATOR_UNAVAILABLE',job)
+        for branch in ['if (_weapon != ""','if (_validSolution && {_pilotSurfaceRelease}',
+                       'if (_validSolution && {!_pilotSurfaceRelease}']:
+            block=job.split(branch,1)[1].split('then {',1)[0]
+            self.assertIn('CortexAirWeaponOperatorAvailable',block)
+        self.assertIn('_operator == _expectedOperator',job)
+        self.assertIn('[_aircraft,_fireGroup,_operator] call WAIT_fnc_CortexAirWeaponOperatorAvailable',job)
+        cleanup=job.split('if (_ownsFlight && {!_cleanupExternal}',1)[1].split('} forEach crew _aircraft',1)[0]
+        self.assertIn('CortexActorFireTaskAvailable',cleanup)
 
     def test_air_plan_candidates_and_lateral_station_share_actual_loaded_state(self):
         plan=source('cortexAirAttackPlan')

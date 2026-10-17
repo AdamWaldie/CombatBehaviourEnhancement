@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Weapon candidates require local same-group operators with live task/ownership permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
  * Builds one finite, threat-aware Cortex attack plan for an AI aircraft and its assigned target.
  * An airborne hostile receives an intercept plan; a surface target receives a gun strafe, fixed-rocket
@@ -126,6 +127,8 @@ private _loadedMagazines=[];private _nativeQueries=0;
 // from compatible reserve stock. Missing native state grants no candidate.
 {
     private _turret=_x;
+    private _stationOperator=if (_turret isEqualTo [-1]) then {_pilot} else {_aircraft turretUnit _turret};
+    if (!([_aircraft,group _pilot,_stationOperator] call WAIT_fnc_CortexAirWeaponOperatorAvailable)) then {continue};
     // Arma exposes fixed-wing and other driver-controlled weapons through `weapons`, while
     // Bohemia defines [-1] as the driver weapon station. Some aircraft expose those weapons through
     // weaponsTurret, while other vehicle/config combinations expose part of the same station through
