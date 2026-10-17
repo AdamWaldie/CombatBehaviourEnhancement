@@ -34,6 +34,22 @@
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
       "sha256": "19bb84b76ea1aefcccb63ec9b52be0531dc0361b596b8bcf58ffc650745909f8"
+    },
+    {
+      "path": "addons/core/functions/operationRestore.sqf",
+      "sha256": "6895a739a11ce77a949913fb87e665c5077c38fca12ddb9d445752b54c8cfdc7"
+    },
+    {
+      "path": "addons/core/functions/operationRelease.sqf",
+      "sha256": "a329e69c943daab1a6bec898516b592cc61f948a31e6873d4f845a7912aa38d3"
+    },
+    {
+      "path": "addons/core/functions/operationCancel.sqf",
+      "sha256": "823e7c5e03d50cd57f7ed1831f0643c6042984007ba3be95b4e1aaf73303aed4"
+    },
+    {
+      "path": "addons/core/functions/cortexDiscover.sqf",
+      "sha256": "f4ef56071fe6feea42eb229bc24494be0a740355633085ea5e4e5c4ecfc5a84a"
     }
   ],
   "findings": [
@@ -56,6 +72,21 @@
       "id": "CURRENT_FAIL_CLOSED_LIMIT",
       "evidence": "Current cleanup requires retained original pilot, aboard/original group, matching flight lease and task/ownership guards.",
       "impact": "Prevents restoration onto replacement/protected actors but can leave original actor features disabled after protected takeover or departure. Same-value external disable cannot be detected from checkAIFeature alone."
+    },
+    {
+      "id": "CHECKPOINT_PRODUCER_CONFIRMED",
+      "evidence": "CortexCheckpoint constructs restoreDisabled solely from infantry state.drill.disabled; an aircraft lateral job never enters this payload. The producer replaces the published checkpoint when computed content changes.",
+      "impact": "Injecting an aircraft restoreDisabled entry into the shared checkpoint would be overwritten by its producer and conflate unrelated operation authority."
+    },
+    {
+      "id": "COMMON_RESTORE_IS_NOT_GENERIC",
+      "evidence": "OperationRestore accepts only groupAttack baseline/applied booleans, rejects OWNERSHIP_LOST and returns early when the two-element groupAttack entry is absent. Release/Cancel call it then clear WAIT_Operation.",
+      "impact": "Adding an actor snapshot to operation.restore alone does not provide a consumer or preserve unresolved ownership after release."
+    },
+    {
+      "id": "AIR_GROUP_LOCALITY_EXCLUDED",
+      "evidence": "CortexDiscover installs CortexLocality group handlers and adoption only for _groundEligible groups. Aircraft occupants intentionally use dedicated air controllers, and previously managed groups release the ground domain on boarding.",
+      "impact": "Do not rely on ground group Locality callbacks to restore air-only pilots or add generic group movement adoption to fix this. Dedicated actor-owner restoration needs an explicit observation entry point."
     }
   ],
   "designRequirements": [
@@ -76,5 +107,14 @@
     "Stale generation/repeated cancellation cannot clear a new receipt; deletion cleans bounded pending bookkeeping.",
     "Measure pending-set cost and end-to-end frame time under many aircraft against 5% median/10% p95 budget."
   ],
-  "disposition": "OPEN_DESIGN_REQUIRED; no durable feature lease or deferred restorer implemented by this review; audits paused; all behavioural acceptance remains partial"
+  "disposition": "OPEN_DESIGN_REQUIRED; no durable feature lease or deferred restorer implemented by this review; audits paused; all behavioural acceptance remains partial",
+  "implementationBoundary": {
+    "rejectedIntegrations": [
+      "Appending ad hoc restoreDisabled data to WAIT_AIPass_Checkpoint",
+      "Assuming OperationRestore consumes arbitrary actor feature arrays",
+      "Re-enabling generic ground adoption for aircraft crews",
+      "Adding a timed blanket enableAI after operation expiry"
+    ],
+    "nextImplementationSlice": "Create a dedicated durable actor-feature receipt and bounded release observer that is reachable independently of ground eligibility and attack feature enablement. Trace discovery/shutdown cadence and actor locality first. Acquisition must refuse unresolved prior receipts and persist baseline before mutation; resolution must retain newer-task protection and never replay flight."
+  }
 }
