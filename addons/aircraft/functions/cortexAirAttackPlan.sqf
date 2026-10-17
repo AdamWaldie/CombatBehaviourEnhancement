@@ -9,8 +9,9 @@
  * position without an exact velocity lead; the live job derives motion from successive estimates,
  * varies height inside a platform-safe envelope and retains a real loaded air-to-air weapon when present.
  * This is an intercept/engage/disengage controller, not a scripted claim to full BFM. A standoff
- * plan retains a candidate weapon/turret pair. Inventory is capability evidence, not loaded-state proof.
- * The executor must recheck the exact native loaded magazine before release. Every surface pattern retains a damaging
+ * plan retains a native loaded weapon/turret pair; the executor rechecks it before release.
+ * Planning reads at most16 stations/16 weapons each and64 native weapon states, without reserve-stock fallback.
+ * Every surface pattern retains a damaging
  * weapon/turret pair suited to its geometry; a lateral pass requires an armed independent turret.
  * AA threat geometry uses the native reported contact position, never the object's current pose.
  * Observed AA shifts the run away from the threat sector and prefers a usable
@@ -119,11 +120,10 @@ private _airWeaponClass="";
 private _airMagazine="";
 private _airWeaponScore=-1;
 private _groundCandidates=[];
-private _loadedMagazines=magazinesAllTurrets _aircraft;
-// Start from live station inventory candidates, not a proof of loaded weapon state.
-// Dynamic pylons define their firing weapon through pylonWeapon;
-// compatibleMagazines alone omits valid rocket and bomb racks on several vanilla and modded aircraft.
-// The retained station still has to expose that weapon, preserving a real operator/muzzle pair.
+private _loadedMagazines=[];private _nativeQueries=0;
+// Native weapon state binds the actual magazine to its station weapon. This keeps
+// pylon metadata for ammunition classification without inventing a loaded binding
+// from compatible reserve stock. Missing native state grants no candidate.
 {
     private _turret=_x;
     // Arma exposes fixed-wing and other driver-controlled weapons through `weapons`, while
@@ -135,17 +135,21 @@ private _loadedMagazines=magazinesAllTurrets _aircraft;
         private _driverWeapons=(weapons _aircraft)+(_aircraft weaponsTurret [-1]);
         _driverWeapons arrayIntersect _driverWeapons
     } else {_aircraft weaponsTurret _turret};
+    private _stationMagazines=[];
     {
-        _x params ["_loadedMagazine","_loadedTurret","_rounds"];
+        if (_nativeQueries >= 64) exitWith {};
+        private _weapon=_x;
+        _nativeQueries=_nativeQueries+1;
+        private _native=weaponState [_aircraft,_turret,_weapon];
+        if (count _native >= 5 && {(_native select 0) == _weapon}
+            && {(_native select 3) != ""} && {finite (_native select 4)} && {(_native select 4) > 0}) then {
+            _stationMagazines pushBack [_native select 3,+_turret,_native select 4,_weapon];
+        };
+    } forEach (_stationWeapons select [0,16]);
+    _loadedMagazines append _stationMagazines;
+    {
+        _x params ["_loadedMagazine","_loadedTurret","_rounds","_weapon"];
         if (_loadedTurret isEqualTo _turret && {_rounds > 0}) then {
-            private _pylonWeapon=getText (configFile >> "CfgMagazines" >> _loadedMagazine >> "pylonWeapon");
-            private _weapon="";
-            if (_pylonWeapon != "" && {_pylonWeapon in _stationWeapons}) then {
-                _weapon=_pylonWeapon;
-            } else {
-                private _weaponIndex=_stationWeapons findIf {_loadedMagazine in compatibleMagazines _x};
-                if (_weaponIndex >= 0) then {_weapon=_stationWeapons select _weaponIndex};
-            };
             if (_weapon != "") then {
                 private _airFacts=[_loadedMagazine] call _ammoFacts;
                 if (_airFacts select 0) then {
@@ -173,8 +177,8 @@ private _loadedMagazines=magazinesAllTurrets _aircraft;
                 };
             };
         };
-    } forEach _loadedMagazines;
-} forEach ([[-1]] + allTurrets [_aircraft,true]);
+    } forEach _stationMagazines;
+} forEach (([[-1]] + allTurrets [_aircraft,true]) select [0,16]);
 // A lateral pass needs an independently aimed, occupied turret. A fixed-forward pilot weapon cannot
 // engage abeam and previously made LATERAL a label on an impossible route. Person turrets are troop
 // firing positions, not aircraft weapon stations.
@@ -190,13 +194,13 @@ private _lateralWeaponScore=-1;
         && {!isNull _crew} && {alive _crew}) then {
         {
             private _weapon=_x;
-            private _loaded=(magazinesAllTurrets _aircraft) findIf {
+            private _loaded=_loadedMagazines findIf {
                 (_x select 1) isEqualTo _turret && {(_x select 2) > 0}
-                    && {(_x select 0) in compatibleMagazines _weapon}
+                    && {(_x select 3) == _weapon}
                     && {([_x select 0] call _ammoFacts) select 2}
             };
             if (_loaded >= 0) then {
-                private _facts=[((magazinesAllTurrets _aircraft) select _loaded) select 0] call _ammoFacts;
+                private _facts=[(_loadedMagazines select _loaded) select 0] call _ammoFacts;
                 // Side-on flight requires a traversing gun. A guided missile on a nominal turret
                 // does not make an airframe a gunship and produced the observed stationary circles.
                 private _simulation=_facts select 3;
@@ -216,7 +220,7 @@ private _lateralWeaponScore=-1;
                     _lateralTurretPath=_turret;
                     _lateralWeapon=_weapon;
                     _lateralSimulation=_simulation;
-                    _lateralMagazine=((magazinesAllTurrets _aircraft) select _loaded) select 0;
+                    _lateralMagazine=(_loadedMagazines select _loaded) select 0;
                 };
             };
         } forEach (_aircraft weaponsTurret _turret);

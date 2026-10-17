@@ -6457,10 +6457,10 @@ class CortexOperations(unittest.TestCase):
         text=(ROOT/'addons/aircraft/functions/cortexAirAttackPlan.sqf').read_text(encoding='utf-8')
         self.assertIn('(weapons _aircraft)+(_aircraft weaponsTurret [-1])',text)
         self.assertIn('_driverWeapons arrayIntersect _driverWeapons',text)
-        self.assertIn('private _loadedMagazines=magazinesAllTurrets _aircraft',text)
-        self.assertIn('CfgMagazines" >> _loadedMagazine >> "pylonWeapon',text)
-        self.assertIn('_pylonWeapon in _stationWeapons',text)
-        self.assertIn('forEach _loadedMagazines',text)
+        self.assertIn('private _loadedMagazines=[];private _nativeQueries=0',text)
+        self.assertIn('getText (_magazineConfig >> "pylonWeapon")',text)
+        self.assertIn('weaponState [_aircraft,_turret,_weapon]',text)
+        self.assertIn('forEach _stationMagazines',text)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runAircraft.sqf').read_text(encoding='utf-8')
         self.assertIn('private _ended=if (!_started) then {false}',qa)
         self.assertNotIn('moveInTurret',qa)
@@ -7713,6 +7713,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('count _ammoWeapons == 1',diagnostic)
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
+
+    def test_air_plan_candidates_and_lateral_station_share_actual_loaded_state(self):
+        plan=source('cortexAirAttackPlan')
+        candidates=plan.split('private _loadedMagazines=[];',1)[1].split('private _aaPositions=',1)[0]
+        self.assertNotIn('magazinesAllTurrets',candidates)
+        self.assertNotIn('compatibleMagazines',candidates)
+        for guard in ['_nativeQueries >= 64','_stationWeapons select [0,16]',
+                      'allTurrets [_aircraft,true]) select [0,16]',
+                      '(_native select 0) == _weapon','finite (_native select 4)',
+                      '(_native select 4) > 0','(_x select 3) == _weapon']:
+            self.assertIn(guard,candidates)
+        self.assertIn('_loadedMagazines append _stationMagazines',candidates)
+        self.assertIn('(_loadedMagazines select _loaded) select 0',candidates)
 
     def test_air_release_requires_exact_native_loaded_weapon_not_reserve_inventory(self):
         controller=source('cortexAirAttack')
