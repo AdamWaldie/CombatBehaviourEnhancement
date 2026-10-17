@@ -533,22 +533,9 @@ private _delay=call {
                     && {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}) then {
                     (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
                     _actor setVariable ["CBE_Cortex_ClearRecall",[_job get "generation",_group getVariable ["CBE_AIPass_Epoch",0],leader _group,time+5]];
-                    if (_actor == leader _group) then {
-                        // Retain the plain positional MOVE handback. For other native
-                        // waypoint types, doFollow releases the old formation exclusion,
-                        // including for the leader (Bohemia doFollow description/example 2).
-                        // The engine retains task semantics; no synthetic MOVE is invented.
-                        private _waypointIndex=currentWaypoint _group;
-                        private _waypoint=[_group,_waypointIndex];
-                        if (_waypointIndex > 0 && {_waypointIndex < count waypoints _group}
-                            && {waypointType _waypoint == "MOVE"}) then {
-                            _actor doMove waypointPosition _waypoint;
-                        } else {
-                            _actor doFollow leader _group;
-                        };
-                    } else {
-                        _actor doFollow leader _group;
-                    };
+                    // Native formation return includes the leader and preserves the new
+                    // task's gates, attachments and scripts without a positional shortcut.
+                    _actor doFollow leader _group;
                 };
             } forEach _handbacks;
         };

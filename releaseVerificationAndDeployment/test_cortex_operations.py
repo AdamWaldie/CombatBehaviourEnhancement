@@ -9164,8 +9164,8 @@ class CortexOperations(unittest.TestCase):
         branch=source('groupBrainStep').split('private _clearHold=',1)[1].split('private _legacyJob=',1)[0]
         issue=branch.split('// A newer individual order retires',1)[0]
         for guard in ('simulationEnabled _x','!isObjectHidden _x'):
-            self.assertLess(issue.index(guard),issue.index('_x doMove'))
             self.assertLess(issue.index(guard),issue.index('_x doFollow'))
+        self.assertNotIn('_x doMove',issue)
         defer=branch.split('// A newer individual order retires',1)[1]
         for guard in ('alive _x','isNull objectParent _x','currentCommand _x == "STOP"',
                       'CortexActorMoveReserved','!simulationEnabled _x','isObjectHidden _x',
@@ -9177,6 +9177,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_clearHold select 2,_deferred',defer)
         for forbidden in ('doMove','doFollow','waitAndExecute','execFSM','enableAI'):
             self.assertNotIn(forbidden,defer)
+
+    def test_post_clear_new_order_returns_leader_to_native_waypoint_semantics(self):
+        branch=source('groupBrainStep').split('private _clearHold=',1)[1].split('private _legacyJob=',1)[0]
+        self.assertEqual(branch.count('_x doFollow _leader'),1)
+        self.assertIn('private _leader=leader _group',branch)
+        # No leader-only MOVE shortcut: HOLD, scripted and attached tasks retain native ownership.
+        for forbidden in ('_x == _leader','doMove','waypointPosition','setCurrentWaypoint',
+                          'setWaypoint','deleteWaypoint','addWaypoint','call compile','enableAI'):
+            self.assertNotIn(forbidden,branch)
+        self.assertLess(branch.index('currentCommand _x == "STOP"'),branch.index('_x doFollow _leader'))
+        self.assertLess(branch.index('CortexActorMoveReserved'),branch.index('_x doFollow _leader'))
+        self.assertLess(branch.index('CBE_Cortex_ClearHold",nil'),branch.index('_x doFollow _leader'))
 
     def test_post_clear_hold_shutdown_releases_only_owned_stop(self):
         text=source('cortexReleaseGroup')
@@ -9259,9 +9271,10 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(finish.index('CBE_Cortex_ClearHold",nil'),finish.index('_actor doFollow leader _group'))
         self.assertIn('CBE_Cortex_ClearRecall',finish)
         self.assertIn('leader _group,time+5',finish)
-        self.assertIn('if (_actor == leader _group)',finish)
-        self.assertIn('waypointType _waypoint == "MOVE"',finish)
-        self.assertIn('_actor doMove waypointPosition _waypoint',finish)
+        active=finish.split('if (_reason == "NEW_ORDER" && {local _group}',1)[1].split('diag_log format ["[CBE]',1)[0]
+        self.assertIn('_actor doFollow leader _group',active)
+        for forbidden in ('doMove','waypointPosition','setCurrentWaypoint','setWaypoint','if (_actor == leader _group)'):
+            self.assertNotIn(forbidden,active)
 
     def test_clearance_new_actor_order_audit_requires_ready_route_actual_travel_and_retirement(self):
         text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()

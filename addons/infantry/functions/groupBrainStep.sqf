@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Execute one bounded group decision and publish the semantic phase consumed by the
  * owner-local tactical FSM.
+ * Post-clear owned STOP handback uses native formation return, including the leader,
+ * without replacing the new authored waypoint with a positional movement request.
  * Locality / Authority: Runs only through CBE's shared scheduler on the group owner. It validates
  * locality, generation, Zeus and external ownership before invoking existing bounded feature logic.
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
@@ -56,16 +58,10 @@ if (count _clearHold == 4) then {
                     && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                     && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
                     && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}) then {
-                    if (_x == _leader) then {
-                        private _waypointIndex=currentWaypoint _group;
-                        private _waypoint=[_group,_waypointIndex];
-                        if (_waypointIndex > 0 && {_waypointIndex < count waypoints _group}
-                            && {waypointType _waypoint == "MOVE"}) then {
-                            _x doMove waypointPosition _waypoint;
-                        };
-                    } else {
-                        _x doFollow _leader;
-                    };
+                    // Native formation return also releases a leader's scripted doStop.
+                    // Leave waypoint type, gates, attachments and scripts to the engine;
+                    // do not flatten a new authored task into one positional MOVE.
+                    _x doFollow _leader;
                 };
                 // A newer individual order retires the old hold. A living soldier's unchanged
                 // STOP retains proof across temporary unavailability, not just reservations.
