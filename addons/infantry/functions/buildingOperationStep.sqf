@@ -73,7 +73,8 @@
  * partner entry recovery. Entered survivors have priority; exterior survivors keep approach
  * continuity. Only a capable, available original buddy still assigned to interior work can
  * preserve lane entry; dead, unavailable or early-exited historical entrants cannot.
- * Whole-pair replacements still restart exterior entry without inherited receipts. Durable lane
+ * Whole-pair replacements still restart exterior entry without inherited receipts.
+ * Any roster replacement invalidates its lane buddy-entry proposal for fresh occupancy selection. Durable lane
  * mover/position slots map by actor identity into the filtered active pair, preserving survivor
  * baselines across a missing partner without crediting the casualty's old position as motion.
  * Partner entry recovery reads a provisional target when its cache is absent, without
@@ -1559,6 +1560,12 @@ private _delay=call {
         // Retain the original route, room coverage and deadline; an entered survivor
         // keeps its current interior progress and is never rallied outside.
         if (_laneRosterChanged) then {
+            // The cached buddy entry proposal belongs to the previous lane roster.
+            // A replacement gets fresh geometry/occupancy selection, without resetting
+            // room coverage, the lane route or the operation's finite recovery budget.
+            private _entryTargets=_job getOrDefault ["pairEntryTargets",createHashMap];
+            _entryTargets deleteAt (str _pairIndex);
+            _job set ["pairEntryTargets",_entryTargets];
             private _enteredActors=_job getOrDefault ["enteredActors",[]];
             private _survivorIndex=_pair findIf {
                 _x in _enteredActors && {!(_x in _laneReplacements)}

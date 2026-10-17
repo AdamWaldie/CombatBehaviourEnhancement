@@ -7697,6 +7697,16 @@ class CortexOperations(unittest.TestCase):
             self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
             self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
 
+    def test_cqb_replacement_invalidates_only_lane_entry_proposal(self):
+        step=source('buildingOperationStep')
+        replacement=step.split('if (_laneRosterChanged) then {',1)[1].split('private _enteredActors=',1)[0]
+        self.assertIn('_entryTargets deleteAt (str _pairIndex)',replacement)
+        self.assertIn('_job set ["pairEntryTargets",_entryTargets]',replacement)
+        for protected in ['"cleared"','"hardDeadline"','"failedBy"','"recoveryBudget"']:
+            self.assertNotIn(f'set [{protected}',replacement)
+        self.assertNotIn('doMove',replacement)
+        self.assertNotIn('doStop',replacement)
+
     def test_parachute_failed_boarding_cleans_only_empty_owned_chute(self):
         jump=source('cortexParachuteJump')
         boarding=jump.split('_unit moveInDriver _chute;',1)[1]
