@@ -7714,6 +7714,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_feature_release_deadline_survives_adoption_without_renewal(self):
+        release=source('cortexAirPilotFeatureRelease')
+        self.assertIn('if (!_matchingWindow && {_issuer == clientOwner}) then {',release)
+        self.assertEqual(release.count('serverTime+60'),1)
+        self.assertIn('serverTime >= (_window select 1)',release)
+        self.assertIn('MISSING_RELEASE_WINDOW',release)
+        self.assertLess(release.index('serverTime >= (_window select 1)'),release.index('_actor enableAI'))
+        adopt=source('cortexAirPilotFeatureAdopt')
+        self.assertIn('_attempt < 5',adopt)
+        self.assertIn('(vehicle _actor) isKindOf "Air"',adopt)
+        self.assertIn('[_actor,true,_attempt+1,_epoch]',adopt)
+        self.assertNotIn('serverTime+60',adopt)
+
     def test_air_feature_adoption_uses_actual_actor_locality_without_flight_replay(self):
         adopt=source('cortexAirPilotFeatureAdopt')
         self.assertIn('!_gained || {!local _actor}',adopt)
