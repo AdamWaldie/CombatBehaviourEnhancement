@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Selected operators retain live same-group/local/task authority at each weapon boundary.
  * Operator replacement cancels the old plan before retained targeting/release state can transfer.
+ * Target cleanup is scoped to the actor/target actually commanded by this job.
  * Release readiness requires actual native selected-weapon state with the exact planned
  * magazine and positive rounds; reserve turret stock grants no release permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
@@ -194,12 +195,14 @@ private _finish={
         // On an ordinary finite end, retire only the exact hostile WAIT assigned and only while no
         // player, curator or specialist has claimed the group. A newer target survives cleanup.
         if (!_preserveEditedLeg && {!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"])}) then {
-            private _ownedTarget=_job getOrDefault ["fireTarget",objNull];
+            private _assignment=_job getOrDefault ["targetAssignment",[objNull,objNull]];
+            private _ownedOperator=_assignment param [0,objNull];
+            private _ownedTarget=_assignment param [1,objNull];
             private _cleanupExternal=[_finishGroup] call WAIT_fnc_CortexExternalTakeover
                 || {[_finishGroup] call WAIT_fnc_CortexZeusHeld};
             if (_ownsFlight && {!_cleanupExternal} && {!isNull _ownedTarget}) then {
                 {
-                    if (alive _x && {local _x} && {!isPlayer _x} && {group _x == _finishGroup} && {isNull (remoteControlled _x)}
+                    if (_x == _ownedOperator && {alive _x} && {local _x} && {!isPlayer _x} && {group _x == _finishGroup} && {isNull (remoteControlled _x)}
                         && {!([group _x,false,_x] call WAIT_fnc_CortexExternalTakeover)}
                         && {!([_x] call WAIT_fnc_CompatibilityExternalControl)}
                         && {[_x] call WAIT_fnc_CortexActorFireTaskAvailable}
@@ -801,6 +804,7 @@ if (_stage == "ATTACK") then {
         if (!_pilotSurfaceStation) then {
             _operator doWatch _fireTarget;
             _operator doTarget _fireTarget;
+            _job set ["targetAssignment",[_operator,_fireTarget]];
         };
         _job set ["targetCommanded",true];
     };

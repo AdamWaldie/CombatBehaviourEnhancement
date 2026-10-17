@@ -7714,6 +7714,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_target_cleanup_only_retires_recorded_actor_assignment(self):
+        job=source('cortexAirAttack')
+        cleanup=job.split('private _assignment=_job getOrDefault ["targetAssignment"',1)[1].split('} forEach crew _aircraft',1)[0]
+        self.assertIn('_x == _ownedOperator',cleanup)
+        self.assertIn('assignedTarget _x isEqualTo _ownedTarget',cleanup)
+        self.assertNotIn('getOrDefault ["fireTarget"',cleanup)
+        assignment=job.split('if (!_pilotSurfaceStation) then {',1)[1].split('};',1)[0]
+        self.assertLess(assignment.index('_operator doTarget _fireTarget'),assignment.index('_job set ["targetAssignment",[_operator,_fireTarget]]'))
+
     def test_air_attack_operator_replacement_cannot_inherit_release_state(self):
         job=source('cortexAirAttack')
         self.assertIn('_job set ["selectedOperator",if (_plannedStation',job)
