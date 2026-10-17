@@ -7714,6 +7714,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_pilot_feature_receipt_is_durable_before_mutation_and_not_overwritten(self):
+        job=source('cortexAirAttack')
+        admission=job.split('private _startFailure="";',1)[1].split('private _waypointIndex=',1)[0]
+        self.assertIn('PILOT_FEATURE_HANDOVER_PENDING',admission)
+        self.assertIn('_pilot getVariable ["WAIT_AirPilotFeatureReceipt",[]]',admission)
+        mutation=job.split('private _lateralPilotFeatures=',1)[1].split('_pilot doTarget objNull',1)[0]
+        self.assertIn('[1,_pilot,_aircraft,_group,_flightLeaseToken,clientOwner,+_lateralPilotFeatures]',mutation)
+        self.assertLess(mutation.index('_pilot setVariable ["WAIT_AirPilotFeatureReceipt",_receipt,true]'),mutation.index('_pilot disableAI'))
+        cleanup=job.split('private _finishPilot=',1)[1].split('// Direct Zeus input',1)[0]
+        self.assertIn('isEqualTo (_job get "lateralPilotReceipt")',cleanup)
+        self.assertLess(cleanup.index('_finishPilot enableAI'),cleanup.index('_finishPilot setVariable ["WAIT_AirPilotFeatureReceipt",nil,true]'))
+
     def test_air_lateral_feature_cleanup_retains_exact_changed_pilot(self):
         job=source('cortexAirAttack')
         mutation=job.split('_job set ["lateralPilotFeatures",_lateralPilotFeatures];',1)[1].split('_pilot doTarget objNull',1)[0]

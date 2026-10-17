@@ -5,6 +5,7 @@
  * Target cleanup is scoped to the actor/target actually commanded by this job.
  * Pilot actor reservations/service tasks veto admission and later flight mutations.
  * Lateral feature snapshots retain the exact affected pilot; replacement crew inherit no restoration.
+ * A durable actor receipt preserves unresolved baselines; admission never overwrites an older receipt.
  * Release readiness requires actual native selected-weapon state with the exact planned
  * magazine and positive rounds; reserve turret stock grants no release permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
@@ -131,8 +132,11 @@ private _finish={
             && {!isPlayer _finishPilot} && {isNull (remoteControlled _finishPilot)}
             && {([_finishPilot] call WAIT_fnc_CortexExternalOwner) == ""}
             && {!([_finishPilot] call WAIT_fnc_CompatibilityExternalControl)}
-            && {[_finishPilot] call WAIT_fnc_CortexActorFireTaskAvailable}) then {
+            && {[_finishPilot] call WAIT_fnc_CortexActorFireTaskAvailable}
+            && {(_job getOrDefault ["lateralPilotReceipt",[]]) isNotEqualTo []}
+            && {(_finishPilot getVariable ["WAIT_AirPilotFeatureReceipt",[]]) isEqualTo (_job get "lateralPilotReceipt")}) then {
             {_finishPilot enableAI _x} forEach (_job getOrDefault ["lateralPilotFeatures",[]]);
+            _finishPilot setVariable ["WAIT_AirPilotFeatureReceipt",nil,true];
         };
         // Direct Zeus input owns the aircraft immediately. Do not clear target or watch state here:
         // the curator or external controller may have replaced it before this scheduled cleanup ran.
@@ -364,6 +368,11 @@ if (_stage == "") then {
     private _plan=if (_startFailure == "") then {[_aircraft,_target] call WAIT_fnc_CortexAirAttackPlan} else {createHashMap};
     if (_startFailure == "" && {count _plan == 0}) then {_startFailure="NO_PLAN"};
     if (_startFailure == "" && {!([] call _mayControlAircraft)}) then {_startFailure="CONTROL_RELEASED"};
+    // An unresolved snapshot belongs to an earlier operation, even when the native features
+    // are currently disabled. Never capture that leaked state as a new baseline.
+    if (_startFailure == "" && {(_pilot getVariable ["WAIT_AirPilotFeatureReceipt",[]]) isNotEqualTo []}) then {
+        _startFailure="PILOT_FEATURE_HANDOVER_PENDING";
+    };
     if (_startFailure == "") then {
     private _waypointIndex=currentWaypoint _group;
     private _resumePosition=[];
@@ -377,6 +386,13 @@ if (_stage == "") then {
         private _lateralPilotFeatures=["AUTOCOMBAT","TARGET","AUTOTARGET"] select {_pilot checkAIFeature _x};
         _job set ["lateralPilotFeatures",_lateralPilotFeatures];
         _job set ["lateralPilot",_pilot];
+        if (_lateralPilotFeatures isNotEqualTo []) then {
+            // Explicit originally-enabled whitelist, original actor/group/airframe and issuing
+            // owner/token are public recovery evidence. No route or attack request is replayable.
+            private _receipt=[1,_pilot,_aircraft,_group,_flightLeaseToken,clientOwner,+_lateralPilotFeatures];
+            _job set ["lateralPilotReceipt",_receipt];
+            _pilot setVariable ["WAIT_AirPilotFeatureReceipt",_receipt,true];
+        };
         {_pilot disableAI _x} forEach _lateralPilotFeatures;
         _pilot doTarget objNull;
         _pilot doWatch objNull;
