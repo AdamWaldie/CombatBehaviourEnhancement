@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Release readiness requires actual native selected-weapon state with the exact planned
+ * magazine and positive rounds; reserve turret stock grants no release permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Executes one finite Cortex aircraft attack as ingress, attack and egress phases. Against an
@@ -819,10 +821,11 @@ if (_stage == "ATTACK") then {
     // magazine can carry a different seeker or delivery family on the same launcher, so treating
     // it as interchangeable here can release the wrong ordnance at a ground target. Refuse the
     // finite release when that exact station is depleted and let native combat decide what to do.
-    private _loaded=(magazinesAllTurrets _aircraft) findIf {
-        (_x select 1) isEqualTo _turret && {(_x select 2) > 0}
-            && {(_x select 0) == _selectedMagazine}
-    } >= 0;
+    private _stationState=weaponState [_aircraft,_turret,_weapon];
+    private _loaded=count _stationState >= 5 && {_weapon != ""} && {_selectedMagazine != ""}
+        && {(_stationState select 0) == _weapon}
+        && {(_stationState select 3) == _selectedMagazine}
+        && {finite (_stationState select 4)} && {(_stationState select 4) > 0};
     private _envelope=switch _weaponClass do {
         case "GUN": {if (_airContact) then {[100,2200,0.999]} else {[120,1400,0.9995]}};
         // Native CAS opens fixed gun and rocket fire close to the aim point. A 3.6 km rocket basket

@@ -9,7 +9,8 @@
  * position without an exact velocity lead; the live job derives motion from successive estimates,
  * varies height inside a platform-safe envelope and retains a real loaded air-to-air weapon when present.
  * This is an intercept/engage/disengage controller, not a scripted claim to full BFM. A standoff
- * plan retains the real loaded weapon/turret pair. Every surface pattern retains a loaded damaging
+ * plan retains a candidate weapon/turret pair. Inventory is capability evidence, not loaded-state proof.
+ * The executor must recheck the exact native loaded magazine before release. Every surface pattern retains a damaging
  * weapon/turret pair suited to its geometry; a lateral pass requires an armed independent turret.
  * AA threat geometry uses the native reported contact position, never the object's current pose.
  * Observed AA shifts the run away from the threat sector and prefers a usable
@@ -119,7 +120,8 @@ private _airMagazine="";
 private _airWeaponScore=-1;
 private _groundCandidates=[];
 private _loadedMagazines=magazinesAllTurrets _aircraft;
-// Start from actual loaded magazines. Dynamic pylons define their firing weapon through pylonWeapon;
+// Start from live station inventory candidates, not a proof of loaded weapon state.
+// Dynamic pylons define their firing weapon through pylonWeapon;
 // compatibleMagazines alone omits valid rocket and bomb racks on several vanilla and modded aircraft.
 // The retained station still has to expose that weapon, preserving a real operator/muzzle pair.
 {

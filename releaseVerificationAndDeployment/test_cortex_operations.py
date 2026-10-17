@@ -6932,7 +6932,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_selectedRelease && {_ownsRelease}) then {',controller)
         self.assertIn('== _thisEventHandler',controller)
         self.assertIn('call WAIT_fnc_FlightLeaseValid',controller)
-        self.assertIn('&& {(_x select 0) == _selectedMagazine}',controller)
+        self.assertIn('&& {(_stationState select 3) == _selectedMagazine}',controller)
         self.assertNotIn('(_x select 0) == _selectedMagazine || {(_x select 0) in compatibleMagazines _weapon}',controller)
 
     def test_adaptive_air_attack_is_bounded_physical_and_zeus_safe(self):
@@ -7115,7 +7115,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('selectedSimulation",""]) == "shotmissile"',controller)
         self.assertIn('case "GUN": {0.15+random 0.25}',controller)
         self.assertIn('case "ROCKET": {0.45+random 0.55}',controller)
-        self.assertIn('(_x select 0) == _selectedMagazine',controller)
+        self.assertIn('(_stationState select 3) == _selectedMagazine',controller)
         self.assertIn('_job set ["lateralPilotFeatures",_lateralPilotFeatures]',controller)
         self.assertNotIn('_group enableAttack false',controller)
         self.assertNotIn('_finishGroup enableAttack (_job getOrDefault ["previousAttackEnabled",true])',controller)
@@ -7713,6 +7713,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('count _ammoWeapons == 1',diagnostic)
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
+
+    def test_air_release_requires_exact_native_loaded_weapon_not_reserve_inventory(self):
+        controller=source('cortexAirAttack')
+        release=controller.split('private _stationState=weaponState',1)[1].split('private _envelope=',1)[0]
+        for proof in ['[_aircraft,_turret,_weapon]','count _stationState >= 5',
+                      '(_stationState select 0) == _weapon','(_stationState select 3) == _selectedMagazine',
+                      'finite (_stationState select 4)','(_stationState select 4) > 0']:
+            self.assertIn(proof,release)
+        self.assertNotIn('magazinesAllTurrets',release)
+        self.assertIn('private _validSolution=_loaded',controller)
+        self.assertNotIn('setVehicleAmmo',release)
 
     def test_station_selection_reuse_requires_complete_same_frame_scan_and_fresh_fire_check(self):
         ready=source('cortexGroundFireReady')
