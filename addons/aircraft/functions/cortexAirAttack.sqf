@@ -274,6 +274,7 @@ private _finish={
             [_finishGroup,_operationGeneration,_reason] call WAIT_fnc_OperationCancel;
         };
     };
+    [_job getOrDefault ["lateralPilot",objNull],_job getOrDefault ["lateralPilotReceipt",[]]] call WAIT_fnc_CortexAirPilotFeatureRelease;
     -1
 };
 private _pilot=driver _aircraft;

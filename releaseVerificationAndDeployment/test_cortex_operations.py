@@ -7714,6 +7714,20 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_pilot_feature_release_is_exact_owner_finite_and_task_safe(self):
+        helper=source('cortexAirPilotFeatureRelease')
+        for guard in ['!local _actor','count _receipt != 7','_issuer isNotEqualTo clientOwner',
+                      '_attempt >= 60','_attempt+1','count _lease == 0','CortexActorFireTaskAvailable',
+                      'CortexExternalTakeover','CortexExternalOwner','CompatibilityExternalControl',
+                      'WAIT_AirPilotFeatureReleaseStarted','UNRESOLVED','isNotEqualTo _receipt']:
+            self.assertIn(guard,helper)
+        self.assertIn('call CBA_fnc_waitAndExecute',helper)
+        self.assertNotIn('CortexQueueJob',helper)
+        self.assertNotIn('allUnits',helper)
+        self.assertNotIn('doMove',helper)
+        self.assertLess(helper.index('_actor enableAI'),helper.index('_actor setVariable ["WAIT_AirPilotFeatureReceipt",nil,true]'))
+        self.assertIn('call WAIT_fnc_CortexAirPilotFeatureRelease',source('cortexAirAttack'))
+
     def test_air_pilot_feature_receipt_is_durable_before_mutation_and_not_overwritten(self):
         job=source('cortexAirAttack')
         admission=job.split('private _startFailure="";',1)[1].split('private _waypointIndex=',1)[0]
