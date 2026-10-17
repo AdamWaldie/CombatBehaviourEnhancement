@@ -7714,6 +7714,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in [[],["this"]]',diagnostic)
         self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
 
+    def test_air_fsm_terminal_path_releases_original_receipt_without_replaying_executor(self):
+        fsm=(ROOT/'addons/main/fsm/airAttackOperation.fsm').read_text(encoding='utf-8').replace('""','"')
+        finished=fsm.split('class Finished {',1)[1]
+        self.assertIn('_releaseJob=_brain getOrDefault ["job",createHashMap]',finished)
+        self.assertIn('_releaseJob getOrDefault ["lateralPilotReceipt",[]]',finished)
+        self.assertLess(finished.index('call WAIT_fnc_FlightLeaseRelease'),finished.index('call WAIT_fnc_CortexAirPilotFeatureRelease'))
+        self.assertLess(finished.index('call WAIT_fnc_CortexAirPilotFeatureRelease'),finished.index('setVariable ["WAIT_AirAttack_Brain",nil]'))
+        self.assertNotIn('call WAIT_fnc_CortexAirAttack;',finished)
+
     def test_air_pilot_feature_release_is_exact_owner_finite_and_task_safe(self):
         helper=source('cortexAirPilotFeatureRelease')
         for guard in ['!local _actor','count _receipt != 7','_issuer isNotEqualTo clientOwner',

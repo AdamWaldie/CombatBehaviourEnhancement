@@ -6,7 +6,7 @@
  * Unresolved and migrated records remain public; this helper does not adopt another issuer's authority.
  * Arguments: 0 actor <OBJECT, objNull>; 1 exact receipt <ARRAY, []>; 2 attempt <NUMBER, 0>.
  * Return: BOOL, true only when restored now; refused or delayed attempts return false.
- * Current callers: CortexAirAttack cleanup and this helper's bounded CBA delayed callback.
+ * Current callers: CortexAirAttack cleanup, aircraft FSM Finished, and bounded CBA delayed callback.
  * Example: [pilot1,pilot1 getVariable ["WAIT_AirPilotFeatureReceipt",[]]] call WAIT_fnc_CortexAirPilotFeatureRelease;
  */
 params [["_actor",objNull,[objNull]],["_receipt",[],[[]]],["_attempt",0,[0]]];
