@@ -7,10 +7,28 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'addons/main/functions/Cortex'
 def source(name): return next((ROOT/'addons').rglob(name+'.sqf')).read_text(encoding='utf-8')
 class CortexOperations(unittest.TestCase):
+    def test_air_departed_pilot_restores_only_original_actor_with_live_atomic_guards(self):
+        release=source('cortexAirPilotFeatureRelease')
+        safe=release.split('private _actorSafe={',1)[1].split('private _safe=',1)[0]
+        self.assertIn('group _actor == _group',safe)
+        self.assertIn('vehicle _actor == _actor || {!isNull _aircraft && {vehicle _actor == _aircraft}}',safe)
+        self.assertIn('CortexActorFireTaskAvailable',safe)
+        self.assertIn('CortexExternalTakeover',safe)
+        restore=release.split('private _restored=false;',1)[1].split('if (_restored)',1)[0]
+        for guard in ('isNil {', 'local _actor', 'serverTime < _releaseUntil',
+                      'CBE_AirPilotFeatureLocalEpoch', 'isEqualTo _receipt',
+                      'call _actorSafe', 'vehicle _actor == _actor || {count _lease == 0}'):
+            self.assertLess(restore.index(guard),restore.index('_actor enableAI'))
+        self.assertNotIn('setVariable ["CBE_FlightLease",nil',restore)
+        self.assertNotIn('driver _aircraft',restore)
+        self.assertLess(restore.index('getVariable ["CBE_FlightLease"'),restore.index('_actor enableAI'))
+        task=source('cortexActorFireTaskAvailable')
+        self.assertIn('"GET OUT"',task)
+
     def test_air_stale_lease_retirement_requires_original_issuer_and_airframe_authority(self):
         release=source('cortexAirPilotFeatureRelease')
-        retirement=release.split('// An owner transfer invalidates the old lease',1)[1].split('if (count _lease == 0',1)[0]
-        for guard in ('_safe && {local _aircraft} && {_issuer != clientOwner}',
+        retirement=release.split('// An owner transfer invalidates the old lease',1)[1].split('// On foot, the original actor',1)[0]
+        for guard in ('_safe && {vehicle _actor == _aircraft} && {local _aircraft} && {_issuer != clientOwner}',
                       'isNil {', 'local _actor && {local _aircraft} && {!_activeBrain}',
                       'serverTime < _releaseUntil',
                       'CBE_AirPilotFeatureLocalEpoch', 'isEqualTo _receipt',

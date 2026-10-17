@@ -11,7 +11,7 @@ Deliver WAIT as a production-ready Arma 3 AI addon built on owner-local danger a
 ## Start here
 
 1. Read `AGENTS.md`, `CONTRIBUTING.md` and `AGENT-HANDOVER.md`. Revalidate the goal status, Git root, remote, branch, working tree and open PR before acting.
-2. Use branch `Adam/owner-local-fsm-signing-20261016`, remote `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`, draft PR16. Last verified remote head: `05308a649dd971c65e94a99e4fac1aa3a53bf5dd`. Later local commits are intentional. Do not reset them or repeat their changes.
+2. Use branch `Adam/cbe-aircraft-release-followup`, remote `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`. PRs14 and16 are merged at d725923e; this branch contains later local commits. Preserve them. Continued review belongs in a new PR, never the merged branches.
 3. Read the latest dated notes at the end of `AGENT-HANDOVER.md`. Earlier sections and reviews can describe superseded code. Confirm every proposed gap against current source.
 4. Check account usage before starting a long batch. At 20 credits remaining or less, make a safe checkpoint and refresh this prompt instead of starting another batch. Never redeem a reset or purchase credits without explicit approval.
 
@@ -21,7 +21,7 @@ Audits are paused by the user's latest direct instruction. Do not launch Arma un
 
 Prioritise working individual building blocks, owner-local FSM execution and the entirety of HBQ before larger compositions. CQB must work dynamically through terrain, editor/Zeus placement and usable modded buildings, with inaccessible points recorded as failures. Preserve casualty replacement, buddy flow, exterior isolation, interruption and post-clear continuation. CBA owns settings. Zeus/ZEN modules issue behaviour tasks. Explicit instant Garrison placement is an allowed labelled option. IKMS, WBK Droids and WBK Zombies are compatibility-only. Expansion is last.
 
-Keep the full goal active. All 65 families remain partial, with zero full acceptance. Do not invent a completion percentage. No merge, GitHub Release or Steam upload. Batch pushes to the existing draft PR. Do not trigger CI for every commit. No subagents are authorised.
+Keep the full goal active. All 65 families remain partial, with zero full acceptance. Do not invent a completion percentage. The requested namespace PR merges are complete. Do not merge subsequent work, publish a GitHub Release or upload to Steam without authorisation. Batch future pushes into a new review checkpoint. Do not trigger CI for every commit. No subagents are authorised.
 
 ## Registers and source material
 
@@ -74,3 +74,5 @@ User resumed WAIT with replenished credit balance453.08 (verify fresh usage befo
 Current product naming: Combat Behaviour Enhancement (CBE). See docs/CBE-MIGRATION.md and the latest CBE handover note. CBE_fnc_* registration is available; preserve WAIT function compatibility and persistent mission identifiers. Selected branding is in artwork/branding/. Repository location remains WaldosAITweaks. Audits stay paused.
 
 LATEST USER OVERRIDE: CBE is a first-release, CBE-only namespace. No WAIT function compatibility, preserved WAIT setting keys or old detection-patch alias is required. The earlier paragraph recommending inherited WAIT/CBE registration is superseded. Functions/state/settings/events/modules/patch IDs now use CBE; package prefix cbe and danger path z/cbe/addons/danger/danger.fsm. Use docs/CBE-MIGRATION.md and the latest handover note. Native WAIT commands and external provider identifiers remain unchanged. Source/reference protection, permanent signing authority and audit hold remain in force.
+
+Current follow-up: fully dismounted original pilot restoration and atomic final receipt/lease/task rechecks passed1116 tests/all local gates in .qa/cbe-aircraft-dismount-release-build.log. Read the latest handover and air-pilot-dismount-release-20261017.json. Do not repeat the already-fixed initial-deadline, previous-owner-lease or on-foot-original-group work. Remaining group-change/other-vehicle, split-locality, late delivery and cooperating external ownership require deliberate authority design. Audits paused; no physical acceptance.
