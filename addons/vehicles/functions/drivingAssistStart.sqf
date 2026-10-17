@@ -18,6 +18,7 @@
  * an exact owned reverse journal alone permits its finite handback to the authored route.
  * Native boarding, service, medical and assembly tasks release the exact speed lease;
  * both driver and effective commander are rechecked at each cap/recovery command boundary.
+ * Individual movement reservations also yield assistance, including malformed or nonlocal actor leases.
  * The authored waypoint identity includes conditions, timeouts, synchronized triggers, speed,
  * combat mode and formation. Same-index edits retire the old recovery stage. Every cap/recovery
  * command rechecks that identity; the implicit spawn waypoint never authorizes assistance.
@@ -104,7 +105,8 @@ _brain set ["geometryTracks",_geometryTracks];
     if (isNull _movementOperator) then {_movementOperator=_driver};
     private _nativeTaskFree={
         params ["_actor"];
-        !isNull _actor && {!(currentCommand _actor in [
+        !isNull _actor && {!([_actor] call WAIT_fnc_CortexActorMoveReserved)}
+            && {!(currentCommand _actor in [
             "GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED",
             "ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"

@@ -5,7 +5,8 @@
  * Locality / Authority: Current vehicle/group owner. Original seats, both native destinations,
  * route, external/tactical ownership and crew tasks protect cleanup. No waypoint reconstruction.
  * Active fire, attack, service and other non-route commands forbid movement cleanup.
- * A native STOP overrides an unchanged destination receipt and forbids movement cleanup.
+ * A native STOP or individual movement reservation overrides an unchanged destination receipt
+ * and forbids movement cleanup; reservation state is never cleared by recovery release.
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
@@ -32,7 +33,8 @@ private _owned=_resume && {(_work get "kind") == "REVERSE"}
     && {isNil {_vehicle getVariable "WAIT_ExternalDrivingOwner"}};
 {
     _owned=_owned && {!isNull _x} && {local _x} && {group _x == _group} && {vehicle _x == _vehicle}
-        && {[_x] call WAIT_fnc_CortexCombatEffective} && {!isPlayer _x} && {isNull remoteControlled _x}
+        && {[_x] call WAIT_fnc_CortexCombatEffective}
+        && {!([_x] call WAIT_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {[_x] call WAIT_fnc_CortexExternalOwner == ""} && {simulationEnabled _x} && {!isObjectHidden _x}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}

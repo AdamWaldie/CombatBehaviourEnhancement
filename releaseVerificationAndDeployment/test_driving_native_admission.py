@@ -12,6 +12,18 @@ class NativeAdmissionTests(unittest.TestCase):
                 self.assertIn(marker,helper)
             self.assertGreaterEqual(source.count('call _nativeAdmissionReady'),2)
             self.assertEqual(source.count('setDriveOnPath'),1)
+    def test_ordinary_recovery_preserves_individual_seat_reservations(self):
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        helper=assist.split('private _nativeTaskFree={',1)[1].split('private _routeIdentity=',1)[0]
+        self.assertIn('!([_actor] call WAIT_fnc_CortexActorMoveReserved)',helper)
+        for seat in ['_driver','_movementOperator']:
+            self.assertGreaterEqual(assist.count(f'[{seat}] call _nativeTaskFree'),2)
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        guard=release.split('} forEach [_driver,_operator];',1)[0]
+        self.assertIn('!([_x] call WAIT_fnc_CortexActorMoveReserved)',guard)
+        self.assertLess(release.index('WAIT_fnc_CortexActorMoveReserved'),release.index('doStop _driver'))
+        self.assertNotIn('setVariable ["WAIT_Cortex_ActorMove",nil]',release)
+
     def test_pre_path_rechecks_do_not_reject_fixed_path_owned_stop(self):
         bypass=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
         self.assertIn('(_work get "phase") == "PLAN"} && {!(call _nativeAdmissionReady)',bypass)

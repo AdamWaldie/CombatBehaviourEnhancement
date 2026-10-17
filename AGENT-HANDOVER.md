@@ -286,3 +286,7 @@ Completed the full source loop comparison in `releaseVerificationAndDeployment/r
 ## 2026-10-17 Failed parachute boarding cleanup
 
 Parachute exit now applies inherited chute velocity only after actual seat occupancy. A failed boarding deletes only the just-created chute when local and empty, preserving occupied/transferred objects. Damage restoration remains scheduled; overlapping damage protection and mid-exit locality continuation are still unresolved. Full Build passed, exit 0; log: .qa/workshop-evaluation-20261016/parachute-failed-boarding-build.log. No physical audit run. Latest signed candidate remains 655728a and predates this change.
+
+## 2026-10-17 Ordinary recovery seat reservations
+
+DrivingAssistStart now includes the strict actor reservation predicate in its shared native-task boundary for both driver and effective commander; this covers initial release and each later cap/recovery write. DrivingRecoveryRelease checks the same predicate before doStop/doFollow/doMove handback, without clearing the actor lease. Unknown/nonlocal leases refuse admission, valid expired leases use existing semantics. Full Build passed: 1086 tests, exit 0; `.qa/workshop-evaluation-20261016/driving-seat-reservation-build.log`. No physical takeover or recovery acceptance; audits remain paused. Signed source remains 655728a and predates these changes.
