@@ -10,12 +10,14 @@
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
  * Admission, route metadata, native command checks and handback execute without suspension.
- * Disabled simulation, hidden or immobile vehicles receive bookkeeping retirement only.
+ * An otherwise exactly owned reverse retains its journal while mobility/simulation prevents
+ * handback. The existing driving callback retries before new assistance; no extra loop is added.
  * A leader on foot or without an eligible mounted target permits stopping our reverse only;
  * no crew follows a dismounted leader. Result field5 distinguishes native handback from a stop.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
  * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact reverse handback.
- * Return Value: BOOL - matching journal retired, never physical recovery success.
+ * Return Value: BOOL - matching journal retired, never physical recovery success; false also
+ * reports deferred exact reverse handback while its journal remains public.
  * Current callers: DrivingAssistStart and DrivingAssistRelease.
  * Example: [truck1,group driver truck1,"DRIVING_RELEASED"] call CBE_fnc_DrivingRecoveryRelease;
  */
@@ -31,7 +33,7 @@ if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 private _driver=_work get "driver";private _operator=_work get "operator";
 private _handback="METADATA_ONLY";
 private _owned=_resume && {(_work get "kind") == "REVERSE"}
-    && {alive _vehicle} && {canMove _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+    && {alive _vehicle}
     && {local _group} && {!isNull _driver} && {!isNull _operator}
     && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
     && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
@@ -46,13 +48,27 @@ private _owned=_resume && {(_work get "kind") == "REVERSE"}
         && {[_x] call CBE_fnc_CortexCombatEffective}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-        && {[_x] call CBE_fnc_CortexExternalOwner == ""} && {simulationEnabled _x} && {!isObjectHidden _x}
+        && {[_x] call CBE_fnc_CortexExternalOwner == ""}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
         && {currentCommand _x != "STOP"}
         && {toUpperANSI currentCommand _x in ["","MOVE","WAIT"]}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
 } forEach [_driver,_operator];
+private _executable=canMove _vehicle && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+    && {[_driver,_operator] findIf {!simulationEnabled _x || {isObjectHidden _x}} < 0};
+if (_owned && {!_executable}) exitWith {
+    // Keep proof of the issued rear command; do not turn a failed release into a fresh retry.
+    // This receipt is not a motion lease and never renews the original recovery deadlines.
+    if !(_work getOrDefault ["releasePending",false]) then {
+        _work set ["releasePending",true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Result",[
+            _reason,serverTime,_group,_work get "kind",_work get "hardDeadline","DEFERRED"
+        ],true];
+    };
+    false
+};
 if (_owned) then {
     private _index=currentWaypoint _group;private _waypoint=[_group,_index];private _statements=waypointStatements _waypoint;
     private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");

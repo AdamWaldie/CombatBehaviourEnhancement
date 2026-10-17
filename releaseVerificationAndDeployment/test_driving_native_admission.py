@@ -71,6 +71,21 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertNotIn('getIn',handback)
         self.assertNotIn('moveIn',handback)
 
+    def test_unavailable_reverse_handback_retains_proof_and_retries_before_acquisition(self):
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        defer=release.split('if (_owned && {!_executable}) exitWith {',1)[1].split('if (_owned) then {',1)[0]
+        self.assertIn('_work set ["releasePending",true]',defer)
+        self.assertIn('"DEFERRED"',defer)
+        self.assertLess(defer.index('if !(_work getOrDefault ["releasePending",false])'),defer.index('_vehicle setVariable'))
+        for forbidden in ('nil,true','doMove','doStop','forceSpeed','serverTime+','waitAndExecute','spawn'):
+            self.assertNotIn(forbidden,defer)
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        pending=assist.split('_recoveryWork getOrDefault ["releasePending",false]',1)[1].split('private _recoveryOwned=',1)[0]
+        self.assertIn('"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease',pending)
+        self.assertIn('_recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]',pending)
+        self.assertLess(assist.index('"DEFERRED_HANDBACK"'),assist.index('private _mayIssueDriving'))
+        self.assertLess(release.index('if (_owned && {!_executable}) exitWith'),release.index('doStop _driver'))
+
     def test_recovery_admission_and_handback_both_preserve_all_trigger_links(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         admission=assist.split('private _recoveryOrderFree = {',1)[1].split('private _mayRecoverRoute',1)[0]

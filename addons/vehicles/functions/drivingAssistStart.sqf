@@ -9,6 +9,8 @@
  * deletes a waypoint and yields to players, Zeus remote control, convoy ownership and specialist
  * driving ownership. Ineffective drivers and immobilized vehicles receive no recovery commands.
  * An authored zero forced-speed hold is retained without recovery commands.
+ * Deferred exact reverse handback is reconsidered before fresh assistance at this same callback;
+ * changed route/seat/command authority retires it without replaying the old rear command.
  * Persistent stationary traffic admits at most three native route retries in one eighty-second
  * public episode; collision caps remain active and newer seat/command ownership ends retries.
  * Traffic dwell restarts after a six-second observation gap or either hull moving more than
@@ -115,6 +117,13 @@ _brain set ["geometryTracks",_geometryTracks];
     };
     private _routeIdentity=call _readRouteIdentity;
     private _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+    if (count _recoveryWork > 0 && {(_recoveryWork get "group") == _group}
+        && {_recoveryWork getOrDefault ["releasePending",false]}) then {
+        // Retire the old exact command before a restored vehicle can acquire fresh assistance.
+        // Release rechecks native commands/route/seats and never replays a rear leg.
+        [_vehicle,_group,"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease;
+        _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+    };
     private _recoveryOwned=count _recoveryWork > 0 && {(_recoveryWork get "group") == _group}
         && {(_recoveryWork get "route") isEqualTo _routeIdentity}
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}

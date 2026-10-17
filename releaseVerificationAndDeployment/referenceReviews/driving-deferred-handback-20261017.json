@@ -1,0 +1,45 @@
+{
+  "reviewed": "2026-10-17",
+  "baselineCommit": "443d64b8",
+  "scope": "Reverse command proof across temporary mobility/simulation loss; CBE source-level lifecycle review",
+  "sources": [
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "sha256": "da4430ce23f5a765b5649147c84ee09f26b4439597a586e27c326261c40e1969"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "30a8af48b4e39329c5b99686f2b7050dd49919b7827d1e4025f7b729870a6476"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
+      "sha256": "f34c22ab98e2d438c11d02977f0c5e2c4c52f3e98fa8afdd8a6a2bc3b7765a4d"
+    }
+  ],
+  "finding": "DrivingAssistRelease could retire the recovery journal while DrivingRecoveryRelease refused motion due to mobility/simulation/visibility. No exact command proof then remained for a later handback.",
+  "implementation": [
+    "Retain otherwise exactly owned REVERSE work with releasePending=true and DEFERRED outcome while execution is unavailable.",
+    "Reconsider pending work from the existing DrivingAssistStart callback before recovery ownership evaluation or fresh assistance; reread work after release.",
+    "Revalidate route/seats/native tasks/external ownership in the existing unscheduled release transaction. New authority retires metadata without movement.",
+    "Do not replay a rear leg, refresh the original deadline, add callbacks/scanners, or republish an unchanged deferred state."
+  ],
+  "acceptanceRequired": [
+    "Disable and re-enable simulation during an issued rear leg; require exact forward handback without another rear leg.",
+    "Immobilise and repair the same vehicle; verify original journal persists and new assistance follows handback.",
+    "Issue a new native STOP/MOVE, change seats/route or give Zeus/external control while unavailable; no stale command may be replayed.",
+    "Migrate vehicle/group ownership while pending; current owners must revalidate exact native command proof.",
+    "Keep driving disabled throughout reactivation and record absence of a guaranteed automatic observer rather than claiming success."
+  ],
+  "remaining": [
+    "Physical vehicle/crew reactivation behaviour is unverified.",
+    "No independent observer when the whole driving subsystem is disabled; retained proof is not guaranteed timely cancellation.",
+    "Same-value external native orders remain indistinguishable without a cooperative ownership contract.",
+    "Mixed-column stalls, authenticated queue cascade and measured performance remain unresolved."
+  ],
+  "physicalAcceptance": false,
+  "auditsLaunched": false,
+  "externalDocumentationConsulted": [
+    "https://community.bistudio.com/wiki/enableSimulation",
+    "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers"
+  ]
+}
