@@ -7697,6 +7697,23 @@ class CortexOperations(unittest.TestCase):
             self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
             self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
 
+    def test_combined_ammo_diagnostic_requires_native_empty_state_with_positive_stock(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombinedArms.sqf').read_text(encoding='utf-8')
+        diagnostic=qa.split('// Isolated capability diagnostic',1)[1].split('[createHashMapFromArray [',1)[0]
+        for marker in ['COMBINED-ammo-loaded-native-fixture','COMBINED-ammo-loaded-ready',
+                       'COMBINED-ammo-reserve-only-native-fixture','COMBINED-ammo-reserve-only-rejected',
+                       'weaponState [_ammoTruck,_ammoStation,_x]','magazinesAllTurrets _ammoTruck',
+                       '_reserveFixture && {!([_ammoTruck,_ammoGunner]',
+                       'deleteVehicle _ammoTruck','deleteGroup _ammoGroup']:
+            self.assertIn(marker,diagnostic)
+        self.assertIn('(_x select 4) > 0',diagnostic)
+        self.assertIn('(_x select 2) > 0',diagnostic)
+        self.assertNotIn('CortexCombinedArmsLocal',diagnostic)
+        self.assertNotIn('doFire',diagnostic)
+        self.assertIn('count _ammoWeapons == 1',diagnostic)
+        self.assertIn('in [[],["this"]]',diagnostic)
+        self.assertIn('_ammoWeapon="";_ammoMagazine="";_loadedState=[];',diagnostic)
+
     def test_ground_reload_admission_reuses_tick_and_preserves_route_and_report_age(self):
         local=source('cortexCombinedArmsLocal')
         wait=local.split('private _waitForReload={',1)[1].split('if (_role in',1)[0]

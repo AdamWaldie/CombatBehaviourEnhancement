@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Runs an additive, phase-visible contact-led combined-arms scenario with infantry, two ground vehicles and an attack helicopter.
+ * A separate disposable ammunition diagnostic distinguishes loaded rounds from reserve stock;
+ * it grants no fire/effect acceptance and ends before scenario actors spawn.
  * No rally, readiness flag, waypoint or scripted assembly is injected. The infantry must acquire the
  * hostile naturally; production communication then gives each nearby capable asset an independent role.
  * Locality/authority: scheduled dedicated-server fixture with server-owned groups and normal production calls.
@@ -93,6 +95,57 @@ private _publish={
         "CONTACT-LED OPPORTUNITY",_stage,_requester,_target,_assets,serverTime,_note
     ],true];
 };
+// Isolated capability diagnostic, not the contact-led production behaviour case.
+["Ground station / loaded versus reserve ammunition","Diagnostic only: a disposable gun truck first has native loaded rounds, then empty weapons plus reserve stock. This checks readiness classification, not firing or combat effect.",[3000,3000] call _terrainPosition] call _phase;
+private _ammoTruck=createVehicle ["O_MRAP_02_hmg_F",[3000,3000] call _terrainPosition,[],0,"NONE"];
+createVehicleCrew _ammoTruck;
+private _ammoGroup=group driver _ammoTruck;
+_ammoGroup setVariable ["WAIT_AI_Exclude",true,true];
+_ammoGroup setVariable ["WAIT_Headless_ExcludeGroup",true,true];
+_ammoGroup setVariable ["acex_headless_blacklist",true,true];
+_ammoGroup setCombatMode "BLUE";
+private _ammoGunner=gunner _ammoTruck;
+private _crewRows=fullCrew [_ammoTruck,"",false];
+private _stationRow=_crewRows findIf {(_x select 0) == _ammoGunner};
+private _ammoStation=if (_stationRow >= 0) then {(_crewRows select _stationRow) select 3} else {[]};
+private _ammoWeapons=_ammoTruck weaponsTurret _ammoStation;
+private _ammoWeapon="";private _ammoMagazine="";private _loadedState=[];
+// Keep this independent control unambiguous: a modded multi-muzzle replacement
+// needs its own case rather than hiding an unobserved loaded secondary muzzle.
+private _singleMuzzleFixture=count _ammoWeapons == 1 && {
+    (getArray (configFile >> "CfgWeapons" >> (_ammoWeapons select 0) >> "muzzles")) in [[],["this"]]
+};
+private _loadedFixture=[{
+    _ammoWeapon="";_ammoMagazine="";_loadedState=[];
+    {
+        private _native=weaponState [_ammoTruck,_ammoStation,_x];
+        private _magazine=_native param [3,"",[""]];
+        private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
+        if ((_native param [4,0,[0]]) > 0
+            && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}) exitWith {
+            _ammoWeapon=_x;_ammoMagazine=_magazine;_loadedState=+_native;
+        };
+    } forEach _ammoWeapons;
+    !isNull _ammoGunner && {local _ammoGunner} && {_stationRow >= 0} && {_singleMuzzleFixture} && {_ammoWeapon != ""}
+},15] call _wait;
+["COMBINED-ammo-loaded-native-fixture",_loadedFixture,str [_ammoStation,_loadedState]] call _check;
+["COMBINED-ammo-loaded-ready",_loadedFixture && {[_ammoTruck,_ammoGunner] call WAIT_fnc_CortexGroundFireReady},str _loadedState] call _check;
+if (_loadedFixture) then {
+    // Test setup changes ammunition only; no production readiness value is assigned.
+    _ammoTruck setVehicleAmmo 0;
+    _ammoTruck addMagazineTurret [_ammoMagazine,_ammoStation,10];
+    private _stock=magazinesAllTurrets _ammoTruck;
+    private _nativeStates=_ammoWeapons apply {weaponState [_ammoTruck,_ammoStation,_x]};
+    private _reserveFixture=(_stock findIf {(_x select 1) isEqualTo _ammoStation && {(_x select 2) > 0}}) >= 0
+        && {_nativeStates isNotEqualTo []}
+        && {_nativeStates findIf {count _x < 5 || {(_x select 4) > 0}} < 0};
+    ["COMBINED-ammo-reserve-only-native-fixture",_reserveFixture,str [_stock,_nativeStates]] call _check;
+    ["COMBINED-ammo-reserve-only-rejected",_reserveFixture && {!([_ammoTruck,_ammoGunner] call WAIT_fnc_CortexGroundFireReady)},str _nativeStates] call _check;
+};
+{deleteVehicle _x} forEach crew _ammoTruck;
+deleteVehicle _ammoTruck;
+deleteGroup _ammoGroup;
+
 [createHashMapFromArray [
     ["WAIT_AIPass_Enable",true],["WAIT_AIPass_Contact_Enable",true],
     // This component case deliberately disables infantry coordinated assault. Armour and aircraft
