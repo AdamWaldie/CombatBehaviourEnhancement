@@ -316,3 +316,7 @@ Reviewed retained normal convoy source61e136b runtime20261011-184243-432 (not cu
 ## 2026-10-17 Retained convoy destination/source cross-check
 
 The four historical tracked near-stops have native MOVE / VEHICLE PLANNED targets44.76..72.64m away, so nearby-destination arrival is not a complete explanation at those instants. Old61e136b and current7f1c4c1 both permit native retask after >8m endpoint advance; this is an opportunity, not a measured issue count or causal result. Review JSON now records that distinction. All41 private HBQ semantic-index entries resolved and matched their stored SHA256; no missing or stale review hashes found. Source review coverage is still not implementation/physical parity. No production edits or audit launches in this cross-check.
+
+## 2026-10-17 Direct door API task authority
+
+Current door executor already uses3m absolute distance, floor and visibility checks; no speculative radius tuning. Empty-context direct calls previously returned orderCurrent=true and bypassed actor/native-task authority. They now require strict unreserved actor and idle/MOVE, checked both before observation and at animation boundary. Owned INDOOR contact/lease admission remains separate, preserving its authorized combat request. CLEAR/GARRISON paths unchanged. Full Build passed1091 tests/all gates, exit0; `.qa/workshop-evaluation-20261016/door-direct-admission-build.log`. No claim this caused historical early animation; physical doors/entry remain unverified, audits paused.

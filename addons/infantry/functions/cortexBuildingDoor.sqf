@@ -20,6 +20,8 @@
  * 3 metadata only <BOOL, false> - cache model definitions without interaction or cooldown.
  * Metadata discovery is read-only world observation and does not require an available actor.
  * STOP, disabled movement, hidden actors and disabled simulation veto opening requests.
+ * Empty-context direct calls require an unreserved idle/MOVE actor; owned INDOOR combat
+ * retains its separate exact contact/task receipt rather than borrowing this exemption.
  * Return: BOOL, an opening request was issued (not proof of entry).
  * Current callers: CortexClearBuilding, CortexGarrisonApplyLocal and IndoorActorOperation owner jobs.
  * Example: [_soldier,_house] call WAIT_fnc_CortexBuildingDoor;
@@ -48,7 +50,12 @@ private _vectorValid={
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
 };
 private _orderCurrent={
-    if (_context isEqualTo []) exitWith {true};
+    // A direct script request has no owned-operation receipt. It may assist an
+    // ordinary approach, never borrow an unrelated reserved/native service task.
+    if (_context isEqualTo []) exitWith {
+        !([_unit] call WAIT_fnc_CortexActorMoveReserved)
+            && {currentCommand _unit in ["","MOVE"]}
+    };
     if (count _context != 2 || {!((_context select 0) isEqualType "")} || {!((_context select 1) isEqualType 0)}) exitWith {false};
     private _group=group _unit;
     if ((_context select 0) == "INDOOR") exitWith {

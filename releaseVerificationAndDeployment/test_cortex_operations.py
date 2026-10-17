@@ -7697,6 +7697,17 @@ class CortexOperations(unittest.TestCase):
             self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
             self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
 
+    def test_direct_door_calls_cannot_borrow_reserved_or_service_actors(self):
+        text=source('cortexBuildingDoor')
+        direct=text.split('if (_context isEqualTo []) exitWith {',1)[1].split('};',1)[0]
+        self.assertIn('!([_unit] call WAIT_fnc_CortexActorMoveReserved)',direct)
+        self.assertIn('currentCommand _unit in ["","MOVE"]',direct)
+        self.assertNotIn('_combatCommand',direct)
+        self.assertGreaterEqual(text.count('call _orderCurrent'),2)
+        indoor=text.split('if ((_context select 0) == "INDOOR") exitWith {',1)[1].split('private _key=switch',1)[0]
+        self.assertIn('currentCommand _unit in ["","MOVE"] || {_combatCommand}',indoor)
+        self.assertIn('WAIT_Cortex_ActorMove',indoor)
+
     def test_cqb_replacement_invalidates_only_lane_entry_proposal(self):
         step=source('buildingOperationStep')
         replacement=step.split('if (_laneRosterChanged) then {',1)[1].split('private _enteredActors=',1)[0]
