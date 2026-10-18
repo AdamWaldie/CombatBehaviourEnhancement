@@ -24,10 +24,10 @@ class CounterBatterySettingEpoch(unittest.TestCase):
     def test_accepted_counter_missions_and_owner_requests_keep_original_generation(self):
         fire=(ROOT/'addons/support/functions/cortexArtilleryFire.sqf').read_text(encoding='utf-8')
         step=(ROOT/'addons/support/functions/cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
-        self.assertIn('["counterGeneration",missionNamespace getVariable',fire)
+        self.assertIn('["counterGeneration",_fireEpochs select 3]',fire)
         self.assertIn('_mission getOrDefault ["counterGeneration",-1]',step)
         self.assertIn('private _blocked = _counterExpired',step)
-        self.assertIn('_mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial"] remoteExecCall',step)
+        self.assertIn('_mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial",_mission getOrDefault ["fireGeneration",-1],_mission getOrDefault ["smokeGeneration",-1]] remoteExecCall',step)
         self.assertIn('if (alive _battery && {(_mission get "phase") in ["PENDING", "UNCERTAIN"]})',step)
         self.assertIn('_mission set ["phase", "UNCERTAIN"]',step)
     def test_owner_shot_rechecks_generation_and_live_gates_at_atomic_native_issue(self):
@@ -36,7 +36,7 @@ class CounterBatterySettingEpoch(unittest.TestCase):
         self.assertIn('_counterGeneration == (missionNamespace getVariable',shot)
         commit=shot.split('private _issued=false;',1)[1]
         self.assertLess(commit.index('isNil {'),commit.index('doArtilleryFire'))
-        for guard in ('call _counterCurrent','CBE_AIPass_Active','CortexIsPaused',
+        for guard in ('call _fireSessionCurrent','CBE_AIPass_Active','CortexIsPaused',
                       'CortexFeatureEnabled','CBE_AIPass_FireToken','unitCombatMode _operator == "BLUE"'):
             self.assertIn(guard,commit.split('_battery doArtilleryFire',1)[0])
         self.assertTrue(shot.rstrip().endswith('_issued'))

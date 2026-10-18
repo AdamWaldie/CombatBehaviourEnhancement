@@ -51,7 +51,15 @@ private _smokeBlocked=(_mission get "mode") == "SMOKE"
     && {!([_crewGroup,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)};
 private _counterExpired=(_mission get "purpose") == "COUNTER"
     && {(_mission getOrDefault ["counterGeneration",-1]) != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])};
-private _blocked = _counterExpired || {_smokeBlocked} || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
+private _fireGenerationName=switch (_mission get "purpose") do {
+    case "SUPPORT": {"CBE_Artillery_SupportFireGeneration"};
+    case "DANGER": {"CBE_Artillery_DangerFireGeneration"};
+    default {"CBE_AIPass_CounterGeneration"};
+};
+private _fireExpired=(_mission getOrDefault ["fireGeneration",-1]) != (missionNamespace getVariable [_fireGenerationName,0]);
+private _smokeExpired=(_mission get "mode") == "SMOKE"
+    && {(_mission getOrDefault ["smokeGeneration",-1]) != (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])};
+private _blocked = _counterExpired || {_fireExpired} || {_smokeExpired} || {_smokeBlocked} || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"} || {time > (_mission get "deadline")}
     || {side group gunner _battery != (_mission get "side")}
     || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}
@@ -154,5 +162,5 @@ _mission set ["shotSerial",(_mission getOrDefault ["shotSerial",0])+1];
 _mission set ["phase", "PENDING"];
 _mission set ["due", time + 60];
 _mission set ["gunOwner", owner _battery];
-[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial"] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
+[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial",_mission getOrDefault ["fireGeneration",-1],_mission getOrDefault ["smokeGeneration",-1]] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
 1

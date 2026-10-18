@@ -7,18 +7,20 @@
  * Arguments: 0: battery <OBJECT>; 1: aim ATL <ARRAY>; 2: magazine <STRING>; 3: purpose <STRING>; 4: mode <STRING>; 5: token <STRING>;
  * 6 counter generation <NUMBER, -1>, required for COUNTER requests from the server;
  * 7 shot serial <NUMBER, -1>, required positive integer for every request.
+ * 8 fire generation <NUMBER, -1>, required original purpose generation;
+ * 9 smoke generation <NUMBER, -1>, required original generation for SMOKE.
  * Exact duplicate and older serials are consumed without fire or rejection callbacks; a
  * conflicting same-serial payload refuses without cancelling the genuine pending command.
  * Final native issue rechecks current generation, live feature/ROE and crew/token atomically.
  * No command can undo a projectile or native shot already issued before cancellation.
  * Return Value: Boolean, command issued or exact duplicate/older request consumed; never firing proof.
  * Current callers: ArtilleryMissionStep.
- * Example: [_gun, _aim, _mag, "SUPPORT", "HE", _token,-1,1] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _gun];
+ * Example: [_gun, _aim, _mag, "SUPPORT", "HE", _token,-1,1,_supportGeneration,-1] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _gun];
  */
-params ["_battery", "_aim", "_magazine", "_purpose", "_mode", "_token",["_counterGeneration",-1,[0]],["_shotSerial",-1,[0]]];
+params ["_battery", "_aim", "_magazine", "_purpose", "_mode", "_token",["_counterGeneration",-1,[0]],["_shotSerial",-1,[0]],["_fireGeneration",-1,[0]],["_smokeGeneration",-1,[0]]];
 if (remoteExecutedOwner != 2) exitWith {false};
 if (!finite _shotSerial || {_shotSerial < 1} || {_shotSerial != floor _shotSerial}) exitWith {false};
-private _signature=[+_aim,_magazine,_purpose,_mode,_counterGeneration];
+private _signature=[+_aim,_magazine,_purpose,_mode,_counterGeneration,_fireGeneration,_smokeGeneration];
 private _requestState={
     private _receipt=_battery getVariable ["CBE_AIPass_ShotReceipt",[]];
     if (_receipt isEqualTo []) exitWith {"NEW"};
@@ -40,15 +42,24 @@ private _reject = {
     [_battery, _token, clientOwner] remoteExecCall ["CBE_fnc_CortexArtilleryRejected", 2];
     false
 };
-private _counterCurrent={
-    _purpose != "COUNTER" || {finite _counterGeneration && {_counterGeneration >= 0}
-        && {_counterGeneration == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}
-        && {missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable",false]}}
+private _fireGenerationName=switch (_purpose) do {
+    case "SUPPORT": {"CBE_Artillery_SupportFireGeneration"};
+    case "DANGER": {"CBE_Artillery_DangerFireGeneration"};
+    default {"CBE_AIPass_CounterGeneration"};
+};
+private _fireSessionCurrent={
+    finite _fireGeneration && {_fireGeneration >= 0}
+        && {_fireGeneration == (missionNamespace getVariable [_fireGenerationName,0])}
+        && {_mode != "SMOKE" || {finite _smokeGeneration && {_smokeGeneration >= 0}
+            && {_smokeGeneration == (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])}}}
+        && {_purpose != "COUNTER" || {finite _counterGeneration && {_counterGeneration >= 0}
+            && {_counterGeneration == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}
+            && {missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable",false]}}}
 };
 private _danger=_purpose == "DANGER";
 private _operator=gunner _battery;
 private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner _battery};
-if (!(call _counterCurrent) || {!local _battery} || {!alive _battery} || {!([_operator] call CBE_fnc_CortexCombatEffective)}
+if (!(call _fireSessionCurrent) || {!local _battery} || {!alive _battery} || {!([_operator] call CBE_fnc_CortexCombatEffective)}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}
     || {(_battery getVariable ["CBE_AIPass_FireToken", ""]) != _token}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])} || {[] call CBE_fnc_CortexIsPaused}
@@ -77,7 +88,7 @@ isNil {
     _issued=call {
 private _currentRequest=call _requestState;
 if (_currentRequest != "NEW") exitWith {_currentRequest in ["DUPLICATE","STALE"]};
-if (!(call _counterCurrent) || {!local _battery} || {gunner _battery != _operator}
+if (!(call _fireSessionCurrent) || {!local _battery} || {gunner _battery != _operator}
     || {!alive _battery} || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
     || {[] call CBE_fnc_CortexIsPaused}
     || {combatMode group _operator == "BLUE"} || {unitCombatMode _operator == "BLUE"}

@@ -29,17 +29,19 @@
     "Server publishes counter generation on feature disable and master stop for current/JIP owners. Publication is not proof of network cancellation ordering.",
     "Every artillery shot now has a monotonic per-mission request serial and public last-issued battery receipt. Atomic duplicate/stale suppression does not send rejection for an already pending native shot; same-serial payload conflicts do not issue commands.",
     "Pending shoot-and-scoot now retains exact token/session, per-purpose cancellation generation and original deadline through retries/adoption; post-planning lease/operation/move admission is atomic, and old cleanup preserves successor sessions.",
-    "An admitted ARTILLERY_SCOOT operation retains its session after pending-token cleanup. The existing group callback cancels only its matching generation on purpose/session invalidation; retirement rechecks common operation generation, exact public authority lease and local bookkeeping before clearing."
+    "An admitted ARTILLERY_SCOOT operation retains its session after pending-token cleanup. The existing group callback cancels only its matching generation on purpose/session invalidation; retirement rechecks common operation generation, exact public authority lease and local bookkeeping before clearing.",
+    "Support and danger fire missions retain independent original cancellation generations through planning, mission stepping and owner dispatch. Smoke adds a mode-specific generation without cancelling HE. Final atomic native issue and duplicate signatures include the original epochs. Master stop invalidates all fire purposes; pending native uncertainty remains quarantined."
   ],
   "remaining": [
-    "Issued shots retain quarantine. Generation/receipt delivery, repeated RPCs, owner migration, active relocation stopping and newer authored/native order handback still need physical tests. Support fire-mission off/on generation remains an independent review item.",
+    "Issued shots retain quarantine. Generation/receipt delivery, repeated RPCs, owner migration, active relocation stopping and newer authored/native order handback still need physical tests. Per-purpose off/on cancellation now has source-contract coverage, not physical acceptance.",
     "Per-vehicle feature filtering, full-HBQ controller parity and physical live toggles remain incomplete."
   ],
   "validation": {
-    "tests": 1297,
+    "tests": 1306,
     "exitCode": 0,
-    "log": ".qa/cbe-counterbattery-mission-generation-verified-build.log",
-    "packageFingerprint": "56f2e8b945ee098e949a8ddd20cd26a45b133c9e4c2a934db0ecb63976db11c8"
+    "log": ".qa/cbe-artillery-purpose-sessions-build.log",
+    "packageFingerprint": "848103419512d21e6f359cdd624dbf5f688e2652623daa2e422941ffb9b313a5",
+    "source": "ed2984cd plus intended purpose-session source, documentation and tests; review/handover metadata appended after build"
   },
   "physicalAcceptance": false,
   "audits": "paused"

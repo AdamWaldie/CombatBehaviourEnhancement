@@ -69,7 +69,8 @@ if (isServer) then {
     missionNamespace setVariable ["CBE_AIPass_SupportRequests",createHashMap];
     missionNamespace setVariable ["CBE_AIPass_CounterGeneration", (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0]) + 1,true];
     {missionNamespace setVariable [_x,(missionNamespace getVariable [_x,0])+1,true]}
-        forEach ["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"];
+        forEach ["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration",
+            "CBE_Artillery_SupportFireGeneration","CBE_Artillery_DangerFireGeneration","CBE_Artillery_SmokeFireGeneration"];
     {
         private _battery = _y get "battery";
         private _brain=_battery getVariable ["CBE_Artillery_Brain",createHashMap];

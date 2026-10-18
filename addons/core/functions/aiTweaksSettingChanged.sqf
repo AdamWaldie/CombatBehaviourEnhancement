@@ -31,6 +31,18 @@ if (_name == "CBE_AIPass_CounterBattery_Enable" && {isServer} && {_value isEqual
 // Relocation has its own per-purpose lifetime: closing scoot must not cancel firing,
 // and closing counter-battery must not cancel unrelated support relocation.
 if (isServer && {_value isEqualTo false}) then {
+    private _fireGeneration=switch (_name) do {
+        case "CBE_AIPass_Artillery_Enable": {"CBE_Artillery_SupportFireGeneration"};
+        case "CBE_AIPass_Danger_Enable";
+        case "CBE_AIPass_Vehicles_Enable";
+        case "CBE_AIPass_VehicleGunnery_Enable": {"CBE_Artillery_DangerFireGeneration"};
+        case "CBE_AIPass_ArtillerySmoke_Enable": {"CBE_Artillery_SmokeFireGeneration"};
+        default {""};
+    };
+    if (_fireGeneration != "") then {
+        isNil {missionNamespace setVariable [_fireGeneration,
+            (missionNamespace getVariable [_fireGeneration,0])+1,true]};
+    };
     private _scootGeneration=switch (_name) do {
         case "CBE_AIPass_Artillery_Enable";
         case "CBE_AIPass_Artillery_ShootAndScoot": {"CBE_ArtilleryScoot_SupportGeneration"};
