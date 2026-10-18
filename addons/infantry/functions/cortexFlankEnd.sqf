@@ -20,7 +20,8 @@
  * Locality and authority: call where the group is local.
  *
  * Repeat/JIP: finite callers bind their original token even when the supplied state map changes;
- * feedback/terminal retirement recheck that identity after shared operation cleanup;
+ * actor/group restoration and feedback share an unscheduled current-identity transaction;
+ * terminal retirement rechecks that identity after shared operation cleanup;
  * an empty drill is a no-op; the ending reason is published for observers and JIP.
  * Arguments:
  * 0: group <GROUP>
@@ -52,14 +53,21 @@ private _liveDrill=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOr
 if (count _liveDrill > 0 && {(_liveDrill getOrDefault ["token",""]) != (_drill getOrDefault ["token",""])}
     || {_expectedToken != "" && {(_liveDrill getOrDefault ["token",""]) != _expectedToken}}) exitWith {false};
 private _endingToken=_drill getOrDefault ["token",""];
-private _endingEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _endingEpoch=_drill getOrDefault ["ownerEpoch",-1];
 private _endingGeneration=_drill getOrDefault ["operationGeneration",-1];
 private _stillEnding={
-    private _current=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
-    local _group && {_endingEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+    private _currentState=_group getVariable ["CBE_AIPass_State",createHashMap];
+    private _current=_currentState getOrDefault ["drill",createHashMap];
+    local _group && {_currentState isEqualTo _state} && {_endingEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {_endingGeneration == (_group getVariable ["CBE_OperationGeneration",0])}
         && {(_current getOrDefault ["token",""]) == _endingToken}
 };
+private _supportToken="";
+private _restorationDone=false;
+// Keep actor/group restoration and feedback together; shared operation release below may
+// perform separate work and deliberately remains outside this no-geometry transaction.
+isNil {
+if !(call _stillEnding) exitWith {};
 private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
 private _sameOperation=count _liveOperation == 0 || {(_liveOperation getOrDefault ["generation",-2]) == (_drill getOrDefault ["operationGeneration",-1])};
 private _mayRestore=_sameOperation && {!(_reason in ["ZEUS","OWNERSHIP_LOST","EXTERNAL","REPLACED","ATTACK_POLICY_CHANGED"])}
@@ -115,7 +123,7 @@ _members=_members select {
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 private _stragglers = ((_drill getOrDefault ["recovery",[]]) apply {_x select 0}) select {_x in _members};
-private _supportToken=_drill getOrDefault ["supportToken",""];
+_supportToken=_drill getOrDefault ["supportToken",""];
 private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 private _holdFailedBound=_mayCommand && {_supportToken != ""}
     && {_reason in ["STALLED","TIME_LIMIT","RECOVERY_FAILED"]}
@@ -155,6 +163,9 @@ if (_supportToken != "") then {
     _state deleteAt "baseAttack";
 };
 };
+_restorationDone=true;
+};
+if (!_restorationDone) exitWith {false};
 private _type = _drill getOrDefault ["type", "FLANK"];
 private _operationGeneration=_drill getOrDefault ["operationGeneration",-1];
 // A coordinated bound is a child phase; SupportMaintain owns the parent operation lifetime.

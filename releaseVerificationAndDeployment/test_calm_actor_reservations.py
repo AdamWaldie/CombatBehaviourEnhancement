@@ -279,3 +279,22 @@ class DrillChildIdentityTests(unittest.TestCase):
         self.assertIn('CBE_Cortex_DrillTransitions',commit)
         self.assertLess(commit.index('CBE_Cortex_DrillTransitions'),commit.index('_changed=true;'))
         self.assertTrue(source.rstrip().endswith('_changed'))
+
+
+class DrillRestorationCommitTests(unittest.TestCase):
+    def test_restoration_and_formation_writes_share_exact_current_context(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankEnd.sqf').read_text()
+        helper=source.split('private _stillEnding={',1)[1].split('private _supportToken=',1)[0]
+        for guard in ['local _group','_currentState isEqualTo _state','_endingEpoch ==',
+                      '_endingGeneration ==','"token",""]) == _endingToken']:
+            self.assertIn(guard,helper)
+        block=source.split('private _restorationDone=false;',1)[1].split('if (!_restorationDone)',1)[0]
+        admission=block.index('if !(call _stillEnding) exitWith {};')
+        for write in ['_group setCombatMode','_group setSpeedMode','_unit enableAI _feature',
+                      '_unit setUnitCombatMode','removeEventHandler','doStop _x',
+                      '_x doFollow','CBE_Cortex_SupportBoundResult']:
+            self.assertLess(admission,block.index(write))
+            self.assertLess(block.index(write),block.index('_restorationDone=true;'))
+        for forbidden in ['CBE_fnc_OperationCancel','CBE_fnc_OperationRelease','nearEntities','lineIntersects','sleep ']:
+            self.assertNotIn(forbidden,block)
+        self.assertIn('if (!_restorationDone) exitWith {false};',source)

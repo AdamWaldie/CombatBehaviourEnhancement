@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Drill cleanup now commits its actor/group restoration, handler removal, formation/hold writes and
+  feedback under the same current state/token/epoch/generation check. Shared operation release
+  remains separate, followed by guarded terminal retirement. Physical cleanup and cost remain unverified.
+
 - Finite manoeuvre cleanup now carries the original child drill token instead of selecting a newer
   drill from a mutable state map. Stage/parent-phase/history publication also atomically requires
   the current child token. Complete cleanup interleavings and physical handover remain unverified.
