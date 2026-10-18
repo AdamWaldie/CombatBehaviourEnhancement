@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Executes one finite native internal-seat replacement for an ordinary leader vehicle.
  * A dead driver receives one native Eject action; only a confirmed vacant seat permits MoveToDriver.
+ * Seat actions require finite total linear speed below1km/h and angular speed below0.01rad/s.
+ * Read-only SWITCHING completion may observe a moving new driver; all other admission guards remain.
  * Living incapacitated drivers are never displaced. New candidate priority is eligible cargo,
  * commander, other crew, then primary gunner as last resort. An admitted attempt keeps its candidate.
  * Locality / Authority: Internal current group/crew owner only, exact driving brain and
@@ -92,10 +94,18 @@ private _tasks=["GET IN","GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPP
     "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
 private _available={
     _crew=fullCrew [_vehicle,"",false];
+    params [["_requireStopped",true,[true]]];
+    private _motionSafe=true;
+    if (_requireStopped) then {
+        private _linearMotion=vectorMagnitude velocity _vehicle;
+        private _angularMotion=vectorMagnitude angularVelocity _vehicle;
+        _motionSafe=finite _linearMotion && {finite _angularMotion}
+            && {_linearMotion < (1/3.6)} && {_angularMotion < 0.01};
+    };
     // Physical vacancy alone does not release a mission-assigned incoming driver.
     private _driverSeat=(fullCrew [_vehicle,"driver",true]) param [0,[]];
     private _assignedDriver=_driverSeat param [5,objNull];
-    local _group && {alive _vehicle} && {canMove _vehicle} && {abs speed _vehicle < 1}
+    local _group && {alive _vehicle} && {canMove _vehicle} && {_motionSafe}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle} && {!lockedDriver _vehicle}
         && {vehicle leader _group == _vehicle}
         && {currentCommand leader _group != "STOP"}
@@ -128,7 +138,13 @@ private _finish={
     if (count _work > 0) then {_work set ["phase",_result];_work set ["ended",serverTime];_changed=true};
     call _publish;false
 };
-if !(call _available) exitWith {["CANCELLED"] call _finish};
+// Confirmation is observation, not permission to issue another action. A successful native
+// switch may already be driving by the next sample; retain all other owner/task/route guards.
+if (_phase == "SWITCHING" && {!isNull _candidate} && {driver _vehicle == _candidate}
+    && {[_candidate] call CBE_fnc_CortexCombatEffective}) exitWith {
+    [["CANCELLED","COMPLETE"] select ([false] call _available)] call _finish
+};
+if !([true] call _available) exitWith {["CANCELLED"] call _finish};
 private _index=currentWaypoint _group;private _wp=[_group,_index];private _statements=waypointStatements _wp;
 private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
 if (_index <= 0 || {_index >= count waypoints _group} || {waypointType _wp != "MOVE"} || {_condition != "true"}
@@ -171,7 +187,6 @@ if (count _work == 0) then {
 };
 if (count _work == 0) exitWith {call _publish;false};
 _brain set ["crewVehicle",_vehicle];
-if (driver _vehicle == _candidate && {[_candidate] call CBE_fnc_CortexCombatEffective}) exitWith {["COMPLETE"] call _finish};
 if (serverTime >= (_work get "deadline")) exitWith {["EXPIRED"] call _finish};
 if (isNull _candidate || {!local _candidate} || {vehicle _candidate != _vehicle}
     || {!([_candidate] call CBE_fnc_CortexCombatEffective)}
@@ -203,7 +218,7 @@ private _commandsOwned={
 };
 if (_phase == "READY" && {!isNull _driver}) then {
     isNil {
-        if (call _available && {call _commandsOwned} && {driver _vehicle == _driver} && {!alive _driver}
+        if ([true] call _available && {call _commandsOwned} && {driver _vehicle == _driver} && {!alive _driver}
             && {local _driver} && {!isPlayer _driver} && {simulationEnabled _driver} && {!isObjectHidden _driver}) then {
             _driver action ["Eject",_vehicle];
             _work set ["phase","VACATING"];_changed=true;_phase="VACATING_ISSUED";
@@ -213,7 +228,7 @@ if (_phase == "READY" && {!isNull _driver}) then {
 };
 if (_phase in ["READY","VACATING"]) then {
     isNil {
-        if (call _available && {call _commandsOwned} && {isNull driver _vehicle}) then {
+        if ([true] call _available && {call _commandsOwned} && {isNull driver _vehicle}) then {
             _candidate action ["MoveToDriver",_vehicle];
             _work set ["nativeCommand",currentCommand _candidate];
             _work set ["leaderNativeCommand",currentCommand leader _group];

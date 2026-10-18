@@ -34,7 +34,7 @@ class DrivingCrewTests(unittest.TestCase):
         s=self.source()
         for guard in ('remoteExecutedOwner > 0','CBE_Driving_Brain','CBE_AIPass_Epoch','CortexZeusHeld',
                       'CortexExternalTakeover','CBE_Convoy_Active','CBE_ExternalDrivingOwner','DrivingMovementAvailable',
-                      'count _crew <= 20','abs speed _vehicle < 1','!lockedDriver _vehicle',
+                      'count _crew <= 20','_linearMotion < (1/3.6)','_angularMotion < 0.01','!lockedDriver _vehicle',
                       'isPlayer _actor','group _actor != _group','currentCommand _actor in _tasks',
                       'waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers',
                       'expectedDestination _candidate','expectedDestination leader _group','assignedVehicleRole _candidate',
@@ -44,7 +44,7 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('private _available={\n    _crew=fullCrew',s)
         self.assertIn('_previousVehicle != vehicle leader _group',s)
         self.assertIn('toLowerANSI (_x select 1) == "cargo"',s)
-        self.assertEqual(s.count('call _available'),3)
+        self.assertEqual(s.count('call _available'),4)
     def test_native_command_changes_guard_admission_and_both_actions(self):
         s=self.source()
         self.assertIn('currentCommand leader _group != "STOP"',s)
@@ -75,7 +75,10 @@ class DrivingCrewTests(unittest.TestCase):
         s=self.source()
         self.assertEqual(s.count('serverTime+25'),1)
         self.assertIn('serverTime >= (_work get "deadline")',s)
-        self.assertIn('driver _vehicle == _candidate && {[_candidate] call CBE_fnc_CortexCombatEffective}',s)
+        confirmation=s.split('// Confirmation is observation',1)[1].split('if !([true] call _available)',1)[0]
+        self.assertIn('driver _vehicle == _candidate',confirmation)
+        self.assertIn('[_candidate] call CBE_fnc_CortexCombatEffective',confirmation)
+        self.assertIn('_phase == "SWITCHING"',confirmation)
         self.assertIn('["COMPLETE","CANCELLED","EXPIRED"]',s)
         release=s.split('if (_release) exitWith {',1)[1].split('if (count _work > 0 && {(_work get "group") != _group})',1)[0]
         self.assertNotIn(' action [',release)
@@ -183,3 +186,19 @@ class DrivingCrewTests(unittest.TestCase):
                           'moveInDriver','moveOut','setPos','setVelocity',' action ['):
             self.assertNotIn(forbidden,block)
         self.assertIn('"LATE_STOP","LATE_GETOUT"',qa)
+
+    def test_moving_completion_cannot_authorize_a_new_seat_action(self):
+        s=self.source()
+        observation=s.split('// Confirmation is observation',1)[1].split('if !([true] call _available)',1)[0]
+        self.assertIn('_phase == "SWITCHING"',observation)
+        self.assertIn('driver _vehicle == _candidate',observation)
+        self.assertIn('[false] call _available',observation)
+        self.assertNotIn(' action [',observation)
+        commits=s.split('// Seat vacancy and native order proof',1)[1]
+        self.assertEqual(commits.count('[true] call _available'),2)
+        self.assertEqual(commits.count('call _commandsOwned'),2)
+        admission=s.split('private _available={',1)[1].split('private _finish=',1)[0]
+        for guard in ('vectorMagnitude velocity','vectorMagnitude angularVelocity',
+                      'finite _linearMotion','finite _angularMotion','CortexExternalTakeover',
+                      'currentCommand _actor in _tasks','DrivingRouteReceipt'):
+            self.assertIn(guard,admission)
