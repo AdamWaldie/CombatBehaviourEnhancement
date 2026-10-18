@@ -269,10 +269,13 @@ private _delay=call {
             private _actor=_x;
             private _issued=_moves getOrDefault [netId _actor,[]];
             if (!(_actor in _excluded) && {[_actor] call _actorAvailable}
-                && {simulationEnabled _actor} && {!isObjectHidden _actor} && {count _issued == 3}
-                && {[_actor] call _ownsCurrentMove
-                    || {(getPosASL _actor) vectorDistance (AGLToASL _issued) < 2.5}}) then {
-                _occupied pushBack (+_issued);
+                && {simulationEnabled _actor} && {!isObjectHidden _actor}) then {
+                // Actual body occupancy matters even after a native command ended or its
+                // receipt retired. Do not mistake an unrecorded idle teammate for free space.
+                _occupied pushBack (getPosATL _actor);
+                if (count _issued == 3 && {[_actor] call _ownsCurrentMove}) then {
+                    _occupied pushBack (+_issued);
+                };
             };
         } forEach (_workers select [0,8]);
         _occupied
@@ -2134,6 +2137,15 @@ private _delay=call {
                                     _alternatives pushBack [_candidateASL vectorDistance _pose,+_candidate];
                                 };
                             } forEach (_cleared select [0,24]);
+                            // Occupied-destination adjustment preserves entry flow:
+                            // prefer room to enter rather than the nearest occupied point. Use
+                            // bounded current workers and native nodes, with no random displacement.
+                            private _entryOccupancy=[[_partner]] call _occupiedRoomTargets;
+                            private _freeAlternatives=_alternatives select {
+                                !([_x select 1,_entryOccupancy] call _roomTargetOccupied)
+                            };
+                            private _preferFreeEntry=_freeAlternatives isNotEqualTo [];
+                            if (_preferFreeEntry) then {_alternatives=_freeAlternatives};
                             _alternatives sort true;
                             private _alternative=if (_alternatives isNotEqualTo []) then {+((_alternatives select 0) select 1)} else {[]};
                             // Ranking runs scheduled. Recheck the live episode and native intent
@@ -2147,7 +2159,10 @@ private _delay=call {
                                     && {(_partner getVariable ["CBE_Cortex_ClearEntryAlternative",[]]) isEqualTo _entryAlternativeBefore}
                                     && {[currentCommand _partner,expectedDestination _partner,formLeader _partner] isEqualTo _entryNative}
                                     && {currentCommand _partner == "" || {[_partner] call _ownsCurrentMove}}
-                                    && {(getPosASL _partner) vectorDistance _pose <= 1}) then {
+                                    && {(getPosASL _partner) vectorDistance _pose <= 1}
+                                    && {!_preferFreeEntry || {
+                                        !([_alternative,[[_partner]] call _occupiedRoomTargets] call _roomTargetOccupied)
+                                    }}) then {
                                     _partner setVariable ["CBE_Cortex_ClearEntryAlternative",[
                                         _building,_job get "hardDeadline",_job get "buildingTransform",
                                         +_alternative,_alternativeSearches+1,count _cleared],true];

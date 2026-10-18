@@ -29,3 +29,19 @@ class PartnerEntryCommitTests(unittest.TestCase):
         for guard in ('local _group','CBE_BuildingBrain','CBE_AIPass_Epoch','CBE_AIPass_ClearGeneration',
                       'CortexExternalTakeover','getPosWorld _building','NativeOrderReceipt'):
             self.assertIn(guard,gate)
+
+
+class PartnerEntrySpaceTests(unittest.TestCase):
+    def test_alternate_entry_prefers_free_space_and_rechecks_before_consumption(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        section=text.split('private _entryAlternativeBefore=',1)[1].split('_entryRecovery set [_key,_receipt]',1)[0]
+        self.assertLess(section.index('private _freeAlternatives='),section.index('_alternatives sort true'))
+        self.assertIn('[[_partner]] call _occupiedRoomTargets',section)
+        self.assertIn('if (_preferFreeEntry) then {_alternatives=_freeAlternatives}',section)
+        commit=section.split('isNil {',1)[1]
+        self.assertLess(commit.index('!_preferFreeEntry'),commit.index('_partner setVariable'))
+        self.assertLess(commit.index('call _roomTargetOccupied'),commit.index('_partner doMove'))
+        occupied=text.split('private _occupiedRoomTargets={',1)[1].split('private _roomTargetOccupied=',1)[0]
+        self.assertIn('_occupied pushBack (getPosATL _actor)',occupied)
+        self.assertIn('_workers select [0,8]',occupied)
+        self.assertNotIn('nearEntities',occupied)

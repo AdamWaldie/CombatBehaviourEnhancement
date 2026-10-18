@@ -16,7 +16,7 @@ class ClearEntryFlowTests(unittest.TestCase):
     def test_new_destinations_prefer_live_unoccupied_nodes_without_reserving_queue(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         helper=s.split('private _occupiedRoomTargets={',1)[1].split('// Callback-local geometry',1)[0]
-        for gate in ('select [0,8]','call _actorAvailable','call _ownsCurrentMove','getPosASL _actor','simulationEnabled','isObjectHidden'):
+        for gate in ('select [0,8]','call _actorAvailable','call _ownsCurrentMove','_occupied pushBack (getPosATL _actor)','simulationEnabled','isObjectHidden'):
             self.assertIn(gate,helper)
         self.assertNotIn('doMove',helper)
         claim=s.split('// Prefer free room destinations',1)[1].split('private _point=',1)[0]

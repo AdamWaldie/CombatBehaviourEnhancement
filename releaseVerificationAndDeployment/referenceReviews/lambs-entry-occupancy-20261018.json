@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-18",
+  "scope": "Individual assault occupied-destination intent versus CBE partner alternate-entry nodes",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+    "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    "range": "same-floor position selection and stopped-unit occupied target adjustment"
+  },
+  "intent": "Avoid an occupied destination obstructing an individual assault approach.",
+  "disposition": "Implement bounded preference among physically visited native points; do not copy random displacement or infer accessible floor from arbitrary surface hits.",
+  "cbe": [
+    "Shared occupancy now includes physical positions of up to eight current eligible pair workers even without an issued movement receipt, plus current owned approach targets.",
+    "Partner fallback ranks free eligible same-floor visited points ahead of occupied points and rechecks free-space preference inside its existing command/attempt transaction.",
+    "All-occupied cases retain existing finite fallback; no hard reservation, deadline extension, new ray/world query, teleport or visit credit."
+  ],
+  "limitations": [
+    "Proximity is an admission preference, not a path-clearance or room-safety proof.",
+    "Live participants only; nonparticipant occupancy and native path choice remain engine constraints.",
+    "Two-and-a-half metre/floor-band preference can be conservative across thin walls; all-occupied fallback remains finite.",
+    "Entry coherence, repeatability, hostile rooms, casualty/HC behavior and runtime cost remain physically unverified."
+  ],
+  "implementationAccepted": false,
+  "physicalAcceptance": false
+}
