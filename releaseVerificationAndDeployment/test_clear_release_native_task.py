@@ -118,3 +118,20 @@ class DoorCommitBoundaryTests(unittest.TestCase):
             self.assertIn(proof,commit)
         self.assertNotIn('lineIntersectsSurfaces',commit)
         self.assertLess(commit.index('isNil {'),commit.index('setVariable ["CBE_Cortex_DoorRequestUntil"'))
+
+
+class ClearReleaseEpisodeTests(unittest.TestCase):
+    def test_group_and_actor_release_preserve_successor_episode(self):
+        text=(ROOT/'addons/infantry/functions/cortexClearRelease.sqf').read_text()
+        admission=text.split('private _releaseAdmitted=false;',1)[1].split('// A release often',1)[0]
+        self.assertIn('isNil {',admission)
+        self.assertIn('isEqualTo _order',admission)
+        self.assertIn('isEqualTo _buildingBrain',admission)
+        self.assertIn('if (!_releaseAdmitted) exitWith {false}',admission)
+        retirement=text.split('private _groupRetired=false;',1)[1].split('private _leader=',1)[0]
+        self.assertLess(retirement.index('_releaseGeneration =='),retirement.index('setVariable ["CBE_AIPass_ClearOrder", nil'))
+        self.assertIn('if (!_groupRetired) exitWith {false}',retirement)
+        actors=text.split('private _leader=',1)[1]
+        for proof in ('isNil {','_releaseGeneration ==','_entryEpoch ==','group _x == _group'):
+            self.assertLess(actors.index(proof),actors.index('_x doFollow _leader'))
+        self.assertIn('== _entryOperationGeneration',text)
