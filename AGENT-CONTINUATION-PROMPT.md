@@ -1,3 +1,18 @@
+# Current CBE continuation checkpoint — 18 October 2026
+
+Source checkpoint: 0ee32b8221d303abfd71eaac95c24489bf9754e3 on Adam/cbe-aircraft-release-followup in C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks. Remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git, draft PR17. A bookkeeping commit and single coherent push are being prepared; verify actual HEAD and remote rather than assuming delivery from this note. This is separate from the chat's WMP checkout.
+
+Latest full offline Build:1,372tests,327compiledSQF,ninePBOs; .qa/cbe-cqb-native-planning-allowance-verified-build.log, unsigned fingerprint7e38b40f2d9c251180369ac342590a65d9f57fe816324cb8e0be47973a91117d. All65 families remain partial, zero fully accepted. Audits PAUSED. No merge/Release/Steam/manual-CI dispatch authorised. Preserve untracked branding and all protected source/key archives.
+
+This batch adds original-request/owner validation for duplicate queue consent; aggregate-damage abort for finite rear destination recovery; reserve staging attempt accounting only after hold admission; deferred post-clear hold handback while a replacement operation exists; a shared eight-corner transformed BuildingRoofTop helper used by discovery, clearance visits and natural indoor selection/arrival; invalid/downward-ray rejection; and a provisional30s allowance for owned matching PLANNING/BUSY clearance paths. Ended commands keep4s, ordinary paths12s, and no progress or hard deadline renewal occurs from that allowance.
+
+Do not claim these fixes resolve visible CQB stragglers, native reverse or mixed-convoy flow. All remain physically unverified. Geometry range does not establish accessible points or hostile-room safety. Open-roof/malformed models, partial-roster replacement, full repeat/HC and performance remain open. Read the newest AGENT-HANDOVER.md entries and referenceReviews/cqb-native-planning-allowance-20261018.json under releaseVerificationAndDeployment.
+
+Critical prior correction remains: normal CBA PFH scheduler jobs run unscheduled; soft budget checks occur BETWEEN jobs. Earlier generic scheduled-geometry/race wording is superseded. Deferred network callbacks really are separate invocations; avoid extra guard/copy work based solely on presumed PFH suspension.
+
+Continue the full production objective and building-block/source plan below: whole HBQ driving/FSM implementation, reliable CQB/buddy/isolation/egress, then squads/multi-squad/combined arms; real external handovers and MP authority; <=5%median/10%p95 overhead. Native queue consent is still not queue execution. Do not implement unsupported BACK/physics shortcuts or manufacture physical acceptance. Audit pause prevents physical acceptance now but does not prevent useful source work.
+
+---
 # Latest checkpoint takes precedence
 
 
