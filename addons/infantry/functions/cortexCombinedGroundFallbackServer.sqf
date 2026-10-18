@@ -6,6 +6,7 @@
  * Original contact confidence/time pass unchanged to replacements; fallback never renews observation age.
  * Repeat/JIP: A token/role consumption receipt rejects duplicates. The shared cursor advances
  * through at most 32 retained candidates; original contact, expiry and independent leases survive.
+ * Delayed expiry matches the full original role, preserving same-token edited/replaced work.
  * No discovery scan, movement command, locality change or fabricated weapon acceptance is added.
  * Arguments: 0 rejected group <GROUP, grpNull>; 1 retired opportunity <ARRAY, []>, seven legacy or eight receipt-bearing fields.
  * Return Value: BOOL, one replacement was dispatched; not proof of acceptance or physical effect.
@@ -76,8 +77,8 @@ _replacement setVariable ["CBE_Cortex_CombinedApplied",nil,true];
 _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"FALLBACK_DISPATCHED",serverTime,_target],true];
 [_replacement,_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedArmsLocal",groupOwner _replacement];
 [{
-    params ["_replacement","_token","_role","_target"];
-    if (!isNull _replacement && {((_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
+    params ["_replacement","_token","_role","_target","_originalRole"];
+    if (!isNull _replacement && {(_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _originalRole}) then {
         private _result=_replacement getVariable ["CBE_Cortex_CombinedResult",[]];
         if ((_result param [0,""]) == _token && {(_result param [2,""]) in ["DISPATCHED","FALLBACK_DISPATCHED","APPLIED","WAITING_FOR_RELOAD"]}) then {
             _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
@@ -85,5 +86,5 @@ _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"FALLBACK_DI
         _replacement setVariable ["CBE_Cortex_CombinedRole",nil,true];
         _replacement setVariable ["CBE_Cortex_CombinedApplied",nil,true];
     };
-},[_replacement,_token,_role,_target],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
+},[_replacement,_token,_role,_target,+_opportunity],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
 true

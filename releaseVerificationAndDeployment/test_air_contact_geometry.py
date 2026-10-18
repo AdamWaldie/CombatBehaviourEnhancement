@@ -54,9 +54,19 @@ class AirContactGeometryTests(unittest.TestCase):
         self.assertIn('isEqualTo _originalRole',fallback)
         self.assertIn('[_replacement,_token,_target,+_opportunity]',fallback)
         self.assertIn('_roleGroups pushBack [_candidate,+_opportunity]',server)
-        expiry=server.split('params ["_requester","_token","_roleGroups"];',1)[1]
+        expiry=server.split('params ["_requester","_token","_roleGroups",',1)[1]
         self.assertIn('_x params ["_roleGroup","_originalRole"]',expiry)
         self.assertIn('isEqualTo _originalRole',expiry)
         self.assertNotIn('_x setVariable',expiry)
+
+    def test_requester_and_ground_fallback_expiry_keep_changed_work(self):
+        server=(ROOT/'addons/infantry/functions/cortexCombinedArmsServer.sqf').read_text()
+        ground=(ROOT/'addons/infantry/functions/cortexCombinedGroundFallbackServer.sqf').read_text()
+        self.assertIn('isEqualTo _requesterSnapshot',server)
+        self.assertIn('(_liveFallback select [0,5]) isEqualTo (_originalFallback select [0,5])',server)
+        self.assertIn('(_liveFallback select 6) isEqualTo (_originalFallback select 6)',server)
+        self.assertIn('count _originalFallback == 7',server)
+        self.assertIn('isEqualTo _originalRole',ground)
+        self.assertIn('[_replacement,_token,_role,_target,+_opportunity]',ground)
 
 if __name__=='__main__': unittest.main()

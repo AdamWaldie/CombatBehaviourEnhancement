@@ -198,17 +198,28 @@ _requester setVariable ["CBE_Cortex_CombinedGroundFallback",[_token,_target,+_po
     };
     if (_ground >= 2 && {_air >= 1}) exitWith {};
 } forEach _orderedGroups;
-_requester setVariable ["CBE_Cortex_CombinedOpportunity",[_token,_target,+_position,_expiry,_dispatched],true];
+private _requesterSnapshot=[_token,_target,+_position,_expiry,_dispatched];
+_requester setVariable ["CBE_Cortex_CombinedOpportunity",_requesterSnapshot,true];
 // Index 1 is the second ranked air candidate: the first, if any, was dispatched above. A rejected
 // local preflight advances this finite list once rather than creating another planner or delaying
 // the infantry contact. The server never infers a remote airframe's live weapon compatibility.
 _requester setVariable ["CBE_Cortex_CombinedAirFallback",[_token,_target,+_position,_expiry,+_airCandidates,1,+_contactReceipt],true];
 [{
-    params ["_requester","_token","_roleGroups"];
-    if (!isNull _requester && {((_requester getVariable ["CBE_Cortex_CombinedOpportunity",[]]) param [0,""]) == _token}) then {
-        _requester setVariable ["CBE_Cortex_CombinedOpportunity",nil,true];
-        _requester setVariable ["CBE_Cortex_CombinedAirFallback",nil,true];
-        _requester setVariable ["CBE_Cortex_CombinedGroundFallback",nil,true];
+    params ["_requester","_token","_roleGroups","_requesterSnapshot","_originalAir","_originalGround"];
+    if (!isNull _requester) then {
+        if ((_requester getVariable ["CBE_Cortex_CombinedOpportunity",[]]) isEqualTo _requesterSnapshot) then {
+            _requester setVariable ["CBE_Cortex_CombinedOpportunity",nil,true];
+        };
+        // Cursor advancement belongs to the same finite pool; changed contact/pool/expiry does not.
+        {
+            _x params ["_variable","_originalFallback"];
+            private _liveFallback=_requester getVariable [_variable,[]];
+            if (count _originalFallback == 7 && {count _liveFallback == 7}
+                && {(_liveFallback select [0,5]) isEqualTo (_originalFallback select [0,5])}
+                && {(_liveFallback select 6) isEqualTo (_originalFallback select 6)}) then {
+                _requester setVariable [_variable,nil,true];
+            };
+        } forEach [["CBE_Cortex_CombinedAirFallback",_originalAir],["CBE_Cortex_CombinedGroundFallback",_originalGround]];
     };
     {
         _x params ["_roleGroup","_originalRole"];
@@ -225,5 +236,7 @@ _requester setVariable ["CBE_Cortex_CombinedAirFallback",[_token,_target,+_posit
             _roleGroup setVariable ["CBE_Cortex_CombinedApplied",nil,true];
         };
     } forEach _roleGroups;
-},[_requester,_token,_roleGroups],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
+},[_requester,_token,_roleGroups,+_requesterSnapshot,
+    +(_requester getVariable ["CBE_Cortex_CombinedAirFallback",[]]),
+    +(_requester getVariable ["CBE_Cortex_CombinedGroundFallback",[]])],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
 _dispatched
