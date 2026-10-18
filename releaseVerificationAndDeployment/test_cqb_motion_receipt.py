@@ -40,4 +40,25 @@ class MotionReceiptTests(unittest.TestCase):
         release=read('cortexClearRelease.sqf')
         self.assertLess(release.index('private _motionJob='),release.index('_buildingBrain set ["cancelled",true]'))
         self.assertIn('["RETIRE",_x,_motionJob]',release)
+    def test_promotion_records_owned_work_before_leaving_transaction(self):
+        text=read('buildingOperationStep.sqf')
+        body=text.split('// Preserve the already-owned reserve leg/hold',1)[1].split('(_job get "assigned")',1)[0]
+        self.assertIn('call _ownsCurrentMove',body)
+        self.assertIn('["MOVE",_replacement,_job',body)
+        self.assertIn('currentCommand _replacement == "STOP"',body)
+        self.assertIn('["HOLD",_replacement,_job',body)
+        self.assertNotIn('doStop',body)
+        self.assertNotIn('doMove',body)
+    def test_resume_roster_prefers_committed_participants_and_rechecks_changes(self):
+        text=read('cortexClearBuilding.sqf')
+        for proof in ('private _useResumeRoster=_resume',
+                      '[_building,_admissionTransform,_previous param [10,-1]]',
+                      '_x in _resumeParticipants && {!(_x in _resumeUnavailable)}',
+                      '"RESUME_ROSTER_CHANGED"'):
+            self.assertIn(proof,text)
+        commit=text.split('private _liveOperation=_group getVariable',1)[1].split('call CBE_fnc_OperationStart',1)[0]
+        for snapshot in ('isNotEqualTo _resumeParticipants','isNotEqualTo _resumePairs',
+                         'isNotEqualTo _resumeUnavailable','isNotEqualTo _resumeRosterContext'):
+            self.assertIn(snapshot,commit)
+        self.assertLess(text.index('"RESUME_ROSTER_CHANGED"'),text.index('call CBE_fnc_OperationStart'))
 if __name__=='__main__': unittest.main()

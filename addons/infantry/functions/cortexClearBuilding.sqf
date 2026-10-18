@@ -265,6 +265,18 @@ private _entryCapacity = ((2 max _squadElement) min _topologyElement) min 8;
 _entryCapacity = _entryCapacity min (count _team);
 // Prefer intact eligible buddies before applying concurrency capacity. Selection is
 // read-only here; a refused start must not publish a new pairing receipt.
+// During true resume, the common CLEAR roster is published with casualty replacements
+// before the separate CombatPairs variable. Prefer its eligible members so a late pair
+// update cannot silently replace a promoted actor with an idle exterior reserve.
+private _resumeRosterContext=+(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]);
+private _resumeParticipants=+(_entryOperation getOrDefault ["participants",[]]);
+private _resumePairs=(_entryOperation getOrDefault ["pairs",[]]) apply {+_x};
+private _resumeUnavailable=+(_entryOperation getOrDefault ["unavailable",[]]);
+private _useResumeRoster=_resume && {(_entryOperation getOrDefault ["intent",""]) == "CLEAR"}
+    && {(_entryOperation getOrDefault ["objective",objNull]) isEqualTo _building}
+    && {count _resumeRosterContext == 4}
+    && {(_resumeRosterContext select [0,3]) isEqualTo [_building,_admissionTransform,_previous param [10,-1]]};
+private _admissionPairs=if (_useResumeRoster) then {_resumePairs} else {_group getVariable ["CBE_CombatPairs",[]]};
 private _pairedAdmission=[];
 private _remainingAdmission=+_team;
 {
@@ -275,8 +287,13 @@ private _remainingAdmission=+_team;
             _remainingAdmission=_remainingAdmission-_pair;
         };
     };
-} forEach ((_group getVariable ["CBE_CombatPairs",[]]) select [0,16]);
-_team = (_pairedAdmission+_remainingAdmission) select [0,_entryCapacity];
+} forEach (_admissionPairs select [0,16]);
+if (_useResumeRoster) then {
+    private _preferred=(_pairedAdmission+_remainingAdmission) select {_x in _resumeParticipants && {!(_x in _resumeUnavailable)}};
+    _team=(_preferred+((_pairedAdmission+_remainingAdmission)-_preferred)) select [0,_entryCapacity];
+} else {
+    _team = (_pairedAdmission+_remainingAdmission) select [0,_entryCapacity];
+};
 // A one-time native belief may seed a floor's route, never track an unseen live target.
 // Preserve the original timestamp across owner adoption; a stale hint is not renewed.
 private _contactBelief=if (_resume) then {+(_previous param [11,[],[[]]])} else {_options getOrDefault ["contactBelief",[]]};
@@ -345,6 +362,14 @@ isNil {
         || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {};
     if (_resume && {!(call _resumeCurrent)}) exitWith {_handoffFailure="RESUME_ORDER_CHANGED"};
     if !(call _admissionStable) exitWith {_handoffFailure="TARGET_CHANGED_DURING_ADMISSION"};
+    // These arrays can change without a new common generation. Never commit a roster
+    // selected before a replacement or changed visit episode arrived during planning.
+    if (_useResumeRoster && {
+        (_liveOperation getOrDefault ["participants",[]]) isNotEqualTo _resumeParticipants
+        || {(_liveOperation getOrDefault ["pairs",[]]) isNotEqualTo _resumePairs}
+        || {(_liveOperation getOrDefault ["unavailable",[]]) isNotEqualTo _resumeUnavailable}
+        || {(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isNotEqualTo _resumeRosterContext}
+    }) exitWith {_handoffFailure="RESUME_ROSTER_CHANGED"};
     // Repeat actor/task admission at the mutation boundary, not just before geometry.
     // Stop counting once the requested minimum is met; do not acquire a new roster.
     private _readyCount=0;

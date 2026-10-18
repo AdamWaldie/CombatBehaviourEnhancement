@@ -1748,6 +1748,15 @@ private _delay=call {
                             _liveOperation set ["participantProgress",_progressRecords];
                             _liveOperation set ["pairs",(_job get "pairs") apply {+_x}];
                             _group setVariable ["CBE_Operation",_liveOperation,true];
+                            // Preserve the already-owned reserve leg/hold in this same promotion
+                            // transaction; a transfer need not wait for its first room callback.
+                            if ([_replacement] call _ownsCurrentMove) then {
+                                ["MOVE",_replacement,_job,(_job get "movementTargets") get (netId _replacement)] call CBE_fnc_BuildingActorMotion;
+                            } else {
+                                if (currentCommand _replacement == "STOP") then {
+                                    ["HOLD",_replacement,_job,getPosATL _replacement] call CBE_fnc_BuildingActorMotion;
+                                };
+                            };
                         };
                         (_job get "assigned") set [_team find _replacement,[]];
                         private _lastPositions=_state select 2;
