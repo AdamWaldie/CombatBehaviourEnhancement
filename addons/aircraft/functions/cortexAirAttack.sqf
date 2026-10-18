@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Selected operators retain live same-group/local/task authority at each weapon boundary.
  * Operator replacement cancels the old plan before retained targeting/release state can transfer.
- * Target cleanup is scoped to the actor/target actually commanded by this job.
+ * Target cleanup is scoped to the actor/target actually commanded by this job. Native ignored
+ * contacts abort through owned cleanup and cannot receive CBE shot-callback guidance repair.
  * Pilot actor reservations/service tasks veto admission and later flight mutations.
  * Lateral feature snapshots retain the exact affected pilot; replacement crew inherit no restoration.
  * A durable actor receipt preserves unresolved baselines; admission never overwrites an older receipt.
@@ -361,11 +362,13 @@ if (_stage == "") then {
         {
             private _candidate=assignedTarget _x;
             if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {!(_candidate isKindOf "HeadlessClient_F")} && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}
-                && {(_group knowsAbout _candidate) > 0}) exitWith {_target=_candidate};
+                && {(_group knowsAbout _candidate) > 0}
+                && {!((_pilot targetKnowledge _candidate) param [7,false,[true]])}) exitWith {_target=_candidate};
         } forEach ([effectiveCommander _aircraft,driver _aircraft,gunner _aircraft,commander _aircraft]+crew _aircraft);
     };
     if (isNull _target) then {_startFailure="NO_TARGET"};
     if (_startFailure == "" && {(_group knowsAbout _target) <= 0}) then {_startFailure="NO_KNOWN_TARGET"};
+    if (_startFailure == "" && {(_pilot targetKnowledge _target) param [7,false,[true]]}) then {_startFailure="TARGET_IGNORED"};
     private _plan=if (_startFailure == "") then {[_aircraft,_target] call CBE_fnc_CortexAirAttackPlan} else {createHashMap};
     if (_startFailure == "" && {count _plan == 0}) then {_startFailure="NO_PLAN"};
     if (_startFailure == "" && {!([] call _mayControlAircraft)}) then {_startFailure="CONTROL_RELEASED"};
@@ -507,7 +510,8 @@ if (_stage == "") then {
             if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}
                 && {(_liveJob getOrDefault ["stage",""]) in ["INGRESS","ATTACK"]}
                 && {!captive _guidedTarget} && {(side _fireGroup) getFriend side _guidedTarget < 0.6}
-                && {(_fireGroup knowsAbout _guidedTarget) > 0}) then {
+                && {(_fireGroup knowsAbout _guidedTarget) > 0}
+                && {!((_operator targetKnowledge _guidedTarget) param [7,false,[true]])}) then {
                 private _nativeTarget=missileTarget _projectile;
                 private _nativePoint=missileTargetPos _projectile;
                 private _hasNativePoint=count _nativePoint == 3 && {vectorMagnitude _nativePoint > 1};
@@ -547,6 +551,9 @@ if (!isNil {_job get "ownedWaypointReceipt"} && {_currentOwnedReceipt isNotEqual
     ["OWNED_ROUTE_CHANGED"] call _finish
 };
 private _target=_job getOrDefault ["target",objNull];
+if (!isNull _target && {(_pilot targetKnowledge _target) param [7,false,[true]]}) exitWith {
+    ["TARGET_IGNORED",true] call _finish
+};
 if (!isNull _target && {alive _target} && {captive _target
     || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}

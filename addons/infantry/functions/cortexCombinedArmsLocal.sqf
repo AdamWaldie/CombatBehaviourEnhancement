@@ -18,7 +18,7 @@
  * Relevant native reloads defer admission through the existing group tick and original expiry.
  * Pending reload receipts preserve the route/asset/gunner; report reveal occurs once per owner receipt.
  * A new owner epoch must admit again; original expiry/contact age never renew. Zeus takeover,
- * feature closure and replaced public opportunities reject stale calls. Ground roles refuse native
+ * feature closure and replaced public opportunities reject stale calls. Support roles refuse native
  * group-ignored contacts before knowledge application; active movement retires in its own step.
  * Contact positions require exactly three finite numeric ATL components, each within +/-1e6m.
  * Invalid payloads reject before local cooldown or server reservation; no live-target fallback is used.
@@ -48,9 +48,14 @@ if (!local _group || {!([_group] call CBE_fnc_CortexIsEligible)}
     || {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isNotEqualTo _opportunity}) exitWith {false};
 // Native ignoreTarget belongs to this group; do not reveal or issue support against it.
 private _contactObserver=leader _group;
-if (_role in ["GROUND_FIRE","GROUND_MANOEUVRE"] && {!isNull _contactObserver}
-    && {local _contactObserver} && {(_contactObserver targetKnowledge _target) param [7,false,[true]]}) exitWith {
-    [_group,_opportunity,"TARGET_IGNORED",clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
+if (!isNull _contactObserver && {local _contactObserver}
+    && {(_contactObserver targetKnowledge _target) param [7,false,[true]]}) exitWith {
+    if (_role == "AIR_ATTACK") then {
+        _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"TARGET_IGNORED",serverTime,_target],true];
+        [_requester,_group,_token] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+    } else {
+        [_group,_opportunity,"TARGET_IGNORED",clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
+    };
     false
 };
 // The caller's public applied marker is diagnostic/replay state, not executor idempotence.
