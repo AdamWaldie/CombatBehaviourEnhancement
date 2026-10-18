@@ -1,3 +1,17 @@
+# Latest checkpoint takes precedence
+
+
+## Verified continuation checkpoint — 18 October 2026, 5b952a22
+
+Remote draft PR17 is open on Adam/cbe-aircraft-release-followup at 5b952a223a51c94f0afe0078111b3bc7f18c0ea7 (fresh public GitHub REST verification). The tracked tree is clean; preserve untracked artwork. GitHub CLI authentication currently returns HTTP401; public REST reads work. No merge, release, publication or audit launch is authorised.
+
+Latest complete offline build: 1,365 tests, 326 compiled production SQF, nine PBOs. Log: .qa/cbe-distributed-context-schema-build.log. Unsigned fingerprint: ed1cb5c3fa323879da5fae8f6001054c43df8285fe0e8c16e7e9ae24c3961cbf. No physical or performance acceptance is added; all65 families remain partial.
+
+Critical correction: normal scheduler jobs execute directly from a CBA PFH and are unscheduled. The scheduler budget applies BETWEEN jobs and cannot pre-empt a running job. Earlier generic claims of scheduled intra-call races are superseded. Read releaseVerificationAndDeployment/referenceReviews/execution-context-20261018.json. Distinguish actual deferred callbacks, stale input, direct scheduled callers and evidenced synchronous re-entry. Do not add guards based on presumed suspension alone. Runtime canSuspend telemetry now preserves five-field legacy and six-field current samples; absent latency/callback observations use -1 rather than false zero.
+
+The pushed source batch includes original convoy identity and applied-cap accounting, phase publication, release/FSM retirement, captured passage cancellation context, private passage progress, passed-hull reversal checks and explicit DEFERRED results. These are implementation changes, not demonstrated flow improvements. The normal-only rapid replacement fixture in runConvoyMatrix.sqf is prepared but UNRUN; HC and passage/reversal coverage remain separate.
+
+Next: inspect the whole-HBQ execution gaps and source intent, particularly native queue HOLD/READY and rear-to-front room-making. The queue-execution-contract-20261018.json is a non-executable contract; consent is not movement. Native reverse capability remains unproven. Continue real driving/FSM and CQB building blocks; preserve full combined-arms/MP/performance objective. Audits remain PAUSED. Refresh PR17 description with this correction and checkpoint; the previous description still cites older validation. Do not push a bookkeeping-only commit.
 # Continue CBE development
 
 > Current verified checkpoint, 18 October 2026: source `d2aab4679648c704999514794a4af9e7400f2c5d` is pushed to open draft PR17 on `Adam/cbe-aircraft-release-followup`. Remote is `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`; checkout remains `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, separate from this chat's WMP directory. A local handover-only commit may follow. Revalidate before Git changes.
