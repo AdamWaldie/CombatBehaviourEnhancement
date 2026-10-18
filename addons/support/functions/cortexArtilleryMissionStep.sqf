@@ -86,10 +86,15 @@ if (_phase in ["PENDING", "UNCERTAIN"]) exitWith {
 if ((_mission get "burstsLeft") <= 0) exitWith {
     if (_mission get "scoot" && {(_mission get "fired") > 0} && {!(_battery isKindOf "StaticWeapon")}) then {
         private _scootToken = _mission get "token";
+        private _scootPurpose=_mission get "purpose";
+        private _scootGenerationName=["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select (_scootPurpose == "COUNTER");
+        private _scootSession=[_scootToken,missionNamespace getVariable [_scootGenerationName,0],
+            _mission getOrDefault ["counterGeneration",-1],serverTime+120,_scootPurpose];
+        _battery setVariable ["CBE_Cortex_ArtilleryScootSession",_scootSession,true];
         _battery setVariable ["CBE_Cortex_ArtilleryScootToken",_scootToken,true];
-        _battery setVariable ["CBE_Cortex_ArtilleryScootDeadline",serverTime+120,true];
+        _battery setVariable ["CBE_Cortex_ArtilleryScootDeadline",_scootSession select 3,true];
         _battery setVariable ["CBE_Cortex_ArtilleryScootPurpose",_mission get "purpose",true];
-        [_battery,_scootToken] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _battery];
+        [_battery,_scootToken,_scootSession] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _battery];
     };
     call _finish
 };

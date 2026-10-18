@@ -28,6 +28,21 @@ if (_name == "CBE_AIPass_CounterBattery_Enable" && {isServer} && {_value isEqual
             (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])+1,true];
     };
 };
+// Relocation has its own per-purpose lifetime: closing scoot must not cancel firing,
+// and closing counter-battery must not cancel unrelated support relocation.
+if (isServer && {_value isEqualTo false}) then {
+    private _scootGeneration=switch (_name) do {
+        case "CBE_AIPass_Artillery_Enable";
+        case "CBE_AIPass_Artillery_ShootAndScoot": {"CBE_ArtilleryScoot_SupportGeneration"};
+        case "CBE_AIPass_CounterBattery_Enable";
+        case "CBE_AIPass_CounterBattery_ShootAndScoot": {"CBE_ArtilleryScoot_CounterGeneration"};
+        default {""};
+    };
+    if (_scootGeneration != "") then {
+        isNil {missionNamespace setVariable [_scootGeneration,
+            (missionNamespace getVariable [_scootGeneration,0])+1,true]};
+    };
+};
 // These optional handlers must follow CBA changes immediately, including disable/re-enable.
 // Reuse the guarded owner-local installer; ordinary tuning values remain live reads.
 if (_name in ["CBE_AIPass_GrenadeEvasion_Enable", "CBE_AIPass_CivilianReaction_Enable"]

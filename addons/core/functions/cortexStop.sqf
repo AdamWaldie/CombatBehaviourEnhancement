@@ -68,6 +68,8 @@ if (isServer) then {
     } forEach (missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap]);
     missionNamespace setVariable ["CBE_AIPass_SupportRequests",createHashMap];
     missionNamespace setVariable ["CBE_AIPass_CounterGeneration", (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0]) + 1,true];
+    {missionNamespace setVariable [_x,(missionNamespace getVariable [_x,0])+1,true]}
+        forEach ["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"];
     {
         private _battery = _y get "battery";
         private _brain=_battery getVariable ["CBE_Artillery_Brain",createHashMap];
@@ -109,6 +111,7 @@ if (isServer) then {
         _vehicle setVariable ["CBE_Cortex_ArtilleryScootToken",nil,true];
         _vehicle setVariable ["CBE_Cortex_ArtilleryScootDeadline",nil,true];
         _vehicle setVariable ["CBE_Cortex_ArtilleryScootPurpose",nil,true];
+        _vehicle setVariable ["CBE_Cortex_ArtilleryScootSession",nil,true];
         if (_vehicle isKindOf "Air") then {
             private _guidanceTarget=_vehicle getVariable ["CBE_Cortex_AirAttackGuidanceTarget",objNull];
             if (!isNull _guidanceTarget) then {deleteVehicle _guidanceTarget};
