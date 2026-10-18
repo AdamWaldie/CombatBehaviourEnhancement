@@ -16,6 +16,9 @@
  * Buddy separation requests do not renew the room mover's finite no-progress clock.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
+ * A casualty blocked by sole-exit coverage may request one progressed idle interior worker
+ * to relieve that exit. Existing egress arrival/view and promotion proofs remain mandatory;
+ * one finite attempt per worker/episode is public for migration, at most eight attempts.
  * Locality / Authority: Runs through CBE's shared scheduler where the group is local. It checks the
  * operation generation, Zeus and external ownership before issuing any movement command.
  * Repeat/JIP: One-shot callback. Shared and individual physical room progress is public; owner-local actor assignments are
@@ -861,13 +864,21 @@ private _delay=call {
     // Shared bounded planner: at most four proposals/entrances, existing geometry checks.
     // Selection grants no movement authority or physical arrival receipt.
     private _chooseExteriorExit={
-        params ["_unit","_reservationsIn","_securityLanes","_exitUses",["_observation",false]];
+        params ["_unit","_reservationsIn","_securityLanes","_exitUses",["_observation",false],["_preferredEntry",[]]];
         private _entries=_job get "entries";
+        private _planningEntries=+_entries;
+        if (_preferredEntry isNotEqualTo []) then {
+            _entries=_job getOrDefault ["securityEntries",_entries];
+            _planningEntries=[[],[+_preferredEntry]] select (_preferredEntry in _entries);
+        };
+        if (_planningEntries isEqualTo [] && {_preferredEntry isNotEqualTo []}) exitWith {
+            [[],[[],[],[]]] select _observation
+        };
         private _buildingPos=getPosATL _building;
         private _ranked=[];
         {
             _ranked pushBack [_exitUses getOrDefault [str _x,0],_unit distance2D _x,_forEachIndex,+_x];
-        } forEach (_entries select [0,4]);
+        } forEach (_planningEntries select [0,4]);
         _ranked sort true;
         // The fallback still receives geometry validation and cannot imply model access.
         if (_ranked isEqualTo []) then {
@@ -1554,6 +1565,112 @@ private _delay=call {
     _job set ["reserveStageSearchCounts",_stageSearchCounts];
     _job set ["reserveStageTriedTargets",_stageTriedTargets];
     _job set ["reserveStageTriedEntries",_stageTriedEntries];
+    // A sole exit observer cannot leave until a real substitute settles. Use one
+    // idle, physically progressed interior worker; never strip another exterior post.
+    // One selection per callback and one attempt per worker/original episode survive migration.
+    private _reliefConsidered=false;
+    private _requestExitRelief={
+        params ["_waitingPair","_waitingSlot","_waitingMember"];
+        if (_reliefConsidered) exitWith {false};
+        _reliefConsidered=true;
+        private _context=+(_job get "visitContext");
+        private _journal=_group getVariable ["CBE_Cortex_ClearRelief",[]];
+        private _tried=if (count _journal == 2 && {(_journal select 0) isEqualTo _context}) then {
+            +(_journal select 1)
+        } else {[]};
+        if (count _tried >= 8 || {_tried findIf {
+            !(_x isEqualType []) || {count _x != 4}
+                || {!((_x select 0) isEqualType "")} || {!((_x select 1) isEqualType "")}
+        } >= 0}) exitWith {false};
+        private _posts=_reserves select {
+            private _postActor=_x;
+            [_postActor] call _reserveReady
+                && {((_reserveStages getOrDefault [netId _postActor,[]]) param [2,""]) == "ARRIVED"}
+                && {count ((_reserveStages get (netId _postActor)) param [5,[]]) == 3}
+                && {_tried findIf {(_x select 1) == netId _postActor} < 0}
+                && {private _postExit=(_reserveStages get (netId _postActor)) select 5;
+                    (keys _earlyExits) findIf {
+                        private _row=_earlyExits get _x;
+                        (_row param [3,""]) in ["MOVING","ARRIVED"]
+                            && {(_row param [5,[]]) isEqualTo _postExit}
+                    } < 0}
+        };
+        if (_posts isEqualTo []) exitWith {false};
+        private _observer=_posts select 0;
+        private _observerStage=+(_reserveStages get (netId _observer));
+        private _exit=+(_observerStage select 5);
+        private _workers=(_job get "team") select {
+            private _worker=_x;
+            !(_worker in _reserves) && {!(netId _worker in _earlyExits)}
+                && {_tried findIf {(_x select 0) == netId _worker} < 0}
+                && {[_worker] call _actorAvailable} && {[_worker] call _actorTaskFree}
+                && {!(_worker in _unavailable)} && {currentCommand _worker in ["","STOP"]}
+                && {[_worker] call _roomCommandOwned} && {[_worker] call _observerInside}
+                && {count ((_job getOrDefault ["actorVisits",createHashMap]) getOrDefault [netId _worker,[]]) >= (2 min count _positions)}
+                && {private _claim=(_job get "assigned") param [(_job get "team") find _worker,[]];
+                    _claim isEqualTo [] || {(_claim param [0,-1]) in (_cleared+_unreachable)}}
+        };
+        if (_workers isEqualTo []) exitWith {false};
+        private _ranks=_workers apply {[_x distance2D _exit,netId _x,_x]};_ranks sort true;
+        private _worker=(_ranks select 0) select 2;
+        private _workerNative=[currentCommand _worker,expectedDestination _worker,formLeader _worker];
+        private _workerPose=getPosASL _worker;
+        private _until=(serverTime+45) min (_job get "deadline") min (_job get "hardDeadline");
+        private _attempt=[netId _worker,netId _observer,+_exit,_until];
+        private _recorded=false;
+        isNil {
+            if (call _mayIssueMovement && {[_worker] call _actorAvailable} && {[_worker] call _actorTaskFree}
+                && {[_worker] call _roomCommandOwned} && {[_observer] call _reserveReady}
+                && {(_reserveStages getOrDefault [netId _observer,[]]) isEqualTo _observerStage}
+                && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo _journal}
+                && {serverTime < _until}) then {
+                _tried pushBack _attempt;
+                _group setVariable ["CBE_Cortex_ClearRelief",[_context,+_tried],true];
+                _recorded=true;
+            };
+        };
+        if (!_recorded) exitWith {false};
+        private _taken=[];private _lanes=[];
+        {
+            private _stage=_reserveStages getOrDefault [netId _x,[]];
+            if ((_stage param [2,""]) in ["APPROACH","ARRIVED"] && {count (_stage param [4,[]]) == 3}) then {
+                _taken pushBack +(_stage select 0);_lanes pushBack [+(_stage select 0),+(_stage select 4)];
+            };
+        } forEach (_reserves select [0,16]);
+        {
+            private _row=_earlyExits get _x;
+            if ((_row param [3,""]) in ["MOVING","ARRIVED"] && {count (_row param [6,[]]) == 3}) then {
+                _taken pushBack +(_row select 1);_lanes pushBack [+(_row select 1),+(_row select 6)];
+            };
+        } forEach (keys _earlyExits select [0,8]);
+        private _plan=[_worker,_taken,_lanes,createHashMap,true,_exit] call _chooseExteriorExit;
+        private _target=_plan select 0;
+        if (count _target != 3 || {(_plan select 1) isNotEqualTo _exit}) exitWith {false};
+        private _issued=false;
+        isNil {
+            if (call _mayIssueMovement && {serverTime < _until}
+                && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                && {[_worker] call _actorAvailable} && {[_worker] call _actorTaskFree}
+                && {[_worker] call _roomCommandOwned} && {!(netId _worker in _earlyExits)}
+                && {[currentCommand _worker,expectedDestination _worker,formLeader _worker] isEqualTo _workerNative}
+                && {(getPosASL _worker) vectorDistance _workerPose <= 1}
+                && {[_observer] call _reserveReady}
+                && {(_reserveStages getOrDefault [netId _observer,[]]) isEqualTo _observerStage}
+                && {(((_job get "pairs") param [_waitingPair,[]]) param [_waitingSlot,objNull]) == _waitingMember}
+                && {!([_waitingMember] call _actorAvailable) || {_waitingMember in _unavailable}}
+                && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo [_context,_tried]}) then {
+                _earlyExits set [netId _worker,[_worker,+_target,_until,"MOVING",false,+_exit,+(_plan select 2)]];
+                _job set ["earlyExits",_earlyExits];
+                _worker doMove _target;
+                [_worker,_target] call _rememberMove;
+                call _publishEarlyExits;
+                diag_log format ["CBE CLEAR EXIT RELIEF: %1",[_job get "generation",netId _worker,netId _observer,+_exit,_until]];
+                _issued=true;
+            };
+        };
+        _issued
+    };
+    // End finite exit relief;
     // Promotion cannot spend an established exit observer without a physically settled
     // substitute. One fresh VIEW ray per callback bounds casualty-time confirmation.
     // A stale role label, an approaching actor or a previous clear ray is not coverage.
@@ -1722,7 +1839,10 @@ private _delay=call {
                 } forEach _promotionCandidates;
                 // Keep the casualty slot pending if the only replacements hold sole exit cover.
                 // Neither this wait nor budget deferral renews the finite clearance deadline.
-                if (_replacementIndex < 0) then {continue};
+                if (_replacementIndex < 0) then {
+                    [_pairIndex,_slot,_member] call _requestExitRelief;
+                    continue
+                };
                 // Candidate ranking may perform geometry work. Recheck its native task at admission.
                 if (!([_reserves select _replacementIndex] call _reserveReady) || {!call _mayIssueMovement}) then {continue};
                 private _replacement=_reserves select _replacementIndex;

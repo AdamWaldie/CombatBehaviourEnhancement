@@ -20,7 +20,10 @@ class ClearPromotionCoverageTests(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertIn('private _replacementIndex=-1',s)
         self.assertIn('[_x] call _mayPromoteReserve',s)
-        guard=s.index('if (_replacementIndex < 0) then {continue}')
+        guard=s.index('if (_replacementIndex < 0) then {')
+        refusal=s[guard:s.index('private _replacement=_reserves select _replacementIndex')]
+        self.assertIn('call _requestExitRelief',refusal)
+        self.assertIn('continue',refusal)
         self.assertLess(guard,s.index('private _replacement=_reserves select _replacementIndex'))
         self.assertIn('private _promotionViewBudget=1',s)
         self.assertIn('promotionCandidateCursor',s)

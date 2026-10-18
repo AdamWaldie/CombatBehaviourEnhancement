@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "09915932",
+  "scope": "Finite same-episode relief of an exterior observer before casualty reserve promotion; not general CQB acceptance",
+  "implementation": [
+    "When ordinary casualty promotion has no eligible candidate, one relief selection is considered per existing building callback.",
+    "Only an available, simulated/visible/task-free interior worker with required physical visits, no active native movement, owned idle/STOP intent, no unfinished assignment and no early-exit role may relieve. No existing exterior security is stripped.",
+    "The existing exterior planner accepts a preferred exit only from the actual discovered security entrances. Its normal geometry, reservation and observation-lane checks remain; up to four bounded proposals, no alternate invented exit.",
+    "Attempt journal CBE_Cortex_ClearRelief=[visitContext,attemptRows] binds worker, observer, exit and original deadline. At most eight attempts; one per worker and observer. An existing incoming/arrived early-exit observer prevents duplicate relief for that exit. Journal persists across true resume and does not reset the clearance deadline.",
+    "Attempt publication and final movement each check current episode/native intent. Final issue additionally checks original casualty slot, original observer stage, worker pose, current journal and Zeus ownership.",
+    "Relief uses existing early-egress MOVING/ARRIVED/watch/failure machinery and public migration receipts. It lasts at most45seconds, capped by both original clearance deadlines. The original observer is neither moved nor promoted by selection.",
+    "Existing ordinary promotion still requires actual relief position/facing, exact same-exit current watch lease, fresh VIEW observation and atomic proof. Planned movement, timeout or published attempt is not coverage."
+  ],
+  "limits": [
+    "No eligible progressed idle interior worker means no relief; preserve current coverage and retain pending casualty slot.",
+    "Failed geometry consumes the finite attempt. One attempt per observer is intentionally bounded; it is not universal relief success or retry parity.",
+    "Existing early-egress failure/cleanup semantics apply. Actual casualty entry, relief stopping/facing, interference, repeat, transform change and normal/providerHC migration are unrun.",
+    "Relief adds up to four exterior proposals when admitted, at most eight attempts per episode. Native geometry/visibility cost and the global5%median/10%p95 budget are physically unmeasured.",
+    "Transient dormancy remains distinct from casualty ownership. No actor simulation is enabled, no actor teleported, no room visit synthesized and no source-parity percentage awarded."
+  ],
+  "validation": {
+    "tests": 1313,
+    "exitCode": 0,
+    "log": ".qa/cbe-clear-exit-relief-verified-build.log",
+    "packageFingerprint": "169f769ec3b82886d153b37325d2190a088690e2de9f50b1e77dd9f208273731",
+    "source": "09915932 plus intended building callback, guide and source-contract tests; engineering metadata appended after build",
+    "initialFailure": "Old source-region tests included the newly inserted movement helper, and two locator assertions used prior planner/refusal text. Helper moved outside read-only proof regions; locator assertions updated while retaining all coverage-ray, authority, no-deadline-renewal and no-negative-index requirements."
+  },
+  "physicalAcceptance": false,
+  "audits": "paused",
+  "completion": "All65 families partial; production objective unchanged."
+}

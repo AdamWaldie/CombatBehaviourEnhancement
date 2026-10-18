@@ -62,5 +62,9 @@
   },
   "physicalAcceptance": false,
   "audits": "paused",
-  "completion": "All65 feature families partial; no tactical completion or source-parity percentage."
+  "completion": "All65 feature families partial; no tactical completion or source-parity percentage.",
+  "followUp": {
+    "review": "cqb-exit-relief-20261018.json",
+    "status": "Finite proactive relief implemented after this diagnosis; physical outcomes remain unverified. Original findings describe baseline09915932."
+  }
 }

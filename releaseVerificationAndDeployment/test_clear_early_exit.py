@@ -20,8 +20,8 @@ class ClearEarlyExitTests(unittest.TestCase):
         planner = s.split('private _chooseExteriorExit={',1)[1].split('// End exterior planner;',1)[0]
         self.assertIn('private _proposalCount=3 max count _ranked;',planner)
         self.assertIn('from 0 to (_proposalCount-1)',planner)
-        self.assertIn('_entries select [0,4]',planner)
-        self.assertIn('_entries select [0,4]',planner)
+        self.assertIn('_planningEntries select [0,4]',planner)
+        self.assertIn('_planningEntries select [0,4]',planner)
         self.assertIn('call CBE_fnc_BuildingExteriorCandidate',planner)
         self.assertNotIn('doMove',planner)
 
