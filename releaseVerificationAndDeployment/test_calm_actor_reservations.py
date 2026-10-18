@@ -535,3 +535,20 @@ class ArrivalPhysicalWitnessTests(unittest.TestCase):
         self.assertEqual(body.count('call _arrivalPresent'),2)
         self.assertNotIn('nearEntities',helper)
         self.assertNotIn('setPos',helper)
+
+
+class ManoeuvreRecoveryPublicationTests(unittest.TestCase):
+    def test_recovery_commands_and_private_journals_retain_current_child(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        body=source.split('private _recoveryEntry=',1)[1].split('private _waitForTeam=',1)[0]
+        self.assertIn('apply {+_x}',body)
+        for guard in ('call _helperCurrent','isEqualTo _recoveryEntry','isEqualTo _recoveryIdentity',
+                      'call _mayIssueMovement','isNotEqualTo _recoveryNative'):
+            self.assertIn(guard,body)
+        issue=body.split('private _recoveryNative=',1)[1]
+        self.assertLess(issue.index('isNil {'),issue.index('call CBE_fnc_RecoveryStep'))
+        self.assertLess(issue.index('isNil {'),issue.index('_actor doMove _rally'))
+        self.assertIn('if (!_recoveryPublished) exitWith {0.25}',body)
+        self.assertIn('_recoveryDeferred || {!(call _recoveryCurrent)}',body)
+        self.assertIn('_recoveryEntry set [_retryIndex,_retryRecord]',issue)
+        self.assertIn('_drill set ["recovery",_recoveryEntry apply {+_x}]',issue)

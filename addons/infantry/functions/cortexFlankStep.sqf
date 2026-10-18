@@ -439,13 +439,22 @@ private _minimumStrength=[2,3] select _support;
 if (count _units < _minimumStrength) exitWith {"LOSSES" call _end};
 private _minimumMovers=[2,1] select (!_support && {count _units == 2});
 // Recovery stays in this existing bounded group job; no per-soldier loop is spawned.
-private _recovery = (_drill getOrDefault ["recovery",[]]) select {(_x select 0) in _units};
+private _recoveryEntry=(_drill getOrDefault ["recovery",[]]) apply {+_x};
+private _recoveryIdentity=[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]];
+private _recovery = (_recoveryEntry select {(_x select 0) in _units}) apply {+_x};
+private _recoveryCurrent={
+    call _helperCurrent
+        && {(_drill getOrDefault ["recovery",[]]) isEqualTo _recoveryEntry}
+        && {[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _recoveryIdentity}
+};
+private _recoveryDeferred=false;
 private _recovering = _recovery apply {_x select 0};
 private _main = _units - _recovering;
 private _rejoined = [];
 if (_main isNotEqualTo []) then {
     {
         _x params ["_actor","_attempts","_next"];
+        private _recoveryNative=[currentCommand _actor,+(expectedDestination _actor),formLeader _actor];
         // Rejoin this actor's element, not the empty space between separated bounds.
         private _peers = _main;
         private _teamIndex = _teams findIf {_actor in _x};
@@ -480,33 +489,50 @@ if (_main isNotEqualTo []) then {
             if (time >= _next && {_attempts < 1} && {_actor checkAIFeature "PATH"} && {_actor checkAIFeature "MOVE"}) then {
                 // Recovery owns only movement. Preserve the actor's current target so a
                 // separated soldier can fight while closing on the correct fire team.
-                private _recoveryResult="YIELDED";
-                if (_operationGeneration >= 0) then {
-                    _recoveryResult=[_group,_operationGeneration,_actor,_rally] call CBE_fnc_RecoveryStep;
-                } else {
-                    if ([_actor] call _mayIssueMovement) then {
-                        _actor doMove _rally;
-                        _recoveryResult="RECOVERING";
+                isNil {
+                    if (!(call _recoveryCurrent)
+                        || {!([_actor] call _mayIssueMovement)}
+                        || {[currentCommand _actor,expectedDestination _actor,formLeader _actor] isNotEqualTo _recoveryNative}) exitWith {_recoveryDeferred=true};
+                    private _recoveryResult="YIELDED";
+                    if (_operationGeneration >= 0) then {
+                        _recoveryResult=[_group,_operationGeneration,_actor,_rally] call CBE_fnc_RecoveryStep;
+                    } else {
+                        if ([_actor] call _mayIssueMovement) then {
+                            _actor doMove _rally;
+                            _recoveryResult="RECOVERING";
+                        };
                     };
-                };
-                // Refused movement is not an issued attempt. Preserve the retry budget
-                // while another finite task owns this actor; the remaining element continues.
-                switch (_recoveryResult) do {
-                    case "RECOVERING": {_x set [1,_attempts+1]; _x set [2,time+8]};
-                    case "EXHAUSTED": {_x set [1,1]; _x set [2,time]};
-                    default {_x set [2,time+2]};
+                    // Refused movement is not an issued attempt. Preserve the retry budget
+                    // while another finite task owns this actor; the remaining element continues.
+                    switch (_recoveryResult) do {
+                        case "RECOVERING": {_x set [1,_attempts+1]; _x set [2,time+8]};
+                        case "EXHAUSTED": {_x set [1,1]; _x set [2,time]};
+                        default {_x set [2,time+2]};
+                    };
+                    // Persist this exact attempt with its command, even if a later actor
+                    // or the final roster publication must yield. Never refund an issued move.
+                    private _retryRecord=+_x;
+                    private _retryIndex=_recoveryEntry findIf {(_x select 0) == _actor};
+                    _recoveryEntry set [_retryIndex,_retryRecord];
+                    _drill set ["recovery",_recoveryEntry apply {+_x}];
                 };
             };
         };
     } forEach _recovery;
 };
-_recovery = _recovery select {!((_x select 0) in _rejoined)};
-_drill set ["recovery",_recovery];
-_recovering = _recovery apply {_x select 0};
-private _recoverySnapshot = [["NONE","REJOINING"] select (_recovering isNotEqualTo []),_recovering,_drill getOrDefault ["index",-1]];
-if (_recoverySnapshot isNotEqualTo (_group getVariable ["CBE_Cortex_DrillRecovery",[]])) then {
-    _group setVariable ["CBE_Cortex_DrillRecovery",_recoverySnapshot,true];
+private _recoveryPublished=false;
+isNil {
+    if (_recoveryDeferred || {!(call _recoveryCurrent)}) exitWith {};
+    _recovery = _recovery select {!((_x select 0) in _rejoined)};
+    _drill set ["recovery",_recovery];
+    _recovering = _recovery apply {_x select 0};
+    private _recoverySnapshot = [["NONE","REJOINING"] select (_recovering isNotEqualTo []),_recovering,_drill getOrDefault ["index",-1]];
+    if (_recoverySnapshot isNotEqualTo (_group getVariable ["CBE_Cortex_DrillRecovery",[]])) then {
+        _group setVariable ["CBE_Cortex_DrillRecovery",_recoverySnapshot,true];
+    };
+    _recoveryPublished=true;
 };
+if (!_recoveryPublished) exitWith {0.25};
 _units = _units - _recovering;
 // Validate the actual moving element after recovery actors have been removed. The earlier
 // squad-wide strength gate cannot prevent a two-person team becoming a one-man assault.
