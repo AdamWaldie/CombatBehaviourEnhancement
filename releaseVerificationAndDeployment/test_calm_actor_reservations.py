@@ -670,7 +670,7 @@ class ConvoyPassageProgressTests(unittest.TestCase):
             self.assertIn('private _rows=_entryRows apply {+_x};',source)
             body=source.split('private _rowsPublished=false;',1)[1]
             for proof in ('isNil {','isNotEqualTo _entryOwnerContext','isNotEqualTo _entryEpisodeKey',
-                          'isNotEqualTo _entryRows','if (!_rowsPublished) exitWith {_inactive}'):
+                          'isNotEqualTo _entryRows','if (!_rowsPublished) exitWith {_deferred}'):
                 self.assertIn(proof,body)
             self.assertLess(body.index('isNil {'),body.index('_episode set ["rows",_rows]'))
             self.assertLess(body.index('_rowsPublished=true'),body.index('call _retire'))
@@ -707,3 +707,19 @@ class ConvoyPassageReversalTests(unittest.TestCase):
             self.assertIn('_row set [4,false];_passed=false;_changed=true',body)
             self.assertNotIn('setPos',recheck)
             self.assertNotIn('nearEntities',recheck)
+
+
+class ConvoyPassageDeferralTests(unittest.TestCase):
+    def test_rejected_observation_does_not_mean_constraints_disappeared(self):
+        for stem in ['convoyCorridorStep','convoyBypassStep']:
+            source=(ROOT/'addons/vehicles/functions'/f'{stem}.sqf').read_text()
+            self.assertIn('private _deferred=[false,createHashMap,0,0,"DEFERRED"]',source)
+            self.assertIn('if (!_retired) exitWith {_deferred}',source)
+            self.assertIn('if (_creationDeferred) exitWith {_deferred}',source)
+            self.assertIn('if (!_rowsPublished) exitWith {_deferred}',source)
+        tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        self.assertEqual(tick.count('== "DEFERRED") exitWith {}'),3)
+        first=tick.split('private _bypassPassage=',1)[1]
+        self.assertLess(first.index('== "DEFERRED") exitWith {}'),first.index('private _bypassPassageActive='))
+        corridor=tick.split('private _passage=[_group,_configuration]',1)[1]
+        self.assertLess(corridor.index('== "DEFERRED") exitWith {}'),corridor.index('private _passageActive='))

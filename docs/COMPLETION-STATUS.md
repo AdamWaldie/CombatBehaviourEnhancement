@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Refused passage creation/progress/retirement now returns explicit DEFERRED. ConvoyTick stops before consuming refused caps or treating work as ended, retaining prior applied controls for the existing next tick. Physical response and performance remain unverified.
+
 - Previously passed corridor/bypass vehicles now recheck current crew and full hull beyond the exit plane. Returning hulls lose current clearance credit and re-enter existing observation/cap logic without renewed deadlines. Physical reversal, delayed geometry freshness and added bounded cost remain unverified.
 
 - New convoy corridor/bypass passage proposals now publish only while original owner, lead work, route, terminal result, gates, deadline and empty slot remain current. Geometry is prepared separately; physical crossing quality and aggregate cost remain unverified.

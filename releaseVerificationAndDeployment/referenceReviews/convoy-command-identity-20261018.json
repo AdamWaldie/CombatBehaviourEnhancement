@@ -2,13 +2,13 @@
   "date": "2026-10-18",
   "scope": "Convoy current-operation command admission and actual applied smoothing records",
   "sources": {
-    "addons/vehicles/functions/convoyTick.sqf": "51e31cdc4661144ce8b5e191c05e35478be98bc5005f06db2bd73e5a515b2607",
+    "addons/vehicles/functions/convoyTick.sqf": "fdd471c42776a9a1e8035b68ed08fb0f47101902a51b76933892340222c79171",
     "addons/vehicles/functions/convoyOperationStep.sqf": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6",
     "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240",
     "addons/main/fsm/convoyOperation.fsm": "0f79ed5ec97eea1a86b843e2870cc2eba20726145ab2949372f215f32e686f2d",
     "addons/vehicles/functions/convoyReleaseLocal.sqf": "dc192057cc9317dfb2a7ab21c291142e465598e9b34025c5e141909f0b6b0330",
-    "addons/vehicles/functions/convoyCorridorStep.sqf": "01f8a552473aff5acc7cbfd565374176366010fe801f2a4890103b4078a5d7ef",
-    "addons/vehicles/functions/convoyBypassStep.sqf": "da4a3d20a007f019542eb9bed77bd48dc110033fbad9f1575a28a734f9156010"
+    "addons/vehicles/functions/convoyCorridorStep.sqf": "ac8f566e08f1eb964bce85f9cc6fedd812b910541a941318d37fbf32ef8a0aa6",
+    "addons/vehicles/functions/convoyBypassStep.sqf": "7c438fa16e48370f1929f2f5802d2ad26af510197f0e145417ceb0d8ef31aae7"
   },
   "finding": "Per-command helper checked current crew/external availability but not original brain/job/registry/configuration/epoch. Lead and two follower smoothing journals could record rejected caps.",
   "implementation": "Capture original tick brain/token/registry revision/epoch and registry row index. Each existing command helper refuses changed/cancelled/finished brain, token, epoch, configuration or indexed registry row; row lookup is constant-time after one entry search. Lead and PACE/TRAIL follower cap journals move beside forceSpeed in their admitted transactions.",
@@ -19,10 +19,10 @@
     "Physical mixed tracked/wheeled step-off, braking, gaps, replacements, HC and performance remain unaccepted."
   ],
   "validation": {
-    "tests": 1361,
-    "log": ".qa/cbe-convoy-passage-reversal-verified-build.log",
+    "tests": 1362,
+    "log": ".qa/cbe-convoy-passage-deferral-build.log",
     "exitCode": 0,
-    "packageFingerprint": "da684789d1a1c409c8b81b265029aa6ed55517ca081268ec25fe01506facef39"
+    "packageFingerprint": "db7de89b3680e5d43a6ffcd79fcdaf28e00bd82e4c9f48777d94d6341afdf181"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
@@ -69,5 +69,10 @@
       "Does not certify fresh geometry at delayed publication, continuous navigation support or current native intent across identical values.",
       "Actual reversal, mixed-column flow, caller refusal behavior and overhead remain unverified."
     ]
+  },
+  "passageDeferral": {
+    "finding": "Refused observation used inactive result shape and could remove a passage cap or trigger passage-ended cleanup.",
+    "implementation": "Refused creation/row publication/retirement returns optional fifth field DEFERRED. Three live ConvoyTick consumption points exit before applying those results. Previously applied controls persist; existing brain schedule supplies next callback, with no new timer/retry budget.",
+    "limits": "No promise of new safety observation while yielding. Actual interruption, held-cap duration, mixed traffic and measured cost remain unverified; terminal/cancel-only callers ignore the result as before."
   }
 }

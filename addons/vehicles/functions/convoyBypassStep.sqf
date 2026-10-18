@@ -8,6 +8,8 @@
  * Optional argument 3: expected cancellation receipt <ARRAY, []> [revision,identity,started,deadline].
  * Optional argument 4: expected owner context <ARRAY, []> [brain,jobToken,epoch,registryRevision].
  * Empty retains administrative revision-scoped calls; supplied receipts cannot select a successor.
+ * Deferred observation returns fifth field "DEFERRED"; callers must retain applied controls
+ * and retry through the existing job rather than treat refusal as passage absence.
  * Return Value: ARRAY [active BOOL, capsMps HASHMAP keyed netId, passed NUMBER, required NUMBER].
  * Approach caps use current hull distance and the existing nominal mass/reaction model;
  * after ordered first-checkpoint entry the ceiling is 8 km/h until actual full-hull passage.
@@ -21,6 +23,7 @@
  */
 params [["_group",grpNull,[grpNull]],["_configuration",[],[[]]],["_cancel","",[""]],["_expectedEpisode",[],[[]]],["_expectedContext",[],[[]]]];
 private _inactive=[false,createHashMap,0,0];
+private _deferred=[false,createHashMap,0,0,"DEFERRED"];
 if (isRemoteExecuted || {isNull _group} || {!local _group}) exitWith {_inactive};
 private _revision=_configuration param [0,-1];
 private _episode=_group getVariable ["CBE_Convoy_BypassPassage",createHashMap];
@@ -38,6 +41,7 @@ private _entryOwnerContext=call _ownerContext;
 
 private _retire={
     params ["_reason",["_status","INCOMPLETE"]];
+    private _retired=false;
     isNil {
         private _liveEpisode=_group getVariable ["CBE_Convoy_BypassPassage",createHashMap];
         if (!local _group || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _retireBrain}
@@ -48,7 +52,9 @@ private _retire={
             _episode get "rows",_episode get "obstacle",_episode get "revision",_episode get "identity"],true];
         _group setVariable ["CBE_Convoy_BypassPassage",nil,true];
         _group setVariable ["CBE_Convoy_BypassCapture",nil];
+        _retired=true;
     };
+    if (!_retired) exitWith {_deferred};
     _inactive
 };
 if (_cancel != "") exitWith {
@@ -64,6 +70,7 @@ if (count _brain == 0 || {_brain getOrDefault ["cancelled",false]}
     || {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
         (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
     } < 0}) exitWith {_inactive};
+private _creationDeferred=false;
 if (count _episode == 0) then {
     private _lead=(_group getVariable ["CBE_Convoy_LocalState",createHashMap]) getOrDefault ["lead",objNull];
     private _work=_lead getVariable ["CBE_DrivingBypass_Work",createHashMap];
@@ -88,6 +95,7 @@ if (count _episode == 0) then {
             ["route",_route],["routeIndex",(_route select 0) select 0],["routeCount",count waypoints _group],
             ["zeus",+(_group getVariable ["CBE_AIPass_ZeusHold",[]])],["deadline",_work get "tailDeadline"],
             ["rows",_vehicles apply {[_x,driver _x,effectiveCommander _x,0,false]}]];
+        _creationDeferred=true;
         isNil {
             private _liveWork=_lead getVariable ["CBE_DrivingBypass_Work",createHashMap];
             if (!local _group || {(call _ownerContext) isNotEqualTo _entryOwnerContext}
@@ -107,9 +115,11 @@ if (count _episode == 0) then {
             _episode=_proposedEpisode;
             _group setVariable ["CBE_Convoy_BypassPassage",_episode,true];
             _entryEpisodeKey=[_episode] call _episodeKey;
+            _creationDeferred=false;
         };
     };
 };
+if (_creationDeferred) exitWith {_deferred};
 if (count _episode == 0) exitWith {_inactive};
 if ((_episode get "revision") != _revision || {(_configuration param [5,""]) != "TRAVEL"}) exitWith {["CONFIGURATION_CHANGED","CANCELLED"] call _retire};
 if (!([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)
@@ -227,7 +237,7 @@ isNil {
     _group setVariable ["CBE_Convoy_BypassCapture",[_captureIdentity,_nextCaptures]];
     _rowsPublished=true;
 };
-if (!_rowsPublished) exitWith {_inactive};
+if (!_rowsPublished) exitWith {_deferred};
 if (_failure != "") exitWith {[_failure] call _retire};
 if (_passedCount == count _rows) exitWith {["ALL_VEHICLES_PHYSICALLY_PASSED","COMPLETE"] call _retire};
 [true,_caps,_passedCount,count _rows]

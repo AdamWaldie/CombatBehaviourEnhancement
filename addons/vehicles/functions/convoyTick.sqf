@@ -505,6 +505,7 @@ private _hadBypass=!isNil {_lead getVariable "CBE_DrivingBypass_Work"};
 private _bypass=[false,1e6,"",false];
 private _hadBypassPassage=!isNil {_group getVariable "CBE_Convoy_BypassPassage"};
 private _bypassPassage=[_group,_configuration] call CBE_fnc_ConvoyBypassStep;
+if ((_bypassPassage param [4,""]) == "DEFERRED") exitWith {};
 private _bypassPassageActive=_bypassPassage select 0;
 private _bypassCaps=_bypassPassage select 1;
 if (_hadBypassPassage && {!_bypassPassageActive}) then {
@@ -521,6 +522,7 @@ if ([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEn
 private _corridorActive=_corridor select 0;
 _state set ["corridorPhase",_corridor select 2];
 private _passage=[_group,_configuration] call CBE_fnc_ConvoyCorridorStep;
+if ((_passage param [4,""]) == "DEFERRED") exitWith {};
 private _passageActive=_passage select 0;
 private _passageCaps=_passage select 1;
 if (!_corridorActive && {_passageActive}) then {_state set ["corridorPhase","CORRIDOR_TAIL"]};
@@ -750,6 +752,7 @@ private _bypassActive=_bypass select 0;
 if (!_bypassPassageActive && {!_hadBypassPassage}) then {
     _bypassPassage=[_group,_configuration] call CBE_fnc_ConvoyBypassStep;
 };
+if ((_bypassPassage param [4,""]) == "DEFERRED") exitWith {};
 _bypassPassageActive=_bypassPassage select 0;_bypassCaps=_bypassPassage select 1;
 _state set ["bypassPhase",if (_bypassActive) then {_bypass select 2} else {if (_bypassPassageActive) then {"BYPASS_TAIL"} else {""}}];
 if (_bypassActive && {_bypass select 3} && {count _leadObstacle == 9}) then {
