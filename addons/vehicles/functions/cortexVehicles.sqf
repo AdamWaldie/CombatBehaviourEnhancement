@@ -617,7 +617,13 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
                     _state set ["withdrawn",_withdrawn];
                     [_vehicle] call CBE_fnc_CortexFireCountermeasure;
                     private _reverse=[_group,_state,_vehicle,_enemyPos,"START",_operation get "generation"] call CBE_fnc_CortexVehicleReverseStep;
-                    if (_reverse == "FALLBACK") then {[_group, _away, 40] call CBE_fnc_CortexGroupMove};
+                    isNil {
+                        if (_reverse == "FALLBACK") then {
+                            if ((_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo []) then {
+                                [_group, _away, 40,"MOVE",_operation get "generation"] call CBE_fnc_CortexGroupMove;
+                            };
+                        };
+                    };
                     _state set ["movementLease",["VEHICLE_WITHDRAW",time+120]];
                     _state set ["vehicleOperationGeneration",_operation get "generation"];
                     private _origin = getPosATL _vehicle;

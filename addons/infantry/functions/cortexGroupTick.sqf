@@ -356,14 +356,17 @@ if (count _activeDrill > 0) then {
 private _reverseRecord=_group getVariable ["CBE_VehicleReverse",[]];
 if (count _reverseRecord == 9) then {
     private _reverseResult=[_group,_state,_reverseRecord select 0,_reverseRecord select 4,"STEP",_reverseRecord select 1] call CBE_fnc_CortexVehicleReverseStep;
+    isNil {
     if (_reverseResult in ["COMPLETE","FALLBACK"] && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {(_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo []}
+        && {(_reverseRecord select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_state getOrDefault ["phase",""]) == "RETREAT"}
         && {private _current=_group getVariable ["CBE_Operation",createHashMap];
             (_current getOrDefault ["generation",-1]) == (_reverseRecord select 1)
                 && {(_current getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"}}) then {
         private _escape=_state getOrDefault ["retreatTarget",[]];
         if (count _escape >= 2) then {
-            private _fallback=[_group,_escape,40] call CBE_fnc_CortexGroupMove;
+            private _fallback=[_group,_escape,40,"MOVE",_reverseRecord select 1] call CBE_fnc_CortexGroupMove;
             _group setVariable ["CBE_VehicleReverseFallback",[serverTime,_reverseResult,
                 _reverseRecord select 1,_state getOrDefault ["phase",""],+_escape,_fallback,
                 (units _group) apply {[netId _x,currentCommand _x]}],true];
@@ -376,6 +379,7 @@ if (count _reverseRecord == 9) then {
                 _current getOrDefault ["intent",""],_current getOrDefault ["generation",-1],
                 [_group] call CBE_fnc_CortexExternalTakeover],true];
         };
+    };
     };
 };
 private _movementLease = _state getOrDefault ["movementLease",[]];

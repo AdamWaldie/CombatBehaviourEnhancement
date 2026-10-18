@@ -22,7 +22,8 @@
  * 1: position <ARRAY> - two or three numeric ATL coordinates; omitted height defaults to zero
  * 2: completion radius <NUMBER> - metres (optional, default: 25)
  * 3: type <STRING> - waypoint type, MOVE or SAD (optional, default: "MOVE")
- * 4: operation generation <NUMBER> - matching operation identity, -1 adopts the current operation
+ * 4: operation generation <NUMBER> - matching operation identity, -1 captures the current operation
+ *    once. Mismatched generation/epoch refuses at adoption and atomic waypoint commit.
  *
  * Return Value:
  * Array - the waypoint [group, index], or [grpNull,-1] when refused before movement
@@ -69,6 +70,16 @@ if (_operationGeneration < 0) then {
     _operationGeneration=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["generation",-1];
 };
 
+private _entryEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _generationCurrent={
+    private _live=_group getVariable ["CBE_Operation",createHashMap];
+    local _group && {_entryEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {if (_operationGeneration >= 0) then {
+            (_live getOrDefault ["generation",-2]) == _operationGeneration
+                && {(_live getOrDefault ["ownerEpoch",-1]) == _entryEpoch}
+        } else {count _live == 0}}
+};
+if !(call _generationCurrent) exitWith {[grpNull,-1]};
 private _desired = +_position;
 if (count _desired == 2) then {_desired pushBack 0};
 _desired resize 3;
@@ -93,7 +104,12 @@ if (_hasOwnedWaypoint && {count _previousPosition < 2
     || {abs (((waypointPosition _previousWaypoint) param [2,0])-(_previousPosition param [2,0])) > 1.5}
     || {waypointType _previousWaypoint != _previousType}
     || {abs (waypointCompletionRadius _previousWaypoint-_previousRadius) > 0.1}}) exitWith {
-    [_group,true,_previousWaypoint select 1] call CBE_fnc_CortexZeusMark;
+    isNil {
+        if (call _generationCurrent
+            && {(_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap]) isEqualTo _intent}) then {
+            [_group,true,_previousWaypoint select 1] call CBE_fnc_CortexZeusMark;
+        };
+    };
     [grpNull,-1]
 };
 
@@ -107,19 +123,30 @@ private _sameRequest = _hasOwnedWaypoint
     && {abs (_radius - _previousRadius) <= 2}
     && {_type == _previousType};
 if (_sameRequest) exitWith {
+    private _adopted=[grpNull,-1];
+    isNil {
+    if (call _generationCurrent && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {!(call _externalDriving)}
+        && {(_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap]) isEqualTo _intent}) then {
     // A new operation may adopt the same committed route. Keep native movement uninterrupted,
     // but bind cleanup to its current generation; an unscoped old token otherwise survives cancel.
     if ((_intent getOrDefault ["operationGeneration",-1]) != _operationGeneration) then {
         _intent set ["operationGeneration",_operationGeneration];
         _group setVariable ["CBE_Cortex_GroupMoveIntent",_intent,true];
     };
-    _previousWaypoint
+    _adopted=_previousWaypoint;
+    };
+    };
+    _adopted
 };
 // A curator, player or specialist can take the group after the earlier eligibility gate but before
 // the waypoint write. Recheck at the mutation boundary so no delayed CBE route is inserted over it.
-if ([_group] call CBE_fnc_CortexExternalTakeover || {call _externalDriving}) exitWith {[grpNull, -1]};
+private _committed=[grpNull,-1];
+isNil {
+_committed=call {
+if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _externalDriving}) exitWith {[grpNull, -1]};
 [_group] call CBE_fnc_CortexGroupMoveClear;
-if ([_group] call CBE_fnc_CortexExternalTakeover || {call _externalDriving}) exitWith {[grpNull, -1]};
+if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _externalDriving}) exitWith {[grpNull, -1]};
 // Radius-zero placement may be adjusted by the engine. Explicit elevated destinations need
 // exact ASL placement; ordinary ground routes retain native safe placement.
 private _elevated=abs (_desired select 2) > 1.5;
@@ -140,4 +167,6 @@ _group setVariable ["CBE_Cortex_GroupMoveIntent", createHashMapFromArray [
     ["operationGeneration", _operationGeneration]
 ], true];
 _waypoint
-
+};
+};
+_committed
