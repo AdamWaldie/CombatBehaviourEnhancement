@@ -1503,3 +1503,6 @@ Bypass release now evaluates controller revision, native-command ownership and c
 
 
 The prepared normal-only parkedbypass focus also replaces the authored waypoint after production FOLLOW has physically travelled at least eight metres from its issued path start. It requires the new waypoint to remain unchanged, bypass work to retire and the truck to travel at least100m to within15m of the replacement destination without damage. It observes for at least10s after replacement. No path/helper/result is injected. This case is prepared, not run; it does not establish Zeus UI delivery, HC migration or repeated interruption reliability.
+
+
+The existing stationary-traffic route retry now uses an isolated journal and one unscheduled observation/retry/publication section. Current driving brain/owner epoch and a traffic sample no older than1.5s are required on entry; successor journal or owner/order changes prevent stale publication. The original three retries, twenty-second dwell/spacing and eighty-second episode remain. This reissues only the unchanged native route; it does not implement negotiated backing, rear-to-front cascade or traffic-ignore windows. Physical jam resolution and cost remain unverified.

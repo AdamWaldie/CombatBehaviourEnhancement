@@ -170,4 +170,17 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertIn('isNotEqualTo _lease',final)
         self.assertIn('!local _group',final)
 
+
+    def test_jam_retry_and_isolated_journal_publish_share_current_authority_boundary(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        block=s.split('// The public budget survives owner changes;',1)[1].split('// Waiting behind traffic',1)[0]
+        self.assertLess(block.index('isNil {'),block.index('private _jamPrior='))
+        self.assertIn('createHashMapFromArray ((keys _jamPrior) apply {[_x,_jamPrior get _x]})',block)
+        self.assertIn('time-(_traffic select 3) > 1.5',block)
+        self.assertIn('(_brain getOrDefault ["ownerEpoch",-1])',block)
+        self.assertLess(block.index('call _mayRecoverOrdinaryRoute'),block.index('_movementOperator doMove'))
+        self.assertLess(block.index('_movementOperator doMove'),block.index('isEqualTo _jamPrior'))
+        self.assertIn('(_jam get "attempts") < 3',block)
+        self.assertIn('serverTime < (_jam get "deadline")',block)
+
 if __name__=='__main__':unittest.main()

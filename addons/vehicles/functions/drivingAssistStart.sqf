@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Traffic retry journal: current brain/epoch and fresh observation are checked in one unscheduled
+ * retry/publication section. Edit an isolated journal; successor/native-order changes prevent
+ * publication. Existing three-attempt/original-deadline limits remain; no queue cascade implied.
  * Purpose: Applies a sparse, owner-local safety speed cap and bounded physical recovery to an
  * ordinary AI ground vehicle that is already following a native waypoint. This is the standalone
  * driving layer; registered convoys retain their separate predecessor-spacing controller. Terrain
@@ -479,68 +482,80 @@ _brain set ["geometryTracks",_geometryTracks];
             if (call _nativeWaiting) then {_recoveryResult="INTENTIONAL_WAIT"};
             // Bounded traffic replan: keep collision caps, never recreate the authored waypoint.
             // The public budget survives owner changes; interrupted dwell is not accumulated.
-            private _jam=_vehicle getVariable ["CBE_DrivingTrafficRetry",createHashMap];
-            private _jamChanged=false;
-            if (count _jam > 0 && {(_jam get "route") isNotEqualTo _routeIdentity
-                || {(_jam get "group") != _group}
-                || {(_vehicle distance2D (_jam get "origin")) >= 15
-                    && {((_jam get "origin") distance2D waypointPosition [_group,currentWaypoint _group])
-                        -(_vehicle distance2D waypointPosition [_group,currentWaypoint _group]) >= 15}}}) then {
-                _jam=createHashMap;_jamChanged=true;
+            isNil {
+                if (!(call _mayIssueDriving)
+                    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+                    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                    || {time < (_traffic select 3)} || {time-(_traffic select 3) > 1.5}) exitWith {false};
+                private _jamPrior=_vehicle getVariable ["CBE_DrivingTrafficRetry",createHashMap];
+                private _jam=createHashMapFromArray ((keys _jamPrior) apply {[_x,_jamPrior get _x]});
+                private _jamChanged=false;
+                if (count _jam > 0 && {(_jam get "route") isNotEqualTo _routeIdentity
+                    || {(_jam get "group") != _group}
+                    || {(_vehicle distance2D (_jam get "origin")) >= 15
+                        && {((_jam get "origin") distance2D waypointPosition [_group,currentWaypoint _group])
+                            -(_vehicle distance2D waypointPosition [_group,currentWaypoint _group]) >= 15}}}) then {
+                    _jam=createHashMap;_jamChanged=true;
+                };
+                private _jamPeer=_traffic select 1;
+                private _jamEligible=_trafficLimited && {!isNull _jamPeer} && {_jamPeer != _vehicle}
+                    && {_jamPeer isKindOf "LandVehicle"} && {abs speed _jamPeer < 1} && {abs speed _vehicle < 1}
+                    && {_recoveryStage == 0} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass}
+                    && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
+                    && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                    && {call _mayRecoverOrdinaryRoute};
+                private _jamObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity,_driver,_movementOperator];
+                private _jamSeen=_vehicle getVariable ["CBE_DrivingTrafficSeen",[]];
+                private _jamOwnPose=getPosASL _vehicle;
+                private _jamPeerPose=getPosASL _jamPeer;
+                private _jamContinuous=count _jamSeen == 5 && {(_jamSeen select 0) isEqualTo _jamObserver}
+                    && {(_jamSeen select 1) == _jamPeer} && {serverTime >= (_jamSeen select 2)}
+                    && {serverTime-(_jamSeen select 2) <= 6}
+                    && {_jamOwnPose vectorDistance (_jamSeen select 3) <= 1.5}
+                    && {_jamPeerPose vectorDistance (_jamSeen select 4) <= 1.5};
+                // Anchors belong to the whole dwell, not just the preceding sample: otherwise
+                // a slow queue could creep indefinitely while every adjacent displacement is small.
+                private _jamOwnAnchor=if (_jamContinuous) then {+(_jamSeen select 3)} else {+_jamOwnPose};
+                private _jamPeerAnchor=if (_jamContinuous) then {+(_jamSeen select 4)} else {+_jamPeerPose};
+                // This local observation receipt is not replayed or broadcast. Migration/gaps/motion
+                // restart only stationary dwell, never the public attempt count or hard deadline.
+                _vehicle setVariable ["CBE_DrivingTrafficSeen",if (_jamEligible) then {[_jamObserver,_jamPeer,serverTime,_jamOwnAnchor,_jamPeerAnchor]} else {nil}];
+                if (_jamEligible) then {
+                    if (count _jam == 0) then {
+                        _jam=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
+                            ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
+                            ["origin",getPosATL _vehicle],["deadline",serverTime+80],["next",serverTime+20],
+                            ["attempts",0],["peer",_jamPeer],["since",serverTime],["yielded",false]];
+                        _jamChanged=true;
+                    };
+                    if ((_jam get "driver") != _driver || {(_jam get "operator") != _movementOperator}
+                        || {(expectedDestination _driver) isNotEqualTo (_jam get "driverCommand")}
+                        || {(expectedDestination _movementOperator) isNotEqualTo (_jam get "command")}) then {
+                        if !(_jam get "yielded") then {_jam set ["yielded",true];_jamChanged=true};
+                    };
+                    if (!_jamContinuous || {(_jam get "peer") != _jamPeer} || {(_jam get "since") < 0}) then {
+                        _jam set ["peer",_jamPeer];_jam set ["since",serverTime];_jamChanged=true;
+                    };
+                    if (!(_jam get "yielded") && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
+                        && {serverTime >= (_jam get "next")} && {serverTime-(_jam get "since") >= 20}
+                        && {call _mayRecoverOrdinaryRoute}) then {
+                        _movementOperator doMove waypointPosition [_group,currentWaypoint _group];
+                        _jam set ["attempts",(_jam get "attempts")+1];_jam set ["next",serverTime+20];
+                        _jam set ["driverCommand",+(expectedDestination _driver)];
+                        _jam set ["command",+(expectedDestination _movementOperator)];_jamChanged=true;
+                    };
+                } else {
+                    if (count _jam > 0 && {(_jam get "since") >= 0}) then {
+                        _jam set ["since",-1];_jamChanged=true;
+                    };
+                };
+                if (_jamChanged && {call _mayIssueDriving}
+                    && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
+                    && {(_vehicle getVariable ["CBE_DrivingTrafficRetry",createHashMap]) isEqualTo _jamPrior}) then {
+                    _vehicle setVariable ["CBE_DrivingTrafficRetry",_jam,true];
+                };
+                false
             };
-            private _jamPeer=_traffic select 1;
-            private _jamEligible=_trafficLimited && {!isNull _jamPeer} && {_jamPeer != _vehicle}
-                && {_jamPeer isKindOf "LandVehicle"} && {abs speed _jamPeer < 1} && {abs speed _vehicle < 1}
-                && {_recoveryStage == 0} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass}
-                && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
-                && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
-                && {call _mayRecoverOrdinaryRoute};
-            private _jamObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity,_driver,_movementOperator];
-            private _jamSeen=_vehicle getVariable ["CBE_DrivingTrafficSeen",[]];
-            private _jamOwnPose=getPosASL _vehicle;
-            private _jamPeerPose=getPosASL _jamPeer;
-            private _jamContinuous=count _jamSeen == 5 && {(_jamSeen select 0) isEqualTo _jamObserver}
-                && {(_jamSeen select 1) == _jamPeer} && {serverTime >= (_jamSeen select 2)}
-                && {serverTime-(_jamSeen select 2) <= 6}
-                && {_jamOwnPose vectorDistance (_jamSeen select 3) <= 1.5}
-                && {_jamPeerPose vectorDistance (_jamSeen select 4) <= 1.5};
-            // Anchors belong to the whole dwell, not just the preceding sample: otherwise
-            // a slow queue could creep indefinitely while every adjacent displacement is small.
-            private _jamOwnAnchor=if (_jamContinuous) then {+(_jamSeen select 3)} else {+_jamOwnPose};
-            private _jamPeerAnchor=if (_jamContinuous) then {+(_jamSeen select 4)} else {+_jamPeerPose};
-            // This local observation receipt is not replayed or broadcast. Migration/gaps/motion
-            // restart only stationary dwell, never the public attempt count or hard deadline.
-            _vehicle setVariable ["CBE_DrivingTrafficSeen",if (_jamEligible) then {[_jamObserver,_jamPeer,serverTime,_jamOwnAnchor,_jamPeerAnchor]} else {nil}];
-            if (_jamEligible) then {
-                if (count _jam == 0) then {
-                    _jam=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
-                        ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
-                        ["origin",getPosATL _vehicle],["deadline",serverTime+80],["next",serverTime+20],
-                        ["attempts",0],["peer",_jamPeer],["since",serverTime],["yielded",false]];
-                    _jamChanged=true;
-                };
-                if ((_jam get "driver") != _driver || {(_jam get "operator") != _movementOperator}
-                    || {(expectedDestination _driver) isNotEqualTo (_jam get "driverCommand")}
-                    || {(expectedDestination _movementOperator) isNotEqualTo (_jam get "command")}) then {
-                    if !(_jam get "yielded") then {_jam set ["yielded",true];_jamChanged=true};
-                };
-                if (!_jamContinuous || {(_jam get "peer") != _jamPeer} || {(_jam get "since") < 0}) then {
-                    _jam set ["peer",_jamPeer];_jam set ["since",serverTime];_jamChanged=true;
-                };
-                if (!(_jam get "yielded") && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
-                    && {serverTime >= (_jam get "next")} && {serverTime-(_jam get "since") >= 20}
-                    && {call _mayRecoverOrdinaryRoute}) then {
-                    _movementOperator doMove waypointPosition [_group,currentWaypoint _group];
-                    _jam set ["attempts",(_jam get "attempts")+1];_jam set ["next",serverTime+20];
-                    _jam set ["driverCommand",+(expectedDestination _driver)];
-                    _jam set ["command",+(expectedDestination _movementOperator)];_jamChanged=true;
-                };
-            } else {
-                if (count _jam > 0 && {(_jam get "since") >= 0}) then {
-                    _jam set ["since",-1];_jamChanged=true;
-                };
-            };
-            if (_jamChanged) then {_vehicle setVariable ["CBE_DrivingTrafficRetry",_jam,true]};
 
             // Waiting behind traffic is not a route fault. Keep the last progress sample current so
             // clearing the queue does not immediately inherit a stale reverse deadline.
