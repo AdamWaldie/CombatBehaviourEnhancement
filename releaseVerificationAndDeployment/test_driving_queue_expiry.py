@@ -48,6 +48,34 @@ class DrivingQueueExpiry(unittest.TestCase):
         for command in ('doMove','doStop','setDriveOnPath','forceSpeed'):
             self.assertNotIn(command,refusal)
 
+    def test_closed_tokens_block_deferred_owner_readmission_without_extending_expiry(self):
+        owner=source('drivingQueueAgreementOwner')
+        closed=source('drivingQueueTokenClosed')
+        self.assertLess(owner.index('private _tokenClosed='),owner.index('private _accepted='))
+        self.assertIn('private _accepted=!_tokenClosed',owner)
+        terminal=owner.split('// Terminal token cleanup',1)[1].split('private _tokenClosed=',1)[0]
+        self.assertLess(terminal.index('call CBE_fnc_DrivingQueueTokenClosed'),terminal.index('if (_owned isEqualTo [])'))
+        verify=owner.split('if (_mode == "VERIFY") exitWith {',1)[1].split('["ACK",[_token,_accepted]]',1)[0]
+        self.assertIn('} else {',verify)
+        self.assertIn('call CBE_fnc_DrivingQueueTokenClosed',verify)
+        self.assertIn('(_old getOrDefault ["token",""]) == _token',verify)
+        timer=owner.split('private _scheduleExpiry={',1)[1].split('// Terminal token cleanup',1)[0]
+        self.assertIn('[_key select 0,_key select 7] call CBE_fnc_DrivingQueueTokenClosed',timer)
+        self.assertIn('count _closed > 64',closed)
+        self.assertIn('count _closed < 64',closed)
+        self.assertIn('(_closed get _token) min _closeUntil',closed)
+        self.assertIn('_live >= 64',closed)
+        self.assertIn('if (_unknown) exitWith {true}',closed)
+        self.assertIn('remoteExecutedOwner != 2',closed)
+        for forbidden in ('remoteExecCall','waitAndExecute','doMove','doStop','setDriveOnPath','forceSpeed','nearEntities'):
+            self.assertNotIn(forbidden,closed.split('params [[',1)[1])
+
+    def test_local_cancellation_closes_exact_consent_before_server_roundtrip(self):
+        for name in ('drivingQueueAgreementRelease','drivingQueueAgreementRequest'):
+            s=source(name)
+            self.assertLess(s.index('call CBE_fnc_DrivingQueueTokenClosed'),s.index('["RELEASE",['))
+            self.assertLess(s.index('call CBE_fnc_DrivingQueueTokenClosed'),s.index('setVariable ["CBE_DrivingQueue_Consent",nil]'))
+
     def test_server_bounds_timer_churn_across_fresh_serial_release_cycles(self):
         s=source('drivingQueueAgreementServer')
         for guard in ('"CBE_DrivingQueue_Admissions"','serverTime < (_admissions getOrDefault',

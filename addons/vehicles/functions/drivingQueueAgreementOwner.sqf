@@ -6,6 +6,7 @@
  * One timer per accepted phase retires matching local receipts even after movement scheduling
  * stops. Old-machine private metadata can retire after locality loss; no command is issued.
  * Valid duplicate VERIFY cannot downgrade AGREED; stale owner context releases exact consent.
+ * Machine-private original-expiry closures reject deferred readmission, including after local retirement.
  * No movement, reservation or JIP commands.
  * Arguments: 0 mode STRING empty VERIFY/RESULT;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase].
  * Return: BOOL reply/result handled, not queue movement authority.
@@ -23,7 +24,6 @@ if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
     || {!(_deadline isEqualType 0)} || {!finite _deadline}
     || {!(_expires isEqualType 0)} || {!finite _expires}) exitWith {false};
 private _owned=_vehicles select {!isNull _x && {local _x}};
-if (_owned isEqualTo []) exitWith {false};
 private _phase=["PENDING",_payload param [8,""]] select (_mode == "RESULT");
 if (_mode == "RESULT" && {!(_phase in ["AGREED","REFUSED","RELEASED"])}) exitWith {false};
 private _receiptKey={
@@ -43,6 +43,7 @@ private _scheduleExpiry={
                 if (!isNull _x) then {
                     private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
                     if (([_old] call _receiptKey) isEqualTo _key) then {
+                        [_key select 0,_key select 7] call CBE_fnc_DrivingQueueTokenClosed;
                         _x setVariable ["CBE_DrivingQueue_Consent",nil];_retired=true;
                     };
                 };
@@ -54,11 +55,14 @@ private _scheduleExpiry={
 };
 // Terminal token cleanup must work even if another participant was deleted or changed owner.
 if (_mode == "RESULT" && {_phase in ["REFUSED","RELEASED"]}) exitWith {
+    [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
     {private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
         if ((_old getOrDefault ["token",""]) == _token) then {_x setVariable ["CBE_DrivingQueue_Consent",nil]};
     } forEach _owned;
     true
 };
+if (_owned isEqualTo []) exitWith {false};
+private _tokenClosed=[_token] call CBE_fnc_DrivingQueueTokenClosed;
 private _duplicate=_owned findIf {
     private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
     (_old getOrDefault ["token",""]) != _token || {(_old getOrDefault ["phase",""]) != "AGREED"}
@@ -70,7 +74,7 @@ private _duplicate=_owned findIf {
         || {(_old getOrDefault ["dependencies",[]]) isNotEqualTo _dependencies}
         || {(_old getOrDefault ["expires",-1]) != _expires} || {serverTime >= _expires}
 } < 0;
-private _accepted=serverTime < ([_deadline,_expires] select (_mode == "RESULT" || {_duplicate}))
+private _accepted=!_tokenClosed && {serverTime < ([_deadline,_expires] select (_mode == "RESULT" || {_duplicate}))}
     && {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent};
 {
     if (_x == (_vehicles select 0)) then {
@@ -96,6 +100,7 @@ if (_duplicate) exitWith {
     // this owner's native order and controller admission still match the proposal.
     // Server topology checks cannot replace these owner-local checks. Do not renew.
     if (!_accepted) exitWith {
+        [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
         {
             private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
             if ((_old getOrDefault ["token",""]) == _token) then {
@@ -118,6 +123,14 @@ if (_mode == "VERIFY") exitWith {
             ["serial",_serial],["vehicles",_vehicles],["roles",_roles],["dependencies",_dependencies],
             ["context",_context],["deadline",_deadline],["expires",_expires],["phase","PENDING"]]]} forEach _owned;
         if (!_pendingDuplicate) then {[_pendingKey] call _scheduleExpiry};
+    } else {
+        [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
+        {
+            private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+            if ((_old getOrDefault ["token",""]) == _token) then {
+                _x setVariable ["CBE_DrivingQueue_Consent",nil];
+            };
+        } forEach _owned;
     };
     ["ACK",[_token,_accepted]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];true
 };
@@ -134,6 +147,7 @@ if (_phase == "AGREED" && {_accepted}) then {
     [[_token,_serial,_vehicles,_roles,_dependencies,_context,_deadline,_expires,"AGREED"]] call _scheduleExpiry;
 };
 if (_phase == "AGREED" && {!_accepted}) then {
+    [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
     ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
 };
 true

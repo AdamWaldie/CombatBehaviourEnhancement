@@ -41,6 +41,7 @@ if (!_matches) exitWith {false};
 private _retired=false;
 isNil {
     if (local _vehicle && {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isEqualTo _consent}) then {
+        [_token,_consent getOrDefault ["expires",-1]] call CBE_fnc_DrivingQueueTokenClosed;
         _vehicle setVariable ["CBE_DrivingQueue_Consent",nil];
         _retired=true;
     };

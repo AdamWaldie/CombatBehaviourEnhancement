@@ -28,6 +28,8 @@ if (_cancel) exitWith {
     _vehicle setVariable ["CBE_DrivingQueue_Request",nil];
     if ((_receipt getOrDefault ["serial",-2]) == _serial
         && {(_receipt getOrDefault ["context",[]]) isEqualTo _context}) then {
+        [_receipt get "token",_receipt getOrDefault ["expires",-1]] call CBE_fnc_DrivingQueueTokenClosed;
+        _vehicle setVariable ["CBE_DrivingQueue_Consent",nil];
         ["RELEASE",[_receipt get "token"]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
     };
     true
