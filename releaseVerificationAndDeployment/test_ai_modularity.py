@@ -84,7 +84,7 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('private _restoreEligible=[_group,false,false,true] call CBE_fnc_CortexIsEligible',locality)
         self.assertIn('false, (!_restoreEligible || {_inheritedDrill isNotEqualTo []}), "OWNERSHIP_ADOPTED"',locality)
         restore = src('cortexRestoreCalm')
-        self.assertIn('!_yieldToExternal && {_ownedHold}',restore)
+        self.assertIn('!_yieldToExternal && {_ownedHold || {_returnSearchTeam && {_command == "MOVE"}}}',restore)
         release=src('cortexReleaseGroup')
         self.assertIn('[_group, _state, false, _externalTakeover, _reason] call CBE_fnc_CortexRestoreCalm',release)
         self.assertIn('_externalTakeover=_yieldToZeus || {_yieldToExternal}',release)

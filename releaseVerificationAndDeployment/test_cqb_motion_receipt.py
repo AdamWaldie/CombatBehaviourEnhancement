@@ -89,4 +89,14 @@ class MotionReceiptTests(unittest.TestCase):
             else:
                 self.assertIn(proof,body)
         self.assertNotIn('"STOP","ATTACK","FIRE","SUPPRESS"',body)
+    def test_calm_cleanup_requires_path_lease_and_protects_new_tasks(self):
+        text=read('cortexRestoreCalm.sqf')
+        hold=text.split('private _releaseOwnedHold={',1)[1].split('private _supportHeld=',1)[0]
+        self.assertIn('private _pathOwned=_restorePath && {_unit getVariable ["CBE_Cortex_SupportPathHold",false]}',hold)
+        self.assertLess(hold.index('if (_pathOwned) then'),hold.index('enableAI "PATH"'))
+        for proof in ('_returnSearchTeam && {_command == "MOVE"}',
+                      '"CBE_AIPass_ClearOrder",[]]) isEqualTo []',
+                      'CortexZeusHeld','CortexExternalTakeover','call _actorMoveFree'):
+            self.assertLess(hold.index(proof),hold.index('doFollow _leader'))
+        self.assertIn('[_x,false,false] call _releaseOwnedHold',text)
 if __name__=='__main__': unittest.main()

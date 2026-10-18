@@ -2424,7 +2424,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (!_yieldToExternal && {_state getOrDefault ["behaviourChanged", false]}',restore)
         self.assertIn('if (!_yieldToExternal && {count _retreatSpeedLease == 2}',restore)
         self.assertIn('speedMode _group == (_retreatSpeedLease select 1)',restore)
-        self.assertIn('preserving a newer individual command',restore)
+        self.assertIn('CBE_fnc_CortexExternalTakeover',restore)
         self.assertIn('!(_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"])',flank_end)
         self.assertIn('if (_mayCommand) then',flank_end)
 
@@ -2940,15 +2940,19 @@ class CortexOperations(unittest.TestCase):
     def test_calm_cleanup_releases_cortex_holds_without_overwriting_new_individual_orders(self):
         restore=source('cortexRestoreCalm')
         release_hold=restore.split('private _releaseOwnedHold={',1)[1].split('};\n{',1)[0]
-        self.assertIn('if (_restorePath) then {',release_hold)
+        self.assertIn('private _pathOwned=_restorePath && {_unit getVariable ["CBE_Cortex_SupportPathHold",false]}',release_hold)
+        self.assertIn('if (_pathOwned) then {',release_hold)
         self.assertIn('_unit enableAI "PATH"',release_hold)
         self.assertIn('_unit setVariable ["CBE_Cortex_SupportPathHold",nil,true]',release_hold)
         self.assertIn('_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]',release_hold)
-        self.assertIn('_returnSearchTeam && {!_yieldToExternal}',release_hold)
+        self.assertIn('_returnSearchTeam && {_command == "MOVE"}',release_hold)
+        self.assertIn('!_yieldToExternal &&',release_hold)
+        self.assertIn('CBE_fnc_CortexZeusHeld',release_hold)
+        self.assertIn('"CBE_AIPass_ClearOrder",[]]) isEqualTo []',release_hold)
         self.assertIn('_unit doFollow _leader',release_hold)
-        for external in ['MOVE','GET IN','GET OUT','ACTION','SCRIPTED']:
+        for external in ['GET IN','GET OUT','ACTION','SCRIPTED']:
             self.assertNotIn(f'"{external}"',release_hold)
-        self.assertIn('[_x,true,false] call _releaseOwnedHold',restore)
+        self.assertIn('[_x,false,false] call _releaseOwnedHold',restore)
         self.assertIn('[_x,false,true] call _releaseOwnedHold',restore)
         search_release=restore.split('forEach (_state getOrDefault ["searchTeam", []])',1)[0].rsplit('{if (alive _x)',1)[-1]
         self.assertNotIn('enableAI "PATH"',search_release)
@@ -5157,7 +5161,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('call CBE_fnc_CortexActorMoveReserved',code)
             self.assertIn('&& {_reservationFree} && {!_nativeTask}',code)
             restore_condition=code.split('_canRestore ||',1)[1].split('then {',1)[0]
-            for external in ['MOVE','GET IN','GET OUT','ACTION','SCRIPTED']:
+            for external in ['GET IN','GET OUT','ACTION','SCRIPTED']:
                 self.assertNotIn(f'"{external}"',restore_condition)
 
     def test_garrison_restores_only_the_speed_lease_it_applied(self):

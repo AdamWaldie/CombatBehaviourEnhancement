@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-18",
+  "scope": "Calm support/search/holder release",
+  "findings": [
+    "Ordinary doStop holders were incorrectly passed through PATH enable",
+    "Search-team flag bypassed native command class checks"
+  ],
+  "implementation": [
+    "Actual legacy PATH marker required",
+    "Ordinary holders never enable PATH",
+    "Service/mounted/reserved/clearance/Zeus/external actors preserve successor movement"
+  ],
+  "validation": {
+    "tests": 1230,
+    "exit": 0,
+    "log": ".qa/cbe-calm-cleanup-ownership-verified-build.log",
+    "retained_failure_log": ".qa/cbe-calm-cleanup-ownership-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Exact search MOVE destination receipts",
+    "Neutral hold provenance",
+    "Physical repeat/migration and overhead"
+  ],
+  "acceptance": "partial"
+}
