@@ -723,3 +723,15 @@ class ConvoyPassageDeferralTests(unittest.TestCase):
         self.assertLess(first.index('== "DEFERRED") exitWith {}'),first.index('private _bypassPassageActive='))
         corridor=tick.split('private _passage=[_group,_configuration]',1)[1]
         self.assertLess(corridor.index('== "DEFERRED") exitWith {}'),corridor.index('private _passageActive='))
+
+
+class ConvoyReplacementFixtureTests(unittest.TestCase):
+    def test_replacement_fixture_uses_public_orders_and_physical_continuation(self):
+        source=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text()
+        body=source.split('rapid replacement",',1)[1].split('private _reverseLead=',1)[0]
+        for proof in ('call CBE_fnc_SimpleAiConvoy','completedFSM _oldFSM','CBE_Convoy_OwnedSpeed',
+                      'isNotEqualTo _oldBrain','_replacementOrigins','vectorDotProduct _replacementAxis < 25',
+                      '(velocityModelSpace _x select 1) <= 1','-replacement-physical-travel'):
+            self.assertIn(proof,body)
+        for shortcut in ('call CBE_fnc_ConvoyReleaseLocal','forceSpeed','setPos','setVelocity','setDriveOnPath'):
+            self.assertNotIn(shortcut,body)

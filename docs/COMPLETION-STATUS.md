@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Normal wheeled convoy QA now prepares rapid public HALT/resume replacement followed by old-FSM retirement, newest applied-cap checks and every vehicle travelling 25 m forward. The fixture is unrun and does not prove every race timing, HC or physical acceptance.
+
 - Refused passage creation/progress/retirement now returns explicit DEFERRED. ConvoyTick stops before consuming refused caps or treating work as ended, retaining prior applied controls for the existing next tick. Physical response and performance remain unverified.
 
 - Previously passed corridor/bypass vehicles now recheck current crew and full hull beyond the exit plane. Returning hulls lose current clearance credit and re-enter existing observation/cap logic without renewed deadlines. Physical reversal, delayed geometry freshness and added bounded cost remain unverified.

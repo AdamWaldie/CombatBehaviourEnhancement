@@ -4,6 +4,8 @@
  * columns separately exercise 15/30/50/75 km/h at a fixed 30 m spacing.
  * One wheeled case applies native reverse input to the lead and observes follower yield/restart;
  * no actor/vehicle relocation or velocity assignment supplies its physical prerequisite.
+ * A normal-owner wheeled case replaces public HALT/resume revisions rapidly and requires old FSM
+ * retirement, newest applied cap receipts and independent forward travel by every vehicle.
  * Native driver incapacity additionally requires automatic IMMOBILE and physical halt, then
  * continued hold after recovery until an explicit public resume request.
  * Outside VR one bounded scan rotates the 1.8 km route across real relieved terrain; all spacing,
@@ -436,6 +438,58 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             } forEach _vehicles;
             [_id+"-resume-forward-progress",_resumed,str _resumeEvidence] call _check;
             [_id+"-resume-no-turnaround",!_turned,str [_terrainHeading,_resumeEvidence]] call _check;
+        };
+        if (!_baseline && {_label == "WHEELED"} && {_spacing == 30}
+            && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])}) then {
+            [_id+" rapid replacement","Public HALT/resume revisions replace the convoy repeatedly. The old FSM must retire, the newest brain and applied caps must survive, and every vehicle must physically continue forward. No cleanup or speed/path reset is injected.",getPosATL (_vehicles select 1)] call _phase;
+            private _oldBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+            private _oldFSM=_group getVariable ["CBE_Convoy_Brain_FSM",-1];
+            private _oldToken=_oldBrain getOrDefault ["jobToken",""];
+            private _replacementOrigins=_vehicles apply {getPosASL _x};
+            private _replacementAxis=[sin _terrainHeading,cos _terrainHeading,0];
+            private _requests=[];private _revisions=[];
+            {
+                _requests pushBack ([_group,_x,_spacing,true] call CBE_fnc_SimpleAiConvoy);
+                _revisions pushBack (_group getVariable ["CBE_Convoy_Revision",-1]);
+            } forEach [0,12,0,_requestedSpeed];
+            private _newRevision=_revisions select 3;
+            private _ordered=count (_revisions arrayIntersect _revisions) == 4
+                && {_revisions findIf {_x < 0} < 0};
+            for "_r" from 1 to 3 do {
+                if ((_revisions select _r) <= (_revisions select (_r-1))) then {_ordered=false};
+            };
+            private _replacementReady=_requests findIf {!_x} < 0 && {_ordered}
+                && {count _oldBrain > 0} && {_oldToken != ""} && {_oldFSM >= 0};
+            [_id+"-replacement-orders-prerequisite",_replacementReady,str [_requests,_revisions,_oldToken,_oldFSM]] call _check;
+            private _newBrainReady=[{
+                private _current=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+                count _current > 0 && {_current isNotEqualTo _oldBrain}
+                    && {!(_current getOrDefault ["cancelled",false])} && {!(_current getOrDefault ["finished",false])}
+                    && {(_current getOrDefault ["jobToken",""]) != _oldToken}
+                    && {((_current getOrDefault ["configuration",[]]) param [0,-1]) == _newRevision}
+                    && {_vehicles findIf {
+                        private _receipt=_x getVariable ["CBE_Convoy_OwnedSpeed",[]];
+                        count _receipt != 3 || {(_receipt select 0) != _group}
+                            || {(_receipt select 1) != _newRevision}
+                            || {abs ((getForcedSpeed _x)-(_receipt select 2)) > 0.1}
+                    } < 0}
+            },20] call _wait;
+            private _oldRetired=_oldFSM >= 0 && {[{completedFSM _oldFSM},15] call _wait};
+            [_id+"-replacement-old-fsm-retired",_replacementReady && {_oldRetired},str [_oldFSM,_oldRetired]] call _check;
+            [_id+"-replacement-new-controls-current",_replacementReady && {_newBrainReady},str [_newRevision,
+                _group getVariable ["CBE_Convoy_Brain_State",[]],_vehicles apply {_x getVariable ["CBE_Convoy_OwnedSpeed",[]]}]] call _check;
+            private _replacementTravel=[{
+                private _current=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+                private _moving=count _current > 0 && {!(_current getOrDefault ["cancelled",false])}
+                    && {((_current getOrDefault ["configuration",[]]) param [0,-1]) == _newRevision};
+                {
+                    if (((getPosASL _x) vectorDiff (_replacementOrigins select _forEachIndex)) vectorDotProduct _replacementAxis < 25
+                        || {(velocityModelSpace _x select 1) <= 1}) then {_moving=false};
+                } forEach _vehicles;
+                _moving
+            },60] call _wait;
+            [_id+"-replacement-physical-travel",_replacementReady && {_newBrainReady} && {_oldRetired} && {_replacementTravel},
+                str [_replacementOrigins,_vehicles apply {[getPosASL _x,velocityModelSpace _x,getForcedSpeed _x]}]] call _check;
         };
         if (!_baseline && {_label == "WHEELED"} && {_spacing == 30}) then {
             private _reverseLead=_vehicles select 0;
