@@ -62,7 +62,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         release=s.split('private _release={',1)[1].split('if (toUpperANSI _mode',1)[0]
         self.assertLess(release.index('call _commandsUnchanged'),release.index('sendSimpleCommand'))
         self.assertNotIn('(_record select 2) == (_group getVariable',release)
-        self.assertIn('getVariable ["CBE_VehicleReverse",[]]) isEqualTo _record',release)
+        self.assertIn('getVariable ["CBE_VehicleReverse",[]]) isEqualTo _entryRecord',release)
         vehicle=src('cortexVehicles')
         self.assertIn('if (_reverse == "FALLBACK") then',vehicle)
         self.assertIn('["RELEASED","FALLBACK"] select _fallbackAuthority',s)

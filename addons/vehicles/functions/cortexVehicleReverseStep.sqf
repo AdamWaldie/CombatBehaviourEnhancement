@@ -6,6 +6,8 @@
  * A companion generation/seat/destination/current-route receipt binds commands and cleanup. A
  * changed receipt returns RELEASED, preventing the caller's normal forward fallback over handover.
  * Incapacitated crew cannot drive a leg; cleanup cancels only a matching recorded turn direction.
+ * Release commits against unchanged published reverse/command records atomically; local progress
+ * edits use isolated arrays and cannot silently mutate a successor or the public record.
  * Fresh shared rear body-width actor/geometry observation gates each active reverse step.
  * It does not create another controller or change native collision.
  * Repeat/JIP: Generation/epoch-bound record; repeated steps retain commands. Exact unchanged
@@ -20,8 +22,9 @@
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],
     ["_vehicle",objNull,[objNull]],["_threat",[],[[]]],["_mode","START",[""]],["_generation",-1,[0]]];
 if (isNull _group || {!local _group}) exitWith {"FALLBACK"};
-private _record=_group getVariable ["CBE_VehicleReverse",[]];
-private _commandReceipt=_group getVariable ["CBE_VehicleReverse_Command",[]];
+private _record=+(_group getVariable ["CBE_VehicleReverse",[]]);
+private _entryRecord=+_record;
+private _commandReceipt=+(_group getVariable ["CBE_VehicleReverse_Command",[]]);
 private _commandsUnchanged={
     params ["_ownedVehicle"];
     count _commandReceipt == 6 && {(_commandReceipt select 0) == _generation}
@@ -33,7 +36,10 @@ private _commandsUnchanged={
 };
 private _release={
     params [["_reason","RELEASE",[""]]];
-    if (count _record == 9 && {(_record select 1) == _generation}) then {
+    isNil {
+    if (count _record == 9 && {(_record select 1) == _generation}
+        && {(_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo _entryRecord}
+        && {(_group getVariable ["CBE_VehicleReverse_Command",[]]) isEqualTo _commandReceipt}) then {
         private _ownedVehicle=_record select 0;
         // One transition snapshot explains a failed physical leg without a per-tick log stream.
         _group setVariable ["CBE_VehicleReverseEnd",[serverTime,_reason,_generation,
@@ -72,9 +78,10 @@ private _release={
             && {(_group getVariable ["CBE_VehicleReverse_Command",[]]) isEqualTo _commandReceipt}) then {
             _group setVariable ["CBE_VehicleReverse_Command",nil,true];
         };
-        if ((_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo _record) then {
+        if ((_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo _entryRecord) then {
             _group setVariable ["CBE_VehicleReverse",nil,true];
         };
+    };
     };
     "RELEASED"
 };
@@ -189,5 +196,16 @@ if (_turn != (_record select 8)) then {
     _commandReceipt set [4,+(expectedDestination _commander)];
     _group setVariable ["CBE_VehicleReverse_Command",_commandReceipt,true];
 };
-if (_record isNotEqualTo _beforeRecord) then {_group setVariable ["CBE_VehicleReverse",_record,true]};
+if (_record isNotEqualTo _beforeRecord) then {
+    isNil {
+        private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+        if (local _group && {(_record select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_liveOperation getOrDefault ["generation",-2]) == _generation}
+            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_record select 2)}
+            && {(_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo _entryRecord}
+            && {(_group getVariable ["CBE_VehicleReverse_Command",[]]) isEqualTo _commandReceipt}) then {
+            _group setVariable ["CBE_VehicleReverse",_record,true];
+        };
+    };
+};
 "REVERSE"
