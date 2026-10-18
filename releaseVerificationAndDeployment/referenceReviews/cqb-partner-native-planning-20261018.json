@@ -19,8 +19,8 @@
     "tests": 1392,
     "compiled_sqf": 327,
     "pbos": 9,
-    "log": ".qa/cbe-clear-yield-progress-clock-build.log",
-    "unsigned_fingerprint": "c6c4072a6d6ad8e809d9cbd7cb0b7d0f1d82529876a65a4432f386cfe212c6eb",
+    "log": ".qa/cbe-clear-pair-retry-continuity-verified-build.log",
+    "unsigned_fingerprint": "0d5fcf5f99a3587990ea5f8033a60791f8239d0fdac02ee90e5c9e10a7da8391",
     "physical": false
   },
   "remaining": [
@@ -39,5 +39,10 @@
     "finding": "Room failure/recovery caller reset lane lastProgress and lastPositions for both RECOVERING and YIELDED, undermining the no-progress invariant while the common helper only observed native work.",
     "implementation": "Only RECOVERING receives its existing finite new-leg observation interval. YIELDED retains the lane progress timestamp/position baseline, preserves native route, spends no new recovery attempt and does not classify the point unreachable.",
     "remaining": "Actual engine planning/service interruption, inaccessible model points and performance require later physical evidence."
+  },
+  "pair_retry_follow_up": {
+    "finding": "Timed room retry could resend an exterior partner destination when the room mover stalled, independently of the partner recent request/planning state.",
+    "implementation": "Before each pair-wide retry native doMove, nativeMoveAwaited checks that actor and target. Pending actors are skipped without new receipts or retry credit; actual room-mover issue remains the sole shared retry-credit trigger.",
+    "remaining": "Physical doorway coherence, actor scheduling and total native-query cost remain unverified."
   }
 }

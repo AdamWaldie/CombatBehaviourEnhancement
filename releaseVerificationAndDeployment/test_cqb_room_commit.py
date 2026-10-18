@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def source():return (ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
 class RoomCommitTests(unittest.TestCase):
     def test_mutations_and_assignment_follow_final_actor_and_episode_proof(self):
-        body=source().split('// Native mutation commit: geometry above stays scheduled.',1)[1].split('} forEach _pair;',1)[0]
+        body=source().split('// Native mutation commit:',1)[1].split('} forEach _pair;',1)[0]
         self.assertLess(body.index('isNil {'),body.index('doStop _unit'))
         for guard in ('call _mayIssueMovement','call _actorAvailable','call _actorTaskFree',
                       'call _roomCommandOwned','CortexZeusHeld','_job get "deadline"',
@@ -34,7 +34,8 @@ class RoomCommitTests(unittest.TestCase):
         self.assertLess(body.index('isNil {'),body.index('_x doMove _unitTarget'))
         for requirement in ('call _mayIssueMovement','call _actorAvailable','call _actorTaskFree',
                             'call _roomCommandOwned','CortexZeusHeld','_job get "deadline"',
-                            '_job get "hardDeadline"','isEqualTo _retryNative'):
+                            '_job get "hardDeadline"','isEqualTo _retryNative',
+                            '!([_x,_unitTarget] call _nativeMoveAwaited)'):
             self.assertLess(body.index(requirement),body.index('_x doMove _unitTarget'))
         self.assertLess(body.index('_x doMove _unitTarget'),body.index('if (_x == _point) then {_retriedMover=true}'))
         self.assertLess(body.index('if (_retriedMover) then'),body.index('_retries=_retries+1'))

@@ -24,6 +24,8 @@
  * a fresh recovery leg cannot be overwritten by an already-elapsed alternative threshold.
  * A yielded common recovery retains the lane progress clock and position baseline;
  * only an actually issued retry receives a new observation interval.
+ * Pair-wide timed retries independently preserve each actor's fresh/owned planning leg;
+ * the room mover becoming stalled does not grant a replay over its partner's recent request.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
  * A casualty blocked by sole-exit coverage may request one progressed idle interior worker
@@ -3014,7 +3016,7 @@ private _delay=call {
                         private _arrivalPose=getPosASL _unit;
                         private _arrivalSegment=_arrivalPose vectorDistance (AGLToASL _arrivalTarget) <= 1.5
                             && {[_unit,AGLToASL _arrivalTarget] call _roomSegmentClear};
-                        // Native mutation commit: geometry above stays scheduled.
+                        // Native mutation commit: geometry was prepared above.
                         isNil {
                             if (call _mayIssueMovement && {[_unit] call _actorAvailable}
                                 && {[_unit] call _actorTaskFree} && {[_unit] call _roomCommandOwned}
@@ -3206,6 +3208,7 @@ private _delay=call {
                                         isNil {
                                             if (call _mayIssueMovement && {[_x] call _actorAvailable}
                                                 && {[_x] call _actorTaskFree} && {[_x] call _roomCommandOwned}
+                                                && {!([_x,_unitTarget] call _nativeMoveAwaited)}
                                                 && {!([_group] call CBE_fnc_CortexZeusHeld)}
                                                 && {serverTime <= (_job get "deadline")} && {serverTime <= (_job get "hardDeadline")}
                                                 && {[currentCommand _x,expectedDestination _x,formLeader _x] isEqualTo _retryNative}) then {
