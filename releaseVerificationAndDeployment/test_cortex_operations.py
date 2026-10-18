@@ -8022,16 +8022,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('isNil {',mutation)
         self.assertLess(mutation.index('call _mayExit'),mutation.index('isDamageAllowed _unit'))
         self.assertLess(mutation.index('call _mayExit'),mutation.index('_unit allowDamage false'))
-        self.assertLess(jump.index('if (!_exited) exitWith {false}'),jump.index('call CBA_fnc_waitAndExecute'))
+        self.assertLess(jump.index('if (!_exited) exitWith {false}'),jump.index('[_unit] call CBE_fnc_CortexParachuteDeploy'))
 
     def test_parachute_failed_boarding_cleans_only_empty_owned_chute(self):
         jump=source('cortexParachuteJump')
-        boarding=jump.split('_unit moveInDriver _chute;',1)[1]
+        boarding=source('cortexParachuteDeploy').split('_unit moveInDriver _chute;',1)[1]
         self.assertLess(boarding.index('if (vehicle _unit == _chute)'),boarding.index('_chute setVelocity'))
         cleanup=boarding.split('} else {',1)[1].split('deleteVehicle _chute',1)[0]
         for guard in ['!isNull _chute','local _chute','crew _chute isEqualTo []']:
             self.assertIn(guard,cleanup)
-        self.assertIn('_velocity, _receipt], 0.8]',boarding)
+        self.assertIn('_due-serverTime',source('cortexParachuteDeploy'))
         self.assertNotIn('remoteExecCall ["allowDamage"',jump)
 
     def test_combat_gunner_replacement_preserves_actor_controller_ownership(self):

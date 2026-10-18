@@ -23,7 +23,7 @@ if (_receipt isEqualTo []) then {
     if (remoteExecutedOwner > 0 || {!local _actor}) exitWith {};
     _receipt=_actor getVariable ["CBE_ParachuteProtection",[]];
 };
-if (count _receipt != 6) exitWith {false};
+if (!(_receipt isEqualType []) || {count _receipt != 6}) exitWith {false};
 _receipt params ["_schema","_originalActor","_issuer","_token","_baseline","_until"];
 if (_schema isNotEqualTo 1 || {_originalActor isNotEqualTo _actor}
     || {!(_issuer isEqualType 0)} || {!finite _issuer} || {_issuer < 2} || {_issuer != floor _issuer}

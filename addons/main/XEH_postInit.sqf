@@ -14,18 +14,21 @@ if !(missionNamespace getVariable ["CBE_AITweaks_SettingsReady", false]) exitWit
 if (missionNamespace getVariable ["CBE_AITweaks_PostInitComplete", false]) exitWith {true};
 missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
 [] call CBE_fnc_AITweaksDetectCompatibility;
-// Recovery observation remains installed when tactics stops. Native events do no scanning or
-// movement; a receipt-free actor costs only its init/Local callback and one handler slot.
+// Recovery observation remains installed when tactics stops. Native events do no scanning;
+// exact receipts permit feature restoration or finite accepted chute deployment only.
+// A receipt-free actor costs only its init/Local callback and one handler slot.
 ["CAManBase","init",{
     params ["_actor"];
     if (isNil {_actor getVariable "CBE_AirPilotFeatureLocalEH"}) then {
         _actor setVariable ["CBE_AirPilotFeatureLocalEH",_actor addEventHandler ["Local",{
             _this call CBE_fnc_CortexAirPilotFeatureAdopt;
             [_this select 0] call CBE_fnc_CortexParachuteProtectionRelease;
+            [_this select 0] call CBE_fnc_CortexParachuteDeploy;
         }]];
     };
     [_actor,local _actor] call CBE_fnc_CortexAirPilotFeatureAdopt;
     [_actor] call CBE_fnc_CortexParachuteProtectionRelease;
+    [_actor] call CBE_fnc_CortexParachuteDeploy;
 },true,[],true] call CBA_fnc_addClassEventHandler;
 
 

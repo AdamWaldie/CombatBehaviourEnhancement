@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-18",
+  "scope": "Finite actual actor-owner chute deployment adoption",
+  "sources": {
+    "addons/infantry/functions/cortexParachuteJump.sqf": "401558c894a13c927571ea9ac076930552df1e8bae14cbd6e1f27a81383d3979",
+    "addons/infantry/functions/cortexParachuteDeploy.sqf": "4e5bbba3768ea6b2858d945784dc85c399070bf4810b442bf0d40ba620fcc9ae",
+    "addons/infantry/functions/cortexParachuteProtectionRelease.sqf": "b469d3526de5f634b182ff3bd90b3a2957ba90fe33c49f3207771ba825bbd77a",
+    "addons/main/XEH_postInit.sqf": "1f6ffa65a6b1cec7effa21518a205120095c251b47b8ffe960ec19c0f1ba10a4"
+  },
+  "prior_reviews": [
+    "hbq-damage-protection-20261018.json",
+    "parachute-protection-receipt-20261018.json",
+    "parachute-command-outcomes-20261018.json"
+  ],
+  "finding": "Old-owner-only delayed callback lost the accepted chute phase on locality transfer. Exit receipt cleanup alone did not preserve deployment.",
+  "implementation": [
+    "Public actor/exit-token/group/class/velocity/due/deadline receipt after observed exit motion.",
+    "Existing native init/Local adopts only deployment; no replay of dismount/position/actor exit velocity.",
+    "Exact unscheduled receipt consumption before creation prevents duplicate deployment.",
+    "Actual owner readiness/reservations/player/remote/external/ground/group gates at deployment; expiry at original protection deadline.",
+    "Preserves empty local chute cleanup and independent damage cleanup.",
+    "Malformed public receipt types refuse before array parsing in both readers."
+  ],
+  "validation": {
+    "tests": 1132,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-parachute-deployment-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "000075852c65b72742067b0ad77665e61f62679a199dc201e9ed82991b7abce0",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "remaining": [
+    "Receipt arrives after native init/Local event; observation may be missed.",
+    "Physical transfer before/during deployment, late callbacks, failed boarding, takeover and JIP acceptance.",
+    "External identical damage permission writes need cooperating authority.",
+    "DropStep ignores failed exit return and may repeatedly select same failed passenger; review scheduling fairness.",
+    "No measured median/p95 performance acceptance."
+  ]
+}

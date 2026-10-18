@@ -10,11 +10,8 @@ class ParachuteProtectionTests(unittest.TestCase):
         self.assertLess(jump.index('setVariable ["CBE_ParachuteProtection",+_receipt,true]'),jump.index('_unit allowDamage false'))
         self.assertIn('serverTime+3.8',jump)
         self.assertNotIn('remoteExecCall ["allowDamage"',jump)
-        self.assertLess(jump.index('[_unit,_receipt] call CBE_fnc_CortexParachuteProtectionRelease'),jump.index('params ["_unit", "_chuteClass"'))
-        callback=jump.split('params ["_unit", "_chuteClass"',1)[1]
-        self.assertLess(callback.index('isNotEqualTo (_receipt select 3)'),callback.index('createVehicle'))
-        self.assertIn('CBE_ParachuteExitToken',callback)
-        self.assertNotIn('serverTime >= (_receipt select 5)',callback)
+        self.assertLess(jump.index('[_unit,_receipt] call CBE_fnc_CortexParachuteProtectionRelease'),jump.index('[_unit] call CBE_fnc_CortexParachuteDeploy'))
+        self.assertIn('CBE_ParachuteExitToken',source('cortexParachuteDeploy'))
     def test_release_authenticates_exact_receipt_and_actual_locality(self):
         release=source('cortexParachuteProtectionRelease')
         for guard in ('count _receipt != 6','_originalActor isNotEqualTo _actor',
@@ -54,11 +51,46 @@ class ParachuteProtectionTests(unittest.TestCase):
         self.assertLess(jump.index('call CBE_fnc_CortexParachuteProtectionRelease;'),jump.index('if (!_exited) exitWith'))
 
     def test_boarding_rechecks_takeover_at_unscheduled_mutation(self):
-        callback=source('cortexParachuteJump').split('params ["_unit", "_chuteClass"',1)[1]
+        callback=source('cortexParachuteDeploy').split('private _boarded=false;',1)[1]
         self.assertLess(callback.index('isNil {'),callback.index('createVehicle'))
-        for guard in ('local _unit','vehicle _unit != _unit','simulationEnabled _unit',
+        for guard in ('local _unit','vehicle _unit == _unit','simulationEnabled _unit',
                       'isObjectHidden _unit','isPlayer _unit','CortexCombatEffective',
                       'CortexActorMoveReserved','remoteControlled _unit',
                       'bis_fnc_moduleRemoteControl_owner','CortexExternalOwner',
-                      'CompatibilityExternalControl','CBE_ParachuteExitToken'):
+                      'CompatibilityExternalControl','CBE_ParachuteExitToken',
+                      'group _unit == _group','isTouchingGround _unit','serverTime < _until'):
             self.assertLess(callback.index(guard),callback.index('createVehicle'))
+
+    def test_deployment_is_durable_exact_and_never_replays_exit(self):
+        deploy=source('cortexParachuteDeploy')
+        jump=source('cortexParachuteJump')
+        post=(ROOT/'addons/main/XEH_postInit.sqf').read_text()
+        self.assertIn('[_this select 0] call CBE_fnc_CortexParachuteDeploy',post)
+        self.assertIn('[_actor] call CBE_fnc_CortexParachuteDeploy',post)
+        self.assertEqual(post.count('addEventHandler ["Local"'),1)
+        for forbidden in ('moveOut','setPosATL','_unit setVelocity','remoteExecCall','allUnits'):
+            self.assertNotIn(forbidden,deploy)
+        self.assertLess(jump.index('setVariable ["CBE_ParachuteDeploy",['),jump.index('_exited=true'))
+        self.assertIn('serverTime+0.8,_receipt select 5',jump)
+        mutation=deploy.split('private _boarded=false;',1)[1]
+        self.assertLess(mutation.index('isNotEqualTo _receipt'),mutation.index('setVariable ["CBE_ParachuteDeploy",nil,true]'))
+        self.assertLess(mutation.index('setVariable ["CBE_ParachuteDeploy",nil,true]'),mutation.index('createVehicle'))
+        self.assertIn('_due-serverTime',deploy)
+        self.assertNotIn('serverTime+',deploy)
+        # Selection model: receipt consumption prevents duplicate callbacks; late/landed
+        # or replacement receipts never acquire the deployment phase.
+        def consume(live,expected,local,now,due,deadline,landed):
+            if not local or live!=expected or now<due:return live,False
+            return None,now<deadline and not landed
+        self.assertEqual(consume('new','old',True,1,0.8,3.8,False),('new',False))
+        self.assertEqual(consume('old','old',False,1,0.8,3.8,False),('old',False))
+        live,board=consume('old','old',True,1,0.8,3.8,False)
+        self.assertTrue(board)
+        self.assertEqual(consume(live,'old',True,1,0.8,3.8,False),(None,False))
+        self.assertEqual(consume('old','old',True,4,0.8,3.8,False),(None,False))
+        self.assertEqual(consume('old','old',True,1,0.8,3.8,True),(None,False))
+
+    def test_malformed_public_receipts_refuse_before_array_parsing(self):
+        for name in ('cortexParachuteDeploy','cortexParachuteProtectionRelease'):
+            text=source(name)
+            self.assertLess(text.index('!(_receipt isEqualType [])'),text.index('_receipt params'))

@@ -1084,7 +1084,8 @@
         "addons/aircraft/functions/cortexAirborneDrop.sqf",
         "addons/aircraft/functions/cortexAirborneDropStep.sqf",
         "addons/infantry/functions/cortexParachuteJump.sqf",
-        "addons/infantry/functions/cortexParachuteProtectionRelease.sqf"
+        "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
+        "addons/infantry/functions/cortexParachuteDeploy.sqf"
       ]
     },
     {
