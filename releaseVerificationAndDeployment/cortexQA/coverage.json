@@ -841,7 +841,8 @@
         "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf",
         "addons/vehicles/functions/convoyUnloadPolicy.sqf",
         "addons/vehicles/functions/convoyCorridorStep.sqf",
-        "addons/vehicles/functions/convoyBypassStep.sqf"
+        "addons/vehicles/functions/convoyBypassStep.sqf",
+        "addons/vehicles/functions/convoyRetireMoveReceipt.sqf"
       ]
     },
     {

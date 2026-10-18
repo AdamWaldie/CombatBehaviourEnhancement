@@ -34,6 +34,7 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
         self.assertIn('count _event == 14',qa)
         self.assertIn('(vectorMagnitude _velocityAt)*3.6 < 1',qa)
         self.assertIn('vectorMagnitude _angularAt < 0.01',qa)
+        self.assertIn('(_movementReceipt select 5) == "NATIVE"',qa)
 
     def test_normal_fixture_requires_real_trigger_and_physical_continuation(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text()
@@ -89,3 +90,31 @@ class ConvoyNativeIssueEvidenceTests(unittest.TestCase):
         self.assertIn('_progress set [5,+_recoveryTarget]',recovery)
         self.assertIn('_progress set [13,[_group] call CBE_fnc_NativeOrderReceipt]',recovery)
         self.assertIn('_progress set [14,vectorMagnitude velocity _vehicle]',recovery)
+
+    def test_native_stop_yields_but_owned_fixed_path_stop_does_not(self):
+        text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        gate=text.split('private _commandYield=',1)[1].split('call CBE_fnc_ConvoyCrewLocal',1)[0]
+        for guard in ('count _receipt == 6','(_receipt select 5) == "NATIVE"',
+                      'toUpperANSI currentCommand _operator == "STOP"','_phase != "HALT"',
+                      '"NEW_NATIVE_ORDER"','(_commandYield param [0,-1]) == _revision'):
+            self.assertIn(guard,gate)
+        self.assertEqual(text.count('+(expectedDestination _movementOperator),"NATIVE"],true]'),2)
+        self.assertEqual(text.count('+(expectedDestination _movementOperator),"STEERING"],true]'),1)
+        helper=(ROOT/'addons/vehicles/functions/convoyRetireMoveReceipt.sqf').read_text(encoding='utf-8').split('params [[',1)[1]
+        for guard in ('local _group','local _vehicle','local _driver','local _operator',
+                      'count _receipt == 6','(_receipt select 5) == "NATIVE"',
+                      'getOrDefault ["revision",-1]','(expectedDestination _operator) isEqualTo (_receipt select 4)'):
+            self.assertIn(guard,helper)
+        for forbidden in ('doStop','doMove','doFollow','setDriveOnPath','forceSpeed','enableAI','waitAndExecute'):
+            self.assertNotIn(forbidden,helper)
+
+    def test_internal_driving_stops_retire_old_native_move_at_the_write_boundary(self):
+        names=('drivingBypassRelease','drivingBypassStep','drivingCorridorRelease','drivingCorridorStep',
+               'drivingPassFinish','drivingPassStep','drivingPassRetireInherited','drivingRecoveryRelease',
+               'convoyCrewLocal','convoyReleaseLocal')
+        for name in names:
+            text=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text(encoding='utf-8')
+            body=text.split('params ',1)[1]
+            body='\n'.join(line for line in body.splitlines() if not line.lstrip().startswith('//'))
+            self.assertIn('call CBE_fnc_ConvoyRetireMoveReceipt',body,name)
+            self.assertLess(body.index('call CBE_fnc_ConvoyRetireMoveReceipt'),body.index('doStop '),name)

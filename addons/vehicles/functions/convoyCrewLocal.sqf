@@ -180,6 +180,7 @@ private _seats = createHashMap;
                 _vehicle forceSpeed 0;
                 _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,0]];
                 if (local driver _vehicle && {!isNull driver _vehicle}) then {
+                    [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
                     doStop driver _vehicle;
                     private _haltOwner=_vehicle getVariable ["CBE_Convoy_HaltOwner",[]];
                     if (_haltOwner isEqualTo [_group,_revision,clientOwner]) then {

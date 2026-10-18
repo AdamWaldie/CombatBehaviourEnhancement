@@ -1,0 +1,63 @@
+{
+  "baseline": "26c09740",
+  "scope": "convoy operator STOP after a receipted native MOVE",
+  "receipt_fields": [
+    "group",
+    "revision",
+    "driver",
+    "operator",
+    "native destination",
+    "NATIVE or STEERING"
+  ],
+  "retirement_callers": [
+    "convoyTick",
+    "convoyCrewLocal",
+    "convoyReleaseLocal",
+    "drivingBypassRelease",
+    "drivingBypassStep",
+    "drivingCorridorRelease",
+    "drivingCorridorStep",
+    "drivingPassFinish",
+    "drivingPassStep",
+    "drivingPassRetireInherited",
+    "drivingRecoveryRelease"
+  ],
+  "source_sha256": {
+    "convoyRetireMoveReceipt": "687bc693d65c84401883c36c8a5418603ab3cc62393bef75edbb84d25d1c9a14",
+    "convoyTick": "e7b98578df00a6dffd006385080717157613203719487361ad9c30557de3c1b8",
+    "convoyCrewLocal": "4ccd067b6c22be19aed4b149de08da09517adcd569b8b6a57251ddbe5e670239",
+    "convoyReleaseLocal": "ac9681f2c614e2a5967f2c14ba6d81bd54f04de6c1e49011747d92368ae941cb",
+    "drivingBypassRelease": "74783a6f5425663f5f4bf388a0d3e966a2a67e2253d0260af4eb153afad12036",
+    "drivingBypassStep": "7a4f994bcb903313b3f84ad21d13be8f68bf661301d4c66b20b81a586381afe1",
+    "drivingCorridorRelease": "77f92975bfc00322cc1f421eaaeb5d39edfcdefd2dd153ea9941767b9943d0fd",
+    "drivingCorridorStep": "438e6fcfa315b26f23942d8f1e164e6f7fb9a6672665b017491855c9c1de5805",
+    "drivingPassFinish": "311cf5e1fe911102987e09bf5666d501451f9cd9a01a45b698fafc2de5f41e4d",
+    "drivingPassStep": "25a0243920279b42c9867ae3471f74781fd38bef55b7850a3091bbaf65d47b3e",
+    "drivingPassRetireInherited": "4e95e87c71cdacb145008b6d3f037f21ce1e843735404edec647fe02136d19b1",
+    "drivingRecoveryRelease": "0f693212e3eb595bf07d3fadd761ff2b8ff8eca8a21f1dd45279eb2d35ad356b"
+  },
+  "authority": [
+    "actual group/vehicle/driver/operator locality",
+    "same seats/revision/native destination",
+    "metadata retirement grants no command permission",
+    "active brain configuration only when reacquisition resets local state revision"
+  ],
+  "validation": {
+    "tests": 1435,
+    "sqf": 332,
+    "pbos": 9,
+    "exit": 0,
+    "independent_verify": true,
+    "log": ".qa/cbe-convoy-native-stop-verified-build.log",
+    "fingerprint": "011b5558ecc489d73851468c42c75397d4b22dd2cc1c403c253cb9aece04678d"
+  },
+  "remaining": [
+    "identical repeated STOP while fixed steering already owns STOP",
+    "STOP before first movement receipt",
+    "separate driver-only STOP under another commander",
+    "actual event timing and controller handover",
+    "normal and separate HC physical cases",
+    "performance budget acceptance"
+  ],
+  "acceptance": "offline only; all feature families partial"
+}

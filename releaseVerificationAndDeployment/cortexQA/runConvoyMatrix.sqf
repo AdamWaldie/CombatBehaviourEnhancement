@@ -306,7 +306,8 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                             private _axis=(ATLToASL _new) vectorDiff _pose;_axis set [2,0];
                             private _travel=(getPosASL _vehicle) vectorDiff _pose;_travel set [2,0];
                             private _movementReceipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
-                            private _stillOwned=count _movementReceipt == 5
+                            private _stillOwned=count _movementReceipt == 6
+                                && {(_movementReceipt select 5) == "NATIVE"}
                                 && {(_movementReceipt select 0) == _group}
                                 && {(_movementReceipt select 1) == _eventRevision}
                                 && {(_movementReceipt select 2) == _driver}

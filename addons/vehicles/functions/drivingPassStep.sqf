@@ -143,6 +143,7 @@ private _issue={
             && {_pairContext isEqualTo ([[_vehicle,_peer]] call CBE_fnc_DrivingPassContext)}) then {
             private _writing=[_vehicle,_work get "token",_work get "epoch",_work get "generation"];
             _group setVariable ["CBE_DrivingPass_CommandWriting",_writing];
+            [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
             doStop _driver;if (_operator != _driver) then {doStop _operator};
             if (call _base) then {
                 _vehicle setDriveOnPath _path;

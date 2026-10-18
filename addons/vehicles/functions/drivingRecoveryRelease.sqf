@@ -148,6 +148,7 @@ if (_owned) then {
             && {_leaderVehicle != _leader} && {_leaderVehicle isKindOf "LandVehicle"}
             && {alive _leaderVehicle} && {canMove _leaderVehicle}
             && {simulationEnabled _leaderVehicle} && {!isObjectHidden _leaderVehicle};
+        [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
         doStop _driver;if (_operator != _driver) then {doStop _operator};
         _handback="STOP_ONLY";
         // Following an on-foot leader could cause crew dismount; never invent that task.

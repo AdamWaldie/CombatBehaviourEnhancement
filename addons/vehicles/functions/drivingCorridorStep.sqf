@@ -187,6 +187,7 @@ if (count _work > 0) exitWith {
                     || {(vectorNormalized _direction) vectorDotProduct (_work get "travel") < 0.85}) exitWith {};
             // Detach only these two owned native movement actors. Do not disable any AI
             // feature, change leader/seats or replay a group-wide stop over other vehicles.
+            [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
             if (_operator != _driver) then {doStop _operator};
             doStop _driver;
             _vehicle setDriveOnPath _points;

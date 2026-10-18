@@ -73,6 +73,7 @@ private _owned=!isNull _driver && {!isNull _operator} && {local _driver} && {loc
 } forEach [_driver,_operator];
 // The owned doStop cancels fixed steering; native-ready is not a path-completion receipt.
 if (_owned && {_resume || {_stopOnly}}) then {
+    [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
     doStop _driver;
     if (_operator != _driver) then {doStop _operator};
     private _index=currentWaypoint _group;

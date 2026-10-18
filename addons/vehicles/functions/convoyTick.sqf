@@ -72,6 +72,8 @@
  * more than 75 m early, the same metadata-checked ungated waypoint is selected again; no waypoint is synthesized or rewritten.
  * Native recovery retains the recorded bend/trail endpoint separately from straight-leg look-ahead;
  * it never treats an extrapolated destination as evidence of an observed predecessor path.
+ * Movement receipts distinguish NATIVE from STEERING. New STOP after native MOVE yields the
+ * current revision; owned driving STOP boundaries first retire their exact old native receipt.
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, km/h, gap, pushThrough, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
  * Diagnostic capture: owner-local CBE_Convoy_CaptureControl=true retains only the latest
@@ -157,7 +159,7 @@ if (_paused || {_playerCrew} || {_zeus} || {_nativeCrewTask}) exitWith {
     };
 };
 _group setVariable ["CBE_Convoy_Suspended", false];
-// A new individual MOVE is a replacement order, not a stalled convoy leg. Keep this
+// A changed individual MOVE or a STOP after an owned native MOVE is a replacement order. Keep this
 // revision yielded across later ticks and owner migration; only a new server revision may re-admit.
 private _commandYield=_group getVariable ["CBE_Convoy_CommandYield",[]];
 if ((_commandYield param [0,-1]) != _revision) then {
@@ -165,13 +167,21 @@ if ((_commandYield param [0,-1]) != _revision) then {
     {
         private _vehicle=_x;private _receipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
         private _operator=effectiveCommander _vehicle;
-        if (isNull _diverted && {local _vehicle} && {count _receipt == 5}
+        if (isNull _diverted && {local _vehicle} && {count _receipt == 6} && {(_receipt select 5) in ["NATIVE","STEERING"]}
             && {(_receipt select 0) == _group} && {(_receipt select 1) == _revision}
             && {(_receipt select 2) == driver _vehicle} && {(_receipt select 3) == _operator}
-            && {!isNull _operator} && {local _operator} && {currentCommand _operator == "MOVE"}) then {
-            private _was=(_receipt select 4) param [0,[]];private _now=(expectedDestination _operator) param [0,[]];
-            if (count _was == 3 && {count _now == 3} && {_was vectorDistance _now > 0.25}) then {
-                _diverted=_vehicle;_diversion=+_now;
+            && {!isNull _operator} && {local _operator}) then {
+            if (currentCommand _operator == "MOVE") then {
+                private _was=(_receipt select 4) param [0,[]];private _now=(expectedDestination _operator) param [0,[]];
+                if (count _was == 3 && {count _now == 3} && {_was vectorDistance _now > 0.25}) then {
+                    _diverted=_vehicle;_diversion=+_now;
+                };
+            };
+            // Fixed steering deliberately owns native STOP. Native MOVE writers do not;
+            // every internal driving STOP retires its exact old native MOVE receipt first.
+            if (_phase != "HALT" && {(_receipt select 5) == "NATIVE"}
+                && {toUpperANSI currentCommand _operator == "STOP"}) then {
+                _diverted=_vehicle;_diversion=getPosATL _vehicle;
             };
         };
     } forEach _registered;
@@ -406,6 +416,7 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
                 // Waiting for a large gap lets native formation compress/overtake during startup.
                 private _initialVehicle=_x;
                 isNil {if ([_initialVehicle] call _mayIssueDriving) then {
+                    [_group,_initialVehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
                     doStop driver _initialVehicle;
                     _initialPathOwners set [netId _initialVehicle,true];
                 }};
@@ -416,6 +427,7 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
                 if (isNull _initialOperator) then {_initialOperator=driver _x};
                 private _initialVehicle=_x;
                 isNil {if ([_initialVehicle,_initialOperator] call _mayIssueDriving) then {
+                    [_group,_initialVehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
                     doStop _initialOperator;
                     private _initialKey=netId _initialVehicle;
                     private _initialProgress=_resumeFollowers getOrDefault [_initialKey,
@@ -1089,7 +1101,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             _progress set [10,[driver _vehicle,_movementOperator,
                                 +(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
                             _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,
-                                driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
+                                driver _vehicle,_movementOperator,+(expectedDestination _movementOperator),"NATIVE"],true];
                         } else {
                             // A native doMove competes with the retained steering path.
                             // Invalidate only its commitment so path refresh below
@@ -1336,7 +1348,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         _progress set [14,vectorMagnitude velocity _vehicle];
                         _progress set [9,+_path];
                         _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
+                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator),"NATIVE"],true];
                         _progress set [7,false];
                     }};;
                 };
@@ -1347,6 +1359,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     // Stop once per acquisition, not on every refreshed path (which would cancel it).
                     if (!(_pathOwners getOrDefault [_key,false])) then {
                         isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                            [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
                             doStop driver _vehicle;
                             _pathOwners set [_key,true];
                         }};;
@@ -1370,7 +1383,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             _progress set [6,+_pathDestination];
                             _progress set [9,+_path];
                             _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
+                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator),"STEERING"],true];
                         }};;
                     };
                     _progress set [2, time + 1];
@@ -1388,6 +1401,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 if (count (_progress param [5,[]]) < 2
                     && {!(_progress param [7,false])}) then {
                     isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                        [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
                         doStop _movementOperator;
                         _vehicle setConvoySeparation _desiredGap;
                         _progress set [7,true];
@@ -1396,6 +1410,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
             } else {
                 if (!(_pathOwners getOrDefault [_key,false])) then {
                     isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                        [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
                         doStop driver _vehicle;
                         _pathOwners set [_key,true];
                     }};

@@ -51,6 +51,7 @@ private _owned={
 isNil {
 [_group,_vehicle,_work,true] call CBE_fnc_DrivingPassCommandWatch;
 if (call _owned && {_work get "issued"}) then {
+    [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
     doStop _driver;if (_operator != _driver) then {doStop _operator};
     if (_resume && {local _vehicle} && {local _group} && {driver _vehicle == _driver}
         && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}

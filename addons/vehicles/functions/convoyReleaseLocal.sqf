@@ -169,7 +169,7 @@ if (_restore isNotEqualTo []) then {
                 [_vehicle,_group,["CONVOY"],true,_navigation getOrDefault ["revision",-1]] call CBE_fnc_DrivingNativePathWatch;
             };
             private _movementReceipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
-            if (!(_vehicle in _keepCrew) && {count _movementReceipt == 5}
+            if (!(_vehicle in _keepCrew) && {count _movementReceipt == 6}
                 && {(_movementReceipt select 0) == _group}
                 && {(_movementReceipt select 1) == (_navigation getOrDefault ["revision",-1])}) then {
                 _vehicle setVariable ["CBE_Convoy_MovementReceipt",nil,true];
@@ -199,6 +199,7 @@ if (_restore isNotEqualTo []) then {
                 && {group _driver == _group} && {group _movementOperator == _group}
                 && {!([_group] call CBE_fnc_CortexExternalTakeover)};
             if (_mayStopOwned && {_pathOwned}) then {
+                [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
                 doStop _driver;
                 _endedPath=true;
             };

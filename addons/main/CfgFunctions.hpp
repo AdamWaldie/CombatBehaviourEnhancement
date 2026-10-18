@@ -28,6 +28,7 @@ class CfgFunctions {
             class AITweaksUiTheme {file = "\z\cbe\addons\core\functions\aiTweaksUiTheme.sqf";};
             class HeadlessResolveSender {file = "\z\cbe\addons\core\functions\headlessResolveSender.sqf";};
             class ConvoyThreat {file = "\z\cbe\addons\vehicles\functions\convoyThreat.sqf";};
+            class ConvoyRetireMoveReceipt {file = "\z\cbe\addons\vehicles\functions\convoyRetireMoveReceipt.sqf";};
             class ConvoyDismountLocal {file = "\z\cbe\addons\vehicles\functions\convoyDismountLocal.sqf";};
             class ConvoyHaltServer {file = "\z\cbe\addons\vehicles\functions\convoyHaltServer.sqf";};
             class ConvoyCrewLocal {file = "\z\cbe\addons\vehicles\functions\convoyCrewLocal.sqf";};

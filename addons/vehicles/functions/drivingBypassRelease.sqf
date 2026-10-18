@@ -69,6 +69,7 @@ isNil {
                 "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
     } forEach [_driver,_operator];
     if (_owned) then {
+        [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
         doStop _driver;if (_operator != _driver) then {doStop _operator};
         private _index=currentWaypoint _group;
         if (_resume && {_index > 0} && {_index < count waypoints _group}

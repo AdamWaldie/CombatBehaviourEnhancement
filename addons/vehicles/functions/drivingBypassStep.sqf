@@ -204,6 +204,7 @@ if ((_work get "phase") == "PLAN") exitWith {
             && {[_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable}
             && {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isEqualTo (_proposal select 4)}
             && {[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle] isEqualTo (_proposal select 5)}) then {
+            [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
             if (_operator != _driver) then {doStop _operator};doStop _driver;
             _vehicle setDriveOnPath _points;
             _work set ["phase","FOLLOW"];_work set ["points",_asl];_work set ["index",1];
