@@ -4,6 +4,17 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 def src(n):return (ROOT/'addons/vehicles/functions'/f'{n}.sqf').read_text(encoding='utf-8')
 class DrivingRearMonitorTests(unittest.TestCase):
+    def test_rear_issue_and_journal_have_fresh_atomic_authority(self):
+        text=src('drivingAssistStart')
+        case=text.split('private _rearPose=',1)[1].split('case 2:',1)[0]
+        self.assertLess(case.index('call CBE_fnc_DrivingRearClear'),case.index('isNil {'))
+        commit=case.split('isNil {',1)[1]
+        for guard in ('call _mayIssueDriving','call _mayRecoverOrdinaryRoute','ownerEpoch',
+                      'isNotEqualTo _rearJournal','hardDeadline','_rearPose select 2','cos 5','isNotEqualTo _rearCommands'):
+            self.assertLess(commit.index(guard),commit.index('_movementOperator doMove _rear'))
+        self.assertLess(commit.index('_movementOperator doMove _rear'),commit.index('call _recordRecovery'))
+        self.assertIn('if (_recoveryTransitioned) then {',text)
+
     def test_reverse_requires_sampled_physical_support_not_terrain_water_only(self):
         text=src('drivingRearClear')
         support=text.split('private _supported=true;',1)[1].split('if (!_supported) exitWith {[false,"REAR_SUPPORT"',1)[0]

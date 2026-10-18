@@ -673,6 +673,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _waypoint=[_group,_waypointIndex];
                 private _destination=waypointPosition _waypoint;
                 if (waypointType _waypoint == "MOVE" && {_vehicle distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
+                    private _recoveryTransitioned=false;
                     switch (_recoveryStage) do {
                         case 0: {
                             if !(call _mayRecoverOrdinaryRoute) exitWith {};
@@ -680,21 +681,41 @@ _brain set ["geometryTracks",_geometryTracks];
                             _recoveryStage=1;
                             _recoveryUntil=["REFRESH"] call _recordRecovery;
                             _recoveryResult="ROUTE_REFRESH";_reverseIssued=false;
+                            _recoveryTransitioned=true;
                         };
                         case 1: {
                             private _rear=_vehicle getPos [8,(getDir _vehicle)+180];
+                            private _rearPose=[getPosASL _vehicle,vectorDir _vehicle,time];
+                            private _rearCommands=[currentCommand _driver,+(expectedDestination _driver),
+                                currentCommand _movementOperator,+(expectedDestination _movementOperator)];
+                            private _rearJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                             // Fresh shared body-width observation; no fixed-width centre probe.
                             private _clearance=[_vehicle,8] call CBE_fnc_DrivingRearClear;
                             private _rearSafe=(_clearance select 0) && {!surfaceIsWater _rear}
                                 && {((surfaceNormal _rear) select 2) >= 0.7};
-                            if (_rearSafe && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
-                                _movementOperator doMove _rear;
-                                _recoveryResult="CAUTIOUS_REVERSE";_reverseIssued=true;
-                            } else {
-                                _recoveryResult="REAR_BLOCKED";_reverseIssued=false;
+                            // Geometry remains scheduled; native issue and its exact command journal
+                            // share a short current-owner transaction with the original hard deadline.
+                            isNil {
+                                if (!(call _mayIssueDriving) || {!(call _mayRecoverOrdinaryRoute)}
+                                    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+                                    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                                    || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _rearJournal}
+                                    || {count _rearJournal == 0} || {serverTime >= (_rearJournal get "hardDeadline")-60}
+                                    || {time < (_rearPose select 2)} || {time-(_rearPose select 2) > 1}
+                                    || {(getPosASL _vehicle) vectorDistance (_rearPose select 0) > 1}
+                                    || {(vectorDir _vehicle) vectorDotProduct (_rearPose select 1) < cos 5}
+                                    || {[currentCommand _driver,+(expectedDestination _driver),
+                                        currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _rearCommands}) exitWith {false};
+                                if (_rearSafe) then {
+                                    _movementOperator doMove _rear;
+                                    _recoveryResult="CAUTIOUS_REVERSE";_reverseIssued=true;
+                                } else {
+                                    _recoveryResult="REAR_BLOCKED";_reverseIssued=false;
+                                };
+                                _recoveryStage=2;
+                                _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued] call _recordRecovery;
+                                _recoveryTransitioned=true;
                             };
-                            _recoveryStage=2;
-                            _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued] call _recordRecovery;
                         };
                         case 2: {
                             if !(call _mayRecoverOrdinaryRoute) exitWith {};
@@ -702,6 +723,7 @@ _brain set ["geometryTracks",_geometryTracks];
                             _recoveryStage=3;
                             _recoveryUntil=["FINAL"] call _recordRecovery;
                             _recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false;
+                            _recoveryTransitioned=true;
                         };
                         default {
                             // Spent retries do not release traffic/terrain safety for this group.
@@ -710,10 +732,13 @@ _brain set ["geometryTracks",_geometryTracks];
                             _recoveryResult="EXHAUSTED";_reverseIssued=false;
                             _recoveryStage=4;
                             _recoveryUntil=["EXHAUSTED"] call _recordRecovery;
+                            _recoveryTransitioned=true;
                         };
                     };
-                    _progressPosition=getPosATL _vehicle;
-                    _progressAt=time;
+                    if (_recoveryTransitioned) then {
+                        _progressPosition=getPosATL _vehicle;
+                        _progressAt=time;
+                    };
                 };
             };
             private _liveRecovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
