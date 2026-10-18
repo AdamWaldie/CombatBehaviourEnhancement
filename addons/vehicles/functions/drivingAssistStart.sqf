@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Traffic retry journal: current brain/epoch and fresh observation are checked in one unscheduled
  * retry/publication section. Edit an isolated journal; successor/native-order changes prevent
- * publication. Existing three-attempt/original-deadline limits remain; no queue cascade implied.
+ * publication. Rear recovery aborts on aggregate damage increase against its original journal.
+ * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
  * Purpose: Applies a sparse, owner-local safety speed cap and bounded physical recovery to an
  * ordinary AI ground vehicle that is already following a native waypoint. This is the standalone
  * driving layer; registered convoys retain their separate predecessor-spacing controller. Terrain
@@ -357,6 +358,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 if (_kind == "REVERSE") then {
                     _work set ["rearOriginASL",getPosASL _vehicle];
                     _work set ["rearDirection",vectorDir _vehicle];
+                    _work set ["rearDamage",damage _vehicle];
                 };
                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
                 time+(_deadline-serverTime)
@@ -369,7 +371,9 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _rearWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                 private _rearOrigin=_rearWork getOrDefault ["rearOriginASL",[]];
                 private _rearDirection=_rearWork getOrDefault ["rearDirection",[]];
-                private _proofValid=count _rearOrigin == 3 && {count _rearDirection == 3}
+                private _rearDamage=_rearWork getOrDefault ["rearDamage",-1];
+                private _proofValid=_rearDamage isEqualType 0 && {finite _rearDamage} && {_rearDamage >= 0}
+                    && {count _rearOrigin == 3} && {count _rearDirection == 3}
                     && {_rearOrigin findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                     && {_rearDirection findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                     && {abs ((vectorMagnitude _rearDirection)-1) <= 0.02};
@@ -378,7 +382,8 @@ _brain set ["geometryTracks",_geometryTracks];
                     private _along=_delta vectorDotProduct _rearDirection;
                     private _lateral=vectorMagnitude (_delta vectorDiff (_rearDirection vectorMultiply _along));
                     _rearPathRejected=(vectorDir _vehicle) vectorDotProduct _rearDirection < cos 20
-                        || {_along > 1} || {_along < -10} || {_lateral > 2.5};
+                        || {_along > 1} || {_along < -10} || {_lateral > 2.5}
+                        || {damage _vehicle > _rearDamage+0.01};
                 } else {_rearPathRejected=true};
                 if (_rearPathRejected) then {
                     // A rear destination is not a reverse primitive. Retire a native turn or
@@ -761,7 +766,7 @@ _brain set ["geometryTracks",_geometryTracks];
                             private _clearance=[_vehicle,8] call CBE_fnc_DrivingRearClear;
                             private _rearSafe=(_clearance select 0) && {!surfaceIsWater _rear}
                                 && {((surfaceNormal _rear) select 2) >= 0.7};
-                            // Geometry remains scheduled; native issue and its exact command journal
+                            // Geometry uses the current callback context; native issue and its exact command journal
                             // share a short current-owner transaction with the original hard deadline.
                             isNil {
                                 if (!(call _mayIssueDriving) || {!(call _mayRecoverOrdinaryRoute)}
