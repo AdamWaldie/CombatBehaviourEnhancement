@@ -56,3 +56,16 @@ class DrivingRoadCapTests(unittest.TestCase):
         self.assertEqual(cap(5,71,0.21,True),5)
         self.assertEqual(cap(70,0,0,False,True),15)
 if __name__=='__main__':unittest.main()
+
+
+class BridgeGradePolicyTests(unittest.TestCase):
+    def test_actual_bridge_uses_deck_grade_after_shared_road_safety_cap(self):
+        text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        policy=text.split('private _surfaceRoad=roadAt _vehicle;',1)[1].split('// The short rear leg',1)[0]
+        self.assertIn('isOnRoad _vehicle',policy)
+        self.assertIn('!isNull _surfaceRoad',policy)
+        self.assertIn('getRoadInfo _surfaceRoad',policy)
+        self.assertIn('param [8,false,[true]]',policy)
+        self.assertLess(policy.index('if (_onBridge)'),policy.index('if (_maximumGrade > 0.2)'))
+        self.assertIn('_maximumGrade=_roadObservation select 2',policy)
+        self.assertLess(text.index('_cap=_cap min (_roadObservation select 0)'),text.index('private _surfaceRoad='))

@@ -318,11 +318,18 @@ _brain set ["geometryTracks",_geometryTracks];
                 _last=_sample;
             } forEach [20,45,70];
             private _cap=(missionNamespace getVariable ["CBE_AIPass_DrivingAssist_MaxSpeed",70]) max 15 min 120;
-            if (_maximumGrade > 0.2) then {_cap=_cap min 18} else {if (_maximumGrade > 0.12) then {_cap=_cap min 28}};
             // The shared read-only road walk anticipates bends/junctions without choosing a route.
             // It runs at this vehicle's existing sparse cadence; mission and traffic caps still win.
             private _roadObservation=[_vehicle,_cap] call CBE_fnc_DrivingRoadCap;
             _cap=_cap min (_roadObservation select 0);
+            // On an actual bridge road, the road observer already evaluates ASL deck endpoints.
+            // Terrain beneath the deck is not its grade. Keep terrain policy elsewhere and
+            // retain the road observer's conservative cap when bridge endpoints are unavailable.
+            private _surfaceRoad=roadAt _vehicle;
+            private _onBridge=isOnRoad _vehicle && {!isNull _surfaceRoad}
+                && {(getRoadInfo _surfaceRoad) param [8,false,[true]]};
+            if (_onBridge) then {_maximumGrade=_roadObservation select 2};
+            if (_maximumGrade > 0.2) then {_cap=_cap min 18} else {if (_maximumGrade > 0.12) then {_cap=_cap min 28}};
             // The short rear leg must not inherit the normal road-speed cap. Retain
             // this cautious cap through reverse observation and the final retry handoff.
             if ((_state param [6,0]) in [1,2]) then {_cap=_cap min 10};
