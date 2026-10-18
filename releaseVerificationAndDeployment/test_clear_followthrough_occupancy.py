@@ -19,7 +19,7 @@ class FollowThroughOccupancyTests(unittest.TestCase):
     def test_completed_queue_establishes_yieldable_hold_without_stopping_partner(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         block = source.split('if (_waitingForFloor || {_availableCandidates isEqualTo []}) then {',1)[1].split('if (_candidates isNotEqualTo []) then {',1)[0]
-        for gate in ['_waitingForFloor || {_completedWorker}', '>= (2 min count _positions)',
+        for gate in ['_floorWorker || {_completedWorker}', '>= (2 min count _positions)', '_waitingForFloor && {_visits isNotEqualTo []}',
                      'call _actorAvailable', 'call _actorTaskFree', 'call _mayIssueMovement',
                      '!([_waitingActor] call _activeOwnMove)',
                      'currentCommand _waitingActor in ["","STOP","FOLLOW"]',
@@ -49,3 +49,14 @@ class FollowThroughOccupancyTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class FloorQueueAuthorityTests(unittest.TestCase):
+    def test_queue_hold_preserves_native_replacement_and_publishes_receipt(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        block=text.split('private _floorWorker=',1)[1].split('if (_candidates isNotEqualTo [])',1)[0]
+        for proof in ('isNil {','call _mayIssueMovement','call _roomCommandOwned','CBE_fnc_CortexZeusHeld',
+                      'hardDeadline','isNotEqualTo _pair','isNotEqualTo _waitingNative'):
+            self.assertLess(block.index(proof),block.index('doStop _waitingActor'))
+        self.assertIn('["HOLD",_waitingActor,_job,_holds get _key] call CBE_fnc_BuildingActorMotion',block)
+        self.assertIn('(_currentOperation getOrDefault ["phase",""]) != "CANCELLED"',text)

@@ -636,7 +636,8 @@ private _delay=call {
             && {(_group getVariable ["CBE_BuildingBrain",_emptyOperation]) isEqualTo _brain}
             && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
             && {(_job get "generation") == (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
-            && {_operationGeneration < 0 || {(_currentOperation getOrDefault ["generation",-2]) == _operationGeneration}}
+            && {_operationGeneration < 0 || {(_currentOperation getOrDefault ["generation",-2]) == _operationGeneration
+                && {(_currentOperation getOrDefault ["phase",""]) != "CANCELLED"}}}
             && {!isNull _building} && {alive _building}
             && {!([_group] call CBE_fnc_CortexExternalTakeover)}
             && {_buildingTransform isEqualTo []
@@ -2189,23 +2190,40 @@ private _delay=call {
                         // waiting for lower rooms. Otherwise native formation following resumes
                         // around the leader and these actors never acquire a yieldable room hold.
                         // Unfinished partners retain their entry/follow-through path.
-                        private _holds=_job getOrDefault ["roomHolds",createHashMap];
                         {
                             private _waitingActor=_x;
                             private _key=netId _waitingActor;
-                            private _completedWorker=count ((_job getOrDefault ["actorVisits",createHashMap]) getOrDefault [_key,[]]) >= (2 min count _positions);
-                            if ((_waitingForFloor || {_completedWorker})
-                                && {[_waitingActor] call _actorAvailable} && {[_waitingActor] call _actorTaskFree}
-                                && {call _mayIssueMovement} && {!([_waitingActor] call _activeOwnMove)}
-                                && {currentCommand _waitingActor in ["","STOP","FOLLOW"]}
-                                && {!(_key in _holds) || {currentCommand _waitingActor != "STOP"}}) then {
-                                private _hold=getPosATL _waitingActor;
-                                doStop _waitingActor;
-                                _holds set [_key,+_hold];
-                                diag_log format ["CBE CLEAR FLOOR QUEUE HOLD: %1",[_job get "generation",_pairIndex,_key,_lowestUnfinishedFloor,+_hold,["COMPLETED_QUEUE","LOWER_FLOOR"] select _waitingForFloor]];
+                            private _visits=(_job getOrDefault ["actorVisits",createHashMap]) getOrDefault [_key,[]];
+                            private _completedWorker=count _visits >= (2 min count _positions);
+                            // The floor barrier must not stop a partner whose first entry is still
+                            // pending. Only a physically entered worker can take a floor-queue hold.
+                            private _floorWorker=_waitingForFloor && {_visits isNotEqualTo []};
+                            private _waitingNative=[currentCommand _waitingActor,expectedDestination _waitingActor,formLeader _waitingActor];
+                            isNil {
+                                if (!(call _mayIssueMovement) || {!([_waitingActor] call _actorAvailable)}
+                                    || {!([_waitingActor] call _actorTaskFree)} || {!([_waitingActor] call _roomCommandOwned)}
+                                    || {[_group] call CBE_fnc_CortexZeusHeld}
+                                    || {serverTime >= ((_job get "deadline") min (_job get "hardDeadline"))}
+                                    || {((_job get "pairs") param [_pairIndex,[]]) isNotEqualTo _pair}
+                                    || {[currentCommand _waitingActor,expectedDestination _waitingActor,formLeader _waitingActor] isNotEqualTo _waitingNative}) exitWith {false};
+                                private _holds=_job getOrDefault ["roomHolds",createHashMap];
+                                if ((_floorWorker || {_completedWorker})
+                                    && {!([_waitingActor] call _activeOwnMove)}
+                                    && {currentCommand _waitingActor in ["","STOP","FOLLOW"]}
+                                    && {!(_key in _holds) || {currentCommand _waitingActor != "STOP"}}) then {
+                                    private _hold=getPosATL _waitingActor;
+                                    doStop _waitingActor;
+                                    _holds set [_key,+_hold];
+                                    _job set ["roomHolds",_holds];
+                                    diag_log format ["CBE CLEAR FLOOR QUEUE HOLD: %1",[_job get "generation",_pairIndex,_key,_lowestUnfinishedFloor,+_hold,["COMPLETED_QUEUE","LOWER_FLOOR"] select _waitingForFloor]];
+                                };
+                                // Coalesced observation also records a delayed native STOP ack;
+                                // it never reissues the order or grants physical room-visit credit.
+                                if (_key in _holds && {currentCommand _waitingActor == "STOP"}) then {
+                                    ["HOLD",_waitingActor,_job,_holds get _key] call CBE_fnc_BuildingActorMotion;
+                                };
                             };
                         } forEach _pair;
-                        _job set ["roomHolds",_holds];
                     };
                     if (_candidates isNotEqualTo []) then {
                         // Prefer free room destinations before model-order/distance ranking.
