@@ -3,6 +3,20 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class DrivingGateCapTests(unittest.TestCase):
+    def test_indexed_gate_aliases_choose_one_sound_preferred_source_per_leaf(self):
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        metadata=server.split('private _sources=[];',1)[1].split('private _locked={',1)[0]
+        for alias in ('door_%1_sound_source','gate_%1_sound_source','door_%1_source','gate_%1_source'):
+            self.assertIn(alias,metadata)
+        self.assertIn('_aliases find _lowerName',metadata)
+        self.assertIn('_priority < (_previous select 0)',metadata)
+        self.assertIn('_preferredSources set [_key,',metadata)
+        self.assertIn('for "_index" from 1 to 8',metadata)
+        self.assertIn('count _definitions <= 64',metadata)
+        self.assertEqual(metadata.count('_sources pushBack'),1)
+        self.assertNotIn('compile',metadata)
+        self.assertNotIn('getText',metadata)
+
     def test_observation_is_bounded_live_and_has_no_world_mutation(self):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         for gate in ['modelToWorldWorld', 'true,4,"GEOM","NONE"',

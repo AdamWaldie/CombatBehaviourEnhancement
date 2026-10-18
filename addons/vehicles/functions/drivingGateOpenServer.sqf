@@ -17,7 +17,8 @@
  * Arguments: 0 payload <ARRAY, []> of named pairs: group GROUP, vehicle OBJECT, gate OBJECT,
  * route ARRAY, transform ARRAY, driver OBJECT, commander OBJECT, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime.
  * Return Value: BOOL - an opening was commanded or an existing opening was shared; not passability.
- * Canonical Door_N_sound_source metadata only, N=1..8, at most 64 source definitions inspected.
+ * Exact indexed Door/Gate_N_sound_source or Door/Gate_N_source metadata, N=1..8.
+ * At most64 definitions and8 leaf selections; one preferred source per leaf, sound before plain.
  * Current callers: DrivingGateRequest on the server or current headless vehicle/group owner.
  * Example: [_payload] remoteExecCall ["CBE_fnc_DrivingGateOpenServer",2];
  */
@@ -108,19 +109,35 @@ _attemptIndex=count _attempts;
 _attempts pushBack [_gate,+_transform,"VALIDATING",serverTime+5];
 _vehicle setVariable ["CBE_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
 private _sources=[];
+private _preferredSources=createHashMap;
 private _definitions="true" configClasses ((configOf _gate) >> "AnimationSources");
 if (count _definitions <= 64) then {
     {
         private _name=configName _x;
-        private _parts=(toLowerANSI _name) splitString "_";
-        if (count _parts == 4) then {
+        private _lowerName=toLowerANSI _name;
+        private _parts=_lowerName splitString "_";
+        if (count _parts in [3,4]) then {
             private _index=parseNumber (_parts select 1);
-            if (_index >= 1 && {_index <= 8} && {_index == floor _index}
-                && {toLowerANSI _name == format ["door_%1_sound_source",_index]}) then {
-                _sources pushBack [_index,_name,_gate animationSourcePhase _name];
+            if (_index >= 1 && {_index <= 8} && {_index == floor _index}) then {
+                // One source per physical leaf: sound source first, then its plain alias.
+                // Exact indexed names exclude lock/handle/nosound and arbitrary action scripts.
+                private _aliases=[format ["door_%1_sound_source",_index],format ["gate_%1_sound_source",_index],
+                    format ["door_%1_source",_index],format ["gate_%1_source",_index]];
+                private _priority=_aliases find _lowerName;
+                if (_priority >= 0) then {
+                    private _key=str _index;
+                    private _previous=_preferredSources getOrDefault [_key,[]];
+                    if (_previous isEqualTo [] || {_priority < (_previous select 0)}) then {
+                        _preferredSources set [_key,[_priority,_index,_name,_gate animationSourcePhase _name]];
+                    };
+                };
             };
         };
     } forEach _definitions;
+};
+for "_index" from 1 to 8 do {
+    private _preferred=_preferredSources getOrDefault [str _index,[]];
+    if (_preferred isNotEqualTo []) then {_sources pushBack (_preferred select [1,3])};
 };
 private _locked={
     (_gate getVariable ["bis_disabled_Door",0]) isNotEqualTo 0
@@ -140,7 +157,7 @@ if (_sources findIf {(_x select 2) < 0.1} < 0) exitWith {
     ["ALREADY_OPEN_OR_MOVING",serverTime] call _publishResult;
     false
 };
-// Final mutation boundary: metadata parsing stays scheduled; authority, lock and animation
+// Final mutation boundary: metadata is prepared first; authority, lock and animation
 // are committed together. A convoy revision or crew change cannot borrow earlier admission.
 private _opened=false;
 isNil {
