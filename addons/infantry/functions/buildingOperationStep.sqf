@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Partner alternate-entry ranking commits its native order and public attempt atomically against
+ * current episode/owner/native intent, building transform, unchanged proposal and original deadlines.
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
  * Buddy separation requests do not renew the room mover's finite no-progress clock.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
@@ -1860,6 +1862,8 @@ private _delay=call {
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
                             && {call _mayIssueMovement}) then {
                             private _pose=getPosASL _partner;
+                            private _entryNative=[currentCommand _partner,expectedDestination _partner,formationLeader _partner];
+                            private _entryAlternativeBefore=+_alternativeReceipt;
                             private _alternatives=[];
                             {
                                 private _candidate=_positions select _x;
@@ -1872,20 +1876,34 @@ private _delay=call {
                             } forEach (_cleared select [0,24]);
                             _alternatives sort true;
                             private _alternative=if (_alternatives isNotEqualTo []) then {+((_alternatives select 0) select 1)} else {[]};
-                            _partner setVariable ["CBE_Cortex_ClearEntryAlternative",[
-                                _building,_job get "hardDeadline",_job get "buildingTransform",
-                                +_alternative,_alternativeSearches+1,count _cleared],true];
-                            diag_log format ["CBE CLEAR PARTNER ENTRY SEARCH: %1",[
-                                _job get "generation",_pairIndex,netId _partner,
-                                _alternativeSearches+1,count _cleared,+_alternative]];
-                            if (_alternative isNotEqualTo []) then {
-                                (_job get "pairEntryTargets") set [str _pairIndex,+_alternative];
-                                _receipt set [0,_pose vectorDistance (AGLToASL _alternative)];
-                                _partner doMove _alternative;
-                                [_partner,_alternative] call _rememberMove;
-                                _lastTarget=-1;
-                                diag_log format ["CBE CLEAR PARTNER ENTRY ALTERNATIVE: %1",[
-                                    _job get "generation",_pairIndex,netId _partner,+_entryTarget,+_alternative]];
+                            // Ranking runs scheduled. Recheck the live episode and native intent
+                            // atomically with publication/issue; a late old lane cannot claim a new task.
+                            isNil {
+                                if (call _mayIssueMovement
+                                    && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
+                                    && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                                    && {serverTime <= (_job get "deadline")}
+                                    && {serverTime <= (_job get "hardDeadline")}
+                                    && {(_partner getVariable ["CBE_Cortex_ClearEntryAlternative",[]]) isEqualTo _entryAlternativeBefore}
+                                    && {[currentCommand _partner,expectedDestination _partner,formationLeader _partner] isEqualTo _entryNative}
+                                    && {currentCommand _partner == "" || {[_partner] call _ownsCurrentMove}}
+                                    && {(getPosASL _partner) vectorDistance _pose <= 1}) then {
+                                    _partner setVariable ["CBE_Cortex_ClearEntryAlternative",[
+                                        _building,_job get "hardDeadline",_job get "buildingTransform",
+                                        +_alternative,_alternativeSearches+1,count _cleared],true];
+                                    diag_log format ["CBE CLEAR PARTNER ENTRY SEARCH: %1",[
+                                        _job get "generation",_pairIndex,netId _partner,
+                                        _alternativeSearches+1,count _cleared,+_alternative]];
+                                    if (_alternative isNotEqualTo []) then {
+                                        (_job get "pairEntryTargets") set [str _pairIndex,+_alternative];
+                                        _receipt set [0,_pose vectorDistance (AGLToASL _alternative)];
+                                        _partner doMove _alternative;
+                                        [_partner,_alternative] call _rememberMove;
+                                        _lastTarget=-1;
+                                        diag_log format ["CBE CLEAR PARTNER ENTRY ALTERNATIVE: %1",[
+                                            _job get "generation",_pairIndex,netId _partner,+_entryTarget,+_alternative]];
+                                    };
+                                };
                             };
                         };
                         _entryRecovery set [_key,_receipt];

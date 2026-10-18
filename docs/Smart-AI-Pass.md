@@ -1530,3 +1530,8 @@ Driving cleanup adoption also runs from native land-vehicle init and locality ev
 
 
 Both split-locality and unavailable-mobility deferrals now register cleanup directly where the release is deferred, including direct calls from the driving worker. They do not depend on a later outer assist-release call. Locality lookup also observes an already present reverse receipt for its later pending flag, within the same original five-second window. It never changes a nonpending receipt into pending work. Beyond-window delivery still requires a durable notification design and remains unresolved.
+
+
+### CQB partner alternate-entry handover
+
+A stalled exterior partner may receive a bounded alternate point already physically visited by the clearing element. Candidate ranking remains separate from command authority. Before publishing the attempt or issuing that move, the owner now atomically rechecks the current building operation and actor, native command/destination/formation leader, building transform, original deadlines, Zeus interruption, unchanged prior attempt and at most one metre of proposal-time movement. A current individual STOP or unrelated MOVE does not authorize this fallback. Refused stale proposals issue no alternate movement or attempt receipt. This protects one fallback boundary; other CQB command paths still require review. It does not prove entry coherence, native accessibility, exterior isolation or casualty flow. Physical order replacement during ranking and repeat/HC behaviour remain unrun while audits are paused.
