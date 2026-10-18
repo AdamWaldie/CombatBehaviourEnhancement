@@ -6,6 +6,7 @@
  * Matching corridor work retires through its exact command/route handback before cap cleanup.
  * Locality / Authority: Runs only where the vehicle is local; does not alter waypoints, route
  * selection, collision, damage, fuel, simulation or any external driving controller.
+ * Final restoration/deletion checks the exact entry cap/state and owner epoch atomically after helper cleanup.
  * Repeat/JIP: Safe when called repeatedly or after ownership changes; only a locally stored CBE
  * restore record can be applied. Player, remote-controlled or specialist effective commanders
  * preserve their newer cap even when an ordinary AI driver belongs to another group.
@@ -22,6 +23,18 @@
 
 params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
+// Capture the cap lease before helper cleanup can yield. A same-group successor is still
+// a different receipt and must survive this release callback.
+private _releaseState=[];private _releaseRestore=[];private _releaseEpochGroup=grpNull;private _releaseEpoch=-1;
+isNil {
+    _releaseState=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
+    _releaseRestore=+(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]);
+    _releaseEpochGroup=_releaseState param [3,_expectedGroup];
+    if (isNull _releaseEpochGroup) then {
+        _releaseEpochGroup=(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) getOrDefault ["group",grpNull];
+    };
+    if (!isNull _releaseEpochGroup) then {_releaseEpoch=_releaseEpochGroup getVariable ["CBE_AIPass_Epoch",0]};
+};
 ["CANCEL",_expectedGroup,_vehicle] call CBE_fnc_DrivingPassAdmission;
 [_vehicle,_expectedGroup] call CBE_fnc_DrivingPassRetireInherited;
 private _pass=_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
@@ -32,10 +45,17 @@ if (count _pass > 0 && {isNull _expectedGroup || {(_pass get "group") == _expect
 private _recoveryPending=false;
 private _recovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _recovery > 0 && {isNull _expectedGroup || {(_recovery get "group") == _expectedGroup}}) then {
-    if ((_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isEqualTo []
-        && {abs ((getForcedSpeed _vehicle)-(_recovery get "cap")) <= 0.1}) then {
-        _vehicle setVariable ["CBE_DrivingAssist_State",[_recovery get "cap",0,time,_recovery get "group"]];
-        _vehicle setVariable ["CBE_DrivingAssist_Restore",+(_recovery get "baseline")];
+    isNil {
+        if (local _vehicle && {_releaseState isEqualTo []}
+            && {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isEqualTo _releaseState}
+            && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo _releaseRestore}
+            && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _recovery}
+            && {abs ((getForcedSpeed _vehicle)-(_recovery get "cap")) <= 0.1}) then {
+            _releaseState=[_recovery get "cap",0,time,_recovery get "group"];
+            _releaseRestore=+(_recovery get "baseline");
+            _vehicle setVariable ["CBE_DrivingAssist_State",_releaseState];
+            _vehicle setVariable ["CBE_DrivingAssist_Restore",_releaseRestore];
+        };
     };
     private _retired=[_vehicle,_recovery get "group","DRIVING_RELEASED"] call CBE_fnc_DrivingRecoveryRelease;
     _recoveryPending=!_retired && {_recovery getOrDefault ["releasePending",false]}
@@ -57,6 +77,13 @@ if (!isNull _bypassGroup && {isNull _expectedGroup || {_expectedGroup == _bypass
     && {((_bypass getOrDefault ["controller",["ORDINARY",-1]]) param [0,""]) == "ORDINARY"}) then {
     [_vehicle,_bypassGroup,"DRIVING_RELEASED"] call CBE_fnc_DrivingBypassRelease;
 };
+// Final cap restoration and receipt retirement are one transaction. Earlier helpers do not
+// authorise deletion of a successor's state, even when its group and native cap are identical.
+isNil {
+if (!local _vehicle
+    || {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo _releaseState}
+    || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _releaseRestore}
+    || {!isNull _releaseEpochGroup && {_releaseEpoch != (_releaseEpochGroup getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {false};
 private _restore=_vehicle getVariable ["CBE_DrivingAssist_Restore",[]];
 private _state=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
 if (!isNull _expectedGroup && {(_state param [3,grpNull]) != _expectedGroup}) exitWith {};
@@ -92,3 +119,5 @@ _vehicle setVariable ["CBE_DrivingAssist_State",nil];
 _vehicle setVariable ["CBE_DrivingAssist_Traffic",nil];
 
 _vehicle setVariable ["CBE_DrivingAssist_Obstacle",nil];
+
+};

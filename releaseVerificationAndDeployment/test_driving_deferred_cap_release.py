@@ -3,6 +3,20 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class DrivingDeferredCapReleaseTests(unittest.TestCase):
+    def test_final_release_preserves_successor_receipts(self):
+        text=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
+        commit=text.split('// Final cap restoration and receipt retirement',1)[1]
+        for proof in ('isNil {','!local _vehicle','isNotEqualTo _releaseState',
+                      'isNotEqualTo _releaseRestore','_releaseEpoch !='):
+            self.assertLess(commit.index(proof),commit.index('_vehicle forceSpeed'))
+            self.assertLess(commit.index(proof),commit.index('setVariable ["CBE_DrivingAssist_State",nil]'))
+        self.assertLess(text.index('_releaseState=+('),text.index('call CBE_fnc_DrivingPassAdmission'))
+        adoption=text.split('private _recovery=_vehicle getVariable',1)[1].split('private _retired=',1)[0]
+        self.assertIn('isEqualTo _releaseState',adoption)
+        self.assertIn('isEqualTo _releaseRestore',adoption)
+        self.assertIn('isEqualTo _recovery',adoption)
+
+
     def test_exact_pending_handback_preserves_cap_and_restore_receipt(self):
         text=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
         guard=text.split('private _retired=',1)[1].split('if (_recoveryPending) exitWith {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup};',1)[0]
