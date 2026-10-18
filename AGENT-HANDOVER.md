@@ -1127,3 +1127,12 @@ DrivingAssistStart rear-stage planning now captures pose/time, actual driver/ope
 Full `.qa/cbe-ordinary-rear-commit-build.log` exit0:1262tests/allofflinegates,326SQF/9PBOs; fingerprint80abfe678b7d0673b8ce288b923a7e94280ed73384cbac6ff8bf3d041cda49c8. Source45fe1aa3 plus intendedsource/test. PR17verifiedopen/draft/correctbranch. No push/merge/CI dispatch/Release/Steam/Arma. AuditsPAUSED/all65partial/fullgoalactive. Protectedrefs/keys/artwork/WMP unchanged.
 
 Next ordinary REFRESH/FINAL doMove+journal paths and final DrivingAssist_State/cap-journal publication remain scheduled and need current-identity transaction review; do not claim entire recovery path atomic. Bridge-height destinations, queue executor/native wheel capability, wholeHBQ semantic depth, coherentCQB/squad/combinedarms/externalhandovers and physical5%median/10%p95 remain open. Current source/test counts supply no tactical acceptance.
+
+
+## 2026-10-18 Forward recovery command/journal transactions
+
+Ordinary REFRESH and FINAL stages now issue native doMove and record their command journal inside a short unscheduled boundary. Each rechecks current ordinary route/crew authority, current brain/epoch/noncancelled/nonfinished state, current recovery feature, exact unchanged journal and actual driver/operator commands. An existing expired hardDeadline transitions to EXHAUSTED without another move; it is not restarted by a forward retry. Refused commits do not advance stage/progress. Original stage observation windows and _recordRecovery deadline offsets remain. This is admission correctness, not proof of route execution.
+
+Full `.qa/cbe-forward-recovery-commit-build.log` exit0:1263tests/allofflinegates,326SQF/9PBOs; fingerprintc78092bf9f2575fb417d5d03ba0242b9344802b60ba827c94119e018474f28b0. Source72f309fa plus intendedsource/test. PR17verifiedopen/draft/correctbranch. No push/merge/CI dispatch/Release/Steam/Arma. AuditsPAUSED/all65partial/fullgoalactive. Protectedrefs/keys/artwork/WMP unchanged.
+
+Next final DrivingAssist_State/cap-journal publication and default exhaustion metadata remain scheduled: inspect stale state resurrection after handover/cleanup. Same-value native command ambiguity remains. Native wheel reverse, bridge-height routing, queueexecutor, wholeHBQ semantic parity, coherentCQB/squads/combinedarms/externalhandovers and physical5%median/10%p95 remain incomplete. Current offline results do not establish behaviour acceptance.

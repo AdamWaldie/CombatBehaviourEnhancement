@@ -4,6 +4,18 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 def src(n):return (ROOT/'addons/vehicles/functions'/f'{n}.sqf').read_text(encoding='utf-8')
 class DrivingRearMonitorTests(unittest.TestCase):
+    def test_forward_retries_commit_commands_and_preserve_deadline(self):
+        text=src('drivingAssistStart')
+        for stage,end,kind in ((0,'case 1:','REFRESH'),(2,'default {','FINAL')):
+            case=text.split(f'case {stage}: {{',1)[1].split(end,1)[0]
+            for guard in ('isNil {','call _mayIssueDriving','call _mayRecoverOrdinaryRoute',
+                          'ownerEpoch','cancelled','finished','CBE_fnc_CortexFeatureEnabled',
+                          'isNotEqualTo _forwardJournal','isNotEqualTo _forwardCommands','hardDeadline'):
+                self.assertLess(case.index(guard),case.index('_movementOperator doMove _destination'))
+            self.assertIn('_recoveryStage=4',case)
+            self.assertIn(f'_recoveryUntil=["{kind}"] call _recordRecovery',case)
+
+
     def test_rear_issue_and_journal_have_fresh_atomic_authority(self):
         text=src('drivingAssistStart')
         case=text.split('private _rearPose=',1)[1].split('case 2:',1)[0]

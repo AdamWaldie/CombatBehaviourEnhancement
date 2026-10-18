@@ -676,12 +676,29 @@ _brain set ["geometryTracks",_geometryTracks];
                     private _recoveryTransitioned=false;
                     switch (_recoveryStage) do {
                         case 0: {
-                            if !(call _mayRecoverOrdinaryRoute) exitWith {};
-                            _movementOperator doMove _destination;
-                            _recoveryStage=1;
-                            _recoveryUntil=["REFRESH"] call _recordRecovery;
-                            _recoveryResult="ROUTE_REFRESH";_reverseIssued=false;
-                            _recoveryTransitioned=true;
+                            private _forwardJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                            private _forwardCommands=[currentCommand _driver,+(expectedDestination _driver),
+                                currentCommand _movementOperator,+(expectedDestination _movementOperator)];
+                            isNil {
+                                if (!(call _mayIssueDriving) || {!(call _mayRecoverOrdinaryRoute)}
+                                    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+                                    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                                    || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+                                    || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                                    || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _forwardJournal}
+                                    || {[currentCommand _driver,+(expectedDestination _driver),
+                                        currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _forwardCommands}) exitWith {false};
+                                if (count _forwardJournal > 0 && {serverTime >= (_forwardJournal get "hardDeadline")}) then {
+                                    _recoveryStage=4;_recoveryResult="EXHAUSTED";_reverseIssued=false;
+                                    _recoveryUntil=["EXHAUSTED"] call _recordRecovery;
+                                } else {
+                                    _movementOperator doMove _destination;
+                                    _recoveryStage=1;
+                                    _recoveryUntil=["REFRESH"] call _recordRecovery;
+                                    _recoveryResult="ROUTE_REFRESH";_reverseIssued=false;
+                                };
+                                _recoveryTransitioned=true;
+                            };
                         };
                         case 1: {
                             private _rear=_vehicle getPos [8,(getDir _vehicle)+180];
@@ -718,12 +735,29 @@ _brain set ["geometryTracks",_geometryTracks];
                             };
                         };
                         case 2: {
-                            if !(call _mayRecoverOrdinaryRoute) exitWith {};
-                            _movementOperator doMove _destination;
-                            _recoveryStage=3;
-                            _recoveryUntil=["FINAL"] call _recordRecovery;
-                            _recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false;
-                            _recoveryTransitioned=true;
+                            private _forwardJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                            private _forwardCommands=[currentCommand _driver,+(expectedDestination _driver),
+                                currentCommand _movementOperator,+(expectedDestination _movementOperator)];
+                            isNil {
+                                if (!(call _mayIssueDriving) || {!(call _mayRecoverOrdinaryRoute)}
+                                    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+                                    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                                    || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+                                    || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                                    || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _forwardJournal}
+                                    || {[currentCommand _driver,+(expectedDestination _driver),
+                                        currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _forwardCommands}) exitWith {false};
+                                if (count _forwardJournal > 0 && {serverTime >= (_forwardJournal get "hardDeadline")}) then {
+                                    _recoveryStage=4;_recoveryResult="EXHAUSTED";_reverseIssued=false;
+                                    _recoveryUntil=["EXHAUSTED"] call _recordRecovery;
+                                } else {
+                                    _movementOperator doMove _destination;
+                                    _recoveryStage=3;
+                                    _recoveryUntil=["FINAL"] call _recordRecovery;
+                                    _recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false;
+                                };
+                                _recoveryTransitioned=true;
+                            };
                         };
                         default {
                             // Spent retries do not release traffic/terrain safety for this group.
