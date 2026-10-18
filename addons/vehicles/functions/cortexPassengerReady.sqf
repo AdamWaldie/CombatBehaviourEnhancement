@@ -3,6 +3,8 @@
  * Checks shared passenger safety before routine unloading or boarding; emergency engine bailouts remain independent.
  * Locality/authority: read-only on the requesting owner unless stated below.
  * Repeat/JIP: no side effects; runtime gates and actor task ownership are read again on every call.
+ * Routine seat transitions require finite total linear speed below1km/h and angular speed
+ * below0.01rad/s; this instantaneous observation does not authorize a later deferred command.
  * Matching boarding may continue, but medical, equipment, finite actor reservations and replacement
  * boarding tasks yield without issuing seat or movement commands.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: vehicle <OBJECT>, objNull; 2: boarding <BOOL>, false.
@@ -16,7 +18,11 @@ if (isNull _vehicle || {!alive _vehicle} || {!local _unit} || {isPlayer _unit}
     || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}
     || {"ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures", []])}
     || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}
-    || {abs speed _vehicle >= 1}) exitWith {false};
+    ) exitWith {false};
+private _linearMotion=vectorMagnitude velocity _vehicle;
+private _angularMotion=vectorMagnitude angularVelocity _vehicle;
+if (!finite _linearMotion || {!finite _angularMotion}
+    || {_linearMotion >= (1/3.6)} || {_angularMotion >= 0.01}) exitWith {false};
 // A finite actor-level task owns this soldier independently of the passenger group's
 // contact episode. Routine dismount/remount must not supersede its cover or recovery move.
 private _reservation=_unit getVariable ["CBE_Cortex_ActorMove",[]];

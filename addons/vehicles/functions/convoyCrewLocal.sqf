@@ -18,6 +18,9 @@
  * Return Value: Nothing. Unconscious passengers wait until capable; players and remote-controlled units are skipped.
  * Local driver/commander service tasks and actor reservations refuse boarding/halt writes,
  * including direct registry-sync calls before the convoy driving callback.
+ * Final passenger unloading validates the current HALT snapshot and passenger pair atomically;
+ * filtered remote-passenger packets retain the same authoritative policy. Shared passenger checks
+ * observe full linear/angular motion and task ownership before any dismount command.
  * Current callers: ConvoyTick on every AI-owning machine.
  * Example: [_group, _configuration] call CBE_fnc_ConvoyCrewLocal;
  */
@@ -221,13 +224,33 @@ if (local _group) then {
             (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
         } >= 0}) then {[_group,[_passage get "revision"],"CONVOY_HALT"] call CBE_fnc_ConvoyCorridorStep};
 };
+// Local passenger owners may receive a sliced vehicle/cargo packet. Validate its unchanged
+// authoritative policy and exact passenger pair against the full current HALT snapshot.
+private _haltCurrent={
+    params ["_passenger","_transport"];
+    if ([] call CBE_fnc_CortexIsPaused || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+    private _registry=missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]];
+    private _entry=_registry findIf {(_x select 0) isEqualTo _group};
+    if (_entry < 0) exitWith {false};
+    private _live=(_registry select _entry) select 1;
+    (_live select [0,4]) isEqualTo (_configuration select [0,4])
+        && {(_live param [5,""]) == "HALT"}
+        && {(_live select [7]) isEqualTo (_configuration select [7])}
+        && {_transport in (_live select 4)}
+        && {(_live select 6) findIf {
+            (_x select 0) isEqualTo _passenger && {(_x select 1) isEqualTo _transport}
+        } >= 0}
+};
 {
     _x params ["_unit", "_vehicle"];
+    // Scheduled direct callers must not separate snapshot/task proof from seat commands.
+    isNil {
+    if (!([_unit,_vehicle] call _haltCurrent)) exitWith {};
     if (local _unit && {vehicle _unit == _unit} && {(_unit getVariable ["CBE_Convoy_Unloaded", []]) isNotEqualTo [_group, _revision]}) then {_unit setVariable ["CBE_Convoy_Unloaded", [_group, _revision], true]};
     if ([_group,"CBE_Convoy_Unload_Enable",true] call CBE_fnc_CortexFeatureEnabled && {[group _unit,"CBE_Convoy_Unload_Enable",true] call CBE_fnc_CortexFeatureEnabled} && {[_unit,_vehicle] call CBE_fnc_CortexPassengerReady}
         && {local _unit} && {alive _unit} && {!isPlayer _unit} && {vehicle _unit == _vehicle}
         && {(_unit getVariable ["CBE_Convoy_Unloaded", []]) isNotEqualTo [_group, _revision]}
-        && {abs speed _vehicle < 1} && {!(_unit getVariable ["ACE_isUnconscious", false])} && {lifeState _unit != "INCAPACITATED"}
+        && {!(_unit getVariable ["ACE_isUnconscious", false])} && {lifeState _unit != "INCAPACITATED"}
         && {!isPlayer leader group _unit} && {!([group _unit] call CBE_fnc_CortexExternalTakeover)}) then {
         private _seat = _seats getOrDefault [netId _unit, []];
         if (_seat isNotEqualTo [] && {(_seat select 0) == _vehicle} && {(_seat select 1) == "cargo" || {(_seat select 1) == "turret" && {_seat select 2}}}) then {
@@ -238,6 +261,7 @@ if (local _group) then {
             unassignVehicle _unit;
             doGetOut _unit;
         };
+    };
     };
 } forEach _cargo;
 
