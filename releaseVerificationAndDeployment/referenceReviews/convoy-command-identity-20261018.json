@@ -3,7 +3,7 @@
   "scope": "Convoy current-operation command admission and actual applied smoothing records",
   "sources": {
     "addons/vehicles/functions/convoyTick.sqf": "51e31cdc4661144ce8b5e191c05e35478be98bc5005f06db2bd73e5a515b2607",
-    "addons/vehicles/functions/convoyOperationStep.sqf": "4a151ea0b38ac4e8e6025b88d996bcb79aaa17585f650a535761c5aad8721d34",
+    "addons/vehicles/functions/convoyOperationStep.sqf": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6",
     "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240"
   },
   "finding": "Per-command helper checked current crew/external availability but not original brain/job/registry/configuration/epoch. Lead and two follower smoothing journals could record rejected caps.",
@@ -15,11 +15,16 @@
     "Physical mixed tracked/wheeled step-off, braking, gaps, replacements, HC and performance remain unaccepted."
   ],
   "validation": {
-    "tests": 1354,
-    "log": ".qa/cbe-convoy-cap-identity-verified-build.log",
+    "tests": 1355,
+    "log": ".qa/cbe-convoy-phase-publication-build.log",
     "exitCode": 0,
-    "packageFingerprint": "a931c1e1e6939942a2c3b643b782f05f96b382e2763062b7100b432c8e02e123"
+    "packageFingerprint": "f65e91dbbd19c220692df379461c113bc890d16d95d3b2118c1a9b1f3da88b8e"
   },
   "physicalAcceptance": false,
-  "performanceAccepted": false
+  "performanceAccepted": false,
+  "semanticPublication": {
+    "finding": "OperationStep checked identity only before scheduled ConvoyTick; later phase/counters/follow-up timing could publish after replacement.",
+    "implementation": "Post-tick and final isNil checks retain original epoch/brain/job/configuration/revision/indexed registry row, uncancelled/unfinished state and no Zeus/external owner. Final local-state identity must match; phase/counters/timing/public snapshot publish together. Refusal cancels only this callback brain.",
+    "limits": "No new worker or geometry query; actual interruption, same-value provenance, cached state freshness and measured cost remain unverified."
+  }
 }

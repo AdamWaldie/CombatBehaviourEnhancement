@@ -596,3 +596,18 @@ class ConvoyCapCommitIdentityTests(unittest.TestCase):
         self.assertIn('_lead forceSpeed _ownedSpeed;\n    _state set ["leadSpeedLimit",[_leadLimit,time]];',source)
         self.assertEqual(source.count('_speedLimits set [_key,[_limit,time]];'),2)
         self.assertEqual(len(re.findall(r'_vehicle forceSpeed _ownedSpeed;\s*_speedLimits set',source)),2)
+
+
+class ConvoySemanticPublicationTests(unittest.TestCase):
+    def test_tick_results_cannot_publish_for_a_replacement_convoy(self):
+        source=(ROOT/'addons/vehicles/functions/convoyOperationStep.sqf').read_text()
+        helper=source.split('private _stepCurrent={',1)[1].split('};',1)[0]
+        for guard in ('CBE_AIPass_Epoch','CBE_Convoy_ReceivedRevision','CBE_Convoy_LocalJobToken',
+                      'isEqualTo _brain','"cancelled"','"finished"','isEqualTo _configuration',
+                      'param [_entry,[]]','CortexZeusHeld','CortexExternalTakeover'):
+            self.assertIn(guard,helper)
+        self.assertIn('call CBE_fnc_ConvoyTick;\nif !(call _stepCurrent)',source)
+        publication=source.split('private _stepPublished=false;',1)[1]
+        self.assertLess(publication.index('isNil {'),publication.index('_brain set ["phase",_phase]'))
+        self.assertLess(publication.index('call _stepCurrent'),publication.index('setVariable ["CBE_Convoy_Brain_State"'))
+        self.assertIn('if (!_stepPublished) exitWith',publication)

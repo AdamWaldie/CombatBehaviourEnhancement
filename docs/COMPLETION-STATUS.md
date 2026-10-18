@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Convoy FSM callbacks now recheck original owner epoch, brain/job/configuration and registry after the physical tick and atomically before phase/counter/next-step publication. Replaced callbacks retire without publishing those results. Physical interruption and cost remain unverified.
+
 - Shared convoy command admission now binds the original brain/configuration, job token, registry revision and owner epoch. Lead/follower smoothing cap records publish with admitted speed commands rather than rejected proposals. Mixed-column stop/start and measured cost remain unverified; spacing tuning is unchanged.
 
 - Queue discovery now claims and publishes under the original driving brain/epoch and unchanged traffic observation/retry records. Scheduled discovery cannot adopt a replacement brain for consent submission. This supplies no native queue execution or physical acceptance.
