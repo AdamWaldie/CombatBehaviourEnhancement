@@ -207,6 +207,7 @@ private _delay=call {
         // leg fails before reaching another node. A historical hold is not a live stop.
         (_job getOrDefault ["roomHolds",createHashMap]) deleteAt (netId _actor);
         (_job getOrDefault ["formationFallbackHolds",createHashMap]) deleteAt (netId _actor);
+        ["MOVE",_actor,_job,_target] call CBE_fnc_BuildingActorMotion;
     };
     private _ownsCurrentMove={
         params ["_actor"];
@@ -348,6 +349,9 @@ private _delay=call {
             _job set ["finishReason","OWNERSHIP_LOST"];
             -1
         };
+        // Ownership-loss callbacks above preserve receipts for the successor owner.
+        { ["RETIRE",_x,_job] call CBE_fnc_BuildingActorMotion; }
+            forEach ((_job get "team") + (_job getOrDefault ["securityActors",[]]));
         _restore=_restore && {!([_group] call CBE_fnc_CortexExternalTakeover)};
         _group setVariable ["CBE_Cortex_ClearEvidence",[+(_job get "cleared"),+(_job get "unreachable"),+(_job get "retryCounts"),+(_job get "failedBy"),_job get "deadline",_job get "lastProgressAt"],true];
         private _result = ["INCOMPLETE","COMPLETE"] select (count (_job get "cleared") == count (_job get "positions") && {!(_job getOrDefault ["egressFailed",false])} && {!(_job getOrDefault ["entryFailed",false])});
@@ -2676,7 +2680,7 @@ private _delay=call {
                                 if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
                                     private _started=_job get "started";
                                     if !(_unit in _started) then {
-                                        doStop _unit;
+                                        if !([_unit] call _ownsCurrentMove) then {doStop _unit};
                                         // Preserve the original baseline across owner-local worker rebuilds.
                                         // A later different setting becomes the new baseline, not old CBE state.
                                         private _priorStance=_unit getVariable ["CBE_Cortex_ClearStance",unitPos _unit];
@@ -2758,6 +2762,18 @@ private _delay=call {
                                         doStop _unit;
                                         _roomHolds set [_holdKey,+_speedTarget];
                                         _job set ["roomHolds",_roomHolds];
+                                    };
+                                };
+                                // Synchronise only already-owned native work. This also observes delayed
+                                // native MOVE acknowledgement without issuing another path request.
+                                if ([_unit] call _ownsCurrentMove) then {
+                                    ["MOVE",_unit,_job,(_job get "movementTargets") get (netId _unit)] call CBE_fnc_BuildingActorMotion;
+                                } else {
+                                    if (currentCommand _unit == "STOP"
+                                        && {netId _unit in (_job getOrDefault ["roomHolds",createHashMap])
+                                            || {netId _unit in (_job getOrDefault ["formationFallbackHolds",createHashMap])}}
+                                        && {[_unit] call _roomCommandOwned}) then {
+                                        ["HOLD",_unit,_job,getPosATL _unit] call CBE_fnc_BuildingActorMotion;
                                     };
                                 };
                                 _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];

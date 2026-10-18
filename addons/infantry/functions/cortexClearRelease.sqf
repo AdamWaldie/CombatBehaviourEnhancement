@@ -30,6 +30,7 @@ if (_order isEqualTo []) exitWith {false};
 private _externalTakeover = [_group] call CBE_fnc_CortexExternalTakeover;
 if (_restore && {_externalTakeover}) then {_restore=false};
 private _buildingBrain=_group getVariable ["CBE_BuildingBrain",createHashMap];
+private _motionJob=createHashMapFromArray [["group",_group],["visitContext",+(_group getVariable ["CBE_Cortex_ClearVisitContext",[]])]];
 private _movementTargets=(_buildingBrain getOrDefault ["job",createHashMap]) getOrDefault ["movementTargets",createHashMap];
 if (count _buildingBrain > 0) then {
     _buildingBrain set ["cancelled",true];
@@ -59,6 +60,7 @@ private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 {
     if (local _x && {!isPlayer _x}) then {
+        ["RETIRE",_x,_motionJob] call CBE_fnc_BuildingActorMotion;
         private _ownedActor=!isNil {_x getVariable "CBE_Cortex_ClearStance"}
             || {!isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}}
             || {private _stage=_x getVariable ["CBE_Cortex_ClearReserve",[]]; count _stage == 3

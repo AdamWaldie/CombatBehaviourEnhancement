@@ -170,3 +170,6 @@ behaviour or establishes the runtime performance budget. The latest full offline
 Audits remain paused. All physical acceptance and the 5% median / 10% p95 overhead requirement
 remain open. The sealed signing artifact is a separate historical candidate; later source work
 must not be represented as included in that artifact.
+## CQB native movement adoption - 2026-10-18
+
+Clearance now records episode-bound native MOVE/physical STOP metadata and adopts matching interior work during true owner resume. Adoption checks actual command, destination or held position, current operation membership, building transform, route and immutable visit context; it does not replay orders, extend deadlines or award visits. Terminal/explicit release retires only the original receipt. Existing room callbacks coalesce acknowledged motion records, without a new scheduler or world scan. Native acknowledgement timing, casualty-roster replication, physical migration, coherent entry and runtime cost remain unaccepted; audits remain paused.

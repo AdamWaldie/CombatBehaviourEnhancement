@@ -1400,6 +1400,7 @@
         "addons/infantry/functions/buildingOperationStart.sqf",
         "addons/infantry/functions/buildingOperationQueue.sqf",
         "addons/infantry/functions/buildingOperationStep.sqf",
+        "addons/infantry/functions/buildingActorMotion.sqf",
         "addons/infantry/functions/buildingExteriorCandidate.sqf",
         "addons/infantry/functions/buildingExteriorProposal.sqf",
         "addons/infantry/functions/cortexClearRelease.sqf",
