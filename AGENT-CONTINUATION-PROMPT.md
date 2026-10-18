@@ -39,7 +39,7 @@ Paths below are relative to the WAIT root unless absolute. Private local materia
 
 ## Latest local evidence - 18 October 2026
 
-Current full offline checkpoint: 1,267 tests, 326 production SQF and nine PBOs; `.qa/cbe-driving-exhaustion-checkpoint-build.log`, fingerprint `1619575c4f80ed058dfeb66434285551571319c5f7533d9b333329d3749a0ebb`. Resolve HEAD and live PR17 before continuing. Later dated handover entries supersede older counts below. Common operation/danger ownership and ordinary/tracked driving admission/cleanup repairs are implemented but physically unverified. All65 families remain partial. Audits remain paused. Next prioritize whole-HBQ execution gaps, queue/native capability and coherent CQB/combined-arms behaviour; do not infer completion from receipts or package checks.
+Current full offline checkpoint: 1,281 tests, 326 production SQF and nine PBOs; `.qa/cbe-cqb-tail-authority-build.log`, fingerprint `f0ca76cc6dfb6704b520d9d3856d547e2c29852b9efd54308a78df09811e315c`. Resolve HEAD and live PR17 before continuing. Later dated handover entries supersede older counts below. Current CQB flow/lifecycle and earlier driving/operation repairs are implemented but physically unverified. All65 families remain partial. Audits remain paused. Next prioritize whole-HBQ execution gaps, queue/native capability and coherent CQB/combined-arms behaviour; do not infer completion from receipts or package checks.
 
 ## Current checkpoint and next work
 

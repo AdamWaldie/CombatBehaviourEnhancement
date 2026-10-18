@@ -99,3 +99,20 @@ class NativeRequestGraceTests(unittest.TestCase):
                       'serverTime-(_request select 1) < 2','!_awaitingNative'):
             self.assertLess(fallback.index(proof),fallback.index('doStop _unit'))
         self.assertNotIn('doMove',fallback)
+
+
+class BuildingTailAuthorityTests(unittest.TestCase):
+    def test_phase_and_egress_journal_cannot_revive_cancelled_operation(self):
+        text=source()
+        tail=text.split('// Complete private callback signalling',1)[1]
+        guard=tail.split('if (!_tailOwned',1)[0]
+        for proof in ('isNil {','CBE_BuildingBrain','isEqualTo _job','cancelled',
+                      'CBE_AIPass_ClearGeneration','ownerEpoch','!= "CANCELLED"'):
+            self.assertIn(proof,guard)
+        refusal=tail.index('if (!_tailOwned')
+        for write in ('_currentOperation set ["phase"','setVariable ["CBE_Cortex_ClearEgress",_journal',
+                      'setVariable ["CBE_BuildingBrain_State"','_brain set ["nextAt"'):
+            self.assertLess(refusal,tail.index(write))
+        self.assertIn('_delay < 0 && {count _currentOperation == 0}',tail)
+        self.assertNotIn('doMove',tail)
+        self.assertNotIn('lineIntersects',tail)

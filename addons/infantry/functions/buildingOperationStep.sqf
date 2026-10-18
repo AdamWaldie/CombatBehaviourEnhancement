@@ -3451,7 +3451,24 @@ private _delay=call {
 };
 if (isNil "_delay" || {!(_delay isEqualType 0)}) then {_delay=-1};
 private _phase=toUpperANSI (_job getOrDefault ["phase","ENTRY"]);
+// Complete private callback signalling even when a successor has replaced this worker.
+// Public phase/journal/state writes below require current episode authority.
+_brain set ["pending",false];
+_brain set ["completed",true];
+isNil {
 private _currentOperation=_group getVariable ["CBE_Operation",createHashMap];
+private _tailOwned=local _group
+    && {(_group getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _brain}
+    && {(_brain getOrDefault ["job",createHashMap]) isEqualTo _job}
+    && {!(_brain getOrDefault ["cancelled",false])}
+    && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_job getOrDefault ["generation",-1]) == (_group getVariable ["CBE_AIPass_ClearGeneration",-2])};
+private _liveClear=count _currentOperation > 0
+    && {(_currentOperation getOrDefault ["generation",-1]) == (_job getOrDefault ["operationGeneration",-2])}
+    && {(_currentOperation getOrDefault ["ownerEpoch",-1]) == (_brain getOrDefault ["ownerEpoch",-2])}
+    && {(_currentOperation getOrDefault ["intent",""]) == "CLEAR"}
+    && {(_currentOperation getOrDefault ["phase",""]) != "CANCELLED"};
+if (!_tailOwned || {!_liveClear && {!(_delay < 0 && {count _currentOperation == 0})}}) exitWith {false};
 if (count _currentOperation > 0 && {local _group}
     && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
     && {(_currentOperation getOrDefault ["generation",-1]) == (_job getOrDefault ["operationGeneration",-2])}
@@ -3490,8 +3507,6 @@ if (_phase == "EGRESS" && {!(_job getOrDefault ["finished",false])}
 _brain set ["phase",_phase];
 _brain set ["lastStepAt",time];
 _brain set ["lastDelay",_delay];
-_brain set ["pending",false];
-_brain set ["completed",true];
 if (_delay < 0) then {
     _brain set ["finished",true];
     _brain set ["cancelReason",_job getOrDefault ["finishReason","FINISHED"]];
@@ -3511,5 +3526,6 @@ if (!isNull _group && {local _group}
         count (_job getOrDefault ["unreachable",[]]),
         count (_job getOrDefault ["positions",[]])
     ],true];
+};
 };
 -1
