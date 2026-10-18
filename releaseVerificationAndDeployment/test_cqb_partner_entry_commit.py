@@ -45,3 +45,18 @@ class PartnerEntrySpaceTests(unittest.TestCase):
         self.assertIn('_occupied pushBack (getPosATL _actor)',occupied)
         self.assertIn('_workers select [0,8]',occupied)
         self.assertNotIn('nearEntities',occupied)
+
+
+class PartnerProgressTargetTests(unittest.TestCase):
+    def test_retarget_preserves_stall_clock_and_retry(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        block=text.split('if ((_receipt param [3,[]]) isNotEqualTo _entryTarget) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('_receipt set [0,_distance]',block)
+        self.assertIn('_receipt set [3,+_entryTarget]',block)
+        self.assertNotIn('set [1,',block)
+        self.assertNotIn('set [2,',block)
+        section=text.split('// Partner entry recovery is independent',1)[1].split('// Persist retirement',1)[0]
+        self.assertIn('private _receipt=+(',section)
+        self.assertIn('_receipt set [3,+_alternative]',section)
+        self.assertIn('[_distance,_now,false,+_entryTarget]',section)
+

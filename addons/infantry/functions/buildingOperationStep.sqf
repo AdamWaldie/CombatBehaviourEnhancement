@@ -2072,9 +2072,17 @@ private _delay=call {
                         private _entryRecovery=_job getOrDefault ["entryRecovery",createHashMap];
                         private _key=netId _partner;
                         private _distance=(getPosASL _partner) vectorDistance (AGLToASL _entryTarget);
-                        private _receipt=_entryRecovery getOrDefault [_key,[_distance,_now,false]];
-                        if ((_receipt select 0)-_distance >= 1) then {
-                            _receipt set [0,_distance]; _receipt set [1,_now];
+                        private _receipt=+(_entryRecovery getOrDefault [_key,[_distance,_now,false,+_entryTarget]]);
+                        // Distances to different nodes cannot prove actor progress. Adopt a new
+                        // target baseline without renewing the no-progress clock or spent retry.
+                        // Legacy three-field records acquire target identity the same way.
+                        if ((_receipt param [3,[]]) isNotEqualTo _entryTarget) then {
+                            _receipt set [0,_distance];
+                            _receipt set [3,+_entryTarget];
+                        } else {
+                            if ((_receipt select 0)-_distance >= 1) then {
+                                _receipt set [0,_distance]; _receipt set [1,_now];
+                            };
                         };
                         if (!(_receipt select 2) && {_now-(_receipt select 1) >= 12}
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
@@ -2088,6 +2096,8 @@ private _delay=call {
                             private _anchor=_positions select _anchorIndex;
                             if (_anchorIndex in _cleared && {_entryTarget isNotEqualTo _anchor}) then {
                                 _entryTarget=+_anchor;
+                                _receipt set [0,(getPosASL _partner) vectorDistance (AGLToASL _entryTarget)];
+                                _receipt set [3,+_entryTarget];
                                 (_job get "pairEntryTargets") set [str _pairIndex,+_anchor];
                                 diag_log format ["CBE CLEAR PARTNER ACCESS: %1",[_job get "generation",_pairIndex,netId _partner,+_anchor]];
                             };
@@ -2172,6 +2182,7 @@ private _delay=call {
                                     if (_alternative isNotEqualTo []) then {
                                         (_job get "pairEntryTargets") set [str _pairIndex,+_alternative];
                                         _receipt set [0,_pose vectorDistance (AGLToASL _alternative)];
+                                        _receipt set [3,+_alternative];
                                         _partner doMove _alternative;
                                         [_partner,_alternative] call _rememberMove;
                                         _lastTarget=-1;
