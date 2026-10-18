@@ -91,6 +91,18 @@ class OperationRetirement(unittest.TestCase):
         for forbidden in ('doMove','doFollow','lineIntersects','nearestObjects','waitUntil'):
             self.assertNotIn(forbidden,commit)
 
+    def test_role_rebalancing_cannot_revive_cancelled_or_replaced_roster(self):
+        text=(ROOT/'addons/infantry/functions/rebalanceRoles.sqf').read_text()
+        commit=text.split('private _result=[];',1)[1]
+        for proof in ('isNil {','!local _group','_entryEpoch !=','== "CANCELLED"',
+                      'isNotEqualTo _entryParticipants','isNotEqualTo _entryUnavailable',
+                      '_current findIf','CBE_fnc_CortexZeusHeld','CBE_fnc_CortexExternalTakeover'):
+            self.assertLess(commit.index(proof),commit.index('_operation set ["participants"'))
+        self.assertIn('group _actor == _group',text)
+        self.assertIn('simulationEnabled _actor',text)
+        self.assertNotIn('set ["lastProgressAt"',text)
+        self.assertNotIn('doMove',text)
+
     def test_permission_restore_consumes_only_current_lease_in_atomic_scope(self):
         text=(ROOT/'addons/core/functions/operationRestore.sqf').read_text(encoding='utf-8')
         for proof in ('isNil {','_current isNotEqualTo _operation','ownerEpoch','count _members > 64',
