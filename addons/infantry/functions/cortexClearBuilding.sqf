@@ -12,6 +12,8 @@
  * Discovery supplies its exact durable order/generation; admission rechecks them before handoff.
  * Prepared worker startup retains the admitted operation epoch. Refusal reports false and
  * retires only this still-owned clear; a new owner or successor retains its durable state.
+ * Post-admission preparation commits are short unscheduled blocks, rechecking original
+ * operation/epoch/generation, target, native intent and deadlines. Route planning stays scheduled.
  * Orders an AI group to clear a building room by room.
  *
  * Admission validates finite, distinct model positions with a 512-position budget before
@@ -358,15 +360,43 @@ if (count _operation == 0) exitWith {
     };
     false
 };
+// Route preparation may yield. Every later world/operation write must still belong to
+// this admission; never put the potentially quadratic room plan inside an unscheduled block.
+private _operationGeneration=_operation get "generation";
+private _preparationEpoch=_operation get "ownerEpoch";
+private _commitPreparation={
+    params ["_mutation"];
+    private _committed=false;
+    isNil {
+        private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+        if (!local _group
+            || {_generation != (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
+            || {_preparationEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+            || {(_liveOperation getOrDefault ["generation",-1]) != _operationGeneration}
+            || {(_liveOperation getOrDefault ["ownerEpoch",-1]) != _preparationEpoch}
+            || {(_liveOperation getOrDefault ["intent",""]) != "CLEAR"}
+            || {(_liveOperation getOrDefault ["objective",objNull]) != _building}
+            || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+            || {serverTime >= (_deadline min _hardDeadline)}
+            || {!(call _admissionStable)}
+            || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _nativeOrderReceipt}
+            || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
+        [_liveOperation] call _mutation;
+        _committed=true;
+    };
+    _committed
+};
 // A valid new operation now owns the selected actors. Retire only its predecessor's
 // matching recall so the initial building step sees STOP instead of protected JOIN.
-{
-    if ([_x,_generation-1] call _ownedRecall && {local _x} && {!isPlayer _x}
-        && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}) then {
-        doStop _x;
-        _x setVariable ["CBE_Cortex_ClearRecall",nil];
-    };
-} forEach _team;
+[{
+    {
+        if ([_x,_generation-1] call _ownedRecall && {local _x} && {!isPlayer _x}
+            && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}) then {
+            doStop _x;
+            _x setVariable ["CBE_Cortex_ClearRecall",nil];
+        };
+    } forEach _team;
+}] call _commitPreparation;
 // Capture admitted native intent before entry/topology planning can delay the first reserve step.
 private _reserveAdmissionRows=[];
 if (!_resume) then {
@@ -378,20 +408,22 @@ if (!_resume) then {
 // Suppress only competing autonomous group attack assignment during the clear. Native
 // targeting, weapons and suppression remain enabled. Mixed specialist/player groups retain
 // their command policy; only ordinary groups acquire this exact-owned reversible setting.
-private _delegationMembers=units _group;
-if (count _delegationMembers <= 64
-    && {_delegationMembers findIf {isPlayer _x || {[_x] call CBE_fnc_CompatibilityExternalControl}} < 0}
-    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
-    && {((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["generation",-1]) == (_operation get "generation")}
-    && {(_operation get "ownerEpoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
-    (_operation get "restore") set ["groupAttack",[_baseAttack,false]];
-    _group setVariable ["CBE_Operation",_operation,true];
-    _group enableAttack false;
-};
-// Initial owner adoption may reset replay markers; this successfully created job now owns them.
-_group setVariable ["CBE_AIPass_ClearApplied",true];
-private _operationGeneration=_operation get "generation";
-_group setVariable ["CBE_AIPass_ClearBuilding", true, true];
+[{
+    params ["_liveOperation"];
+    private _delegationMembers=units _group;
+    if (count _delegationMembers <= 64
+        && {_delegationMembers findIf {isPlayer _x || {[_x] call CBE_fnc_CompatibilityExternalControl}} < 0}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["generation",-1]) == (_operation get "generation")}
+        && {(_operation get "ownerEpoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+        (_liveOperation get "restore") set ["groupAttack",[_baseAttack,false]];
+        _group setVariable ["CBE_Operation",_liveOperation,true];
+        _group enableAttack false;
+    };
+    // Initial owner adoption may reset replay markers; this successfully created job now owns them.
+    _group setVariable ["CBE_AIPass_ClearApplied",true];
+    _group setVariable ["CBE_AIPass_ClearBuilding", true, true];
+}] call _commitPreparation;
 private _entries=[];
 private _securityEntries=[];
 for "_exitIndex" from 0 to 15 do {
@@ -460,7 +492,8 @@ while {_remaining isNotEqualTo []} do {
 // every other member waits outside. Larger squads still receive several independent lanes, each with
 // a trailing security partner and its own claimed room route. Shared queue and failure evidence prevent
 // lanes from crowding the same room.
-private _pairs=[_group,_team] call CBE_fnc_CombatPairs;
+private _pairs=[];
+[{_pairs=[_group,_team] call CBE_fnc_CombatPairs}] call _commitPreparation;
 private _pairRoutes=_pairs apply {[]};
 private _pending=+_routeOrder;
 private _pairStates=[];
@@ -485,7 +518,7 @@ private _claimedEntryIndices=[];
     _pairStates pushBack [0,false,_pair apply {getPosATL _x},time,0,-1,
         time+(_forEachIndex*1.25),0,-1,_entryIndex,[],0,false];
 } forEach _pairs;
-_group setVariable ["CBE_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];
+[{_group setVariable ["CBE_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true]}] call _commitPreparation;
 private _job=createHashMapFromArray [
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["securityEntries",_securityEntries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
@@ -498,7 +531,7 @@ private _visitContext=_group getVariable ["CBE_Cortex_ClearVisitContext",[]];
 private _visitBase=[_building,_job get "buildingTransform",_hardDeadline];
 if (!_resume || {!(_visitContext isEqualType [])} || {count _visitContext != 4} || {(_visitContext select [0,3]) isNotEqualTo _visitBase}) then {
     _visitContext=_visitBase+[format ["%1:%2:%3",clientOwner,diag_tickTime,_generation]];
-    _group setVariable ["CBE_Cortex_ClearVisitContext",_visitContext,true];
+    [{_group setVariable ["CBE_Cortex_ClearVisitContext",_visitContext,true]}] call _commitPreparation;
 };
 _job set ["visitContext",+_visitContext];
 // Bind delayed reserve admission to this exact episode, not the first staging callback.
@@ -506,7 +539,7 @@ _job set ["visitContext",+_visitContext];
 private _reserveAdmission=_group getVariable ["CBE_Cortex_ClearReserveAdmission",[]];
 if (!_resume) then {
     _reserveAdmission=[+_visitContext,_reserveAdmissionRows];
-    _group setVariable ["CBE_Cortex_ClearReserveAdmission",_reserveAdmission,true];
+    [{_group setVariable ["CBE_Cortex_ClearReserveAdmission",_reserveAdmission,true]}] call _commitPreparation;
 };
 private _reserveAdmissionCommands=createHashMap;
 if (_reserveAdmission isEqualType [] && {count _reserveAdmission == 2}
@@ -553,7 +586,7 @@ _job set ["enteredActors",_enteredActors];
 // Early exits remain part of this episode even while other workers sweep.
 // Adopt bookkeeping only when the exact native leg or a physical arrival is still ours.
 private _earlyReceipt=_group getVariable ["CBE_Cortex_ClearEarlyExits",[]];
-if (!_resume) then {_group setVariable ["CBE_Cortex_ClearEarlyExits",nil,true]};
+if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearEarlyExits",nil,true]}] call _commitPreparation};
 if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
     && {(_earlyReceipt select 0) isEqualTo _visitContext}
     && {(_earlyReceipt select 1) isEqualType []} && {count (_earlyReceipt select 1) <= 8}) then {
@@ -599,7 +632,7 @@ if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
 // Adopt a transform/episode-bound exit journal without issuing movement. A different
 // native destination owns the actor now and must not inherit an old exit receipt.
 private _egressJournal=_group getVariable ["CBE_Cortex_ClearEgress",[]];
-if (!_resume) then {_group setVariable ["CBE_Cortex_ClearEgress",nil,true]};
+if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearEgress",nil,true]}] call _commitPreparation};
 if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) == "EGRESS"}
     && {(_egressJournal select 4) == _building}
     && {(_egressJournal select 5) isEqualTo (_job get "buildingTransform")}
@@ -678,18 +711,21 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
     _job set ["egressDeadline",time+(((_egressJournal select 7)-serverTime) max 0)];
     _job set ["egressFailed",_failed];
     _job set ["entryFailed",_egressJournal select 9];
-    _operation set ["participantPlatforms",createHashMapFromArray (_team apply {[netId _x,_x]})];
-    _operation set ["participants",+_team];
-    _operation set ["participantProgress",_team apply {[_x,getPosATL _x]}];
-    _operation set ["phase","EGRESS"];
-    _group setVariable ["CBE_Operation",_operation,true];
-    _group setVariable ["CBE_Cortex_ClearStatus",["EGRESS",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];
-    diag_log format ["CBE CLEAR EGRESS ADOPTED: %1",[_generation,count _assignments,_failed,_egressJournal select 7]];
+    [{
+        params ["_liveOperation"];
+        _liveOperation set ["participantPlatforms",createHashMapFromArray (_team apply {[netId _x,_x]})];
+        _liveOperation set ["participants",+_team];
+        _liveOperation set ["participantProgress",_team apply {[_x,getPosATL _x]}];
+        _liveOperation set ["phase","EGRESS"];
+        _group setVariable ["CBE_Operation",_liveOperation,true];
+        _group setVariable ["CBE_Cortex_ClearStatus",["EGRESS",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true];
+        diag_log format ["CBE CLEAR EGRESS ADOPTED: %1",[_generation,count _assignments,_failed,_egressJournal select 7]];
+    }] call _commitPreparation;
 };
 // Keep reserve search consumption across a true resume, independently of local handles.
 // Durable failed follow-through targets are bookkeeping, never movement/entry receipts.
 private _followBudget=_group getVariable ["CBE_Cortex_ClearFollowBudget",[]];
-if (!_resume) then {_group setVariable ["CBE_Cortex_ClearFollowBudget",nil,true]};
+if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearFollowBudget",nil,true]}] call _commitPreparation};
 if (_resume && {count _followBudget == 4} && {(_followBudget select 0) == _building}
     && {(_followBudget select 1) == _hardDeadline}
     && {(_followBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
@@ -717,7 +753,7 @@ if (_resume && {count _followBudget == 4} && {(_followBudget select 0) == _build
     _job set ["followThroughExhausted",_exhausted];
 };
 private _stageBudget=_group getVariable ["CBE_Cortex_ClearStageBudget",[]];
-if (!_resume) then {_group setVariable ["CBE_Cortex_ClearStageBudget",nil,true]};
+if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearStageBudget",nil,true]}] call _commitPreparation};
 if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _building}
     && {(_stageBudget select 1) == _hardDeadline}
     && {(_stageBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
@@ -757,7 +793,20 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
                 // A stopped physical arrival has no live MOVE endpoint to compare.
                 _stages set [_key,+_stage];
                 _moves set [_key,+_target];
-                _actor setVariable ["CBE_Cortex_ClearReserve",[_generation,_group getVariable ["CBE_AIPass_Epoch",0],+_target]];
+                [{
+                    // Native intent can change between staged receipt observation and commit.
+                    private _now=(expectedDestination _actor) param [0,[]];
+                    if (local _actor && {group _actor == _group} && {!isPlayer _actor}
+                        && {isNull objectParent _actor} && {[_actor] call CBE_fnc_CortexCombatEffective}
+                        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
+                        && {isNull remoteControlled _actor}
+                        && {currentCommand _actor == "MOVE" && {count _now == 3} && {_now vectorDistance _target <= 0.25}
+                            || {currentCommand _actor == "STOP" && {(_stage select 2) != "APPROACH"}
+                                && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}
+                                && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 0.75}}}) then {
+                        _actor setVariable ["CBE_Cortex_ClearReserve",[_generation,_preparationEpoch,+_target]];
+                    };
+                }] call _commitPreparation;
             };
         };
     } forEach ((_stageBudget select 3) select [0,64]);

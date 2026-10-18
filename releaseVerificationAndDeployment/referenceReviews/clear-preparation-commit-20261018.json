@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-18",
+  "scope": "Post-admission clearance preparation writes retain original authority",
+  "sources": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "3551b66c90ebce56ebfa7a2c218a55fdab0cbe0df9f05c593b39d5b6db7f9760",
+    "addons/infantry/functions/buildingOperationStart.sqf": "85540c4799f3dba472a674071f5dbf7daceed3900482d502c4fe5aee5b616d30"
+  },
+  "finding": "After common-operation admission, potentially yielding route preparation was followed by unguarded pair/status/visit/exit/search metadata, captured-operation publication and reserve-marker writes. Startup rejection alone could not undo stale writes over a successor.",
+  "change": "A short unscheduled commit rechecks original clear generation, operation generation/epoch/objective, owner epoch, target pose, native intent, original deadlines, active gate and external ownership. Recall, group attack delegation, applied flags, pair selection and later public preparation writes use it. Egress edits the live operation map passed into the commit instead of publishing the older captured map. Reserve marker commit also checks actor locality, membership, availability, reservation, remote control and current native leg/arrival. Egress adoption logs only after successful commit. The512-position route plan stays outside unscheduled blocks.",
+  "validation": {
+    "tests": 1161,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-clear-preparation-commit-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "4860d82a6bfb7acba8376d3ff63867becb2586047ecd6b98cecee06b29870b8f",
+    "initial_failure": "One old test required direct CombatPairs assignment; assertion now retains pair selection through the guarded commit. Initial failed log retained.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "limits": [
+    "Earlier pre-operation task handoff and public-order admission remain multi-stage; this does not prove all admission interleavings atomic.",
+    "No physical during-planning interruption probe or actual-provider HC acceptance was run. Existing prepared stale-worker/repeat cases are narrower than every scheduling race.",
+    "Additional checks occur during preparation, not a new per-frame scan. Runtime performance budget remains unmeasured.",
+    "All65 feature families remain partial."
+  ]
+}
