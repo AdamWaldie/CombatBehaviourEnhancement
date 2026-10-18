@@ -40,6 +40,8 @@
  * Normal-only exit-relief acceptance waits for natural readiness, introduces one real casualty,
  * then requires independent exterior observation overlap and physical promoted-reserve entry.
  * Missing readiness fails; no role/visit/assignment injection or HC acceptance is inferred.
+ * A separate normal-owner variant kills the still-observing guard only during real relief
+ * travel, then requires sustained replacement exit observation under the original deadline.
  * Return: Nothing. Current callers: cortexQA/runServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
@@ -1690,7 +1692,10 @@ deleteVehicle _casualtyHouse;
 
 // Exit-relief acceptance uses only ordinary clearance and a real casualty. Readiness
 // must arise physically; the fixture never injects pairs, room visits or stage assignments.
-private _reliefSite=[7350,5800,0];
+{
+private _observerLoss=_x;
+private _reliefPrefix=["CLEAR-relief","CLEAR-relief-observer-loss"] select _observerLoss;
+private _reliefSite=[7350,5800+([0,180] select _observerLoss),0];
 private _reliefHouse=createVehicle ["Land_i_House_Big_01_V1_F",_reliefSite,[],0,"NONE"];
 _reliefHouse enableSimulationGlobal true;
 [_reliefHouse,"exit-relief"] call _validateNewFixturePlacement;
@@ -1705,9 +1710,9 @@ for "_i" from 0 to 11 do {
     _reliefMembers pushBack _unit;
 };
 missionNamespace setVariable ["CBE_CortexQA_Actors",_reliefMembers,true];
-["CQB exit relief","Normal owner only. Ordinary clearance must produce progressed idle interior workers and physically established reserve observers before a casualty is introduced. The original exit observer must stay until relief physically arrives and faces a clear view; that observer must then enter independently. No room/stage/role state is injected.",_reliefSite] call _phase;
+[["CQB exit relief","CQB relief observer loss"] select _observerLoss,"Normal owner only. Ordinary clearance must produce progressed idle interior workers and physically established reserve observers before a casualty is introduced. The original exit observer must stay until relief physically arrives and faces a clear view; that observer must then enter independently. The loss variant kills the observer only during independently observed relief travel and requires replacement exit observation. No room/stage/role state is injected.",_reliefSite] call _phase;
 private _reliefAccepted=[_reliefGroup,_reliefHouse] call CBE_fnc_CortexClearBuilding;
-["CLEAR-relief-order-accepted",_reliefAccepted] call _check;
+[_reliefPrefix+"-order-accepted",_reliefAccepted] call _check;
 private _reliefVisits=createHashMap;
 private _reliefRooms=_reliefHouse buildingPos -1;
 private _observeReliefVisits={
@@ -1757,9 +1762,14 @@ private _reliefFixture=[{
     };
     !isNull _reliefCasualty && {_reliefGroup getVariable ["CBE_AIPass_ClearBuilding",false]}
 },120] call _wait;
-["CLEAR-relief-natural-fixture-ready",_reliefFixture,
+[_reliefPrefix+"-natural-fixture-ready",_reliefFixture,
     "Readiness requires live reserve posts and independent interior visits; no fallback state is injected."] call _check;
 private _reliefRequest=[];
+private _reliefStart=[];
+private _observerKilled=false;
+private _replacementSeenAt=-1;
+private _replacementHeld=false;
+private _reliefDeadlineUnchanged=true;
 private _reliefObserver=objNull;
 private _reliefWorker=objNull;
 private _reliefOriginalPost=[];
@@ -1775,6 +1785,7 @@ if (_reliefFixture) then {
         if (_reliefRequest isEqualTo [] && {_attempts isNotEqualTo []}) then {
             _reliefRequest=+(_attempts select 0);
             _reliefWorker=objectFromNetId (_reliefRequest select 0);
+            _reliefStart=getPosATL _reliefWorker;
             _reliefObserver=objectFromNetId (_reliefRequest select 1);
             private _originalStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _reliefObserver,[]];
             _reliefOriginalPost=+(_originalStage param [0,[]]);
@@ -1784,25 +1795,53 @@ if (_reliefFixture) then {
             private _row=(_job getOrDefault ["earlyExits",createHashMap]) getOrDefault [netId _reliefWorker,[]];
             private _originalStillHere=[_reliefObserver,_reliefOriginalPost,_reliefOriginalWatch] call _observedReliefPost;
             private _substituteHere=[_reliefWorker,_row param [1,[]],_row param [6,[]]] call _observedReliefPost;
-            if (!_reliefOverlap) then {
-                if (_originalStillHere && {_substituteHere}) then {_reliefOverlap=true};
-                if (!_originalStillHere) then {_reliefContinuous=false};
+            if (_observerLoss) then {
+                // Loss is introduced only after actual relief travel, before exterior arrival.
+                // Native command/path acceptance alone cannot trigger this second casualty.
+                if (!_observerKilled && {alive _reliefObserver} && {_originalStillHere}
+                    && {(_row param [3,""]) == "MOVING"}
+                    && {!_substituteHere} && {_reliefWorker distance2D _reliefStart > 1}
+                    && {_reliefWorker distance2D (_row select 1) > 3}
+                    && {serverTime < (_reliefRequest select 3)}) then {
+                    _reliefObserver setDamage 1;
+                    _observerKilled=true;
+                };
+                if (_observerKilled) then {
+                    _reliefDeadlineUnchanged=_reliefDeadlineUnchanged
+                        && {count _row >= 7} && {(_row select 2) == (_reliefRequest select 3)};
+                    if (_substituteHere && {_replacementSeenAt < 0}
+                        && {serverTime <= (_reliefRequest select 3)}) then {_replacementSeenAt=serverTime};
+                    if (!_substituteHere) then {_replacementSeenAt=-1};
+                    _replacementHeld=_replacementSeenAt >= 0 && {serverTime-_replacementSeenAt >= 3};
+                };
+            } else {
+                if (!_reliefOverlap) then {
+                    if (_originalStillHere && {_substituteHere}) then {_reliefOverlap=true};
+                    if (!_originalStillHere) then {_reliefContinuous=false};
+                };
+                if (_reliefOverlap && {!_substituteHere} && {!_reliefEntered}) then {_reliefContinuous=false};
+                _reliefEntered=_reliefEntered || {_reliefRooms findIf {
+                    [_reliefObserver,_reliefHouse,_x] call _observedRoomVisit
+                } >= 0};
             };
-            if (_reliefOverlap && {!_substituteHere} && {!_reliefEntered}) then {_reliefContinuous=false};
-            _reliefEntered=_reliefEntered || {_reliefRooms findIf {
-                [_reliefObserver,_reliefHouse,_x] call _observedRoomVisit
-            } >= 0};
         };
-        _reliefOverlap && {_reliefEntered}
+        [_reliefOverlap && {_reliefEntered},_replacementHeld] select _observerLoss
     },120] call _wait;
 };
-["CLEAR-relief-physical-observation-overlap",_reliefFixture && {_reliefOverlap} && {_reliefContinuous},str _reliefRequest] call _check;
-["CLEAR-relief-reserve-physical-entry",_reliefFixture && {_reliefOverlap} && {_reliefEntered},str [netId _reliefWorker,netId _reliefObserver]] call _check;
+if (_observerLoss) then {
+    [_reliefPrefix+"-casualty-during-physical-travel",_reliefFixture && {_observerKilled},str _reliefRequest] call _check;
+    [_reliefPrefix+"-replacement-exit-observed",_observerKilled && {_replacementHeld},str [netId _reliefWorker,_replacementSeenAt]] call _check;
+    [_reliefPrefix+"-original-deadline-retained",_observerKilled && {_replacementHeld} && {_reliefDeadlineUnchanged},str _reliefRequest] call _check;
+} else {
+    [_reliefPrefix+"-physical-observation-overlap",_reliefFixture && {_reliefOverlap} && {_reliefContinuous},str _reliefRequest] call _check;
+    [_reliefPrefix+"-reserve-physical-entry",_reliefFixture && {_reliefOverlap} && {_reliefEntered},str [netId _reliefWorker,netId _reliefObserver]] call _check;
+};
 [_reliefGroup] call CBE_fnc_CortexClearRelease;
 missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _reliefMembers;
 deleteGroup _reliefGroup;
 deleteVehicle _reliefHouse;
+} forEach [false,true];
 
 // Whole-lane loss after real entry must not let exterior reserves inherit entry evidence.
 private _pairLossSite=[7150,6000,0];

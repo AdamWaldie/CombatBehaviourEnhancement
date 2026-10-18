@@ -34,14 +34,18 @@
     "status": "UNRUN_NORMAL_OWNER_ONLY",
     "setup": "Ordinary twelve-person clearance, unique physically observed reserve posts and independently visited idle interior worker; one actual casualty only after readiness. Missing readiness fails, no role/visit/movement assistance.",
     "observations": "Original observer physical position/facing/eye VIEW before relief overlap; substitute physical position/facing/eye VIEW throughout handover until independent room-entry observation of the promoted reserve. No public role or journal alone passes.",
-    "limits": "0.2second audit sampling can miss brief transitions and conservatively fail. No live result, HC/provider transfer, all interruptions or frame-cost proof."
+    "limits": "Both normal-owner variants remain UNRUN. Missing natural readiness or actual in-flight travel fails.0.2second observation sampling is conservative and may miss brief transitions; no HC/provider migration, all interruption variants or measured frame-cost coverage.",
+    "variants": [
+      "Normal coverage overlap followed by promoted-reserve independent room entry.",
+      "Known original observer killed only while still physically observing and after more than1m actual relief travel, more than3m before its target; replacement must independently establish post/facing/clear eye VIEW for3seconds with unchanged original deadline."
+    ]
   },
   "latestValidation": {
-    "tests": 1318,
+    "tests": 1319,
     "exitCode": 0,
-    "log": ".qa/cbe-clear-relief-security-loss-verified-build.log",
-    "packageFingerprint": "b84ad1b131b4039ed7699d491cd9cc0b7cbce60caf2d58e217c55a99e8b14611",
-    "source": "8020e896 plus intended callback, guide and source contract; metadata appended after build"
+    "log": ".qa/cbe-clear-relief-loss-fixture-verified-build.log",
+    "packageFingerprint": "5e7f24ffa4d4fe928fbbeec673869ec591fbcd9c01e58218fa40f6873243afa4",
+    "source": "79e59a23 plus intended comparison fixture, guide and source contract; engineering metadata appended after build"
   },
   "demandLifecycleFollowUp": {
     "baselineCommit": "2a218117",

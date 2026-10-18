@@ -38,12 +38,12 @@ class ClearExitRelief(unittest.TestCase):
         for required in ('_reliefCasualty setDamage 1','call CBE_fnc_CortexClearBuilding',
                          '_uniquePosts','call _observeReliefVisits','lineIntersectsSurfaces',
                          '_originalStillHere && {_substituteHere}','call _observedRoomVisit',
-                         '"CLEAR-relief-physical-observation-overlap"','"CLEAR-relief-reserve-physical-entry"'):
+                         '_reliefPrefix+"-physical-observation-overlap"','_reliefPrefix+"-reserve-physical-entry"'):
             self.assertIn(required,r)
         for forbidden in ('setVariable ["CBE_Cortex_ClearRelief"','_job set','_stages set',
                           'doMove','setDestination','doWatch','set ["cleared"','set ["actorVisits"'):
             self.assertNotIn(forbidden,r)
-        self.assertLess(r.index('CLEAR-relief-natural-fixture-ready'),r.index('_reliefCasualty setDamage 1'))
+        self.assertLess(r.index('_reliefPrefix+"-natural-fixture-ready"'),r.index('_reliefCasualty setDamage 1'))
     def test_fixture_is_explicitly_normal_owner_and_never_claims_hc_coverage(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')
         r=s.split('// Exit-relief acceptance uses only ordinary clearance',1)[1].split('// Whole-lane loss',1)[0]
@@ -90,4 +90,18 @@ class ClearExitRelief(unittest.TestCase):
         self.assertNotIn('isObjectHidden',branch)
         self.assertNotIn('currentCommand',branch)
         self.assertIn('private _visible=(getPosASL _actor) vectorDistance',s)
+    def test_observer_loss_fixture_requires_real_travel_and_actual_replacement_observation(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')
+        r=s.split('// Exit-relief acceptance uses only ordinary clearance',1)[1].split('// Whole-lane loss',1)[0]
+        for requirement in ('"CLEAR-relief-observer-loss"','} forEach [false,true]',
+                            '_reliefWorker distance2D _reliefStart > 1',
+                            '_reliefWorker distance2D (_row select 1) > 3',
+                            '_reliefObserver setDamage 1',
+                            '(_row select 2) == (_reliefRequest select 3)',
+                            'serverTime-_replacementSeenAt >= 3',
+                            '"-replacement-exit-observed"'):
+            self.assertIn(requirement,r)
+        self.assertLess(r.index('_reliefWorker distance2D _reliefStart > 1'),r.index('_reliefObserver setDamage 1'))
+        self.assertIn('alive _reliefObserver} && {_originalStillHere}',r)
+        self.assertIn('if (!_substituteHere) then {_replacementSeenAt=-1}',r)
 if __name__=='__main__': unittest.main()
