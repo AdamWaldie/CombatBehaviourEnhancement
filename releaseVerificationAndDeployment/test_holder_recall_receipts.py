@@ -33,3 +33,22 @@ class HolderRecallReceiptTests(unittest.TestCase):
         self.assertLess(retreat.index('CortexHolderRecallOwned'),retreat.index('call CBE_fnc_CortexGroupMove'))
         self.assertIn('(_live getOrDefault ["generation",-2]) == _generation',retreat)
         self.assertNotIn('_state set ["holders", []]',retreat)
+
+    def test_pending_locality_recall_is_finite_and_keeps_original_native_proof(self):
+        worker=source('cortexHolderRecallPending')
+        for guard in ('serverTime+30','serverTime >= _until','_attempt >= 30',
+                      '_callbackEpoch != _epoch','_key isNotEqualTo _identity',
+                      'CortexHolderRecallOwned','count (_record select 3) > 64',
+                      'UNRESOLVED_DEADLINE','SUPERSEDED','FOLLOW_ISSUED'):
+            self.assertIn(guard,worker)
+        self.assertLess(worker.index('CortexHolderRecallOwned'),worker.index('_actor doFollow _leader'))
+        self.assertIn('(_x select 7) isEqualTo _order',worker)
+        self.assertIn('[_group,[],_identity,_attempt+1,_epoch],1]',worker)
+        self.assertNotIn('enableAI',worker)
+        self.assertNotIn('setPos',worker)
+        self.assertNotIn('setVelocity',worker)
+        calm=source('cortexRestoreCalm')
+        self.assertIn('!local (_x select 0)',calm)
+        self.assertLess(calm.index('CortexGroupMoveClear'),calm.index('CortexHolderRecallPending'))
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
+        self.assertIn('[_group] call CBE_fnc_CortexHolderRecallPending',locality)

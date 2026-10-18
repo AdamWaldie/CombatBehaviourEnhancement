@@ -1,3 +1,9 @@
+## Split-locality ordinary hold handback - 2026-10-18
+
+After f97ed4cb: CortexRestoreCalm preserves up to 64 nonlocal ordinary hold rows only when their original actor token and native route still match after CBE route cleanup. CortexHolderRecallPending gives those rows one original 30-second deadline, public durable status and a coalesced owner/epoch-bound callback chain. CortexLocality resumes the original journal without extending the deadline. Native follow requires actual group and actor ownership plus the unchanged original receipt. New generation, clearance or external takeover supersedes; deadline expiry retains unresolved rows. FOLLOW_ISSUED is command issue only. Changed-route rows are not rebased or force-recalled; all other standing/support hold paths and physical acceptance remain open.
+
+Full offline build exited 0: 1,430 tests / 331 SQF / nine PBOs; .qa/cbe-holder-pending-build.log. Independent mod_pipeline verify passed, unsigned fingerprint bd8c2d0ae271e07bb46dd3a91c63436e4d7378d11deff317fda1c0d0801f110a. Built from uncommitted source after f97ed4cb, not a clean release. All 65 feature families remain partial. Audits remain PAUSED; no Arma launch, merge, release or Steam upload. PR17 remains draft with remote 4a28b3e8 until coherent push. Preserve unrelated artwork and all protected references/keys.
+
 ## Completed ordinary hold receipts - 2026-10-18
 
 Audits remain paused. After 368974a2, completed FlankEnd ordinary holds receive immutable issuer/native-order receipts and a current actor token. GroupTick, RestoreCalm and Retreat require the matching token, target and order before follow. Checkpoint transports provenance without renewal. Recall precedes CBE route cleanup/replacement. Hidden, simulation-disabled, movement-disabled, reserved and externally controlled actors are refused.

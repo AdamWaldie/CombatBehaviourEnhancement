@@ -149,7 +149,18 @@ if (!_yieldToExternal && {count _retreatModeLease == 2} && {combatMode _group ==
 // preserve a mission-disabled PATH feature; legacy support PATH leases were handled above.
 {if (alive _x) then {[_x,false,false] call _releaseOwnedHold}} forEach (_state getOrDefault ["holders", []]);
 // Consume original hold/search route receipts before our own temporary route is removed.
+// Preserve only split-locality ordinary holds. Current actor tokens exclude already recalled rows.
+private _pendingHolds=if (_yieldToExternal) then {[]} else {
+    ((_state getOrDefault ["holderRecallReceipts",[]]) select [0,64]) select {
+        _x isEqualType [] && {count _x == 8} && {(_x select 0) isEqualType objNull}
+        && {!isNull (_x select 0)} && {!local (_x select 0)}
+        && {group (_x select 0) == _group}
+        && {((_x select 0) getVariable ["CBE_Cortex_HolderToken",[]]) isEqualTo (_x select [1,5])}
+    }
+};
 [_group] call CBE_fnc_CortexGroupMoveClear;
+// Changed routes are not adopted as new proof by this bounded handback.
+if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_CortexHolderRecallPending};
 {
     if (local _x && {_x getVariable ["CBE_AIPass_StanceSet", false]}) then {
         if (!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}

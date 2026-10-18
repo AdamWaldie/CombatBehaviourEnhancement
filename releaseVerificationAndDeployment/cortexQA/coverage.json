@@ -465,7 +465,8 @@
         "addons/infantry/functions/cortexFlankStart.sqf",
         "addons/infantry/functions/cortexFlankStep.sqf",
         "addons/infantry/functions/cortexSelectAvenue.sqf",
-        "addons/infantry/functions/cortexHolderRecallOwned.sqf"
+        "addons/infantry/functions/cortexHolderRecallOwned.sqf",
+        "addons/infantry/functions/cortexHolderRecallPending.sqf"
       ]
     },
     {

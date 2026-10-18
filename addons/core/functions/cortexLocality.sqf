@@ -132,6 +132,8 @@ _group setVariable ["CBE_AIPass_Managed", nil];
 {_group setVariable [_x, nil]} forEach ["CBE_AIPass_GarrisonApplied", "CBE_AIPass_DefendApplied", "CBE_AIPass_ClearApplied"];
 _group setVariable ["CBE_AIPass_Adopted", _gained];
 if (!_gained || {!local _group}) exitWith {};
+// Resume only the original pending hold deadline; the executor rechecks actual actor ownership.
+[_group] call CBE_fnc_CortexHolderRecallPending;
 // Group and vehicle ownership need not arrive together; discovery retries the split case.
 private _passVehicles=[];
 {

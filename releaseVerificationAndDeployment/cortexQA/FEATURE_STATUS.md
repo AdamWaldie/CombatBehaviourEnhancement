@@ -20,7 +20,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | MEDICAL - Finite squad medical assistance | 4 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
 | CONTACT - Contact detection | 9 | 0 | 21 | `runContact.sqf`, `runCombat.sqf`, `runTacticalAssessment.sqf`, `runScheduler.sqf`, `runVehicleDrills.sqf` | 0 | implemented_partial |
 | POST - Post-contact search | 5 | 0 | 1 | `runMechanics.sqf`, `runContact.sqf` | 0 | implemented_partial |
-| FLANK - Flanking bounds | 8 | 0 | 5 | `runCombat.sqf` | 3 | implemented_partial |
+| FLANK - Flanking bounds | 8 | 0 | 6 | `runCombat.sqf` | 3 | implemented_partial |
 | CROSS - Road crossing | 1 | 0 | 1 | `runCrossing.sqf` | 0 | implemented_partial |
 | FIRE - Fire distribution and suppression | 3 | 0 | 2 | `runFireControl.sqf` | 0 | implemented_partial |
 | MORALE - Morale and withdrawal | 3 | 0 | 1 | `runReactions.sqf` | 2 | implemented_partial |
