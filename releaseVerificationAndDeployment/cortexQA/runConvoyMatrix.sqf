@@ -97,6 +97,14 @@ private _terrainRight=[cos _terrainHeading,-sin _terrainHeading,0];
 ["CNVM-terrain-scenario",_terrainScenarioReady,
     str [worldName,_terrainOrigin,_terrainHeading,_terrainRelief,_terrainMaximumGrade,_terrainMinimumNormal]] call _check;
 if (!_terrainScenarioReady) exitWith {};
+private _nativeStopFocus=(missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) == "convoynativestop";
+if ((missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) in ["all","features","convoy","convoytracked","convoynativestop"]
+    && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) || {_nativeStopFocus}}) then {
+    [_check,_phase,_wait,[[2500,2500] call _terrainPosition,[2500,3500] call _terrainPosition],_terrainHeading]
+        call compile preprocessFileLineNumbers "cortexQAConvoyNativeStop.sqf";
+};
+if (_nativeStopFocus) exitWith {};
+
 private _columnOnly=(missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) in ["convoycolumn","convoytracked"];
 private _trackedOnly=(missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) == "convoytracked";
 private _followDiagnostic=(missionNamespace getVariable ["CBE_CortexQA_Focus","all"]) == "convoyfollow";

@@ -241,3 +241,12 @@ They retain the original operation episode and hard deadline, provide no reserve
 no movement, lease or completion state. The slot-zero exterior-survivor prerequisite must be
 observed; a missed timing window remains failed/unexercised. These additions are unrun and do
 not establish physical acceptance. HC migration coverage remains in the separate HC batch.
+
+
+`convoynativestop` is a prepared **normal-only** tracked convoy handover case. It reuses the matrix's validated straight route, requires a real NATIVE receipt plus at least 15 m of travel, issues operator STOP, observes revision yield and physical rest, samples five seconds of unchanged STOP intent, then requires 25 m of travel toward a fresh ordinary native MOVE while the old convoy stays yielded. It creates and deletes its own fixtures before the matrix cases; no later spacing measurement reuses its stimulated group. The launcher rejects HC batches for this focus. This procedure has not been run; audits remain paused. It does not establish repeated fixed-path STOP detection or HC/provider handover.
+
+The shared wait callback uses reserved helper-local names. Earlier `_until` naming hid caller deadlines in garrison posture and landing-release predicates, mixing mission/server time with a diagnostic-clock timeout. Source scope is corrected; old runtime findings remain recorded and are not retrospectively converted into passes. These affected procedures need fresh engine evidence when audits resume.
+
+The isolated `convoynativestop` focus supports VR and Altis. It exits before unrelated VR fixtures are created; the matrix validates its terrain route first. Both the launcher and staging API reject HC batches. Travel is measured from observation of the current native leg, not spawn position; resetting that observation does not extend the original timeout. Stimulus commands recheck actual ownership and unchanged intent after observer-card delays.
+
+The fresh ordinary MOVE requires an observed native destination in the requested coordinate frame before its travel origin is captured. An immediate post-command read is not treated as acknowledgement. Intent checks compare the requested native point and command; ordinary planner-mode/force-replan changes alone are not a different destination.

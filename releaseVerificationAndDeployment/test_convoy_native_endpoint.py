@@ -118,3 +118,29 @@ class ConvoyNativeIssueEvidenceTests(unittest.TestCase):
             body='\n'.join(line for line in body.splitlines() if not line.lstrip().startswith('//'))
             self.assertIn('call CBE_fnc_ConvoyRetireMoveReceipt',body,name)
             self.assertLess(body.index('call CBE_fnc_ConvoyRetireMoveReceipt'),body.index('doStop '),name)
+
+    def test_stop_handover_fixture_requires_real_travel_and_preserves_owner_intent(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyNativeStop.sqf').read_text(encoding='utf-8')
+        for marker in ('CBE_CortexQA_HeadlessBatch','local _group','local _driver','local _operator',
+                       'real-native-travel-prerequisite','vectorDistance _nativeTravelOrigin >= 15','doStop _operator',
+                       'CBE_Convoy_CommandYield','physical-stop','angularVelocity _vehicle',
+                       'serverTime+5','_stopIntentUntilServerTime','sampled-stop-intent-stable','_operator doMove _target',
+                       'vectorDistance _resumeOrigin >= 25','fresh-native-move-physical'):
+            self.assertIn(marker,qa)
+        outcomes=qa.split('// Assertions are finished.',1)[0]
+        for forbidden in ('forceSpeed','setDriveOnPath','setVelocity','setPosATL','setGroupOwner',
+                          'call CBE_fnc_ConvoyReleaseLocal','setVariable ["CBE_Convoy_CommandYield"',
+                          'setVariable ["CBE_Convoy_MovementReceipt"','setVariable ["CBE_Convoy_LocalState"'):
+            self.assertNotIn(forbidden,outcomes)
+        self.assertLess(qa.index('real-native-travel-prerequisite'),qa.index('doStop _operator'))
+        self.assertLess(qa.index('fresh-native-move-physical'),qa.index('// Assertions are finished.'))
+        matrix=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text(encoding='utf-8')
+        self.assertIn('cortexQAConvoyNativeStop.sqf',matrix)
+        self.assertIn('|| {_nativeStopFocus}',matrix)
+        self.assertIn('_observedNativeReceipt=+_receipt',qa)
+        self.assertIn('private _travelled=_resumeObserved',qa)
+        self.assertIn('(AGLToASL _point) vectorDistance (ATLToASL _target) <= 3',qa)
+        self.assertIn('fresh-native-command-observed',qa)
+        self.assertLess(matrix.index('cortexQAConvoyNativeStop.sqf'),matrix.index('private _types ='))
+        launcher=(ROOT/'releaseVerificationAndDeployment/launch_mod_audit.ps1').read_text(encoding='utf-8')
+        self.assertIn("$Focus -eq 'convoynativestop'",launcher)

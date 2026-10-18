@@ -7,6 +7,19 @@ from unittest.mock import patch
 from mod_pipeline import ROOT, seal, stage, verify, release_gate, supported_focuses
 
 class PackagePipelineTests(unittest.TestCase):
+    def test_native_stop_focus_stages_on_validated_terrain_and_rejects_hc(self):
+        for world in ('VR','Altis'):
+            mission=stage(self.folder,Path(self.temp.name)/('native-stop-'+world),
+                          'convoynativestop',world=world,batch_mode='normal')
+            self.assertEqual(mission.name,'CBE_Audit.'+world)
+            source=(mission/'cortexQAConvoyNativeStop.sqf').read_text(encoding='utf-8')
+            self.assertIn('CNVM-NATIVE-STOP',source)
+            self.assertIn('vectorDistance _nativeTravelOrigin >= 15',source)
+            self.assertNotIn('HeadlessClient_F',(mission/'mission.sqm').read_text(encoding='utf-8'))
+        with self.assertRaisesRegex(ValueError,'normal batch'):
+            stage(self.folder,Path(self.temp.name)/'bad-native-stop-hc',
+                  'convoynativestop',batch_mode='headless')
+
     def test_road_passing_stage_requires_real_terrain_and_separate_normal_batch(self):
         mission=stage(self.folder,Path(self.temp.name)/'road-pass','roadpassing',world='Altis')
         self.assertEqual(mission.name,'CBE_Audit.Altis')

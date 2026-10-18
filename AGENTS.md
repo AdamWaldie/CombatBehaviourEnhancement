@@ -74,3 +74,7 @@ The user explicitly chose Combat Behaviour Enhancement (CBE) and required a comp
 ## External-controller handover evidence
 
 A pause flag or a main-loop running marker is not exclusive movement authority. Before implementing an adapter, enumerate every current writer, including recovery, push/physics, crew policy, seat callbacks and cleanup. Require an actual owner/token/episode-scoped quiescence acknowledgement before CBE writes, and a real provider resume acknowledgement plus physical authored-order travel afterward. Do not fabricate success from detection, elapsed nominal callback delay or empty main-loop flags. Current HBQ findings and required contract are in `releaseVerificationAndDeployment/referenceReviews/hbq-controller-handover-20261018.json`; Pause does not stop every worker, and already queued callbacks have separate lifetimes. Keep compatibility expansion last; use findings now to improve CBE individual/FSM mutation guards. Never alter protected sources to make a handover test pass.
+
+## Audit predicate scope
+
+Shared SQF wait helpers must reserve distinct parameter/local names such as `_cbeQaWaitPredicate` and `_cbeQaWaitDeadlineTick`. `call` predicates read the active dynamic scope; a helper-local `_until` hides a caller's mission/server-time `_until` and can cause false timeout or acknowledgement findings. Preserve the caller's clock and original deadline. Do not fix a failing audit by assigning production completion state. Prepared procedures remain unrun until fresh in-engine evidence exists.
