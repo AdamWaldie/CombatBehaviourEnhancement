@@ -62,7 +62,9 @@ class ClearReserveAdmissionTests(unittest.TestCase):
         step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
         gate=step.split('private _reserveReady=',1)[1].split('private _reserves=',1)[0]
         self.assertNotIn('private _stageCommandFree=!_stagedHere',gate)
-        self.assertIn('_command in ["","STOP"]',gate)
+        self.assertIn('_command == "" || {[_candidate] call _ownsCurrentMove}',gate)
+        self.assertIn('_stagedHere} && {_command == "STOP"}',gate)
+        self.assertIn('vectorDistance (AGLToASL _post) <= 2',gate)
         self.assertIn('call _ownsCurrentMove',gate)
         self.assertIn('(_admitted select 1) == _command',gate)
         self.assertIn('_native isEqualTo _original',gate)

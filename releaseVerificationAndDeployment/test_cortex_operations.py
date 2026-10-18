@@ -9155,7 +9155,7 @@ class CortexOperations(unittest.TestCase):
         stage=step.split('private _reserveStages=',1)[1].split('private _pairRosterChanged=',1)[0]
         self.assertLess(stage.index('_stage set [2,"ARRIVED"]'),stage.index('// A deadline may retire only'))
         recovery=stage.split('// A deadline may retire only',1)[1].split('} forEach _stageReserves',1)[0]
-        for guard in ['[_reserve] call _ownsCurrentMove','[_reserve] call _reserveReady','call _mayIssueMovement']:
+        for guard in ['[_reserve,_stage select 0] call _reserveLegOwned','[_reserve] call _reserveReady','call _mayIssueMovement']:
             self.assertLess(recovery.index(guard),recovery.index('doStop _reserve'))
         self.assertIn('_stageSearchCounts getOrDefault [_key,0]',recovery)
         self.assertIn('"EXHAUSTED"',recovery)
