@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-18",
+  "scope": "Queue and passing consent interaction",
+  "finding": "Queue admission refused passing consent but passing admission did not refuse queue consent.",
+  "implementation": [
+    "Default PASS refuses live/malformed queue ownership",
+    "Internal QUEUE eligibility retains independent passing refusal",
+    "Expired typed consent releases negotiation exclusion"
+  ],
+  "validation": {
+    "tests": 1237,
+    "exit": 0,
+    "log": ".qa/cbe-queue-pass-exclusion-verified-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Actual queue HOLD/READY/reverse/dependency/cleanup execution",
+    "Physical negotiation races and overhead"
+  ],
+  "acceptance": "partial; consent is not movement"
+}

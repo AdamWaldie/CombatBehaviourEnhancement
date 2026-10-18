@@ -63,7 +63,7 @@ for "_i" from 0 to (_n-1) do {
                 && {(_pass select 3) isEqualType 0} && {finite (_pass select 3)};
             _passBusy=!_typed || {serverTime < ([_pass select 2,_pass select 3] select ((_pass select 4) == "AGREED"))};
         };
-        if (!([_vehicle] call CBE_fnc_DrivingPassCanConsent)
+        if (!([_vehicle,"QUEUE"] call CBE_fnc_DrivingPassCanConsent)
             || {(_brain getOrDefault ["generation",-2]) != ((_a select 2) select 5)}
             || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
             || {_passBusy}

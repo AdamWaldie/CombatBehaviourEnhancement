@@ -5,12 +5,31 @@
  * remote participant; observing its public receipt cannot substitute for its owner's consent.
  * Repeat/JIP: No commands, state, claims, handlers or cached permission. Recheck at negotiation
  * and every future command boundary. True is eligibility only, not an acknowledgement or priority.
- * Arguments: 0 vehicle <OBJECT>, objNull.
+ * Arguments: 0 vehicle <OBJECT>, objNull; 1 protocol <STRING, PASS>, PASS or internal QUEUE.
+ * PASS refuses live/malformed queue consent; QUEUE reuses ordinary eligibility without rejecting
+ * its own agreement. QueueProposalCurrent independently refuses passing consent.
  * Return: BOOL - local ordinary-route eligibility, never authority to execute a pass.
  * Current callers: DrivingPassPrepare and authenticated DrivingPassAgreementOwner verification.
  * Example: private _eligible=[truck1] call CBE_fnc_DrivingPassCanConsent;
  */
-params [["_vehicle",objNull,[objNull]]];
+params [["_vehicle",objNull,[objNull]],["_protocol","PASS",[""]]];
+if !(_protocol in ["PASS","QUEUE"]) exitWith {false};
+if (_protocol == "PASS" && {!isNull _vehicle}) then {
+    private _queue=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+    private _busy=false;
+    if !(_queue isEqualType createHashMap) then {_busy=true} else {
+        if (count _queue > 0) then {
+            private _phase=_queue getOrDefault ["phase",""];
+            private _until=_queue getOrDefault [["deadline","expires"] select (_phase == "AGREED"),-1];
+            private _token=_queue getOrDefault ["token",""];
+            _busy=!(_phase in ["PENDING","AGREED"]) || {!(_until isEqualType 0)}
+                || {!finite _until} || {_until < 0} || {!(_token isEqualType "")} || {_token == ""}
+                || {serverTime < _until};
+        };
+    };
+    if (_busy) then {_protocol="BUSY"};
+};
+if (_protocol == "BUSY") exitWith {false};
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}
     || {!canMove _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
     || {!isNil {_vehicle getVariable "CBE_DrivingPass_Leg"}}
