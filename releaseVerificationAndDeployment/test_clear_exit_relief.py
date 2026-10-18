@@ -51,4 +51,27 @@ class ClearExitRelief(unittest.TestCase):
         self.assertIn('"acex_headless_blacklist",true,true',r)
         self.assertIn('Normal owner only.',r)
         self.assertIn('call CBE_fnc_CortexClearRelease',r)
+    def test_pending_relief_retires_only_owned_leg_when_demand_changes(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        r=s.split('// Relief is tied to the original casualty vacancy',1)[1].split('if ((getPosASL _actor) vectorDistance',1)[0]
+        for requirement in ('count _binding != 5','(_pair param [_slot,objNull]) == _missing',
+                            '_stage isEqualTo _originalStage','isEqualTo _originalNative',
+                            'call _exitMovementOwned','isEqualTo _native','call _reliefNeeded',
+                            'CBE_fnc_CortexIsPaused','CBE_fnc_CortexZeusHeld'):
+            self.assertIn(requirement,r)
+        self.assertLess(r.index('isNil {'),r.index('doStop _actor'))
+        self.assertLess(r.index('isEqualTo _reliefJournal'),r.index('doStop _actor'))
+        self.assertIn('_earlyExits deleteAt (netId _actor)',r)
+        self.assertIn('_earlyMotion deleteAt (netId _actor)',r)
+        self.assertIn('"roomHolds",createHashMap',r)
+        self.assertNotIn('doMove _guard',r)
+        self.assertNotIn('_reserves deleteAt',r)
+    def test_last_retired_relief_publishes_empty_current_context_for_adoption(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        p=s.split('private _publishEarlyExits={',1)[1].split('private _record=_earlyExits get',1)[0]
+        self.assertIn('count _previous == 2',p)
+        self.assertIn('(_previous select 0) isEqualTo _currentContext',p)
+        self.assertIn('private _rows=(keys _earlyExits)',p)
+        self.assertIn('isNotEqualTo _receipt',p)
+        self.assertIn('call _mayIssueMovement',p)
 if __name__=='__main__': unittest.main()

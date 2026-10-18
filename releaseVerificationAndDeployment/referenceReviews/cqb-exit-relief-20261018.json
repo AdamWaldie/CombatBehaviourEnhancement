@@ -37,10 +37,22 @@
     "limits": "0.2second audit sampling can miss brief transitions and conservatively fail. No live result, HC/provider transfer, all interruptions or frame-cost proof."
   },
   "latestValidation": {
-    "tests": 1315,
+    "tests": 1317,
     "exitCode": 0,
-    "log": ".qa/cbe-clear-relief-physical-fixture-verified-build.log",
-    "packageFingerprint": "60dcdc44303f5451a4db3160605f1c68a96b74e8d545de3c73222b2ab53ea605",
-    "source": "e9420adf plus intended audit fixture, guide and test contracts; engineering metadata appended after build"
+    "log": ".qa/cbe-clear-relief-demand-verified-build.log",
+    "packageFingerprint": "4a0ceb0a187db54563803a0fce44ce27ac44adbbe6578d1b024466e0d476d511",
+    "source": "2a218117 plus intended callback, guide and source contracts; review/handover metadata appended afterward"
+  },
+  "demandLifecycleFollowUp": {
+    "baselineCommit": "2a218117",
+    "implementation": [
+      "Attempt row now appends original casualty pair/slot/member, observer stage and native intent. Final dispatch rechecks that observer native snapshot.",
+      "Existing early-exit callback checks pending relief against the original vacancy, observer current stage/native intent/physical position and fixed deadline. Invalid demand retires only an exact-owned actor leg into a current room hold, clearing old movement and motion observations. A new relief-actor order remains DIVERTED and is not stopped.",
+      "Retiring the last early-exit row publishes an empty snapshot for the same visit context. Duplicate empty snapshots are coalesced; another episode is not cleared. Attempt budget remains consumed across resume."
+    ],
+    "limits": [
+      "Same-value external native commands cannot be distinguished. Native STOP acknowledgement, actual lane rejoin and HC transfer still need physical tests.",
+      "Observer death/departure currently retires that pending relief; proactive reassessment of an uncovered exit as a new security replacement remains a broader isolation-role requirement. This is not universal casualty/isolation adaptation."
+    ]
   }
 }

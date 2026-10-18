@@ -19,6 +19,8 @@
  * A casualty blocked by sole-exit coverage may request one progressed idle interior worker
  * to relieve that exit. Existing egress arrival/view and promotion proofs remain mandatory;
  * one finite attempt per worker/episode is public for migration, at most eight attempts.
+ * Pending relief binds the original casualty slot and observer native state; invalidation
+ * retires only its owned leg into a yieldable lane hold. Empty retirement is published.
  * Locality / Authority: Runs through CBE's shared scheduler where the group is local. It checks the
  * operation generation, Zeus and external ownership before issuing any movement command.
  * Repeat/JIP: One-shot callback. Shared and individual physical room progress is public; owner-local actor assignments are
@@ -756,7 +758,10 @@ private _delay=call {
     private _earlyExits=_job getOrDefault ["earlyExits",createHashMap];
     private _earlyMotion=_job getOrDefault ["earlyExitMotion",createHashMap];
     private _publishEarlyExits={
-        if (count _earlyExits > 0 && {call _mayIssueMovement}) then {
+        private _previous=_group getVariable ["CBE_Cortex_ClearEarlyExits",[]];
+        private _currentContext=_job get "visitContext";
+        if ((count _earlyExits > 0 || {count _previous == 2 && {(_previous select 0) isEqualTo _currentContext}})
+            && {call _mayIssueMovement}) then {
             private _rows=(keys _earlyExits) apply {+(_earlyExits get _x)};
             private _receipt=[+(_job get "visitContext"),_rows];
             if ((_group getVariable ["CBE_Cortex_ClearEarlyExits",[]]) isNotEqualTo _receipt) then {
@@ -778,6 +783,58 @@ private _delay=call {
                 (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
                 _job set ["egressFailed",true];
             } else {
+                // Relief is tied to the original casualty vacancy and observer. If either
+                // changes before arrival, retire only our own leg and return the worker to
+                // its existing lane. A newer actor order takes the DIVERTED path above.
+                private _reliefJournal=_group getVariable ["CBE_Cortex_ClearRelief",[]];
+                private _reliefRows=if (count _reliefJournal == 2
+                    && {(_reliefJournal select 0) isEqualTo (_job get "visitContext")}) then {
+                    (_reliefJournal select 1) select [0,8]
+                } else {[]};
+                private _reliefIndex=_reliefRows findIf {(_x param [0,""]) == netId _actor};
+                if (_state == "MOVING" && {_reliefIndex >= 0}) then {
+                    private _reliefRow=+(_reliefRows select _reliefIndex);
+                    private _binding=_reliefRow param [4,[],[[]]];
+                    private _reliefNeeded={
+                        if (count _binding != 5 || {serverTime >= (_reliefRow select 3)}) exitWith {false};
+                        _binding params ["_pairIndex","_slot","_missing","_originalStage","_originalNative"];
+                        private _guard=objectFromNetId (_reliefRow select 1);
+                        private _stage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _guard,[]];
+                        private _pair=(_job get "pairs") param [_pairIndex,[]];
+                        (_pair param [_slot,objNull]) == _missing
+                            && {!([_missing] call _actorAvailable) || {_missing in _unavailable}}
+                            && {[_guard] call _actorAvailable} && {[_guard] call _actorTaskFree}
+                            && {_stage isEqualTo _originalStage} && {(_stage param [2,""]) == "ARRIVED"}
+                            && {(_stage param [5,[]]) isEqualTo (_reliefRow select 2)}
+                            && {[currentCommand _guard,expectedDestination _guard,formLeader _guard] isEqualTo _originalNative}
+                            && {currentCommand _guard in ["","STOP"]}
+                            && {(getPosASL _guard) vectorDistance (AGLToASL (_stage select 0)) <= 2}
+                            && {abs (((getPosASL _guard) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}
+                    };
+                    if (!(call _reliefNeeded)) then {
+                        private _native=[currentCommand _actor,expectedDestination _actor,formLeader _actor];
+                        isNil {
+                            if (call _mayIssueMovement && {!(call _reliefNeeded)}
+                                && {!([] call CBE_fnc_CortexIsPaused)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                                && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
+                                && {[_actor] call _exitMovementOwned}
+                                && {[currentCommand _actor,expectedDestination _actor,formLeader _actor] isEqualTo _native}
+                                && {(_earlyExits getOrDefault [netId _actor,[]]) isEqualTo _record}
+                                && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo _reliefJournal}) then {
+                                private _hold=getPosATL _actor;
+                                doStop _actor;
+                                (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
+                                (_job getOrDefault ["movementRequestTimes",createHashMap]) deleteAt (netId _actor);
+                                (_job getOrDefault ["roomHolds",createHashMap]) set [netId _actor,+_hold];
+                                ["HOLD",_actor,_job,_hold] call CBE_fnc_BuildingActorMotion;
+                                _earlyExits deleteAt (netId _actor);
+                                _earlyMotion deleteAt (netId _actor);
+                                _state="RELIEF_RETIRED";
+                                diag_log format ["CBE CLEAR EXIT RELIEF RETIRED: %1",[_job get "generation",netId _actor,_reliefRow]];
+                            };
+                        };
+                    };
+                };
                 if (_state == "MOVING" && {call _mayIssueMovement}) then {
                     if ((getPosASL _actor) vectorDistance (AGLToASL _target) <= 1
                         && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 1.5}) then {
@@ -1579,8 +1636,9 @@ private _delay=call {
             +(_journal select 1)
         } else {[]};
         if (count _tried >= 8 || {_tried findIf {
-            !(_x isEqualType []) || {count _x != 4}
+            !(_x isEqualType []) || {count _x != 5}
                 || {!((_x select 0) isEqualType "")} || {!((_x select 1) isEqualType "")}
+                || {!((_x select 4) isEqualType [])} || {count (_x select 4) != 5}
         } >= 0}) exitWith {false};
         private _posts=_reserves select {
             private _postActor=_x;
@@ -1616,7 +1674,9 @@ private _delay=call {
         private _workerNative=[currentCommand _worker,expectedDestination _worker,formLeader _worker];
         private _workerPose=getPosASL _worker;
         private _until=(serverTime+45) min (_job get "deadline") min (_job get "hardDeadline");
-        private _attempt=[netId _worker,netId _observer,+_exit,_until];
+        private _observerNative=[currentCommand _observer,expectedDestination _observer,formLeader _observer];
+        private _attempt=[netId _worker,netId _observer,+_exit,_until,
+            [_waitingPair,_waitingSlot,_waitingMember,+_observerStage,+_observerNative]];
         private _recorded=false;
         isNil {
             if (call _mayIssueMovement && {[_worker] call _actorAvailable} && {[_worker] call _actorTaskFree}
@@ -1656,6 +1716,7 @@ private _delay=call {
                 && {(getPosASL _worker) vectorDistance _workerPose <= 1}
                 && {[_observer] call _reserveReady}
                 && {(_reserveStages getOrDefault [netId _observer,[]]) isEqualTo _observerStage}
+                && {[currentCommand _observer,expectedDestination _observer,formLeader _observer] isEqualTo _observerNative}
                 && {(((_job get "pairs") param [_waitingPair,[]]) param [_waitingSlot,objNull]) == _waitingMember}
                 && {!([_waitingMember] call _actorAvailable) || {_waitingMember in _unavailable}}
                 && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo [_context,_tried]}) then {
