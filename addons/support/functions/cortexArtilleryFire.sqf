@@ -14,6 +14,7 @@
  * confirmation path as other fire missions, but does not require the optional support-artillery
  * feature. Danger, Vehicles and Vehicle Gunnery are its three live gates.
  * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only); 10: counter observer server time <NUMBER>, -1 (local legacy calls derive native last-seen time; remote observer calls require it).
+ * Counter missions retain the server cancellation generation through their queued shots.
  * Return Value: Boolean, request queued or accepted.
  * Current callers: ArtilleryRequest, CounterBattery, Retreat and server mission scripts.
  * Example: [_gun, _reportedPosition, 40] call CBE_fnc_CortexArtilleryFire;
@@ -113,6 +114,7 @@ missionNamespace setVariable ["CBE_AIPass_FireSerial", _serial];
 private _token = format ["%1:%2", netId _battery, _serial];
 private _mission = createHashMapFromArray [
     ["battery", _battery], ["key", netId _battery], ["token", _token], ["fix", [+_target, _error max 0]], ["mode", _mode], ["purpose", _purpose],
+    ["counterGeneration",missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0]],
     ["spotter", _spotter], ["enemy", _enemy], ["requester",_requester], ["remaining", (round _rounds max 1) min 10], ["fired", 0], ["burstSize", (round _rounds max 1) min 10],
     ["burstsLeft", if (_mode == "SMOKE" || {_danger}) then {1} else {(round (missionNamespace getVariable ["CBE_AIPass_Artillery_Bursts", 3]) max 1) min 5}],
     ["burstsCompleted", 0], ["opening", !_danger], ["location", +_target],

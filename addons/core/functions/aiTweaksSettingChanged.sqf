@@ -25,7 +25,7 @@ if (_name == "CBE_AIPass_Enable") then {
 if (_name == "CBE_AIPass_CounterBattery_Enable" && {isServer} && {_value isEqualTo false}) then {
     isNil {
         missionNamespace setVariable ["CBE_AIPass_CounterGeneration",
-            (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])+1];
+            (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])+1,true];
     };
 };
 // These optional handlers must follow CBA changes immediately, including disable/re-enable.

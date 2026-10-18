@@ -23,17 +23,20 @@
   "implementation": [
     "CBA counter-battery disable advances only the server delayed-response generation. Existing radar response and observer wake callbacks keep their original generation.",
     "Pending per-side cooldown receipts now include generation/deadline, allowing fresh emissions after re-enable without inheriting a cancelled pending slot. Completed-fire and emission-rate cooldowns remain.",
-    "Updated CortexInit documentation: the artillery firing-evidence handler is shared and installed while tactics runs; counter-battery admission independently reads the live switch. No runtime handler was added or removed."
+    "Updated CortexInit documentation: the artillery firing-evidence handler is shared and installed while tactics runs; counter-battery admission independently reads the live switch. No runtime handler was added or removed.",
+    "Accepted artillery missions capture counterGeneration and reject old COUNTER generations through the existing blocked/uncertain lifecycle.",
+    "Owner shot payload carries original generation; final native fire admission atomically rechecks observed generation, live feature/ROE, current operator/token and smoke settings after safety work.",
+    "Server publishes counter generation on feature disable and master stop for current/JIP owners. Publication is not proof of network cancellation ordering."
   ],
   "remaining": [
-    "Already accepted server fire missions, owner RPCs in transit and delayed shoot-and-scoot need independent off/on generation analysis. This change does not claim to cancel those cases or in-flight projectiles.",
+    "Unconfirmed issued native shots retain quarantine; they cannot be assumed cancelled. Delayed shoot-and-scoot generation, duplicate owner shot requests and network ordering still need independent analysis and physical tests.",
     "Per-vehicle feature filtering, full-HBQ controller parity and physical live toggles remain incomplete."
   ],
   "validation": {
-    "tests": 1295,
+    "tests": 1297,
     "exitCode": 0,
-    "log": ".qa/cbe-counterbattery-toggle-generation-build.log",
-    "packageFingerprint": "24329e6112b758a64b863f69e90b311a62e300964354e5d39eae5caefcce46c9"
+    "log": ".qa/cbe-counterbattery-mission-generation-verified-build.log",
+    "packageFingerprint": "56f2e8b945ee098e949a8ddd20cd26a45b133c9e4c2a934db0ecb63976db11c8"
   },
   "physicalAcceptance": false,
   "audits": "paused"

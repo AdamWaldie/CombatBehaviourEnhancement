@@ -19,7 +19,7 @@ class SmokePayloadTests(unittest.TestCase):
         explicit=fire.split('if (isNull _battery || {!alive gunner _battery}',1)[1]
         self.assertLess(explicit.index('CBE_AIPass_ArtillerySmoke_Enable'),explicit.index('CBE_AIPass_FireSerial'))
         mission=(base/'cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
-        self.assertIn('private _blocked = _smokeBlocked',mission)
+        self.assertIn('private _blocked = _counterExpired || {_smokeBlocked}',mission)
         self.assertIn('CBE_AIPass_ArtillerySmoke_Enable',mission)
         shot=(base/'cortexArtilleryShot.sqf').read_text(encoding='utf-8')
         final=shot.split('// Safety/munition checks',1)[1]

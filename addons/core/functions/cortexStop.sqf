@@ -67,7 +67,7 @@ if (isServer) then {
         {(_x select 0) setVariable ["CBE_AIPass_SupportLease",nil,true]} forEach (_job get "leases");
     } forEach (missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap]);
     missionNamespace setVariable ["CBE_AIPass_SupportRequests",createHashMap];
-    missionNamespace setVariable ["CBE_AIPass_CounterGeneration", (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0]) + 1];
+    missionNamespace setVariable ["CBE_AIPass_CounterGeneration", (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0]) + 1,true];
     {
         private _battery = _y get "battery";
         private _brain=_battery getVariable ["CBE_Artillery_Brain",createHashMap];

@@ -8,6 +8,8 @@
  * An unconfirmed native shot reaches the original deadline without renewal, then parks its
  * registry/token reservation with no recurring scheduler work or duplicate fire request.
  * Qualified event/rejection callbacks restart settlement only; parking is not completion.
+ * Counter-generation cancellation blocks future shots while uncertain native shots retain
+ * their token/quarantine; re-enabling cannot revive queued counter missions.
  * Arguments: 0: mission <HASHMAP>, created by ArtilleryFire.
  * Return Value: Number next delay, or -1 to finish.
  * Current caller: CBE_fnc_ArtilleryMissionStep as one bounded action under the artillery mission FSM.
@@ -46,7 +48,9 @@ private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner
 private _requesterBlocked=!isNull _requester && {!([_requester,"CBE_AIPass_Artillery_Enable",false] call CBE_fnc_CortexFeatureEnabled) || {!([_requester,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}};
 private _smokeBlocked=(_mission get "mode") == "SMOKE"
     && {!([_crewGroup,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)};
-private _blocked = _smokeBlocked || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
+private _counterExpired=(_mission get "purpose") == "COUNTER"
+    && {(_mission getOrDefault ["counterGeneration",-1]) != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])};
+private _blocked = _counterExpired || {_smokeBlocked} || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"} || {time > (_mission get "deadline")}
     || {side group gunner _battery != (_mission get "side")}
     || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}
@@ -143,5 +147,5 @@ if ((_mission get "phase") == "READY" && {(_mission get "mode") == "HE"}) exitWi
 _mission set ["phase", "PENDING"];
 _mission set ["due", time + 60];
 _mission set ["gunOwner", owner _battery];
-[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token"] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
+[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token",_mission getOrDefault ["counterGeneration",-1]] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
 1
