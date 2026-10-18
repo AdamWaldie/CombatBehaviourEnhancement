@@ -228,3 +228,52 @@ class ConvoyLeadGapMetricTests(unittest.TestCase):
         self.assertNotIn('distance2D',pacing)
         self.assertIn('if (_gap > _target*2)',source)
         self.assertIn('_limit = ((_limit min ((_previous select 0)+4*_elapsed)) min _closingCap) max 0',source)
+
+    def test_approaching_lane_hull_retains_closing_speed_during_reaction_and_braking(self):
+        import math
+        s=src('drivingFollowingCap')
+        branch=s.split('private _approachSpeed=',1)[1].split('private _closing=',1)[0]
+        for proof in ('_room-_approachSpeed*_reaction','_approachSpeed+_reactionSpeed',
+                      '_approachCoefficient^2','2*_deceleration*_remainingRoom',
+                      '_approachSpeed*(_reaction+_ownForward/_deceleration)',
+                      '_room <= _actualStoppingRoom','_allowed=_allowed min _approachAllowance'):
+            self.assertIn(proof,branch)
+        self.assertNotIn('nearEntities',branch)
+        self.assertNotIn('forceSpeed',branch)
+        self.assertNotIn('doMove',branch)
+        # Solve the stated constant-approach model independently over light/heavy envelopes.
+        # Infeasible room (peer reaches the reserve during reaction alone) requires zero.
+        for a in (1.6,2.5,4):
+            for room in (0,10,40,100,200):
+                stationary=math.sqrt((a*4)**2+2*a*room)-a*4
+                for approach in (1,5,10,25):
+                    coefficient=approach+a*4
+                    cap=math.sqrt(coefficient**2+2*a*max(0,room-approach*4))-coefficient
+                    self.assertGreaterEqual(cap,-1e-12)
+                    self.assertLessEqual(cap,stationary+1e-9)
+                    if room<=approach*4:self.assertAlmostEqual(cap,0)
+                    else:
+                        closing=cap*4+cap**2/(2*a)+approach*(4+cap/a)
+                        self.assertAlmostEqual(closing,room,places=7)
+        # At 80m bumper room a 10m/s own vehicle cannot retain its old positive
+        # stationary-obstacle allowance while a peer approaches at another10m/s.
+        room=80-6;own=10;approach=10;a=4
+        old_cap=math.sqrt((a*4)**2+2*a*room)-a*4
+        actual_room=own*4+own**2/(2*a)+approach*(4+own/a)
+        self.assertGreater(old_cap,0)
+        self.assertGreater(actual_room,room)
+
+    def test_oncoming_fixture_requires_actual_encounter_braking_and_hull_separation(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
+        case=qa.split('// Opposing native MOVE orders are the only stimulus.',1)[1]
+        for proof in ('CBE_Headless_ExcludeGroup','_closing > 5','_peerApproach > 1',
+                      'vectorDotProduct (vectorDir _peer)) < -0.7','abs speed _own > 5',
+                      'abs speed _peer > 5','_observation param [1,objNull]',
+                      '_actual <= (_opposingPeaks select _forEachIndex)-3','boundingBoxReal _peer',
+                      'modelToWorld [_xx,_yy,_x]','_gap < 1','_opposingDamage',
+                      'DRIVING-oncoming-actual-lane-approach','DRIVING-oncoming-production-observed-braking',
+                      'DRIVING-oncoming-separated-no-damage'):
+            self.assertIn(proof,case)
+        for forbidden in ('forceSpeed','call CBE_fnc_DrivingFollowingCap','call CBE_fnc_DrivingAssistStart',
+                          'setVariable ["CBE_DrivingAssist_Traffic"','setVelocity'):
+            self.assertNotIn(forbidden,case)

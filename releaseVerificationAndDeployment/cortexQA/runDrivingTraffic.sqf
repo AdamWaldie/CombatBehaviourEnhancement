@@ -3,6 +3,8 @@
  * Purpose: Physically exercises ordinary traffic following behind a stopped tracked predecessor,
  * then departure, repeated stop/restart and a newer direct MOVE during blockage.
  * A separate fresh pair exercises sub-1km/h predecessor creep without stationary retry credit.
+ * A separate opposing pair requires actual lane closing, production traffic observation,
+ * measured braking and physical hull separation without damage. No cap is injected.
  * No controller callbacks or success state are injected.
  * Locality/authority: scheduled server creates separate disposable driver groups. Predecessor
  * native waypoint/speed holds are fixture inputs; the follower is discovered and driven by CBE.
@@ -191,4 +193,72 @@ while {time < _creepUntil} do {
 missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {private _vehicle=_x;{deleteVehicle _x} forEach crew _vehicle;deleteVehicle _vehicle} forEach [_creepFront,_creepFollower];
 {deleteGroup _x} forEach [_creepFrontGroup,_creepFollowerGroup];
+// Opposing native MOVE orders are the only stimulus. Observe actual closing/braking;
+// a stored cap alone cannot pass, and native avoidance without an encounter is not a pass.
+private _opposing=[];private _opposingGroups=[];
+{
+    _x params ["_position","_heading","_destination"];
+    private _vehicle=createVehicle ["O_Truck_03_transport_F",_position,[],0,"NONE"];
+    _vehicle setDir _heading;createVehicleCrew _vehicle;
+    private _group=group driver _vehicle;
+    _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
+    _group setVariable ["acex_headless_blacklist",true,true];
+    _group setBehaviour "SAFE";_group setCombatMode "BLUE";_group setSpeedMode "FULL";
+    private _wp=_group addWaypoint [_destination,0];_wp setWaypointType "MOVE";_wp setWaypointCompletionRadius 5;
+    _group setCurrentWaypoint _wp;
+    (driver _vehicle) setVariable ["CBE_CortexQA_Label",format ["ONCOMING ORDINARY %1",_forEachIndex+1],true];
+    _opposing pushBack _vehicle;_opposingGroups pushBack _group;
+} forEach [[[4200,2030,0],0,[4200,2520,0]],[[4200,2250,0],180,[4200,1760,0]]];
+missionNamespace setVariable ["CBE_CortexQA_Actors",_opposing+( _opposing apply {driver _x}),true];
+["Ordinary driving: approaching lane hulls","Two ordinary trucks receive opposing native MOVE orders. Require real overlapping-lane closing, live production traffic observation, measurable braking and physical hull separation without damage. No forced speed, callback or artificial result is applied.",getPosATL (_opposing select 0)] call _phase;
+private _opposingReady=_opposing findIf {!alive _x || {!simulationEnabled _x} || {!local _x}
+    || {isNull driver _x} || {!alive driver _x} || {!canMove _x} || {surfaceIsWater getPosATL _x}} < 0;
+private _opposingDamage=_opposing apply {damage _x};
+private _closingObserved=false;private _brakingObserved=false;private _opposingSeparated=true;
+private _opposingPeaks=[0,0];private _peerObserved=[false,false];private _opposingMinGap=1e9;
+private _opposingUntil=time+80;
+while {time < _opposingUntil} do {
+    sleep 0.5;
+    private _own=_opposing select 0;private _peer=_opposing select 1;
+    private _ownBox=boundingBoxReal _own;private _low=_ownBox select 0;private _high=_ownBox select 1;
+    private _peerBox=boundingBoxReal _peer;private _otherLow=_peerBox select 0;private _otherHigh=_peerBox select 1;
+    private _minimum=[1e9,1e9,1e9];private _maximum=[-1e9,-1e9,-1e9];
+    {private _xx=_x;{private _yy=_x;{
+        private _point=_own worldToModel (_peer modelToWorld [_xx,_yy,_x]);
+        for "_axis" from 0 to 2 do {
+            _minimum set [_axis,(_minimum select _axis) min (_point select _axis)];
+            _maximum set [_axis,(_maximum select _axis) max (_point select _axis)];
+        };
+    } forEach [_otherLow select 2,_otherHigh select 2];} forEach [_otherLow select 1,_otherHigh select 1];} forEach [_otherLow select 0,_otherHigh select 0];
+    private _lane=(_maximum select 0) >= (_low select 0)-0.25 && {(_minimum select 0) <= (_high select 0)+0.25}
+        && {(_maximum select 2) >= (_low select 2)} && {(_minimum select 2) <= (_high select 2)};
+    private _gap=(_minimum select 1)-(_high select 1);
+    private _closing=((velocity _own) vectorDiff (velocity _peer)) vectorDotProduct (vectorDir _own);
+    private _peerApproach=-((velocity _peer) vectorDotProduct (vectorDir _own));
+    if (_lane && {_gap > 0} && {_gap < 150} && {_closing > 5} && {_peerApproach > 1}
+        && {((vectorDir _own) vectorDotProduct (vectorDir _peer)) < -0.7}
+        && {abs speed _own > 5} && {abs speed _peer > 5}) then {_closingObserved=true};
+    if (_lane && {(_maximum select 1) >= (_low select 1)-1}) then {
+        _opposingMinGap=_opposingMinGap min _gap;
+        if (_gap < 1 && {(_maximum select 1) > (_low select 1)-1}) then {_opposingSeparated=false};
+    };
+    {
+        private _vehicle=_x;private _other=_opposing select (1-_forEachIndex);
+        private _actual=abs speed _vehicle;
+        _opposingPeaks set [_forEachIndex,(_opposingPeaks select _forEachIndex) max _actual];
+        private _observation=_vehicle getVariable ["CBE_DrivingAssist_Traffic",[]];
+        if ((_observation param [1,objNull]) == _other) then {_peerObserved set [_forEachIndex,true]};
+        if (_closingObserved && {_peerObserved select _forEachIndex}
+            && {_actual <= (_opposingPeaks select _forEachIndex)-3}) then {_brakingObserved=true};
+        if (!alive _vehicle || {!canMove _vehicle} || {damage _vehicle > (_opposingDamage select _forEachIndex)+0.01}) then {_opposingSeparated=false};
+    } forEach _opposing;
+    diag_log format ["CBE ONCOMING PHYSICAL: %1",[time,_closingObserved,_brakingObserved,_gap,_closing,
+        _opposing apply {getPosASL _x},_opposing apply {speed _x},_peerObserved,_opposingSeparated]];
+};
+["DRIVING-oncoming-actual-lane-approach",_opposingReady && {_closingObserved}] call _check;
+["DRIVING-oncoming-production-observed-braking",_opposingReady && {_closingObserved} && {_brakingObserved},str [_peerObserved,_opposingPeaks]] call _check;
+["DRIVING-oncoming-separated-no-damage",_opposingReady && {_closingObserved} && {_brakingObserved} && {_opposingSeparated},str _opposingMinGap] call _check;
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+{private _vehicle=_x;{deleteVehicle _x} forEach crew _vehicle;deleteVehicle _vehicle} forEach _opposing;
+{deleteGroup _x} forEach _opposingGroups;
 [_previous] call CBE_fnc_CortexTuning;

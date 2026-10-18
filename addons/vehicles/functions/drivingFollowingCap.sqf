@@ -12,7 +12,10 @@
  * Empty live vehicles and destroyed vehicle entities at any heading remain obstacles;
  * destruction alone never removes their hull from this observation. No bypass route is planned.
  * A mass-adjusted closing-speed envelope adds provisional braking and cruise-sampling headroom;
- * neither nominal deceleration nor scheduler response is physically guaranteed by this policy.
+ * Oncoming/reversing lane hulls retain their measured approach speed through reaction and
+ * own braking time; treating that component as stationary would overstate available room.
+ * This only lowers the existing cap and cannot make an uncooperative peer stop or yield.
+ * Neither nominal deceleration nor scheduler response is physically guaranteed by this policy.
  * Locality/authority: read-only on the current vehicle owner. The driving operation owns all
  * speed commands and rechecks its driver, route and movement lease before applying this result.
  * Repeat/JIP: no handlers or cached clearance. Each sample uses actual velocity and current hull
@@ -153,6 +156,19 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
             private _reactionSpeed=_deceleration*_reaction;
             private _closingAllowance=(sqrt ((_reactionSpeed*_reactionSpeed)+2*_deceleration*_room)-_reactionSpeed) max 0;
             _allowed=_allowed min (_otherForward+_closingAllowance);
+            // A hull approaching along our lane keeps closing while we react AND brake.
+            // v*T + v^2/(2*a) + u*(T+v/a) <= room, where u is its current approach.
+            // This is a provisional own-speed bound, not consent or a collision guarantee.
+            private _approachSpeed=(-((velocity _other) vectorDotProduct _forward)) max 0;
+            if (_approachSpeed > 0.5) then {
+                private _remainingRoom=(_room-_approachSpeed*_reaction) max 0;
+                private _approachCoefficient=_approachSpeed+_reactionSpeed;
+                private _approachAllowance=(sqrt ((_approachCoefficient^2)+2*_deceleration*_remainingRoom)-_approachCoefficient) max 0;
+                private _actualStoppingRoom=_ownForward*_reaction+(_ownForward^2)/(2*_deceleration)
+                    +_approachSpeed*(_reaction+_ownForward/_deceleration);
+                if (_room <= _actualStoppingRoom) then {_approachAllowance=0};
+                _allowed=_allowed min _approachAllowance;
+            };
             private _closing=(_ownForward-_otherForward) max 0;
             if (_closing > 0.5 && {_hullGap < 2+(_closing*0.5)}) then {_allowed=0};
             if (_allowed < _cap) then {_cap=_allowed;_limiting=_other;_gap=_hullGap};
