@@ -1153,8 +1153,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_Danger_ObservedContacts',knowledge)
         self.assertIn('private _candidateTargets=+(_leader targets [true, _range])',knowledge)
         self.assertIn('{_candidateTargets pushBackUnique (_x select 0)} forEach _observed',knowledge)
-        self.assertIn('private _knower=_members param [_members findIf {_x knowsAbout _enemy >= 1},objNull]',knowledge)
-        self.assertIn('private _position=_knower getHideFrom _enemy',knowledge)
+        self.assertIn('if ((_knowledge select 1) && {_observedAt > _personalSeen})',knowledge)
+        self.assertIn('private _personalPosition=_knower getHideFrom _enemy',knowledge)
         self.assertNotIn('getPosATL (_x select 0)',knowledge)
 
     def test_operations_are_generation_scoped_and_zeus_cancels_before_release(self):

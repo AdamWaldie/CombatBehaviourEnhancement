@@ -158,3 +158,18 @@ class MountedReportPhysicalFixtureTests(unittest.TestCase):
                          'call CBE_fnc_CortexContactReport',' reveal ',
                          'setVariable ["CBE_AIPass_AreaReport"'):
             self.assertNotIn(shortcut,case)
+
+
+class PersonalKnowledgeObserverTests(unittest.TestCase):
+    def test_personal_observer_uses_known_by_unit_inside_bounded_detail_pass(self):
+        text=(ROOT/'addons/infantry/functions/cortexKnowledge.sqf').read_text()
+        detail=text.split('private _enemies = [];',1)[1]
+        for proof in ('_knowledge select 1','_observedAt > _personalSeen',
+                      'private _personalPosition=_knower getHideFrom _enemy',
+                      'if (_knownByGroup && {_distance <= _range})',
+                      '_ranked sort true','_enemies=_ranked apply {_x select 2}'):
+            self.assertIn(proof,detail)
+        self.assertNotIn('knowsAbout',detail)
+        self.assertLess(text.index('_candidates resize 8'),text.index('targetKnowledge _enemy'))
+        for forbidden in ('getPosATL _enemy','getPosASL _enemy','getPosWorld _enemy',' reveal '):
+            self.assertNotIn(forbidden,text)

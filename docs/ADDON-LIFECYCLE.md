@@ -1061,3 +1061,6 @@ Area-report storage and its thirty-second expiry use the original sighting times
 
 
 When one contact-report batch contains old and newer sightings, the receiver first excludes observations no newer than its stored area timestamp, then preserves sender priority among the eligible rows. An old first row cannot suppress a later fresh row. The receiver still stores only one approximate area and never renews older evidence.
+
+
+Knowledge summary first ranks native candidates by group belief, then evaluates at most eight contacts across eight eligible members. Within that detail pass, the member with knownByUnit and the most recent native seen/threat timestamp supplies an updated getHideFrom belief; group-level knowsAbout does not identify a personal observer. Group belief remains the fallback, and the bounded result is re-sorted after refinement. No hostile live transform or reveal is used. The coarse candidate population is not newly bounded; observer refinement and its additional bounded native reads require physical/overhead validation.
