@@ -45,6 +45,10 @@ if (_oldFeatureSnapshot isEqualType [] && {count _oldFeatureSnapshot == 6}
     && {(_oldFeatureSnapshot select 0) isEqualTo (_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1])}) then {
     [_helicopter,false,"",false,_oldFeatureSnapshot select 0] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
 };
+private _featureRelease=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureRelease",[]];
+if (_featureRelease isEqualType [] && {count _featureRelease == 2}) then {
+    [_helicopter,_featureRelease] call CBE_fnc_ImprovedHelicopterLandingFeatureReleaseLocal;
+};
 private _lastSignature = _state getOrDefault ["lastSignature", []];
 private _pilot = currentPilot _helicopter;
 private _pilotAwake = if (isNull _pilot) then {false} else {

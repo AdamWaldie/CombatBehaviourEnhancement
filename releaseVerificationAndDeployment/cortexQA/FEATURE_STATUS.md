@@ -14,7 +14,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | SCHED - Scheduler and distance tiers | 11 | 0 | 6 | `runScheduler.sqf`, `runPerformance.sqf`, `runPerformanceContact.sqf` | 3 | implemented_partial |
 | PROFILE - Behaviour profiles and aggression | 4 | 1 | 1 | `runProfiles.sqf` | 1 | implemented_partial |
 | SKILL - AI skill rebalance | 14 | 0 | 5 | `runMechanics.sqf` | 0 | implemented_partial |
-| LAND - Helicopter landing | 21 | 0 | 7 | `runLanding.sqf` | 1 | implemented_partial |
+| LAND - Helicopter landing | 21 | 0 | 8 | `runLanding.sqf` | 1 | implemented_partial |
 | DECEL - Helicopter braking | 14 | 1 | 3 | `runDeceleration.sqf` | 0 | implemented_partial |
 | REGROUP - Survivor regroup | 9 | 0 | 2 | `runMechanics.sqf` | 0 | implemented_partial |
 | MEDICAL - Finite squad medical assistance | 4 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |

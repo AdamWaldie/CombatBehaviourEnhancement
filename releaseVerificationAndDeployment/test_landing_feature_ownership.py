@@ -22,10 +22,10 @@ class LandingFeatureOwnershipTests(unittest.TestCase):
         for marker in ('count _snapshot != 6','_releasedRevision != _expectedRevision',
                        '(_snapshot select 0) isNotEqualTo _expectedRevision',
                        '(_lease getOrDefault ["owner",-1]) == (_snapshot select 1)',
-                       'count _lease > 0 && {!_matchingLease}'):
+                       'private _matchingLease=count _lease > 0'):
             self.assertIn(marker,before)
-        self.assertLess(restore.index('isEqualTo _snapshot'),restore.index('enableAI "MOVE"'))
-        self.assertIn('checkAIFeature "PATH") isEqualTo (_snapshot select 5)',restore)
+        self.assertLess(restore.index('isEqualTo _snapshot'),restore.index('setVariable ["CBE_ImprovedHelicopterLanding_FeatureRelease"'))
+        self.assertIn('checkAIFeature "PATH") isEqualTo (_snapshot select 5)',source('improvedHelicopterLandingFeatureReleaseLocal'))
         self.assertNotIn('_pilot enableAI "FSM"',restore)
         for marker in ('(_pilotReceipt select 2) isEqualTo _helicopter',
                        '(_pilotReceipt select 5) isEqualTo (_snapshot select 1)',
@@ -70,3 +70,38 @@ class LandingFeatureOwnershipTests(unittest.TestCase):
             self.assertLess(force.index(marker),force.index('addForce'))
         self.assertEqual(anchor.count('private _entryPilot='),1)
         self.assertNotIn('_entryPilot = currentPilot',anchor)
+
+    def test_aircraft_feature_release_is_finite_exact_and_never_replays_flight(self):
+        helper=source('improvedHelicopterLandingFeatureReleaseLocal')
+        for marker in ('_attempt > 60','_attempt >= 60','serverTime >= _until',
+                       'isEqualTo _release','isEqualTo _snapshot','== (_snapshot select 0)+1',
+                       'FeatureReleaseWork','clientOwner,_epoch','count _lease == 0','_controllerFree'):
+            self.assertIn(marker,helper)
+        self.assertLess(helper.index('isNil {'),helper.index('enableAI "MOVE"'))
+        executable=helper.split('params [[',1)[1]
+        for forbidden in ('setVelocity','flyInHeight','setVector','addForce',' land ',
+                          'doMove','setWaypoint','nearEntities','addPerFrameHandler'):
+            self.assertNotIn(forbidden,executable)
+        self.assertEqual(helper.count('call CBA_fnc_waitAndExecute'),1)
+        self.assertNotIn('serverTime+60',helper)
+        expired=helper.split('private _unresolved={',1)[1].split('// A receipt/worker marker',1)[0]
+        self.assertIn('"UNRESOLVED"',expired)
+        self.assertNotIn('FeatureSnapshot",nil',expired)
+        self.assertLess(helper.index('if (serverTime >= _until'),helper.index('if (_attempt == 0'))
+    def test_control_retirement_publishes_one_deadline_before_release_only_service(self):
+        restore=source('improvedHelicopterLandingRestoreLocal')
+        self.assertEqual(restore.count('serverTime+60'),1)
+        self.assertIn('_pendingRelease=[+_snapshot,serverTime+60]',restore)
+        self.assertIn('["PENDING",_snapshot select 0,_snapshot select 1,_pendingRelease select 1,serverTime]',restore)
+        self.assertNotIn('FeatureSnapshot",nil',restore)
+        marker=restore.index('private _featuresRestored=')
+        self.assertLess(restore.index('setVariable ["CBE_ImprovedHelicopterLanding_FeatureRelease",'),marker)
+        self.assertLess(restore.index('if (!_featuresRestored) exitWith {true}'),restore.index('// Actor release can defer'))
+        self.assertIn('!([_pilot] call CBE_fnc_CortexActorFireTaskAvailable)',restore)
+    def test_pending_aircraft_release_can_resume_on_locality_and_existing_tracker(self):
+        for name in ('improvedHelicopterLandingInit','improvedHelicopterLandingStep'):
+            text=source(name)
+            self.assertIn('CBE_ImprovedHelicopterLanding_FeatureRelease',text)
+            self.assertIn('call CBE_fnc_ImprovedHelicopterLandingFeatureReleaseLocal',text)
+        config=(ROOT/'addons/main/CfgFunctions.hpp').read_text(encoding='utf-8')
+        self.assertIn('class ImprovedHelicopterLandingFeatureReleaseLocal',config)

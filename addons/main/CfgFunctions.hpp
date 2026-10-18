@@ -348,6 +348,7 @@ class CfgFunctions {
             class ImprovedHelicopterLandingExecuteLocal {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingExecuteLocal.sqf";};
             class ImprovedHelicopterLandingAnchorLocal {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingAnchorLocal.sqf";};
             class ImprovedHelicopterLandingRestoreLocal {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingRestoreLocal.sqf";};
+            class ImprovedHelicopterLandingFeatureReleaseLocal {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingFeatureReleaseLocal.sqf";};
             class ImprovedHelicopterLandingSetting {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingSetting.sqf";};
             class ImprovedHelicopterLandingConfigureServer {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingConfigureServer.sqf";};
             class HelicopterDecelerationInit {file = "\z\cbe\addons\aircraft\functions\helicopterDecelerationInit.sqf";};
