@@ -5,15 +5,17 @@ ROOT=Path(__file__).resolve().parents[1]
 class ClearEntryFlowTests(unittest.TestCase):
     def test_partner_recovery_preserves_exact_native_planning_without_new_receipt(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
-        helper=s.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]
-        for guard in ('movementRequestTimes','(_planningRequest select 0) isEqualTo _target','serverTime-_planningRequestAt < 30',
-                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["PLANNING","BUSY"]'):
-            self.assertIn(guard,helper)
-        self.assertLess(helper.index('if (!_preservePlanning) then'),helper.index('call CBE_fnc_RecoveryStep'))
-        observation=helper.split('private _planningRequest=',1)[1].split('if (!_preservePlanning) then',1)[0]
+        observation=s.split('private _nativeMoveAwaited={',1)[1].split('// Keep building authority',1)[0]
+        for guard in ('movementRequestTimes','(_planningRequest select 0) isNotEqualTo _target','_requestAge < 30',
+                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["PLANNING","BUSY"]','_requestAge < 2'):
+            self.assertIn(guard,observation)
         self.assertNotIn(' set [',observation)
         self.assertNotIn('doMove',observation)
-        self.assertIn('private _result="YIELDED"',helper)
+        recovery=s.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]
+        self.assertLess(recovery.index('call _nativeMoveAwaited'),recovery.index('call CBE_fnc_RecoveryStep'))
+        self.assertIn('private _result="YIELDED"',recovery)
+        alternate=s.split('if ((_receipt select 2) && {_now-(_receipt select 1) >= 24}',1)[1].split('private _pose=',1)[0]
+        self.assertIn('!([_partner,_entryTarget] call _nativeMoveAwaited)',alternate)
 
     def test_provisional_recovery_target_does_not_preempt_distinct_support_selection(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')

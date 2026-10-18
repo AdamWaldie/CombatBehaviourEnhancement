@@ -20,6 +20,8 @@
  * allowance before retry; ended native commands retain four seconds and clocks never renew.
  * Common partner/egress recovery also preserves an exact owned PLANNING/BUSY leg for
  * thirty seconds from its original native issue, without spending a recovery attempt.
+ * Recovery and alternate-entry selection share a two-second request acknowledgement grace;
+ * a fresh recovery leg cannot be overwritten by an already-elapsed alternative threshold.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
  * A casualty blocked by sole-exit coverage may request one progressed idle interior worker
@@ -709,6 +711,19 @@ private _delay=call {
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };
+    // One receipt-based observation policy for recovery and alternative entry. An issue is
+    // not native acknowledgement; neither branch may replace the same fresh request twice.
+    private _nativeMoveAwaited={
+        params ["_actor","_target"];
+        private _planningRequest=(_job getOrDefault ["movementRequestTimes",createHashMap]) getOrDefault [netId _actor,[]];
+        private _planningRequestAt=_planningRequest param [1,-1,[0]];
+        if (count _planningRequest != 2 || {(_planningRequest select 0) isNotEqualTo _target}
+            || {_planningRequestAt < 0} || {!finite _planningRequestAt}
+            || {serverTime < _planningRequestAt}) exitWith {false};
+        private _requestAge=serverTime-_planningRequestAt;
+        _requestAge < 2 || {_requestAge < 30 && {[_actor] call _ownsCurrentMove}
+            && {getUnitState _actor in ["PLANNING","BUSY"]}}
+    };
     // Keep building authority and generic retry admission in the same native-write transaction.
     private _recoverClearActor={
         params ["_actor","_target"];
@@ -719,16 +734,7 @@ private _delay=call {
                 && {!([_group] call CBE_fnc_CortexZeusHeld)}
                 && {serverTime <= (_job get "deadline")}
                 && {serverTime <= (_job get "hardDeadline")}) then {
-                // Partner entry and egress recovery must not restart a native planner that
-                // is still executing this exact issued leg. Observe its original request age;
-                // this allowance neither writes a new request nor renews physical progress.
-                private _planningRequest=(_job getOrDefault ["movementRequestTimes",createHashMap]) getOrDefault [netId _actor,[]];
-                private _planningRequestAt=_planningRequest param [1,-1,[0]];
-                private _preservePlanning=count _planningRequest == 2 && {(_planningRequest select 0) isEqualTo _target}
-                    && {_planningRequestAt >= 0} && {finite _planningRequestAt}
-                    && {serverTime >= _planningRequestAt} && {serverTime-_planningRequestAt < 30}
-                    && {[_actor] call _ownsCurrentMove} && {getUnitState _actor in ["PLANNING","BUSY"]};
-                if (!_preservePlanning) then {
+                if (!([_actor,_target] call _nativeMoveAwaited)) then {
                     _result=[_group,_operationGeneration,_actor,_target] call CBE_fnc_RecoveryStep;
                     if (_result == "RECOVERING" && {call _mayIssueMovement}) then {
                         [_actor,_target] call _rememberMove;
@@ -2402,6 +2408,7 @@ private _delay=call {
                         };
                         if ((_receipt select 2) && {_now-(_receipt select 1) >= 24}
                             && {!_alternativeUsed} && {_cleared isNotEqualTo []}
+                            && {!([_partner,_entryTarget] call _nativeMoveAwaited)}
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
                             && {call _mayIssueMovement}) then {
                             private _pose=getPosASL _partner;

@@ -19,8 +19,8 @@
     "tests": 1391,
     "compiled_sqf": 327,
     "pbos": 9,
-    "log": ".qa/cbe-clear-partner-native-planning-verified-build.log",
-    "unsigned_fingerprint": "77e3de2cebb7fee7e89ba3bd86c49935a22ea16407382689791a6f4e4dbfa9b5",
+    "log": ".qa/cbe-clear-recovery-alternative-continuity-build.log",
+    "unsigned_fingerprint": "ca52de8fe07840c7be7df4e31abefb1a2e48a644f307bd8521e502be41ee7493",
     "physical": false
   },
   "remaining": [
@@ -29,5 +29,10 @@
     "Normal and actual-provider HC separately",
     "Measured aggregate cost and5%median/10%p95 budget"
   ],
-  "audit_authority": "Explicitly paused; continue implementation. All65 families partial."
+  "audit_authority": "Explicitly paused; continue implementation. All65 families partial.",
+  "follow_up": {
+    "finding": "Partner alternate-entry threshold24s could already be elapsed when generic recovery first issued at30s. Without its own fresh-request guard it could replace that new native move in the same callback.",
+    "implementation": "Shared nativeMoveAwaited read-only helper gates both common recovery and alternate entry: exact original issued target/time,2s native acknowledgement grace, then owned PLANNING/BUSY up to30s from issue. No observation write, progress/retry/deadline renewal.",
+    "limits": "Other room reissue/selection branches still require continuity review; physical timing, native state changes and overhead remain unverified."
+  }
 }
