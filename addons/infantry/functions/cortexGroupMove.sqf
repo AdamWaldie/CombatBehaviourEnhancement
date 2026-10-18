@@ -60,9 +60,10 @@ if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)
 // A group-wide route cannot preserve an individual boarding, treatment or supply command.
 // Do not convert that native task into MOVE, even when the group's general eligibility is valid.
 // This does not disable sensing, firing or independently eligible actor-level operations.
-if ((units _group) findIf {
+private _nativeTaskBusy={ (units _group) findIf {
     alive _x && {toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
-} >= 0) exitWith {[grpNull,-1]};
+} >= 0 };
+if (call _nativeTaskBusy) exitWith {[grpNull,-1]};
 // Callers do not need to thread an operation token through every tactical helper. When a common
 // operation is active, bind this route to its current generation automatically; ordinary mission
 // support moves remain intentionally unscoped.
@@ -114,6 +115,20 @@ if (_hasOwnedWaypoint && {count _previousPosition < 2
     [grpNull,-1]
 };
 
+// Re-read native waypoint fields inside the command boundary. The public intent map alone
+// cannot detect an editor/Zeus edit that retains the original description and array identity.
+private _routeUnchanged={
+    (_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap]) isEqualTo _intent
+        && {!_hasOwnedWaypoint || {
+            (_previousWaypoint select 1) < count waypoints _group
+                && {waypointDescription _previousWaypoint == "CBE AI PASS"}
+                && {waypointPosition _previousWaypoint distance2D _previousPosition <= 1}
+                && {abs (((waypointPosition _previousWaypoint) param [2,0])-(_previousPosition param [2,0])) <= 1.5}
+                && {waypointType _previousWaypoint == _previousType}
+                && {abs (waypointCompletionRadius _previousWaypoint-_previousRadius) <= 0.1}
+        }}
+};
+
 // Keep an established engine route until a meaningful tactical change. Position drift inside the
 // current completion radius and a small retask tolerance cannot justify a new waypoint.
 private _sameDestination = count _previousPosition >= 2
@@ -127,8 +142,8 @@ if (_sameRequest) exitWith {
     private _adopted=[grpNull,-1];
     isNil {
     if (call _generationCurrent && {!([_group] call CBE_fnc_CortexExternalTakeover)}
-        && {!(call _externalDriving)}
-        && {(_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap]) isEqualTo _intent}) then {
+        && {!(call _externalDriving)} && {!(call _nativeTaskBusy)}
+        && {call _routeUnchanged}) then {
     // A new operation may adopt the same committed route. Keep native movement uninterrupted,
     // but bind cleanup to its current generation; an unscoped old token otherwise survives cancel.
     if ((_intent getOrDefault ["operationGeneration",-1]) != _operationGeneration) then {
@@ -145,9 +160,11 @@ if (_sameRequest) exitWith {
 private _committed=[grpNull,-1];
 isNil {
 _committed=call {
-if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _externalDriving}) exitWith {[grpNull, -1]};
+if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _externalDriving}
+    || {call _nativeTaskBusy} || {!(call _routeUnchanged)}) exitWith {[grpNull, -1]};
 [_group] call CBE_fnc_CortexGroupMoveClear;
-if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _externalDriving}) exitWith {[grpNull, -1]};
+if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _externalDriving}
+    || {call _nativeTaskBusy}) exitWith {[grpNull, -1]};
 // Radius-zero placement may be adjusted by the engine. Explicit elevated destinations need
 // exact ASL placement; ordinary ground routes retain native safe placement.
 private _elevated=abs (_desired select 2) > 1.5;

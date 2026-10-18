@@ -56,6 +56,18 @@ class OperationRetirement(unittest.TestCase):
                           '(_postureLease select 5) == _generation','(_postureLease select 6) == _operationEpoch'):
                 self.assertLess(cleanup.index(proof),cleanup.index('call CBE_fnc_DangerReact'))
 
+    def test_group_route_checks_native_edits_and_tasks_at_commit(self):
+        text=(ROOT/'addons/infantry/functions/cortexGroupMove.sqf').read_text(encoding='utf-8')
+        adoption=text.split('if (_sameRequest) exitWith {',1)[1].split('private _committed=',1)[0]
+        self.assertIn('call _nativeTaskBusy',adoption)
+        self.assertIn('call _routeUnchanged',adoption)
+        commit=text.split('_committed=call {',1)[1]
+        self.assertLess(commit.index('call _routeUnchanged'),commit.index('call CBE_fnc_CortexGroupMoveClear'))
+        self.assertEqual(commit.count('call _nativeTaskBusy'),2)
+        geometry=text.split('private _routeUnchanged={',1)[1].split('// Keep an established',1)[0]
+        for field in ('waypointDescription','waypointPosition','waypointType','waypointCompletionRadius'):
+            self.assertIn(field,geometry)
+
     def test_permission_restore_consumes_only_current_lease_in_atomic_scope(self):
         text=(ROOT/'addons/core/functions/operationRestore.sqf').read_text(encoding='utf-8')
         for proof in ('isNil {','_current isNotEqualTo _operation','ownerEpoch','count _members > 64',
