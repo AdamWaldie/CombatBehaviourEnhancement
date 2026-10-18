@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Coordinated bounds now match both group and reservation token when retaining active turns.
+  Superseded turns disappear without imposing a retry penalty on the replacement; public roles,
+  aborts and retry writes recheck the live lease atomically. Network/HC replacement remains unverified.
+
 - Convoy audit capture now retains bounded actual native-command issue histories, including pre-command
   pose, remaining destination distance, elapsed issue age and reason. Normal driving gains no new
   command or tuning. The prepared fixture logs unseen events; mixed-column causation remains unresolved.

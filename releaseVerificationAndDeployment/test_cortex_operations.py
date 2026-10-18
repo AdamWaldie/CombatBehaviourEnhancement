@@ -4399,7 +4399,7 @@ class CortexOperations(unittest.TestCase):
         coordinator=source('cortexSupportCoordinateStep')
         self.assertNotIn('allUnits',coordinator)
         self.assertNotIn('allGroups',coordinator)
-        self.assertIn('if (_old isNotEqualTo _role)',coordinator)
+        self.assertIn('if ((_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role)',coordinator)
         self.assertIn('(_result select 0) == _token',coordinator)
         self.assertIn('serverTime+8',coordinator)
         self.assertIn('private _failuresByToken=',coordinator)

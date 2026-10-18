@@ -152,3 +152,20 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertTrue(source.rstrip().endswith('_accepted'))
         self.assertNotIn('sleep ',boundary)
         self.assertNotIn('nearEntities',boundary)
+
+
+class CoordinationLeaseReplacementTests(unittest.TestCase):
+    def test_old_group_token_cannot_delay_or_publish_over_successor(self):
+        source=(ROOT/'addons/support/functions/cortexSupportCoordinateStep.sqf').read_text()
+        active=source.split('private _stillActive=[];',1)[1].split('} forEach _active;',1)[0]
+        self.assertIn('isNil {',active)
+        exact='_teams findIf {(_x select 0) == _group && {(_x select 1) == _token}} < 0'
+        self.assertLess(active.index(exact),active.index('CBE_Cortex_SupportBoundResult'))
+        self.assertLess(active.index('call _sameLease'),active.index('CBE_Cortex_SupportRetryAfter'))
+        self.assertLess(active.index('call _sameLease'),active.index('_stillActive pushBack _x'))
+        helper=source.split('private _sameLease={',1)[1].split('private _teams=[];',1)[0]
+        for guard in ['isNull _group','count _lease == 6','(_lease select 0) == _token','serverTime < (_lease select 2)']:
+            self.assertIn(guard,helper)
+        publication=source.split('// Compare the live role here:',1)[1].split('} forEach _teams;',1)[0]
+        self.assertIn('(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role',publication)
+        self.assertEqual(source.count('if !([_group,_token] call _sameLease) exitWith {};'),3)
