@@ -3,6 +3,19 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class DrivingGateCapTests(unittest.TestCase):
+    def test_gate_detection_and_opening_share_aliases_without_reading_discarded_phases(self):
+        geometry=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        barrier=geometry.split('private _sourceConfig=configOf _object >> "AnimationSources";',1)[1].split('_gateClasses set',1)[0]
+        for alias in ('Door_%1_sound_source','Gate_%1_sound_source','Door_%1_source','Gate_%1_source'):
+            self.assertIn(alias,barrier)
+        self.assertIn('exitWith {_isGate=true}',barrier)
+        self.assertIn('private _classKey=typeOf _object',geometry)
+        ranking=server.split('private _preferredSources=createHashMap;',1)[1].split('for "_index" from 1 to 8 do',1)[0]
+        self.assertNotIn('animationSourcePhase',ranking)
+        selected=server.split('for "_index" from 1 to 8 do',1)[1].split('private _locked={',1)[0]
+        self.assertEqual(selected.count('animationSourcePhase'),1)
+
     def test_indexed_gate_aliases_choose_one_sound_preferred_source_per_leaf(self):
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
         metadata=server.split('private _sources=[];',1)[1].split('private _locked={',1)[0]

@@ -34,7 +34,8 @@ class DrivingGeometryTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         self.assertIn('_gateClasses getOrDefault',s)
         self.assertIn('for "_index" from 1 to 8',s)
-        self.assertIn('isClass (configOf _object >> "AnimationSources"',s)
+        self.assertIn('private _sourceConfig=configOf _object >> "AnimationSources"',s)
+        self.assertIn('isClass (_sourceConfig >> _x)',s)
         self.assertIn('[_gateObservation,_solidObservation]',s)
     def test_solid_constraints_reuse_existing_writers_and_fsm_queue(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()

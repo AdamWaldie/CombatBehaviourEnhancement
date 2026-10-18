@@ -18,7 +18,7 @@
  * route ARRAY, transform ARRAY, driver OBJECT, commander OBJECT, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime.
  * Return Value: BOOL - an opening was commanded or an existing opening was shared; not passability.
  * Exact indexed Door/Gate_N_sound_source or Door/Gate_N_source metadata, N=1..8.
- * At most64 definitions and8 leaf selections; one preferred source per leaf, sound before plain.
+ * At most64 definitions and8 initial native phase reads; one preferred source per leaf, sound before plain.
  * Current callers: DrivingGateRequest on the server or current headless vehicle/group owner.
  * Example: [_payload] remoteExecCall ["CBE_fnc_DrivingGateOpenServer",2];
  */
@@ -128,7 +128,7 @@ if (count _definitions <= 64) then {
                     private _key=str _index;
                     private _previous=_preferredSources getOrDefault [_key,[]];
                     if (_previous isEqualTo [] || {_priority < (_previous select 0)}) then {
-                        _preferredSources set [_key,[_priority,_index,_name,_gate animationSourcePhase _name]];
+                        _preferredSources set [_key,[_priority,_index,_name]];
                     };
                 };
             };
@@ -137,7 +137,10 @@ if (count _definitions <= 64) then {
 };
 for "_index" from 1 to 8 do {
     private _preferred=_preferredSources getOrDefault [str _index,[]];
-    if (_preferred isNotEqualTo []) then {_sources pushBack (_preferred select [1,3])};
+    if (_preferred isNotEqualTo []) then {
+        private _sourceName=_preferred select 2;
+        _sources pushBack [_preferred select 1,_sourceName,_gate animationSourcePhase _sourceName];
+    };
 };
 private _locked={
     (_gate getVariable ["bis_disabled_Door",0]) isNotEqualTo 0

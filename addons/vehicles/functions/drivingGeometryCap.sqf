@@ -14,7 +14,7 @@
  * [cap m/s, gate OBJECT, gap metres, time, rays]. Solid is empty without a sampled blocker, else
  * [cap m/s, object (objNull for terrain), gap, time, rays, kind, hit ASL, normal, transform].
  * Work: nine straight or at most 27 turning GEOM rays/four hits each; nominal braking horizon <=600 m.
- * Gate classification is cached only within this call: up to 108 hit objects/eight config checks
+ * Gate classification is cached only within this call: up to 108 hit objects/up to32 config checks
  * each for ambiguous barrier names. Static H-barriers are not assumed to be animated gates.
  * Current forward motion and model-space yaw predict at most 2.5 seconds of curved travel,
  * clamped to 70 degrees; the remaining horizon follows the final tangent. Rigid hull offsets
@@ -101,16 +101,22 @@ _heights=_heights arrayIntersect _heights;
             private _gap=_segmentStart+_fraction*(_segmentEnd-_segmentStart);
             private _isGate=false;
             if (!isNull _object && {_object != _vehicle}) then {
-                private _classKey=str _object;
+                private _classKey=typeOf _object;
+                if (_classKey == "") then {_classKey=str _object};
                 private _known=_gateClasses getOrDefault [_classKey,-1];
                 if (_known isEqualType true) then {_isGate=_known} else {
                     private _name=toLowerANSI ((typeOf _object)+" "+((getModelInfo _object) param [0,""]));
                     _isGate=["gate","zavora","vrata","branka"] findIf {_name find _x >= 0} >= 0;
                     // Concrete H-barriers and bag walls are obstacles, not gates to animate.
-                    // A barrier-only name requires a canonical door source (at most eight checks).
+                    // Barrier-only classes require one supported indexed source. Stop on the
+                    // first match; static barriers remain solid obstacles, never animated clearance.
+                    // At most32 config existence checks per distinct class in this observation.
                     if (!_isGate && {_name find "barrier" >= 0}) then {
+                        private _sourceConfig=configOf _object >> "AnimationSources";
                         for "_index" from 1 to 8 do {
-                            if (isClass (configOf _object >> "AnimationSources" >> format ["Door_%1_sound_source",_index])) then {_isGate=true};
+                            if ([format ["Door_%1_sound_source",_index],format ["Gate_%1_sound_source",_index],
+                                format ["Door_%1_source",_index],format ["Gate_%1_source",_index]]
+                                findIf {isClass (_sourceConfig >> _x)} >= 0) exitWith {_isGate=true};
                         };
                     };
                     _gateClasses set [_classKey,_isGate];
