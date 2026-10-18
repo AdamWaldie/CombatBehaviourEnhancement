@@ -15,10 +15,12 @@
  * 0 vehicle <OBJECT, objNull> - local ground vehicle.
  * 1 distance <NUMBER, 8> - metres behind the rear body edge, clamped to 1..60.
  * Non-finite distances refuse clearance before any world query or geometry calculation.
- * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
+ * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER,
+ * optional supported AGL destination ARRAY]. Destination exists only on the completed observation.
+ * It is distance metres behind the vehicle origin, inside the observed rear-body envelope.
  * Dense candidate sets fail closed; at most64 actors use four transform pairs to represent each
  * full eight-corner hull with a0.05m outward model-space rounding pad. At most sixty
- * geometry rays plus nine support rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
+ * geometry rays plus ten support rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
  * capped at 250 m; oversized envelopes refuse rather than silently truncating the rear area. Vertical overlap uses real hull extents rather than centre height.
  * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
  * overlap policy; the solid-geometry rays remain independent and can still find obstructions.
@@ -166,6 +168,22 @@ private _supported=true;
     if (!_supported) exitWith {};
 } forEach ([1 min _distance,_distance*0.5,_distance] arrayIntersect [1 min _distance,_distance*0.5,_distance]);
 if (!_supported) exitWith {[false,"REAR_SUPPORT",time,_rays]};
+// Native movement needs the actual supported surface height, not a terrain-level destination.
+// One extra centre-target ray stays inside the already observed rear-body envelope. Open water
+// with only submerged terrain is not a deck; require a real hit object above water in that case.
+private _targetFrom=_vehicle modelToWorldWorld [0,-_distance,(_low select 2)+1.2];
+private _targetTo=_vehicle modelToWorldWorld [0,-_distance,(_low select 2)-2];
+_rays=_rays+1;
+private _targetHits=lineIntersectsSurfaces [_targetFrom,_targetTo,_vehicle,objNull,true,1,"GEOM","NONE"];
+if (_targetHits isEqualTo []) exitWith {[false,"REAR_TARGET_SUPPORT",time,_rays]};
+private _targetHit=_targetHits select 0;
+private _destination=ASLToAGL (_targetHit select 0);
+if (((_targetHit select 1) select 2) < 0.7
+    || {surfaceIsWater _destination && {(_destination select 2) < 0
+        || {isNull (_targetHit select 2) && {isNull (_targetHit select 3)}}}}) exitWith {
+    [false,"REAR_TARGET_SUPPORT",time,_rays]
+};
+
 {
     private _height=(_low select 2)+_x;
     {
@@ -206,4 +224,4 @@ if (_clear && {_turning}) then {
         if (!_clear) exitWith {};
     } forEach _heights;
 };
-[_clear,["REAR_GEOMETRY","CLEAR"] select _clear,time,_rays]
+[_clear,["REAR_GEOMETRY","CLEAR"] select _clear,time,_rays,_destination]

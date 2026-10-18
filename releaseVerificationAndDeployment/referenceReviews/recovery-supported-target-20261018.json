@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Supported native rear destination, not demonstrated bridge driving or native reverse",
+  "finding": "Shared rear observer accepted raised supporting geometry, but ordinary recovery flattened its destination with getPos and separately rejected terrain water/normal.",
+  "implementation": [
+    "One extra centre-target GEOM support ray at model[0,-distance] inside observed envelope",
+    "Append optional AGL destination, preserving existing result field indices",
+    "Reject missing/steep support, submerged water target, and water with only terrain support",
+    "Ordinary rear recovery consumes observed target; existing current-owner/pose/command journal checks unchanged",
+    "Observer remains read-only; no physics or position writes"
+  ],
+  "sources": [
+    "https://community.bistudio.com/wiki/Position",
+    "https://community.bistudio.com/wiki/doMove",
+    "releaseVerificationAndDeployment/referenceReviews/hbq-rear-support-20261018.json"
+  ],
+  "bounds": "Maximum70rays:22straight/support plus48turn sweep. Existing two discovery queries/64candidate limit unchanged. Actual runtime budget unmeasured.",
+  "validation": {
+    "tests": 1418,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-recovery-supported-target-agl-build.log",
+    "unsigned_fingerprint": "321d260aabf55b33b59b3c4c51b076abe02d19d2a673ec23be91f5485d5febb6",
+    "physical": false
+  },
+  "remaining": [
+    "Native coordinate interpretation/pathfinding over water needs physical validation",
+    "Deck seams, sloped/modded hulls and gaps: discrete samples not continuous support proof",
+    "Native reverse capability and queue execution remain unaccepted",
+    "Audits paused"
+  ]
+}

@@ -4,6 +4,8 @@
  * retry/publication section. Edit an isolated journal; successor/native-order changes prevent
  * publication. Rear recovery aborts on aggregate damage increase against its original journal.
  * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
+ * Rear destinations retain the actual sampled support height, including raised decks.
+ * Terrain water without a supporting structure remains refused by DrivingRearClear.
  * Stationary waits/recovery require finite total linear velocity below1km/h, not forward speed.
  * This instantaneous admission is not physical HOLD/READY or proof of native reversing.
  * Purpose: Applies a sparse, owner-local safety speed cap and bounded physical recovery to an
@@ -766,15 +768,15 @@ _brain set ["geometryTracks",_geometryTracks];
                             };
                         };
                         case 1: {
-                            private _rear=_vehicle getPos [8,(getDir _vehicle)+180];
+                            private _rear=[];
                             private _rearPose=[getPosASL _vehicle,vectorDir _vehicle,time];
                             private _rearCommands=[currentCommand _driver,+(expectedDestination _driver),
                                 currentCommand _movementOperator,+(expectedDestination _movementOperator)];
                             private _rearJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                             // Fresh shared body-width observation; no fixed-width centre probe.
                             private _clearance=[_vehicle,8] call CBE_fnc_DrivingRearClear;
-                            private _rearSafe=(_clearance select 0) && {!surfaceIsWater _rear}
-                                && {((surfaceNormal _rear) select 2) >= 0.7};
+                            _rear=+(_clearance param [4,[]]);
+                            private _rearSafe=(_clearance select 0) && {count _rear == 3};
                             // Geometry uses the current callback context; native issue and its exact command journal
                             // share a short current-owner transaction with the original hard deadline.
                             isNil {

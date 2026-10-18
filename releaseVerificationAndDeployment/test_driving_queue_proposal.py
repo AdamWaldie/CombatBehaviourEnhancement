@@ -9,7 +9,7 @@ class QueueProposalTests(unittest.TestCase):
         for marker in ('["_separateCommander",false]','-SEPARATE-COMMANDER',
                        '_vehicle setEffectiveCommander _helper','effectiveCommander _vehicle == _helper',
                        'driver _vehicle != _helper','_commandCrewReady && {_samples >= 3}',
-                       '(_observation select 3) > 21','_maxRays > 21','_maxRays <= 69'):
+                       '(_observation select 3) > 22','_maxRays > 22','_maxRays <= 70'):
             self.assertIn(marker,diagnostic)
         for family in ('WHEELED','TRUCK'):
             for turn in ('LEFT','RIGHT'):
