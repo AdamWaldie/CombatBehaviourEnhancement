@@ -9,7 +9,8 @@
  * Observed native STOP events end work without recall. Own setup carries an exact write fence.
  * Repeated identical STOP delivery and event timing require physical interruption QA.
  * Repeat/JIP: Original consent context and finite expiry must still match; its deadline never renews. Return begins only after measured hull
- * separation. New native/controller orders retire work without recall. Each issued leg publishes
+ * separation AND arrival within eight metres/two vertical metres of the OUT endpoint; early
+ * clearance keeps driving the validated passing leg. New native/controller orders retire work without recall. Each issued leg publishes
  * cleanup identity for successor owners, never the path/work. No physics or JIP replay.
  * Arguments: 0 group <GROUP>, grpNull; 1 vehicle <OBJECT>, objNull; 2 brain <HASHMAP>, empty;
  * 3 current caller movement guard <CODE>, false.
@@ -174,7 +175,12 @@ if !(_work get "issued") exitWith {
     // Fresh connector and traffic already checked; no second query or return slice this callback.
     [true,_work get "cap","OUT"]
 };
-if (_phase == "OUT" && {_ahead}) then {
+// Hull clearance alone can occur well before the fixed return corridor begins.
+// Finish approaching that corridor on OUT instead of stopping early and cutting across it.
+private _outTarget=_work get "target";
+private _atReturnEntry=_vehicle distance2D _outTarget <= 8
+    && {abs (((getPosATL _vehicle) select 2)-(_outTarget select 2)) <= 2};
+if (_phase == "OUT" && {_ahead} && {_atReturnEntry}) then {
     _phase="RETURN_SCAN";_work set ["phase",_phase];_work set ["scanAt",serverTime];
 };
 if (_phase == "DROP_BACK") exitWith {

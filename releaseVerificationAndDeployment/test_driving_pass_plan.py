@@ -180,7 +180,7 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertNotIn('forceSpeed',s)
         self.assertEqual(s.split('params [[',1)[1].count('setDriveOnPath'),1)
         self.assertIn('call _current',s)
-        self.assertIn('_phase == "OUT" && {_ahead}',s)
+        self.assertIn('_phase == "OUT" && {_ahead} && {_atReturnEntry}',s)
         self.assertIn('(_ownSpan select 0) > (_peerSpan select 1)+6',s)
         self.assertIn('(_ownSpan select 1) < (_peerSpan select 0)-3',s)
         self.assertIn('modelToWorldWorld [_xx,_yy,_x]',s)
@@ -431,3 +431,17 @@ class DrivingPassPlanTests(unittest.TestCase):
         issue=s.split('private _issue=',1)[1].split('if (!(_work get "issued")',1)[0]
         self.assertIn('["activePath",_path apply {+_x}]',issue)
         self.assertIn('["legTravel",_travel]',issue)
+
+    def test_early_hull_clearance_keeps_out_leg_until_return_corridor_entry(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        transition=s.split('private _outTarget=',1)[1].split('if (_phase == "DROP_BACK")',1)[0]
+        for check in ('_vehicle distance2D _outTarget <= 8',
+                      '(_outTarget select 2)) <= 2',
+                      '_phase == "OUT" && {_ahead} && {_atReturnEntry}'):
+            self.assertIn(check,transition)
+        self.assertEqual(transition.count('set ["scanAt",serverTime]'),1)
+        self.assertNotIn('doStop',transition)
+        self.assertNotIn('set ["deadline",',transition)
+        begin=(ROOT/'addons/vehicles/functions/drivingPassBegin.sqf').read_text(encoding='utf-8')
+        self.assertIn('["outPath",_path select [0,_split]]',begin)
+        self.assertIn('["returnASL",_pathASL select [_split-1]]',begin)
