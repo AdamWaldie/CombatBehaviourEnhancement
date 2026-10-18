@@ -5,6 +5,18 @@ ROOT=Path(__file__).resolve().parents[1]
 class DrivingCrewTests(unittest.TestCase):
     def source(self):
         return (ROOT/'addons/vehicles/functions/drivingCrewStep.sqf').read_text(encoding='utf-8')
+    def test_new_driver_candidate_preserves_primary_gunner_when_alternatives_exist(self):
+        s=(ROOT/'addons/vehicles/functions/drivingCrewStep.sqf').read_text()
+        selection=s.split('private _cargo=',1)[1].split('if (_choices isNotEqualTo []) then',1)[0]
+        self.assertLess(selection.index('_choices=_cargo'),selection.index('commander _vehicle'))
+        self.assertLess(selection.index('_choices=_commandCrew'),selection.index('gunner _vehicle'))
+        self.assertIn('_choices select {(_x select 0) != _primaryGunner}',selection)
+        self.assertIn('if (_otherCrew isNotEqualTo []) then {_choices=_otherCrew}',selection)
+        self.assertNotIn('action [',selection)
+        self.assertNotIn('moveIn',selection)
+        admission=s.split('if (count _work == 0) then {',1)[1]
+        self.assertLess(admission.index('private _cargo='),admission.index('_work=createHashMapFromArray'))
+
     def test_actions_are_once_per_phase_and_vacancy_is_observed(self):
         s=self.source().split('params [[',1)[1]
         self.assertEqual(s.count(' action ['),2)

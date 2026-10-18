@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Executes one finite native internal-seat replacement for an ordinary leader vehicle.
  * A dead driver receives one native Eject action; only a confirmed vacant seat permits MoveToDriver.
- * Living incapacitated drivers are never displaced. Cargo crew are preferred to weapon operators.
+ * Living incapacitated drivers are never displaced. New candidate priority is eligible cargo,
+ * commander, other crew, then primary gunner as last resort. An admitted attempt keeps its candidate.
  * Locality / Authority: Internal current group/crew owner only, exact driving brain and
  * unit-local native actions. Vehicle may still belong to another owner; no vehicle command is issued.
  * An authored plain MOVE is required. Player, Zeus, specialist, convoy, service and newer orders win.
@@ -147,7 +148,17 @@ if (count _work == 0) then {
             && {currentCommand _actor != "STOP"}
     };
     private _cargo=_choices select {toLowerANSI (_x select 1) == "cargo"};
-    if (_cargo isNotEqualTo []) then {_choices=_cargo};
+    if (_cargo isNotEqualTo []) then {_choices=_cargo} else {
+        // Preserve the primary weapon station whenever another eligible crew member can drive.
+        // Native fullCrew row order is not a tactical role preference.
+        private _seatCommander=commander _vehicle;
+        private _commandCrew=_choices select {(_x select 0) == _seatCommander};
+        if (_commandCrew isNotEqualTo []) then {_choices=_commandCrew} else {
+            private _primaryGunner=gunner _vehicle;
+            private _otherCrew=_choices select {(_x select 0) != _primaryGunner};
+            if (_otherCrew isNotEqualTo []) then {_choices=_otherCrew};
+        };
+    };
     if (_choices isNotEqualTo []) then {
         _candidate=(_choices select 0) select 0;
         _work=createHashMapFromArray [["group",_group],["route",_route],["driver",_driver],["candidate",_candidate],

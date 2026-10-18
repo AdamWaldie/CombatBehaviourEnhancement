@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Ordinary native driver replacement role priority; not full crew-controller parity",
+  "reference_context": "Existing HBQ crew-retention source review identifies preserving operational crew roles; its forced moveIn actions are not copied. Current CBE handover uses observed native Eject/vacancy/MoveToDriver phases.",
+  "finding": "CBE preferred eligible cargo but otherwise selected the first eligible fullCrew row, giving no explicit preference to retaining the primary gunner when another replacement existed.",
+  "implementation": "New attempts choose eligible cargo, then actual commander, then other eligible crew excluding actual primary gunner; primary gunner remains available only when no alternative exists. Admitted attempts retain original candidate/deadline, preventing reprioritization churn.",
+  "bounds": "Existing at-most20 crew rows; two bounded filters only when no cargo, no new discovery, actor action or scheduler.",
+  "preserved": [
+    "Current owner/group/crew/native route admission",
+    "Strict actor reservations, player/Zeus/specialist/service exclusions",
+    "Living incapacitated driver not displaced",
+    "Observed driver vacancy before native seat switch",
+    "Completion requires actual candidate driver occupancy",
+    "Original25s deadline and no action replay on migration"
+  ],
+  "validation": {
+    "tests": 1393,
+    "compiled_sqf": 327,
+    "pbos": 9,
+    "log": ".qa/cbe-driver-seat-role-priority-build.log",
+    "unsigned_fingerprint": "e74c6cb1ce7f947a41ebd7405f12bde62d04346ae36c3b041b14230857ebacab",
+    "physical": false
+  },
+  "remaining": [
+    "Actual commander/secondary/primary-only crew configurations",
+    "Physical driver handover and restored movement",
+    "Retained primary gunnery under contact",
+    "Locality/HC and performance"
+  ],
+  "audit_authority": "Explicitly paused; all65 families partial."
+}
