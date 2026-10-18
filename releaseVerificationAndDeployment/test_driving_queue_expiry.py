@@ -21,12 +21,13 @@ class DrivingQueueExpiry(unittest.TestCase):
         self.assertIn('([_old] call _receiptKey) isEqualTo _key',timer)
         self.assertIn('forEach _vehicles',timer)
         self.assertIn('if (_retired) then',timer)
-        duplicate=s.split('private _duplicate=',1)[1].split('private _accepted=',1)[0]
+        duplicate=s.split('if (_duplicate) exitWith {',1)[1].split('if (_mode == "VERIFY") exitWith {',1)[0]
         self.assertIn('if (_mode == "VERIFY") then',duplicate)
         self.assertIn('"ACK",[_token,true]',duplicate)
-        self.assertIn('private _stillCurrent=[_vehicles,_roles,_dependencies,_context,true]',duplicate)
-        self.assertLess(duplicate.index('if (!_stillCurrent) exitWith'),duplicate.index('"ACK",[_token,true]'))
-        refusal=duplicate.split('if (!_stillCurrent) exitWith',1)[1].split('if (_mode == "VERIFY") then',1)[0]
+        self.assertLess(s.index('private _accepted='),s.index('if (_duplicate) exitWith {'))
+        self.assertLess(s.index('count _request != 4'),s.index('if (_duplicate) exitWith {'))
+        self.assertLess(duplicate.index('if (!_accepted) exitWith'),duplicate.index('"ACK",[_token,true]'))
+        refusal=duplicate.split('if (!_accepted) exitWith',1)[1].split('if (_mode == "VERIFY") then',1)[0]
         self.assertIn('(_old getOrDefault ["token",""]) == _token',refusal)
         self.assertIn('"RELEASE",[_token]',refusal)
         self.assertIn('"CBE_DrivingQueue_Consent",nil',refusal)

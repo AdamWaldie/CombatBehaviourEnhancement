@@ -70,25 +70,7 @@ private _duplicate=_owned findIf {
         || {(_old getOrDefault ["dependencies",[]]) isNotEqualTo _dependencies}
         || {(_old getOrDefault ["expires",-1]) != _expires} || {serverTime >= _expires}
 } < 0;
-if (_duplicate) exitWith {
-    // Delivery is deferred network work: matching receipt values do not establish that
-    // this owner's native order and controller admission still match the proposal.
-    // Server topology checks cannot replace these owner-local checks. Do not renew.
-    private _stillCurrent=[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent;
-    if (!_stillCurrent) exitWith {
-        {
-            private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
-            if ((_old getOrDefault ["token",""]) == _token) then {
-                _x setVariable ["CBE_DrivingQueue_Consent",nil];
-            };
-        } forEach _owned;
-        ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
-        false
-    };
-    if (_mode == "VERIFY") then {["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
-    true
-};
-private _accepted=serverTime < ([_deadline,_expires] select (_mode == "RESULT"))
+private _accepted=serverTime < ([_deadline,_expires] select (_mode == "RESULT" || {_duplicate}))
     && {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent};
 {
     if (_x == (_vehicles select 0)) then {
@@ -109,6 +91,23 @@ private _accepted=serverTime < ([_deadline,_expires] select (_mode == "RESULT"))
     if (count _old > 0 && {(_old getOrDefault ["token",""]) != _token}
         && {serverTime < (_old getOrDefault ["expires",-1])}) then {_accepted=false};
 } forEach _owned;
+if (_duplicate) exitWith {
+    // Delivery is deferred network work: matching receipt values do not establish that
+    // this owner's native order and controller admission still match the proposal.
+    // Server topology checks cannot replace these owner-local checks. Do not renew.
+    if (!_accepted) exitWith {
+        {
+            private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+            if ((_old getOrDefault ["token",""]) == _token) then {
+                _x setVariable ["CBE_DrivingQueue_Consent",nil];
+            };
+        } forEach _owned;
+        ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
+        false
+    };
+    if (_mode == "VERIFY") then {["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    true
+};
 if (_mode == "VERIFY") exitWith {
     if (_accepted) then {
         private _pendingKey=[_token,_serial,_vehicles,_roles,_dependencies,_context,_deadline,_expires,"PENDING"];

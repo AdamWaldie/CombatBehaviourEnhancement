@@ -89,7 +89,8 @@ class QueueProposalTests(unittest.TestCase):
         terminal=owner.split('// Terminal token cleanup',1)[1].split('private _duplicate=',1)[0]
         self.assertIn('(_old getOrDefault ["token",""]) == _token',terminal)
         self.assertNotIn('call CBE_fnc_DrivingQueueProposalCurrent',terminal)
-        self.assertLess(owner.index('if (_duplicate) exitWith'),owner.index('private _accepted='))
+        self.assertLess(owner.index('private _accepted='),owner.index('if (_duplicate) exitWith'))
+        self.assertIn('(_mode == "RESULT" || {_duplicate})',owner)
 
     def test_request_is_atomic_and_expired_passing_receipt_does_not_hold_queue_consent(self):
         request=(ROOT/'addons/vehicles/functions/drivingQueueAgreementRequest.sqf').read_text(encoding='utf-8')
