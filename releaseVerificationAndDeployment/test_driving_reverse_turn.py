@@ -61,7 +61,7 @@ class ReverseTurnTests(unittest.TestCase):
         for vehicle,family in [('O_APC_Tracked_02_cannon_F','TRACKED'),('O_MRAP_02_F','WHEELED'),('O_Truck_03_transport_F','TRUCK')]:
             for turn in ('LEFT','RIGHT'):
                 self.assertIn(f'["{vehicle}","{turn}","{family}"]',case)
-        for proof in ['_samples >= 3 && {_travel >= 1} && {_maxHeading >= 3}',
+        for proof in ['_commandCrewReady && {_samples >= 3} && {_travel >= 1} && {_maxHeading >= 3}',
                       '_vehicle sendSimpleCommand "BACK";',
                       '_group setVariable ["CBE_AIPass_Exclude",true,true]']:
             self.assertIn(proof,case)

@@ -6,7 +6,9 @@
  * migrating from the server to a real headless owner before Zeus replacement.
  * Standalone driving also measures native travel, a condition-gated wait, resume and disabled cleanup.
  * Normal-only excluded tracked, wheeled MRAP and truck reverse-turn diagnostics observe real heading/travel and shared
- * sensor work; it does not validate production stopping, collision avoidance or HC migration.
+ * sensor work; default and distinct-effective-commander wheeled/truck cases stay separate.
+ * Turning counts must exceed21 straight/support rays, within69 total. These diagnostics do
+ * not validate production stopping, collision avoidance, helper creation or HC migration.
  * Locality/authority: scheduled server creates disposable fixtures; production Cortex code commands
  * each current owner, and the migration case deliberately transfers its crew group and vehicle.
  * Repeat/JIP: fresh fixtures and public observer state; caller restores tuning, actors are deleted.
@@ -1221,14 +1223,26 @@ deleteGroup _driveGroup;
 // Keep this distinct from production withdrawal and the intentionally straight convoy case.
 if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
     {
-        _x params ["_class","_turn","_family"];
+        _x params ["_class","_turn","_family",["_separateCommander",false]];
         // Keep legacy tracked IDs; wheeled capabilities have their own results and cannot
         // inherit a tracked success. These excluded actors are native command diagnostics only.
-        private _case=(["REAR-TURN-","REAR-"+_family+"-TURN-"] select (_family != "TRACKED"))+_turn;
+        private _case=(["REAR-TURN-","REAR-"+_family+"-TURN-"] select (_family != "TRACKED"))+_turn+(["","-SEPARATE-COMMANDER"] select _separateCommander);
         private _vehicle=createVehicle [_class,[4300+150*_forEachIndex,3000,0],[],0,"NONE"];
         _vehicle setDir 0;
         createVehicleCrew _vehicle;
         private _group=group driver _vehicle;
+        private _helper=objNull;
+        if (_separateCommander) then {
+            // Initial fixture crew setup only. Never create/seat a production recovery helper.
+            _helper=_group createUnit [typeOf driver _vehicle,getPosATL _vehicle,[],0,"NONE"];
+            _helper assignAsCargo _vehicle;_helper moveInCargo _vehicle;
+            _vehicle setEffectiveCommander _helper;
+        };
+        private _commandCrewReady=!_separateCommander || {!isNull _helper
+            && {vehicle _helper == _vehicle} && {effectiveCommander _vehicle == _helper}
+            && {driver _vehicle != _helper}};
+        [_case+"-crew-arrangement",_commandCrewReady,
+            str [driver _vehicle,effectiveCommander _vehicle,_separateCommander,fullCrew [_vehicle,"",false]]] call _check;
         [_group] call _pin;
         _group setVariable ["CBE_AIPass_Exclude",true,true];
         _group setBehaviour "SAFE";_group setCombatMode "BLUE";
@@ -1257,7 +1271,7 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
             _previousHeading=getDir _vehicle;
             private _observation=[_vehicle,8] call CBE_fnc_DrivingRearClear;
             _maxRays=_maxRays max (_observation select 3);
-            if (_backward && {abs _delta >= 3} && {(_observation select 3) > 12}) then {
+            if (_backward && {abs _delta >= 3} && {(_observation select 3) > 21}) then {
                 _turnSamples=_turnSamples+1;
             };
             if (_maxHeading >= 35) exitWith {};
@@ -1266,11 +1280,11 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
         _vehicle sendSimpleCommand "STOPTURNING";
         _vehicle sendSimpleCommand "STOP";
         private _travel=(getPosASL _vehicle) vectorDistance _origin;
-        private _physical=_samples >= 3 && {_travel >= 1} && {_maxHeading >= 3};
+        private _physical=_commandCrewReady && {_samples >= 3} && {_travel >= 1} && {_maxHeading >= 3};
         [_case+"-native-physical-prerequisite",_physical,str [_samples,_travel,_maxHeading]] call _check;
         [_case+"-measured-yaw-sign",_physical && {_yawChecks >= 2} && {_yawConsistent},str [_yawChecks,_yawConsistent]] call _check;
         [_case+"-turning-observer-executed",_physical && {_turnSamples >= 2}
-            && {_maxRays > 12} && {_maxRays <= 60},str [_turnSamples,_maxRays]] call _check;
+            && {_maxRays > 21} && {_maxRays <= 69},str [_turnSamples,_maxRays]] call _check;
         missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
         {deleteVehicle _x} forEach crew _vehicle;
         deleteVehicle _vehicle;deleteGroup _group;
@@ -1280,6 +1294,10 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
         ["O_MRAP_02_F","LEFT","WHEELED"],
         ["O_MRAP_02_F","RIGHT","WHEELED"],
         ["O_Truck_03_transport_F","LEFT","TRUCK"],
-        ["O_Truck_03_transport_F","RIGHT","TRUCK"]
+        ["O_Truck_03_transport_F","RIGHT","TRUCK"],
+        ["O_MRAP_02_F","LEFT","WHEELED",true],
+        ["O_MRAP_02_F","RIGHT","WHEELED",true],
+        ["O_Truck_03_transport_F","LEFT","TRUCK",true],
+        ["O_Truck_03_transport_F","RIGHT","TRUCK",true]
     ];
 };

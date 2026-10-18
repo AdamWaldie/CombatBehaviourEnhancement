@@ -3,6 +3,19 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class QueueProposalTests(unittest.TestCase):
+    def test_native_capability_fixture_separates_crew_setup_and_turning_support_rays(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text(encoding='utf-8')
+        diagnostic=s.split('// Sensor diagnostic only:',1)[1]
+        for marker in ('["_separateCommander",false]','-SEPARATE-COMMANDER',
+                       '_vehicle setEffectiveCommander _helper','effectiveCommander _vehicle == _helper',
+                       'driver _vehicle != _helper','_commandCrewReady && {_samples >= 3}',
+                       '(_observation select 3) > 21','_maxRays > 21','_maxRays <= 69'):
+            self.assertIn(marker,diagnostic)
+        for family in ('WHEELED','TRUCK'):
+            for turn in ('LEFT','RIGHT'):
+                self.assertIn('"'+turn+'","'+family+'",true]',diagnostic)
+        for forbidden in ('CBE_DrivingQueue_Consent','CBE_DrivingQueue_Ready','CBE_DrivingQueue_Result'):
+            self.assertNotIn(forbidden,diagnostic)
     def test_receipt_is_canonical_bounded_and_observational(self):
         s=(ROOT/'addons/vehicles/functions/drivingQueueContext.sqf').read_text(encoding='utf-8')
         body=s.split('params [["_vehicles"',1)[1]
