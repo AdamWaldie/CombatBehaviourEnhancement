@@ -3,14 +3,20 @@
   "status": "IMPLEMENTATION_CONTRACT_NOT_EXECUTABLE_NOT_ACCEPTED",
   "scope": "Native negotiated queue room-making and rear-to-front dependency execution",
   "sources": {
-    "addons/vehicles/functions/drivingOperationStep.sqf": "5872ae293d580962456cced27d94641b59ac5b68c590d1fa7943f08bad306339",
-    "addons/vehicles/functions/drivingAssistStart.sqf": "76a411380d1e2b61b4470073f304d2856305a55aeed671c183315f44d14468e2",
-    "addons/vehicles/functions/drivingAssistRelease.sqf": "fb6c3728b63b194678121397868b37e3634c4d417224e734afb1aacde6a42030",
+    "addons/vehicles/functions/drivingOperationStep.sqf": "63e6b844679b46eaeb0035212d62be4c00e1d914e7890118a71178ccd6ffd950",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "e61dd4cfcf580a1d9166fa597354d3d91ff38353bd09da353cb045ba9816251c",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "0df8abdaa9b15a762ca9d294d969af19c286cd781ff9fa65d214352fa9b87b06",
     "addons/vehicles/functions/drivingOperationFinish.sqf": "9742f96263d2ff43e81977b9c47b0b1c6762248914c8fea380e6c14e081feeab",
     "addons/vehicles/functions/drivingPassContext.sqf": "3efe9903f79961c1ba2f6f5667aa8343e6edd1c2dd75fa31768e5ce589991cc7",
     "addons/vehicles/functions/drivingPassAgreementServer.sqf": "d3f4733b4df4a9e0287fdde53d979db6c89bd1fac914ee16586ae50bb2a65dfe",
     "addons/vehicles/functions/drivingPassAgreementOwner.sqf": "5c5f1487eddf075cca85302054881697036c0fbfc059a50a6e860a20d75b49b7",
-    "addons/vehicles/functions/drivingRearClear.sqf": "e495e9a2b87a375355cef00d8b1312f3aeec888a56478522b208609aad8b7968"
+    "addons/vehicles/functions/drivingRearClear.sqf": "fa14f0ea245b08cd031eb79fb2207734d3ab9def5838516696cec6041cb07c71",
+    "addons/vehicles/functions/drivingQueueProposal.sqf": "8ce95123173598feb2c1755665f51350f223bd49e628f94ada0e07526e2e3010",
+    "addons/vehicles/functions/drivingQueueContext.sqf": "6f20f135b2b4f76b9b945cfc81a15374a7eb044068a710c814f87f5073cc4c6b",
+    "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "e3118ab46f2bd67e8eb113eceae09f5fc7505cd9a2224227e2af68338ffc1313",
+    "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "19b031c6db177b3fbe2b7c86a091cd574c39eaa5b7fab545d440d5d62dfd7cd5",
+    "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "e82fe5a09fbd42156b675722657c2e000a288529942793c990d3d98bcefd3b89",
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "4311645f47ba593feb77c4564fde57b8b7e40754c17d1e7cbe8c8dbaf0c4f5de"
   },
   "findings": [
     "DrivingOperationStep/AssistStart already own finite owner callbacks and sole ordinary speed writer. Queue work must integrate there, not spawn another movement controller.",
@@ -102,5 +108,12 @@
     "No damage/continuous hull clearance plus actual before/after queue throughput.",
     "Normal/providerHC batches separate; matched overhead<=5%median/10%p95 including dense and many-queue cases."
   ],
-  "acceptance": "No queue behaviour implementation or parity credit from this contract. Existing route retries are separate. Audits paused, all65 feature families partial."
+  "acceptance": "No queue behaviour implementation or parity credit from this contract. Existing route retries are separate. Audits paused, all65 feature families partial.",
+  "current_state_update": {
+    "date": "2026-10-18",
+    "review": "hbq-queue-execution-gap-20261018.json",
+    "consent": "Distinct QUEUE proposal and actual-owner agreement now exist; original passing-only current-state finding is superseded.",
+    "execution": "Still absent: HOLD/READY, native dependency execution and exact executed-command handback.",
+    "audit_authority": "User explicitly keeps audits paused; continue implementation."
+  }
 }
