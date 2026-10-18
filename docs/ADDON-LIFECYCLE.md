@@ -1052,3 +1052,6 @@ Clearance no-progress retries allow a still-owned matching native PLANNING/BUSY 
 
 
 Combined-arms spatial candidate discovery explicitly includes live mounted crews within the existing spherical response envelope. The primary nearby-Man query omitted crew inside vehicles and could miss armour and aircraft groups. Group deduplication, communications, role reservations and actual-owner weapon/movement admission remain required. The crew-aware area query uses the addon's existing minimum engine version2.18. Discovery population and mounted-crew query cost still need runtime measurement; discovering a group does not establish a support effect.
+
+
+Ordinary area-report discovery includes live mounted receivers. Delivery beyond voice range requires currently communicating members at both sender and receiver; nearby voice reports remain possible when radio is unavailable. The receiving owner repeats the range/communication checks after queue delay, so a receiver becoming jammed before delivery rejects the radio report. Existing eight-receiver delivery batches and original report expiry remain unchanged. Reports retain approximate positions and do not reveal or track target objects. Physical radio/voice/crew and JIP/HC validation remains pending.

@@ -4225,12 +4225,13 @@ class CortexOperations(unittest.TestCase):
         support=source('cortexSupportServer')
         reports=source('cortexReportServer')
         combined=source('cortexCombinedArmsServer')
-        for text in [support,reports]:
+        for text in [support]:
             self.assertIn('nearEntities ["Man",',text)
         for text in [support,reports,combined]:
             self.assertNotIn('} forEach allGroups;',text)
         self.assertIn('_searchArea nearEntities [["Man"],false,true,true]',combined)
         self.assertIn('} forEach _candidateGroups;',support)
+        self.assertIn('_receiverArea nearEntities [["Man"],false,true,true]',reports)
         self.assertIn('} forEach _receiverGroups;',reports)
         self.assertIn('} forEach _candidateGroups;',combined)
 

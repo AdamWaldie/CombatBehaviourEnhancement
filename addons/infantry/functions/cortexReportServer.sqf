@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Relays up to three expiring sighting reports to eligible group owners, preserving reported positions.
+ * Spatial discovery includes mounted crews. Radio range requires a communicating member at
+ * both ends; voice range remains available without radio and is rechecked by the receiver.
  * Locality/authority: server validates shared assignments; commands run only on the current AI owner.
  * Repeat/JIP: tokens and server-time deadlines reject stale work; no historical JIP commands are replayed.
  * Arguments: 0: sender <GROUP>, grpNull; 1: reports <ARRAY>, []; 2: sent server time <NUMBER>, -1.
@@ -22,24 +24,29 @@ private _valid = (_reports select [0,3]) select {
 };
 if (_valid isEqualTo []) exitWith {};
 private _transmitter = [_sender] call CBE_fnc_CortexGroupTransmitter;
+private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 private _range = if (!isNull _transmitter) then {missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]} else {missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35]};
 private _senderPosition = getPosATL ([_transmitter, leader _sender] select isNull _transmitter);
 // A receiver is eligible only when its transmitter or local command anchor is inside this report's
 // delivery envelope. Derive distinct groups from nearby actors rather than scanning every group.
 private _receiverGroups=[];
+private _receiverArea=[_senderPosition,_range,_range,0,false,_range];
 {
     private _receiverGroup=group _x;
     if (!isNull _receiverGroup && {!(_receiverGroup in _receiverGroups)}) then {
         _receiverGroups pushBack _receiverGroup;
     };
-} forEach (_senderPosition nearEntities ["Man",_range]);
+} forEach (_receiverArea nearEntities [["Man"],false,true,true]);
 private _receivers = [];
 {
     private _receiver = _x;
     private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;
     private _receiverAnchor = if (isNull _receiverTransmitter) then {leader _receiver} else {_receiverTransmitter};
     if (_receiver != _sender && {side _receiver == side _sender} && {!isNull _receiverAnchor} && {alive _receiverAnchor}
-        && {_receiverAnchor distance2D _senderPosition <= _range} && {[_receiver] call CBE_fnc_CortexIsEligible}) then {
+        && {_receiverAnchor distance2D _senderPosition <= _range}
+        && {_receiverAnchor distance2D _senderPosition <= _voiceRange
+            || {!isNull _transmitter && {!isNull _receiverTransmitter}}}
+        && {[_receiver] call CBE_fnc_CortexIsEligible}) then {
         _receivers pushBack _receiver;
     };
 } forEach _receiverGroups;

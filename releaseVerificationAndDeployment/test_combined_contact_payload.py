@@ -92,3 +92,19 @@ class CombinedMountedDiscoveryTests(unittest.TestCase):
         self.assertIn('_candidateSeen set [_candidateKey,true]',discovery)
         config=(ROOT/'addons/main/config.cpp').read_text()
         self.assertIn('requiredVersion = 2.18;',config)
+
+
+class MountedReportDeliveryTests(unittest.TestCase):
+    def test_report_discovery_and_both_endpoints_preserve_radio_and_voice_boundaries(self):
+        server=(ROOT/'addons/infantry/functions/cortexReportServer.sqf').read_text()
+        owner=(ROOT/'addons/infantry/functions/cortexReportLocal.sqf').read_text()
+        self.assertIn('_receiverArea nearEntities [["Man"],false,true,true]',server)
+        self.assertIn('<= _voiceRange',server)
+        self.assertIn('!isNull _transmitter && {!isNull _receiverTransmitter}',server)
+        self.assertIn('> _voiceRange',owner)
+        self.assertIn('isNull _transmitter || {isNull _receiverTransmitter}',owner)
+        self.assertLess(owner.index('> _voiceRange'),owner.index('setVariable ["CBE_AIPass_AreaReport"'))
+        self.assertIn('for "_i" from 1 to 8',server)
+        for text in (server,owner):
+            self.assertNotIn(' reveal ',text)
+            self.assertNotIn('doMove',text)
