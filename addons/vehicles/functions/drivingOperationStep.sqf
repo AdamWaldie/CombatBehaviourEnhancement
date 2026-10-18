@@ -3,6 +3,8 @@
  * Purpose: Executes one route-owned driving sample and derives its next FSM phase from actual vehicle state.
  * Locality / Authority: Owner-local group only; no ownership transfer or second scheduler.
  * Exhausted route retries retain the existing safety executor rather than ending the group FSM.
+ * Nearby conflict hints request earlier existing callbacks without changing the phase
+ * to TRAFFIC until a real constraint applies; braking assumptions remain unchanged.
  * Public diagnostics publish on state changes and a ten-second heartbeat using this same callback.
  * Repeat/JIP: Epoch, generation and current-brain identity reject stale work. New owners start
  * their own execution; local jobs and FSM handles are never replayed to JIP.
@@ -23,7 +25,7 @@ if (!([_group] call CBE_fnc_DrivingMovementAvailable)) exitWith {["TACTICAL_OWNE
 if (([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo (_brain get "route")) exitWith {["ORDER_CHANGED"] call _reject};
 private _crewPending=[_group,_brain] call CBE_fnc_DrivingCrewStep;
 [_group,_brain] call CBE_fnc_DrivingAssistStart;
-private _bypass="";private _obstacle=false;private _corridor="";private _passing=false;
+private _bypass="";private _obstacle=false;private _corridor="";private _passing=false;private _watchTraffic=false;
 private _phase="HANDBACK";private _owned=0;private _recovery=false;private _waiting=false;private _exhausted=false;private _traffic=false;private _rearLeg=false;
 {
     private _pass=_x getVariable ["CBE_DrivingPass_Work",createHashMap];
@@ -31,6 +33,7 @@ private _phase="HANDBACK";private _owned=0;private _recovery=false;private _wait
     private _state=_x getVariable ["CBE_DrivingAssist_State",[]];
     if ((_state param [3,grpNull]) == _group) then {
         _owned=_owned+1;
+        _watchTraffic=_watchTraffic || {_state param [11,false,[true]]};
         if ((_state param [8,""]) in ["BYPASS_PLAN","BYPASS_FOLLOW"]) then {_bypass=_state select 8};
         _obstacle=_obstacle || {(_state param [8,""]) in ["OBSTACLE_APPROACH","OBSTACLE_WAIT"]};
         if ((_state param [8,""]) in ["CORRIDOR_APPROACH","CORRIDOR_CROSS"]) then {_corridor=_state select 8};
@@ -50,7 +53,7 @@ if (_owned == 0 && {!_crewPending}) then {_brain set ["cancelReason","NO_ELIGIBL
 _brain set ["recoveryExhausted",_exhausted];
 if (_passing) then {_phase="PASS"};
 if (_crewPending) then {_phase="CREW_HANDOVER"};
-_brain set ["phase",_phase];_brain set ["nextAt",time+([4,1] select (_crewPending || {_traffic} || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""} || {_passing}))];_brain set ["pending",false];_brain set ["completed",true];
+_brain set ["phase",_phase];_brain set ["nextAt",time+([4,1] select (_crewPending || {_traffic} || {_watchTraffic} || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""} || {_passing}))];_brain set ["pending",false];_brain set ["completed",true];
 // Publish transitions immediately, plus a sparse heartbeat at existing callback cadence.
 // The local brain owns this receipt: a new owner/brain publishes its first sample even if
 // its phase/generation happens to match the previous owner's public diagnostic packet.

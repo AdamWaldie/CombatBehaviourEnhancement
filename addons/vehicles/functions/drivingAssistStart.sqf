@@ -52,6 +52,9 @@
  * withdrawal. Actor and solid-geometry clearance does not prove native reverse execution.
  * Rear-path recovery retains original pose/direction and aborts >20 degree turns, forward travel
  * over1m or departure from the2.5m rear corridor; a rear MOVE is not proof of native reversing.
+ * Near same-lane or predicted crossing conflicts request one-second observation even
+ * before they lower the cap. This local hint survives cap-row overrides, never grants motion
+ * and retains the four-second braking reaction margin. Actual scheduler latency is unproven.
  * Only the current leader vehicle can refresh/reverse the shared route. Followers keep native
  * formation movement; a leader/seat/locality change invalidates delayed recovery commands.
  * Deliberate native waits near the completion envelope suppress recovery without evaluating
@@ -394,6 +397,9 @@ _brain set ["geometryTracks",_geometryTracks];
             private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call CBE_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
+            // Preserve this observation before gate/body/pedestrian caps replace the row.
+            // It affects callback cadence only, not speed or recovery admission.
+            private _trafficWatch=_traffic param [5,false,[true]];
             if (_rearPathRejected) then {_traffic=[0,_vehicle,-1,time,0]};
             private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingTurnTrack;
             _geometryTracks set [netId _vehicle,_turn select 1];
@@ -835,8 +841,8 @@ _brain set ["geometryTracks",_geometryTracks];
                     _vehicle setVariable ["CBE_DrivingRecovery_Work",_updatedRecovery,true];
                 };
                 _vehicle setVariable ["CBE_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
-                    _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued]];
-                _vehicle setVariable ["CBE_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))];
+                    _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued,_trafficWatch]];
+                _vehicle setVariable ["CBE_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_trafficWatch} || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))];
                 if (_passActive) then {_vehicle setVariable ["CBE_DrivingAssist_Next",time+1]};
             };
             };

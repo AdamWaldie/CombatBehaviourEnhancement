@@ -24,7 +24,9 @@
  * 2 registered predecessor <OBJECT>, objNull. Only its alive, aligned, non-reversing
  * longitudinal spacing is delegated to the convoy; crossing and close hull occupancy remain checked.
  * Return: ARRAY [cap m/s NUMBER, limiting vehicle OBJECT, hull gap m NUMBER,
- * sampledAt NUMBER, candidate count NUMBER]. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
+ * sampledAt NUMBER, candidate count NUMBER, nearby conflict BOOL]. The sixth field requests
+ * earlier observation only for closing/crossing conflicts; stable same-speed following
+ * does not request faster sampling. It grants no speed, clearance or right of way. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
  * a congestion sentinel; at most 64 candidate hulls are evaluated, eight corners each.
  * Discovery includes six seconds of own travel plus a nominal 35 m/s opposing/crossing
  * approach and 20 m hull margin, capped at 500 m. An over-budget envelope refuses before
@@ -35,12 +37,12 @@
  */
 params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]]];
 _requested=(_requested max 0) min 35;
-if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0]};
+if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0,false]};
 private _box=boundingBoxReal _vehicle;
 private _low=_box select 0;private _high=_box select 1;
 private _front=_high select 1;
 private _forward=vectorDir _vehicle;_forward set [2,0];
-if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0]};
+if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0,false]};
 _forward=vectorNormalized _forward;
 private _right=[_forward select 1,-(_forward select 0),0];
 private _halfWidth=((_high select 0)-(_low select 0))*0.5;
@@ -61,13 +63,13 @@ _plannedSpeed=(_ownForward max _requested) max 0.5;
 private _horizon=6;
 private _approachAllowance=35*_horizon;
 private _radius=(_ownForward max _requested)*_horizon+_approachAllowance+20+(abs _front);
-if (!finite _radius || {_radius > 500}) exitWith {[0,_vehicle,-1,time,0]};
+if (!finite _radius || {_radius > 500}) exitWith {[0,_vehicle,-1,time,0,true]};
 // Arma 2.18 area syntax explicitly includes dead vehicle entities. The default
 // radius syntax omits them; removing only the alive predicate would not fix discovery.
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 private _candidates=_area nearEntities [["LandVehicle"],false,false,false];
-if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates]};
-private _cap=_requested;private _limiting=objNull;private _gap=-1;
+if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates,true]};
+private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearConflict=false;
 {
     private _other=_x;
     if (_other != _vehicle && {!isNull _other}) then {
@@ -132,6 +134,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
                     private _brakingCap=(sqrt ((_reactionSpeed^2)+2*_deceleration*_room)-_reactionSpeed) max 0;
                     private _allowed=_arrivalCap min _brakingCap;
                     private _stoppingRoom=_ownForward*_reaction+(_ownForward^2)/(2*_deceleration);
+                    if (_fromRight || {_room <= _stoppingRoom}) then {_nearConflict=true};
                     if (_room <= _stoppingRoom) then {_allowed=0};
                     if ((_fromRight || {_room <= _stoppingRoom}) && {_allowed < _cap}) then {
                         _cap=_allowed;_limiting=_other;_gap=_room
@@ -141,6 +144,10 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
         };
         if (_ahead && {_sameLane} && {_sameHeight}) then {
             private _hullGap=(_minY-_front) max 0;
+            // Anticipation changes cadence only, including a peer not yet lowering our cap.
+            // Same-lane and same-height hull tests above keep adjacent/stacked traffic out.
+            private _watchRoom=40 max (_ownForward*_reaction+(_ownForward^2)/(2*_deceleration));
+            if (_hullGap <= _watchRoom && {!_following || {_ownForward-_otherForward > 0.5}}) then {_nearConflict=true};
             if (_spacingOwned) then {
                 // Normal convoy gaps keep their own pacing model. Even an aligned
                 // predecessor cannot exempt contact-range body overlap from braking.
@@ -176,4 +183,4 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
         };
     };
 } forEach _candidates;
-[_cap,_limiting,_gap,time,count _candidates]
+[_cap,_limiting,_gap,time,count _candidates,_nearConflict]
