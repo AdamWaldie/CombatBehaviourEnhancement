@@ -2,10 +2,10 @@
 
 Checked against the feature registry and local build evidence on 18 October 2026.
 CBE is not production-ready. All **65 feature families remain partial; 0/65 have full acceptance**.
-This is an acceptance count, not a claim that implementation is zero percent. The former
-implementation percentages were withdrawn because source inventories, registration and offline
-test counts did not measure delivered AI behaviour. No defensible overall implementation or
-Workshop-parity percentage is available.
+This is an acceptance count, not an implementation percentage. Track capability build-out separately in
+[Build-out progress](BUILDOUT-PROGRESS.md), with explicit partial credit and remaining code/integration gaps.
+Physical acceptance does not reduce build-out to zero. Unassessed build scope stays unknown; source file,
+setting and test counts do not supply implementation or Workshop-parity percentages.
 
 ## Current evidence boundary
 

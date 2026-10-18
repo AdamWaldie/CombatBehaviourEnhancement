@@ -1,0 +1,882 @@
+{
+  "schema": 1,
+  "meaning": "Capability build-out estimates, separate from physical acceptance, source parity and performance. Equal capability weights are explicit scope weights, not effort/time estimates.",
+  "score_scale": {
+    "0": "Absent execution capability",
+    "0.5": "Implemented subset with a named code/integration gap",
+    "1": "Scoped execution path implemented/integrated; physical verification may remain pending"
+  },
+  "overall_policy": "No overall percentage until every registered family has an assessed capability denominator. Unassessed is unknown, never zero.",
+  "families": [
+    {
+      "id": "TERRAIN",
+      "title": "Cross-cutting uneven-terrain movement and air attack",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "TERRAIN-BATTLE",
+      "title": "Equal-force live battle on measured terrain",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CORE",
+      "title": "Master, exclusions and ownership",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "COMPAT",
+      "title": "Specialist ownership and alternative-controller handover",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "SCHED",
+      "title": "Scheduler and distance tiers",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "PROFILE",
+      "title": "Behaviour profiles and aggression",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "SKILL",
+      "title": "AI skill rebalance",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "LAND",
+      "title": "Helicopter landing",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "DECEL",
+      "title": "Helicopter braking",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "REGROUP",
+      "title": "Survivor regroup",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "MEDICAL",
+      "title": "Finite squad medical assistance",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CONTACT",
+      "title": "Contact detection",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "POST",
+      "title": "Post-contact search",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "FLANK",
+      "title": "Flanking bounds",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CROSS",
+      "title": "Road crossing",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "FIRE",
+      "title": "Fire distribution and suppression",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "MORALE",
+      "title": "Morale and withdrawal",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "SURRENDER",
+      "title": "Surrender",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "GRENADE",
+      "title": "Grenade avoidance",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CIVILIAN",
+      "title": "Civilian danger response and external ownership",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "AT",
+      "title": "Anti-armour and ammunition roles",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "VEH",
+      "title": "Vehicle engagement",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "DISMOUNT",
+      "title": "Contact passenger dismount",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "REMOUNT",
+      "title": "Contact passenger remount",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "WITHDRAW",
+      "title": "Damaged vehicle withdrawal",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "COVER",
+      "title": "Cover selection and clearance",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "VEH-DRIVING",
+      "title": "Ordinary vehicle route safety",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Owner-local driving FSM",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Route-scoped parent, scheduler execution and finite retirement are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingOperationStart.sqf",
+              "sha256": "761056860bf605e6924ef7704ddc156dd1acb80012f84a86752ac90f61cd36a7"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingOperationStep.sqf",
+              "sha256": "63e6b844679b46eaeb0035212d62be4c00e1d914e7890118a71178ccd6ffd950"
+            }
+          ]
+        },
+        {
+          "capability": "Route identity and speed policy",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Authored route, terrain and following caps are consumed by ordinary driving.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingRouteReceipt.sqf",
+              "sha256": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingFollowingCap.sqf",
+              "sha256": "3a4940e55f851899d64f4173afa1c9bb2c5a0071bc6115529b06054b7b73762b"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRoadCap.sqf",
+              "sha256": "9e9b4f476946c089fe1abd2089ec8f9d706cf214b02283290a6defc800fc0b06"
+            }
+          ]
+        },
+        {
+          "capability": "Predictive obstacle handling",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Bounded native-path and hull prediction exists.",
+          "remaining_build_gap": "Complete dynamic traffic resolution is unfinished.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingGeometryCap.sqf",
+              "sha256": "6f1ea78cd44870b7cce3c02e9c3025832bda3d3364ff8addf1bc8d18e61a8869"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
+              "sha256": "548fafc5a2b618229bdb927f7072640560f89843e0bc7d7cc0f5a8749a2d5123"
+            }
+          ]
+        },
+        {
+          "capability": "Gate interaction",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Indexed barrier detection and authenticated opening are wired.",
+          "remaining_build_gap": "Broader gate-action coverage and automatic closure remain incomplete or unsupported.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingGateCap.sqf",
+              "sha256": "12e6fe924cce4a1e19935cceaa803f8c529f8c3f0ba2dfa2261a84238dc82add"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingGateOpenServer.sqf",
+              "sha256": "6a9666379950f431b35678b6ffb9b3ea15691d44e9e8adab279ea9ae08220dd6"
+            }
+          ]
+        },
+        {
+          "capability": "Finite native rear recovery",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Native rear request, live corridor/damage monitoring and owned release are implemented.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+              "sha256": "51018762e8353418dbf067bc4c199c48a1570198fb84b4615f466ab6742f6b5a"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRearClear.sqf",
+              "sha256": "f39f82669e827442e17beb11ea34e6fc553a984d60815ad7b7a222c4bf6f500f"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+              "sha256": "0f693212e3eb595bf07d3fadd761ff2b8ff8eca8a21f1dd45279eb2d35ad356b"
+            }
+          ]
+        },
+        {
+          "capability": "Static bypass and corridor execution",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Finite owner-local approach/crossing/return executors exist.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingBypassStep.sqf",
+              "sha256": "7a4f994bcb903313b3f84ad21d13be8f68bf661301d4c66b20b81a586381afe1"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingCorridorStep.sqf",
+              "sha256": "438e6fcfa315b26f23942d8f1e164e6f7fb9a6672665b017491855c9c1de5805"
+            }
+          ]
+        },
+        {
+          "capability": "Negotiated passing",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Consent and finite passing/return execution are wired.",
+          "remaining_build_gap": "Stopped-merge recovery and all native handover cases remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingPassAgreementOwner.sqf",
+              "sha256": "5c5f1487eddf075cca85302054881697036c0fbfc059a50a6e860a20d75b49b7"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingPassStep.sqf",
+              "sha256": "25a0243920279b42c9867ae3471f74781fd38bef55b7850a3091bbaf65d47b3e"
+            }
+          ]
+        },
+        {
+          "capability": "Queue discovery and agreement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Bounded dependency discovery, owner agreement and monotonic retirement are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+              "sha256": "2d7f1988a9adac09ff9a20ea16b05ac578f7ce2e71388c9668a1757a78392e43"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+              "sha256": "406d6399f9341f67362e1dde7a2863e99d14d594cc4e1d8ceb8b600f0637b2c8"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+              "sha256": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003"
+            }
+          ]
+        },
+        {
+          "capability": "Queue room-making execution",
+          "weight": 1,
+          "built": 0,
+          "implemented": "Agreement handler records consent; it issues no movement.",
+          "remaining_build_gap": "COMMIT/HOLD/settled READY/rear-first movement/crossing/handback executor is absent.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+              "sha256": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003"
+            }
+          ]
+        },
+        {
+          "capability": "Crew handover",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Current seat and replacement-driver ownership paths exist.",
+          "remaining_build_gap": "Complete cross-owner crew transitions and native task preservation still need implementation review.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingCrewStep.sqf",
+              "sha256": "00063286e9a1b3342ee4f9a007d6e67d8cc6d9bb2eab5ccf5413c2f24f7c0583"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf",
+              "sha256": "bd19002cf593334771bc4ad8c279d253e013f37df4a3f824f4c0dbf724c84df8"
+            }
+          ]
+        },
+        {
+          "capability": "Native order and external handback",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Exact owned settings and changed routes are guarded.",
+          "remaining_build_gap": "Separate crew STOP and repeated identical native command cases are not completely resolved.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
+              "sha256": "0df8abdaa9b15a762ca9d294d969af19c286cd781ff9fa65d214352fa9b87b06"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingOperationFinish.sqf",
+              "sha256": "bd6244fb5d7417da93aa056719f183bef145df9037b09531010f017aba07422f"
+            }
+          ]
+        }
+      ],
+      "confidence": "medium",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CNV-MOVE",
+      "title": "Mixed convoy path and spacing",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Convoy operation lifecycle",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Public task, server revision and owner-local execution are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/simpleAiConvoy.sqf",
+              "sha256": "d74b8e05ea683be77019dc6907777c93b02c3fbcce73e7630c057ee7af2f50e2"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyOperationStep.sqf",
+              "sha256": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6"
+            },
+            {
+              "path": "addons/vehicles/functions/convoySync.sqf",
+              "sha256": "dfddfa88eb4765a7b23586aad147897ad285d7fc6a2d59980475e43a03d722d0"
+            }
+          ]
+        },
+        {
+          "capability": "Predecessor trails and native goals",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Followers consume ordered predecessor travel with native goal continuity.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e7b98578df00a6dffd006385080717157613203719487361ad9c30557de3c1b8"
+            }
+          ]
+        },
+        {
+          "capability": "Mixed-vehicle spacing control",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Gap correction, braking envelope and bounded acceleration are implemented.",
+          "remaining_build_gap": "Known mixed-column stop/start and gap convergence faults leave control/balance work open.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e7b98578df00a6dffd006385080717157613203719487361ad9c30557de3c1b8"
+            }
+          ]
+        },
+        {
+          "capability": "Lead pacing",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Lead pacing responds to aligned follower stretch.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e7b98578df00a6dffd006385080717157613203719487361ad9c30557de3c1b8"
+            }
+          ]
+        },
+        {
+          "capability": "Public halt and resume",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Revision-scoped halt/resume and applied-cap ownership paths exist.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyOperationStep.sqf",
+              "sha256": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e7b98578df00a6dffd006385080717157613203719487361ad9c30557de3c1b8"
+            }
+          ]
+        },
+        {
+          "capability": "Replacement native orders",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Native MOVE identity and operator STOP yield are implemented.",
+          "remaining_build_gap": "Repeated identical STOP under fixed steering and separate crew-command cases remain open.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyRetireMoveReceipt.sqf",
+              "sha256": "687bc693d65c84401883c36c8a5418603ab3cc62393bef75edbb84d25d1c9a14"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e7b98578df00a6dffd006385080717157613203719487361ad9c30557de3c1b8"
+            }
+          ]
+        },
+        {
+          "capability": "Whole-column passages",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Lead passage and follower whole-hull/tail tracking are composed.",
+          "remaining_build_gap": "Stopped-merge recovery and complete interrupted-passage continuation remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyCorridorStep.sqf",
+              "sha256": "ac8f566e08f1eb964bce85f9cc6fedd812b910541a941318d37fbf32ef8a0aa6"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyBypassStep.sqf",
+              "sha256": "7c438fa16e48370f1929f2f5802d2ad26af510197f0e145417ceb0d8ef31aae7"
+            }
+          ]
+        },
+        {
+          "capability": "Crew and cargo integration",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Crew/cargo policy and revision-scoped owner adoption are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyUnloadPolicy.sqf",
+              "sha256": "2592fe9f879c36b5f465ca94c225a16f1fc3e845c42078750474fd2fb0ec653e"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf",
+              "sha256": "822c3ceb4786d66a229330061893a2f1c044e9d43783c84471c3bbcc30ec032a"
+            }
+          ]
+        }
+      ],
+      "confidence": "medium",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CNV-FIRE",
+      "title": "Convoy weapon crew",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CNV-COVER",
+      "title": "Convoy dismount positions",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CNV-AVOID",
+      "title": "Convoy infantry avoidance",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CNV-HALT",
+      "title": "Convoy contact drills",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CNV-UNLOAD",
+      "title": "Convoy cargo lifecycle",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "HEARING",
+      "title": "Gunfire area reports",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "REPORT",
+      "title": "Contact sharing",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "REINFORCE",
+      "title": "Reinforcement",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "ART",
+      "title": "Spotted artillery bursts",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CB",
+      "title": "Counter-battery",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "AIRBORNE",
+      "title": "Parachute passengers",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "GARRISON",
+      "title": "Garrison and dynamic AO",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "FLARES",
+      "title": "Aircraft countermeasures",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "INVESTIGATE",
+      "title": "Known-area investigation",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "ASSAULT",
+      "title": "Final assault",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "ADVANCE",
+      "title": "Bounding advance",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "COORD",
+      "title": "Coordinated assault",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "STANCE",
+      "title": "Cover stance",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "AMMO",
+      "title": "Magazine sharing",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "GUNNERY",
+      "title": "Vehicle threat priority",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "ART-SMOKE",
+      "title": "Artillery smoke",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "BREAK",
+      "title": "Aircraft evasive break",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "DEFEND",
+      "title": "Defence orders",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "CLEAR",
+      "title": "Building clearance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Clear task and operation ownership",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Explicit task dispatch, generation and owner-local operation are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+              "sha256": "f3241cffa17735cc3404d1f593114e40f916f3988aed5d685e562c44a0302ef1"
+            },
+            {
+              "path": "addons/infantry/functions/buildingOperationStart.sqf",
+              "sha256": "85540c4799f3dba472a674071f5dbf7daceed3900482d502c4fe5aee5b616d30"
+            }
+          ]
+        },
+        {
+          "capability": "Dynamic building topology and access",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Runtime entrances, nodes and bounded selection exist.",
+          "remaining_build_gap": "Reliable classification of inaccessible modded points and general through-building routing remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+              "sha256": "f3241cffa17735cc3404d1f593114e40f916f3988aed5d685e562c44a0302ef1"
+            },
+            {
+              "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
+              "sha256": "a4914fa0a102f855ba26a78f7248365c4235e8da62673fd9ad2d4428216861cc"
+            }
+          ]
+        },
+        {
+          "capability": "Individual native interior movement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Finite native movement, command context, progress and cancellation paths are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/indoorActorOperation.sqf",
+              "sha256": "8e0754a713a946484b980e9d0e150b7c0793434836b2c9321e8ad5d54b954c41"
+            },
+            {
+              "path": "addons/infantry/functions/indoorActorDispatch.sqf",
+              "sha256": "b6828ee1fb466fcfcd331dae9bb90d4d94afbf1916e20165ab317101b90b5872"
+            }
+          ]
+        },
+        {
+          "capability": "Buddy and pair flow",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Pair assignment, progress and follow-through paths exist.",
+          "remaining_build_gap": "Coherent concurrent entry and straggler handling still require logic refinement.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/combatPairs.sqf",
+              "sha256": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f"
+            },
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+            }
+          ]
+        },
+        {
+          "capability": "Casualty replenishment",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Survivor/pair replacement and role safeguards exist.",
+          "remaining_build_gap": "Whole-pair replacement continuity and relief of failed assaulters remain incomplete.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+            }
+          ]
+        },
+        {
+          "capability": "Exterior isolation/security",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Exterior posts, exit observation and lane exclusions are implemented.",
+          "remaining_build_gap": "Complete dynamic isolation across approaches/exits and relief behaviour are unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
+              "sha256": "2c5446a5e7f31a03705d9148a6d69ca9da27904664e508645f25da98b983107a"
+            },
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+            }
+          ]
+        },
+        {
+          "capability": "Egress and consolidation",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Separated exterior assignment and physical egress tracking exist.",
+          "remaining_build_gap": "One failed exterior allocation currently discards a pending worker; coherent post-clear flow remains incomplete.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+            },
+            {
+              "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
+              "sha256": "7745850ad797cf93789ef40a43f1b261b4cd507f6871f4bd988f1fc061e0c284"
+            }
+          ]
+        },
+        {
+          "capability": "Door handling",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Production proximity/ownership door handling exists.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
+              "sha256": "3206259d73b99ee9309b6873e838659dc1cf490c9bf37edd36aeced2991094b5"
+            }
+          ]
+        },
+        {
+          "capability": "Interruption, repeat and handback",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Generation-scoped interruption and exact movement/settings retirement are implemented.",
+          "remaining_build_gap": "Complete post-clear security/repeat lifecycle still needs refinement.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexClearRelease.sqf",
+              "sha256": "fc871a7c34d3aa70ed310a01999e177ea7654270f2be02a20937b2f48ad9ab35"
+            },
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+            }
+          ]
+        }
+      ],
+      "confidence": "medium",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "UI",
+      "title": "CBA configuration and diagnostics",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "LIFECYCLE",
+      "title": "Transfer, disconnect and JIP",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "MULTI-FLANK",
+      "title": "Multi-squad flank cohesion",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "MULTI-BOUND",
+      "title": "Squad and multi-squad bounding overwatch",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "MULTI-WITHDRAW",
+      "title": "Multi-squad screened withdrawal",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "TRANSITIONS",
+      "title": "Combat action transitions",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "LIGHTING",
+      "title": "Automatic darkness, night vision and illumination",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "DRILL-HANDOVER",
+      "title": "Moving flank and advance handed to Zeus",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "DRILL-RECOVERY",
+      "title": "Bound continuation and straggler rejoin",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "COMBINED-ARMS",
+      "title": "Contact-led combined-arms opportunity",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "COMBINED-OPERATION",
+      "title": "Dynamic multi-squad combined operation",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "ATTACK-FLARES",
+      "title": "Attack-run approach and departure flares",
+      "assessment": "unassessed",
+      "criteria": []
+    },
+    {
+      "id": "AIR-ATTACK",
+      "title": "Threat-aware finite aircraft attack patterns",
+      "assessment": "unassessed",
+      "criteria": []
+    }
+  ]
+}
