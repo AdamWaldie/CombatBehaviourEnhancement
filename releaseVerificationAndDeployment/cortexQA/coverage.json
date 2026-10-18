@@ -738,7 +738,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions and automatic gate closure remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success.",
+      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions and automatic gate closure remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success. Canonical2..4participant head-on queue proposal discovery is staged after5s dwell and at most once/30s; it grants no consent or movement. Distinct broker/native reverse/handback remains unimplemented.",
       "executable_sources": [
         "runVehicleDrills.sqf",
         "runDrivingTraffic.sqf",
@@ -794,7 +794,9 @@
         "addons/vehicles/functions/drivingTurnTrack.sqf",
         "addons/vehicles/functions/drivingNativePathWatch.sqf",
         "addons/vehicles/functions/drivingRecoveryRelease.sqf",
-        "addons/vehicles/functions/drivingCrewStep.sqf"
+        "addons/vehicles/functions/drivingCrewStep.sqf",
+        "addons/vehicles/functions/drivingQueueContext.sqf",
+        "addons/vehicles/functions/drivingQueueProposal.sqf"
       ]
     },
     {

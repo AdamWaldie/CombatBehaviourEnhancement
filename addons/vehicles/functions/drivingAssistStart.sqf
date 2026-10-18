@@ -557,6 +557,22 @@ _brain set ["geometryTracks",_geometryTracks];
                 false
             };
 
+            // Queue proposal discovery is not movement ownership or an acknowledgement.
+            // Keep its world query outside the unscheduled retry/publication section.
+            private _queuePrior=_vehicle getVariable ["CBE_DrivingQueue_ProposalAt",-1e9];
+            private _queueSeen=_vehicle getVariable ["CBE_DrivingTrafficSeen",[]];
+            private _queueRetry=_vehicle getVariable ["CBE_DrivingTrafficRetry",createHashMap];
+            if (call _mayRecoverOrdinaryRoute && {count _queueSeen == 5} && {count _queueRetry > 0}
+                && {serverTime >= (_queueSeen select 2)} && {serverTime-(_queueSeen select 2) <= 1.5}
+                && {serverTime-(_queueRetry get "since") >= 5} && {(_queueRetry get "since") >= 0}
+                && {serverTime < (_queueRetry get "deadline")} && {serverTime-_queuePrior >= 30}) then {
+                _vehicle setVariable ["CBE_DrivingQueue_ProposalAt",serverTime];
+                private _queueProposal=[_vehicle,_queueSeen select 1,_queueRetry get "deadline"] call CBE_fnc_DrivingQueueProposal;
+                if (call _mayRecoverOrdinaryRoute) then {
+                    _vehicle setVariable ["CBE_DrivingQueue_Proposal",_queueProposal];
+                };
+            };
+
             // Waiting behind traffic is not a route fault. Keep the last progress sample current so
             // clearing the queue does not immediately inherit a stale reverse deadline.
             if ((_trafficLimited && {!_solidCandidate}) || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass} || {_passActive} || {_hadPass}) then {
