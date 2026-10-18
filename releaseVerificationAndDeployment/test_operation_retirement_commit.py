@@ -23,6 +23,17 @@ class OperationRetirement(unittest.TestCase):
         self.assertLess(admission.index('isNil {'),admission.index('_operation set ["phase","CANCELLED"]'))
         self.assertLess(admission.index('_current isEqualTo _operation'),admission.index('_operation set ["phase","CANCELLED"]'))
         self.assertIn('if (!_cancelAdmitted) exitWith {false}',admission)
+    def test_cancelled_completion_and_recovery_remain_terminal(self):
+        release=(ROOT/'addons/core/functions/operationRelease.sqf').read_text(encoding='utf-8')
+        admission,commit=release.split('private _retired=false;',1)
+        self.assertLess(admission.index('== "CANCELLED"'),admission.index('CBE_fnc_OperationRestore'))
+        self.assertLess(commit.index('== "CANCELLED"'),commit.index('setVariable ["CBE_Operation",nil,true]'))
+        recovery=(ROOT/'addons/infantry/functions/recoveryStep.sqf').read_text(encoding='utf-8')
+        admission,commit=recovery.split('isNil {',1)
+        self.assertIn('== "CANCELLED"',admission)
+        self.assertLess(commit.index('== "CANCELLED"'),commit.index('_currentOperation set ["recoveryAttempts"'))
+        self.assertLess(commit.index('== "CANCELLED"'),commit.index('doMove'))
+
     def test_permission_restore_consumes_only_current_lease_in_atomic_scope(self):
         text=(ROOT/'addons/core/functions/operationRestore.sqf').read_text(encoding='utf-8')
         for proof in ('isNil {','_current isNotEqualTo _operation','ownerEpoch','count _members > 64',

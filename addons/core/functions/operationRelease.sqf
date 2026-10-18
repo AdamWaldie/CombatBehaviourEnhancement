@@ -3,7 +3,7 @@
  * Purpose: Completes a matching CBE operation after its physical outcome is known.
  * Locality/authority: Current group owner only; final retirement rechecks the captured
  * operation generation, entry epoch and exact operation after cleanup.
- * Repeat/JIP: A replaced, previous-owner or externally claimed operation is not reported as complete. The completion record is public.
+ * Repeat/JIP: A cancelled, replaced, previous-owner or externally claimed operation is not reported as complete. The completion record is public.
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 result <STRING, COMPLETE>; 3 reason <STRING, COMPLETE>.
  * Return Value: BOOL - true when the matching operation was released.
  * Current callers: OperationStep and finite feature completion paths.
@@ -16,6 +16,7 @@ private _entryEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _operationEpoch=_operation getOrDefault ["ownerEpoch",-1];
 if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _generation}) exitWith {false};
 if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])) exitWith {false};
+if ((_operation getOrDefault ["phase",""]) == "CANCELLED") exitWith {false};
 // Completion queued before a takeover is no longer an owned physical outcome. Retire only the
 // matching generation as cancelled; never publish COMPLETE over a curator/specialist handover.
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {
@@ -43,6 +44,8 @@ isNil {
         && {(_current getOrDefault ["generation",-2]) == _generation}
         && {(_current getOrDefault ["ownerEpoch",-2]) == _operationEpoch}
         && {_current isEqualTo _operation}) then {
+        // Cancellation owns its terminal result even while its cleanup record is still present.
+        if ((_current getOrDefault ["phase",""]) == "CANCELLED") exitWith {};
         if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {_lateTakeover=true};
         _group setVariable ["CBE_Operation",nil,true];
         _group setVariable ["CBE_OperationResult",[_operation getOrDefault ["intent",""],toUpperANSI _result,_generation,serverTime,toUpperANSI _reason],true];
