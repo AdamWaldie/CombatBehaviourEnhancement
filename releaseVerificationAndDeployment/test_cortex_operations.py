@@ -2945,7 +2945,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_unit enableAI "PATH"',release_hold)
         self.assertIn('_unit setVariable ["CBE_Cortex_SupportPathHold",nil,true]',release_hold)
         self.assertIn('_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]',release_hold)
-        self.assertIn('_returnSearchTeam && {_command == "MOVE"}',release_hold)
+        self.assertIn('CBE_fnc_CortexSearchMoveOwned',release_hold)
         self.assertIn('!_yieldToExternal &&',release_hold)
         self.assertIn('CBE_fnc_CortexZeusHeld',release_hold)
         self.assertIn('"CBE_AIPass_ClearOrder",[]]) isEqualTo []',release_hold)
@@ -6249,8 +6249,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _mayIssueMovement = {',tick)
         self.assertIn('!([_group] call CBE_fnc_CortexExternalTakeover)',tick)
         for command in ['{_x doFollow _leader} forEach _rejoin',
-                        '{_x doMove (_target getPos [4 + _forEachIndex * 4, random 360])} forEach _team',
-                        '{_x doMove (_searchPos getPos [4 + _forEachIndex * 4, random 360])} forEach _team',
+                        '_searchActor doMove _searchDestination',
                         '_unit doMove _target']:
             self.assertLess(tick.rindex('[] call _mayIssueMovement',0,tick.index(command)+len(command)),tick.index(command))
 

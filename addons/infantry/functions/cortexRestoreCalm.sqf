@@ -98,7 +98,10 @@ private _releaseOwnedHold={
         // A replacement controller may intentionally leave a unit stationary, firing or holding
         // position. Remove only CBE's PATH lease during that handover; do not turn a neutral
         // engine command into a new follow order.
-        if (!_yieldToExternal && {_ownedHold || {_returnSearchTeam && {_command == "MOVE"}}}
+        private _recallOwned=if (_returnSearchTeam) then {
+            [_group,_state,_unit] call CBE_fnc_CortexSearchMoveOwned
+        } else {_ownedHold};
+        if (!_yieldToExternal && {_recallOwned}
             && {isNull objectParent _unit} && {[_unit] call CBE_fnc_CortexCombatEffective}
             && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
             && {!([_group] call CBE_fnc_CortexZeusHeld)}
@@ -254,7 +257,7 @@ if (!_allowRemount) then {
     _group setVariable ["CBE_Cortex_Remount",nil,true];
 };
 {_state deleteAt _x} forEach [
-    "consolidationRoutes", "baseAttack", "attackChanged", "areaInvestigation", "enemyPos", "behaviourChanged", "speedChanged", "searchTeam", "dismounted", "onboardContactUntil", "reinforceRequested", "reinforceDispatchedAt",
+    "consolidationRoutes", "baseAttack", "attackChanged", "areaInvestigation", "enemyPos", "behaviourChanged", "speedChanged", "searchTeam", "searchMoveReceipts", "dismounted", "onboardContactUntil", "reinforceRequested", "reinforceDispatchedAt",
     "withdrawn", "contactLeader", "lastSeen", "contactKnowledge", "dangerDismount", "holders", "baseBehaviour", "baseSpeed", "armourSeen",
     "armourRequested", "antiArmourRelocation", "coordinated", "coordinatedPendingUntil", "retreatCombatMode", "retreatSpeedMode", "retreatRetryAt", "movementLease", "retreatStart", "retreatTarget", "retreatProgress", "withdrawOperationGeneration", "vehicleDangerJink", "vehicleDangerOrient", "reserveCommitted", "arrivedAt", "assaulting", "hadContact"
 ];

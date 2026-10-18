@@ -430,7 +430,7 @@
         "runMechanics.sqf",
         "runContact.sqf"
       ],
-      "production_sources": []
+      "production_sources": ["addons/infantry/functions/cortexSearchMoveOwned.sqf"]
     },
     {
       "id": "FLANK",

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-18",
+  "scope": "Investigation/search native issue and handback",
+  "implementation": [
+    "Bounded actual issued destination receipts",
+    "Atomic current state/epoch/route/native task issue checks",
+    "Shared exact native MOVE/idle and authored-route proof",
+    "Checkpoint serialization and retirement"
+  ],
+  "validation": {
+    "tests": 1233,
+    "production_sqf": 325,
+    "pbos": 9,
+    "exit": 0,
+    "log": ".qa/cbe-search-move-ownership-verified-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Neutral hold provenance",
+    "Native acknowledgement and semantic resume",
+    "Physical behaviour and overhead"
+  ],
+  "acceptance": "partial"
+}

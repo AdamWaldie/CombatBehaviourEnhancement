@@ -891,12 +891,14 @@ private _beginContact = {
         {
             if (alive _x && {local _x}
                 && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
-                && {!(_x call _hasLiveActorMove)}) then {
+                && {!(_x call _hasLiveActorMove)}
+                && {[_group,_state,_x] call CBE_fnc_CortexSearchMoveOwned}) then {
                 _x doFollow _leader
             };
         } forEach (_state getOrDefault ["searchTeam", []]);
     };
     _state set ["searchTeam", []];
+    _state deleteAt "searchMoveReceipts";
     if (!_groupMovementOwned && {!(_state getOrDefault ["responding", false])} && {!(_state getOrDefault ["assaulting", false])}) then {[_group] call CBE_fnc_CortexGroupMoveClear};
     call _enterContact;
     // A coordinated responder already has a finite assault movement order. Do not
@@ -1020,7 +1022,33 @@ switch (_state get "phase") do {
                     [_group, _target getPos [30, _target getDir _leader], 25] call CBE_fnc_CortexGroupMove;
                 } else {
                     if ([] call _mayIssueMovement) then {
-                        {_x doMove (_target getPos [4 + _forEachIndex * 4, random 360])} forEach _team;
+                        private _issuedSearch=[];
+                        private _searchEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+                        private _searchRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+                        {
+                            private _searchActor=_x;
+                            private _searchDestination=_target getPos [4 + _forEachIndex * 4, random 360];
+                            isNil {
+                                if (local _group && {local _searchActor} && {group _searchActor == _group}
+                                    && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                                    && {_searchEpoch == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                                    && {_searchRoute isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+                                    && {[] call _mayIssueMovement} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                                    && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+                                    && {!isPlayer _searchActor} && {isNull remoteControlled _searchActor}
+                                    && {isNull objectParent _searchActor} && {[_searchActor] call CBE_fnc_CortexCombatEffective}
+                                    && {!([_searchActor] call CBE_fnc_CortexActorMoveReserved)}
+                                    && {([_searchActor] call CBE_fnc_CortexExternalOwner) == ""}
+                                    && {!([_searchActor] call CBE_fnc_CompatibilityExternalControl)}
+                                    && {simulationEnabled _searchActor} && {!isObjectHidden _searchActor}
+                                    && {_searchActor checkAIFeature "MOVE"} && {_searchActor checkAIFeature "PATH"}
+                                    && {currentCommand _searchActor in ["","STOP","FOLLOW"]}) then {
+                                    _searchActor doMove _searchDestination;
+                                    _issuedSearch pushBack [_searchActor,+_searchDestination,+_searchRoute];
+                                    _state set ["searchMoveReceipts",+_issuedSearch];
+                                };
+                            };
+                        } forEach (_team select [0,16]);
                     };
                     {if (!(_x in _team) && {local _x}) then {_x doWatch _target}} forEach _alive;
                 };
@@ -1251,7 +1279,33 @@ switch (_state get "phase") do {
             _delay = 3;
         };
         if ([] call _mayIssueMovement) then {
-            {_x doMove (_searchPos getPos [4 + _forEachIndex * 4, random 360])} forEach _team;
+            private _issuedSearch=[];
+                        private _searchEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+                        private _searchRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+                        {
+                            private _searchActor=_x;
+                            private _searchDestination=_searchPos getPos [4 + _forEachIndex * 4, random 360];
+                            isNil {
+                                if (local _group && {local _searchActor} && {group _searchActor == _group}
+                                    && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                                    && {_searchEpoch == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                                    && {_searchRoute isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+                                    && {[] call _mayIssueMovement} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                                    && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+                                    && {!isPlayer _searchActor} && {isNull remoteControlled _searchActor}
+                                    && {isNull objectParent _searchActor} && {[_searchActor] call CBE_fnc_CortexCombatEffective}
+                                    && {!([_searchActor] call CBE_fnc_CortexActorMoveReserved)}
+                                    && {([_searchActor] call CBE_fnc_CortexExternalOwner) == ""}
+                                    && {!([_searchActor] call CBE_fnc_CompatibilityExternalControl)}
+                                    && {simulationEnabled _searchActor} && {!isObjectHidden _searchActor}
+                                    && {_searchActor checkAIFeature "MOVE"} && {_searchActor checkAIFeature "PATH"}
+                                    && {currentCommand _searchActor in ["","STOP","FOLLOW"]}) then {
+                                    _searchActor doMove _searchDestination;
+                                    _issuedSearch pushBack [_searchActor,+_searchDestination,+_searchRoute];
+                                    _state set ["searchMoveReceipts",+_issuedSearch];
+                                };
+                            };
+                        } forEach (_team select [0,16]);
         };
         _state set ["searchTeam", _team];
         [_group,_state,"SEARCH","SEARCH_TEAM_SENT",_now] call CBE_fnc_CortexSetPhase;
@@ -1265,9 +1319,10 @@ switch (_state get "phase") do {
             || {_now - (_state get "phaseStart") > (["CBE_AIPass_PostContact_SearchSeconds", 45] call _get)};
         if (_done) then {
             if ([] call _mayIssueMovement) then {
-                {_x doFollow _leader} forEach (_team select {!(_x call _hasLiveActorMove)});
+                {isNil {if ([_group,_state,_x] call CBE_fnc_CortexSearchMoveOwned) then {_x doFollow _leader}}} forEach (_team select {!(_x call _hasLiveActorMove)});
             };
             _state set ["searchTeam", []];
+    _state deleteAt "searchMoveReceipts";
             if (_visible isNotEqualTo []) then {call _beginContact} else {
                 [_group,_state,"REGROUP","SEARCH_COMPLETE",_now] call CBE_fnc_CortexSetPhase;
                 _delay = 3;

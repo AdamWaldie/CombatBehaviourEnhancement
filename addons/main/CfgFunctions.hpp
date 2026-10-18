@@ -300,6 +300,7 @@ class CfgFunctions {
             class CortexSupportBoundStart {file = "\z\cbe\addons\support\functions\cortexSupportBoundStart.sqf";};
             class CortexReinforce {file = "\z\cbe\addons\support\functions\cortexReinforce.sqf";};
             class CortexReleaseGroup {file = "\z\cbe\addons\infantry\functions\cortexReleaseGroup.sqf";};
+            class CortexSearchMoveOwned {file = "\z\cbe\addons\infantry\functions\cortexSearchMoveOwned.sqf";};
             class CortexRestoreCalm {file = "\z\cbe\addons\infantry\functions\cortexRestoreCalm.sqf";};
             class CortexRetreat {file = "\z\cbe\addons\infantry\functions\cortexRetreat.sqf";};
             class CortexSurrender {file = "\z\cbe\addons\infantry\functions\cortexSurrender.sqf";};

@@ -94,7 +94,7 @@ class MotionReceiptTests(unittest.TestCase):
         hold=text.split('private _releaseOwnedHold={',1)[1].split('private _supportHeld=',1)[0]
         self.assertIn('private _pathOwned=_restorePath && {_unit getVariable ["CBE_Cortex_SupportPathHold",false]}',hold)
         self.assertLess(hold.index('if (_pathOwned) then'),hold.index('enableAI "PATH"'))
-        for proof in ('_returnSearchTeam && {_command == "MOVE"}',
+        for proof in ('CBE_fnc_CortexSearchMoveOwned',
                       '"CBE_AIPass_ClearOrder",[]]) isEqualTo []',
                       'CortexZeusHeld','CortexExternalTakeover','call _actorMoveFree'):
             self.assertLess(hold.index(proof),hold.index('doFollow _leader'))
