@@ -68,7 +68,7 @@ class IndependentBuddyAdmissionTests(unittest.TestCase):
         self.assertIn('!(_unit in (_job get "started"))',block)
         self.assertIn('!(_unit in (_job getOrDefault ["enteredActors",[]]))',block)
         self.assertIn('if (_unitIssue && {call _mayIssueMovement}',block)
-        self.assertIn('if (!_unitIssue && {currentCommand _unit == ""}',block)
+        self.assertIn('if (!_unitIssue && {!_awaitingNative} && {currentCommand _unit == ""}',block)
         self.assertIn('if (!_sameActiveTarget',block)
         self.assertNotIn('_lastProgress=_now',block)
 
@@ -85,3 +85,17 @@ class EntryTimingEvidenceTests(unittest.TestCase):
             self.assertNotIn(forbidden,observed)
         physical=text.split('private _seen=_memberVisits',1)[1].split('} forEach _clearingMembers;',1)[0]
         self.assertLess(physical.index('call _observedRoomVisit'),physical.index('_memberFirstVisit set'))
+
+
+class NativeRequestGraceTests(unittest.TestCase):
+    def test_idle_fallback_waits_for_exact_recent_issued_target(self):
+        text=source()
+        remember=text.split('private _rememberMove={',1)[1].split('private _ownsCurrentMove=',1)[0]
+        self.assertIn('_requestTimes set [netId _actor,[+_target,serverTime]]',remember)
+        self.assertNotIn('lastProgress',remember)
+        self.assertNotIn('deadline',remember)
+        fallback=text.split('private _request=(_job getOrDefault ["movementRequestTimes"',1)[1].split('// Native formation must not reclaim',1)[0]
+        for proof in ('(_request select 0) isEqualTo _issued','serverTime >= (_request select 1)',
+                      'serverTime-(_request select 1) < 2','!_awaitingNative'):
+            self.assertLess(fallback.index(proof),fallback.index('doStop _unit'))
+        self.assertNotIn('doMove',fallback)

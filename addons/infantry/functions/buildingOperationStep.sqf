@@ -203,6 +203,11 @@ private _delay=call {
         private _targets=_job getOrDefault ["movementTargets",createHashMap];
         _targets set [netId _actor,+_target];
         _job set ["movementTargets",_targets];
+        // Only actual native issue calls this writer. Give asynchronous acknowledgement
+        // a finite grace without renewing the actor's physical progress/recovery clocks.
+        private _requestTimes=_job getOrDefault ["movementRequestTimes",createHashMap];
+        _requestTimes set [netId _actor,[+_target,serverTime]];
+        _job set ["movementRequestTimes",_requestTimes];
         // A new owned request retires the previous arrival hold, even when the next
         // leg fails before reaching another node. A historical hold is not a live stop.
         (_job getOrDefault ["roomHolds",createHashMap]) deleteAt (netId _actor);
@@ -2812,7 +2817,10 @@ private _delay=call {
                                     private _nativeDestination=expectedDestination _unit;
                                     private _fallbackHolds=_job getOrDefault ["formationFallbackHolds",createHashMap];
                                     private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
-                                    if (!_unitIssue && {currentCommand _unit == ""}
+                                    private _request=(_job getOrDefault ["movementRequestTimes",createHashMap]) getOrDefault [netId _unit,[]];
+                                    private _awaitingNative=count _request == 2 && {(_request select 0) isEqualTo _issued}
+                                        && {serverTime >= (_request select 1)} && {serverTime-(_request select 1) < 2};
+                                    if (!_unitIssue && {!_awaitingNative} && {currentCommand _unit == ""}
                                         && {(_nativeDestination param [1,"",[""]]) in ["DoNotPlanFormation","FORMATION PLANNED"]}
                                         && {count _issued == 3} && {!(netId _unit in _fallbackHolds)}) then {
                                         private _hold=getPosATL _unit;
