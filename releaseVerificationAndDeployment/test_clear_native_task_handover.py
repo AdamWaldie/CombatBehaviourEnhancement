@@ -20,6 +20,19 @@ class ClearNativeTaskHandoverTests(unittest.TestCase):
         for forbidden in ('addWaypoint','deleteWaypoint','setCurrentWaypoint','joinSilent','enableAI'):
             self.assertNotIn(forbidden,handback)
 
+    def test_replacement_operation_defers_hold_retirement_and_old_drill_reunion(self):
+        brain=(ROOT/'addons/infantry/functions/groupBrainStep.sqf').read_text()
+        branch=brain.split('private _clearHold=',1)[1].split('private _legacyJob=',1)[0]
+        admission=branch.split('setVariable ["CBE_Cortex_ClearHold",nil,true]',1)[0]
+        self.assertIn('if (!_owned ||',admission)
+        self.assertIn('count (_group getVariable ["CBE_Operation",createHashMap]) == 0',admission)
+        tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
+        holder=tick.split('private _holderClearHold=',1)[1].split('private _holders =',1)[0]
+        self.assertIn('|| {count _holderOperation > 0}',holder)
+        self.assertIn('_ownedMovers append (_holderClearHold select 3)',holder)
+        self.assertNotIn('doFollow',holder)
+        self.assertNotIn('doMove',holder)
+
     def test_prepared_native_matrix_requires_real_clearance_travel_and_retained_waypoint(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         matrix=s.split('// Native waypoint handover matrix:',1)[1]

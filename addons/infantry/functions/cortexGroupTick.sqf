@@ -879,11 +879,14 @@ if (count _holderOperation > 0
 };
 // Terminal clearance deliberately holds actual posts until a new authored order.
 // An old completed bound must not recall these actors around the indoor leader.
+// A replacement operation also defers this old hold handback; exclude those actors
+// from unrelated drill reunion until GroupBrainStep can release them deliberately.
 private _holderClearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
 if (count _holderClearHold == 4
     && {(_holderClearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
     && {(_holderClearHold select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
-    && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_holderClearHold select 2)}) then {
+    && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_holderClearHold select 2)
+        || {count _holderOperation > 0}}) then {
     _ownedMovers append (_holderClearHold select 3);
 };
 private _holders = (_state getOrDefault ["holders", []]) select {alive _x && {local _x} && {group _x == _group} && {!(_x in _ownedMovers)}};

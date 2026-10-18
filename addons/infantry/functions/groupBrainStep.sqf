@@ -4,6 +4,7 @@
  * owner-local tactical FSM.
  * Post-clear owned STOP handback uses native formation return, including the leader,
  * without replacing the new authored waypoint with a positional movement request.
+ * An active replacement operation defers handback without deleting the original hold receipt.
  * Locality / Authority: Runs only through CBE's shared scheduler on the group owner. It validates
  * locality, generation, Zeus and external ownership before invoking existing bounded feature logic.
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
@@ -44,7 +45,10 @@ private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
 if (count _clearHold == 4) then {
     private _owned=(_clearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])
         && {(_clearHold select 1) == _epoch};
-    if (!_owned || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_clearHold select 2)}) then {
+    // Another operation owns the decision window. Retain our exact hold metadata until
+    // it ends; deleting now would lose stopped nonparticipants before handback can run.
+    if (!_owned || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_clearHold select 2)
+        && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}}) then {
         _group setVariable ["CBE_Cortex_ClearHold",nil,true];
         if (_owned && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
             private _leader=leader _group;
