@@ -8007,6 +8007,23 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',replacement)
         self.assertNotIn('doStop',replacement)
 
+    def test_parachute_exit_requires_real_airframe_and_rechecks_before_mutation(self):
+        jump=source('cortexParachuteJump')
+        for guard in ('isNull _aircraft','_unit == _aircraft','_aircraft isKindOf "Air"',
+                      '_aircraft isKindOf "ParachuteBase"'):
+            self.assertLess(jump.index(guard),jump.index('private _chuteClass'))
+        gate=jump.split('private _mayExit={',1)[1].split('private _chuteClass',1)[0]
+        for guard in ('vehicle _unit == _aircraft','local _unit','simulationEnabled _unit',
+                      '!isObjectHidden _unit','simulationEnabled _aircraft','!isObjectHidden _aircraft',
+                      'CortexActorMoveReserved','remoteControlled','CortexExternalOwner',
+                      'CompatibilityExternalControl'):
+            self.assertIn(guard,gate)
+        mutation=jump.split('private _exited=false;',1)[1].split('if (!_exited)',1)[0]
+        self.assertIn('isNil {',mutation)
+        self.assertLess(mutation.index('call _mayExit'),mutation.index('isDamageAllowed _unit'))
+        self.assertLess(mutation.index('call _mayExit'),mutation.index('_unit allowDamage false'))
+        self.assertLess(jump.index('if (!_exited) exitWith {false}'),jump.index('call CBA_fnc_waitAndExecute'))
+
     def test_parachute_failed_boarding_cleans_only_empty_owned_chute(self):
         jump=source('cortexParachuteJump')
         boarding=jump.split('_unit moveInDriver _chute;',1)[1]
