@@ -2,7 +2,11 @@
  * Author: WaldoTheWarfighter
  * Purpose: Brokers distinct bounded queue-role owner consent without movement or priority.
  * Locality/authority: Authenticated server remote calls only; BEGIN requires current initiator vehicle/crew/group owner, ACK its expected actual owner.
- * Repeat/JIP: Private32episode registry, fixed2s handshake/30s maximum consent; idempotent replies and exact-token release. No recurring scan or JIP command.
+ * Repeat/JIP: Private32episode registry, fixed2s handshake/30s maximum consent; idempotent replies and exact-token release.
+ * A private64-entry vehicle admission journal allows one accepted BEGIN per30seconds,
+ * bounding retired timer accumulation as well as the32live episodes.
+ * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
+ * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
  * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE=[token].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
@@ -22,6 +26,26 @@ private _send={params ["_record"];
         _record get "dependencies",_record get "context",_record get "deadline",_record get "expires",_record get "phase"];
     {["RESULT",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
 };
+// Fixed one-shot retirement remains independent of tactical scheduling/owner disconnect.
+// A delayed callback may revoke only its original phase, never renew or restore consent.
+private _scheduleExpiry={
+    params ["_record"];
+    private _phase=_record get "phase";
+    private _until=[_record get "deadline",_record get "expires"] select (_phase == "AGREED");
+    [{
+        params ["_token","_phase","_until","_send"];
+        isNil {
+            private _registry=localNamespace getVariable ["CBE_DrivingQueue_Agreements",createHashMap];
+            private _live=_registry getOrDefault [_token,createHashMap];
+            if (count _live == 0 || {(_live get "phase") != _phase}
+                || {([_live get "deadline",_live get "expires"] select (_phase == "AGREED")) != _until}) exitWith {false};
+            _live set ["phase","RELEASED"];
+            [_live] call _send;
+            _registry deleteAt _token;
+            false
+        };
+    },[_record get "token",_phase,_until,_send],(_until-serverTime) max 0] call CBA_fnc_waitAndExecute;
+};
 if (_mode == "BEGIN") exitWith {
     if (count _payload != 7) exitWith {false};
     _payload params ["_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
@@ -34,7 +58,14 @@ if (_mode == "BEGIN") exitWith {
     if (!(_vehicle isEqualType objNull) || {isNull _vehicle} || {owner _vehicle != _sender}
         || {isNull driver _vehicle} || {owner driver _vehicle != _sender}
         || {groupOwner group driver _vehicle != _sender}) exitWith {false};
+    // Caller deduplication is not server authority. Bound timer admission even if a
+    // participant sends fresh serials and immediately releases every accepted episode.
+    private _admissions=localNamespace getVariable ["CBE_DrivingQueue_Admissions",createHashMap];
+    private _admissionKey=netId _vehicle;
+    if (_admissionKey == "" || {serverTime < (_admissions getOrDefault [_admissionKey,-1])}) exitWith {false};
     if (!([_vehicles,_roles,_dependencies,_context,false] call CBE_fnc_DrivingQueueProposalCurrent)) exitWith {false};
+    {if (serverTime >= (_admissions get _x)) then {_admissions deleteAt _x}} forEach keys _admissions;
+    if (count _admissions >= 64) exitWith {false};
     // Only authenticated BEGIN performs the bounded registry sweep.
     {
         private _record=_registry get _x;
@@ -56,6 +87,9 @@ if (_mode == "BEGIN") exitWith {
         ["roles",_roles],["dependencies",_dependencies],["context",_context],["deadline",_deadline],
         ["expires",_expires],["owners",_owners],["acks",[]],["phase","PENDING"]];
     _registry set [_token,_record];
+    _admissions set [_admissionKey,serverTime+30];
+    localNamespace setVariable ["CBE_DrivingQueue_Admissions",_admissions];
+    [_record] call _scheduleExpiry;
     private _message=[_token,_serial,_vehicles,_roles,_dependencies,_context,_deadline,_expires];
     {["VERIFY",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _owners;
     true
@@ -77,6 +111,7 @@ if !(_payload select 1) then {_record set ["phase","REFUSED"]} else {
     if (count _acks == count (_record get "owners")) then {_record set ["phase","AGREED"]};
 };
 if ((_record get "phase") != "PENDING") then {
+    if ((_record get "phase") == "AGREED") then {[_record] call _scheduleExpiry};
     [_record] call _send;
     if ((_record get "phase") == "REFUSED") then {_registry deleteAt _token};
 };
