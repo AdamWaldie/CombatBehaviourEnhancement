@@ -77,4 +77,16 @@ class MotionReceiptTests(unittest.TestCase):
         self.assertLess(step.index('"OWNERSHIP_LOST"'),step.index('private _retiredRoster='))
         self.assertIn('(_retiredRoster select 0) isEqualTo (_job getOrDefault ["visitContext",[]])',step)
         self.assertIn('(_retiredRoster select 0) isEqualTo (_motionJob get "visitContext")',read('cortexClearRelease.sqf'))
+    def test_locality_checkpoint_cannot_recall_new_stop_or_clearance(self):
+        text=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
+        body=text.split('private _moveProof=_restore getOrDefault',1)[1].split('forEach (_restore getOrDefault ["restoreMovers", []])',1)[0]
+        self.assertNotIn('currentCommand _unit != "MOVE"',body)
+        for proof in ('private _ownedMove=false','currentCommand _unit == "MOVE"',
+                      '_destination vectorDistance _spot <= 0.25',
+                      '("CBE_AIPass_ClearOrder"', 'CortexActorMoveReserved'):
+            if proof.startswith('('):
+                self.assertIn('"CBE_AIPass_ClearOrder",[]]) isEqualTo []',body)
+            else:
+                self.assertIn(proof,body)
+        self.assertNotIn('"STOP","ATTACK","FIRE","SUPPRESS"',body)
 if __name__=='__main__': unittest.main()

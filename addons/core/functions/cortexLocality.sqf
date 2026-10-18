@@ -4,6 +4,8 @@
  * return to formation on the new owner. No indoor movement or deadline is replayed.
  * Passenger, naval landing, pending calm remount, active coordinated-support, post-contact movement
  * standalone manoeuvre and active withdrawal intent survive migration without replaying old owner jobs. Invalidates old jobs,
+ * Checkpoint mover recall requires the exact issued native MOVE; later STOP/combat tasks and
+ * durable clearance orders are never treated as inherited drill movement.
  * restores interrupted transient behaviour and resumes a bounded support assignment,
  * investigation, search, standalone manoeuvre or withdrawal after CBE or ACE migration. A Zeus hold or the
  * matching infantry-morale/vehicle-withdrawal gate cancels restoration so migration cannot revive
@@ -219,15 +221,21 @@ if (_restoreEligible) then {
         private _unit=_x;
         private _moveProof=_restore getOrDefault ["restoreMoveDestinations",[]];
         private _proofIndex=_moveProof findIf {(_x select 0) == _unit};
-        private _ownedMove=currentCommand _unit != "MOVE";
-        if (!_ownedMove && {_proofIndex >= 0}) then {
+        // A checkpoint records issued drill destinations, not ownership of every later
+        // STOP/combat/idle task. Durable clearance resumes through its own episode receipts.
+        // PATH-held drill actors are released by their separate exact hold leases below.
+        private _ownedMove=false;
+        if (currentCommand _unit == "MOVE" && {_proofIndex >= 0}) then {
             private _spot=(_moveProof select _proofIndex) select 1;
-            private _destination=(expectedDestination _unit) select 0;
-            _ownedMove=_destination distance2D _spot <= 1
-                && {abs ((_destination param [2,0])-(_spot param [2,0])) <= 1.5};
+            private _destination=(expectedDestination _unit) param [0,[],[[]]];
+            _ownedMove=count _spot == 3 && {count _destination == 3}
+                && {_spot findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {_destination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {_destination vectorDistance _spot <= 0.25};
         };
         if (_inheritedDrill isEqualTo [] && {[_x] call _restoreActorEligible} && {_ownedMove} && {!isNull _restoreAnchor}
-            && {currentCommand _x in ["","MOVE","STOP","ATTACK","FIRE","SUPPRESS"]}) then {_x doFollow _restoreAnchor};
+            && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+            && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}) then {_x doFollow _restoreAnchor};
     } forEach (_restore getOrDefault ["restoreMovers", []]);
     {
         _x params ["_unit","_mode",["_ownedMode","BLUE"]];
