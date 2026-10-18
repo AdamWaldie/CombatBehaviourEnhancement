@@ -4,6 +4,7 @@
  * before retiring an exterior leg and updating the lane/common participant roster together.
  * Reserve staging records attempts only after its initial hold is admitted; refused holds
  * leave the actor eligible for a later bounded staging search.
+ * New-order terminal generation invalidation also checks the exact owner/brain and absent successor operation.
  * Exterior reserve hold/leg/arrival/watch/timeout commands commit against current episode,
  * native task and original deadlines. Watch changes retain the actual current-callback ray origin.
  * Every eligible uncommitted actor, including the local command anchor, joins the same bounded
@@ -667,7 +668,17 @@ private _delay=call {
     if (_nativeOrderReceipt isNotEqualTo []
         && {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _nativeOrderReceipt}) exitWith {
         private _result=[false,"NEW_ORDER"] call _finish;
-        _group setVariable ["CBE_OperationGeneration",(_group getVariable ["CBE_OperationGeneration",0])+1,true];
+        // Finishing can refuse stale work or hand back through helpers. It is not authority
+        // to invalidate an operation installed afterwards, including scheduled direct callers.
+        isNil {
+            if (local _group
+                && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                && {(_job getOrDefault ["generation",-1]) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
+                && {(_group getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _brain}
+                && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+                _group setVariable ["CBE_OperationGeneration",(_group getVariable ["CBE_OperationGeneration",0])+1,true];
+            };
+        };
         _result
     };
     private _building=_job get "building";

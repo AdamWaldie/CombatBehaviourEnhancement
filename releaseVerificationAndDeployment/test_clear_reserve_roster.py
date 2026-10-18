@@ -46,3 +46,15 @@ class ClearReserveRosterTests(unittest.TestCase):
                 if size>16:
                     cursor=(cursor+16)%size
             self.assertEqual(seen,set(roster))
+
+    def test_new_order_terminal_generation_write_preserves_a_successor(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        branch=text.split('private _result=[false,"NEW_ORDER"] call _finish;',1)[1].split('private _building=_job get "building";',1)[0]
+        write=branch.index('setVariable ["CBE_OperationGeneration"')
+        for proof in ('isNil {','local _group',
+                      '(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])',
+                      '(_job getOrDefault ["generation",-1]) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])',
+                      '(_group getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _brain',
+                      'count (_group getVariable ["CBE_Operation",createHashMap]) == 0'):
+            self.assertLess(branch.index(proof),write)
+        self.assertEqual(branch.count('setVariable ["CBE_OperationGeneration"'),1)

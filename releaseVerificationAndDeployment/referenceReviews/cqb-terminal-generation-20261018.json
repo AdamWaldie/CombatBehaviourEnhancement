@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Final NEW_ORDER generation invalidation after CQB cleanup; not whole lifecycle acceptance",
+  "finding": "BuildingOperationStep already fences cleanup and moved-building cancellation, but its caller incremented CBE_OperationGeneration unconditionally after NEW_ORDER finish. Finish may decline stale work; returning from it is not permission to mutate successor/global task identity.",
+  "implementation": "One short unscheduled commit checks local group, original owner epoch, original clearance generation, exact current building brain and no successor common operation before increment. Normal valid order replacement retains its invalidation.",
+  "execution_context": "Normal CBA scheduler job calls are unscheduled; do not claim a normal intra-call scheduler suspension. This aligns the terminal write with cleanup authority and covers declined/stale cleanup and supported scheduled direct calls. No historical screenshot cause or live interleaving is proven.",
+  "cost": "Only on terminal authored-order replacement: bounded metadata checks, no scan/query/worker or cadence change.",
+  "validation": {
+    "tests": 1401,
+    "compiled_sqf": 328,
+    "pbos": 9,
+    "log": ".qa/cbe-clear-terminal-generation-build.log",
+    "unsigned_fingerprint": "cd8a15ce362effbdc1810e044eb29e61e8254b2364b8709109973827a08bba91",
+    "physical": false
+  },
+  "limits": [
+    "Physical repeated orders/moved-building/Zeus/owner migration remain unverified",
+    "Queue HOLD/READY/native dependency execution remains missing",
+    "All65families partial; audits explicitly paused"
+  ]
+}
