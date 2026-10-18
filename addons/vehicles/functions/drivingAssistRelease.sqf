@@ -10,6 +10,8 @@
  * restore record can be applied. Player, remote-controlled or specialist effective commanders
  * preserve their newer cap even when an ordinary AI driver belongs to another group.
  * A newer finite CBE movement lease also prevents restoration over its tactical speed policy.
+ * Exact deferred reverse handback retains its original cap/restoration receipt rather than
+ * restoring speed while the rear command is still owned. No deadline or observer is renewed.
  * Arguments:
  * 0: vehicle <OBJECT> - ground vehicle to release.
  * 1: expected group <GROUP, grpNull> - group-scoped cleanup; grpNull permits subsystem shutdown.
@@ -27,6 +29,7 @@ if (count _pass > 0 && {isNull _expectedGroup || {(_pass get "group") == _expect
     [_vehicle,_pass get "group","DRIVING_RELEASED",true] call CBE_fnc_DrivingPassFinish;
 };
 [_vehicle,_expectedGroup] call CBE_fnc_DrivingPassAgreementRelease;
+private _recoveryPending=false;
 private _recovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _recovery > 0 && {isNull _expectedGroup || {(_recovery get "group") == _expectedGroup}}) then {
     if ((_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isEqualTo []
@@ -34,8 +37,13 @@ if (count _recovery > 0 && {isNull _expectedGroup || {(_recovery get "group") ==
         _vehicle setVariable ["CBE_DrivingAssist_State",[_recovery get "cap",0,time,_recovery get "group"]];
         _vehicle setVariable ["CBE_DrivingAssist_Restore",+(_recovery get "baseline")];
     };
-    [_vehicle,_recovery get "group","DRIVING_RELEASED"] call CBE_fnc_DrivingRecoveryRelease;
+    private _retired=[_vehicle,_recovery get "group","DRIVING_RELEASED"] call CBE_fnc_DrivingRecoveryRelease;
+    _recoveryPending=!_retired && {_recovery getOrDefault ["releasePending",false]}
+        && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _recovery};
 };
+// A failed exact handback is not a completed cap release. Retain the same baseline,
+// owned cap and work proof for the existing retry path; never recreate a rear leg.
+if (_recoveryPending) exitWith {};
 [_vehicle,_expectedGroup,["ORDINARY"],true] call CBE_fnc_DrivingNativePathWatch;
 private _corridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
 private _corridorGroup=_corridor getOrDefault ["group",grpNull];

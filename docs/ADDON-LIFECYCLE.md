@@ -1005,3 +1005,9 @@ This addresses a completed short leg waiting for8m of predecessor advance; it do
 With internal convoy diagnostic capture enabled, each registered native follower retains only its latest completed-endpoint advance event, including the pre-command pose, readiness, command, old/new endpoints and ownership receipt. Capture off removes the local event map. These observations never grant movement authority or count as physical travel.
 
 The normal tracked/mixed30m matrix cases now require a real3..8m finished-endpoint event and at least3m measured travel toward its successor with at least2m destination improvement under the same convoy revision/epoch. Missing event prerequisite fails separately from missing physical continuation. The test injects no follow, stop, path, position, velocity or controller-completion state. These cases are PREPARED_NOT_RUN while audits are paused; actual native completion metadata and behaviour remain unaccepted. Headless cases remain separate.
+
+### Deferred recovery cap retirement
+
+When an exact owned reverse cannot hand back because vehicle mobility or simulation is unavailable, ordinary-driving release now preserves its original speed-cap state and restoration baseline alongside the matching pending recovery journal. A deferred return is not treated as completed cleanup. Later existing driving callbacks can finish the same journal before new assistance; they do not recreate the rear leg or renew its deadlines. A retired, replaced or non-pending journal does not gain this protection, and the existing exact cap/newer-controller checks still govern final restoration.
+
+This adds no observer or timer. Recovery while the entire driving subsystem remains stopped still lacks a guaranteed observation path. Physical immobility/repair, simulation changes, repeated release, owner migration and newer external caps remain unaccepted while audits are paused.

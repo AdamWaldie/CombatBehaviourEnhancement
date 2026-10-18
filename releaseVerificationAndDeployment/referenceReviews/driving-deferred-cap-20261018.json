@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-18",
+  "scope": "Deferred reverse release must retain its exact cap baseline",
+  "prior_review": "hbq-damage-protection-20261018.json",
+  "source": "addons/vehicles/functions/drivingAssistRelease.sqf",
+  "sha256": "fb6c3728b63b194678121397868b37e3634c4d417224e734afb1aacde6a42030",
+  "finding": "DrivingRecoveryRelease can return false with an exact releasePending reverse journal while immobile/simulation unavailable, but DrivingAssistRelease ignored that result and restored/cleared its speed-cap state anyway.",
+  "implementation": "After recovery release, retain cap/restoration state only for an unretired releasePending journal still exactly equal to the current public work. Retired/replaced/non-pending work follows existing cleanup and exact newer-controller cap guards. No deadline renewal or observer.",
+  "investigated_not_changed": {
+    "subject": "Driving current-waypoint count validation",
+    "official_reference": "https://community.bistudio.com/wiki/currentWaypoint",
+    "result": "Official documentation explicitly describes comparing currentWaypoint with waypoint count. No speculative hole/index fix was made; existing guards were not treated as a confirmed fault."
+  },
+  "validation": {
+    "tests": 1141,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-deferred-recovery-cap-build.log",
+    "exit_code": 0,
+    "fingerprint": "1269dfd917c72c72a76c9299b0a1b8c981d767d766a36b570846e5e799b658dd",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "remaining": [
+    "Whole-subsystem shutdown has no guaranteed deferred-handback observation path.",
+    "Physical repair/simulation recovery, repeat release, new external caps and migration acceptance.",
+    "Same-value external speed writes cannot be attributed without cooperation.",
+    "No whole-feature or runtime performance acceptance."
+  ]
+}
