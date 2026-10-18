@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-18",
+  "scope": "Prepared normal late crew-order/deadline physical cases",
+  "sources": {
+    "releaseVerificationAndDeployment/cortexQA/runDrivingCrew.sqf": "dbfd474323d0eb187da55ad051b6279afd86a461cf8b97c8648740a639def8ff",
+    "addons/vehicles/functions/drivingCrewStep.sqf": "c1d913a8459b553a792c33d9f3d3a2637ee184d1dc80d94b8da4b8a3ed620f74",
+    "addons/core/functions/cortexStop.sqf": "6969920f471c44eedeccc87e46b0716d2a4412d79b5950d0831f644c8c6e991b"
+  },
+  "cases": [
+    "LATE_STOP",
+    "LATE_GETOUT"
+  ],
+  "prerequisite": "Real CBE VACATING journal; matching original driver/candidate; actual corpse out and driver seat empty; live mobile vehicle/candidate; original deadline not yet expired. Same exact journal/vacancy/local actor checked unscheduled at explicit order boundary.",
+  "stimulus": "Native STOP, or unassign plus native get-out followed only after physical dismount by explicit MOVE. No production callback/state/phase or replacement seat mutation is injected.",
+  "physical_acceptance": "Original journal remains CANCELLED with unchanged deadline/route/candidate, no later driver acquisition, live intact actors and observation through original deadline+3s. GETOUT additionally requires25m displacement and20m new-destination improvement. Intent is sampled during both native waits and final observation.",
+  "validation": {
+    "status": "PREPARED_NOT_RUN",
+    "tests": 1147,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-crew-late-order-fixture-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "af8426d618179321800ed98ea08b237145737cb35d99f7c142defda15f2b73a9",
+    "initial_focused_failure": "Forbidden-command substring matched a comment; comment clarified without allowing a forced command. Focused checks subsequently passed before full build.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "limits": [
+    "Normal server-owned groups only; actual-provider HC tests remain separate.",
+    "VACATING prerequisite may be missed or never occur; missing prerequisite is a failure, not skipped/passed.",
+    "Native action timing and same-value ACTION ambiguity still need engine evidence.",
+    "Sampling cannot certify every possible sub-sample engine transient.",
+    "No runtime performance or whole-feature acceptance."
+  ]
+}

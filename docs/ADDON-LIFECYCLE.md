@@ -1023,3 +1023,9 @@ This repairs the shutdown dispatch boundary, not every cleanup policy. Native ow
 Ordinary-driving crew replacement now copies its entry journal before changing phases. Every publication compares the exact original live journal, current driving brain and owner epoch in an unscheduled block. Another group's journal is refused rather than cleared. Native Eject/MoveToDriver actions also recheck that snapshot and the original deadline, and publish their issued phase in the same unscheduled block. A stale cancellation or release cannot replace a successor journal.
 
 The existing route, vacancy, driver/candidate, assignment, native command, actor reservation, simulation and takeover checks remain. No new seating shortcut, worker or deadline renewal is introduced. Actual asynchronous seat completion, same-value external ACTION ambiguity, owner transfer and delayed publication ordering still require physical acceptance while audits are paused.
+
+### Prepared late crew-order acceptance
+
+The normal crew fixture adds LATE_STOP and LATE_GETOUT after an actual production VACATING journal, confirmed empty driver seat and physical corpse exit. Missing prerequisites fail. STOP must remain intact through the original journal deadline plus3s. GETOUT uses a native dismount order, followed only after real dismount by an explicit new movement order; it must produce25m travel and20m destination improvement. Both require the original journal to remain cancelled without renewed deadline or subsequent driver-seat acquisition.
+
+These are PREPARED_NOT_RUN. The fixture never assigns a production journal/phase, invokes the crew executor, forces replacement seating or relocates an actor after the casualty. Actual late-order timing, same-value command ambiguity and migration remain unaccepted; actual-provider HC cases stay separate.

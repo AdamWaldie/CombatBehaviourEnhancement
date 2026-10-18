@@ -156,3 +156,18 @@ class DrivingCrewTests(unittest.TestCase):
         live=successor
         if live==entry:live=dict(work)
         self.assertEqual(live,successor)
+
+    def test_late_order_fixture_observes_real_vacancy_and_original_deadline(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingCrew.sqf').read_text()
+        block=qa.split('private _entry=createHashMap;',1)[1].split('private _cleanup=',1)[0]
+        for proof in ('== "VACATING"','isNull driver _vehicle','vehicle _driver != _vehicle',
+                      '_entry=+_live','doStop _replacement','doGetOut _replacement',
+                      '_replacement doMove _newDestination','(_entry get "deadline")+3',
+                      'serverTime >= _observeUntil','== "CANCELLED"','alive _vehicle','alive _replacement','damage _vehicle <= _damaged+0.01','isEqualTo _entry','_issued=true','call _sampleIntent',
+                      '_replacement distance2D _replacementOrigin >= 25',
+                      'distance2D _newDestination <= (_replacementOrigin distance2D _newDestination)-20'):
+            self.assertIn(proof,block)
+        for forbidden in ('setVariable ["CBE_DrivingCrew_Work"','call CBE_fnc_DrivingCrewStep',
+                          'moveInDriver','moveOut','setPos','setVelocity',' action ['):
+            self.assertNotIn(forbidden,block)
+        self.assertIn('"LATE_STOP","LATE_GETOUT"',qa)
