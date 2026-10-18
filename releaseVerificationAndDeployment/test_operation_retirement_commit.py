@@ -34,6 +34,19 @@ class OperationRetirement(unittest.TestCase):
         self.assertLess(commit.index('== "CANCELLED"'),commit.index('_currentOperation set ["recoveryAttempts"'))
         self.assertLess(commit.index('== "CANCELLED"'),commit.index('doMove'))
 
+    def test_progress_is_isolated_and_current_at_publication(self):
+        text=(ROOT/'addons/core/functions/operationStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _unavailable=+(',text)
+        self.assertIn('private _recovery=createHashMapFromArray',text)
+        self.assertIn('_entryOperation set [_x,_value]',text)
+        commit=text.split('private _committedStatus="REPLACED";',1)[1]
+        for guard in ('isNil {','!local _group','_entryEpoch !=','== "CANCELLED"',
+                      '_current isNotEqualTo _entryOperation','CBE_fnc_CortexZeusHeld','CBE_fnc_CortexIsEligible'):
+            self.assertLess(commit.index(guard),commit.index('setVariable ["CBE_Operation"'))
+        self.assertIn('if (_current isNotEqualTo _entryOperation) exitWith {"ACTIVE"}',commit)
+        self.assertEqual(text.count('setVariable ["CBE_Operation"'),1)
+        self.assertNotIn('doMove',text)
+
     def test_permission_restore_consumes_only_current_lease_in_atomic_scope(self):
         text=(ROOT/'addons/core/functions/operationRestore.sqf').read_text(encoding='utf-8')
         for proof in ('isNil {','_current isNotEqualTo _operation','ownerEpoch','count _members > 64',
