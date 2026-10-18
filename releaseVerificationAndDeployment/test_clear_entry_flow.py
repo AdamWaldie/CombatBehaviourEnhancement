@@ -3,6 +3,18 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class ClearEntryFlowTests(unittest.TestCase):
+    def test_partner_recovery_preserves_exact_native_planning_without_new_receipt(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        helper=s.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]
+        for guard in ('movementRequestTimes','(_planningRequest select 0) isEqualTo _target','serverTime-_planningRequestAt < 30',
+                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["PLANNING","BUSY"]'):
+            self.assertIn(guard,helper)
+        self.assertLess(helper.index('if (!_preservePlanning) then'),helper.index('call CBE_fnc_RecoveryStep'))
+        observation=helper.split('private _planningRequest=',1)[1].split('if (!_preservePlanning) then',1)[0]
+        self.assertNotIn(' set [',observation)
+        self.assertNotIn('doMove',observation)
+        self.assertIn('private _result="YIELDED"',helper)
+
     def test_provisional_recovery_target_does_not_preempt_distinct_support_selection(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         recovery=s.split('// Partner entry recovery is independent',1)[1].split('private _entryRecovery=',1)[0]

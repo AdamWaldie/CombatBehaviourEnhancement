@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+    "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    "intent": "Retain BUSY matching native destination rather than restart useful individual approach; not whole-group CQB parity."
+  },
+  "finding": "Main room mover had30s owned PLANNING/BUSY allowance, but partner entry could reach generic RecoveryStep after12s without an equivalent allowance.",
+  "implementation": "Common recoverClearActor now yields while the retained request target matches, its original serverTime age is0..30s, actual MOVE remains owned and native state is PLANNING/BUSY. New/changed/ended/older commands keep existing recovery policy. Actor/task/operation/building/deadline authority still gates this helper.",
+  "invariants": [
+    "No new movement request while yielding",
+    "No recovery attempt spent",
+    "No physical progress or episode/hard deadline renewal",
+    "No global scan, new scheduler or second movement writer",
+    "Provisional timing is not native path success"
+  ],
+  "validation": {
+    "tests": 1391,
+    "compiled_sqf": 327,
+    "pbos": 9,
+    "log": ".qa/cbe-clear-partner-native-planning-verified-build.log",
+    "unsigned_fingerprint": "77e3de2cebb7fee7e89ba3bd86c49935a22ea16407382689791a6f4e4dbfa9b5",
+    "physical": false
+  },
+  "remaining": [
+    "Actual doorway/stair/native state transitions and straggler flow",
+    "Interrupted/replaced orders and repeat/casualty cases",
+    "Normal and actual-provider HC separately",
+    "Measured aggregate cost and5%median/10%p95 budget"
+  ],
+  "audit_authority": "Explicitly paused; continue implementation. All65 families partial."
+}

@@ -11,13 +11,15 @@
  * All CQB common-recovery calls share atomic current building/native-task admission and
  * movement receipt publication; rejected work consumes no retry attempt or command credit.
  * Main room/support native writes and timed retries recheck actual actor/episode authority
- * atomically. Scheduled geometry stays outside; refused writes gain no mover request/retry credit.
+ * atomically. Geometry is prepared first; refused writes gain no mover request/retry credit.
  * Partner alternate-entry ranking commits its native order and public attempt atomically against
  * current episode/owner/native intent, building transform, unchanged proposal and original deadlines.
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
  * Buddy separation requests do not renew the room mover's finite no-progress clock.
  * Owned matching PLANNING/BUSY room paths receive a fixed thirty-second no-progress
  * allowance before retry; ended native commands retain four seconds and clocks never renew.
+ * Common partner/egress recovery also preserves an exact owned PLANNING/BUSY leg for
+ * thirty seconds from its original native issue, without spending a recovery attempt.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
  * A casualty blocked by sole-exit coverage may request one progressed idle interior worker
@@ -717,9 +719,20 @@ private _delay=call {
                 && {!([_group] call CBE_fnc_CortexZeusHeld)}
                 && {serverTime <= (_job get "deadline")}
                 && {serverTime <= (_job get "hardDeadline")}) then {
-                _result=[_group,_operationGeneration,_actor,_target] call CBE_fnc_RecoveryStep;
-                if (_result == "RECOVERING" && {call _mayIssueMovement}) then {
-                    [_actor,_target] call _rememberMove;
+                // Partner entry and egress recovery must not restart a native planner that
+                // is still executing this exact issued leg. Observe its original request age;
+                // this allowance neither writes a new request nor renews physical progress.
+                private _planningRequest=(_job getOrDefault ["movementRequestTimes",createHashMap]) getOrDefault [netId _actor,[]];
+                private _planningRequestAt=_planningRequest param [1,-1,[0]];
+                private _preservePlanning=count _planningRequest == 2 && {(_planningRequest select 0) isEqualTo _target}
+                    && {_planningRequestAt >= 0} && {finite _planningRequestAt}
+                    && {serverTime >= _planningRequestAt} && {serverTime-_planningRequestAt < 30}
+                    && {[_actor] call _ownsCurrentMove} && {getUnitState _actor in ["PLANNING","BUSY"]};
+                if (!_preservePlanning) then {
+                    _result=[_group,_operationGeneration,_actor,_target] call CBE_fnc_RecoveryStep;
+                    if (_result == "RECOVERING" && {call _mayIssueMovement}) then {
+                        [_actor,_target] call _rememberMove;
+                    };
                 };
             };
         };
