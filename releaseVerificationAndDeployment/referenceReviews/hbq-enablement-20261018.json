@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "05400012",
+  "scope": "Complete HBQ enabled/feature helpers and CBE live configuration side-effect comparison",
+  "sources": [
+    {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_enabled.sqf",
+      "sha256": "85376a43ee2e9b07a117a977dea91158da5633a1ad3a9e36b91001f4c898c598",
+      "review": "complete file"
+    },
+    {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_feature.sqf",
+      "sha256": "ab58aaf35138921241af0f42813b0e14457f64c5820e758c927b874c0a415b06",
+      "review": "complete file"
+    }
+  ],
+  "findings": [
+    "HBQ enabled resolves vehicle Disable then vehicle Enable with global default, so a vehicle can run while the global default is off. Feature resolution layers vehicle variables over CBA defaults.",
+    "CBE CortexFeatureEnabled retains global disable authority and group disabled-feature filters. Do not add vehicle force-enable around stopped scheduling or competing controller ownership merely to copy precedence.",
+    "CBE does not currently provide equivalent per-vehicle per-driving-feature overrides. Existing external ownership markers are handover contracts, not substitutes for operator settings. This source intent remains incomplete.",
+    "Live configuration review found delayed counter-battery callbacks bound only to the master-stop generation. Off/on of the counter-battery feature could restore validity of a previously delayed emission response."
+  ],
+  "implementation": [
+    "CBA counter-battery disable advances only the server delayed-response generation. Existing radar response and observer wake callbacks keep their original generation.",
+    "Pending per-side cooldown receipts now include generation/deadline, allowing fresh emissions after re-enable without inheriting a cancelled pending slot. Completed-fire and emission-rate cooldowns remain.",
+    "Updated CortexInit documentation: the artillery firing-evidence handler is shared and installed while tactics runs; counter-battery admission independently reads the live switch. No runtime handler was added or removed."
+  ],
+  "remaining": [
+    "Already accepted server fire missions, owner RPCs in transit and delayed shoot-and-scoot need independent off/on generation analysis. This change does not claim to cancel those cases or in-flight projectiles.",
+    "Per-vehicle feature filtering, full-HBQ controller parity and physical live toggles remain incomplete."
+  ],
+  "validation": {
+    "tests": 1295,
+    "exitCode": 0,
+    "log": ".qa/cbe-counterbattery-toggle-generation-build.log",
+    "packageFingerprint": "24329e6112b758a64b863f69e90b311a62e300964354e5d39eae5caefcce46c9"
+  },
+  "physicalAcceptance": false,
+  "audits": "paused"
+}

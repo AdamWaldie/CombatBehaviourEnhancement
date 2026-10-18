@@ -11,8 +11,8 @@
  * - the CBE_fnc_CortexDiscover sweep job, which brings local groups under the pass;
  * - a ProjectileCreated handler for grenade evasion, only while CBE_AIPass_GrenadeEvasion_Enable is
  *   on (it would otherwise run for every projectile);
- * - an ArtilleryShellFired handler for counter-battery, only while CBE_AIPass_CounterBattery_Enable
- *   is on.
+ * - a shared ArtilleryShellFired handler for native firing evidence and counter-battery;
+ *   counter-battery admission reads its live enable switch independently of evidence collection.
  * - event-driven civilian FiredNear/Hit reactions when enabled. Existing and newly created owner-local
  *   civilians are versioned once; no civilian polling loop is installed.
  * Existing local groups have their peak strength recorded. Repeat calls are safe, and they add the
