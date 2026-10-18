@@ -46,4 +46,17 @@ class AirContactGeometryTests(unittest.TestCase):
         self.assertIn('_rejectedRole isNotEqualTo _snapshot',server)
         self.assertLess(server.index('_rejectedRole isNotEqualTo _snapshot'),server.index('_rejected setVariable ["CBE_Cortex_CombinedRole",nil,true]'))
 
+    def test_combined_expiry_preserves_edited_roles_and_fallback_contact(self):
+        fallback=(ROOT/'addons/infantry/functions/cortexCombinedAirFallbackServer.sqf').read_text()
+        server=(ROOT/'addons/infantry/functions/cortexCombinedArmsServer.sqf').read_text()
+        for guard in ('(_rejectedRole select 2) != _target','(_rejectedRole select 3) isNotEqualTo _position','(_rejectedRole select 5) != _expiry'):
+            self.assertLess(fallback.index(guard),fallback.index('_rejected setVariable ["CBE_Cortex_CombinedRole",nil,true]'))
+        self.assertIn('isEqualTo _originalRole',fallback)
+        self.assertIn('[_replacement,_token,_target,+_opportunity]',fallback)
+        self.assertIn('_roleGroups pushBack [_candidate,+_opportunity]',server)
+        expiry=server.split('params ["_requester","_token","_roleGroups"];',1)[1]
+        self.assertIn('_x params ["_roleGroup","_originalRole"]',expiry)
+        self.assertIn('isEqualTo _originalRole',expiry)
+        self.assertNotIn('_x setVariable',expiry)
+
 if __name__=='__main__': unittest.main()

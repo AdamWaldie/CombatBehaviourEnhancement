@@ -11,6 +11,7 @@
  * Original contact confidence/time pass unchanged to replacements; fallback never renews observation age.
  * Repeat/JIP: The requester holds one expiring public fallback record. Duplicate rejection notices
  * consume no extra candidate after the cursor advances. The record is cleared with its opportunity.
+ * Fallback target, position and expiry must match the original role; expiry callbacks bind that role.
  * Role expiry preserves matching terminal outcomes; only active dispatch/application becomes EXPIRED.
  *
  * Arguments:
@@ -40,7 +41,10 @@ if (!((count _snapshot) in [7,8]) || {_rejectedRole isNotEqualTo _snapshot}
     || {(_rejectedRole select 1) != _requester} || {(_rejectedRole select 4) != "AIR_ATTACK"}) exitWith {false};
 // Consume this exact refusal once. A duplicate notice has no matching role; a newer role
 // survives. Retiring the opportunity never cancels the aircraft's existing attack brain.
-if ((_rejectedRole param [7,[],[[]]]) isNotEqualTo _contactReceipt) exitWith {false};
+if ((_rejectedRole param [7,[],[[]]]) isNotEqualTo _contactReceipt
+    || {(_rejectedRole select 2) != _target}
+    || {(_rejectedRole select 3) isNotEqualTo _position}
+    || {(_rejectedRole select 5) != _expiry}) exitWith {false};
 _rejected setVariable ["CBE_Cortex_CombinedRole",nil,true];
 _rejected setVariable ["CBE_Cortex_CombinedApplied",nil,true];
 if (!([_requester] call CBE_fnc_CortexIsEligible)
@@ -76,8 +80,8 @@ _replacement setVariable ["CBE_Cortex_CombinedApplied",nil,true];
 _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,"AIR_ATTACK","FALLBACK_DISPATCHED",serverTime,_target],true];
 [_replacement,_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedArmsLocal",groupOwner _replacement];
 [{
-    params ["_replacement","_token","_target"];
-    if (!isNull _replacement && {((_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
+    params ["_replacement","_token","_target","_originalRole"];
+    if (!isNull _replacement && {(_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _originalRole}) then {
         private _result=_replacement getVariable ["CBE_Cortex_CombinedResult",[]];
         if ((_result param [0,""]) == _token
             && {(_result param [2,""]) in ["FALLBACK_DISPATCHED","DISPATCHED","APPLIED"]}) then {
@@ -86,5 +90,5 @@ _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,"AIR_ATTACK","FALL
         _replacement setVariable ["CBE_Cortex_CombinedRole",nil,true];
         _replacement setVariable ["CBE_Cortex_CombinedApplied",nil,true];
     };
-},[_replacement,_token,_target],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
+},[_replacement,_token,_target,+_opportunity],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
 true

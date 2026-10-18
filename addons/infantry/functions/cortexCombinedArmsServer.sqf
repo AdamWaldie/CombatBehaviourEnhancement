@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Converts a verified fresh contact into finite, independent combined-arms roles.
  * Protected captives, surrendering and handcuffed actors cannot reserve support assets.
+ * Delayed role expiry matches the complete dispatched snapshot before clearing reservation state.
  * The server ranks nearby capable ground-vehicle groups and airborne assets by live loaded ordnance and proximity, then selects at most two ground groups and one airborne group. The first
  * capable ground asset supplies direct fire; a second receives a distinct, finite manoeuvre role
  * whose route is kept on one side of the support-to-target fire lane. Aircraft are
@@ -191,7 +192,7 @@ _requester setVariable ["CBE_Cortex_CombinedGroundFallback",[_token,_target,+_po
             _candidate setVariable ["CBE_Cortex_CombinedApplied",nil,true];
             _candidate setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"DISPATCHED",serverTime,_target],true];
             [_candidate,_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedArmsLocal",groupOwner _candidate];
-            _roleGroups pushBack _candidate;
+            _roleGroups pushBack [_candidate,+_opportunity];
             _dispatched=_dispatched+1;
         };
     };
@@ -210,17 +211,18 @@ _requester setVariable ["CBE_Cortex_CombinedAirFallback",[_token,_target,+_posit
         _requester setVariable ["CBE_Cortex_CombinedGroundFallback",nil,true];
     };
     {
-        if (!isNull _x && {((_x getVariable ["CBE_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
-            private _role=(_x getVariable ["CBE_Cortex_CombinedRole",[]]) param [4,""];
-            private _target=(_x getVariable ["CBE_Cortex_CombinedRole",[]]) param [2,objNull];
+        _x params ["_roleGroup","_originalRole"];
+        if (!isNull _roleGroup && {(_roleGroup getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _originalRole}) then {
+            private _role=_originalRole select 4;
+            private _target=_originalRole select 2;
             // Expiry retires the reservation, not a completed/refused physical outcome.
-            private _result=_x getVariable ["CBE_Cortex_CombinedResult",[]];
+            private _result=_roleGroup getVariable ["CBE_Cortex_CombinedResult",[]];
             if ((_result param [0,""]) == _token
                 && {(_result param [2,""]) in ["DISPATCHED","APPLIED","WAITING_FOR_RELOAD"]}) then {
-                _x setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
+                _roleGroup setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
             };
-            _x setVariable ["CBE_Cortex_CombinedRole",nil,true];
-            _x setVariable ["CBE_Cortex_CombinedApplied",nil,true];
+            _roleGroup setVariable ["CBE_Cortex_CombinedRole",nil,true];
+            _roleGroup setVariable ["CBE_Cortex_CombinedApplied",nil,true];
         };
     } forEach _roleGroups;
 },[_requester,_token,_roleGroups],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
