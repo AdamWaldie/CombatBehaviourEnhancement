@@ -8,6 +8,9 @@
  * movement replay or deadline renewal. At most 20 snapshotted vehicles and eight corners each.
  * The deadline is frozen by lead admission, including original column length allowance (max 1800 s).
  * Arguments: 0 group <GROUP, grpNull>; 1 configuration <ARRAY, []>; 2 cancel reason <STRING, empty>.
+ * Optional argument 3: expected cancellation receipt <ARRAY, []> [revision,identity,started,deadline].
+ * Optional argument 4: expected owner context <ARRAY, []> [brain,jobToken,epoch,registryRevision].
+ * Empty retains administrative revision-scoped calls; supplied receipts cannot select a successor.
  * Return Value: ARRAY [active BOOL, capsMps HASHMAP keyed netId, crossed NUMBER, required NUMBER].
  * Geometry: actual hull projection, lateral containment and interpolated approved support elevation;
  * each unpassed vehicle reads at most20stored ASL nodes, with no nearest-station height jumps.
@@ -16,19 +19,40 @@
  * Current callers: ConvoyTick, ConvoyCrewLocal and ConvoyReleaseLocal.
  * Example: private _passage=[_group,_configuration] call CBE_fnc_ConvoyCorridorStep;
  */
-params [["_group",grpNull,[grpNull]],["_configuration",[],[[]]],["_cancel","",[""]]];
+params [["_group",grpNull,[grpNull]],["_configuration",[],[[]]],["_cancel","",[""]],["_expectedEpisode",[],[[]]],["_expectedContext",[],[[]]]];
 private _inactive=[false,createHashMap,0,0];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _group} || {!local _group}) exitWith {_inactive};
 private _revision=_configuration param [0,-1];
 private _episode=_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap];
+private _episodeKey={
+    params ["_record"];
+    ["revision","identity","started","deadline"] apply {_record getOrDefault [_x,[]]}
+};
+private _entryEpisodeKey=[_episode] call _episodeKey;
+private _retireBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+private _ownerContext={
+    [_group getVariable ["CBE_Convoy_Brain",createHashMap],_group getVariable ["CBE_Convoy_LocalJobToken",""],
+        _group getVariable ["CBE_AIPass_Epoch",0],missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-1]]
+};
+private _entryOwnerContext=call _ownerContext;
+
 private _retire={
     params ["_reason",["_status","INCOMPLETE"]];
-    _group setVariable ["CBE_Convoy_CorridorResult",[_status,_reason,serverTime,
-        _episode get "rows",_episode get "area",_episode get "revision",_episode get "identity"],true];
-    _group setVariable ["CBE_Convoy_CorridorPassage",nil,true];
+    isNil {
+        private _liveEpisode=_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap];
+        if (!local _group || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _retireBrain}
+            || {(call _ownerContext) isNotEqualTo _entryOwnerContext}
+            || {_liveEpisode isNotEqualTo _episode}
+            || {([_liveEpisode] call _episodeKey) isNotEqualTo _entryEpisodeKey}) exitWith {};
+        _group setVariable ["CBE_Convoy_CorridorResult",[_status,_reason,serverTime,
+            _episode get "rows",_episode get "area",_episode get "revision",_episode get "identity"],true];
+        _group setVariable ["CBE_Convoy_CorridorPassage",nil,true];
+    };
     _inactive
 };
 if (_cancel != "") exitWith {
+    if (_expectedContext isNotEqualTo [] && {_entryOwnerContext isNotEqualTo _expectedContext}) exitWith {_inactive};
+    if (_expectedEpisode isNotEqualTo [] && {_entryEpisodeKey isNotEqualTo _expectedEpisode}) exitWith {_inactive};
     if (count _episode > 0 && {(_episode get "revision") == _revision}) then {[_cancel,"CANCELLED"] call _retire} else {_inactive}
 };
 private _brain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
@@ -56,6 +80,7 @@ if (count _episode == 0) then {
             ["zeus",+(_group getVariable ["CBE_AIPass_ZeusHold",[]])],
             ["deadline",_work get "tailDeadline"],["rows",_rows]];
         _group setVariable ["CBE_Convoy_CorridorPassage",_episode,true];
+        _entryEpisodeKey=[_episode] call _episodeKey;
     };
 };
 if (count _episode == 0) exitWith {_inactive};

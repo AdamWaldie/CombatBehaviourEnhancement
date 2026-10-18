@@ -641,3 +641,22 @@ class ConvoyCleanupContextTests(unittest.TestCase):
         self.assertIn('isNil {\n    if !(call _releaseCurrent) exitWith {};\n    _group setVariable ["CBE_Convoy_LocalState", nil]',source)
         fsm=(ROOT/'addons/main/fsm/convoyOperation.fsm').read_text().replace('""','"')
         self.assertIn('_reason,_brain getOrDefault ["jobToken",""]] call CBE_fnc_ConvoyReleaseLocal',fsm)
+
+
+class ConvoyPassageRetirementTests(unittest.TestCase):
+    def test_captured_passage_receipts_cannot_retire_successor_episodes(self):
+        for stem,kind in [('convoyCorridorStep','Corridor'),('convoyBypassStep','Bypass')]:
+            source=(ROOT/'addons/vehicles/functions'/f'{stem}.sqf').read_text()
+            self.assertIn('["_expectedEpisode",[],[[]]]',source)
+            self.assertIn('_entryEpisodeKey isNotEqualTo _expectedEpisode',source)
+            self.assertIn('_entryOwnerContext isNotEqualTo _expectedContext',source)
+            self.assertIn('(call _ownerContext) isNotEqualTo _entryOwnerContext',source)
+            retire=source.split('private _retire={',1)[1].split('if (_cancel != "")',1)[0]
+            for proof in ('isNil {','local _group','isNotEqualTo _retireBrain','isNotEqualTo _episode',
+                          'isNotEqualTo _entryEpisodeKey'):
+                self.assertIn(proof,retire)
+            self.assertLess(retire.index('isNil {'),retire.index(f'setVariable ["CBE_Convoy_{kind}Result"'))
+            self.assertIn('_entryEpisodeKey=[_episode] call _episodeKey;',source)
+        release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
+        self.assertIn('"CONVOY_RELEASED",_releaseCorridor,_releaseContext] call CBE_fnc_ConvoyCorridorStep',release)
+        self.assertIn('"CONVOY_RELEASED",_releaseBypass,_releaseContext] call CBE_fnc_ConvoyBypassStep',release)

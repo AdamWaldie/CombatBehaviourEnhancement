@@ -46,9 +46,17 @@ private _releaseCurrent={
         && {_releaseRegistry == (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-1])}
 };
 
+private _passageKey={
+    params ["_name"];
+    private _record=_group getVariable [_name,createHashMap];
+    ["revision","identity","started","deadline"] apply {_record getOrDefault [_x,[]]}
+};
+private _releaseContext=[_brain,_releaseToken,_releaseEpoch,_releaseRegistry];
+private _releaseCorridor=["CBE_Convoy_CorridorPassage"] call _passageKey;
+private _releaseBypass=["CBE_Convoy_BypassPassage"] call _passageKey;
 if (_keepCrew isEqualTo [] && {local _group}) then {
-    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call CBE_fnc_ConvoyCorridorStep;
-    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call CBE_fnc_ConvoyBypassStep;
+    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED",_releaseCorridor,_releaseContext] call CBE_fnc_ConvoyCorridorStep;
+    [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED",_releaseBypass,_releaseContext] call CBE_fnc_ConvoyBypassStep;
 };
 private _releaseAdmitted=false;
 isNil {

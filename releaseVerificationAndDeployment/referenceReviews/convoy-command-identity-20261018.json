@@ -6,7 +6,9 @@
     "addons/vehicles/functions/convoyOperationStep.sqf": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6",
     "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240",
     "addons/main/fsm/convoyOperation.fsm": "0f79ed5ec97eea1a86b843e2870cc2eba20726145ab2949372f215f32e686f2d",
-    "addons/vehicles/functions/convoyReleaseLocal.sqf": "b0b8a50f1487f2fc4cca26e3c64bc16581e9f4dba6a4332f8416430e0f324bdb"
+    "addons/vehicles/functions/convoyReleaseLocal.sqf": "dc192057cc9317dfb2a7ab21c291142e465598e9b34025c5e141909f0b6b0330",
+    "addons/vehicles/functions/convoyCorridorStep.sqf": "c5fbaaad2fef4e7926e99d26d2ba5bf7c78022b60e0bc96746543fdd65454055",
+    "addons/vehicles/functions/convoyBypassStep.sqf": "361920b56062f64775cc5545a06b981092d38e1a82639ed44bf276be4df1aa13"
   },
   "finding": "Per-command helper checked current crew/external availability but not original brain/job/registry/configuration/epoch. Lead and two follower smoothing journals could record rejected caps.",
   "implementation": "Capture original tick brain/token/registry revision/epoch and registry row index. Each existing command helper refuses changed/cancelled/finished brain, token, epoch, configuration or indexed registry row; row lookup is constant-time after one entry search. Lead and PACE/TRAIL follower cap journals move beside forceSpeed in their admitted transactions.",
@@ -17,10 +19,10 @@
     "Physical mixed tracked/wheeled step-off, braking, gaps, replacements, HC and performance remain unaccepted."
   ],
   "validation": {
-    "tests": 1357,
-    "log": ".qa/cbe-convoy-cleanup-context-verified-build.log",
+    "tests": 1358,
+    "log": ".qa/cbe-convoy-passage-owner-context-build.log",
     "exitCode": 0,
-    "packageFingerprint": "bb14e18ee35f78faee3b11c346d77fd01787d0eb7c20c9a94155e6fa8c879dc2"
+    "packageFingerprint": "66cca03ab90ecd6419f736bd4279a7e0bfc6e84040d89c65a71769b1ba5c63d7"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
@@ -38,10 +40,15 @@
     "finding": "ReleaseLocal reread live brain/state/baseline after scheduled early cleanup and could restore or retire successor records.",
     "implementation": "Capture original brain/navigation/baseline/job/epoch/registry. Optional expected FSM token refuses already replaced caller. Cancellation/own brain removal, group restoration, each vehicle cleanup and final local-state/baseline removal have original-context transactions. Own deliberate nil brain is allowed only while no successor exists and original token/epoch/registry/state/baseline remain. Operation cancellation uses captured navigation generation.",
     "limits": [
-      "Early corridor/bypass cancellation calls still need episode identity across nested scheduling.",
+      "Passage retirement now has separate episode/owner checks; active creation/row progress and same-value native provenance remain open.",
       "Per-vehicle retirement calls have bounded native/receipt checks but aggregate crew/vehicle transaction cost unmeasured.",
       "No changed speed/route restoration rules; existing exact leases/native/external/task/keepCrew safeguards retained.",
       "Physical handover, HC, interruption and full cleanup acceptance remain open."
     ]
+  },
+  "passageRetirement": {
+    "finding": "Revision-only cancellation could adopt a successor passage under the same configuration; retirement could delete changed episode after scheduled observation.",
+    "implementation": "Release snapshots corridor/bypass [revision,identity,started,deadline] and [brain,jobToken,epoch,registryRevision] before cancellation. Optional supplied receipts refuse different current episode/owner context, including a successor retaining the same episode. _retire atomically rechecks local group, original brain/owner context and current episode/key before result and passage/capture deletion. Own newly created episode refreshes only its expected episode key.",
+    "limits": "No geometry query or native command inside retirement. Empty optional arguments preserve administrative revision-scoped callers; actual runtime and active passage proposal/progress publication remain unverified."
   }
 }

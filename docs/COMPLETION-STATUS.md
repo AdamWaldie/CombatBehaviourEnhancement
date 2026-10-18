@@ -9,7 +9,9 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
-- Convoy release retains original brain/job/epoch/registry/local-state/baseline and guards group, per-vehicle and final restoration transactions. FSM release passes its expected job token. Early corridor/bypass cancellation episode identity and physical handover/cost remain unverified.
+- Corridor/bypass cancellation now carries captured episode and owner-context receipts. Retirement atomically rechecks current episode/brain/job/epoch/registry before result publication and deletion, preserving retained or replaced successor work. Active passage creation/progress and physical cancellation/cost remain unverified.
+
+- Convoy release retains original brain/job/epoch/registry/local-state/baseline and guards group, per-vehicle and final restoration transactions. FSM release passes its expected job token. Physical cancellation, handover and cost remain unverified.
 
 - Convoy FSM final retirement now rechecks original brain/job/registry after cleanup before clearing brain/FSM slots. A replacement keeps its slots. Cleanup-internal policy/path writes and physical handover still require review and validation.
 
