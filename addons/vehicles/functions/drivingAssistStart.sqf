@@ -8,7 +8,9 @@
  * Locality / Authority: Runs only where the vehicle is local. It never creates, replaces or
  * deletes a waypoint and yields to players, Zeus remote control, convoy ownership and specialist
  * driving ownership. Ineffective drivers and immobilized vehicles receive no recovery commands.
- * An authored zero forced-speed hold is retained without recovery commands.
+ * An authored zero forced-speed hold is retained without recovery commands. A newer cap
+ * revokes the old recovery journal before any handback; same-value outside writes remain
+ * indistinguishable without an external ownership declaration.
  * Deferred exact reverse handback is reconsidered before fresh assistance at this same callback;
  * changed route/seat/command authority retires it without replaying the old rear command.
  * Persistent stationary traffic admits at most three native route retries in one eighty-second
@@ -127,6 +129,7 @@ _brain set ["geometryTracks",_geometryTracks];
     private _recoveryOwned=count _recoveryWork > 0 && {(_recoveryWork get "group") == _group}
         && {(_recoveryWork get "route") isEqualTo _routeIdentity}
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
+        && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}
         && {(expectedDestination _driver) isEqualTo (_recoveryWork get "driverCommand")}
         && {(expectedDestination _movementOperator) isEqualTo (_recoveryWork get "command")}
         && {currentCommand _movementOperator != "STOP"}

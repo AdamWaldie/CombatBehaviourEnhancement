@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Native recovery handback requires its recorded speed-cap lease",
+  "sources": {
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "4d7a02164a6cedb53ea58cd4c31e6fc8fcd2993fff206ac2e248fc2d5e9338ef",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "e89881eb4b774e4ee3088b876634a3d728db95b93ec3c77bfcca1c544740a7cc",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "fb6c3728b63b194678121397868b37e3634c4d417224e734afb1aacde6a42030"
+  },
+  "finding": "DrivingRecoveryRelease could stop/redirect an otherwise exact reverse even when a mission/controller replaced its forced-speed cap; normal assistance checked its cap but cleanup did not. Recovery capture fell back from absent effective commander to driver, while release compared the raw effectiveCommander directly.",
+  "change": "Native recovery handback and pending retention require current forced-speed value within0.1m/s of the journal cap. Main callback also revokes changed-cap recovery before release/reacquisition, preserving existing route-yield semantics. Release resolves missing effective commander to current driver and still requires original identity. Changed-cap release remains metadata-only and does not restore speed or issue movement.",
+  "validation": {
+    "tests": 1174,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-recovery-cap-authority-build.log",
+    "exit_code": 0,
+    "fingerprint": "cd31909995267469b3a5c21759c7d1cca649bddab59192249a64f286b3df638e",
+    "initial_focused_failure": "One whitespace-sensitive locator expected _mayIssueDriving= instead of existing spaced declaration; corrected without changing the guard.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "limits": [
+    "Same-value external cap/command edits remain ambiguous without declared ownership.",
+    "No real cap replacement during an observed native reverse, commander transition, HC migration or repeatability acceptance.",
+    "Deferred exact handback while the entire subsystem is disabled still lacks demonstrated later observation; this commit does not add an observer or resolve that gap.",
+    "No physical recovery success, queue-cascade resolution or performance-budget acceptance. All65 feature families remain partial."
+  ]
+}

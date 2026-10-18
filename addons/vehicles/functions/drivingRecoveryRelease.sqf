@@ -5,6 +5,9 @@
  * Locality / Authority: Current vehicle/group owner. Original seats, both native destinations,
  * route, external/tactical ownership and crew tasks protect cleanup. No waypoint reconstruction.
  * Active fire, attack, service and other non-route commands forbid movement cleanup.
+ * The current forced-speed cap must still match this journal before stopping or redirecting
+ * a reverse. A changed cap retires metadata only; it never grants handback authority.
+ * Effective-commander absence resolves to the driver exactly as at journal capture.
  * A native STOP or individual movement reservation overrides an unchanged destination receipt
  * and forbids movement cleanup; reservation state is never cleared by recovery release.
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
@@ -31,11 +34,14 @@ if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle}
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 private _driver=_work get "driver";private _operator=_work get "operator";
+private _liveOperator=effectiveCommander _vehicle;
+if (isNull _liveOperator) then {_liveOperator=driver _vehicle};
 private _handback="METADATA_ONLY";
 private _owned=_resume && {(_work get "kind") == "REVERSE"}
     && {alive _vehicle}
     && {local _group} && {!isNull _driver} && {!isNull _operator}
-    && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+    && {driver _vehicle == _driver} && {_liveOperator == _operator}
+    && {abs ((getForcedSpeed _vehicle)-(_work get "cap")) <= 0.1}
     && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
     && {(expectedDestination _operator) isEqualTo (_work get "command")}
     && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")}
