@@ -1140,7 +1140,11 @@ switch (_drill get "stage") do {
                     _drill set ["pauseUntil",_now + _pause * _multiplier];
                 };
                 case "ASSAULT": {
-                    private _objective = _drill get "assaultObjective";
+                    private _objective = +(_drill get "assaultObjective");
+                    private _clearIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0]];
+                    private _clearRoster=+(_drill get "units");
+                    private _clearTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+                    private _clearPoints=_points apply {[+(_x select 0),_x select 1]};
                     // Both advance elements have arrived here. Check available carriers
                     // across the fit assault force; one empty inventory must not suppress
                     // every other soldier's carried grenade. The helper owns ammo/safety checks.
@@ -1158,12 +1162,25 @@ switch (_drill get "stage") do {
                     // Grenades support the assault but never reserve its movement phase. The helper
                     // owns the asynchronous throw and safety cancellation; the element commits its
                     // clear-through in this same owner-local step.
-                    [_group,_drill,"START",["ASSAULT_POSITION","ASSAULT_GRENADE_DISPATCHED"] select _queued] call CBE_fnc_CortexDrillSetStage;
-                    _drill set ["pauseUntil",_now];
-                    _drill set ["grenadeThrower",_thrower];
-                    _drill set ["grenadeActionUntil",_now];
-                    _drill set ["teamTurn",0];
-                    _drill set ["index",(_drill get "index")+1];
+                    private _clearCommitted=false;
+                    isNil {
+                        if (!(call _helperCurrent)
+                            || {(_drill getOrDefault ["stage",""]) != "MOVE"}
+                            || {!([_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _clearIdentity)}
+                            || {(_drill get "units") isNotEqualTo _clearRoster}
+                            || {(_drill getOrDefault ["teams",[]]) isNotEqualTo _clearTeams}
+                            || {(_drill get "points") isNotEqualTo _clearPoints}
+                            || {(_drill get "assaultObjective") isNotEqualTo _objective}
+                            || {!([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {};
+                        _drill set ["pauseUntil",_now];
+                        _drill set ["grenadeThrower",_thrower];
+                        _drill set ["grenadeActionUntil",_now];
+                        _drill set ["teamTurn",0];
+                        _drill set ["index",(_drill get "index")+1];
+                        [_group,_drill,"START",["ASSAULT_POSITION","ASSAULT_GRENADE_DISPATCHED"] select _queued] call CBE_fnc_CortexDrillSetStage;
+                        _clearCommitted=true;
+                    };
+                    if (!_clearCommitted) exitWith {_result=0.25};
                     call _issue;
                 };
                 case "CONSOLIDATE": {

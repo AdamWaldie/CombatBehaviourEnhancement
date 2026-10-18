@@ -491,3 +491,17 @@ class ManoeuvreHoldPublicationTests(unittest.TestCase):
         self.assertIn('if (!_holdCommitted) exitWith {_result=0.25}',body)
         self.assertIn('if (_holdIssue) then {call _issue}',body)
         self.assertIn('_result != 0.25',body)
+
+
+class AssaultClearThroughAdmissionTests(unittest.TestCase):
+    def test_grenade_preparation_cannot_advance_a_replaced_assault(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        body=source.split('private _clearIdentity=',1)[1].split('case "CONSOLIDATE":',1)[0]
+        self.assertLess(body.index('call CBE_fnc_CortexThrowGrenade'),body.index('private _clearCommitted=false'))
+        for guard in ('call _helperCurrent','isEqualTo _clearIdentity','isNotEqualTo _clearRoster',
+                      'isNotEqualTo _clearTeams','isNotEqualTo _clearPoints','isNotEqualTo _objective',
+                      'CBE_AIPass_Assault_Enable'):
+            self.assertIn(guard,body)
+        self.assertLess(body.index('isNil {'),body.index('_drill set ["index",(_drill get "index")+1]'))
+        self.assertLess(body.index('if (!_clearCommitted) exitWith'),body.index('call _issue;'))
+        self.assertNotIn('CortexThrowGrenade',body.split('isNil {',1)[1])
