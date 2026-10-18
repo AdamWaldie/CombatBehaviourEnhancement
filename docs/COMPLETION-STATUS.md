@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Manoeuvre casualty and recovery transfers now prefer an unpaired survivor, then a whole buddy
+  pair when donor cover can remain. Minimum surviving movement/cover capacity takes priority.
+  Physical refill continuity and interruption remain unverified; no runtime acceptance is added.
+
 - Coordinated bound teams retain eligible existing battle buddies together before balancing remaining
   actors. All available roles stay enrolled; pair cohesion may produce unequal teams. This changes
   roster composition only: physical buddy follow-through, casualty refill and tactical quality remain unverified.

@@ -7,6 +7,8 @@
  *
  * Casualty refill admits only local actors with empty or fully typed expired movement leases;
  * unknown or malformed reservations remain owned and cannot be added to the drill roster.
+ * Team casualty/recovery transfers prefer unpaired survivors, then intact pairs when donor
+ * strength permits. Minimum surviving movement and cover capacity may require splitting a pair.
  * Bounds: each member gets his own spot, spread across a shallow line facing the last known enemy position. A slot on
  * water or a cliff-like side slope contracts towards the bound centre rather than stranding that soldier. Ordinary
  * bounds, the final position and the assault position are snapped to cover facing the enemy
@@ -248,6 +250,30 @@ private _fitSquad=(units _group) select {!(_x in _unavailable)} select {[_x] cal
 private _teams=_drill getOrDefault ["teams",[]];
 private _desiredStrength=_drill getOrDefault ["desiredStrength",count (_drill get "units")];
 private _reinforcements=[];
+// Prefer an orphan over breaking a surviving buddy pair. If only intact pairs remain,
+// transfer a whole pair when the donor can retain its required cover; otherwise surviving
+// movement/cover capacity takes priority over cohesion. Selection never issues actor commands.
+private _buddyPairs=_group getVariable ["CBE_CombatPairs",[]];
+if !(_buddyPairs isEqualType []) then {_buddyPairs=[]};
+_buddyPairs=_buddyPairs select [0,16];
+private _selectRelief={
+    params ["_donors","_keep"];
+    if (count _donors <= _keep) exitWith {[]};
+    private _intact=[];
+    private _paired=[];
+    {
+        if (_x isEqualType [] && {count _x == 2}
+            && {(_x select 0) != (_x select 1)}
+            && {_x findIf {!(_x in _donors) || {_x in _paired}} < 0}) then {
+            _intact pushBack _x;
+            _paired append _x;
+        };
+    } forEach _buddyPairs;
+    private _orphan=_donors findIf {!(_x in _paired)};
+    if (_orphan >= 0) exitWith {[_donors select _orphan]};
+    if (count _donors-_keep >= 2 && {_intact isNotEqualTo []}) exitWith {+(_intact select 0)};
+    [_donors select ((count _donors)-1)]
+};
 private _rankCandidates={
     params ["_candidates"];
     // Reserve selection must honour finite actor tasks before the drill mutates its own roster;
@@ -292,14 +318,20 @@ if (_teams isEqualTo []) then {
         private _first=_teams select 0;
         private _second=_teams select 1;
         if (count _first < 2 && {count _second > 2}) then {
-            private _replacement=_second deleteAt ((count _second)-1);
-            _first pushBack _replacement;
-            _reinforcements pushBack ["TEAM_1_REBALANCE",netId _replacement];
+            {
+                private _replacement=_x;
+                _second deleteAt (_second find _replacement);
+                _first pushBack _replacement;
+                _reinforcements pushBack ["TEAM_1_REBALANCE",netId _replacement];
+            } forEach ([_second,2] call _selectRelief);
         };
         if (count _second < 2 && {count _first > 2}) then {
-            private _replacement=_first deleteAt ((count _first)-1);
-            _second pushBack _replacement;
-            _reinforcements pushBack ["TEAM_2_REBALANCE",netId _replacement];
+            {
+                private _replacement=_x;
+                _first deleteAt (_first find _replacement);
+                _second pushBack _replacement;
+                _reinforcements pushBack ["TEAM_2_REBALANCE",netId _replacement];
+            } forEach ([_first,2] call _selectRelief);
         };
     };
     {_units append _x} forEach _teams;
@@ -411,10 +443,13 @@ private _ensureMovingTeam={
         };
     };
     while {count _movingAvailable < _minimumMovers && {count _coverAvailable > 1}} do {
-        private _replacement=_coverAvailable deleteAt ((count _coverAvailable)-1);
-        (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _replacement);
-        (_teams select _turn) pushBack _replacement;
-        _movingAvailable pushBack _replacement;
+        private _relief=[_coverAvailable,1] call _selectRelief;
+        {
+            _coverAvailable deleteAt (_coverAvailable find _x);
+            (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _x);
+            (_teams select _turn) pushBack _x;
+            _movingAvailable pushBack _x;
+        } forEach _relief;
         _drill set ["teams",_teams];
         if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
             // Membership changed: rebuild slots for this same committed bound before indexing them.
@@ -423,7 +458,7 @@ private _ensureMovingTeam={
         };
         private _history=_group getVariable ["CBE_Cortex_DrillReinforcements",[]];
         _history pushBack [serverTime,_drill getOrDefault ["type",""],_drill getOrDefault ["index",-1],
-            [[format ["TEAM_%1_RECOVERY",_turn+1],netId _replacement]]];
+            _relief apply {[format ["TEAM_%1_RECOVERY",_turn+1],netId _x]}];
         if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
         _group setVariable ["CBE_Cortex_DrillReinforcements",_history,true];
     };

@@ -48,9 +48,11 @@ class CortexOperations(unittest.TestCase):
     def test_role_replacement_consumes_each_donor_and_supports_three_survivors(self):
         step=source('cortexFlankStep')
         transfer=step.split('while {count _movingAvailable < _minimumMovers',1)[1].split('if (count _movingAvailable < _minimumMovers)',1)[0]
-        self.assertIn('_coverAvailable deleteAt ((count _coverAvailable)-1)',transfer)
-        self.assertNotIn('_coverAvailable select ((count _coverAvailable)-1)',transfer)
-        self.assertLess(transfer.index('_coverAvailable deleteAt'),transfer.index('_movingAvailable pushBack _replacement'))
+        self.assertIn('private _relief=[_coverAvailable,1] call _selectRelief;',transfer)
+        self.assertIn('_coverAvailable deleteAt (_coverAvailable find _x)',transfer)
+        self.assertIn('(_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _x)',transfer)
+        self.assertIn('} forEach _relief;',transfer)
+        self.assertLess(transfer.index('_coverAvailable deleteAt'),transfer.index('_movingAvailable pushBack _x'))
         start=source('cortexSupportBoundStart')
         coordinator=source('cortexSupportCoordinateStep')
         self.assertIn('if (count _fit < 3)',start)

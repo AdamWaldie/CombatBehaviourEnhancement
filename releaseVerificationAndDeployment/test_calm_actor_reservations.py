@@ -115,3 +115,21 @@ class CoordinationReservationTests(unittest.TestCase):
         self.assertNotIn('<= time',admission)
         self.assertNotIn('setVariable',admission)
         self.assertIn('currentCommand _x',admission)
+
+
+class ManoeuvreBuddyReliefTests(unittest.TestCase):
+    def test_relief_keeps_pairs_only_when_donor_cover_survives(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        helper=source.split('private _selectRelief={',1)[1].split('private _rankCandidates=',1)[0]
+        self.assertIn('count _donors <= _keep',helper)
+        self.assertIn('!(_x in _donors) || {_x in _paired}',helper)
+        self.assertIn('(_x select 0) != (_x select 1)',helper)
+        self.assertLess(helper.index('if (_orphan >= 0)'),helper.index('count _donors-_keep >= 2'))
+        self.assertIn('+(_intact select 0)',helper)
+        for forbidden in ['doMove','doFollow','setVariable','nearEntities']:
+            self.assertNotIn(forbidden,helper)
+        self.assertIn('forEach ([_second,2] call _selectRelief)',source)
+        self.assertIn('forEach ([_first,2] call _selectRelief)',source)
+        self.assertIn('private _relief=[_coverAvailable,1] call _selectRelief;',source)
+        self.assertIn('_relief apply {[format ["TEAM_%1_RECOVERY",_turn+1],netId _x]}',source)
+        self.assertIn('"RECOVERY_REINFORCEMENT"',source)
