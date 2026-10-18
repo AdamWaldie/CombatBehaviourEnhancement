@@ -11,6 +11,8 @@
  * ATTACK and unowned CBE remain authoritative. APPROACH permits its owned arrival wait but
  * rejects a new STOP/other native task before taking fixed steering. CROSS owns its own doStop.
  * Individual actor reservations on either seat veto acquisition and every later command.
+ * CROSS compares actual height with the interpolated approved ASL support profile through
+ * the area, rejecting a different floor before entry/completion credit; no fresh rays are added.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
  * or deadline renewal. Original 120-second approach and half-length+45-second crossing budgets
  * remain finite. Area edits, new orders, changed seats and external ownership retire old work.
@@ -199,6 +201,28 @@ if (count _work > 0) exitWith {
                 };
             } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];
         } forEach [_low select 0,_high select 0];
+        // Compare actual origin height with the approved support profile while inside the
+        // corridor. Horizontal entry/exit alone cannot distinguish a bridge deck from its underpass.
+        // The proposal is straight and ordered along travel; at most twenty stored ASL nodes.
+        if (abs _projection <= _halfLength+5) then {
+            private _expectedFloor=[];
+            if (count _asl >= 2 && {count _asl <= 20}) then {
+                for "_i" from 1 to (count _asl-1) do {
+                    private _a=_asl select (_i-1);private _b=_asl select _i;
+                    private _pa=(_a vectorDiff _centre) vectorDotProduct _travel;
+                    private _pb=(_b vectorDiff _centre) vectorDotProduct _travel;
+                    if (_projection >= _pa && {_projection <= _pb} && {_pb-_pa > 0.01}) exitWith {
+                        private _fraction=(_projection-_pa)/(_pb-_pa);
+                        _expectedFloor=[(_a select 2)+((_b select 2)-(_a select 2))*_fraction];
+                    };
+                };
+            };
+            if (_expectedFloor isEqualTo [] || {abs ((_origin select 2)-(_expectedFloor select 0)) > 2}) then {
+                _crossed=false;
+                [_vehicle,_group,"CORRIDOR_FLOOR_DEPARTED"] call CBE_fnc_DrivingCorridorRelease;
+            };
+        };
+        if (isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}) exitWith {};
         // An exit pose alone cannot prove corridor passage after a detour around the area.
         // Observe the near plane in order, preserve it across migration, and reject lateral departure.
         if (!_withinWidth && {abs _projection <= _halfLength}) exitWith {

@@ -4,6 +4,20 @@ import math
 import unittest
 ROOT = Path(__file__).resolve().parents[1]
 class CorridorFoundationTests(unittest.TestCase):
+    def test_crossing_rejects_underpass_height_before_entry_or_exit_credit(self):
+        s=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
+        crossing=s.split('if (_phase == "CROSS") then {',1)[1].split('// An unfinished column passage',1)[0]
+        floor=crossing.split('private _expectedFloor=[];',1)[1].split('// An exit pose alone',1)[0]
+        for marker in ('count _asl <= 20','_pa=(_a vectorDiff _centre) vectorDotProduct _travel',
+                       '_pb=(_b vectorDiff _centre) vectorDotProduct _travel',
+                       '_fraction=(_projection-_pa)/(_pb-_pa)',
+                       '(_origin select 2)-(_expectedFloor select 0)',
+                       'CORRIDOR_FLOOR_DEPARTED','isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}'):
+            self.assertIn(marker,floor)
+        self.assertLess(crossing.index('CORRIDOR_FLOOR_DEPARTED'),crossing.index('_work set ["entered",true]'))
+        self.assertLess(crossing.index('CORRIDOR_FLOOR_DEPARTED'),crossing.index('"PHYSICALLY_CROSSED"'))
+        for forbidden in ('lineIntersectsSurfaces','nearestObjects','getTerrainHeightASL','setPos','setVelocity'):
+            self.assertNotIn(forbidden,floor)
     def test_registration_authenticates_remote_curators_and_has_no_movement_authority(self):
         source = (ROOT / 'addons/vehicles/functions/drivingCorridorRegister.sqf').read_text()
         body = source.split('params [[', 1)[1]
