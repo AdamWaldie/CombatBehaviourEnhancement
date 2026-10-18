@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-18",
+  "scope": "Prepared normal-owner completed native convoy endpoint acceptance",
+  "prior_review": "hbq-convoy-endpoint-20261018.json",
+  "sources": {
+    "addons/vehicles/functions/convoyTick.sqf": "763d3d4ea73688758015c412e64ed026cbd906eff85df58ca83958e39e21f442",
+    "releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf": "d484ae422aef539688c673eca7b436f73fb9a99072ac1e9a3ca98d95e5b45d2b"
+  },
+  "production_diagnostic": "Capture-only local map stores one pre-command completed-endpoint event per registered follower. Records are not movement/acceptance authority; capture-off travelling tick removes map, release/revision replacement retires controller state.",
+  "fixture": {
+    "batch": "Normal TRACKED/MIXED 30m cases only; HC excluded.",
+    "prerequisite": "Real production3..8m finished-endpoint event with physical endpoint proximity/floor, at-rest/readiness/command, original seat/native receipt and revision/epoch checks. Missing prerequisite fails.",
+    "physical": "At least3m projected movement toward successor and2m distance improvement, same epoch/revision/crew, active convoy, exact current expectedDestination movement receipt and no yielded revision.",
+    "prohibited_shortcuts": "No test-side movement/path/position/velocity/controller completion injection.",
+    "status": "PREPARED_NOT_RUN"
+  },
+  "validation": {
+    "tests": 1139,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-convoy-endpoint-fixture-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "926de61ca9d5eea9312692c770cadcc90d61869ce6fb3a9f4a9a6d28120a60c7"
+  },
+  "remaining": [
+    "Actual native endpoint completion metadata/readiness behaviour and whether the natural matrix reaches the required prerequisite.",
+    "Mixed tracked/wheeled stop/start, short leg continuity, explicit STOP/replacement orders, terrain/deck and casualty acceptance.",
+    "Separate actual-provider HC migration/owner cases and measured runtime cost.",
+    "All wider full-goal acceptance remains partial."
+  ]
+}

@@ -14,7 +14,10 @@
  * timing row; remote owner state is explicitly unavailable rather than inferred from public pose.
  * The existing finite 80-second window logs one compact timing sample per second, including
  * effective-commander destinations, physical longitudinal gap and applied speed cap.
- * These diagnostics are audit-only and cannot pass physical acceptance or performance budgets.
+ * Normal TRACKED/MIXED 30 m cases additionally require an observed exact-owned completed
+ * native endpoint advance of3..8m and subsequent measured movement toward the new endpoint.
+ * Missing prerequisite is a failure, never a bookkeeping pass. No test-side path reset is used.
+ * These diagnostics are audit-only and cannot establish whole-feature/performance acceptance.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; required audit callbacks.
  * Return: Nothing. Current caller: cortexQAServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAConvoyMatrix.sqf";
@@ -193,6 +196,10 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
         private _minimumGaps=[1e9,1e9];
         private _maximumGaps=[0,0];
         private _orderBroken=false;
+        private _endpointDiagnostic=!_baseline && {_label in ["TRACKED","MIXED"]} && {_spacing == 30}
+            && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])};
+        private _endpointObserved=createHashMap;
+        private _endpointTravelled=false;
         private _start=diag_tickTime;
         private _nextLog=0;
         private _nextFollow=0;
@@ -265,6 +272,52 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             // five-second aggregate can miss a complete start/stop cycle between samples.
             private _timingOwnerLocal=local _group;
             private _timingController=if (_timingOwnerLocal) then {_group getVariable ["CBE_Convoy_LocalState",createHashMap]} else {createHashMap};
+            if (_endpointDiagnostic && {_timingOwnerLocal}) then {
+                private _events=_timingController getOrDefault ["nativeEndpointAdvances",createHashMap];
+                {
+                    private _vehicle=_x;
+                    private _event=_events getOrDefault [netId _vehicle,[]];
+                    if (count _event == 12 && {(_event select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                        _event params ["_at","_eventRevision","_eventEpoch","_driver","_operator","_old","_new","_pose","_speedAt","_readyAt","_commandAt","_receipt"];
+                        private _advance=_old distance2D _new;
+                        private _originDistance=_pose distance2D (ATLToASL _new);
+                        private _valid=_at >= serverTime-120 && {_at <= serverTime}
+                            && {_eventRevision == (_timingController getOrDefault ["revision",-1])}
+                            && {local _vehicle} && {driver _vehicle == _driver}
+                            && {effectiveCommander _vehicle == _operator}
+                            && {count _receipt == 4} && {(_receipt select 0) == _driver}
+                            && {(_receipt select 1) == _operator}
+                            && {_advance > 3} && {_advance <= 8}
+                            && {_pose distance2D (ATLToASL _old) <= 3}
+                            && {abs ((_pose select 2)-((ATLToASL _old) select 2)) <= 1.5}
+                            && {abs _speedAt < 1} && {_readyAt} && {_commandAt in ["","MOVE"]};
+                        if (_valid) then {
+                            if (isNil {_endpointObserved get (netId _vehicle)}) then {
+                                _endpointObserved set [netId _vehicle,+_event];
+                                diag_log format ["CBE CORTEX QA NATIVE ENDPOINT PREREQUISITE: %1",[_id,netId _vehicle,_event]];
+                            };
+                            private _axis=(ATLToASL _new) vectorDiff _pose;_axis set [2,0];
+                            private _travel=(getPosASL _vehicle) vectorDiff _pose;_travel set [2,0];
+                            private _movementReceipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
+                            private _stillOwned=count _movementReceipt == 5
+                                && {(_movementReceipt select 0) == _group}
+                                && {(_movementReceipt select 1) == _eventRevision}
+                                && {(_movementReceipt select 2) == _driver}
+                                && {(_movementReceipt select 3) == _operator}
+                                && {(expectedDestination _operator) isEqualTo (_movementReceipt select 4)}
+                                && {currentCommand _operator in ["","MOVE"]}
+                                && {_vehicle getVariable ["CBE_Convoy_Active",false]}
+                                && {((_group getVariable ["CBE_Convoy_CommandYield",[]]) param [0,-1]) != _eventRevision};
+                            if (vectorMagnitude _axis > 0.1
+                                && {_travel vectorDotProduct (vectorNormalized _axis) >= 3}
+                                && {((getPosASL _vehicle) distance2D (ATLToASL _new)) <= _originDistance-2}
+                                && {_stillOwned}) then {
+                                _endpointTravelled=true;
+                            };
+                        };
+                    };
+                } forEach (_vehicles select [1]);
+            };
             private _timingLimits=_timingController getOrDefault ["speedLimits",createHashMap];
             private _timingFollowers=_timingController getOrDefault ["followers",createHashMap];
             private _timing=_vehicles apply {
@@ -312,6 +365,12 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                 diag_log format ["CBE CORTEX QA CONVOY MATRIX: case=%1 speeds=%2 forced=%3 gaps=%4 motion=%5 formation=%6 steering=%7",_id,_vehicles apply {speed _x},_vehicles apply {getForcedSpeed _x},[(_vehicles select 1) distance2D (_vehicles select 0),(_vehicles select 2) distance2D (_vehicles select 1)],_vehicles apply {[getDir _x,currentCommand driver _x,expectedDestination driver _x,getPosATL _x]},formation _group,_vehicles apply {isAISteeringComponentEnabled _x}];
             };
             sleep 1;
+        };
+        if (_endpointDiagnostic) then {
+            [_id+"-finished-native-endpoint-prerequisite",count _endpointObserved > 0,
+                str (values _endpointObserved)] call _check;
+            [_id+"-finished-native-endpoint-physical-advance",count _endpointObserved > 0 && {_endpointTravelled},
+                str (_vehicles apply {getPosASL _x})] call _check;
         };
         [_id+"-single-file",_count >= 40 && {_maxLateral <= 8} && {!_orderBroken},format ["maximum predecessor lateral offset=%1 m; order broken=%2",_maxLateral,_orderBroken]] call _check;
         [_id+"-spacing-band",_count >= 40 && {_gapInBand findIf {_x / (_count max 1) < 0.8} < 0},

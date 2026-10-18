@@ -31,3 +31,22 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
                      (0,True,'MOVE',8,True,5,True),(0,True,'MOVE',1,False,5,True),
                      (0,True,'MOVE',1,True,3,True),(0,True,'MOVE',1,True,5,False)):
             self.assertFalse(finished(*args))
+
+    def test_normal_fixture_requires_real_trigger_and_physical_continuation(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text()
+        self.assertIn('CBE_CortexQA_HeadlessBatch',qa)
+        block=qa.split('if (_endpointDiagnostic && {_timingOwnerLocal}) then {',1)[1].split('private _timingLimits=',1)[0]
+        for marker in ('_advance > 3','_advance <= 8','_readyAt','abs _speedAt < 1',
+                       'CBE_AIPass_Epoch','_eventRevision','getPosASL _vehicle',
+                       'vectorNormalized _axis','_originDistance-2','CBE_Convoy_MovementReceipt',
+                       'expectedDestination _operator','CBE_Convoy_CommandYield','CBE_Convoy_Active','_stillOwned'):
+            self.assertIn(marker,block)
+        for forbidden in ('doMove','doFollow','doStop','setPos','setVelocity','setDriveOnPath',
+                          'setVariable ["CBE_Convoy_LocalState"'):
+            self.assertNotIn(forbidden,block)
+        self.assertIn('count _endpointObserved > 0 && {_endpointTravelled}',qa)
+        tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        self.assertIn('_state deleteAt "nativeEndpointAdvances"',tick)
+        event=tick.split('private _endpointEvent=[];',1)[1].split('_progress set [5,+_destination]',1)[0]
+        self.assertLess(event.index('getPosASL _vehicle'),event.index('_movementOperator doMove'))
+        self.assertLess(event.index('_movementOperator doMove'),event.index('_endpointAdvances set'))

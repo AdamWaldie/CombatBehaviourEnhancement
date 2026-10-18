@@ -34,6 +34,8 @@
  * only at rest near its exact owned endpoint with unchanged seat/destination receipts. Moving
  * legs retain the eight-metre retask threshold; explicit STOP and changed commands are not retried.
  * Curve caps are refreshed for two-point retained tails; grade includes the first segment.
+ * Diagnostic capture retains at most one pre-command finished-endpoint event per registered
+ * follower, locally for the current controller state; disabling capture removes those records.
  * These observations never relax the independent spacing, traffic or infantry braking caps.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
  * accelerate gradually while safety, contact, arrival and close-gap braking remain immediate.
@@ -646,6 +648,8 @@ _state set ["pathOwners",_pathOwners];
 // Internal audit capture is local to this owner and resets each travelling callback.
 // It cannot grant authority, change any cap, or retain an unbounded time series.
 
+private _endpointAdvances=_state getOrDefault ["nativeEndpointAdvances",createHashMap];
+if (_captureControl) then {_state set ["nativeEndpointAdvances",_endpointAdvances]} else {_state deleteAt "nativeEndpointAdvances"};
 private _controlSamples=createHashMap;
 if (_captureControl) then {_state set ["controlSamples",_controlSamples]} else {_state deleteAt "controlSamples"};
 for "_i" from 1 to (count _vehicles - 1) do {
@@ -1031,10 +1035,21 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     && {(_nativeReceipt select 1) == _movementOperator}
                     && {(expectedDestination driver _vehicle) isEqualTo (_nativeReceipt select 2)}
                     && {(expectedDestination _movementOperator) isEqualTo (_nativeReceipt select 3)};
+                // Audit-only last event per registered follower. Capture pre-command state;
+                // neither event presence nor command admission establishes physical travel.
+                private _endpointEvent=[];
+                if (_captureControl && {_finishedLeg}
+                    && {_committedDestination distance2D _destination <= 8}) then {
+                    _endpointEvent=[serverTime,_revision,_group getVariable ["CBE_AIPass_Epoch",0],
+                        driver _vehicle,_movementOperator,+_committedDestination,+_destination,
+                        getPosASL _vehicle,speed _vehicle,unitReady _movementOperator,
+                        currentCommand _movementOperator,+_nativeReceipt];
+                };
                 if (count _committedDestination < 2
                     || {_committedDestination distance2D _destination > 8} || {_finishedLeg}) then {
                     if ([] call _mayIssueDriving) then {
                         _movementOperator doMove _destination;
+                        if (_endpointEvent isNotEqualTo []) then {_endpointAdvances set [_key,_endpointEvent]};
                         if (_captureControl) then {(_controlSample select 9) pushBack ["NATIVE",+_destination,_frontSpeed,_joining,_straightPath]};
                         _progress set [5,+_destination];
                         _progress set [12,+_recordedDestination];
