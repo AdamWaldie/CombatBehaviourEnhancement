@@ -2368,7 +2368,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('!([_group] call CBE_fnc_CortexExternalTakeover)',step)
         self.assertIn('if ([_unit] call _mayIssueMovement) then {',step)
         self.assertIn('&& {[_unit] call _mayIssueMovement}) then {',step)
-        for command in ['_actor doMove _rally;','_unit doMove _spot;','_unit doMove (_spots select _forEachIndex);']:
+        for command in ['_actor doMove _rally;','_unit doMove _spot;','_unit doMove (_spots select _slot);']:
             index=step.index(command)
             self.assertIn('_mayIssueMovement',step[max(0,index-800):index])
     def test_combined_arms_and_convoy_crew_yield_at_final_command_boundaries(self):
@@ -3384,8 +3384,13 @@ class CortexOperations(unittest.TestCase):
         retry=step.split('private _retry = _retries select _forEachIndex;',1)[1].split('if (_now-(_last select 3) > _timeout)',1)[0]
         self.assertIn('_now-(_last select 3) >= 8',retry)
         self.assertIn('(_retry select 0) < 1',retry)
-        self.assertEqual(1,retry.count('_unit doMove'))
-        self.assertNotIn('setDestination',retry)
+        self.assertEqual(0,retry.count('_unit doMove'))
+        self.assertIn('_moveActions pushBack ["RETRY",_unit,_forEachIndex,+_pose]',retry)
+        commit=step.split('private _moveCommitted=false;',1)[1].split('if (!_moveCommitted)',1)[0]
+        self.assertEqual(1,commit.count('_unit doMove'))
+        self.assertIn('isNotEqualTo _entryMoveRetries',commit)
+        self.assertLess(commit.index('_unit doMove'),commit.index('_retry set [0,'))
+        self.assertNotIn('setDestination',retry+commit)
 
     def test_active_support_assignment_is_adopted_by_the_new_local_owner(self):
         locality=source('cortexLocality')

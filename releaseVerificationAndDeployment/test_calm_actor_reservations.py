@@ -321,3 +321,29 @@ class ManoeuvreFloorProgressTests(unittest.TestCase):
         self.assertIn('(getPosASL _actor) vectorDistance (getPosASL _x)',recovery)
         self.assertIn('(_rallyASL select 2)) <= 1.5',recovery)
         self.assertNotIn('vectorMultiply (1/count _peers)',recovery)
+
+
+class ManoeuvreArrivalRetryCommitTests(unittest.TestCase):
+    def test_observations_and_retry_credit_commit_with_current_bound(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        move=source.split('case "MOVE": {',1)[1]
+        observations,commit=move.split('private _moveCommitted=false;',1)
+        self.assertIn('_entryMoveProgress apply',observations)
+        self.assertIn('_entryMoveRetries apply',observations)
+        for forbidden in ['doStop _unit','_unit doMove','_retry set [0,','_drill set ["progressCoordinates"']:
+            self.assertNotIn(forbidden,observations)
+        commit=commit.split('if (!_moveCommitted)',1)[0]
+        writer=commit.index('doStop _unit')
+        for guard in ['isNil {','_rosterEpoch !=','"token",""]) != _token',
+                      '"stage",""]) != "MOVE"','isNotEqualTo _moveIdentity','isNotEqualTo _spots',
+                      'isNotEqualTo _movers','isNotEqualTo _entryMoveProgress','isNotEqualTo _entryMoveRetries',
+                      'isNotEqualTo _previousArrivals','isNotEqualTo _moveRoute',
+                      'isNotEqualTo _supportRole','CBE_fnc_CortexExternalTakeover',
+                      'currentCommand _actor != _command','isNotEqualTo _destination','!_atTarget',
+                      '_arrivedUnits findIf','_pose vectorDistance _target > 3']:
+            self.assertLess(commit.index(guard),writer)
+        self.assertLess(commit.index('_unit doMove (_spots select _slot)'),commit.index('_retry set [0,'))
+        for journal in ['_drill set ["progress",_progress]','_drill set ["retries",_retries]',
+                        '_drill set ["arrivedUnits",_arrivedUnits]']:
+            self.assertLess(commit.index(journal),commit.index('_moveCommitted=true;'))
+        self.assertIn('if (!_moveCommitted) exitWith {_result=0.25}',move)

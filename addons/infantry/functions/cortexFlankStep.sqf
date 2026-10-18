@@ -790,15 +790,22 @@ private _result = 1.5;
 switch (_drill get "stage") do {
     case "START": {call _issue};
     case "MOVE": {
-        private _spots = _drill get "spots";
-        private _movers = _drill get "movers";
+        private _spots = (_drill get "spots") apply {+_x};
+        private _movers = +(_drill get "movers");
+        private _moveIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0]];
+        private _moveNative=(_movers select {_x in _units}) apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
+        private _moveWaypointIndex=currentWaypoint _group;
+        private _moveRoute=[_group,"",false,_moveWaypointIndex] call CBE_fnc_AuthoredRouteReceipt;
+        private _moveActions=[];
         private _arrived = true;
         private _arrivedUnits = [];
         private _stalled = false;
         private _blocked = [];
         private _timeout = missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25];
-        private _progress = _drill get "progress";
-        if ((_drill getOrDefault ["progressCoordinates",""]) != "ASL3D") then {
+        private _entryMoveProgress=(_drill get "progress") apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
+        private _progress = _entryMoveProgress apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
+        private _entryMoveCoordinates=_drill getOrDefault ["progressCoordinates",""];
+        if (_entryMoveCoordinates != "ASL3D") then {
             // Legacy live records used ATL positions and 2D range. Convert the recorded
             // pose without inventing movement, resetting clocks or renewing retry budget.
             {
@@ -806,10 +813,10 @@ switch (_drill get "stage") do {
                 _x set [2,_pose];
                 _x set [0,_pose vectorDistance (ATLToASL (_spots select _forEachIndex))];
             } forEach _progress;
-            _drill set ["progressCoordinates","ASL3D"];
         };
-        private _retries = _drill getOrDefault ["retries",_movers apply {[0,_now]}];
-        private _previousArrivals=_drill getOrDefault ["arrivedUnits",[]];
+        private _entryMoveRetries=(_drill getOrDefault ["retries",_movers apply {[0,_now]}]) apply {+_x};
+        private _retries = _entryMoveRetries apply {+_x};
+        private _previousArrivals=+(_drill getOrDefault ["arrivedUnits",[]]);
         {
             private _unit = _x;
             if (alive _unit && {_unit in _units}) then {
@@ -820,8 +827,7 @@ switch (_drill get "stage") do {
                     _arrivedUnits pushBack _unit;
                     if !(_unit in _previousArrivals) then {
                         if ([_unit] call _mayIssueMovement) then {
-                            doStop _unit;
-                            _unit doWatch _enemyPos;
+                            _moveActions pushBack ["ARRIVE",_unit,_forEachIndex,+_pose];
                         };
                     };
                 } else {
@@ -847,16 +853,80 @@ switch (_drill get "stage") do {
                         // Replan the same destination; do not move the actor or waive arrival.
                         // One native route refresh is allowed only after measured no-progress.
                         // Target and combat behaviour remain engine-owned.
-                        _unit doMove (_spots select _forEachIndex);
-                        _retry set [0,(_retry select 0)+1];
-                        _retry set [1,_now];
-                        diag_log format ["[CBE] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,_remaining,currentCommand _unit,expectedDestination _unit,_spots select _forEachIndex,assignedTarget _unit];
+                        _moveActions pushBack ["RETRY",_unit,_forEachIndex,+_pose];
                     };
                     if (_now-(_last select 3) > _timeout) then {_stalled = true; _blocked pushBack _unit};
                 };
             };
         } forEach _movers;
-        _drill set ["arrivedUnits",_arrivedUnits];
+        private _moveCommitted=false;
+        isNil {
+            private _liveState=_group getVariable ["CBE_AIPass_State",createHashMap];
+            private _liveDrill=_liveState getOrDefault ["drill",createHashMap];
+            private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+            if (!local _group || {_rosterEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                || {_liveState isNotEqualTo _state} || {(_liveDrill getOrDefault ["token",""]) != _token}
+                || {(_liveDrill getOrDefault ["stage",""]) != "MOVE"}
+                || {[_liveDrill getOrDefault ["index",0],_liveDrill getOrDefault ["teamTurn",0]] isNotEqualTo _moveIdentity}
+                || {(_liveDrill getOrDefault ["spots",[]]) isNotEqualTo _spots}
+                || {(_liveDrill getOrDefault ["movers",[]]) isNotEqualTo _movers}
+                || {(_liveDrill getOrDefault ["progress",[]]) isNotEqualTo _entryMoveProgress}
+                || {(_liveDrill getOrDefault ["progressCoordinates",""]) != _entryMoveCoordinates}
+                || {(_liveDrill getOrDefault ["retries",_movers apply {[0,_now]}]) isNotEqualTo _entryMoveRetries}
+                || {(_liveDrill getOrDefault ["arrivedUnits",[]]) isNotEqualTo _previousArrivals}
+                || {currentWaypoint _group != _moveWaypointIndex}
+                || {([_group,"",false,_moveWaypointIndex] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _moveRoute}
+                || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+                || {[] call CBE_fnc_CortexIsPaused}
+                || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
+                || {[_group] call CBE_fnc_CortexExternalTakeover}
+                || {if (_support) then {!(_liveState getOrDefault ["assaulting",false])} else {(_liveState getOrDefault ["phase",""]) != "CONTACT"}}
+                || {_support && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _supportRole}}
+                || {_operationGeneration >= 0 && {
+                    (_liveOperation getOrDefault ["generation",-2]) != _operationGeneration
+                        || {(_liveOperation getOrDefault ["ownerEpoch",-1]) != _rosterEpoch}
+                        || {(_liveOperation getOrDefault ["phase",""]) == "CANCELLED"}
+                }}
+                || {_moveNative findIf {
+                    _x params ["_actor","_command","_destination","_leader"];
+                    !([_actor] call _mayIssueMovement) || {currentCommand _actor != _command}
+                        || {(expectedDestination _actor) isNotEqualTo _destination}
+                        || {formLeader _actor != _leader}
+                } >= 0}
+                || {_arrivedUnits findIf {
+                    private _pose=getPosASL _x;
+                    private _target=ATLToASL (_spots select (_movers find _x));
+                    _pose vectorDistance _target > 3 || {abs ((_pose select 2)-(_target select 2)) > 1.5}
+                } >= 0}
+                || {_moveActions findIf {
+                    _x params ["_action","_actor","_slot","_observedPose"];
+                    private _pose=getPosASL _actor;
+                    private _target=ATLToASL (_spots select _slot);
+                    private _atTarget=_pose vectorDistance _target <= 3 && {abs ((_pose select 2)-(_target select 2)) <= 1.5};
+                    if (_action == "ARRIVE") then {!_atTarget} else {_atTarget || {_pose vectorDistance _observedPose >= 0.5}}
+                } >= 0}) exitWith {};
+            {
+                _x params ["_action","_unit","_slot"];
+                if ([_unit] call _mayIssueMovement) then {
+                    if (_action == "ARRIVE") then {
+                        doStop _unit;
+                        _unit doWatch _enemyPos;
+                    } else {
+                        _unit doMove (_spots select _slot);
+                        private _retry=_retries select _slot;
+                        _retry set [0,(_retry select 0)+1];
+                        _retry set [1,_now];
+                        diag_log format ["[CBE] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,(getPosASL _unit) vectorDistance (ATLToASL (_spots select _slot)),currentCommand _unit,expectedDestination _unit,_spots select _slot,assignedTarget _unit];
+                    };
+                };
+            } forEach _moveActions;
+            _drill set ["progress",_progress];
+            _drill set ["progressCoordinates","ASL3D"];
+            _drill set ["retries",_retries];
+            _drill set ["arrivedUnits",_arrivedUnits];
+            _moveCommitted=true;
+        };
+        if (!_moveCommitted) exitWith {_result=0.25};
         private _originalElement = if (_teams isEqualTo []) then {_allUnits} else {_teams select (_drill getOrDefault ["teamTurn",0])};
         // Use the live assigned movers for this bound. Casualty replacement, recovery and
         // consolidation can change the original team; a stale denominator must not hold the

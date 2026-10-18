@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "7183893b329b03fe0f5805610860309983ed62a823e0404f18ddad0da105366a"
+      "sha256": "e117c515c5f23998b0e6ef4e5b1dbd57438970b77ae7bd1fe7daed9903764a8d"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -53,8 +53,13 @@
     },
     {
       "area": "MOVE arrival and retry",
+      "status": "current-observation transaction",
+      "notes": "Cloned progress/retries and original stage/index/turn, spots/movers, native actor context, support role, generation/epoch and current waypoint metadata guard one native action/journal commit. Every arrival is freshly floor-checked; retries refuse if the actor arrived or moved0.5m after observation. Later MOVE quorum/failure bookkeeping remains open; engine acknowledgement and runtime cost unverified."
+    },
+    {
+      "area": "MOVE quorum and failure bookkeeping",
       "status": "open",
-      "notes": "Arrival/physical progress now ASL3D with1.5m floor band; doStop/watch and one-shot retry writes still need exact context commit. Vertical correction does not solve this ownership gap."
+      "notes": "Later phase decisions still need current-context journal review; protected stage publication and immutable cleanup token do not make every local/public write atomic."
     }
   ],
   "implementationChange": {
@@ -62,10 +67,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1338,
-    "log": ".qa/cbe-manoeuvre-floor-progress-verified-build.log",
+    "tests": 1339,
+    "log": ".qa/cbe-manoeuvre-arrival-retry-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "4f1e5f8e1f7b5c82e15e4a55e871cd3444b4710473a2c7af0691c075b44da48d"
+    "packageFingerprint": "9e9a5524cea022cfb6b1631c79b466e86f1cea1f897b88ff827aafc9b66f79e5"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false

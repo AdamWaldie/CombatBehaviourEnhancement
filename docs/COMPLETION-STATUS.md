@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- MOVE arrival holds and one-shot retries now commit with copied progress/retry observations under
+  the current bound, task and actor-native context. Current waypoint metadata and fresh arrival/motion
+  checks must still match; refused proposals spend no retry. Physical interruption remains unverified.
+
 - Manoeuvre progress now measures actual 3D approach/travel and checks the arrival floor band.
   Recovery targets an actual eligible teammate, preferring the buddy, instead of a centroid that
   can fall between floors. Legacy record conversion preserves clocks; terrain/building behaviour remains unverified.
