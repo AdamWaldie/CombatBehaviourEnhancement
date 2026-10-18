@@ -1,3 +1,11 @@
+## Actor-specific REGROUP handoff - 2026-10-18
+
+After 30a9f110, REGROUP no longer clears every holder when one actor receives a consolidation move. It retires only the commanded actor's holder row/receipt/token. Each consolidation record now includes its actual native destination and authored-order receipt. The single no-progress retry requires unchanged destination/order, current group state/epoch/generation, actual local actor/leader and no protected service or external task. Initial movement preserves unowned STOP/MOVE rather than treating them as idle. Existing rally geometry and physical acceptance remain unchanged.
+
+Full offline build exited 0: 1,431 tests / 331 SQF / nine PBOs; .qa/cbe-regroup-actor-handoff-final-build.log. Independent package verification passed, unsigned fingerprint d08561aa65cf914593b08de21150ae59e1ab1ed5def0a8a1f8e369182addeda8. This is an uncommitted-source build after 30a9f110, not a clean release. First build stopped on an exact-text reservation assertion; updated the existing test to require both movement and service reservation guards, then reran successfully. No live or performance acceptance credit. All 65 feature families remain partial.
+
+Audits remain PAUSED. Continue FSM/whole-HBQ and dynamic CQB work, preserving protected sources/keys and unrelated artwork. PR17 stays draft; verify its current head before any mutation. No merge, Release or Steam upload.
+
 ## Split-locality ordinary hold handback - 2026-10-18
 
 After f97ed4cb: CortexRestoreCalm preserves up to 64 nonlocal ordinary hold rows only when their original actor token and native route still match after CBE route cleanup. CortexHolderRecallPending gives those rows one original 30-second deadline, public durable status and a coalesced owner/epoch-bound callback chain. CortexLocality resumes the original journal without extending the deadline. Native follow requires actual group and actor ownership plus the unchanged original receipt. New generation, clearance or external takeover supersedes; deadline expiry retains unresolved rows. FOLLOW_ISSUED is command issue only. Changed-route rows are not rebased or force-recalled; all other standing/support hold paths and physical acceptance remain open.

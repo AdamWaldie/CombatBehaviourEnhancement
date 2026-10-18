@@ -52,3 +52,17 @@ class HolderRecallReceiptTests(unittest.TestCase):
         self.assertLess(calm.index('CortexGroupMoveClear'),calm.index('CortexHolderRecallPending'))
         locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
         self.assertIn('[_group] call CBE_fnc_CortexHolderRecallPending',locality)
+
+    def test_regroup_transfers_only_issued_actor_and_yields_retries_to_new_intent(self):
+        regroup=source('cortexGroupTick').split('case "REGROUP": {',1)[1].split('case "RETREAT": {',1)[0]
+        self.assertNotIn('_state set ["holders", []]',regroup)
+        self.assertIn('(_state getOrDefault ["holders",[]])-[_unit]',regroup)
+        self.assertIn('(_x select 0) isNotEqualTo _unit',regroup)
+        for guard in ('CortexActorFireTaskAvailable','CortexHolderRecallOwned',
+                      '_regroupGeneration','_regroupEpoch','_regroupCanMove',
+                      'count _proof != 6','_destination vectorDistance _issued <= 0.25',
+                      '(_proof select 4) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)'):
+            self.assertIn(guard,regroup)
+        self.assertLess(regroup.index('[_unit,[]] call _regroupCanMove'),regroup.index('_unit doMove _target'))
+        retry=regroup.split('_now - _lastProgressAt >= 10',1)[1]
+        self.assertLess(retry.index('[_unit,_record] call _regroupCanMove'),retry.index('_unit doMove _target'))

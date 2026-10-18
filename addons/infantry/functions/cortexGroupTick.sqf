@@ -11,6 +11,9 @@
  * manoeuvre authority. Casualty succession selects a living,
  * conscious local successor by rank before leader-dependent tactics; combat-effective leaders are preserved.
  *
+ * REGROUP journals each actual native destination and authored route; retries yield to replacement
+ * commands or service tasks. A committed move retires only that actor's completed-hold receipt.
+ *
  * State ladder with post-contact search and hysteresis:
  * CALM -> CONTACT when an enemy was seen in the last 10 s.
  * CALM -> INVESTIGATE when the squad knows about an enemy within
@@ -1443,7 +1446,48 @@ switch (_state get "phase") do {
             local _x && {isNull objectParent _x} && {lifeState _x != "INCAPACITATED"}
                 && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         };
-        private _reserved = _members select {_x call _hasLiveActorMove};
+        private _reserved = _members select {
+            (_x call _hasLiveActorMove) || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
+                || {([_x] call CBE_fnc_CortexExternalOwner) != ""}
+                || {[_x] call CBE_fnc_CompatibilityExternalControl}
+        };
+        private _regroupGeneration=_group getVariable ["CBE_OperationGeneration",0];
+        private _regroupEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+        // Native retries belong to the exact route/destination we actually issued. In particular,
+        // a later STOP, service task or MOVE is not permission to restart consolidation.
+        private _regroupCanMove={
+            params ["_actor","_proof"];
+            if (!local _group || {(_group getVariable ["CBE_AIPass_State",createHashMap]) isNotEqualTo _state}
+                || {(_group getVariable ["CBE_OperationGeneration",0]) != _regroupGeneration}
+                || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _regroupEpoch}
+                || {(_state getOrDefault ["phase",""]) != "REGROUP"}
+                || {leader _group != _leader} || {!local _leader}
+                || {!([_leader] call CBE_fnc_CortexCombatEffective)} || {!isNull objectParent _leader}
+                || {!local _actor} || {group _actor != _group} || {isPlayer _actor}
+                || {!isNull objectParent _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+                || {!simulationEnabled _actor} || {isObjectHidden _actor}
+                || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
+                || {!isNull remoteControlled _actor}
+                || {!isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+                || {!([_actor] call CBE_fnc_CortexActorFireTaskAvailable)}
+                || {[_group,false,_actor] call CBE_fnc_CortexExternalTakeover}
+                || {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isNotEqualTo []}
+                || {!(_proof isEqualType [])}) exitWith {false};
+            if (_proof isEqualTo []) exitWith {
+                private _command=toUpperANSI currentCommand _actor;
+                if (_command == "STOP" || {(_actor getVariable ["CBE_Cortex_HolderToken",[]]) isNotEqualTo []}) then {
+                    [_group,_state,_actor] call CBE_fnc_CortexHolderRecallOwned
+                } else {_command == ""}
+            };
+            if (count _proof != 6 || {!(toUpperANSI currentCommand _actor in ["MOVE",""])}) exitWith {false};
+            private _destination=(expectedDestination _actor) param [0,[],[[]]];
+            private _issued=_proof select 5;
+            _issued isEqualType [] && {count _issued == 3} && {count _destination == 3}
+                && {_issued findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {_destination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {_destination vectorDistance _issued <= 0.25}
+                && {(_proof select 4) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+        };
         // Preserve authored waypoints and combat targets. Each separated member receives one committed
         // local destination. Progress updates the record without issuing another command; the same
         // destination is retried once only after measured no-progress. Reaching that destination while
@@ -1470,10 +1514,18 @@ switch (_state get "phase") do {
                 if (_record isEqualTo []) then {
                     private _slot = 4 + ((_forEachIndex mod 3) * 2);
                     private _target = (getPosATL _leader) getPos [_slot, (_forEachIndex * 137) mod 360];
-                    if ([] call _mayIssueMovement) then {
-                        _unit doMove _target;
-                        _routes set [_key, [_target, getPosATL _unit, _now, 0]];
-                        _state set ["holders", []];
+                    isNil {
+                        if ([_unit,[]] call _regroupCanMove) then {
+                            _unit doMove _target;
+                            _routes set [_key, [_target, getPosATL _unit, _now, 0,
+                                [_group] call CBE_fnc_NativeOrderReceipt,+((expectedDestination _unit) param [0,[]])]];
+                            // One accepted actor movement transfers only that actor's old hold.
+                            _state set ["holders",(_state getOrDefault ["holders",[]])-[_unit]];
+                            _state set ["holderRecallReceipts",(_state getOrDefault ["holderRecallReceipts",[]]) select {
+                                _x isEqualType [] && {count _x == 8} && {(_x select 0) isNotEqualTo _unit}
+                            }];
+                            _unit setVariable ["CBE_Cortex_HolderToken",nil,true];
+                        };
                     };
                 } else {
                     _record params ["_target", "_lastPos", "_lastProgressAt", "_retries"];
@@ -1485,11 +1537,16 @@ switch (_state get "phase") do {
                         if (_unit distance2D _target <= 4) then {
                             _routes deleteAt _key;
                         } else {
-                            if (_now - _lastProgressAt >= 10 && {_retries < 1} && {[] call _mayIssueMovement}) then {
-                                _unit doMove _target;
-                                _record set [2, _now];
-                                _record set [3, _retries + 1];
-                                _routes set [_key, _record];
+                            if (_now - _lastProgressAt >= 10 && {_retries < 1}) then {
+                                isNil {
+                                    if ([_unit,_record] call _regroupCanMove) then {
+                                        _unit doMove _target;
+                                        _record set [2, _now];
+                                        _record set [3, _retries + 1];
+                                        _record set [5,+((expectedDestination _unit) param [0,[]])];
+                                        _routes set [_key, _record];
+                                    };
+                                };
                             };
                         };
                     };

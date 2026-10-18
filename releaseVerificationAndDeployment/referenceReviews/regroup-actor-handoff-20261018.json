@@ -1,0 +1,31 @@
+{
+  "baseline": "30a9f110",
+  "scope": "REGROUP per-actor hold transfer and native retry ownership",
+  "source_sha256": "ebb885201196f7ef9762e740141137084ff54ae6bdae67d18cca7b8345bd5ded",
+  "defects": [
+    "one actor doMove erased the entire holders list",
+    "native regroup retry lacked destination/order proof",
+    "medical/equipment tasks were not included in regroup reservation filtering"
+  ],
+  "implementation": [
+    "only commanded actor hold metadata retires",
+    "six-field route records include actual native destination and authored order",
+    "initial unowned STOP/MOVE yields",
+    "retry requires unchanged actor/route/destination and current owner/state/generation",
+    "protected actor tasks retain priority"
+  ],
+  "validation": {
+    "tests": 1431,
+    "compiled_sqf": 331,
+    "pbos": 9,
+    "build_exit": 0,
+    "independent_package_verify": true,
+    "log": ".qa/cbe-regroup-actor-handoff-final-build.log",
+    "fingerprint": "d08561aa65cf914593b08de21150ae59e1ab1ed5def0a8a1f8e369182addeda8"
+  },
+  "limits": [
+    "no changed slot geometry",
+    "no live or performance evidence",
+    "all feature families remain partial"
+  ]
+}

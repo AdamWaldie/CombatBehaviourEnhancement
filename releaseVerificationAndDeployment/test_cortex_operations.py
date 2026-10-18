@@ -5481,7 +5481,9 @@ class CortexOperations(unittest.TestCase):
         search=tick.split('case "SEARCH": {',1)[1].split('case "REGROUP": {',1)[0]
         self.assertIn('_team select {!(_x call _hasLiveActorMove)}',search)
         regroup=tick.split('case "REGROUP": {',1)[1].split('case "RETREAT": {',1)[0]
-        self.assertIn('private _reserved = _members select {_x call _hasLiveActorMove}',regroup)
+        self.assertIn('private _reserved = _members select {',regroup)
+        self.assertIn('(_x call _hasLiveActorMove)',regroup)
+        self.assertIn('!([_x] call CBE_fnc_CortexActorFireTaskAvailable)',regroup)
         self.assertIn('_members - _reserved',regroup)
         self.assertIn('_unit distance2D _leader <= 8',regroup)
         self.assertIn('"consolidationRoutes"',regroup)
@@ -5886,7 +5888,7 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexGroupTick')
         self.assertIn('_x doFollow _leader',text)
         self.assertIn('_state getOrDefault ["consolidationRoutes", createHashMap]',text)
-        self.assertIn('_routes set [_key, [_target, getPosATL _unit, _now, 0]]',text)
+        self.assertIn('_routes set [_key, [_target, getPosATL _unit, _now, 0,',text)
         self.assertIn('_record set [3, _retries + 1]',text)
         self.assertNotIn('_state set ["consolidateIssued", _now]',text)
         self.assertIn('"consolidationRoutes"',source('cortexRestoreCalm'))
