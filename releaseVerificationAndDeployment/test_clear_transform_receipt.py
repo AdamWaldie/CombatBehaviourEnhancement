@@ -15,8 +15,7 @@ class ClearTransformReceiptTests(unittest.TestCase):
     def test_resume_pose_check_precedes_shared_coverage_and_handoff(self):
         text=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text()
         guard=text.split('if (_resume && {(_previous param [13,[],[[]]])',1)[1].split('// An explicit new CLEAR',1)[0]
-        for proof in ('isNotEqualTo _admissionTransform','RESUME_TRANSFORM_MISMATCH',
-                      'isEqualTo _previous','== _admissionGeneration'):
+        for proof in ('isNotEqualTo _admissionTransform','RESUME_TRANSFORM_MISMATCH','call _retireResume'):
             self.assertIn(proof,guard)
         self.assertLess(text.index('RESUME_TRANSFORM_MISMATCH'),text.index('private _cleared ='))
         self.assertIn('_continueRoute, +_admissionTransform], true]',text)
@@ -67,7 +66,11 @@ class ClearTransformReceiptTests(unittest.TestCase):
         self.assertIn('["resumeGeneration",_group getVariable ["CBE_AIPass_ClearGeneration",0]]',discovery)
         text=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
         early=text.split('if (isNull _building) exitWith {',1)[1].split('if !(missionNamespace',1)[0]
-        self.assertEqual(early.count('_resumeRequested && {call _resumeCurrent}'),2)
+        self.assertEqual(early.count('[] call _retireResume'),2)
+        retirement=text.split('private _retireResume={',1)[1].split('if (_resumeRequested && {!(call _resumeCurrent)})',1)[0]
+        self.assertIn('isNil {',retirement)
+        self.assertIn('_resumeRequested && {call _resumeCurrent}',retirement)
+        self.assertIn('_admissionEpoch ==',retirement)
         self.assertIn('TARGET_ABSENT',early)
         self.assertIn('TARGET_DESTROYED',early)
 

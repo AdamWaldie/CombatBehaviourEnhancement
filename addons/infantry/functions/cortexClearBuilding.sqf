@@ -14,6 +14,8 @@
  * retires only this still-owned clear; a new owner or successor retains its durable state.
  * Post-admission preparation commits are short unscheduled blocks, rechecking original
  * operation/epoch/generation, target, native intent and deadlines. Route planning stays scheduled.
+ * Task handoff validates entry owner/native/feature identities before one unscheduled
+ * release/publication commit. It does not serialize geometry or room-route planning.
  * Orders an AI group to clear a building room by room.
  *
  * Admission validates finite, distinct model positions with a 512-position budget before
@@ -111,6 +113,13 @@ private _refuse={
 if !([_group] call CBE_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
 if (_target isEqualType [] && {!(count _target in [2,3])
     || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {["INVALID_TARGET_POSITION"] call _refuse};
+private _admissionEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _admissionNativeReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
+private _entryOperation=_group getVariable ["CBE_Operation",createHashMap];
+private _admissionOperationIdentity=[_entryOperation getOrDefault ["generation",-1],
+    _entryOperation getOrDefault ["ownerEpoch",-1],_entryOperation getOrDefault ["intent",""]];
+private _admissionGarrison=+(_group getVariable ["CBE_AIPass_Garrison",[]]);
+private _admissionDefend=+(_group getVariable ["CBE_AIPass_Defend",[]]);
 private _admissionGeneration=_group getVariable ["CBE_AIPass_ClearGeneration",0];
 private _previous = _group getVariable ["CBE_AIPass_ClearOrder", []];
 private _resumeRequested=_options getOrDefault ["resume",false];
@@ -123,17 +132,26 @@ private _resumeCurrent={
         && {(_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _admissionGeneration}
         && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _previous}
 };
+private _retireResume={
+    params [["_restore",true,[true]]];
+    isNil {
+        if (_resumeRequested && {call _resumeCurrent}
+            && {_admissionEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+            [_group,_restore] call CBE_fnc_CortexClearRelease;
+        };
+    };
+};
 if (_resumeRequested && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
 private _building = if (_target isEqualType objNull) then {_target} else {nearestBuilding _target};
 if (_resumeRequested && {(_previous param [0,objNull,[objNull]]) != _building}) exitWith {
     ["RESUME_TARGET_CHANGED"] call _refuse
 };
 if (isNull _building) exitWith {
-    if (_resumeRequested && {call _resumeCurrent}) then {[_group] call CBE_fnc_CortexClearRelease};
+    [] call _retireResume;
     ["TARGET_ABSENT"] call _refuse
 };
 if (!alive _building) exitWith {
-    if (_resumeRequested && {call _resumeCurrent}) then {[_group] call CBE_fnc_CortexClearRelease};
+    [] call _retireResume;
     ["TARGET_DESTROYED"] call _refuse
 };
 if !(missionNamespace getVariable ["CBE_AIPass_Active", false]) exitWith {
@@ -184,29 +202,27 @@ private _resume = _resumeRequested;
 if (_resume && {(_previous param [13,[],[[]]]) isNotEqualTo _admissionTransform}) exitWith {
     // Unknown/changed pose cannot carry old room visits into a new world location.
     // Retire only the order this call actually observed, never a successor clear.
-    if ((_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _admissionGeneration
-        && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _previous}) then {
-        [_group] call CBE_fnc_CortexClearRelease;
-    };
+    [] call _retireResume;
     ["RESUME_TRANSFORM_MISMATCH"] call _refuse
 };
 // An explicit new CLEAR may replace this addon's exact indoor actor jobs. Admission remains
 // read-only: only the existing validated group handoff below retires those journals.
 private _replaceIndoor=!_resume && {(_options getOrDefault ["preserveBrain",false]) isEqualTo false};
-private _available = (units _group) select {
-    private _posted=_x getVariable ["CBE_AIPass_GarrisonPos",[]];
+private _actorAdmissible={
+    params ["_actor"];
+    private _posted=_actor getVariable ["CBE_AIPass_GarrisonPos",[]];
     private _ownedPost=(_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []
         && {_group getVariable ["CBE_AIPass_GarrisonApplied",false]}
-        && {_x getVariable ["CBE_AIPass_GarrisonDisabledPath",false]}
-        && {!(_x checkAIFeature "PATH")} && {_posted isNotEqualTo []}
-        && {currentCommand _x in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
-        && {[_x,_posted] call CBE_fnc_CortexGarrisonArrived};
-    private _canMove=_x checkAIFeature "MOVE" && {_x checkAIFeature "PATH" || {_ownedPost}};
-    private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
-    private _reservationFree=!([_x] call CBE_fnc_CortexActorMoveReserved);
+        && {_actor getVariable ["CBE_AIPass_GarrisonDisabledPath",false]}
+        && {!(_actor checkAIFeature "PATH")} && {_posted isNotEqualTo []}
+        && {currentCommand _actor in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
+        && {[_actor,_posted] call CBE_fnc_CortexGarrisonArrived};
+    private _canMove=_actor checkAIFeature "MOVE" && {_actor checkAIFeature "PATH" || {_ownedPost}};
+    private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
+    private _reservationFree=!([_actor] call CBE_fnc_CortexActorMoveReserved);
     if (!_reservationFree && {_replaceIndoor}) then {
-        private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
-        private _journal=_x getVariable ["CBE_IndoorActor_Order",[]];
+        private _indoor=_actor getVariable ["CBE_IndoorActor_Brain",createHashMap];
+        private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
         _reservationFree=count _indoor > 0 && {count _journal == 9}
             && {!(_indoor getOrDefault ["finished",true])}
             && {(_indoor getOrDefault ["group",grpNull]) == _group}
@@ -217,15 +233,16 @@ private _available = (units _group) select {
             && {(_journal select 7) isEqualTo _reservation}
             && {(_indoor getOrDefault ["lease",[]]) isEqualTo _reservation};
     };
-    _canMove && {[_x] call CBE_fnc_CortexCombatEffective} && {local _x} && {!isPlayer _x}
-        && {isNull objectParent _x} && {_reservationFree}
-        && {_resume || {simulationEnabled _x && {!isObjectHidden _x}}}
-        && {isNull (remoteControlled _x)}
-        && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
-        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
-        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
-            || {[_x,_admissionGeneration] call _ownedRecall}}
+    _canMove && {[_actor] call CBE_fnc_CortexCombatEffective} && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
+        && {isNull objectParent _actor} && {_reservationFree}
+        && {_resume || {simulationEnabled _actor && {!isObjectHidden _actor}}}
+        && {isNull (remoteControlled _actor)}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+        && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])
+            || {[_actor,_admissionGeneration] call _ownedRecall}}
 };
+private _available = (units _group) select {[_x] call _actorAdmissible};
 // Natural contact requires reserve strength beyond the pair. Validate its requested minimum
 // against the real task-free roster, not preliminary live headcount, before any handoff.
 // Explicit calls retain their historical default; resumes can continue with surviving actors.
@@ -291,75 +308,92 @@ private _deadline = if (_resume) then {_previous select 2} else {serverTime + 24
 private _lifetime = (240 max (60*count _positions)) min 900;
 private _hardDeadline = if (_resume) then {_previous param [10,_deadline,[0]]} else {serverTime+_lifetime};
 if (_resume && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
-if (serverTime >= (_deadline min _hardDeadline)) exitWith {[_group] call CBE_fnc_CortexClearRelease; false};
-// Replacing a clear must retire its engine movement orders as well as its queued job.
-// Validate the new building/team first; an invalid request must preserve the current order.
-// HC resume keeps the published progress/deadline rather than starting a new episode.
+if (serverTime >= (_deadline min _hardDeadline)) exitWith {[] call _retireResume; false};
+// Validate the new building/team before one release/publication commit. A fresh request
+// may supersede the observed task, never a later task which appeared during preparation.
 if !(call _admissionStable) exitWith {["TARGET_CHANGED_DURING_ADMISSION"] call _refuse};
-if (!_resume && {_previous isNotEqualTo []}) then {[_group] call CBE_fnc_CortexClearRelease};
 private _baseAttack=if (_resume) then {_previous param [8,attackEnabled _leader,[true]]} else {attackEnabled _leader};
 private _nativeOrderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
 if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nativeOrderReceipt}) exitWith {
-    [_group,false] call CBE_fnc_CortexClearRelease;
+    [false] call _retireResume;
     false
 };
-
-// Complete resume/deadline validation before releasing another explicit task.
-// This final eligibility preflight matches the common operation's admission gate.
 if !([_group,false,false,true] call CBE_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
 private _preserveBrain=_options getOrDefault ["preserveBrain",false];
 private _continueRoute=if (_resume) then {_previous param [12,false,[true]]} else {_options getOrDefault ["continueRoute",false]};
 if (!(_continueRoute isEqualType true)) exitWith {["INVALID_CONTINUATION"] call _refuse};
-if (_preserveBrain) then {
-    private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
-    if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
-        [_group,_state,"BUILDING_CONTACT"] call CBE_fnc_CortexFlankEnd;
+if (!(_preserveBrain isEqualType true)) exitWith {["INVALID_PRESERVE_BRAIN"] call _refuse};
+private _generation=-1;
+private _operation=createHashMap;
+private _handoffAccepted=false;
+private _handoffFailure="HANDOFF_CHANGED";
+isNil {
+    private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+    private _liveIdentity=[_liveOperation getOrDefault ["generation",-1],
+        _liveOperation getOrDefault ["ownerEpoch",-1],_liveOperation getOrDefault ["intent",""]];
+    private _liveClear=_group getVariable ["CBE_AIPass_ClearOrder",[]];
+    if (!local _group || {_admissionEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {_admissionGeneration != (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
+        || {_liveIdentity isNotEqualTo _admissionOperationIdentity}
+        || {(_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo _admissionGarrison}
+        || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo _admissionDefend}
+        || {(_liveClear isEqualTo []) isNotEqualTo (_previous isEqualTo [])}
+        || {_liveClear isNotEqualTo [] && {(_liveClear param [0,objNull]) != (_previous param [0,objNull])}}
+        || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _admissionNativeReceipt}
+        || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        || {serverTime >= (_deadline min _hardDeadline)}
+        || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {};
+    if (_resume && {!(call _resumeCurrent)}) exitWith {_handoffFailure="RESUME_ORDER_CHANGED"};
+    if !(call _admissionStable) exitWith {_handoffFailure="TARGET_CHANGED_DURING_ADMISSION"};
+    // Repeat actor/task admission at the mutation boundary, not just before geometry.
+    // Stop counting once the requested minimum is met; do not acquire a new roster.
+    private _readyCount=0;
+    _available findIf {
+        if ([_x] call _actorAdmissible) then {_readyCount=_readyCount+1};
+        _readyCount >= _minimumActors
     };
-    [_group] call CBE_fnc_CortexGroupMoveClear;
-} else {
-    [_group,false] call CBE_fnc_CortexReleaseGroup;
-};
-if ((_group getVariable ["CBE_AIPass_Garrison", []]) isNotEqualTo []) then {[_group,true,[],false] call CBE_fnc_CortexGarrisonRelease};
-if ((_group getVariable ["CBE_AIPass_Defend", []]) isNotEqualTo []) then {[_group,false,false] call CBE_fnc_CortexDefendRelease};
-// General cleanup may remove CBE-authored native waypoints. Receipt the resulting
-// order only after this authorized handoff, never mistake our cleanup for a later edit.
-_nativeOrderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
-// A fresh clear borrows the restored task baseline, not a garrison/defence-applied hold.
-// A true resume retains its original reversible policy across owners.
-if (!_resume) then {_baseAttack=attackEnabled _leader};
-if (_previous isEqualTo []) then {_baseBehaviour=behaviour _leader};
-if (_resume && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
-if !(call _admissionStable) exitWith {
-    if (_resume && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _previous}
-        && {(_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _admissionGeneration}) then {
-        [_group] call CBE_fnc_CortexClearRelease;
+    if (_readyCount < _minimumActors || {_team findIf {!([_x] call _actorAdmissible)} >= 0}) exitWith {
+        _handoffFailure="ACTORS_CHANGED_DURING_ADMISSION";
     };
-    ["TARGET_CHANGED_DURING_ADMISSION"] call _refuse
-};
-_group setVariable ["CBE_Cortex_ClearAdmissionFailure",nil,true];
-_group setVariable ["CBE_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute, +_admissionTransform], true];
-_group setVariable ["CBE_AIPass_ClearApplied", true];
-_group setVariable ["CBE_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
-_group setVariable ["CBE_Cortex_ClearEvidence",nil,true];
-_group setVariable ["CBE_Cortex_ClearReinforcements",[],true];
-// This compact snapshot changes only at setup, material room/retry progress or egress. It gives
-// diagnostics a live view without publishing each local pair movement or destination.
-_group setVariable ["CBE_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,0,serverTime],true];
-private _generation = (_group getVariable ["CBE_AIPass_ClearGeneration", 0]) + 1;
-_group setVariable ["CBE_AIPass_ClearGeneration", _generation];
-private _operation=[_group,"CLEAR",_building,_team,_positions,"ENTRY"] call CBE_fnc_OperationStart;
-if (count _operation == 0) exitWith {
-    ["OPERATION_REFUSED"] call _refuse;
-    // A refused operation has no worker. Retire only this attempted generation's public
-    // order so discovery cannot resurrect it after a newer owner/task has taken over.
-    if ((_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _generation) then {
-        _group setVariable ["CBE_AIPass_ClearOrder",nil,true];
-        _group setVariable ["CBE_AIPass_ClearApplied",nil];
-        _group setVariable ["CBE_Cortex_ClearStatus",nil,true];
-        _group setVariable ["CBE_Cortex_ClearResult",["CANCELLED",count _cleared,count _positions],true];
+    if (!_resume && {_previous isNotEqualTo []}) then {[_group] call CBE_fnc_CortexClearRelease};
+    if (_preserveBrain) then {
+        private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
+        if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
+            [_group,_state,"BUILDING_CONTACT"] call CBE_fnc_CortexFlankEnd;
+        };
+        [_group] call CBE_fnc_CortexGroupMoveClear;
+    } else {
+        [_group,false] call CBE_fnc_CortexReleaseGroup;
     };
-    false
+    if ((_group getVariable ["CBE_AIPass_Garrison", []]) isNotEqualTo []) then {[_group,true,[],false] call CBE_fnc_CortexGarrisonRelease};
+    if ((_group getVariable ["CBE_AIPass_Defend", []]) isNotEqualTo []) then {[_group,false,false] call CBE_fnc_CortexDefendRelease};
+    // Receipt our own authorized cleanup without adopting a later scheduled mission edit.
+    _nativeOrderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
+    if (!_resume) then {_baseAttack=attackEnabled _leader};
+    if (_previous isEqualTo []) then {_baseBehaviour=behaviour _leader};
+    _group setVariable ["CBE_Cortex_ClearAdmissionFailure",nil,true];
+    _group setVariable ["CBE_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute, +_admissionTransform], true];
+    _group setVariable ["CBE_AIPass_ClearApplied", true];
+    _group setVariable ["CBE_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
+    _group setVariable ["CBE_Cortex_ClearEvidence",nil,true];
+    _group setVariable ["CBE_Cortex_ClearReinforcements",[],true];
+    // Compact setup snapshot; later updates occur on material room/retry progress or egress.
+    _group setVariable ["CBE_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,0,serverTime],true];
+    _generation=(_group getVariable ["CBE_AIPass_ClearGeneration",0])+1;
+    _group setVariable ["CBE_AIPass_ClearGeneration",_generation];
+    _operation=[_group,"CLEAR",_building,_team,_positions,"ENTRY"] call CBE_fnc_OperationStart;
+    if (count _operation == 0) exitWith {
+        _handoffFailure="OPERATION_REFUSED";
+        if (local _group && {(_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _generation}) then {
+            _group setVariable ["CBE_AIPass_ClearOrder",nil,true];
+            _group setVariable ["CBE_AIPass_ClearApplied",nil];
+            _group setVariable ["CBE_Cortex_ClearStatus",nil,true];
+            _group setVariable ["CBE_Cortex_ClearResult",["CANCELLED",count _cleared,count _positions],true];
+        };
+    };
+    _handoffAccepted=true;
 };
+if (!_handoffAccepted) exitWith {[_handoffFailure] call _refuse};
 // Route preparation may yield. Every later world/operation write must still belong to
 // this admission; never put the potentially quadratic room plan inside an unscheduled block.
 private _operationGeneration=_operation get "generation";

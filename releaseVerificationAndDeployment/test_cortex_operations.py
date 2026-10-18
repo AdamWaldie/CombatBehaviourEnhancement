@@ -9086,7 +9086,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(units _group) select [0,16]',text)
         self.assertIn('["NO_ELIGIBLE_ACTORS"] call _refuse',text)
         self.assertIn('["GROUP_INELIGIBLE"] call _refuse',text)
-        self.assertIn('["OPERATION_REFUSED"] call _refuse',text)
+        self.assertIn('_handoffFailure="OPERATION_REFUSED";',text)
+        self.assertIn('if (!_handoffAccepted) exitWith {[_handoffFailure] call _refuse}',text)
         self.assertIn('currentCommand _x,getUnitState _x',text)
 
     def test_moved_building_focus_uses_the_shared_physical_case(self):
