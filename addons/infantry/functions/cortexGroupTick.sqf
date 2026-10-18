@@ -873,7 +873,12 @@ if (_phaseGateClosed) then {
 // Transfer these actors out of old holding ownership before considering reunion.
 private _holderGeneration=_group getVariable ["CBE_OperationGeneration",0];
 private _holderEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
-private _ownedMovers = +(_activeDrill getOrDefault ["units",[]]);
+private _ownedMovers = [];
+private _holderDrill=_state getOrDefault ["drill",createHashMap];
+if ((_holderDrill getOrDefault ["operationGeneration",-1]) == _holderGeneration
+    && {(_holderDrill getOrDefault ["ownerEpoch",-1]) == _holderEpoch}) then {
+    _ownedMovers append (_holderDrill getOrDefault ["units",[]]);
+};
 // CLEAR/garrison/defence and an authored stationary order supersede the old drill's
 // reunion ownership even when they use no active drill record. Transfer metadata only.
 if (_ordered) then {_ownedMovers append (_state getOrDefault ["holders",[]])};
@@ -907,6 +912,25 @@ isNil {
         && {(_group getVariable ["CBE_OperationGeneration",0]) == _holderGeneration}
         && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _holderEpoch}
         && {(_state getOrDefault ["holders",[]]) isEqualTo _holderRows}) then {
+        // Incoming tasks take the old holder's metadata as well as its membership. Retire
+        // only the exact old actor token on its actual owner; never clear a successor token.
+        private _transferred=_holderRows select {_x in _ownedMovers};
+        if (_transferred isNotEqualTo []) then {
+            private _oldReceipts=_state getOrDefault ["holderRecallReceipts",[]];
+            private _retiredReceipts=_oldReceipts select {
+                _x isEqualType [] && {count _x == 8} && {(_x select 0) in _transferred}
+            };
+            {
+                private _actor=_x select 0;
+                if (local _actor && {group _actor == _group} && {(_x select 1) isEqualTo _group}
+                    && {(_actor getVariable ["CBE_Cortex_HolderToken",[]]) isEqualTo (_x select [1,5])}) then {
+                    _actor setVariable ["CBE_Cortex_HolderToken",nil,true];
+                };
+            } forEach _retiredReceipts;
+            _state set ["holderRecallReceipts",_oldReceipts select {
+                _x isEqualType [] && {count _x == 8} && {!((_x select 0) in _transferred)}
+            }];
+        };
         _state set ["holders",_holders];
         // A completed coordinated bound belongs to the squad MOVE/COVER cycle until release.
         if (_holders isNotEqualTo [] && {!(_state getOrDefault ["assaulting",false])}) then {

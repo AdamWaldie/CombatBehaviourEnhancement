@@ -1,0 +1,27 @@
+{
+  "baseline": "531da0772c61cdca9924b4eece19fcf3423cd89f",
+  "scope": "exact ordinary hold metadata retirement on successor task claim",
+  "source_sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c",
+  "defect": "Membership transfer left the old recall receipt and actor issuer token behind. Earlier drill snapshot could outlive cleanup.",
+  "implementation": [
+    "fresh current-state drill with matching epoch/generation",
+    "remove receipt only for transferred old holders",
+    "clear only a matching old issuer tuple on actual local actor",
+    "same group required",
+    "no native movement or feature reset"
+  ],
+  "validation": {
+    "tests": 1432,
+    "sqf": 331,
+    "pbos": 9,
+    "build_exit": 0,
+    "independent_package_verify": true,
+    "log": ".qa/cbe-holder-task-transfer-final-build.log",
+    "fingerprint": "59822da4d8452916d2728d9ffc087175fe63ab81bd0e0ff3ea2fc36b9364786d"
+  },
+  "limits": [
+    "nonlocal actor tokens are not written by group owner",
+    "no physical takeover or separate HC validation",
+    "standing/support hold lifecycle remains incomplete"
+  ]
+}

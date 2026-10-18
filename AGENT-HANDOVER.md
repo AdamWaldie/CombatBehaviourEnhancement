@@ -1,3 +1,11 @@
+## Exact hold metadata retirement on task takeover - 2026-10-18
+
+After pushed 531da077, GroupTick retires an old holder's recall receipt when the existing takeover path transfers that actor to an admitted drill/operation, valid clearance hold or authored order. The actor token is cleared only on the actor's actual owner, for the same group and matching original issuer tuple. No movement/STOP/feature write is issued and a successor token is preserved. Drill membership is freshly read from current state with matching operation generation and owner epoch; an earlier watchdog snapshot cannot authorize this transfer after intervening cleanup.
+
+Full offline build exited 0: 1,432 tests / 331 SQF / nine PBOs; .qa/cbe-holder-task-transfer-final-build.log. Independent package verification passed; unsigned fingerprint 59822da4d8452916d2728d9ffc087175fe63ab81bd0e0ff3ea2fc36b9364786d. Built from uncommitted source after 531da077. All 65 feature families remain partial; no physical or performance acceptance claimed. Audits remain PAUSED; no Arma launch, merge, Release or Steam upload. Preserve protected references/keys and unrelated artwork. PR17 remains draft; verify current head before mutation.
+
+The previous exact pushed-commit build at 531da077 passed 1,431 / 331 / nine, fingerprint 9ab9580e591d43864ab61a173b4deffff84b2363d60a9ae01aa67682627e0f44, with manifest commit 531da077 and only untracked-artwork dirty status. That package was superseded locally by the current uncommitted-source build. PR17 describes the pushed build; this new checkpoint is local until the next coherent push.
+
 ## Actor-specific REGROUP handoff - 2026-10-18
 
 After 30a9f110, REGROUP no longer clears every holder when one actor receives a consolidation move. It retires only the commanded actor's holder row/receipt/token. Each consolidation record now includes its actual native destination and authored-order receipt. The single no-progress retry requires unchanged destination/order, current group state/epoch/generation, actual local actor/leader and no protected service or external task. Initial movement preserves unowned STOP/MOVE rather than treating them as idle. Existing rally geometry and physical acceptance remain unchanged.

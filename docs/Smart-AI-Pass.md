@@ -1705,3 +1705,8 @@ Ordinary calm cleanup now journals up to 64 unchanged completed-hold receipts wh
 
 
 REGROUP now transfers completed-hold metadata per actor after its accepted native move; moving one soldier no longer erases other holders. Each consolidation route records the actually issued native destination and authored-order receipt. Its single no-progress retry requires that original destination/order, current group state/epoch/generation and an available actor; a later STOP, another MOVE, a medical/equipment task or an external controller takes priority. Initial consolidation preserves unowned STOP/MOVE commands rather than treating them as idle permission. This changes ownership and interruption handling, not the existing consolidation slot geometry or the physical acceptance criteria. No new live evidence is claimed.
+
+
+When an admitted drill, operation, clearance hold or authored order takes an old holder, the group tick now retires that actor's old recall receipt with its holder membership. It clears the public actor token only on the actor's actual owner and only if the original issuer tuple still matches. A successor token is preserved; nonlocal actor markers are not written by the group owner. This transfer issues no movement, STOP or feature reset. It closes stale metadata left by the earlier membership-only handoff, without establishing physical task completion.
+
+The drill used for this metadata transfer is read again from current group state and must match the current operation generation and owner epoch. The earlier watchdog snapshot cannot authorize transfer after intervening cleanup has ended that drill.

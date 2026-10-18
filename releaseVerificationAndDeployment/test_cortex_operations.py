@@ -3350,7 +3350,9 @@ class CortexOperations(unittest.TestCase):
 
     def test_previous_holders_cannot_follow_over_replacement_drill(self):
         text = source('cortexGroupTick')
-        self.assertIn('_ownedMovers = +(_activeDrill getOrDefault ["units",[]])', text)
+        self.assertIn('private _holderDrill=_state getOrDefault ["drill",createHashMap]', text)
+        self.assertIn('(_holderDrill getOrDefault ["operationGeneration",-1]) == _holderGeneration', text)
+        self.assertIn('(_holderDrill getOrDefault ["ownerEpoch",-1]) == _holderEpoch', text)
         self.assertIn('!(_x in _ownedMovers)', text)
         self.assertIn('if (_holders isNotEqualTo [] && {!(_state getOrDefault ["assaulting",false])})', text)
         self.assertLess(text.index('!(_x in _ownedMovers)'), text.index('_recallIssued pushBack _x'))

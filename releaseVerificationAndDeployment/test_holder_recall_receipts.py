@@ -66,3 +66,17 @@ class HolderRecallReceiptTests(unittest.TestCase):
         self.assertLess(regroup.index('[_unit,[]] call _regroupCanMove'),regroup.index('_unit doMove _target'))
         retry=regroup.split('_now - _lastProgressAt >= 10',1)[1]
         self.assertLess(retry.index('[_unit,_record] call _regroupCanMove'),retry.index('_unit doMove _target'))
+
+    def test_task_takeover_retires_only_matching_local_old_hold_token(self):
+        tick=source('cortexGroupTick')
+        block=tick.split('private _transferred=_holderRows',1)[1].split('_state set ["holders",_holders]',1)[0]
+        for guard in ('_x in _ownedMovers','(_x select 0) in _transferred',
+                      'local _actor','group _actor == _group',
+                      'isEqualTo (_x select [1,5])','CBE_Cortex_HolderToken",nil,true',
+                      '!((_x select 0) in _transferred)'):
+            self.assertIn(guard,block)
+        for forbidden in ('doFollow','doMove','doStop','enableAI','setPos','setVelocity'):
+            self.assertNotIn(forbidden,block)
+        boundary=tick.split('// Admission refusal',1)[1].split('private _transferred=',1)[0]
+        self.assertIn('CBE_OperationGeneration',boundary)
+        self.assertIn('CBE_AIPass_Epoch',boundary)
