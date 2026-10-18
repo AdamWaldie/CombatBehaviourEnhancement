@@ -113,3 +113,17 @@ class ClearSettlementPresenceTests(unittest.TestCase):
         self.assertIn('_assignment set [2,false]',check)
         self.assertNotIn('egressDeadline',check)
         self.assertNotIn('doMove',check)
+
+
+class TerminalContinuationBoundaryTests(unittest.TestCase):
+    def test_native_continuation_and_hold_receipt_share_atomic_scope(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        block=text.split('// Exact route/actor checks, native continuation',1)[1].split('if (_reason == "NEW_ORDER" && {local _group}',1)[0]
+        self.assertLess(block.index('isNil {'),block.index('private _leader=leader _group'))
+        self.assertLess(block.index('[_leader] call _mayContinue'),block.index('_leader doMove'))
+        self.assertLess(block.index('[_x] call _mayContinue'),block.index('_x doFollow'))
+        self.assertIn('CBE_Cortex_ClearHold',block)
+        handback=text.split('if (_reason == "NEW_ORDER" && {local _group}',1)[1].split('forEach _handbacks;',1)[0]
+        self.assertLess(handback.index('isNil {'),handback.index('_actor doFollow leader _group'))
+        self.assertIn('call _finishCurrent',handback)
+        self.assertIn('[leader _group] call _actorAvailable',handback)

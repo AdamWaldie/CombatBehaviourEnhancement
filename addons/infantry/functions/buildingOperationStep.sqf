@@ -575,6 +575,9 @@ private _delay=call {
                     && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
                     && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
             };
+            // Exact route/actor checks, native continuation and remaining hold receipt
+            // commit together; no scheduled gap can redirect followers to an old leader.
+            isNil {
             private _leader=leader _group;
             if ([_leader] call _mayContinue) then {
                 private _continued=[_leader];
@@ -590,12 +593,15 @@ private _delay=call {
                     _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_brain get "ownerEpoch",[_group] call CBE_fnc_NativeOrderReceipt,_remaining],true];
                 };
             };
+            };
         };
         if (_reason == "NEW_ORDER" && {local _group}
             && {(_brain get "ownerEpoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
             && {(_job get "generation") == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
             && {(_group getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _brain}
             && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+            isNil {
+            if (call _finishCurrent && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
             _group setVariable ["CBE_Cortex_ClearHold",nil,true];
             {
                 _x params ["_actor","_command","_target"];
@@ -603,6 +609,7 @@ private _delay=call {
                 if (local _group && {(_brain get "ownerEpoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
                     && {(_job get "generation") == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
                     && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+                    && {[leader _group] call _actorAvailable}
                     && {currentCommand _actor == _command}
                     && {_command == "STOP" || {count _destination == 3 && {_destination vectorDistance _target <= 0.25}}}
                     && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
@@ -615,6 +622,9 @@ private _delay=call {
                     _actor doFollow leader _group;
                 };
             } forEach _handbacks;
+            };
+            };
+
         };
         diag_log format ["[CBE] %1 clear building %2 (%3 of %4 positions)",_group,_result,count (_job get "cleared"),count (_job get "positions")];
         diag_log format ["CBE CLEAR END TRACE: %1",[_reason,_operationGeneration,(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["generation",-1],_group getVariable ["CBE_AIPass_Epoch",0],_brain getOrDefault ["ownerEpoch",-1]]];
