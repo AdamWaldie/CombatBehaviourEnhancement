@@ -28,6 +28,7 @@
  * the room mover becoming stalled does not grant a replay over its partner's recent request.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
+ * Retired-worker holds rotate at most sixteen actors, retaining unavailable/reactivated roster fairness.
  * A casualty blocked by sole-exit coverage may request one progressed idle interior worker
  * to relieve that exit. Existing egress arrival/view and promotion proofs remain mandatory;
  * one finite attempt per worker/episode is public for migration, at most eight attempts.
@@ -1257,6 +1258,15 @@ private _delay=call {
     // Exhausted ordinary room movers remain owned by this operation until handover.
     // Retiring their lane must not send them into native formation around an interior leader.
     private _quarantineHeld=_job getOrDefault ["quarantineHeld",[]];
+    // Replacements can retire more than sixteen actors over one episode. A fixed prefix
+    // would never service later casualties/stranded workers, including after reactivation.
+    private _quarantineActors=+_rotatedOut;
+    if (count _quarantineActors > 16) then {
+        private _cursor=(_job getOrDefault ["quarantineCursor",0]) mod count _quarantineActors;
+        _quarantineActors=(_quarantineActors select [_cursor])+(_quarantineActors select [0,_cursor]);
+        _job set ["quarantineCursor",(_cursor+16) mod count _quarantineActors];
+    };
+    _quarantineActors=_quarantineActors select [0,16];
     {
         if (_x in _unavailable && {!(_x in _quarantineHeld)} && {[_x] call _actorAvailable}
             && {[_x] call _actorTaskFree} && {call _mayIssueMovement}) then {
@@ -1270,7 +1280,7 @@ private _delay=call {
             };
             _job set ["entryFailed",true];
         };
-    } forEach (_rotatedOut select [0,16]);
+    } forEach _quarantineActors;
     _job set ["quarantineHeld",_quarantineHeld];
     private _reserveReady={
         params ["_candidate"];

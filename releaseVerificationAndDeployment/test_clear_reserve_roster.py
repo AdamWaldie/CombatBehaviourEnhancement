@@ -24,3 +24,25 @@ class ClearReserveRosterTests(unittest.TestCase):
         self.assertIn('"ARRIVED"',promotion)
         self.assertIn('_promotionViewBudget',promotion)
         self.assertIn('_covered',promotion)
+
+    def test_retired_worker_hold_window_rotates_without_weakening_authority(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        hold=text.split('private _quarantineHeld=',1)[1].split('private _reserveReady=',1)[0]
+        for marker in ('"quarantineCursor",0','(_cursor+16) mod count _quarantineActors',
+                       '_quarantineActors=_quarantineActors select [0,16]',
+                       'forEach _quarantineActors','!(_x in _quarantineHeld)',
+                       '[_x] call _actorAvailable','[_x] call _actorTaskFree','call _mayIssueMovement'):
+            self.assertIn(marker,hold)
+        self.assertNotIn('forEach (_rotatedOut select [0,16])',hold)
+        # Model only the finite service schedule; this does not simulate native holds.
+        for size in (0,1,16,17,24,33,64):
+            roster=list(range(size))
+            cursor=0
+            seen=set()
+            for _ in range(max(1,(size+15)//16)):
+                window=(roster[cursor:]+roster[:cursor])[:16]
+                self.assertLessEqual(len(window),16)
+                seen.update(window)
+                if size>16:
+                    cursor=(cursor+16)%size
+            self.assertEqual(seen,set(roster))
