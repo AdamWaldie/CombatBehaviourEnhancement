@@ -36,3 +36,15 @@ class DrivingStationarityTests(unittest.TestCase):
         self.assertNotIn('surfaceIsWater _rear',start)
         self.assertNotIn('_vehicle getPos [8,(getDir _vehicle)+180]',start)
         self.assertIn('_movementOperator doMove _rear',start)
+
+    def test_rear_recovery_tracks_component_damage_without_suppression(self):
+        text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        reader=text.split('private _readRearHitpoints={',1)[1].split('private _vehicles=[];',1)[0]
+        for marker in ('getAllHitPointsDamage','_count > 128','finite _x','_table apply {+_x}'):
+            self.assertIn(marker,reader)
+        self.assertIn('_work set ["rearHitpoints",_rearHitpointReceipt apply {+_x}]',text)
+        self.assertIn('(_rearHitpoints select [0,2]) isEqualTo (_liveHitpoints select [0,2])',text)
+        self.assertIn('|| {_componentDamage}',text)
+        self.assertLess(text.index('([_vehicle] call _readRearHitpoints) isNotEqualTo _rearHitpointReceipt'),text.index('_movementOperator doMove _rear'))
+        for forbidden in ('setDamage','setHitPointDamage','setHitIndex','allowDamage','HandleDamage'):
+            self.assertNotIn(forbidden,text)

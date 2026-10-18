@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Traffic retry journal: current brain/epoch and fresh observation are checked in one unscheduled
  * retry/publication section. Edit an isolated journal; successor/native-order changes prevent
- * publication. Rear recovery aborts on aggregate damage increase against its original journal.
+ * publication. Rear recovery aborts on aggregate or per-hitpoint damage increase against its
+ * original journal; changed/unknown hitpoint tables refuse recovery. No damage suppression occurs.
+ * At most128 hitpoints are compared per rear sample; native table retrieval cost remains engine-dependent.
  * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
  * Rear destinations retain the actual sampled support height, including raised decks.
  * Terrain water without a supporting structure remains refused by DrivingRearClear.
@@ -102,6 +104,20 @@ private _stationary={
     params ["_candidate"];
     private _linearSpeed=vectorMagnitude velocity _candidate;
     finite _linearSpeed && {_linearSpeed < (1/3.6)}
+};
+// Capture/validate engine hit-point identity without changing damage or installing handlers.
+// A bounded unknown table refuses rear recovery; an inherited receipt must pass the same schema.
+private _readRearHitpoints={
+    params [["_damageVehicle",objNull,[objNull]],["_table",[],[[]]]];
+    if (!isNull _damageVehicle) then {_table=getAllHitPointsDamage _damageVehicle};
+    if (count _table != 3 || {_table findIf {!(_x isEqualType [])} >= 0}) exitWith {[]};
+    private _count=count (_table select 0);
+    if (_count == 0 || {_count > 128} || {count (_table select 1) != _count}
+        || {count (_table select 2) != _count}
+        || {(_table select 0) findIf {!(_x isEqualType "")} >= 0}
+        || {(_table select 1) findIf {!(_x isEqualType "")} >= 0}
+        || {(_table select 2) findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x > 1}} >= 0}) exitWith {[]};
+    _table apply {+_x}
 };
 private _vehicles=[];
 {
@@ -358,7 +374,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
             private _recordRecovery={
-                params ["_kind"];
+                params ["_kind",["_rearHitpointReceipt",[],[[]]]];
                 private _old=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                 private _hard=if (count _old > 0 && {(_old get "group") == _group} && {(_old get "route") isEqualTo _routeIdentity}) then {
                     _old get "hardDeadline"
@@ -372,6 +388,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     _work set ["rearOriginASL",getPosASL _vehicle];
                     _work set ["rearDirection",vectorDir _vehicle];
                     _work set ["rearDamage",damage _vehicle];
+                    _work set ["rearHitpoints",_rearHitpointReceipt apply {+_x}];
                 };
                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
                 time+(_deadline-serverTime)
@@ -385,18 +402,28 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _rearOrigin=_rearWork getOrDefault ["rearOriginASL",[]];
                 private _rearDirection=_rearWork getOrDefault ["rearDirection",[]];
                 private _rearDamage=_rearWork getOrDefault ["rearDamage",-1];
+                private _rearHitpoints=[objNull,_rearWork getOrDefault ["rearHitpoints",[]]] call _readRearHitpoints;
+                private _liveHitpoints=[_vehicle] call _readRearHitpoints;
                 private _proofValid=_rearDamage isEqualType 0 && {finite _rearDamage} && {_rearDamage >= 0}
+                    && {count _rearHitpoints == 3} && {count _liveHitpoints == 3}
+                    && {(_rearHitpoints select [0,2]) isEqualTo (_liveHitpoints select [0,2])}
                     && {count _rearOrigin == 3} && {count _rearDirection == 3}
                     && {_rearOrigin findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                     && {_rearDirection findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                     && {abs ((vectorMagnitude _rearDirection)-1) <= 0.02};
                 if (_proofValid) then {
+                    private _componentDamage=false;
+                    for "_hitIndex" from 0 to ((count (_rearHitpoints select 2))-1) do {
+                        if (((_liveHitpoints select 2) select _hitIndex) > ((_rearHitpoints select 2) select _hitIndex)+0.01) exitWith {
+                            _componentDamage=true;
+                        };
+                    };
                     private _delta=(getPosASL _vehicle) vectorDiff _rearOrigin;
                     private _along=_delta vectorDotProduct _rearDirection;
                     private _lateral=vectorMagnitude (_delta vectorDiff (_rearDirection vectorMultiply _along));
                     _rearPathRejected=(vectorDir _vehicle) vectorDotProduct _rearDirection < cos 20
                         || {_along > 1} || {_along < -10} || {_lateral > 2.5}
-                        || {damage _vehicle > _rearDamage+0.01};
+                        || {damage _vehicle > _rearDamage+0.01} || {_componentDamage};
                 } else {_rearPathRejected=true};
                 if (_rearPathRejected) then {
                     // A rear destination is not a reverse primitive. Retire a native turn or
@@ -772,13 +799,14 @@ _brain set ["geometryTracks",_geometryTracks];
                         case 1: {
                             private _rear=[];
                             private _rearPose=[getPosASL _vehicle,vectorDir _vehicle,time];
+                            private _rearHitpointReceipt=[_vehicle] call _readRearHitpoints;
                             private _rearCommands=[currentCommand _driver,+(expectedDestination _driver),
                                 currentCommand _movementOperator,+(expectedDestination _movementOperator)];
                             private _rearJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                             // Fresh shared body-width observation; no fixed-width centre probe.
                             private _clearance=[_vehicle,8] call CBE_fnc_DrivingRearClear;
                             _rear=+(_clearance param [4,[]]);
-                            private _rearSafe=(_clearance select 0) && {count _rear == 3};
+                            private _rearSafe=(_clearance select 0) && {count _rear == 3} && {count _rearHitpointReceipt == 3};
                             // Geometry uses the current callback context; native issue and its exact command journal
                             // share a short current-owner transaction with the original hard deadline.
                             isNil {
@@ -787,6 +815,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                                     || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _rearJournal}
                                     || {count _rearJournal == 0} || {serverTime >= (_rearJournal get "hardDeadline")-60}
+                                    || {([_vehicle] call _readRearHitpoints) isNotEqualTo _rearHitpointReceipt}
                                     || {time < (_rearPose select 2)} || {time-(_rearPose select 2) > 1}
                                     || {(getPosASL _vehicle) vectorDistance (_rearPose select 0) > 1}
                                     || {(vectorDir _vehicle) vectorDotProduct (_rearPose select 1) < cos 5}
@@ -799,7 +828,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                     _recoveryResult="REAR_BLOCKED";_reverseIssued=false;
                                 };
                                 _recoveryStage=2;
-                                _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued] call _recordRecovery;
+                                _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued,_rearHitpointReceipt] call _recordRecovery;
                                 _recoveryTransitioned=true;
                             };
                         };

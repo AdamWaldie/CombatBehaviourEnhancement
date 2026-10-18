@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Damage-aware native rear interruption; not whole HBQ damage handling parity",
+  "source": {
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_damageInit.sqf",
+    "sha256": "0f18385e7dfd448b41501c2633f166c1fdedbc72b8850299c0f15917c1d9b081",
+    "disposition": "Damage discrimination intent reviewed; no collision-damage suppression or protection copied."
+  },
+  "finding": "Aggregate-only rear damage guard could miss hitpoint-only damage during native recovery.",
+  "implementation": [
+    "Validate and copy at most128 hitpoints, including name/selection identity",
+    "Capture at rear admission and recheck unchanged table before native issue",
+    "Abort rear leg for any >0.01 component increase above original baseline or changed/unknown table",
+    "Use existing exact native handback; no damage writes or event handlers"
+  ],
+  "bounds": "Native getAllHitPointsDamage retrieval cost depends on engine/model; CBE validates/compares only bounded tables. No new world discovery or worker.",
+  "validation": {
+    "tests": 1421,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-recovery-component-damage-final-build.log",
+    "unsigned_fingerprint": "c1be7a87ac66e5c264536a67b6df1921de30b37bd492c8fbfd62236cc13ac212",
+    "physical": false
+  },
+  "remaining": [
+    "Repair followed by damage still below original baseline is not separately detected",
+    "Physical component interruption, migration and native handback unverified",
+    "Runtime overhead unmeasured",
+    "HBQ general damage policy and queue execution remain partial; audits paused"
+  ]
+}
