@@ -37,6 +37,9 @@
  * Optional sixth argument: transformOnly <BOOL>, false; focused moved-building cancellation/reorder.
  * Optional seventh argument: largeOnly <BOOL>, false; run the same four/twelve-person Big02
  * fixtures and original assertions only. This diagnostic does not replace full CLEAR acceptance.
+ * Normal-only exit-relief acceptance waits for natural readiness, introduces one real casualty,
+ * then requires independent exterior observation overlap and physical promoted-reserve entry.
+ * Missing readiness fails; no role/visit/assignment injection or HC acceptance is inferred.
  * Return: Nothing. Current callers: cortexQA/runServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
@@ -1684,6 +1687,122 @@ missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _casualtyMembers;
 deleteGroup _casualtyGroup;
 deleteVehicle _casualtyHouse;
+
+// Exit-relief acceptance uses only ordinary clearance and a real casualty. Readiness
+// must arise physically; the fixture never injects pairs, room visits or stage assignments.
+private _reliefSite=[7350,5800,0];
+private _reliefHouse=createVehicle ["Land_i_House_Big_01_V1_F",_reliefSite,[],0,"NONE"];
+_reliefHouse enableSimulationGlobal true;
+[_reliefHouse,"exit-relief"] call _validateNewFixturePlacement;
+private _reliefGroup=createGroup [east,true];
+_reliefGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
+_reliefGroup setVariable ["acex_headless_blacklist",true,true];
+private _reliefMembers=[];
+for "_i" from 0 to 11 do {
+    private _unit=_reliefGroup createUnit ["O_Soldier_F",_reliefSite vectorAdd [-20+(_i mod 4)*4,-35-floor(_i/4)*4,0],[],0,"NONE"];
+    _unit setVariable ["acex_headless_blacklist",true,true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["CQB EXIT RELIEF / %1",_i+1],true];
+    _reliefMembers pushBack _unit;
+};
+missionNamespace setVariable ["CBE_CortexQA_Actors",_reliefMembers,true];
+["CQB exit relief","Normal owner only. Ordinary clearance must produce progressed idle interior workers and physically established reserve observers before a casualty is introduced. The original exit observer must stay until relief physically arrives and faces a clear view; that observer must then enter independently. No room/stage/role state is injected.",_reliefSite] call _phase;
+private _reliefAccepted=[_reliefGroup,_reliefHouse] call CBE_fnc_CortexClearBuilding;
+["CLEAR-relief-order-accepted",_reliefAccepted] call _check;
+private _reliefVisits=createHashMap;
+private _reliefRooms=_reliefHouse buildingPos -1;
+private _observeReliefVisits={
+    {
+        private _actor=_x;
+        private _visits=_reliefVisits getOrDefault [netId _actor,[]];
+        {
+            if ([_actor,_reliefHouse,_x] call _observedRoomVisit) then {_visits pushBackUnique _forEachIndex};
+        } forEach _reliefRooms;
+        _reliefVisits set [netId _actor,_visits];
+    } forEach _reliefMembers;
+};
+private _observedReliefPost={
+    params ["_actor","_post","_watch"];
+    if (isNull _actor || {!alive _actor} || {!simulationEnabled _actor} || {isObjectHidden _actor}
+        || {count _post != 3} || {count _watch != 3}) exitWith {false};
+    [_actor,_reliefHouse,_post] call _observedExit
+        && {abs (((getDir _actor-(_actor getDir _watch)+540) mod 360)-180) <= 75}
+        && {!terrainIntersectASL [eyePos _actor,AGLToASL _watch]}
+        && {(lineIntersectsSurfaces [eyePos _actor,AGLToASL _watch,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []}
+};
+private _reliefCasualty=objNull;
+private _reliefFixture=[{
+    call _observeReliefVisits;
+    private _job=(_reliefGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+    private _participants=_job getOrDefault ["team",[]];
+    private _reserves=_reliefMembers select {alive _x && {!(_x in _participants)}};
+    private _stages=_job getOrDefault ["reserveStages",createHashMap];
+    private _allPosts=_reserves isNotEqualTo [] && {_reserves findIf {
+        private _stage=_stages getOrDefault [netId _x,[]];
+        (_stage param [2,""]) != "ARRIVED"
+            || {!([_x,_stage param [0,[]],_stage param [4,[]]] call _observedReliefPost)}
+    } < 0};
+    private _postExits=_reserves apply {+((_stages getOrDefault [netId _x,[]]) param [5,[]])};
+    private _uniquePosts=count (_postExits arrayIntersect _postExits) == count _reserves;
+    private _idle=_participants select {
+        private _idleActor=_x;
+        alive _x && {currentCommand _x in ["","STOP"]}
+            && {_reliefRooms findIf {[_idleActor,_reliefHouse,_x] call _observedRoomVisit} >= 0}
+            && {count (_reliefVisits getOrDefault [netId _x,[]]) >= (2 min count _reliefRooms)}
+            && {private _claim=(_job getOrDefault ["assigned",[]]) param [_participants find _x,[]];
+                _claim isEqualTo [] || {(_claim param [0,-1]) in ((_job getOrDefault ["cleared",[]])+(_job getOrDefault ["unreachable",[]]))}}
+    };
+    if (_allPosts && {_uniquePosts} && {_idle isNotEqualTo []}
+        && {count (_job getOrDefault ["earlyExits",createHashMap]) == 0}) then {
+        _reliefCasualty=(_participants select {alive _x && {!(_x in _idle)}}) param [0,objNull];
+    };
+    !isNull _reliefCasualty && {_reliefGroup getVariable ["CBE_AIPass_ClearBuilding",false]}
+},120] call _wait;
+["CLEAR-relief-natural-fixture-ready",_reliefFixture,
+    "Readiness requires live reserve posts and independent interior visits; no fallback state is injected."] call _check;
+private _reliefRequest=[];
+private _reliefObserver=objNull;
+private _reliefWorker=objNull;
+private _reliefOriginalPost=[];
+private _reliefOriginalWatch=[];
+private _reliefContinuous=true;
+private _reliefOverlap=false;
+private _reliefEntered=false;
+if (_reliefFixture) then {
+    _reliefCasualty setDamage 1;
+    [{
+        private _attempts=(_reliefGroup getVariable ["CBE_Cortex_ClearRelief",[]]) param [1,[]];
+        private _job=(_reliefGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+        if (_reliefRequest isEqualTo [] && {_attempts isNotEqualTo []}) then {
+            _reliefRequest=+(_attempts select 0);
+            _reliefWorker=objectFromNetId (_reliefRequest select 0);
+            _reliefObserver=objectFromNetId (_reliefRequest select 1);
+            private _originalStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _reliefObserver,[]];
+            _reliefOriginalPost=+(_originalStage param [0,[]]);
+            _reliefOriginalWatch=+(_originalStage param [4,[]]);
+        };
+        if (!isNull _reliefWorker && {!isNull _reliefObserver} && {count _reliefOriginalPost == 3}) then {
+            private _row=(_job getOrDefault ["earlyExits",createHashMap]) getOrDefault [netId _reliefWorker,[]];
+            private _originalStillHere=[_reliefObserver,_reliefOriginalPost,_reliefOriginalWatch] call _observedReliefPost;
+            private _substituteHere=[_reliefWorker,_row param [1,[]],_row param [6,[]]] call _observedReliefPost;
+            if (!_reliefOverlap) then {
+                if (_originalStillHere && {_substituteHere}) then {_reliefOverlap=true};
+                if (!_originalStillHere) then {_reliefContinuous=false};
+            };
+            if (_reliefOverlap && {!_substituteHere} && {!_reliefEntered}) then {_reliefContinuous=false};
+            _reliefEntered=_reliefEntered || {_reliefRooms findIf {
+                [_reliefObserver,_reliefHouse,_x] call _observedRoomVisit
+            } >= 0};
+        };
+        _reliefOverlap && {_reliefEntered}
+    },120] call _wait;
+};
+["CLEAR-relief-physical-observation-overlap",_reliefFixture && {_reliefOverlap} && {_reliefContinuous},str _reliefRequest] call _check;
+["CLEAR-relief-reserve-physical-entry",_reliefFixture && {_reliefOverlap} && {_reliefEntered},str [netId _reliefWorker,netId _reliefObserver]] call _check;
+[_reliefGroup] call CBE_fnc_CortexClearRelease;
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach _reliefMembers;
+deleteGroup _reliefGroup;
+deleteVehicle _reliefHouse;
 
 // Whole-lane loss after real entry must not let exterior reserves inherit entry evidence.
 private _pairLossSite=[7150,6000,0];

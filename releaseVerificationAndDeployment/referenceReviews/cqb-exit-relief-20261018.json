@@ -28,5 +28,19 @@
   },
   "physicalAcceptance": false,
   "audits": "paused",
-  "completion": "All65 families partial; production objective unchanged."
+  "completion": "All65 families partial; production objective unchanged.",
+  "preparedPhysicalCase": {
+    "source": "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf",
+    "status": "UNRUN_NORMAL_OWNER_ONLY",
+    "setup": "Ordinary twelve-person clearance, unique physically observed reserve posts and independently visited idle interior worker; one actual casualty only after readiness. Missing readiness fails, no role/visit/movement assistance.",
+    "observations": "Original observer physical position/facing/eye VIEW before relief overlap; substitute physical position/facing/eye VIEW throughout handover until independent room-entry observation of the promoted reserve. No public role or journal alone passes.",
+    "limits": "0.2second audit sampling can miss brief transitions and conservatively fail. No live result, HC/provider transfer, all interruptions or frame-cost proof."
+  },
+  "latestValidation": {
+    "tests": 1315,
+    "exitCode": 0,
+    "log": ".qa/cbe-clear-relief-physical-fixture-verified-build.log",
+    "packageFingerprint": "60dcdc44303f5451a4db3160605f1c68a96b74e8d545de3c73222b2ab53ea605",
+    "source": "e9420adf plus intended audit fixture, guide and test contracts; engineering metadata appended after build"
+  }
 }
