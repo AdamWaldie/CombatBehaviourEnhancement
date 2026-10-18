@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "finding": "Generic group route cleanup swept matching description labels after handling the committed route, allowing label-only deletion. Scheduled direct cleanup also captured and cleared intent outside one atomic block.",
+  "implementation": [
+    "Capture/check/clear committed intent and compare/delete its exact waypoint in one unscheduled block",
+    "Remove generic matching-label sweep",
+    "Preserve authored policy edits and unknown labelled routes"
+  ],
+  "bounds": "No new scan or worker. Removed full route sweep; selected-row receipt helper still enumerates native route handles. Actual runtime performance unmeasured.",
+  "validation": {
+    "tests": 1415,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-group-route-cleanup-build.log",
+    "unsigned_fingerprint": "9687c3cbee9e1ec12f03ba6932a59ae8d1263c0f953106d5058a1561af550ab6",
+    "physical": false
+  },
+  "remaining": [
+    "Physical native-route continuity after cancellation",
+    "Locality/rapid successor scenarios",
+    "Performance profiling; audits paused"
+  ]
+}

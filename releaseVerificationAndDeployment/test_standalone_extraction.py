@@ -145,6 +145,18 @@ class StandaloneExtractionContracts(unittest.TestCase):
                       'waypointHousePosition','waypointLoiterType','waypointForceBehaviour'):
             self.assertIn(field,receipt)
 
+    def test_group_route_cleanup_is_atomic_and_intent_scoped(self):
+        clear=(ROOT/"addons/infantry/functions/cortexGroupMoveClear.sqf").read_text(encoding="utf-8")
+        atomic=clear.split('isNil {',1)[1].rsplit('};',1)[0]
+        for marker in ('if (!local _group) exitWith {};','private _intent =',
+                       'operationGeneration",-1]) != _operationGeneration',
+                       'CBE_Cortex_GroupMoveIntent", nil, true','deleteWaypoint _ownedWaypoint'):
+            self.assertIn(marker,atomic)
+        self.assertEqual(clear.count('deleteWaypoint'),2)  # header command documentation + exact deletion
+        self.assertNotIn('for "_index" from',clear)
+        self.assertNotIn('uiSleep',atomic)
+        self.assertNotIn('remoteExec',atomic)
+
     def test_product_boundary_is_documented(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         for name in ("Dynamic AA", "Dynamic AO", "CBA_A3", "Zeus", "JIP"):
