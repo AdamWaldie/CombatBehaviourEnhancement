@@ -4,7 +4,7 @@
  * Locality/authority: called only on the soldier owner; direct non-server network invocation
  * is refused. Local calls and server-dispatched owner work retain their normal actor/order gates.
  * BIS door animation has global effect; lock/order/cooldown and fresh visibility geometry
- * commit atomically. Visibility rays remain scheduled and limited to four.
+ * commit atomically. Visibility rays are limited to four; normal scheduler calls run unscheduled.
  * Repeat/JIP: two-second building cooldown bounds requests; engine door state persists for JIP.
  * Door model metadata is cached per building on each owner; locks are always read live.
  * At most four nearby-door geometry rays check interaction visibility per call. A closed door
@@ -67,7 +67,8 @@ private _orderCurrent={
         private _engaging=getAttackTarget _unit;
         private _assigned=assignedTarget _unit;
         if ((_brain getOrDefault ["contactRequired",false] && {isNull _contact})
-            || {!isNull _contact && {!alive _contact || {(side _group) getFriend (side _contact) >= 0.6}}}
+            || {!isNull _contact && {!alive _contact || {(side _group) getFriend (side _contact) >= 0.6}
+                || {(_unit targetKnowledge _contact) param [7,false,[true]]}}}
             || {!isNull _engaging && {_engaging != _contact}}
             || {!isNull _assigned && {_assigned != _contact}}) exitWith {false};
         private _combatCommand=currentCommand _unit in ["ATTACK","FIRE"] && {!isNull _contact}

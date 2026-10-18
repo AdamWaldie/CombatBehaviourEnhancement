@@ -5,7 +5,7 @@
  * Locality/authority: Read-only on actor/group owner. Actual engagement identity comes from
  * getAttackTarget; assignedTarget is only a conflicting mission-target veto. No hidden pose reads.
  * Repeat/JIP: Stateless; current waypoint metadata and native command are read each call,
- * with at most one believed-position FIRE visibility query. No exact hostile transform is read.
+ * Native group-ignored contacts refuse admission; at most one believed-position FIRE visibility query. No exact hostile transform is read.
  * Arguments: actor OBJECT objNull, contact OBJECT objNull, believed ATL ARRAY [], building OBJECT objNull.
  * Return: ARRAY [ISSUE or OBSERVE STRING, native intent STRING, native destination ARRAY,
  * bound native-known contact OBJECT], or [] for protected/unknown context. Metadata is not access proof.
@@ -28,6 +28,7 @@ if (!isNull _contact && {(!isNull _engaging && {_engaging != _contact})
     || {!isNull _assigned && {_assigned != _contact}}}) exitWith {[]};
 private _contactValid=!isNull _contact && {alive _contact} && {_contact isKindOf "CAManBase"}
     && {isNull objectParent _contact} && {(side group _actor) getFriend (side _contact) < 0.6}
+    && {!((_actor targetKnowledge _contact) param [7,false,[true]])}
     && {_actor knowsAbout _contact >= 1} && {_belief call _vectorValid} && {!isNull _building};
 if (!isNull _contact && {!_contactValid}) exitWith {[]};
 // A clear believed firing line is a veto on relocation, not proof of a hit or exact enemy pose.

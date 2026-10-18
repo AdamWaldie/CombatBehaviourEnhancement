@@ -1,5 +1,6 @@
 """Staged actor investigation must retain finite, scoped ownership contracts."""
 from pathlib import Path
+import re
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class IndoorActorLifecycleTests(unittest.TestCase):
@@ -149,6 +150,20 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertNotIn('getPosATL _contact',s)
         for command in (' doMove ','doFollow','doTarget','doFire','setDestination'):
             self.assertNotIn(command,s)
+    def test_native_ignore_cancels_only_contact_driven_indoor_work(self):
+        admission=(ROOT/'addons/infantry/functions/indoorActorNativeContext.sqf').read_text()
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        door=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
+        self.assertIn('!((_actor targetKnowledge _contact) param [7,false,[true]])',admission)
+        stop=operation.index('["TARGET_IGNORED"] call _finish')
+        self.assertLess(stop,operation.index('private _phase=_brain get "phase";'))
+        self.assertIn('(_actor targetKnowledge _contact) param [7,false,[true]]',operation[:stop])
+        indoor=door.split('if ((_context select 0) == "INDOOR") exitWith {',1)[1].split('private _combatCommand=',1)[0]
+        self.assertIn('(_unit targetKnowledge _contact) param [7,false,[true]]',indoor)
+        for source in (admission,operation,door):
+            code=re.sub(r'/\*.*?\*/|//[^\n]*','',source,flags=re.S)
+            self.assertNotIn(' ignoreTarget ',code)
+
     def test_native_observation_does_not_issue_until_a_measured_stall(self):
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         observe=s.split('if ((_admission select 0) == "OBSERVE" && {!_escalate}) exitWith {',1)[1].split('if (_escalate',1)[0]
