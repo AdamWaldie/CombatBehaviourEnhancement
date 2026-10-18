@@ -35,11 +35,21 @@ private _senderPosition = getPosATL ([_transmitter, leader _sender] select isNul
 // A receiver is eligible only when its transmitter or local command anchor is inside this report's
 // delivery envelope. Derive distinct groups from nearby actors rather than scanning every group.
 private _receiverGroups=[];
+private _receiverSeen=createHashMap;
 private _receiverArea=[_senderPosition,_range,_range,0,false,_range];
 {
     private _receiverGroup=group _x;
-    if (!isNull _receiverGroup && {!(_receiverGroup in _receiverGroups)}) then {
-        _receiverGroups pushBack _receiverGroup;
+    if (!isNull _receiverGroup) then {
+        private _groupKey=netId _receiverGroup;
+        if (_groupKey == "") then {
+            // Preserve identity/order if a transient local group has no network key.
+            _receiverGroups pushBackUnique _receiverGroup;
+        } else {
+            if !(_groupKey in _receiverSeen) then {
+                _receiverSeen set [_groupKey,true];
+                _receiverGroups pushBack _receiverGroup;
+            };
+        };
     };
 } forEach (_receiverArea nearEntities [["Man"],false,true,true]);
 private _receivers = [];

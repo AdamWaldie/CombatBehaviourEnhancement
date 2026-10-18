@@ -126,3 +126,18 @@ class ReportObservationAgeTests(unittest.TestCase):
         self.assertIn('finite (_previous select 1)',owner)
         self.assertIn('[+(_best select 0),_observed,_observed+30,"REPORT"]',owner)
         self.assertNotIn('_sent+30',owner)
+
+
+class SpatialGroupDeduplicationTests(unittest.TestCase):
+    def test_candidate_sets_use_network_keys_and_preserve_unkeyed_group_identity(self):
+        cases=[('infantry','cortexReportServer','_receiverGroups','_receiverSeen','_receiverGroup','_groupKey'),
+               ('support','cortexSupportServer','_candidateGroups','_candidateSeen','_candidateGroup','_groupKey'),
+               ('infantry','cortexCombinedArmsServer','_candidateGroups','_candidateSeen','_candidateGroup','_candidateKey')]
+        for subsystem,name,groups,seen,group,key in cases:
+            text=(ROOT/f'addons/{subsystem}/functions/{name}.sqf').read_text()
+            self.assertIn(f'private {seen}=createHashMap',text)
+            self.assertIn(f'if ({key} == "") then',text)
+            self.assertIn(f'{groups} pushBackUnique {group}',text)
+            self.assertIn(f'{seen} set [{key},true]',text)
+            self.assertNotIn(f'{group} in {groups}',text)
+            self.assertNotIn('forEach allGroups',text)

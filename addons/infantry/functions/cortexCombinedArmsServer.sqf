@@ -78,9 +78,13 @@ private _candidateSeen=createHashMap;
     private _candidateGroup=group _x;
     if (!isNull _candidateGroup) then {
         private _candidateKey=netId _candidateGroup;
-        if !(_candidateKey in _candidateSeen) then {
-            _candidateSeen set [_candidateKey,true];
-            _candidateGroups pushBack _candidateGroup;
+        if (_candidateKey == "") then {
+            _candidateGroups pushBackUnique _candidateGroup;
+        } else {
+            if !(_candidateKey in _candidateSeen) then {
+                _candidateSeen set [_candidateKey,true];
+                _candidateGroups pushBack _candidateGroup;
+            };
         };
     };
 } forEach (_searchArea nearEntities [["Man"],false,true,true]);

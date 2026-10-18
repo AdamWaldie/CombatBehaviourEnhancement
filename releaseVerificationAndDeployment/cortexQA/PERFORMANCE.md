@@ -132,3 +132,6 @@ remain separate, and matched frame-time measurements are required for the 5% med
 
 
 Convoy opt-in control capture appends follower sample field10: [gap metric RADIAL/LONGITUDINAL, heading difference in degrees, signed raw longitudinal gap in metres, raw lateral offset in metres]. Existing fields0..9 retain their meaning. This exposes measurement-policy transitions; field4's legacy lateral value remains policy-local and can be0 in radial mode. The new measurements run only under CBE_Convoy_CaptureControl and add no world query, controller or network broadcast. No captured run or performance acceptance is implied.
+
+
+Report and reinforcement spatial discovery now deduplicate networked candidate groups with request-local keyed sets, matching combined-arms discovery. Discovery order is retained in the output array. Empty network IDs take an identity-based pushBackUnique fallback rather than collapsing distinct groups; fallback groups retain the previous linear lookup behaviour. Query radius, crew inclusion, response caps and dispatch batches are unchanged. This reduces repeated normal membership scans but does not bound query population or establish the median/p95 runtime budget.
