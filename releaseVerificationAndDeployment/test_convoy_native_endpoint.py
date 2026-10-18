@@ -50,3 +50,21 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
         event=tick.split('private _endpointEvent=[];',1)[1].split('_progress set [5,+_destination]',1)[0]
         self.assertLess(event.index('getPosASL _vehicle'),event.index('_movementOperator doMove'))
         self.assertLess(event.index('_movementOperator doMove'),event.index('_endpointAdvances set'))
+
+
+class ConvoyNativeIssueEvidenceTests(unittest.TestCase):
+    def test_issue_history_is_capture_only_bounded_and_records_actual_issue(self):
+        text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        self.assertIn('_state deleteAt "nativeIssueHistory";_state deleteAt "nativeIssueSerial"',text)
+        self.assertIn('if !(_x in _registeredKeys) then {_nativeIssueHistory deleteAt _x}',text)
+        issue=text.split('private _issueEvent=[];',1)[1].split('if (_endpointEvent isNotEqualTo [])',1)[0]
+        self.assertLess(issue.index('getPosASL _vehicle'),issue.index('_movementOperator doMove'))
+        self.assertLess(issue.index('_movementOperator doMove'),issue.index('_issueHistory pushBack _issueEvent'))
+        self.assertIn('if (_captureControl) then {',issue)
+        self.assertIn('count _issueHistory > 32',issue)
+        self.assertIn('diag_tickTime-(_last select 1)',issue)
+        self.assertNotIn('diag_log',issue)
+        fixture=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text()
+        self.assertIn('UNAVAILABLE_REMOTE_OWNER',fixture)
+        self.assertIn('CBE CORTEX QA CONVOY NATIVE ISSUES:',fixture)
+        self.assertIn('_nativeIssueSeen set [_key,[_last select 1,_last select 0]]',fixture)

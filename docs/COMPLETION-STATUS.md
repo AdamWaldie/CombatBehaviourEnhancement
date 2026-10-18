@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Convoy audit capture now retains bounded actual native-command issue histories, including pre-command
+  pose, remaining destination distance, elapsed issue age and reason. Normal driving gains no new
+  command or tuning. The prepared fixture logs unseen events; mixed-column causation remains unresolved.
+
 - Coordinated bound admission now checks current state, gates, role/lease, actor availability and
   owner epoch in one unscheduled allocation transaction. A superseded scheduled observation cannot
   create a new local drill. Network cancellation delivery and physical takeover remain unverified.

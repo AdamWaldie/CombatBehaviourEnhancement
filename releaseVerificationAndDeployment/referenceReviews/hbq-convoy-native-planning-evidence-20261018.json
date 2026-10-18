@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-18",
+  "scope": "Mixed convoy native follower destination refresh issue evidence; not steering/recovery/lead command coverage",
+  "baselineCommit": "50c69be2",
+  "reference": {
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "reviewedLines": [
+      2555,
+      2580
+    ]
+  },
+  "findings": [
+    "Retained mixed61e136b observations show tracked follower near-stationary with positive forced speed; this does not isolate spacing-cap causation.",
+    "Current CBE normal native follower branch can reissue destination after8m advance. Existing timing snapshots are not a complete command event stream.",
+    "HBQ stationary replanning explicitly allows planning grace, excludes followers/player-led/intentional waits and describes each replan restarting native planning. This is a reason to measure CBE issuance, not evidence that HBQ timing should be copied to convoy followers."
+  ],
+  "implementation": [
+    "Audit capture only: current registered identities retain32 normal native follower destination issue receipts per vehicle. Pre-command observations commit only after admitted doMove in the existing atomic writer.",
+    "Rows: serial,local monotonic tick,server time,revision,epoch,driver/operator IDs,model velocity,ASL pose,command,old/new destination,old destination distance,previous issue age,cause.",
+    "Fixture logs unseen rows by monotonic tick/serial; remote-owner evidence remains explicitly unavailable. Capture off clears history/serial. No new movement, pacing tuning or world query."
+  ],
+  "limitations": [
+    "Does not cover lead/recovery/corridor/steering writers or engine acknowledgement.",
+    "More than32 issues between fixture observations can evict evidence. Local process/owner changes break timing continuity; no cross-owner frequency claim.",
+    "Audits paused, prepared fixture unrun; stop/start causation, physical continuity and runtime overhead unaccepted."
+  ],
+  "wholeHBQParity": false,
+  "physicalAcceptance": false,
+  "validation": {
+    "tests": 1328,
+    "log": ".qa/cbe-convoy-native-issue-history-verified-build.log",
+    "exitCode": 0,
+    "packageFingerprint": "c2ca7bd49ac3f5053124c3e2b6ee86d05b64e39b0f8f8231b5377ca139e38758"
+  }
+}

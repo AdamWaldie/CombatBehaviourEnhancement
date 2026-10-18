@@ -5427,7 +5427,10 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(capture,extend)
         commit=text.split('_movementOperator doMove _destination;',1)[1]
         self.assertIn('_progress set [12,+_recordedDestination]',commit)
-        self.assertIn('[_vehicle,_movementOperator] call _mayIssueDriving',text[text.rfind('if (',0,text.index('_movementOperator doMove _destination;')):text.index('_movementOperator doMove _destination;')])
+        writer=text.index('_movementOperator doMove _destination;')
+        admission=text.rfind('isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {',0,writer)
+        self.assertGreater(admission,extend)
+        self.assertIn('[_vehicle,_movementOperator] call _mayIssueDriving',text[admission:writer])
 
     def test_convoy_two_point_tail_recomputes_cap_and_first_segment_grade(self):
         text=source('convoyTick')
@@ -5905,7 +5908,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_native_convoy_follower_commits_a_trail_destination_between_refreshes(self):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
-        native=text.split('if (_native && {_path isNotEqualTo []}) then {',1)[1].split('} else {',1)[0]
+        native=text.split('if (_native && {_path isNotEqualTo []}) then {',1)[1].split('_progress set [2, time + 1];',1)[0]
         self.assertIn('private _committedDestination=_progress param [5,[]];',native)
         self.assertIn('_committedDestination distance2D _destination > 8',native)
         self.assertNotIn('currentCommand driver _vehicle in ["","STOP"]',native)

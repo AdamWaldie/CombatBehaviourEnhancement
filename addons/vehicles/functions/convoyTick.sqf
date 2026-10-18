@@ -70,6 +70,8 @@
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, km/h, gap, pushThrough, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
  * Diagnostic capture: owner-local CBE_Convoy_CaptureControl=true retains only the latest
  * follower samples in local-state controlSamples (at most nineteen); false removes them.
+ * Capture also retains32 actual native issue receipts per current vehicle, recorded only after
+ * admitted doMove. Diagnostic pose/age/cause is not proof of command acknowledgement or travel.
  * Samples expose each limiting stage and actual writes, including later trail-cap writes.
  * Follower fields9/10 retain bounded navigation-write receipts and pre-write native state;
  * they distinguish repeated path requests from spacing caps without recording full paths.
@@ -808,6 +810,15 @@ _state set ["pathOwners",_pathOwners];
 
 private _endpointAdvances=_state getOrDefault ["nativeEndpointAdvances",createHashMap];
 if (_captureControl) then {_state set ["nativeEndpointAdvances",_endpointAdvances]} else {_state deleteAt "nativeEndpointAdvances"};
+// Audit-only rolling command receipts survive the ordinary per-tick sample replacement.
+// Retain only currently registered identities, with32 events per follower and no broadcasts.
+private _nativeIssueHistory=createHashMap;
+if (_captureControl) then {
+    _nativeIssueHistory=_state getOrDefault ["nativeIssueHistory",createHashMap];
+    private _registeredKeys=_vehicles apply {netId _x};
+    {if !(_x in _registeredKeys) then {_nativeIssueHistory deleteAt _x}} forEach keys _nativeIssueHistory;
+    _state set ["nativeIssueHistory",_nativeIssueHistory];
+} else {_state deleteAt "nativeIssueHistory";_state deleteAt "nativeIssueSerial"};
 private _controlSamples=createHashMap;
 if (_captureControl) then {_state set ["controlSamples",_controlSamples]} else {_state deleteAt "controlSamples"};
 for "_i" from 1 to (count _vehicles - 1) do {
@@ -1206,7 +1217,30 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 if (count _committedDestination < 2
                     || {_committedDestination distance2D _destination > 8} || {_finishedLeg}) then {
                     isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                        private _issueEvent=[];
+                        private _issueHistory=[];
+                        if (_captureControl) then {
+                            _issueHistory=+(_nativeIssueHistory getOrDefault [_key,[]]);
+                            private _last=_issueHistory param [(count _issueHistory)-1,[]];
+                            private _serial=(_state getOrDefault ["nativeIssueSerial",0])+1;
+                            private _age=if (_last isEqualTo []) then {-1} else {diag_tickTime-(_last select 1)};
+                            private _cause=if (count _committedDestination < 2) then {"FIRST"} else {
+                                ["ADVANCED","FINISHED"] select _finishedLeg
+                            };
+                            _issueEvent=[_serial,diag_tickTime,serverTime,_revision,
+                                _group getVariable ["CBE_AIPass_Epoch",0],netId driver _vehicle,netId _movementOperator,
+                                +(velocityModelSpace _vehicle),getPosASL _vehicle,currentCommand _movementOperator,
+                                +_committedDestination,+_destination,
+                                if (count _committedDestination == 3) then {_vehicle distance2D _committedDestination} else {-1},
+                                _age,_cause];
+                        };
                         _movementOperator doMove _destination;
+                        if (_captureControl) then {
+                            _state set ["nativeIssueSerial",_issueEvent select 0];
+                            _issueHistory pushBack _issueEvent;
+                            if (count _issueHistory > 32) then {_issueHistory deleteRange [0,count _issueHistory-32]};
+                            _nativeIssueHistory set [_key,_issueHistory];
+                        };
                         if (_endpointEvent isNotEqualTo []) then {_endpointAdvances set [_key,_endpointEvent]};
                         if (_captureControl) then {(_controlSample select 9) pushBack ["NATIVE",+_destination,_frontSpeed,_joining,_straightPath]};
                         _progress set [5,+_destination];

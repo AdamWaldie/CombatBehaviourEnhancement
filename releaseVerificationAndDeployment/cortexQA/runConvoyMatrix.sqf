@@ -17,6 +17,8 @@
  * Normal TRACKED/MIXED 30 m cases additionally require an observed exact-owned completed
  * native endpoint advance of3..8m and subsequent measured movement toward the new endpoint.
  * Missing prerequisite is a failure, never a bookkeeping pass. No test-side path reset is used.
+ * Audit-only bounded native issue histories log unseen admitted commands with original pose,
+ * planning age and cause; command issuance is not native acknowledgement or physical progress.
  * These diagnostics are audit-only and cannot establish whole-feature/performance acceptance.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; required audit callbacks.
  * Return: Nothing. Current caller: cortexQAServer.sqf.
@@ -200,6 +202,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
             && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])};
         private _endpointObserved=createHashMap;
         private _endpointTravelled=false;
+        private _nativeIssueSeen=createHashMap;
         private _start=diag_tickTime;
         private _nextLog=0;
         private _nextFollow=0;
@@ -335,6 +338,17 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                 private _controllerEvidence=if (_timingOwnerLocal) then {
                     private _key=netId _x;
                     private _progress=_timingFollowers getOrDefault [_key,[]];
+                    private _history=(_timingController getOrDefault ["nativeIssueHistory",createHashMap]) getOrDefault [_key,[]];
+                    private _seen=_nativeIssueSeen getOrDefault [_key,[-1,-1]];
+                    private _newIssues=_history select {
+                        (_x select 1) > (_seen select 0)
+                            || {(_x select 1) == (_seen select 0) && {(_x select 0) > (_seen select 1)}}
+                    };
+                    if (_newIssues isNotEqualTo []) then {
+                        diag_log format ["CBE CORTEX QA CONVOY NATIVE ISSUES: %1",[_id,_key,_newIssues]];
+                        private _last=_newIssues select ((count _newIssues)-1);
+                        _nativeIssueSeen set [_key,[_last select 1,_last select 0]];
+                    };
                     ["LOCAL",_timingLimits getOrDefault [_key,[]],
                         _timingController getOrDefault ["leadSpeedLimit",[]],
                         _progress param [1,-1],_progress param [4,0],
