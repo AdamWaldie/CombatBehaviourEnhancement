@@ -50,6 +50,8 @@
  * is checked while stopped; an expired rear leg observes the forward retry before issuing it.
  * Reverse admission uses a fresh body-sized rear corridor observation shared with tracked
  * withdrawal. Actor and solid-geometry clearance does not prove native reverse execution.
+ * Rear-path recovery retains original pose/direction and aborts >20 degree turns, forward travel
+ * over1m or departure from the2.5m rear corridor; a rear MOVE is not proof of native reversing.
  * Only the current leader vehicle can refresh/reverse the shared route. Followers keep native
  * formation movement; a leader/seat/locality change invalidates delayed recovery commands.
  * Deliberate native waits near the completion envelope suppress recovery without evaluating
@@ -344,12 +346,40 @@ _brain set ["geometryTracks",_geometryTracks];
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
                     ["kind",_kind],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
                     ["origin",getPosATL _vehicle],["baseline",+_previous],["cap",_capMps]];
+                if (_kind == "REVERSE") then {
+                    _work set ["rearOriginASL",getPosASL _vehicle];
+                    _work set ["rearDirection",vectorDir _vehicle];
+                };
                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
                 time+(_deadline-serverTime)
             };
             private _reverseIssued=_state param [10,(_state param [8,""]) == "CAUTIOUS_REVERSE"];
             private _reverseLeg=(_state param [6,0]) == 2 && {_reverseIssued}
                 && {time < (_state param [7,-1])};
+            private _rearPathRejected=false;
+            if (_reverseLeg) then {
+                private _rearWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                private _rearOrigin=_rearWork getOrDefault ["rearOriginASL",[]];
+                private _rearDirection=_rearWork getOrDefault ["rearDirection",[]];
+                private _proofValid=count _rearOrigin == 3 && {count _rearDirection == 3}
+                    && {_rearOrigin findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {_rearDirection findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {abs ((vectorMagnitude _rearDirection)-1) <= 0.02};
+                if (_proofValid) then {
+                    private _delta=(getPosASL _vehicle) vectorDiff _rearOrigin;
+                    private _along=_delta vectorDotProduct _rearDirection;
+                    private _lateral=vectorMagnitude (_delta vectorDiff (_rearDirection vectorMultiply _along));
+                    _rearPathRejected=(vectorDir _vehicle) vectorDotProduct _rearDirection < cos 20
+                        || {_along > 1} || {_along < -10} || {_lateral > 2.5};
+                } else {_rearPathRejected=true};
+                if (_rearPathRejected) then {
+                    // A rear destination is not a reverse primitive. Retire a native turn or
+                    // unsupported inherited leg through the existing exact route handback.
+                    _reverseLeg=false;
+                    _state set [7,time];
+                    _state set [8,"REAR_PATH_DIVERGED"];
+                };
+            };
             private _reverseExpired=(_state param [6,0]) == 2 && {_reverseIssued} && {!_reverseLeg};
             private _retryAllowed=!_reverseExpired || {
                 [_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled
@@ -359,6 +389,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call CBE_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
+            if (_rearPathRejected) then {_traffic=[0,_vehicle,-1,time,0]};
             private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingTurnTrack;
             _geometryTracks set [netId _vehicle,_turn select 1];
             private _nativeHint=[_vehicle,_group,["ORDINARY",_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingNativePathWatch;
