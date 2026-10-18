@@ -845,6 +845,7 @@ switch (_drill get "stage") do {
         private _stalled = false;
         private _blocked = [];
         private _timeout = missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25];
+        private _moveDeadline=_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4];
         private _entryMoveProgress=(_drill get "progress") apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
         private _progress = _entryMoveProgress apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
         private _entryMoveCoordinates=_drill getOrDefault ["progressCoordinates",""];
@@ -881,6 +882,7 @@ switch (_drill get "stage") do {
                     // Keep net approach and physical movement clocks separate.
                     if (_pose vectorDistance (_last select 2) >= 0.5) then {_last set [2,+_pose]; _last set [3,_now]};
                     private _retry = _retries select _forEachIndex;
+                    private _retryPending=false;
                     // Native formation movement can resume the group's original waypoint
                     // while this actor is still outside its bound. Physical movement alone
                     // is not evidence that the owned destination is still being followed.
@@ -891,14 +893,23 @@ switch (_drill get "stage") do {
                         && {(_waypoint select 1) distance2D (_spots select _forEachIndex) > 5}
                         && {((expectedDestination _unit) select 0) distance2D (_waypoint select 1) < 1};
                     if ((_now-(_last select 3) >= 8 || {_returnedToWaypoint}) && {_now-(_retry select 1) >= 8}
-                        && {(_retry select 0) < 1} && {_unit checkAIFeature "PATH"}
+                        && {(_retry select 0) < 1} && {_now <= _moveDeadline}
+                        && {_unit checkAIFeature "PATH"}
                         && {_unit checkAIFeature "MOVE"} && {[_unit] call _mayIssueMovement}) then {
                         // Replan the same destination; do not move the actor or waive arrival.
                         // One native route refresh is allowed only after measured no-progress.
                         // Target and combat behaviour remain engine-owned.
                         _moveActions pushBack ["RETRY",_unit,_forEachIndex,+_pose];
+                        _retryPending=true;
                     };
-                    if (_now-(_last select 3) > _timeout) then {_stalled = true; _blocked pushBack _unit};
+                    // A delayed callback must not issue its sole retry and immediately
+                    // cancel it using pre-retry no-progress age. Retain real progress clocks;
+                    // only the existing8-second observation interval applies, never past
+                    // the unchanged hard deadline checked below and at native admission.
+                    if (_now-(_last select 3) > _timeout && {!_retryPending}
+                        && {(_retry select 0) == 0 || {_now-(_retry select 1) >= 8}}) then {
+                        _stalled = true; _blocked pushBack _unit
+                    };
                 };
             };
         } forEach _movers;
@@ -915,6 +926,7 @@ switch (_drill get "stage") do {
                 || {(_liveDrill getOrDefault ["movers",[]]) isNotEqualTo _movers}
                 || {(_liveDrill getOrDefault ["progress",[]]) isNotEqualTo _entryMoveProgress}
                 || {(_liveDrill getOrDefault ["progressCoordinates",""]) != _entryMoveCoordinates}
+                || {(_liveDrill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4]) != _moveDeadline}
                 || {(_liveDrill getOrDefault ["retries",_movers apply {[0,_now]}]) isNotEqualTo _entryMoveRetries}
                 || {(_liveDrill getOrDefault ["arrivedUnits",[]]) isNotEqualTo _previousArrivals}
                 || {currentWaypoint _group != _moveWaypointIndex}
@@ -946,7 +958,9 @@ switch (_drill get "stage") do {
                     private _pose=getPosASL _actor;
                     private _target=ATLToASL (_spots select _slot);
                     private _atTarget=_pose vectorDistance _target <= 3 && {abs ((_pose select 2)-(_target select 2)) <= 1.5};
-                    if (_action == "ARRIVE") then {!_atTarget} else {_atTarget || {_pose vectorDistance _observedPose >= 0.5}}
+                    if (_action == "ARRIVE") then {!_atTarget} else {
+                        time > _moveDeadline || {_atTarget} || {_pose vectorDistance _observedPose >= 0.5}
+                    }
                 } >= 0}) exitWith {};
             {
                 _x params ["_action","_unit","_slot"];
@@ -958,7 +972,7 @@ switch (_drill get "stage") do {
                         _unit doMove (_spots select _slot);
                         private _retry=_retries select _slot;
                         _retry set [0,(_retry select 0)+1];
-                        _retry set [1,_now];
+                        _retry set [1,time];
                         diag_log format ["[CBE] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,(getPosASL _unit) vectorDistance (ATLToASL (_spots select _slot)),currentCommand _unit,expectedDestination _unit,_spots select _slot,assignedTarget _unit];
                     };
                 };
@@ -1027,7 +1041,7 @@ switch (_drill get "stage") do {
             _result=1.5;
         };
         if (!_arrived && {_stalled || {_now > (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}}) exitWith {
-            private _reason = ["TIME_LIMIT","STALLED"] select _stalled;
+            private _reason = ["TIME_LIMIT","STALLED"] select (_stalled && {_now <= _moveDeadline});
             private _measurements = [];
             {
                 private _unit = _x;

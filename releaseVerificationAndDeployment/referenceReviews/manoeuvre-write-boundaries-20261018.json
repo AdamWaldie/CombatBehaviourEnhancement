@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "2bd08a974abd931935a4257ec4e18d2aa485f4cedc21259bca7c821d60e3d3f7"
+      "sha256": "19407b918d99bc00ab5abbe8a295a5bbcf9de4c88ffcc9176ad90c9a2c07827c"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -67,11 +67,18 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1340,
-    "log": ".qa/cbe-manoeuvre-helper-commit-verified-build.log",
+    "tests": 1341,
+    "log": ".qa/cbe-manoeuvre-retry-observation-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "9ab77298b25442a954b866c4c17f3f1abfa3d9b2f89ccbb2e07bb160a27369e3"
+    "packageFingerprint": "c4922f8da9edc2176b4d00a36fcb54bf65bebff2a5b165ea7585ec945b8f2d9d"
   },
   "physicalAcceptance": false,
-  "performanceAccepted": false
+  "performanceAccepted": false,
+  "retryTiming": {
+    "scope": "Stall watchdog observation after the sole admitted native refresh; no whole-HBQ parity",
+    "implementation": "Pending valid retry suppresses pre-retry stall classification. An admitted retry retains its actual issue time and receives the existing8-second stall observation interval. No physical-progress timestamp or fixed deadline is renewed. Planning and command admission both refuse after the original bound deadline; hard expiry takes TIME_LIMIT precedence.",
+    "limits": "Quorum/majority handoff, ownership changes and hard expiry remain independent endings. No guarantee of8seconds uninterrupted actor movement or actual native acknowledgement.",
+    "referenceIntent": "Previously reviewed HBQ driveAssist2555-2580 preserves planning time after replanning. CBE uses its own existing interval/one-attempt bound rather than importing upstream20/15/30-second waits.",
+    "referenceSHA256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+  }
 }

@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- A delayed manoeuvre callback no longer marks a newly retried actor stalled immediately. The sole
+  admitted retry receives the existing eight-second observation interval; physical progress clocks
+  and the fixed bound deadline remain unchanged. Expired bounds issue no retry; live timing remains unverified.
+
 - Manoeuvre feature restoration and recovery team reassignment now use current-context helper
   transactions. Refusal defers instead of restoring over a replacement or reporting recovery losses.
   This does not complete later phase bookkeeping, native acknowledgements or physical acceptance.

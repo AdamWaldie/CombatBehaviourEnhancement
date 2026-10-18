@@ -3102,7 +3102,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_native_waypoint_return_uses_one_bounded_recovery_without_editing_waypoints(self):
         text = source('cortexFlankStep')
-        guard = text.split('private _returnedToWaypoint =')[1].split('if (_now-(_last select 3) > _timeout)')[0]
+        guard = text.split('private _returnedToWaypoint =')[1].split('if (_now-(_last select 3) > _timeout')[0]
         for required in ['currentWaypoint _group ==', 'isEqualTo (_waypoint select 1)',
                          'expectedDestination _unit', '(_retry select 0) < 1',
                          '_now-(_retry select 1) >= 8']:
@@ -3381,7 +3381,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('assignedTarget _unit == (_fireTarget select 2)',step)
         self.assertIn('(_fireTarget select 0) == _group',step)
         self.assertIn('(_fireTarget select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])',step)
-        retry=step.split('private _retry = _retries select _forEachIndex;',1)[1].split('if (_now-(_last select 3) > _timeout)',1)[0]
+        retry=step.split('private _retry = _retries select _forEachIndex;',1)[1].split('if (_now-(_last select 3) > _timeout',1)[0]
         self.assertIn('_now-(_last select 3) >= 8',retry)
         self.assertIn('(_retry select 0) < 1',retry)
         self.assertEqual(0,retry.count('_unit doMove'))
@@ -3709,7 +3709,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_bound_retry_is_finite_and_does_not_fabricate_progress(self):
         text = source('cortexFlankStep')
-        retry = text.split('private _retry = _retries select _forEachIndex;')[1].split('if (_now-(_last select 3) > _timeout)')[0]
+        retry = text.split('private _retry = _retries select _forEachIndex;')[1].split('if (_now-(_last select 3) > _timeout')[0]
         self.assertIn('(_retry select 0) < 1', retry)
         self.assertIn('_now-(_retry select 1) >= 8', retry)
         self.assertIn('checkAIFeature "PATH"', retry)
@@ -5685,7 +5685,7 @@ class CortexOperations(unittest.TestCase):
     def test_stalled_bounds_cannot_complete_or_advance(self):
         text = source('cortexFlankStep')
         move = text.split('case "MOVE":')[1].split('case "PAUSE":')[0]
-        self.assertIn('["TIME_LIMIT","STALLED"] select _stalled', move)
+        self.assertIn('["TIME_LIMIT","STALLED"] select (_stalled && {_now <= _moveDeadline})', move)
         self.assertIn('_result = _reason call _end', move)
         self.assertIn('if (_arrived) then', move)
         self.assertNotIn('if (_arrived ||', move)
@@ -6632,7 +6632,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_drill_failure_distinguishes_progress_timeout_and_qa_expiry(self):
         step=source('cortexFlankStep')
-        self.assertIn('["TIME_LIMIT","STALLED"] select _stalled',step)
+        self.assertIn('["TIME_LIMIT","STALLED"] select (_stalled && {_now <= _moveDeadline})',step)
         self.assertIn('(_last select 0)-_remaining >= 0.5',step)
         self.assertIn('CBE_Cortex_DrillFailure',step)
         self.assertIn('currentCommand _unit,expectedDestination _unit',step)

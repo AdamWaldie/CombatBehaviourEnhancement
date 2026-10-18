@@ -373,3 +373,20 @@ class ManoeuvreHelperCommitTests(unittest.TestCase):
         self.assertIn('if !([] call _restoreFeatures) exitWith {_result=0.25}',source)
         self.assertIn('if !(call _restoreFeatures) exitWith {_result=0.25}',source)
         self.assertIn('if (_teamDeferred) exitWith {_result=0.25}',source)
+
+
+class ManoeuvreRetryObservationTests(unittest.TestCase):
+    def test_admitted_retry_gets_observation_time_but_cannot_extend_deadline(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        planning=source.split('private _retry = _retries select _forEachIndex;',1)[1].split('private _moveCommitted=false;',1)[0]
+        for guard in ['(_retry select 0) < 1','_now <= _moveDeadline','_retryPending=true;',
+                      '_now-(_last select 3) > _timeout && {!_retryPending}',
+                      '(_retry select 0) == 0 || {_now-(_retry select 1) >= 8}']:
+            self.assertIn(guard,planning)
+        self.assertNotIn('_last set [3,',planning)
+        commit=source.split('private _moveCommitted=false;',1)[1].split('if (!_moveCommitted)',1)[0]
+        self.assertLess(commit.index('time > _moveDeadline'),commit.index('_unit doMove'))
+        self.assertIn('!= _moveDeadline',commit)
+        self.assertLess(commit.index('_unit doMove'),commit.index('_retry set [1,time]'))
+        self.assertNotIn('set ["boundDeadline"',planning+commit)
+        self.assertIn('["TIME_LIMIT","STALLED"] select (_stalled && {_now <= _moveDeadline})',source)
