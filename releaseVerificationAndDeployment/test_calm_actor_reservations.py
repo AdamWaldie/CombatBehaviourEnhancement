@@ -566,3 +566,19 @@ class RecoveryLivePeerTests(unittest.TestCase):
             self.assertIn(guard,body)
         self.assertLess(body.index('_rejoined='),body.index('_drill set ["recovery",_recovery]'))
         self.assertNotIn('setPos',body)
+
+
+class DrivingQueueDiscoveryAuthorityTests(unittest.TestCase):
+    def test_queue_discovery_cannot_adopt_a_replacement_brain(self):
+        source=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        body=source.split('private _queueClaimAt=',1)[1].split('// Waiting behind traffic',1)[0]
+        for guard in ('call _mayRecoverOrdinaryRoute','isEqualTo _brain','CBE_AIPass_Epoch',
+                      '"cancelled"','"finished"','isEqualTo _queueSeen','isEqualTo _queueRetry'):
+            self.assertIn(guard,body)
+        self.assertEqual(body.count('call _queueCurrent'),2)
+        self.assertIn('!= _queuePrior',body)
+        self.assertIn('!= _queueClaimAt',body)
+        self.assertLess(body.index('if (_queueClaimed)'),body.index('call CBE_fnc_DrivingQueueProposal'))
+        publication=body.split('call CBE_fnc_DrivingQueueProposal;',1)[1]
+        self.assertLess(publication.index('isNil {'),publication.index('call CBE_fnc_DrivingQueueAgreementRequest'))
+        self.assertNotIn('doMove',body)

@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Queue discovery now claims and publishes under the original driving brain/epoch and unchanged traffic observation/retry records. Scheduled discovery cannot adopt a replacement brain for consent submission. This supplies no native queue execution or physical acceptance.
+
 - Recovery retirement now rechecks the selected live teammate identity and both actors at publication, retaining existing 12 m/1.5 m vertical cohesion limits. Stale rally coordinates cannot prove rejoin. Physical navigation and performance remain unverified.
 
 - Separated-actor recovery now copies retry rows and admits each command/attempt journal under the current child, phase and native actor context. Issued attempts persist even if later roster publication yields. Final recovery publication is guarded; physical rejoin freshness and measured cost remain open.

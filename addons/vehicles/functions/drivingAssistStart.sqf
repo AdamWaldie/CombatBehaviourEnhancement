@@ -627,12 +627,33 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {serverTime >= (_queueSeen select 2)} && {serverTime-(_queueSeen select 2) <= 1.5}
                 && {serverTime-(_queueRetry get "since") >= 5} && {(_queueRetry get "since") >= 0}
                 && {serverTime < (_queueRetry get "deadline")} && {serverTime-_queuePrior >= 30}) then {
-                _vehicle setVariable ["CBE_DrivingQueue_ProposalAt",serverTime];
-                private _queueProposal=[_vehicle,_queueSeen select 1,_queueRetry get "deadline"] call CBE_fnc_DrivingQueueProposal;
-                if (call _mayRecoverOrdinaryRoute) then {
-                    _vehicle setVariable ["CBE_DrivingQueue_Proposal",_queueProposal];
-                    if ((_queueProposal getOrDefault ["status",""]) == "PROPOSAL") then {
-                        [_queueProposal] call CBE_fnc_DrivingQueueAgreementRequest;
+                private _queueClaimAt=serverTime;
+                private _queueClaimed=false;
+                private _queueCurrent={
+                    call _mayRecoverOrdinaryRoute
+                        && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
+                        && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                        && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])}
+                        && {(_vehicle getVariable ["CBE_DrivingTrafficSeen",[]]) isEqualTo _queueSeen}
+                        && {(_vehicle getVariable ["CBE_DrivingTrafficRetry",createHashMap]) isEqualTo _queueRetry}
+                        && {serverTime >= (_queueSeen select 2)} && {serverTime-(_queueSeen select 2) <= 1.5}
+                        && {serverTime < (_queueRetry get "deadline")}
+                };
+                isNil {
+                    if (!(call _queueCurrent)
+                        || {(_vehicle getVariable ["CBE_DrivingQueue_ProposalAt",-1e9]) != _queuePrior}) exitWith {};
+                    _vehicle setVariable ["CBE_DrivingQueue_ProposalAt",_queueClaimAt];
+                    _queueClaimed=true;
+                };
+                if (_queueClaimed) then {
+                    private _queueProposal=[_vehicle,_queueSeen select 1,_queueRetry get "deadline"] call CBE_fnc_DrivingQueueProposal;
+                    isNil {
+                        if (!(call _queueCurrent)
+                            || {(_vehicle getVariable ["CBE_DrivingQueue_ProposalAt",-1e9]) != _queueClaimAt}) exitWith {};
+                        _vehicle setVariable ["CBE_DrivingQueue_Proposal",_queueProposal];
+                        if ((_queueProposal getOrDefault ["status",""]) == "PROPOSAL") then {
+                            [_queueProposal] call CBE_fnc_DrivingQueueAgreementRequest;
+                        };
                     };
                 };
             };
