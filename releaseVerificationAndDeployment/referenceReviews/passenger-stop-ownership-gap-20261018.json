@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-18",
+  "status": "VERIFIED_SOURCE_GAP_NO_IMPLEMENTATION_CREDIT",
+  "scope": "Passenger explicit STOP versus CBE-owned ordinary holds",
+  "source_sha256": {
+    "addons/vehicles/functions/cortexPassengerReady.sqf": "9f4f6e2cf36ce31ad43dec285220c449bf16b2147f081032daf996b4f6e96360",
+    "addons/infantry/functions/cortexFlankEnd.sqf": "586151d10c249eff620167e3b839a193a0f3d6965dbe157d0ef1753e12d2e0f6",
+    "addons/infantry/functions/cortexRestoreCalm.sqf": "dd5653b4fdc3213e9f33cb36a5a28e72df95745a7d52055fb50f7128b23a7a05",
+    "addons/infantry/functions/cortexGroupTick.sqf": "4b2c91392453daa30d2d5f442839c2f9b68e5ef8344fd7570a612a000a980436",
+    "addons/vehicles/functions/convoyDismountLocal.sqf": "cd19d6df3068434d2f5802b2607c86ed230b3434c683970c9bb08e6a841943ed"
+  },
+  "findings": [
+    "CortexPassengerReady native task deny list does not explicitly include STOP",
+    "CortexFlankEnd emits ordinary doStop and stores holders as actor membership, without an exact per-actor stop receipt",
+    "CortexRestoreCalm releases ordinary holder commands including STOP/ATTACK/FIRE/SUPPRESS using that membership; search-team cleanup has a separate stronger search-movement receipt",
+    "Calm remount and its bounded continuation use the shared passenger guard; an unconditional STOP denial could reject an owned hold that has not transitioned to follow yet",
+    "Convoy cover cleanup has its own destination-bound task record and must not be treated as interchangeable with ordinary holders"
+  ],
+  "decision": "Do not add a blanket STOP denial or an allow-STOP flag. First implement owner-local per-actor hold receipts across issuers, locality/checkpoint transfer and all return/cancel paths, then permit only exact current CBE-owned hold release before remount. Unknown/new mission stops must yield. Same-value external rewrites remain unobservable without controller cooperation.",
+  "required_next_work": [
+    "Inventory all ordinary hold issuers and cleanup/rejoin/retreat paths",
+    "Bind stop receipt to original actor/group/owner epoch/native route and command identity, with finite lifetime and explicit acknowledgement",
+    "Recheck exact receipt at every native command boundary; preserve player/Zeus/actor-task ownership",
+    "Keep actual native switch/boarding observations separate from admission authority",
+    "Prepare normal and separate HC tests for owned holds, unknown STOP, new route, takeover, expiry, repeated remount and migration"
+  ],
+  "physical": false,
+  "audits": "PAUSED"
+}
