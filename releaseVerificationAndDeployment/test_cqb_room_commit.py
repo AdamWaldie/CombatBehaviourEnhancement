@@ -39,3 +39,22 @@ class RoomCommitTests(unittest.TestCase):
         self.assertLess(body.index('_x doMove _unitTarget'),body.index('if (_x == _point) then {_retriedMover=true}'))
         self.assertLess(body.index('if (_retriedMover) then'),body.index('_retries=_retries+1'))
         self.assertNotIn('serverTime+',body)
+
+    def test_all_building_retries_use_atomic_building_admission_and_record_only_issue(self):
+        text=source()
+        wrapper=text.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]
+        self.assertLess(wrapper.index('isNil {'),wrapper.index('call CBE_fnc_RecoveryStep'))
+        for proof in ('call _mayIssueMovement','call _actorAvailable','call _actorTaskFree',
+                      'call _roomCommandOwned','CortexZeusHeld','_job get "deadline"','_job get "hardDeadline"'):
+            self.assertLess(wrapper.index(proof),wrapper.index('call CBE_fnc_RecoveryStep'))
+        self.assertLess(wrapper.index('_result == "RECOVERING"'),wrapper.index('call _rememberMove'))
+        self.assertEqual(text.count('call CBE_fnc_RecoveryStep'),1)
+        self.assertEqual(text.count('call _recoverClearActor'),4)
+        self.assertNotIn('serverTime+',wrapper)
+        self.assertNotIn('doMove',wrapper)
+    def test_common_recovery_honours_zeus_before_budget_and_native_issue(self):
+        text=(ROOT/'addons/infantry/functions/recoveryStep.sqf').read_text(encoding='utf-8')
+        self.assertEqual(text.count('call CBE_fnc_CortexZeusHeld'),2)
+        final=text.split('isNil {',1)[1]
+        self.assertLess(final.index('CortexZeusHeld'),final.index('_used set [_key,_attempts+1]'))
+        self.assertLess(final.index('CortexZeusHeld'),final.index('_actor doMove _destination'))

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Explicit Zeus interruption vetoes both preflight and final retry issue, independently of
+ * specialist takeover detection; no retry budget is spent while the group is held.
  * Purpose: Makes one bounded native recovery attempt for a stalled participant without enabling disabled AI features, duplicating route commands or delaying the rest of its operation.
  * Locality/authority: Current group owner and current local participant only; local or trusted
  * server call. Final eligibility, strict reservation and live retry budget are checked inside
@@ -18,7 +20,8 @@ if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2} || {isNull _group} || 
 // issue because a Zeus or specialist operation can arrive between an earlier operation step and
 // this isolated retry. Recovery must retire rather than overwrite the newer controller's route.
 if ([_group,false,_actor] call CBE_fnc_CortexExternalTakeover
-    || {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {"YIELDED"};
+    || {[_actor] call CBE_fnc_CompatibilityExternalControl}
+    || {[_group] call CBE_fnc_CortexZeusHeld}) exitWith {"YIELDED"};
 if (group _actor != _group || {vehicle _actor != _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}) exitWith {"INVALID"};
 if (!(_actor checkAIFeature "MOVE") || {!(_actor checkAIFeature "PATH")}
     || {!(simulationEnabled _actor)} || {isObjectHidden _actor}) exitWith {"YIELDED"};
@@ -44,7 +47,8 @@ isNil {
             || {group _actor != _group} || {vehicle _actor != _actor}
             || {!([_actor] call CBE_fnc_CortexCombatEffective)}) exitWith {"INVALID"};
         if ([_group,false,_actor] call CBE_fnc_CortexExternalTakeover
-            || {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {"YIELDED"};
+            || {[_actor] call CBE_fnc_CompatibilityExternalControl}
+    || {[_group] call CBE_fnc_CortexZeusHeld}) exitWith {"YIELDED"};
         private _currentOperation=_group getVariable ["CBE_Operation",createHashMap];
         if (count _currentOperation == 0
             || {(_currentOperation getOrDefault ["generation",-2]) != _generation}

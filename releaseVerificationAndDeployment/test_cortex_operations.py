@@ -1972,7 +1972,7 @@ class CortexOperations(unittest.TestCase):
     def test_clearance_attempts_one_isolated_recovery_before_abandoning_a_room(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         recovery=text.split('private _roomRetryBudget=',1)[1].split('private _pairId=format',1)[0]
-        self.assertIn('call CBE_fnc_RecoveryStep',recovery)
+        self.assertIn('call _recoverClearActor',recovery)
         self.assertIn('_recovery in ["RECOVERING","YIELDED"]',recovery)
         self.assertIn('_retryCounts param [_positionIndex,0]', recovery)
         self.assertIn('_lastPositions=_pair apply {getPosATL _x}',recovery)
@@ -9022,8 +9022,8 @@ class CortexOperations(unittest.TestCase):
     def test_clearance_partner_recovery_is_independent_and_generation_bounded(self):
         text=source('buildingOperationStep')
         block=text.split('// Partner entry recovery is independent',1)[1].split('// Persist retirement',1)[0]
-        self.assertIn('_group,_operationGeneration,_partner,_entryTarget',block)
-        self.assertIn('call CBE_fnc_RecoveryStep',block)
+        self.assertIn('[_partner,_entryTarget] call _recoverClearActor',block)
+        self.assertIn('call _recoverClearActor',block)
         self.assertIn('_receipt set [2,true]',block)
         self.assertNotIn('_lastProgress=',block)
         self.assertNotIn('_cursor=',block)
@@ -9241,7 +9241,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_unit in (_job getOrDefault ["enteredActors",[]])',follow)
         self.assertIn('select [0,24]',follow)
         self.assertIn('_unit doMove _target',follow)
-        self.assertIn('call CBE_fnc_RecoveryStep',follow)
+        self.assertIn('call _recoverClearActor',follow)
         self.assertIn('!(_record select 3)',follow)
         self.assertNotIn('_cleared pushBack',follow)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()

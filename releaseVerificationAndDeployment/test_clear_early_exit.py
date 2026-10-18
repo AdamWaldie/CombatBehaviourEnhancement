@@ -46,7 +46,7 @@ class ClearEarlyExitTests(unittest.TestCase):
                      'serverTime-(_motion select 1) >= 8',
                      '!(_record param [4,false,[true]])',
                      '[_actor] call _exitMovementOwned',
-                     'call CBE_fnc_RecoveryStep', '_record set [4,true]']:
+                     'call _recoverClearActor', '_record set [4,true]']:
             self.assertIn(gate,service)
         self.assertNotIn('_record set [2,',service)
         self.assertNotIn('doMove',service)

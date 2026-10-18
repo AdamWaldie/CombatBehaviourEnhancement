@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * All CQB common-recovery calls share atomic current building/native-task admission and
+ * movement receipt publication; rejected work consumes no retry attempt or command credit.
  * Main room/support native writes and timed retries recheck actual actor/episode authority
  * atomically. Scheduled geometry stays outside; refused writes gain no mover request/retry credit.
  * Partner alternate-entry ranking commits its native order and public attempt atomically against
@@ -628,6 +630,24 @@ private _delay=call {
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };
+    // Keep building authority and generic retry admission in the same native-write transaction.
+    private _recoverClearActor={
+        params ["_actor","_target"];
+        private _result="YIELDED";
+        isNil {
+            if (call _mayIssueMovement && {[_actor] call _actorAvailable}
+                && {[_actor] call _actorTaskFree} && {[_actor] call _roomCommandOwned}
+                && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                && {serverTime <= (_job get "deadline")}
+                && {serverTime <= (_job get "hardDeadline")}) then {
+                _result=[_group,_operationGeneration,_actor,_target] call CBE_fnc_RecoveryStep;
+                if (_result == "RECOVERING" && {call _mayIssueMovement}) then {
+                    [_actor,_target] call _rememberMove;
+                };
+            };
+        };
+        _result
+    };
     // Before exterior actors commit to their first room, honour wholly locked access.
     // Native doMove can traverse a closed door without changing its lock variable.
     // Existing interior occupants are not frozen by this exterior admission barrier.
@@ -724,8 +744,8 @@ private _delay=call {
                                 && {[_actor] call _actorAvailable} && {[_actor] call _actorTaskFree}
                                 && {[_actor] call _exitMovementOwned}
                                 && {call _mayIssueMovement}) then {
-                                private _recovery=[_group,_operationGeneration,_actor,_target] call CBE_fnc_RecoveryStep;
-                                if (_recovery == "RECOVERING") then {[_actor,_target] call _rememberMove};
+                                private _recovery=[_actor,_target] call _recoverClearActor;
+
                                 if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {
                                     _record set [4,true];
                                 };
@@ -1855,8 +1875,8 @@ private _delay=call {
                                 (_job get "pairEntryTargets") set [str _pairIndex,+_anchor];
                                 diag_log format ["CBE CLEAR PARTNER ACCESS: %1",[_job get "generation",_pairIndex,netId _partner,+_anchor]];
                             };
-                            private _recovery=[_group,_operationGeneration,_partner,_entryTarget] call CBE_fnc_RecoveryStep;
-                            if (_recovery == "RECOVERING") then {[_partner,_entryTarget] call _rememberMove};
+                            private _recovery=[_partner,_entryTarget] call _recoverClearActor;
+
                             if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {
                                 _receipt set [2,true];
                             };
@@ -2671,10 +2691,10 @@ private _delay=call {
                                     private _roomRetryBudget=3*_failureThreshold;
                                     private _recovery = if (_operationGeneration >= 0
                                         && {(_retryCounts param [_positionIndex,0]) <= _roomRetryBudget}) then {
-                                        [_group,_operationGeneration,_point,_target] call CBE_fnc_RecoveryStep
+                                        [_point,_target] call _recoverClearActor
                                     } else {"EXHAUSTED"};
                                     if (_recovery in ["RECOVERING","YIELDED"]) then {
-                                        if (_recovery == "RECOVERING") then {[_point,_target] call _rememberMove};
+
                                         _lastProgress=_now;
                                         _lastPositions=_pair apply {getPosATL _x};
                                         // A native task owns movement while yielding. Do not restart
@@ -3021,8 +3041,8 @@ private _delay=call {
                         _record set [1,_remaining]; _record set [2,_now];
                     };
                     if (!(_record select 3) && {_now-(_record select 2) >= 12} && {_motionStalled}) then {
-                        private _recovery=[_group,_operationGeneration,_unit,_target] call CBE_fnc_RecoveryStep;
-                        if (_recovery == "RECOVERING") then {[_unit,_target] call _rememberMove};
+                        private _recovery=[_unit,_target] call _recoverClearActor;
+
                         if (_recovery in ["RECOVERING","EXHAUSTED","INVALID"]) then {_record set [3,true]};
                     };
                     // Retire this actor's failed destination, not the actor or a real visit.

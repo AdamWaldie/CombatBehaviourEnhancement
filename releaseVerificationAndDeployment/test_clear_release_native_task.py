@@ -49,7 +49,7 @@ class EarlyExitNativeTaskTests(unittest.TestCase):
         self.assertIn('_record set [3,"DIVERTED"]',service)
         self.assertIn('_job set ["egressFailed",true]',service)
         recovery=service.split('serverTime-(_motion select 1) >= 8',1)[1]
-        self.assertLess(recovery.index('call _exitMovementOwned'),recovery.index('call CBE_fnc_RecoveryStep'))
+        self.assertLess(recovery.index('call _exitMovementOwned'),recovery.index('call _recoverClearActor'))
 
 
 class DoorObservationAuthorityTests(unittest.TestCase):
