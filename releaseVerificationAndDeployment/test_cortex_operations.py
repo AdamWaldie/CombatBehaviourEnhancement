@@ -8984,7 +8984,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('== "BUILDING_MOVED"',case)
         self.assertIn('[_actor,_movedHouse,_x] call _observedRoomVisit',case)
         self.assertIn('_transformEntries findIf {!_x} < 0',case)
-        self.assertEqual(case.count('call CBE_fnc_CortexClearBuilding'),2)
+        self.assertEqual(case.count('call CBE_fnc_CortexClearBuilding'),4)
         self.assertNotIn('_actor setPos',case)
 
     def test_clearance_entry_timing_comes_from_independent_physical_visits(self):

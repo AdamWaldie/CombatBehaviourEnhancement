@@ -14,6 +14,8 @@
  * - retires inherited exact pass-leg receipts in the existing sixteen-vehicle chunk, including
  *   vehicle locality that arrives after group adoption, without replaying the old pass;
  * - caches locally owned, eligible artillery for fire support and counter-battery;
+ * - resumes clearance only against its observed durable order and generation; cancelled or
+ *   replaced snapshots cannot be promoted to fresh clearance tasks;
  * - re-applies defence-line orders after a locality change;
  * - installs the missile-warning handler on every locally owned, eligible AI aircraft. A warning
  *   starts one finite, threat-tracked countermeasure sequence with two energy-preserving break
@@ -114,7 +116,7 @@ private _spotters=_job get "spotters";
         };
         private _clear = _group getVariable ["CBE_AIPass_ClearOrder", []];
         if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}) then {
-            [_group, _clear select 0, createHashMapFromArray [["resume", true]]] call CBE_fnc_CortexClearBuilding;
+            [_group, _clear select 0, createHashMapFromArray [["resume", true],["resumeOrder",+_clear],["resumeGeneration",_group getVariable ["CBE_AIPass_ClearGeneration",0]]]] call CBE_fnc_CortexClearBuilding;
         };
         // Aircraft occupants have dedicated flight, flare, missile-reaction and airborne controllers.
         // They may remain generally Cortex-eligible for those systems, but must never acquire the

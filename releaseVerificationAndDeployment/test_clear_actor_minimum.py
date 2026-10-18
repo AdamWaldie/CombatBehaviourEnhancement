@@ -25,7 +25,8 @@ class ClearActorMinimumTests(unittest.TestCase):
         roster=s.split('private _available =',1)[1].split('// Natural contact',1)[0]
         self.assertIn('_resume || {simulationEnabled _x && {!isObjectHidden _x}}',roster)
         self.assertLess(s.index('private _resume ='),s.index('private _available ='))
-        self.assertIn('(_previous select 0) == _building',s)
+        self.assertIn('(_previous param [0,objNull,[objNull]]) != _building',s)
+        self.assertIn('RESUME_TARGET_CHANGED',s)
         natural=src('cortexBuildingContact').split('private _capable=',1)[1].split('// A natural entry',1)[0]
         self.assertIn('simulationEnabled _x',natural)
         self.assertIn('!isObjectHidden _x',natural)

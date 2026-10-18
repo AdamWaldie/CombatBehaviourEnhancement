@@ -1473,6 +1473,7 @@ private _transformStarted=_transformAccepted && {[{
     if (_started) then {_transformOriginalGeneration=_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]};
     _started
 },120] call _wait};
+private _originalResumeOrder=+(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]);
 private _movedPosition=(getPosATL _movedHouse) vectorAdd [30,0,0];
 private _moveApplied=false;
 isNil {
@@ -1491,6 +1492,18 @@ private _transformCancelled=[{
 },15] call _wait;
 ["CLEAR-transform-stale-operation-cancelled",_transformStarted && {_transformCancelled},
     str (_transformGroup getVariable ["CBE_OperationResult",[]])] call _check;
+// Replay only an actual previous production snapshot; never manufacture a durable order.
+private _cancelledResumeAccepted=true;
+private _cancelledResumeStayedRetired=false;
+isNil {
+    _cancelledResumeAccepted=[_transformGroup,_movedHouse,createHashMapFromArray [
+        ["resume",true],["resumeOrder",_originalResumeOrder],["resumeGeneration",_transformOriginalGeneration]
+    ]] call CBE_fnc_CortexClearBuilding;
+    _cancelledResumeStayedRetired=(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []
+        && {!(_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false])};
+};
+["CLEAR-transform-cancelled-resume-refused",_transformCancelled && {!_cancelledResumeAccepted}
+    && {_cancelledResumeStayedRetired},str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
 private _transformReordered=[_transformGroup,_movedHouse] call CBE_fnc_CortexClearBuilding;
 ["CLEAR-transform-fresh-order-accepted",_transformCancelled && {_transformReordered},
     str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
@@ -1499,6 +1512,21 @@ private _freshCoverage=_transformReordered && {(_freshOrder param [1,[]]) isEqua
     && {(_freshOrder param [13,[]]) isEqualTo [getPosWorld _movedHouse,vectorDir _movedHouse,vectorUp _movedHouse]}
     && {(_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]) > _transformOriginalGeneration};
 ["CLEAR-transform-fresh-coverage-reset",_transformCancelled && {_freshCoverage},str _freshOrder] call _check;
+private _replacedResumeAccepted=true;
+private _replacementPreserved=false;
+isNil {
+    private _liveOrder=+(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]);
+    private _liveGeneration=_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1];
+    _replacedResumeAccepted=[_transformGroup,_movedHouse,createHashMapFromArray [
+        ["resume",true],["resumeOrder",_originalResumeOrder],["resumeGeneration",_transformOriginalGeneration]
+    ]] call CBE_fnc_CortexClearBuilding;
+    _replacementPreserved=_liveOrder isNotEqualTo []
+        && {(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _liveOrder}
+        && {(_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]) == _liveGeneration}
+        && {_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false]};
+};
+["CLEAR-transform-replaced-resume-refused",_freshCoverage && {!_replacedResumeAccepted}
+    && {_replacementPreserved},str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
 private _transformEntries=_transformActors apply {false};
 private _movedRooms=_movedHouse buildingPos -1;
 private _transformEntry=[{
@@ -1510,7 +1538,7 @@ private _transformEntry=[{
     } forEach _transformActors;
     _transformEntries findIf {!_x} < 0
 },120] call _wait;
-["CLEAR-transform-reorder-physical-entry",_transformCancelled && {_freshCoverage} && {_transformEntry},
+["CLEAR-transform-reorder-physical-entry",_transformCancelled && {_freshCoverage} && {_replacementPreserved} && {_transformEntry},
     str [_movedPosition,_movedRooms,_transformEntries,_transformActors apply {getPosASL _x}]] call _check;
 [_transformGroup] call CBE_fnc_CortexClearRelease;
 missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];

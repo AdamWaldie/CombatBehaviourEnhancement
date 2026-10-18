@@ -8,6 +8,8 @@
  * unproven resume transforms refuse before handoff; explicit fresh orders reset coverage.
  * Geometry is captured before queries and rechecked before replacement and publication.
  * The worker retains that original snapshot, never a recaptured post-planning pose.
+ * Resume is adoption only: missing, replaced or different-target orders never become fresh tasks.
+ * Discovery supplies its exact durable order/generation; admission rechecks them before handoff.
  * Orders an AI group to clear a building room by room.
  *
  * Admission validates finite, distinct model positions with a 512-position budget before
@@ -54,7 +56,10 @@
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
  * 1: target <OBJECT or ARRAY> - the building, or a position (the nearest building is used)
  * 2: options <HASHMAP> (optional) - resume (default false), preserveBrain (default false for an
- *    explicit order) and operation-specific controls. Natural contact entry uses preserveBrain so
+ *    explicit order) and operation-specific controls. Internal resumeOrder (ARRAY) and
+ *    resumeGeneration (NUMBER) default to the entry snapshot; discovery passes its observed
+ *    order/generation. A cancelled or replaced snapshot refuses without retiring a successor.
+ *    Natural contact entry uses preserveBrain so
  *    live fire control and contact transitions continue around the single building movement owner.
  *    continueRoute (BOOL, default false) returns a successful clear to its unchanged plain MOVE;
  *    natural contact callers opt in. Failed/gated/no-route work retains post-clear settlement.
@@ -102,9 +107,31 @@ private _refuse={
 if !([_group] call CBE_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
 if (_target isEqualType [] && {!(count _target in [2,3])
     || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {["INVALID_TARGET_POSITION"] call _refuse};
+private _admissionGeneration=_group getVariable ["CBE_AIPass_ClearGeneration",0];
+private _previous = _group getVariable ["CBE_AIPass_ClearOrder", []];
+private _resumeRequested=_options getOrDefault ["resume",false];
+if !(_resumeRequested isEqualType true) exitWith {["INVALID_RESUME"] call _refuse};
+private _expectedOrder=_options getOrDefault ["resumeOrder",_previous];
+private _expectedGeneration=_options getOrDefault ["resumeGeneration",_admissionGeneration];
+private _resumeCurrent={
+    local _group && {_previous isNotEqualTo []}
+        && {_expectedOrder isEqualTo _previous} && {_expectedGeneration isEqualTo _admissionGeneration}
+        && {(_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _admissionGeneration}
+        && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _previous}
+};
+if (_resumeRequested && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
 private _building = if (_target isEqualType objNull) then {_target} else {nearestBuilding _target};
-if (isNull _building) exitWith {if (_options getOrDefault ["resume", false]) then {[_group] call CBE_fnc_CortexClearRelease}; ["TARGET_ABSENT"] call _refuse};
-if (!alive _building) exitWith {["TARGET_DESTROYED"] call _refuse};
+if (_resumeRequested && {(_previous param [0,objNull,[objNull]]) != _building}) exitWith {
+    ["RESUME_TARGET_CHANGED"] call _refuse
+};
+if (isNull _building) exitWith {
+    if (_resumeRequested && {call _resumeCurrent}) then {[_group] call CBE_fnc_CortexClearRelease};
+    ["TARGET_ABSENT"] call _refuse
+};
+if (!alive _building) exitWith {
+    if (_resumeRequested && {call _resumeCurrent}) then {[_group] call CBE_fnc_CortexClearRelease};
+    ["TARGET_DESTROYED"] call _refuse
+};
 if !(missionNamespace getVariable ["CBE_AIPass_Active", false]) exitWith {
     diag_log format ["[CBE] %1 clear building refused: the Smart AI Pass is not running on this machine.", _group];
     false
@@ -149,9 +176,7 @@ private _ownedRecall={
         && {(_recall select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_recall select 2) == _leader} && {time < (_recall select 3)}
 };
-private _admissionGeneration=_group getVariable ["CBE_AIPass_ClearGeneration",0];
-private _previous = _group getVariable ["CBE_AIPass_ClearOrder", []];
-private _resume = _options getOrDefault ["resume", false] && {_previous isNotEqualTo []} && {(_previous select 0) == _building};
+private _resume = _resumeRequested;
 if (_resume && {(_previous param [13,[],[[]]]) isNotEqualTo _admissionTransform}) exitWith {
     // Unknown/changed pose cannot carry old room visits into a new world location.
     // Retire only the order this call actually observed, never a successor clear.
@@ -261,6 +286,7 @@ private _deadline = if (_resume) then {_previous select 2} else {serverTime + 24
 // already published deadline rather than gaining a fresh lifetime on each owner.
 private _lifetime = (240 max (60*count _positions)) min 900;
 private _hardDeadline = if (_resume) then {_previous param [10,_deadline,[0]]} else {serverTime+_lifetime};
+if (_resume && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
 if (serverTime >= (_deadline min _hardDeadline)) exitWith {[_group] call CBE_fnc_CortexClearRelease; false};
 // Replacing a clear must retire its engine movement orders as well as its queued job.
 // Validate the new building/team first; an invalid request must preserve the current order.
@@ -298,6 +324,7 @@ _nativeOrderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
 // A true resume retains its original reversible policy across owners.
 if (!_resume) then {_baseAttack=attackEnabled _leader};
 if (_previous isEqualTo []) then {_baseBehaviour=behaviour _leader};
+if (_resume && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
 if !(call _admissionStable) exitWith {
     if (_resume && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _previous}
         && {(_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _admissionGeneration}) then {
