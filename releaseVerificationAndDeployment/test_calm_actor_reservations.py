@@ -611,3 +611,16 @@ class ConvoySemanticPublicationTests(unittest.TestCase):
         self.assertLess(publication.index('isNil {'),publication.index('_brain set ["phase",_phase]'))
         self.assertLess(publication.index('call _stepCurrent'),publication.index('setVariable ["CBE_Convoy_Brain_State"'))
         self.assertIn('if (!_stepPublished) exitWith',publication)
+
+
+class ConvoyTerminalRetirementTests(unittest.TestCase):
+    def test_final_slots_are_rechecked_after_potentially_yielding_cleanup(self):
+        source=(ROOT/'addons/main/fsm/convoyOperation.fsm').read_text().replace('""','"')
+        finished=source.split('class Finished {',1)[1]
+        cleanup=finished.index('call CBE_fnc_ConvoyReleaseLocal')
+        tail=finished[cleanup:]
+        self.assertLess(tail.index('isNil {'),tail.index('setVariable ["CBE_Convoy_Brain",nil]'))
+        for proof in ('isEqualTo _brain','CBE_Convoy_LocalJobToken','CBE_Convoy_ReceivedRevision'):
+            self.assertIn(proof,tail)
+        self.assertEqual(tail.count('setVariable ["CBE_Convoy_Brain",nil]'),1)
+        self.assertEqual(tail.count('setVariable ["CBE_Convoy_Brain_FSM",nil]'),1)

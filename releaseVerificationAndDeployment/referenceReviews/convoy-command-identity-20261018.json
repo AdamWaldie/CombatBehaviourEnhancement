@@ -4,7 +4,8 @@
   "sources": {
     "addons/vehicles/functions/convoyTick.sqf": "51e31cdc4661144ce8b5e191c05e35478be98bc5005f06db2bd73e5a515b2607",
     "addons/vehicles/functions/convoyOperationStep.sqf": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6",
-    "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240"
+    "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240",
+    "addons/main/fsm/convoyOperation.fsm": "563b63383113c0e2c7fdbee0e350bdf224a52200d356c327a16663b8f8c17172"
   },
   "finding": "Per-command helper checked current crew/external availability but not original brain/job/registry/configuration/epoch. Lead and two follower smoothing journals could record rejected caps.",
   "implementation": "Capture original tick brain/token/registry revision/epoch and registry row index. Each existing command helper refuses changed/cancelled/finished brain, token, epoch, configuration or indexed registry row; row lookup is constant-time after one entry search. Lead and PACE/TRAIL follower cap journals move beside forceSpeed in their admitted transactions.",
@@ -15,10 +16,10 @@
     "Physical mixed tracked/wheeled step-off, braking, gaps, replacements, HC and performance remain unaccepted."
   ],
   "validation": {
-    "tests": 1355,
-    "log": ".qa/cbe-convoy-phase-publication-build.log",
+    "tests": 1356,
+    "log": ".qa/cbe-convoy-terminal-retirement-build.log",
     "exitCode": 0,
-    "packageFingerprint": "f65e91dbbd19c220692df379461c113bc890d16d95d3b2118c1a9b1f3da88b8e"
+    "packageFingerprint": "80cf42ae948b79fa58ccef1c899f84906db1c1e881cb2d9bf145990b24740737"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
@@ -26,5 +27,10 @@
     "finding": "OperationStep checked identity only before scheduled ConvoyTick; later phase/counters/follow-up timing could publish after replacement.",
     "implementation": "Post-tick and final isNil checks retain original epoch/brain/job/configuration/revision/indexed registry row, uncancelled/unfinished state and no Zeus/external owner. Final local-state identity must match; phase/counters/timing/public snapshot publish together. Refusal cancels only this callback brain.",
     "limits": "No new worker or geometry query; actual interruption, same-value provenance, cached state freshness and measured cost remain unverified."
+  },
+  "terminalRetirement": {
+    "finding": "Finished checked brain before calling potentially yielding release, then cleared brain/FSM slots unconditionally inside that older outer branch.",
+    "implementation": "Post-release isNil requires same brain, original job token and registry revision before clearing both slots.",
+    "limits": "Only final slots; prior public terminal snapshot and ReleaseLocal internal state/policy/path cleanup remain separate review work. Physical replacement race and overhead unverified."
   }
 }

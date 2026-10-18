@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Convoy FSM final retirement now rechecks original brain/job/registry after cleanup before clearing brain/FSM slots. A replacement keeps its slots. Cleanup-internal policy/path writes and physical handover still require review and validation.
+
 - Convoy FSM callbacks now recheck original owner epoch, brain/job/configuration and registry after the physical tick and atomically before phase/counter/next-step publication. Replaced callbacks retire without publishing those results. Physical interruption and cost remain unverified.
 
 - Shared convoy command admission now binds the original brain/configuration, job token, registry revision and owner epoch. Lead/follower smoothing cap records publish with admitted speed commands rather than rejected proposals. Mixed-column stop/start and measured cost remain unverified; spacing tuning is unchanged.
