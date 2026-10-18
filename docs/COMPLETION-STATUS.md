@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Distributed performance sampling now reads legacy/current callback schemas, preserves unknown context and reports missing callback timing as -1 instead of zero. Context-presence flags do not count unique callbacks or prove coverage. No new benchmark or performance acceptance is claimed.
+
 - Execution-context correction: normal shared-scheduler jobs are called from the CBA PFH and run unscheduled. Earlier scheduled-geometry/intra-call scheduler-yield descriptions were overbroad, not demonstrated races. The budget applies between jobs. Actual canSuspend is now captured in the bounded callback ring; older samples stay unknown. Added guard/copy/hull cost still requires measurement.
 
 - Normal wheeled convoy QA now prepares rapid public HALT/resume replacement followed by old-FSM retirement, newest applied-cap checks and every vehicle travelling 25 m forward. The fixture is unrun and does not prove every race timing, HC or physical acceptance.
