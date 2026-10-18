@@ -364,3 +364,47 @@ class DrivingPassPlanTests(unittest.TestCase):
         finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text()
         self.assertIn('(_watch select 2) == (_brain getOrDefault ["ownerEpoch",-1])',finish)
         self.assertIn('(_watch select 3) == (_brain getOrDefault ["generation",-1])',finish)
+
+    def test_issue_rejoins_forward_path_before_any_native_write(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        issue=s.split('private _issue={',1)[1].split('if (!(_work get "issued")',1)[0]
+        for guard in ('_distance >= 6','_distance <= 35','_height <= 2','>= cos 20',
+                      'count _path <= 128','count _joined > 128','_travel > 350',
+                      '_path select [_join+1]','_path=_joined',
+                      '_pose isEqualTo [getPosASL _vehicle,vectorDir _vehicle,vectorUp _vehicle]',
+                      'serverTime < (_work get "deadline")','_pairContext isEqualTo',
+                      '["outPath",_path apply {+_x}]'):
+            self.assertIn(guard,issue)
+        for check in ('call CBE_fnc_DrivingPassGeometry','call CBE_fnc_DrivingPassTraffic',
+                      'getOrDefault ["blocked",true]','call _current'):
+            self.assertLess(issue.index(check),issue.index('doStop _driver'))
+        self.assertNotIn('set ["deadline",',issue)
+
+    def test_join_sampling_respects_real_geometry_station_budget(self):
+        import math
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('ceil ((_originASL distance2D _joinASL)/5)',s)
+        self.assertIn('vectorMultiply (_i/_segments)',s)
+        # Independent envelope: 6..35m connector, <=5m segments, <=8 stations.
+        for tenths in range(60,351):
+            length=tenths/10
+            segments=math.ceil(length/5)
+            self.assertLessEqual(length/segments,5)
+            self.assertLessEqual(segments+1,8)
+            rays=3*(segments+1)+9*segments+9*(segments+1)
+            self.assertLessEqual(rays,159)
+        geometry=(ROOT/'addons/vehicles/functions/drivingPathGeometry.sqf').read_text(encoding='utf-8')
+        self.assertIn('_length > 8.01',geometry)
+
+    def test_return_scan_never_issues_path_on_same_callback(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        scan=s.split('if (_phase == "RETURN_SCAN") exitWith {',1)[1].split('if (_phase == "RETURN_READY")',1)[0]
+        self.assertIn('_phase="RETURN_READY"',scan)
+        self.assertNotIn('call _issue',scan)
+        ready=s.split('if (_phase == "RETURN_READY") exitWith {',1)[1].split('if (_phase == "RETURN")',1)[0]
+        self.assertIn('RETURN_JOIN_EXPIRED',ready)
+        self.assertIn('RETURN_JOIN_REFUSED',ready)
+        self.assertIn('call _issue',ready)
+        initial=s.split('if !(_work get "issued") exitWith {',1)[1].split('if (_phase == "OUT"',1)[0]
+        self.assertIn('[true,_work get "cap","OUT"]',initial)
+        self.assertNotIn('call CBE_fnc_DrivingPassTraffic',initial)
