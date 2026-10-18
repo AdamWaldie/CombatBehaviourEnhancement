@@ -2,10 +2,11 @@
  * Author: WaldoTheWarfighter
  * Purpose: Applies a short, local danger posture selected by the danger FSM without replacing an active CBE or external movement operation.
  * Locality/authority: Runs where the observed actor and its group are local. It changes only group behaviour and combat mode that it records as owned. Explicit BLUE/GREEN hold-fire discipline remains authoritative.
+ * Restoration atomically rechecks the exact lease, actor/group locality, epoch and generation.
  * Cleanup may retire a dead observer's group lease using a surviving local posture anchor. New reactions require a live observer.
  * Repeat/JIP: One public lease contains prior/applied values, operation generation, locality epoch and owner. Repeated events extend the lease; restore changes only values still matching CBE's application and discards its lease on external takeover. DangerStep owns the finite response context.
  * Arguments: 0 actor <OBJECT>; 1 cause <STRING, RESTORE or RELEASE>; 2 approximate danger position <ARRAY, []>; 3 classified action <STRING, "">.
- * Return Value: STRING - RESTORED, ASSESS, POSTURE or IGNORED.
+ * Return Value: STRING - RESTORED, ASSESS, POSTURE, YIELDED or IGNORED.
  * Current callers: DangerStep and CortexGroupTick cleanup.
  * Example: [leader group player,"SUPPRESSED",getPosATL player,"HIDE"] call CBE_fnc_DangerReact;
  */
@@ -13,7 +14,7 @@ params [["_actor",objNull,[objNull]],["_cause","RESTORE",[""]],["_position",[],[
 if (isNull _actor || {!local _actor} || {!alive _actor && {!(_cause in ["RESTORE","RELEASE"])}}) exitWith {"IGNORED"};
 private _group=group _actor;
 if (isNull _group || {!local _group}) exitWith {"IGNORED"};
-private _lease=_group getVariable ["CBE_Danger_ReactionLease",[]];
+private _lease=+(_group getVariable ["CBE_Danger_ReactionLease",[]]);
 private _generation=_group getVariable ["CBE_OperationGeneration",0];
 private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _leaseOwned=count _lease == 8
@@ -25,31 +26,41 @@ private _leaseOwned=count _lease == 8
 // externally changed, or restore a stale posture over the new leader.
 private _postureActor=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _postureActor) then {_postureActor=leader _group};
-if (_cause in ["RESTORE","RELEASE"] && {!([_postureActor] call CBE_fnc_CortexCombatEffective)}) exitWith {
-    // No surviving local posture owner remains. Retire metadata, never command a dead group.
-    _group setVariable ["CBE_Danger_ReactionLease",nil,true];
-    "YIELDED"
-};
-// Use the shared takeover decision used by every operation cleanup. A partial copy here previously
-// missed player-controlled members and could restore a short CBE posture over a newer controller.
+// Restore has a separate short commit boundary. Pending scheduled callbacks must not erase
+// a renewed response or restore posture after actor/group locality or generation changes.
 private _yieldToOwner=[_group] call CBE_fnc_CortexExternalTakeover;
 if (_cause in ["RESTORE","RELEASE"]) exitWith {
-    // Never restore a CBE posture over a curator, player or specialist controller. The old lease
-    // has no authority after that handover, so discard it instead of guessing what to restore.
-    if (_yieldToOwner || {count _lease > 0 && {!_leaseOwned}}) exitWith {
-        _group setVariable ["CBE_Danger_ReactionLease",nil,true];
-        "YIELDED"
+    private _restoreResult="IGNORED";
+    isNil {
+        _restoreResult=call {
+            if (isNull _actor || {!local _actor} || {group _actor != _group} || {!local _group}
+                || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                || {_generation != (_group getVariable ["CBE_OperationGeneration",0])}
+                || {(_group getVariable ["CBE_Danger_ReactionLease",[]]) isNotEqualTo _lease}) exitWith {"IGNORED"};
+            _postureActor=[_group] call CBE_fnc_CortexGroupAnchor;
+            if (isNull _postureActor) then {_postureActor=leader _group};
+            // No surviving local posture owner remains: retire this exact metadata only.
+            if (!([_postureActor] call CBE_fnc_CortexCombatEffective)) exitWith {
+                _group setVariable ["CBE_Danger_ReactionLease",nil,true];
+                "YIELDED"
+            };
+            _yieldToOwner=[_group] call CBE_fnc_CortexExternalTakeover;
+            // Never restore over a curator/player/specialist. Discard only the captured lease.
+            if (_yieldToOwner || {count _lease > 0 && {!_leaseOwned}}) exitWith {
+                _group setVariable ["CBE_Danger_ReactionLease",nil,true];
+                "YIELDED"
+            };
+            // RESTORE waits for expiry; explicit RELEASE relinquishes unchanged owned values now.
+            if (_leaseOwned && {_cause == "RELEASE" || {time >= (_lease select 4)}}) then {
+                _lease params ["_behaviour","_ownedBehaviour","_combatMode","_ownedCombatMode"];
+                if (_behaviour != _ownedBehaviour && {behaviour _postureActor == _ownedBehaviour}) then {_group setBehaviour _behaviour};
+                if (_combatMode != _ownedCombatMode && {combatMode _group == _ownedCombatMode}) then {_group setCombatMode _combatMode};
+                _group setVariable ["CBE_Danger_ReactionLease",nil,true];
+                "RESTORED"
+            } else {"ASSESS"}
+        };
     };
-    // RESTORE waits for the finite response lease to expire. RELEASE is used by a Zeus/new-order,
-    // disable or locality handover and must relinquish only the values this response still owns
-    // immediately; otherwise the old COMBAT/ROE posture can outlive the controller that set it.
-    if (_leaseOwned && {_cause == "RELEASE" || {time >= (_lease select 4)}}) then {
-        _lease params ["_behaviour","_ownedBehaviour","_combatMode","_ownedCombatMode"];
-        if (_behaviour != _ownedBehaviour && {behaviour _postureActor == _ownedBehaviour}) then {_group setBehaviour _behaviour};
-        if (_combatMode != _ownedCombatMode && {combatMode _group == _ownedCombatMode}) then {_group setCombatMode _combatMode};
-        _group setVariable ["CBE_Danger_ReactionLease",nil,true];
-        "RESTORED"
-    } else {"ASSESS"}
+    _restoreResult
 };
 if !(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM"]) exitWith {"IGNORED"};
 if (_yieldToOwner) exitWith {"IGNORED"};

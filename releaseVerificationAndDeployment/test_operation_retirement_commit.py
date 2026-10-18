@@ -68,6 +68,16 @@ class OperationRetirement(unittest.TestCase):
         for field in ('waypointDescription','waypointPosition','waypointType','waypointCompletionRadius'):
             self.assertIn(field,geometry)
 
+    def test_danger_restore_owns_exact_lease_at_native_boundary(self):
+        text=(ROOT/'addons/infantry/functions/dangerReact.sqf').read_text(encoding='utf-8')
+        restore=text.split('private _restoreResult="IGNORED";',1)[1].split('if !(_cause in ["HIT"',1)[0]
+        for proof in ('isNil {','!local _actor','group _actor != _group','!local _group',
+                      'CBE_AIPass_Epoch','CBE_OperationGeneration','isNotEqualTo _lease'):
+            self.assertLess(restore.index(proof),restore.index('setVariable ["CBE_Danger_ReactionLease"'))
+            self.assertLess(restore.index(proof),restore.index('_group setBehaviour'))
+        self.assertLess(restore.index('CBE_fnc_CortexExternalTakeover'),restore.index('_group setCombatMode'))
+        self.assertIn('private _lease=+(',text)
+
     def test_permission_restore_consumes_only_current_lease_in_atomic_scope(self):
         text=(ROOT/'addons/core/functions/operationRestore.sqf').read_text(encoding='utf-8')
         for proof in ('isNil {','_current isNotEqualTo _operation','ownerEpoch','count _members > 64',
