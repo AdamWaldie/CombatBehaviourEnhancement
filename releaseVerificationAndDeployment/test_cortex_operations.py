@@ -6714,7 +6714,9 @@ class CortexOperations(unittest.TestCase):
         commitment=step.split('"START","ASSAULT_COMMITTED"]')[1].split('} else {')[0]
         self.assertIn('_drill set ["index",count _points-2]',commitment)
         self.assertIn('_drill set ["teamTurn",0]',commitment)
-        self.assertIn('call _issue',commitment)
+        self.assertIn('_holdIssue=true',commitment)
+        self.assertIn('if (_holdIssue) then {call _issue}',step)
+        self.assertLess(step.index('if (!_holdCommitted) exitWith'),step.index('if (_holdIssue) then {call _issue}'))
         self.assertNotIn('pauseUntil',commitment)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombat.sqf').read_text()
         self.assertIn('-transition-assault-no-idle-turn',qa)

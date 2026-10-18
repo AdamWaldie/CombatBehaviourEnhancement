@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- HOLD assault-route publication now rechecks current phase, roster, route, native actor tasks, feature and reported objective after scheduled avenue selection. Refused proposals defer without publishing an assault or replacing their retry delay with immediate rescheduling. Physical timing remains unverified.
+
 - Consolidation enrollment and its pending START now commit together after current task, roster, route and actor-native checks. Refused issue cannot leave HOLD falsely eligible for completion. Physical follow-through and tactical layout remain unverified.
 
 - Elapsed manoeuvre PAUSE commits its next index/turn and START phase together under current-task checks.

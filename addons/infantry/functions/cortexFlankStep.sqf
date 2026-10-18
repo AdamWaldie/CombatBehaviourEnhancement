@@ -1283,43 +1283,74 @@ switch (_drill get "stage") do {
                 private _clear=_enemyPos getPos [20,_crossingDirection];
                 _assaultCandidates pushBack [_approach,_clear];
             } forEach [0,-15,15,-30,30];
+            private _holdIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"];
+            private _holdPoints=_points apply {[+(_x select 0),_x select 1]};
+            private _holdRoster=+(_drill get "units");
+            private _holdTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+            private _holdNative=_fit apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
             private _assaultRoute=if (_assault) then {
                 [_centroid,_assaultCandidates,_enemyPos] call CBE_fnc_CortexSelectAvenue
             } else {[]};
-            if (_assaultRoute isNotEqualTo []) then {
-                private _approachPoint=+(_assaultRoute select 0);
-                private _clearPoint=+(_assaultRoute select 1);
-                _assaultDirection=_approachPoint getDir _clearPoint;
-                // Snapshot the reported objective. New reports must not drag this crossing
-                // behind the actors or reverse their frontage halfway through the assault.
-                _drill set ["assaulting", true];
-                _drill set ["assaultObjective",+_enemyPos];
-                _drill set ["assaultDirection",_assaultDirection];
-                _drill set ["assaultGrenade",random 1 < ([_group,"assaultChance"] call CBE_fnc_CortexProfile)];
-                _points pushBack [_approachPoint, "ASSAULT"];
-                _points pushBack [_clearPoint, "CLEAR"];
-                missionNamespace setVariable ["CBE_AIPass_Assaults", (missionNamespace getVariable ["CBE_AIPass_Assaults", 0]) + 1];
-                // Route selection already committed a safe avenue. Preserve the diagnostic
-                // transition, then issue its first approach in this same budgeted group step.
-                [_group,_drill,"START","ASSAULT_COMMITTED"] call CBE_fnc_CortexDrillSetStage;
-                _drill set ["teamTurn",0];
-                _drill set ["index",count _points-2];
-                call _issue;
-            } else {
-                if ((_drill getOrDefault ["type","FLANK"]) == "FLANK" && {_teams isEqualTo []}) then {
-                    // No assault is a valid tactical choice, not permission to leave
-                    // the leader and covering element permanently at the old position.
-                    _drill set ["finishFlank",true];
-                    _drill set ["pauseUntil",_now];
-                } else {_result = "COMPLETE" call _end};
+            private _holdCommitted=false;
+            private _holdComplete=false;
+            private _holdIssue=false;
+            isNil {
+                if (!(call _helperCurrent)
+                    || {(_drill getOrDefault ["stage",""]) != "HOLD"}
+                    || {!([_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"] isEqualTo _holdIdentity)}
+                    || {time < (_drill get "pauseUntil")}
+                    || {(_drill get "points") isNotEqualTo _holdPoints}
+                    || {(_drill get "units") isNotEqualTo _holdRoster}
+                    || {(_drill getOrDefault ["teams",[]]) isNotEqualTo _holdTeams}
+                    || {(_drill getOrDefault ["assaulting",false]) != _assaulting}
+                    || {([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled) != _assaultEnabled}
+                    || {(_state getOrDefault ["moraleState","STEADY"]) != "STEADY" && {_assault}}
+                    || {!_support && {(_state getOrDefault ["enemyPos",_drill get "enemyPos"]) isNotEqualTo _enemyPos}}
+                    || {_holdNative findIf {
+                        _x params ["_actor","_command","_destination","_formationLeader"];
+                        !([_actor] call _mayIssueMovement) || {currentCommand _actor != _command}
+                            || {(expectedDestination _actor) isNotEqualTo _destination}
+                            || {formLeader _actor != _formationLeader}
+                    } >= 0}) exitWith {};
+                if (_assaultRoute isNotEqualTo []) then {
+                    private _approachPoint=+(_assaultRoute select 0);
+                    private _clearPoint=+(_assaultRoute select 1);
+                    _assaultDirection=_approachPoint getDir _clearPoint;
+                    // Snapshot the reported objective. New reports must not drag this crossing
+                    // behind the actors or reverse their frontage halfway through the assault.
+                    _drill set ["assaulting", true];
+                    _drill set ["assaultObjective",+_enemyPos];
+                    _drill set ["assaultDirection",_assaultDirection];
+                    _drill set ["assaultGrenade",random 1 < ([_group,"assaultChance"] call CBE_fnc_CortexProfile)];
+                    _points pushBack [_approachPoint, "ASSAULT"];
+                    _points pushBack [_clearPoint, "CLEAR"];
+                    missionNamespace setVariable ["CBE_AIPass_Assaults", (missionNamespace getVariable ["CBE_AIPass_Assaults", 0]) + 1];
+                    // Route selection already committed a safe avenue. Preserve the diagnostic
+                    // transition, then issue its first approach in this same budgeted group step.
+                    [_group,_drill,"START","ASSAULT_COMMITTED"] call CBE_fnc_CortexDrillSetStage;
+                    _drill set ["teamTurn",0];
+                    _drill set ["index",count _points-2];
+                    _holdIssue=true;
+                } else {
+                    if ((_drill getOrDefault ["type","FLANK"]) == "FLANK" && {_teams isEqualTo []}) then {
+                        // No assault is a valid tactical choice, not permission to leave
+                        // the leader and covering element permanently at the old position.
+                        _drill set ["finishFlank",true];
+                        _drill set ["pauseUntil",_now];
+                    } else {_holdComplete=true};
+                };
+                _holdCommitted=true;
             };
+            if (!_holdCommitted) exitWith {_result=0.25};
+            if (_holdIssue) then {call _issue};
+            if (_holdComplete) then {_result = "COMPLETE" call _end};
         };
     };
 };
 // PAUSE and HOLD remain explicit observable FSM phases, but a ready zero-duration handoff must not
 // inherit the ordinary movement observation cadence. Queue it for the next bounded scheduler
 // opportunity; the scheduler still enforces its global work budget and never spins this callback.
-if (_result >= 0
+if (_result >= 0 && {_result != 0.25}
     && {(_drill getOrDefault ["stage",""]) in ["PAUSE","HOLD"]}
     && {_now >= (_drill getOrDefault ["pauseUntil",_now])}) then {
     _result=0;

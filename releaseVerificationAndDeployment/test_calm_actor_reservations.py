@@ -476,3 +476,18 @@ class ManoeuvreConsolidationAdmissionTests(unittest.TestCase):
         self.assertIn('"START","CONSOLIDATION_PENDING"',body)
         self.assertIn('if (!_consolidationCommitted) exitWith {_result=0.25}',body)
         self.assertNotIn('"COMPLETE" call _end',body)
+
+
+class ManoeuvreHoldPublicationTests(unittest.TestCase):
+    def test_hold_geometry_cannot_publish_into_a_changed_task(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        body=source.split('private _holdIdentity=',1)[1]
+        self.assertLess(body.index('call CBE_fnc_CortexSelectAvenue'),body.index('isNil {'))
+        for guard in ('call _helperCurrent','isEqualTo _holdIdentity','isNotEqualTo _holdPoints',
+                      'isNotEqualTo _holdRoster','isNotEqualTo _holdTeams','call _mayIssueMovement',
+                      'expectedDestination _actor','CBE_AIPass_Assault_Enable'):
+            self.assertIn(guard,body)
+        self.assertLess(body.index('isNil {'),body.index('_drill set ["assaulting", true]'))
+        self.assertIn('if (!_holdCommitted) exitWith {_result=0.25}',body)
+        self.assertIn('if (_holdIssue) then {call _issue}',body)
+        self.assertIn('_result != 0.25',body)
