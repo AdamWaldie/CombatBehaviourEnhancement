@@ -2169,7 +2169,7 @@ class CortexOperations(unittest.TestCase):
         lane=step.split('private _roomRequestChanged=',1)[1].split('// Once inside, only the assigned room mover',1)[0]
         self.assertIn('private _issue=_roomRequestChanged;',lane)
         self.assertIn('if (_partnerCommitted isNotEqualTo _supportTarget) then {_issue=true}',lane)
-        self.assertIn('if (_roomRequestChanged) then {_lastTarget=_positionIndex; _lastProgress=_now;',lane)
+        self.assertIn('if (_roomRequestChanged && {_roomMoverCommitted}) then {_lastTarget=_positionIndex; _lastProgress=_now;',lane)
         self.assertNotIn('if (_issue) then {_lastTarget=',lane)
         self.assertEqual(lane.count('_roomRequestChanged='),0)
         progress=step.split('// Once inside, only the assigned room mover',1)[1].split('private _commandEnded=',1)[0]

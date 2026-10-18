@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Main room/support native writes and timed retries recheck actual actor/episode authority
+ * atomically. Scheduled geometry stays outside; refused writes gain no mover request/retry credit.
  * Partner alternate-entry ranking commits its native order and public attempt atomically against
  * current episode/owner/native intent, building transform, unchanged proposal and original deadlines.
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
@@ -204,6 +206,31 @@ private _delay=call {
         private _live=(expectedDestination _actor) param [0,[]];
         currentCommand _actor == "MOVE" && {count _issued == 3} && {count _live == 3}
             && {_live vectorDistance _issued <= 0.25}
+    };
+    // Preserve native replacement tasks; only owned legs/holds or exact initial admission may issue.
+    private _roomCommandOwned={
+        params ["_actor"];
+        private _command=toUpperANSI currentCommand _actor;
+        if ([_actor] call _ownsCurrentMove || {_command == ""}) exitWith {true};
+        private _ownedHold=false;
+        if (_command == "STOP") then {
+            private _key=netId _actor;
+            private _holds=[
+                (_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [_key,[]],
+                (_job getOrDefault ["formationFallbackHolds",createHashMap]) getOrDefault [_key,[]]
+            ];
+            _ownedHold=_holds findIf {count _x == 3 && {(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5}} >= 0;
+        };
+        if (_ownedHold) exitWith {true};
+        if (_actor in (_job get "started")) exitWith {false};
+        private _admitted=(_job getOrDefault ["reserveAdmissionCommands",createHashMap]) getOrDefault [netId _actor,[]];
+        if (count _admitted != 4 || {(_admitted select 0) != _actor} || {(_admitted select 1) != _command}) exitWith {false};
+        private _native=expectedDestination _actor;
+        if (_command == "FOLLOW" && {count _native == 3} && {count (_admitted select 2) == 3}) exitWith {
+            !isNull (_admitted select 3) && {formLeader _actor == (_admitted select 3)}
+                && {(_native select [1,2]) isEqualTo ((_admitted select 2) select [1,2])}
+        };
+        _native isEqualTo (_admitted select 2)
     };
     // Native task ownership also applies when no MOVE destination changed. A newer
     // FOLLOW/ATTACK/CBE is not permission to stop, recall or send an actor to an exit.
@@ -2253,6 +2280,10 @@ private _delay=call {
                             _target=+_checkpoint;
                         };
                     };
+                    // Bind scheduled support selection to observed native tasks/settings.
+                    private _roomNative=_pair apply {
+                        [_x,[currentCommand _x,expectedDestination _x,formLeader _x,unitPos _x,getForcedSpeed _x],getPosASL _x]
+                    };
                     private _roomRequestChanged=_lastTarget != _positionIndex;
                     private _issue=_roomRequestChanged;
                     private _bestDistance=_state param [13,1e12,[0]];
@@ -2407,6 +2438,7 @@ private _delay=call {
                             if (_partnerCommitted isNotEqualTo _supportTarget) then {_issue=true};
                         };
                     };
+                    private _roomMoverCommitted=false;
                     {
                         private _unit=_x;
                         // Alternate entrance recovery belongs to exterior actors only. A
@@ -2416,94 +2448,110 @@ private _delay=call {
                         if (_entryWorkerAllowed) then {
                         // Opening a door does not replace an already committed native path.
                         [_unit,_job get "building",["CLEAR",_job get "generation"]] call CBE_fnc_CortexBuildingDoor;
-                        if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
-                            private _started=_job get "started";
-                            if !(_unit in _started) then {
-                                doStop _unit;
-                                // Preserve the original baseline across owner-local worker rebuilds.
-                                // A later different setting becomes the new baseline, not old CBE state.
-                                private _priorStance=_unit getVariable ["CBE_Cortex_ClearStance",unitPos _unit];
-                                if (toUpperANSI (unitPos _unit) != "UP") then {_priorStance=unitPos _unit};
-                                private _priorSpeed=_unit getVariable ["CBE_Cortex_ClearForcedSpeed",getForcedSpeed _unit];
-                                if (abs ((getForcedSpeed _unit)-(_unit getVariable ["CBE_Cortex_ClearAppliedSpeed",getForcedSpeed _unit])) > 0.1) then {
-                                    _priorSpeed=getForcedSpeed _unit;
+                        private _roomSnapshot=_roomNative select (_pair find _unit);
+                        private _arrivalTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
+                        private _arrivalPose=getPosASL _unit;
+                        private _arrivalSegment=_arrivalPose vectorDistance (AGLToASL _arrivalTarget) <= 1.5
+                            && {[_unit,AGLToASL _arrivalTarget] call _roomSegmentClear};
+                        // Native mutation commit: geometry above stays scheduled.
+                        isNil {
+                            if (call _mayIssueMovement && {[_unit] call _actorAvailable}
+                                && {[_unit] call _actorTaskFree} && {[_unit] call _roomCommandOwned}
+                                && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                                && {serverTime <= (_job get "deadline")} && {serverTime <= (_job get "hardDeadline")}
+                                && {[currentCommand _unit,expectedDestination _unit,formLeader _unit,unitPos _unit,getForcedSpeed _unit] isEqualTo (_roomSnapshot select 1)}
+                                && {(getPosASL _unit) vectorDistance (_roomSnapshot select 2) <= 1}) then {
+                                if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
+                                    private _started=_job get "started";
+                                    if !(_unit in _started) then {
+                                        doStop _unit;
+                                        // Preserve the original baseline across owner-local worker rebuilds.
+                                        // A later different setting becomes the new baseline, not old CBE state.
+                                        private _priorStance=_unit getVariable ["CBE_Cortex_ClearStance",unitPos _unit];
+                                        if (toUpperANSI (unitPos _unit) != "UP") then {_priorStance=unitPos _unit};
+                                        private _priorSpeed=_unit getVariable ["CBE_Cortex_ClearForcedSpeed",getForcedSpeed _unit];
+                                        if (abs ((getForcedSpeed _unit)-(_unit getVariable ["CBE_Cortex_ClearAppliedSpeed",getForcedSpeed _unit])) > 0.1) then {
+                                            _priorSpeed=getForcedSpeed _unit;
+                                        };
+                                        _unit setVariable ["CBE_Cortex_ClearStance",_priorStance,true];
+                                        _unit setVariable ["CBE_Cortex_ClearForcedSpeed",_priorSpeed,true];
+                                        _unit setUnitPos "UP";
+                                        private _clearSpeed=4;
+                                        _unit setVariable ["CBE_Cortex_ClearAppliedSpeed",_clearSpeed,true];
+                                        _unit forceSpeed _clearSpeed;
+                                        _started pushBack _unit;
+                                    };
+                                    private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
+                                    private _committedTarget=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
+                                    // An unchanged owned MOVE may be ready/temporarily stationary without
+                                    // granting a new path request every callback. Timed retries below own
+                                    // no-progress recovery; readiness still controls physical handoffs.
+                                    private _nativeTarget=(expectedDestination _unit) param [0,[],[[]]];
+                                    private _sameActiveTarget=count _committedTarget == 3
+                                        && {_committedTarget vectorDistance _unitTarget <= 0.25}
+                                        && {[_unit] call _ownsCurrentMove || {
+                                            currentCommand _unit == "" && {count _nativeTarget == 3}
+                                                && {_nativeTarget vectorDistance _committedTarget <= 0.25}
+                                        }};
+                                    if (!_sameActiveTarget && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
+                                        // An unchanged active path or support hold already satisfies this handoff.
+                                        if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo _unitTarget
+                                            || {currentCommand _unit != "STOP"}
+                                            || {(getPosASL _unit) vectorDistance (AGLToASL _unitTarget) > 1.5}) then {
+                                            _unit doMove _unitTarget;
+                                            [_unit,_unitTarget] call _rememberMove;
+                                        };
+                                    };
                                 };
-                                _unit setVariable ["CBE_Cortex_ClearStance",_priorStance,true];
-                                _unit setVariable ["CBE_Cortex_ClearForcedSpeed",_priorSpeed,true];
-                                _unit setUnitPos "UP";
-                                private _clearSpeed=4;
-                                _unit setVariable ["CBE_Cortex_ClearAppliedSpeed",_clearSpeed,true];
-                                _unit forceSpeed _clearSpeed;
-                                _started pushBack _unit;
-                            };
-                            private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
-                            private _committedTarget=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
-                            // An unchanged owned MOVE may be ready/temporarily stationary without
-                            // granting a new path request every callback. Timed retries below own
-                            // no-progress recovery; readiness still controls physical handoffs.
-                            private _nativeTarget=(expectedDestination _unit) param [0,[],[[]]];
-                            private _sameActiveTarget=count _committedTarget == 3
-                                && {_committedTarget vectorDistance _unitTarget <= 0.25}
-                                && {[_unit] call _ownsCurrentMove || {
-                                    currentCommand _unit == "" && {count _nativeTarget == 3}
-                                        && {_nativeTarget vectorDistance _committedTarget <= 0.25}
-                                }};
-                            if (!_sameActiveTarget && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
-                                // An unchanged active path or support hold already satisfies this handoff.
-                                if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo _unitTarget
-                                    || {currentCommand _unit != "STOP"}
-                                    || {(getPosASL _unit) vectorDistance (AGLToASL _unitTarget) > 1.5}) then {
-                                    _unit doMove _unitTarget;
-                                    [_unit,_unitTarget] call _rememberMove;
+                                // Slow the final indoor approach without replacing its destination.
+                                // Update only our unchanged cap; an externally edited speed remains owned
+                                // by that controller. Distance checks reuse the existing bounded pair step.
+                                if (_unit in (_job get "started") && {call _mayIssueMovement}
+                                    && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree}) then {
+                                    private _speedTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
+                                    private _applied=_unit getVariable ["CBE_Cortex_ClearAppliedSpeed",-1];
+                                    private _desiredSpeed=[4,2] select (_unit distance2D _speedTarget < 5);
+                                    if (abs ((getForcedSpeed _unit)-_applied) <= 0.1
+                                        && {abs (_desiredSpeed-_applied) > 0.1}) then {
+                                        _unit forceSpeed _desiredSpeed;
+                                        _unit setVariable ["CBE_Cortex_ClearAppliedSpeed",_desiredSpeed,true];
+                                    };
+                                    // A failed native path can silently return a worker to formation:
+                                    // command becomes empty and the planner reports its
+                                    // formation destination (planned or direct formation mode). Arrest that fallback once per owned request;
+                                    // the existing finite room retry is still the only recovery writer.
+                                    // Do not touch explicit FOLLOW, a newer MOVE or specialist commands.
+                                    private _nativeDestination=expectedDestination _unit;
+                                    private _fallbackHolds=_job getOrDefault ["formationFallbackHolds",createHashMap];
+                                    private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
+                                    if (!_issue && {currentCommand _unit == ""}
+                                        && {(_nativeDestination param [1,"",[""]]) in ["DoNotPlanFormation","FORMATION PLANNED"]}
+                                        && {count _issued == 3} && {!(netId _unit in _fallbackHolds)}) then {
+                                        private _hold=getPosATL _unit;
+                                        doStop _unit;
+                                        _fallbackHolds set [netId _unit,+_hold];
+                                        _job set ["formationFallbackHolds",_fallbackHolds];
+                                    };
+                                    // Native formation must not reclaim a physically arrived room or
+                                    // support actor between pair handoffs. Hold once per target; a new
+                                    // room request replaces it through the existing movement writer.
+                                    private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
+                                    private _holdKey=netId _unit;
+                                    if ((_roomHolds getOrDefault [_holdKey,[]]) isNotEqualTo _speedTarget
+                                        && {(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5}
+                                        && {abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75}
+                                        && {_arrivalSegment} && {(getPosASL _unit) vectorDistance _arrivalPose <= 0.25}
+                                        && {currentCommand _unit != "MOVE" || {[_unit] call _ownsCurrentMove}}
+                                        && {!([_unit] call _activeOwnMove)}) then {
+                                        doStop _unit;
+                                        _roomHolds set [_holdKey,+_speedTarget];
+                                        _job set ["roomHolds",_roomHolds];
+                                    };
                                 };
+                                _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];
+                                if (_unit == _point) then {_roomMoverCommitted=true};
                             };
                         };
-                        // Slow the final indoor approach without replacing its destination.
-                        // Update only our unchanged cap; an externally edited speed remains owned
-                        // by that controller. Distance checks reuse the existing bounded pair step.
-                        if (_unit in (_job get "started") && {call _mayIssueMovement}
-                            && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree}) then {
-                            private _speedTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
-                            private _applied=_unit getVariable ["CBE_Cortex_ClearAppliedSpeed",-1];
-                            private _desiredSpeed=[4,2] select (_unit distance2D _speedTarget < 5);
-                            if (abs ((getForcedSpeed _unit)-_applied) <= 0.1
-                                && {abs (_desiredSpeed-_applied) > 0.1}) then {
-                                _unit forceSpeed _desiredSpeed;
-                                _unit setVariable ["CBE_Cortex_ClearAppliedSpeed",_desiredSpeed,true];
-                            };
-                            // A failed native path can silently return a worker to formation:
-                            // command becomes empty and the planner reports its
-                            // formation destination (planned or direct formation mode). Arrest that fallback once per owned request;
-                            // the existing finite room retry is still the only recovery writer.
-                            // Do not touch explicit FOLLOW, a newer MOVE or specialist commands.
-                            private _nativeDestination=expectedDestination _unit;
-                            private _fallbackHolds=_job getOrDefault ["formationFallbackHolds",createHashMap];
-                            private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
-                            if (!_issue && {currentCommand _unit == ""}
-                                && {(_nativeDestination param [1,"",[""]]) in ["DoNotPlanFormation","FORMATION PLANNED"]}
-                                && {count _issued == 3} && {!(netId _unit in _fallbackHolds)}) then {
-                                private _hold=getPosATL _unit;
-                                doStop _unit;
-                                _fallbackHolds set [netId _unit,+_hold];
-                                _job set ["formationFallbackHolds",_fallbackHolds];
-                            };
-                            // Native formation must not reclaim a physically arrived room or
-                            // support actor between pair handoffs. Hold once per target; a new
-                            // room request replaces it through the existing movement writer.
-                            private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
-                            private _holdKey=netId _unit;
-                            if ((_roomHolds getOrDefault [_holdKey,[]]) isNotEqualTo _speedTarget
-                                && {(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5}
-                                && {abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75}
-                                && {[_unit,AGLToASL _speedTarget] call _roomSegmentClear}
-                                && {currentCommand _unit != "MOVE" || {[_unit] call _ownsCurrentMove}}
-                                && {!([_unit] call _activeOwnMove)}) then {
-                                doStop _unit;
-                                _roomHolds set [_holdKey,+_speedTarget];
-                                _job set ["roomHolds",_roomHolds];
-                            };
-                        };
-                        _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];
                         if (_captureEntryEnabled && {!_entered || {!_partnerEntered}}) then {
                             private _intended=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
                             [_unit,_pairIndex,_unit == _point,_intended,
@@ -2513,7 +2561,7 @@ private _delay=call {
                     } forEach _pair;
                     // A buddy yielding space is not room-mover progress. Keep the mover's
                     // no-progress clock intact when only the support destination changes.
-                    if (_roomRequestChanged) then {_lastTarget=_positionIndex; _lastProgress=_now; _lastPositions=_pair apply {getPosATL _x}};
+                    if (_roomRequestChanged && {_roomMoverCommitted}) then {_lastTarget=_positionIndex; _lastProgress=_now; _lastPositions=_pair apply {getPosATL _x}};
                     // Once inside, only the assigned room mover proves progress toward this room.
                     // The security partner is expected to adjust cover and follow the previous room;
                     // counting that movement hid doorway stalls and prevented recovery indefinitely.
@@ -2558,19 +2606,32 @@ private _delay=call {
                         private _retryDelay=[12,4] select _commandEnded;
                         if (_now-_lastProgress > _retryDelay && {[_point] call _actorTaskFree}) then {
                             if (_retries < 3 && {call _mayIssueMovement}) then {
+                                private _retriedMover=false;
                                 {
+                                    private _retryNative=[currentCommand _x,expectedDestination _x,formLeader _x];
                                     private _unitTarget=if (_x == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
                                     // Interior recovery belongs to the room mover. Keep the security
                                     // partner at its committed position instead of restarting its path.
                                     if ((_x == _point || {_approachingEntry && {!(_x in (_job getOrDefault ["enteredActors",[]]))}}) && {[_x] call _actorAvailable}
                                         && {call _mayIssueMovement} && {[_x] call _actorTaskFree}) then {
-                                        _x doMove _unitTarget;
-                                        [_x,_unitTarget] call _rememberMove;
+                                        isNil {
+                                            if (call _mayIssueMovement && {[_x] call _actorAvailable}
+                                                && {[_x] call _actorTaskFree} && {[_x] call _roomCommandOwned}
+                                                && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                                                && {serverTime <= (_job get "deadline")} && {serverTime <= (_job get "hardDeadline")}
+                                                && {[currentCommand _x,expectedDestination _x,formLeader _x] isEqualTo _retryNative}) then {
+                                                _x doMove _unitTarget;
+                                                [_x,_unitTarget] call _rememberMove;
+                                                if (_x == _point) then {_retriedMover=true};
+                                            };
+                                        };
                                     };
                                 } forEach _pair;
-                                _retries=_retries+1;
-                                _lastProgress=_now;
-                                _retryCounts set [_positionIndex,(_retryCounts param [_positionIndex,0])+1];
+                                if (_retriedMover) then {
+                                    _retries=_retries+1;
+                                    _lastProgress=_now;
+                                    _retryCounts set [_positionIndex,(_retryCounts param [_positionIndex,0])+1];
+                                };
                             } else {
                                 // An interior access leg already owns this destination. Exterior
                                 // entrance cycling would retain the same failed checkpoint while
