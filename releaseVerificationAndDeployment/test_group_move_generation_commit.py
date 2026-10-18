@@ -28,5 +28,5 @@ class GroupMoveGeneration(unittest.TestCase):
         self.assertIn('"CBE_VehicleReverse",[]]) isEqualTo []',tick_body)
         initial=vehicle.split('private _reverse=[_group,_state,_vehicle',1)[1].split('_state set ["movementLease"',1)[0]
         self.assertLess(initial.index('isNil {'),initial.index('CBE_fnc_CortexGroupMove'))
-        self.assertIn('"CBE_VehicleReverse",[]]) isEqualTo []',initial)
+        self.assertIn('_reverseNow isEqualTo []',initial)
 if __name__=='__main__': unittest.main()

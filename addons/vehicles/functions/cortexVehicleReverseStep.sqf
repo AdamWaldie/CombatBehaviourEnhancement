@@ -95,6 +95,7 @@ private _fallbackAuthority=(missionNamespace getVariable ["CBE_AIPass_Active",fa
     && {[_group,"CBE_AIPass_VehicleWithdraw_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {count _operation > 0} && {(_operation getOrDefault ["generation",-2]) == _generation}
     && {(_operation getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"}
+    && {(_operation getOrDefault ["phase",""]) != "CANCELLED"}
     && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
     && {!([_group] call CBE_fnc_CortexExternalTakeover)}
     && {!isNull _vehicle} && {local _vehicle} && {alive _vehicle} && {canMove _vehicle}
@@ -149,6 +150,7 @@ private _commitReady={
         && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _commander}
         && {(_liveOperation getOrDefault ["generation",-2]) == _generation}
         && {(_liveOperation getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"}
+        && {(_liveOperation getOrDefault ["phase",""]) != "CANCELLED"}
         && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_operation getOrDefault ["ownerEpoch",-2])}
         && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(missionNamespace getVariable ["CBE_AIPass_Active",false])}

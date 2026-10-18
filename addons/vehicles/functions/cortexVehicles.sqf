@@ -569,7 +569,7 @@ private _selectVehicleEscape = {
         call CBE_fnc_CortexSelectAvenue;
     if (_selected isEqualTo []) then {[]} else {_selected select ((count _selected)-1)}
 };
-private _withdrawn = _state getOrDefault ["withdrawn", []];
+private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
 {
     private _vehicle = _x;
     private _distance = _vehicle distance2D _enemyPos;
@@ -613,27 +613,71 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
                 if (count _operation == 0) then {
                     [_group,"VEHICLE_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
                 } else {
-                    _withdrawn pushBackUnique _vehicle;
-                    _state set ["withdrawn",_withdrawn];
                     [_vehicle] call CBE_fnc_CortexFireCountermeasure;
                     private _reverse=[_group,_state,_vehicle,_enemyPos,"START",_operation get "generation"] call CBE_fnc_CortexVehicleReverseStep;
+                    private _withdrawStarted=false;
                     isNil {
-                        if (_reverse == "FALLBACK") then {
-                            if ((_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo []) then {
-                                [_group, _away, 40,"MOVE",_operation get "generation"] call CBE_fnc_CortexGroupMove;
+                        private _current=_group getVariable ["CBE_Operation",createHashMap];
+                        private _sameOwner=local _group && {local _vehicle}
+                            && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                            && {(_current getOrDefault ["generation",-1]) == (_operation get "generation")}
+                            && {(_current getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                            && {(_current getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"}
+                            && {(_current getOrDefault ["phase",""]) != "CANCELLED"}
+                            && {[] call _mayIssueVehicle};
+                        if (_sameOwner) then {
+                            private _reverseNow=_group getVariable ["CBE_VehicleReverse",[]];
+                            private _moveAccepted=_reverse == "REVERSE" && {count _reverseNow == 9}
+                                && {(_reverseNow select 0) == _vehicle}
+                                && {(_reverseNow select 1) == (_operation get "generation")}
+                                && {(_reverseNow select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                                && {(_vehicle getVariable ["CBE_VehicleReverseOwner",[]]) isEqualTo [_group,_operation get "generation"]};
+                            if (_reverse == "FALLBACK") then {
+                                if (_reverseNow isEqualTo []) then {
+                                    private _fallback=[_group, _away, 40,"MOVE",_operation get "generation"] call CBE_fnc_CortexGroupMove;
+                                    private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
+                                    _moveAccepted=count _fallback == 2 && {(_fallback select 0) == _group}
+                                        && {(_fallback select 1) >= 0}
+                                        && {(_intent getOrDefault ["waypoint",[]]) isEqualTo _fallback}
+                                        && {(_intent getOrDefault ["operationGeneration",-1]) == (_operation get "generation")};
+                                };
+                            };
+                            _current=_group getVariable ["CBE_Operation",createHashMap];
+                            if (_moveAccepted && {(_current getOrDefault ["phase",""]) != "CANCELLED"}
+                                && {(_current getOrDefault ["generation",-1]) == (_operation get "generation")}
+                                && {(_current getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                                _withdrawn pushBackUnique _vehicle;
+                                _state set ["withdrawn",_withdrawn];
+                                _state set ["movementLease",["VEHICLE_WITHDRAW",(_operation get "startedAt")+120]];
+                                _state set ["vehicleOperationGeneration",_operation get "generation"];
+                                private _origin = getPosATL _vehicle;
+                                _state set ["retreatStart",_origin];
+                                _state set ["retreatTarget",_away];
+                                _state set ["retreatProgress",[time,0,0]];
+                                _group setVariable ["CBE_Cortex_Withdrawal",["MOVING",0,0],true];
+                                _group setVariable ["CBE_Cortex_WithdrawalIntent",["VEHICLE",_origin,_away,_enemyPos,
+                                    serverTime-((time-(_operation get "startedAt")) max 0),0,0],true];
+                                _movementOwned = true;
+                                [_group,_state,"RETREAT","VEHICLE_DISABLED",time] call CBE_fnc_CortexSetPhase;
+                                _withdrawStarted=true;
                             };
                         };
                     };
-                    _state set ["movementLease",["VEHICLE_WITHDRAW",time+120]];
-                    _state set ["vehicleOperationGeneration",_operation get "generation"];
-                    private _origin = getPosATL _vehicle;
-                    _state set ["retreatStart",_origin];
-                    _state set ["retreatTarget",_away];
-                    _state set ["retreatProgress",[time,0,0]];
-                    _group setVariable ["CBE_Cortex_Withdrawal",["MOVING",0,0],true];
-                    _group setVariable ["CBE_Cortex_WithdrawalIntent",["VEHICLE",_origin,_away,_enemyPos,serverTime,0,0],true];
-                    _movementOwned = true;
-                    [_group,_state,"RETREAT","VEHICLE_DISABLED",time] call CBE_fnc_CortexSetPhase;
+                    if (!_withdrawStarted) then {
+                        isNil {
+                            private _current=_group getVariable ["CBE_Operation",createHashMap];
+                            if (local _group && {(_current getOrDefault ["generation",-1]) == (_operation get "generation")}
+                                && {(_current getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                                private _retired=[_group,_operation get "generation","INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+                                private _ended=_group getVariable ["CBE_OperationResult",[]];
+                                private _cancelled=count _ended == 5 && {(_ended select 2) == (_operation get "generation")}
+                                    && {(_ended select 1) in ["CANCELLED","INCOMPLETE"]};
+                                if ((_retired || {_cancelled}) && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+                                    [_group,"VEHICLE_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
+                                };
+                            };
+                        };
+                    };
                 };
             };
         };

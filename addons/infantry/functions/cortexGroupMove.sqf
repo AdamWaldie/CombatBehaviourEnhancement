@@ -77,6 +77,7 @@ private _generationCurrent={
         && {if (_operationGeneration >= 0) then {
             (_live getOrDefault ["generation",-2]) == _operationGeneration
                 && {(_live getOrDefault ["ownerEpoch",-1]) == _entryEpoch}
+                && {(_live getOrDefault ["phase",""]) != "CANCELLED"}
         } else {count _live == 0}}
 };
 if !(call _generationCurrent) exitWith {[grpNull,-1]};

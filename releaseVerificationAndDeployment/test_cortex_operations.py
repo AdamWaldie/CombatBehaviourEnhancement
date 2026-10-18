@@ -5110,7 +5110,7 @@ class CortexOperations(unittest.TestCase):
         for marker in ['_state set ["retreatStart",_origin]',
                        '_state set ["retreatTarget",_away]',
                        '_state set ["retreatProgress",[time,0,0]]',
-                       '["VEHICLE",_origin,_away,_enemyPos,serverTime,0,0]']:
+                       'serverTime-((time-(_operation get "startedAt")) max 0),0,0]']:
             self.assertIn(marker,vehicles)
         for terrain_marker in ['private _selectVehicleEscape = {','forEach [0,-25,25,-45,45]',
                                'CBE_fnc_CortexSelectAvenue','_threatObject,"VEHICLE"']:
@@ -5181,7 +5181,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('waypointDescription _x == "CBE AI PASS"',vehicles)
         self.assertIn('private _movementOwned = _activeVehicleMove',vehicles)
         self.assertIn('if (_enemies isEqualTo []) exitWith {_movementOwned}',vehicles)
-        self.assertIn('_state set ["movementLease",["VEHICLE_WITHDRAW",time+120]]',vehicles)
+        self.assertIn('_state set ["movementLease",["VEHICLE_WITHDRAW",(_operation get "startedAt")+120]]',vehicles)
         self.assertIn('_state set ["movementLease",["VEHICLE_STANDOFF",time+60]]',vehicles)
         self.assertIn('if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"}',vehicles)
         self.assertIn('private _coordinatedOwnsMovement = _vehicleOwnsMovement',tick)
