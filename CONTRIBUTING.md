@@ -8,6 +8,8 @@ Every SQF file, including audit helpers, starts with a useful documentation bloc
 
 Document FSM transitions and addon/config changes alongside their owning feature. State who starts the work, who owns it, what ends or cancels it and what cleanup restores. Never restore a value over a newer Zeus or mission order.
 
+SQF helper CODE called with `call` reads dynamically scoped variables. Keep control flags and actor lists under distinct names, especially in blocks that invoke movement or cleanup helpers. Reusing a boolean name for an actor array can change the helper's input type without changing its code. Pass queued callback context explicitly instead of relying on caller locals surviving.
+
 ## Feature documentation
 
 Each changed feature needs a guide containing:

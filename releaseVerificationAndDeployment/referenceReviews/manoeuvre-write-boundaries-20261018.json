@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "b71004715c57eae0769a04f5a3c202e47a37a1df5519d2afa2fcde4a86b2c5e1"
+      "sha256": "f0febf0075de01ecbdf38be298a096f6b531357ef9c2db7decf48faf45bf3616"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -76,10 +76,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1343,
-    "log": ".qa/cbe-drill-throw-context-verified-build.log",
+    "tests": 1344,
+    "log": ".qa/cbe-consolidation-scope-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "f49437bb817bdaeb36fac9f4932ad89dab384e5779ae54a79c303bb48404ad19"
+    "packageFingerprint": "6417baac0facbc9b50ddc78dcc592c84471436d119ec13fb330863c4d5eda1b1"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
@@ -101,5 +101,10 @@
     "validation": "Typed finite nonnegative context; same original group, current child, operation/epoch and parent feature. Queue marker generation cannot adopt a replacement drill. Callback helper is passed explicitly with local CBA arguments.",
     "deadline": "Original1.5-second aiming deadline is checked at callback entry, aiming and final native release; aligned delayed callbacks also expire. No retry/deadline renewal.",
     "limits": "Existing magazine selection, config blast safety, alignment and projectile listeners retained. Physical trajectory/effect, late native release, helper query-to-geometry freshness and owner migration remain unverified. This is not whole-grenade safety or whole-FSM acceptance."
+  },
+  "consolidationScope": {
+    "finding": "The HOLD actor list named _support shadowed the outer support-mode boolean through SQF dynamic call scope, including _issue and _helperCurrent.",
+    "implementation": "Distinct _consolidationActors and _supportRoles names preserve actor enrollment and helper boolean context. Regression contract rejects a second private _support declaration; repository conventions explain dynamic scope and explicit queued payloads.",
+    "limits": "No change to tactical layout, timing or transitions. HOLD/PAUSE publication and actual consolidation remain unverified."
   }
 }

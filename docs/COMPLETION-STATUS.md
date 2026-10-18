@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Consolidation actor lists no longer shadow the support-mode boolean read by movement helper
+  CODE through SQF dynamic scope. This removes a concrete array/boolean input hazard during
+  follow-through; actual consolidation and its remaining task transitions still need physical validation.
+
 - Arrived-phase smoke/fragmentation requests now carry their original group/drill/generation/epoch.
   Queue admission, delayed aiming and final native release refuse a replaced parent instead of
   adopting its new token. Existing selection/safety rules remain; physical throws remain unverified.

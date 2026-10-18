@@ -299,8 +299,8 @@ private _rankCandidates={
     private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
     if (isNull _anchor) then {_anchor=leader _group};
     private _rifles=_candidates select {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])};
-    private _support=_candidates select {!(_x in _rifles) && {_x != _anchor}};
-    _rifles+_support+(_candidates select {_x == _anchor})
+    private _supportRoles=_candidates select {!(_x in _rifles) && {_x != _anchor}};
+    _rifles+_supportRoles+(_candidates select {_x == _anchor})
 };
 private _units=[];
 if (_teams isEqualTo []) then {
@@ -1201,16 +1201,18 @@ switch (_drill get "stage") do {
             if ((_assaulting || {_drill getOrDefault ["finishFlank",false]}) && {_teams isEqualTo []} && {!(_drill getOrDefault ["consolidating",false])}) exitWith {
                 // Recovery and independent actor tasks are not spare consolidation participants.
                 // Reuse the capable roster instead of bypassing its ownership/path checks.
-                private _support = (_fitSquad - (_allUnits + _recovering)) select {[_x] call _actorTaskFree};
-                if (_support isEqualTo []) then {
+                // _support is the outer BOOL consumed dynamically by helper CODE. Never
+                // shadow it with this actor array before calling _issue/_helperCurrent.
+                private _consolidationActors = (_fitSquad - (_allUnits + _recovering)) select {[_x] call _actorTaskFree};
+                if (_consolidationActors isEqualTo []) then {
                     _result = "COMPLETE" call _end;
                 } else {
                     if (!_assaulting) then {_drill set ["assaultDirection",_centroid getDir _enemyPos]};
                     _drill set ["consolidating",true];
-                    _teams = [+_allUnits,+_support];
+                    _teams = [+_allUnits,+_consolidationActors];
                     _drill set ["teams",_teams];
-                    _drill set ["units",_allUnits + _support];
-                    _fit append _support;
+                    _drill set ["units",_allUnits + _consolidationActors];
+                    _fit append _consolidationActors;
                     _drill set ["teamTurn",1];
                     _drill set ["index",count _points];
                     private _rally = if (_assaulting) then {(_drill get "assaultObjective") getPos [12,_drill get "assaultDirection"]} else {+_centroid};

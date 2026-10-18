@@ -1,6 +1,7 @@
 """Generic calm cleanup must not erase or recall another finite actor task."""
 from pathlib import Path
 import unittest
+import re
 ROOT=Path(__file__).resolve().parents[1]
 class CalmActorReservationTests(unittest.TestCase):
     @classmethod
@@ -434,3 +435,17 @@ class DrillThrowContextTests(unittest.TestCase):
         self.assertNotIn('nearEntities',release.split('[_release,',1)[0])
         caller=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
         self.assertEqual(caller.count('["DRILL",_group,_token,_operationGeneration,_rosterEpoch]'),2)
+
+
+class ManoeuvreDynamicScopeTests(unittest.TestCase):
+    def test_support_mode_is_not_shadowed_by_actor_lists_at_helper_calls(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        self.assertEqual(len(re.findall(r'\bprivate\s+_support\b',source)),1)
+        self.assertIn('private _support=_supportToken != "";',source)
+        consolidation=source.split('private _consolidationActors =',1)[1].split('if (_drill getOrDefault ["consolidating",false])',1)[0]
+        self.assertIn('_teams = [+_allUnits,+_consolidationActors]',consolidation)
+        self.assertIn('_drill set ["units",_allUnits + _consolidationActors]',consolidation)
+        self.assertIn('_fit append _consolidationActors',consolidation)
+        self.assertIn('call _issue;',consolidation)
+        self.assertNotRegex(consolidation,r'\b_support\b')
+        self.assertIn('private _supportRoles=_candidates select',source)
