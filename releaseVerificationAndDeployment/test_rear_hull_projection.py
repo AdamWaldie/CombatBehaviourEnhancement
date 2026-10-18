@@ -56,4 +56,22 @@ class RearHullProjectionTests(unittest.TestCase):
         for guard in ('_minZ <= (_high select 2)+0.3','_maxZ >= (_low select 2)-0.3','private _entry=0;private _exit=_predictionSeconds'):
             self.assertIn(guard,source)
 
+    def test_traffic_uses_the_same_full_hull_identity_without_weakening_admission(self):
+        source=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text(encoding='utf-8')
+        block=source.split('// Project the full box',1)[1].split('// A long sideways hull',1)[0]
+        self.assertEqual(block.count('worldToModel'),2)
+        self.assertEqual(block.count('modelToWorld'),2)
+        for endpoint in ('[_otherHigh select 0,_otherLow select 1,_otherLow select 2]',
+                         '[_otherLow select 0,_otherHigh select 1,_otherLow select 2]',
+                         '[_otherLow select 0,_otherLow select 1,_otherHigh select 2]'):
+            self.assertIn(endpoint,block)
+        for axis in range(3):
+            self.assertIn(f'(_projectedLow select {axis})-0.05',block)
+            self.assertIn(f'(_projectedHigh select {axis})+0.05',block)
+        for guard in ('count _candidates > 64','_sameHeight','_sameLane',
+                      'if (_ahead && {_sameLane} && {_sameHeight})',
+                      'if (_sameHeight && {_otherSpeed > 0.8})',
+                      '_area nearEntities [["LandVehicle"],false,false,false]'):
+            self.assertIn(guard,source)
+
 if __name__=='__main__': unittest.main()

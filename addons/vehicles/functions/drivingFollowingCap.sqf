@@ -19,7 +19,7 @@
  * Locality/authority: read-only on the current vehicle owner. The driving operation owns all
  * speed commands and rechecks its driver, route and movement lease before applying this result.
  * Repeat/JIP: no handlers or cached clearance. Each sample uses actual velocity and current hull
- * corners; results must not be replayed after movement, route replacement or locality change.
+ * full-hull bounds; results must not be replayed after movement, route replacement or locality change.
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap m/s <NUMBER>, 20 (0..35);
  * 2 registered predecessor <OBJECT>, objNull. Only its alive, aligned, non-reversing
  * longitudinal spacing is delegated to the convoy; crossing and close hull occupancy remain checked.
@@ -27,7 +27,8 @@
  * sampledAt NUMBER, candidate count NUMBER, nearby conflict BOOL]. The sixth field requests
  * earlier observation only for closing/crossing conflicts; stable same-speed following
  * does not request faster sampling. It grants no speed, clearance or right of way. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
- * a congestion sentinel; at most 64 candidate hulls are evaluated, eight corners each.
+ * a congestion sentinel; at most 64 candidate hulls are evaluated. Four affine transform pairs
+ * represent all eight corners with a0.05m outward model-space rounding pad per boundary.
  * Discovery includes six seconds of own travel plus a nominal 35 m/s opposing/crossing
  * approach and 20 m hull margin, capped at 500 m. An over-budget envelope refuses before
  * querying. Faster approaching traffic and unusually large modded hulls remain limitations.
@@ -87,20 +88,25 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
         } else {0};
         private _otherBox=boundingBoxReal _other;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
-        private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
-        private _minZ=1e9;private _maxZ=-1e9;
+        // Project the full box with one corner and three edges. Model transforms are affine:
+        // each axis extremum is origin plus the negative/positive components of those edges.
+        // This represents all eight corners with four transform pairs, including tilt/scale.
+        private _origin=_vehicle worldToModel (_other modelToWorld _otherLow);
+        private _projectedLow=+_origin;private _projectedHigh=+_origin;
         {
-            private _height=_x;
-            {
-                private _width=_x;
-                {
-                    private _point=_vehicle worldToModel (_other modelToWorld [_width,_x,_height]);
-                    _minX=_minX min (_point select 0);_maxX=_maxX max (_point select 0);
-                    _minY=_minY min (_point select 1);_maxY=_maxY max (_point select 1);
-                    _minZ=_minZ min (_point select 2);_maxZ=_maxZ max (_point select 2);
-                } forEach [_otherLow select 1,_otherHigh select 1];
-            } forEach [_otherLow select 0,_otherHigh select 0];
-        } forEach [_otherLow select 2,_otherHigh select 2];
+            private _edge=(_vehicle worldToModel (_other modelToWorld _x)) vectorDiff _origin;
+            for "_axis" from 0 to 2 do {
+                private _component=_edge select _axis;
+                _projectedLow set [_axis,(_projectedLow select _axis)+(_component min 0)];
+                _projectedHigh set [_axis,(_projectedHigh select _axis)+(_component max 0)];
+            };
+        } forEach [[_otherHigh select 0,_otherLow select 1,_otherLow select 2],
+            [_otherLow select 0,_otherHigh select 1,_otherLow select 2],
+            [_otherLow select 0,_otherLow select 1,_otherHigh select 2]];
+        // A small outward pad avoids narrowing the safety envelope through subtraction rounding.
+        private _minX=(_projectedLow select 0)-0.05;private _maxX=(_projectedHigh select 0)+0.05;
+        private _minY=(_projectedLow select 1)-0.05;private _maxY=(_projectedHigh select 1)+0.05;
+        private _minZ=(_projectedLow select 2)-0.05;private _maxZ=(_projectedHigh select 2)+0.05;
         // A long sideways hull can intrude past our front even when its centre is behind it.
         private _ahead=_maxY > _front-0.25;
         private _sameLane=_maxX >= (_low select 0)-0.25 && {_minX <= (_high select 0)+0.25};
