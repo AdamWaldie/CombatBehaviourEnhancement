@@ -4,7 +4,8 @@
  * Locality / Authority: Read-only on the current vehicle owner. It issues no movement, speed,
  * collision, physics or crew command. The consuming finite operation retains movement authority.
  * Repeat/JIP: No retained clearance or handlers. Each command boundary obtains fresh geometry;
- * observations cannot be replayed after a vehicle moves or changes owner.
+ * observations cannot be replayed after a vehicle moves or changes owner. Normal unscheduled
+ * callbacks share one lazy crew snapshot; scheduled direct calls retain per-actor crew reads.
  * Nine downward support samples reject missing/steep supporting surfaces; bridge geometry
  * remains eligible independently of terrain water. Discrete samples are not a continuous path proof.
  * Current relative velocities also project hull occupancy over two seconds before a reverse.
@@ -77,10 +78,19 @@ private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 private _actors=(_vehicle nearEntities ["CAManBase",_radius])
     +(_area nearEntities [["LandVehicle"],false,false,false]);
 if (count _actors > 64) exitWith {[false,"DENSE_REAR_TRAFFIC",time,0]};
+private _scheduledObservation=canSuspend;
+private _crewObserved=false;private _ownCrew=[];
 private _predicted=false;
 private _occupied=_actors findIf {
     private _thisActor=_x;
-    _thisActor != _vehicle && {!(_thisActor in crew _vehicle)}
+    _thisActor != _vehicle && {
+        // Normal PFH observations cannot suspend: one lazy crew snapshot is sufficient.
+        // Preserve the direct scheduled-call contract, where the engine may advance between actors.
+        if (!_crewObserved || {_scheduledObservation}) then {
+            _ownCrew=crew _vehicle;_crewObserved=true;
+        };
+        !(_thisActor in _ownCrew)
+    }
         && {alive _thisActor || {_thisActor isKindOf "LandVehicle"}}
     && {private _otherBox=boundingBoxReal _thisActor;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
