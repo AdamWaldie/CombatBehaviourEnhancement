@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Ordinary bound-arrival stages and pause deadlines now publish together under current child/owner, MOVE identity, roster/team and spot checks. Smoke and assault preparation remain scheduled after admission. Physical arrival freshness and tactical flow remain unverified.
+
 - Assault clear-through now rechecks its original MOVE identity, child/owner authority, roster, route, objective and assault feature after grenade preparation before advancing START/index. Refusal defers; movement retains separate admission and physical flow remains unverified.
 
 - HOLD assault-route publication now rechecks current phase, roster, route, native actor tasks, feature and reported objective after scheduled avenue selection. Refused proposals defer without publishing an assault or replacing their retry delay with immediate rescheduling. Physical timing remains unverified.

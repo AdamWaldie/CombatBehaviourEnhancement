@@ -505,3 +505,18 @@ class AssaultClearThroughAdmissionTests(unittest.TestCase):
         self.assertLess(body.index('isNil {'),body.index('_drill set ["index",(_drill get "index")+1]'))
         self.assertLess(body.index('if (!_clearCommitted) exitWith'),body.index('call _issue;'))
         self.assertNotIn('CortexThrowGrenade',body.split('isNil {',1)[1])
+
+
+class BoundArrivalStageCommitTests(unittest.TestCase):
+    def test_arrival_stages_and_pause_deadlines_share_admission(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        body=source.split('private _arrivalRoster=',1)[1].split('if (!_arrivalCommitted)',1)[0]
+        for guard in ('call _helperCurrent','isEqualTo _moveIdentity','isNotEqualTo _arrivalRoster',
+                      'isNotEqualTo _arrivalTeams','isNotEqualTo _spots'):
+            self.assertIn(guard,body)
+        for reason in ('FIRE_TEAM_ARRIVED','ROAD_EDGE_ARRIVED','FINAL_BOUND_ARRIVED',
+                       'CONSOLIDATION_ARRIVED','CLEAR_THROUGH_ARRIVED','BOUND_ARRIVED'):
+            self.assertIn(reason,body)
+            self.assertLess(body.index('isNil {'),body.index(reason))
+        self.assertNotIn('call CBE_fnc_CortexThrowGrenade',body)
+        self.assertIn('if (!_arrivalCommitted) exitWith {_result=0.25}',source)

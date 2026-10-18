@@ -6721,7 +6721,7 @@ class CortexOperations(unittest.TestCase):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombat.sqf').read_text()
         self.assertIn('-transition-assault-no-idle-turn',qa)
         self.assertIn('_commitIndex+1 < count _caseTransitions',qa)
-        approach=step.rsplit('case "ASSAULT": {',1)[1].split('case "CONSOLIDATE":')[0]
+        approach=step.split('if (_arrivalAssault) then {',1)[1].split('    case "PAUSE": {',1)[0]
         crossing=approach
         self.assertNotIn('if (!_queued) then {',approach)
         self.assertIn('_drill set ["index",(_drill get "index")+1]',crossing)
@@ -6918,7 +6918,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_assault_checks_carriers_across_both_arrived_elements(self):
         step=source('cortexFlankStep')
-        assault=step[step.index('case "ASSAULT": {'):step.index('case "CONSOLIDATE": {')]
+        assault=step.split('if (_arrivalAssault) then {',1)[1].split('    case "PAUSE": {',1)[0]
         self.assertIn('private _throwers = _fit select',assault)
         self.assertIn('call CBE_fnc_CortexThrowGrenade) exitWith',assault)
         self.assertNotIn('selectRandom',assault)

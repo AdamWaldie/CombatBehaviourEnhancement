@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "d261482b84a0b0e454e7a15c99dbb38b98fdc2064330b2b9b27d3ee8c041d902"
+      "sha256": "9ef8ddca48435d7121bec9b4ffeb9d67508d0c215c73a950869e57100b73a468"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -89,6 +89,11 @@
       "area": "assault arrival clear-through publication",
       "status": "current-context transaction",
       "notes": "After scheduled grenade preparation, original MOVE index/turn, helper authority, roster/teams/route/objective and assault gate must match before grenade journals/index/START publish. Movement remains scheduled with separate native actor admission. Physical arrival freshness and other arrived phases remain unverified."
+    },
+    {
+      "area": "ordinary MOVE arrival stage/deadline publication",
+      "status": "current-context transaction",
+      "notes": "After restoration, original MOVE index/turn, helper authority, roster/team/spot and route kind must match before stage and pauseUntil publish in one isNil. Smoke and assault preparation remain scheduled after admission; clear-through has its own post-preparation check. Physical arrival freshness and performance unverified."
     }
   ],
   "implementationChange": {
@@ -96,10 +101,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1348,
-    "log": ".qa/cbe-clear-through-admission-build.log",
+    "tests": 1349,
+    "log": ".qa/cbe-arrival-stage-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "d661b435eeb7fa76f4ad6729803c62a7c8e34e81566394e4c7a40707f007b900"
+    "packageFingerprint": "135f3d8d02d657240b80bea0fc9ef4d30522b4ab3d2bf0c9888dde7e62df681c"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
