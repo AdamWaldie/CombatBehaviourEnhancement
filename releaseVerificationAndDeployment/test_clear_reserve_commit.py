@@ -23,6 +23,18 @@ class ReserveCommitTests(unittest.TestCase):
                       'isEqualTo _postReceipt','vectorDistance _postPose <= 1'):
             self.assertLess(leg.index(proof),leg.index('_reserve doMove _target'))
         self.assertLess(leg.index('_reserve doMove _target'),leg.index('call _rememberMove'))
+    def test_refused_initial_hold_does_not_spend_staging_attempt_or_plan_geometry(self):
+        text=source()
+        initial=text.split('private _stageHeld=false;',1)[1].split('private _postNative=',1)[0]
+        for receipt in ('_stageAttempts pushBackUnique _key', '_stageSearchCounts set',
+                        '_stageJournalChanged=true', '_stageHeld=true'):
+            self.assertLess(initial.index('call _reserveCommitReady'),initial.index(receipt))
+            self.assertLess(initial.index('doStop _reserve'),initial.index(receipt))
+        self.assertIn('if (_stageHeld) then {',initial)
+        before=text.split('if (_searchPending &&',1)[1].split('private _stageHeld=false;',1)[0]
+        self.assertNotIn('_stageAttempts pushBackUnique',before)
+        self.assertNotIn('_stageSearchCounts set',before)
+
     def test_arrival_and_watch_use_fresh_native_and_observed_eye_proof(self):
         text=source()
         arrival=text.split('// Arrival proximity',1)[1].split('// Revalidate one actual eye ray',1)[0]

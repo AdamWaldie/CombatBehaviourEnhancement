@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Casualty promotion retains callback-local candidate/cover proof and atomically rechecks it
  * before retiring an exterior leg and updating the lane/common participant roster together.
+ * Reserve staging records attempts only after its initial hold is admitted; refused holds
+ * leave the actor eligible for a later bounded staging search.
  * Exterior reserve hold/leg/arrival/watch/timeout commands commit against current episode,
  * native task and original deadlines. Watch changes retain the actual current-callback ray origin.
  * Every eligible uncommitted actor, including the local command anchor, joins the same bounded
@@ -1352,9 +1354,7 @@ private _delay=call {
                 && {serverTime >= (_stage param [3,1e12])}};
         if (_searchPending && {_stageSearchBudget > 0} && {call _mayIssueMovement}) then {
             _stageSearchBudget=_stageSearchBudget-1;
-            _stageAttempts pushBackUnique _key;
-            _stageSearchCounts set [_key,(_searchCount+1) min 3];
-            _stageJournalChanged=true;
+            private _stageHeld=false;
             // A rejected staging ray must not leave a reserve following the interior leader.
             // Hold the actual position first; replace it only with the one validated stage leg.
             if ([_reserve] call _reserveReady && {call _mayIssueMovement}) then {
@@ -1363,6 +1363,10 @@ private _delay=call {
                         && {[currentCommand _reserve,expectedDestination _reserve,formLeader _reserve] isEqualTo _reserveNativeBefore}) then {
                         private _hold=getPosATL _reserve;
                         doStop _reserve;
+                        _stageAttempts pushBackUnique _key;
+                        _stageSearchCounts set [_key,(_searchCount+1) min 3];
+                        _stageJournalChanged=true;
+                        _stageHeld=true;
                         _reserve setVariable ["CBE_Cortex_ClearReserve",[_job get "generation",_group getVariable ["CBE_AIPass_Epoch",0],+_hold]];
                         _stage=[+_hold,true,"REJECTED"];
                         _stage set [3,serverTime+5];
@@ -1374,6 +1378,8 @@ private _delay=call {
                     };
                 };
             };
+            // No admitted hold means no staging attempt or geometry search this callback.
+            if (_stageHeld) then {
             private _postNative=[currentCommand _reserve,expectedDestination _reserve,formLeader _reserve];
             private _postReceipt=+(_reserve getVariable ["CBE_Cortex_ClearReserve",[]]);
             private _postPose=getPosASL _reserve;
@@ -1506,6 +1512,7 @@ private _delay=call {
                         };
                     };
                 };
+            };
             };
         };
         private _arrivalNative=[currentCommand _reserve,expectedDestination _reserve,formLeader _reserve];
