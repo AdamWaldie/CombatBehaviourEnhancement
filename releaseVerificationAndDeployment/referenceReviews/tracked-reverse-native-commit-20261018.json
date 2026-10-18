@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-18",
+  "scope": "Tracked reverse native START and steering boundaries",
+  "implementation": [
+    "Atomic current operation/crew/native route/records/feature authority",
+    "Fresh rear observation and bounded pose drift",
+    "Start expiry before avenue planning",
+    "Native turn plus command/turn receipt commit together",
+    "Lost commit returns RELEASED without stale fallback"
+  ],
+  "validation": {
+    "tests": 1244,
+    "exit": 0,
+    "log": ".qa/cbe-tracked-reverse-native-verified-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Native reverse effectiveness and progress classification",
+    "Sampled geometry limits",
+    "Queue-specific execution and overhead"
+  ],
+  "acceptance": "partial"
+}

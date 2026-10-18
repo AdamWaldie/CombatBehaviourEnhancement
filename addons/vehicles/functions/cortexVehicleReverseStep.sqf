@@ -9,6 +9,8 @@
  * Release commits against unchanged published reverse/command records atomically; local progress
  * edits use isolated arrays and cannot silently mutate a successor or the public record.
  * Fresh shared rear body-width actor/geometry observation gates each active reverse step.
+ * START/steering commit current operation/crew/native-route/pose and <=1s rear observations
+ * atomically; planned start expiry is captured before geometry and never renewed at commit.
  * It does not create another controller or change native collision.
  * Repeat/JIP: Generation/epoch-bound record; repeated steps retain commands. Exact unchanged
  * inherited commands may be retired by the new owner, but never replayed. Legacy records without
@@ -131,10 +133,46 @@ if (!_eligible) exitWith {
 };
 // Observe only the short swept rear area of this active finite reverse leg. This is
 // actor safety, not a path replacement or a global traffic scan. Keep native collisions.
+private _nativeSnapshot=[currentCommand _driver,+(expectedDestination _driver),
+    currentCommand _commander,+(expectedDestination _commander),[_group] call CBE_fnc_DrivingRouteReceipt];
+private _poseSnapshot=[getPosASL _vehicle,vectorDir _vehicle,time];
 private _rearDepth=(4+(abs speed _vehicle)/1.8) min 12;
 private _rearClearance=[_vehicle,_rearDepth] call CBE_fnc_DrivingRearClear;
 if !(_rearClearance select 0) exitWith {
     [_rearClearance select 1] call _release; "FALLBACK"
+};
+private _commitReady={
+    private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+    local _group && {local _vehicle} && {alive _vehicle} && {canMove _vehicle}
+        && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+        && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _commander}
+        && {(_liveOperation getOrDefault ["generation",-2]) == _generation}
+        && {(_liveOperation getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"}
+        && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_operation getOrDefault ["ownerEpoch",-2])}
+        && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        && {!([] call CBE_fnc_CortexIsPaused)}
+        && {[_group,"CBE_AIPass_VehicleWithdraw_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,"CBE_AIPass_VehicleReverse_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+        && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+        && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
+        && {[_driver,_commander] findIf {!local _x || {group _x != _group} || {vehicle _x != _vehicle}
+            || {isPlayer _x} || {!isNull remoteControlled _x}
+            || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {[_x] call CBE_fnc_CortexActorMoveReserved}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""} || {[_x] call CBE_fnc_CompatibilityExternalControl}
+            || {!simulationEnabled _x} || {isObjectHidden _x}
+            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} < 0}
+        && {[currentCommand _driver,expectedDestination _driver,currentCommand _commander,
+            expectedDestination _commander,[_group] call CBE_fnc_DrivingRouteReceipt] isEqualTo _nativeSnapshot}
+        && {(_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo _entryRecord}
+        && {(_group getVariable ["CBE_VehicleReverse_Command",[]]) isEqualTo _commandReceipt}
+        && {time >= (_rearClearance select 2)} && {time-(_rearClearance select 2) <= 1}
+        && {time >= (_poseSnapshot select 2)} && {time-(_poseSnapshot select 2) <= 1}
+        && {(getPosASL _vehicle) vectorDistance (_poseSnapshot select 0) <= 1}
+        && {(vectorDir _vehicle) vectorDotProduct (_poseSnapshot select 1) >= cos 5}
 };
 if (toUpperANSI _mode == "START") exitWith {
     if (count _record == 9) exitWith {
@@ -148,24 +186,32 @@ if (toUpperANSI _mode == "START") exitWith {
     ];
     private _relative=_vehicle getRelDir _threat;
     if (_relative > (_limits select 2) && {_relative < 360-(_limits select 2)}) exitWith {"FALLBACK"};
+    private _startDeadline=time+(_limits select 1);
     private _origin=getPosATL _vehicle;
     private _rear=_vehicle getRelPos [(_limits select 0)+5,180];
     if (_rear distance2D _threat <= _origin distance2D _threat) exitWith {"FALLBACK"};
     private _route=[_origin,[[_rear]],_threat,[],objNull,"VEHICLE"] call CBE_fnc_CortexSelectAvenue;
     if (_route isEqualTo [] || {lineIntersectsSurfaces [AGLToASL (_origin vectorAdd [0,0,1]),
         AGLToASL (_rear vectorAdd [0,0,1]),_vehicle,objNull,true,1,"GEOM","NONE"] isNotEqualTo []}) exitWith {"FALLBACK"};
-    _operation set ["reverseLimits",+_limits];
-    _group setVariable ["CBE_Operation",_operation,true];
-    _record=[_vehicle,_generation,_group getVariable ["CBE_AIPass_Epoch",0],+_origin,+_threat,
-        time+(_limits select 1),time,+_origin,"BACK"];
-    _group setVariable ["CBE_VehicleReverse",_record,true];
-    _vehicle setVariable ["CBE_VehicleReverseOwner",[_group,_generation],true];
-    _vehicle sendSimpleCommand "STOPTURNING";
-    _vehicle sendSimpleCommand "BACK";
-    _commandReceipt=[_generation,_driver,_commander,+(expectedDestination _driver),
-        +(expectedDestination _commander),[_group] call CBE_fnc_DrivingRouteReceipt];
-    _group setVariable ["CBE_VehicleReverse_Command",_commandReceipt,true];
-    "REVERSE"
+    private _started=false;
+    isNil {
+        if (call _commitReady && {time < _startDeadline} && {abs speed _vehicle <= 10}) then {
+            private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+            _liveOperation set ["reverseLimits",+_limits];
+            _group setVariable ["CBE_Operation",_liveOperation,true];
+            _record=[_vehicle,_generation,_group getVariable ["CBE_AIPass_Epoch",0],+_origin,+_threat,
+                _startDeadline,time,+_origin,"BACK"];
+            _group setVariable ["CBE_VehicleReverse",_record,true];
+            _vehicle setVariable ["CBE_VehicleReverseOwner",[_group,_generation],true];
+            _vehicle sendSimpleCommand "STOPTURNING";
+            _vehicle sendSimpleCommand "BACK";
+            _commandReceipt=[_generation,_driver,_commander,+(expectedDestination _driver),
+                +(expectedDestination _commander),[_group] call CBE_fnc_DrivingRouteReceipt];
+            _group setVariable ["CBE_VehicleReverse_Command",_commandReceipt,true];
+            _started=true;
+        };
+    };
+    ["RELEASED","REVERSE"] select _started
 };
 if (count _record != 9 || {(_record select 0) != _vehicle} || {(_record select 1) != _generation}
     || {(_record select 2) != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {"FALLBACK"};
@@ -185,7 +231,11 @@ if (time >= (_record select 5) || {time-(_record select 6) > 6}) exitWith {[["NO
 private _bearing=_vehicle getRelDir (_record select 4);
 private _deadband=20 min ((_limits select 2)*0.6);
 private _turn=if (_bearing <= _deadband || {_bearing >= 360-_deadband}) then {"STOPTURNING"} else {["LEFT","RIGHT"] select (_bearing < 180)};
+private _steeringLost=false;
 if (_turn != (_record select 8)) then {
+    private _steered=false;
+    isNil {
+    if (call _commitReady && {time < (_record select 5)}) then {
     _vehicle sendSimpleCommand _turn;
     // Native steering can cancel or lock the longitudinal command during a turn.
     // Resume reverse once when that turn is cancelled, not on every scheduler step.
@@ -195,7 +245,15 @@ if (_turn != (_record select 8)) then {
     _commandReceipt set [3,+(expectedDestination _driver)];
     _commandReceipt set [4,+(expectedDestination _commander)];
     _group setVariable ["CBE_VehicleReverse_Command",_commandReceipt,true];
+    _group setVariable ["CBE_VehicleReverse",_record,true];
+    _entryRecord=+_record;
+    _beforeRecord=+_record;
+    _steered=true;
+    };
+    };
+    if (!_steered) then {_steeringLost=true};
 };
+if (_steeringLost) exitWith {["COMMAND_COMMIT_CHANGED"] call _release};
 if (_record isNotEqualTo _beforeRecord) then {
     isNil {
         private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
