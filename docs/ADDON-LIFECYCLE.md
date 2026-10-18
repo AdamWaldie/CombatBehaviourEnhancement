@@ -1017,3 +1017,9 @@ This adds no observer or timer. Recovery while the entire driving subsystem rema
 Each machine now runs shutdown vehicle cleanup only for vehicles it actually owns, before interface clients take their tactical early exit. The server retains global support and artillery bookkeeping, but does not erase an HC or interface owner's vehicle restoration tokens. The vehicle owner handles its driving cap, unload policy, safe-stop baseline, onboard danger, delayed relocation token and aircraft presentation cleanup. Existing exact speed-cap and local-state checks remain; no remote cleanup endpoint or recurring observer is added.
 
 This repairs the shutdown dispatch boundary, not every cleanup policy. Native owner migration during shutdown, external-controller replacement, deferred reverse while simulation remains off and late CBA state delivery still require physical acceptance. The administrative vehicle pass scales with world vehicle count per participating machine; no runtime performance budget is claimed.
+
+### Crew handover journal isolation
+
+Ordinary-driving crew replacement now copies its entry journal before changing phases. Every publication compares the exact original live journal, current driving brain and owner epoch in an unscheduled block. Another group's journal is refused rather than cleared. Native Eject/MoveToDriver actions also recheck that snapshot and the original deadline, and publish their issued phase in the same unscheduled block. A stale cancellation or release cannot replace a successor journal.
+
+The existing route, vacancy, driver/candidate, assignment, native command, actor reservation, simulation and takeover checks remain. No new seating shortcut, worker or deadline renewal is introduced. Actual asynchronous seat completion, same-value external ACTION ambiguity, owner transfer and delayed publication ordering still require physical acceptance while audits are paused.

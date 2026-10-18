@@ -10,7 +10,7 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertEqual(s.count(' action ['),2)
         self.assertIn('_phase == "READY" && {!isNull _driver}',s)
         self.assertIn('driver _vehicle == _driver} && {!alive _driver}',s)
-        self.assertEqual(s.count('\n    isNil {'),2)
+        self.assertEqual(s.split('// Seat vacancy and native order proof',1)[1].count('\n    isNil {'),2)
         self.assertEqual(s.count('call _commandsOwned'),2)
         self.assertIn('_phase="VACATING_ISSUED"',s)
         self.assertIn('if (_phase in ["READY","VACATING"]) then {',s)
@@ -65,7 +65,7 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('serverTime >= (_work get "deadline")',s)
         self.assertIn('driver _vehicle == _candidate && {[_candidate] call CBE_fnc_CortexCombatEffective}',s)
         self.assertIn('["COMPLETE","CANCELLED","EXPIRED"]',s)
-        release=s.split('if (_release) exitWith {',1)[1].split('private _changed=',1)[0]
+        release=s.split('if (_release) exitWith {',1)[1].split('if (count _work > 0 && {(_work get "group") != _group})',1)[0]
         self.assertNotIn(' action [',release)
         self.assertIn('(_brain getOrDefault ["route",[]])',release)
         finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text(encoding='utf-8')
@@ -81,8 +81,8 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('class CrewHandover',fsm)
         self.assertNotIn('execFSM',self.source())
         source=self.source()
-        self.assertLess(source.index('Normal healthy drivers'),source.index('call CBE_fnc_DrivingRouteReceipt'))
-        self.assertLess(source.index('Normal healthy drivers'),source.index('fullCrew'))
+        self.assertLess(source.index('count _liveWork == 0'),source.index('call CBE_fnc_DrivingRouteReceipt'))
+        self.assertLess(source.index('count _liveWork == 0'),source.index('fullCrew'))
 
     def test_physical_fixture_uses_discovery_and_measured_results(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingCrew.sqf').read_text(encoding='utf-8')
@@ -123,3 +123,36 @@ class DrivingCrewTests(unittest.TestCase):
         commands=s.split('private _commandsOwned={',1)[1].split('if (_phase == "READY"',1)[0]
         self.assertIn('!([_candidate] call CBE_fnc_CortexActorMoveReserved)',commands)
         self.assertEqual(s.count('call _commandsOwned'),2)
+
+    def test_journal_is_copied_and_published_only_against_exact_snapshot(self):
+        s=self.source()
+        self.assertIn('private _entryWork=+_liveWork;',s)
+        self.assertLess(s.index('count _liveWork == 0'),s.index('private _entryWork=+_liveWork;'))
+        self.assertIn('private _work=+_entryWork;',s)
+        publish=s.split('private _publish={',1)[1].split('private _route=',1)[0]
+        for guard in ('isNil {','local _group','isEqualTo _brain','ownerEpoch','isEqualTo _entryWork'):
+            self.assertLess(publish.index(guard),publish.index('setVariable ["CBE_DrivingCrew_Work"'))
+        self.assertIn('setVariable ["CBE_DrivingCrew_Work",+_work,true]',publish)
+        self.assertEqual(s.count('setVariable ["CBE_DrivingCrew_Work"'),1)
+        self.assertIn('if (count _work > 0 && {(_work get "group") != _group}) exitWith {false}',s)
+
+    def test_native_seat_actions_recheck_live_journal_deadline_and_publish_atomically(self):
+        s=self.source()
+        gate=s.split('private _commandsOwned={',1)[1].split('if (_phase == "READY"',1)[0]
+        self.assertIn('isEqualTo _entryWork',gate)
+        self.assertIn('serverTime < (_work get "deadline")',gate)
+        for action,phase in (('Eject','VACATING'),('MoveToDriver','SWITCHING')):
+            boundary=s.split(f'action ["{action}",_vehicle];',1)[1].split('    };',1)[0]
+            self.assertLess(boundary.index(f'_work set ["phase","{phase}"]'),boundary.index('call _publish'))
+
+    def test_replaced_journal_does_not_receive_old_cancellation(self):
+        # Dict copies model isolation only, never native seat-action execution.
+        original={'phase':'READY','episode':1}
+        entry=dict(original)
+        work=dict(entry)
+        work['phase']='CANCELLED'
+        self.assertEqual(original['phase'],'READY')
+        successor={'phase':'SWITCHING','episode':2}
+        live=successor
+        if live==entry:live=dict(work)
+        self.assertEqual(live,successor)
