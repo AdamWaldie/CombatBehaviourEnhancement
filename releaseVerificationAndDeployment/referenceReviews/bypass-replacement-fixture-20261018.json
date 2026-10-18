@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-18",
+  "scope": "Prepared normal bypass replacement-order physical regression",
+  "source": "releaseVerificationAndDeployment/cortexQA/runParkedBypass.sqf",
+  "sha256": "9ac460d7dec7d35656b3829e6626150e14356a0af5ca189b96010a1c8aecda18",
+  "prerequisite": "Natural production FOLLOW with8m actual displacement from issued path start; no operation/path/result injection.",
+  "acceptance": "New native MOVE survives; matching bypass ends; vehicle travels100m to within15m of new target, after>=10s observation and without damage. Original replacement waypoint is checked directly; currentWaypoint may advance naturally only at observed arrival.",
+  "validation": {
+    "tests": 1188,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-bypass-replacement-fixture-verified-build.log",
+    "fingerprint": "7b15e479185977a9e79e54850fc6c900c0d9cacc6a10bbcb0b1404a737446699",
+    "physical": "PREPARED_NOT_RUN_AUDITS_PAUSED",
+    "receipt": "Parent16a429b1 plus tracked fixture/docs diff, dirty Build; not signed Release."
+  },
+  "limits": [
+    "No new in-engine result, Zeus UI delivery, HC/migration/JIP or repeated reliability evidence.",
+    "The fourth case extends normal parkedbypass only; original empty/wreck/occupied checks retained.",
+    "Initial complete build passed; final repeat corrects false replacement detection after legitimate native waypoint completion.",
+    "Full goal and all65 partial-family status unchanged."
+  ]
+}

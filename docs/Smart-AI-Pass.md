@@ -1500,3 +1500,6 @@ Bypass PLAN publishes its FOLLOW phase in the same short unscheduled section as 
 
 
 Bypass release now evaluates controller revision, native-command ownership and cleanup inside one unscheduled section with result/cooldown publication and episode retirement. It requires the same live episode and local group/vehicle on entry, and repeats those checks after native commands before deleting metadata. Replacement work survives even if a synchronous native event installs it during cleanup. Exact task/route/reservation protections remain; native reentrant side effects, same-value commands and interruption/migration still need physical testing.
+
+
+The prepared normal-only parkedbypass focus also replaces the authored waypoint after production FOLLOW has physically travelled at least eight metres from its issued path start. It requires the new waypoint to remain unchanged, bypass work to retire and the truck to travel at least100m to within15m of the replacement destination without damage. It observes for at least10s after replacement. No path/helper/result is injected. This case is prepared, not run; it does not establish Zeus UI delivery, HC migration or repeated interruption reliability.

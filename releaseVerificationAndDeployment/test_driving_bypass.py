@@ -379,3 +379,16 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
         self.assertTrue(s.rstrip().endswith('_retired'))
         self.assertNotIn('sleep',commit)
         self.assertNotIn('lineIntersects',commit)
+
+    def test_replacement_fixture_requires_issued_physical_leg_and_real_new_order_travel(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runParkedBypass.sqf').read_text(encoding='utf-8')
+        for requirement in ('(_work getOrDefault ["phase",""]) == "FOLLOW"',
+                            'vectorDistance ((_work get "points") select 0) >= 8',
+                            '_group setCurrentWaypoint _newWaypoint',
+                            'waypointPosition _replacementWaypoint','time-_replaceAt >= 10','vectorDistance _replaceOrigin >= 100',
+                            '_vehicle distance2D _replacement < 15',
+                            'DRIVING-parked-replacement-physical-continuation'):
+            self.assertIn(requirement,s)
+        for forbidden in ('setDriveOnPath','call CBE_fnc_DrivingBypassStep','call CBE_fnc_DrivingBypassPlan',
+                          'setVariable ["CBE_DrivingBypass_Work"','forceSpeed','setPos'):
+            self.assertNotIn(forbidden,s)
