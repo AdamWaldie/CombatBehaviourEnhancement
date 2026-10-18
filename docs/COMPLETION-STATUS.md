@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Recovery retirement now rechecks the selected live teammate identity and both actors at publication, retaining existing 12 m/1.5 m vertical cohesion limits. Stale rally coordinates cannot prove rejoin. Physical navigation and performance remain unverified.
+
 - Separated-actor recovery now copies retry rows and admits each command/attempt journal under the current child, phase and native actor context. Issued attempts persist even if later roster publication yields. Final recovery publication is guarded; physical rejoin freshness and measured cost remain open.
 
 - Arrival-stage and post-grenade clear-through commits now recheck the original physical arrival witnesses against assigned ASL targets, retaining existing quorum, 3 m range and 1.5 m floor tolerance. Departed, transported or unavailable witnesses defer progression; runtime flow and overhead remain unverified.

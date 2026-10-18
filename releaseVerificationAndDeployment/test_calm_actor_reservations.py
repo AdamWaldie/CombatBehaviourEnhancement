@@ -552,3 +552,17 @@ class ManoeuvreRecoveryPublicationTests(unittest.TestCase):
         self.assertIn('_recoveryDeferred || {!(call _recoveryCurrent)}',body)
         self.assertIn('_recoveryEntry set [_retryIndex,_retryRecord]',issue)
         self.assertIn('_drill set ["recovery",_recoveryEntry apply {+_x}]',issue)
+
+
+class RecoveryLivePeerTests(unittest.TestCase):
+    def test_rejoin_publication_uses_a_current_live_peer(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        self.assertIn('_rejoinWitnesses pushBack [_actor,_rallyActor]',source)
+        body=source.split('// A moving/dead/transferred peer',1)[1].split('_recoveryPublished=true;',1)[0]
+        for guard in ('getPosASL _peer','_peer in _main','local _peer','group _peer == _group',
+                      'objectParent _peer','[_peer] call CBE_fnc_CortexCombatEffective',
+                      '[_peer] call _actorTaskFree','vectorDistance _peerPose <= 12',
+                      'abs ((_pose select 2)-(_peerPose select 2)) <= 1.5'):
+            self.assertIn(guard,body)
+        self.assertLess(body.index('_rejoined='),body.index('_drill set ["recovery",_recovery]'))
+        self.assertNotIn('setPos',body)

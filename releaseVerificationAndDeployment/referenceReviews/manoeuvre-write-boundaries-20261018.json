@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "7fa3e249d752ce278031831ad0b49c18fc08415eb53427f3bfe94cdb8c1c2462"
+      "sha256": "256d8dfcaba1d91feef889b0482fd4cc6a6a3b098d815e46bd0f2c85b913167e"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -104,6 +104,11 @@
       "area": "separated actor recovery commands and journals",
       "status": "current-child command/attempt transaction and guarded roster publication",
       "notes": "Copy recovery rows; exact entry records and stage/index/turn plus helper authority/native actor snapshot admit existing RecoveryStep or legacy native move inside isNil. Persist each admitted retry row immediately with its command; advance expected entry only by own writes. Later deferral cannot refund a spent legacy attempt. Final recovery list/public snapshot guarded. Physical peer/rejoin freshness, interleavings and measured cost unverified."
+    },
+    {
+      "area": "recovery rejoin proof",
+      "status": "live peer recheck in roster transaction",
+      "notes": "Retain selected buddy/anchor object with each proposed rejoin; final publication checks both local effective same-group untransported task-free actors, peer in current main element and fresh12m/1.5m vertical separation. Existing MOVE-stage veto and actor PATH/MOVE retained. Stale rally coordinates do not retire recovery. No retry replenishment; routing, physical flow and cost unverified."
     }
   ],
   "implementationChange": {
@@ -111,10 +116,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1351,
-    "log": ".qa/cbe-recovery-publication-verified-build.log",
+    "tests": 1352,
+    "log": ".qa/cbe-rejoin-live-peer-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "6c0f7754365dbf143f63e86c8bef9040fe58efd015c968093b646477921ed0fd"
+    "packageFingerprint": "931864fdb2864ad912eec815814856f613d67bd23e6e6437fae35a85b5079143"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,

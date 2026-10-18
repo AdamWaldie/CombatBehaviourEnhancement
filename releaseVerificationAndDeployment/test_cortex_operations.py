@@ -2017,7 +2017,8 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('if (isNull _',text,name)
         flank=source('cortexFlankStep')
         self.assertIn('private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;',flank)
-        self.assertIn('getPosATL ([_group] call CBE_fnc_CortexGroupAnchor)',flank)
+        self.assertIn('private _rallyActor=[_group] call CBE_fnc_CortexGroupAnchor;',flank)
+        self.assertIn('private _rally = getPosATL _rallyActor;',flank)
 
     def test_clearance_release_cancels_only_its_matching_common_operation(self):
         release=source('cortexClearRelease')

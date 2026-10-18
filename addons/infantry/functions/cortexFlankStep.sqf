@@ -451,6 +451,7 @@ private _recoveryDeferred=false;
 private _recovering = _recovery apply {_x select 0};
 private _main = _units - _recovering;
 private _rejoined = [];
+private _rejoinWitnesses=[];
 if (_main isNotEqualTo []) then {
     {
         _x params ["_actor","_attempts","_next"];
@@ -459,7 +460,8 @@ if (_main isNotEqualTo []) then {
         private _peers = _main;
         private _teamIndex = _teams findIf {_actor in _x};
         if (_teamIndex >= 0) then {_peers = (_teams select _teamIndex) select {_x in _main}};
-        private _rally = getPosATL ([_group] call CBE_fnc_CortexGroupAnchor);
+        private _rallyActor=[_group] call CBE_fnc_CortexGroupAnchor;
+        private _rally = getPosATL _rallyActor;
         if (_peers isNotEqualTo []) then {
             // A centroid across floors may be empty air. Recover toward an actual
             // eligible teammate, preferring the surviving buddy in this fire team.
@@ -478,13 +480,14 @@ if (_main isNotEqualTo []) then {
                     if (_distance < _nearest) then {_nearest=_distance;_buddy=_x};
                 } forEach _peers;
             };
+            _rallyActor=_buddy;
             _rally=getPosATL _buddy;
         };
         private _rallyASL=ATLToASL _rally;
         if ((getPosASL _actor) vectorDistance _rallyASL <= 12
             && {abs (((getPosASL _actor) select 2)-(_rallyASL select 2)) <= 1.5} && {_actor checkAIFeature "PATH"}
             && {_actor checkAIFeature "MOVE"} && {(_drill getOrDefault ["stage",""]) != "MOVE"}) then {
-            _rejoined pushBack _actor;
+            _rejoinWitnesses pushBack [_actor,_rallyActor];
         } else {
             if (time >= _next && {_attempts < 1} && {_actor checkAIFeature "PATH"} && {_actor checkAIFeature "MOVE"}) then {
                 // Recovery owns only movement. Preserve the actor's current target so a
@@ -523,6 +526,21 @@ if (_main isNotEqualTo []) then {
 private _recoveryPublished=false;
 isNil {
     if (_recoveryDeferred || {!(call _recoveryCurrent)}) exitWith {};
+    // A moving/dead/transferred peer cannot prove present cohesion at a stale rally.
+    _rejoined=(_rejoinWitnesses select {
+        _x params ["_actor","_peer"];
+        private _pose=getPosASL _actor;
+        private _peerPose=getPosASL _peer;
+        !isNull _peer && {local _actor} && {local _peer}
+            && {group _actor == _group} && {group _peer == _group}
+            && {_peer in _main} && {isNull objectParent _actor} && {isNull objectParent _peer}
+            && {[_actor] call CBE_fnc_CortexCombatEffective} && {[_peer] call CBE_fnc_CortexCombatEffective}
+            && {[_actor] call _actorTaskFree} && {[_peer] call _actorTaskFree}
+            && {_actor checkAIFeature "PATH"} && {_actor checkAIFeature "MOVE"}
+            && {(_drill getOrDefault ["stage",""]) != "MOVE"}
+            && {_pose vectorDistance _peerPose <= 12}
+            && {abs ((_pose select 2)-(_peerPose select 2)) <= 1.5}
+    }) apply {_x select 0};
     _recovery = _recovery select {!((_x select 0) in _rejoined)};
     _drill set ["recovery",_recovery];
     _recovering = _recovery apply {_x select 0};
