@@ -11,7 +11,7 @@ Workshop-parity percentage is available.
 
 - Latest verified production source is `180e29df`, with **1,389 offline tests,327 compiled production SQF,nine PBOs**. Log: `.qa/cbe-gate-detection-phase-budget-verified-build.log`; unsigned fingerprint `0d67cafdb9dee2e48e793dded14c2970317cc1f3325c49071cf58052fe8248fc`. Later checkpoint documentation does not change that artifact. These are offline gates, not behaviour acceptance.
 - Recent implementation covers mounted support/report discovery, mutual radio eligibility, original observation age, personal native observer selection, ignored-target handling in natural indoor/ground/air work, exact support reservation binding/expiry, ASL ground arrival and indexed gate detection/opening. Gate phase sampling is bounded8; ambiguous barrier metadata checks can rise8to32 per class. Physical effects and aggregate cost remain unverified.
-- The user explicitly keeps audits paused and asks implementation to continue. HBQ queue movement remains unimplemented despite owner consent; the source uses forced-velocity pushes, which CBE must replace with actual native execution rather than copy. No new completion percentage or parity credit is assigned.
+- The user explicitly keeps audits paused and asks implementation to continue. Negotiated queue movement remains unimplemented despite owner consent; native execution and physical handback are still required. No new completion percentage or parity credit is assigned.
 
 - Distributed performance sampling now reads legacy/current callback schemas, preserves unknown context and reports missing callback timing as -1 instead of zero. Context-presence flags do not count unique callbacks or prove coverage. No new benchmark or performance acceptance is claimed.
 

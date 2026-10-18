@@ -6,16 +6,18 @@
  * Ordinary native route intent is rechecked at admission and mutation; owned alternate STOP
  * requires its unchanged finite journal. Convoy gate requests retain their registry contract.
  * animateSource has global effect; native animation state supplies JIP, without replay commands.
- * Repeat/JIP: At most one request per gate/transform in the current vehicle route/revision,
- * with sixteen gate attempts per route. A gate-wide twelve-second opening receipt coalesces
+ * Repeat/JIP: One initial opening attempt and at most one unlock retry per gate/transform
+ * in the current vehicle route/revision, with sixteen distinct gate contexts per route. A gate-wide twelve-second opening receipt coalesces
  * simultaneous requests. No closure, timer callback, retry controller or gate ownership transfer.
+ * A LOCKED refusal may be reconsidered once after BIS locks clear, bound to its original
+ * timestamp; the server validates the transition and retains the consumed retry through migration.
  * A context-bound acknowledgement prevents repeated owner requests; delivery retries return
  * the original outcome before geometry/config work. Driver/commander identity binds queued work.
  * Final mutation is atomic and rechecks expiry, crew ownership, convoy revision and live phases.
  * Initial phases are retained; already-open gates are untouched. A refused/expired request
  * grants no passage and never disables the geometry cap. Live lock changes remain authoritative.
  * Arguments: 0 payload <ARRAY, []> of named pairs: group GROUP, vehicle OBJECT, gate OBJECT,
- * route ARRAY, transform ARRAY, driver OBJECT, commander OBJECT, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime.
+ * route ARRAY, transform ARRAY, driver OBJECT, commander OBJECT, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime, unlockReceipt NUMBER (-1 or original LOCKED result timestamp).
  * Return Value: BOOL - an opening was commanded or an existing opening was shared; not passability.
  * Exact indexed Door/Gate_N_sound_source or Door/Gate_N_source metadata, N=1..8.
  * At most64 definitions and8 initial native phase reads; one preferred source per leaf, sound before plain.
@@ -23,7 +25,7 @@
  * Example: [_payload] remoteExecCall ["CBE_fnc_DrivingGateOpenServer",2];
  */
 params [["_payload",[],[[]]]];
-if (!isServer || {count _payload != 9} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
+if (!isServer || {count _payload != 10} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
 private _values=createHashMapFromArray _payload;
 private _group=_values getOrDefault ["group",grpNull];
 private _vehicle=_values getOrDefault ["vehicle",objNull];
@@ -34,11 +36,13 @@ private _route=_values getOrDefault ["route",[]];
 private _transform=_values getOrDefault ["transform",[]];
 private _revision=_values getOrDefault ["convoyRevision",-1];
 private _expires=_values getOrDefault ["expires",-1];
+private _unlockReceipt=_values getOrDefault ["unlockReceipt",-1];
 if (!(_group isEqualType grpNull) || {!(_vehicle isEqualType objNull)} || {!(_gate isEqualType objNull)}
     || {!(_requestedDriver isEqualType objNull)} || {!(_requestedCommander isEqualType objNull)}
     || {!(_route isEqualType [])} || {!(_transform isEqualType [])} || {!(_revision isEqualType 0)}
     || {!finite _revision} || {_revision != floor _revision} || {_revision < -1}
     || {!(_expires isEqualType 0)} || {!finite _expires} || {_expires <= serverTime} || {_expires > serverTime+5}
+    || {!(_unlockReceipt isEqualType 0)} || {!finite _unlockReceipt}
     || {isNull _group} || {isNull _vehicle} || {isNull _gate} || {!alive _gate}) exitWith {false};
 private _sender=remoteExecutedOwner;
 if (_sender > 0 && {_sender != 2}
@@ -95,18 +99,33 @@ private _publishResult={
         _vehicle setVariable ["CBE_DrivingGate_Result",_ack,true];
     };
 };
-if (_attemptIndex >= 0) exitWith {
+private _retryUnlock=false;
+if (_attemptIndex >= 0 && {_unlockReceipt >= 0}) then {
+    private _previous=_attempts select _attemptIndex;
+    if ((_previous select 2) == "LOCKED" && {(_previous select 3) == _unlockReceipt}
+        && {(_previous param [4,0]) == 0}) then {
+        _retryUnlock=(_gate getVariable ["bis_disabled_Door",0]) isEqualTo 0;
+        for "_index" from 1 to 8 do {
+            if ((_gate getVariable [format ["bis_disabled_Door_%1",_index],0]) isNotEqualTo 0) exitWith {_retryUnlock=false};
+        };
+    };
+};
+if (_attemptIndex >= 0 && {!_retryUnlock}) exitWith {
     private _previous=_attempts select _attemptIndex;
     private _reason=_previous select 2;
     if (_reason in ["OPEN_REQUESTED","SHARED_OPENING"] && {serverTime >= (_previous select 3)}) then {_reason="OPEN_WINDOW_EXPIRED"};
     [_reason,_previous select 3] call _publishResult;
     false
 };
-if (count _attempts >= 16) exitWith {["ROUTE_GATE_BUDGET",serverTime] call _publishResult;false};
+if (!_retryUnlock && {count _attempts >= 16}) exitWith {["ROUTE_GATE_BUDGET",serverTime] call _publishResult;false};
 private _observed=[_vehicle,0,true] call CBE_fnc_DrivingGateCap;
 if ((_observed select 1) != _gate || {(_observed select 2) > 12} || {(_observed select 2) < 0}) exitWith {false};
-_attemptIndex=count _attempts;
-_attempts pushBack [_gate,+_transform,"VALIDATING",serverTime+5];
+if (_retryUnlock) then {
+    _attempts set [_attemptIndex,[_gate,+_transform,"VALIDATING",serverTime+5,1]];
+} else {
+    _attemptIndex=count _attempts;
+    _attempts pushBack [_gate,+_transform,"VALIDATING",serverTime+5,0];
+};
 _vehicle setVariable ["CBE_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
 private _sources=[];
 private _preferredSources=createHashMap;

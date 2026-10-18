@@ -3,6 +3,22 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class DrivingGateCapTests(unittest.TestCase):
+    def test_locked_gate_can_retry_once_only_after_owner_and_server_observe_unlock(self):
+        owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        self.assertIn('["unlockReceipt",_unlockReceipt]',owner)
+        self.assertIn('getOrDefault ["unlockReceipt",-1]',server)
+        self.assertIn('_context pushBack ["UNLOCK_RETRY",_unlockReceipt]',owner)
+        self.assertIn('(_previous select 2) == "LOCKED"',server)
+        self.assertIn('(_previous select 3) == _unlockReceipt',server)
+        self.assertIn('(_previous param [4,0]) == 0',server)
+        self.assertIn('"VALIDATING",serverTime+5,1]',server)
+        self.assertLess(server.index('private _retryUnlock=false'),server.index('call CBE_fnc_DrivingGateCap'))
+        for code in (owner,server):
+            self.assertIn('bis_disabled_Door_%1',code)
+            self.assertIn('for "_index" from 1 to 8',code)
+        self.assertIn('_attempts >= 2',owner)
+
     def test_gate_detection_and_opening_share_aliases_without_reading_discarded_phases(self):
         geometry=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
@@ -92,7 +108,7 @@ class DrivingGateCapTests(unittest.TestCase):
                       'OPEN_WINDOW_EXPIRED', 'REQUEST_TIMEOUT',
                       'CBE_DrivingGate_Pending",[_context,serverTime+5,_attempts+1],true', '["driver",_driver]', '["commander",_commander]']:
             self.assertIn(guard,owner)
-        self.assertLess(server.index('if (_attemptIndex >= 0) exitWith'),server.index('call CBE_fnc_DrivingGateCap'))
+        self.assertLess(server.index('if (_attemptIndex >= 0 && {!_retryUnlock}) exitWith'),server.index('call CBE_fnc_DrivingGateCap'))
         self.assertIn('_driver != _requestedDriver',server)
         self.assertIn('_commander != _requestedCommander',server)
         self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform]',server)
