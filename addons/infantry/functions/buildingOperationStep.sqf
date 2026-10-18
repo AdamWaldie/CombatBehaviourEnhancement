@@ -2573,15 +2573,16 @@ private _delay=call {
                                     && {_x distance2D _anchor >= 1.2} && {_x distance2D _anchor <= 8}
                             };
                             private _occupied=[[_partner]] call _occupiedRoomTargets;
-                            // Prefer non-conflicting native nodes, but keep blocked alternatives
-                            // behind them when the free nodes have no clear interior connection.
+                            // Prefer unoccupied native nodes. A blocked straight ray between
+                            // rooms is not proof that their native doorway route is inaccessible.
                             private _freeCandidates=_candidates select {
                                 !([_x,_occupied] call _roomTargetOccupied)
                             };
                             private _busyCandidates=_candidates-_freeCandidates;
                             // Wider native nodes remain preferred. A compact interior may have no
                             // 2.5m-separated point; try its distinct >=1.2m native nodes before
-                            // falling back to the lead's exact entry destination. No offsets.
+                            // considering the lead's exact entry destination only when no distinct
+                            // native node exists. No offsets or visit credit.
                             private _entryRank={
                                 params ["_node"];
                                 private _distance=_node distance2D _anchor;
@@ -2591,13 +2592,18 @@ private _delay=call {
                             private _busyRanks=_busyCandidates apply {[_x] call _entryRank};
                             _freeRanks sort true;
                             _busyRanks sort true;
-                            private _ranked=_freeRanks+_busyRanks;
+                            private _ranked=if (_freeRanks isNotEqualTo []) then {_freeRanks} else {_busyRanks};
                             _ranked resize ((count _ranked) min 24);
                             private _origin=(AGLToASL _anchor) vectorAdd [0,0,0.8];
                             private _connected=_ranked findIf {
                                 (lineIntersectsSurfaces [_origin,(AGLToASL (_x select 1)) vectorAdd [0,0,0.8],objNull,objNull,true,1,"GEOM","NONE"]) isEqualTo []
                             };
-                            _supportTarget=if (_connected >= 0) then {+((_ranked select _connected) select 1)} else {+_anchor};
+                            _supportTarget=if (_connected >= 0) then {+((_ranked select _connected) select 1)} else {
+                                // Native navigation may turn through an adjoining room. Keep a
+                                // distinct finite attempt rather than serialising both actors on
+                                // the lead's node merely because a wall blocks direct visibility.
+                                if (_ranked isNotEqualTo []) then {+((_ranked select 0) select 1)} else {+_anchor}
+                            };
                             _entryTargets set [_entryKey,+_supportTarget];
                             _job set ["pairEntryTargets",_entryTargets];
                         };

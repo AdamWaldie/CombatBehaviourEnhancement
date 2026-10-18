@@ -21,3 +21,14 @@ class CompactBuddyEntryTests(unittest.TestCase):
         self.assertIn('_supportTarget=if (_connected >= 0)',block)
         self.assertIn('_positions select {',block)
         self.assertNotIn('getPos [',block)
+
+
+class NativeBuddyRouteTests(unittest.TestCase):
+    def test_obstructed_ray_does_not_force_a_shared_entry_node(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        block=text.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
+        self.assertIn('private _ranked=if (_freeRanks isNotEqualTo []) then {_freeRanks} else {_busyRanks}',block)
+        fallback=block.split('_supportTarget=if (_connected >= 0)',1)[1]
+        self.assertIn('if (_ranked isNotEqualTo []) then {+((_ranked select 0) select 1)} else {+_anchor}',fallback)
+        for forbidden in ('doMove','setPos','setVelocity','set ["deadline"','_cleared pushBack'):
+            self.assertNotIn(forbidden,block)

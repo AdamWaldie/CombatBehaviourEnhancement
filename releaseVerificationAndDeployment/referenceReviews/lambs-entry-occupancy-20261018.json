@@ -11,13 +11,15 @@
   "cbe": [
     "Shared occupancy now includes physical positions of up to eight current eligible pair workers even without an issued movement receipt, plus current owned approach targets.",
     "Partner fallback ranks free eligible same-floor visited points ahead of occupied points and rechecks free-space preference inside its existing command/attempt transaction.",
-    "All-occupied cases retain existing finite fallback; no hard reservation, deadline extension, new ray/world query, teleport or visit credit."
+    "All-occupied cases retain existing finite fallback; no hard reservation, deadline extension, new ray/world query, teleport or visit credit.",
+    "Initial buddy support selection retains free distinct same-floor native nodes even when a straight interior ray is blocked. Clear-ray connection ranks within that pool; native navigation receives a finite attempt around walls. The shared anchor is used only when no distinct candidate exists."
   ],
   "limitations": [
     "Proximity is an admission preference, not a path-clearance or room-safety proof.",
     "Live participants only; nonparticipant occupancy and native path choice remain engine constraints.",
     "Two-and-a-half metre/floor-band preference can be conservative across thin walls; all-occupied fallback remains finite.",
-    "Entry coherence, repeatability, hostile rooms, casualty/HC behavior and runtime cost remain physically unverified."
+    "Entry coherence, repeatability, hostile rooms, casualty/HC behavior and runtime cost remain physically unverified.",
+    "Blocked straight visibility neither proves nor disproves native connectivity. The attempted distinct node may still fail under the existing per-room/episode budgets; physical validation remains required."
   ],
   "implementationAccepted": false,
   "physicalAcceptance": false

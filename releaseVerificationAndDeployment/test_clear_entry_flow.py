@@ -23,7 +23,7 @@ class ClearEntryFlowTests(unittest.TestCase):
         self.assertIn('if (_freeCandidates isNotEqualTo [])',claim)
         self.assertNotIn('deleteAt',claim)
         support=s.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
-        self.assertIn('private _ranked=_freeRanks+_busyRanks',support)
+        self.assertIn('private _ranked=if (_freeRanks isNotEqualTo []) then {_freeRanks} else {_busyRanks}',support)
         self.assertIn('if (_supportTarget isEqualTo [])',support)
         # Distinct lead claims alone cannot prevent two buddies choosing the midpoint.
         points=[(0,0),(6,0),(3,0),(3,4)]
