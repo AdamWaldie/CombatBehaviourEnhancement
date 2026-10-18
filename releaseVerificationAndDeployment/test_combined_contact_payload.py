@@ -141,3 +141,20 @@ class SpatialGroupDeduplicationTests(unittest.TestCase):
             self.assertIn(f'{seen} set [{key},true]',text)
             self.assertNotIn(f'{group} in {groups}',text)
             self.assertNotIn('forEach allGroups',text)
+
+
+class MountedReportPhysicalFixtureTests(unittest.TestCase):
+    def test_prepared_normal_case_observes_real_contact_and_mounted_delivery(self):
+        text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runSupport.sqf').read_text()
+        case=text.split('// Mounted-report normal case:',1)[1].split('// End mounted-report normal case;',1)[0]
+        for proof in ('CBE_CortexQA_HeadlessBatch','createVehicleCrew _carrier',
+                      'vehicle _x != _carrier','lineIntersectsSurfaces','knowsAbout _mountedThreat > 0',
+                      '"REPORT-mounted-natural-delivery"','"REPORT-mounted-original-age"',
+                      '((_receipt select 2)-(_receipt select 1))-30'):
+            self.assertIn(proof,case)
+        self.assertLess(case.index('createVehicle ["Land_CncWall4_F"'),case.index('private _mountedThreat='))
+        self.assertIn('private _noDirectKnowledge=(_mountedReceiver knowsAbout _mountedThreat) == 0',case)
+        for shortcut in ('call CBE_fnc_CortexReportServer','call CBE_fnc_CortexReportLocal',
+                         'call CBE_fnc_CortexContactReport',' reveal ',
+                         'setVariable ["CBE_AIPass_AreaReport"'):
+            self.assertNotIn(shortcut,case)
