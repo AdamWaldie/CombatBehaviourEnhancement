@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-18",
+  "scope": "HBQ whole-vehicle writer lifecycle and exclusive handover preconditions",
+  "workshop_id": "3812620045",
+  "installed_package": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3812620045\\addons\\hbq_advanced_driving_ai.pbo",
+  "installed_package_sha256": "30abacaee42340c12accc0b95cf31972f7bb2ad20cc1c6871494b8aa173f9667",
+  "sources": [
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_start.sqf",
+      "sha256": "7bf30fd6a7e942a4710b6c829058f9936023c6f65fa7d063408d702603c1fd4b",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_initVehicle.sqf",
+      "sha256": "a779471f0fd13c55b223a07d6727b147e0b45d6139f151187f9da7e4caffdc40",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_enabled.sqf",
+      "sha256": "85376a43ee2e9b07a117a977dea91158da5633a1ad3a9e36b91001f4c898c598",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_feature.sqf",
+      "sha256": "ab58aaf35138921241af0f42813b0e14457f64c5820e758c927b874c0a415b06",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "review_scope": "selected startup/main-loop/footer ranges"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_push.sqf",
+      "sha256": "b3a7710202b7d049b5ffd78d3acd45cd1366f3dccda347f138475bea1cf0f871",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_unstuckLoop.sqf",
+      "sha256": "7b9cccb4641252cc63d249eec33167e41d3e7e000071434a139a3db367a73719",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_crewHold.sqf",
+      "sha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_unflipLoop.sqf",
+      "sha256": "856a0430011f16907df54161bc1fac02c64b7d3226ae6c4fb02f10970920107c",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_vehicleUnstuck.sqf",
+      "sha256": "3b179087b1feeb34585905d960c11989357cb0d5a7c634463ea91d1605271ea8",
+      "review_scope": "complete helper text"
+    },
+    {
+      "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_teleportVehicleFree.sqf",
+      "sha256": "4fc5e3240b9477d223002011cb9630355efa05f90a2eb525a01d138aa87f1f02",
+      "review_scope": "selected admission and mutation guard inspection"
+    }
+  ],
+  "findings": [
+    {
+      "id": "WRITERS",
+      "evidence": "start launches driveAssist, unstuckLoop, crewHold and unflipLoop independently; initVehicle installs Local restart after its delayed enabled check.",
+      "consequence": "Stopping one main driving writer is not a whole-vehicle handover."
+    },
+    {
+      "id": "PAUSE",
+      "evidence": "driveAssist inactive branch observes Pause and releases its local traffic/overtaking holds. unflipLoop does not observe Pause; crewHold and already queued crew callbacks do not use it.",
+      "consequence": "Pause is not exclusive authority over vehicle pose, seat or crew-policy writers."
+    },
+    {
+      "id": "LOST_ROUTE",
+      "evidence": "unstuckLoop processes RouteLost before constructing the normal Blocked expression containing Pause. feature calls enabled first, so Disable is still respected at that feature check; Pause is the bypassed guard.",
+      "consequence": "Do not claim that Pause suppresses the lost-route teleport path; do not incorrectly claim Disable is ignored at the feature check."
+    },
+    {
+      "id": "PUSH",
+      "evidence": "push registers a machine EachFrame writer using PushList, local/alive/deadline/velocity/contact checks; neither Pause nor Disable is tested. Expired entries also have a final velocity cleanup write.",
+      "consequence": "Wait for actual push entry retirement and its final cleanup; flags or elapsed nominal duration alone cannot acknowledge quiescence."
+    },
+    {
+      "id": "CREW_CALLBACK",
+      "evidence": "crewHold GetOut validates feature/assignment initially. Its delayed0.5s seat mutation checks alive/mobility/on-foot but not feature/assignment/locality/controller/episode again.",
+      "consequence": "Running=false is not proof that a queued seat mutation cannot execute later. No pending actor/episode acknowledgement is exposed by this helper."
+    },
+    {
+      "id": "DISABLE_RESTART",
+      "evidence": "Disable suppresses enabled/feature and causes main loops to retire at their checks; clearing it alone does not execute start. Init Local restart and explicit start are separate paths. Per-vehicle Enable overrides the global enable setting.",
+      "consequence": "A future adapter must preserve the original per-vehicle/global baseline and explicitly establish restart ownership; toggling a global CBA setting is not scoped handover."
+    },
+    {
+      "id": "POLICY_BASELINES",
+      "evidence": "crewHold changes unload/allowCrewInImmobile and its exit only clears its running marker; main traffic release resets forceSpeed; original caller-owned policy baselines are not a common receipt.",
+      "consequence": "A handover must track per-property restoration independently and cannot restore a generic default over a new controller."
+    }
+  ],
+  "required_future_contract": [
+    "Owner-local REQUESTED -> QUIESCING -> QUIESCENT_ACK -> CBE_OWNED -> RELEASING -> PROVIDER_RESUMED, scoped to vehicle, issuer, token, generation and owner epoch.",
+    "Quiescence acknowledgement covers all four worker families, active push entries and final velocity writes, queued seat callbacks, gate cleanup and delayed damage restoration; not just Running flags.",
+    "Do not issue CBE movement until real acknowledgement. Missing acknowledgement leaves handover unimplemented/unavailable, never a synthetic success.",
+    "Capture exact previous per-vehicle enable/pause/disable and modified property baselines, preserve nil versus explicit values, and restore only exact still-owned writes.",
+    "Revalidate driver/operator/crew/route/player/Zeus/external ownership immediately before every command and before resume. Old owner cannot restart a successor provider instance.",
+    "Resume through actual current-owner provider entry points, with acknowledgement and physically observed authored-order execution. No edits to installed originals or preserved baselines."
+  ],
+  "core_implementation_lessons": [
+    "Every delayed CBE mutation must carry exact episode/owner/context and recheck admission after waits; no special lost-route branch bypasses current pause/ownership.",
+    "CBE finite physical recovery must use native movement; upstream teleport, velocity pushes, forced repair/refuel and forced boarding are not implementation parity.",
+    "Apply these lessons to individual/FSM execution first. Compatibility expansion remains last, as the user requires."
+  ],
+  "validation": {
+    "finding_predicates": "PASS: checked against all listed current snapshot files",
+    "package_freshness": "PASS: installed PBO matches recorded baseline",
+    "product_changes": "NONE",
+    "runtime_or_physical": "NOT_RUN_AUDITS_PAUSED",
+    "latest_product_build": "unchanged88897871;1143 tests/315 SQF/9 PBO; .qa/cbe-shutdown-vehicle-owner-verified-build.log"
+  },
+  "status": "REVIEWED_NOT_IMPLEMENTED_NOT_ACCEPTED",
+  "whole_hbq_parity": false,
+  "remaining": "No public all-writer quiescence/queued-callback acknowledgement proved. An actual adapter and loaded-source physical tests remain required; ordinary markers/detection do not count."
+}
