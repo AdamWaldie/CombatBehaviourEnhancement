@@ -30,6 +30,9 @@
  * revision before crew/trail writes. A public revision receipt survives migration; a fresh server
  * task revision is required to re-admit. Cleanup restores exact caps but cannot recall movement.
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
+ * A finished native endpoint may accept the next observed point after three metres of advance,
+ * only at rest near its exact owned endpoint with unchanged seat/destination receipts. Moving
+ * legs retain the eight-metre retask threshold; explicit STOP and changed commands are not retried.
  * Curve caps are refreshed for two-point retained tails; grade includes the first segment.
  * These observations never relax the independent spacing, traffic or infantry braking caps.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
@@ -1016,8 +1019,20 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 // cycle. Retask only when the committed point advances materially or the driver
                 // has actually stopped.
                 private _committedDestination=_progress param [5,[]];
+                private _nativeReceipt=_progress param [10,[],[[]]];
+                private _finishedLeg=count _committedDestination == 3 && {count _nativeReceipt == 4}
+                    && {local _vehicle} && {local _movementOperator}
+                    && {abs speed _vehicle < 1} && {unitReady _movementOperator}
+                    && {currentCommand _movementOperator in ["","MOVE"]}
+                    && {_vehicle distance2D _committedDestination <= 3}
+                    && {abs (((getPosASL _vehicle) select 2)-((ATLToASL _committedDestination) select 2)) <= 1.5}
+                    && {_committedDestination distance2D _destination > 3}
+                    && {(_nativeReceipt select 0) == driver _vehicle}
+                    && {(_nativeReceipt select 1) == _movementOperator}
+                    && {(expectedDestination driver _vehicle) isEqualTo (_nativeReceipt select 2)}
+                    && {(expectedDestination _movementOperator) isEqualTo (_nativeReceipt select 3)};
                 if (count _committedDestination < 2
-                    || {_committedDestination distance2D _destination > 8}) then {
+                    || {_committedDestination distance2D _destination > 8} || {_finishedLeg}) then {
                     if ([] call _mayIssueDriving) then {
                         _movementOperator doMove _destination;
                         if (_captureControl) then {(_controlSample select 9) pushBack ["NATIVE",+_destination,_frontSpeed,_joining,_straightPath]};
