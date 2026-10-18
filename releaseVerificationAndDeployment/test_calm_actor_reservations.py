@@ -102,3 +102,16 @@ class OperationProgressDomainTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_CortexActorMoveReserved',rebalance)
         self.assertIn('_platforms getOrDefault [netId _x,_x]',rebalance)
         self.assertNotIn('_reservation param [2',rebalance)
+
+
+class CoordinationReservationTests(unittest.TestCase):
+    def test_server_does_not_expire_remote_or_malformed_actor_reservations(self):
+        source=(ROOT/'addons/support/functions/cortexSupportCoordinateStep.sqf').read_text()
+        admission=source.split('_fit=_fit select {',1)[1].split('if (count _fit >= 3',1)[0]
+        self.assertIn('private _free=if (local _x) then {',admission)
+        self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',admission)
+        remote=admission.split('} else {',1)[1].split('};',1)[0]
+        self.assertEqual(remote.strip(),'_reservation isEqualTo []')
+        self.assertNotIn('<= time',admission)
+        self.assertNotIn('setVariable',admission)
+        self.assertIn('currentCommand _x',admission)

@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Coordinated bound selection now uses strict owner-local actor reservation validation. The server
+  never expires a nonempty nonlocal reservation from its own clock; remote empty markers are only
+  planning candidates, with final admission retained on the group owner. HC timing remains unverified.
+
 - Audits are paused by the user. No new in-game result is claimed here.
 - Current driving source adds current-position passing joins, live return monitoring, return-entry timing and gradual static-bypass ramps. Bypass path issue and retirement use unscheduled authority checks. Native queue negotiation, stopped-merge recovery, subsystem-off cleanup observation and measured steering/performance remain incomplete.
 - The last independently verified signed Release source remains `48a77bb`, predating the current CBE work. Its complete Release build and fixed-key signing passed; nine signatures verified and nine damaged controls were rejected again after ZIP extraction. These package checks add no behaviour acceptance.

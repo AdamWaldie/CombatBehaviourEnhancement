@@ -4,6 +4,8 @@
  * Locality/authority: server publishes tokened roles; each group owner executes its fire teams.
  * Repeat/JIP: roles are durable snapshots; only changed roles are broadcast. Existing support
  * lease expiry, exclusion and Zeus cancellation remain authoritative. At most six groups are read.
+ * Local actor reservations use the shared strict validator; nonlocal nonempty markers remain
+ * reserved because only their owner can interpret expiry. Owner execution still validates admission.
  * A partial bound is useful progress and hands movement to the next squad, but never completes
  * the final assault objective; that squad remains eligible to finish its committed approach. Stalls are counted per
  * squad; one unreliable element can recover or retire without cancelling the other manoeuvre and
@@ -121,8 +123,13 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
     };
         _fit=_fit select {
             private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
-            private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
-                && {(_reservation param [2,1e12,[0]]) <= time}};
+            // Reservation deadlines use the actor owner's clock. The coordinator may inspect
+            // an empty remote marker, but cannot declare a remote or malformed lease expired.
+            private _free=if (local _x) then {
+                !([_x] call CBE_fnc_CortexActorMoveReserved)
+            } else {
+                _reservation isEqualTo []
+            };
             _free && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         };
         if (count _fit >= 3 && {serverTime >= (_group getVariable ["CBE_Cortex_SupportRetryAfter",0])}
