@@ -59,3 +59,19 @@ class ClearObserverInteriorTests(unittest.TestCase):
             text=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
             self.assertIn('call CBE_fnc_BuildingRoofTop',text)
             self.assertNotIn('vectorAdd [0,0,10]',text)
+
+    def test_invalid_or_below_actor_roof_limit_cannot_query_downward(self):
+        checks={
+            'buildingOperationStep':'_roomRoofTop <= (_actual select 2)+0.5',
+            'cortexClearBuilding':'_roofTop <= (_positionASL select 2)+0.5',
+            'indoorActorNodeSelect':'_roofTop > (_asl select 2)+0.4',
+            'indoorActorOperation':'_roofTop > (_actualASL select 2)+0.4',
+        }
+        for name,guard in checks.items():
+            text=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
+            self.assertIn(guard,text)
+            after=text.split('call CBE_fnc_BuildingRoofTop',1)[1]
+            self.assertLess(after.index(guard),after.index('lineIntersectsSurfaces'))
+        # The helper's invalid sentinel must never satisfy an upward query at ordinary ASL.
+        for actor_z in (-500,0,1500):
+            self.assertFalse(-1e12 > actor_z+0.4)

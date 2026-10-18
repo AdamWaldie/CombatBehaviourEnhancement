@@ -353,8 +353,10 @@ if (_phase == "APPROACH") exitWith {
         private _segment=lineIntersectsSurfaces [eyePos _actor,(AGLToASL _target) vectorAdd [0,0,1],_actor,objNull,true,1,"GEOM","NONE"];
         private _actualASL=getPosASL _actor;
         private _roofTop=[_building,_bounds] call CBE_fnc_BuildingRoofTop;
-        private _roof=lineIntersectsSurfaces [_actualASL vectorAdd [0,0,0.4],
-            [_actualASL select 0,_actualASL select 1,_roofTop],_actor,objNull,true,1,"GEOM","NONE"];
+        private _roof=if (_roofTop > (_actualASL select 2)+0.4) then {
+            lineIntersectsSurfaces [_actualASL vectorAdd [0,0,0.4],
+                [_actualASL select 0,_actualASL select 1,_roofTop],_actor,objNull,true,1,"GEOM","NONE"]
+        } else {[]};
         _inside=(_model select 0) > (_low select 0) && {(_model select 0) < (_high select 0)}
             && {(_model select 1) > (_low select 1)} && {(_model select 1) < (_high select 1)}
             && {_height <= 1} && {_segment isEqualTo []} && {_roof isNotEqualTo []}

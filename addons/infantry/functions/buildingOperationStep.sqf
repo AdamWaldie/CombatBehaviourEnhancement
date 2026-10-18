@@ -328,6 +328,7 @@ private _delay=call {
         if (_roomRoofTop == -1e12) then {
             _roomRoofTop=[_house,_bounds] call CBE_fnc_BuildingRoofTop;
         };
+        if (_roomRoofTop <= (_actual select 2)+0.5) exitWith {false};
         _roomGeometryBudget=_roomGeometryBudget-1;
         private _roof=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.5],
             [_actual select 0,_actual select 1,_roomRoofTop],_actor,objNull,true,4,"GEOM","NONE"];

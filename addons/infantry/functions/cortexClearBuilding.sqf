@@ -175,6 +175,7 @@ private _positions = _allPositions select {
         && {[AGLToASL _position,_seenPositions,0.5] call CBE_fnc_PositionBucketAdmit};
     if (!_valid) exitWith {false};
     private _positionASL=AGLToASL _position;
+    if (_roofTop <= (_positionASL select 2)+0.5) exitWith {false};
     private _roofHits=lineIntersectsSurfaces [
         _positionASL vectorAdd [0,0,0.5],[_positionASL select 0,_positionASL select 1,_roofTop],objNull,objNull,true,4,"GEOM","NONE"
     ];
