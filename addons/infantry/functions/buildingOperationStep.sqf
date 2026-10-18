@@ -16,6 +16,8 @@
  * current episode/owner/native intent, building transform, unchanged proposal and original deadlines.
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
  * Buddy separation requests do not renew the room mover's finite no-progress clock.
+ * Owned matching PLANNING/BUSY room paths receive a fixed thirty-second no-progress
+ * allowance before retry; ended native commands retain four seconds and clocks never renew.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
  * A casualty blocked by sole-exit coverage may request one progressed idle interior worker
@@ -3162,6 +3164,13 @@ private _delay=call {
                         // deliberately hold cover, so treating any pair member as stopped churns a working clear.
                         private _commandEnded=currentCommand _point in ["","STOP"];
                         private _retryDelay=[12,4] select _commandEnded;
+                        // Native planning/busy is not an ended request. Preserve a matching
+                        // path for a bounded allowance rather than restarting it every12s.
+                        // This changes no progress clock, attempt count or episode deadline.
+                        if (!_commandEnded && {[_point] call _ownsCurrentMove}
+                            && {getUnitState _point in ["PLANNING","BUSY"]}) then {
+                            _retryDelay=30;
+                        };
                         if (_now-_lastProgress > _retryDelay && {[_point] call _actorTaskFree}) then {
                             if (_retries < 3 && {call _mayIssueMovement}) then {
                                 private _retriedMover=false;

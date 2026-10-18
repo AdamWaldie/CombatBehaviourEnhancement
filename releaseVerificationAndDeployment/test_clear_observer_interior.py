@@ -75,3 +75,11 @@ class ClearObserverInteriorTests(unittest.TestCase):
         # The helper's invalid sentinel must never satisfy an upward query at ordinary ASL.
         for actor_z in (-500,0,1500):
             self.assertFalse(-1e12 > actor_z+0.4)
+
+    def test_native_planning_allowance_requires_matching_owned_move_and_does_not_renew_clocks(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        grace=text.split('private _retryDelay=[12,4] select _commandEnded;',1)[1].split('if (_now-_lastProgress > _retryDelay',1)[0]
+        for guard in ('!_commandEnded','call _ownsCurrentMove','getUnitState _point in ["PLANNING","BUSY"]'):
+            self.assertLess(grace.index(guard),grace.index('_retryDelay=30'))
+        for renewal in ('_lastProgress=','_retries=','set ["deadline"','set ["hardDeadline"','doMove'):
+            self.assertNotIn(renewal,grace)

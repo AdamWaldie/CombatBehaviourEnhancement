@@ -1046,3 +1046,6 @@ Clearance handoff now compares the owner epoch, native order, common-operation i
 
 
 Roof observation for clearance discovery, clearance visits and natural indoor node/arrival checks uses BuildingRoofTop, a read-only eight-corner transformed model bound plus one metre. The previous ten-metre cutoff could reject tall interiors. Clearance callback bounds are lazy and callback-local; discovery/node selection computes the endpoint once per invocation. Ray counts and nearest-hit ownership checks remain unchanged for runtime observers; discovery retains its existing target-hit filter. This is observation range, not proof that configured interior points are accessible or safe. Open-roof, malformed geometry, actual traversal and model-size-dependent query cost remain unverified.
+
+
+Clearance no-progress retries allow a still-owned matching native PLANNING/BUSY path thirty seconds before reissue; ordinary moving requests retain twelve seconds and ended commands four. This preserves planning without renewing progress clocks, retry counts or the original episode deadline. The allowance retains a valid busy path without changing target selection. Thirty seconds is provisional until physical timing/flow and performance are measured; it is not proof that native planning will succeed.
