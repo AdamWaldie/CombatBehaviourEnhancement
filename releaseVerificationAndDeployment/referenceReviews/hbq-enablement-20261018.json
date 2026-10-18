@@ -26,10 +26,11 @@
     "Updated CortexInit documentation: the artillery firing-evidence handler is shared and installed while tactics runs; counter-battery admission independently reads the live switch. No runtime handler was added or removed.",
     "Accepted artillery missions capture counterGeneration and reject old COUNTER generations through the existing blocked/uncertain lifecycle.",
     "Owner shot payload carries original generation; final native fire admission atomically rechecks observed generation, live feature/ROE, current operator/token and smoke settings after safety work.",
-    "Server publishes counter generation on feature disable and master stop for current/JIP owners. Publication is not proof of network cancellation ordering."
+    "Server publishes counter generation on feature disable and master stop for current/JIP owners. Publication is not proof of network cancellation ordering.",
+    "Every artillery shot now has a monotonic per-mission request serial and public last-issued battery receipt. Atomic duplicate/stale suppression does not send rejection for an already pending native shot; same-serial payload conflicts do not issue commands."
   ],
   "remaining": [
-    "Unconfirmed issued native shots retain quarantine; they cannot be assumed cancelled. Delayed shoot-and-scoot generation, duplicate owner shot requests and network ordering still need independent analysis and physical tests.",
+    "Unconfirmed native shots retain quarantine. Issued receipts are not firing proof; delayed receipt delivery/locality changes, repeated RPCs and generation ordering need physical tests. Delayed shoot-and-scoot generation remains incomplete.",
     "Per-vehicle feature filtering, full-HBQ controller parity and physical live toggles remain incomplete."
   ],
   "validation": {

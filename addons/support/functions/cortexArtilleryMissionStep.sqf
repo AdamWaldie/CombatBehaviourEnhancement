@@ -10,6 +10,7 @@
  * Qualified event/rejection callbacks restart settlement only; parking is not completion.
  * Counter-generation cancellation blocks future shots while uncertain native shots retain
  * their token/quarantine; re-enabling cannot revive queued counter missions.
+ * Each dispatched native shot has a monotonic per-mission serial, independent of fired counts.
  * Arguments: 0: mission <HASHMAP>, created by ArtilleryFire.
  * Return Value: Number next delay, or -1 to finish.
  * Current caller: CBE_fnc_ArtilleryMissionStep as one bounded action under the artillery mission FSM.
@@ -144,8 +145,9 @@ if ((_mission get "phase") == "READY" && {(_mission get "mode") == "HE"}) exitWi
     diag_log format ["[CBE] Artillery warning token=%1 burst=%2 target=%3 smoke=%4",_mission get "token",(_mission get "burstsCompleted")+1,_target,count _smokes];
     10
 };
+_mission set ["shotSerial",(_mission getOrDefault ["shotSerial",0])+1];
 _mission set ["phase", "PENDING"];
 _mission set ["due", time + 60];
 _mission set ["gunOwner", owner _battery];
-[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token",_mission getOrDefault ["counterGeneration",-1]] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
+[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial"] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
 1

@@ -114,7 +114,7 @@ missionNamespace setVariable ["CBE_AIPass_FireSerial", _serial];
 private _token = format ["%1:%2", netId _battery, _serial];
 private _mission = createHashMapFromArray [
     ["battery", _battery], ["key", netId _battery], ["token", _token], ["fix", [+_target, _error max 0]], ["mode", _mode], ["purpose", _purpose],
-    ["counterGeneration",missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0]],
+    ["counterGeneration",missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0]],["shotSerial",0],
     ["spotter", _spotter], ["enemy", _enemy], ["requester",_requester], ["remaining", (round _rounds max 1) min 10], ["fired", 0], ["burstSize", (round _rounds max 1) min 10],
     ["burstsLeft", if (_mode == "SMOKE" || {_danger}) then {1} else {(round (missionNamespace getVariable ["CBE_AIPass_Artillery_Bursts", 3]) max 1) min 5}],
     ["burstsCompleted", 0], ["opening", !_danger], ["location", +_target],

@@ -27,7 +27,7 @@ class CounterBatterySettingEpoch(unittest.TestCase):
         self.assertIn('["counterGeneration",missionNamespace getVariable',fire)
         self.assertIn('_mission getOrDefault ["counterGeneration",-1]',step)
         self.assertIn('private _blocked = _counterExpired',step)
-        self.assertIn('_mission get "token",_mission getOrDefault ["counterGeneration",-1]] remoteExecCall',step)
+        self.assertIn('_mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial"] remoteExecCall',step)
         self.assertIn('if (alive _battery && {(_mission get "phase") in ["PENDING", "UNCERTAIN"]})',step)
         self.assertIn('_mission set ["phase", "UNCERTAIN"]',step)
     def test_owner_shot_rechecks_generation_and_live_gates_at_atomic_native_issue(self):
