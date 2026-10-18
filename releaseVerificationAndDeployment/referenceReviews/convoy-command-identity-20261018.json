@@ -7,8 +7,8 @@
     "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240",
     "addons/main/fsm/convoyOperation.fsm": "0f79ed5ec97eea1a86b843e2870cc2eba20726145ab2949372f215f32e686f2d",
     "addons/vehicles/functions/convoyReleaseLocal.sqf": "dc192057cc9317dfb2a7ab21c291142e465598e9b34025c5e141909f0b6b0330",
-    "addons/vehicles/functions/convoyCorridorStep.sqf": "c5fbaaad2fef4e7926e99d26d2ba5bf7c78022b60e0bc96746543fdd65454055",
-    "addons/vehicles/functions/convoyBypassStep.sqf": "361920b56062f64775cc5545a06b981092d38e1a82639ed44bf276be4df1aa13"
+    "addons/vehicles/functions/convoyCorridorStep.sqf": "ea4056279d02cdd1ad03c294aeb796a57aa5656ab8250a328e3f0f09af101f71",
+    "addons/vehicles/functions/convoyBypassStep.sqf": "7c819fdbed109d39c573af290ba341344be928c21bbe9d8d844f2ec72f84103e"
   },
   "finding": "Per-command helper checked current crew/external availability but not original brain/job/registry/configuration/epoch. Lead and two follower smoothing journals could record rejected caps.",
   "implementation": "Capture original tick brain/token/registry revision/epoch and registry row index. Each existing command helper refuses changed/cancelled/finished brain, token, epoch, configuration or indexed registry row; row lookup is constant-time after one entry search. Lead and PACE/TRAIL follower cap journals move beside forceSpeed in their admitted transactions.",
@@ -19,10 +19,10 @@
     "Physical mixed tracked/wheeled step-off, braking, gaps, replacements, HC and performance remain unaccepted."
   ],
   "validation": {
-    "tests": 1358,
-    "log": ".qa/cbe-convoy-passage-owner-context-build.log",
+    "tests": 1359,
+    "log": ".qa/cbe-convoy-passage-progress-build.log",
     "exitCode": 0,
-    "packageFingerprint": "66cca03ab90ecd6419f736bd4279a7e0bfc6e84040d89c65a71769b1ba5c63d7"
+    "packageFingerprint": "084eb5ca9404b9b3abd7a6cedfdc0059c8d9033fd96c636b561dc121440d02c4"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
@@ -50,5 +50,10 @@
     "finding": "Revision-only cancellation could adopt a successor passage under the same configuration; retirement could delete changed episode after scheduled observation.",
     "implementation": "Release snapshots corridor/bypass [revision,identity,started,deadline] and [brain,jobToken,epoch,registryRevision] before cancellation. Optional supplied receipts refuse different current episode/owner context, including a successor retaining the same episode. _retire atomically rechecks local group, original brain/owner context and current episode/key before result and passage/capture deletion. Own newly created episode refreshes only its expected episode key.",
     "limits": "No geometry query or native command inside retirement. Empty optional arguments preserve administrative revision-scoped callers; actual runtime and active passage proposal/progress publication remain unverified."
+  },
+  "passageProgress": {
+    "finding": "Active row observations mutated shared episode rows before authority recheck; bypass capture history published independently.",
+    "implementation": "Copy entry and working rows; isNil admission checks local group, unchanged owner context/live episode/key and original rows. Bypass capture history must also match and publishes with accepted rows. Only admitted observations proceed to failure/complete reporting, retaining the existing terminal boundary.",
+    "limits": "No added world scans/rays or altered checkpoint/hull/cap rules. Refusal returns inactive without deleting original work. Active episode creation, fresh geometry at delayed commits, reversed previously passed vehicles, caller cap behavior on refusal, and runtime/performance remain unverified."
   }
 }

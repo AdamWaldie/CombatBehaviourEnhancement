@@ -660,3 +660,20 @@ class ConvoyPassageRetirementTests(unittest.TestCase):
         release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         self.assertIn('"CONVOY_RELEASED",_releaseCorridor,_releaseContext] call CBE_fnc_ConvoyCorridorStep',release)
         self.assertIn('"CONVOY_RELEASED",_releaseBypass,_releaseContext] call CBE_fnc_ConvoyBypassStep',release)
+
+
+class ConvoyPassageProgressTests(unittest.TestCase):
+    def test_rows_are_private_until_current_episode_publication(self):
+        for stem,kind in [('convoyCorridorStep','Corridor'),('convoyBypassStep','Bypass')]:
+            source=(ROOT/'addons/vehicles/functions'/f'{stem}.sqf').read_text()
+            self.assertIn('private _entryRows=(_episode get "rows") apply {+_x};',source)
+            self.assertIn('private _rows=_entryRows apply {+_x};',source)
+            body=source.split('private _rowsPublished=false;',1)[1]
+            for proof in ('isNil {','isNotEqualTo _entryOwnerContext','isNotEqualTo _entryEpisodeKey',
+                          'isNotEqualTo _entryRows','if (!_rowsPublished) exitWith {_inactive}'):
+                self.assertIn(proof,body)
+            self.assertLess(body.index('isNil {'),body.index('_episode set ["rows",_rows]'))
+            self.assertLess(body.index('_rowsPublished=true'),body.index('call _retire'))
+            if kind=='Bypass':
+                self.assertIn('isNotEqualTo _captureState',body)
+                self.assertIn('setVariable ["CBE_Convoy_BypassCapture",[_captureIdentity,_nextCaptures]]',body)

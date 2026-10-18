@@ -96,7 +96,8 @@ private _index=_episode get "routeIndex";
 if (count waypoints _group != (_episode get "routeCount") || {currentWaypoint _group < _index}
     || {([_group,"",false,_index] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo (_episode get "route")}) exitWith {["ORDER_CHANGED","CANCELLED"] call _retire};
 if (serverTime >= (_episode get "deadline")) exitWith {["TAIL_TIMEOUT"] call _retire};
-private _rows=_episode get "rows";private _points=_episode get "points";
+private _entryRows=(_episode get "rows") apply {+_x};
+private _rows=_entryRows apply {+_x};private _points=_episode get "points";
 if (count _rows == 0 || {count _rows > 20} || {count _points < 2} || {count _points > 24}) exitWith {["INVALID_EPISODE"] call _retire};
 private _lead=_episode get "lead";private _leadWork=_lead getVariable ["CBE_DrivingBypass_Work",createHashMap];
 private _leadResult=_lead getVariable ["CBE_DrivingBypass_Result",[]];
@@ -165,8 +166,22 @@ private _caps=createHashMap;private _passedCount=0;private _changed=false;privat
         };
     };
 } forEach _rows;
-_group setVariable ["CBE_Convoy_BypassCapture",[_captureIdentity,_nextCaptures]];
+private _rowsPublished=false;
+isNil {
+    private _liveEpisode=_group getVariable ["CBE_Convoy_BypassPassage",createHashMap];
+    if (!local _group || {(call _ownerContext) isNotEqualTo _entryOwnerContext}
+        || {_liveEpisode isNotEqualTo _episode}
+        || {([_liveEpisode] call _episodeKey) isNotEqualTo _entryEpisodeKey}
+        || {(_liveEpisode getOrDefault ["rows",[]]) isNotEqualTo _entryRows}
+        || {(_group getVariable ["CBE_Convoy_BypassCapture",[]]) isNotEqualTo _captureState} ) exitWith {};
+    if (_changed) then {
+        _episode set ["rows",_rows];
+        _group setVariable ["CBE_Convoy_BypassPassage",_episode,true];
+    };
+    _group setVariable ["CBE_Convoy_BypassCapture",[_captureIdentity,_nextCaptures]];
+    _rowsPublished=true;
+};
+if (!_rowsPublished) exitWith {_inactive};
 if (_failure != "") exitWith {[_failure] call _retire};
 if (_passedCount == count _rows) exitWith {["ALL_VEHICLES_PHYSICALLY_PASSED","COMPLETE"] call _retire};
-if (_changed) then {_episode set ["rows",_rows];_group setVariable ["CBE_Convoy_BypassPassage",_episode,true]};
 [true,_caps,_passedCount,count _rows]

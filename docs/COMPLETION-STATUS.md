@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Corridor/bypass tail progress now uses copied rows and publishes only under unchanged episode/owner/original-row context. Bypass capture history commits with those rows; rejected proposals cannot overwrite successor progress. Active creation, geometric freshness and runtime/performance remain unverified.
+
 - Corridor/bypass cancellation now carries captured episode and owner-context receipts. Retirement atomically rechecks current episode/brain/job/epoch/registry before result publication and deletion, preserving retained or replaced successor work. Active passage creation/progress and physical cancellation/cost remain unverified.
 
 - Convoy release retains original brain/job/epoch/registry/local-state/baseline and guards group, per-vehicle and final restoration transactions. FSM release passes its expected job token. Physical cancellation, handover and cost remain unverified.
