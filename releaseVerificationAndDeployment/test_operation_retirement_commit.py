@@ -47,6 +47,15 @@ class OperationRetirement(unittest.TestCase):
         self.assertEqual(text.count('setVariable ["CBE_Operation"'),1)
         self.assertNotIn('doMove',text)
 
+    def test_posture_cleanup_cannot_release_a_successor_lease(self):
+        for name in ('operationCancel','operationRelease'):
+            text=(ROOT/'addons/core/functions'/f'{name}.sqf').read_text(encoding='utf-8')
+            cleanup=text.split('private _dangerActor=objNull;',1)[1].split('private _retired=false;',1)[0]
+            for proof in ('isNil {','local _group','_entryEpoch ==','_current isEqualTo _operation',
+                          'CBE_OperationGeneration','count _postureLease == 8',
+                          '(_postureLease select 5) == _generation','(_postureLease select 6) == _operationEpoch'):
+                self.assertLess(cleanup.index(proof),cleanup.index('call CBE_fnc_DangerReact'))
+
     def test_permission_restore_consumes_only_current_lease_in_atomic_scope(self):
         text=(ROOT/'addons/core/functions/operationRestore.sqf').read_text(encoding='utf-8')
         for proof in ('isNil {','_current isNotEqualTo _operation','ownerEpoch','count _members > 64',

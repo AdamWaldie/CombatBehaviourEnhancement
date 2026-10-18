@@ -31,9 +31,22 @@ if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {
 // operations share the generation record without touching their native combat state on release.
 private _dangerActor=objNull;
 if (_operation getOrDefault ["dangerPosture",false]) then {
-    _dangerActor=[_group] call CBE_fnc_CortexGroupAnchor;
-    if (isNull _dangerActor) then {_dangerActor=leader _group};
-    [_dangerActor,"RELEASE"] call CBE_fnc_DangerReact;
+    // Resolve and release posture only while this operation still owns the lease. Cleanup
+    // before this point can yield; a successor must retain its own reaction and baseline.
+    isNil {
+        private _current=_group getVariable ["CBE_Operation",createHashMap];
+        private _postureLease=_group getVariable ["CBE_Danger_ReactionLease",[]];
+        if (local _group && {_entryEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_current getOrDefault ["generation",-2]) == _generation}
+            && {_current isEqualTo _operation}
+            && {(_group getVariable ["CBE_OperationGeneration",-1]) == _generation}
+            && {count _postureLease == 8} && {(_postureLease select 5) == _generation}
+            && {(_postureLease select 6) == _operationEpoch}) then {
+            _dangerActor=[_group] call CBE_fnc_CortexGroupAnchor;
+            if (isNull _dangerActor) then {_dangerActor=leader _group};
+            [_dangerActor,"RELEASE"] call CBE_fnc_DangerReact;
+        };
+    };
 };
 // Cleanup can yield or trigger a successor. Retire only the operation captured at entry.
 private _retired=false;
@@ -71,6 +84,7 @@ if (_operation getOrDefault ["dangerPosture",false] && {count _dangerResponse ==
         || {(_dangerEvent param [2,-1,[0]]) != (_dangerResponse select 2)}) then {
         _dangerEvent=_dangerResponse select [0,4];
     };
+    if (isNull _dangerActor) then {_dangerActor=[_group] call CBE_fnc_CortexGroupAnchor};
     private _dangerAction=[_group,_dangerEvent] call CBE_fnc_DangerActionSelect;
     [_dangerActor,_dangerEvent select 0,_dangerEvent select 1,_dangerAction] call CBE_fnc_DangerReact;
 };
