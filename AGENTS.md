@@ -78,3 +78,7 @@ A pause flag or a main-loop running marker is not exclusive movement authority. 
 ## Audit predicate scope
 
 Shared SQF wait helpers must reserve distinct parameter/local names such as `_cbeQaWaitPredicate` and `_cbeQaWaitDeadlineTick`. `call` predicates read the active dynamic scope; a helper-local `_until` hides a caller's mission/server-time `_until` and can cause false timeout or acknowledgement findings. Preserve the caller's clock and original deadline. Do not fix a failing audit by assigning production completion state. Prepared procedures remain unrun until fresh in-engine evidence exists.
+
+## Source integration and behaviour acceptance
+
+The source collection exists to combine unique capabilities, sound decisions and working improvements into one coherent CBE controller. Evaluate complete intent and execution, not isolated matching functions. For each selected source method, record its contribution, interaction with existing layers, authority, balance and cost, deliberate departures, remaining gaps and physical evidence. Distinguish reviewed, selected, implemented, integrated and physically verified. Parity is useful baseline evidence, not the final goal; reject conflicting controllers and preserve complementary strengths. Compatibility-only sources remain separate. No source-count percentage establishes functional delivery.

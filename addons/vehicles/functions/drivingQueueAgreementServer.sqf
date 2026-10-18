@@ -5,6 +5,7 @@
  * Repeat/JIP: Private32episode registry, fixed2s handshake/30s maximum consent; idempotent replies and exact-token release.
  * A private64-entry vehicle admission journal allows one accepted BEGIN per30seconds,
  * bounding retired timer accumulation as well as the32live episodes.
+ * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
  * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE=[token].
@@ -104,6 +105,11 @@ if (!((_payload select 1) isEqualType true)) exitWith {false};
 private _until=[_record get "deadline",_record get "expires"] select ((_record get "phase") == "AGREED");
 if (serverTime >= _until || {!([_record] call _current)}) exitWith {
     _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;false
+};
+// An expected owner can withdraw agreement after its native context changes.
+// A late refusal is terminal; duplicate positive ACKs retain the original expiry.
+if ((_record get "phase") == "AGREED" && {!(_payload select 1)}) exitWith {
+    _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;true
 };
 if ((_record get "phase") != "PENDING") exitWith {[_record] call _send;true};
 if !(_payload select 1) then {_record set ["phase","REFUSED"]} else {

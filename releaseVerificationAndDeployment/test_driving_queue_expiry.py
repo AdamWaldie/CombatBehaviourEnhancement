@@ -35,6 +35,19 @@ class DrivingQueueExpiry(unittest.TestCase):
         self.assertNotIn('call _scheduleExpiry',duplicate)
         self.assertIn('if (!_pendingDuplicate) then {[_pendingKey] call _scheduleExpiry}',s)
         self.assertIn('"deadline","expires","phase"',s)
+    def test_late_owner_refusal_releases_agreement_before_duplicate_reply(self):
+        s=source('drivingQueueAgreementServer')
+        begin=s.index('if ((_record get "phase") == "AGREED" && {!(_payload select 1)}) exitWith')
+        end=s.index('if ((_record get "phase") != "PENDING") exitWith',begin)
+        refusal=s[begin:end]
+        self.assertIn('_record set ["phase","RELEASED"]',refusal)
+        self.assertLess(refusal.index('[_record] call _send'),refusal.index('_registry deleteAt _token'))
+        self.assertLess(s.index('_sender in (_record get "owners")'),begin)
+        self.assertNotIn('call _scheduleExpiry',refusal)
+        self.assertNotIn('set ["expires"',refusal)
+        for command in ('doMove','doStop','setDriveOnPath','forceSpeed'):
+            self.assertNotIn(command,refusal)
+
     def test_server_bounds_timer_churn_across_fresh_serial_release_cycles(self):
         s=source('drivingQueueAgreementServer')
         for guard in ('"CBE_DrivingQueue_Admissions"','serverTime < (_admissions getOrDefault',
