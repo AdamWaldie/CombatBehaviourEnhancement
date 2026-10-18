@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Exterior CQB reserve roster includes eligible uncommitted command anchor",
+  "finding": "Reserve selection explicitly excluded the local command anchor whenever any other reserve existed. A capable anchor outside the entry team could therefore receive no staging/replacement role.",
+  "implementation": [
+    "All current group members use the same _reserveReady selection; no leadership exception",
+    "Committed lane actors, rotated/unavailable actors and specialist/player/reserved/native-task replacements retain existing exclusions",
+    "Existing rotating8 actor service window,1 post search per callback and physical coverage-aware casualty promotion unchanged",
+    "Remove now-unused reserve anchor lookup; preserve actual cleanup anchor selection"
+  ],
+  "validation": {
+    "log": ".qa/cbe-cqb-reserve-roster-verified-build.log",
+    "exit": 0,
+    "tests": 1212,
+    "sqf": 323,
+    "pbos": 9,
+    "fingerprint": "281a9ce295da9821517fbdcaad3f15f50681e5c055e4f665c68e5b4db17eb26a",
+    "contracts": "Replace last-resort anchor-specific assertion with all-ready roster coverage; cleanup-anchor contract accepts whitespace and retains actual required helper. No physical evidence added."
+  },
+  "remaining": [
+    "Native post arrival and useful exit/face isolation are not proved",
+    "Capacity-limited entry with an exterior leader needs physical validation",
+    "Casualty promotion without losing coverage, new native orders, repeat/HC/JIP and performance remain unrun",
+    "Other direct CQB mutations and full HBQ/driving/combined arms scope remain open"
+  ],
+  "audits": "PAUSED; all65 families partial"
+}

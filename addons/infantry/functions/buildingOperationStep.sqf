@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Every eligible uncommitted actor, including the local command anchor, joins the same bounded
+ * exterior staging/replacement roster. Leadership alone never leaves a spare actor without a role.
  * All CQB common-recovery calls share atomic current building/native-task admission and
  * movement receipt publication; rejected work consumes no retry attempt or command credit.
  * Main room/support native writes and timed retries recheck actual actor/episode authority
@@ -1071,8 +1073,6 @@ private _delay=call {
     // evaluated in the existing building job, so it adds no per-unit scheduler or event-handler cost.
     private _reserved=[];
     {_reserved append _x} forEach _pairs;
-    private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
-    if (isNull _leader) then {_leader=leader _group};
     private _rotatedOut=_job getOrDefault ["rotatedOut",[]];
     {_rotatedOut pushBackUnique _x} forEach (_reserved select {_x in _unavailable});
     _job set ["rotatedOut",_rotatedOut];
@@ -1129,10 +1129,10 @@ private _delay=call {
             && {!([_candidate] call CBE_fnc_CompatibilityExternalControl)}
             && {!(currentCommand _candidate in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
-    private _reserves=(units _group) select {[_x] call _reserveReady && {_x != _leader}};
-    if (_reserves isEqualTo [] && {[_leader] call _reserveReady}) then {
-        _reserves pushBack _leader;
-    };
+    // An uncommitted command anchor still needs an exterior role. Excluding it whenever
+    // another reserve existed left one capable soldier unstaged after leader/roster changes.
+    // The same task, occupancy, coverage and casualty-promotion gates apply to every member.
+    private _reserves=(units _group) select {[_x] call _reserveReady};
     // Rotate the bounded service window: a small building can leave more than eight
     // eligible reserves, and a fixed prefix would never stage or recheck later actors.
     private _stageReserves=+_reserves;
