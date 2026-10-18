@@ -41,3 +41,17 @@ class AirCleanupReceiptTests(unittest.TestCase):
         self.assertIn('private _claimed=_preserveEditedLeg',finish)
         self.assertIn('if (_resume && {!_preserveEditedLeg}',finish)
         self.assertIn('if (!_preserveEditedLeg && {',finish)
+
+
+class ForcedBehaviourIdentityTests(unittest.TestCase):
+    def test_force_flag_is_appended_to_shared_identity_for_native_and_driving_guards(self):
+        receipt=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text(encoding='utf-8')
+        executable=receipt.split('_authored apply {',1)[1]
+        self.assertIn('waypointForceBehaviour _waypoint',executable)
+        self.assertLess(executable.index('waypointLoiterAltitude _waypoint'),executable.index('waypointForceBehaviour _waypoint'))
+        self.assertEqual(executable.count('waypointForceBehaviour _waypoint'),1)
+        for path in ('addons/core/functions/nativeOrderReceipt.sqf',
+                     'addons/vehicles/functions/drivingRouteReceipt.sqf'):
+            self.assertIn('call CBE_fnc_AuthoredRouteReceipt',(ROOT/path).read_text(encoding='utf-8'))
+        for command in ('setWaypointForceBehaviour','setWaypointBehaviour','compile','execVM'):
+            self.assertNotIn(command,executable)

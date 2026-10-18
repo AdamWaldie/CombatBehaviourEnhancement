@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Shared authored waypoint enforcement identity; HBQ route-waiting comparison revisited",
+  "protected_source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf",
+    "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+    "review": "Complete function read. Near-waypoint HOLD/inactive trigger/timeout/nontrue-condition protection exists in CBE; CBE separately refuses recovery on distant authored gates. No condition code is executed."
+  },
+  "finding": "AuthoredRouteReceipt records waypointBehaviour but omitted waypointForceBehaviour. An enforcement-only edit with the same behaviour string left replacement identity unchanged.",
+  "implementation": "Append waypointForceBehaviour after existing loiter metadata, retaining prior field positions. DrivingRouteReceipt and NativeOrderReceipt consume this shared opaque record; aircraft authored/owned leg receipts use it as well. No new movement or enforcement mutation.",
+  "official_sources": [
+    {
+      "url": "https://community.bistudio.com/wiki/waypointForceBehaviour",
+      "finding": "Reads whether waypoint behaviour is forced; separate state from the behaviour string."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/waypointBehaviour",
+      "finding": "Reads the waypoint behaviour value."
+    }
+  ],
+  "cost": "One additional native metadata read per included waypoint row. Ordinary/native current-node consumers remain scoped to that node; all-route callers still scale with route length. Actual overhead unmeasured.",
+  "validation": {
+    "tests": 1403,
+    "compiled_sqf": 328,
+    "pbos": 9,
+    "log": ".qa/cbe-authored-force-behaviour-build.log",
+    "unsigned_fingerprint": "28759989ba541457659788ad282db525282f67fa0183e364279bd2ddf6802f3a",
+    "physical": false,
+    "contracts": "Source regression binds appended force-flag read and shared native/driving delegation. Existing air tests check same receipt before flight commands. Not engine execution."
+  },
+  "limits": [
+    "Zeus enforcement edits and physical cancellation/handback untested",
+    "No whole-HBQ or LAMBS implementation acceptance",
+    "Queue movement and full performance acceptance remain incomplete",
+    "Audits paused; all65families partial"
+  ]
+}

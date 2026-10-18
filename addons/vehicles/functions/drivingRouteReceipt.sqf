@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Reads the full current authored driving waypoint identity without executing its condition.
- * Script, attachment, house-position, synchronization and loiter edits invalidate old recovery.
+ * Script, attachment, house-position, forced-behaviour, synchronization and loiter edits invalidate old recovery.
  * Attached target motion preserves identity; only changing the attached object changes the order.
  * Locality / Authority: Read-only anywhere; only current owners consume it for movement admission.
  * Repeat/JIP: Epoch, generation and current-brain identity reject stale work. New owners start
