@@ -7,7 +7,7 @@
  * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
  * Casualty roster proposals remain isolated until current drill/operation/epoch and actor-native
  * observations pass an unscheduled publication boundary; refusal defers without renewing deadlines.
- * Main bound cover geometry stays scheduled; its native movement/cover and bound journals commit
+ * Main bound cover geometry is prepared before the local write block; its native movement/cover and bound journals commit
  * together only under unchanged point/roster/phase, owner/operation and actor-native observations.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
@@ -349,7 +349,7 @@ if (_teams isEqualTo []) then {
     {_units append _x} forEach _teams;
     _units=_units arrayIntersect _units;
 };
-// Candidate selection is scheduled and edits only private arrays. Do not publish a roster,
+// Candidate selection prepares private arrays before local publication. Do not publish a roster,
 // transition or replacement history through a superseded task/native actor observation.
 private _rosterCommitted=false;
 isNil {
@@ -746,7 +746,7 @@ private _issue = {
         _spots pushBack _spot;
         _planned pushBack [_unit,+_spot];
     } forEach _units;
-    // Geometry above is scheduled. Native writes and their journals commit only while
+    // Geometry is prepared above the local commit. Native writes and their journals commit only while
     // the same drill point, roster and observed actor tasks still own this entire bound.
     private _issued=false;
     isNil {
@@ -1029,7 +1029,7 @@ switch (_drill get "stage") do {
         };
         if (!_moveCommitted) exitWith {_result=0.25};
         // Later recovery/failure decisions may be separated from measurement by a
-        // scheduler yield. Bind them to the committed records and current native tasks.
+        // deferred callback or synchronous helper re-entry. Bind them to the committed records and current native tasks.
         private _decisionProgress=_progress apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
         private _decisionRetries=_retries apply {+_x};
         private _decisionRecovery=(_drill getOrDefault ["recovery",[]]) apply {+_x};
@@ -1224,7 +1224,7 @@ switch (_drill get "stage") do {
                 _arrivalCommitted=true;
             };
             if (!_arrivalCommitted) exitWith {_result=0.25};
-            // Grenade inventory/safety preparation remains scheduled after stage admission.
+            // Grenade inventory/safety preparation stays outside the local stage commit.
             if (_arrivalSmoke) then {
                 {
                     if ([_x, _enemyPos, "SMOKE",["DRILL",_group,_token,_operationGeneration,_rosterEpoch]] call CBE_fnc_CortexThrowGrenade) exitWith {};
@@ -1348,7 +1348,7 @@ switch (_drill get "stage") do {
                         _drill set ["teamTurn",1];
                         _drill set ["index",count _points];
                         _points pushBack [_rally,"CONSOLIDATE"];
-                        // Retain this pending movement if scheduled issue refuses it.
+                        // Retain this pending movement if movement admission refuses it.
                         [_group,_drill,"START","CONSOLIDATION_PENDING"] call CBE_fnc_CortexDrillSetStage;
                         _consolidationCommitted=true;
                     };

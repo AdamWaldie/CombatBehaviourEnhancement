@@ -82,5 +82,6 @@
     "requirements": "Old FSM physically terminal; different latest uncancelled brain/job and current actual forced-speed receipts for every vehicle. Then every vehicle >=25m forward projected on route axis with positive native forward velocity.",
     "noShortcuts": "No direct cleanup, path reset, forced speed/velocity, teleport or fabricated solved state. Missing prerequisite fails.",
     "limits": "Natural rapid replacement does not guarantee a specific suspended callback race. Separate HC and corridor/bypass passage physical scenarios still required."
-  }
+  },
+  "executionContextCorrection": "See execution-context-20261018.json. Normal shared-scheduler jobs run unscheduled; older scheduled-geometry/intra-call scheduler-yield wording is not a proven interleaving. Guards are source contracts, not runtime race or cost evidence; distinguish actual deferred callbacks/direct scheduled calls/re-entry."
 }

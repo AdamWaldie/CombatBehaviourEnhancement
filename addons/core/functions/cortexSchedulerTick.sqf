@@ -1,7 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Repeat/JIP: Each invocation processes due jobs within the local budget. Joining owners have independent queues; jobs are not replayed across machines.
- * Runs due Smart AI Pass jobs on this machine with a soft time budget between jobs.
+ * Runs due Smart AI Pass jobs synchronously from the CBA per-frame handler, unscheduled.
+ * The soft time budget is checked between jobs; it cannot pre-empt a running callback.
+ * Recorded canSuspend describes the actual caller context, including direct diagnostic calls.
  *
  * Called by one CBA handler every frame on a machine with an active owner-local subsystem. Ground
  * tactics normally run on the server or a headless client; an interface machine only participates
@@ -98,11 +100,13 @@ private _earliest = -1;
         if (_subsystem in ["CONVOY", "AIRCRAFT"]) then {_jobPaused=false};
         private _group = _state getOrDefault ["group", grpNull];
         private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["CBE_AIPass_Epoch", 0])}}};
+        private _callbackCanSuspend=canSuspend;
         private _callbackStarted=diag_tickTime;
         private _delay = if (_stale) then {-1} else {if (_jobPaused) then {5} else {[_state] call _job}};
         private _callbackMs=(diag_tickTime-_callbackStarted)*1000;
         private _queueLatency=(_now-_dueAt) max 0;
         _state set ["lastCallbackMs",_callbackMs];
+        _state set ["lastCallbackCanSuspend",_callbackCanSuspend];
         _state set ["queueLatency",_queueLatency];
         // Retain terminal callbacks too: their state leaves the queue below. One fixed-size
         // owner-local ring uses the timers already collected here, with no extra worker,
@@ -111,7 +115,7 @@ private _earliest = -1;
             private _samples=missionNamespace getVariable ["CBE_AIPass_CallbackSamples",[]];
             private _cursor=missionNamespace getVariable ["CBE_AIPass_CallbackSampleCursor",0];
             _samples set [_cursor,[_subsystem,(_state getOrDefault ["jobKey",""]) select [0,160],
-                _callbackMs,_queueLatency,_callbackStarted]];
+                _callbackMs,_queueLatency,_callbackStarted,_callbackCanSuspend]];
             missionNamespace setVariable ["CBE_AIPass_CallbackSamples",_samples];
             missionNamespace setVariable ["CBE_AIPass_CallbackSampleCursor",(_cursor+1) mod 256];
         };

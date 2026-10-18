@@ -38,4 +38,18 @@ class SchedulerSampleTests(unittest.TestCase):
         self.assertIn('private _sampleStartedTick=diag_tickTime;', s)
         self.assertIn('overwritten between samples', s)
 
+class SchedulerExecutionContextTests(unittest.TestCase):
+    def test_context_is_observed_and_old_samples_remain_unknown(self):
+        tick=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text()
+        self.assertIn('private _callbackCanSuspend=canSuspend;',tick)
+        self.assertIn('_callbackMs,_queueLatency,_callbackStarted,_callbackCanSuspend',tick)
+        self.assertIn('"lastCallbackCanSuspend",_callbackCanSuspend',tick)
+        report=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text()
+        self.assertIn('(_x select 5) isEqualTo true',report)
+        self.assertIn('(_x select 5) isEqualTo false',report)
+        self.assertIn('_sampleCount-_scheduledSamples-_unscheduledSamples',report)
+        reconcile=(ROOT/'addons/core/functions/schedulerReconcile.sqf').read_text()
+        self.assertIn('CBA_fnc_addPerFrameHandler',reconcile)
+        self.assertIn('{[_state] call _job}',tick)
+
 if __name__=='__main__':unittest.main()

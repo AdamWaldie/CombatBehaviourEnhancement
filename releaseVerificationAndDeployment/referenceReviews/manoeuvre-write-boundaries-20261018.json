@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "256d8dfcaba1d91feef889b0482fd4cc6a6a3b098d815e46bd0f2c85b913167e"
+      "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -146,5 +146,6 @@
     "finding": "The HOLD actor list named _support shadowed the outer support-mode boolean through SQF dynamic call scope, including _issue and _helperCurrent.",
     "implementation": "Distinct _consolidationActors and _supportRoles names preserve actor enrollment and helper boolean context. Regression contract rejects a second private _support declaration; repository conventions explain dynamic scope and explicit queued payloads.",
     "limits": "No change to tactical layout, timing or transitions. HOLD/PAUSE publication and actual consolidation remain unverified."
-  }
+  },
+  "executionContextCorrection": "See execution-context-20261018.json. Normal shared-scheduler jobs run unscheduled; older scheduled-geometry/intra-call scheduler-yield wording is not a proven interleaving. Guards are source contracts, not runtime race or cost evidence; distinguish actual deferred callbacks/direct scheduled calls/re-entry."
 }

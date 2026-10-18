@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Execution-context correction: normal shared-scheduler jobs are called from the CBA PFH and run unscheduled. Earlier scheduled-geometry/intra-call scheduler-yield descriptions were overbroad, not demonstrated races. The budget applies between jobs. Actual canSuspend is now captured in the bounded callback ring; older samples stay unknown. Added guard/copy/hull cost still requires measurement.
+
 - Normal wheeled convoy QA now prepares rapid public HALT/resume replacement followed by old-FSM retirement, newest applied-cap checks and every vehicle travelling 25 m forward. The fixture is unrun and does not prove every race timing, HC or physical acceptance.
 
 - Refused passage creation/progress/retirement now returns explicit DEFERRED. ConvoyTick stops before consuming refused caps or treating work as ended, retaining prior applied controls for the existing next tick. Physical response and performance remain unverified.
