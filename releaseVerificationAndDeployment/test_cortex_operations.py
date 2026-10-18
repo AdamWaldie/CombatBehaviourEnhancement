@@ -4695,7 +4695,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',text)
         self.assertNotIn('doFollow',text)
         local=source('cortexCombinedArmsLocal')
-        self.assertEqual(local.count('remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2]'),10)
+        self.assertEqual(local.count('remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2]'),11)
     def test_combined_ground_native_ignore_prevents_reveal_and_retires_active_route(self):
         local=source('cortexCombinedArmsLocal')
         step=source('cortexCombinedGroundStep')

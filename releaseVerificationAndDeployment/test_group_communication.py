@@ -32,6 +32,28 @@ class GroupCommunicationTests(unittest.TestCase):
             self.assertIn('|| {',text)
         self.assertIn('_senderRadio && {_candidateRadio}',combined)
 
+    def test_combined_owner_checks_delivery_before_effects_but_after_received_task_replay(self):
+        owner=source('cortexCombinedArmsLocal')
+        start=owner.index('// Selection and owner delivery')
+        end=owner.index('private _markApplied=',start)
+        delivery=owner[start:end]
+        self.assertLess(owner.index('private _applied=[_token,clientOwner,_application select 1]'),start)
+        self.assertLess(end,owner.index('_group reveal'))
+        self.assertIn('[_requester] call CBE_fnc_CortexGroupTransmitter',delivery)
+        self.assertIn('[_group] call CBE_fnc_CortexGroupTransmitter',delivery)
+        for check in ('alive _senderAnchor','alive _receiverAnchor',
+                      '_receiverASL distance2D _senderASL <= _communicationRange',
+                      '_receiverASL vectorDistance _senderASL <= _voiceRange',
+                      '!isNull _senderTransmitter && {!isNull _receiverTransmitter}',
+                      'CBE_Cortex_CombinedArms_AirRange",4000',
+                      'CBE_AIPass_ContactReports_Radius",500',
+                      '[_requester,_group,_token,+_opportunity] remoteExecCall',
+                      '[_group,_opportunity,"NO_COMMUNICATION",clientOwner] remoteExecCall'):
+            self.assertIn(check,delivery)
+        self.assertIn('"NO_COMMUNICATION"',source('cortexCombinedRejectServer'))
+        self.assertNotIn('call _markApplied',delivery)
+        self.assertNotIn(' reveal ',delivery)
+
     def test_group_transmitter_prefers_leader_but_falls_back_to_a_living_wingman(self):
         transmitter = source("cortexGroupTransmitter")
         self.assertIn('private _leader = leader _group;', transmitter)

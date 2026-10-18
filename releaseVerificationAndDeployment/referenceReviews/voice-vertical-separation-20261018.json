@@ -25,5 +25,20 @@
     "Other support/coordination voice paths",
     "Actual performance and locality/HC evidence"
   ],
-  "audit_authority": "Explicitly paused; all65 families partial."
+  "audit_authority": "Explicitly paused; all65 families partial.",
+  "owner_delivery_followup": {
+    "finding": "Server selection was communication-gated, but a new delayed owner application could reveal/start a role after friendly communication had changed.",
+    "implementation": "New combined-arms owner admission checks live bounded transmitters/leader anchors, original ground500/air4000 configured horizontal envelopes and ASL3D voice35 or both radios. Exact duplicate application acknowledgement remains before this check; received tasks remain autonomous.",
+    "refusal": "NO_COMMUNICATION uses authenticated exact ground retirement or original full-snapshot air fallback; no receipt, reveal or command is applied on refusal. Air fallback remains radio-only.",
+    "cost": "Two existing bounded transmitter queries and two friendly ASL samples per new admission; none for exact received-task duplicate replay. No world scan, worker or ongoing communication cancellation.",
+    "validation": {
+      "tests": 1397,
+      "compiled_sqf": 327,
+      "pbos": 9,
+      "log": ".qa/cbe-combined-owner-delivery-build.log",
+      "unsigned_fingerprint": "b0cff22f640861617a6c9bbcdb7e6f782928b94c4f70ea0d486e6cea0289424b",
+      "physical": false
+    },
+    "limits": "Offline contracts only. Delayed delivery, jamming, altitude/stacked floors, locality/HC and overhead remain physically unverified. Coordinated infantry support retains its separate radio-only policy."
+  }
 }

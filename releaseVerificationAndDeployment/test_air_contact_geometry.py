@@ -37,7 +37,7 @@ class AirContactGeometryTests(unittest.TestCase):
         attack=(ROOT/'addons/aircraft/functions/cortexAirAttack.sqf').read_text()
         server=(ROOT/'addons/infantry/functions/cortexCombinedAirFallbackServer.sqf').read_text()
         self.assertIn('["combinedOpportunity",+_opportunity]',local)
-        self.assertEqual(local.count('[_requester,_group,_token,+_opportunity] remoteExecCall'),3)
+        self.assertEqual(local.count('[_requester,_group,_token,+_opportunity] remoteExecCall'),4)
         self.assertIn('_requestedOpportunity isEqualTo _currentOpportunity',start)
         finish=attack.split('private _finish={',1)[1].split('private _pilot=driver _aircraft;',1)[0]
         self.assertLess(finish.index('call CBE_fnc_OperationCancel'),finish.index('private _supportSnapshot='))

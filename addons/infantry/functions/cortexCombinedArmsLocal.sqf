@@ -15,6 +15,8 @@
  * Locality/authority: current group owner only; server-issued public token must still match. Asset
  * aircraft discovery requires the pilot's group; ground discovery accepts the commander's or driver's group.
  * Repeat/JIP: exact opportunity/owner/epoch receipts suppress repeated application on one owner.
+ * New owner admission rechecks current radio or three-dimensional voice reach before knowledge or commands.
+ * Already-applied duplicate receipts retain autonomy after later communication loss.
  * Relevant native reloads defer admission through the existing group tick and original expiry.
  * Pending reload receipts preserve the route/asset/gunner; report reveal occurs once per owner receipt.
  * A new owner epoch must admit again; original expiry/contact age never renew. Zeus takeover,
@@ -69,6 +71,35 @@ if (count _application == 2 && {(_application select 0) isEqualTo _applicationId
         _group setVariable ["CBE_Cortex_CombinedApplied",_applied,true];
     };
     true
+};
+// Selection and owner delivery may be separated by travel, radio loss or locality transfer.
+// A received task remains autonomous; this check belongs after exact duplicate acknowledgement.
+private _senderTransmitter=[_requester] call CBE_fnc_CortexGroupTransmitter;
+private _receiverTransmitter=[_group] call CBE_fnc_CortexGroupTransmitter;
+private _senderAnchor=if (isNull _senderTransmitter) then {leader _requester} else {_senderTransmitter};
+private _receiverAnchor=if (isNull _receiverTransmitter) then {leader _group} else {_receiverTransmitter};
+private _communicationAvailable=false;
+if (!isNull _senderAnchor && {alive _senderAnchor} && {!isNull _receiverAnchor} && {alive _receiverAnchor}) then {
+    private _senderASL=getPosASL _senderAnchor;
+    private _receiverASL=getPosASL _receiverAnchor;
+    private _communicationRange=if (_role == "AIR_ATTACK") then {
+        missionNamespace getVariable ["CBE_Cortex_CombinedArms_AirRange",4000]
+    } else {
+        missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]
+    };
+    private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
+    _communicationAvailable=_receiverASL distance2D _senderASL <= _communicationRange
+        && {(_receiverASL vectorDistance _senderASL <= _voiceRange)
+            || {!isNull _senderTransmitter && {!isNull _receiverTransmitter}}};
+};
+if (!_communicationAvailable) exitWith {
+    if (_role == "AIR_ATTACK") then {
+        _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"NO_COMMUNICATION",serverTime,_target],true];
+        [_requester,_group,_token,+_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+    } else {
+        [_group,_opportunity,"NO_COMMUNICATION",clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
+    };
+    false
 };
 private _markApplied={
     if (((_group getVariable ["CBE_Cortex_CombinedReloadLocal",[]]) param [0,[]]) isEqualTo _applicationIdentity) then {
