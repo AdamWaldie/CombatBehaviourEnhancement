@@ -45,6 +45,11 @@
  * tick (64 candidates, eight corners each). Only its exact registered predecessor is excluded
  * from this observer because size-aware convoy spacing already owns that gap. Up to 20 vehicles
  * are admitted; dense observations stop rather than authorize a recovery through unseen traffic.
+ * Final-route retries commit only under the captured convoy brain, live registry and unchanged
+ * crew/native-command receipts; an interrupted callback cannot revive its old endpoint.
+ * A public revision/route-bound retry journal permits at most six endpoint recalls within
+ * the original 120 seconds, spaced at least fifteen seconds apart across owner migration.
+ * Exhaustion leaves the native route untouched; only a new revision or authored identity starts anew.
  * Recovery refuses object/vehicle-attached and peer-synchronized waypoints; native execution
  * retains their target and rendezvous semantics. No activation code is evaluated.
  * The route watchdog remembers only the unchanged final MOVE waypoint. If the engine marks it complete
@@ -417,6 +422,10 @@ if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActi
     && {_routeWatch isNotEqualTo []} && {currentWaypoint _group >= count waypoints _group}
     && {time >= (_state getOrDefault ["routeRecoveryAt",-1])}) then {
     _routeWatch params ["_watchedIndex","_watchedPosition","_watchedRadius",["_watchedReceipt",[]]];
+    private _recoveryBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+    private _recoveryDriver=driver _lead;
+    private _recoveryCommands=[currentCommand _recoveryDriver,expectedDestination _recoveryDriver,
+        currentCommand _leadOperator,expectedDestination _leadOperator];
     // A Zeus edit changes or deletes the stored waypoint and therefore fails this identity check.
     // The Zeus suspension path above also clears local state before CBE may resume.
     if (_watchedIndex < count waypoints _group) then {
@@ -427,9 +436,49 @@ if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActi
             && {waypointType _watchedWaypoint == "MOVE"}
             && {waypointPosition _watchedWaypoint distance2D _watchedPosition < 2}
             && {_lead distance2D _watchedPosition > (_watchedRadius max 20)+75}) then {
-            if ([] call _mayIssueDriving) then {
+            isNil {
+                if (!local _group || {!local _lead} || {!local _recoveryDriver} || {!local _leadOperator}
+                    || {isNull _recoveryDriver} || {isNull _leadOperator} || {!alive _lead} || {!canMove _lead}
+                    || {driver _lead != _recoveryDriver} || {group _recoveryDriver != _group}
+                    || {(effectiveCommander _lead) isNotEqualTo _leadOperator}
+                    || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _recoveryBrain}
+                    || {_recoveryBrain getOrDefault ["cancelled",false]}
+                    || {(_recoveryBrain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
+                    || {(_recoveryBrain getOrDefault ["jobToken",""]) != (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+                    || {(_recoveryBrain getOrDefault ["registryRevision",-1]) != (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2])}
+                    || {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+                        (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+                    } < 0}
+                    || {_phase != "TRAVEL"} || {!([] call _mayIssueDriving)}
+                    || {!([_group,"CBE_Convoy_RouteRecovery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                    || {currentWaypoint _group < count waypoints _group}
+                    || {_watchedIndex >= count waypoints _group}
+                    || {([_group,"",false,_watchedIndex] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _watchedReceipt}
+                    || {!([_watchedWaypoint] call _mayRecoverWaypoint)}
+                    || {[currentCommand _recoveryDriver,expectedDestination _recoveryDriver,
+                        currentCommand _leadOperator,expectedDestination _leadOperator] isNotEqualTo _recoveryCommands}
+                    || {!isNil {_lead getVariable "CBE_DrivingCorridor_Work"}}
+                    || {!isNil {_lead getVariable "CBE_DrivingBypass_Work"}}
+                    || {!isNil {_group getVariable "CBE_Convoy_BypassPassage"}}
+                    || {_lead distance2D _watchedPosition <= (_watchedRadius max 20)+75}) exitWith {};
+                // This public receipt outlives local state/brain replacement. Adoption cannot
+                // renew the original clock, replay a spent allowance or bypass the cooldown.
+                private _endpointEpisode=+(_group getVariable ["CBE_Convoy_EndpointRecovery",[]]);
+                if (count _endpointEpisode != 7 || {(_endpointEpisode select 0) != _revision}
+                    || {(_endpointEpisode select 1) isNotEqualTo _watchedReceipt}) then {
+                    _endpointEpisode=[_revision,+_watchedReceipt,serverTime,serverTime+120,0,serverTime,"ACTIVE"];
+                };
+                if ((_endpointEpisode select 6) == "EXHAUSTED") exitWith {};
+                if (serverTime >= (_endpointEpisode select 3) || {(_endpointEpisode select 4) >= 6}) exitWith {
+                    _endpointEpisode set [6,"EXHAUSTED"];
+                    _group setVariable ["CBE_Convoy_EndpointRecovery",_endpointEpisode,true];
+                };
+                if (serverTime < (_endpointEpisode select 5)) exitWith {};
                 _group setCurrentWaypoint _watchedWaypoint;
                 _leadOperator doMove _watchedPosition;
+                _endpointEpisode set [4,(_endpointEpisode select 4)+1];
+                _endpointEpisode set [5,serverTime+15];
+                _group setVariable ["CBE_Convoy_EndpointRecovery",_endpointEpisode,true];
                 _state set ["routeRecoveryAt",time+15];
                 private _recoveries=(_group getVariable ["CBE_Convoy_RouteRecoveries",0])+1;
                 _group setVariable ["CBE_Convoy_RouteRecoveries",_recoveries,true];

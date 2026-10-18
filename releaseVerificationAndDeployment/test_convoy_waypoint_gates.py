@@ -31,4 +31,43 @@ class ConvoyWaypointGateTests(unittest.TestCase):
         restart=s.split('// Clear a previous HALT',1)[1].split('call CBE_fnc_ConvoyUnloadPolicy',1)[0]
         for guard in ('currentWaypoint _group > 0','driver _lead != leader _group','driver _lead != _leadOperator','vehicle leader _group == _lead'):
             self.assertIn(guard,restart)
+    def test_final_endpoint_retry_commits_under_current_controller_and_native_order(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        retry=s.split('private _routeWatch=',1)[1].split('private _routeDone',1)[0]
+        commit=retry.split('isNil {',1)[1]
+        write=commit.index('_group setCurrentWaypoint _watchedWaypoint')
+        for guard in ('!local _group', '!local _leadOperator', 'driver _lead != _recoveryDriver',
+                      'effectiveCommander _lead', 'isNotEqualTo _recoveryBrain',
+                      'CBE_Convoy_LocalJobToken', 'CBE_Convoy_ReceivedRevision',
+                      'CBE_Convoy_LocalRegistry', '_phase != "TRAVEL"',
+                      'isNotEqualTo _watchedReceipt', 'isNotEqualTo _recoveryCommands',
+                      'call _mayRecoverWaypoint', 'CBE_DrivingCorridor_Work',
+                      'CBE_DrivingBypass_Work', 'CBE_Convoy_BypassPassage'):
+            self.assertIn(guard,commit[:write])
+        self.assertGreater(commit.index('_leadOperator doMove'),write)
+        self.assertGreater(commit.index('_state set ["routeRecoveryAt"'),write)
+        self.assertGreater(commit.index('CBE_Convoy_RouteRecoveries'),write)
+    def test_endpoint_allowance_survives_local_state_and_cannot_renew_same_route(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        retry=s.split('private _routeWatch=',1)[1].split('private _routeDone',1)[0]
+        journal=retry.split('private _endpointEpisode=',1)[1]
+        creation=journal.split('_endpointEpisode=[',1)[0]
+        self.assertIn('CBE_Convoy_EndpointRecovery',creation)
+        self.assertIn('(_endpointEpisode select 0) != _revision',creation)
+        self.assertIn('(_endpointEpisode select 1) isNotEqualTo _watchedReceipt',creation)
+        self.assertNotIn('owner',creation)
+        self.assertNotIn('time+120',creation)
+        write=journal.index('_group setCurrentWaypoint')
+        for guard in ('serverTime >= (_endpointEpisode select 3)',
+                      '(_endpointEpisode select 4) >= 6',
+                      'serverTime < (_endpointEpisode select 5)',
+                      '(_endpointEpisode select 6) == "EXHAUSTED"'):
+            self.assertIn(guard,journal[:write])
+        self.assertIn('serverTime,serverTime+120,0,serverTime,"ACTIVE"',journal[:write])
+        self.assertIn('_endpointEpisode set [4,(_endpointEpisode select 4)+1]',journal[write:])
+        self.assertIn('_endpointEpisode set [5,serverTime+15]',journal[write:])
+        for forbidden in ('_endpointEpisode set [2,','_endpointEpisode set [3,','deleteWaypoint','addWaypoint'):
+            self.assertNotIn(forbidden,journal)
+        release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text(encoding='utf-8')
+        self.assertNotIn('"CBE_Convoy_EndpointRecovery", nil',release)
 if __name__=='__main__': unittest.main()
