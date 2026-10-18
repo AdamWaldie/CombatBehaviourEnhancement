@@ -68,6 +68,10 @@ class CfgFunctions {
             class DrivingPassCanConsent {file = "\z\cbe\addons\vehicles\functions\drivingPassCanConsent.sqf";};
             class DrivingPassPrepare {file = "\z\cbe\addons\vehicles\functions\drivingPassPrepare.sqf";};
             class DrivingPassTraffic {file = "\z\cbe\addons\vehicles\functions\drivingPassTraffic.sqf";};
+            class DrivingQueueProposalCurrent {file = "\z\cbe\addons\vehicles\functions\drivingQueueProposalCurrent.sqf";};
+            class DrivingQueueAgreementRequest {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementRequest.sqf";};
+            class DrivingQueueAgreementServer {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementServer.sqf";};
+            class DrivingQueueAgreementOwner {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementOwner.sqf";};
             class DrivingQueueContext {file = "\z\cbe\addons\vehicles\functions\drivingQueueContext.sqf";};
             class DrivingQueueProposal {file = "\z\cbe\addons\vehicles\functions\drivingQueueProposal.sqf";};
             class DrivingPassContext {file = "\z\cbe\addons\vehicles\functions\drivingPassContext.sqf";};

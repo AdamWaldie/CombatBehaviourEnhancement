@@ -2,8 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Proposes a bounded head-on queue roster and rear-to-front room-making dependencies.
  * Locality/authority: Initiating vehicle owner, read-only. Proposed roles are not priority or
- * consent. Remote participant eligibility is observational; actual-owner ACK and a native
- * execution/cleanup FSM remain required and unimplemented. No movement, reservations or speed writes.
+ * consent. Remote participant eligibility is observational; actual-owner ACK is separately brokered; a native
+ * execution/cleanup FSM remains required and unimplemented. No movement, reservations or speed writes.
  * Repeat/JIP: Stateless fresh proposal, expires within original retry deadline and two seconds.
  * At most one120m dead-inclusive vehicle query/64 candidates; overflow/fifth chain member refuses.
  * Arguments:0 initiator <OBJECT>,objNull;1 opposing limiting peer <OBJECT>,objNull;
@@ -84,4 +84,4 @@ if (_context isEqualTo [] || {serverTime-_at > 2} || {serverTime >= _until}
     || {!local _vehicle} || {_vehicles findIf {!([_x] call _observedEligible)} >= 0}) exitWith {["STALE_CHAIN"] call _fail};
 createHashMapFromArray [["status","PROPOSAL"],["reason","OWNER_CONSENT_AND_NATIVE_EXECUTION_REQUIRED"],
     ["vehicles",_vehicles],["roles",_roles],["dependencies",_dependencies],["context",_context],
-    ["observedAt",_at],["deadline",(_at+2) min _until]]
+    ["observedAt",_at],["deadline",(_at+2) min _until],["retryDeadline",_until]]

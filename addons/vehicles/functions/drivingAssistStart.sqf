@@ -570,6 +570,9 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _queueProposal=[_vehicle,_queueSeen select 1,_queueRetry get "deadline"] call CBE_fnc_DrivingQueueProposal;
                 if (call _mayRecoverOrdinaryRoute) then {
                     _vehicle setVariable ["CBE_DrivingQueue_Proposal",_queueProposal];
+                    if ((_queueProposal getOrDefault ["status",""]) == "PROPOSAL") then {
+                        [_queueProposal] call CBE_fnc_DrivingQueueAgreementRequest;
+                    };
                 };
             };
 

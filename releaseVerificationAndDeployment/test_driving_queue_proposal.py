@@ -34,6 +34,51 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('serverTime-(_queueSeen select 2) <= 1.5',block)
         self.assertEqual(block.count('call CBE_fnc_DrivingQueueProposal'),1)
         self.assertNotIn('isNil {',block)
+        self.assertIn('call CBE_fnc_DrivingQueueAgreementRequest',block)
         self.assertNotIn('remoteExec',block)
         self.assertNotIn('forceSpeed',block)
         self.assertIn('serverTime < (_queueRetry get "deadline")',block)
+
+    def test_queue_broker_authenticates_each_owner_with_distinct_role_contract(self):
+        server=(ROOT/'addons/vehicles/functions/drivingQueueAgreementServer.sqf').read_text(encoding='utf-8')
+        owner=(ROOT/'addons/vehicles/functions/drivingQueueAgreementOwner.sqf').read_text(encoding='utf-8')
+        for proof in ('!isServer','remoteExecutedOwner <= 0','owner _vehicle != _sender',
+                      '_sender in (_record get "owners")','count _registry >= 32',
+                      '_acks pushBackUnique _sender','count _acks == count (_record get "owners")',
+                      '_expires > serverTime+30','_deadline > serverTime+2'):
+            self.assertIn(proof,server)
+        self.assertIn('remoteExecutedOwner != 2',owner)
+        self.assertIn('call CBE_fnc_DrivingQueueProposalCurrent',owner)
+        for text in (server,owner):
+            self.assertNotIn('DrivingPassAgreement',text)
+            for command in ('doMove','doStop','setDriveOnPath','forceSpeed','setVelocity'):
+                self.assertNotIn(command,text)
+    def test_actual_owner_checks_orders_brain_and_snapshot_before_ack(self):
+        s=(ROOT/'addons/vehicles/functions/drivingQueueProposalCurrent.sqf').read_text(encoding='utf-8')
+        for proof in ('_roles isNotEqualTo _expectedRoles','_dependencies isNotEqualTo _expectedDependencies',
+                      '_localRows && {local (_vehicles select _i)}','_ar isNotEqualTo _er',
+                      'CBE_Driving_Brain','CBE_DrivingPass_Consent','CortexZeusHeld',
+                      '!alive (_ar select 0)','!canMove _vehicle','CBE_ExternalDrivingOwner',
+                      'vectorMagnitude (_ep select 1)','_localCount == 0','CBE_AIPass_DrivingAssist_Recovery_Enable'):
+            self.assertIn(proof,s)
+        self.assertNotIn('setVariable',s)
+    def test_stale_cancel_and_late_results_cannot_clear_successor_consent(self):
+        request=(ROOT/'addons/vehicles/functions/drivingQueueAgreementRequest.sqf').read_text(encoding='utf-8')
+        cancel=request.split('if (_cancel) exitWith {',1)[1].split('private _roles=',1)[0]
+        self.assertLess(cancel.index('(_request select 0) != _serial'),cancel.index('CBE_DrivingQueue_Request",nil'))
+        self.assertIn('(_request select 1) isNotEqualTo _context',cancel)
+        self.assertIn('_old isEqualTo _key',request)
+        self.assertIn('(_at+30) min _retryDeadline',request)
+        owner=(ROOT/'addons/vehicles/functions/drivingQueueAgreementOwner.sqf').read_text(encoding='utf-8')
+        terminal=owner.split('// Terminal token cleanup',1)[1].split('private _duplicate=',1)[0]
+        self.assertIn('(_old getOrDefault ["token",""]) == _token',terminal)
+        self.assertNotIn('call CBE_fnc_DrivingQueueProposalCurrent',terminal)
+        self.assertLess(owner.index('if (_duplicate) exitWith'),owner.index('private _accepted='))
+
+    def test_request_is_atomic_and_expired_passing_receipt_does_not_hold_queue_consent(self):
+        request=(ROOT/'addons/vehicles/functions/drivingQueueAgreementRequest.sqf').read_text(encoding='utf-8')
+        self.assertLess(request.index('isNil {'),request.index('CBE_DrivingQueue_Attempt'))
+        self.assertTrue(request.rstrip().endswith('_submitted'))
+        current=(ROOT/'addons/vehicles/functions/drivingQueueProposalCurrent.sqf').read_text(encoding='utf-8')
+        self.assertIn('_passBusy=!_typed || {serverTime <',current)
+        self.assertIn('(_pass select 4) == "AGREED"',current)

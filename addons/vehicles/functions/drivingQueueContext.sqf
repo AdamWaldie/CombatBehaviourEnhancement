@@ -8,7 +8,7 @@
  * Return: ARRAY participant rows or[] invalid. Row=[vehicle,owner,driverReceipt,operatorReceipt,pose].
  * Actor receipt=[actor,owner,group,groupOwner,epoch,public driving generation,player,remote,
  * native command,expectedDestination,authored route]. Pose=[world position,direction,up].
- * Current callers: DrivingQueueProposal; future queue owner verification must repeat actual local checks.
+ * Current callers: DrivingQueueProposal and DrivingQueueProposalCurrent.
  * Example: private _rows=[[_front,_yielding,_rear]] call CBE_fnc_DrivingQueueContext;
  */
 params [["_vehicles",[],[[]]]];
