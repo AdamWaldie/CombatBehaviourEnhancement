@@ -74,4 +74,20 @@ class ClearExitRelief(unittest.TestCase):
         self.assertIn('private _rows=(keys _earlyExits)',p)
         self.assertIn('isNotEqualTo _receipt',p)
         self.assertIn('call _mayIssueMovement',p)
+    def test_lost_observer_keeps_same_bounded_exit_leg_without_fake_coverage(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        g=s.split('private _reliefNeeded={',1)[1].split('if (!(call _reliefNeeded))',1)[0]
+        self.assertLess(g.index('serverTime >= (_reliefRow select 3)'),g.index('private _securityLost='))
+        branch=g.split('private _securityLost=',1)[1].split('private _stage=',1)[0]
+        for guard in ('!isNull _guard','!alive _guard','"INCAPACITATED"','"ACE_isUnconscious"',
+                      'count _originalStage >= 6','"ARRIVED"','"securityEntries"',
+                      '(_record param [5,[]]) isEqualTo (_reliefRow select 2)',
+                      '(_record select 2) == (_reliefRow select 3)'):
+            self.assertIn(guard,branch)
+        for forbidden in ('doMove','doWatch','doStop','setVariable','set [','enableSimulation','hideObject'):
+            self.assertNotIn(forbidden,branch)
+        self.assertNotIn('simulationEnabled',branch)
+        self.assertNotIn('isObjectHidden',branch)
+        self.assertNotIn('currentCommand',branch)
+        self.assertIn('private _visible=(getPosASL _actor) vectorDistance',s)
 if __name__=='__main__': unittest.main()

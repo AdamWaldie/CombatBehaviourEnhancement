@@ -21,6 +21,8 @@
  * one finite attempt per worker/episode is public for migration, at most eight attempts.
  * Pending relief binds the original casualty slot and observer native state; invalidation
  * retires only its owned leg into a yieldable lane hold. Empty retirement is published.
+ * Known death/incapacitation of the original observer retains the unchanged finite leg
+ * as replacement exit security; arrival/view checks still establish actual observation.
  * Locality / Authority: Runs through CBE's shared scheduler where the group is local. It checks the
  * operation generation, Zeus and external ownership before issuing any movement command.
  * Repeat/JIP: One-shot callback. Shared and individual physical room progress is public; owner-local actor assignments are
@@ -785,7 +787,8 @@ private _delay=call {
             } else {
                 // Relief is tied to the original casualty vacancy and observer. If either
                 // changes before arrival, retire only our own leg and return the worker to
-                // its existing lane. A newer actor order takes the DIVERTED path above.
+                // its existing lane. Loss of the original guard instead retains the same
+                // finite leg as replacement exit security. A newer actor order takes DIVERTED.
                 private _reliefJournal=_group getVariable ["CBE_Cortex_ClearRelief",[]];
                 private _reliefRows=if (count _reliefJournal == 2
                     && {(_reliefJournal select 0) isEqualTo (_job get "visitContext")}) then {
@@ -799,6 +802,22 @@ private _delay=call {
                         if (count _binding != 5 || {serverTime >= (_reliefRow select 3)}) exitWith {false};
                         _binding params ["_pairIndex","_slot","_missing","_originalStage","_originalNative"];
                         private _guard=objectFromNetId (_reliefRow select 1);
+                        // The observer can die or become incapacitated while
+                        // relief approaches. Its exit still needs observation even if the
+                        // interior vacancy was filled elsewhere. Keep only the original
+                        // target/exit/deadline; never turn temporary dormancy or a new order
+                        // into permission to spend another security actor.
+                        // A missing lookup is not casualty evidence: replication may be late.
+                        private _securityLost=!isNull _guard && {!alive _guard
+                            || {lifeState _guard == "INCAPACITATED"}
+                            || {_guard getVariable ["ACE_isUnconscious",false]}};
+                        if (_securityLost) exitWith {
+                            count _originalStage >= 6 && {(_originalStage select 2) == "ARRIVED"}
+                                && {(_originalStage select 5) isEqualTo (_reliefRow select 2)}
+                                && {(_reliefRow select 2) in (_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]])}
+                                && {(_record param [5,[]]) isEqualTo (_reliefRow select 2)}
+                                && {(_record select 2) == (_reliefRow select 3)}
+                        };
                         private _stage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _guard,[]];
                         private _pair=(_job get "pairs") param [_pairIndex,[]];
                         (_pair param [_slot,objNull]) == _missing

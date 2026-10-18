@@ -37,11 +37,11 @@
     "limits": "0.2second audit sampling can miss brief transitions and conservatively fail. No live result, HC/provider transfer, all interruptions or frame-cost proof."
   },
   "latestValidation": {
-    "tests": 1317,
+    "tests": 1318,
     "exitCode": 0,
-    "log": ".qa/cbe-clear-relief-demand-verified-build.log",
-    "packageFingerprint": "4a0ceb0a187db54563803a0fce44ce27ac44adbbe6578d1b024466e0d476d511",
-    "source": "2a218117 plus intended callback, guide and source contracts; review/handover metadata appended afterward"
+    "log": ".qa/cbe-clear-relief-security-loss-verified-build.log",
+    "packageFingerprint": "b84ad1b131b4039ed7699d491cd9cc0b7cbce60caf2d58e217c55a99e8b14611",
+    "source": "8020e896 plus intended callback, guide and source contract; metadata appended after build"
   },
   "demandLifecycleFollowUp": {
     "baselineCommit": "2a218117",
@@ -53,6 +53,15 @@
     "limits": [
       "Same-value external native commands cannot be distinguished. Native STOP acknowledgement, actual lane rejoin and HC transfer still need physical tests.",
       "Observer death/departure currently retires that pending relief; proactive reassessment of an uncovered exit as a new security replacement remains a broader isolation-role requirement. This is not universal casualty/isolation adaptation."
+    ]
+  },
+  "securityLossFollowUp": {
+    "baselineCommit": "8020e896",
+    "implementation": "A known original observer observed dead or incapacitated allows the unchanged in-flight relief leg to finish as replacement exit security, even if another actor already filled the interior vacancy. Original target exit must remain in discovered native security entrances and match the admitted stage, early-exit row and original deadline. No new command, timeout extension, ownership grant or coverage receipt is issued by this branch; ordinary arrival/watch/VIEW still applies.",
+    "limits": [
+      "Null object lookup is not death evidence; missing/deleted references still fail closed rather than infer casualty from replication state.",
+      "Dormancy, hidden/simulation-disabled observers and newer native commands do not use the casualty branch.",
+      "The normal prepared handover fixture does not exercise observer loss; loss-in-transit, repeated casualties, geometry changes and provider-HC transfer remain unrun."
     ]
   }
 }
