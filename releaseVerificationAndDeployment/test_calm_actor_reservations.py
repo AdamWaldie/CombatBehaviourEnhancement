@@ -298,3 +298,26 @@ class DrillRestorationCommitTests(unittest.TestCase):
         for forbidden in ['CBE_fnc_OperationCancel','CBE_fnc_OperationRelease','nearEntities','lineIntersects','sleep ']:
             self.assertNotIn(forbidden,block)
         self.assertIn('if (!_restorationDone) exitWith {false};',source)
+
+
+class ManoeuvreFloorProgressTests(unittest.TestCase):
+    def test_arrival_and_motion_keep_vertical_domain(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        self.assertIn('private _remaining = _pose vectorDistance _targetASL;',source)
+        self.assertIn('abs ((_pose select 2)-(_targetASL select 2)) <= 1.5',source)
+        self.assertIn('_pose vectorDistance (_last select 2) >= 0.5',source)
+        upgrade=source.split('// Legacy live records used ATL',1)[1].split('private _retries =',1)[0]
+        self.assertIn('ATLToASL (_x select 2)',upgrade)
+        self.assertIn('_x set [0,_pose vectorDistance',upgrade)
+        for forbidden in ['set [1,','set [3,','boundDeadline','doMove','setPos']:
+            self.assertNotIn(forbidden,upgrade)
+
+    def test_recovery_chooses_actual_peer_not_between_floor_centroid(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        recovery=source.split("// Rejoin this actor's element",1)[1].split('private _recoveryResult=',1)[0]
+        self.assertIn('_x != _actor && {_x in _peers}',recovery)
+        self.assertIn('forEach _buddyPairs',recovery)
+        self.assertIn('_rally=getPosATL _buddy;',recovery)
+        self.assertIn('(getPosASL _actor) vectorDistance (getPosASL _x)',recovery)
+        self.assertIn('(_rallyASL select 2)) <= 1.5',recovery)
+        self.assertNotIn('vectorMultiply (1/count _peers)',recovery)

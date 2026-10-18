@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-18",
+  "scope": "Current manoeuvre write-boundary review; source contracts are not physical acceptance",
+  "sources": [
+    {
+      "path": "addons/infantry/functions/cortexFlankStep.sqf",
+      "sha256": "7183893b329b03fe0f5805610860309983ed62a823e0404f18ddad0da105366a"
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankEnd.sqf",
+      "sha256": "586151d10c249eff620167e3b839a193a0f3d6965dbe157d0ef1753e12d2e0f6"
+    },
+    {
+      "path": "addons/infantry/functions/cortexDrillSetStage.sqf",
+      "sha256": "74a6f57a608c053c0d833848559e396d24f9e54304d703cd26709f0f2fd1150c"
+    }
+  ],
+  "boundaries": [
+    {
+      "area": "main bound issue",
+      "status": "current-context transaction",
+      "notes": "Geometry scheduled; actor commands and bound journals commit under exact point/phase/roster/task snapshots. Native acknowledgement and cost unverified."
+    },
+    {
+      "area": "casualty roster publication",
+      "status": "current-context transaction",
+      "notes": "Private proposals then generation/epoch/token/actor observation commit. Common-role filter and legacy owned PATH domains remain distinct."
+    },
+    {
+      "area": "drill stage and terminal cleanup",
+      "status": "current-child transaction",
+      "notes": "Exact child token matters even when parent generation remains. Operation release is separate; final deletion rechecks token."
+    },
+    {
+      "area": "cleanup restoration",
+      "status": "current-context transaction",
+      "notes": "Owned mode/feature/handler/hold/formation writes checked with current state/token/epoch/generation; same-value ownership and native reentrancy unproven."
+    },
+    {
+      "area": "recovery movement",
+      "status": "partial",
+      "notes": "Current common RecoveryStep has its own command boundary; legacy negative-generation direct doMove remains task-gated only. No whole-callback atomicity."
+    },
+    {
+      "area": "feature restoration before new bound",
+      "status": "open",
+      "notes": "_restoreFeatures uses actor/task gates but current token and native write do not share a new transaction."
+    },
+    {
+      "area": "team recovery reassignment",
+      "status": "open",
+      "notes": "_ensureMovingTeam changes team arrays/stage/history separately from the protected main issue; requires current input and refusal-path design."
+    },
+    {
+      "area": "MOVE arrival and retry",
+      "status": "open",
+      "notes": "Arrival/physical progress now ASL3D with1.5m floor band; doStop/watch and one-shot retry writes still need exact context commit. Vertical correction does not solve this ownership gap."
+    }
+  ],
+  "implementationChange": {
+    "progress": "ASL3D pose and approach range; floor-aware arrival and recovery rejoin. Legacy coordinate conversion retains recorded clocks/retry budgets.",
+    "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
+  },
+  "validation": {
+    "tests": 1338,
+    "log": ".qa/cbe-manoeuvre-floor-progress-verified-build.log",
+    "exitCode": 0,
+    "packageFingerprint": "4f1e5f8e1f7b5c82e15e4a55e871cd3444b4710473a2c7af0691c075b44da48d"
+  },
+  "physicalAcceptance": false,
+  "performanceAccepted": false
+}

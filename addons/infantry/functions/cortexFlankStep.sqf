@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Progress: bound approach and physical motion use ASL3D; arrival and recovery rejoin also
+ * require the destination floor band. Recovery selects a real eligible peer, preferring its buddy,
+ * rather than an average position between floors. Legacy progress conversion retains clocks.
  * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
  * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
  * Casualty roster proposals remain isolated until current drill/operation/epoch and actor-native
@@ -427,11 +430,28 @@ if (_main isNotEqualTo []) then {
         if (_teamIndex >= 0) then {_peers = (_teams select _teamIndex) select {_x in _main}};
         private _rally = getPosATL ([_group] call CBE_fnc_CortexGroupAnchor);
         if (_peers isNotEqualTo []) then {
-            _rally = [0,0,0];
-            {_rally = _rally vectorAdd getPosATL _x} forEach _peers;
-            _rally = _rally vectorMultiply (1/count _peers);
+            // A centroid across floors may be empty air. Recover toward an actual
+            // eligible teammate, preferring the surviving buddy in this fire team.
+            private _buddy=objNull;
+            {
+                if (!isNull _buddy) exitWith {};
+                if (_x isEqualType [] && {_actor in _x}) then {
+                    private _partners=_x select {_x != _actor && {_x in _peers}};
+                    if (_partners isNotEqualTo []) exitWith {_buddy=_partners select 0};
+                };
+            } forEach _buddyPairs;
+            if (isNull _buddy) then {
+                private _nearest=1e12;
+                {
+                    private _distance=(getPosASL _actor) vectorDistance (getPosASL _x);
+                    if (_distance < _nearest) then {_nearest=_distance;_buddy=_x};
+                } forEach _peers;
+            };
+            _rally=getPosATL _buddy;
         };
-        if (_actor distance2D _rally <= 12 && {_actor checkAIFeature "PATH"}
+        private _rallyASL=ATLToASL _rally;
+        if ((getPosASL _actor) vectorDistance _rallyASL <= 12
+            && {abs (((getPosASL _actor) select 2)-(_rallyASL select 2)) <= 1.5} && {_actor checkAIFeature "PATH"}
             && {_actor checkAIFeature "MOVE"} && {(_drill getOrDefault ["stage",""]) != "MOVE"}) then {
             _rejoined pushBack _actor;
         } else {
@@ -739,8 +759,9 @@ private _issue = {
     _drill set ["movers", +_units];
     _drill set ["arrivedUnits",[]];
     private _progress = [];
-    {_progress pushBack [_x distance2D (_spots select _forEachIndex),_now,getPosATL _x,_now]} forEach _units;
+    {_progress pushBack [(getPosASL _x) vectorDistance (ATLToASL (_spots select _forEachIndex)),_now,getPosASL _x,_now]} forEach _units;
     _drill set ["progress",_progress];
+    _drill set ["progressCoordinates","ASL3D"];
     private _resumeRetries=_drill getOrDefault ["resumeRetries",[]];
     _drill set ["retries",_units apply {
         private _actor=_x;
@@ -777,13 +798,25 @@ switch (_drill get "stage") do {
         private _blocked = [];
         private _timeout = missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25];
         private _progress = _drill get "progress";
+        if ((_drill getOrDefault ["progressCoordinates",""]) != "ASL3D") then {
+            // Legacy live records used ATL positions and 2D range. Convert the recorded
+            // pose without inventing movement, resetting clocks or renewing retry budget.
+            {
+                private _pose=ATLToASL (_x select 2);
+                _x set [2,_pose];
+                _x set [0,_pose vectorDistance (ATLToASL (_spots select _forEachIndex))];
+            } forEach _progress;
+            _drill set ["progressCoordinates","ASL3D"];
+        };
         private _retries = _drill getOrDefault ["retries",_movers apply {[0,_now]}];
         private _previousArrivals=_drill getOrDefault ["arrivedUnits",[]];
         {
             private _unit = _x;
             if (alive _unit && {_unit in _units}) then {
-                private _remaining = _unit distance2D (_spots select _forEachIndex);
-                if (_remaining <= 3) then {
+                private _pose=getPosASL _unit;
+                private _targetASL=ATLToASL (_spots select _forEachIndex);
+                private _remaining = _pose vectorDistance _targetASL;
+                if (_remaining <= 3 && {abs ((_pose select 2)-(_targetASL select 2)) <= 1.5}) then {
                     _arrivedUnits pushBack _unit;
                     if !(_unit in _previousArrivals) then {
                         if ([_unit] call _mayIssueMovement) then {
@@ -797,7 +830,7 @@ switch (_drill get "stage") do {
                     if ((_last select 0)-_remaining >= 0.5) then {_last set [0,_remaining]; _last set [1,_now]};
                     // A valid obstacle detour can temporarily increase target distance.
                     // Keep net approach and physical movement clocks separate.
-                    if (_unit distance2D (_last select 2) >= 0.5) then {_last set [2,getPosATL _unit]; _last set [3,_now]};
+                    if (_pose vectorDistance (_last select 2) >= 0.5) then {_last set [2,+_pose]; _last set [3,_now]};
                     private _retry = _retries select _forEachIndex;
                     // Native formation movement can resume the group's original waypoint
                     // while this actor is still outside its bound. Physical movement alone
@@ -886,7 +919,7 @@ switch (_drill get "stage") do {
             {
                 private _unit = _x;
                 if (_unit in _units) then {
-                    _measurements pushBack [netId _unit,_unit distance2D (_spots select _forEachIndex),
+                    _measurements pushBack [netId _unit,(getPosASL _unit) vectorDistance (ATLToASL (_spots select _forEachIndex)),
                         _now-((_progress select _forEachIndex) select 1),currentCommand _unit,expectedDestination _unit,
                         _now-((_progress select _forEachIndex) select 3),
                         ["movementOwner",attackEnabled _group,behaviour _unit,unitCombatMode _unit,

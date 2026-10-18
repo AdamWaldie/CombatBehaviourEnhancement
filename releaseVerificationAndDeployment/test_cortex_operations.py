@@ -5873,7 +5873,7 @@ class CortexOperations(unittest.TestCase):
     def test_bound_progress_uses_its_own_explicit_index(self):
         text=source('cortexFlankStep')
         self.assertNotIn('_units apply {[_x distance2D (_spots select _forEachIndex)',text)
-        self.assertIn('{_progress pushBack [_x distance2D (_spots select _forEachIndex),_now,getPosATL _x,_now]} forEach _units',text)
+        self.assertIn('{_progress pushBack [(getPosASL _x) vectorDistance (ATLToASL (_spots select _forEachIndex)),_now,getPosASL _x,_now]} forEach _units',text)
 
     def test_visual_audit_suites_are_staged_and_dispatched_by_the_standalone_pipeline(self):
         server = (ROOT / 'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text(encoding='utf-8')
@@ -6632,7 +6632,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_Cortex_DrillFailure',step)
         self.assertIn('currentCommand _unit,expectedDestination _unit',step)
         self.assertIn('_now-(_last select 3) > _timeout',step)
-        self.assertIn('_unit distance2D (_last select 2) >= 0.5',step)
+        self.assertIn('_pose vectorDistance (_last select 2) >= 0.5',step)
         self.assertNotIn('_combatModes pushBack [_unit,"RED","BLUE"]',step)
         self.assertIn('_group setCombatMode "YELLOW"',step)
         self.assertNotIn('_group setCombatMode "BLUE"',step)

@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Manoeuvre progress now measures actual 3D approach/travel and checks the arrival floor band.
+  Recovery targets an actual eligible teammate, preferring the buddy, instead of a centroid that
+  can fall between floors. Legacy record conversion preserves clocks; terrain/building behaviour remains unverified.
+
 - Drill cleanup now commits its actor/group restoration, handler removal, formation/hold writes and
   feedback under the same current state/token/epoch/generation check. Shared operation release
   remains separate, followed by guarded terminal retirement. Physical cleanup and cost remain unverified.
