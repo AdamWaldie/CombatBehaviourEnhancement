@@ -55,7 +55,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
         self.assertIn('_previous param [12,false,[true]]',admission)
         self.assertIn('_options getOrDefault ["continueRoute",false]',admission)
         self.assertIn('"INVALID_CONTINUATION"',admission)
-        self.assertIn('_job getOrDefault ["continueRoute",false]], true]',s)
+        self.assertIn('_job getOrDefault ["continueRoute",false],+(_job get "buildingTransform")], true]',s)
         block=s.split('// A natural clear is an interruption',1)[1].split('if (_reason == "NEW_ORDER"',1)[0]
         for guard in ('_result == "COMPLETE"','waypointType _waypoint == "MOVE"',
                       'waypointScript _waypoint == ""','waypointTimeout',

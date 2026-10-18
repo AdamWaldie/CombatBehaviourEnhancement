@@ -1029,3 +1029,9 @@ The existing route, vacancy, driver/candidate, assignment, native command, actor
 The normal crew fixture adds LATE_STOP and LATE_GETOUT after an actual production VACATING journal, confirmed empty driver seat and physical corpse exit. Missing prerequisites fail. STOP must remain intact through the original journal deadline plus3s. GETOUT uses a native dismount order, followed only after real dismount by an explicit new movement order; it must produce25m travel and20m destination improvement. Both require the original journal to remain cancelled without renewed deadline or subsequent driver-seat acquisition.
 
 These are PREPARED_NOT_RUN. The fixture never assigns a production journal/phase, invokes the crew executor, forces replacement seating or relocates an actor after the casualty. Actual late-order timing, same-value command ambiguity and migration remain unaccepted; actual-provider HC cases stay separate.
+
+### Clearance coverage belongs to a building transform
+
+Durable clearance orders now append the admission transform at field13. Owner resume may reuse visited/unreachable room indices only when that transform exactly matches the current building pose. Missing or changed proof refuses resume and releases only the same observed order/generation. A fresh explicit order starts with empty coverage at the new pose; it receives no historical visit credit.
+
+Admission captures the transform before reading model positions, rechecks it before replacement handoff and public order publication, and gives the worker that original snapshot. Geometry planned before an intervening move cannot be silently relabelled with a later pose. Existing worker transform guards still cancel moved targets before movement. An interruption after task handoff can still leave the prior task released; no rollback or completion is fabricated. Physical editor/Zeus movement, rotation, owner transfer and fresh-order entry remain unaccepted while audits are paused.

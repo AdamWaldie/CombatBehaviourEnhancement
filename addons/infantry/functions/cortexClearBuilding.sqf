@@ -4,6 +4,10 @@
  * owner resume retains original deadlines, shared room coverage and validated individual visit
  * receipts. Fresh-task tokens reject historical participation from earlier clearances. JIP
  * receives public progress; movement remains with the current group owner.
+ * Durable order field13 binds shared room indices to the admission transform. Changed or
+ * unproven resume transforms refuse before handoff; explicit fresh orders reset coverage.
+ * Geometry is captured before queries and rechecked before replacement and publication.
+ * The worker retains that original snapshot, never a recaptured post-planning pose.
  * Orders an AI group to clear a building room by room.
  *
  * Admission validates finite, distinct model positions with a 512-position budget before
@@ -105,6 +109,12 @@ if !(missionNamespace getVariable ["CBE_AIPass_Active", false]) exitWith {
     diag_log format ["[CBE] %1 clear building refused: the Smart AI Pass is not running on this machine.", _group];
     false
 };
+// Bind geometry and durable visit indices to this actual object pose, not a later resume pose.
+private _admissionTransform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+private _admissionStable={
+    !isNull _building && {alive _building}
+        && {_admissionTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+};
 private _allPositions = _building buildingPos -1;
 if (count _allPositions > 512) exitWith {["POSITION_BUDGET_EXCEEDED"] call _refuse};
 private _seenPositions=createHashMap;
@@ -142,6 +152,15 @@ private _ownedRecall={
 private _admissionGeneration=_group getVariable ["CBE_AIPass_ClearGeneration",0];
 private _previous = _group getVariable ["CBE_AIPass_ClearOrder", []];
 private _resume = _options getOrDefault ["resume", false] && {_previous isNotEqualTo []} && {(_previous select 0) == _building};
+if (_resume && {(_previous param [13,[],[[]]]) isNotEqualTo _admissionTransform}) exitWith {
+    // Unknown/changed pose cannot carry old room visits into a new world location.
+    // Retire only the order this call actually observed, never a successor clear.
+    if ((_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _admissionGeneration
+        && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _previous}) then {
+        [_group] call CBE_fnc_CortexClearRelease;
+    };
+    ["RESUME_TRANSFORM_MISMATCH"] call _refuse
+};
 // An explicit new CLEAR may replace this addon's exact indoor actor jobs. Admission remains
 // read-only: only the existing validated group handoff below retires those journals.
 private _replaceIndoor=!_resume && {(_options getOrDefault ["preserveBrain",false]) isEqualTo false};
@@ -246,6 +265,7 @@ if (serverTime >= (_deadline min _hardDeadline)) exitWith {[_group] call CBE_fnc
 // Replacing a clear must retire its engine movement orders as well as its queued job.
 // Validate the new building/team first; an invalid request must preserve the current order.
 // HC resume keeps the published progress/deadline rather than starting a new episode.
+if !(call _admissionStable) exitWith {["TARGET_CHANGED_DURING_ADMISSION"] call _refuse};
 if (!_resume && {_previous isNotEqualTo []}) then {[_group] call CBE_fnc_CortexClearRelease};
 private _baseAttack=if (_resume) then {_previous param [8,attackEnabled _leader,[true]]} else {attackEnabled _leader};
 private _nativeOrderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
@@ -278,8 +298,15 @@ _nativeOrderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
 // A true resume retains its original reversible policy across owners.
 if (!_resume) then {_baseAttack=attackEnabled _leader};
 if (_previous isEqualTo []) then {_baseBehaviour=behaviour _leader};
+if !(call _admissionStable) exitWith {
+    if (_resume && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _previous}
+        && {(_group getVariable ["CBE_AIPass_ClearGeneration",-1]) == _admissionGeneration}) then {
+        [_group] call CBE_fnc_CortexClearRelease;
+    };
+    ["TARGET_CHANGED_DURING_ADMISSION"] call _refuse
+};
 _group setVariable ["CBE_Cortex_ClearAdmissionFailure",nil,true];
-_group setVariable ["CBE_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute], true];
+_group setVariable ["CBE_AIPass_ClearOrder", [_building, _cleared, _deadline, _baseBehaviour, _unreachable, _retryCounts, _failedBy, _lastProgressAt, _baseAttack, _nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute, +_admissionTransform], true];
 _group setVariable ["CBE_AIPass_ClearApplied", true];
 _group setVariable ["CBE_Cortex_ClearResult",["RUNNING",count _cleared,count _positions],true];
 _group setVariable ["CBE_Cortex_ClearEvidence",nil,true];
@@ -434,7 +461,7 @@ private _job=createHashMapFromArray [
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["securityEntries",_securityEntries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
-    ["continueRoute",_continueRoute],["contactBelief",_contactBelief],["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
+    ["continueRoute",_continueRoute],["contactBelief",_contactBelief],["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",+_admissionTransform],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
 // Historical individual visits survive owner adoption. A fresh task gets a new token,
 // even if it targets the same building in the same server frame. No movement is replayed.

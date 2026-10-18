@@ -1457,15 +1457,33 @@ for "_i" from 0 to 1 do {
 missionNamespace setVariable ["CBE_CortexQA_Actors",_transformActors,true];
 ["Clearance: building movement","A real clearance starts, then its target house moves and rotates. CBE must cancel BUILDING_MOVED before stale room orders continue. A fresh explicit order must physically enter the new location; actors are not relocated.",getPosATL _movedHouse] call _phase;
 private _transformAccepted=[_transformGroup,_movedHouse] call CBE_fnc_CortexClearBuilding;
-private _transformStarted=[{
+private _originalRooms=_movedHouse buildingPos -1;
+private _transformOriginalGeneration=-1;
+private _transformStarted=_transformAccepted && {[{
     private _brain=_transformGroup getVariable ["CBE_BuildingBrain",createHashMap];
     private _job=_brain getOrDefault ["job",createHashMap];
-    (_job getOrDefault ["buildingTransform",[]]) isNotEqualTo []
-},15] call _wait;
-["CLEAR-transform-operation-started",_transformAccepted && {_transformStarted}] call _check;
+    private _order=_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]];
+    private _priorVisit=_transformActors findIf {
+        private _actor=_x;
+        _originalRooms findIf {[_actor,_movedHouse,_x] call _observedRoomVisit} >= 0
+    } >= 0;
+    private _started=(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo []
+        && {_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false]}
+        && {count (_order param [1,[]]) > 0} && {_priorVisit};
+    if (_started) then {_transformOriginalGeneration=_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]};
+    _started
+},120] call _wait};
 private _movedPosition=(getPosATL _movedHouse) vectorAdd [30,0,0];
-_movedHouse setDir 90;
-_movedHouse setPosATL _movedPosition;
+private _moveApplied=false;
+isNil {
+    if (_transformStarted && {_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false]}
+        && {(_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]) == _transformOriginalGeneration}) then {
+        _movedHouse setDir 90;
+        _movedHouse setPosATL _movedPosition;
+        _moveApplied=true;
+    };
+};
+["CLEAR-transform-operation-started",_transformAccepted && {_transformStarted} && {_moveApplied}] call _check;
 private _transformCancelled=[{
     private _result=_transformGroup getVariable ["CBE_OperationResult",[]];
     (_result param [1,""]) == "CANCELLED" && {(_result param [4,""]) == "BUILDING_MOVED"}
@@ -1474,16 +1492,26 @@ private _transformCancelled=[{
 ["CLEAR-transform-stale-operation-cancelled",_transformStarted && {_transformCancelled},
     str (_transformGroup getVariable ["CBE_OperationResult",[]])] call _check;
 private _transformReordered=[_transformGroup,_movedHouse] call CBE_fnc_CortexClearBuilding;
-["CLEAR-transform-fresh-order-accepted",_transformCancelled && {_transformReordered}] call _check;
+["CLEAR-transform-fresh-order-accepted",_transformCancelled && {_transformReordered},
+    str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
+private _freshOrder=_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]];
+private _freshCoverage=_transformReordered && {(_freshOrder param [1,[]]) isEqualTo []}
+    && {(_freshOrder param [13,[]]) isEqualTo [getPosWorld _movedHouse,vectorDir _movedHouse,vectorUp _movedHouse]}
+    && {(_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]) > _transformOriginalGeneration};
+["CLEAR-transform-fresh-coverage-reset",_transformCancelled && {_freshCoverage},str _freshOrder] call _check;
+private _transformEntries=_transformActors apply {false};
 private _movedRooms=_movedHouse buildingPos -1;
 private _transformEntry=[{
-    _transformActors findIf {
+    {
         private _actor=_x;
-        _movedRooms findIf {(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5} >= 0
-    } >= 0
-},90] call _wait;
-["CLEAR-transform-reorder-physical-entry",_transformCancelled && {_transformReordered} && {_transformEntry},
-    str [_movedPosition,_movedRooms,_transformActors apply {getPosASL _x}]] call _check;
+        if (_movedRooms findIf {[_actor,_movedHouse,_x] call _observedRoomVisit} >= 0) then {
+            _transformEntries set [_forEachIndex,true];
+        };
+    } forEach _transformActors;
+    _transformEntries findIf {!_x} < 0
+},120] call _wait;
+["CLEAR-transform-reorder-physical-entry",_transformCancelled && {_freshCoverage} && {_transformEntry},
+    str [_movedPosition,_movedRooms,_transformEntries,_transformActors apply {getPosASL _x}]] call _check;
 [_transformGroup] call CBE_fnc_CortexClearRelease;
 missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _transformActors;

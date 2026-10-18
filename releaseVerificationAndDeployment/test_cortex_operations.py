@@ -2499,7 +2499,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_previous param [10,_deadline,[0]]',admission)
         self.assertIn('(240 max (60*count _positions)) min 900',admission)
         self.assertIn('[_building, _cleared, _deadline',admission)
-        self.assertIn('_nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute], true]',admission)
+        self.assertIn('_nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute, +_admissionTransform], true]',admission)
         self.assertIn('serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])',step)
         self.assertNotIn('_job set ["hardDeadline"',step)
         self.assertIn('|| {!_allWorkersEntered} || {!_allWorkersProgressed}',step)
@@ -8975,14 +8975,15 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('private _actorTaskFree={'),text.index('private _finish = {'))
         self.assertLess(text.index('[true,"BUILDING_MOVED"] call _finish'),text.index('== "EGRESS"'))
         self.assertIn('_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',text)
-        self.assertIn('["buildingTransform",[getPosWorld _building,vectorDir _building,vectorUp _building]]',source('cortexClearBuilding'))
+        self.assertIn('["buildingTransform",+_admissionTransform]',source('cortexClearBuilding'))
 
     def test_clearance_building_transform_audit_requires_real_cancel_and_entry(self):
         text=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         case=text.split('// Moving the building is the administrative stimulus;',1)[1].split('// A casualty inside',1)[0]
         self.assertIn('_movedHouse setDir 90;',case)
         self.assertIn('== "BUILDING_MOVED"',case)
-        self.assertIn('vectorDistance (AGLToASL _x) <= 1.5',case)
+        self.assertIn('[_actor,_movedHouse,_x] call _observedRoomVisit',case)
+        self.assertIn('_transformEntries findIf {!_x} < 0',case)
         self.assertEqual(case.count('call CBE_fnc_CortexClearBuilding'),2)
         self.assertNotIn('_actor setPos',case)
 
