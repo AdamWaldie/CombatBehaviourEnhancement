@@ -15,6 +15,7 @@
  * credit. Service tasks, new native destinations and successor vehicles receive no path cancellation.
  * NEW_NATIVE_ORDER cleanup restores exact policy leases and stops only unchanged owned fixed paths;
  * replacement movement is never stopped or recalled, and route/formation restoration is suppressed.
+ * NATIVE_TASK suspension uses the same no-recall policy; reserved actors cannot be stopped during cleanup.
  * A mounted crew is never recalled toward an on-foot leader. Authored waypoint metadata is retained.
  * Arguments: 0: group <GROUP>, grpNull; 1: forget baseline <BOOL>, true; 2: baseline <ARRAY>, [] reads the locally received baseline; 3: still-controlled vehicles <ARRAY>, []; 4: cancellation reason <STRING, RELEASED>.
  * Return Value: Nothing.
@@ -23,7 +24,7 @@
  */
 params [["_group", grpNull, [grpNull]], ["_forget", true, [true]], ["_restore", [], [[]]], ["_keepCrew", [], [[]]], ["_reason", "RELEASED", [""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
-private _preserveMoves=toUpperANSI _reason == "NEW_NATIVE_ORDER";
+private _preserveMoves=toUpperANSI _reason in ["NEW_NATIVE_ORDER","NATIVE_TASK"];
 private _navigation=_group getVariable ["CBE_Convoy_LocalState",createHashMap];
 if (_keepCrew isEqualTo [] && {local _group}) then {
     [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call CBE_fnc_ConvoyCorridorStep;
@@ -145,6 +146,7 @@ if (_restore isNotEqualTo []) then {
                     || {!([_x] call CBE_fnc_CortexCombatEffective)}
                     || {!simulationEnabled _x} || {isObjectHidden _x}
                     || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+                    || {[_x] call CBE_fnc_CortexActorMoveReserved}
                     || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
             } < 0;
             private _mayHandBack=!_preserveMoves && {_mayRestoreGroup} && {!_externalCrew} && {!_externalVehicle}

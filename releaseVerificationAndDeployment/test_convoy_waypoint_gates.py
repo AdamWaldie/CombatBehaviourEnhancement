@@ -92,4 +92,26 @@ class ConvoyWaypointGateTests(unittest.TestCase):
         self.assertIn('isNotEqualTo _leadRetryBrain',commit)
         self.assertIn('CBE_Convoy_LocalRegistry',commit)
 
+    def test_native_service_suspends_before_convoy_writes_and_release_preserves_tasks(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        task=s.split('private _nativeCrewTask=',1)[1].split('private _zeus',1)[0]
+        for marker in ('_registered findIf','driver _x','effectiveCommander _x',
+                       'CortexActorMoveReserved','currentCommand _x','"HEAL"','"REPAIR"','"ASSEMBLE"'):
+            self.assertIn(marker,task)
+        pause=s.split('if (_paused ||',1)[1].split('_group setVariable ["CBE_Convoy_Suspended", false]',1)[0]
+        self.assertIn('_nativeCrewTask',pause)
+        self.assertIn('"NATIVE_TASK"',pause)
+        self.assertIn('CBE_fnc_ConvoyReleaseLocal',pause)
+        self.assertLess(s.index('private _nativeCrewTask='),s.index('call CBE_fnc_ConvoyCrewLocal'))
+        self.assertLess(s.index('private _nativeCrewTask='),s.index('_lead forceSpeed'))
+        self.assertLess(s.index('private _nativeCrewTask='),s.index('_vehicle setDriveOnPath _path'))
+        release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text(encoding='utf-8')
+        self.assertIn('in ["NEW_NATIVE_ORDER","NATIVE_TASK"]',release)
+        task_free=release.split('private _taskFree=',1)[1].split('private _mayHandBack=',1)[0]
+        self.assertIn('CortexActorMoveReserved',task_free)
+        crew=(ROOT/'addons/vehicles/functions/convoyCrewLocal.sqf').read_text(encoding='utf-8')
+        self.assertLess(crew.index('if (_nativeCrewTask) exitWith {}'),crew.index('orderGetIn true'))
+        self.assertLess(crew.index('if (_nativeCrewTask) exitWith {}'),crew.index('_vehicle forceSpeed 0'))
+        self.assertIn('CortexActorMoveReserved',crew.split('if (_nativeCrewTask) exitWith {}',1)[0])
+
 if __name__=='__main__': unittest.main()

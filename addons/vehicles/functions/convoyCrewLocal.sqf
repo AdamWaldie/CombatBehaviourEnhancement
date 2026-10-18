@@ -14,6 +14,8 @@
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, speed, gap, push, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
  * Arguments: 2: full reservation cargo <ARRAY>, [] uses configuration cargo; does not expand actor writes.
  * Return Value: Nothing. Unconscious passengers wait until capable; players and remote-controlled units are skipped.
+ * Local driver/commander service tasks and actor reservations refuse boarding/halt writes,
+ * including direct registry-sync calls before the convoy driving callback.
  * Current callers: ConvoyTick on every AI-owning machine.
  * Example: [_group, _configuration] call CBE_fnc_ConvoyCrewLocal;
  */
@@ -21,6 +23,20 @@ params ["_group", "_configuration",["_reservationCargo",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 _configuration params ["_revision", "", "", "", "_vehicles", "_phase", "_cargo", "_restore", ["_reason", "MANUAL"], ["_threat", []], ["_deadline", 0]];
 if (((_group getVariable ["CBE_Convoy_CommandYield",[]]) param [0,-1]) == _revision) exitWith {};
+// Registry synchronization can call this before the owner driving tick. Protect actual
+// local driving-seat tasks here too; a nonlocal crew callback cannot release the group.
+private _nativeCrewTask=_vehicles findIf {
+    private _driver=driver _x;private _operator=effectiveCommander _x;
+    if (isNull _operator) then {_operator=_driver};
+    [_driver,_operator] findIf {
+        !isNull _x && {local _x} && {
+            [_x] call CBE_fnc_CortexActorMoveReserved
+            || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+                "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+        }
+    } >= 0
+} >= 0;
+if (_nativeCrewTask) exitWith {};
 if (time < (_group getVariable ["CBE_Convoy_CrewDue", -1])) exitWith {};
 _group setVariable ["CBE_Convoy_CrewDue", time + 5];
 private _externalCrew = _vehicles findIf {(crew _x) findIf {[_x] call CBE_fnc_CortexExternalOwner != ""} >= 0} >= 0;

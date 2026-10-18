@@ -50,6 +50,8 @@
  * A public revision/route-bound retry journal permits at most six endpoint recalls within
  * the original 120 seconds, spaced at least fifteen seconds apart across owner migration.
  * Exhaustion leaves the native route untouched; only a new revision or authored identity starts anew.
+ * Actual driver/commander service or reserved tasks suspend the whole local column before
+ * crew, formation, speed and follower-path writes; exact policy cleanup preserves native tasks.
  * Endpoint and active-route recalls refuse service/STOP/combat/reserved actors and unrelated
  * individual MOVE destinations on the actual movement operator.
  * Recovery refuses object/vehicle-attached and peer-synchronized waypoints; native execution
@@ -104,12 +106,27 @@ private _externalCrew = _registered findIf {(crew _x) findIf {[_x] call CBE_fnc_
 private _globalPaused = [] call CBE_fnc_CortexIsPaused;
 private _paused = _globalPaused || {[_group] call CBE_fnc_CompatibilityExternalControl} || {_externalCrew} || {"ALL" in (_group getVariable ["CBE_AIPass_DisabledFeatures",[]])};
 private _playerCrew = _registered findIf {(crew _x) findIf {isPlayer _x || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}} >= 0} >= 0;
+// A driver/commander service task owns movement even when the group still has a convoy route.
+// Observe only actual seats in the registered column; no world scan or passenger task takeover.
+private _nativeCrewTask=_registered findIf {
+    private _driver=driver _x;private _operator=effectiveCommander _x;
+    if (isNull _operator) then {_operator=_driver};
+    [_driver,_operator] findIf {
+        !isNull _x && {local _x} && {
+            [_x] call CBE_fnc_CortexActorMoveReserved
+            || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+                "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+        }
+    } >= 0
+} >= 0;
 private _zeus = [_group] call CBE_fnc_CortexZeusHeld;
-if (_paused || {_playerCrew} || {_zeus}) exitWith {
+if (_paused || {_playerCrew} || {_zeus} || {_nativeCrewTask}) exitWith {
     [_group,_configuration,true] call CBE_fnc_ConvoyDismountLocal;
     if (!(_group getVariable ["CBE_Convoy_Suspended", false])) then {
         private _reason = if (_zeus) then {"ZEUS"} else {if (_playerCrew) then {"PLAYER"} else {
-            if (_globalPaused && {!_externalCrew} && {!([_group] call CBE_fnc_CompatibilityExternalControl)}) then {"PAUSED"} else {"EXTERNAL_OWNER"}
+            if (_nativeCrewTask && {!_paused}) then {"NATIVE_TASK"} else {
+                if (_globalPaused && {!_externalCrew} && {!([_group] call CBE_fnc_CompatibilityExternalControl)}) then {"PAUSED"} else {"EXTERNAL_OWNER"}
+            }
         }};
         [_group, false, _restore, [], _reason] call CBE_fnc_ConvoyReleaseLocal;
         _group setVariable ["CBE_Convoy_Suspended", true];
