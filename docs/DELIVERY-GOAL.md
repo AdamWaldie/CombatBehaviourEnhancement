@@ -79,3 +79,9 @@ This order changes priority, not product scope. Existing Zeus, player, external-
 - **Promoted:** all required physical and performance gates for the package have passed.
 
 No work package may skip directly from **implemented** or **statically checked** to **promoted**.
+
+## Combining reference behaviours
+
+The reference collection exists to combine unique capabilities, effective decisions and working improvements into one coherent addon. Preserve useful intent while redesigning unsafe shortcuts and conflicting ownership. Each selected contribution needs evidence of implementation, interaction with existing layers, balance, bounded cost and actual physical effectiveness. Reviewed, selected, implemented, integrated and physically verified are separate milestones. A file association or narrow fixture cannot establish source parity, and parity alone is not proof of an improvement.
+
+Driving room-making must coexist with continuous following: stopped participants acknowledge applied holds, settle physically, make real rear-first room, pass only through usable hull clearance and hand back every original route. Queue agreement alone provides none of those outcomes. Keep this operation inside the existing owner-local driving lifecycle; a generic takeover that cancels its own parent is not an implementation.

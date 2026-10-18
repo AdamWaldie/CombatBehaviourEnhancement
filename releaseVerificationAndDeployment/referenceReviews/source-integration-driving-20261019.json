@@ -1,0 +1,123 @@
+{
+  "date": "2026-10-19",
+  "baseline": "07b16737",
+  "purpose": "Merge complementary source intentions into CBE execution; not source-count parity or completion credit",
+  "source_witnesses": [
+    {
+      "workshop_id": "3812620045",
+      "file": "hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "examined_lines": [
+        1433,
+        1482
+      ],
+      "intent": "Rear-first requests create room before the blocked predecessor moves; prefer longer smooth legs and stop backing when front traffic departs.",
+      "retain": [
+        "dependency order",
+        "fresh rear clearance",
+        "spacing as physical room",
+        "avoid repeated short bursts"
+      ],
+      "redesign": [
+        "forced pushes become native finite movement",
+        "renewable yield clocks become original finite episode deadline",
+        "owner-local consent and exact command ownership replace shared request flags"
+      ]
+    },
+    {
+      "workshop_id": "1858075458",
+      "file": "lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+      "examined_lines": [
+        31,
+        65
+      ],
+      "intent": "Keep a busy actor pursuing the same nearby hide destination instead of constantly reissuing movement.",
+      "retain": [
+        "native movement continuity under unchanged intent"
+      ],
+      "limits": "This is a continuity principle, not a source implementation of vehicle queues or complete squad CQB."
+    }
+  ],
+  "integration": {
+    "ordinary_following": {
+      "files": [
+        "addons/vehicles/functions/convoyTick.sqf"
+      ],
+      "implemented": "Follower spacing/catch-up, bounded acceleration and retention of an unchanged native goal on aligned straight legs.",
+      "open": "Mixed tracked/wheeled physical smoothness and gap convergence remain unverified."
+    },
+    "room_making": {
+      "files": [
+        "addons/vehicles/functions/drivingQueueProposal.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "addons/vehicles/functions/drivingRearClear.sqf"
+      ],
+      "implemented": "Bounded dependency discovery, authenticated consent and retirement; shared rear body observation.",
+      "missing": "No native queue executor, held-command receipts, settled READY, rear-first physical room, crossing or handback."
+    },
+    "ownership_conflict": {
+      "files": [
+        "addons/vehicles/functions/drivingMovementAvailable.sqf",
+        "addons/vehicles/functions/drivingOperationStep.sqf",
+        "addons/vehicles/functions/drivingOperationFinish.sqf"
+      ],
+      "finding": "A generic Cortex movement lease makes DrivingOperationStep cancel the parent driving brain; parent finish then releases its queue consent.",
+      "required": "A queue phase belongs to each existing parent driving brain. All other vehicle/group writers yield to its exact episode; no generic takeover of that same parent."
+    }
+  },
+  "execution_contract": [
+    {
+      "phase": "COMMIT",
+      "requirement": "All actual owners validate the same agreed token, original context and expiry before accepting a queue child. No participant is commanded merely because the initiator received AGREED."
+    },
+    {
+      "phase": "HOLD",
+      "requirement": "Each owner captures its own applied speed/native command receipts, prevents ordinary traffic/recovery/passing writes for the same participant, and acknowledges only applied controls. Unrelated vehicles in a shared group must not be silently commandeered."
+    },
+    {
+      "phase": "READY",
+      "requirement": "Receipt-bound finite linear and angular rest plus a dwell observation; consent and requested zero speed are not evidence of stopped motion. Pose and held commands must remain current."
+    },
+    {
+      "phase": "REAR_ROOM",
+      "requirement": "Only the current leaf may issue native reverse after fresh whole-body rear clearance; monitor native command, original damage minima, current hull/heading and deadline. No forced velocity, teleport, collision suppression or arbitrary point completion."
+    },
+    {
+      "phase": "DEPENDENCY_ADVANCE",
+      "requirement": "A predecessor moves only after measured hull clearance exists. A promise, elapsed timer or prior arrival flag cannot substitute for current space. Re-check vehicles returning into cleared space."
+    },
+    {
+      "phase": "CROSS",
+      "requirement": "Select and validate an actually usable passing corridor; rear room alone does not prove two opposing hulls can pass. Keep yielding participants held until measured whole-hull crossing clears them."
+    },
+    {
+      "phase": "HANDBACK",
+      "requirement": "Return each original route/cap only while exact owned commands and current parent/crew/epoch still match. New Zeus/native/service/external orders win immediately. Every expiry/cancellation path releases only this episode."
+    }
+  ],
+  "balance_and_cost": [
+    "No omniscient hostile knowledge or unilateral orders to unrelated owners.",
+    "Existing original consent expiry remains binding; do not silently extend30seconds into the80second traffic retry journal. A larger execution budget would require an explicitly agreed new protocol.",
+    "At most4 participants; bounded geometry, finite retries and parent scheduler callbacks rather than a permanent queue controller.",
+    "Root success is insufficient: every participant must hand back and physically resume.",
+    "No parity or performance-budget acceptance until actual normal and separate HC cases pass."
+  ],
+  "acceptance_cases": [
+    "two opposing vehicles with open rear room",
+    "three/four participant rear-first chain",
+    "occupied/blocked last rear corridor",
+    "moving traffic entering rear/crossing space",
+    "duplicate and reordered protocol delivery",
+    "new individual/native/Zeus order in every movement phase",
+    "driver/effective commander replacement",
+    "owner migration and disconnect in separate HC batch",
+    "original expiry during reverse/crossing",
+    "all participants physical forward resumption",
+    "mixed wheeled/tracked stop-start and measured cost"
+  ],
+  "audits": "paused",
+  "physical_acceptance": false,
+  "whole_mod_parity": false
+}
