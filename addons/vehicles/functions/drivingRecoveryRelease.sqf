@@ -17,7 +17,7 @@
  * until the existing owner callback can finish cleanup. This retention grants no commands.
  * Changed seats/route/cap/native intent or external ownership revoke retention immediately.
  * An otherwise exactly owned reverse retains its journal while mobility/simulation prevents
- * handback. The existing driving callback retries before new assistance; no extra loop is added.
+ * handback. Receipt-only cleanup registration survives tactical shutdown without replaying a rear leg.
  * A leader on foot or without an eligible mounted target permits stopping our reverse only;
  * no crew follows a dismounted leader. Result field5 distinguishes native handback from a stop.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
@@ -68,6 +68,7 @@ if (_retainAcrossLocality && {!local _group || {!local _driver} || {!local _oper
             _reason,serverTime,_group,_work get "kind",_work get "hardDeadline","DEFERRED_LOCALITY"
         ],true];
     };
+    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
     false
 };
 private _handback="METADATA_ONLY";
@@ -107,6 +108,7 @@ if (_owned && {!_executable}) exitWith {
             _reason,serverTime,_group,_work get "kind",_work get "hardDeadline","DEFERRED"
         ],true];
     };
+    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
     false
 };
 if (_owned) then {

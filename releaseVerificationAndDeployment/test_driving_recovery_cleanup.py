@@ -31,7 +31,8 @@ class RecoveryCleanupTests(unittest.TestCase):
         self.assertIn('remoteExecutedOwner > 0',text)
         self.assertIn('_epoch == (_vehicle getVariable ["CBE_DrivingRecovery_LocalEpoch",0])',text)
         self.assertIn('&& {_gained} && {local _vehicle} && {alive _vehicle}',text)
-        self.assertIn('count _work == 0 && {_attempt < 5}',text)
+        self.assertIn('private _lookup=count _work == 0 || {(_work getOrDefault ["kind",""]) == "REVERSE"}',text)
+        self.assertIn('if (_lookup && {_attempt < 5}',text)
         self.assertIn('[_vehicle,true,_attempt+1,_epoch],1]',text)
         self.assertIn('getOrDefault ["releasePending",false]',text)
         self.assertNotIn('call CBE_fnc_DrivingAssistRelease',text)
@@ -42,3 +43,15 @@ class RecoveryCleanupTests(unittest.TestCase):
         self.assertIn('["LandVehicle","init"',init)
         self.assertIn('addEventHandler ["Local"',init)
         self.assertLess(init.index('["LandVehicle","init"'),init.index('call CBE_fnc_CortexInit'))
+
+    def test_each_deferred_return_registers_observation_before_returning(self):
+        text=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        locality=text.split('if (_retainAcrossLocality &&',1)[1].split('private _handback=',1)[0]
+        mobility=text.split('if (_owned && {!_executable}) exitWith {',1)[1].split('if (_owned) then {',1)[0]
+        for branch in (locality,mobility):
+            self.assertIn('[_vehicle] call CBE_fnc_DrivingRecoveryCleanup;',branch)
+            self.assertLess(branch.index('set ["releasePending",true]'),branch.index('call CBE_fnc_DrivingRecoveryCleanup'))
+            # Already-pending receipts also register; registration is outside first-publication guard.
+            self.assertIn('};\n    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;\n    false',branch)
+            for command in ('doMove','doStop','doFollow','forceSpeed','remoteExec','serverTime+'):
+                self.assertNotIn(command,branch)

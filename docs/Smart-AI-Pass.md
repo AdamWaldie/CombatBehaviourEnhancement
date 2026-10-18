@@ -1527,3 +1527,6 @@ This closes the same-owner shutdown observation gap in source. Bounded receipt a
 
 
 Driving cleanup adoption also runs from native land-vehicle init and locality events while tactics is disabled. An already pending reverse receipt is registered for guarded cleanup. An occupied vehicle with no receipt gets at most five one-second lookup retries; each actual locality edge invalidates callbacks from its previous local epoch. Existing nonpending work is never converted into a release request. No cap or route is written by adoption itself. Receipts delivered beyond this window, empty-vehicle transitions and actual HC/JIP delivery ordering remain unresolved acceptance cases; no complete migration support is claimed.
+
+
+Both split-locality and unavailable-mobility deferrals now register cleanup directly where the release is deferred, including direct calls from the driving worker. They do not depend on a later outer assist-release call. Locality lookup also observes an already present reverse receipt for its later pending flag, within the same original five-second window. It never changes a nonpending receipt into pending work. Beyond-window delivery still requires a durable notification design and remains unresolved.

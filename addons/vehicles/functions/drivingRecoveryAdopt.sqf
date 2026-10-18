@@ -4,7 +4,7 @@
  * Locality / Authority: Native LandVehicle init/Local event on each machine, never remote calls.
  * Only cleanup registration is permitted; the existing exact release guards authorize commands.
  * Repeat/JIP: Every locality edge invalidates older lookup callbacks. At most five one-second
- * late-receipt lookups for occupied vehicles; delivery after that window remains unsupported.
+ * late-receipt or pending-flag lookups for occupied vehicles; later delivery remains unsupported.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 gained locality <BOOL, false>;
  * 2 lookup attempt <NUMBER, 0>; 3 local epoch <NUMBER, -1>.
  * Return Value: BOOL - true only when a pending reverse receipt was offered, not physical success.
@@ -30,9 +30,10 @@ isNil {
             [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
             _accepted=true;
         } else {
-            // A known nonpending operation is not release authority. Only an absent receipt
-            // may be in flight at the ownership edge; do not turn adoption into cancellation.
-            if (count _work == 0 && {_attempt < 5} && {count crew _vehicle > 0}) then {
+            // A reverse receipt and its later pending flag can arrive separately. Observe
+            // within the original window only; nonpending work never authorizes release.
+            private _lookup=count _work == 0 || {(_work getOrDefault ["kind",""]) == "REVERSE"};
+            if (_lookup && {_attempt < 5} && {count crew _vehicle > 0}) then {
                 [{_this call CBE_fnc_DrivingRecoveryAdopt},
                     [_vehicle,true,_attempt+1,_epoch],1] call CBA_fnc_waitAndExecute;
             };

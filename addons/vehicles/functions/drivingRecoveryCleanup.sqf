@@ -7,7 +7,7 @@
  * DrivingRecoveryAdopt offers receipts at locality/init edges; delivery beyond its lookup window remains unresolved.
  * Arguments: 0 vehicle <OBJECT, objNull> registers its pending receipt; objNull services tickets.
  * Return Value: Nothing.
- * Current callers: DrivingAssistRelease, DrivingRecoveryAdopt; its own CBA delayed callback.
+ * Current callers: DrivingAssistRelease, DrivingRecoveryRelease, DrivingRecoveryAdopt; its own CBA delayed callback.
  * Example: [truck1] call CBE_fnc_DrivingRecoveryCleanup;
  */
 params [["_vehicle",objNull,[objNull]]];
