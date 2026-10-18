@@ -4,6 +4,21 @@ import math
 import unittest
 ROOT = Path(__file__).resolve().parents[1]
 class CorridorFoundationTests(unittest.TestCase):
+    def test_release_reads_and_retires_one_episode_without_a_scheduled_gap(self):
+        s=(ROOT/'addons/vehicles/functions/drivingCorridorRelease.sqf').read_text(encoding='utf-8')
+        transaction=s.split('isNil {',1)[1]
+        self.assertLess(transaction.index('_retired=call {'),transaction.index('private _work='))
+        for effect in ('doStop _driver','_operator doMove waypointPosition',
+                       'CBE_DrivingCorridor_Cooldown",_cooldown,true',
+                       'CBE_DrivingCorridor_Result",','CBE_DrivingCorridor_Work",nil,true'):
+            self.assertIn(effect,transaction)
+        self.assertTrue(s.rstrip().endswith('_retired'))
+        owned=transaction.split('private _owned=',1)[1].split('// The owned doStop',1)[0]
+        self.assertIn('["","MOVE","WAIT"]+',owned)
+        self.assertIn('[[],["STOP"]]',owned)
+        self.assertIn('== "CROSS"',owned)
+        for forbidden in ('sleep ','waitUntil','lineIntersectsSurfaces','nearestObjects'):
+            self.assertNotIn(forbidden,transaction)
     def test_approach_cross_transition_commits_only_under_live_work_and_area(self):
         s=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
         transition=s.split('// Admission and the exact command/receipt transition',1)[1].split('if (_phase == "CROSS")',1)[0]
