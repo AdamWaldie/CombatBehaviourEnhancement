@@ -105,3 +105,18 @@ class LandingFeatureOwnershipTests(unittest.TestCase):
             self.assertIn('call CBE_fnc_ImprovedHelicopterLandingFeatureReleaseLocal',text)
         config=(ROOT/'addons/main/CfgFunctions.hpp').read_text(encoding='utf-8')
         self.assertIn('class ImprovedHelicopterLandingFeatureReleaseLocal',config)
+
+    def test_handover_fixture_uses_real_admission_and_physical_native_return(self):
+        fixture=(ROOT/'releaseVerificationAndDeployment/cortexQA/runLanding.sqf').read_text(encoding='utf-8')
+        case=fixture.split('// Deferred feature handover diagnostic',1)[1].split('[_saved]',1)[0]
+        for marker in ('createVehicleCrew','"GETOUT"','"QA_SUCCESSOR",_successorToken,600',
+                       'call CBE_fnc_FlightLeaseAcquire','call CBE_fnc_FlightLeaseRelease',
+                       'LAND-handover-deferred-not-completed','LAND-handover-stale-release-refused',
+                       'LAND-handover-original-deadline-and-successor','LAND-handover-exact-feature-ack',
+                       'LAND-handover-physical-native-redirection','_aircraft distance2D _origin > 150',
+                       '"CBE_Headless_ExcludeGroup",true','isTouchingGround _aircraft'):
+            self.assertIn(marker,case)
+        for forbidden in ('setVelocity','setPos','enableAI','disableAI',
+                          'setVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot"',
+                          'setVariable ["CBE_ImprovedHelicopterLanding_FeatureReleaseResult"'):
+            self.assertNotIn(forbidden,case)

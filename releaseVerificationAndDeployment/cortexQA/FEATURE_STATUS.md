@@ -138,7 +138,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Aircraft physically approaches, touches down and holds; terrain clearance, bounded go-around and cleanup survive transfer/deletion.
 
-**Automation and open work:** runLanding.sqf: malformed payload rejection without mutation, physical touchdown and hold, landing cancellation and real redirected flight. Passed server cases in runtime-20260927-041916. Terrain, boundary, JIP and ownership variants remain unverified.
+**Automation and open work:** runLanding.sqf: malformed payload rejection, physical touchdown/hold and cancelled-order redirection. Historical server checks passed in runtime-20260927-041916 on older source. New normal/server-owned successor-lease feature handover case is PREPARED_NOT_RUN: real controller admission, deferred cleanup, immutable deadline, exact acknowledgement and physical fresh-MOVE return. It does not establish Workshop-controller parity. Terrain, boundary, JIP and ownership variants remain unverified.
 
 ### DECEL - Helicopter braking
 
