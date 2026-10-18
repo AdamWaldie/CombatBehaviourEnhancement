@@ -31,4 +31,19 @@ class AirContactGeometryTests(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexCombinedAirFallbackServer',refused)
         self.assertNotIn('reveal',refused.split('private _contactObserver',1)[1])
 
+    def test_combined_air_retirement_carries_original_snapshot_after_cleanup(self):
+        local=(ROOT/'addons/infantry/functions/cortexCombinedArmsLocal.sqf').read_text()
+        start=(ROOT/'addons/aircraft/functions/airAttackOperationStart.sqf').read_text()
+        attack=(ROOT/'addons/aircraft/functions/cortexAirAttack.sqf').read_text()
+        server=(ROOT/'addons/infantry/functions/cortexCombinedAirFallbackServer.sqf').read_text()
+        self.assertIn('["combinedOpportunity",+_opportunity]',local)
+        self.assertEqual(local.count('[_requester,_group,_token,+_opportunity] remoteExecCall'),3)
+        self.assertIn('_requestedOpportunity isEqualTo _currentOpportunity',start)
+        finish=attack.split('private _finish={',1)[1].split('private _pilot=driver _aircraft;',1)[0]
+        self.assertLess(finish.index('call CBE_fnc_OperationCancel'),finish.index('private _supportSnapshot='))
+        self.assertIn('isEqualTo _supportSnapshot',finish)
+        self.assertIn('_reason == "TARGET_IGNORED"',finish)
+        self.assertIn('_rejectedRole isNotEqualTo _snapshot',server)
+        self.assertLess(server.index('_rejectedRole isNotEqualTo _snapshot'),server.index('_rejected setVariable ["CBE_Cortex_CombinedRole",nil,true]'))
+
 if __name__=='__main__': unittest.main()

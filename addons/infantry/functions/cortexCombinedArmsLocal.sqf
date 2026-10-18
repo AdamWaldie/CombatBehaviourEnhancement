@@ -52,7 +52,7 @@ if (!isNull _contactObserver && {local _contactObserver}
     && {(_contactObserver targetKnowledge _target) param [7,false,[true]]}) exitWith {
     if (_role == "AIR_ATTACK") then {
         _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"TARGET_IGNORED",serverTime,_target],true];
-        [_requester,_group,_token] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+        [_requester,_group,_token,+_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
     } else {
         [_group,_opportunity,"TARGET_IGNORED",clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
     };
@@ -354,16 +354,16 @@ if (_role == "AIR_ATTACK") exitWith {
     if (_plan isEqualTo createHashMap) exitWith {
         call _markApplied;
         _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"NO_VIABLE_WEAPON",serverTime,_target],true];
-        [_requester,_group,_token] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+        [_requester,_group,_token,+_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
         false
     };
     if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
     // Acceptance must correspond to this target, not merely an aircraft's busy marker.
-    private _started=[createHashMapFromArray [["aircraft",_asset],["group",_group],["target",_target]],0.5] call CBE_fnc_AirAttackOperationStart;
+    private _started=[createHashMapFromArray [["aircraft",_asset],["group",_group],["target",_target],["combinedOpportunity",+_opportunity]],0.5] call CBE_fnc_AirAttackOperationStart;
     if (!_started) exitWith {
         call _markApplied;
         _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"AIR_BUSY_OR_REFUSED",serverTime,_target],true];
-        [_requester,_group,_token] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+        [_requester,_group,_token,+_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
         false
     };
     call _markApplied;

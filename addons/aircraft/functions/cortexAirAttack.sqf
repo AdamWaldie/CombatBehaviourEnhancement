@@ -276,6 +276,17 @@ private _finish={
         };
     };
     [_job getOrDefault ["lateralPilot",objNull],_job getOrDefault ["lateralPilotReceipt",[]]] call CBE_fnc_CortexAirPilotFeatureRelease;
+    // Only the original combined reservation may be retired after this job's owned cleanup.
+    private _supportSnapshot=_job getOrDefault ["combinedOpportunity",[]];
+    if (_reason == "TARGET_IGNORED" && {!isNull _finishGroup} && {local _finishGroup}
+        && {(count _supportSnapshot) in [7,8]}
+        && {(_finishGroup getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _supportSnapshot}
+        && {(_supportSnapshot select 4) == "AIR_ATTACK"}
+        && {(_supportSnapshot select 2) == (_job getOrDefault ["target",objNull])}) then {
+        private _supportToken=_supportSnapshot select 0;
+        _finishGroup setVariable ["CBE_Cortex_CombinedResult",[_supportToken,"AIR_ATTACK",_reason,serverTime,_supportSnapshot select 2],true];
+        [_supportSnapshot select 1,_finishGroup,_supportToken,+_supportSnapshot] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+    };
     -1
 };
 private _pilot=driver _aircraft;
