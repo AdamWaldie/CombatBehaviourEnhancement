@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
  * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
+ * Casualty roster proposals remain isolated until current drill/operation/epoch and actor-native
+ * observations pass an unscheduled publication boundary; refusal defers without renewing deadlines.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
  * Advances a running drill (flank, bounding advance, direct assault or coordinated bound) by one step: issue a bound, wait for arrival,
@@ -243,11 +245,16 @@ if (count _movementLease == 2 && {(_movementLease select 0) == "TACTICAL_DRILL"}
 // There is no casualty event handler or per-unit scheduler. A change during a live bound restarts
 // that bound from the same route point so spot indexes cannot drift after a casualty.
 private _ownedPathUnits=(_drill getOrDefault ["disabled",[]]) select {(_x select 1) == "PATH"} apply {_x select 0};
-private _unavailable=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["unavailable",[]];
+private _rosterEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _unavailable=+((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["unavailable",[]]);
+private _entryTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+private _entryUnits=+(_drill get "units");
+private _entryPhase=[_drill getOrDefault ["stage",""],_drill getOrDefault ["index",0],_drill getOrDefault ["teamTurn",0]];
 private _fitSquad=(units _group) select {!(_x in _unavailable)} select {[_x] call CBE_fnc_CortexCombatEffective && {local _x}
     && {isNull objectParent _x} && {group _x == _group} && {_x checkAIFeature "MOVE"}
     && {_x checkAIFeature "PATH" || {_x in _ownedPathUnits}} && {[_x] call _actorTaskFree}};
-private _teams=_drill getOrDefault ["teams",[]];
+private _rosterNative=_fitSquad apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
+private _teams=_entryTeams apply {+_x};
 private _desiredStrength=_drill getOrDefault ["desiredStrength",count (_drill get "units")];
 private _reinforcements=[];
 // Prefer an orphan over breaking a surviving buddy pair. If only intact pairs remain,
@@ -336,8 +343,41 @@ if (_teams isEqualTo []) then {
     };
     {_units append _x} forEach _teams;
     _units=_units arrayIntersect _units;
-    _drill set ["teams",_teams];
 };
+// Candidate selection is scheduled and edits only private arrays. Do not publish a roster,
+// transition or replacement history through a superseded task/native actor observation.
+private _rosterCommitted=false;
+isNil {
+    private _liveState=_group getVariable ["CBE_AIPass_State",createHashMap];
+    private _liveDrill=_liveState getOrDefault ["drill",createHashMap];
+    private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+    if (!local _group || {_rosterEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {_liveState isNotEqualTo _state} || {(_liveDrill getOrDefault ["token",""]) != _token}
+        || {(_liveDrill getOrDefault ["teams",[]]) isNotEqualTo _entryTeams}
+        || {(_liveDrill getOrDefault ["units",[]]) isNotEqualTo _entryUnits}
+        || {[_liveDrill getOrDefault ["stage",""],_liveDrill getOrDefault ["index",0],_liveDrill getOrDefault ["teamTurn",0]] isNotEqualTo _entryPhase}
+        || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        || {[] call CBE_fnc_CortexIsPaused}
+        || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
+        || {if (_support) then {!(_liveState getOrDefault ["assaulting",false])} else {
+            (_liveState getOrDefault ["phase",""]) != "CONTACT"
+        }}
+        || {[_group] call CBE_fnc_CortexExternalTakeover}
+        || {_support && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _supportRole}}
+        || {_operationGeneration >= 0 && {
+            (_liveOperation getOrDefault ["generation",-2]) != _operationGeneration
+                || {(_liveOperation getOrDefault ["ownerEpoch",-1]) != _rosterEpoch}
+                || {(_liveOperation getOrDefault ["phase",""]) == "CANCELLED"}
+                || {(_liveOperation getOrDefault ["unavailable",[]]) isNotEqualTo _unavailable}
+        }}
+        || {_units findIf {!([_x] call _actorTaskFree) || {!(_x checkAIFeature "MOVE")}
+            || {!(_x checkAIFeature "PATH") && {!(_x in _ownedPathUnits)}}} >= 0}
+        || {_rosterNative findIf {
+            _x params ["_actor","_command","_destination","_leader"];
+            currentCommand _actor != _command || {(expectedDestination _actor) isNotEqualTo _destination}
+                || {formLeader _actor != _leader}
+        } >= 0}) exitWith {};
+_drill set ["teams",_teams];
 _drill set ["units",_units];
 if (_operationGeneration >= 0) then {
     // The drill's live units are the desired operation participants, not an exclusion list. Passing
@@ -360,6 +400,11 @@ if (_reinforcements isNotEqualTo []) then {
         _drill set ["boundStart",time];
     };
 };
+_rosterCommitted=true;
+};
+// Reconsider from fresh observations without recalling actors, releasing a successor or
+// renewing progress/deadlines. A replaced token retires at the next normal callback entry.
+if (!_rosterCommitted) exitWith {0.25};
 // Two ordinary survivors can still alternate a covered movement pair. Loss of half the
 // original roster alone is not a reason to discard their committed route; morale owns retreat.
 // Reserved multi-squad roles retain their existing three-person admission contract.

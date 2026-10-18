@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Manoeuvre casualty roster proposals now remain private until current drill membership, phase,
+  operation/epoch, support role and actor-native observations pass one publication transaction.
+  Refused observations defer without cleanup or renewed deadlines; physical refill remains unverified.
+
 - Shared manoeuvre admission/cleanup, medical assistance and stance control now preserve malformed
   or nonfinite actor reservations through the strict owner-local predicate. Stance release for known
   tasks also requires a fully typed record. Physical service interruption and restoration remain unverified.

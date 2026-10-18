@@ -194,3 +194,30 @@ class SharedRoutineReservationTests(unittest.TestCase):
         self.assertLess(release.index('_knownReservation'),release.index('_reservation select 0'))
         self.assertIn('_currentStance ==',release)
         self.assertIn('CBE_fnc_CortexExternalTakeover',release)
+
+
+class ManoeuvreRosterCommitTests(unittest.TestCase):
+    def test_refill_proposals_publish_only_in_current_snapshot_boundary(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        proposal=source.split('private _entryTeams=',1)[1].split('private _rosterCommitted=false;',1)[0]
+        self.assertNotIn('_drill set ["teams",',proposal)
+        self.assertNotIn('_drill set ["units",',proposal)
+        self.assertIn('private _teams=_entryTeams apply {+_x}',proposal)
+        commit=source.split('private _rosterCommitted=false;',1)[1].split('if (!_rosterCommitted)',1)[0]
+        allocation=commit.index('_drill set ["teams",')
+        for guard in ['isNil {','!local _group','_rosterEpoch !=','_liveState isNotEqualTo _state',
+                      '"token",""]) != _token','isNotEqualTo _entryTeams','isNotEqualTo _entryUnits',
+                      'isNotEqualTo _entryPhase','CBE_fnc_CortexIsPaused','CBE_fnc_CortexExternalTakeover',
+                      '_liveState getOrDefault ["assaulting",false]','_liveState getOrDefault ["phase",""]) != "CONTACT"',
+                      'isNotEqualTo _supportRole','"generation",-2','"ownerEpoch",-1',
+                      '"phase",""]) == "CANCELLED"','isNotEqualTo _unavailable',
+                      'call _actorTaskFree','currentCommand _actor != _command',
+                      'isNotEqualTo _destination','formLeader _actor != _leader']:
+            self.assertLess(commit.index(guard),allocation)
+        self.assertIn('CBE_fnc_RebalanceRoles',commit)
+        self.assertIn('CBE_Cortex_DrillReinforcements',commit)
+        self.assertIn('"CASUALTY_REINFORCEMENT"',commit)
+        self.assertIn('if (!_rosterCommitted) exitWith {0.25}',source)
+        refusal=source.split('if (!_rosterCommitted)',1)[1].split('// Two ordinary survivors',1)[0]
+        self.assertNotIn('call _end',refusal)
+        self.assertNotIn('setVariable',refusal)
