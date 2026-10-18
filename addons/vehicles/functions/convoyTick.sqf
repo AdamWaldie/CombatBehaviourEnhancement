@@ -50,6 +50,8 @@
  * A public revision/route-bound retry journal permits at most six endpoint recalls within
  * the original 120 seconds, spaced at least fifteen seconds apart across owner migration.
  * Exhaustion leaves the native route untouched; only a new revision or authored identity starts anew.
+ * Steering HALT resume requires exact seat/native-command/authored-waypoint receipts and
+ * the current brain/registry. Missing or changed evidence never authorizes a route recall.
  * Startup and missing-trail holds check both actual seats atomically; refused holds never
  * create path-owner or native-hold receipts. Crew service/reservations retain their commands.
  * Final speed, follower MOVE and steering-path commits recheck two actual seats atomically;
@@ -334,23 +336,41 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     _group setFormation "COLUMN";
     // Vehicle movement remains a convoy task. Mounted gunners can fire without breaking formation.
     _group enableAttack false;
-    // Clear a previous HALT doStop on the lead driver without deleting or replacing route waypoints.
+    // Resume only the actual steering HALT we still own. Group/revision/machine
+    // alone cannot distinguish a newer individual command or changed authored route.
     if (_reacquire && {currentWaypoint _group > 0} && {currentWaypoint _group < count waypoints _group}) then {
-        // Do not make the lead's native movement operator follow itself or another seat.
-        // A same-vehicle subordinate may rejoin; route recovery belongs to the operator.
-        if (driver _lead != leader _group && {driver _lead != _leadOperator}
-            && {vehicle leader _group == _lead}) then {(driver _lead) doFollow leader _group};
-        // Tracked HALT explicitly replaced vehicle movement with a current-position move.
-        // Following the commander cannot supersede that vehicle-level destination reliably.
-        // Restart only our matching halt once, toward the unchanged ordinary route waypoint.
         private _haltOwner=_lead getVariable ["CBE_Convoy_HaltOwner",[]];
-        private _resumeWaypoint=[_group,currentWaypoint _group];
-        if (count _haltOwner == 3 && {(_haltOwner select 0) == _group}
-            && {(_haltOwner select 2) == clientOwner} && {waypointType _resumeWaypoint == "MOVE"}
-            && {[] call _mayIssueDriving}) then {
+        private _haltReceipt=_lead getVariable ["CBE_Convoy_HaltReceipt",[]];
+        private _resumeIndex=currentWaypoint _group;
+        private _resumeWaypoint=[_group,_resumeIndex];
+        private _resumeRoute=[_group,"",false,_resumeIndex] call CBE_fnc_AuthoredRouteReceipt;
+        private _resumeBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+        isNil {if (count _haltOwner == 3 && {count _haltReceipt == 6}
+            && {(_haltOwner select 0) == _group} && {(_haltOwner select 1) < _revision}
+            && {(_haltOwner select 2) == clientOwner} && {(_haltReceipt select 0) isEqualTo _haltOwner}
+            && {(_lead getVariable ["CBE_Convoy_HaltOwner",[]]) isEqualTo _haltOwner}
+            && {(_lead getVariable ["CBE_Convoy_HaltReceipt",[]]) isEqualTo _haltReceipt}
+            && {(_haltReceipt select 1) == driver _lead} && {(_haltReceipt select 2) == _leadOperator}
+            && {(_haltReceipt select 3) isEqualTo [currentCommand driver _lead,+(expectedDestination driver _lead),
+                currentCommand _leadOperator,+(expectedDestination _leadOperator)]}
+            && {(_haltReceipt select 4) == _resumeIndex} && {currentWaypoint _group == _resumeIndex}
+            && {_resumeRoute isNotEqualTo []} && {(_haltReceipt select 5) isEqualTo _resumeRoute}
+            && {([_group,"",false,_resumeIndex] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _resumeRoute}
+            && {waypointType _resumeWaypoint == "MOVE"} && {[_resumeWaypoint] call _mayRecoverWaypoint}
+            && {[_lead,_leadOperator] call _mayIssueDriving}
+            && {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isEqualTo _resumeBrain}
+            && {!(_resumeBrain getOrDefault ["cancelled",false])} && {!(_resumeBrain getOrDefault ["finished",false])}
+            && {(_resumeBrain getOrDefault ["configuration",[]]) isEqualTo _configuration}
+            && {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+                (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+            } >= 0}) then {
+            // Only an unchanged subordinate seat rejoins; the operator receives the route.
+            if (driver _lead != leader _group && {driver _lead != _leadOperator}
+                && {vehicle leader _group == _lead}) then {(driver _lead) doFollow leader _group};
             _lead move waypointPosition _resumeWaypoint;
             _lead setVariable ["CBE_Convoy_HaltOwner",nil];
-        };
+            _lead setVariable ["CBE_Convoy_HaltReceipt",nil];
+        }};
     };
     {[_x,_group,"ACQUIRE",_revision] call CBE_fnc_ConvoyUnloadPolicy} forEach _vehicles;
     private _initialPathOwners=_resumePathOwners;

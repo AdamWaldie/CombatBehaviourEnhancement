@@ -28,7 +28,7 @@ class ConvoyWaypointGateTests(unittest.TestCase):
         self.assertIn('(_waypoint select 1) > 0',s)
         self.assertIn('&& {_waypointIndex > 0}',s)
         self.assertIn('&& {_routeIndex > 0}',s)
-        restart=s.split('// Clear a previous HALT',1)[1].split('call CBE_fnc_ConvoyUnloadPolicy',1)[0]
+        restart=s.split('// Resume only the actual steering HALT',1)[1].split('call CBE_fnc_ConvoyUnloadPolicy',1)[0]
         for guard in ('currentWaypoint _group > 0','driver _lead != leader _group','driver _lead != _leadOperator','vehicle leader _group == _lead'):
             self.assertIn(guard,restart)
     def test_final_endpoint_retry_commits_under_current_controller_and_native_order(self):

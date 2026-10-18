@@ -9,6 +9,8 @@
  * records its convoy group/machine so obsolete cleanup cannot remove an adopted handler.
  * Unload policy uses an exact public lease; an external value change blocks reacquisition until release.
  * New individual MOVE handover blocks same-revision crew writes through a public yield receipt.
+ * Steering HALT records actual seats, native commands and the current authored waypoint
+ * after STOP. Resume consumes that local receipt only while those identities still match.
  * Repeat/JIP: five-second owner checks repair occupied seat assignments and replay a durable halt
  * after transfer. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, speed, gap, push, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
@@ -135,36 +137,72 @@ private _seats = createHashMap;
             };
         } forEach fullCrew [_vehicle, "", false];
         // Stop after any necessary boarding repair so the last driver command remains HALT.
-        if (_phase == "HALT" && {local _vehicle} && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
-            // Some tracked steering controllers retain the last drive path despite driver STOP.
-            // Retire that movement source explicitly before applying the stationary command.
-            if (isAISteeringComponentEnabled _vehicle) then {
-                _vehicle setDriveOnPath [];
-                // A driver can already report STOP while executing a scripted path.
-                // Replace that path with a current-position move once per halt/owner,
-                // then stop it. This uses navigation, never position or velocity changes.
-                private _haltOwner=[_group,_revision,clientOwner];
-                if ((_vehicle getVariable ["CBE_Convoy_HaltOwner",[]]) isNotEqualTo _haltOwner) then {
-                    _vehicle move getPosATL _vehicle;
-                    _vehicle setVariable ["CBE_Convoy_HaltOwner",_haltOwner];
+        if (_phase == "HALT" && {local _vehicle}) then {
+            private _stopDriver=driver _vehicle;
+            private _stopOperator=effectiveCommander _vehicle;
+            if (isNull _stopOperator) then {_stopOperator=_stopDriver};
+            isNil {
+                if (!local _vehicle || {!alive _vehicle} || {!simulationEnabled _vehicle}
+                    || {isObjectHidden _vehicle} || {driver _vehicle != _stopDriver}
+                    || {isNull _stopDriver} || {isNull _stopOperator}
+                    || {([effectiveCommander _vehicle,driver _vehicle] select (isNull effectiveCommander _vehicle)) != _stopOperator}
+                    || {[_group] call CBE_fnc_CortexExternalTakeover}
+                    || {[] call CBE_fnc_CortexIsPaused}
+                    || {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+                        (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+                    } < 0}
+                    || {[_stopDriver,_stopOperator] findIf {
+                        !local _x || {group _x != _group} || {vehicle _x != _vehicle}
+                        || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+                        || {!isNull remoteControlled _x}
+                        || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+                        || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+                        || {[_x] call CBE_fnc_CortexActorMoveReserved}
+                        || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+                            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+                    } >= 0}) exitWith {false};
+                // Some tracked steering controllers retain the last drive path despite driver STOP.
+                // Retire that movement source explicitly before applying the stationary command.
+                if (isAISteeringComponentEnabled _vehicle) then {
+                    _vehicle setDriveOnPath [];
+                    // A driver can already report STOP while executing a scripted path.
+                    // Replace that path with a current-position move once per halt/owner,
+                    // then stop it. This uses navigation, never position or velocity changes.
+                    private _haltOwner=[_group,_revision,clientOwner];
+                    if ((_vehicle getVariable ["CBE_Convoy_HaltOwner",[]]) isNotEqualTo _haltOwner) then {
+                        _vehicle move getPosATL _vehicle;
+                        _vehicle setVariable ["CBE_Convoy_HaltOwner",_haltOwner];
+                    };
                 };
-            };
-            _vehicle forceSpeed 0;
-            _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,0]];
-            if (local driver _vehicle && {!isNull driver _vehicle}) then {
-                doStop driver _vehicle;
-                private _corridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
-                if (((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY") then {
-                    [_vehicle,_group,"CONVOY_HALT",false] call CBE_fnc_DrivingCorridorRelease;
+                _vehicle forceSpeed 0;
+                _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,0]];
+                if (local driver _vehicle && {!isNull driver _vehicle}) then {
+                    doStop driver _vehicle;
+                    private _haltOwner=_vehicle getVariable ["CBE_Convoy_HaltOwner",[]];
+                    if (_haltOwner isEqualTo [_group,_revision,clientOwner]) then {
+                        private _haltDriver=driver _vehicle;
+                        private _haltOperator=effectiveCommander _vehicle;
+                        if (isNull _haltOperator) then {_haltOperator=_haltDriver};
+                        private _haltIndex=currentWaypoint _group;
+                        _vehicle setVariable ["CBE_Convoy_HaltReceipt",[+_haltOwner,_haltDriver,_haltOperator,
+                            [currentCommand _haltDriver,+(expectedDestination _haltDriver),
+                                currentCommand _haltOperator,+(expectedDestination _haltOperator)],
+                            _haltIndex,[_group,"",false,_haltIndex] call CBE_fnc_AuthoredRouteReceipt]];
+                    };
+                    private _corridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+                    if (((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY") then {
+                        [_vehicle,_group,"CONVOY_HALT",false] call CBE_fnc_DrivingCorridorRelease;
+                    };
+                    private _bypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+                    private _bypassController=_bypass getOrDefault ["controller",[]];
+                    if ((_bypassController param [0,""]) == "CONVOY" && {_revision >= (_bypassController param [1,1e9])}) then {
+                        [_vehicle,_group,"CONVOY_HALT",false,false,_bypassController select 1] call CBE_fnc_DrivingBypassRelease;
+                    };
+                    private _pathLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
+                    if (count _pathLease == 7 && {(_pathLease select 0) == _group}
+                        && {(_pathLease select 1) == _revision}) then {_vehicle setVariable ["CBE_Convoy_PathLease",nil,true]};
                 };
-                private _bypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
-                private _bypassController=_bypass getOrDefault ["controller",[]];
-                if ((_bypassController param [0,""]) == "CONVOY" && {_revision >= (_bypassController param [1,1e9])}) then {
-                    [_vehicle,_group,"CONVOY_HALT",false,false,_bypassController select 1] call CBE_fnc_DrivingBypassRelease;
-                };
-                private _pathLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
-                if (count _pathLease == 7 && {(_pathLease select 0) == _group}
-                    && {(_pathLease select 1) == _revision}) then {_vehicle setVariable ["CBE_Convoy_PathLease",nil,true]};
+                false
             };
         };
     };
