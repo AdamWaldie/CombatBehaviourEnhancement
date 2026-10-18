@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Applies a short, local danger posture selected by the danger FSM without replacing an active CBE or external movement operation.
  * Locality/authority: Runs where the observed actor and its group are local. It changes only group behaviour and combat mode that it records as owned. Explicit BLUE/GREEN hold-fire discipline remains authoritative.
+ * Application and its lease commit atomically after current native-task/hold-fire/owner checks.
  * Restoration atomically rechecks the exact lease, actor/group locality, epoch and generation.
  * Cleanup may retire a dead observer's group lease using a surviving local posture anchor. New reactions require a live observer.
  * Repeat/JIP: One public lease contains prior/applied values, operation generation, locality epoch and owner. Repeated events extend the lease; restore changes only values still matching CBE's application and discards its lease on external takeover. DangerStep owns the finite response context.
@@ -81,7 +82,26 @@ if (_cause in ["CASUALTY","BODY_FOUND","SCREAM"]) exitWith {"ASSESS"};
 // cannot silently authorise fire or launch group tactics against the mission maker's order.
 if (combatMode _group in ["BLUE","GREEN"]) exitWith {"ASSESS"};
 if !(_action in ["HIDE","ENGAGE","MAINTAIN",""]) then {_action=""};
+// Classification may have run in scheduled code. Apply posture and its baseline lease together,
+// using current authority and native-task state; never publish a lease after a newer hold-fire order.
+private _postureResult="IGNORED";
+isNil {
+    _postureResult=call {
+        if (isNull _actor || {!local _actor} || {!local _group} || {group _actor != _group}
+            || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+            || {_generation != (_group getVariable ["CBE_OperationGeneration",0])}
+            || {(_group getVariable ["CBE_Danger_ReactionLease",[]]) isNotEqualTo _lease}
+            || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+            || {[_group] call CBE_fnc_CortexExternalTakeover}
+            || {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {"IGNORED"};
+        if (combatMode _group in ["BLUE","GREEN"]) exitWith {"ASSESS"};
+        if (!isNull objectParent _actor || {fleeing _actor}
+            || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"ASSESS"};
+        _postureActor=[_group] call CBE_fnc_CortexGroupAnchor;
+        if (isNull _postureActor) then {_postureActor=leader _group};
+        if (!([_postureActor] call CBE_fnc_CortexCombatEffective) || {!local _postureActor}) exitWith {"IGNORED"};
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
+if ((_operation getOrDefault ["phase",""]) == "CANCELLED") exitWith {"ASSESS"};
 // MAINTAIN is valid only while a real operation still owns the committed route. A delayed danger
 // callback can outlive operation cleanup, so reclassify that orphaned label instead of treating it
 // as evidence of movement ownership.
@@ -144,3 +164,6 @@ private _duration=switch (_cause) do {
 private _until=(time + _duration) max (if (_leaseIntact) then {_lease select 4} else {-1});
 _group setVariable ["CBE_Danger_ReactionLease",[_priorBehaviour,_appliedBehaviour,_priorCombat,_appliedCombat,_until,_generation,_epoch,clientOwner],true];
 "POSTURE"
+    };
+};
+_postureResult

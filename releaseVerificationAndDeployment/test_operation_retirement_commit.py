@@ -78,6 +78,19 @@ class OperationRetirement(unittest.TestCase):
         self.assertLess(restore.index('CBE_fnc_CortexExternalTakeover'),restore.index('_group setCombatMode'))
         self.assertIn('private _lease=+(',text)
 
+    def test_danger_application_and_baseline_share_authority_boundary(self):
+        text=(ROOT/'addons/infantry/functions/dangerReact.sqf').read_text(encoding='utf-8')
+        commit=text.split('private _postureResult="IGNORED";',1)[1]
+        for proof in ('isNil {','!local _actor','!local _group','group _actor != _group',
+                      'CBE_AIPass_Epoch','CBE_OperationGeneration','isNotEqualTo _lease',
+                      'CBE_fnc_CortexExternalTakeover','combatMode _group in ["BLUE","GREEN"]',
+                      'currentCommand _actor','== "CANCELLED"'):
+            self.assertLess(commit.index(proof),commit.index('_group setBehaviour'))
+            self.assertLess(commit.index(proof),commit.index('setVariable ["CBE_Danger_ReactionLease"'))
+        self.assertIn('_tacticalModeOwned',commit)
+        for forbidden in ('doMove','doFollow','lineIntersects','nearestObjects','waitUntil'):
+            self.assertNotIn(forbidden,commit)
+
     def test_permission_restore_consumes_only_current_lease_in_atomic_scope(self):
         text=(ROOT/'addons/core/functions/operationRestore.sqf').read_text(encoding='utf-8')
         for proof in ('isNil {','_current isNotEqualTo _operation','ownerEpoch','count _members > 64',
