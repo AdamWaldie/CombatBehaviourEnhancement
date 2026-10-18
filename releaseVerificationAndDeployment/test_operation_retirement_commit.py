@@ -23,4 +23,16 @@ class OperationRetirement(unittest.TestCase):
         self.assertLess(admission.index('isNil {'),admission.index('_operation set ["phase","CANCELLED"]'))
         self.assertLess(admission.index('_current isEqualTo _operation'),admission.index('_operation set ["phase","CANCELLED"]'))
         self.assertIn('if (!_cancelAdmitted) exitWith {false}',admission)
+    def test_permission_restore_consumes_only_current_lease_in_atomic_scope(self):
+        text=(ROOT/'addons/core/functions/operationRestore.sqf').read_text(encoding='utf-8')
+        for proof in ('isNil {','_current isNotEqualTo _operation','ownerEpoch','count _members > 64',
+                      'attackEnabled _anchor != (_attack select 1)'):
+            self.assertLess(text.index(proof),text.index('_group enableAttack'))
+        self.assertLess(text.index('isNil {'),text.index('_restore deleteAt "groupAttack"'))
+        body=text.split('_restored=call {',1)[1]
+        self.assertLess(body.index('!local _group'),body.index('_group enableAttack'))
+        self.assertIn('!isNull remoteControlled _x',body)
+        self.assertIn('bis_fnc_moduleRemoteControl_owner',body)
+        for forbidden in ('lineIntersects','nearestObjects','spawn {','waitUntil','doMove','doFollow'):
+            self.assertNotIn(forbidden,text)
 if __name__=='__main__': unittest.main()
