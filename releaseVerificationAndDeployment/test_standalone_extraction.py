@@ -127,6 +127,24 @@ class StandaloneExtractionContracts(unittest.TestCase):
         self.assertNotIn('CuratorGroupSelectionChanged', watcher)
         self.assertNotIn('CuratorObjectSelectionChanged', watcher)
 
+    def test_temporary_group_routes_preserve_non_geometric_authored_edits(self):
+        move=(ROOT/"addons/infantry/functions/cortexGroupMove.sqf").read_text(encoding="utf-8")
+        clear=(ROOT/"addons/infantry/functions/cortexGroupMoveClear.sqf").read_text(encoding="utf-8")
+        self.assertIn('["nativePolicy",[_committedRow select 3,_committedRow select [6]]]',move)
+        self.assertIn('private _scheduledPolicy=canSuspend;',move)
+        self.assertIn('if (_scheduledPolicy) then {call _readPolicy} else {_observedPolicy}',move)
+        self.assertLess(move.index('private _scheduledPolicy=canSuspend;'),move.index('private _policyUnchanged='))
+        self.assertGreaterEqual(move.count('call _policyUnchanged'),2)
+        self.assertIn('_priorPolicy isEqualTo [] || {_policy isNotEqualTo _priorPolicy}',clear)
+        self.assertLess(clear.index('_policy isNotEqualTo _priorPolicy'),clear.index('deleteWaypoint _ownedWaypoint'))
+        self.assertIn('_ownedWaypoint setWaypointDescription ""',clear)
+        receipt=(ROOT/"addons/core/functions/authoredRouteReceipt.sqf").read_text(encoding="utf-8")
+        for field in ('waypointStatements','waypointTimeout','waypointSpeed','waypointBehaviour',
+                      'waypointCombatMode','waypointFormation','waypointScript','waypointAttachedVehicle',
+                      'waypointAttachedObject','synchronizedTriggers','synchronizedWaypoints',
+                      'waypointHousePosition','waypointLoiterType','waypointForceBehaviour'):
+            self.assertIn(field,receipt)
+
     def test_product_boundary_is_documented(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         for name in ("Dynamic AA", "Dynamic AO", "CBA_A3", "Zeus", "JIP"):

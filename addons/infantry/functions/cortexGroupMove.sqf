@@ -8,6 +8,7 @@
  * must remain owner-local. A protected native task on a living member blocks a new group waypoint,
  * because a group waypoint cannot exclude that actor; independent actor operations remain available. The shared gate prevents delayed callbacks from adding a CBE route after
  * Zeus, a player, or an external controller has taken ownership.
+ * Native policy edits relinquish route ownership, including scripts, forced behaviour and attachments.
  * Repeat/JIP: The public intent record survives locality transfer. The new owner can reuse a
  * still-valid waypoint instead of injecting a duplicate. A materially changed request replaces
  * only the existing CBE waypoint; authored mission and Zeus waypoints are never removed.
@@ -98,10 +99,29 @@ private _hasOwnedWaypoint = count _previousWaypoint == 2
     && {(_previousWaypoint select 1) < count waypoints _group}
     && {waypointDescription _previousWaypoint == "CBE AI PASS"};
 
+// Compare all non-geometric authored semantics, including statements and attachments, without
+// executing any script. Unscheduled calls share this observation; scheduled callers re-read at
+// the mutation boundary. Geometry keeps its existing engine-adjustment tolerances below.
+private _readPolicy={
+    private _rows=[_group,"",false,_previousWaypoint select 1] call CBE_fnc_AuthoredRouteReceipt;
+    private _row=_rows param [0,[]];
+    if (count _row < 7) exitWith {[]};
+    [_row select 3,_row select [6]]
+};
+// Capture the entry execution context: isNil mutation blocks themselves cannot suspend.
+private _scheduledPolicy=canSuspend;
+private _previousPolicy=_intent getOrDefault ["nativePolicy",[]];
+private _observedPolicy=if (_hasOwnedWaypoint) then {call _readPolicy} else {[]};
+private _policyUnchanged={
+    private _currentPolicy=if (_scheduledPolicy) then {call _readPolicy} else {_observedPolicy};
+    _previousPolicy isNotEqualTo [] && {_currentPolicy isEqualTo _previousPolicy}
+};
+
 // The internal description is not sufficient ownership proof: Zeus or mission code can
 // edit an existing CBE waypoint without changing its label. Treat that edit as a newer order
 // before adopting this route or inserting another waypoint ahead of it.
-if (_hasOwnedWaypoint && {count _previousPosition < 2
+if (_hasOwnedWaypoint && {!(call _policyUnchanged)
+    || {count _previousPosition < 2}
     || {waypointPosition _previousWaypoint distance2D _previousPosition > 1}
     || {abs (((waypointPosition _previousWaypoint) param [2,0])-(_previousPosition param [2,0])) > 1.5}
     || {waypointType _previousWaypoint != _previousType}
@@ -122,6 +142,7 @@ private _routeUnchanged={
         && {!_hasOwnedWaypoint || {
             (_previousWaypoint select 1) < count waypoints _group
                 && {waypointDescription _previousWaypoint == "CBE AI PASS"}
+                && {call _policyUnchanged}
                 && {waypointPosition _previousWaypoint distance2D _previousPosition <= 1}
                 && {abs (((waypointPosition _previousWaypoint) param [2,0])-(_previousPosition param [2,0])) <= 1.5}
                 && {waypointType _previousWaypoint == _previousType}
@@ -175,8 +196,11 @@ _waypoint setWaypointType _type;
 _waypoint setWaypointCompletionRadius _radius;
 _waypoint setWaypointDescription "CBE AI PASS";
 _group setCurrentWaypoint _waypoint;
+private _committedRows=[_group,"",false,_waypoint select 1] call CBE_fnc_AuthoredRouteReceipt;
+private _committedRow=_committedRows select 0;
 _group setVariable ["CBE_Cortex_GroupMoveIntent", createHashMapFromArray [
     ["waypoint", _waypoint],
+    ["nativePolicy",[_committedRow select 3,_committedRow select [6]]],
     ["position", waypointPosition _waypoint],
     ["requestedPosition", _desired],
     ["radius", _radius],

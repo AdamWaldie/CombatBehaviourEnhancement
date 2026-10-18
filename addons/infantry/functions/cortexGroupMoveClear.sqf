@@ -3,6 +3,7 @@
  * Purpose: Removes only CBE-owned temporary waypoints and clears their committed intent.
  * Locality/authority: Call on the group owner. deleteWaypoint is global, but owner-local use
  * prevents a stale machine from cancelling a newer owner's route.
+ * Authored policy changes (including script/attachment edits) preserve the edited native route.
  * Repeat/JIP: The public intent record is cleared before waypoint removal. Repeated cleanup is
  * harmless and never deletes authored Zeus or mission waypoints. Edited owned waypoints relinquish their internal description; generation-bound cleanup does not sweep other routes.
  *
@@ -43,7 +44,12 @@ if (count _ownedWaypoint == 2 && {(_ownedWaypoint select 0) isEqualTo _group}) t
         private _curatorClaim=count _snapshot == 7 && {count _hold == 2}
             && {(_snapshot select 0) == (_hold select 0)} && {(_snapshot select 5) == _index};
         private _position=_intent getOrDefault ["position",[]];
-        private _edited=count _position < 2
+        private _rows=[_group,"",false,_index] call CBE_fnc_AuthoredRouteReceipt;
+        private _row=_rows param [0,[]];
+        private _policy=if (count _row >= 7) then {[_row select 3,_row select [6]]} else {[]};
+        private _priorPolicy=_intent getOrDefault ["nativePolicy",[]];
+        private _edited=_priorPolicy isEqualTo [] || {_policy isNotEqualTo _priorPolicy}
+            || {count _position < 2}
             || {waypointPosition _ownedWaypoint distance2D _position > 1}
             || {abs (((waypointPosition _ownedWaypoint) param [2,0])-(_position param [2,0])) > 1.5}
             || {waypointType _ownedWaypoint != (_intent getOrDefault ["type",""])}
