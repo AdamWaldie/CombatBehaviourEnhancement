@@ -1,3 +1,11 @@
+## Completed ordinary hold receipts - 2026-10-18
+
+Audits remain paused. After 368974a2, completed FlankEnd ordinary holds receive immutable issuer/native-order receipts and a current actor token. GroupTick, RestoreCalm and Retreat require the matching token, target and order before follow. Checkpoint transports provenance without renewal. Recall precedes CBE route cleanup/replacement. Hidden, simulation-disabled, movement-disabled, reserved and externally controlled actors are refused.
+
+Offline build exited 0: 1,429 tests / 330 compiled SQF / nine PBOs. Log: .qa/cbe-holder-receipt-final-build.log. Unsigned fingerprint: 16dea4433bf7f0c57465ee2cff91cc44d51e39e0d16545ff659a9723a59cdd68. Built from uncommitted source; not a clean release or physical acceptance. PR17 remains draft, remote 4a28b3e8 pending coherent push.
+
+Still incomplete: standing cover and failed support-bound holds, finite active HOLD lifetime, nonlocal pending calm cleanup, passenger STOP distinction, native STOP destination stability and physical recall. All 65 families remain partial, zero fully accepted. Continue FSM/whole-HBQ implementation. No audit launch, merge, release or Steam upload. Preserve protected sources, keys and unrelated artwork.
+
 # Current CBE continuation checkpoint - 18 October 2026
 
 Current implementation batch is pushed on `Adam/cbe-aircraft-release-followup`, checkout `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, remote `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`, open draft PR17. Last independently verified remote source head: `4a28b3e84385b24962ee823477663cafce837fb4`. Recovery deadline/component damage, convoy arrival, driver switch, passenger HALT boundaries and STOP gap review are pushed. Exact pushed-commit offline build and independent package verification passed; manifest records4a28b3e8 with dirty=true from preserved untracked artwork, while tracked source was clean. PR body contains the current1,425-test evidence and package fingerprint; automatic validate check completed/SKIPPED. Subsequent holder-recall work is local and described below. No manual CI, merge, Release, Steam or audit. Never commit CBE work to WMP.

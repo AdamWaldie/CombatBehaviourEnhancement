@@ -102,7 +102,9 @@ private _releaseOwnedHold={
         // engine command into a new follow order.
         private _recallOwned=if (_returnSearchTeam) then {
             [_group,_state,_unit] call CBE_fnc_CortexSearchMoveOwned
-        } else {_ownedHold};
+        } else {
+            if (_restorePath) then {_ownedHold} else {[_group,_state,_unit] call CBE_fnc_CortexHolderRecallOwned}
+        };
         if (!_yieldToExternal && {_recallOwned}
             && {!isNull _leader} && {[_leader] call CBE_fnc_CortexCombatEffective}
             && {isNull objectParent _unit} && {[_unit] call CBE_fnc_CortexCombatEffective}
@@ -111,6 +113,7 @@ private _releaseOwnedHold={
             && {!([_group,false,_unit] call CBE_fnc_CortexExternalTakeover)}
             && {[_unit] call _actorMoveFree}) then {
             _unit doFollow _leader;
+            if (!_restorePath && {!_returnSearchTeam}) then {_unit setVariable ["CBE_Cortex_HolderToken",nil,true]};
         };
     };
     };
@@ -138,7 +141,6 @@ private _retreatModeLease = _state getOrDefault ["retreatCombatMode",[]];
 if (!_yieldToExternal && {count _retreatModeLease == 2} && {combatMode _group == (_retreatModeLease select 1)}) then {
     _group setCombatMode (_retreatModeLease select 0);
 };
-[_group] call CBE_fnc_CortexGroupMoveClear;
 // Search movement never disables PATH. Do not enable a mission-disabled feature while
 // returning a search team. During an ordinary handback its Cortex MOVE is explicitly
 // retired; during a Zeus takeover a MOVE may already be the curator's replacement order.
@@ -146,6 +148,8 @@ if (!_yieldToExternal && {count _retreatModeLease == 2} && {combatMode _group ==
 // Current drill holders use ordinary doStop and never disable PATH. Their return must
 // preserve a mission-disabled PATH feature; legacy support PATH leases were handled above.
 {if (alive _x) then {[_x,false,false] call _releaseOwnedHold}} forEach (_state getOrDefault ["holders", []]);
+// Consume original hold/search route receipts before our own temporary route is removed.
+[_group] call CBE_fnc_CortexGroupMoveClear;
 {
     if (local _x && {_x getVariable ["CBE_AIPass_StanceSet", false]}) then {
         if (!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}
@@ -262,7 +266,7 @@ if (!_allowRemount) then {
 };
 {_state deleteAt _x} forEach [
     "consolidationRoutes", "baseAttack", "attackChanged", "areaInvestigation", "enemyPos", "behaviourChanged", "speedChanged", "searchTeam", "searchMoveReceipts", "dismounted", "onboardContactUntil", "reinforceRequested", "reinforceDispatchedAt",
-    "withdrawn", "contactLeader", "lastSeen", "contactKnowledge", "dangerDismount", "holders", "baseBehaviour", "baseSpeed", "armourSeen",
+    "withdrawn", "contactLeader", "lastSeen", "contactKnowledge", "dangerDismount", "holders", "holderRecallReceipts", "baseBehaviour", "baseSpeed", "armourSeen",
     "armourRequested", "antiArmourRelocation", "coordinated", "coordinatedPendingUntil", "retreatCombatMode", "retreatSpeedMode", "retreatRetryAt", "movementLease", "retreatStart", "retreatTarget", "retreatProgress", "withdrawOperationGeneration", "vehicleDangerJink", "vehicleDangerOrient", "reserveCommitted", "arrivedAt", "assaulting", "hadContact"
 ];
 _group setVariable ["CBE_Cortex_Withdrawal",nil,true];

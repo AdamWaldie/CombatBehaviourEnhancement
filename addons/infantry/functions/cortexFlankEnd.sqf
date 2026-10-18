@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Completed ordinary holds retain original issuer and native destination/order provenance.
+ * Failed support-bound and transient retry stops remain separate ownership roles.
  * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
  * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
  * Ends a drill (flank, bounding advance or direct assault). Restores owned unit and group combat-mode overrides only
@@ -12,6 +14,8 @@
  * group, or release) orders members to follow the leader again at once, unless replacement
  * orders or external ownership prohibit movement commands. A failed coordinated
  * bound instead holds its gained ground until the next server sequence; it must not regroup
+ * Completed ordinary holds capture original issuer and native destination/order provenance.
+ * This does not turn failed support-bound holds or transient retry stops into ordinary holds.
  * backwards before a retry. Holding uses an ordinary stop order and never disables PATH, so a
  * replacement mission, Zeus order or locality handover cannot inherit frozen actors.
  * The drill's type-specific cooldown starts: advances may resume sooner than wide flanks. Cleanup
@@ -143,7 +147,24 @@ if (_holdFailedBound) then {
 } else {
 if (_hold) then {
     private _holders = _state getOrDefault ["holders", []];
-    {doStop _x; _holders pushBackUnique _x} forEach (_members-_stragglers);
+    private _holdRows=(_state getOrDefault ["holderRecallReceipts",[]]) select {
+        _x isEqualType [] && {count _x == 8} && {(_x select 0) in _holders}
+    };
+    _holdRows=_holdRows select [0,64];
+    private _holdOrder=[_group] call CBE_fnc_NativeOrderReceipt;
+    {
+        private _actor=_x;
+        private _slot=_holdRows findIf {(_x select 0) isEqualTo _actor};
+        if (_slot >= 0 || {count _holdRows < 64}) then {
+            doStop _actor;
+            private _row=[_actor,_group,_endingToken,clientOwner,_endingEpoch,_endingGeneration,
+                +((expectedDestination _actor) param [0,[]]),+_holdOrder];
+            _actor setVariable ["CBE_Cortex_HolderToken",_row select [1,5],true];
+            if (_slot < 0) then {_holdRows pushBack _row} else {_holdRows set [_slot,_row]};
+            _holders pushBackUnique _actor;
+        };
+    } forEach (_members-_stragglers);
+    _state set ["holderRecallReceipts",_holdRows];
     {_x doFollow leader _group} forEach _stragglers;
     _state set ["holders", _holders];
 } else {

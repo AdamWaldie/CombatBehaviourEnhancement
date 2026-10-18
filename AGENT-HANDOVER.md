@@ -1,3 +1,11 @@
+## Completed ordinary hold receipts - 2026-10-18
+
+Audits remain paused. After 368974a2, completed FlankEnd ordinary holds receive immutable issuer/native-order receipts and a current actor token. GroupTick, RestoreCalm and Retreat require the matching token, target and order before follow. Checkpoint transports provenance without renewal. Recall precedes CBE route cleanup/replacement. Hidden, simulation-disabled, movement-disabled, reserved and externally controlled actors are refused.
+
+Offline build exited 0: 1,429 tests / 330 compiled SQF / nine PBOs. Log: .qa/cbe-holder-receipt-final-build.log. Unsigned fingerprint: 16dea4433bf7f0c57465ee2cff91cc44d51e39e0d16545ff659a9723a59cdd68. Built from uncommitted source; not a clean release or physical acceptance. PR17 remains draft, remote 4a28b3e8 pending coherent push.
+
+Still incomplete: standing cover and failed support-bound holds, finite active HOLD lifetime, nonlocal pending calm cleanup, passenger STOP distinction, native STOP destination stability and physical recall. All 65 families remain partial, zero fully accepted. Continue FSM/whole-HBQ implementation. No audit launch, merge, release or Steam upload. Preserve protected sources, keys and unrelated artwork.
+
 # WAIT agent handover
 
 Snapshot verified on 16 October 2026. Resume from the current checkout and revalidate remote state before changing Git. WAIT remains incomplete. All 65 feature families are partial and none has full acceptance. The full production goal remains active.

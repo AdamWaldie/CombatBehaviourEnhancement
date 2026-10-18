@@ -1,0 +1,15 @@
+{
+  "baseline": "368974a2",
+  "scope": "completed ordinary hold receipts",
+  "validation": "offline only: 1429 tests,330 SQF,9 PBOs; exit 0",
+  "log": ".qa/cbe-holder-receipt-final-build.log",
+  "fingerprint": "16dea4433bf7f0c57465ee2cff91cc44d51e39e0d16545ff659a9723a59cdd68",
+  "limits": [
+    "standing cover and failed support-bound holds",
+    "finite active HOLD lifecycle",
+    "nonlocal pending terminal restoration",
+    "passenger STOP distinction",
+    "native STOP destination stability and physical recall"
+  ],
+  "acceptance": "partial; no physical acceptance credit"
+}

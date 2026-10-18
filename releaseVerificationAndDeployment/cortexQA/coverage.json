@@ -431,7 +431,9 @@
         "runMechanics.sqf",
         "runContact.sqf"
       ],
-      "production_sources": ["addons/infantry/functions/cortexSearchMoveOwned.sqf"]
+      "production_sources": [
+        "addons/infantry/functions/cortexSearchMoveOwned.sqf"
+      ]
     },
     {
       "id": "FLANK",
@@ -462,7 +464,8 @@
         "addons/infantry/functions/cortexFlankEnd.sqf",
         "addons/infantry/functions/cortexFlankStart.sqf",
         "addons/infantry/functions/cortexFlankStep.sqf",
-        "addons/infantry/functions/cortexSelectAvenue.sqf"
+        "addons/infantry/functions/cortexSelectAvenue.sqf",
+        "addons/infantry/functions/cortexHolderRecallOwned.sqf"
       ]
     },
     {

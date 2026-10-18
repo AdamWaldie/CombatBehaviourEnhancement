@@ -918,13 +918,18 @@ isNil {
                         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
                         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                         && {!(_x in ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["units",[]]))}
-                        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}) then {
+                        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+                        && {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}) then {
                         _x doFollow _leader;
+                        _x setVariable ["CBE_Cortex_HolderToken",nil,true];
                         _recallIssued pushBack _x;
                     };
                 } forEach _rejoin;
                 // Issued native follow transfers our old hold; it is not physical rejoin success.
                 _state set ["holders", _holders - _recallIssued];
+                _state set ["holderRecallReceipts",(_state getOrDefault ["holderRecallReceipts",[]]) select {
+                    _x isEqualType [] && {count _x == 8} && {!((_x select 0) in _recallIssued)}
+                }];
             };
         };
     };

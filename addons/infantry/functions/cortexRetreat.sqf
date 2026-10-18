@@ -137,6 +137,30 @@ if (count _operation == 0) exitWith {
     false
 };
 private _generation=_operation get "generation";
+// Recall exact ordinary holds before the incoming withdrawal changes their native route.
+isNil {
+    private _live=_group getVariable ["CBE_Operation",createHashMap];
+    if (local _group && {(_live getOrDefault ["generation",-2]) == _generation}
+        && {(_live getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_live getOrDefault ["cancelReason",""]) == ""}
+        && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+        && {leader _group == _leader} && {local _leader}
+        && {[_leader] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _leader}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
+        private _issued=[];
+        {
+            if ([_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned) then {
+                _x doFollow _leader;
+                _x setVariable ["CBE_Cortex_HolderToken",nil,true];
+                _issued pushBack _x;
+            };
+        } forEach (_state getOrDefault ["holders",[]]);
+        _state set ["holders",(_state getOrDefault ["holders",[]])-_issued];
+        _state set ["holderRecallReceipts",(_state getOrDefault ["holderRecallReceipts",[]]) select {
+            _x isEqualType [] && {count _x == 8} && {!((_x select 0) in _issued)}
+        }];
+    };
+};
 private _waypoint=[_group,_point,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
 if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) exitWith {
     [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
@@ -186,8 +210,7 @@ if (speedMode _group != "FULL") then {
     };
     _group setSpeedMode "FULL";
 };
-{if (alive _x && {local _x}) then {_x doFollow _leader}} forEach (_state getOrDefault ["holders", []]);
-_state set ["holders", []];
+
 if (!_resuming) then {
     private _smokers = (units _group) select {alive _x && {local _x} && {vehicle _x == _x}};
     // Preserve the leader's route ownership when another survivor can throw the screen.
