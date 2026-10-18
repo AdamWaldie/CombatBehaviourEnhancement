@@ -349,6 +349,10 @@ private _delay=call {
             _job set ["finishReason","OWNERSHIP_LOST"];
             -1
         };
+        private _retiredRoster=_group getVariable ["CBE_Cortex_ClearRoster",[]];
+        if (count _retiredRoster == 4 && {(_retiredRoster select 0) isEqualTo (_job getOrDefault ["visitContext",[]])}) then {
+            _group setVariable ["CBE_Cortex_ClearRoster",nil,true];
+        };
         // Ownership-loss callbacks above preserve receipts for the successor owner.
         { ["RETIRE",_x,_job] call CBE_fnc_BuildingActorMotion; }
             forEach ((_job get "team") + (_job getOrDefault ["securityActors",[]]));
@@ -1748,6 +1752,9 @@ private _delay=call {
                             _liveOperation set ["participantProgress",_progressRecords];
                             _liveOperation set ["pairs",(_job get "pairs") apply {+_x}];
                             _group setVariable ["CBE_Operation",_liveOperation,true];
+                            _group setVariable ["CBE_Cortex_ClearRoster",[+(_job get "visitContext"),
+                                +_participants,(_job get "pairs") apply {+_x},
+                                +(_liveOperation getOrDefault ["unavailable",[]])],true];
                             // Preserve the already-owned reserve leg/hold in this same promotion
                             // transaction; a transfer need not wait for its first room callback.
                             if ([_replacement] call _ownsCurrentMove) then {

@@ -61,4 +61,20 @@ class MotionReceiptTests(unittest.TestCase):
                          'isNotEqualTo _resumeUnavailable','isNotEqualTo _resumeRosterContext'):
             self.assertIn(snapshot,commit)
         self.assertLess(text.index('"RESUME_ROSTER_CHANGED"'),text.index('call CBE_fnc_OperationStart'))
+    def test_durable_roster_survives_common_operation_cancel_and_is_episode_bound(self):
+        text=read('cortexClearBuilding.sqf')
+        for proof in ('private _useRosterJournal=_resume',
+                      '(_resumeRosterJournal select 0) isEqualTo _resumeRosterContext',
+                      'isNotEqualTo _resumeRosterJournal',
+                      'if (_useRosterJournal) then',
+                      '_group setVariable ["CBE_Cortex_ClearRoster",[+_visitContext'):
+            self.assertIn(proof,text)
+        cancel=(ROOT/'addons/core/functions/operationCancel.sqf').read_text(encoding='utf-8')
+        self.assertIn('_group setVariable ["CBE_Operation",nil,true]',cancel)
+        self.assertNotIn('CBE_Cortex_ClearRoster',cancel)
+        step=read('buildingOperationStep.sqf')
+        self.assertIn('+_participants,(_job get "pairs") apply {+_x}',step)
+        self.assertLess(step.index('"OWNERSHIP_LOST"'),step.index('private _retiredRoster='))
+        self.assertIn('(_retiredRoster select 0) isEqualTo (_job getOrDefault ["visitContext",[]])',step)
+        self.assertIn('(_retiredRoster select 0) isEqualTo (_motionJob get "visitContext")',read('cortexClearRelease.sqf'))
 if __name__=='__main__': unittest.main()

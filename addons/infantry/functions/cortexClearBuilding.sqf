@@ -276,6 +276,22 @@ private _useResumeRoster=_resume && {(_entryOperation getOrDefault ["intent",""]
     && {(_entryOperation getOrDefault ["objective",objNull]) isEqualTo _building}
     && {count _resumeRosterContext == 4}
     && {(_resumeRosterContext select [0,3]) isEqualTo [_building,_admissionTransform,_previous param [10,-1]]};
+// Locality cleanup cancels the common operation before discovery resumes. Its
+// episode-bound roster journal survives that cancellation; it grants selection priority only.
+private _resumeRosterJournal=+(_group getVariable ["CBE_Cortex_ClearRoster",[]]);
+private _useRosterJournal=_resume && {count _resumeRosterJournal == 4}
+    && {(_resumeRosterJournal select 0) isEqualTo _resumeRosterContext}
+    && {count _resumeRosterContext == 4}
+    && {(_resumeRosterContext select [0,3]) isEqualTo [_building,_admissionTransform,_previous param [10,-1]]}
+    && {(_resumeRosterJournal select 1) isEqualType []}
+    && {(_resumeRosterJournal select 2) isEqualType []}
+    && {(_resumeRosterJournal select 3) isEqualType []};
+if (_useRosterJournal) then {
+    _resumeParticipants=+(_resumeRosterJournal select 1);
+    _resumePairs=(_resumeRosterJournal select 2) select {_x isEqualType [] && {count _x == 2}} apply {+_x};
+    _resumeUnavailable=+(_resumeRosterJournal select 3);
+    _useResumeRoster=true;
+};
 private _admissionPairs=if (_useResumeRoster) then {_resumePairs} else {_group getVariable ["CBE_CombatPairs",[]]};
 private _pairedAdmission=[];
 private _remainingAdmission=+_team;
@@ -365,10 +381,13 @@ isNil {
     // These arrays can change without a new common generation. Never commit a roster
     // selected before a replacement or changed visit episode arrived during planning.
     if (_useResumeRoster && {
-        (_liveOperation getOrDefault ["participants",[]]) isNotEqualTo _resumeParticipants
-        || {(_liveOperation getOrDefault ["pairs",[]]) isNotEqualTo _resumePairs}
-        || {(_liveOperation getOrDefault ["unavailable",[]]) isNotEqualTo _resumeUnavailable}
-        || {(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isNotEqualTo _resumeRosterContext}
+        (_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isNotEqualTo _resumeRosterContext
+        || {_useRosterJournal && {(_group getVariable ["CBE_Cortex_ClearRoster",[]]) isNotEqualTo _resumeRosterJournal}}
+        || {!_useRosterJournal && {
+            (_liveOperation getOrDefault ["participants",[]]) isNotEqualTo _resumeParticipants
+            || {(_liveOperation getOrDefault ["pairs",[]]) isNotEqualTo _resumePairs}
+            || {(_liveOperation getOrDefault ["unavailable",[]]) isNotEqualTo _resumeUnavailable}
+        }}
     }) exitWith {_handoffFailure="RESUME_ROSTER_CHANGED"};
     // Repeat actor/task admission at the mutation boundary, not just before geometry.
     // Stop counting once the requested minimum is met; do not acquire a new roster.
@@ -593,6 +612,9 @@ if (!_resume || {!(_visitContext isEqualType [])} || {count _visitContext != 4} 
     [{_group setVariable ["CBE_Cortex_ClearVisitContext",_visitContext,true]}] call _commitPreparation;
 };
 _job set ["visitContext",+_visitContext];
+[{
+    _group setVariable ["CBE_Cortex_ClearRoster",[+_visitContext,+_team,_pairs apply {+_x},[]],true];
+}] call _commitPreparation;
 // Bind delayed reserve admission to this exact episode, not the first staging callback.
 // Native FOLLOW position may change with its same formation leader; that identity is retained.
 private _reserveAdmission=_group getVariable ["CBE_Cortex_ClearReserveAdmission",[]];

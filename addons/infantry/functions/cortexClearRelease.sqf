@@ -31,6 +31,10 @@ private _externalTakeover = [_group] call CBE_fnc_CortexExternalTakeover;
 if (_restore && {_externalTakeover}) then {_restore=false};
 private _buildingBrain=_group getVariable ["CBE_BuildingBrain",createHashMap];
 private _motionJob=createHashMapFromArray [["group",_group],["visitContext",+(_group getVariable ["CBE_Cortex_ClearVisitContext",[]])]];
+private _retiredRoster=_group getVariable ["CBE_Cortex_ClearRoster",[]];
+if (count _retiredRoster == 4 && {(_retiredRoster select 0) isEqualTo (_motionJob get "visitContext")}) then {
+    _group setVariable ["CBE_Cortex_ClearRoster",nil,true];
+};
 private _movementTargets=(_buildingBrain getOrDefault ["job",createHashMap]) getOrDefault ["movementTargets",createHashMap];
 if (count _buildingBrain > 0) then {
     _buildingBrain set ["cancelled",true];
