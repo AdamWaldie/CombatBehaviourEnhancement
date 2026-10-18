@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTATION_CONTRACT_NOT_EXECUTABLE_NOT_ACCEPTED",
+  "scope": "Native negotiated queue room-making and rear-to-front dependency execution",
+  "sources": {
+    "addons/vehicles/functions/drivingOperationStep.sqf": "5872ae293d580962456cced27d94641b59ac5b68c590d1fa7943f08bad306339",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "76a411380d1e2b61b4470073f304d2856305a55aeed671c183315f44d14468e2",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "fb6c3728b63b194678121397868b37e3634c4d417224e734afb1aacde6a42030",
+    "addons/vehicles/functions/drivingOperationFinish.sqf": "9742f96263d2ff43e81977b9c47b0b1c6762248914c8fea380e6c14e081feeab",
+    "addons/vehicles/functions/drivingPassContext.sqf": "3efe9903f79961c1ba2f6f5667aa8343e6edd1c2dd75fa31768e5ce589991cc7",
+    "addons/vehicles/functions/drivingPassAgreementServer.sqf": "d3f4733b4df4a9e0287fdde53d979db6c89bd1fac914ee16586ae50bb2a65dfe",
+    "addons/vehicles/functions/drivingPassAgreementOwner.sqf": "5c5f1487eddf075cca85302054881697036c0fbfc059a50a6e860a20d75b49b7",
+    "addons/vehicles/functions/drivingRearClear.sqf": "e495e9a2b87a375355cef00d8b1312f3aeec888a56478522b208609aad8b7968"
+  },
+  "findings": [
+    "DrivingOperationStep/AssistStart already own finite owner callbacks and sole ordinary speed writer. Queue work must integrate there, not spawn another movement controller.",
+    "Current pass context returns observing-client owner plus exactly two participant rows. Its broker and request serial are passing-specific; using passing ACK as queue consent would misrepresent intent and omit chain membership.",
+    "DrivingOperationFinish and AssistRelease are required teardown hooks; pending queue cleanup must run before restoring exact speed baseline.",
+    "DrivingRearClear supplies bounded physical/approach observations, not participant consent, support geometry or native reverse success.",
+    "Public recovery journal and actor/group locality may split. A queue episode must cancel on owner changes without replaying reverse; exact cleanup identity must survive until actual owner can retire it."
+  ],
+  "protocol": {
+    "version": "QUEUE_V1",
+    "limits": {
+      "participants": 4,
+      "active_server_episodes": 32,
+      "owner_handshake_seconds": 2,
+      "episode_seconds": 30,
+      "native_reverse_leg_metres": 5,
+      "native_reverse_leg_seconds": 5,
+      "observation_callback_seconds": 1,
+      "discovery_budget": "Use current limiting traffic contact; one bounded rear-chain discovery, at most64 candidates. Refuse overflow, no selected-prefix safety."
+    },
+    "binding": [
+      "server-generated token",
+      "request serial and initiating owner",
+      "canonical ordered participant vehicle rows, excluding observing clientOwner",
+      "each role: HOLD_CROSSING, YIELD_ROOT or REAR_ROOM",
+      "dependency indices, acyclic and inside participant roster",
+      "vehicle/driver/commander/group ownership, group epoch and driving generation",
+      "original native command types/destinations, complete authored MOVE route receipt",
+      "original snapshot poses and approved bounded rear target per reverse leg",
+      "original handshake/episode deadlines, no renewal"
+    ],
+    "messages": {
+      "BEGIN": "Authenticated current initiator owner submits proposal and original receipts, not movement permission. Server verifies live topology, limits, no overlaps/cycles, and exact role/dependency payload.",
+      "VERIFY": "Server sends same immutable token/roles/roster/deadlines to every required owner.",
+      "ACK": "Only expected current owners may accept their own exact local rows and roles. Missing, refused, late or duplicate conflicting replies cannot commit.",
+      "COMMIT": "After every owner consents, exact original episode installs locally. No initial ACK grants movement.",
+      "READY": "Existing owner callback applies its own hold through sole cap writer and observes actual stationary pose; sends token/participant/phase-bound readiness.",
+      "ROOM_OBSERVED": "Executing rear participant reports measured displacement/hull room with exact native command/pose/phase; recipient independently rechecks local room before its leg.",
+      "RELEASE": "Either original participant owner or server invalidation may retire exact episode; newer orders/episodes remain protected."
+    },
+    "states": [
+      "OBSERVE_DWELL",
+      "PROPOSE_CHAIN",
+      "OWNER_CONSENT",
+      "HOLD_AND_READY",
+      "REAR_CLEARANCE",
+      "REVERSE_ISSUED",
+      "OBSERVE_ROOM",
+      "DEPENDENCY_ADVANCE",
+      "HOLD_CROSSING",
+      "HAND_BACK",
+      "FAILED_OR_CANCELLED"
+    ],
+    "execution_rules": [
+      "No automatic priority to drive through another hull. Deterministic tie-breaking chooses proposed roles only; every actual owner must consent.",
+      "Observe both roots stationary for continuous5s with anchored poses; do not reinterpret authored STOP/HOLD, service, tactical reservations, players or external controllers as a jam to override.",
+      "Check whole roster before any command; issue only one dependency leaf reverse leg at a time. Moving rear traffic, missing support or any obstacle refuses.",
+      "Use native AI movement only. Native reverse is not proved by a negative forceSpeed, command acceptance, elapsed time or changed desired destination.",
+      "Observe negative forward velocity, rear displacement within approved corridor, bounded heading change, full-hull clearance and no damage. Abort a native U-turn or unsupported rear request.",
+      "Fresh rear/body/traffic checks retain authority throughout each native leg. Front movement cancels further backing; stop only exact owned leg and preserve safe route handback.",
+      "Do not release upstream dependency on report/timer alone; it independently observes sufficient physical room.",
+      "Interruption, feature disable, participant death/deletion/locality change, unrelated native commands, expired consent or changed role topology end execution. No reverse replay on migration.",
+      "Cleanup must retain exact deferred native-command and cap-baseline ownership; do not repeat known whole-subsystem-off lost-observer gap.",
+      "Cycles, fifth participant, dense discovery or unavailable consent retain ordinary safe waiting and explicit failure; never push, teleport, alter collision or ignore traffic."
+    ]
+  },
+  "native_command_research": {
+    "forceSpeed": {
+      "url": "https://community.bohemia.net/wiki/forceSpeed",
+      "verified": "Official command describes a speed limit; negative value restores default. Not a reverse primitive."
+    },
+    "sendSimpleCommand": {
+      "url": "https://community.bohemia.net/wiki/sendSimpleCommand",
+      "verified": "BACK exists, but documentation warns driver-as-effective-commander can refuse drive commands. Native-only applicability must be proven per crew configuration; do not change commanders solely to make probe pass."
+    },
+    "setDriveOnPath": {
+      "url": "https://community.bohemia.net/wiki/setDriveOnPath",
+      "verification": "Direct official fetch returned403; no verified negative-speed/reverse guarantee. Do not assume one."
+    }
+  },
+  "required_physical_cases": [
+    "Two stationary oncoming roots, server-owned and separate actual-provider HC-owned; real rear room then authored travel for both.",
+    "Three/four participant rear dependency chain, blocked tail, moving rear traffic, and dense overflow.",
+    "Single-driver and driver/commander native reverse capability; wheels/tracks/mixed mass; measured slope/support.",
+    "Intentional native STOP/HOLD, personal GETOUT/FOLLOW/MOVE and convoy/external owner exclusion.",
+    "New waypoint and Zeus interruption in every phase, real replacement-order travel and repeated use.",
+    "Participant death, vehicle deletion, split locality, owner disconnect, subsystem disable with deferred handback.",
+    "Duplicate/out-of-order/forged ACK/progress/release, clock/epoch changes, expired messages and topology replacement.",
+    "No damage/continuous hull clearance plus actual before/after queue throughput.",
+    "Normal/providerHC batches separate; matched overhead<=5%median/10%p95 including dense and many-queue cases."
+  ],
+  "acceptance": "No queue behaviour implementation or parity credit from this contract. Existing route retries are separate. Audits paused, all65 feature families partial."
+}
