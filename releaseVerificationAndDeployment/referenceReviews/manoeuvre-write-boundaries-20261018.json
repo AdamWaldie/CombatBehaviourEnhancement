@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "437be8bafecdfe08bf9d856cbc452150789bd2fdf489de6e655cda3d358fd72a"
+      "sha256": "408145a65101f9046a8715ee4bce4c5e524d3a9dd211c942274a3e5ca4617727"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -74,6 +74,11 @@
       "area": "elapsed PAUSE next-bound admission",
       "status": "current-context transaction",
       "notes": "Exact stage/index/turn/pause deadline and helper authority checked in isNil; next index/turn and START publish once before scheduled _issue. Refused issue retains START for the same bound. HOLD/consolidation and physical timing remain open."
+    },
+    {
+      "area": "HOLD consolidation enrollment",
+      "status": "current-context transaction",
+      "notes": "Current stage/turn/index/pause, roster, route, feature/owner/parent authority and candidate readiness/native commands checked before teams/units/route and pending START publish together. Scheduled issue may refuse without false completion. Other HOLD assault publication and physical layout remain open."
     }
   ],
   "implementationChange": {
@@ -81,10 +86,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1345,
-    "log": ".qa/cbe-pause-bound-admission-build.log",
+    "tests": 1346,
+    "log": ".qa/cbe-consolidation-admission-build.log",
     "exitCode": 0,
-    "packageFingerprint": "02eaec272ce29d5a49c96e71c41204f547ad55677af799dea4bf28dc7902d58c"
+    "packageFingerprint": "8d337a0670563a216f1ae4cc2a8443976e734e4dbc7511bea3d7ba5e3cb5aca0"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,

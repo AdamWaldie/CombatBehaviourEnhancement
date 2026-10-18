@@ -1218,16 +1218,47 @@ switch (_drill get "stage") do {
                 if (_consolidationActors isEqualTo []) then {
                     _result = "COMPLETE" call _end;
                 } else {
-                    if (!_assaulting) then {_drill set ["assaultDirection",_centroid getDir _enemyPos]};
-                    _drill set ["consolidating",true];
-                    _teams = [+_allUnits,+_consolidationActors];
-                    _drill set ["teams",_teams];
-                    _drill set ["units",_allUnits + _consolidationActors];
-                    _fit append _consolidationActors;
-                    _drill set ["teamTurn",1];
-                    _drill set ["index",count _points];
+                    private _consolidationIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"];
+                    private _consolidationRoster=+(_drill get "units");
+                    private _consolidationPoints=_points apply {[+(_x select 0),_x select 1]};
+                    private _consolidationNative=_consolidationActors apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
                     private _rally = if (_assaulting) then {(_drill get "assaultObjective") getPos [12,_drill get "assaultDirection"]} else {+_centroid};
-                    _points pushBack [_rally,"CONSOLIDATE"];
+                    private _consolidationCommitted=false;
+                    isNil {
+                        if (!(call _helperCurrent)
+                            || {(_drill getOrDefault ["stage",""]) != "HOLD"}
+                            || {_drill getOrDefault ["consolidating",false]}
+                            || {(_drill getOrDefault ["teams",[]]) isNotEqualTo []}
+                            || {!([_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"] isEqualTo _consolidationIdentity)}
+                            || {time < (_drill get "pauseUntil")}
+                            || {(_drill get "units") isNotEqualTo _consolidationRoster}
+                            || {(_drill get "points") isNotEqualTo _consolidationPoints}
+                            || {_consolidationNative findIf {
+                                _x params ["_actor","_command","_destination","_formationLeader"];
+                                !local _actor || {group _actor != _group} || {!isNull objectParent _actor}
+                                    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+                                    || {!([_actor] call _actorTaskFree)}
+                                    || {!(_actor checkAIFeature "MOVE")}
+                                    || {!(_actor checkAIFeature "PATH") && {!(_actor in _ownedPathUnits)}}
+                                    || {_actor in ((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["unavailable",[]])}
+                                    || {currentCommand _actor != _command}
+                                    || {(expectedDestination _actor) isNotEqualTo _destination}
+                                    || {formLeader _actor != _formationLeader}
+                            } >= 0}) exitWith {};
+                        if (!_assaulting) then {_drill set ["assaultDirection",_centroid getDir _enemyPos]};
+                        _drill set ["consolidating",true];
+                        _teams = [+_allUnits,+_consolidationActors];
+                        _drill set ["teams",_teams];
+                        _drill set ["units",_allUnits + _consolidationActors];
+                        _fit append _consolidationActors;
+                        _drill set ["teamTurn",1];
+                        _drill set ["index",count _points];
+                        _points pushBack [_rally,"CONSOLIDATE"];
+                        // Retain this pending movement if scheduled issue refuses it.
+                        [_group,_drill,"START","CONSOLIDATION_PENDING"] call CBE_fnc_CortexDrillSetStage;
+                        _consolidationCommitted=true;
+                    };
+                    if (!_consolidationCommitted) exitWith {_result=0.25};
                     call _issue;
                 };
             };

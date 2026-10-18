@@ -462,3 +462,17 @@ class ManoeuvrePauseAdmissionTests(unittest.TestCase):
         self.assertLess(pause.index('"START","PAUSE_ELAPSED"'), pause.index('else {call _issue}'))
         self.assertIn('if (!_pauseCommitted) exitWith {_result=0.25}', pause)
         self.assertIn('case "START": {call _issue}', source)
+
+
+class ManoeuvreConsolidationAdmissionTests(unittest.TestCase):
+    def test_consolidation_retains_start_until_real_movement_issue(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        body=source.split('private _consolidationIdentity=',1)[1].split('call _issue;',1)[0]
+        for guard in ('call _helperCurrent', 'isEqualTo _consolidationIdentity', 'isNotEqualTo _consolidationRoster',
+                      'isNotEqualTo _consolidationPoints', 'call _actorTaskFree', 'expectedDestination _actor',
+                      'currentCommand _actor', 'formLeader _actor', 'CortexCombatEffective', '"unavailable"'):
+            self.assertIn(guard,body)
+        self.assertLess(body.index('isNil {'),body.index('_drill set ["consolidating",true]'))
+        self.assertIn('"START","CONSOLIDATION_PENDING"',body)
+        self.assertIn('if (!_consolidationCommitted) exitWith {_result=0.25}',body)
+        self.assertNotIn('"COMPLETE" call _end',body)

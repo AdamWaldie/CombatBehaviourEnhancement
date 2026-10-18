@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Consolidation enrollment and its pending START now commit together after current task, roster, route and actor-native checks. Refused issue cannot leave HOLD falsely eligible for completion. Physical follow-through and tactical layout remain unverified.
+
 - Elapsed manoeuvre PAUSE commits its next index/turn and START phase together under current-task checks.
   A refused movement issue retries the pending bound rather than advancing PAUSE again. Physical continuity remains unverified.
 
