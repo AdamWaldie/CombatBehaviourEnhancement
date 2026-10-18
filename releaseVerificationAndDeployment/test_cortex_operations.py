@@ -8452,8 +8452,8 @@ class CortexOperations(unittest.TestCase):
 
     def test_reverse_clearance_uses_full_vertical_hulls_not_actor_centres(self):
         text=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text(encoding='utf-8')
-        for proof in ['private _thisActor=_x','_thisActor modelToWorld [_width,_x,_height]',
-                      'forEach [_otherLow select 2,_otherHigh select 2]',
+        for proof in ['private _thisActor=_x','_thisActor modelToWorld _otherLow',
+                      '_projectedLow set [_axis','_projectedHigh set [_axis',
                       '_maxZ >= (_low select 2)-0.3','_minZ <= (_high select 2)+0.3']:
             self.assertIn(proof,text)
         self.assertNotIn('abs _vertical < 4',text)

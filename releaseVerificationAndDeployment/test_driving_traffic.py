@@ -65,7 +65,8 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('_vehicle nearEntities ["CAManBase",_radius]',s)
         self.assertIn('alive _thisActor || {_thisActor isKindOf "LandVehicle"}',s)
         self.assertIn('count _actors > 64',s)
-        self.assertIn('forEach [_otherLow select 2,_otherHigh select 2]',s)
+        self.assertIn('_projectedLow set [_axis',s)
+        self.assertIn('_projectedHigh set [_axis',s)
         self.assertLess(s.index('private _occupied='),s.index('private _clear=true'))
 
     def test_discovery_covers_fast_approach_even_at_low_own_speed(self):

@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Rear-clearance actor hull projection native-command cost",
+  "finding": "Each of up to64 actor hulls used8 modelToWorld/worldToModel transform pairs for box corners.",
+  "implementation": "Transform lower corner and its3 positive axis endpoints. Accumulate negative/positive edge components to reconstruct complete affine AABB. Four transform pairs represent all8 corners; outward0.05 model-space pad reduces subtraction-rounding sensitivity. Current and simultaneous3D predicted occupancy use these bounds unchanged.",
+  "official_command_references": [
+    "https://community.bohemia.net/wiki/modelToWorld",
+    "https://community.bohemia.net/wiki/worldToModel"
+  ],
+  "command_evidence": "Primary docs describe object model/world coordinates, vectorUp handling and scale application/inversion. Direct fetch403; official search-index content retrieved. This supports transform semantics, not a native timing/precision proof.",
+  "offline_numeric_evidence": "Independent enumerated8-corner oracle matches edge projection to7 decimal places across302 deterministic affine transforms with asymmetric bounds and coordinate offsets up to100000; outward padded bounds contain the oracle.",
+  "cost_bound": "Per actor transform calls fall16to8; up to64 actors means1024to512 transform calls. Actor discovery,64candidate refusal, turning envelope, relative motion, ray/support limits and movement authority unchanged. Added arithmetic and native cost remain unmeasured.",
+  "limits": [
+    "Mathematical affine identity is not Arma precision/geometry acceptance.",
+    "0.05 model-space padding is not a universal extreme-coordinate/scale error bound.",
+    "Native tilted/scaled hulls, shoreline/stacked-surface cases and timing need later physical comparison.",
+    "No measured5%median/10%p95 performance acceptance."
+  ],
+  "validation": {
+    "tests": 1395,
+    "compiled_sqf": 327,
+    "pbos": 9,
+    "log": ".qa/cbe-rear-hull-edge-projection-build.log",
+    "unsigned_fingerprint": "424d9e1e67e4947b3055ab990f041864dac629454171649b0b293d244c21bd91",
+    "physical": false
+  },
+  "audit_authority": "Explicitly paused; all65 families partial."
+}

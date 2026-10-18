@@ -15,7 +15,8 @@
  * 1 distance <NUMBER, 8> - metres behind the rear body edge, clamped to 1..60.
  * Non-finite distances refuse clearance before any world query or geometry calculation.
  * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
- * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and at most sixty
+ * Dense candidate sets fail closed; at most64 actors use four transform pairs to represent each
+ * full eight-corner hull with a0.05m outward model-space rounding pad. At most sixty
  * geometry rays plus nine support rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
  * capped at 250 m; oversized envelopes refuse rather than silently truncating the rear area. Vertical overlap uses real hull extents rather than centre height.
  * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
@@ -83,22 +84,25 @@ private _occupied=_actors findIf {
         && {alive _thisActor || {_thisActor isKindOf "LandVehicle"}}
     && {private _otherBox=boundingBoxReal _thisActor;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
-        // Full projected hulls preserve overlap on slopes and separate stacked roads.
-        // Centre height and four z=0 footprint corners cannot represent a tall/tilted hull.
-        private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
-        private _minZ=1e9;private _maxZ=-1e9;
+        // Project the full box with one corner and three edges. Model transforms are affine:
+        // each axis extremum is origin plus the negative/positive components of those edges.
+        // This represents all eight corners with four transform pairs, including tilt/scale.
+        private _origin=_vehicle worldToModel (_thisActor modelToWorld _otherLow);
+        private _projectedLow=+_origin;private _projectedHigh=+_origin;
         {
-            private _height=_x;
-            {
-                private _width=_x;
-                {
-                    private _point=_vehicle worldToModel (_thisActor modelToWorld [_width,_x,_height]);
-                    _minX=_minX min (_point select 0);_maxX=_maxX max (_point select 0);
-                    _minY=_minY min (_point select 1);_maxY=_maxY max (_point select 1);
-                    _minZ=_minZ min (_point select 2);_maxZ=_maxZ max (_point select 2);
-                } forEach [_otherLow select 1,_otherHigh select 1];
-            } forEach [_otherLow select 0,_otherHigh select 0];
-        } forEach [_otherLow select 2,_otherHigh select 2];
+            private _edge=(_vehicle worldToModel (_thisActor modelToWorld _x)) vectorDiff _origin;
+            for "_axis" from 0 to 2 do {
+                private _component=_edge select _axis;
+                _projectedLow set [_axis,(_projectedLow select _axis)+(_component min 0)];
+                _projectedHigh set [_axis,(_projectedHigh select _axis)+(_component max 0)];
+            };
+        } forEach [[_otherHigh select 0,_otherLow select 1,_otherLow select 2],
+            [_otherLow select 0,_otherHigh select 1,_otherLow select 2],
+            [_otherLow select 0,_otherLow select 1,_otherHigh select 2]];
+        // A small outward pad avoids narrowing the safety envelope through subtraction rounding.
+        private _minX=(_projectedLow select 0)-0.05;private _maxX=(_projectedHigh select 0)+0.05;
+        private _minY=(_projectedLow select 1)-0.05;private _maxY=(_projectedHigh select 1)+0.05;
+        private _minZ=(_projectedLow select 2)-0.05;private _maxZ=(_projectedHigh select 2)+0.05;
         private _current=_maxX >= _actorLeft && {_minX <= _actorRight} && {_maxY >= _actorRear}
             && {_minY <= _actorFront} && {_maxZ >= (_low select 2)-0.3}
             && {_minZ <= (_high select 2)+0.3};
