@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Finite manoeuvre cleanup now carries the original child drill token instead of selecting a newer
+  drill from a mutable state map. Stage/parent-phase/history publication also atomically requires
+  the current child token. Complete cleanup interleavings and physical handover remain unverified.
+
 - Main manoeuvre bound geometry is now prepared before an atomic movement/cover commit. Current
   point, roster, phase, operation/epoch, support role and actor-native observations must still match
   before commands and bound journals publish. Refused proposals defer; physical timing remains unverified.

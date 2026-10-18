@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Changes one Cortex manoeuvre stage and publishes a bounded transition ledger for diagnostics.
  * Locality/authority: call only on the local group owner which owns the supplied drill HashMap.
- * Repeat/JIP: stale supplied generations/epochs and identical stages are ignored. The current transition and the newest 64 entries
+ * Repeat/JIP: stale supplied drill tokens/generations/epochs and identical stages are ignored.
+ * Token/owner validation, stage/parent-phase edits and bounded transition publication share one
+ * unscheduled transaction, so a previous child of the same coordinated parent cannot publish. The current transition and the newest 64 entries
  * are public for Zeus/JIP observers; no scheduled work or per-unit handler is installed.
  * Arguments:
  * 0: group <GROUP, default grpNull>
@@ -23,7 +25,12 @@ params [
     ["_next","",[""]],
     ["_reason","",[""]]
 ];
+private _changed=false;
+isNil {
 if (isNull _group || {!local _group} || {count _drill == 0} || {_next == ""}) exitWith {false};
+private _currentDrill=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
+private _token=_drill getOrDefault ["token",""];
+if (_token == "" || {(_currentDrill getOrDefault ["token",""]) != _token}) exitWith {false};
 // Transition history is authoritative evidence too. A delayed old-owner/job callback
 // cannot change its stage or overwrite the current operation's diagnostic transition.
 private _generation=_drill getOrDefault ["operationGeneration",-1];
@@ -70,4 +77,6 @@ _history pushBack _entry;
 if (count _history > 64) then {_history deleteRange [0,count _history-64]};
 _group setVariable ["CBE_Cortex_DrillTransition",_entry,true];
 _group setVariable ["CBE_Cortex_DrillTransitions",_history,true];
-true
+_changed=true;
+};
+_changed

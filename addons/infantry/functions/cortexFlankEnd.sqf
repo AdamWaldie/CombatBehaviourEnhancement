@@ -19,16 +19,20 @@
  * withdrawal, vehicle, artillery or coordinated-assault owner survives a delayed drill callback.
  * Locality and authority: call where the group is local.
  *
- * Repeat/JIP: an empty drill is a no-op; the ending reason is published for observers and JIP.
+ * Repeat/JIP: finite callers bind their original token even when the supplied state map changes;
+ * feedback/terminal retirement recheck that identity after shared operation cleanup;
+ * an empty drill is a no-op; the ending reason is published for observers and JIP.
  * Arguments:
  * 0: group <GROUP>
  * 1: state <HASHMAP>
  * 2: reason <STRING> - COMPLETE, CLOSE, ABORT, LOSSES, STALLED, TIME_LIMIT, RELEASE, ZEUS, CALM,
  *    ROE_CHANGED, SPEED_CHANGED, ATTACK_POLICY_CHANGED, GRENADE_UNRESOLVED, RECOVERY_FAILED, OWNERSHIP_LOST or SCHEDULER_STALLED
+ * 3: expected drill token <STRING, empty> - finite callbacks pass their original token;
+ *    empty retains direct current-task administrative cleanup.
  * Unresolved stragglers change COMPLETE/CLOSE to PARTIAL; main actors hold while stragglers rejoin.
  *
  * Return Value:
- * Nothing
+ * BOOL - true when matching cleanup reached its terminal publication; false for stale/no authority.
  *
  * Example:
  * [_group, _state, "COMPLETE"] call CBE_fnc_CortexFlankEnd;
@@ -37,15 +41,25 @@
  * Current callers: CBE_fnc_CortexFlankStep and CBE_fnc_CortexReleaseGroup.
  */
 
-params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_reason", "", [""]]];
-if (isNull _group || {!local _group}) exitWith {};
+params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_reason", "", [""]], ["_expectedToken","",[""]]];
+if (isNull _group || {!local _group}) exitWith {false};
 private _drill = _state getOrDefault ["drill", createHashMap];
-if (count _drill == 0) exitWith {};
+if (count _drill == 0 || {_expectedToken != "" && {(_drill getOrDefault ["token",""]) != _expectedToken}}) exitWith {false};
 // An old owner or replaced generation has no authority over feature switches or cleanup.
 if ((_drill getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])
-    || {(_drill getOrDefault ["operationGeneration",-1]) != (_group getVariable ["CBE_OperationGeneration",0])}) exitWith {};
+    || {(_drill getOrDefault ["operationGeneration",-1]) != (_group getVariable ["CBE_OperationGeneration",0])}) exitWith {false};
 private _liveDrill=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
-if (count _liveDrill > 0 && {(_liveDrill getOrDefault ["token",""]) != (_drill getOrDefault ["token",""])}) exitWith {};
+if (count _liveDrill > 0 && {(_liveDrill getOrDefault ["token",""]) != (_drill getOrDefault ["token",""])}
+    || {_expectedToken != "" && {(_liveDrill getOrDefault ["token",""]) != _expectedToken}}) exitWith {false};
+private _endingToken=_drill getOrDefault ["token",""];
+private _endingEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _endingGeneration=_drill getOrDefault ["operationGeneration",-1];
+private _stillEnding={
+    private _current=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
+    local _group && {_endingEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_endingGeneration == (_group getVariable ["CBE_OperationGeneration",0])}
+        && {(_current getOrDefault ["token",""]) == _endingToken}
+};
 private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
 private _sameOperation=count _liveOperation == 0 || {(_liveOperation getOrDefault ["generation",-2]) == (_drill getOrDefault ["operationGeneration",-1])};
 private _mayRestore=_sameOperation && {!(_reason in ["ZEUS","OWNERSHIP_LOST","EXTERNAL","REPLACED","ATTACK_POLICY_CHANGED"])}
@@ -131,12 +145,15 @@ if (_hold) then {
     if (_mayCommand) then {{_x doFollow _leader} forEach _members};
 };
 };
+isNil {
+if !(call _stillEnding) exitWith {};
 if (_supportToken != "") then {
     _group setVariable ["CBE_Cortex_SupportBoundResult",[_supportToken,_drill get "supportSequence",_reason],true];
 } else {
     if (_mayCommand && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
     _state deleteAt "attackChanged";
     _state deleteAt "baseAttack";
+};
 };
 private _type = _drill getOrDefault ["type", "FLANK"];
 private _operationGeneration=_drill getOrDefault ["operationGeneration",-1];
@@ -148,6 +165,9 @@ if (_operationGeneration >= 0 && {_supportToken == ""}) then {
         [_group,_operationGeneration,_reason] call CBE_fnc_OperationCancel;
     };
 };
+private _retired=false;
+isNil {
+if !(call _stillEnding) exitWith {};
 _group setVariable ["CBE_Cortex_DrillResult",[_type,_reason,time],true];
 [_group,_drill,"ENDED",_reason] call CBE_fnc_CortexDrillSetStage;
 _state deleteAt "drill";
@@ -172,3 +192,6 @@ if (_reason == "COMPLETE") then {
     missionNamespace setVariable [_counter,(missionNamespace getVariable [_counter,0])+1];
 };
 if (missionNamespace getVariable ["CBE_AIPass_Debug", false]) then {diag_log format ["[CBE] %1 %2 end reason=%3", _group, _type, _reason]};
+_retired=true;
+};
+_retired

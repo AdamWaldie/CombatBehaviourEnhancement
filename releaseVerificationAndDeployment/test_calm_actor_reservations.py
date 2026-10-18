@@ -247,3 +247,35 @@ class ManoeuvreMovementCommitTests(unittest.TestCase):
             self.assertLess(commit.index(journal),commit.index('_issued=true;'))
         self.assertNotIn('CBE_fnc_CortexFindCover',commit)
         self.assertIn('if (!_issued) then {_result=0.25}',commit)
+
+
+class DrillChildIdentityTests(unittest.TestCase):
+    def test_old_finite_callback_carries_immutable_cleanup_token(self):
+        step=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        self.assertIn('[_group, _state, _this, _token] call CBE_fnc_CortexFlankEnd',step)
+        interrupt=(ROOT/'addons/infantry/functions/cortexDrillInterrupt.sqf').read_text()
+        self.assertTrue(interrupt.rstrip().endswith('[_group,_state,_reason,_token] call CBE_fnc_CortexFlankEnd'))
+        end=(ROOT/'addons/infantry/functions/cortexFlankEnd.sqf').read_text()
+        self.assertIn('["_expectedToken","",[""]]',end)
+        firstwrite=end.index('_group setCombatMode')
+        self.assertLess(end.index('(_drill getOrDefault ["token",""]) != _expectedToken'),firstwrite)
+        self.assertLess(end.index('(_liveDrill getOrDefault ["token",""]) != _expectedToken'),firstwrite)
+        self.assertTrue(end.rstrip().endswith('_retired'))
+        terminal=end.split('private _retired=false;',1)[1]
+        self.assertIn('isNil {',terminal)
+        self.assertLess(terminal.index('call _stillEnding'),terminal.index('_state deleteAt "drill"'))
+        self.assertLess(terminal.index('call _stillEnding'),terminal.index('CBE_Cortex_DrillResult'))
+        self.assertIn('_retired=true;',terminal)
+        feedback=end.split('if (_supportToken != "") then {',1)[0]
+        self.assertIn('if !(call _stillEnding) exitWith {};',feedback)
+
+    def test_stage_and_history_require_current_child_inside_one_transaction(self):
+        source=(ROOT/'addons/infantry/functions/cortexDrillSetStage.sqf').read_text()
+        commit=source.split('isNil {',1)[1].rsplit('};',1)[0]
+        write=commit.index('_drill set ["stage",_next]')
+        for guard in ['!local _group','(_currentDrill getOrDefault ["token",""]) != _token',
+                      'CBE_OperationGeneration','CBE_AIPass_Epoch']:
+            self.assertLess(commit.index(guard),write)
+        self.assertIn('CBE_Cortex_DrillTransitions',commit)
+        self.assertLess(commit.index('CBE_Cortex_DrillTransitions'),commit.index('_changed=true;'))
+        self.assertTrue(source.rstrip().endswith('_changed'))

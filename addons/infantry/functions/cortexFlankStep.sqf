@@ -124,7 +124,7 @@ if (count _drill == 0) exitWith {-1};
 private _token = _job getOrDefault ["drillToken",""];
 if (_token == "" || {_token != (_drill getOrDefault ["token",""])}) exitWith {-1};
 private _end = {
-    [_group, _state, _this] call CBE_fnc_CortexFlankEnd;
+    [_group, _state, _this, _token] call CBE_fnc_CortexFlankEnd;
     -1
 };
 // The generic lifecycle owns interruption and physical-progress accounting.  The drill remains
