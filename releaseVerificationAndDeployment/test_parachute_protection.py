@@ -30,7 +30,8 @@ class ParachuteProtectionTests(unittest.TestCase):
         post=(ROOT/'addons/main/XEH_postInit.sqf').read_text()
         self.assertIn('[_this select 0] call CBE_fnc_CortexParachuteProtectionRelease',post)
         self.assertIn('[_actor] call CBE_fnc_CortexParachuteProtectionRelease',post)
-        self.assertEqual(post.count('addEventHandler ["Local"'),1)
+        actor_init=post.split('["CAManBase","init",',1)[1].split('call CBA_fnc_addClassEventHandler;',1)[0]
+        self.assertEqual(actor_init.count('addEventHandler ["Local"'),1)
         release=source('cortexParachuteProtectionRelease')
         self.assertIn('getVariable ["CBE_ParachuteProtectionQueued",[]]) isNotEqualTo _receipt',release)
         self.assertIn('_until-serverTime',release)
@@ -67,7 +68,8 @@ class ParachuteProtectionTests(unittest.TestCase):
         post=(ROOT/'addons/main/XEH_postInit.sqf').read_text()
         self.assertIn('[_this select 0] call CBE_fnc_CortexParachuteDeploy',post)
         self.assertIn('[_actor] call CBE_fnc_CortexParachuteDeploy',post)
-        self.assertEqual(post.count('addEventHandler ["Local"'),1)
+        actor_init=post.split('["CAManBase","init",',1)[1].split('call CBA_fnc_addClassEventHandler;',1)[0]
+        self.assertEqual(actor_init.count('addEventHandler ["Local"'),1)
         for forbidden in ('moveOut','setPosATL','_unit setVelocity','remoteExecCall','allUnits'):
             self.assertNotIn(forbidden,deploy)
         self.assertLess(jump.index('setVariable ["CBE_ParachuteDeploy",['),jump.index('_exited=true'))

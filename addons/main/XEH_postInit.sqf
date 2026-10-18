@@ -31,6 +31,16 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
     [_actor] call CBE_fnc_CortexParachuteDeploy;
 },true,[],true] call CBA_fnc_addClassEventHandler;
 
+// Driving cleanup adoption stays available with tactical scheduling disabled.
+["LandVehicle","init",{
+    params ["_vehicle"];
+    if (isNil {_vehicle getVariable "CBE_DrivingRecovery_LocalEH"}) then {
+        _vehicle setVariable ["CBE_DrivingRecovery_LocalEH",_vehicle addEventHandler ["Local",{
+            _this call CBE_fnc_DrivingRecoveryAdopt;
+        }]];
+    };
+    [_vehicle,local _vehicle] call CBE_fnc_DrivingRecoveryAdopt;
+},true,[],true] call CBA_fnc_addClassEventHandler;
 
 if (missionNamespace getVariable ["CBE_AIRebalance_Enable", true]) then {
     [

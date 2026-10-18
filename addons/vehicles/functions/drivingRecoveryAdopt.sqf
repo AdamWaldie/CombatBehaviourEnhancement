@@ -1,0 +1,42 @@
+/*
+ * Author: WaldoTheWarfighter
+ * Purpose: Offers an existing pending driving-release receipt to its new vehicle owner.
+ * Locality / Authority: Native LandVehicle init/Local event on each machine, never remote calls.
+ * Only cleanup registration is permitted; the existing exact release guards authorize commands.
+ * Repeat/JIP: Every locality edge invalidates older lookup callbacks. At most five one-second
+ * late-receipt lookups for occupied vehicles; delivery after that window remains unsupported.
+ * Arguments: 0 vehicle <OBJECT, objNull>; 1 gained locality <BOOL, false>;
+ * 2 lookup attempt <NUMBER, 0>; 3 local epoch <NUMBER, -1>.
+ * Return Value: BOOL - true only when a pending reverse receipt was offered, not physical success.
+ * Current callers: XEH_postInit LandVehicle init/Local handlers and bounded delayed lookup.
+ * Example: [truck1,local truck1] call CBE_fnc_DrivingRecoveryAdopt;
+ */
+params [["_vehicle",objNull,[objNull]],["_gained",false,[true]],
+    ["_attempt",0,[0]],["_epoch",-1,[0]]];
+if (remoteExecutedOwner > 0 || {isNull _vehicle} || {!(_vehicle isKindOf "LandVehicle")}
+    || {_vehicle isKindOf "StaticWeapon"}
+    || {!finite _attempt} || {_attempt < 0} || {_attempt > 5} || {_attempt != floor _attempt}) exitWith {false};
+private _accepted=false;
+isNil {
+    if (_attempt == 0) then {
+        _epoch=1+(_vehicle getVariable ["CBE_DrivingRecovery_LocalEpoch",0]);
+        _vehicle setVariable ["CBE_DrivingRecovery_LocalEpoch",_epoch];
+    };
+    if (_epoch == (_vehicle getVariable ["CBE_DrivingRecovery_LocalEpoch",0])
+        && {_gained} && {local _vehicle} && {alive _vehicle}) then {
+        private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+        if (_work getOrDefault ["releasePending",false]
+            && {(_work getOrDefault ["kind",""]) == "REVERSE"}) then {
+            [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+            _accepted=true;
+        } else {
+            // A known nonpending operation is not release authority. Only an absent receipt
+            // may be in flight at the ownership edge; do not turn adoption into cancellation.
+            if (count _work == 0 && {_attempt < 5} && {count crew _vehicle > 0}) then {
+                [{_this call CBE_fnc_DrivingRecoveryAdopt},
+                    [_vehicle,true,_attempt+1,_epoch],1] call CBA_fnc_waitAndExecute;
+            };
+        };
+    };
+};
+_accepted

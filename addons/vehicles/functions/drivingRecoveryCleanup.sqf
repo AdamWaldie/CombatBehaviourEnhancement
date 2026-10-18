@@ -4,10 +4,10 @@
  * Locality / Authority: Local calls only, on the current vehicle owner. Existing release
  * guards alone authorize native handback and cap restoration; this service issues no rear leg.
  * Repeat/JIP: Deduplicated local tickets. Deleted, migrated or replaced receipts retire tickets.
- * It does not discover receipts arriving after a locality event; normal owner adoption remains required.
+ * DrivingRecoveryAdopt offers receipts at locality/init edges; delivery beyond its lookup window remains unresolved.
  * Arguments: 0 vehicle <OBJECT, objNull> registers its pending receipt; objNull services tickets.
  * Return Value: Nothing.
- * Current callers: DrivingAssistRelease; its own CBA delayed callback.
+ * Current callers: DrivingAssistRelease, DrivingRecoveryAdopt; its own CBA delayed callback.
  * Example: [truck1] call CBE_fnc_DrivingRecoveryCleanup;
  */
 params [["_vehicle",objNull,[objNull]]];

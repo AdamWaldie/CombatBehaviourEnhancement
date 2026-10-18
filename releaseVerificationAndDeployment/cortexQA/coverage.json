@@ -795,6 +795,7 @@
         "addons/vehicles/functions/drivingNativePathWatch.sqf",
         "addons/vehicles/functions/drivingRecoveryRelease.sqf",
         "addons/vehicles/functions/drivingRecoveryCleanup.sqf",
+        "addons/vehicles/functions/drivingRecoveryAdopt.sqf",
         "addons/vehicles/functions/drivingCrewStep.sqf",
         "addons/vehicles/functions/drivingQueueContext.sqf",
         "addons/vehicles/functions/drivingQueueProposal.sqf",
