@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Physically exercises ordinary traffic following behind a stopped tracked predecessor,
  * then departure, repeated stop/restart and a newer direct MOVE during blockage.
+ * An already-moving production worker must survive duplicate startup with its handle intact.
  * A separate fresh pair exercises sub-1km/h predecessor creep without stationary retry credit.
  * A separate opposing pair requires actual lane closing, production traffic observation,
  * measured braking and physical hull separation without damage. No cap is injected.
@@ -55,6 +56,18 @@ private _initialDamage=[damage _front,damage _follower];
 private _start=getPosATL _follower;
 private _approached=[{_follower distance2D _start >= 45 && {_follower distance2D _front < 65}},60] call _wait;
 ["DRIVING-traffic-physical-approach",_ready && {_approached},str [getPosATL _follower,speed _follower]] call _check;
+private _duplicateDrivingAccepted=false;private _duplicateDrivingPreserved=false;
+isNil {
+    private _liveBrain=_followerGroup getVariable ["CBE_Driving_Brain",createHashMap];
+    private _liveHandle=_followerGroup getVariable ["CBE_Driving_FSM",-1];
+    _duplicateDrivingAccepted=[_followerGroup] call CBE_fnc_DrivingOperationStart;
+    _duplicateDrivingPreserved=count _liveBrain > 0
+        && {(_followerGroup getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _liveBrain}
+        && {(_followerGroup getVariable ["CBE_Driving_FSM",-2]) isEqualTo _liveHandle}
+        && {!(_liveBrain getOrDefault ["cancelled",false])} && {!(_liveBrain getOrDefault ["finished",false])};
+};
+["DRIVING-traffic-duplicate-worker-preserved",_ready && {_approached} && {_duplicateDrivingAccepted}
+    && {_duplicateDrivingPreserved}] call _check;
 private _frontLength=abs (((boundingBoxReal _front select 1) select 1)-((boundingBoxReal _front select 0) select 1));
 private _followLength=abs (((boundingBoxReal _follower select 1) select 1)-((boundingBoxReal _follower select 0) select 1));
 private _bodyDistance=(_frontLength+_followLength)*0.5;

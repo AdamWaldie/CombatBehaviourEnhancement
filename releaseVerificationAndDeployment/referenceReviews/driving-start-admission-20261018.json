@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Ordinary driving FSM startup/replacement authority",
+  "sources": {
+    "addons/vehicles/functions/drivingOperationStart.sqf": "761056860bf605e6924ef7704ddc156dd1acb80012f84a86752ac90f61cd36a7",
+    "addons/vehicles/functions/drivingOperationFinish.sqf": "9742f96263d2ff43e81977b9c47b0b1c6762248914c8fea380e6c14e081feeab",
+    "releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf": "010509a19b76e039f7198ae10af84eb10e15a008240c829f30ee573924e6e9d6"
+  },
+  "finding": "Startup read its route before owner adoption, cleared recovery-yield state before adoption/worker admission and retired an old worker separately from publication, without a final route/current-worker check. A delayed startup could overwrite intervening route/worker/yield authority.",
+  "change": "Read-only early route/yield refusal remains; adopted owner supplies the authoritative route/epoch. One unscheduled commit checks route, owner/adopted state, feature/movement/Zeus/external gates, current brain and exact observed yield. It validates supported vehicle availability before retirement, rechecks resulting authority after cleanup, then clears only the observed yield and publishes a new generation/brain/handle. Same live route returns the existing worker; terminal/exhausted same-route work remains refused. Seat-only remote-vehicle casualty support remains unchanged.",
+  "validation": {
+    "tests": 1170,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-driving-start-admission-build.log",
+    "fingerprint": "60b5f761c510534d606d7fa8e880cc5b37e25db56d734be50414d44d97ea4642",
+    "fixture": "Normal traffic following must first physically approach, then duplicate startup must preserve the genuine live brain/handle and nonterminal state. PREPARED_NOT_RUN. No worker/state/cap injection.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "limits": [
+    "Locality adoption itself is a separate boundary and may legitimately change current state; route capture follows it.",
+    "Cleanup can end the old worker even if a resulting authority change refuses the new one; no rollback is claimed.",
+    "No physical native event timing, actual-provider HC migration, repeatability or one-time cleanup cost acceptance.",
+    "Whole HBQ parity, native bilateral queue clearing and all65-family acceptance remain open."
+  ]
+}
