@@ -135,3 +135,19 @@ class ClearReleaseEpisodeTests(unittest.TestCase):
         for proof in ('isNil {','_releaseGeneration ==','_entryEpoch ==','group _x == _group'):
             self.assertLess(actors.index(proof),actors.index('_x doFollow _leader'))
         self.assertIn('== _entryOperationGeneration',text)
+
+
+class NaturalFinishEpisodeTests(unittest.TestCase):
+    def test_natural_finish_rechecks_brain_before_actor_and_terminal_writes(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        finish=text.split('private _finish = {',1)[1].split('private _mayIssueMovement',1)[0]
+        self.assertIn('private _finishCurrent=',finish)
+        self.assertIn('CBE_BuildingBrain",createHashMap]) isEqualTo _brain',finish)
+        self.assertIn('if (call _finishCurrent && {local _x}',finish)
+        commit=finish.split('private _terminalPublished=false;',1)[1]
+        self.assertLess(commit.index('isNil {'),commit.index('setVariable ["CBE_Cortex_ClearResult"'))
+        self.assertLess(commit.index('call _finishCurrent'),commit.index('setVariable ["CBE_Cortex_ClearResult"'))
+        self.assertIn('if (!_terminalPublished) exitWith {-1}',commit)
+        explicit=(ROOT/'addons/infantry/functions/cortexClearRelease.sqf').read_text()
+        actors=explicit.split('if (local _group && {local _x}',1)[1]
+        self.assertLess(actors.index('_leader=[_group] call'),actors.index('_x doFollow _leader'))

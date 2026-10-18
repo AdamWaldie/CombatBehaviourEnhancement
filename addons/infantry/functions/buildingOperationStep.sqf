@@ -357,15 +357,22 @@ private _delay=call {
             _job set ["finishReason","OWNERSHIP_LOST"];
             -1
         };
+        private _finishCurrent={
+            local _group
+                && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                && {(_job getOrDefault ["generation",-1]) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
+                && {(_group getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _brain}
+        };
+        if !(call _finishCurrent) exitWith {-1};
         private _retiredRoster=_group getVariable ["CBE_Cortex_ClearRoster",[]];
         if (count _retiredRoster == 4 && {(_retiredRoster select 0) isEqualTo (_job getOrDefault ["visitContext",[]])}) then {
-            _group setVariable ["CBE_Cortex_ClearRoster",nil,true];
+            isNil {if (call _finishCurrent) then {_group setVariable ["CBE_Cortex_ClearRoster",nil,true]}};
         };
         // Ownership-loss callbacks above preserve receipts for the successor owner.
         { ["RETIRE",_x,_job] call CBE_fnc_BuildingActorMotion; }
             forEach ((_job get "team") + (_job getOrDefault ["securityActors",[]]));
         _restore=_restore && {!([_group] call CBE_fnc_CortexExternalTakeover)};
-        _group setVariable ["CBE_Cortex_ClearEvidence",[+(_job get "cleared"),+(_job get "unreachable"),+(_job get "retryCounts"),+(_job get "failedBy"),_job get "deadline",_job get "lastProgressAt"],true];
+        isNil {if (call _finishCurrent) then {_group setVariable ["CBE_Cortex_ClearEvidence",[+(_job get "cleared"),+(_job get "unreachable"),+(_job get "retryCounts"),+(_job get "failedBy"),_job get "deadline",_job get "lastProgressAt"],true];}};
         private _result = ["INCOMPLETE","COMPLETE"] select (count (_job get "cleared") == count (_job get "positions") && {!(_job getOrDefault ["egressFailed",false])} && {!(_job getOrDefault ["entryFailed",false])});
         if (_reason != "COMPLETE") then {_result="CANCELLED"};
         private _handbacks=[];
@@ -398,13 +405,17 @@ private _delay=call {
         },_reason,_stageEvidence,(keys (_job getOrDefault ["earlyExits",createHashMap])) apply {
             +((_job get "earlyExits") get _x)
         }];
-        _group setVariable ["CBE_Cortex_ClearRouteEvidence",_routeEvidence,true];
+        isNil {if (call _finishCurrent) then {_group setVariable ["CBE_Cortex_ClearRouteEvidence",_routeEvidence,true];}};
         diag_log format ["CBE CLEAR ROUTE END: %1",_routeEvidence];
         if (!isNull _group) then {
             private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
             if (isNull _leader) then {_leader=leader _group};
             {
-                if (local _x && {!isPlayer _x} && {group _x == _group}) then {
+                isNil {
+                if (call _finishCurrent && {local _x} && {!isPlayer _x} && {group _x == _group}) then {
+                    _restore=_restore && {!([_group] call CBE_fnc_CortexExternalTakeover)};
+                    _leader=[_group] call CBE_fnc_CortexGroupAnchor;
+                    if (isNull _leader) then {_leader=leader _group};
                     if ([_x] call _actorAvailable) then {
                         // Releasing an unchanged cap is separate from recalling formation.
                         // A temporary curator hold keeps its new destination; direct player,
@@ -459,9 +470,12 @@ private _delay=call {
                     };
                     _x setVariable ["CBE_Cortex_ClearReserve",nil];
                 };
+                };
             // Settings leases must also be retired for diverted actors. Only the guarded
             // movement block above excludes them; a new destination does not own our old cap.
             } forEach (((_job get "team") + (_job getOrDefault ["securityActors",[]])) arrayIntersect ((_job get "team") + (_job getOrDefault ["securityActors",[]])));
+            isNil {
+            if (call _finishCurrent) then {
             _group setVariable ["CBE_AIPass_ClearBuilding", nil, true];
             _group setVariable ["CBE_Cortex_ClearEgress",nil,true];
             _group setVariable ["CBE_Cortex_ClearEarlyExits",nil,true];
@@ -469,13 +483,16 @@ private _delay=call {
             _group setVariable ["CBE_AIPass_ClearOrder", nil, true];
             _group setVariable ["CBE_Cortex_ClearFollowBudget",nil,true];
             _group setVariable ["CBE_AIPass_ClearApplied", nil];
-        };
         _group setVariable ["CBE_Cortex_ClearHold",nil,true];
         if (_reason == "COMPLETE" && {_restore} && {_settled isNotEqualTo []}) then {
             // Record only actors this finish actually stopped. A diverted or service actor
             // must never inherit a later formation recall from a hold it did not receive.
             _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_group getVariable ["CBE_AIPass_Epoch",0],[_group] call CBE_fnc_NativeOrderReceipt,+_settled],true];
         };
+            };
+            };
+        };
+        if !(call _finishCurrent) exitWith {-1};
         if (_reason == "NEW_ORDER" && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
             // A native waypoint does not necessarily cancel an actor's explicit movement request.
             // Release only a MOVE still aimed at the destination this job actually issued.
@@ -508,11 +525,18 @@ private _delay=call {
             };
             {_handbacks pushBack [_x,"STOP",[]]} forEach _held;
         };
-        _group setVariable ["CBE_Cortex_ClearResult",[_result,count (_job get "cleared"),count (_job get "positions")],true];
-        _job set ["finished",true];
-        _job set ["finishReason",_reason];
-        _job set ["result",_result];
-        _group setVariable ["CBE_Cortex_ClearStatus",nil,true];
+        private _terminalPublished=false;
+        isNil {
+            if (call _finishCurrent) then {
+                _group setVariable ["CBE_Cortex_ClearResult",[_result,count (_job get "cleared"),count (_job get "positions")],true];
+                _job set ["finished",true];
+                _job set ["finishReason",_reason];
+                _job set ["result",_result];
+                _group setVariable ["CBE_Cortex_ClearStatus",nil,true];
+                _terminalPublished=true;
+            };
+        };
+        if (!_terminalPublished) exitWith {-1};
         private _operationGeneration=_job getOrDefault ["operationGeneration",-1];
         if (_operationGeneration >= 0) then {
             if (_reason == "COMPLETE") then {

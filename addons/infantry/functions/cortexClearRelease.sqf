@@ -100,6 +100,8 @@ if (isNull _leader) then {_leader=leader _group};
         && {_releaseGeneration == (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
         && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
         && {count (_group getVariable ["CBE_BuildingBrain",createHashMap]) == 0}) then {
+        _leader=[_group] call CBE_fnc_CortexGroupAnchor;
+        if (isNull _leader) then {_leader=leader _group};
         ["RETIRE",_x,_motionJob] call CBE_fnc_BuildingActorMotion;
         private _ownedActor=!isNil {_x getVariable "CBE_Cortex_ClearStance"}
             || {!isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}}
