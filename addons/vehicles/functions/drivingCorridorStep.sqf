@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Admission snapshots both native crew commands before geometry, then atomically rechecks
  * the actual controller, seats, authored route and area transform before issue/publication.
+ * APPROACH-to-CROSS rechecks current work, entry pose, area, task and deadline atomically
+ * with both native stops, fixed-path issue and CROSS command receipts.
  * Purpose: Executes a finite current-controller APPROACH/CROSS episode through a registered area.
  * Locality / Authority: Called only by the current ordinary/convoy brain, for its lead vehicle.
  * Shares existing speed/traffic writers; never edits waypoints, transfers locality or enables AI.
@@ -168,6 +170,21 @@ if (count _work > 0) exitWith {
             && {(vectorNormalized _forward) vectorDotProduct (_work get "travel") >= 0.85}
             && {call _mayWrite} && {call _approachTasksReady}
             && {(expectedDestination _operator) isEqualTo (_work get "command")}) then {
+            // Admission and the exact command/receipt transition share one unscheduled
+            // boundary. Scheduled approach observations cannot override a newer area/order.
+            isNil {
+                private _now=getPosASL _vehicle;
+                private _direction=vectorDir _vehicle;_direction set [2,0];
+                if (!(call _mayWrite) || {!(call _approachTasksReady)}
+                    || {(_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap]) isNotEqualTo _work}
+                    || {(_work getOrDefault ["phase",""]) != "APPROACH"}
+                    || {serverTime >= (_work get "deadline")}
+                    || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
+                    || {isNull _area}
+                    || {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isNotEqualTo _definition}
+                    || {[getPosWorld _area,vectorDir _area,vectorUp _area] isNotEqualTo (_work get "transform")}
+                    || {_now distance2D _entry > 8} || {abs ((_now select 2)-(_entry select 2)) > 2}
+                    || {(vectorNormalized _direction) vectorDotProduct (_work get "travel") < 0.85}) exitWith {};
             // Detach only these two owned native movement actors. Do not disable any AI
             // feature, change leader/seats or replay a group-wide stop over other vehicles.
             if (_operator != _driver) then {doStop _operator};
@@ -178,6 +195,7 @@ if (count _work > 0) exitWith {
             _work set ["driverCommand",+(expectedDestination _driver)];
             _work set ["deadline",(_work get "hardDeadline") min (serverTime+(_definition select 1)+45)];
             _vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];_phase="CROSS";
+            };
         };
     };
     if (_phase == "CROSS") then {

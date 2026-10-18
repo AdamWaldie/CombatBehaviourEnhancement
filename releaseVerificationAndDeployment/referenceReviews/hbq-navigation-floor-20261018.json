@@ -18,18 +18,19 @@
   "implementation": [
     "Within halfLength+5m of the area, interpolate expected support height at current longitudinal projection over the approved ordered ASL path, bounded to20nodes.",
     "Missing profile coverage or more than2m height mismatch retires CORRIDOR_FLOOR_DEPARTED before new entry or completion credit.",
-    "Uses stored path and current pose only; no added ray/world query, geometry regeneration, waypoint edit or physics shortcut. Existing2m entry/exit tolerance retained for the interior."
+    "Uses stored path and current pose only; no added ray/world query, geometry regeneration, waypoint edit or physics shortcut. Existing2m entry/exit tolerance retained for the interior.",
+    "Convoy follower passage already had nearest-station height checks; replaced those with the same bounded longitudinal support interpolation, retaining lateral/full-hull/deadline evidence.",
+    "APPROACH-to-CROSS now rechecks current work/controller/crew/native receipt/area/entry pose/deadline in one unscheduled boundary with stops, fixed path and CROSS receipts."
   ],
   "validation": {
-    "tests": 1288,
+    "tests": 1290,
     "exitCode": 0,
-    "log": ".qa/cbe-corridor-live-floor-build.log",
-    "packageFingerprint": "41d3223f74368d0b25bab6d941111b0b5b67d800f93e5517a9680bda6e304665"
+    "log": ".qa/cbe-corridor-transition-final-build.log",
+    "packageFingerprint": "f408ad10c6789e7f1a0a6b8a92d2882c59afcd993702e043e0a9104753c17703"
   },
   "remaining": [
     "Physical bridge/underpass, slope and modded vehicle origin-height cases remain unrun.",
-    "Discrete sampling does not establish continuous passage or collision safety. Convoy follower passage is a separate executor and needs the same floor-scope assessment.",
-    "Current APPROACH-to-CROSS native write boundary and subsequent public bookkeeping still warrant transaction review; not fixed by the floor observation.",
+    "Discrete sampling does not establish continuous passage or collision safety. Lead and whole-column sloped-deck observations remain physically unrun.",
     "Whole-HBQ navigation module/startup/lifecycle parity, native queue/wheel execution and measured runtime budget remain incomplete."
   ],
   "physicalAcceptance": false,

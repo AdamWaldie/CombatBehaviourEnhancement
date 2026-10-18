@@ -4,6 +4,36 @@ import math
 import unittest
 ROOT = Path(__file__).resolve().parents[1]
 class CorridorFoundationTests(unittest.TestCase):
+    def test_approach_cross_transition_commits_only_under_live_work_and_area(self):
+        s=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
+        transition=s.split('// Admission and the exact command/receipt transition',1)[1].split('if (_phase == "CROSS")',1)[0]
+        self.assertLess(transition.index('isNil {'),transition.index('doStop _operator'))
+        guards=transition.split('doStop _operator',1)[0]
+        for guard in ('call _mayWrite','call _approachTasksReady','isNotEqualTo _work',
+                      '!= "APPROACH"','serverTime >= (_work get "deadline")',
+                      'isNotEqualTo (_work get "command")','isNotEqualTo _definition',
+                      'isNotEqualTo (_work get "transform")','_now distance2D _entry > 8',
+                      'vectorNormalized _direction'):
+            self.assertIn(guard,guards)
+        for write in ('doStop _driver','_vehicle setDriveOnPath _points',
+                      '_work set ["phase","CROSS"]','_work set ["driverCommand",',
+                      '_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true]'):
+            self.assertIn(write,transition)
+        self.assertNotIn('lineIntersectsSurfaces',transition)
+    def test_convoy_tail_uses_interpolated_support_before_passage_credit(self):
+        s=(ROOT/'addons/vehicles/functions/convoyCorridorStep.sqf').read_text(encoding='utf-8')
+        floor=s.split('private _expectedFloor=[];',1)[1].split('if (abs _projection',1)[0]
+        for marker in ('count _asl <= 20','_projection >= _pa','_projection <= _pb',
+                       '_fraction=(_projection-_pa)/(_pb-_pa)',
+                       '_expectedFloor isNotEqualTo []',
+                       'abs ((_origin select 2)-(_expectedFloor select 0)) <= 2'):
+            self.assertIn(marker,floor)
+        self.assertNotIn('private _nearest=',s)
+        entered=s.split('if (!_entered',1)[1].split('if (_entered',1)[0]
+        self.assertIn('{_level}',entered)
+        self.assertLess(s.index('private _level='),s.index('_row set [4,true]'))
+        for command in ('lineIntersectsSurfaces','nearestObjects','setDriveOnPath','forceSpeed'):
+            self.assertNotIn(command,floor)
     def test_crossing_rejects_underpass_height_before_entry_or_exit_credit(self):
         s=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
         crossing=s.split('if (_phase == "CROSS") then {',1)[1].split('// An unfinished column passage',1)[0]

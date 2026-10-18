@@ -9,7 +9,8 @@
  * The deadline is frozen by lead admission, including original column length allowance (max 1800 s).
  * Arguments: 0 group <GROUP, grpNull>; 1 configuration <ARRAY, []>; 2 cancel reason <STRING, empty>.
  * Return Value: ARRAY [active BOOL, capsMps HASHMAP keyed netId, crossed NUMBER, required NUMBER].
- * Geometry: actual hull projection, lateral containment and nearest sampled support elevation;
+ * Geometry: actual hull projection, lateral containment and interpolated approved support elevation;
+ * each unpassed vehicle reads at most20stored ASL nodes, with no nearest-station height jumps.
  * no new rays or world scans. Original waypoint metadata/count and Zeus receipt protect handover,
  * while normal forward waypoint-index progression does not pretend the tail has crossed.
  * Current callers: ConvoyTick, ConvoyCrewLocal and ConvoyReleaseLocal.
@@ -105,9 +106,22 @@ private _targetSpeed=(_definition select 3)/3.6;
                     if (abs ((_corner vectorDiff _centre) vectorDotProduct _right) > (_definition select 2)+0.5) then {_insideWidth=false};
                 } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];
             } forEach [_low select 0,_high select 0];
-            private _nearest=_asl select 0;private _distance=1e9;
-            {private _d=_origin distance2D _x;if (_d < _distance) then {_distance=_d;_nearest=_x}} forEach _asl;
-            private _level=abs ((_origin select 2)-(_nearest select 2)) <= 2;
+            // The closest station's height is not the support height between stations on
+            // a ramp. Match the lead's longitudinal ASL interpolation, bounded to20nodes.
+            private _expectedFloor=[];
+            if (count _asl >= 2 && {count _asl <= 20}) then {
+                for "_i" from 1 to (count _asl-1) do {
+                    private _a=_asl select (_i-1);private _b=_asl select _i;
+                    private _pa=(_a vectorDiff _centre) vectorDotProduct _travel;
+                    private _pb=(_b vectorDiff _centre) vectorDotProduct _travel;
+                    if (_projection >= _pa && {_projection <= _pb} && {_pb-_pa > 0.01}) exitWith {
+                        private _fraction=(_projection-_pa)/(_pb-_pa);
+                        _expectedFloor=[(_a select 2)+((_b select 2)-(_a select 2))*_fraction];
+                    };
+                };
+            };
+            private _level=_expectedFloor isNotEqualTo []
+                && {abs ((_origin select 2)-(_expectedFloor select 0)) <= 2};
             if (abs _projection <= _halfLength && {!_insideWidth || {!_level}}) then {_failure="TAIL_DEPARTED_CORRIDOR"};
             if (!_entered && {_projection >= -_halfLength} && {_projection <= -_halfLength+15}
                 && {_insideWidth} && {_level}) then {_row set [3,true];_entered=true;_changed=true};
