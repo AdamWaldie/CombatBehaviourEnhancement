@@ -16,11 +16,11 @@
     "Provisional timing is not native path success"
   ],
   "validation": {
-    "tests": 1391,
+    "tests": 1392,
     "compiled_sqf": 327,
     "pbos": 9,
-    "log": ".qa/cbe-clear-recovery-alternative-continuity-build.log",
-    "unsigned_fingerprint": "ca52de8fe07840c7be7df4e31abefb1a2e48a644f307bd8521e502be41ee7493",
+    "log": ".qa/cbe-clear-yield-progress-clock-build.log",
+    "unsigned_fingerprint": "c6c4072a6d6ad8e809d9cbd7cb0b7d0f1d82529876a65a4432f386cfe212c6eb",
     "physical": false
   },
   "remaining": [
@@ -34,5 +34,10 @@
     "finding": "Partner alternate-entry threshold24s could already be elapsed when generic recovery first issued at30s. Without its own fresh-request guard it could replace that new native move in the same callback.",
     "implementation": "Shared nativeMoveAwaited read-only helper gates both common recovery and alternate entry: exact original issued target/time,2s native acknowledgement grace, then owned PLANNING/BUSY up to30s from issue. No observation write, progress/retry/deadline renewal.",
     "limits": "Other room reissue/selection branches still require continuity review; physical timing, native state changes and overhead remain unverified."
+  },
+  "yield_clock_follow_up": {
+    "finding": "Room failure/recovery caller reset lane lastProgress and lastPositions for both RECOVERING and YIELDED, undermining the no-progress invariant while the common helper only observed native work.",
+    "implementation": "Only RECOVERING receives its existing finite new-leg observation interval. YIELDED retains the lane progress timestamp/position baseline, preserves native route, spends no new recovery attempt and does not classify the point unreachable.",
+    "remaining": "Actual engine planning/service interruption, inaccessible model points and performance require later physical evidence."
   }
 }

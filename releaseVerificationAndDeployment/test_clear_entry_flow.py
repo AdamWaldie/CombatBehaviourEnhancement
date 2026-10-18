@@ -3,6 +3,17 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class ClearEntryFlowTests(unittest.TestCase):
+    def test_yielded_room_recovery_does_not_reset_its_progress_clock(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        branch=s.split('if (_recovery in ["RECOVERING","YIELDED"]) then {',1)[1].split('private _failedCheckpoint=',1)[0]
+        issued=branch.split('if (_recovery == "RECOVERING") then {',1)[1].split('};',1)[0]
+        self.assertIn('_lastProgress=_now',issued)
+        self.assertIn('_lastPositions=_pair apply',issued)
+        after=branch.split('};',1)[1]
+        self.assertNotIn('_lastProgress=',after)
+        self.assertNotIn('_lastPositions=',after)
+        self.assertIn('_retries=[0,3] select (_recovery == "YIELDED")',after)
+
     def test_partner_recovery_preserves_exact_native_planning_without_new_receipt(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         observation=s.split('private _nativeMoveAwaited={',1)[1].split('// Keep building authority',1)[0]

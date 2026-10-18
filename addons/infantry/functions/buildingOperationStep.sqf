@@ -22,6 +22,8 @@
  * thirty seconds from its original native issue, without spending a recovery attempt.
  * Recovery and alternate-entry selection share a two-second request acknowledgement grace;
  * a fresh recovery leg cannot be overwritten by an already-elapsed alternative threshold.
+ * A yielded common recovery retains the lane progress clock and position baseline;
+ * only an actually issued retry receives a new observation interval.
  * Opt-in group ClearCaptureEntry diagnostics log at most256 entry samples,16 actors,2s per actor.
  * Exterior reserve staging/view service rotates at most eight actors per callback to prevent starvation.
  * A casualty blocked by sole-exit coverage may request one progressed idle interior worker
@@ -3261,11 +3263,13 @@ private _delay=call {
                                         [_point,_target] call _recoverClearActor
                                     } else {"EXHAUSTED"};
                                     if (_recovery in ["RECOVERING","YIELDED"]) then {
-
-                                        _lastProgress=_now;
-                                        _lastPositions=_pair apply {getPosATL _x};
-                                        // A native task owns movement while yielding. Do not restart
-                                        // its route or mark the room unreachable during that task.
+                                        if (_recovery == "RECOVERING") then {
+                                            // A newly issued finite retry gets an observation interval.
+                                            _lastProgress=_now;
+                                            _lastPositions=_pair apply {getPosATL _x};
+                                        };
+                                        // Merely yielding adds no physical progress or new interval.
+                                        // Preserve the native route without marking its room unreachable.
                                         _retries=[0,3] select (_recovery == "YIELDED");
                                     } else {
                                         private _failedCheckpoint=!_approachingEntry && {count _approach >= 3}
