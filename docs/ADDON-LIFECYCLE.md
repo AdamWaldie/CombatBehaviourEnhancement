@@ -1058,3 +1058,6 @@ Ordinary area-report discovery includes live mounted receivers. Delivery beyond 
 
 
 Area-report storage and its thirty-second expiry use the original sighting timestamp rather than relay time. A later resend of an older or identical sighting cannot refresh it or replace a fresher stored observation. Server and receiver reject nonfinite/out-of-bounds coordinates, invalid confidence and invalid observation/send times; invalid report sets do not consume the sender's server cooldown. Transport still expires independently, and reports remain approximate areas rather than target tracking.
+
+
+When one contact-report batch contains old and newer sightings, the receiver first excludes observations no newer than its stored area timestamp, then preserves sender priority among the eligible rows. An old first row cannot suppress a later fresh row. The receiver still stores only one approximate area and never renews older evidence.

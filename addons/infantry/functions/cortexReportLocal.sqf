@@ -6,9 +6,11 @@
  * Locality/authority: server validates shared assignments; commands run only on the current AI owner.
  * Repeat/JIP: storage and expiry retain original finite observation time, not relay time;
  * older/duplicate sightings cannot replace fresher evidence. No historical JIP commands replay.
- * Arguments: 0: receiver <GROUP>, grpNull; 1: sender <GROUP>, grpNull; 2: reports <ARRAY>, []; 3: sent time <NUMBER>, -1.
+ * Arguments: 0 receiver GROUP grpNull; 1 sender GROUP grpNull; 2 reports ARRAY []:
+ * at most3 [ATL position ARRAY of3 finite NUMBERs, confidence NUMBER0..4,
+ * original observed server time NUMBER>=0]; 3 sent server time NUMBER -1 (invalid default).
  * Return Value: Nothing.
- * Current callers: ReportServer.
+ * Current callers: CBE_fnc_CortexReportServer queued owner delivery.
  * Example: [_receiver, _sender, _reports, serverTime] remoteExecCall ["CBE_fnc_CortexReportLocal", groupOwner _receiver];
  */
 params [["_receiver",grpNull,[grpNull]],["_sender",grpNull,[grpNull]],["_reports",[],[[]]],["_sent",-1,[0]]];
@@ -34,9 +36,16 @@ private _valid=(_reports select [0,3]) select {
         && {(_x select 2) isEqualType 0} && {finite (_x select 2)} && {(_x select 2) >= 0}
         && {(_x select 2) <= serverTime} && {(_x select 2) <= _sent+1} && {serverTime < (_x select 2)+30}
 };
-private _best = _valid param [0,[]];
-if (_best isEqualTo []) exitWith {};
-private _observed=_best select 2;
 private _previous = _receiver getVariable ["CBE_AIPass_AreaReport",[]];
-if (_previous isNotEqualTo [] && {(_previous select 1) >= _observed}) exitWith {};
+private _previousObserved=-1;
+if (_previous isEqualType [] && {count _previous == 4}
+    && {(_previous select 1) isEqualType 0} && {finite (_previous select 1)}) then {
+    _previousObserved=_previous select 1;
+};
+// Preserve sender priority among genuinely newer rows. An old first row must not
+// suppress a fresh sighting later in this same bounded batch.
+private _newIndex=_valid findIf {(_x select 2) > _previousObserved};
+if (_newIndex < 0) exitWith {};
+private _best = _valid select _newIndex;
+private _observed=_best select 2;
 _receiver setVariable ["CBE_AIPass_AreaReport",[+(_best select 0),_observed,_observed+30,"REPORT"],true];

@@ -6,9 +6,11 @@
  * Locality/authority: server validates shared assignments; commands run only on the current AI owner.
  * Repeat/JIP: original finite observation times survive relay; invalid payloads spend no cooldown.
  * Server-time deadlines reject stale work; no historical JIP commands are replayed.
- * Arguments: 0: sender <GROUP>, grpNull; 1: reports <ARRAY>, []; 2: sent server time <NUMBER>, -1.
+ * Arguments: 0 sender GROUP grpNull; 1 reports ARRAY []: at most3
+ * [ATL position ARRAY of3 finite NUMBERs, confidence NUMBER0..4,
+ * original observed server time NUMBER>=0]; 2 sent server time NUMBER -1 (invalid default).
  * Return Value: Nothing.
- * Current callers: ContactReport.
+ * Current callers: CBE_fnc_CortexContactReport.
  * Example: [_group, _reports, serverTime] remoteExecCall ["CBE_fnc_CortexReportServer", 2];
  */
 params [["_sender", grpNull, [grpNull]], ["_reports", [], [[]]], ["_sent", -1, [0]]];
