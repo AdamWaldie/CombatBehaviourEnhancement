@@ -102,4 +102,19 @@ class DrivingGateIntentTests(unittest.TestCase):
         for forbidden in ('setVariable','animateSource','doMove','doStop','forceSpeed','spawn','nearEntities'):
             self.assertNotIn(forbidden,body)
 
+class DrivingGateMutationTests(unittest.TestCase):
+    def test_final_opening_commits_live_authority_and_phase_together(self):
+        text=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text(encoding='utf-8')
+        body=text.split('// Final mutation boundary:',1)[1]
+        self.assertLess(body.index('isNil {'),body.index('animateSource'))
+        for guard in ('serverTime >= _expires','_convoyCurrent','_liveConfig select 0',
+                      '_liveConfig select 5','_liveCommander != _requestedCommander',
+                      'owner _driver','owner _liveCommander','call _locked',
+                      'CBE_ExternalDrivingOwner','CortexIsPaused','DrivingRouteReceipt',
+                      'animationSourcePhase','isObjectHidden _vehicle'):
+            self.assertLess(body.index(guard),body.index('animateSource'))
+        self.assertIn('private _currentOpening=',body)
+        self.assertIn('"SHARED_OPENING",_currentOpening select 2',body)
+        self.assertNotIn('lineIntersects',body)
+        self.assertNotIn('nearestObjects',body)
 if __name__=='__main__': unittest.main()

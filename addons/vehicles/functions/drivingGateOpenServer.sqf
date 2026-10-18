@@ -11,6 +11,7 @@
  * simultaneous requests. No closure, timer callback, retry controller or gate ownership transfer.
  * A context-bound acknowledgement prevents repeated owner requests; delivery retries return
  * the original outcome before geometry/config work. Driver/commander identity binds queued work.
+ * Final mutation is atomic and rechecks expiry, crew ownership, convoy revision and live phases.
  * Initial phases are retained; already-open gates are untouched. A refused/expired request
  * grants no passage and never disables the geometry cap. Live lock changes remain authoritative.
  * Arguments: 0 payload <ARRAY, []> of named pairs: group GROUP, vehicle OBJECT, gate OBJECT,
@@ -139,22 +140,58 @@ if (_sources findIf {(_x select 2) < 0.1} < 0) exitWith {
     ["ALREADY_OPEN_OR_MOVING",serverTime] call _publishResult;
     false
 };
-// Final mutation boundary: no delayed opening or stale transform survives a new order/lock.
-if ((_revision < 0 && {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)
-        || {!([_group,true] call CBE_fnc_DrivingMovementAvailable)}})
-    || {call _locked} || {!alive _gate} || {driver _vehicle != _driver}
-    || {(effectiveCommander _vehicle) isNotEqualTo _requestedCommander && {!isNull effectiveCommander _vehicle}}
-    || {group _driver != _group} || {isPlayer _driver} || {!isNull remoteControlled _driver}
-    || {_sender > 0 && {_sender != 2} && {_sender != groupOwner _group || {_sender != owner _vehicle}}}
-    || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
-    || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}
-    || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {
-    ["REQUEST_REPLACED",serverTime] call _publishResult;
-    false
+// Final mutation boundary: metadata parsing stays scheduled; authority, lock and animation
+// are committed together. A convoy revision or crew change cannot borrow earlier admission.
+private _opened=false;
+isNil {
+    private _convoyCurrent=true;
+    if (_revision >= 0) then {
+        private _liveRegistry=missionNamespace getVariable ["CBE_Convoy_Registry",[]];
+        private _liveIndex=_liveRegistry findIf {(_x select 0) == _group};
+        _convoyCurrent=false;
+        if (_liveIndex >= 0) then {
+            private _liveConfig=(_liveRegistry select _liveIndex) select 1;
+            _convoyCurrent=(_liveConfig select 0) == _revision && {(_liveConfig select 5) == "TRAVEL"}
+                && {_vehicle in (_liveConfig select 4)}
+                && {[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+        };
+    };
+    private _liveCommander=effectiveCommander _vehicle;
+    if (isNull _liveCommander) then {_liveCommander=driver _vehicle};
+    if (!_convoyCurrent || {serverTime >= _expires}
+        || {_revision < 0 && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])
+            || {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}
+            || {!([_group,true] call CBE_fnc_DrivingMovementAvailable)}
+            || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}}
+        || {call _locked} || {!alive _gate} || {!alive _vehicle} || {!canMove _vehicle}
+        || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle} || {abs speed _vehicle > 8}
+        || {driver _vehicle != _driver} || {_liveCommander != _requestedCommander}
+        || {[_driver,_liveCommander] findIf {isNull _x || {group _x != _group} || {isPlayer _x}
+            || {!isNull remoteControlled _x} || {!simulationEnabled _x} || {isObjectHidden _x}
+            || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+            || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}} >= 0}
+        || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+        || {_sender > 0 && {_sender != 2} && {_sender != groupOwner _group
+            || {_sender != owner _vehicle} || {_sender != owner _driver} || {_sender != owner _liveCommander}}}
+        || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
+        || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}
+        || {[] call CBE_fnc_CortexIsPaused}
+        || {[_group] call CBE_fnc_CortexExternalTakeover}
+        || {_sources findIf {abs ((_gate animationSourcePhase (_x select 1))-(_x select 2)) > 0.02} >= 0}) exitWith {
+        ["REQUEST_REPLACED",serverTime] call _publishResult;
+    };
+    // Another vehicle may have opened this gate while this request was planning.
+    private _currentOpening=_gate getVariable ["CBE_DrivingGate_ServerOpening",[]];
+    if (count _currentOpening == 4 && {(_currentOpening select 0) isEqualTo _transform}
+        && {serverTime < (_currentOpening select 2)}) exitWith {
+        ["SHARED_OPENING",_currentOpening select 2] call _publishResult;_opened=true;
+    };
+    _gate setVariable ["CBE_DrivingGate_ServerOpening",[+_transform,+_sources,serverTime+12,_group]];
+    {
+        if ((_x select 2) < 0.1) then {_gate animateSource [_x select 1,1]};
+    } forEach _sources;
+    ["OPEN_REQUESTED",serverTime+12] call _publishResult;
+    _opened=true;
 };
-_gate setVariable ["CBE_DrivingGate_ServerOpening",[+_transform,+_sources,serverTime+12,_group]];
-{
-    if ((_x select 2) < 0.1) then {_gate animateSource [_x select 1,1]};
-} forEach _sources;
-["OPEN_REQUESTED",serverTime+12] call _publishResult;
-true
+_opened
