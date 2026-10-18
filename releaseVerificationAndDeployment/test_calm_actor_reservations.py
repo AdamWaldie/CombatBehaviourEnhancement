@@ -410,3 +410,27 @@ class ManoeuvreDecisionCommitTests(unittest.TestCase):
         self.assertLess(failure.index('call _decisionCurrent'),failure.index('CBE_Cortex_DrillFailure'))
         self.assertIn('if (_failureCommitted) then {_result = _reason call _end} else {_result=0.25}',failure)
         self.assertNotIn('set ["boundDeadline"',phase)
+
+
+class DrillThrowContextTests(unittest.TestCase):
+    def test_throw_cannot_adopt_successor_drill_from_stale_caller(self):
+        source=(ROOT/'addons/infantry/functions/cortexThrowGrenade.sqf').read_text()
+        helper=source.split('private _contextMatches={',1)[1].split('private _simulations =',1)[0]
+        for guard in ['count _required != 5','group _actor != _group','CBE_OperationGeneration',
+                      'CBE_AIPass_Epoch','"token",""]) == _token','"operationGeneration",-2',
+                      '"ownerEpoch",-2','"generation",-2','"phase",""]) != "CANCELLED"']:
+            self.assertIn(guard,helper)
+        admission=source.split('if (_muzzleIndex >= 0) then {',1)[1]
+        self.assertLess(admission.index('isNil {'),admission.index('CBE_Cortex_ThrowGeneration'))
+        self.assertLess(admission.index('call _contextMatches'),admission.index('private _throwGeneration='))
+        self.assertIn('_ownerEpoch,_contextMatches]] call CBA_fnc_execNextFrame',source)
+        self.assertEqual(source.count('if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};'),2)
+        self.assertIn('CBE_AIPass_CoordinatedAssault_Enable',helper)
+        self.assertIn('CBE_fnc_CortexFeatureEnabled',helper)
+        self.assertLess(source.index('if !([_unit,_context] call _contextMatches) exitWith {["DRILL_REPLACED"] call _cancel}'),source.index('_unit doWatch _towards'))
+        release=source.split('// Safety geometry above stays scheduled.',1)[1]
+        self.assertLess(release.index('isNil {'),release.index('addEventHandler'))
+        self.assertLess(release.index('call _contextMatches'),release.index('forceWeaponFire'))
+        self.assertNotIn('nearEntities',release.split('[_release,',1)[0])
+        caller=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        self.assertEqual(caller.count('["DRILL",_group,_token,_operationGeneration,_rosterEpoch]'),2)

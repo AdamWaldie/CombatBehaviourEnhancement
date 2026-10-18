@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Arrived-phase smoke/fragmentation requests now carry their original group/drill/generation/epoch.
+  Queue admission, delayed aiming and final native release refuse a replaced parent instead of
+  adopting its new token. Existing selection/safety rules remain; physical throws remain unverified.
+
 - MOVE quorum/straggler recovery, replacement preparation and failure feedback now recheck the
   committed bound records, current tasks/route and fresh arrival/blocked motion before publication.
   Refusal defers; later arrived-phase side effects and physical behaviour still require review/validation.

@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "bed293c92fda504991eebc44555c7930ffbc5d2da906253236e1c1f2f7a87419"
+      "sha256": "b71004715c57eae0769a04f5a3c202e47a37a1df5519d2afa2fcde4a86b2c5e1"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -13,6 +13,10 @@
     {
       "path": "addons/infantry/functions/cortexDrillSetStage.sqf",
       "sha256": "74a6f57a608c053c0d833848559e396d24f9e54304d703cd26709f0f2fd1150c"
+    },
+    {
+      "path": "addons/infantry/functions/cortexThrowGrenade.sqf",
+      "sha256": "e2d98a7426009377394fe93657db3ae56319f479f34ae9861505805bf0f4e17c"
     }
   ],
   "boundaries": [
@@ -63,8 +67,8 @@
     },
     {
       "area": "Arrived phase side effects",
-      "status": "open",
-      "notes": "Team pause/road-edge smoke/assault grenade/consolidation and subsequent phase journals require their own context review. Existing actor helper and stage-token guards are not proof of whole-branch authority."
+      "status": "partial: original drill bound into asynchronous throws",
+      "notes": "Smoke/frag requests carry original group/token/generation/epoch through queue, delayed aiming and final listener/weapon-release transactions. Parent type feature/master/pause/cancellation is rechecked. Pause, consolidation and later phase journals remain open; ordinary context-free and DANGER policy remain separate."
     }
   ],
   "implementationChange": {
@@ -72,10 +76,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1342,
-    "log": ".qa/cbe-manoeuvre-decision-commit-build.log",
+    "tests": 1343,
+    "log": ".qa/cbe-drill-throw-context-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "52a8aae9804bc86d19be597f8d2c7e1f69344b2900f59c39aa74292900db331a"
+    "packageFingerprint": "f49437bb817bdaeb36fac9f4932ad89dab384e5779ae54a79c303bb48404ad19"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
@@ -85,5 +89,17 @@
     "limits": "Quorum/majority handoff, ownership changes and hard expiry remain independent endings. No guarantee of8seconds uninterrupted actor movement or actual native acknowledgement.",
     "referenceIntent": "Previously reviewed HBQ driveAssist2555-2580 preserves planning time after replanning. CBE uses its own existing interval/one-attempt bound rather than importing upstream20/15/30-second waits.",
     "referenceSHA256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+  },
+  "throwContext": {
+    "payload": [
+      "DRILL",
+      "group",
+      "original child token",
+      "operation generation",
+      "owner epoch"
+    ],
+    "validation": "Typed finite nonnegative context; same original group, current child, operation/epoch and parent feature. Queue marker generation cannot adopt a replacement drill. Callback helper is passed explicitly with local CBA arguments.",
+    "deadline": "Original1.5-second aiming deadline is checked at callback entry, aiming and final native release; aligned delayed callbacks also expire. No retry/deadline renewal.",
+    "limits": "Existing magazine selection, config blast safety, alignment and projectile listeners retained. Physical trajectory/effect, late native release, helper query-to-geometry freshness and owner migration remain unverified. This is not whole-grenade safety or whole-FSM acceptance."
   }
 }

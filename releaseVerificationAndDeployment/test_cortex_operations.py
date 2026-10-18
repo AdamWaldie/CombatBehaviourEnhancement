@@ -6724,7 +6724,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('if (!_queued) then {',approach)
         self.assertIn('_drill set ["index",(_drill get "index")+1]',crossing)
         self.assertIn('call _issue',crossing)
-        self.assertIn('"FRAG"] call CBE_fnc_CortexThrowGrenade',approach)
+        self.assertIn('"FRAG",["DRILL",_group,_token,_operationGeneration,_rosterEpoch]] call CBE_fnc_CortexThrowGrenade',approach)
 
     def test_combat_grenade_qa_measures_projectile_and_hold(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombat.sqf').read_text()

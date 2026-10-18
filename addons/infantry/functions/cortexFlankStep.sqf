@@ -1130,7 +1130,7 @@ switch (_drill get "stage") do {
                     // One empty inventory must not suppress another member's carried smoke.
                     // Stop after the first accepted throw; the helper owns safety and cooldowns.
                     {
-                        if ([_x, _enemyPos, "SMOKE"] call CBE_fnc_CortexThrowGrenade) exitWith {};
+                        if ([_x, _enemyPos, "SMOKE",["DRILL",_group,_token,_operationGeneration,_rosterEpoch]] call CBE_fnc_CortexThrowGrenade) exitWith {};
                     } forEach _units;
                 };
                 case "FINAL": {
@@ -1149,7 +1149,7 @@ switch (_drill get "stage") do {
                     private _queued = false;
                     if (_drill getOrDefault ["assaultGrenade",false]) then {
                         {
-                            if ([_x,_objective,"FRAG"] call CBE_fnc_CortexThrowGrenade) exitWith {
+                            if ([_x,_objective,"FRAG",["DRILL",_group,_token,_operationGeneration,_rosterEpoch]] call CBE_fnc_CortexThrowGrenade) exitWith {
                                 _thrower = _x;
                                 _queued = true;
                             };
