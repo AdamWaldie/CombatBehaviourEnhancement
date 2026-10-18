@@ -21,9 +21,11 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
     if (isNil {_actor getVariable "CBE_AirPilotFeatureLocalEH"}) then {
         _actor setVariable ["CBE_AirPilotFeatureLocalEH",_actor addEventHandler ["Local",{
             _this call CBE_fnc_CortexAirPilotFeatureAdopt;
+            [_this select 0] call CBE_fnc_CortexParachuteProtectionRelease;
         }]];
     };
     [_actor,local _actor] call CBE_fnc_CortexAirPilotFeatureAdopt;
+    [_actor] call CBE_fnc_CortexParachuteProtectionRelease;
 },true,[],true] call CBA_fnc_addClassEventHandler;
 
 

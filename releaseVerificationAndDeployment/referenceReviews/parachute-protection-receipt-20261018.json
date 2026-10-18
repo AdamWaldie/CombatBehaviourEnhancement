@@ -1,0 +1,48 @@
+{
+  "reviewed": "2026-10-18",
+  "baselineCommit": "666b69ca",
+  "scope": "Exact current-actor-owner release of parachute protection; not full exit-phase migration",
+  "sources": [
+    {
+      "path": "addons/infantry/functions/cortexParachuteJump.sqf",
+      "sha256": "ba3bb504f5b420487e928c35bb647f2e7815f71d2e4499dc6e01e8a100f60ecd"
+    },
+    {
+      "path": "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
+      "sha256": "6e6026c36d9165cd5beacb01f73c313897f2947827e037b135af523ba3768450"
+    },
+    {
+      "path": "addons/main/XEH_postInit.sqf",
+      "sha256": "c8a206803752d4651b2071058e2d2634b961f7e92b84c23e8c24860c16fa622c"
+    }
+  ],
+  "implementation": [
+    "Publish schema1 receipt [actor,issuer,token,baseline,absolute deadline] with schema before allowDamage false; refuse another CBE exit while receipt is live.",
+    "Actual local actor owner validates exact receipt before restoration/retirement. All remote calls refuse; no new remote mutation endpoint is exposed.",
+    "Reuse native actor init/Local handler to queue owner-local release independently of tactics settings. Loss clears local queued admission; callbacks coalesce by receipt and recheck actual locality.",
+    "Fixed3.8s original deadline never renews. Preserve preexisting false baseline and a newer visible permission value.",
+    "Use separate last accepted exit token to reject old chute callbacks; protection expiry alone does not cancel deployment or renew protection.",
+    "Register helper and source coverage; AIRBORNE remains partial with no new live evidence."
+  ],
+  "validation": {
+    "log": ".qa/cbe-parachute-protection-verified-build.log",
+    "tests": 1128,
+    "compiledSQF": 314,
+    "PBOs": 9,
+    "exitCode": 0,
+    "fingerprint": "7be86f99cccc781a0dcac7e9c90b21d394ebe1ca656461bbbc7c756dd44d5388",
+    "retainedEarlierFailures": [
+      "New helper initially absent from production-source coverage.",
+      "No-remote-command test initially matched remoteExecutedOwner substring.",
+      "Generated FEATURE_STATUS source count needed regeneration after coverage update."
+    ]
+  },
+  "remaining": [
+    "Actual chute creation/boarding phase is not resumed on a new owner.",
+    "Receipt arriving after native init/Local observation has no guaranteed recovery without another observation.",
+    "Same-value external allowDamage false writes require a cooperating protection contract.",
+    "No physical timing, overlap, preexisting invulnerability, failed exit/boarding, ownership/JIP or performance acceptance."
+  ],
+  "physicalAcceptance": false,
+  "auditsLaunched": false
+}

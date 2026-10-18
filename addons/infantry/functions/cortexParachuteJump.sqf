@@ -9,12 +9,14 @@
  * Exit admission preserves actor reservations, direct remote control and specialist ownership.
  * Only a visible, simulated aircraft may supply an exit; parachutes and ground/on-foot calls
  * refuse. Recheck actor/airframe authority without suspension at the exit mutation boundary.
- * Repeat/JIP: each accepted call starts one local exit; delayed cleanup restores original damage permission.
+ * Repeat/JIP: one public protection receipt prevents overlapping CBE exits. Owner-local exact
+ * deadline cleanup survives native Local/init adoption independently of tactics enablement.
  * Failed chute boarding deletes only this newly created empty local chute; no replacement seat is forced.
  * AI leave a parachute on their own when they land. For players, use the Paradrop feature instead.
  * Locality and authority: call where the soldier is local (moveOut and moveInDriver are local-argument).
  *
- * Review contract: Exit callbacks retain the original isDamageAllowed value and restore it on the current unit owner. Existing invulnerability is preserved; already-started exits finish even if the pass stops.
+ * Review contract: Exact receipt cleanup preserves the original damage baseline and rejects stale
+ * releases. Mid-exit chute-phase migration and same-value external protection remain unresolved.
  *
  * Arguments:
  * 0: soldier <OBJECT>
@@ -43,6 +45,7 @@ private _mayExit={
         && {isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
+        && {(_unit getVariable ["CBE_ParachuteProtection",[]]) isEqualTo []}
 };
 if !(call _mayExit) exitWith {false};
 private _chuteClass = missionNamespace getVariable ["WALDO_STATIC_STATICCHUTE", "NonSteerable_Parachute_F"];
@@ -53,11 +56,15 @@ if !(isClass (configFile >> "CfgVehicles" >> _chuteClass) && {_chuteClass isKind
 private _velocity = velocity _aircraft;
 // Just behind and below the airframe, clear of rotors and tail ramp.
 private _exit = _aircraft modelToWorld [0, ((((boundingBoxReal _aircraft) select 0) select 1) min -6) - 2, -3];
-private _damageAllowed = false;
+private _receipt=[];
 private _exited=false;
 isNil {
     if (call _mayExit) then {
-        _damageAllowed=isDamageAllowed _unit;
+        private _serial=(missionNamespace getVariable ["CBE_ParachuteProtectionSerial",0])+1;
+        missionNamespace setVariable ["CBE_ParachuteProtectionSerial",_serial];
+        _receipt=[1,_unit,clientOwner,format ["%1:%2",clientOwner,_serial],isDamageAllowed _unit,serverTime+3.8];
+        _unit setVariable ["CBE_ParachuteProtection",+_receipt,true];
+        _unit setVariable ["CBE_ParachuteExitToken",_receipt select 3,true];
         _unit allowDamage false;
         unassignVehicle _unit;
         moveOut _unit;
@@ -67,9 +74,14 @@ isNil {
     };
 };
 if (!_exited) exitWith {false};
+// Queue the immutable protection deadline before the chute callback, independent of tactics.
+[_unit,_receipt] call CBE_fnc_CortexParachuteProtectionRelease;
 [{
-    params ["_unit", "_chuteClass", "_velocity", "_damageAllowed"];
-    if (!alive _unit || {!local _unit} || {vehicle _unit != _unit}) exitWith {if (!isNull _unit) then {[_unit, _damageAllowed] remoteExecCall ["allowDamage", _unit]}};
+    params ["_unit", "_chuteClass", "_velocity", "_receipt"];
+    if (!alive _unit || {!local _unit} || {vehicle _unit != _unit}
+        || {(_unit getVariable ["CBE_ParachuteExitToken",""]) isNotEqualTo (_receipt select 3)}) exitWith {};
+    // Protection may already have retired under scheduler delay. The exit token still
+    // distinguishes this one accepted jump from a later exit without renewing protection.
     private _chute = createVehicle [_chuteClass, getPosATL _unit, [], 0, "CAN_COLLIDE"];
     _chute setDir getDir _unit;
     _unit moveInDriver _chute;
@@ -80,9 +92,5 @@ if (!_exited) exitWith {false};
     } else {
         if (!isNull _chute && {local _chute} && {crew _chute isEqualTo []}) then {deleteVehicle _chute};
     };
-    [{
-        params ["_unit", "_damageAllowed"];
-        if (!isNull _unit) then {[_unit, _damageAllowed] remoteExecCall ["allowDamage", _unit]};
-    }, [_unit, _damageAllowed], 3] call CBA_fnc_waitAndExecute;
-}, [_unit, _chuteClass, _velocity, _damageAllowed], 0.8] call CBA_fnc_waitAndExecute;
+}, [_unit, _chuteClass, _velocity, _receipt], 0.8] call CBA_fnc_waitAndExecute;
 true

@@ -174,6 +174,7 @@ class CfgFunctions {
             class CortexAirborneDropStep {file = "\z\cbe\addons\aircraft\functions\cortexAirborneDropStep.sqf";};
             class CortexAirborneDrop {file = "\z\cbe\addons\aircraft\functions\cortexAirborneDrop.sqf";};
             class CortexParachuteJump {file = "\z\cbe\addons\infantry\functions\cortexParachuteJump.sqf";};
+            class CortexParachuteProtectionRelease {file = "\z\cbe\addons\infantry\functions\cortexParachuteProtectionRelease.sqf";};
             class CortexTuning {file = "\z\cbe\addons\core\functions\cortexTuning.sqf";};
             class CortexOrderReason {file = "\z\cbe\addons\infantry\functions\cortexOrderReason.sqf";};
             class CortexTuningSpec {file = "\z\cbe\addons\core\functions\cortexTuningSpec.sqf";};

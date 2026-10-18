@@ -8031,7 +8031,8 @@ class CortexOperations(unittest.TestCase):
         cleanup=boarding.split('} else {',1)[1].split('deleteVehicle _chute',1)[0]
         for guard in ['!isNull _chute','local _chute','crew _chute isEqualTo []']:
             self.assertIn(guard,cleanup)
-        self.assertIn('[_unit, _damageAllowed]',boarding)
+        self.assertIn('_velocity, _receipt], 0.8]',boarding)
+        self.assertNotIn('remoteExecCall ["allowDamage"',jump)
 
     def test_combat_gunner_replacement_preserves_actor_controller_ownership(self):
         text=source('cortexVehicleCrewRecover')
