@@ -4,6 +4,8 @@
  * retry/publication section. Edit an isolated journal; successor/native-order changes prevent
  * publication. Rear recovery aborts on aggregate damage increase against its original journal.
  * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
+ * Stationary waits/recovery require finite total linear velocity below1km/h, not forward speed.
+ * This instantaneous admission is not physical HOLD/READY or proof of native reversing.
  * Purpose: Applies a sparse, owner-local safety speed cap and bounded physical recovery to an
  * ordinary AI ground vehicle that is already following a native waypoint. This is the standalone
  * driving layer; registered convoys retain their separate predecessor-spacing controller. Terrain
@@ -91,6 +93,13 @@ private _enabled=[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_Co
 // Read only the current authored waypoint. Conditions and trigger identities belong to the order,
 // just as its position does. A same-index edit must not inherit a reverse request for the old order.
 private _readRouteIdentity={[_group] call CBE_fnc_DrivingRouteReceipt};
+// Native speed is model-forward only. Sliding or falling is movement, not a stationary jam.
+// Read on demand so scheduled direct callers do not reuse a pre-yield motion sample.
+private _stationary={
+    params ["_candidate"];
+    private _linearSpeed=vectorMagnitude velocity _candidate;
+    finite _linearSpeed && {_linearSpeed < (1/3.6)}
+};
 private _vehicles=[];
 {
     private _vehicle=vehicle _x;
@@ -205,7 +214,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _index=currentWaypoint _group;
             if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
             private _waypoint=[_group,_index];
-            if (abs speed _vehicle >= 1 || {!unitReady _vehicle}
+            if (!([_vehicle] call _stationary) || {!unitReady _vehicle}
                 || {_vehicle distance2D (waypointPosition _waypoint) > ((waypointCompletionRadius _waypoint max 0)+50)}) exitWith {false};
             private _condition=toLowerANSI (((waypointStatements _waypoint) param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
             waypointType _waypoint == "HOLD"
@@ -489,7 +498,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // continuous fresh observation, with independent vehicle/gate/pedestrian caps clear.
             private _solidCandidate=_obstacleLimited && {count _obstacleObservation == 9}
                 && {(_obstacleObservation select 5) == "STATIC"} && {(_obstacleObservation select 2) <= 8}
-                && {!isNull (_obstacleObservation select 1)} && {abs speed _vehicle < 1}
+                && {!isNull (_obstacleObservation select 1)} && {([_vehicle] call _stationary)}
                 && {(_withoutObstacle select 0) > 0} && {_pedestrianCap > 0}
                 && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass};
             private _solidSeen=_vehicle getVariable ["CBE_DrivingSolidSeen",[]];
@@ -565,7 +574,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 };
                 private _jamPeer=_traffic select 1;
                 private _jamEligible=_trafficLimited && {!isNull _jamPeer} && {_jamPeer != _vehicle}
-                    && {_jamPeer isKindOf "LandVehicle"} && {abs speed _jamPeer < 1} && {abs speed _vehicle < 1}
+                    && {_jamPeer isKindOf "LandVehicle"} && {([_jamPeer] call _stationary)} && {([_vehicle] call _stationary)}
                     && {_recoveryStage == 0} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass}
                     && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
                     && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -675,7 +684,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     _recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false
                 };
                 _recoveryResult=if (_bypassActive) then {_bypass select 2} else {if (_corridorActive) then {_corridor select 2} else {
-                    if (_obstacleLimited) then {["OBSTACLE_WAIT","OBSTACLE_APPROACH"] select (abs speed _vehicle >= 1)} else {
+                    if (_obstacleLimited) then {["OBSTACLE_WAIT","OBSTACLE_APPROACH"] select (!([_vehicle] call _stationary))} else {
                         ["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited
                     }
                 }};
@@ -723,7 +732,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // resets this stage and its progress clock above. A rear leg keeps its finite expiry.
             private _observationWindow=[20,30,0,60] param [_recoveryStage,60];
             if (_hasRoute && {_recoveryStage in [0,1,2,3]} && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
-                && {!_inCombat} && {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {abs speed _vehicle < 1 || {_reverseComplete}}
+                && {!_inCombat} && {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {([_vehicle] call _stationary) || {_reverseComplete}}
                 && {time-_progressAt >= _observationWindow || {_reverseComplete} || {_finalExpired}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
                 private _waypoint=[_group,_waypointIndex];

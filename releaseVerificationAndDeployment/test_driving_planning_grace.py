@@ -39,7 +39,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         jam=s.split('// Bounded traffic replan:',1)[1].split('// Waiting behind traffic',1)[0]
         for guard in ('serverTime+80','serverTime+20','(_jam get "attempts") < 3','serverTime < (_jam get "deadline")',
-                      'serverTime-(_jam get "since") >= 20','abs speed _jamPeer < 1','abs speed _vehicle < 1',
+                      'serverTime-(_jam get "since") >= 20','([_jamPeer] call _stationary)','([_vehicle] call _stationary)',
                       '_recoveryStage == 0','call _mayRecoverOrdinaryRoute','driverCommand','["yielded",true]',
                       'distance2D (_jam get "origin")) >= 15','["since",-1]'):
             self.assertIn(guard,jam)

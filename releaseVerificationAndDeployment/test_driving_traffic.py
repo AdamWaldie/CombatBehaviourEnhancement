@@ -96,7 +96,7 @@ class DrivingTrafficTests(unittest.TestCase):
 
     def test_traffic_wait_does_not_enter_route_recovery(self):
         s=src('drivingAssistStart')
-        self.assertIn('&& {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {abs speed _vehicle < 1',s)
+        self.assertIn('&& {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {([_vehicle] call _stationary)',s)
         self.assertIn('["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited',s)
         self.assertIn('_progressPosition=getPosATL _vehicle;_progressAt=time;',s)
         self.assertIn('CBE_DrivingAssist_Traffic',s.split('getForcedSpeed _vehicle == 0',1)[1].split('then {_release=true}',1)[0])
