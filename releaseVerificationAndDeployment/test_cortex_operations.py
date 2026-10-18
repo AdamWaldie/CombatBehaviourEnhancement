@@ -3672,7 +3672,16 @@ class CortexOperations(unittest.TestCase):
 
     def test_coordinated_bound_team_contract_matches_server_reservation(self):
         start=source('cortexSupportBoundStart')
-        self.assertIn('([_first,_second] select (_forEachIndex mod 2)) pushBack _x',start)
+        self.assertIn('private _remaining=+_fit;',start)
+        self.assertIn('_group getVariable ["CBE_CombatPairs",[]]',start)
+        self.assertIn('(_pairs select [0,16])',start)
+        self.assertIn('_x findIf {!(_x in _remaining)} < 0',start)
+        self.assertIn('(_x select 0) != (_x select 1)',start)
+        self.assertIn('([_first,_second] select (count _first > count _second)) append _x',start)
+        self.assertIn('_remaining=_remaining-_x;',start)
+        self.assertIn('} forEach _remaining;',start)
+        self.assertIn('private _swap=_first;_first=_second;_second=_swap;',start)
+        self.assertNotIn('(_forEachIndex mod 2)',start)
         self.assertIn('count _first < 2 || {count _second < 1}',start)
         self.assertNotIn('private _riflemen=',start)
         self.assertNotIn('CortexUnitRole',start)

@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Coordinated bound teams retain eligible existing battle buddies together before balancing remaining
+  actors. All available roles stay enrolled; pair cohesion may produce unequal teams. This changes
+  roster composition only: physical buddy follow-through, casualty refill and tactical quality remain unverified.
+
 - Coordinated bound selection now uses strict owner-local actor reservation validation. The server
   never expires a nonempty nonlocal reservation from its own clock; remote empty markers are only
   planning candidates, with final admission retained on the group owner. HC timing remains unverified.

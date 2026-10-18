@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Owner execution preserves unknown/malformed actor reservations through the shared strict predicate.
- * Runs one reserved squad bound as two successive balanced fire-team movements.
+ * Runs one reserved squad bound as two successive fire-team movements, retaining eligible
+ * battle buddies together. Pair cohesion takes priority over equal team sizes; all fit actors remain enrolled.
  * Locality/authority: group owner consumes the current server role and matching lease.
  * Repeat/JIP: sequence prevents duplicate starts; migration restores mover leases before
  * the new owner consumes the durable role. Uses the finite tactical-drill FSM and publishes a
@@ -38,16 +39,31 @@ private _fit=(units _group) select {
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 if (count _fit < 3) exitWith {false};
-// Do not discard leaders, machine gunners or anti-tank soldiers when forming the
-// moving teams. The server reserves any four combat-effective dismounts; applying a
-// narrower role filter here made ordinary four-person squads accept a 180-second MOVE
-// turn which they could never start. Interleaving retains both support weapons while
-// ensuring every accepted squad produces two viable elements.
+// Preserve established pairs before distributing orphans. Alternating individual roster
+// entries split buddies formed by the parent operation. Keep every eligible role, including
+// leaders and support weapons; a temporary reservation cannot pull its partner into the bound.
 private _first=[];
 private _second=[];
+private _remaining=+_fit;
+private _pairs=_group getVariable ["CBE_CombatPairs",[]];
+if (_pairs isEqualType []) then {
+    {
+        if (_x isEqualType [] && {count _x == 2}
+            && {(_x select 0) != (_x select 1)}
+            && {_x findIf {!(_x in _remaining)} < 0}) then {
+            ([_first,_second] select (count _first > count _second)) append _x;
+            _remaining=_remaining-_x;
+        };
+    } forEach (_pairs select [0,16]);
+};
+// Missing, broken or oversized historical pairing metadata never drops an eligible actor.
 {
-    ([_first,_second] select (_forEachIndex mod 2)) pushBack _x;
-} forEach _fit;
+    ([_first,_second] select (count _first > count _second)) pushBack _x;
+} forEach _remaining;
+// A three-person responder still fields a two-person first element and one-person cover.
+if (count _first < count _second) then {
+    private _swap=_first;_first=_second;_second=_swap;
+};
 if (count _first < 2 || {count _second < 1}) exitWith {false};
 private _token=format ["SUPPORT:%1:%2:%3",_leaseToken,_sequence,clientOwner];
 _state set ["drill",createHashMapFromArray [
