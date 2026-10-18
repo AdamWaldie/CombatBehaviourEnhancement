@@ -5,7 +5,7 @@
  * Locality / Authority: Current convoy group owner/current registry brain only. Cleanup is scoped
  * to the original configuration revision; stale cleanup cannot erase successor passage work.
  * Repeat/JIP: Public bounded episode/entered/crossed receipts survive owner adoption without
- * movement replay or deadline renewal. At most 20 snapshotted vehicles and eight corners each.
+ * movement replay or deadline renewal. At most 20 snapshotted vehicles; eight corners per check, at most16 for a revoked pass.
  * The deadline is frozen by lead admission, including original column length allowance (max 1800 s).
  * Arguments: 0 group <GROUP, grpNull>; 1 configuration <ARRAY, []>; 2 cancel reason <STRING, empty>.
  * Optional argument 3: expected cancellation receipt <ARRAY, []> [revision,identity,started,deadline].
@@ -141,6 +141,25 @@ private _targetSpeed=(_definition select 3)/3.6;
 {
     private _row=_x;
     _row params ["_vehicle","_driver","_operator","_entered","_passed"];
+    // Historical passage is not current exit clearance after a reversal or transfer.
+    if (_passed) then {
+        private _stillBeyond=!isNull _vehicle && {alive _vehicle} && {canMove _vehicle} && {local _vehicle}
+            && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+            && {[_driver,_operator] findIf {
+                isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
+                    || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+                    || {!isNull remoteControlled _x} || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+            } < 0};
+        if (_stillBeyond) then {
+            private _passedBounds=boundingBoxReal _vehicle;
+            private _passedLow=_passedBounds select 0;private _passedHigh=_passedBounds select 1;
+            {private _px=_x;{private _py=_x;{
+                private _corner=_vehicle modelToWorldWorld [_px,_py,_x];
+                if ((_corner vectorDiff _far) vectorDotProduct _travel < 5) then {_stillBeyond=false};
+            } forEach [_passedLow select 2,_passedHigh select 2];} forEach [_passedLow select 1,_passedHigh select 1];} forEach [_passedLow select 0,_passedHigh select 0];
+        };
+        if (!_stillBeyond) then {_row set [4,false];_passed=false;_changed=true};
+    };
     if (_passed) then {_crossed=_crossed+1} else {
         if (isNull _vehicle || {!alive _vehicle} || {!canMove _vehicle}
             || {!local _vehicle} || {driver _vehicle != _driver} || {effectiveCommander _vehicle != _operator}

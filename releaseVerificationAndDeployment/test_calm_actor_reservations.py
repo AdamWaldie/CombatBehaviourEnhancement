@@ -692,3 +692,18 @@ class ConvoyPassageCreationTests(unittest.TestCase):
             self.assertIn(f'count (_group getVariable ["CBE_Convoy_{kind}Passage",createHashMap]) != 0',creation)
             self.assertLess(creation.index('isNil {'),creation.index('_episode=_proposedEpisode;'))
             self.assertNotIn('nearEntities',creation)
+
+
+class ConvoyPassageReversalTests(unittest.TestCase):
+    def test_previous_passage_rechecks_current_hull_and_owner(self):
+        for stem in ['convoyCorridorStep','convoyBypassStep']:
+            source=(ROOT/'addons/vehicles/functions'/f'{stem}.sqf').read_text()
+            body=source.split('// Historical passage is not current exit clearance',1)[1]
+            recheck=body.split('if (!_stillBeyond) then',1)[0]
+            for proof in ('local _vehicle','driver _vehicle == _driver','effectiveCommander _vehicle == _operator',
+                          'CortexCombatEffective','CortexExternalOwner','boundingBoxReal','modelToWorldWorld',
+                          'vectorDotProduct','< 5'):
+                self.assertIn(proof,recheck)
+            self.assertIn('_row set [4,false];_passed=false;_changed=true',body)
+            self.assertNotIn('setPos',recheck)
+            self.assertNotIn('nearEntities',recheck)

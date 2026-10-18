@@ -11,8 +11,9 @@
  * Return Value: ARRAY [active BOOL, capsMps HASHMAP keyed netId, passed NUMBER, required NUMBER].
  * Approach caps use current hull distance and the existing nominal mass/reaction model;
  * after ordered first-checkpoint entry the ceiling is 8 km/h until actual full-hull passage.
- * Bounds: at most 20 vehicles, 24 checkpoints, four checkpoint advances/eight hull corners per
- * vehicle per callback; metadata only, no rays or world scans. Lead passage cannot pass followers.
+ * Bounds: at most 20 vehicles, 24 checkpoints and four checkpoint advances per callback.
+ * Hull checks use eight corners, at most16 for a revoked pass. Metadata only, no rays or world
+ * scans. Lead passage cannot pass followers.
  * Owner-local pose observations capture short passed checkpoint segments, bound to the exact
  * episode/job token. Migration or gaps over three seconds discard inferred passage.
  * Current callers: ConvoyTick, ConvoyCrewLocal and ConvoyReleaseLocal.
@@ -140,6 +141,25 @@ private _nextCaptures=createHashMap;
 private _caps=createHashMap;private _passedCount=0;private _changed=false;private _failure="";
 {
     private _row=_x;_row params ["_vehicle","_driver","_operator","_checkpoint","_passed"];
+    // Historical passage is not current exit clearance after a reversal or transfer.
+    if (_passed) then {
+        private _stillBeyond=!isNull _vehicle && {alive _vehicle} && {canMove _vehicle} && {local _vehicle}
+            && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+            && {[_driver,_operator] findIf {
+                isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
+                    || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+                    || {!isNull remoteControlled _x} || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+            } < 0};
+        if (_stillBeyond) then {
+            private _passedBounds=boundingBoxReal _vehicle;
+            private _passedLow=_passedBounds select 0;private _passedHigh=_passedBounds select 1;
+            {private _px=_x;{private _py=_x;{
+                private _corner=_vehicle modelToWorldWorld [_px,_py,_x];
+                if ((_corner vectorDiff (_episode get "far")) vectorDotProduct (_episode get "forward") < 5) then {_stillBeyond=false};
+            } forEach [_passedLow select 2,_passedHigh select 2];} forEach [_passedLow select 1,_passedHigh select 1];} forEach [_passedLow select 0,_passedHigh select 0];
+        };
+        if (!_stillBeyond) then {_row set [4,false];_passed=false;_changed=true};
+    };
     if (_passed) then {_passedCount=_passedCount+1} else {
         if (isNull _vehicle || {!alive _vehicle} || {!canMove _vehicle} || {!local _vehicle}
             || {driver _vehicle != _driver} || {effectiveCommander _vehicle != _operator}

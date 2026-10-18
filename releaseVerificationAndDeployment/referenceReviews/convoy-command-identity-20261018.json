@@ -7,8 +7,8 @@
     "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240",
     "addons/main/fsm/convoyOperation.fsm": "0f79ed5ec97eea1a86b843e2870cc2eba20726145ab2949372f215f32e686f2d",
     "addons/vehicles/functions/convoyReleaseLocal.sqf": "dc192057cc9317dfb2a7ab21c291142e465598e9b34025c5e141909f0b6b0330",
-    "addons/vehicles/functions/convoyCorridorStep.sqf": "a04b942e45bfdf2b496cf276f8b94484f899c4d41b39ffeec65a46f386afa553",
-    "addons/vehicles/functions/convoyBypassStep.sqf": "ec87585e17b4381c090142e21ee26863262d8b70ebcbce49c7c73ded6e0b3b4a"
+    "addons/vehicles/functions/convoyCorridorStep.sqf": "01f8a552473aff5acc7cbfd565374176366010fe801f2a4890103b4078a5d7ef",
+    "addons/vehicles/functions/convoyBypassStep.sqf": "da4a3d20a007f019542eb9bed77bd48dc110033fbad9f1575a28a734f9156010"
   },
   "finding": "Per-command helper checked current crew/external availability but not original brain/job/registry/configuration/epoch. Lead and two follower smoothing journals could record rejected caps.",
   "implementation": "Capture original tick brain/token/registry revision/epoch and registry row index. Each existing command helper refuses changed/cancelled/finished brain, token, epoch, configuration or indexed registry row; row lookup is constant-time after one entry search. Lead and PACE/TRAIL follower cap journals move beside forceSpeed in their admitted transactions.",
@@ -19,10 +19,10 @@
     "Physical mixed tracked/wheeled step-off, braking, gaps, replacements, HC and performance remain unaccepted."
   ],
   "validation": {
-    "tests": 1360,
-    "log": ".qa/cbe-convoy-passage-creation-verified-build.log",
+    "tests": 1361,
+    "log": ".qa/cbe-convoy-passage-reversal-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "09953f275e6dedbc63c7e9c3c96a8fa6702a283147e0c9b325cea442ea756d86"
+    "packageFingerprint": "da684789d1a1c409c8b81b265029aa6ed55517ca081268ec25fe01506facef39"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
@@ -60,5 +60,14 @@
     "finding": "Episode construction published directly after scheduled work reads; a replacement brain/lead work/passage/terminal could arrive before publication.",
     "implementation": "Capture relevant lead-work key before constructing private proposed episode. Atomic admission requires original owner context, current uncancelled/unfinished matching brain configuration, empty episode slot, unchanged terminal/lead/work key, live original tail deadline, authored route/count/index, feature and Zeus/external checks. Bypass additionally checks route recovery gate. Only own admitted episode becomes current and refreshes expected key.",
     "limits": "No renewed deadline/geometry scan/native command. Work-key arrays copy top-level snapshots; deeper same-value provenance and changed geometry during delayed observation remain limits. Runtime refusal/cap behavior, reversed previously passed vehicles, physical navigation and measured cost remain unaccepted."
+  },
+  "passageReversal": {
+    "finding": "Passed rows were counted permanently without rechecking hulls that reversed back before the whole column cleared.",
+    "implementation": "Recheck each passed vehicle/crew locality/effectiveness/control identity and eight hull corners beyond the existing5m exit plane. A failed current-clearance check resets only copied passed flag and enters existing availability/geometry/cap logic; checkpoint/entry history and deadlines remain.",
+    "limits": [
+      "At most20vehicles; eight corners per check, up to16 on a returning vehicle. No extra rays/world scans/native commands.",
+      "Does not certify fresh geometry at delayed publication, continuous navigation support or current native intent across identical values.",
+      "Actual reversal, mixed-column flow, caller refusal behavior and overhead remain unverified."
+    ]
   }
 }
