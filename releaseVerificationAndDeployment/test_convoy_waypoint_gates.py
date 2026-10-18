@@ -17,7 +17,7 @@ class ConvoyWaypointGateTests(unittest.TestCase):
     def test_watched_metadata_and_lead_retry_identity_are_checked(self):
         s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
         self.assertIn('isEqualTo _watchedReceipt',s)
-        self.assertIn('isEqualTo _leadRouteReceipt',s)
+        self.assertIn('isNotEqualTo _leadRouteReceipt',s)
         self.assertIn('_state set ["leadRouteReceipt",_leadRouteReceipt]',s)
         self.assertIn('_leadProgress=[getPosATL _lead,time,0]',s)
         helper=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text(encoding='utf-8')
@@ -37,7 +37,7 @@ class ConvoyWaypointGateTests(unittest.TestCase):
         commit=retry.split('isNil {',1)[1]
         write=commit.index('_group setCurrentWaypoint _watchedWaypoint')
         for guard in ('!local _group', '!local _leadOperator', 'driver _lead != _recoveryDriver',
-                      'effectiveCommander _lead', 'isNotEqualTo _recoveryBrain',
+                      'call _mayRecallLead', 'isNotEqualTo _recoveryBrain',
                       'CBE_Convoy_LocalJobToken', 'CBE_Convoy_ReceivedRevision',
                       'CBE_Convoy_LocalRegistry', '_phase != "TRAVEL"',
                       'isNotEqualTo _watchedReceipt', 'isNotEqualTo _recoveryCommands',
@@ -70,4 +70,26 @@ class ConvoyWaypointGateTests(unittest.TestCase):
             self.assertNotIn(forbidden,journal)
         release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text(encoding='utf-8')
         self.assertNotIn('"CBE_Convoy_EndpointRecovery", nil',release)
+    def test_recall_requires_native_task_authority_on_both_actual_seats(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        helper=s.split('private _mayRecallLead=',1)[1].split('// A stalled engine route',1)[0]
+        for guard in ('effectiveCommander _vehicle','[_driver,_operator] findIf',
+                      'CortexCombatEffective','CortexActorMoveReserved','CortexExternalOwner',
+                      'remoteControlled','checkAIFeature "MOVE"','checkAIFeature "PATH"',
+                      'currentCommand _x in ["","MOVE","WAIT"]',
+                      'expectedDestination _operator','_destination vectorDistance _target <= 0.25'):
+            self.assertIn(guard,helper)
+        for forbidden in ('doMove','doFollow','forceSpeed','setVariable'):
+            self.assertNotIn(forbidden,helper)
+        endpoint=s.split('private _routeWatch=',1)[1].split('private _routeDone',1)[0]
+        self.assertLess(endpoint.index('call _mayRecallLead'),endpoint.index('_group setCurrentWaypoint'))
+        active=s.split('// Speed limits cannot restart',1)[1].split('private _followers',1)[0]
+        commit=active.split('isNil {',1)[1]
+        self.assertLess(commit.index('call _mayRecallLead'),commit.index('_leadOperator doMove'))
+        self.assertLess(commit.index('call _mayRecoverWaypoint'),commit.index('_leadOperator doMove'))
+        for effect in ('private _attempts=', 'CBE_fnc_ConvoyHaltServer', '_leadProgress set [2,'):
+            self.assertLess(commit.index('call _mayRecallLead'),commit.index(effect))
+        self.assertIn('isNotEqualTo _leadRetryBrain',commit)
+        self.assertIn('CBE_Convoy_LocalRegistry',commit)
+
 if __name__=='__main__': unittest.main()

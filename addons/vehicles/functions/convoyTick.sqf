@@ -50,6 +50,8 @@
  * A public revision/route-bound retry journal permits at most six endpoint recalls within
  * the original 120 seconds, spaced at least fifteen seconds apart across owner migration.
  * Exhaustion leaves the native route untouched; only a new revision or authored identity starts anew.
+ * Endpoint and active-route recalls refuse service/STOP/combat/reserved actors and unrelated
+ * individual MOVE destinations on the actual movement operator.
  * Recovery refuses object/vehicle-attached and peer-synchronized waypoints; native execution
  * retains their target and rendezvous semantics. No activation code is evaluated.
  * The route watchdog remembers only the unchanged final MOVE waypoint. If the engine marks it complete
@@ -177,6 +179,34 @@ private _mayRecoverWaypoint={
         && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
         && {(synchronizedWaypoints _waypoint) isEqualTo []}
         && {(synchronizedTriggers _waypoint) findIf {!isNull _x && {!triggerActivated _x}} < 0}
+};
+// A matching group waypoint cannot authorize replacement of an individual native task.
+// Check both actual seats; only the movement operator's MOVE must name this route target.
+// The subordinate driver may have a native intermediate path destination.
+private _mayRecallLead={
+    params ["_vehicle","_operator","_target"];
+    private _driver=driver _vehicle;
+    private _liveOperator=effectiveCommander _vehicle;
+    if (isNull _liveOperator) then {_liveOperator=_driver};
+    if (isNull _driver || {isNull _operator} || {_liveOperator != _operator}
+        || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
+        || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}) exitWith {false};
+    if ([_driver,_operator] findIf {
+        !local _x || {group _x != _group} || {vehicle _x != _vehicle}
+        || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+        || {!isNull remoteControlled _x}
+        || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+        || {!simulationEnabled _x} || {isObjectHidden _x}
+        || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+        || {[_x] call CBE_fnc_CortexActorMoveReserved}
+        || {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])}
+    } >= 0) exitWith {false};
+    if (toUpperANSI currentCommand _operator == "MOVE") exitWith {
+        private _destination=(expectedDestination _operator) param [0,[]];
+        count _destination == 3 && {_destination vectorDistance _target <= 0.25}
+    };
+    true
 };
 // A stalled engine route and a deliberate physical roadblock require different Zeus advice.
 // This bounded check runs only after the existing recovery attempts are exhausted; it never
@@ -440,7 +470,7 @@ if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActi
                 if (!local _group || {!local _lead} || {!local _recoveryDriver} || {!local _leadOperator}
                     || {isNull _recoveryDriver} || {isNull _leadOperator} || {!alive _lead} || {!canMove _lead}
                     || {driver _lead != _recoveryDriver} || {group _recoveryDriver != _group}
-                    || {(effectiveCommander _lead) isNotEqualTo _leadOperator}
+                    || {!([_lead,_leadOperator,_watchedPosition] call _mayRecallLead)}
                     || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _recoveryBrain}
                     || {_recoveryBrain getOrDefault ["cancelled",false]}
                     || {(_recoveryBrain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
@@ -678,12 +708,26 @@ if (!_routeDone && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && 
     && {time - (_leadProgress select 1) >= 10} && {abs speed _lead < 1}) then {
     private _waypoint = [_group, _waypointIndex];
     private _destination = waypointPosition _waypoint;
-    if ([_waypoint] call _mayRecoverWaypoint && {_lead distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
+    private _leadRetryBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+    isNil {
+        if (!local _group || {!([] call _mayIssueDriving)}
+            || {!([_lead,_leadOperator,_destination] call _mayRecallLead)}
+            || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _leadRetryBrain}
+            || {_leadRetryBrain getOrDefault ["cancelled",false]}
+            || {(_leadRetryBrain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
+            || {(_leadRetryBrain getOrDefault ["jobToken",""]) != (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+            || {(_leadRetryBrain getOrDefault ["registryRevision",-1]) != (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2])}
+            || {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+                (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+            } < 0}
+            || {currentWaypoint _group != _waypointIndex}
+            || {([_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _leadRouteReceipt}
+            || {!([_waypoint] call _mayRecoverWaypoint)}
+            || {_lead distance2D _destination <= (waypointCompletionRadius _waypoint max 20)}) exitWith {};
         private _attempts=(_leadProgress param [2,0])+1;
         if (_attempts > 3) then {
             [_group,_revision,([_lead] call _classifyStall),[],_lead] remoteExecCall ["CBE_fnc_ConvoyHaltServer",2];
-        } else {if ([] call _mayIssueDriving && {currentWaypoint _group == _waypointIndex}
-            && {([_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _leadRouteReceipt}) then {_leadOperator doMove _destination}};
+        } else {_leadOperator doMove _destination};
         _leadProgress set [2,_attempts];
     };
     _leadProgress set [0,getPosATL _lead]; _leadProgress set [1,time];
