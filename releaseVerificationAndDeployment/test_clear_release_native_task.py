@@ -105,3 +105,16 @@ class DoorObservationAuthorityTests(unittest.TestCase):
         self.assertIn('currentCommand _actor in ["","STOP"]',refill)
         discover=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text()
         self.assertIn('[_group] call CBE_fnc_CortexGarrisonApplyLocal',discover)
+
+
+class DoorCommitBoundaryTests(unittest.TestCase):
+    def test_door_effect_rechecks_fresh_geometry_locks_and_order_atomically(self):
+        text=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
+        commit=text.split('if (_near && {_visible}) then {',1)[1].split('call BIS_fnc_door',1)[0]
+        for proof in ('isNil {','count _visibilityProof == 5','time-(_visibilityProof select 4) <= 0.5',
+                      'getPosWorld _building','eyePos _unit','animationSourcePhase _source',
+                      'CBE_Cortex_DoorRequestUntil','bis_disabled_Door','call _orderCurrent',
+                      'CBE_fnc_CortexExternalTakeover'):
+            self.assertIn(proof,commit)
+        self.assertNotIn('lineIntersectsSurfaces',commit)
+        self.assertLess(commit.index('isNil {'),commit.index('setVariable ["CBE_Cortex_DoorRequestUntil"'))

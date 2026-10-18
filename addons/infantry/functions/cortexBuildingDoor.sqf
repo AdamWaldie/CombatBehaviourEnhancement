@@ -3,7 +3,8 @@
  * Lets an approaching soldier on an explicit building order open a recognised unlocked door.
  * Locality/authority: called only on the soldier owner; direct non-server network invocation
  * is refused. Local calls and server-dispatched owner work retain their normal actor/order gates.
- * BIS door animation has global effect.
+ * BIS door animation has global effect; lock/order/cooldown and fresh visibility geometry
+ * commit atomically. Visibility rays remain scheduled and limited to four.
  * Repeat/JIP: two-second building cooldown bounds requests; engine door state persists for JIP.
  * Door model metadata is cached per building on each owner; locks are always read live.
  * At most four nearby-door geometry rays check interaction visibility per call. A closed door
@@ -160,9 +161,11 @@ private _visibilityChecks=0;
         private _near=(getPosASL _unit) vectorDistance _position <= 3
             && {abs (((getPosASL _unit) select 2)-(_position select 2)) <= 1.5};
         private _visible=false;
+        private _visibilityProof=[];
         if (_near && {_visibilityChecks < 4}) then {
             _visibilityChecks=_visibilityChecks+1;
             _nextCursor=(_cursor+_forEachIndex+1) mod _doorCount;
+            _visibilityProof=[getPosWorld _building,vectorDir _building,vectorUp _building,eyePos _unit,time];
             private _hits=lineIntersectsSurfaces [eyePos _unit,_position,_unit,objNull,true,1,"GEOM","NONE"];
             _visible=_hits isEqualTo [];
             if (!_visible) then {
@@ -173,7 +176,15 @@ private _visibilityChecks=0;
                     && {(_hit select 0) vectorDistance _position <= 0.5};
             };
         };
+        if (_near && {_visible}) then {
+        isNil {
         if (_near && {_visible}
+            && {count _visibilityProof == 5} && {time >= (_visibilityProof select 4)}
+            && {time-(_visibilityProof select 4) <= 0.5}
+            && {[getPosWorld _building,vectorDir _building,vectorUp _building] isEqualTo (_visibilityProof select [0,3])}
+            && {(eyePos _unit) vectorDistance (_visibilityProof select 3) <= 0.5}
+            && {alive _building} && {_building animationSourcePhase _source < 0.1}
+            && {serverTime >= (_building getVariable ["CBE_Cortex_DoorRequestUntil",-1])}
             && {(_building getVariable ["bis_disabled_Door",0]) isEqualTo 0}
             && {(_building getVariable [format ["bis_disabled_Door_%1",_index],0]) isEqualTo 0}
             && {call _orderCurrent} && {[_unit] call CBE_fnc_CortexCombatEffective}
@@ -183,10 +194,12 @@ private _visibilityChecks=0;
             && {currentCommand _unit != "STOP"}
             && {(getPosASL _unit) vectorDistance _position <= 3}
             && {abs (((getPosASL _unit) select 2)-(_position select 2)) <= 1.5}
-            && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}) exitWith {
+            && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}) then {
             _building setVariable ["CBE_Cortex_DoorRequestUntil",serverTime+2,true];
             [_building,_index,1] call BIS_fnc_door;
             _requested=true;
+        };
+        };
         };
     };
     if (_requested || {_visibilityChecks >= 4}) exitWith {};
