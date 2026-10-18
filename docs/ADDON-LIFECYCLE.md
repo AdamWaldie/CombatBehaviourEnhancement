@@ -1064,3 +1064,6 @@ When one contact-report batch contains old and newer sightings, the receiver fir
 
 
 Knowledge summary first ranks native candidates by group belief, then evaluates at most eight contacts across eight eligible members. Within that detail pass, the member with knownByUnit and the most recent native seen/threat timestamp supplies an updated getHideFrom belief; group-level knowsAbout does not identify a personal observer. Group belief remains the fallback, and the bounded result is re-sorted after refinement. No hostile live transform or reveal is used. The coarse candidate population is not newly bounded; observer refinement and its additional bounded native reads require physical/overhead validation.
+
+
+Native ignored targets are removed from the bounded danger-event contact cache and excluded from the detailed tactical knowledge summary using the engine's ignored-target flag. The addon does not clear or rewrite that flag. This summary filter does not yet establish cancellation for every already-running aircraft, support or indoor operation; those execution paths require separate acceptance.

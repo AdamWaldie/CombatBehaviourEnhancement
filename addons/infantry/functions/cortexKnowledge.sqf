@@ -9,6 +9,8 @@
  * Locality/authority: Read-only; call where the group is local. It reads native AI knowledge and
  * prunes only that owner's short-lived observation cache. Nothing is broadcast or commanded.
  * Repeat/JIP: Repeat calls update only the bounded owner-local cache; this read-only summary has no JIP side effects.
+ * Native ignored contacts are pruned from the eight-entry event cache and excluded from
+ * detailed output using targetKnowledge field7; no ignore/reveal setting is changed.
  * Summarises what a group already knows about nearby enemies, using only engine knowledge.
  *
  * The pass uses existing engine detection and preserves AI Rebalance settings. Enemies come from the leader's `targets` list plus a small,
@@ -58,6 +60,7 @@ _observed=(_observed select [((count _observed)-8) max 0,8]) select {
         && {!((_x select 0) getVariable ["ace_captives_isSurrendering",false])}
         && {!((_x select 0) getVariable ["ace_captives_isHandcuffed",false])}
         && {(side _group) getFriend (side (_x select 0)) < 0.6} && {(_x select 1) > time}
+        && {!((_leader targetKnowledge (_x select 0)) param [7,false,[true]])}
 };
 if (_observed isEqualTo []) then {_group setVariable ["CBE_Danger_ObservedContacts",nil]} else {
     _group setVariable ["CBE_Danger_ObservedContacts",_observed]
@@ -108,11 +111,13 @@ private _seenCount = 0;
     _x params ["_distance", "_order", "_enemy", "_position", "_confidence"];
     private _newest = -1;
     private _knownByGroup = false;
+    private _ignored=false;
     private _error = 1000;
     private _knower=objNull;
     private _personalSeen=-1;
     {
         private _knowledge = _x targetKnowledge _enemy;
+        if (_knowledge param [7,false,[true]]) then {_ignored=true};
         if (_knowledge select 0) then {_knownByGroup = true};
         private _observedAt=(_knowledge select 2) max (_knowledge select 3);
         if ((_knowledge select 1) && {_observedAt > _personalSeen}) then {
@@ -122,14 +127,14 @@ private _seenCount = 0;
         _newest = _newest max _observedAt;
         _error = _error min (_knowledge select 5);
     } forEach _members;
-    if (!isNull _knower) then {
+    if (!_ignored && {!isNull _knower}) then {
         private _personalPosition=_knower getHideFrom _enemy;
         if (_personalPosition isNotEqualTo [0,0,0]) then {
             _position=_personalPosition;
             _distance=_leader distance2D _position;
         };
     };
-    if (_knownByGroup && {_distance <= _range}) then {
+    if (!_ignored && {_knownByGroup} && {_distance <= _range}) then {
         private _age = if (_newest > 0) then {time - _newest} else {1e6};
         if (_age <= 5) then {_seenCount = _seenCount + 1};
         _enemies pushBack [_enemy, _position, _age, _distance, _error,_confidence];

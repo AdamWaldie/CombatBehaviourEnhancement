@@ -166,10 +166,22 @@ class PersonalKnowledgeObserverTests(unittest.TestCase):
         detail=text.split('private _enemies = [];',1)[1]
         for proof in ('_knowledge select 1','_observedAt > _personalSeen',
                       'private _personalPosition=_knower getHideFrom _enemy',
-                      'if (_knownByGroup && {_distance <= _range})',
+                      'if (!_ignored && {_knownByGroup} && {_distance <= _range})',
                       '_ranked sort true','_enemies=_ranked apply {_x select 2}'):
             self.assertIn(proof,detail)
         self.assertNotIn('knowsAbout',detail)
         self.assertLess(text.index('_candidates resize 8'),text.index('targetKnowledge _enemy'))
         for forbidden in ('getPosATL _enemy','getPosASL _enemy','getPosWorld _enemy',' reveal '):
             self.assertNotIn(forbidden,text)
+
+
+class NativeIgnoredContactTests(unittest.TestCase):
+    def test_native_ignore_prunes_event_cache_and_vetoes_summary_without_writing_ignore(self):
+        text=(ROOT/'addons/infantry/functions/cortexKnowledge.sqf').read_text()
+        cache=text.split('private _observed=',1)[1].split('private _witnesses=',1)[0]
+        self.assertIn('(_leader targetKnowledge (_x select 0)) param [7,false,[true]]',cache)
+        detail=text.split('private _enemies = [];',1)[1]
+        self.assertIn('if (_knowledge param [7,false,[true]]) then {_ignored=true}',detail)
+        self.assertLess(detail.index('if (!_ignored && {_knownByGroup}'),detail.index('_enemies pushBack'))
+        self.assertLess(detail.index('if (!_ignored && {_knownByGroup}'),detail.index('_seenCount = _seenCount + 1'))
+        self.assertNotIn(' ignoreTarget ',text)
