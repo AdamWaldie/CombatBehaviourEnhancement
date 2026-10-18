@@ -7,7 +7,7 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
         block=text.split('private _finishedLeg=',1)[1].split('if (count _committedDestination < 2',1)[0]
         for guard in ('count _committedDestination == 3','count _nativeReceipt == 4',
-                      'local _vehicle','local _movementOperator','abs speed _vehicle < 1',
+                      'local _vehicle','local _movementOperator','[_vehicle] call _convoyStopped',
                       'unitReady _movementOperator','currentCommand _movementOperator in ["","MOVE"]',
                       '_vehicle distance2D _committedDestination <= 3','ATLToASL _committedDestination',
                       '_committedDestination distance2D _destination > 3',
@@ -21,16 +21,19 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
         self.assertLess(branch.index('call _mayIssueDriving'),branch.index('_movementOperator doMove'))
         self.assertIn('_progress set [10,[driver _vehicle,_movementOperator',branch)
 
-    def test_moving_legs_stop_commands_and_changed_receipts_do_not_gain_retry(self):
-        def finished(speed,ready,command,near,same_floor,advance,receipt):
-            return abs(speed)<1 and ready and command in ('','MOVE') and near<=3 and same_floor and advance>3 and receipt
-        self.assertTrue(finished(0,True,'MOVE',1,True,5,True))
-        self.assertTrue(finished(0,True,'',1,True,5,True))
-        for args in ((2,True,'MOVE',1,True,5,True),(0,False,'MOVE',1,True,5,True),
-                     (0,True,'STOP',1,True,5,True),(0,True,'FOLLOW',1,True,5,True),
-                     (0,True,'MOVE',8,True,5,True),(0,True,'MOVE',1,False,5,True),
-                     (0,True,'MOVE',1,True,3,True),(0,True,'MOVE',1,True,5,False)):
-            self.assertFalse(finished(*args))
+    def test_native_retry_and_endpoint_share_finite_total_motion_gate(self):
+        text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        gate=text.split('private _convoyStopped={',1)[1].split('private _leadProgress',1)[0]
+        for guard in ('vectorMagnitude velocity _candidate','vectorMagnitude angularVelocity _candidate',
+                      'finite _linear','finite _angular','_linear*3.6 < 1','_angular < 0.01'):
+            self.assertIn(guard,gate)
+        self.assertIn('[_lead] call _convoyStopped',text)
+        self.assertIn('[_vehicle] call _convoyStopped',text)
+        self.assertNotIn('setVelocity',gate)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text(encoding='utf-8')
+        self.assertIn('count _event == 14',qa)
+        self.assertIn('(vectorMagnitude _velocityAt)*3.6 < 1',qa)
+        self.assertIn('vectorMagnitude _angularAt < 0.01',qa)
 
     def test_normal_fixture_requires_real_trigger_and_physical_continuation(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text()

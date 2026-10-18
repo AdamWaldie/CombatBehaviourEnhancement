@@ -14,6 +14,8 @@
  * Native acceleration, shared cruise/terrain limits, immediate closing caps and reverse yields remain authoritative.
  * Follower curve/grade caps persist between path refreshes until fresh trail geometry replaces them;
  * disabling convoy driving assist clears that local cap without changing native route ownership.
+ * Native lead retry and finished-leg continuation require finite total linear and angular rest;
+ * sideways drift or active rotation is not a stopped endpoint. Capture retains both motion vectors.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
  * Lead catch-up pacing reuses the same aligned longitudinal gap as stretch assessment, so
  * lateral drift alone does not create a false rearward gap or feed acceleration lag forward.
@@ -791,6 +793,15 @@ isNil {if ([_lead] call _mayIssueDriving) then {
 if (_captureControl) then {_state set ["leadControlSample",_leadControl]};
 // Speed limits cannot restart an engine movement order that stopped short. Retry only
 // after ten seconds without progress, while a real route destination remains active.
+// Forward-axis speed alone labels a turning/sliding vehicle as stopped. Native retry and
+// endpoint completion require finite total linear and angular rest; no velocity is changed.
+private _convoyStopped={
+    params ["_candidate"];
+    private _linear=vectorMagnitude velocity _candidate;
+    if !(finite _linear && {_linear*3.6 < 1}) exitWith {false};
+    private _angular=vectorMagnitude angularVelocity _candidate;
+    finite _angular && {_angular < 0.01}
+};
 private _leadProgress = _state getOrDefault ["leadProgress", [getPosATL _lead, time, 0]];
 private _waypointIndex = currentWaypoint _group;
 private _leadRouteReceipt=[_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt;
@@ -800,7 +811,7 @@ if (_leadRouteReceipt isNotEqualTo (_state getOrDefault ["leadRouteReceipt",[]])
 };
 if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0} || {_leadTrafficBlocked} || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass}) then {_leadProgress = [getPosATL _lead, time, 0]};
 if (!_routeDone && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_leadTrafficBlocked} && {_leadLimit > 0} && {_waypointIndex > 0} && {_waypointIndex < count waypoints _group}
-    && {time - (_leadProgress select 1) >= 10} && {abs speed _lead < 1}) then {
+    && {time - (_leadProgress select 1) >= 10} && {[_lead] call _convoyStopped}) then {
     private _waypoint = [_group, _waypointIndex];
     private _destination = waypointPosition _waypoint;
     private _leadRetryBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
@@ -1234,7 +1245,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 private _nativeReceipt=_progress param [10,[],[[]]];
                 private _finishedLeg=count _committedDestination == 3 && {count _nativeReceipt == 4}
                     && {local _vehicle} && {local _movementOperator}
-                    && {abs speed _vehicle < 1} && {unitReady _movementOperator}
+                    && {[_vehicle] call _convoyStopped} && {unitReady _movementOperator}
                     && {currentCommand _movementOperator in ["","MOVE"]}
                     && {_vehicle distance2D _committedDestination <= 3}
                     && {abs (((getPosASL _vehicle) select 2)-((ATLToASL _committedDestination) select 2)) <= 1.5}
@@ -1251,7 +1262,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     _endpointEvent=[serverTime,_revision,_group getVariable ["CBE_AIPass_Epoch",0],
                         driver _vehicle,_movementOperator,+_committedDestination,+_destination,
                         getPosASL _vehicle,speed _vehicle,unitReady _movementOperator,
-                        currentCommand _movementOperator,+_nativeReceipt];
+                        currentCommand _movementOperator,+_nativeReceipt,+(velocity _vehicle),+(angularVelocity _vehicle)];
                 };
                 if (count _committedDestination < 2
                     || {_committedDestination distance2D _destination > 8} || {_finishedLeg}) then {

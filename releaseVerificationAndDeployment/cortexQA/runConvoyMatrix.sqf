@@ -282,8 +282,8 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                 {
                     private _vehicle=_x;
                     private _event=_events getOrDefault [netId _vehicle,[]];
-                    if (count _event == 12 && {(_event select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
-                        _event params ["_at","_eventRevision","_eventEpoch","_driver","_operator","_old","_new","_pose","_speedAt","_readyAt","_commandAt","_receipt"];
+                    if (count _event == 14 && {(_event select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                        _event params ["_at","_eventRevision","_eventEpoch","_driver","_operator","_old","_new","_pose","_speedAt","_readyAt","_commandAt","_receipt","_velocityAt","_angularAt"];
                         private _advance=_old distance2D _new;
                         private _originDistance=_pose distance2D (ATLToASL _new);
                         private _valid=_at >= serverTime-120 && {_at <= serverTime}
@@ -295,7 +295,9 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                             && {_advance > 3} && {_advance <= 8}
                             && {_pose distance2D (ATLToASL _old) <= 3}
                             && {abs ((_pose select 2)-((ATLToASL _old) select 2)) <= 1.5}
-                            && {abs _speedAt < 1} && {_readyAt} && {_commandAt in ["","MOVE"]};
+                            && {abs _speedAt < 1} && {_readyAt} && {_commandAt in ["","MOVE"]}
+                            && {finite vectorMagnitude _velocityAt} && {finite vectorMagnitude _angularAt}
+                            && {(vectorMagnitude _velocityAt)*3.6 < 1} && {vectorMagnitude _angularAt < 0.01};
                         if (_valid) then {
                             if (isNil {_endpointObserved get (netId _vehicle)}) then {
                                 _endpointObserved set [netId _vehicle,+_event];

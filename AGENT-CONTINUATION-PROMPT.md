@@ -1,3 +1,11 @@
+## Native convoy stopped-state correction - 2026-10-18
+
+After 5aadd53a, ConvoyTick's lead recovery and finished-native-endpoint transitions use finite total linear motion below 1 km/h plus angular motion below 0.01 rad/s. Forward-axis speed no longer admits retry while sliding or rotating. Angular motion is read only after the linear gate passes. Native steering, spacing gains and existing path ownership are unchanged. Capture-only endpoint events append raw velocity/angular vectors; the prepared tracked/mixed normal-client fixture validates both before measuring continuation. That fixture remains UNRUN.
+
+Full offline build exited 0: 1,432 tests / 331 SQF / nine PBOs, .qa/cbe-convoy-native-motion-final-build.log. Independent package verification passed; unsigned fingerprint eb3a82c1f9a4defdb54bdba154ee8eebb018a2338517af772749325a87a4aab0. Built from uncommitted source after 5aadd53a. An initial gate correctly rejected upstream-source mention in the product guide; moved source discussion to the engineering review and reran without weakening the boundary. Replaced an arithmetic mirror test with source/fixture ownership contracts.
+
+Audits remain PAUSED. All 65 families are partial; no physical or performance acceptance gained. Separate unresolved issue: native moving-goal refresh still retasks whenever the candidate advances over eight metres. Review actual command cadence and native braking/route continuity rather than claiming this stop observation fix resolves mixed-convoy stop/start. Preserve protected references, keys and artwork. PR17 remains draft at pushed 531da077 until a later coherent push; do not merge or publish.
+
 ## Exact hold metadata retirement on task takeover - 2026-10-18
 
 After pushed 531da077, GroupTick retires an old holder's recall receipt when the existing takeover path transfers that actor to an admitted drill/operation, valid clearance hold or authored order. The actor token is cleared only on the actor's actual owner, for the same group and matching original issuer tuple. No movement/STOP/feature write is issued and a successor token is preserved. Drill membership is freshly read from current state with matching operation generation and owner epoch; an earlier watchdog snapshot cannot authorize this transfer after intervening cleanup.
