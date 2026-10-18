@@ -48,3 +48,15 @@ class DrivingStationarityTests(unittest.TestCase):
         self.assertLess(text.index('([_vehicle] call _readRearHitpoints) isNotEqualTo _rearHitpointReceipt'),text.index('_movementOperator doMove _rear'))
         for forbidden in ('setDamage','setHitPointDamage','setHitIndex','allowDamage','HandleDamage'):
             self.assertNotIn(forbidden,text)
+
+    def test_convoy_arrival_retains_continuous_full_motion_settlement(self):
+        text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        window=text.split('private _settled =',1)[1].split('// Record each predecessor',1)[0]
+        for marker in ('vectorMagnitude velocity _x','vectorMagnitude angularVelocity _x',
+                       '!finite _linearMotion','!finite _angularMotion',
+                       '_linearMotion >= (1/3.6)','_angularMotion >= 0.01',
+                       'if (!_settled) then {_state set ["arrivalAt", time + 5]}',
+                       '_settled && {time >=','"ARRIVED"'):
+            self.assertIn(marker,window)
+        self.assertNotIn('abs speed _x',window)
+        self.assertLess(window.index('vectorMagnitude velocity'),window.index('"ARRIVED"'))

@@ -7,6 +7,8 @@
  * Spacing uses a size-aware target with a 20 percent tolerance band (at least 3 m).
  * Aligned vehicles use unit horizontal bearings for forward separation, so pitch cannot shrink
  * the measured gap and lateral spread cannot satisfy it or stabilize a wedge.
+ * Arrival requires the existing five-second window below1km/h total linear motion and
+ * 0.01rad/s angular motion for every vehicle; non-finite samples reset that window.
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
  * Excess stretch beyond the upper band adds a nonlinear catch-up correction capped at 8 km/h.
  * Native acceleration, shared cruise/terrain limits, immediate closing caps and reverse yields remain authoritative.
@@ -603,7 +605,14 @@ if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActi
 };
 private _routeDone = !_corridorActive && {!_hadBypass} && {count waypoints _group > 1} && {currentWaypoint _group >= count waypoints _group}
     && {_lead distance2D waypointPosition _lastWaypoint <= (waypointCompletionRadius _lastWaypoint max 20)};
-private _settled = !_passageActive && {!_bypassPassageActive} && {_routeDone} && {_vehicles findIf {abs speed _x >= 1} < 0};
+// Forward speed alone cannot establish arrival: sliding and turning vehicles still move.
+// The existing five-second window must observe the entire column below both motion limits.
+private _settled = !_passageActive && {!_bypassPassageActive} && {_routeDone} && {_vehicles findIf {
+    private _linearMotion=vectorMagnitude velocity _x;
+    private _angularMotion=vectorMagnitude angularVelocity _x;
+    !finite _linearMotion || {!finite _angularMotion}
+        || {_linearMotion >= (1/3.6)} || {_angularMotion >= 0.01}
+} < 0};
 for "_i" from 1 to (count _vehicles - 1) do {
     if ((_vehicles select _i) distance2D (_vehicles select (_i - 1)) > (_gaps select _i) * 1.5) then {_settled = false};
 };
