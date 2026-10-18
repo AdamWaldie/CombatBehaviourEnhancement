@@ -1,6 +1,6 @@
 # Current CBE continuation checkpoint - 18 October 2026
 
-Current local batch is on `Adam/cbe-aircraft-release-followup`, checkout `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, remote `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`, open draft PR17. Verify actual HEAD. Last verified remote PR head is `d9313d558a7267b0e4a090a456a539df0fb2efeb`; subsequent changes remain local. Never commit this work to the unrelated WMP checkout.
+Current local batch is on `Adam/cbe-aircraft-release-followup`, checkout `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, remote `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`, open draft PR17. Verify actual HEAD. Last verified remote PR head is `8a9a0d7d347102cff68d7ea1fa31871584533e2a`; all six production follow-ups below are pushed. The subsequent delivery-note commit is documentation-only and stays local for the next coherent batch. Never commit this work to the unrelated WMP checkout.
 
 Latest complete offline Build: **1,401 tests / 328 compiled production SQF / nine PBOs**. Log `.qa/cbe-clear-terminal-generation-build.log`; unsigned fingerprint `cd8a15ce362effbdc1810e044eb29e61e8254b2364b8709109973827a08bba91`. Subsequent changes in this checkpoint are evidence/handover documentation only. All65 feature families remain partial, zero fully accepted. No defensible implementation/parity percentage exists.
 
