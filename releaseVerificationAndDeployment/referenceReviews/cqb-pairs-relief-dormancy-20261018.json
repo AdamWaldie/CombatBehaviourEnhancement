@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "a7b1b5b1",
+  "scope": "CQB pair entry, casualty reserve admission, exterior coverage substitution and transient dormancy; not a whole-CQB or whole-reference review.",
+  "sourceHashes": {
+    "addons/infantry/functions/combatPairs.sqf": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "c7f6e58df77e4448b55de9812e2f73e3d24479363ab7b67d1fbbaf20f38c481a",
+    "addons/infantry/functions/buildingOperationStep.sqf": "1a2e9015e74651e6cf7fe6aa75dc99a74f8c9d4ec0821f7ca577a21b96d8944a",
+    "addons/infantry/functions/buildingActorMotion.sqf": "d3209a4104ab99efd292ea19cba5b3206a0e9f549e5e9aa7d7d0bb13ce6ac69c"
+  },
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+    "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    "reviewed": "Complete function; caller/FSM intake is a separate scope."
+  },
+  "findings": [
+    {
+      "area": "Battle buddies are implemented",
+      "evidence": "CombatPairs retains intact eligible pairs, repairs orphans using nearest eligible 3D partner, and publishes only changed metadata. Clearance admits up to eight actors using native-position capacity and intact-pair priority.",
+      "limit": "Pair metadata is not coherent physical entry or path connectivity. Extra actors are reserves, not automatically a separate covering squad."
+    },
+    {
+      "area": "Security entry is not a room-completion trigger by design",
+      "evidence": "BuildingOperationStep uses physical actorVisits/enteredActors for lead-to-partner handoff. Unentered partners keep an entry target and finite recovery/alternative attempts while entered movers continue.",
+      "limit": "Native path failure, occupied targets and acknowledgement timing can still make entry look serial. This review does not identify the cause of any particular historical screenshot."
+    },
+    {
+      "area": "Casualty replacement exists but exterior relief is incomplete",
+      "evidence": "Unavailable lane members rank eligible reserves near a surviving buddy. _mayPromoteReserve permits unstaged candidates, but ARRIVED reserves need an already settled same-exit observer with current watch lease, heading, physical position and a fresh VIEW ray. Promotion proof is rechecked atomically. Existing early-exit workers can substitute only if already observing that same exit.",
+      "consequence": "When every eligible reserve is the sole established observer of its exit and no suitable settled substitute exists, the casualty slot stays pending. There is no proactive command here to reposition a relief observer before promotion. The deadline remains finite.",
+      "limit": "Preserving exit observation is intentional; removing its proof would trade reinforcement delay for an unobserved exit. The code path is verified, its frequency or historical causal contribution is not."
+    },
+    {
+      "area": "Dormancy is not casualty ownership",
+      "evidence": "Existing test_cortex_operations.test_clearance_dormancy_blocks_commands_without_erasing_owned_roster separates _actorAvailable from _actorTaskFree. BuildingActorMotion also refuses hidden/simulation-disabled actors. Visibility/simulation gates protect visit evidence.",
+      "decision": "Withdraw this turn's attempted actorAvailable simulation/visibility change. Do not replace or erase owned dormant roster solely because execution is temporarily unavailable. Preserve later cleanup/reactivation evidence."
+    },
+    {
+      "area": "Reference intent differs from explicit whole-group clearance",
+      "evidence": "The reviewed doAssault function retains BUSY destinations near getHideFrom, chooses building positions using target-floor/location information, adjusts occupied destinations and avoids reissuing an unchanged native destination. It is an individual assault helper, not a deterministic whole-building clearing or isolation FSM.",
+      "decision": "Retain native-path continuity and occupancy-aware flow intent. Do not copy random displacement, hidden target transforms, probabilistic room selection or interpret helper completion as safe-room evidence. Compare automatic intake separately."
+    }
+  ],
+  "nextImplementation": {
+    "intent": "Finite relief handover before promoting a sole exit observer",
+    "required": [
+      "Choose an actually available relief worker without stripping another sole observed exit; otherwise retain coverage and report the pending reason.",
+      "Bind request to exact operation/owner epoch/building transform/exit/candidate and original deadline. Reuse exterior staging geometry and existing callback budgets.",
+      "Keep original observer on station until relief physically arrives, faces the intended view and passes the current eye VIEW check; planned role or timer is insufficient.",
+      "Promote only after atomic current relief/observer/roster/order checks; no deadline renewal, no forced movement of protected/dormant actors and no synthetic room visits.",
+      "Cancel only owned relief movement on new commands, death, migration, transform change or timeout; retain useful existing entry paths.",
+      "Verify normal and real-provider HC cases separately once audits resume, including all-reserves-unique-cover and relief casualty/interruption."
+    ]
+  },
+  "validation": {
+    "productionChanges": "None retained from this review; incorrect dormancy patch withdrawn exactly.",
+    "regressionTests": 1310,
+    "exitCode": 0,
+    "log": ".qa/cbe-cqb-dormancy-review-regression.log",
+    "lastProductBuild": ".qa/cbe-convoy-halt-receipt-verified-build.log",
+    "lastProductFingerprint": "e9a216dcdea5938353a262852cfbfc8d400e16f50f210a1e676d4873fa4a4e7b"
+  },
+  "physicalAcceptance": false,
+  "audits": "paused",
+  "completion": "All65 feature families partial; no tactical completion or source-parity percentage."
+}
