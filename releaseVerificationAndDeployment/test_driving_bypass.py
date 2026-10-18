@@ -364,3 +364,18 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
         self.assertNotIn('call CBE_fnc_DrivingBypassPlan',commit)
         self.assertNotIn('lineIntersects',commit)
         self.assertNotIn('sleep',commit)
+
+    def test_release_computes_authority_and_retires_only_live_episode_atomically(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text(encoding='utf-8')
+        commit=s.split('isNil {',1)[1]
+        for operation in ('private _current=','private _owned=','doStop _driver',
+                          '_operator doMove','CBE_DrivingBypass_Result','CBE_DrivingBypass_Work",nil,true'):
+            self.assertIn(operation,commit)
+        proof='getVariable ["CBE_DrivingBypass_Work",createHashMap]) isNotEqualTo _work'
+        self.assertEqual(commit.count(proof),2)
+        self.assertLess(commit.index(proof),commit.index('private _owned='))
+        self.assertGreater(commit.rindex(proof),commit.index('_operator doMove'))
+        self.assertLess(commit.rindex(proof),commit.index('private _context='))
+        self.assertTrue(s.rstrip().endswith('_retired'))
+        self.assertNotIn('sleep',commit)
+        self.assertNotIn('lineIntersects',commit)

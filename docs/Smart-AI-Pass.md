@@ -1497,3 +1497,6 @@ Measured hull clearance by itself no longer starts RETURN_SCAN. The vehicle also
 
 
 Bypass PLAN publishes its FOLLOW phase in the same short unscheduled section as the native stop/path commands. That section repeats current controller/route/crew admission, original episode/phase/deadline, both native destinations and the proposal's exact vehicle/obstacle transforms. Geometry remains outside the section. A stale proposal or superseded task cannot issue a path through a gap after its final check. This does not prove native command delivery or resolve same-value external edits; scheduled interleavings, migration and runtime cost still need physical acceptance.
+
+
+Bypass release now evaluates controller revision, native-command ownership and cleanup inside one unscheduled section with result/cooldown publication and episode retirement. It requires the same live episode and local group/vehicle on entry, and repeats those checks after native commands before deleting metadata. Replacement work survives even if a synchronous native event installs it during cleanup. Exact task/route/reservation protections remain; native reentrant side effects, same-value commands and interruption/migration still need physical testing.

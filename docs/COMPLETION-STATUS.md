@@ -1,6 +1,6 @@
 # CBE completion status
 
-Checked against the feature registry and local build evidence on 17 October 2026.
+Checked against the feature registry and local build evidence on 18 October 2026.
 CBE is not production-ready. All **65 feature families remain partial; 0/65 have full acceptance**.
 This is an acceptance count, not a claim that implementation is zero percent. The former
 implementation percentages were withdrawn because source inventories, registration and offline
@@ -10,9 +10,11 @@ Workshop-parity percentage is available.
 ## Current evidence boundary
 
 - Audits are paused by the user. No new in-game result is claimed here.
-- The latest clean review source is `48a77bb`. Its complete Release build and fixed-key signing passed; nine signatures verified and nine damaged controls were rejected again after ZIP extraction. These package checks add no behaviour acceptance.
+- Current driving source adds current-position passing joins, live return monitoring, return-entry timing and gradual static-bypass ramps. Bypass path issue and retirement use unscheduled authority checks. Native queue negotiation, stopped-merge recovery, subsystem-off cleanup observation and measured steering/performance remain incomplete.
+- The last independently verified signed Release source remains `48a77bb`, predating the current CBE work. Its complete Release build and fixed-key signing passed; nine signatures verified and nine damaged controls were rejected again after ZIP extraction. These package checks add no behaviour acceptance.
 - Recent source changes protect actor ownership across smoke, drill refill, coordinated support, crew replacement and airborne exits. Airborne execution/cleanup uses insertion episodes. CQB preserves unchanged owned MOVE through native readiness changes; opt-in bounded entry diagnostics and stronger independent visit geometry prepare later investigation. These effects remain physically unverified.
-- The latest local code validation passed **1089 tests** and all sequential offline gates.
+- The `a48a6ad4` implementation checkpoint passed **1186 tests** and all sequential offline gates.
+  Subsequent checkpoint logs and scoped limits are recorded in `AGENT-HANDOVER.md`; this count is not physical acceptance.
   The current batch adds authenticated combined-ground failure replacement, exact role/operator authority,
   owner-epoch application receipts and durable destination/recovery journals. Active route changes retire
   movement; capability checks retain the original expiry. Routine ground gunnery yields to the live role.
