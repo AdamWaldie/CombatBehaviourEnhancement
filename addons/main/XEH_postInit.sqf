@@ -34,11 +34,27 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
 },true,[],true] call CBA_fnc_addClassEventHandler;
 
 // Driving cleanup adoption stays available with tactical scheduling disabled.
+// Init/Local/GetIn/SeatSwitched install once per native vehicle; no polling or movement replay.
 ["LandVehicle","init",{
     params ["_vehicle"];
     if (isNil {_vehicle getVariable "CBE_DrivingRecovery_LocalEH"}) then {
         _vehicle setVariable ["CBE_DrivingRecovery_LocalEH",_vehicle addEventHandler ["Local",{
             _this call CBE_fnc_DrivingRecoveryAdopt;
+        }]];
+    };
+    // A crew member can board or change driving seats after locality has settled.
+    // Native vehicle events offer only those actual local seats to existing cleanup.
+    if (isNil {_vehicle getVariable "CBE_DrivingRecovery_GetInEH"}) then {
+        _vehicle setVariable ["CBE_DrivingRecovery_GetInEH",_vehicle addEventHandler ["GetIn",{
+            params ["_vehicle","_role","_actor"];
+            [_actor,true] call CBE_fnc_DrivingRecoveryCrewAdopt;
+        }]];
+    };
+    if (isNil {_vehicle getVariable "CBE_DrivingRecovery_SeatEH"}) then {
+        _vehicle setVariable ["CBE_DrivingRecovery_SeatEH",_vehicle addEventHandler ["SeatSwitched",{
+            params ["_vehicle","_first","_second"];
+            [_first,true] call CBE_fnc_DrivingRecoveryCrewAdopt;
+            [_second,true] call CBE_fnc_DrivingRecoveryCrewAdopt;
         }]];
     };
     [_vehicle,local _vehicle] call CBE_fnc_DrivingRecoveryAdopt;

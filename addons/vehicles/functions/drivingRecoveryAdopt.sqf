@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Offers an existing pending driving-release receipt to its new vehicle owner.
- * Locality / Authority: Native LandVehicle init/Local event on each machine, never remote calls.
+ * Locality / Authority: Native LandVehicle init/Local and actual driving-seat events on each machine, never remote calls.
  * Only cleanup registration is permitted; the existing exact release guards authorize commands.
  * Repeat/JIP: Every locality edge invalidates older lookup callbacks. At most five one-second
  * late-receipt or pending-flag lookups for occupied vehicles; later delivery remains unsupported.
@@ -9,7 +9,7 @@
  * 2 lookup attempt <NUMBER, 0>; 3 local epoch <NUMBER, -1>.
  * Return Value: BOOL - true only when a pending reverse receipt was offered, not physical success.
  * Current callers: XEH_postInit LandVehicle init/Local, DrivingRecoveryCrewAdopt and bounded delayed lookup.
- * Crew locality starts a fresh observation window, never a fresh movement or recovery lifetime.
+ * Crew locality/entry/seat changes start a fresh observation window, never a fresh movement or recovery lifetime.
  * Example: [truck1,local truck1] call CBE_fnc_DrivingRecoveryAdopt;
  */
 params [["_vehicle",objNull,[objNull]],["_gained",false,[true]],

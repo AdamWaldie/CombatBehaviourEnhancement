@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "a87969dc",
+  "scope": "HBQ initVehicle/start compared with CBE bootstrap and late native crew cleanup",
+  "sources": [
+    {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_initVehicle.sqf",
+      "sha256": "a779471f0fd13c55b223a07d6727b147e0b45d6139f151187f9da7e4caffdc40",
+      "review": "complete file"
+    },
+    {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_start.sqf",
+      "sha256": "7bf30fd6a7e942a4710b6c829058f9936023c6f65fa7d063408d702603c1fd4b",
+      "review": "complete file"
+    }
+  ],
+  "findings": [
+    "HBQ init marks InitDone before delayed enabled check. If disabled after the five-second delay it exits before installing Local handler; start independently checks enabled/local/alive and spawns driveAssist, unstuck, crewHold and unflip workers. Do not copy source flags as proof of later re-enablement or quiescence.",
+    "CBE installs native cleanup init/Local callbacks after settings readiness independently of tactical enablement; normal discovery and tactical scheduling remain separate. This scoped review does not prove all runtime toggle paths.",
+    "Crew can enter or change seats after the five-lookup locality observation window without another locality edge. Existing actual-seat cleanup helper was not reached by those events."
+  ],
+  "officialEventReference": "https://community.bohemia.net/wiki/Arma_3%3A_Event_Handlers",
+  "implementation": [
+    "Install guarded per-vehicle GetIn and SeatSwitched native handlers in existing LandVehicle init.",
+    "Offer entered/swapped actors to DrivingRecoveryCrewAdopt. Its actual local driver/effective-commander/local LandVehicle checks reject passengers, static weapons and remote callers.",
+    "Reuse finite observation epoch/window and deduplicated pending release ticket. No reverse, command replay, movement deadline renewal, world query or recurring worker is added."
+  ],
+  "cost": "Two native event-handler slots per LandVehicle in addition to existing Local handler; event-only callbacks. Actual runtime budget remains unmeasured.",
+  "remaining": [
+    "Event timing, delayed crew setup, same-owner seat switching and subsystem-off cleanup require physical normal/HC tests.",
+    "Receipt delivery after the finite lookup window without another native event remains unsupported.",
+    "Actual effective-commander reassignment without a seat/locality event is not covered by these new callbacks.",
+    "Whole-HBQ controller parity and measured5%median/10%p95 remain incomplete."
+  ],
+  "validation": {
+    "tests": 1293,
+    "exitCode": 0,
+    "log": ".qa/cbe-driving-seat-cleanup-adopt-build.log",
+    "packageFingerprint": "f361560c8e4f49f1ded67d9c1e2722d673e944eb542047cc075117ce9b4471bc"
+  },
+  "physicalAcceptance": false,
+  "audits": "paused"
+}
