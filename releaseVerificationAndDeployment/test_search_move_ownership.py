@@ -29,4 +29,15 @@ class SearchMoveOwnership(unittest.TestCase):
         self.assertIn('[_group,_state,_unit] call CBE_fnc_CortexSearchMoveOwned',text)
         self.assertIn('!_yieldToExternal && {_recallOwned}',text)
         self.assertIn('"searchTeam", "searchMoveReceipts",',text)
+    def test_handback_checks_and_native_recall_share_atomic_scope(self):
+        calm=source('cortexRestoreCalm.sqf').split('private _releaseOwnedHold={',1)[1].split('private _supportHeld=',1)[0]
+        self.assertLess(calm.index('isNil {'),calm.index('CBE_fnc_CortexSearchMoveOwned'))
+        self.assertLess(calm.index('CBE_fnc_CortexSearchMoveOwned'),calm.index('_unit doFollow _leader'))
+        self.assertIn('private _leader=[_group] call CBE_fnc_CortexGroupAnchor',calm)
+        self.assertIn('!isNull _leader',calm)
+        tick=source('cortexGroupTick.sqf')
+        contact=tick.split('private _beginContact = {',1)[1].split('call _enterContact;',1)[0]
+        self.assertLess(contact.index('isNil {'),contact.index('CBE_fnc_CortexSearchMoveOwned'))
+        self.assertIn('_leader == leader _group',contact)
+        self.assertIn('isEqualTo _state',contact)
 if __name__=='__main__': unittest.main()

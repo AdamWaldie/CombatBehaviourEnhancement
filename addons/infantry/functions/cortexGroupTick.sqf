@@ -889,11 +889,15 @@ private _beginContact = {
     };
     if ([] call _mayIssueMovement) then {
         {
+            isNil {
             if (alive _x && {local _x}
+                && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                && {_leader == leader _group} && {[_leader] call CBE_fnc_CortexCombatEffective}
                 && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
                 && {!(_x call _hasLiveActorMove)}
                 && {[_group,_state,_x] call CBE_fnc_CortexSearchMoveOwned}) then {
                 _x doFollow _leader
+            };
             };
         } forEach (_state getOrDefault ["searchTeam", []]);
     };
@@ -1319,7 +1323,9 @@ switch (_state get "phase") do {
             || {_now - (_state get "phaseStart") > (["CBE_AIPass_PostContact_SearchSeconds", 45] call _get)};
         if (_done) then {
             if ([] call _mayIssueMovement) then {
-                {isNil {if ([_group,_state,_x] call CBE_fnc_CortexSearchMoveOwned) then {_x doFollow _leader}}} forEach (_team select {!(_x call _hasLiveActorMove)});
+                {isNil {if ((_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state
+                    && {_leader == leader _group} && {[_leader] call CBE_fnc_CortexCombatEffective}
+                    && {[_group,_state,_x] call CBE_fnc_CortexSearchMoveOwned}) then {_x doFollow _leader}}} forEach (_team select {!(_x call _hasLiveActorMove)});
             };
             _state set ["searchTeam", []];
     _state deleteAt "searchMoveReceipts";

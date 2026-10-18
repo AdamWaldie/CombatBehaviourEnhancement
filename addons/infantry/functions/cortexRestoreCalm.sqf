@@ -85,6 +85,8 @@ private _releaseOwnedHold={
     params ["_unit",["_restorePath",true],["_returnSearchTeam",false]];
     // Only the actual legacy PATH marker proves that this cleanup disabled PATH.
     // A historical list entry or an ordinary doStop holder is not such a lease.
+    isNil {
+    private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
     private _pathOwned=_restorePath && {_unit getVariable ["CBE_Cortex_SupportPathHold",false]};
     if (local _unit && {group _unit == _group} && {!isPlayer _unit}
         && {isNull (remoteControlled _unit)} && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
@@ -102,6 +104,7 @@ private _releaseOwnedHold={
             [_group,_state,_unit] call CBE_fnc_CortexSearchMoveOwned
         } else {_ownedHold};
         if (!_yieldToExternal && {_recallOwned}
+            && {!isNull _leader} && {[_leader] call CBE_fnc_CortexCombatEffective}
             && {isNull objectParent _unit} && {[_unit] call CBE_fnc_CortexCombatEffective}
             && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
             && {!([_group] call CBE_fnc_CortexZeusHeld)}
@@ -109,6 +112,7 @@ private _releaseOwnedHold={
             && {[_unit] call _actorMoveFree}) then {
             _unit doFollow _leader;
         };
+    };
     };
 };
 private _supportHeld=_state getOrDefault ["supportHeld",[]];
