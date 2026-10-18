@@ -1011,3 +1011,9 @@ The normal tracked/mixed30m matrix cases now require a real3..8m finished-endpoi
 When an exact owned reverse cannot hand back because vehicle mobility or simulation is unavailable, ordinary-driving release now preserves its original speed-cap state and restoration baseline alongside the matching pending recovery journal. A deferred return is not treated as completed cleanup. Later existing driving callbacks can finish the same journal before new assistance; they do not recreate the rear leg or renew its deadlines. A retired, replaced or non-pending journal does not gain this protection, and the existing exact cap/newer-controller checks still govern final restoration.
 
 This adds no observer or timer. Recovery while the entire driving subsystem remains stopped still lacks a guaranteed observation path. Physical immobility/repair, simulation changes, repeated release, owner migration and newer external caps remain unaccepted while audits are paused.
+
+### Vehicle-owner shutdown cleanup
+
+Each machine now runs shutdown vehicle cleanup only for vehicles it actually owns, before interface clients take their tactical early exit. The server retains global support and artillery bookkeeping, but does not erase an HC or interface owner's vehicle restoration tokens. The vehicle owner handles its driving cap, unload policy, safe-stop baseline, onboard danger, delayed relocation token and aircraft presentation cleanup. Existing exact speed-cap and local-state checks remain; no remote cleanup endpoint or recurring observer is added.
+
+This repairs the shutdown dispatch boundary, not every cleanup policy. Native owner migration during shutdown, external-controller replacement, deferred reverse while simulation remains off and late CBA state delivery still require physical acceptance. The administrative vehicle pass scales with world vehicle count per participating machine; no runtime performance budget is claimed.

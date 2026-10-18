@@ -2609,7 +2609,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_cortex_stop_invalidates_delayed_vehicle_actions(self):
         stop=source('cortexStop')
-        self.assertIn('} forEach vehicles;',stop)
+        self.assertIn('} forEach (vehicles select {local _x});',stop)
         for variable in ['CBE_Cortex_ArtilleryScootToken','CBE_Cortex_ArtilleryScootDeadline','CBE_Cortex_ArtilleryScootPurpose','CBE_Cortex_AttackFlarePhase','CBE_Cortex_AttackFlareCooldown']:
             self.assertIn('setVariable ["'+variable+'",nil,true]',stop)
         self.assertIn('old CBA callback cannot become valid again after a quick restart',stop)
