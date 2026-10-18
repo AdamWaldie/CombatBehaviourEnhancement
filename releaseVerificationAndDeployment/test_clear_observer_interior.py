@@ -27,3 +27,28 @@ class ClearObserverInteriorTests(unittest.TestCase):
         self.assertIn('private _clear=_hits isEqualTo [];',s)
         self.assertEqual(s.count('_job set ["roomGeometryChecksLast",0]'),1)
         self.assertLess(s.index('_job set ["roomGeometryChecksLast",0]'),s.index('private _observerInside='))
+
+    def test_roof_limit_uses_all_model_corners_in_world_space_once_per_callback(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        observer=s.split('private _observerInside={',1)[1].split('private _roomSegmentClear=',1)[0]
+        self.assertIn('if (_roomBuildingBounds isEqualTo [])',observer)
+        self.assertIn('if (_roomRoofTop == -1e12)',observer)
+        for axis in range(3):
+            self.assertIn(f'forEach [_low select {axis},_high select {axis}]',observer)
+        self.assertIn('modelToWorldWorld [_cx,_cy,_x]',observer)
+        self.assertIn('_roomRoofTop max (_corner select 2)',observer)
+        self.assertIn('[_actual select 0,_actual select 1,_roomRoofTop]',observer)
+        self.assertNotIn('_actual vectorAdd [0,0,10]',observer)
+        self.assertEqual(observer.count('lineIntersectsSurfaces'),1)
+
+    def test_corner_max_covers_tall_and_tilted_roofs_without_nearest_hit_shortcut(self):
+        import itertools
+        # Vertical projection of an affine model transform attains its maximum at a corner.
+        for low,high,origin,up in [((-5,-8,0),(5,8,25),100,(0,0,1)),
+                                   ((-4,-6,-2),(4,6,18),30,(0.3,-0.4,0.866))]:
+            top=max(origin+sum(c*v for c,v in zip(corner,up))
+                    for corner in itertools.product(*zip(low,high)))+1
+            for fractions in itertools.product((0,0.25,0.5,0.75,1),repeat=3):
+                point=[a+(b-a)*f for a,b,f in zip(low,high,fractions)]
+                self.assertGreater(top,origin+sum(c*v for c,v in zip(point,up)))
+        self.assertGreater(25,10)

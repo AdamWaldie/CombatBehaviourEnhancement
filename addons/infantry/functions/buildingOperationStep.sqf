@@ -110,6 +110,8 @@
  * Public receipts retain the search count and coverage across owner replay.
  * The first entry-failure cause is recorded once per operation, with physical participation
  * at the failure boundary; terminal diagnostics retain it without changing acceptance.
+ * Roof observation reaches the transformed model bounds, including tall interiors; bounds
+ * and the eight-corner roof limit are computed lazily once per callback.
  * Room receipts/holds require an unobstructed target-building segment, with at most sixteen
  * geometry probes per callback, cached at the current pose and rotating worker observation order.
  * Egress uses at most four native proposals per admitted worker across real entrances,
@@ -307,22 +309,40 @@ private _delay=call {
     private _roomGeometryBudget=16;
     _job set ["roomGeometryChecksLast",0];
     private _interiorObservers=createHashMap;
+    private _roomBuildingBounds=[];
+    private _roomRoofTop=-1e12;
     private _observerInside={
         params ["_actor"];
         private _actual=getPosASL _actor;
         private _key=str [netId _actor,_actual];
         if (_key in _interiorObservers) exitWith {_interiorObservers get _key};
         private _house=_job get "building";
-        private _bounds=boundingBoxReal _house;
+        if (_roomBuildingBounds isEqualTo []) then {_roomBuildingBounds=boundingBoxReal _house};
+        private _bounds=_roomBuildingBounds;
         private _model=_house worldToModel (getPosATL _actor);
         private _low=_bounds select 0;private _high=_bounds select 1;
         private _inside=(_model select 0) >= (_low select 0) && {(_model select 0) <= (_high select 0)}
             && {(_model select 1) >= (_low select 1)} && {(_model select 1) <= (_high select 1)}
             && {(_model select 2) >= (_low select 2)-0.5} && {(_model select 2) <= (_high select 2)};
         if (!_inside || {_roomGeometryBudget <= 0} || {!call _mayIssueMovement}) exitWith {false};
+        // Fixed ten-metre rays misclassify tall valid interiors. Transform all eight
+        // model corners so rotated/sloped placements retain a world-vertical upper bound.
+        if (_roomRoofTop == -1e12) then {
+            {
+                private _cx=_x;
+                {
+                    private _cy=_x;
+                    {
+                        private _corner=_house modelToWorldWorld [_cx,_cy,_x];
+                        _roomRoofTop=_roomRoofTop max (_corner select 2);
+                    } forEach [_low select 2,_high select 2];
+                } forEach [_low select 1,_high select 1];
+            } forEach [_low select 0,_high select 0];
+            _roomRoofTop=_roomRoofTop+1;
+        };
         _roomGeometryBudget=_roomGeometryBudget-1;
         private _roof=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.5],
-            _actual vectorAdd [0,0,10],_actor,objNull,true,4,"GEOM","NONE"];
+            [_actual select 0,_actual select 1,_roomRoofTop],_actor,objNull,true,4,"GEOM","NONE"];
         private _ownedRoof=_roof isNotEqualTo [] && {
             private _nearest=_roof select 0;
             (_nearest select 2) == _house || {(_nearest select 3) == _house}
