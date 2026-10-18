@@ -3,6 +3,8 @@
  * Purpose: Checks queue roster/role topology and optionally each actual local owner row.
  * Locality/authority: Read-only anywhere; localRows requires real local crew/group/brain and native-route eligibility. Snapshot topology is not owner consent.
  * Repeat/JIP: No state/commands/handlers; re-read before every deferred protocol action.
+ * Total finite linear velocity must remain below1km/h, including lateral/vertical motion.
+ * This instantaneous test grants neither an execution hold nor physical READY.
  * Arguments: 0 vehicles ARRAY [];1 roles ARRAY [];2 dependencies ARRAY [];3 context ARRAY [];4 localRows BOOL false.
  * Return: BOOL current proposal observation, never execution authority.
  * Current callers: DrivingQueueAgreementRequest/Server/Owner.
@@ -45,7 +47,9 @@ for "_i" from 0 to (_n-1) do {
         || {((_ap select 1) vectorDotProduct (_ep select 1)) < cos 5}
         || {((_ap select 2) vectorDotProduct (_ep select 2)) < cos 5}) exitWith {_valid=false};
     private _vehicle=_vehicles select _i;private _driver=driver _vehicle;private _group=group _driver;
-    if (_group in _groups || {abs speed _vehicle >= 1} || {!canMove _vehicle}
+    // speed measures only model-forward motion; lateral sliding/falling must revoke admission too.
+    private _queueLinearSpeed=vectorMagnitude velocity _vehicle;
+    if (_group in _groups || {!finite _queueLinearSpeed} || {_queueLinearSpeed >= (1/3.6)} || {!canMove _vehicle}
         || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
         || {_vehicle getVariable ["CBE_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}) exitWith {_valid=false};

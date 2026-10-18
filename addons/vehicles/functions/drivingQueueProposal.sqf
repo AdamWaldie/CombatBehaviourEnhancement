@@ -5,6 +5,8 @@
  * consent. Remote participant eligibility is observational; actual-owner ACK is separately brokered; a native
  * execution/cleanup FSM remains required and unimplemented. No movement, reservations or speed writes.
  * Repeat/JIP: Stateless fresh proposal, expires within original retry deadline and two seconds.
+ * Stationary admission requires total finite linear velocity below1km/h, not only forward-axis speed.
+ * This instantaneous observation is not a physically settled HOLD/READY receipt.
  * At most one120m dead-inclusive vehicle query/64 candidates; overflow/fifth chain member refuses.
  * Arguments:0 initiator <OBJECT>,objNull;1 opposing limiting peer <OBJECT>,objNull;
  * 2 original episode deadline <NUMBER>,-1,serverTime. Caller supplies continuous jam dwell.
@@ -21,7 +23,9 @@ private _at=serverTime;
 private _observedEligible={
     params ["_object"];
     if (isNull _object || {!alive _object} || {!canMove _object} || {!simulationEnabled _object}
-        || {isObjectHidden _object} || {!(_object isKindOf "LandVehicle")} || {abs speed _object >= 1}
+        || {isObjectHidden _object} || {!(_object isKindOf "LandVehicle")}
+        || {private _queueLinearSpeed=vectorMagnitude velocity _object;
+            !finite _queueLinearSpeed || {_queueLinearSpeed >= (1/3.6)}}
         || {_object getVariable ["CBE_Convoy_Active",false]}
         || {!isNil {_object getVariable "CBE_ExternalDrivingOwner"}}) exitWith {false};
     private _driver=driver _object;private _operator=effectiveCommander _object;

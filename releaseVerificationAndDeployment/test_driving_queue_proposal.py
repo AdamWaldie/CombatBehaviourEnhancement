@@ -99,3 +99,20 @@ class QueueProposalTests(unittest.TestCase):
         current=(ROOT/'addons/vehicles/functions/drivingQueueProposalCurrent.sqf').read_text(encoding='utf-8')
         self.assertIn('_passBusy=!_typed || {serverTime <',current)
         self.assertIn('(_pass select 4) == "AGREED"',current)
+
+    def test_stationarity_uses_total_finite_velocity_in_proposal_and_deferred_validation(self):
+        for name,actor in (('drivingQueueProposal','_object'),('drivingQueueProposalCurrent','_vehicle')):
+            text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            self.assertIn(f'private _queueLinearSpeed=vectorMagnitude velocity {actor}',text)
+            self.assertIn('!finite _queueLinearSpeed',text)
+            self.assertIn('_queueLinearSpeed >= (1/3.6)',text)
+            self.assertNotIn(f'abs speed {actor}',text)
+        # Forward-axis speed can be zero during fast translation in either other axis.
+        # The norm keeps the original1km/h threshold independent of vehicle orientation.
+        import math
+        threshold=1/3.6
+        for velocity in ((2,0,0),(0,0,-2),(0,-0.5,0),(0.2,0.2,0)):
+            self.assertGreaterEqual(math.hypot(*velocity),threshold)
+        for velocity in ((0,0,0),(0.2,0,0),(0,0.2,0),(0,0,-0.2)):
+            self.assertLess(math.hypot(*velocity),threshold)
+        self.assertEqual(math.hypot(0.3,0.4,0),math.hypot(0,0,0.5))
