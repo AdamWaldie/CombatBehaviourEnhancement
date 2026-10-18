@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Completes a matching CBE operation after its physical outcome is known.
- * Locality/authority: Current group owner only.
+ * Locality/authority: Current group owner only; final retirement rechecks the captured
+ * operation generation, entry epoch and exact operation after cleanup.
  * Repeat/JIP: A replaced, previous-owner or externally claimed operation is not reported as complete. The completion record is public.
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 result <STRING, COMPLETE>; 3 reason <STRING, COMPLETE>.
  * Return Value: BOOL - true when the matching operation was released.
@@ -11,6 +12,8 @@
 params [["_group",grpNull,[grpNull]],["_generation",-1,[0]],["_result","COMPLETE",[""]],["_reason","COMPLETE",[""]]];
 if (isNull _group || {!local _group}) exitWith {false};
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
+private _entryEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _operationEpoch=_operation getOrDefault ["ownerEpoch",-1];
 if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _generation}) exitWith {false};
 if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])) exitWith {false};
 // Completion queued before a takeover is no longer an owned physical outcome. Retire only the
@@ -31,8 +34,27 @@ if (_operation getOrDefault ["dangerPosture",false]) then {
     if (isNull _dangerActor) then {_dangerActor=leader _group};
     [_dangerActor,"RELEASE"] call CBE_fnc_DangerReact;
 };
-_group setVariable ["CBE_Operation",nil,true];
-_group setVariable ["CBE_OperationResult",[_operation getOrDefault ["intent",""],toUpperANSI _result,_generation,serverTime,toUpperANSI _reason],true];
+// Cleanup can yield or trigger a successor. Retire only the operation captured at entry.
+private _retired=false;
+private _lateTakeover=false;
+isNil {
+    private _current=_group getVariable ["CBE_Operation",createHashMap];
+    if (local _group && {_entryEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_current getOrDefault ["generation",-2]) == _generation}
+        && {(_current getOrDefault ["ownerEpoch",-2]) == _operationEpoch}
+        && {_current isEqualTo _operation}) then {
+        if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {_lateTakeover=true};
+        _group setVariable ["CBE_Operation",nil,true];
+        _group setVariable ["CBE_OperationResult",[_operation getOrDefault ["intent",""],toUpperANSI _result,_generation,serverTime,toUpperANSI _reason],true];
+        _retired=true;
+    };
+};
+if (_lateTakeover) exitWith {
+    private _handoverReason=["EXTERNAL","ZEUS"] select ([_group] call CBE_fnc_CortexZeusHeld);
+    [_group,_generation,_handoverReason] call CBE_fnc_OperationCancel;
+    false
+};
+if (!_retired) exitWith {false};
 // Completion can return a group directly to a still-live contact. Reclassify only that existing
 // bounded context after the movement owner is gone, so the group keeps its combat posture without
 // receiving a second route, target or firing controller. External ownership is rejected downstream.
