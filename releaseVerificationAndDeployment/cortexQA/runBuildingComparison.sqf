@@ -12,6 +12,9 @@
  * independently of production visit receipts; proximity/audio interior alone cannot pass.
  * Native door diagnostics retry each method/model's first physically missed node with all unlocked
  * doors open; original failures remain, and no production clearance receives door assistance.
+ * Normal-owner authored handover matrix requires real active/completed clearance, both actors
+ * physically travelling, and retained HOLD/gated-MOVE metadata before cleanup. It injects no
+ * hold record or movement reset. These prepared cases do not count as engine acceptance.
  * Repeat/JIP: disposable actors and houses are removed; observer state is public for joining clients.
  * Normal-owner clearance records at most 24 native path events per actor, eight seconds apart,
  * with at most 24 path points plus the final point. Local diagnostic handlers are removed before
@@ -2171,3 +2174,106 @@ missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _overrideMembers;
 deleteGroup _overrideGroup;
 deleteVehicle _overrideHouse;
+
+// Native waypoint handover matrix: real clearance prerequisites, never fabricated holds.
+if (!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])) then {
+    private _handoverCase=0;
+    {
+        private _postClear=_x;
+        {
+            private _task=_x;
+            private _prefix=format ["CLEAR-native-%1-%2",["ACTIVE","POST"] select _postClear,_task];
+            private _site=[8050+(_handoverCase*200),6100,0];
+            _handoverCase=_handoverCase+1;
+            private _house=createVehicle ["Land_i_House_Small_01_V1_F",_site,[],0,"NONE"];
+            [_house,_prefix] call _validateNewFixturePlacement;
+            private _group=createGroup [east,true];
+            _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
+            _group setVariable ["acex_headless_blacklist",true,true];
+            private _members=[];
+            for "_i" from 0 to 1 do {
+                private _actor=_group createUnit ["O_Soldier_F",_site vectorAdd [_i*3,-30,0],[],0,"NONE"];
+                _actor setVariable ["CBE_CortexQA_Label",format ["%1 %2",_prefix,_i+1],true];
+                _members pushBack _actor;
+            };
+            missionNamespace setVariable ["CBE_CortexQA_Actors",_members,true];
+            [_prefix,"A real clearance supplies its own movement or final STOP holds. A new authored HOLD or condition-gated MOVE must take over natively. Both soldiers must physically travel; waypoint type, condition and current index must remain unchanged. No test-side follow, stop, teleport or completion is injected.",getPosATL _house] call _phase;
+            private _rooms=(_house buildingPos -1) select {
+                private _asl=AGLToASL _x;
+                private _roof=lineIntersectsSurfaces [_asl vectorAdd [0,0,0.5],_asl vectorAdd [0,0,10],objNull,objNull,true,1,"GEOM","NONE"];
+                _roof isNotEqualTo [] && {((_roof select 0) select 2) == _house || {((_roof select 0) select 3) == _house}}
+            };
+            private _visits=_rooms apply {false};
+            private _entered=[];
+            private _observe={
+                {
+                    private _room=_x;private _roomIndex=_forEachIndex;
+                    {
+                        if ([_x,_house,_room] call _observedRoomVisit) then {
+                            _visits set [_roomIndex,true];_entered pushBackUnique _x;
+                        };
+                    } forEach _members;
+                } forEach _rooms;
+            };
+            private _starts=_members apply {getPosATL _x};
+            private _accepted=[_group,_house] call CBE_fnc_CortexClearBuilding;
+            private _ready=[{
+                call _observe;
+                if (_postClear) then {
+                    ((_group getVariable ["CBE_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"
+                        && {count _entered == count _members} && {_visits isNotEqualTo []}
+                        && {_visits findIf {!_x} < 0}
+                        && {count (_group getVariable ["CBE_Cortex_ClearHold",[]]) == 4}
+                        && {_members findIf {currentCommand _x != "STOP"} < 0}
+                } else {
+                    private _leader=leader _group;
+                    private _job=(_group getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+                    private _leaderIndex=_members find _leader;
+                    _leaderIndex >= 0 && {netId _leader in (_job getOrDefault ["movementTargets",createHashMap])}
+                        && {currentCommand _leader == "MOVE"} && {_leader distance2D (_starts select _leaderIndex) >= 2}
+                }
+            },[25,180] select _postClear] call _wait;
+            [_prefix+"-real-clearance-prerequisite",_accepted && {_ready},
+                str [_group getVariable ["CBE_Cortex_ClearResult",[]],_entered,_visits]] call _check;
+            private _travelled=false;private _retained=false;private _retired=false;
+            if (_accepted && {_ready}) then {
+                private _origins=_members apply {getPosATL _x};
+                private _destination=_site vectorAdd [75,-25,0];
+                private _waypoint=_group addWaypoint [_destination,0];
+                _waypoint setWaypointType (["MOVE","HOLD"] select (_task == "HOLD"));
+                _waypoint setWaypointSpeed "NORMAL";
+                if (_task == "GATED_MOVE") then {_waypoint setWaypointStatements ["false",""]};
+                _group setCurrentWaypoint _waypoint;
+                private _receipt=[_group] call CBE_fnc_NativeOrderReceipt;
+                _travelled=[{
+                    _members findIf {
+                        private _origin=_origins select (_members find _x);
+                        !alive _x || {!simulationEnabled _x} || {isObjectHidden _x}
+                            || {!isNull objectParent _x} || {_x distance2D _origin < 15}
+                            || {(_origin distance2D _destination)-(_x distance2D _destination) < 10}
+                    } < 0 && {(leader _group) distance2D _destination <= 15}
+                },75] call _wait;
+                private _stableUntil=diag_tickTime+8;
+                _retained=true;
+                waitUntil {
+                    if (([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _receipt
+                        || {currentWaypoint _group != (_waypoint select 1)}
+                        || {!alive leader _group} || {(leader _group) distance2D _destination > 20}) then {_retained=false};
+                    sleep 0.5;diag_tickTime >= _stableUntil
+                };
+                _retired=!(_group getVariable ["CBE_AIPass_ClearBuilding",false])
+                    && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+                    && {(_group getVariable ["CBE_Cortex_ClearHold",[]]) isEqualTo []};
+            };
+            [_prefix+"-physical-travel",_accepted && {_ready} && {_travelled},
+                str (_members apply {[getPosATL _x,currentCommand _x,expectedDestination _x]})] call _check;
+            [_prefix+"-native-waypoint-retained",_ready && {_travelled} && {_retained}] call _check;
+            [_prefix+"-old-clearance-retired",_ready && {_retired}] call _check;
+            // Cleanup occurs only after every independent handover observation above.
+            [_group] call CBE_fnc_CortexClearRelease;
+            missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+            {deleteVehicle _x} forEach _members;
+            deleteGroup _group;deleteVehicle _house;
+        } forEach ["HOLD","GATED_MOVE"];
+    } forEach [false,true];
+};

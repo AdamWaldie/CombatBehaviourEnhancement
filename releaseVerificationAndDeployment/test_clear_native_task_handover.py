@@ -19,3 +19,23 @@ class ClearNativeTaskHandoverTests(unittest.TestCase):
         self.assertNotIn('waypointPosition',handback)
         for forbidden in ('addWaypoint','deleteWaypoint','setCurrentWaypoint','joinSilent','enableAI'):
             self.assertNotIn(forbidden,handback)
+
+    def test_prepared_native_matrix_requires_real_clearance_travel_and_retained_waypoint(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        matrix=s.split('// Native waypoint handover matrix:',1)[1]
+        for requirement in ('CBE_CortexQA_HeadlessBatch','call CBE_fnc_CortexClearBuilding',
+                            'call _observedRoomVisit','count _entered == count _members',
+                            '_visits findIf {!_x} < 0','currentCommand _x != "STOP"',
+                            'movementTargets','_leader distance2D (_starts select _leaderIndex) >= 2',
+                            'forEach ["HOLD","GATED_MOVE"]','forEach [false,true]',
+                            'setWaypointStatements ["false",""]','_x distance2D _origin < 15',
+                            'distance2D _destination) < 10','currentWaypoint _group != (_waypoint select 1)',
+                            'diag_tickTime+8','isNotEqualTo _receipt',
+                            '(leader _group) distance2D _destination > 20',
+                            'getVariable ["CBE_Cortex_ClearHold",[]]) isEqualTo []'):
+            self.assertIn(requirement,matrix)
+        observe=matrix.split('// Cleanup occurs only',1)[0]
+        for shortcut in ('doMove','doFollow','doStop','setPos','call _finish',
+                         'setVariable ["CBE_Cortex_ClearHold"','setVariable ["CBE_Cortex_ClearResult"'):
+            self.assertNotIn(shortcut,observe)
+        self.assertLess(matrix.index('"-native-waypoint-retained"'),matrix.index('call CBE_fnc_CortexClearRelease'))

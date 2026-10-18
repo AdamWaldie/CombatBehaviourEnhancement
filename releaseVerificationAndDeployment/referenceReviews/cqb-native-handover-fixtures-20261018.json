@@ -1,0 +1,63 @@
+{
+  "prepared": "2026-10-18",
+  "baselineCommit": "16e5d8bd",
+  "scope": "Normal-owner physical acceptance matrix for CQB native order handover",
+  "source": {
+    "path": "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf",
+    "sha256": "937499b15f247fcd4c2edc8d558b135503033508c099f7f3357241fcdc75b37c"
+  },
+  "cases": [
+    {
+      "stage": "ACTIVE_CLEARANCE",
+      "nextTask": "HOLD",
+      "status": "PREPARED_NOT_RUN"
+    },
+    {
+      "stage": "ACTIVE_CLEARANCE",
+      "nextTask": "CONDITION_GATED_MOVE",
+      "status": "PREPARED_NOT_RUN"
+    },
+    {
+      "stage": "COMPLETED_CLEARANCE",
+      "nextTask": "HOLD",
+      "status": "PREPARED_NOT_RUN"
+    },
+    {
+      "stage": "COMPLETED_CLEARANCE",
+      "nextTask": "CONDITION_GATED_MOVE",
+      "status": "PREPARED_NOT_RUN"
+    }
+  ],
+  "requiredEvidence": [
+    "Active prerequisite: production owns leader MOVE and actual displacement from that leader own origin >=2m.",
+    "Completed prerequisite: production complete plus independent room visit geometry, both actors entry and actual STOP hold.",
+    "Both soldiers travel >=15m and improve toward new destination >=10m; leader reaches <=15m.",
+    "Full native waypoint receipt/current index persist8s and leader remains within20m.",
+    "Old clear flag, order and hold retire before cleanup."
+  ],
+  "safeguards": [
+    "Normal-only, server-pinned groups; HC batch excluded.",
+    "No test-side hold/outcome assignment, movement reset, follow/stop, teleport, forced completion or door assistance.",
+    "Missing clearance prerequisite fails the case; it cannot grant handover success.",
+    "Cleanup only after all observations."
+  ],
+  "validation": {
+    "log": ".qa/cbe-native-handover-fixtures-resumed-build.log",
+    "tests": 1124,
+    "compiledSQF": 313,
+    "PBOs": 9,
+    "exitCode": 0,
+    "fingerprint": "2c8a534f270a98b8154d280066edeec5f976a39e7cbf971043ffc8ec5d97e47a"
+  },
+  "interruptedBuild": {
+    "log": ".qa/cbe-native-handover-fixtures-final-build.log",
+    "state": "Session44024 missing after environment transition; no matching build process or final seal receipt. Not counted as completed."
+  },
+  "physicalAcceptance": false,
+  "auditsLaunched": false,
+  "remaining": [
+    "Run these cases only when audits are resumed.",
+    "Attached or moving-object MOVE, scripted task, unavailable actors and owner migration need additional physical variants.",
+    "Prepared checks do not establish entry coherence, tactical clearance, performance or universal waypoint support."
+  ]
+}
