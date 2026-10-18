@@ -16,8 +16,8 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
                       '(expectedDestination driver _vehicle) isEqualTo (_nativeReceipt select 2)',
                       '(expectedDestination _movementOperator) isEqualTo (_nativeReceipt select 3)'):
             self.assertIn(guard,block)
-        self.assertIn('distance2D _destination > 8} || {_finishedLeg}',text)
-        branch=text.split('distance2D _destination > 8} || {_finishedLeg}',1)[1].split('_progress set [2, time + 1]',1)[0]
+        self.assertIn('count _committedDestination < 2 || {_refreshNative} || {_finishedLeg}',text)
+        branch=text.split('count _committedDestination < 2 || {_refreshNative} || {_finishedLeg}',1)[1].split('_progress set [2, time + 1]',1)[0]
         self.assertLess(branch.index('call _mayIssueDriving'),branch.index('_movementOperator doMove'))
         self.assertIn('_progress set [10,[driver _vehicle,_movementOperator',branch)
 
@@ -71,3 +71,21 @@ class ConvoyNativeIssueEvidenceTests(unittest.TestCase):
         self.assertIn('UNAVAILABLE_REMOTE_OWNER',fixture)
         self.assertIn('CBE CORTEX QA CONVOY NATIVE ISSUES:',fixture)
         self.assertIn('_nativeIssueSeen set [_key,[_last select 1,_last select 0]]',fixture)
+
+    def test_straight_native_goal_keeps_planner_until_existing_approach_envelope(self):
+        text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        gate=text.split('private _nativeRoute=[_group]',1)[1].split('if (count _committedDestination < 2 || {_refreshNative}',1)[0]
+        for guard in ('_straightPath','!_bypassPassageActive','_frontSpeed > 2',
+                      '(_progress param [13,[],[[]]]) isEqualTo _nativeRoute',
+                      'expectedDestination driver _vehicle','expectedDestination _movementOperator',
+                      '_advanceAngle <= 5','finite _motion','finite _issuedMotion',
+                      '_motion max _issuedMotion','2*_deceleration','_remainingNative > _refreshRoom'):
+            self.assertIn(guard,gate)
+        self.assertIn('_refreshNative=false',gate)
+        self.assertIn('_progress set [14,_approachSpeed]',gate)
+        for forbidden in ('doMove','setDriveOnPath','forceSpeed','setVelocity'):
+            self.assertNotIn(forbidden,gate)
+        recovery=text.split('_movementOperator doMove _recoveryTarget;',1)[1].split('// This is our own successor MOVE',1)[0]
+        self.assertIn('_progress set [5,+_recoveryTarget]',recovery)
+        self.assertIn('_progress set [13,[_group] call CBE_fnc_NativeOrderReceipt]',recovery)
+        self.assertIn('_progress set [14,vectorMagnitude velocity _vehicle]',recovery)

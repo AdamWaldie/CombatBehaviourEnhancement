@@ -5939,7 +5939,9 @@ class CortexOperations(unittest.TestCase):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
         native=text.split('if (_native && {_path isNotEqualTo []}) then {',1)[1].split('_progress set [2, time + 1];',1)[0]
         self.assertIn('private _committedDestination=_progress param [5,[]];',native)
-        self.assertIn('_committedDestination distance2D _destination > 8',native)
+        self.assertIn('private _refreshNative=_goalAdvance > 8;',native)
+        self.assertIn('_remainingNative > _refreshRoom',native)
+        self.assertIn('(_progress param [13,[],[[]]]) isEqualTo _nativeRoute',native)
         self.assertNotIn('currentCommand driver _vehicle in ["","STOP"]',native)
         self.assertIn('_progress set [5,+_destination];',native)
         self.assertEqual(native.count('_movementOperator doMove _destination;'),1)

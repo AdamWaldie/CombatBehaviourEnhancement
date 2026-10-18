@@ -14,6 +14,8 @@
  * Native acceleration, shared cruise/terrain limits, immediate closing caps and reverse yields remain authoritative.
  * Follower curve/grade caps persist between path refreshes until fresh trail geometry replaces them;
  * disabling convoy driving assist clears that local cap without changing native route ownership.
+ * Native straight-leg refresh preserves an unchanged committed goal while its reaction/braking
+ * approach room remains. Peak observed leg speed prevents a shrinking envelope during endpoint braking.
  * Native lead retry and finished-leg continuation require finite total linear and angular rest;
  * sideways drift or active rotation is not a stopped endpoint. Capture retains both motion vectors.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
@@ -1079,6 +1081,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         // Keep one movement controller during bounded recovery.
                         if (_native) then {
                             _movementOperator doMove _recoveryTarget;
+                            _progress set [5,+_recoveryTarget];
+                            _progress set [13,[_group] call CBE_fnc_NativeOrderReceipt];
+                            _progress set [14,vectorMagnitude velocity _vehicle];
                             // This is our own successor MOVE, not an external diversion.
                             // Refresh the same seat/destination receipt used by normal commits.
                             _progress set [10,[driver _vehicle,_movementOperator,
@@ -1264,8 +1269,40 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         getPosASL _vehicle,speed _vehicle,unitReady _movementOperator,
                         currentCommand _movementOperator,+_nativeReceipt,+(velocity _vehicle),+(angularVelocity _vehicle)];
                 };
-                if (count _committedDestination < 2
-                    || {_committedDestination distance2D _destination > 8} || {_finishedLeg}) then {
+                // An advancing point on the same straight leg is not itself a reason to
+                // cancel a native planner that still has approach room. Reuse the existing
+                // four-second reaction/deceleration model; preserve peak leg speed so native
+                // endpoint braking cannot shrink the refresh envelope away from the vehicle.
+                private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+                private _goalAdvance=if (count _committedDestination == 3) then {_committedDestination distance2D _destination} else {0};
+                private _refreshNative=_goalAdvance > 8;
+                if (_refreshNative && {_straightPath} && {!_bypassPassageActive} && {_frontSpeed > 2}
+                    && {count _committedDestination == 3} && {count _nativeReceipt == 4}
+                    && {(_progress param [13,[],[[]]]) isEqualTo _nativeRoute}
+                    && {(_nativeReceipt select 0) == driver _vehicle}
+                    && {(_nativeReceipt select 1) == _movementOperator}
+                    && {(expectedDestination driver _vehicle) isEqualTo (_nativeReceipt select 2)}
+                    && {(expectedDestination _movementOperator) isEqualTo (_nativeReceipt select 3)}
+                    && {currentCommand _movementOperator in ["","MOVE"]}
+                    && {abs ((_committedDestination select 2)-(_destination select 2)) <= 1.5}) then {
+                    private _towardOld=_vehicle getDir _committedDestination;
+                    private _towardNew=_committedDestination getDir _destination;
+                    private _advanceAngle=abs (((_towardNew-_towardOld+540) mod 360)-180);
+                    private _motion=vectorMagnitude velocity _vehicle;
+                    private _issuedMotion=_progress param [14,-1,[0]];
+                    if (_advanceAngle <= 5 && {finite _motion} && {finite _issuedMotion} && {_issuedMotion >= 0}) then {
+                        private _approachSpeed=_motion max _issuedMotion;
+                        _progress set [14,_approachSpeed];
+                        private _refreshRoom=_bodyGap+4*_approachSpeed+(_approachSpeed*_approachSpeed)/(2*_deceleration);
+                        private _remainingNative=_vehicle distance2D _committedDestination;
+                        if (_remainingNative > _refreshRoom) then {
+                            _refreshNative=false;
+                            if (_captureControl) then {(_controlSample select 9) pushBack ["CONTINUE",
+                                +_committedDestination,+_destination,_remainingNative,_refreshRoom]};
+                        };
+                    };
+                };
+                if (count _committedDestination < 2 || {_refreshNative} || {_finishedLeg}) then {
                     isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
                         private _issueEvent=[];
                         private _issueHistory=[];
@@ -1295,6 +1332,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         if (_captureControl) then {(_controlSample select 9) pushBack ["NATIVE",+_destination,_frontSpeed,_joining,_straightPath]};
                         _progress set [5,+_destination];
                         _progress set [12,+_recordedDestination];
+                        _progress set [13,+_nativeRoute];
+                        _progress set [14,vectorMagnitude velocity _vehicle];
                         _progress set [9,+_path];
                         _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
                         _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
