@@ -116,6 +116,17 @@ class StandaloneExtractionContracts(unittest.TestCase):
         launcher = (ROOT / "releaseVerificationAndDeployment/launch_mod_audit.ps1").read_text(encoding="utf-8")
         self.assertIn('if ($WithZen)', launcher)
 
+    def test_curator_waypoint_edit_uses_native_group_and_id_payload(self):
+        watcher = (ROOT / "addons/core/functions/cortexZeusWatchLocal.sqf").read_text(encoding="utf-8")
+        native = watcher.split('params ["", "_group", "_waypointID"];', 1)[1]
+        group_events, array_events = native.split('} forEach ["CuratorWaypointPlaced", "CuratorWaypointEdited"];', 1)
+        self.assertIn('[_group,true,_waypointID] call CBE_fnc_CortexZeusMark', group_events)
+        self.assertIn('params ["", "_waypoint"];', array_events)
+        self.assertIn('["CuratorWaypointDeleted", "CuratorWaypointDoubleClicked"]', array_events)
+        self.assertNotIn('"CuratorWaypointEdited"', array_events)
+        self.assertNotIn('CuratorGroupSelectionChanged', watcher)
+        self.assertNotIn('CuratorObjectSelectionChanged', watcher)
+
     def test_product_boundary_is_documented(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         for name in ("Dynamic AA", "Dynamic AO", "CBA_A3", "Zeus", "JIP"):

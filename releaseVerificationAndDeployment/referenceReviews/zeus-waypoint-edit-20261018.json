@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "finding": "Native CuratorWaypointEdited delivers curator/group/waypoint ID. Previous array parser rejected its group argument, preventing event-boundary takeover marking for moved waypoints.",
+  "source": "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers#CuratorWaypointEdited",
+  "implementation": "Share placement/edit group-ID handler. Preserve deletion/double-click array handler, exact-index snapshot, cancellation and ordinary observation semantics. No new polling or world scan.",
+  "validation": {
+    "tests": 1413,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-zeus-waypoint-edit-build.log",
+    "unsigned_fingerprint": "962937d3d844cfcf733c925466393da02f14a462d7b2bee8c9d753099f9ff97c",
+    "physical": false
+  },
+  "remaining": [
+    "Native moved-waypoint owner interruption and route continuity need engine evidence",
+    "No claim this caused earlier audit stalls",
+    "Audits remain paused"
+  ]
+}

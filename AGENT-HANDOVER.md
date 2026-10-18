@@ -2132,3 +2132,7 @@ Complete final offline Build passed1,411tests/329compiledSQF/ninePBOs; .qa/cbe-l
 ## Prepared landing handover fixture - 18 October 2026
 
 Audits remain paused. New normal/server-owned case in runLanding.sqf uses real landing admission and FlightLease APIs, checks deferred cleanup identity/deadline, then exact acknowledgement and physical native redirection. Synthetic successor explicitly sets its own native flight policy. No injected feature completion or movement. PREPARED_NOT_RUN; not Workshop-provider parity. Offline build: 1,412 tests, 329 compiled SQF, nine PBOs; log `.qa/cbe-landing-handover-fixture-build.log`, unsigned fingerprint `8cbb6e9c0ab0e6a9ff7f08ae45c510ad80759e3cb18faa4411929b6989068bec`. Remote PR17 remains draft at8a9a0d7d; this follows local ebeff1d3.
+
+## Zeus waypoint edit event correction - 18 October 2026
+
+CuratorWaypointEdited was incorrectly parsed as a waypoint-array event. It now shares the group/waypoint-ID handler with placement; deletion/double-click retain array parsing. Source: https://community.bistudio.com/wiki/Arma_3:_Event_Handlers#CuratorWaypointEdited . Regression test checks the separate payload boundaries. Full offline build 1,413 tests/329 compiled SQF/nine PBOs passed, `.qa/cbe-zeus-waypoint-edit-build.log`, unsigned fingerprint `962937d3d844cfcf733c925466393da02f14a462d7b2bee8c9d753099f9ff97c`. Audits paused; no physical confirmation and no historical-cause claim. Previous fixture checkpoint119dde16 remains local.
