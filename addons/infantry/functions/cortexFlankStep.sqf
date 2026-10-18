@@ -1183,15 +1183,26 @@ switch (_drill get "stage") do {
         };
     };
     case "PAUSE": {
-        if (_now >= (_drill get "pauseUntil")) then {
+        private _pauseIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"];
+        private _pauseCommitted=false;
+        isNil {
+            if (!(call _helperCurrent)
+                || {(_drill getOrDefault ["stage",""]) != "PAUSE"}
+                || {!([_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"] isEqualTo _pauseIdentity)}
+                || {time < (_drill get "pauseUntil")}) exitWith {};
             if (_teams isNotEqualTo [] && {(_drill get "teamTurn") == 0}) then {
                 _drill set ["teamTurn",1];
             } else {
                 _drill set ["teamTurn",0];
-            _drill set ["index", (_drill get "index") + 1];
+                _drill set ["index", (_drill get "index") + 1];
             };
-            if ((_drill get "index") >= count _points) then {_result = "COMPLETE" call _end} else {call _issue};
+            // Persist the pending bound before attempting movement. A refused issue
+            // retries START rather than advancing this PAUSE a second time.
+            [_group,_drill,"START","PAUSE_ELAPSED"] call CBE_fnc_CortexDrillSetStage;
+            _pauseCommitted=true;
         };
+        if (!_pauseCommitted) exitWith {_result=0.25};
+        if ((_drill get "index") >= count _points) then {_result = "COMPLETE" call _end} else {call _issue};
     };
     case "HOLD": {
         if (_now >= (_drill get "pauseUntil")) then {

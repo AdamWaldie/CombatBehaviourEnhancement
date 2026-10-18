@@ -449,3 +449,16 @@ class ManoeuvreDynamicScopeTests(unittest.TestCase):
         self.assertIn('call _issue;',consolidation)
         self.assertNotRegex(consolidation,r'\b_support\b')
         self.assertIn('private _supportRoles=_candidates select',source)
+
+
+class ManoeuvrePauseAdmissionTests(unittest.TestCase):
+    def test_pause_advances_once_before_retryable_start(self):
+        source = (ROOT / "addons/infantry/functions/cortexFlankStep.sqf").read_text(encoding="utf-8")
+        pause = source.split('    case "PAUSE": {', 1)[1].split('    case "HOLD": {', 1)[0]
+        self.assertIn('isNil {', pause)
+        self.assertIn('call _helperCurrent', pause)
+        self.assertIn('isEqualTo _pauseIdentity', pause)
+        self.assertIn('time < (_drill get "pauseUntil")', pause)
+        self.assertLess(pause.index('"START","PAUSE_ELAPSED"'), pause.index('else {call _issue}'))
+        self.assertIn('if (!_pauseCommitted) exitWith {_result=0.25}', pause)
+        self.assertIn('case "START": {call _issue}', source)

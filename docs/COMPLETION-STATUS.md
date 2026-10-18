@@ -9,6 +9,9 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Elapsed manoeuvre PAUSE commits its next index/turn and START phase together under current-task checks.
+  A refused movement issue retries the pending bound rather than advancing PAUSE again. Physical continuity remains unverified.
+
 - Consolidation actor lists no longer shadow the support-mode boolean read by movement helper
   CODE through SQF dynamic scope. This removes a concrete array/boolean input hazard during
   follow-through; actual consolidation and its remaining task transitions still need physical validation.
