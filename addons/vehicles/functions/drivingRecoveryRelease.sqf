@@ -17,7 +17,9 @@
  * until the existing owner callback can finish cleanup. This retention grants no commands.
  * Changed seats/route/cap/native intent or external ownership revoke retention immediately.
  * An otherwise exactly owned reverse retains its journal while mobility/simulation prevents
- * handback. Receipt-only cleanup registration survives tactical shutdown without replaying a rear leg.
+ * handback. Receipt-only cleanup survives tactical shutdown only to the original hard deadline.
+ * Expired unchanged handback becomes unresolved; its journal/cap remain and automatic retries stop.
+ * Newer native orders can still retire metadata without replaying stale commands.
  * A leader on foot or without an eligible mounted target permits stopping our reverse only;
  * no crew follows a dismounted leader. Result field5 distinguishes native handback from a stop.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
@@ -36,6 +38,25 @@ isNil {
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}) exitWith {false};
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
+// A blocked exact handback has only the original recovery lifetime. Expiry preserves
+// command/cap provenance but never grants a late command or a newly renewed cleanup window.
+// Call this only after proving unchanged ownership; newer orders still retire metadata normally.
+private _releaseExpired={
+    if (!_resume || {!(_work getOrDefault ["releasePending",false])}) exitWith {false};
+    private _until=_work getOrDefault ["hardDeadline",-1];
+    private _invalid=!(_until isEqualType 0) || {!finite _until} || {_until < 0};
+    if (!(_work getOrDefault ["releaseUnresolved",false]) && {!_invalid} && {serverTime < _until}) exitWith {false};
+    if !(_work getOrDefault ["releaseUnresolved",false]) then {
+        _work set ["releaseUnresolved",true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+        private _outcome=["UNRESOLVED_DEADLINE","UNRESOLVED_INVALID_DEADLINE"] select _invalid;
+        _vehicle setVariable ["CBE_DrivingRecovery_Result",[
+            _reason,serverTime,_group,_work get "kind",_until,_outcome
+        ],true];
+        diag_log format ["CBE driving cleanup %1: vehicle=%2 group=%3 originalDeadline=%4",_outcome,netId _vehicle,_group,_until];
+    };
+    true
+};
 private _driver=_work get "driver";private _operator=_work get "operator";
 private _liveOperator=effectiveCommander _vehicle;
 if (isNull _liveOperator) then {_liveOperator=driver _vehicle};
@@ -61,6 +82,7 @@ private _retainAcrossLocality=_resume && {(_work get "kind") == "REVERSE"}
             || {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])}
     } < 0};
 if (_retainAcrossLocality && {!local _group || {!local _driver} || {!local _operator}}) exitWith {
+    if (call _releaseExpired) exitWith {false};
     if !(_work getOrDefault ["releasePending",false]) then {
         _work set ["releasePending",true];
         _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
@@ -96,6 +118,7 @@ private _owned=_resume && {(_work get "kind") == "REVERSE"}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
 } forEach [_driver,_operator];
+if (_owned && {call _releaseExpired}) exitWith {false};
 private _executable=canMove _vehicle && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
     && {[_driver,_operator] findIf {!simulationEnabled _x || {isObjectHidden _x}} < 0};
 if (_owned && {!_executable}) exitWith {

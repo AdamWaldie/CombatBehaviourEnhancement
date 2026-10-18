@@ -3,7 +3,9 @@
  * Purpose: Observes exact pending reverse-release receipts after tactical workers stop.
  * Locality / Authority: Local calls only, on the current vehicle owner. Existing release
  * guards alone authorize native handback and cap restoration; this service issues no rear leg.
- * Repeat/JIP: Deduplicated local tickets. Deleted, migrated or replaced receipts retire tickets.
+ * Repeat/JIP: Deduplicated local tickets. Deleted, migrated, replaced or unresolved receipts retire tickets.
+ * The exact release service publishes unresolved at the original hard deadline, retaining provenance
+ * without further automatic tickets. This service never extends that lifetime.
  * DrivingRecoveryAdopt offers receipts at locality/init edges; delivery beyond its lookup window remains unresolved.
  * Arguments: 0 vehicle <OBJECT, objNull> registers its pending receipt; objNull services tickets.
  * Return Value: Nothing.
@@ -24,7 +26,8 @@ isNil {
     };
     if (!isNull _vehicle && {local _vehicle}) then {
         private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
-        if (_work getOrDefault ["releasePending",false] && {(_work getOrDefault ["kind",""]) == "REVERSE"}) then {
+        if (_work getOrDefault ["releasePending",false] && {!(_work getOrDefault ["releaseUnresolved",false])}
+            && {(_work getOrDefault ["kind",""]) == "REVERSE"}) then {
             private _proof=[_work] call _signature;
             private _existing=_vehicle getVariable ["CBE_DrivingRecovery_CleanupTicket",""];
             private _record=_registry getOrDefault [_existing,[]];
@@ -50,6 +53,7 @@ isNil {
                 private _matching=!isNull _target && {local _target}
                     && {(_target getVariable ["CBE_DrivingRecovery_CleanupTicket",""]) == _id}
                     && {_current getOrDefault ["releasePending",false]}
+                    && {!(_current getOrDefault ["releaseUnresolved",false])}
                     && {([_current] call _signature) isEqualTo _proof};
                 if (_matching) then {
                     // Release may register the same ticket again; publish the active registry first.
@@ -57,6 +61,7 @@ isNil {
                     [_target,_current get "group"] call CBE_fnc_DrivingAssistRelease;
                     _current=_target getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                     _matching=_current getOrDefault ["releasePending",false]
+                        && {!(_current getOrDefault ["releaseUnresolved",false])}
                         && {([_current] call _signature) isEqualTo _proof};
                 };
                 if (_matching) then {_queue pushBack _id} else {

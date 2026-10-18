@@ -34,7 +34,8 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         self.assertNotEqual(operator('new-commander','original-driver'),'original-driver')
     def test_changed_cap_cannot_gain_pending_retention(self):
         release=source('drivingRecoveryRelease')
-        self.assertLess(release.index('getForcedSpeed _vehicle'),release.index('releasePending'))
+        self.assertLess(release.index('getForcedSpeed _vehicle'),release.index('set ["releasePending",true]'))
+        self.assertLess(release.index('getForcedSpeed _vehicle'),release.index('call _releaseExpired'))
         assist_release=source('drivingAssistRelease')
         self.assertIn('abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1',assist_release)
         self.assertIn('if (_recoveryPending) exitWith {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup};',assist_release)

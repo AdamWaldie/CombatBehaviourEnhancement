@@ -8,6 +8,7 @@
  * Terrain water without a supporting structure remains refused by DrivingRearClear.
  * Stationary waits/recovery require finite total linear velocity below1km/h, not forward speed.
  * This instantaneous admission is not physical HOLD/READY or proof of native reversing.
+ * An unresolved exact reverse handback blocks fresh assistance until newer intent retires its proof.
  * Purpose: Applies a sparse, owner-local safety speed cap and bounded physical recovery to an
  * ordinary AI ground vehicle that is already following a native waypoint. This is the standalone
  * driving layer; registered convoys retain their separate predecessor-spacing controller. Terrain
@@ -163,7 +164,8 @@ _brain set ["geometryTracks",_geometryTracks];
         [_vehicle,_group,"ORDER_OR_SEATS_CHANGED",false] call CBE_fnc_DrivingRecoveryRelease;
         _recoveryWork=createHashMap;
     };
-    private _release=(_group getVariable ["CBE_DrivingRecovery_Yield",[]]) isEqualTo _routeIdentity;
+    private _release=(_group getVariable ["CBE_DrivingRecovery_Yield",[]]) isEqualTo _routeIdentity
+        || {_recoveryWork getOrDefault ["releaseUnresolved",false]};
 
     // Driving must make the same ownership decision as every other delayed controller. A group
     // member becoming player-controlled or specialist-owned is enough to retire the sparse speed

@@ -55,3 +55,21 @@ class RecoveryCleanupTests(unittest.TestCase):
             self.assertIn('};\n    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;\n    false',branch)
             for command in ('doMove','doStop','doFollow','forceSpeed','remoteExec','serverTime+'):
                 self.assertNotIn(command,branch)
+
+    def test_expired_pending_handback_keeps_proof_without_commands_or_renewal(self):
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        gate=release.split('private _releaseExpired={',1)[1].split('private _driver=',1)[0]
+        for marker in ('releasePending','hardDeadline','serverTime < _until','releaseUnresolved',
+                       'UNRESOLVED_DEADLINE','UNRESOLVED_INVALID_DEADLINE'):
+            self.assertIn(marker,gate)
+        for forbidden in (' doMove ', 'doStop','forceSpeed','nil,true','serverTime+','set ["hardDeadline"'):
+            self.assertNotIn(forbidden,gate)
+        self.assertEqual(release.count('call _releaseExpired'),2)
+        self.assertLess(release.index('if (_owned && {call _releaseExpired})'),release.index('if (_owned) then {'))
+        self.assertIn('if (!_resume || {!(_work getOrDefault ["releasePending",false])}) exitWith {false}',gate)
+    def test_unresolved_tickets_retire_and_do_not_reenter_fresh_assistance(self):
+        cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text(encoding='utf-8')
+        self.assertEqual(cleanup.count('getOrDefault ["releaseUnresolved",false]'),3)
+        start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('|| {_recoveryWork getOrDefault ["releaseUnresolved",false]}',start)
+        self.assertIn('"ORDER_OR_SEATS_CHANGED",false] call CBE_fnc_DrivingRecoveryRelease',start)
