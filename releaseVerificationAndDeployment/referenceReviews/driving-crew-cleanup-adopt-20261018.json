@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-18",
+  "scope": "Late actual crew locality and deferred reverse cleanup",
+  "implementation": [
+    "Reuse existing CAManBase Local/init handler",
+    "Only local actual driver/commander and local LandVehicle",
+    "Offer existing finite vehicle adoption without movement replay"
+  ],
+  "validation": {
+    "tests": 1241,
+    "exit": 0,
+    "log": ".qa/cbe-driving-crew-cleanup-adopt-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Receipt delivery without subsequent locality edge",
+    "Physical vehicle/crew owner timing and overhead",
+    "Native queue execution"
+  ],
+  "acceptance": "partial"
+}
