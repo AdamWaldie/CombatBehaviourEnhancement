@@ -624,3 +624,20 @@ class ConvoyTerminalRetirementTests(unittest.TestCase):
             self.assertIn(proof,tail)
         self.assertEqual(tail.count('setVariable ["CBE_Convoy_Brain",nil]'),1)
         self.assertEqual(tail.count('setVariable ["CBE_Convoy_Brain_FSM",nil]'),1)
+
+
+class ConvoyCleanupContextTests(unittest.TestCase):
+    def test_cleanup_retains_original_context_and_transaction_boundaries(self):
+        source=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
+        self.assertIn('["_expectedToken", "", [""]]',source)
+        capture=source.index('private _brain=_group getVariable')
+        self.assertLess(capture,source.index('call CBE_fnc_ConvoyCorridorStep'))
+        self.assertEqual(source.count('private _brain=_group getVariable'),1)
+        self.assertIn('private _state = _navigation;',source)
+        for proof in ('_releaseEpoch','_releaseToken','_releaseRegistry','isEqualTo _navigation','_brainRetired'):
+            self.assertIn(proof,source.split('private _releaseCurrent={',1)[1].split('};',1)[0])
+        self.assertGreaterEqual(source.count('call _releaseCurrent'),5)
+        self.assertIn('isNil {\n        if !(call _releaseCurrent) exitWith {};',source)
+        self.assertIn('isNil {\n    if !(call _releaseCurrent) exitWith {};\n    _group setVariable ["CBE_Convoy_LocalState", nil]',source)
+        fsm=(ROOT/'addons/main/fsm/convoyOperation.fsm').read_text().replace('""','"')
+        self.assertIn('_reason,_brain getOrDefault ["jobToken",""]] call CBE_fnc_ConvoyReleaseLocal',fsm)

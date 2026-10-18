@@ -5,7 +5,8 @@
     "addons/vehicles/functions/convoyTick.sqf": "51e31cdc4661144ce8b5e191c05e35478be98bc5005f06db2bd73e5a515b2607",
     "addons/vehicles/functions/convoyOperationStep.sqf": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6",
     "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240",
-    "addons/main/fsm/convoyOperation.fsm": "563b63383113c0e2c7fdbee0e350bdf224a52200d356c327a16663b8f8c17172"
+    "addons/main/fsm/convoyOperation.fsm": "0f79ed5ec97eea1a86b843e2870cc2eba20726145ab2949372f215f32e686f2d",
+    "addons/vehicles/functions/convoyReleaseLocal.sqf": "b0b8a50f1487f2fc4cca26e3c64bc16581e9f4dba6a4332f8416430e0f324bdb"
   },
   "finding": "Per-command helper checked current crew/external availability but not original brain/job/registry/configuration/epoch. Lead and two follower smoothing journals could record rejected caps.",
   "implementation": "Capture original tick brain/token/registry revision/epoch and registry row index. Each existing command helper refuses changed/cancelled/finished brain, token, epoch, configuration or indexed registry row; row lookup is constant-time after one entry search. Lead and PACE/TRAIL follower cap journals move beside forceSpeed in their admitted transactions.",
@@ -16,10 +17,10 @@
     "Physical mixed tracked/wheeled step-off, braking, gaps, replacements, HC and performance remain unaccepted."
   ],
   "validation": {
-    "tests": 1356,
-    "log": ".qa/cbe-convoy-terminal-retirement-build.log",
+    "tests": 1357,
+    "log": ".qa/cbe-convoy-cleanup-context-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "80cf42ae948b79fa58ccef1c899f84906db1c1e881cb2d9bf145990b24740737"
+    "packageFingerprint": "bb14e18ee35f78faee3b11c346d77fd01787d0eb7c20c9a94155e6fa8c879dc2"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
@@ -32,5 +33,15 @@
     "finding": "Finished checked brain before calling potentially yielding release, then cleared brain/FSM slots unconditionally inside that older outer branch.",
     "implementation": "Post-release isNil requires same brain, original job token and registry revision before clearing both slots.",
     "limits": "Only final slots; prior public terminal snapshot and ReleaseLocal internal state/policy/path cleanup remain separate review work. Physical replacement race and overhead unverified."
+  },
+  "releaseContext": {
+    "finding": "ReleaseLocal reread live brain/state/baseline after scheduled early cleanup and could restore or retire successor records.",
+    "implementation": "Capture original brain/navigation/baseline/job/epoch/registry. Optional expected FSM token refuses already replaced caller. Cancellation/own brain removal, group restoration, each vehicle cleanup and final local-state/baseline removal have original-context transactions. Own deliberate nil brain is allowed only while no successor exists and original token/epoch/registry/state/baseline remain. Operation cancellation uses captured navigation generation.",
+    "limits": [
+      "Early corridor/bypass cancellation calls still need episode identity across nested scheduling.",
+      "Per-vehicle retirement calls have bounded native/receipt checks but aggregate crew/vehicle transaction cost unmeasured.",
+      "No changed speed/route restoration rules; existing exact leases/native/external/task/keepCrew safeguards retained.",
+      "Physical handover, HC, interruption and full cleanup acceptance remain open."
+    ]
   }
 }

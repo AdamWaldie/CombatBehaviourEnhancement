@@ -11,26 +11,48 @@
  * keeps its command while obsolete convoy target metadata is retired.
  * Locality/authority: server owns registration; driving commands execute only on current owners.
  * Repeat/JIP: ordered registry snapshots replace old settings; owner-local paths rebuild on migration.
+ * Original brain/job/epoch/registry/local-state/baseline context guards group, per-vehicle
+ * and final cleanup transactions. An FSM supplies its expected job token; administrative
+ * calls retain current-context defaults. Cleanup never adopts a successor baseline or brain.
  * Public path receipts bind revision, epoch, seats and native command state; they grant no travel
  * credit. Service tasks, new native destinations and successor vehicles receive no path cancellation.
  * NEW_NATIVE_ORDER cleanup restores exact policy leases and stops only unchanged owned fixed paths;
  * replacement movement is never stopped or recalled, and route/formation restoration is suppressed.
  * NATIVE_TASK suspension uses the same no-recall policy; reserved actors cannot be stopped during cleanup.
  * A mounted crew is never recalled toward an on-foot leader. Authored waypoint metadata is retained.
- * Arguments: 0: group <GROUP>, grpNull; 1: forget baseline <BOOL>, true; 2: baseline <ARRAY>, [] reads the locally received baseline; 3: still-controlled vehicles <ARRAY>, []; 4: cancellation reason <STRING, RELEASED>.
+ * Arguments: 0: group <GROUP>, grpNull; 1: forget baseline <BOOL>, true; 2: baseline <ARRAY>, [] reads the locally received baseline; 3: still-controlled vehicles <ARRAY>, []; 4: cancellation reason <STRING, RELEASED>; 5: expected FSM job token <STRING, empty administrative current-context call>.
  * Return Value: Nothing.
  * Current callers: CBE_fnc_ConvoySync, CBE_fnc_ConvoyTick and the convoy operation FSM.
  * Example: [convoyGroup] call CBE_fnc_ConvoyReleaseLocal;
  */
-params [["_group", grpNull, [grpNull]], ["_forget", true, [true]], ["_restore", [], [[]]], ["_keepCrew", [], [[]]], ["_reason", "RELEASED", [""]]];
+params [["_group", grpNull, [grpNull]], ["_forget", true, [true]], ["_restore", [], [[]]], ["_keepCrew", [], [[]]], ["_reason", "RELEASED", [""]], ["_expectedToken", "", [""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 private _preserveMoves=toUpperANSI _reason in ["NEW_NATIVE_ORDER","NATIVE_TASK"];
 private _navigation=_group getVariable ["CBE_Convoy_LocalState",createHashMap];
+private _brain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+private _releaseEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _releaseToken=_group getVariable ["CBE_Convoy_LocalJobToken",""];
+private _releaseRegistry=missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-1];
+private _releaseBaseline=_group getVariable ["CBE_Convoy_Restore",[]];
+private _brainRetired=false;
+if (_expectedToken != "" && {(_brain getOrDefault ["jobToken",""]) != _expectedToken || {_releaseToken != _expectedToken}}) exitWith {};
+private _releaseCurrent={
+    private _liveBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+    (_liveBrain isEqualTo _brain || {_brainRetired && {count _liveBrain == 0}})
+        && {(_group getVariable ["CBE_Convoy_LocalState",createHashMap]) isEqualTo _navigation}
+        && {(_group getVariable ["CBE_Convoy_Restore",[]]) isEqualTo _releaseBaseline}
+        && {_releaseEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_releaseToken == (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+        && {_releaseRegistry == (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-1])}
+};
+
 if (_keepCrew isEqualTo [] && {local _group}) then {
     [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call CBE_fnc_ConvoyCorridorStep;
     [_group,[_navigation getOrDefault ["revision",-1]],"CONVOY_RELEASED"] call CBE_fnc_ConvoyBypassStep;
 };
-private _brain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+private _releaseAdmitted=false;
+isNil {
+if !(call _releaseCurrent) exitWith {};
 if (count _brain > 0 && {_forget || {toUpperANSI _reason in ["ZEUS","PLAYER","EXTERNAL","EXTERNAL_OWNER","OWNERSHIP_LOST"]}}) then {
     _brain set ["cancelled",true];
     _brain set ["cancelReason",toUpperANSI _reason];
@@ -38,16 +60,20 @@ if (count _brain > 0 && {_forget || {toUpperANSI _reason in ["ZEUS","PLAYER","EX
 if (_forget) then {
     _group setVariable ["CBE_Convoy_Brain",nil];
     _group setVariable ["CBE_Convoy_Brain_FSM",nil];
+    _brainRetired=true;
 };
-if (local _group) then {
-    private _state = _group getVariable ["CBE_Convoy_LocalState",createHashMap];
+_releaseAdmitted=true;
+};
+if (!_releaseAdmitted) exitWith {};
+if (local _group && {call _releaseCurrent}) then {
+    private _state = _navigation;
     private _generation = _state getOrDefault ["operationGeneration",-1];
     private _operation = _group getVariable ["CBE_Operation",createHashMap];
     if (_generation >= 0 && {(_operation getOrDefault ["intent",""]) == "CONVOY"}) then {
         [_group,_generation,toUpperANSI _reason] call CBE_fnc_OperationCancel;
     };
 };
-if (_restore isEqualTo []) then {_restore = _group getVariable ["CBE_Convoy_Restore", []]};
+if (_restore isEqualTo []) then {_restore = _releaseBaseline};
 if (_restore isNotEqualTo []) then {
     _restore params ["_formation", "_attack", "_vehicles"];
     // A feature shutdown must restore the column's own baseline. A route, curator,
@@ -55,12 +81,18 @@ if (_restore isNotEqualTo []) then {
     // the saved convoy formation, attack permission and follower paths are evidence only.
     private _externalTakeover = local _group && {[_group] call CBE_fnc_CortexExternalTakeover};
     private _mayRestoreGroup=local _group && {!_externalTakeover};
-    if (_mayRestoreGroup && {!_preserveMoves}) then {
-        if (formation _group == "COLUMN") then {_group setFormation _formation};
-        if (!attackEnabled _group) then {_group enableAttack _attack};
+    isNil {
+        if (!(call _releaseCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
+        if (_mayRestoreGroup && {!_preserveMoves}) then {
+            if (formation _group == "COLUMN") then {_group setFormation _formation};
+            if (!attackEnabled _group) then {_group enableAttack _attack};
+        };
     };
     {
         _x params ["_vehicle", "_speed", "_unload"];
+        // Per-vehicle native/policy cleanup is finite and contains no geometry query.
+        isNil {
+        if !(call _releaseCurrent) exitWith {};
         if (_forget && {isServer} && {!(_vehicle in _keepCrew)} && {(_vehicle getVariable ["CBE_Convoy_Group", grpNull]) == _group}) then {
             _vehicle setVariable ["CBE_Convoy_Group", nil, true];
             _vehicle setVariable ["CBE_Convoy_Active", nil, true];
@@ -203,7 +235,11 @@ if (_restore isNotEqualTo []) then {
                 };
             };
         };
+        };
     } forEach _vehicles;
 };
-_group setVariable ["CBE_Convoy_LocalState", nil];
-if (_forget) then {_group setVariable ["CBE_Convoy_Restore", nil]};
+isNil {
+    if !(call _releaseCurrent) exitWith {};
+    _group setVariable ["CBE_Convoy_LocalState", nil];
+    if (_forget) then {_group setVariable ["CBE_Convoy_Restore", nil]};
+};
