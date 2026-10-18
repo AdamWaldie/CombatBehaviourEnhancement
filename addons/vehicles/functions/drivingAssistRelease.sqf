@@ -11,7 +11,7 @@
  * preserve their newer cap even when an ordinary AI driver belongs to another group.
  * A newer finite CBE movement lease also prevents restoration over its tactical speed policy.
  * Exact deferred reverse handback retains its original cap/restoration receipt rather than
- * restoring speed while the rear command is still owned. No deadline or observer is renewed.
+ * restoring speed while the rear command is still owned. Original movement deadlines remain unchanged; a receipt-only cleanup service survives shutdown.
  * Arguments:
  * 0: vehicle <OBJECT> - ground vehicle to release.
  * 1: expected group <GROUP, grpNull> - group-scoped cleanup; grpNull permits subsystem shutdown.
@@ -42,8 +42,8 @@ if (count _recovery > 0 && {isNull _expectedGroup || {(_recovery get "group") ==
         && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _recovery};
 };
 // A failed exact handback is not a completed cap release. Retain the same baseline,
-// owned cap and work proof for the existing retry path; never recreate a rear leg.
-if (_recoveryPending) exitWith {};
+// owned cap and work proof for receipt-only cleanup observation; never recreate a rear leg.
+if (_recoveryPending) exitWith {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup};
 [_vehicle,_expectedGroup,["ORDINARY"],true] call CBE_fnc_DrivingNativePathWatch;
 private _corridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
 private _corridorGroup=_corridor getOrDefault ["group",grpNull];

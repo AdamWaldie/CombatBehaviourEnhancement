@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-18",
+  "scope": "Same-owner deferred reverse cleanup after tactical shutdown",
+  "implementation": "Receipt-only local FIFO; maximum four tickets per 0.25 second callback; exact seats, authored route, native destinations, clocks, cap and baseline; existing release authorizes handback. No new reverse command or deadline renewal.",
+  "limits": [
+    "No automatic adoption of late or migrated public receipts",
+    "Physical mobility/simulation return, newer-order refusal, repeats and shutdown remain unrun",
+    "Runtime performance unmeasured; backlog increases revisit latency"
+  ],
+  "validation": "Final .qa/cbe-recovery-cleanup-service-final-build.log passed1199 tests/all offline gates,322 SQF/9 PBOs, terminal0; fingerprint62474d65800ebe65d313508b1c546e9344b38a7c04c94431d7a904d106b897b1. Initial obsolete empty-exit contract failure retained; both tests updated while preserving exact-cap protections. Guide UTF-8 repaired before final build. Not a signed release or physical acceptance.",
+  "audits": "PAUSED"
+}

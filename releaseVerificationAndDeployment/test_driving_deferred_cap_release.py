@@ -5,11 +5,11 @@ ROOT=Path(__file__).resolve().parents[1]
 class DrivingDeferredCapReleaseTests(unittest.TestCase):
     def test_exact_pending_handback_preserves_cap_and_restore_receipt(self):
         text=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
-        guard=text.split('private _retired=',1)[1].split('if (_recoveryPending) exitWith {};',1)[0]
+        guard=text.split('private _retired=',1)[1].split('if (_recoveryPending) exitWith {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup};',1)[0]
         for item in ('call CBE_fnc_DrivingRecoveryRelease','!_retired',
                      'getOrDefault ["releasePending",false]','isEqualTo _recovery'):
             self.assertIn(item,guard)
-        boundary=text.index('if (_recoveryPending) exitWith {};')
+        boundary=text.index('if (_recoveryPending) exitWith {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup};')
         for mutation in ('_vehicle forceSpeed (_restore param',
                          'setVariable ["CBE_DrivingAssist_Restore",nil]',
                          'setVariable ["CBE_DrivingAssist_State",nil]',

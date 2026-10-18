@@ -1515,3 +1515,12 @@ Stationary head-on jam observation now stages a read-only queue proposal after f
 
 
 Queue proposals now submit a distinct server-brokered role-consent request. The server authenticates the initiator owner, checks canonical roster/dependencies and topology, limits its private registry to32 episodes without overlapping vehicles, and requires replies from every distinct actual owner. Owners check their own full native command/destination rows, active driving generation, ordinary-route eligibility and unchanged request serial. Two-second handshake and at most30s consent retain the original retry deadline; the same roster/topology/retry episode cannot renew an attempt. Duplicates do not replay actions or extend expiry, and exact-token cancellation/refusal clears only matching consent. Agreement is private consent only: no cap, reservation, native hold/reverse, dependency progression or queue success is issued. Existing movement controllers retain their ordinary admission; a future queue executor must revalidate before acquiring ownership. Network/locality/rejection/repeatability and performance remain untested while audits are paused.
+
+
+### Deferred driving release after shutdown
+
+When an exactly owned reverse cannot hand back because simulation, mobility or crew locality is temporarily unavailable, driving release retains its original receipt and speed baseline. A local receipt-only service retries the existing guarded release even after tactical scheduling stops. It never starts or extends a reverse manoeuvre, changes an authored waypoint or clears an actor reservation.
+
+Only registered pending receipts are visited: at most four tickets per 0.25-second callback, with no world scan. Each ticket binds the original seats, group, route, native destinations, clocks, cap and baseline. Deleted vehicles, lost locality and changed receipts retire that local ticket. Duplicate registration does not add another ticket. The service ends when its registry is empty; an unchanged unavailable receipt can remain observed without renewing its movement deadline. More pending vehicles increase revisit latency. Runtime cost remains unmeasured.
+
+This closes the same-owner shutdown observation gap in source. Automatic receipt adoption after vehicle migration or late public-state delivery remains unfinished; this service alone does not establish HC transfer support. Physical disable/re-enable, unavailable-to-ready restoration, newer orders and repeated cleanup still require a later authorised audit. No new CBA setting or Zeus task is exposed.

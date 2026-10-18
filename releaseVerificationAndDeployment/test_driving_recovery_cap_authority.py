@@ -37,5 +37,5 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         self.assertLess(release.index('getForcedSpeed _vehicle'),release.index('releasePending'))
         assist_release=source('drivingAssistRelease')
         self.assertIn('abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1',assist_release)
-        self.assertIn('if (_recoveryPending) exitWith {};',assist_release)
+        self.assertIn('if (_recoveryPending) exitWith {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup};',assist_release)
         self.assertIn('isEqualTo _recovery',assist_release)
