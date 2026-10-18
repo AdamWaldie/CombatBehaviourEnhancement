@@ -4763,7 +4763,7 @@ class CortexOperations(unittest.TestCase):
     def test_building_room_retries_preserve_security_partner_and_committed_path(self):
         text=source('buildingOperationStep')
         self.assertNotIn('_issue || {_openedDoor}',text)
-        self.assertIn('if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree})',text)
+        self.assertIn('if (_unitIssue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree})',text)
         self.assertIn('(_x == _point || {_approachingEntry && {!(_x in (_job getOrDefault ["enteredActors",[]]))}}) && {[_x] call _actorAvailable}',text)
     def test_coordinated_fixture_requester_can_initiate_support(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')

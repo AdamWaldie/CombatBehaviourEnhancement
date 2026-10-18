@@ -2743,7 +2743,13 @@ private _delay=call {
                                 && {serverTime <= (_job get "deadline")} && {serverTime <= (_job get "hardDeadline")}
                                 && {[currentCommand _unit,expectedDestination _unit,formLeader _unit,unitPos _unit,getForcedSpeed _unit] isEqualTo (_roomSnapshot select 1)}
                                 && {(getPosASL _unit) vectorDistance (_roomSnapshot select 2) <= 1}) then {
-                                if (_issue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
+                                // A refused first buddy admission must not depend on the lead
+                                // receiving another room request. Retry only this unstarted entrant;
+                                // existing paths still use their exact-target/timed-retry rules.
+                                private _unitIssue=_issue || {_unit != _point
+                                    && {!(_unit in (_job get "started"))}
+                                    && {!(_unit in (_job getOrDefault ["enteredActors",[]]))}};
+                                if (_unitIssue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
                                     private _started=_job get "started";
                                     if !(_unit in _started) then {
                                         if !([_unit] call _ownsCurrentMove) then {doStop _unit};
@@ -2806,7 +2812,7 @@ private _delay=call {
                                     private _nativeDestination=expectedDestination _unit;
                                     private _fallbackHolds=_job getOrDefault ["formationFallbackHolds",createHashMap];
                                     private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
-                                    if (!_issue && {currentCommand _unit == ""}
+                                    if (!_unitIssue && {currentCommand _unit == ""}
                                         && {(_nativeDestination param [1,"",[""]]) in ["DoNotPlanFormation","FORMATION PLANNED"]}
                                         && {count _issued == 3} && {!(netId _unit in _fallbackHolds)}) then {
                                         private _hold=getPosATL _unit;

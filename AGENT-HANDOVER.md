@@ -1237,3 +1237,12 @@ CQB promotion already journals survivors/replacements under current operation au
 Full `.qa/cbe-role-rebalance-commit-build.log` exit0:1274tests/allofflinegates,326SQF/9PBOs; fingerprint0d3a603b2269cc1ad1f5b4d61ecd4f559c3fa3405b954e8274c43e5bb0a92843. Source6aa4a2de plus intendedsource/test. PR17verifiedopen/draft/correctbranch remote4914f374. Newsource localfornextbatch. No push/merge/CI dispatch/Release/Steam/Arma. AuditsPAUSED/all65partial/fullgoalactive. Protectedrefs/keys/artwork/WMP unchanged.
 
 Next evaluate actual casualty flow against support/exterior cover continuity and survivor native targets; no physical reinforcement success claimed. CombatPairs metadata writing and unbounded input/group size assumptions deserve explicit scope review. Source intent/wholeHBQ/queue/nativewheelreverse/combinedarms/externalhandovers and physical5%median/10%p95 remain incomplete. All65families remain partial.
+
+
+## 2026-10-18 Independent first buddy admission
+
+Main CQB room issue used shared _issue, cleared when the lead was admitted. If a buddy failed its native-task/current-snapshot admission that callback, its first native request could remain suppressed until another lead request/timed recovery. Inside the existing atomic actor guard, _unitIssue now permits the unstarted/unentered non-lead actor's first admission independently. Started/entered actors still use existing exact-target and timed-retry rules; no active lead path is replayed and no mover progress clock changes. The same per-actor issue flag gates the idle fallback hold, preventing an asynchronous first MOVE acknowledgement from being stopped by a shared _issue=false. No deadline/retry replenishment or new controller.
+
+Full `.qa/cbe-cqb-buddy-first-admission-build.log` exit0:1275tests/allofflinegates,326SQF/9PBOs; fingerprint8b492ab3b423018a88d6fac9c9cbacb0c50ba1ad7728311eeaa1ad2fa3e94214. Source227c8281 plus intendedsource/tests. PR17verifiedopen/draft/correctbranch remote4914f374. Newsource localfornextbatch. No push/merge/CI dispatch/Release/Steam/Arma. AuditsPAUSED/all65partial/fullgoalactive. Protectedrefs/keys/artwork/WMP unchanged.
+
+Next check whether _started actor setup can exist without an admitted MOVE and whether stale native acknowledgements are handled without path churn. Physical entry coherence/participation/isolation/casualty/repeat/HC remain unverified. FullHBQ/queue/nativewheelreverse/combinedarms/externalhandovers and physical5%median/10%p95 remain incomplete. Current fixes are source-level flow repairs only.

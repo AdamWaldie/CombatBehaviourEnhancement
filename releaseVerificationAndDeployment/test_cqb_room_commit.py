@@ -58,3 +58,16 @@ class RoomCommitTests(unittest.TestCase):
         final=text.split('isNil {',1)[1]
         self.assertLess(final.index('CortexZeusHeld'),final.index('_used set [_key,_attempts+1]'))
         self.assertLess(final.index('CortexZeusHeld'),final.index('_actor doMove _destination'))
+
+
+class IndependentBuddyAdmissionTests(unittest.TestCase):
+    def test_first_buddy_request_is_independent_without_replaying_started_actors(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        block=text.split('private _unitIssue=',1)[1].split('// A buddy yielding space',1)[0]
+        self.assertIn('_unit != _point',block)
+        self.assertIn('!(_unit in (_job get "started"))',block)
+        self.assertIn('!(_unit in (_job getOrDefault ["enteredActors",[]]))',block)
+        self.assertIn('if (_unitIssue && {call _mayIssueMovement}',block)
+        self.assertIn('if (!_unitIssue && {currentCommand _unit == ""}',block)
+        self.assertIn('if (!_sameActiveTarget',block)
+        self.assertNotIn('_lastProgress=_now',block)
