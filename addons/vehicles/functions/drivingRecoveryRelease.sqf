@@ -13,6 +13,9 @@
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
  * Admission, route metadata, native command checks and handback execute without suspension.
+ * Split vehicle/group/crew locality preserves an unchanged issued reverse journal and cap
+ * until the existing owner callback can finish cleanup. This retention grants no commands.
+ * Changed seats/route/cap/native intent or external ownership revoke retention immediately.
  * An otherwise exactly owned reverse retains its journal while mobility/simulation prevents
  * handback. The existing driving callback retries before new assistance; no extra loop is added.
  * A leader on foot or without an eligible mounted target permits stopping our reverse only;
@@ -36,6 +39,37 @@ if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 private _driver=_work get "driver";private _operator=_work get "operator";
 private _liveOperator=effectiveCommander _vehicle;
 if (isNull _liveOperator) then {_liveOperator=driver _vehicle};
+// Vehicle locality can arrive before group/crew locality. Do not mistake that gap
+// for revoked command identity and erase the only public cleanup receipt. This proof
+// permits retention only; ordinary handback below still requires every actual owner.
+private _retainAcrossLocality=_resume && {(_work get "kind") == "REVERSE"}
+    && {alive _vehicle} && {!isNull _group} && {!isNull _driver} && {!isNull _operator}
+    && {driver _vehicle == _driver} && {_liveOperator == _operator}
+    && {abs ((getForcedSpeed _vehicle)-(_work get "cap")) <= 0.1}
+    && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
+    && {(expectedDestination _operator) isEqualTo (_work get "command")}
+    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")}
+    && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
+    && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {[_driver,_operator] findIf {
+        !alive _x || {group _x != _group} || {vehicle _x != _vehicle}
+            || {isPlayer _x} || {!isNull remoteControlled _x}
+            || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+            || {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}
+            || {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])}
+    } < 0};
+if (_retainAcrossLocality && {!local _group || {!local _driver} || {!local _operator}}) exitWith {
+    if !(_work getOrDefault ["releasePending",false]) then {
+        _work set ["releasePending",true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Result",[
+            _reason,serverTime,_group,_work get "kind",_work get "hardDeadline","DEFERRED_LOCALITY"
+        ],true];
+    };
+    false
+};
 private _handback="METADATA_ONLY";
 private _owned=_resume && {(_work get "kind") == "REVERSE"}
     && {alive _vehicle}
