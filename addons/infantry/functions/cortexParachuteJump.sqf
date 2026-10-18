@@ -16,7 +16,9 @@
  * Locality and authority: call where the soldier is local (moveOut and moveInDriver are local-argument).
  *
  * Review contract: Exact receipt cleanup preserves the original damage baseline and rejects stale
- * releases. Mid-exit chute-phase migration and same-value external protection remain unresolved.
+ * releases. Failed dismount never applies position/velocity or queues chute deployment.
+ * Chute boarding rechecks current actor authority without suspension.
+ * Mid-exit chute-phase migration and same-value external protection remain unresolved.
  *
  * Arguments:
  * 0: soldier <OBJECT>
@@ -68,29 +70,43 @@ isNil {
         _unit allowDamage false;
         unassignVehicle _unit;
         moveOut _unit;
-        _unit setPosATL _exit;
-        _unit setVelocity _velocity;
-        _exited=true;
+        // moveOut is a request: never reposition an actor still aboard an aircraft.
+        if (local _unit && {vehicle _unit == _unit}) then {
+            _unit setPosATL _exit;
+            _unit setVelocity _velocity;
+            _exited=true;
+        };
     };
 };
+// Even a failed dismount must retire the protection we already acquired.
+if (_receipt isNotEqualTo []) then {
+    [_unit,_receipt] call CBE_fnc_CortexParachuteProtectionRelease;
+};
 if (!_exited) exitWith {false};
-// Queue the immutable protection deadline before the chute callback, independent of tactics.
-[_unit,_receipt] call CBE_fnc_CortexParachuteProtectionRelease;
 [{
     params ["_unit", "_chuteClass", "_velocity", "_receipt"];
-    if (!alive _unit || {!local _unit} || {vehicle _unit != _unit}
-        || {(_unit getVariable ["CBE_ParachuteExitToken",""]) isNotEqualTo (_receipt select 3)}) exitWith {};
-    // Protection may already have retired under scheduler delay. The exit token still
-    // distinguishes this one accepted jump from a later exit without renewing protection.
-    private _chute = createVehicle [_chuteClass, getPosATL _unit, [], 0, "CAN_COLLIDE"];
-    _chute setDir getDir _unit;
-    _unit moveInDriver _chute;
-    // A failed seat command must not leave an empty moving chute behind. Never delete
-    // an occupied object or a chute whose locality changed after creation.
-    if (vehicle _unit == _chute) then {
-        _chute setVelocity (_velocity vectorMultiply 0.5);
-    } else {
-        if (!isNull _chute && {local _chute} && {crew _chute isEqualTo []}) then {deleteVehicle _chute};
+    isNil {
+        if (!alive _unit || {!local _unit} || {vehicle _unit != _unit}
+            || {!simulationEnabled _unit} || {isObjectHidden _unit} || {isPlayer _unit}
+            || {!([_unit] call CBE_fnc_CortexCombatEffective)}
+            || {[_unit] call CBE_fnc_CortexActorMoveReserved}
+            || {!isNull remoteControlled _unit}
+            || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {([_unit] call CBE_fnc_CortexExternalOwner) != ""}
+            || {[_unit] call CBE_fnc_CompatibilityExternalControl}
+            || {(_unit getVariable ["CBE_ParachuteExitToken",""]) isNotEqualTo (_receipt select 3)}) exitWith {};
+        // Protection may already have retired under scheduler delay. The exit token still
+        // distinguishes this one accepted jump from a later exit without renewing protection.
+        private _chute = createVehicle [_chuteClass, getPosATL _unit, [], 0, "CAN_COLLIDE"];
+        _chute setDir getDir _unit;
+        _unit moveInDriver _chute;
+        // A failed seat command must not leave an empty moving chute behind. Never delete
+        // an occupied object or a chute whose locality changed after creation.
+        if (vehicle _unit == _chute) then {
+            _chute setVelocity (_velocity vectorMultiply 0.5);
+        } else {
+            if (!isNull _chute && {local _chute} && {crew _chute isEqualTo []}) then {deleteVehicle _chute};
+        };
     };
 }, [_unit, _chuteClass, _velocity, _receipt], 0.8] call CBA_fnc_waitAndExecute;
 true

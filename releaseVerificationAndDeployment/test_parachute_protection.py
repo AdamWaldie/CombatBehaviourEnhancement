@@ -45,3 +45,20 @@ class ParachuteProtectionTests(unittest.TestCase):
         self.assertFalse(restore('old','old',False,False))
         self.assertTrue(restore('old','old',True,False))
         self.assertTrue(restore('old','old',False,True))
+
+    def test_failed_dismount_never_repositions_boarded_actor(self):
+        jump=source('cortexParachuteJump')
+        exit_leg=jump.split('moveOut _unit;',1)[1].split('// Even a failed dismount',1)[0]
+        self.assertLess(exit_leg.index('vehicle _unit == _unit'),exit_leg.index('_unit setPosATL'))
+        self.assertLess(exit_leg.index('local _unit'),exit_leg.index('_unit setVelocity'))
+        self.assertLess(jump.index('call CBE_fnc_CortexParachuteProtectionRelease;'),jump.index('if (!_exited) exitWith'))
+
+    def test_boarding_rechecks_takeover_at_unscheduled_mutation(self):
+        callback=source('cortexParachuteJump').split('params ["_unit", "_chuteClass"',1)[1]
+        self.assertLess(callback.index('isNil {'),callback.index('createVehicle'))
+        for guard in ('local _unit','vehicle _unit != _unit','simulationEnabled _unit',
+                      'isObjectHidden _unit','isPlayer _unit','CortexCombatEffective',
+                      'CortexActorMoveReserved','remoteControlled _unit',
+                      'bis_fnc_moduleRemoteControl_owner','CortexExternalOwner',
+                      'CompatibilityExternalControl','CBE_ParachuteExitToken'):
+            self.assertLess(callback.index(guard),callback.index('createVehicle'))
