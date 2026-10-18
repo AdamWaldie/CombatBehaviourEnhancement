@@ -72,6 +72,7 @@ class CfgFunctions {
             class DrivingQueueAgreementRequest {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementRequest.sqf";};
             class DrivingQueueAgreementServer {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementServer.sqf";};
             class DrivingQueueAgreementOwner {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementOwner.sqf";};
+            class DrivingQueueAgreementRelease {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementRelease.sqf";};
             class DrivingQueueContext {file = "\z\cbe\addons\vehicles\functions\drivingQueueContext.sqf";};
             class DrivingQueueProposal {file = "\z\cbe\addons\vehicles\functions\drivingQueueProposal.sqf";};
             class DrivingPassContext {file = "\z\cbe\addons\vehicles\functions\drivingPassContext.sqf";};

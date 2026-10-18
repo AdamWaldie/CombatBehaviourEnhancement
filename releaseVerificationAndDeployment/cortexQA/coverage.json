@@ -803,7 +803,8 @@
         "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
         "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",
         "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-        "addons/vehicles/functions/drivingQueueAgreementOwner.sqf"
+        "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementRelease.sqf"
       ]
     },
     {

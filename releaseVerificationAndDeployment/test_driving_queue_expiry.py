@@ -43,4 +43,23 @@ class DrivingQueueExpiry(unittest.TestCase):
         self.assertLess(s.index('count _admissions >= 64'),s.index('_registry set [_token,_record]'))
         self.assertLess(s.index('_admissions set [_admissionKey'),s.index('[_record] call _scheduleExpiry'))
         self.assertIn('count _registry >= 32',s)
+
+    def test_driving_finish_retires_only_exact_epoch_generation_queue_consent(self):
+        finish=source('drivingOperationFinish')
+        release=source('drivingQueueAgreementRelease')
+        self.assertLess(finish.index('call CBE_fnc_DrivingQueueAgreementRelease'),finish.index('if (isNull _group || {!local _group}'))
+        for guard in ('local _vehicle','remoteExecutedOwner != 2','count _context > 4',
+                      '(_row select 1) != clientOwner','count _actorReceipt != 11',
+                      '(_actorReceipt select 2) isNotEqualTo _expectedGroup',
+                      '(_actorReceipt select 4) isNotEqualTo _expectedEpoch',
+                      '(_actorReceipt select 5) isNotEqualTo _expectedGeneration',
+                      'forEach [2,3]','isEqualTo _consent','if (!_retired) exitWith {false}',
+                      '["RELEASE",[_token]] remoteExecCall'):
+            self.assertIn(guard,release)
+        executable=release.split('params [[',1)[1]
+        for forbidden in ('doMove','doStop','forceSpeed','setDriveOnPath','nearEntities','waitAndExecute'):
+            self.assertNotIn(forbidden,executable)
+        self.assertLess(release.index('if (!_matches) exitWith'),release.index('setVariable ["CBE_DrivingQueue_Consent",nil]'))
+        self.assertIn('class DrivingQueueAgreementRelease', (ROOT/'addons/main/CfgFunctions.hpp').read_text())
+
 if __name__=='__main__':unittest.main()

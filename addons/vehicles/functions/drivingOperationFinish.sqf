@@ -3,7 +3,8 @@
  * Purpose: Retires matching ordinary driving work and releases only its tracked speed leases.
  * Locality / Authority: Owner-local group only; no ownership transfer or second scheduler.
  * Repeat/JIP: Exact epoch/generation removes the finite pass STOP observer without touching
- * a successor handler. Epoch, generation and current-brain identity reject stale work. New owners start
+ * a successor handler. Queue consent bound to this exact epoch/generation retires through
+ * authenticated broker release, without cancelling a successor or waiting for its timer. Epoch, generation and current-brain identity reject stale work. New owners start
  * their own execution; local jobs and FSM handles are never replayed to JIP.
  * Arguments: 0 brain <HASHMAP, empty>; 1 reason <STRING, RELEASED>.
  * Return Value: Nothing.
@@ -22,6 +23,14 @@ if (!isNull _group) then {
             ["epoch",_watch select 2],["generation",_watch select 3]],true]
             call CBE_fnc_DrivingPassCommandWatch;
     };
+};
+// Consent can outlive this brain's command authority. Retire only its exact owner-local
+// receipt before the current-brain guard; successor generations are checked by the helper.
+if (!isNull _group) then {
+    {
+        [_x,_group,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["generation",-1]]
+            call CBE_fnc_DrivingQueueAgreementRelease;
+    } forEach (_group getVariable ["CBE_DrivingAssist_Vehicles",[]]);
 };
 if (isNull _group || {!local _group}
     || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
