@@ -4,6 +4,18 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 def src(n):return (ROOT/'addons/vehicles/functions'/f'{n}.sqf').read_text(encoding='utf-8')
 class DrivingRearMonitorTests(unittest.TestCase):
+    def test_cap_and_restore_receipt_commit_together(self):
+        text=src('drivingAssistStart')
+        commit=text.split('private _capCommitted=false;',1)[1].split('if (!_capCommitted)',1)[0]
+        for proof in ('isNil {','call _mayIssueDriving','ownerEpoch','cancelled','finished',
+                      'isNotEqualTo _entryAssistState','isNotEqualTo _entryRestore','_entryForcedSpeed'):
+            self.assertLess(commit.index(proof),commit.index('_vehicle forceSpeed _capMps'))
+        self.assertIn('setVariable ["CBE_DrivingAssist_Restore",_previous]',commit)
+        self.assertIn('setVariable ["CBE_DrivingAssist_State",_capReceipt]',commit)
+        self.assertIn('_entryAssistState=+_capReceipt',commit)
+        self.assertNotIn('CBE_fnc_DrivingAssistRelease',text.split('if (!_capCommitted) then {',1)[1].split('} else {',1)[0])
+
+
     def test_final_state_publication_cannot_revive_retired_assistance(self):
         text=src('drivingAssistStart')
         self.assertIn('private _state=+_entryAssistState',text)

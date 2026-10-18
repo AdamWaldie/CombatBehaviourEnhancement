@@ -257,7 +257,9 @@ _brain set ["geometryTracks",_geometryTracks];
             // A new Zeus, mission or specialist cap may not advertise an ownership marker. The
             // last cap we applied is therefore the narrowest reliable lease check: once another
             // value replaces it, release without restoring the stale pre-CBE value.
-            private _previous=_vehicle getVariable ["CBE_DrivingAssist_Restore",[]];
+            private _entryRestore=+(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]);
+            private _previous=+_entryRestore;
+            private _entryForcedSpeed=getForcedSpeed _vehicle;
             private _entryAssistState=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
             private _state=+_entryAssistState;
             if (_state isEqualTo [] && {_recoveryOwned}
@@ -270,7 +272,6 @@ _brain set ["geometryTracks",_geometryTracks];
                     time-(serverTime-(_recoveryWork get "started")),_stage,time+(_deadline-serverTime),
                     "ADOPTED_RECOVERY",_routeIdentity,_kind == "REVERSE"];
                 _previous=+(_recoveryWork get "baseline");
-                _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
             };
             private _ownedCap=_state param [0,-1];
             if (_previous isNotEqualTo [] && {_ownedCap >= 0} && {abs ((getForcedSpeed _vehicle)-_ownedCap) > 0.1}) then {
@@ -325,11 +326,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // The short rear leg must not inherit the normal road-speed cap. Retain
             // this cautious cap through reverse observation and the final retry handoff.
             if ((_state param [6,0]) in [1,2]) then {_cap=_cap min 10};
-            private _previous=_vehicle getVariable ["CBE_DrivingAssist_Restore",[]];
-            if (_previous isEqualTo []) then {
-                _previous=[getForcedSpeed _vehicle];
-                _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
-            };
+            if (_previous isEqualTo []) then {_previous=[_entryForcedSpeed]};
             private _saved=_previous param [0,-1];
             // Arma forceSpeed/getForcedSpeed values are metres per second. Keep the policy value
             // readable in km/h, but keep the actual lease in engine units so another controller's
@@ -489,13 +486,32 @@ _brain set ["geometryTracks",_geometryTracks];
                 _vehicle setVariable ["CBE_DrivingSolidSeen",[_contact,_since,serverTime]];
             } else {_vehicle setVariable ["CBE_DrivingSolidSeen",nil]};
             _capMps=_capMps min (_traffic select 0);
-            if !(call _mayIssueDriving) then {
-                // An initial admission has not applied a cap or created an owning state yet.
-                // Discard only that unapplied snapshot; established leases use normal release.
-                if (_state isEqualTo []) then {_vehicle setVariable ["CBE_DrivingAssist_Restore",nil]};
-                [_vehicle,_group] call CBE_fnc_DrivingAssistRelease;
+            private _capCommitted=false;
+            isNil {
+                if (!(call _mayIssueDriving)
+                    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+                    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                    || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+                    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                    || {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo _entryAssistState}
+                    || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _entryRestore}
+                    || {abs ((getForcedSpeed _vehicle)-_entryForcedSpeed) > 0.1}) exitWith {false};
+                // Publish a minimal current cap receipt together with its original baseline.
+                // Cleanup can now restore an applied cap even if later observations yield.
+                private _capReceipt=+_state;
+                if (_capReceipt isEqualTo []) then {_capReceipt=[_capMps,_maximumGrade,time,_group]} else {
+                    _capReceipt set [0,_capMps];
+                };
+                _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
+                _vehicle forceSpeed _capMps;
+                _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
+                _entryAssistState=+_capReceipt;
+                _capCommitted=true;
+            };
+            if (!_capCommitted) then {
+                // No baseline/cap was published on refusal. Existing receipts remain available
+                // to their real owner; do not run stale cleanup over a successor here.
             } else {
-            _vehicle forceSpeed _capMps;
             if (_gateObservation isNotEqualTo [] && {call _mayIssueDriving}) then {
                 [_group,_vehicle,_gateObservation] call CBE_fnc_DrivingGateRequest;
             };

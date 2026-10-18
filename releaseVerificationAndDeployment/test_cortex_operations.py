@@ -2388,9 +2388,12 @@ class CortexOperations(unittest.TestCase):
         driving=source('drivingAssistStart')
         self.assertIn('private _mayIssueDriving = {',driving)
         self.assertIn('!([_group] call CBE_fnc_CortexExternalTakeover)',driving)
-        self.assertIn('if !(call _mayIssueDriving) then {',driving)
+        cap=driving.split('private _capCommitted=false;',1)[1].split('if (!_capCommitted)',1)[0]
+        self.assertLess(cap.index('call _mayIssueDriving'),cap.index('_vehicle forceSpeed'))
+        self.assertIn('isNotEqualTo _entryRestore',cap)
+        self.assertIn('isNotEqualTo _entryAssistState',cap)
         self.assertIn('[_vehicle,_group] call CBE_fnc_DrivingAssistRelease;',driving)
-        self.assertLess(driving.index('if !(call _mayIssueDriving) then {'),driving.index('_vehicle forceSpeed _capMps;'))
+        self.assertLess(driving.index('private _capCommitted=false;'),driving.index('_vehicle forceSpeed _capMps;'))
         recovery=driving.split('if (_hasRoute &&',1)[1].split('switch (_recoveryStage)',1)[0]
         self.assertIn('&& {call _mayIssueDriving}',recovery)
     def test_naval_operations_release_without_overwriting_external_orders(self):
@@ -8496,7 +8499,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('&& {call _mayRecoverOrdinaryRoute}) then {',jam)
         self.assertIn('_movementOperator doMove waypointPosition [_group,currentWaypoint _group]',jam)
         self.assertGreaterEqual(start.count('call _mayIssueDriving'),3)
-        self.assertIn('if (_state isEqualTo []) then {_vehicle setVariable ["CBE_DrivingAssist_Restore",nil]}',start)
+        self.assertIn('if (!_capCommitted) then {',start)
+        cap=start.split('private _capCommitted=false;',1)[1].split('if (!_capCommitted)',1)[0]
+        self.assertIn('isNotEqualTo _entryRestore',cap)
+        self.assertIn('isNotEqualTo _entryAssistState',cap)
 
     def test_driving_followers_cannot_recover_the_leaders_shared_route(self):
         """Stationary formation followers must never become independent reverse controllers."""
