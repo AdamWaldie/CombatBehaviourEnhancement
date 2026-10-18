@@ -71,3 +71,17 @@ class IndependentBuddyAdmissionTests(unittest.TestCase):
         self.assertIn('if (!_unitIssue && {currentCommand _unit == ""}',block)
         self.assertIn('if (!_sameActiveTarget',block)
         self.assertNotIn('_lastProgress=_now',block)
+
+
+class EntryTimingEvidenceTests(unittest.TestCase):
+    def test_native_request_observation_never_substitutes_for_physical_entry(self):
+        text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
+        observed=text.split('private _entryTimingJob=',1)[1].split('private _seen=_memberVisits',1)[0]
+        for proof in ('currentCommand _worker == "MOVE"','_nativeEntry vectorDistance _issuedEntry <= 0.25',
+                      '_rooms findIf {_nativeEntry vectorDistance _x <= 0.25}',
+                      'isEqualTo []','_admissionJob getOrDefault ["generation"','CBE CLEAR FIRST NATIVE ENTRY REQUEST'):
+            self.assertIn(proof,observed)
+        for forbidden in ('doMove','setPos','_memberFirstVisit set','_visits set','call _check'):
+            self.assertNotIn(forbidden,observed)
+        physical=text.split('private _seen=_memberVisits',1)[1].split('} forEach _clearingMembers;',1)[0]
+        self.assertLess(physical.index('call _observedRoomVisit'),physical.index('_memberFirstVisit set'))

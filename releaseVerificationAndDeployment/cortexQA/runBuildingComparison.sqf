@@ -19,6 +19,8 @@
  * Normal-owner clearance records at most 24 native path events per actor, eight seconds apart,
  * with at most 24 path points plus the final point. Local diagnostic handlers are removed before
  * actor cleanup; they issue no movement and are not evidence of physical arrival.
+ * First native interior-node MOVE/destination observations are recorded separately from independently observed
+ * physical entry times; missing requests stay empty and never count as entry or a timing pass.
  * Existing bounded actor samples include native movement failure/completion and canMove flags;
  * none grants a physical visit or changes a retry budget.
  * Exterior reserve observation requires live physical arrival, heading within 75 degrees of
@@ -977,6 +979,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
     // Reuse the existing independent physical visit collector; add no geometry queries.
     private _entryTimingStart=diag_tickTime;
     private _memberFirstVisit=_clearingMembers apply {-1};
+    private _memberFirstRequest=_clearingMembers apply {[]};
     private _reserveStageVisits=[];
     private _reserveObservationVisits=[];
     private _originalAttack=attackEnabled leader _group;
@@ -1148,9 +1151,25 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             _entryOwnerStable=false;
         };
         {private _room=_x; private _roomIndex=_forEachIndex; if (_clearingMembers findIf {[_x,_house,_room] call _observedRoomVisit} >= 0) then {_visits set [_roomIndex,true]}} forEach _rooms;
+        private _entryTimingJob=(_group getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+        private _entryTimingTargets=_entryTimingJob getOrDefault ["movementTargets",createHashMap];
         {
             private _worker=_x;
             private _workerIndex=_forEachIndex;
+            // Native request timing explains admission versus path delay; it never grants a visit.
+            // Observe actual MOVE to a known fixture interior node, not a provisional exterior
+            // entrance waypoint or merely the production target map.
+            private _nativeEntry=(expectedDestination _worker) param [0,[],[[]]];
+            private _issuedEntry=_entryTimingTargets getOrDefault [netId _worker,[]];
+            if ((_memberFirstRequest select _workerIndex) isEqualTo []
+                && {(_entryTimingJob getOrDefault ["generation",-2]) == (_admissionJob getOrDefault ["generation",-1])}
+                && {currentCommand _worker == "MOVE"} && {count _issuedEntry == 3} && {count _nativeEntry == 3}
+                && {_nativeEntry vectorDistance _issuedEntry <= 0.25}
+                && {_rooms findIf {_nativeEntry vectorDistance _x <= 0.25} >= 0}) then {
+                private _request=[diag_tickTime-_entryTimingStart,+_nativeEntry,getPosASL _worker];
+                _memberFirstRequest set [_workerIndex,_request];
+                diag_log format ["CBE CLEAR FIRST NATIVE ENTRY REQUEST: %1",[_size,netId _worker,_request]];
+            };
             private _seen=_memberVisits select _workerIndex;
             {if ([_worker,_house,_x] call _observedRoomVisit) then {_seen pushBackUnique _forEachIndex}} forEach _rooms;
             if (_seen isNotEqualTo [] && {(_memberFirstVisit select _workerIndex) < 0}) then {
@@ -1240,7 +1259,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
     private _entryTiming=_clearingMembers apply {
         private _index=_clearingMembers find _x;
         [netId _x,_memberFirstVisit select _index,count (_memberVisits select _index),
-            _x in _admittedMembers,-1,alive _x]
+            _x in _admittedMembers,-1,alive _x,+(_memberFirstRequest select _index)]
     };
     // Pair membership uses an explicit outer actor to avoid nested iterator shadowing.
     {
