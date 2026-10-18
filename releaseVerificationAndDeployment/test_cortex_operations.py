@@ -3353,7 +3353,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_ownedMovers = +(_activeDrill getOrDefault ["units",[]])', text)
         self.assertIn('!(_x in _ownedMovers)', text)
         self.assertIn('if (_holders isNotEqualTo [] && {!(_state getOrDefault ["assaulting",false])})', text)
-        self.assertLess(text.index('!(_x in _ownedMovers)'), text.index('{_x doFollow _leader} forEach _rejoin'))
+        self.assertLess(text.index('!(_x in _ownedMovers)'), text.index('_recallIssued pushBack _x'))
 
     def test_coordinated_report_fire_requires_live_matching_lease(self):
         text = source('cortexFireControl')
@@ -6291,7 +6291,7 @@ class CortexOperations(unittest.TestCase):
         tick=source('cortexGroupTick')
         self.assertIn('private _mayIssueMovement = {',tick)
         self.assertIn('!([_group] call CBE_fnc_CortexExternalTakeover)',tick)
-        for command in ['{_x doFollow _leader} forEach _rejoin',
+        for command in ['_recallIssued pushBack _x',
                         '_searchActor doMove _searchDestination',
                         '_unit doMove _target']:
             self.assertLess(tick.rindex('[] call _mayIssueMovement',0,tick.index(command)+len(command)),tick.index(command))

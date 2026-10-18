@@ -80,6 +80,8 @@
  *
  * Review contract: Waypoint completion compares tagged indices with currentWaypoint; completed waypoints may remain in the engine list. This allows optional rally arrival and retreat completion to be detected.
  *
+ * Holder recall retires metadata only for actually issued native follow commands; refused actors
+ * remain pending. Current state/epoch/generation and actor task gates bind the command transaction.
  * Repeat/JIP: current feature gates and eligibility are rechecked, including active phase gates;
  * owner jobs are retired on migration.
  * Arguments:
@@ -866,6 +868,8 @@ if (_phaseGateClosed) then {
 // Soldiers holding ground from a finished drill rejoin once the leader has caught up with them.
 // A previous completed bound must not issue doFollow over a replacement drill.
 // Transfer these actors out of old holding ownership before considering reunion.
+private _holderGeneration=_group getVariable ["CBE_OperationGeneration",0];
+private _holderEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _ownedMovers = +(_activeDrill getOrDefault ["units",[]]);
 // CLEAR/garrison/defence and an authored stationary order supersede the old drill's
 // reunion ownership even when they use no active drill record. Transfer metadata only.
@@ -889,14 +893,41 @@ if (count _holderClearHold == 4
         || {count _holderOperation > 0}}) then {
     _ownedMovers append (_holderClearHold select 3);
 };
-private _holders = (_state getOrDefault ["holders", []]) select {alive _x && {local _x} && {group _x == _group} && {!(_x in _ownedMovers)}};
-_state set ["holders",_holders];
-// A completed coordinated bound still belongs to the squad-level MOVE/COVER cycle.
-// Keep its hold record for release, but do not regroup between successive bounds.
-if (_holders isNotEqualTo [] && {!(_state getOrDefault ["assaulting",false])}) then {
-    private _rejoin = _holders select {_x distance2D _leader < 30};
-    if ([] call _mayIssueMovement) then {{_x doFollow _leader} forEach _rejoin};
-    _state set ["holders", _holders - _rejoin];
+private _holderRows=+(_state getOrDefault ["holders",[]]);
+// Split group/unit locality is temporary; retain living same-group actors until their owner
+// can recall them. A replacement movement operation receives only metadata ownership here.
+private _holders = _holderRows select {alive _x && {group _x == _group} && {!(_x in _ownedMovers)}};
+// Admission refusal must not erase an unissued recall. Scheduled direct callers also
+// keep current-state/generation proof, native writes and metadata transfer together.
+isNil {
+    if (local _group && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+        && {(_group getVariable ["CBE_OperationGeneration",0]) == _holderGeneration}
+        && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _holderEpoch}
+        && {(_state getOrDefault ["holders",[]]) isEqualTo _holderRows}) then {
+        _state set ["holders",_holders];
+        // A completed coordinated bound belongs to the squad MOVE/COVER cycle until release.
+        if (_holders isNotEqualTo [] && {!(_state getOrDefault ["assaulting",false])}) then {
+            private _rejoin = _holders select {_x distance2D _leader < 30};
+            if (leader _group == _leader && {[_leader] call CBE_fnc_CortexCombatEffective}
+                && {[] call _mayIssueMovement}) then {
+                private _recallIssued=[];
+                {
+                    if (alive _x && {local _x} && {group _x == _group} && {isNull objectParent _x}
+                        && {!isPlayer _x} && {isNull remoteControlled _x}
+                        && {[_x] call CBE_fnc_CortexCombatEffective}
+                        && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+                        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                        && {!(_x in ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["units",[]]))}
+                        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}) then {
+                        _x doFollow _leader;
+                        _recallIssued pushBack _x;
+                    };
+                } forEach _rejoin;
+                // Issued native follow transfers our old hold; it is not physical rejoin success.
+                _state set ["holders", _holders - _recallIssued];
+            };
+        };
+    };
 };
 
 // A reported coordinated objective permits safe covering fire before personal contact.

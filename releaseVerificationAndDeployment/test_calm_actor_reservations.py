@@ -735,3 +735,19 @@ class ConvoyReplacementFixtureTests(unittest.TestCase):
             self.assertIn(proof,body)
         for shortcut in ('call CBE_fnc_ConvoyReleaseLocal','forceSpeed','setPos','setVelocity','setDriveOnPath'):
             self.assertNotIn(shortcut,body)
+
+
+    def test_holder_recall_retains_refused_actors_and_binds_metadata_to_issue(self):
+        text=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text(encoding='utf-8')
+        block=text.split('// Admission refusal must not erase an unissued recall',1)[1].split('// A reported coordinated objective',1)[0]
+        for guard in ('isNil {','CBE_AIPass_State','_holderGeneration','_holderEpoch',
+                      '[] call _mayIssueMovement','CortexActorFireTaskAvailable','isNull objectParent _x'):
+            self.assertIn(guard,block)
+        self.assertLess(block.index('_x doFollow _leader'),block.index('_recallIssued pushBack _x'))
+        self.assertLess(block.index('_recallIssued pushBack _x'),block.index('_holders - _recallIssued'))
+        self.assertNotIn('_holders - _rejoin',block)
+        roster=text.split('private _holders = _holderRows select',1)[1].split('// Admission refusal',1)[0]
+        self.assertNotIn('local _x',roster)
+        self.assertIn('local _x',block)
+        self.assertIn('isEqualTo _holderRows',block)
+        self.assertNotIn('addPerFrameHandler',block)
