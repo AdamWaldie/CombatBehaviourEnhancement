@@ -1049,3 +1049,6 @@ Roof observation for clearance discovery, clearance visits and natural indoor no
 
 
 Clearance no-progress retries allow a still-owned matching native PLANNING/BUSY path thirty seconds before reissue; ordinary moving requests retain twelve seconds and ended commands four. This preserves planning without renewing progress clocks, retry counts or the original episode deadline. The allowance retains a valid busy path without changing target selection. Thirty seconds is provisional until physical timing/flow and performance are measured; it is not proof that native planning will succeed.
+
+
+Combined-arms spatial candidate discovery explicitly includes live mounted crews within the existing spherical response envelope. The primary nearby-Man query omitted crew inside vehicles and could miss armour and aircraft groups. Group deduplication, communications, role reservations and actual-owner weapon/movement admission remain required. The crew-aware area query uses the addon's existing minimum engine version2.18. Discovery population and mounted-crew query cost still need runtime measurement; discovering a group does not establish a support effect.

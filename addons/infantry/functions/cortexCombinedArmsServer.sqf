@@ -19,6 +19,8 @@
  * still be able to transmit, so jamming continues to prevent long-range composition.
  * Repeat/JIP: requester rate limit and expiring public role tokens replace older opportunities safely.
  * Expiry preserves matching terminal outcomes; only dispatched/applied roles become EXPIRED.
+ * Spatial discovery explicitly includes mounted crews; primary Man nearEntities omits them.
+ * The spherical area uses the existing response radius and the required2.18 crew-aware syntax.
  * Candidate membership uses a request-local keyed set, preserving discovery order without
  * repeated linear array membership searches. Ranking retains the discovered asset; dispatch
  * rechecks its live commander/driver ownership without another full unit scan. A unique rank
@@ -68,6 +70,8 @@ private _senderRadio=!isNull _requesterTransmitter;
 // distinct candidate set from the larger envelope; this avoids a global group walk whenever a
 // contact opens a combined-arms opportunity. The owner still performs the authoritative
 // weapon/turret preflight before it starts a run.
+private _searchRadius=_airRange max _groundRange;
+private _searchArea=[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,_searchRadius];
 private _candidateGroups=[];
 private _candidateSeen=createHashMap;
 {
@@ -79,7 +83,7 @@ private _candidateSeen=createHashMap;
             _candidateGroups pushBack _candidateGroup;
         };
     };
-} forEach (_requesterAnchor nearEntities ["Man",_airRange max _groundRange]);
+} forEach (_searchArea nearEntities [["Man"],false,true,true]);
 private _orderedGroups=[];
 {
     if (!isNull _x) then {

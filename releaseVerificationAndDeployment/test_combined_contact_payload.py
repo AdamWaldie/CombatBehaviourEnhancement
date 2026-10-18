@@ -76,3 +76,19 @@ class CombinedGroundPhysicalArrivalTests(unittest.TestCase):
         self.assertLessEqual(math.dist((0,0,4),(0,0,0)),70)
         self.assertGreater(math.dist((0,0,150),(0,0,0)),70)
         self.assertGreater(math.dist((60,0,50),(0,0,0)),70)
+
+
+class CombinedMountedDiscoveryTests(unittest.TestCase):
+    def test_spatial_discovery_explicitly_includes_live_mounted_crew(self):
+        text=(ROOT/'addons/infantry/functions/cortexCombinedArmsServer.sqf').read_text()
+        discovery=text.split('private _searchRadius=',1)[1].split('private _orderedGroups=',1)[0]
+        self.assertIn('_airRange max _groundRange',discovery)
+        self.assertIn('[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,_searchRadius]',discovery)
+        self.assertIn('_searchArea nearEntities [["Man"],false,true,true]',discovery)
+        self.assertNotIn('nearEntities ["Man",',discovery)
+        self.assertNotIn('allUnits',discovery)
+        self.assertNotIn('allGroups',discovery)
+        self.assertIn('netId _candidateGroup',discovery)
+        self.assertIn('_candidateSeen set [_candidateKey,true]',discovery)
+        config=(ROOT/'addons/main/config.cpp').read_text()
+        self.assertIn('requiredVersion = 2.18;',config)
