@@ -5,6 +5,8 @@
  * publication. Rear recovery aborts on aggregate or per-hitpoint damage increase against its
  * original journal; changed/unknown hitpoint tables refuse recovery. No damage suppression occurs.
  * At most128 hitpoints are compared per rear sample; native table retrieval cost remains engine-dependent.
+ * Original damage receipts stay immutable; observed repairs lower per-leg minima, so later increases
+ * above those minima abort. Repair and damage wholly between samples remain unobservable.
  * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
  * Rear destinations retain the actual sampled support height, including raised decks.
  * Terrain water without a supporting structure remains refused by DrivingRearClear.
@@ -106,19 +108,6 @@ private _stationary={
     finite _linearSpeed && {_linearSpeed < (1/3.6)}
 };
 // Capture/validate engine hit-point identity without changing damage or installing handlers.
-// A bounded unknown table refuses rear recovery; an inherited receipt must pass the same schema.
-private _readRearHitpoints={
-    params [["_damageVehicle",objNull,[objNull]],["_table",[],[[]]]];
-    if (!isNull _damageVehicle) then {_table=getAllHitPointsDamage _damageVehicle};
-    if (count _table != 3 || {_table findIf {!(_x isEqualType [])} >= 0}) exitWith {[]};
-    private _count=count (_table select 0);
-    if (_count == 0 || {_count > 128} || {count (_table select 1) != _count}
-        || {count (_table select 2) != _count}
-        || {(_table select 0) findIf {!(_x isEqualType "")} >= 0}
-        || {(_table select 1) findIf {!(_x isEqualType "")} >= 0}
-        || {(_table select 2) findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x > 1}} >= 0}) exitWith {[]};
-    _table apply {+_x}
-};
 private _vehicles=[];
 {
     private _vehicle=vehicle _x;
@@ -389,6 +378,8 @@ _brain set ["geometryTracks",_geometryTracks];
                     _work set ["rearDirection",vectorDir _vehicle];
                     _work set ["rearDamage",damage _vehicle];
                     _work set ["rearHitpoints",_rearHitpointReceipt apply {+_x}];
+                    _work set ["rearMinimumDamage",_work get "rearDamage"];
+                    _work set ["rearMinimumHitpoints",_rearHitpointReceipt apply {+_x}];
                 };
                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
                 time+(_deadline-serverTime)
@@ -402,28 +393,63 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _rearOrigin=_rearWork getOrDefault ["rearOriginASL",[]];
                 private _rearDirection=_rearWork getOrDefault ["rearDirection",[]];
                 private _rearDamage=_rearWork getOrDefault ["rearDamage",-1];
-                private _rearHitpoints=[objNull,_rearWork getOrDefault ["rearHitpoints",[]]] call _readRearHitpoints;
-                private _liveHitpoints=[_vehicle] call _readRearHitpoints;
+                private _rearHitpoints=[objNull,_rearWork getOrDefault ["rearHitpoints",[]]] call CBE_fnc_DrivingDamageReceipt;
+                private _liveHitpoints=[_vehicle] call CBE_fnc_DrivingDamageReceipt;
+                private _liveDamage=damage _vehicle;
+                private _minimumDamage=_rearWork getOrDefault ["rearMinimumDamage",-1];
+                private _minimumHitpoints=[objNull,_rearWork getOrDefault ["rearMinimumHitpoints",[]]] call CBE_fnc_DrivingDamageReceipt;
                 private _proofValid=_rearDamage isEqualType 0 && {finite _rearDamage} && {_rearDamage >= 0}
-                    && {count _rearHitpoints == 3} && {count _liveHitpoints == 3}
+                    && {count _rearHitpoints == 3} && {count _liveHitpoints == 3} && {count _minimumHitpoints == 3}
+                    && {_minimumDamage isEqualType 0} && {finite _minimumDamage}
+                    && {_minimumDamage >= 0} && {_minimumDamage <= _rearDamage}
+                    && {_liveDamage isEqualType 0} && {finite _liveDamage} && {_liveDamage >= 0} && {_liveDamage <= 1}
                     && {(_rearHitpoints select [0,2]) isEqualTo (_liveHitpoints select [0,2])}
+                    && {(_rearHitpoints select [0,2]) isEqualTo (_minimumHitpoints select [0,2])}
                     && {count _rearOrigin == 3} && {count _rearDirection == 3}
                     && {_rearOrigin findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                     && {_rearDirection findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                     && {abs ((vectorMagnitude _rearDirection)-1) <= 0.02};
                 if (_proofValid) then {
                     private _componentDamage=false;
+                    private _historyInvalid=false;
+                    private _nextMinimumValues=+(_minimumHitpoints select 2);
                     for "_hitIndex" from 0 to ((count (_rearHitpoints select 2))-1) do {
-                        if (((_liveHitpoints select 2) select _hitIndex) > ((_rearHitpoints select 2) select _hitIndex)+0.01) exitWith {
-                            _componentDamage=true;
-                        };
+                        private _minimum=(_minimumHitpoints select 2) select _hitIndex;
+                        private _observed=(_liveHitpoints select 2) select _hitIndex;
+                        if (_minimum > ((_rearHitpoints select 2) select _hitIndex)) exitWith {_historyInvalid=true};
+                        if (_observed > _minimum+0.01) exitWith {_componentDamage=true};
+                        _nextMinimumValues set [_hitIndex,_minimum min _observed];
                     };
                     private _delta=(getPosASL _vehicle) vectorDiff _rearOrigin;
                     private _along=_delta vectorDotProduct _rearDirection;
                     private _lateral=vectorMagnitude (_delta vectorDiff (_rearDirection vectorMultiply _along));
                     _rearPathRejected=(vectorDir _vehicle) vectorDotProduct _rearDirection < cos 20
                         || {_along > 1} || {_along < -10} || {_lateral > 2.5}
-                        || {damage _vehicle > _rearDamage+0.01} || {_componentDamage};
+                        || {_liveDamage > _minimumDamage+0.01} || {_componentDamage} || {_historyInvalid};
+                    // Repairs lower observation minima; damage can never raise them. Publish only
+                    // a real decrease on this exact live rear leg, without changing its lifetime.
+                    private _nextMinimumDamage=_minimumDamage min _liveDamage;
+                    if (!_rearPathRejected && {_nextMinimumDamage < _minimumDamage
+                        || {_nextMinimumValues isNotEqualTo (_minimumHitpoints select 2)}}) then {
+                        isNil {
+                            if (call _mayIssueDriving
+                                && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
+                                && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])}
+                                && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                                && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _rearWork}
+                                && {(_rearWork getOrDefault ["kind",""]) == "REVERSE"}
+                                && {(_rearWork getOrDefault ["route",[]]) isEqualTo _routeIdentity}
+                                && {(_rearWork getOrDefault ["rearMinimumDamage",-1]) == _minimumDamage}
+                                && {(_rearWork getOrDefault ["rearMinimumHitpoints",[]]) isEqualTo _minimumHitpoints}
+                                && {(expectedDestination _driver) isEqualTo (_rearWork getOrDefault ["driverCommand",[]])}
+                                && {(expectedDestination _movementOperator) isEqualTo (_rearWork getOrDefault ["command",[]])}
+                                && {time < (_state param [7,-1])} && {serverTime < (_rearWork getOrDefault ["deadline",-1])}) then {
+                                _rearWork set ["rearMinimumDamage",_nextMinimumDamage];
+                                _rearWork set ["rearMinimumHitpoints",[+(_minimumHitpoints select 0),+(_minimumHitpoints select 1),_nextMinimumValues]];
+                                _vehicle setVariable ["CBE_DrivingRecovery_Work",_rearWork,true];
+                            };
+                        };
+                    };
                 } else {_rearPathRejected=true};
                 if (_rearPathRejected) then {
                     // A rear destination is not a reverse primitive. Retire a native turn or
@@ -799,7 +825,7 @@ _brain set ["geometryTracks",_geometryTracks];
                         case 1: {
                             private _rear=[];
                             private _rearPose=[getPosASL _vehicle,vectorDir _vehicle,time];
-                            private _rearHitpointReceipt=[_vehicle] call _readRearHitpoints;
+                            private _rearHitpointReceipt=[_vehicle] call CBE_fnc_DrivingDamageReceipt;
                             private _rearCommands=[currentCommand _driver,+(expectedDestination _driver),
                                 currentCommand _movementOperator,+(expectedDestination _movementOperator)];
                             private _rearJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
@@ -815,7 +841,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                                     || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _rearJournal}
                                     || {count _rearJournal == 0} || {serverTime >= (_rearJournal get "hardDeadline")-60}
-                                    || {([_vehicle] call _readRearHitpoints) isNotEqualTo _rearHitpointReceipt}
+                                    || {([_vehicle] call CBE_fnc_DrivingDamageReceipt) isNotEqualTo _rearHitpointReceipt}
                                     || {time < (_rearPose select 2)} || {time-(_rearPose select 2) > 1}
                                     || {(getPosASL _vehicle) vectorDistance (_rearPose select 0) > 1}
                                     || {(vectorDir _vehicle) vectorDotProduct (_rearPose select 1) < cos 5}

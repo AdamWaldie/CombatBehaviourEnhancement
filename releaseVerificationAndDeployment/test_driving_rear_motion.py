@@ -14,7 +14,7 @@ class RearMotionTests(unittest.TestCase):
     def test_divergence_expires_owned_leg_without_new_reverse_command(self):
         text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         block=text.split('private _rearPathRejected=false;',1)[1].split('private _retryAllowed=',1)[0]
-        for proof in ('finite _rearDamage','_rearDamage >= 0','damage _vehicle > _rearDamage+0.01','cos 20','_along > 1','_along < -10','_lateral > 2.5',
+        for proof in ('finite _rearDamage','_rearDamage >= 0','_liveDamage > _minimumDamage+0.01','cos 20','_along > 1','_along < -10','_lateral > 2.5',
                       '_rearPathRejected=true','_state set [7,time]','"REAR_PATH_DIVERGED"'):
             self.assertIn(proof,block)
         self.assertNotIn('doMove',block)
