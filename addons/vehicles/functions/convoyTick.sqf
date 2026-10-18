@@ -50,6 +50,8 @@
  * A public revision/route-bound retry journal permits at most six endpoint recalls within
  * the original 120 seconds, spaced at least fifteen seconds apart across owner migration.
  * Exhaustion leaves the native route untouched; only a new revision or authored identity starts anew.
+ * Startup and missing-trail holds check both actual seats atomically; refused holds never
+ * create path-owner or native-hold receipts. Crew service/reservations retain their commands.
  * Final speed, follower MOVE and steering-path commits recheck two actual seats atomically;
  * a service/reservation arriving during geometry cannot authorize those writes.
  * Actual driver/commander service or reserved tasks suspend the whole local column before
@@ -358,19 +360,25 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
             if (isAISteeringComponentEnabled _x && {effectiveCommander _x == driver _x}) then {
                 // Relinquish formation before the predecessor has recorded its first trail segment.
                 // Waiting for a large gap lets native formation compress/overtake during startup.
-                doStop driver _x;
-                _initialPathOwners set [netId _x,true];
+                private _initialVehicle=_x;
+                isNil {if ([_initialVehicle] call _mayIssueDriving) then {
+                    doStop driver _initialVehicle;
+                    _initialPathOwners set [netId _initialVehicle,true];
+                }};
             } else {
                 // Native followers also acquire column control before a forward trail
                 // exists. Formation following here can overtake the predecessor.
                 private _initialOperator=effectiveCommander _x;
                 if (isNull _initialOperator) then {_initialOperator=driver _x};
-                doStop _initialOperator;
-                private _initialKey=netId _x;
-                private _initialProgress=_resumeFollowers getOrDefault [_initialKey,
-                    [getPosATL _x,time,-1,0,0,[],[]]];
-                _initialProgress set [7,true];
-                _resumeFollowers set [_initialKey,_initialProgress];
+                private _initialVehicle=_x;
+                isNil {if ([_initialVehicle,_initialOperator] call _mayIssueDriving) then {
+                    doStop _initialOperator;
+                    private _initialKey=netId _initialVehicle;
+                    private _initialProgress=_resumeFollowers getOrDefault [_initialKey,
+                        [getPosATL _initialVehicle,time,-1,0,0,[],[]]];
+                    _initialProgress set [7,true];
+                    _resumeFollowers set [_initialKey,_initialProgress];
+                }};
             };
             };
             _x setConvoySeparation _separation;
@@ -1235,14 +1243,20 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 // Retain an existing native destination. Before the first commitment,
                 // hold once so the leader's formation cannot pull us alongside it.
                 if (count (_progress param [5,[]]) < 2
-                    && {!(_progress param [7,false])} && {[] call _mayIssueDriving}) then {
-                    doStop _movementOperator;
-                    _vehicle setConvoySeparation _desiredGap;
-                    _progress set [7,true];
+                    && {!(_progress param [7,false])}) then {
+                    isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                        doStop _movementOperator;
+                        _vehicle setConvoySeparation _desiredGap;
+                        _progress set [7,true];
+                    }};
                 };
             } else {
-                if (!(_pathOwners getOrDefault [_key,false]) && {[] call _mayIssueDriving}) then {doStop driver _vehicle};
-                _pathOwners set [_key,true];
+                if (!(_pathOwners getOrDefault [_key,false])) then {
+                    isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                        doStop driver _vehicle;
+                        _pathOwners set [_key,true];
+                    }};
+                };
             };
             _progress set [2, time + 1];
         };
