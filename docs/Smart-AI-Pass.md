@@ -1494,3 +1494,6 @@ The experimental RETURN leg now observes its issued joined corridor on every exi
 
 
 Measured hull clearance by itself no longer starts RETURN_SCAN. The vehicle also has to reach within eight metres horizontally and two metres vertically of its issued OUT endpoint, which overlaps the planned return corridor's first station. Early clearance keeps the current passing path and normal traffic monitoring active. This avoids stopping while the return corridor is still far ahead, then either refusing the join or cutting prematurely across the passing leg. It adds no sensing query, new path, priority or time allowance. Native endpoint approach and return timing remain unverified.
+
+
+Bypass PLAN publishes its FOLLOW phase in the same short unscheduled section as the native stop/path commands. That section repeats current controller/route/crew admission, original episode/phase/deadline, both native destinations and the proposal's exact vehicle/obstacle transforms. Geometry remains outside the section. A stale proposal or superseded task cannot issue a path through a gap after its final check. This does not prove native command delivery or resolve same-value external edits; scheduled interleavings, migration and runtime cost still need physical acceptance.

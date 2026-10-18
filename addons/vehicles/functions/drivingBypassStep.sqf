@@ -7,6 +7,9 @@
  * its two actors must be idle or moving to the full three-dimensional authored destination. Owned FOLLOW-phase
  * doStop receipts retain their separate retirement contract.
  * Individual actor reservations on either seat veto acquisition and every later command.
+ * PLAN geometry stays outside a short unscheduled issue commit. Exact live episode/phase,
+ * original deadline, proposal transforms, native seats/orders and caller authority repeat inside
+ * that boundary before stop/path writes and FOLLOW publication; refused commits issue nothing.
  * Repeat/JIP: Public serializable work stores original 90-second deadline, two-side attempt budget,
  * path/checkpoint/seat/route receipts. New owners adopt without command replay or clock renewal.
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 brain <HASHMAP, empty>;
@@ -191,16 +194,31 @@ if ((_work get "phase") == "PLAN") exitWith {
     private _halfWidth=((abs (_low select 0)) max (abs (_high select 0))) max (_envelope param [0,0]);
     private _halfLength=((abs (_low select 1)) max (abs (_high select 1))) max (_envelope param [1,0]);
     private _radius=sqrt ((_halfWidth^2)+(_halfLength^2))+1;
-    if (_operator != _driver) then {doStop _operator};doStop _driver;
-    _vehicle setDriveOnPath _points;
-    _work set ["phase","FOLLOW"];_work set ["points",_asl];_work set ["index",1];
-    _work set ["capture",[getPosASL _vehicle,serverTime,+_captureOwner]];
-    _work set ["radius",_radius];_work set ["height",((_high select 2)-(_low select 2)) max (_envelope param [2,0])];
-    _work set ["tailDeadline",(_work get "deadline")+((_columnLength/(8/3.6)+60) min 1710)];
-    _work set ["forward",_forward];_work set ["far",_exit vectorDiff (_forward vectorMultiply (_radius+10))];
-    _work set ["command",+(expectedDestination _operator)];_work set ["driverCommand",+(expectedDestination _driver)];
-    _work set ["driverTask",toUpperANSI currentCommand _driver];_work set ["operatorTask",toUpperANSI currentCommand _operator];
-    _vehicle setVariable ["CBE_DrivingBypass_Work",_work,true];
+    private _issued=false;
+    isNil {
+        if (call _mayWrite && {call _nativeAdmissionReady}
+            && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
+            && {(_work get "phase") == "PLAN"} && {serverTime < (_work get "deadline")}
+            && {(expectedDestination _operator) isEqualTo (_work get "command")}
+            && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
+            && {[_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable}
+            && {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isEqualTo (_proposal select 4)}
+            && {[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle] isEqualTo (_proposal select 5)}) then {
+            if (_operator != _driver) then {doStop _operator};doStop _driver;
+            _vehicle setDriveOnPath _points;
+            _work set ["phase","FOLLOW"];_work set ["points",_asl];_work set ["index",1];
+            _work set ["capture",[getPosASL _vehicle,serverTime,+_captureOwner]];
+            _work set ["radius",_radius];_work set ["height",((_high select 2)-(_low select 2)) max (_envelope param [2,0])];
+            _work set ["tailDeadline",(_work get "deadline")+((_columnLength/(8/3.6)+60) min 1710)];
+            _work set ["forward",_forward];_work set ["far",_exit vectorDiff (_forward vectorMultiply (_radius+10))];
+            _work set ["command",+(expectedDestination _operator)];_work set ["driverCommand",+(expectedDestination _driver)];
+            _work set ["driverTask",toUpperANSI currentCommand _driver];_work set ["operatorTask",toUpperANSI currentCommand _operator];
+            _vehicle setVariable ["CBE_DrivingBypass_Work",_work,true];
+            _issued=true;
+        };
+        false
+    };
+    if (!_issued) exitWith {_inactive};
     [true,8/3.6,"BYPASS_FOLLOW",false]
 };
 private _points=_work get "points";private _index=_work get "index";private _origin=getPosASL _vehicle;

@@ -17,7 +17,7 @@ class DrivingBypassTests(unittest.TestCase):
         plan=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
         self.assertEqual(plan.count('call CBE_fnc_DrivingBypassObstacleAvailable'),2)
         step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
-        self.assertEqual(step.count('call CBE_fnc_DrivingBypassObstacleAvailable'),2)
+        self.assertEqual(step.count('call CBE_fnc_DrivingBypassObstacleAvailable'),3)
         self.assertLess(step.rindex('call CBE_fnc_DrivingBypassObstacleAvailable'),step.index('_vehicle setDriveOnPath'))
         following=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text(encoding='utf-8')
         self.assertNotIn('DrivingBypassObstacleAvailable',following)
@@ -345,3 +345,22 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
                 self.assertGreater(dy,0)
                 self.assertLessEqual(math.hypot(dx,dy),5+1e-9)
                 self.assertLessEqual(abs(math.degrees(math.atan2(dx,dy))),35+1e-9)
+
+    def test_bypass_issue_rechecks_geometry_and_intent_in_same_commit_as_publication(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
+        commit=s.split('private _issued=false;',1)[1].split('if (!_issued)',1)[0]
+        self.assertIn('isNil {',commit)
+        write=commit.index('_vehicle setDriveOnPath _points')
+        for check in ('call _mayWrite','call _nativeAdmissionReady',
+                      'getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work',
+                      '(_work get "phase") == "PLAN"','serverTime < (_work get "deadline")',
+                      'expectedDestination _operator','expectedDestination _driver',
+                      'call CBE_fnc_DrivingBypassObstacleAvailable',
+                      'isEqualTo (_proposal select 4)','isEqualTo (_proposal select 5)'):
+            self.assertLess(commit.index(check),commit.index('doStop _operator'))
+        self.assertLess(write,commit.index('_work set ["phase","FOLLOW"]'))
+        self.assertLess(commit.index('_work set ["phase","FOLLOW"]'),commit.index('setVariable ["CBE_DrivingBypass_Work",_work,true]'))
+        self.assertLess(s.index('call CBE_fnc_DrivingBypassPlan'),s.index('private _issued=false;'))
+        self.assertNotIn('call CBE_fnc_DrivingBypassPlan',commit)
+        self.assertNotIn('lineIntersects',commit)
+        self.assertNotIn('sleep',commit)

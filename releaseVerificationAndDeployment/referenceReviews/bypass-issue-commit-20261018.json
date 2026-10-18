@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Atomic bypass PLAN-to-FOLLOW path issue",
+  "sources": {
+    "addons/vehicles/functions/drivingBypassStep.sqf": "28be79aff1bad1d3ba2f0a0f8351bb8504a38167adf8dba2689aa36e02db23e3"
+  },
+  "finding": "Final controller/native check, geometry-derived fields, native stop/path and FOLLOW publication were separate scheduled statements. A newer order or changed transform could intervene after admission.",
+  "change": "Keep geometry planning scheduled, repeat current controller/route/crew/native order/live exact work/PLAN/original expiry/proposal poses in one unscheduled block, then native commands and FOLLOW receipt publication. Refusal issues nothing. No new deadline, path count, sensor or scheduler.",
+  "validation": {
+    "tests": 1186,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-bypass-issue-commit-build.log",
+    "fingerprint": "eb9178cc8e3e44aa4a138e9543e8e9a3d7847380e3452e3871a1691aba6fab0d",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "receipt": "Parenta036374b plus tracked diff/dirty Build, not signed Release.",
+    "initial_focused": "One source-count assertion expected two obstacle checks; final commit adds a third. Updated exact count while retaining before-write checks;29 focused checks then passed."
+  },
+  "limits": [
+    "No observed scheduled-interruption, Zeus replacement, changing geometry, native path delivery or HC transition acceptance.",
+    "Unscheduled block is bounded but actual cost is unmeasured. Synchronous reentrant native event side effects are not proved by source gating.",
+    "DrivingBypassRelease still calculates command/retirement authority across scheduled statements; review separately.",
+    "PLAN refusal leaves original finite episode for next callback; no retry budget renewal.",
+    "Whole HBQ/native queue implementation and all65 feature-family physical/performance acceptance remain incomplete."
+  ]
+}
