@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-18",
+  "scope": "Convoy current-operation command admission and actual applied smoothing records",
+  "sources": {
+    "addons/vehicles/functions/convoyTick.sqf": "51e31cdc4661144ce8b5e191c05e35478be98bc5005f06db2bd73e5a515b2607",
+    "addons/vehicles/functions/convoyOperationStep.sqf": "4a151ea0b38ac4e8e6025b88d996bcb79aaa17585f650a535761c5aad8721d34",
+    "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240"
+  },
+  "finding": "Per-command helper checked current crew/external availability but not original brain/job/registry/configuration/epoch. Lead and two follower smoothing journals could record rejected caps.",
+  "implementation": "Capture original tick brain/token/registry revision/epoch and registry row index. Each existing command helper refuses changed/cancelled/finished brain, token, epoch, configuration or indexed registry row; row lookup is constant-time after one entry search. Lead and PACE/TRAIL follower cap journals move beside forceSpeed in their admitted transactions.",
+  "limits": [
+    "No spacing formula, tolerance, braking envelope or acceleration rate changed.",
+    "Not complete convoy writer atomicity: early setup/progress/path bookkeeping and lifecycle publication still need review.",
+    "Additional bounded context checks at command proposals; runtime cost unmeasured.",
+    "Physical mixed tracked/wheeled step-off, braking, gaps, replacements, HC and performance remain unaccepted."
+  ],
+  "validation": {
+    "tests": 1354,
+    "log": ".qa/cbe-convoy-cap-identity-verified-build.log",
+    "exitCode": 0,
+    "packageFingerprint": "a931c1e1e6939942a2c3b643b782f05f96b382e2763062b7100b432c8e02e123"
+  },
+  "physicalAcceptance": false,
+  "performanceAccepted": false
+}

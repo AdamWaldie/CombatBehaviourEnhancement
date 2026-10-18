@@ -582,3 +582,17 @@ class DrivingQueueDiscoveryAuthorityTests(unittest.TestCase):
         publication=body.split('call CBE_fnc_DrivingQueueProposal;',1)[1]
         self.assertLess(publication.index('isNil {'),publication.index('call CBE_fnc_DrivingQueueAgreementRequest'))
         self.assertNotIn('doMove',body)
+
+
+class ConvoyCapCommitIdentityTests(unittest.TestCase):
+    def test_convoy_native_boundaries_bind_original_brain_and_configuration(self):
+        source=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        helper=source.split('private _mayIssueDriving = {',1)[1].split('// Recovery must not replay',1)[0]
+        for guard in ('isNotEqualTo _tickBrain','CBE_Convoy_LocalJobToken','CBE_Convoy_ReceivedRevision',
+                      'CBE_AIPass_Epoch','"cancelled"','"finished"','isNotEqualTo _configuration',
+                      'param [_tickRegistryIndex,[]]'):
+            self.assertIn(guard,helper)
+        self.assertNotIn('findIf',helper.split('if (isNull _taskVehicle)',1)[0])
+        self.assertIn('_lead forceSpeed _ownedSpeed;\n    _state set ["leadSpeedLimit",[_leadLimit,time]];',source)
+        self.assertEqual(source.count('_speedLimits set [_key,[_limit,time]];'),2)
+        self.assertEqual(len(re.findall(r'_vehicle forceSpeed _ownedSpeed;\s*_speedLimits set',source)),2)

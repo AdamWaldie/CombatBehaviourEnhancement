@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Shared convoy command admission now binds the original brain/configuration, job token, registry revision and owner epoch. Lead/follower smoothing cap records publish with admitted speed commands rather than rejected proposals. Mixed-column stop/start and measured cost remain unverified; spacing tuning is unchanged.
+
 - Queue discovery now claims and publishes under the original driving brain/epoch and unchanged traffic observation/retry records. Scheduled discovery cannot adopt a replacement brain for consent submission. This supplies no native queue execution or physical acceptance.
 
 - Recovery retirement now rechecks the selected live teammate identity and both actors at publication, retaining existing 12 m/1.5 m vertical cohesion limits. Stale rally coordinates cannot prove rejoin. Physical navigation and performance remain unverified.

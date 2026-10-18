@@ -84,6 +84,15 @@ params ["_group", "_configuration"];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 if (isNull _group) exitWith {};
 _configuration params ["_revision", "_speed", "_separation", "_pushThrough", "_registered", "_phase", "_cargo", "_restore"];
+private _tickBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+private _tickToken=_tickBrain getOrDefault ["jobToken",""];
+private _tickRegistryRevision=_tickBrain getOrDefault ["registryRevision",-1];
+private _tickEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _tickRegistryIndex=(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+    _x isEqualTo [_group,_configuration]
+};
+if (_tickRegistryIndex < 0 || {_tickToken == ""} || {!local _group}) exitWith {};
+
 if (time < (_group getVariable ["CBE_Convoy_NextTick", -1])) exitWith {};
 _group setVariable ["CBE_Convoy_NextTick", time + 1];
 private _state = _group getVariable ["CBE_Convoy_LocalState", createHashMap];
@@ -190,6 +199,13 @@ if (!local _group) exitWith {};
 // during that work receives an immediate clean handover rather than a stale speed or route update.
 private _mayIssueDriving = {
     params [["_taskVehicle",objNull,[objNull]],["_expectedOperator",objNull,[objNull]]];
+    if (!local _group || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _tickBrain}
+        || {_tickToken != (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+        || {_tickRegistryRevision != (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2])}
+        || {_tickEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {_tickBrain getOrDefault ["cancelled",false]} || {_tickBrain getOrDefault ["finished",false]}
+        || {(_tickBrain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
+        || {((missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) param [_tickRegistryIndex,[]]) isNotEqualTo [_group,_configuration]}) exitWith {false};
     if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
     if (isNull _taskVehicle) exitWith {true};
     private _taskDriver=driver _taskVehicle;
@@ -752,10 +768,10 @@ _leadLimit=_leadLimit min ((_leadTraffic select 0)*3.6);
 if (_captureControl) then {(_leadControl select 4) pushBack ["trafficGeometry",_leadLimit]};
 _leadLimit = [_lead,_leadLimit,_group] call CBE_fnc_CortexInfantrySpeed;
 if (_captureControl) then {(_leadControl select 4) pushBack ["infantry",_leadLimit]};
-_state set ["leadSpeedLimit",[_leadLimit,time]];
 isNil {if ([_lead] call _mayIssueDriving) then {
     private _ownedSpeed=_leadLimit/3.6;
     _lead forceSpeed _ownedSpeed;
+    _state set ["leadSpeedLimit",[_leadLimit,time]];
     if (_captureControl) then {_leadControl set [5,true]};
     if (_leadGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_lead,_leadGate,_revision] call CBE_fnc_DrivingGateRequest};
     _lead setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
@@ -987,11 +1003,11 @@ for "_i" from 1 to (count _vehicles - 1) do {
     isNil {if ([_vehicle] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
         _vehicle forceSpeed _ownedSpeed;
+        _speedLimits set [_key,[_limit,time]];
         if (_captureControl) then {(_controlSample select 7) pushBack ["PACE",_limit];_controlSample set [8,true]};
         if (_vehicleGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_vehicle,_vehicleGate,_revision] call CBE_fnc_DrivingGateRequest};
         _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
     }};;
-    _speedLimits set [_key,[_limit,time]];
     // Keep the committed native and steering-path destinations when progress is made. Rebuilding
     // this record as the former four-field array erased both commitments every few metres, so the
     // next one-second trail sample looked like a new order and restarted engine planning.
@@ -1149,10 +1165,10 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 isNil {if ([_vehicle] call _mayIssueDriving) then {
                     private _ownedSpeed=_limit/3.6;
                     _vehicle forceSpeed _ownedSpeed;
+                    _speedLimits set [_key,[_limit,time]];
                     if (_captureControl) then {(_controlSample select 7) pushBack ["TRAIL",_limit];_controlSample set [8,true]};
                     _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
                 }};;
-                _speedLimits set [_key,[_limit,time]];
             };
             if (_native && {_path isNotEqualTo []}) then {
                 // Vehicles without steering support retain native pathfinding.
