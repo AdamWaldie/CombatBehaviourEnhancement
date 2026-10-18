@@ -18,6 +18,8 @@ class PartnerEntryCommitTests(unittest.TestCase):
         self.assertNotIn('serverTime+',atomic)
         self.assertNotIn('setPos',atomic)
         self.assertNotIn('setVelocity',atomic)
+        self.assertIn('formLeader _partner',atomic)
+        self.assertNotIn('formationLeader _partner',source)
     def test_geometry_and_ownership_remain_distinct(self):
         source=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         section=source.split('private _entryAlternativeBefore=',1)[1].split('_entryRecovery set [_key,_receipt]',1)[0]

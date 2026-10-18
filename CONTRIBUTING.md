@@ -42,3 +42,6 @@ CBA owns addon settings, enablement and tuning. Native Zeus and optional ZEN mod
 ## CI usage and review checkpoints
 
 Validate locally while a PR is draft, and batch related commits into coherent push checkpoints. Automatic full validation runs on main pushes and on opened/updated/reopened ready PRs, including the ready-for-review transition. An explicit manual validation run remains available for draft branches. Superseded validation runs for the same PR/ref are cancelled; validation jobs have a 20-minute bound and ordinary build artifacts expire after three days. Signed candidates and published-release promotion retain their existing explicit triggers and full gates. No test or acceptance criterion is removed by this scheduling policy.
+
+
+Undefined SQF locals are configured as HEMTT errors. Do not downgrade this gate or suppress a finding without proving its actual caller-provided scope. Compilation and static contracts still do not establish physical behaviour.

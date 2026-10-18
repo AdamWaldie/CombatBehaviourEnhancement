@@ -1862,7 +1862,7 @@ private _delay=call {
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
                             && {call _mayIssueMovement}) then {
                             private _pose=getPosASL _partner;
-                            private _entryNative=[currentCommand _partner,expectedDestination _partner,formationLeader _partner];
+                            private _entryNative=[currentCommand _partner,expectedDestination _partner,formLeader _partner];
                             private _entryAlternativeBefore=+_alternativeReceipt;
                             private _alternatives=[];
                             {
@@ -1885,7 +1885,7 @@ private _delay=call {
                                     && {serverTime <= (_job get "deadline")}
                                     && {serverTime <= (_job get "hardDeadline")}
                                     && {(_partner getVariable ["CBE_Cortex_ClearEntryAlternative",[]]) isEqualTo _entryAlternativeBefore}
-                                    && {[currentCommand _partner,expectedDestination _partner,formationLeader _partner] isEqualTo _entryNative}
+                                    && {[currentCommand _partner,expectedDestination _partner,formLeader _partner] isEqualTo _entryNative}
                                     && {currentCommand _partner == "" || {[_partner] call _ownsCurrentMove}}
                                     && {(getPosASL _partner) vectorDistance _pose <= 1}) then {
                                     _partner setVariable ["CBE_Cortex_ClearEntryAlternative",[

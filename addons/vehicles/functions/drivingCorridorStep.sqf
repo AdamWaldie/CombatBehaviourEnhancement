@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Admission snapshots both native crew commands before geometry, then atomically rechecks
+ * the actual controller, seats, authored route and area transform before issue/publication.
  * Purpose: Executes a finite current-controller APPROACH/CROSS episode through a registered area.
  * Locality / Authority: Called only by the current ordinary/convoy brain, for its lead vehicle.
  * Shares existing speed/traffic writers; never edits waypoints, transfers locality or enables AI.
@@ -223,6 +225,18 @@ if (_convoy && {count _passage > 0} && {(_passage get "revision") == (_configura
 private _destination=waypointPosition _waypoint;
 // Do not replace a newer individual MOVE merely because its group route is unchanged.
 if !(call _nativeAdmissionReady) exitWith {_inactive};
+// Geometry may yield in scheduled execution. Keep both original native seat receipts.
+private _admissionNative=[_driver,_operator] apply {
+    [_x,toUpperANSI currentCommand _x,
+        (expectedDestination _x) apply {if (_x isEqualType []) then {+_x} else {_x}}]
+};
+private _admissionCurrent={
+    _admissionNative findIf {
+        _x params ["_actor","_command","_destination"];
+        toUpperANSI currentCommand _actor != _command
+            || {(expectedDestination _actor) isNotEqualTo _destination}
+    } < 0
+};
 private _snapshot=missionNamespace getVariable ["CBE_DrivingCorridor_Snapshot",[0,[]]];
 private _records=_snapshot param [1,[]];
 if (count _records > 32) exitWith {_inactive};
@@ -278,7 +292,7 @@ if (!(_proposal select 0)) exitWith {
     _vehicle setVariable ["CBE_DrivingCorridor_Cooldown",_cooldown,true];
     _vehicle setVariable ["CBE_DrivingCorridor_Result",[_proposal select 1,serverTime,_area,"ADMISSION"],true];_inactive
 };
-if (!(call _mayWrite) || {(expectedDestination _operator) isNotEqualTo _native}
+if (!(call _mayWrite) || {!(call _admissionCurrent)}
     || {_vehicle distance2D ((_proposal select 2) select 0) > 400}
     || {(_proposal select 4) isNotEqualTo _transform}) exitWith {_inactive};
 private _points=_proposal select 2;private _asl=_proposal select 3;
@@ -304,14 +318,24 @@ if (_exitRoom < _requiredRoom) exitWith {
 };
 private _tailSpeed=((_definition select 3) min (_configuration param [1,_definition select 3]))/3.6;
 private _tailDeadline=serverTime+((120+(_definition select 1)+45+60+_tailLength/(_tailSpeed max 1.39)) min 1800);
-if (!(call _mayWrite) || {!(call _nativeAdmissionReady)}) exitWith {_inactive};
-_operator doMove (_points select 0);
-_work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
-    ["route",_route],["area",_area],["definition",_definition],["transform",_transform],
-    ["context",_context],["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
-    ["points",_points],["asl",_asl],["travel",_axis vectorMultiply (-_side)],
-    ["far",(getPosASL _area) vectorDiff (_axis vectorMultiply ((_definition select 1)*_side))],
-    ["tailDeadline",_tailDeadline],["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
-    ["command",+(expectedDestination _operator)]];
-_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
+private _admitted=false;
+isNil {
+    if (call _mayWrite && {call _nativeAdmissionReady} && {call _admissionCurrent}
+        && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}
+        && {!isNull _area}
+        && {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo _definition}
+        && {[getPosWorld _area,vectorDir _area,vectorUp _area] isEqualTo _transform}) then {
+        _operator doMove (_points select 0);
+        _work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
+            ["route",_route],["area",_area],["definition",_definition],["transform",_transform],
+            ["context",_context],["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
+            ["points",_points],["asl",_asl],["travel",_axis vectorMultiply (-_side)],
+            ["far",(getPosASL _area) vectorDiff (_axis vectorMultiply ((_definition select 1)*_side))],
+            ["tailDeadline",_tailDeadline],["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
+            ["command",+(expectedDestination _operator)]];
+        _vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
+        _admitted=true;
+    };
+};
+if (!_admitted) exitWith {_inactive};
 [true,(_definition select 3)/3.6,"CORRIDOR_APPROACH"]

@@ -197,3 +197,21 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertNotIn('disableAI', text.split('params [[',1)[1])
         self.assertIn('vehicle _operator == _vehicle', release)
         self.assertLess(release.index('_driver doFollow _operator'), release.index('_operator doMove waypointPosition'))
+
+    def test_initial_corridor_commit_uses_defined_symmetric_native_receipts(self):
+        source=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _admissionNative=[_driver,_operator] apply',source)
+        self.assertLess(source.index('private _admissionNative='),source.index('call CBE_fnc_DrivingCorridorGeometry'))
+        self.assertNotRegex(source,r'\b_native\b')
+        mutation=source.split('private _admitted=false;',1)[1]
+        self.assertLess(mutation.index('isNil {'),mutation.index('_operator doMove'))
+        for guard in ('call _mayWrite','call _nativeAdmissionReady','call _admissionCurrent',
+                      'isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}',
+                      'isEqualTo _definition','isEqualTo _transform'):
+            self.assertLess(mutation.index(guard),mutation.index('_operator doMove'))
+        self.assertLess(mutation.index('_operator doMove'),mutation.index('setVariable ["CBE_DrivingCorridor_Work"'))
+        self.assertIn('if (!_admitted) exitWith {_inactive}',mutation)
+    def test_undefined_local_lint_is_a_build_error(self):
+        import tomllib
+        config=tomllib.loads((ROOT/'.hemtt/project.toml').read_text(encoding='utf-8'))
+        self.assertEqual(config['lints']['sqf']['undefined'],'Error')

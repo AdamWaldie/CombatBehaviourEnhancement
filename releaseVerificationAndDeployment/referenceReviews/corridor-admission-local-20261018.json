@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-18",
+  "scope": "Corridor acquisition undefined-local fix and native admission commit",
+  "finding": "DrivingCorridorStep compared operator expectedDestination with undefined _native; prior HEMTT default Help L-S13 allowed the package build to succeed.",
+  "implementation": [
+    "Capture actual driver/operator native command and deep-copied full destinations before bounded geometry",
+    "Replace undefined comparison with defined symmetric receipt validator",
+    "Atomically repeat actual controller/seat/route and native admission checks with original native snapshot, absence of successor work and current area definition/transform before doMove/work publication",
+    "Set HEMTT sqf.undefined severity Error; no suppressed variables or weakened tests",
+    "Use documented formLeader in CQB partner snapshot consistently with existing CBE admission"
+  ],
+  "references": [
+    "https://hemtt.dev/configuration/lints.html",
+    "https://hemtt.dev/lints/sqf.html",
+    "https://community.bistudio.com/wiki/formLeader"
+  ],
+  "negative_validation": {
+    "log": ".qa/cbe-undefined-local-negative-check.log",
+    "exit": 1,
+    "diagnostic": "error[L-S13]: Undefined variable _native",
+    "source": "Before corridor fix, with new severity gate"
+  },
+  "validation": {
+    "log": ".qa/cbe-corridor-admission-local-build.log",
+    "exit": 0,
+    "tests": 1205,
+    "sqf": 323,
+    "pbos": 9,
+    "fingerprint": "bf1311e307c3b473682889fb4ae207e1cee3c55ae599b3f5b5dc58f329257709",
+    "undefined_diagnostics": 0
+  },
+  "remaining": [
+    "CQB main room/support movement mutation boundaries remain under review",
+    "Physical corridor ordinary/convoy passage and order replacement unrun",
+    "Runtime performance unmeasured",
+    "Late driving receipt delivery remains unresolved; all65 families partial"
+  ],
+  "audits": "PAUSED"
+}
