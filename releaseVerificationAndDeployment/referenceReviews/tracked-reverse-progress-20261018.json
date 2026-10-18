@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-18",
+  "scope": "Tracked reverse no-progress classification",
+  "finding": "Any2m distance2D movement refreshed reverse progress, including lateral/forward drift.",
+  "implementation": [
+    "Signed away-axis progress from last useful anchor",
+    "Threat-facing requirement",
+    "Unchanged leg expiry and finite no-progress timeout"
+  ],
+  "validation": {
+    "tests": 1246,
+    "exit": 0,
+    "log": ".qa/cbe-tracked-reverse-progress-build.log",
+    "physical": "unrun; audits paused",
+    "numerical": "lateral, forward, subthreshold, backward, unfaced and oscillation cases"
+  },
+  "remaining": [
+    "Native reverse and caller handback outcomes",
+    "Queue execution",
+    "Terrain and overhead"
+  ],
+  "acceptance": "partial"
+}

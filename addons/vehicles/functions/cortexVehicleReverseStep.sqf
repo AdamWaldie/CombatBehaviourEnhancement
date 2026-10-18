@@ -11,6 +11,7 @@
  * Fresh shared rear body-width actor/geometry observation gates each active reverse step.
  * START/steering commit current operation/crew/native-route/pose and <=1s rear observations
  * atomically; planned start expiry is captured before geometry and never renewed at commit.
+ * No-progress refresh requires net rear separation while threat-facing, not lateral travel.
  * It does not create another controller or change native collision.
  * Repeat/JIP: Generation/epoch-bound record; repeated steps retain commands. Exact unchanged
  * inherited commands may be retired by the new owner, but never replayed. Legacy records without
@@ -226,7 +227,13 @@ private _frontBearing=_vehicle getRelDir _referenceThreat;
 if (_rearwardTravel >= (_limits select 0) && {_frontBearing <= (_limits select 2) || {_frontBearing >= 360-(_limits select 2)}}) exitWith {
     ["DISTANCE_REACHED"] call _release; "COMPLETE"
 };
-if (_vehicle distance2D (_record select 7) >= 2) then {_record set [6,time]; _record set [7,getPosATL _vehicle]};
+// Progress is net separation beyond the last useful rear anchor. Sideways motion,
+// approach toward the threat or oscillation back to the same anchor cannot renew dwell.
+private _rearIncrement=((getPosATL _vehicle) vectorDiff (_record select 7)) vectorDotProduct _awayAxis;
+if (_rearIncrement >= 2 && {_frontBearing <= (_limits select 2) || {_frontBearing >= 360-(_limits select 2)}}) then {
+    _record set [6,time];
+    _record set [7,getPosATL _vehicle];
+};
 if (time >= (_record select 5) || {time-(_record select 6) > 6}) exitWith {[["NO_PROGRESS","TIME_LIMIT"] select (time >= (_record select 5))] call _release; "FALLBACK"};
 private _bearing=_vehicle getRelDir (_record select 4);
 private _deadband=20 min ((_limits select 2)*0.6);
