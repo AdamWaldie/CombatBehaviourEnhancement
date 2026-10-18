@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Landing approach/anchor feature ownership, original-pilot cleanup and scheduled mutation boundaries; not whole aircraft or external-controller acceptance",
+  "findings": [
+    "Landing restore formerly enabled MOVE/PATH without proving a landing snapshot and enabled FSM on whichever pilot was current. Tracker shutdown could therefore alter mission-disabled controls even with no admitted landing.",
+    "Approach and anchor needed an immutable original pilot reference rather than rebinding an owned task to replacement crew.",
+    "These vector/anchor controllers are spawned scheduled scripts with uiSleep. A loop-entry validation does not fence commands after suspended geometry calculations; this differs from normal unscheduled CBA group jobs."
+  ],
+  "implementation": [
+    "Admission requires local original pilot, enabled native MOVE/PATH/FSM and no unresolved aircraft/pilot feature receipt. One unscheduled admission publishes revision/issuer/original-pilot/applied-state snapshot and schema2 original-actor FSM receipt before disabling.",
+    "Anchor retains the same snapshot, updates its applied PATH state and does not acquire a replacement pilot. Original entry actor remains immutable even when health validation refreshes a current-pilot variable.",
+    "Cleanup requires exact snapshot/revision and matching or absent flight lease. Current-owner leases use FlightLeaseRelease; exact old-owner LANDING metadata may retire on actual aircraft-local adoption. Unknown/other flight leases refuse cleanup.",
+    "Only recorded aircraft flags still matching applied state are restored. FSM uses existing finite actor-local release/adoption and original receipt provenance; aircraft/token/issuer/features must match, preventing cross-aircraft token collisions.",
+    "Pilot replacement/player/remote/Zeus/specialist gates suppress native flight handback. A second short commit checks revision+1 and no successor flight lease before land/height/velocity commands.",
+    "Approach vector, gear and touchdown writes and anchor setup/ground force recheck actual local owner, exact revision/lease and immutable pilot in short unscheduled commits. Existing grouping/takeover checks remain; anchor reuses its existing per-loop takeover query within that commit.",
+    "Existing landing tracker rechecks matching previous-owner snapshots that arrive after Local EH. New entry refuses unresolved snapshot state rather than overwriting it."
+  ],
+  "bounds": "No new world discovery or recurring worker. Existing tracker reads one snapshot per0.5s observation. Existing actor release coalesces one finite60s chain per exact receipt. Added mutation-boundary metadata/current-pilot/lease checks have unmeasured runtime cost.",
+  "official_sources": [
+    {
+      "url": "https://community.bistudio.com/wiki/disableAI",
+      "finding": "Features affect AI behavior and locality changes can change effective disabled state; player-control writes can be unexpected. Locality/feature ownership must be verified physically."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/checkAIFeature",
+      "finding": "Reads enabled AI feature state; does not identify which script last wrote an unchanged value."
+    }
+  ],
+  "validation": {
+    "tests": 1408,
+    "compiled_sqf": 328,
+    "pbos": 9,
+    "log": ".qa/cbe-landing-feature-handover-final-build.log",
+    "unsigned_fingerprint": "b87caf01f24fc5bc913244b0cd198706315a59e57b93fc9e018cc8ab781c9af6",
+    "physical": false
+  },
+  "known_limits": [
+    "Same-value mission feature writes are indistinguishable from unchanged CBE-applied flags. External integrations should release CBE before reconfiguring those controls; full external-controller sequence remains unaccepted.",
+    "Another flight lease can block aircraft restoration; matching snapshot remains visible, and no general finite aircraft-feature cleanup service was added.",
+    "Actor release can finish UNRESOLVED after its original finite window. It never silently discards provenance or rewrites replacement crew.",
+    "Cross-owner public revision/snapshot ordering, very late replication, crew death/replacement, moving/deleted waypoints, grounded anchors and repeated landing require physical evidence.",
+    "No accepted aircraft feature family, generic external-controller parity or5percent median/10percent p95 performance result. Audits explicitly paused."
+  ]
+}

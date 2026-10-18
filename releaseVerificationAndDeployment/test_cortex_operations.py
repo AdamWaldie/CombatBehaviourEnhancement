@@ -6569,7 +6569,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexExternalTakeover',deceleration)
         self.assertIn('CBE_fnc_CortexExternalTakeover',correction)
         self.assertGreaterEqual(landing.count('CBE_fnc_CortexExternalTakeover'),2)
-        final=landing.split('actual mutation boundary',1)[1]
+        final=landing.split('// This controller is scheduled:',1)[1]
         self.assertLess(final.index('CBE_fnc_CortexExternalTakeover'),final.index('setVectorDirAndUp'))
         anchor=(ROOT/'addons/aircraft/functions/improvedHelicopterLandingAnchorLocal.sqf').read_text(encoding='utf-8')
         self.assertGreaterEqual(anchor.count('CBE_fnc_CortexExternalTakeover'),2)

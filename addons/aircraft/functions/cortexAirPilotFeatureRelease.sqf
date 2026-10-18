@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Make one finite release attempt for an unresolved lateral pilot feature snapshot.
+ * Purpose: Make one finite release attempt for an unresolved attack/landing pilot feature snapshot.
  * Locality/authority: Original actor owner or explicit actor-local adoption; no live flight/task override.
  * Repeat/JIP: Schema2 stores its absolute release deadline in the same public receipt. The first
  * authorised release starts it once; owner adoption preserves it. No world scan or movement replay.
@@ -10,7 +10,8 @@
  * Arguments: 0 actor <OBJECT, objNull>; 1 exact receipt <ARRAY, []>; 2 attempt <NUMBER, 0>;
  * 3 internal actor-local epoch <NUMBER, -1 captures current epoch>.
  * Return: BOOL, true only when restored now; refused or delayed attempts return false.
- * Current callers: CortexAirAttack cleanup, aircraft FSM Finished, and bounded CBA delayed callback.
+ * Current callers: CortexAirAttack/landing cleanup, aircraft FSM Finished, and bounded CBA delayed callback.
+ * Landing captures FSM only when originally enabled; restoration targets the original actor.
  * Example: [pilot1,pilot1 getVariable ["CBE_AirPilotFeatureReceipt",[]]] call CBE_fnc_CortexAirPilotFeatureRelease;
  */
 params [["_actor",objNull,[objNull]],["_receipt",[],[[]]],["_attempt",0,[0]],["_epoch",-1,[0]]];
@@ -28,7 +29,7 @@ if (_schema isNotEqualTo 2 || {_originalActor isNotEqualTo _actor}
     || {!(_releaseUntil isEqualType 0)} || {!finite _releaseUntil}
     || {_releaseUntil != -1 && {_releaseUntil < 0}}
     || {!(_features isEqualType [])} || {count _features == 0} || {count _features > 3}
-    || {_features findIf {!(_x in ["AUTOCOMBAT","TARGET","AUTOTARGET"])} >= 0}) exitWith {false};
+    || {_features findIf {!(_x in ["AUTOCOMBAT","TARGET","AUTOTARGET","FSM"])} >= 0}) exitWith {false};
 // Release authority was established above from actual actor locality and exact issuer/adoption.
 // Publish the clock with the snapshot itself; a successor cannot receive one without the other.
 if (_releaseUntil == -1) then {

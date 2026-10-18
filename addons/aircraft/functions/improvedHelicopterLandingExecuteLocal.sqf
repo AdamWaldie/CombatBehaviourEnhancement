@@ -7,6 +7,8 @@
  * inside FinalCommitDistance, premature engine completion of the landing waypoint cannot cancel
  * the flare, while deletion or editing of that waypoint always releases the aircraft immediately.
  * LastResult is broadcast on the helicopter for locality-safe diagnostics and QA.
+ * Admission requires enabled native MOVE/PATH/FSM and records exact feature ownership;
+ * the original pilot receives a finite actor-local FSM release receipt, never replacement crew.
  * Locality and authority: Only the current helicopter owner may drive this AI approach.
  * It checks its pilot, waypoint and player, curator or specialist ownership before and during control.
  * Repeat/JIP: One control revision owns an approach. A changed waypoint, pilot or locality
@@ -47,6 +49,12 @@ private _pilotAwake = if (isNull _pilot) then {false} else {
     if (!isNil "ace_common_fnc_isAwake") then {[_pilot] call ace_common_fnc_isAwake} else {lifeState _pilot != "INCAPACITATED"}
 };
 if (isNull _pilot || {isPlayer _pilot} || {!isNull (remoteControlled _pilot)} || {!alive _pilot} || {!_pilotAwake}) exitWith {false};
+// A landing task cannot adopt mission-disabled controls or an unresolved pilot lease.
+if (!local _pilot || {!(_helicopter checkAIFeature "MOVE")} || {!(_helicopter checkAIFeature "PATH")}
+    || {!(_pilot checkAIFeature "FSM")}
+    || {(_pilot getVariable ["CBE_AirPilotFeatureReceipt",[]]) isNotEqualTo []}
+    || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",[]]) isNotEqualTo []}) exitWith {false};
+private _entryPilot=_pilot;
 private _group = group _pilot;
 private _groupHelicopterCount = {
     params ["_group"];
@@ -70,11 +78,30 @@ private _flightLeaseToken=str _controlRevision;
 // cannot safely be replaced by attack, braking or a defensive velocity break. Countermeasures may
 // still fire, but only this exact revision may mutate flight until touchdown or release.
 if !([_helicopter,"LANDING",_flightLeaseToken,500] call CBE_fnc_FlightLeaseAcquire) exitWith {false};
-_helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active", true, true];
-_helicopter setVariable ["CBE_HelicopterDeceleration_Active", false, true];
-_helicopter disableAI "PATH";
-_helicopter disableAI "MOVE";
-_pilot disableAI "FSM";
+private _featuresAdmitted=false;
+isNil {
+    if (local _helicopter && {local _entryPilot} && {currentPilot _helicopter == _entryPilot}
+        && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) == _controlRevision}
+        && {[_helicopter,"LANDING",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
+        && {_helicopter checkAIFeature "MOVE"} && {_helicopter checkAIFeature "PATH"}
+        && {_entryPilot checkAIFeature "FSM"}
+        && {(_entryPilot getVariable ["CBE_AirPilotFeatureReceipt",[]]) isEqualTo []}) then {
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",
+            [_controlRevision,clientOwner,_entryPilot,true,true,false],true];
+        _entryPilot setVariable ["CBE_AirPilotFeatureReceipt",
+            [2,_entryPilot,_helicopter,_group,"LANDING:"+_flightLeaseToken,clientOwner,["FSM"],-1],true];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active",true,true];
+        _helicopter setVariable ["CBE_HelicopterDeceleration_Active",false,true];
+        _helicopter disableAI "PATH";
+        _helicopter disableAI "MOVE";
+        _entryPilot disableAI "FSM";
+        _featuresAdmitted=true;
+    };
+};
+if (!_featuresAdmitted) exitWith {
+    [_helicopter,"LANDING",_flightLeaseToken,"FEATURE_ADMISSION_REFUSED"] call CBE_fnc_FlightLeaseRelease;
+    false
+};
 private _startPositionASL = getPosASL _helicopter;
 // Remember the aircraft's real pre-controller flight layer. The touchdown anchor later uses forced
 // height zero; if Zeus moves/deletes the landing waypoint afterwards, restore uses this non-forced
@@ -131,6 +158,7 @@ while {
     && {_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]}
     && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
     && {[_helicopter,"LANDING",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
+    && {currentPilot _helicopter == _entryPilot}
 } do {
     private _now = diag_tickTime;
     private _delta = (_now - _lastTick) max 0.01;
@@ -324,20 +352,32 @@ while {
         private _slopeBlend = (1 - ((_distance max _atlAltitude) / 6)) max 0 min 1;
         _up = (_up vectorMultiply (1 - _slopeBlend)) vectorAdd (_targetSurfaceNormal vectorMultiply _slopeBlend);
     };
-    // Grouping can occur between the periodic validation above and this frame's write. Recheck at
-    // the actual mutation boundary so no further CBE vector reaches a newly formed flight.
-    if ([_group] call _groupHelicopterCount != 1 || {[_group] call CBE_fnc_CortexExternalTakeover}) then {
-        _abort = true;
-        _groupedAbort = true;
-    } else {
-        _helicopter setVectorDirAndUp [_direction, vectorNormalized _up];
-        _helicopter setVelocity _currentVelocity;
+    // This controller is scheduled: calculated vectors grant no authority after a suspension.
+    // Keep the final owner/revision/original-pilot check and all frame mutations together.
+    isNil {
+        if (!local _helicopter || {!alive _helicopter} || {!local _entryPilot}
+            || {currentPilot _helicopter != _entryPilot}
+            || {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active",false])}
+            || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) != _controlRevision}
+            || {!([_helicopter,"LANDING",_flightLeaseToken] call CBE_fnc_FlightLeaseValid)}) then {
+            _abort=true;
+        } else {
+            // Grouping remains a separate authored formation handback reason.
+            if ([_group] call _groupHelicopterCount != 1 || {[_group] call CBE_fnc_CortexExternalTakeover}) then {
+                _abort=true;
+                _groupedAbort=true;
+            } else {
+                _helicopter setVectorDirAndUp [_direction,vectorNormalized _up];
+                _helicopter setVelocity _currentVelocity;
+                if (_distance < 100 && {_atlAltitude < 50}
+                    && {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_GearLocal",false])}) then {
+                    _helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal",true];
+                    _entryPilot action ["LandGear",_helicopter];
+                };
+                if (_distance < _touchdownRadius && {isTouchingGround _helicopter || {_atlAltitude < 0.35}}) then {_landed=true};
+            };
+        };
     };
-    if (_distance < 100 && {_atlAltitude < 50} && {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_GearLocal", false])}) then {
-        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal", true];
-        _pilot action ["LandGear", _helicopter];
-    };
-    if (_distance < _touchdownRadius && {isTouchingGround _helicopter || {_atlAltitude < 0.35}}) then {_landed = true;};
     uiSleep (([_helicopter, "ControlInterval", 0.05] call CBE_fnc_ImprovedHelicopterLandingSetting) max 0.02 min 0.2);
 };
 
@@ -370,7 +410,7 @@ if (
         _helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]
         && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
     ) then {
-        [_helicopter, false, "", _groupedAbort] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+        [_helicopter, false, "", _groupedAbort, _controlRevision] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
     };
 };
 _landed

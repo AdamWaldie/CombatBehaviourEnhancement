@@ -9,6 +9,8 @@
  * migration, pilot takeover or feature stop.
  * Locality and authority: Runs on the current helicopter owner and restores only CBE's
  * local approach changes. It rejects a null or non-local aircraft.
+ * Requires the exact feature snapshot/revision and matching or absent flight lease. Only
+ * recorded aircraft features are restored; the original pilot FSM uses finite actor-local release.
  * Repeat/JIP: Safe to call after the controller stops; cleanup of the published active/anchor
  * flags is visible to JIP clients without replaying a past flight action.
  *
@@ -18,11 +20,13 @@
  * 2: waypoint type <STRING> (default "")
  * 3: stabilise airborne handoff <BOOL> (default false) - removes only downward velocity left by
  *    CBE when formation/group control supersedes an active approach.
+ * 4: expected landing revision <NUMBER>, -1 uses the current revision for administrative release.
  *
- * Return Value: BOOL - true when a local living helicopter was restored.
+ * Return Value: BOOL - true when the exact local landing snapshot was retired; native flight
+ * handback may be skipped for a dead aircraft, replacement pilot or superseding controller.
  *
  * Example: [_helicopter, true, "GETOUT"] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
- * Result: Returns true when a living local helicopter is restored, otherwise false.
+ * Result: True after exact local snapshot release, false for missing/stale/blocked ownership.
  * Current callers: the landing controller and local tracker cleanup.
  */
 
@@ -30,30 +34,87 @@ params [
     ["_helicopter", objNull, [objNull]],
     ["_landed", false, [true]],
     ["_waypointType", "", [""]],
-    ["_stabiliseAirborne", false, [true]]
+    ["_stabiliseAirborne", false, [true]],
+    ["_expectedRevision",-1,[0]]
 ];
 if (isNull _helicopter) exitWith {false};
-if (!local _helicopter) exitWith {false};
+if (!local _helicopter || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
 private _releasedRevision=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",0];
-[_helicopter,"LANDING",str _releasedRevision,["ABORTED","LANDED"] select _landed] call CBE_fnc_FlightLeaseRelease;
-// Invalidate the exact scheduled approach/anchor that previously owned the aircraft. A Boolean
-// alone is insufficient because a rapid retask can set it true for a new controller before the old
-// scheduled loop notices the intervening false state.
-_helicopter setVariable [
-    "CBE_ImprovedHelicopterLanding_ControlRevision",
-    (_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", 0]) + 1,
-    true
-];
-_helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active", false, true];
-_helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal", false];
-private _wasGroundAnchored = _helicopter getVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored", false];
-private _releaseHeight = _helicopter getVariable ["CBE_ImprovedHelicopterLanding_ReleaseHeight", 100];
-_helicopter setVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored", false, true];
-if (!alive _helicopter) exitWith {false};
-_helicopter enableAI "MOVE";
-_helicopter enableAI "PATH";
-private _pilot = currentPilot _helicopter;
-if (!isNull _pilot) then {_pilot enableAI "FSM";};
+if (!(_releasedRevision isEqualType 0) || {!finite _releasedRevision}
+    || {!finite _expectedRevision}) exitWith {false};
+if (_expectedRevision < 0) then {_expectedRevision=_releasedRevision};
+private _snapshot=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",[]];
+if (!(_snapshot isEqualType []) || {count _snapshot != 6}
+    || {_releasedRevision != _expectedRevision} || {(_snapshot select 0) isNotEqualTo _expectedRevision}
+    || {!((_snapshot select 1) isEqualType 0)} || {!((_snapshot select 2) isEqualType objNull)}
+    || {[3,4,5] findIf {!((_snapshot select _x) isEqualType true)} >= 0}) exitWith {false};
+private _pilot=_snapshot select 2;
+private _lease=_helicopter getVariable ["CBE_FlightLease",createHashMap];
+if !(_lease isEqualType createHashMap) exitWith {false};
+private _matchingLease=count _lease > 0 && {(_lease getOrDefault ["controller",""]) == "LANDING"}
+    && {(_lease getOrDefault ["token",""]) == str _expectedRevision}
+    && {(_lease getOrDefault ["owner",-1]) == (_snapshot select 1)};
+// Do not restore flight/features over another live controller, even after pilot replacement.
+if (count _lease > 0 && {!_matchingLease}) exitWith {false};
+private _wasGroundAnchored=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored",false];
+private _releaseHeight=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ReleaseHeight",100];
+private _restored=false;
+isNil {
+    if (local _helicopter
+        && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) == _expectedRevision}
+        && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",[]]) isEqualTo _snapshot}
+        && {(_helicopter getVariable ["CBE_FlightLease",createHashMap]) isEqualTo _lease}) then {
+        private _leaseReleased=true;
+        if (_matchingLease) then {
+            if ((_lease getOrDefault ["owner",-1]) == clientOwner) then {
+                _leaseReleased=[_helicopter,"LANDING",str _releasedRevision,["ABORTED","LANDED"] select _landed]
+                    call CBE_fnc_FlightLeaseRelease;
+            } else {
+                // Exact previous-owner metadata may retire on actual aircraft-local adoption.
+                _helicopter setVariable ["CBE_FlightLeaseLast",["LANDING",str _expectedRevision,
+                    _lease getOrDefault ["revision",-1],["ABORTED","LANDED"] select _landed,serverTime],true];
+                _helicopter setVariable ["CBE_FlightLease",nil,true];
+            };
+        };
+        if (!_leaseReleased) exitWith {};
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",_expectedRevision+1,true];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active",false,true];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal",false];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored",false,true];
+        if (alive _helicopter) then {
+            if (!(_helicopter checkAIFeature "MOVE") && {_snapshot select 3}) then {_helicopter enableAI "MOVE"};
+            if ((_helicopter checkAIFeature "PATH") isEqualTo (_snapshot select 5) && {_snapshot select 4}) then {
+                _helicopter enableAI "PATH";
+            };
+        };
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",nil,true];
+        _restored=true;
+    };
+};
+if (!_restored) exitWith {false};
+// The actor-local bounded release service preserves unresolved provenance across migration.
+// No current/replacement pilot receives FSM restoration from this cleanup.
+if (!isNull _pilot && {local _pilot}) then {
+    private _pilotReceipt=_pilot getVariable ["CBE_AirPilotFeatureReceipt",[]];
+    if (_pilotReceipt isEqualType [] && {count _pilotReceipt == 8} && {(_pilotReceipt select 0) isEqualTo 2}
+        && {(_pilotReceipt select 1) isEqualTo _pilot} && {(_pilotReceipt select 2) isEqualTo _helicopter}
+        && {(_pilotReceipt select 4) == "LANDING:"+str _expectedRevision}
+        && {(_pilotReceipt select 5) isEqualTo (_snapshot select 1)}
+        && {(_pilotReceipt select 6) isEqualTo ["FSM"]}) then {
+        [_pilot,_pilotReceipt] call CBE_fnc_CortexAirPilotFeatureRelease;
+    };
+};
+// Actor release can defer through helpers. Final native handback is its own short commit,
+// never permission carried across cleanup into a successor flight controller.
+isNil {
+    private _nativeLease=_helicopter getVariable ["CBE_FlightLease",createHashMap];
+    if (!local _helicopter || {!alive _helicopter} || {isNull _pilot}
+        || {currentPilot _helicopter != _pilot} || {!local _pilot}
+        || {isPlayer _pilot} || {!isNull remoteControlled _pilot}
+        || {!(_nativeLease isEqualType createHashMap)} || {count _nativeLease > 0}
+        || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) != _expectedRevision+1}
+        || {[group _pilot] call CBE_fnc_CortexExternalTakeover}
+        || {[group _pilot] call CBE_fnc_CortexZeusHeld}) exitWith {};
 if (_landed) then {
     _helicopter setVelocity [0, 0, 0];
     _helicopter land "LAND";
@@ -79,5 +140,6 @@ if (_landed) then {
         // formation spacing retain priority after CBE releases ownership.
         _helicopter flyInHeight ((_releaseHeight max 20) min 500);
     };
+};
 };
 true
