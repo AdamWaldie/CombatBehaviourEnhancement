@@ -258,7 +258,8 @@ _brain set ["geometryTracks",_geometryTracks];
             // last cap we applied is therefore the narrowest reliable lease check: once another
             // value replaces it, release without restoring the stale pre-CBE value.
             private _previous=_vehicle getVariable ["CBE_DrivingAssist_Restore",[]];
-            private _state=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+            private _entryAssistState=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
+            private _state=+_entryAssistState;
             if (_state isEqualTo [] && {_recoveryOwned}
                 && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}) then {
                 private _kind=_recoveryWork get "kind";
@@ -775,15 +776,34 @@ _brain set ["geometryTracks",_geometryTracks];
                     };
                 };
             };
-            private _liveRecovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
-            if (count _liveRecovery > 0 && {(_liveRecovery get "group") == _group}
-                && {(_liveRecovery get "cap") != _capMps}) then {
-                _liveRecovery set ["cap",_capMps];_vehicle setVariable ["CBE_DrivingRecovery_Work",_liveRecovery,true];
+            // Scheduled observations and cleanup above cannot recreate a removed state or
+            // update another callback's cap receipt. Publish only under the still-current owner.
+            isNil {
+                if (!(call _mayIssueDriving)
+                    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+                    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                    || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+                    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                    || {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo _entryAssistState}
+                    || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _previous}
+                    || {abs ((getForcedSpeed _vehicle)-_capMps) > 0.1}) exitWith {false};
+                private _liveRecovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                if (count _liveRecovery > 0 && {(_liveRecovery get "group") == _group}
+                    && {(_liveRecovery get "route") isEqualTo _routeIdentity}
+                    && {(_liveRecovery get "driver") == _driver} && {(_liveRecovery get "operator") == _movementOperator}
+                    && {(expectedDestination _driver) isEqualTo (_liveRecovery get "driverCommand")}
+                    && {(expectedDestination _movementOperator) isEqualTo (_liveRecovery get "command")}
+                    && {!(_liveRecovery getOrDefault ["releasePending",false])}
+                    && {(_liveRecovery get "cap") != _capMps}) then {
+                    private _updatedRecovery=createHashMapFromArray (keys _liveRecovery apply {[_x,_liveRecovery get _x]});
+                    _updatedRecovery set ["cap",_capMps];
+                    _vehicle setVariable ["CBE_DrivingRecovery_Work",_updatedRecovery,true];
+                };
+                _vehicle setVariable ["CBE_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
+                    _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued]];
+                _vehicle setVariable ["CBE_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))];
+                if (_passActive) then {_vehicle setVariable ["CBE_DrivingAssist_Next",time+1]};
             };
-            _vehicle setVariable ["CBE_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
-                _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued]];
-            _vehicle setVariable ["CBE_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))];
-            if (_passActive) then {_vehicle setVariable ["CBE_DrivingAssist_Next",time+1]};
             };
             };
         };

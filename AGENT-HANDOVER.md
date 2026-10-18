@@ -1136,3 +1136,12 @@ Ordinary REFRESH and FINAL stages now issue native doMove and record their comma
 Full `.qa/cbe-forward-recovery-commit-build.log` exit0:1263tests/allofflinegates,326SQF/9PBOs; fingerprintc78092bf9f2575fb417d5d03ba0242b9344802b60ba827c94119e018474f28b0. Source72f309fa plus intendedsource/test. PR17verifiedopen/draft/correctbranch. No push/merge/CI dispatch/Release/Steam/Arma. AuditsPAUSED/all65partial/fullgoalactive. Protectedrefs/keys/artwork/WMP unchanged.
 
 Next final DrivingAssist_State/cap-journal publication and default exhaustion metadata remain scheduled: inspect stale state resurrection after handover/cleanup. Same-value native command ambiguity remains. Native wheel reverse, bridge-height routing, queueexecutor, wholeHBQ semantic parity, coherentCQB/squads/combinedarms/externalhandovers and physical5%median/10%p95 remain incomplete. Current offline results do not establish behaviour acceptance.
+
+
+## 2026-10-18 Driving final state publication
+
+DrivingAssistStart copies its entry assistance state before observation edits. Its final state/next-cadence and recovery-cap journal publication now share an unscheduled boundary checking current movement authority, exact current brain/epoch/noncancelled/nonfinished status, current enable gate, unchanged entry public state and restore baseline, and actual forced cap still matching this callback. A changed/removed state is not resurrected. Recovery-cap updates additionally require original group/route/seats, matching native destinations and no releasePending; updates use a cloned map rather than alias mutation. This does not make all earlier cap/baseline writes atomic.
+
+Full `.qa/cbe-driving-state-commit-build.log` exit0:1264tests/allofflinegates,326SQF/9PBOs; fingerprint35d2807f7ae1714668482aec15b6fabdfafc4fd37716ccc31b75a5b7b1eeb675. Source21411b6a plus intendedsource/test. PR17verifiedopen/draft/correctbranch. No push/merge/CI dispatch/Release/Steam/Arma. AuditsPAUSED/all65partial/fullgoalactive. Protectedrefs/keys/artwork/WMP unchanged.
+
+Next earlier forceSpeed/baseline acquisition and default EXHAUSTED journal write still need exact current transaction review. Refused final publication can leave an earlier applied cap for existing receipt cleanup, so inspect that lifecycle before claiming cap handover complete. WholeHBQ/queueexecution/nativewheelreverse, dynamicCQB/squads/combinedarms/externalhandovers and physical5%median/10%p95 remain open. Source receipts/tests are not tactical completion.

@@ -4,6 +4,19 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 def src(n):return (ROOT/'addons/vehicles/functions'/f'{n}.sqf').read_text(encoding='utf-8')
 class DrivingRearMonitorTests(unittest.TestCase):
+    def test_final_state_publication_cannot_revive_retired_assistance(self):
+        text=src('drivingAssistStart')
+        self.assertIn('private _state=+_entryAssistState',text)
+        commit=text.split('// Scheduled observations and cleanup above',1)[1]
+        for proof in ('isNil {','call _mayIssueDriving','ownerEpoch','cancelled','finished',
+                      'isNotEqualTo _entryAssistState','isNotEqualTo _previous','getForcedSpeed _vehicle'):
+            self.assertLess(commit.index(proof),commit.index('setVariable ["CBE_DrivingAssist_State"'))
+        self.assertIn('_updatedRecovery set ["cap",_capMps]',commit)
+        self.assertIn('releasePending',commit)
+        self.assertIn('driverCommand',commit)
+        self.assertNotIn('_liveRecovery set ["cap"',commit)
+
+
     def test_forward_retries_commit_commands_and_preserve_deadline(self):
         text=src('drivingAssistStart')
         for stage,end,kind in ((0,'case 1:','REFRESH'),(2,'default {','FINAL')):
