@@ -4,6 +4,18 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 def src(n):return (ROOT/'addons/vehicles/functions'/f'{n}.sqf').read_text(encoding='utf-8')
 class DrivingRearMonitorTests(unittest.TestCase):
+    def test_reverse_requires_sampled_physical_support_not_terrain_water_only(self):
+        text=src('drivingRearClear')
+        support=text.split('private _supported=true;',1)[1].split('if (!_supported) exitWith {[false,"REAR_SUPPORT"',1)[0]
+        self.assertIn('lineIntersectsSurfaces',support)
+        self.assertIn('"GEOM","NONE"',support)
+        self.assertIn('_hits isEqualTo []',support)
+        self.assertIn('select 2) < 0.7',support)
+        self.assertIn('_distance*0.5',support)
+        self.assertNotIn('surfaceIsWater',support)
+        self.assertNotIn('nearEntities',support)
+        self.assertLess(text.index('"REAR_SUPPORT"'),text.index('// Retain knee') if '// Retain knee' in text and text.index('// Retain knee') > text.index('"REAR_SUPPORT"') else text.index('forEach _heights;'))
+
     def test_nonfinite_rear_distance_refuses_before_queries_and_hull_work(self):
         text=src('drivingRearClear')
         guard='if (!finite _distance) exitWith {[false,"INVALID_REAR_DISTANCE",time,0]}'

@@ -5,6 +5,8 @@
  * collision, physics or crew command. The consuming finite operation retains movement authority.
  * Repeat/JIP: No retained clearance or handlers. Each command boundary obtains fresh geometry;
  * observations cannot be replayed after a vehicle moves or changes owner.
+ * Nine downward support samples reject missing/steep supporting surfaces; bridge geometry
+ * remains eligible independently of terrain water. Discrete samples are not a continuous path proof.
  * Current relative velocities also project hull occupancy over two seconds before a reverse.
  * Measured reverse yaw adds a conservative full-body actor envelope and sampled corner sweeps.
  * These only veto additional hazards; changing steering/acceleration remains unknown.
@@ -14,7 +16,7 @@
  * Non-finite distances refuse clearance before any world query or geometry calculation.
  * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
  * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and at most sixty
- * geometry rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
+ * geometry rays plus nine support rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
  * capped at 250 m; oversized envelopes refuse rather than silently truncating the rear area. Vertical overlap uses real hull extents rather than centre height.
  * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
  * overlap policy; the solid-geometry rays remain independent and can still find obstructions.
@@ -134,6 +136,22 @@ private _bodyHeight=((_high select 2)-(_low select 2)) max 0.9;
 private _heights=[0.45,0.9,(_bodyHeight+0.45)*0.5,_bodyHeight];
 _heights=_heights arrayIntersect _heights;
 private _clear=true;private _rays=0;
+// Empty space behind a hull is not drivable ground. Probe the actual support surface in
+// the current vehicle frame, including raised road/bridge geometry above water or terrain.
+// Fixed samples bound cost; later callbacks must observe again as the native leg progresses.
+private _supported=true;
+{
+    private _depth=_rear-_x;
+    {
+        private _from=_vehicle modelToWorldWorld [_x,_depth,(_low select 2)+1.2];
+        private _to=_vehicle modelToWorldWorld [_x,_depth,(_low select 2)-2];
+        _rays=_rays+1;
+        private _hits=lineIntersectsSurfaces [_from,_to,_vehicle,objNull,true,1,"GEOM","NONE"];
+        if (_hits isEqualTo [] || {((_hits select 0 select 1) select 2) < 0.7}) exitWith {_supported=false};
+    } forEach [_low select 0,((_low select 0)+(_high select 0))*0.5,_high select 0];
+    if (!_supported) exitWith {};
+} forEach ([1 min _distance,_distance*0.5,_distance] arrayIntersect [1 min _distance,_distance*0.5,_distance]);
+if (!_supported) exitWith {[false,"REAR_SUPPORT",time,_rays]};
 {
     private _height=(_low select 2)+_x;
     {
