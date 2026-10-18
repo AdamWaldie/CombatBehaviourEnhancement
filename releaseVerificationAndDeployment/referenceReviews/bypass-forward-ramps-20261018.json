@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-18",
+  "scope": "Forward ramp geometry for physical static bypass proposals",
+  "sources": {
+    "addons/vehicles/functions/drivingBypassPlan.sqf": "e0c3f5f014ee98c0233a4c76e7d16120a37f0711ea128d57ac4c85e544696688",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "fd71108cdabdec28a1059c2daadba18476de160e7e1adc7f98a6d25aaf25c16f",
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "7f298b70dceaad2c9292bef0d29f2b4ef01cdb4d16d07ed9a76c58bb351c1c56"
+  },
+  "finding": "Five orthogonal guide anchors required right-angle forward/sideways/forward steering. Support rays alone did not make those turns executable. Shared pass following caps were separately traced and retain hull occupancy; no blanket predecessor exemption found.",
+  "change": "Replace lateral anchor steps with strictly forward smoothstep pull-out/rejoin and straight flank travel. Ramps reserve longitudinal length for nominal tangent<=35deg, join straights at zero lateral slope, and refuse insufficient turn room. Sampling scales by maximum slope so actual diagonal station spacing<=5m. Existing24station/279ray/support/body/transform/owner/route/convoy envelope limits remain.",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "range": "570-660 MarkObstacle intent/corner-generation portion only",
+    "disposition": "Source attempts native obstacle avoidance by adding local simulated small helper objects at footprint corners. CBE retains intent through finite explicit geometry proposals; no objects, collision edits or upstream implementation copied. Rest of helper and whole-mod acceptance not claimed."
+  },
+  "validation": {
+    "tests": 1185,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-bypass-forward-ramps-build.log",
+    "fingerprint": "9bc643d1a455b3644c328737c85471a8012151f0099e5bd6fcf29d26f5993ad1",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "receipt": "Parent37b672e8 plus tracked diff/dirty Build, not signed Release.",
+    "numeric": "Both lateral directions, six offsets5..15m; actual chord<=5m, positive forward progress and heading<=35deg."
+  },
+  "limits": [
+    "Tangent bound is not vehicle turning radius, native execution, continuous swept clearance or steering acceptance.",
+    "Larger footprints/shorter approaches may refuse rather than perform old sharp turns; physical availability still needs measurement.",
+    "Existing source geometry budget retained; no new query/scheduler/speed writer. Runtime5%median/10%p95 unmeasured.",
+    "Normal parked-bypass/convoy fixtures remain prepared and unrun; actual-provider HC requires separate batch.",
+    "Whole HBQ/native bilateral queue and lateral corner recovery remain incomplete. All65 families partial."
+  ]
+}

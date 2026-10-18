@@ -11,8 +11,10 @@
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY,
  * obstacle transform ARRAY, vehicle transform ARRAY, rayCount NUMBER].
  * Limits: stationary STATIC object only (vehicle hulls must remain engine-off and unoccupied), observation <=1.5 seconds old/50 m away, vehicle <=8 km/h;
- * projected object span <=30 m, hull circumscribed clearance radius <=12 m. Five guide anchors
+ * projected object span <=30 m, hull circumscribed clearance radius <=12 m. Gradual forward pull-out/rejoin profiles
  * resample at <=5 m, at most 24 stations/279 support/body rays. No spawning or collision helpers.
+ * Smoothstep ramps bound nominal tangent departure to 35 degrees and retain forward travel.
+ * Missing ramp room refuses instead of asking native steering for a right-angle lateral step.
  * The radius deliberately overbounds turn footprint; no turning-radius or native steering success
  * is implied. Unsupported terrain/moving objects, large hulls or missing support refuse.
  * Current callers: DrivingBypassStep and trusted diagnostic/script preflight.
@@ -55,21 +57,38 @@ private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
     } forEach [_otherLow select 2,_otherHigh select 2];} forEach [_otherLow select 1,_otherHigh select 1];
 } forEach [_otherLow select 0,_otherHigh select 0];
 if (_maxX-_minX > 30 || {_maxY-_minY > 30} || {_minY <= _radius+6}) exitWith {["INSUFFICIENT_APPROACH_ROOM"] call _fail};
-private _before=_minY-_radius-3;private _after=_maxY+_radius+10;
+private _before=_minY-_radius-3;
 private _lateral=if (_side > 0) then {_maxX+_radius+3} else {_minX-_radius-3};
-private _anchors=[[0,0],[0,_before],[_lateral,_before],[_lateral,_after],[0,_after]] apply {
-    (_origin vectorAdd (_right vectorMultiply (_x select 0))) vectorAdd (_forward vectorMultiply (_x select 1))
-};
-private _guide=[_anchors select 0];private _overBudget=false;
-for "_i" from 1 to (count _anchors-1) do {
-    private _from=_anchors select (_i-1);private _to=_anchors select _i;
-    private _segments=ceil ((_from distance2D _to)/5);
+// Smoothstep's maximum lateral derivative is1.5. Reserve longitudinal room for
+// real steering instead of the old forward/sideways/forward right-angle anchors.
+private _rampTravel=(1.5*abs _lateral/tan 35) max 12;
+if (_before < _rampTravel) exitWith {["INSUFFICIENT_TURN_ROOM"] call _fail};
+private _clearAfter=_maxY+_radius+3;
+private _after=_clearAfter+_rampTravel;
+private _guide=[+_origin];private _overBudget=false;
+// Each [startY,endY,startX,endX] piece moves strictly forward. Zero-length
+// straight entry is skipped; the two ramps meet straight travel with zero slope.
+private _pieces=[[0,_before-_rampTravel,0,0],
+    [_before-_rampTravel,_before,0,_lateral],
+    [_before,_clearAfter,_lateral,_lateral],[_clearAfter,_after,_lateral,0]];
+{
+    _x params ["_fromY","_toY","_fromX","_toX"];
+    private _length=_toY-_fromY;
+    // Bound actual diagonal sample spacing, not just its longitudinal projection.
+    private _maxSlope=1.5*abs (_toX-_fromX)/(_length max 0.01);
+    private _segments=ceil ((_length*sqrt (1+_maxSlope^2))/5);
     if (count _guide+_segments > 24) then {_overBudget=true} else {
-        if (!_overBudget) then {
-            for "_j" from 1 to _segments do {_guide pushBack (_from vectorAdd ((_to vectorDiff _from) vectorMultiply (_j/_segments)))};
+        if (!_overBudget && {_segments > 0}) then {
+            for "_j" from 1 to _segments do {
+                private _u=_j/_segments;private _blend=_u*_u*(3-2*_u);
+                private _along=_fromY+_length*_u;
+                private _across=_fromX+(_toX-_fromX)*_blend;
+                _guide pushBack ((_origin vectorAdd (_right vectorMultiply _across))
+                    vectorAdd (_forward vectorMultiply _along));
+            };
         };
     };
-};
+} forEach _pieces;
 if (_overBudget) exitWith {["PATH_BUDGET"] call _fail};
 // Circumscribed support/body clearance overbounds corners without pretending a point fits a hull.
 private _geometry=[_vehicle,_guide,_radius,_height] call CBE_fnc_DrivingPathGeometry;

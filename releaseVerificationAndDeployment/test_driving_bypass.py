@@ -314,3 +314,34 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
         self.assertLess(clearance,completion)
         self.assertIn('modelToWorldWorld [_xCoord,_yCoord,_x]',source)
         self.assertIn('for "_i" from 1 to 4',source)
+
+    def test_bypass_uses_forward_ramps_instead_of_sideways_anchor_turns(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
+        for guard in ('1.5*abs _lateral/tan 35','_before < _rampTravel',
+                      'INSUFFICIENT_TURN_ROOM','_u*_u*(3-2*_u)',
+                      '_length*sqrt (1+_maxSlope^2)','count _guide+_segments > 24'):
+            self.assertIn(guard,s)
+        self.assertNotIn('private _anchors=',s)
+        self.assertEqual(s.count('call CBE_fnc_DrivingPathGeometry'),1)
+        for forbidden in ('setDriveOnPath','setVelocity','createVehicle','forceSpeed'):
+            self.assertNotIn(forbidden,s.split('params [[',1)[1])
+
+    def test_ramp_envelope_bounds_sample_heading_and_preserves_forward_progress(self):
+        import math
+        # Independent geometric check of the proposed ramp across vehicle/obstacle offsets.
+        # The SQF expression above is separately bound by the source contract.
+        for offset in (-15,-10,-5,5,10,15):
+            length=max(12,1.5*abs(offset)/math.tan(math.radians(35)))
+            slope=1.5*abs(offset)/length
+            count=math.ceil(length*math.hypot(1,slope)/5)
+            points=[]
+            for i in range(count+1):
+                u=i/count
+                points.append((offset*(3*u*u-2*u*u*u),length*u))
+            self.assertAlmostEqual(points[0][0],0)
+            self.assertAlmostEqual(points[-1][0],offset)
+            for a,b in zip(points,points[1:]):
+                dx,dy=b[0]-a[0],b[1]-a[1]
+                self.assertGreater(dy,0)
+                self.assertLessEqual(math.hypot(dx,dy),5+1e-9)
+                self.assertLessEqual(abs(math.degrees(math.atan2(dx,dy))),35+1e-9)
