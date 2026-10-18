@@ -10,6 +10,8 @@
  * The worker retains that original snapshot, never a recaptured post-planning pose.
  * Resume is adoption only: missing, replaced or different-target orders never become fresh tasks.
  * Discovery supplies its exact durable order/generation; admission rechecks them before handoff.
+ * Prepared worker startup retains the admitted operation epoch. Refusal reports false and
+ * retires only this still-owned clear; a new owner or successor retains its durable state.
  * Orders an AI group to clear a building room by room.
  *
  * Admission validates finite, distinct model positions with a 512-position budget before
@@ -487,7 +489,7 @@ _group setVariable ["CBE_Cortex_ClearStatus",["ENTRY",count _cleared,count _unre
 private _job=createHashMapFromArray [
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["securityEntries",_securityEntries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
-    ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
+    ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["ownerEpoch",_operation get "ownerEpoch"], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],
     ["continueRoute",_continueRoute],["contactBelief",_contactBelief],["nativeOrderReceipt",_nativeOrderReceipt],["buildingTransform",+_admissionTransform],["phase","ENTRY"],["rotatedOut",[]],["egressAssignments",[]],["egressDeadline",0],["egressProgress",[]],["egressFailed",false]
 ];
 // Historical individual visits survive owner adoption. A fresh task gets a new token,
@@ -766,6 +768,22 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
     _job set ["movementTargets",_moves];
     _job set ["securityActors",(units _group) select {netId _x in _stages}];
 };
-[_job] call CBE_fnc_BuildingOperationStart;
+if !([_job] call CBE_fnc_BuildingOperationStart) exitWith {
+    // Never report a worker-less order as accepted. If preparation lost ownership,
+    // the new owner/episode keeps its durable order; no cleanup is remoted or restamped.
+    isNil {
+        private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+        if (local _group
+            && {(_job get "ownerEpoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {_generation == (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
+            && {(_liveOperation getOrDefault ["generation",-1]) == _operationGeneration}
+            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_job get "ownerEpoch")}
+            && {(_liveOperation getOrDefault ["intent",""]) == "CLEAR"}) then {
+            ["WORKER_START_REFUSED"] call _refuse;
+            [_group,false] call CBE_fnc_CortexClearRelease;
+        };
+    };
+    false
+};
 diag_log format ["[CBE] %1 clearing %2 (%3 positions, %4 soldiers, %5 entrances)", _group, typeOf _building, count _positions, count _team, count _entries];
 true

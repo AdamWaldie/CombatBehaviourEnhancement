@@ -1473,6 +1473,19 @@ private _transformStarted=_transformAccepted && {[{
     if (_started) then {_transformOriginalGeneration=_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]};
     _started
 },120] call _wait};
+private _originalBuildingBrain=_transformGroup getVariable ["CBE_BuildingBrain",createHashMap];
+private _originalBuildingJob=_originalBuildingBrain getOrDefault ["job",createHashMap];
+private _duplicateStart=false;
+private _duplicateWorkerPreserved=false;
+isNil {
+    private _liveHandle=_transformGroup getVariable ["CBE_BuildingBrain_FSM",-1];
+    _duplicateStart=[_originalBuildingJob] call CBE_fnc_BuildingOperationStart;
+    _duplicateWorkerPreserved=(_transformGroup getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _originalBuildingBrain
+        && {(_transformGroup getVariable ["CBE_BuildingBrain_FSM",-2]) isEqualTo _liveHandle}
+        && {!(_originalBuildingBrain getOrDefault ["cancelled",false])};
+};
+["CLEAR-transform-duplicate-worker-preserved",_transformStarted && {_duplicateStart}
+    && {_duplicateWorkerPreserved}] call _check;
 private _originalResumeOrder=+(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]);
 private _movedPosition=(getPosATL _movedHouse) vectorAdd [30,0,0];
 private _moveApplied=false;
@@ -1495,15 +1508,17 @@ private _transformCancelled=[{
 // Replay only an actual previous production snapshot; never manufacture a durable order.
 private _cancelledResumeAccepted=true;
 private _cancelledResumeStayedRetired=false;
+private _cancelledWorkerStarted=true;
 isNil {
     _cancelledResumeAccepted=[_transformGroup,_movedHouse,createHashMapFromArray [
         ["resume",true],["resumeOrder",_originalResumeOrder],["resumeGeneration",_transformOriginalGeneration]
     ]] call CBE_fnc_CortexClearBuilding;
+    _cancelledWorkerStarted=[_originalBuildingJob] call CBE_fnc_BuildingOperationStart;
     _cancelledResumeStayedRetired=(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []
         && {!(_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false])};
 };
 ["CLEAR-transform-cancelled-resume-refused",_transformCancelled && {!_cancelledResumeAccepted}
-    && {_cancelledResumeStayedRetired},str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
+    && {!_cancelledWorkerStarted} && {_cancelledResumeStayedRetired},str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
 private _transformReordered=[_transformGroup,_movedHouse] call CBE_fnc_CortexClearBuilding;
 ["CLEAR-transform-fresh-order-accepted",_transformCancelled && {_transformReordered},
     str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
@@ -1514,19 +1529,21 @@ private _freshCoverage=_transformReordered && {(_freshOrder param [1,[]]) isEqua
 ["CLEAR-transform-fresh-coverage-reset",_transformCancelled && {_freshCoverage},str _freshOrder] call _check;
 private _replacedResumeAccepted=true;
 private _replacementPreserved=false;
+private _replacedWorkerStarted=true;
 isNil {
     private _liveOrder=+(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]);
     private _liveGeneration=_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1];
     _replacedResumeAccepted=[_transformGroup,_movedHouse,createHashMapFromArray [
         ["resume",true],["resumeOrder",_originalResumeOrder],["resumeGeneration",_transformOriginalGeneration]
     ]] call CBE_fnc_CortexClearBuilding;
+    _replacedWorkerStarted=[_originalBuildingJob] call CBE_fnc_BuildingOperationStart;
     _replacementPreserved=_liveOrder isNotEqualTo []
         && {(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _liveOrder}
         && {(_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]) == _liveGeneration}
         && {_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false]};
 };
 ["CLEAR-transform-replaced-resume-refused",_freshCoverage && {!_replacedResumeAccepted}
-    && {_replacementPreserved},str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
+    && {!_replacedWorkerStarted} && {_replacementPreserved},str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
 private _transformEntries=_transformActors apply {false};
 private _movedRooms=_movedHouse buildingPos -1;
 private _transformEntry=[{
