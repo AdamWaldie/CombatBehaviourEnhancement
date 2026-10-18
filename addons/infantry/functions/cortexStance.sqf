@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reservation policy: shared strict owner-local admission; unknown records never grant
+ * routine posture or known-task stance-release authority.
  * Chooses each soldier's stance from the height of the cover in front of him.
  *
  * For stationary soldiers on foot in contact (including drill covering elements, not garrisoned), three short rays are cast 3 m
@@ -64,9 +66,15 @@ for "_offset" from 0 to ((_count min 12)-1) do {
         _unit setVariable ["CBE_Cortex_AppliedStance",nil,true];
     };
     private _reservation=_unit getVariable ["CBE_Cortex_ActorMove",[]];
-    private _reservationFree=_reservation isEqualTo []
-        || {_reservation isEqualType [] && {count _reservation == 3} && {(_reservation param [2,1e12,[0]]) <= _now}};
-    if (!_reservationFree && {count _reservation == 3}
+    private _reservationFree=!([_unit] call CBE_fnc_CortexActorMoveReserved);
+    // Unknown records preserve their owner and the current stance. Only a fully typed
+    // known task can release this routine's own matching stance in favour of that task.
+    private _knownReservation=_reservation isEqualType [] && {count _reservation == 3}
+        && {(_reservation select 0) isEqualType ""}
+        && {(_reservation select 1) isEqualType []} && {count (_reservation select 1) == 3}
+        && {(_reservation select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {(_reservation select 2) isEqualType 0} && {finite (_reservation select 2)};
+    if (!_reservationFree && {_knownReservation}
         && {(_reservation select 0) in ["STATIC_DEPLOY","STATIC_PACK","STATIC_SUPPORT","DANGER_COVER"]}
         && {local _unit} && {_unit getVariable ["CBE_AIPass_StanceSet",false]}
         && {_currentStance == (_unit getVariable ["CBE_Cortex_AppliedStance",""])}

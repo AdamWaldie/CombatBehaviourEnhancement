@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Shared manoeuvre admission/cleanup, medical assistance and stance control now preserve malformed
+  or nonfinite actor reservations through the strict owner-local predicate. Stance release for known
+  tasks also requires a fully typed record. Physical service interruption and restoration remain unverified.
+
 - Coordinated bounds now match both group and reservation token when retaining active turns.
   Superseded turns disappear without imposing a retry penalty on the replacement; public roles,
   aborts and retry writes recheck the live lease atomically. Network/HC replacement remains unverified.

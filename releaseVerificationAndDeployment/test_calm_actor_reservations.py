@@ -169,3 +169,28 @@ class CoordinationLeaseReplacementTests(unittest.TestCase):
         publication=source.split('// Compare the live role here:',1)[1].split('} forEach _teams;',1)[0]
         self.assertIn('(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role',publication)
         self.assertEqual(source.count('if !([_group,_token] call _sameLease) exitWith {};'),3)
+
+
+class SharedRoutineReservationTests(unittest.TestCase):
+    def test_manoeuvre_cleanup_and_medical_use_strict_owner_predicate(self):
+        for name in ['cortexFlankStep','cortexFlankEnd','cortexMedicalStep','cortexStance']:
+            with self.subTest(name=name):
+                source=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
+                self.assertIn('call CBE_fnc_CortexActorMoveReserved',source)
+                self.assertNotIn('_reservation param [2,1e12',source)
+        medical=(ROOT/'addons/infantry/functions/cortexMedicalStep.sqf').read_text()
+        self.assertEqual(medical.count('call CBE_fnc_CortexActorMoveReserved'),2)
+        self.assertIn('"ACTOR_TASK_CHANGED"',medical)
+        self.assertIn('"CARRY SOLDIER"',medical)
+
+    def test_stance_known_task_release_refuses_unknown_shapes_before_token_read(self):
+        source=(ROOT/'addons/infantry/functions/cortexStance.sqf').read_text()
+        shape=source.split('private _knownReservation=',1)[1].split('if (!_reservationFree',1)[0]
+        for guard in ['_reservation isEqualType []','count _reservation == 3',
+                      '(_reservation select 0) isEqualType ""','count (_reservation select 1) == 3',
+                      '!finite _x','finite (_reservation select 2)']:
+            self.assertIn(guard,shape)
+        release=source.split('if (!_reservationFree',1)[1].split('_changed=_changed+1;',1)[0]
+        self.assertLess(release.index('_knownReservation'),release.index('_reservation select 0'))
+        self.assertIn('_currentStance ==',release)
+        self.assertIn('CBE_fnc_CortexExternalTakeover',release)

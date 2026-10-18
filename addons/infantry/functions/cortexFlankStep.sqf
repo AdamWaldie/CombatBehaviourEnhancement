@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
+ * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
  * Advances a running drill (flank, bounding advance, direct assault or coordinated bound) by one step: issue a bound, wait for arrival,
@@ -152,9 +154,7 @@ if (!isNull _intentTarget && {captive _intentTarget
 // writes; route scoring and progress accounting remain bounded and do not issue movement.
 private _actorTaskFree={
     params ["_actor"];
-    private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-    private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
-        && {(_reservation param [2,1e12,[0]]) <= time}};
+    private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
     _free && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {local _actor} && {!isPlayer _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {isNull remoteControlled _actor}

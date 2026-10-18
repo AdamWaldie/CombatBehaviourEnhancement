@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
+ * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
  * Ends a drill (flank, bounding advance or direct assault). Restores owned unit and group combat-mode overrides only
  * while the current mode still matches the value Cortex applied; later external changes survive.
  *
@@ -93,9 +95,7 @@ private _members = (_drill getOrDefault ["units", []]) select {alive _x && {loca
 // Listener cleanup above still covers the old roster. Movement cleanup below may affect
 // only capable foot actors whose current task has not acquired a newer independent owner.
 _members=_members select {
-    private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
-    private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
-        && {(_reservation param [2,1e12,[0]]) <= time}};
+    private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
     _free && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x} && {isNull objectParent _x}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}

@@ -1190,7 +1190,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('requiredAddons[] = {"cba_main", "A3_Characters_F"}',danger_config)
         end=source('cortexFlankEnd')
         movement=end.split('_members=_members select',1)[1].split('private _stragglers',1)[0]
-        self.assertIn('CBE_Cortex_ActorMove',movement)
+        self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',movement)
         self.assertIn('CBE_fnc_CortexCombatEffective',movement)
         self.assertIn('"HEAL SOLDIER"',movement)
         self.assertLess(end.index('_members=_members select'),end.index('doStop _x'))
