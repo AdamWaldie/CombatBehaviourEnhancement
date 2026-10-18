@@ -4,7 +4,8 @@
  * Spatial discovery includes mounted crews. Radio range requires a communicating member at
  * both ends; voice range remains available without radio and is rechecked by the receiver.
  * Locality/authority: server validates shared assignments; commands run only on the current AI owner.
- * Repeat/JIP: tokens and server-time deadlines reject stale work; no historical JIP commands are replayed.
+ * Repeat/JIP: original finite observation times survive relay; invalid payloads spend no cooldown.
+ * Server-time deadlines reject stale work; no historical JIP commands are replayed.
  * Arguments: 0: sender <GROUP>, grpNull; 1: reports <ARRAY>, []; 2: sent server time <NUMBER>, -1.
  * Return Value: Nothing.
  * Current callers: ContactReport.
@@ -14,15 +15,17 @@ params [["_sender", grpNull, [grpNull]], ["_reports", [], [[]]], ["_sent", -1, [
 if (!isServer || {isNull _sender} || {remoteExecutedOwner > 0 && {remoteExecutedOwner != groupOwner _sender}}
     || {!(missionNamespace getVariable ["CBE_AIPass_Enable", false])} || {[] call CBE_fnc_CortexIsPaused}
     || {!([_sender, "CBE_AIPass_ContactReports_Enable", true] call CBE_fnc_CortexFeatureEnabled)}
-    || {!([_sender] call CBE_fnc_CortexIsEligible)} || {serverTime - _sent > 10} || {_sent > serverTime + 1}) exitWith {};
+    || {!([_sender] call CBE_fnc_CortexIsEligible)} || {!finite _sent} || {_sent < 0} || {serverTime - _sent > 10} || {_sent > serverTime + 1}) exitWith {};
 if (serverTime < (_sender getVariable ["CBE_AIPass_ReportServerDue", -1])) exitWith {};
-_sender setVariable ["CBE_AIPass_ReportServerDue", serverTime + 15];
 private _valid = (_reports select [0,3]) select {
     _x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualType []} && {count (_x select 0) == 3}
-    && {(_x select 0) findIf {!(_x isEqualType 0)} < 0} && {(_x select 1) isEqualType 0}
-    && {(_x select 2) isEqualType 0} && {serverTime - (_x select 2) <= 10} && {(_x select 2) <= serverTime}
+    && {(_x select 0) findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0}
+    && {(_x select 1) isEqualType 0} && {finite (_x select 1)} && {(_x select 1) >= 0} && {(_x select 1) <= 4}
+    && {(_x select 2) isEqualType 0} && {finite (_x select 2)} && {(_x select 2) >= 0}
+    && {serverTime - (_x select 2) <= 10} && {(_x select 2) <= serverTime} && {(_x select 2) <= _sent+1}
 };
 if (_valid isEqualTo []) exitWith {};
+_sender setVariable ["CBE_AIPass_ReportServerDue", serverTime + 15];
 private _transmitter = [_sender] call CBE_fnc_CortexGroupTransmitter;
 private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 private _range = if (!isNull _transmitter) then {missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]} else {missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35]};

@@ -1055,3 +1055,6 @@ Combined-arms spatial candidate discovery explicitly includes live mounted crews
 
 
 Ordinary area-report discovery includes live mounted receivers. Delivery beyond voice range requires currently communicating members at both sender and receiver; nearby voice reports remain possible when radio is unavailable. The receiving owner repeats the range/communication checks after queue delay, so a receiver becoming jammed before delivery rejects the radio report. Existing eight-receiver delivery batches and original report expiry remain unchanged. Reports retain approximate positions and do not reveal or track target objects. Physical radio/voice/crew and JIP/HC validation remains pending.
+
+
+Area-report storage and its thirty-second expiry use the original sighting timestamp rather than relay time. A later resend of an older or identical sighting cannot refresh it or replace a fresher stored observation. Server and receiver reject nonfinite/out-of-bounds coordinates, invalid confidence and invalid observation/send times; invalid report sets do not consume the sender's server cooldown. Transport still expires independently, and reports remain approximate areas rather than target tracking.

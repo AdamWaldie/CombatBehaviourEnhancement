@@ -108,3 +108,18 @@ class MountedReportDeliveryTests(unittest.TestCase):
         for text in (server,owner):
             self.assertNotIn(' reveal ',text)
             self.assertNotIn('doMove',text)
+
+
+class ReportObservationAgeTests(unittest.TestCase):
+    def test_relay_cannot_refresh_observation_or_invalid_payload_cooldown(self):
+        server=(ROOT/'addons/infantry/functions/cortexReportServer.sqf').read_text()
+        owner=(ROOT/'addons/infantry/functions/cortexReportLocal.sqf').read_text()
+        for text in (server,owner):
+            for guard in ('!finite _sent','_sent < 0','!finite _x','abs _x > 1e6',
+                          'finite (_x select 1)','finite (_x select 2)','(_x select 2) <= _sent+1'):
+                self.assertIn(guard,text)
+        self.assertLess(server.index('if (_valid isEqualTo []) exitWith'),server.index('setVariable ["CBE_AIPass_ReportServerDue"'))
+        self.assertIn('private _observed=_best select 2',owner)
+        self.assertIn('(_previous select 1) >= _observed',owner)
+        self.assertIn('[+(_best select 0),_observed,_observed+30,"REPORT"]',owner)
+        self.assertNotIn('_sent+30',owner)
