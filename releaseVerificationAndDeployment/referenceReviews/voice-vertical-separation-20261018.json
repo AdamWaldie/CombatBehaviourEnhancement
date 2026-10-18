@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Voice eligibility for report server/owner delivery and initial combined-arms/ground fallback dispatch",
+  "finding": "Existing voice checks used horizontal separation, allowing a radio-less overhead/stacked-surface receiver to qualify despite large actual height difference.",
+  "implementation": "ReportLocal uses ASL anchor positions and vectorDistance for voice; ReportServer/CombinedArmsServer/GroundFallback compare ASL3D separation within the existing horizontal voice prefilter. Radio gates, discovery envelope, dual-radio requirements, original observations and finite dispatch budgets remain unchanged.",
+  "non_changes": [
+    "Reports deliberately carry area/confidence/time without target object; do not add identity or native reveal to infer ignored-target mapping.",
+    "No hidden enemy transforms, acoustic raycasts or radio propagation model.",
+    "No active operation cancellation merely because communication is lost after receipt.",
+    "Air fallback and other support communication paths retain their existing policy; not universal communication parity."
+  ],
+  "bounds": "No new world scan, receiver fanout or worker. One sender ASL sample per server opportunity and candidate ASL reads only on near-horizontal voice checks; receiver owner reuses ASL positions for existing horizontal range gate. Cost unmeasured.",
+  "validation": {
+    "tests": 1396,
+    "compiled_sqf": 327,
+    "pbos": 9,
+    "log": ".qa/cbe-voice-vertical-separation-build.log",
+    "unsigned_fingerprint": "e873eb763bf65faaf436d220d62b80029d92c2c54ad8bd88caef37d513402474",
+    "physical": false
+  },
+  "remaining": [
+    "Altitude/floor/jamming and voice-only versus dual-radio live cases",
+    "Delayed receiver delivery after position/radio changes",
+    "Other support/coordination voice paths",
+    "Actual performance and locality/HC evidence"
+  ],
+  "audit_authority": "Explicitly paused; all65 families partial."
+}

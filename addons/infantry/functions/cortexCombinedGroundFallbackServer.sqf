@@ -3,6 +3,7 @@
  * Purpose: Dispatch one replacement from an opportunity's bounded ranked ground-asset pool.
  * Locality/authority: Server-only internal call after CortexCombinedRejectServer authenticates
  * and retires the exact refusal. Current requester, candidate and operating crew are revalidated.
+ * Voice eligibility uses3D ASL separation; dual-radio fallback retains its horizontal radius.
  * Original contact confidence/time pass unchanged to replacements; fallback never renews observation age.
  * Repeat/JIP: A token/role consumption receipt rejects duplicates. The shared cursor advances
  * through at most 32 retained candidates; original contact, expiry and independent leases survive.
@@ -42,6 +43,7 @@ _rejected setVariable ["CBE_Cortex_CombinedGroundConsumed",[_token,_role]];
 private _sender=[_requester] call CBE_fnc_CortexGroupTransmitter;
 private _origin=if (isNull _sender) then {leader _requester} else {_sender};
 if (isNull _origin) exitWith {false};
+private _originASL=getPosASL _origin;
 private _range=missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500];
 private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 private _replacement=grpNull;
@@ -64,7 +66,9 @@ while {_cursor < count _candidates && {isNull _replacement}} do {
         private _receiver=[_candidate] call CBE_fnc_CortexGroupTransmitter;
         private _anchor=if (isNull _receiver) then {leader _candidate} else {_receiver};
         if (!isNull _anchor && {alive _anchor} && {_anchor distance2D _origin <= _range}
-            && {_anchor distance2D _origin <= _voiceRange || {!isNull _sender && {!isNull _receiver}}}) then {
+            && {(_anchor distance2D _origin <= _voiceRange
+                && {(getPosASL _anchor) vectorDistance _originASL <= _voiceRange})
+                || {!isNull _sender && {!isNull _receiver}}}) then {
             _replacement=_candidate;
         };
     };

@@ -11,6 +11,7 @@
  * role is dispatched immediately; infantry never waits for acceptance and no shared assembly state exists.
  * Aircraft discovery requires the pilot's group, matching the flight controller's authority.
  * Ground assets accept the effective commander's or driver's group; passenger-only groups remain ineligible.
+ * Voice fallback uses3D ASL separation, preventing altitude from bypassing dual-radio eligibility.
  * Locality/authority: server validates the sender, target, hostility, range, communications and role
  * feature gates; the current asset owner applies targeting through CBE_fnc_CortexCombinedArmsLocal.
  * Vehicle and aircraft cooperation depends on contact communication and each asset's own feature
@@ -67,6 +68,7 @@ private _airRange=missionNamespace getVariable ["CBE_Cortex_CombinedArms_AirRang
 private _requesterTransmitter=[_requester] call CBE_fnc_CortexGroupTransmitter;
 private _requesterAnchor=if (isNull _requesterTransmitter) then {leader _requester} else {_requesterTransmitter};
 private _senderRadio=!isNull _requesterTransmitter;
+private _requesterASL=getPosASL _requesterAnchor;
 // Every selected asset must be inside either the air or ground response envelope. Build a
 // distinct candidate set from the larger envelope; this avoids a global group walk whenever a
 // contact opens a combined-arms opportunity. The owner still performs the authoritative
@@ -148,7 +150,8 @@ _requester setVariable ["CBE_Cortex_CombinedGroundFallback",[_token,_target,+_po
         // already reserved by another opportunity, matching the air fallback contract.
         && {private _existingRole=_candidate getVariable ["CBE_Cortex_CombinedRole",[]];
             !((count _existingRole) in [7,8]) || {serverTime >= (_existingRole select 5)} || {(_existingRole select 0) == _token}}
-        && {_distance <= _voiceRange || {_senderRadio && {_candidateRadio}}}) then {
+        && {(_distance <= _voiceRange && {(getPosASL _candidateAnchor) vectorDistance _requesterASL <= _voiceRange})
+            || {_senderRadio && {_candidateRadio}}}) then {
         // Reuse this request's discovery, then validate live operating ownership.
         // A stale asset is refused rather than rescanning or dispatching to passengers.
         private _asset=_x select 2;

@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Stores an expiring area report without revealing or tracking a target object.
  * Delivery rechecks both radio endpoints; nearby voice communication remains possible
- * when either endpoint is jammed. Mounted receivers use the same eligibility contract.
+ * when either endpoint is jammed. Voice uses3D ASL separation; radio radius remains horizontal.
+ * Mounted receivers use the same eligibility contract.
  * Locality/authority: server validates shared assignments; commands run only on the current AI owner.
  * Repeat/JIP: storage and expiry retain original finite observation time, not relay time;
  * older/duplicate sightings cannot replace fresher evidence. No historical JIP commands replay.
@@ -23,11 +24,11 @@ private _transmitter = [_sender] call CBE_fnc_CortexGroupTransmitter;
 private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;
 private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 private _range = if (!isNull _transmitter) then {missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]} else {missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35]};
-private _senderPosition = getPosATL ([_transmitter, leader _sender] select isNull _transmitter);
-private _receiverPosition = getPosATL ([_receiverTransmitter, leader _receiver] select isNull _receiverTransmitter);
+private _senderPosition = getPosASL ([_transmitter, leader _sender] select isNull _transmitter);
+private _receiverPosition = getPosASL ([_receiverTransmitter, leader _receiver] select isNull _receiverTransmitter);
 if (side _receiver != side _sender || {isNull _receiverTransmitter && {!alive leader _receiver}}
     || {_receiverPosition distance2D _senderPosition > _range}
-    || {_receiverPosition distance2D _senderPosition > _voiceRange
+    || {_receiverPosition vectorDistance _senderPosition > _voiceRange
         && {isNull _transmitter || {isNull _receiverTransmitter}}}) exitWith {};
 private _valid=(_reports select [0,3]) select {
     _x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualType []} && {count (_x select 0) == 3}

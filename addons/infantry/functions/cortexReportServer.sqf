@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Relays up to three expiring sighting reports to eligible group owners, preserving reported positions.
  * Spatial discovery includes mounted crews. Radio range requires a communicating member at
- * both ends; voice range remains available without radio and is rechecked by the receiver.
+ * both ends; voice uses3D ASL separation and is rechecked by the receiver. Radio radius
+ * remains horizontal; a receiver high above the sender cannot substitute voice for a missing radio.
  * Locality/authority: server validates shared assignments; commands run only on the current AI owner.
  * Repeat/JIP: original finite observation times survive relay; invalid payloads spend no cooldown.
  * Server-time deadlines reject stale work; no historical JIP commands are replayed.
@@ -32,6 +33,7 @@ private _transmitter = [_sender] call CBE_fnc_CortexGroupTransmitter;
 private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 private _range = if (!isNull _transmitter) then {missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]} else {missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35]};
 private _senderPosition = getPosATL ([_transmitter, leader _sender] select isNull _transmitter);
+private _senderASL=getPosASL ([_transmitter, leader _sender] select isNull _transmitter);
 // A receiver is eligible only when its transmitter or local command anchor is inside this report's
 // delivery envelope. Derive distinct groups from nearby actors rather than scanning every group.
 private _receiverGroups=[];
@@ -59,7 +61,8 @@ private _receivers = [];
     private _receiverAnchor = if (isNull _receiverTransmitter) then {leader _receiver} else {_receiverTransmitter};
     if (_receiver != _sender && {side _receiver == side _sender} && {!isNull _receiverAnchor} && {alive _receiverAnchor}
         && {_receiverAnchor distance2D _senderPosition <= _range}
-        && {_receiverAnchor distance2D _senderPosition <= _voiceRange
+        && {(_receiverAnchor distance2D _senderPosition <= _voiceRange
+                && {(getPosASL _receiverAnchor) vectorDistance _senderASL <= _voiceRange})
             || {!isNull _transmitter && {!isNull _receiverTransmitter}}}
         && {[_receiver] call CBE_fnc_CortexIsEligible}) then {
         _receivers pushBack _receiver;
