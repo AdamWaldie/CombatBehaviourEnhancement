@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Arrival-stage and post-grenade clear-through commits now recheck the original physical arrival witnesses against assigned ASL targets, retaining existing quorum, 3 m range and 1.5 m floor tolerance. Departed, transported or unavailable witnesses defer progression; runtime flow and overhead remain unverified.
+
 - Ordinary bound-arrival stages and pause deadlines now publish together under current child/owner, MOVE identity, roster/team and spot checks. Smoke and assault preparation remain scheduled after admission. Physical arrival freshness and tactical flow remain unverified.
 
 - Assault clear-through now rechecks its original MOVE identity, child/owner authority, roster, route, objective and assault feature after grenade preparation before advancing START/index. Refusal defers; movement retains separate admission and physical flow remains unverified.

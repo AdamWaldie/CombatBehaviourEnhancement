@@ -520,3 +520,18 @@ class BoundArrivalStageCommitTests(unittest.TestCase):
             self.assertLess(body.index('isNil {'),body.index(reason))
         self.assertNotIn('call CBE_fnc_CortexThrowGrenade',body)
         self.assertIn('if (!_arrivalCommitted) exitWith {_result=0.25}',source)
+
+
+class ArrivalPhysicalWitnessTests(unittest.TestCase):
+    def test_stage_and_clear_through_require_fresh_floor_aware_quorum(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        helper=source.split('private _arrivalPresent={',1)[1].split('if !(call _restoreFeatures)',1)[0]
+        for check in ('count _arrivalWitnesses >= _minimumArrivals','getPosASL _actor',
+                      'CortexCombatEffective','call _actorTaskFree','group _actor != _group',
+                      'objectParent _actor','vectorDistance _targetASL > 3',
+                      'abs ((_pose select 2)-(_targetASL select 2)) > 1.5'):
+            self.assertIn(check,helper)
+        body=source.split('private _arrivalRoster=',1)[1].split('    case "PAUSE": {',1)[0]
+        self.assertEqual(body.count('call _arrivalPresent'),2)
+        self.assertNotIn('nearEntities',helper)
+        self.assertNotIn('setPos',helper)

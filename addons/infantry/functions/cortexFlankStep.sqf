@@ -1114,6 +1114,20 @@ switch (_drill get "stage") do {
             if (_failureCommitted) then {_result = _reason call _end} else {_result=0.25};
         };
         if (_arrived) then {
+            // Revalidate the actual witnesses, not a centroid or a historical arrival flag.
+            // Recovery may leave stragglers behind; retain the existing required quorum.
+            private _arrivalWitnesses=_arrivedUnits apply {[_x,ATLToASL (_spots select (_movers find _x))]};
+            private _arrivalPresent={
+                count _arrivalWitnesses >= _minimumArrivals && {_arrivalWitnesses findIf {
+                    _x params ["_actor","_targetASL"];
+                    private _pose=getPosASL _actor;
+                    !local _actor || {group _actor != _group} || {!isNull objectParent _actor}
+                        || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+                        || {!([_actor] call _actorTaskFree)}
+                        || {_pose vectorDistance _targetASL > 3}
+                        || {abs ((_pose select 2)-(_targetASL select 2)) > 1.5}
+                } < 0}
+            };
             if !(call _restoreFeatures) exitWith {_result=0.25};
             private _arrivalRoster=+(_drill get "units");
             private _arrivalTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
@@ -1122,7 +1136,7 @@ switch (_drill get "stage") do {
             private _arrivalSmoke=false;
             private _arrivalAssault=false;
             isNil {
-                if (!(call _helperCurrent)
+                if (!(call _helperCurrent) || {!(call _arrivalPresent)}
                     || {(_drill getOrDefault ["stage",""]) != "MOVE"}
                     || {!([_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _moveIdentity)}
                     || {(_drill get "units") isNotEqualTo _arrivalRoster}
@@ -1197,7 +1211,7 @@ switch (_drill get "stage") do {
                 // clear-through in this same owner-local step.
                 private _clearCommitted=false;
                 isNil {
-                    if (!(call _helperCurrent)
+                    if (!(call _helperCurrent) || {!(call _arrivalPresent)}
                         || {(_drill getOrDefault ["stage",""]) != "MOVE"}
                         || {!([_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _clearIdentity)}
                         || {(_drill get "units") isNotEqualTo _clearRoster}

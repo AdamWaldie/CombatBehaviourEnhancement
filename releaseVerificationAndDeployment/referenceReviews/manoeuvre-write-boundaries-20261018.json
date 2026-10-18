@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "9ef8ddca48435d7121bec9b4ffeb9d67508d0c215c73a950869e57100b73a468"
+      "sha256": "6e79500a6fd7a10a6ac47c833f4dd933c7d92e295955d7c2628edc15d5be24ec"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -94,6 +94,11 @@
       "area": "ordinary MOVE arrival stage/deadline publication",
       "status": "current-context transaction",
       "notes": "After restoration, original MOVE index/turn, helper authority, roster/team/spot and route kind must match before stage and pauseUntil publish in one isNil. Smoke and assault preparation remain scheduled after admission; clear-through has its own post-preparation check. Physical arrival freshness and performance unverified."
+    },
+    {
+      "area": "fresh physical arrival witnesses at phase commit",
+      "status": "bounded current-position recheck",
+      "notes": "Original arrived actors retain copied ASL assigned spots and existing required quorum. Both ordinary stage and post-grenade clear-through commit require current local/effective/untransported/task-free group actors within3m and1.5m vertical. Recovery stragglers are not falsely counted; no teleport, scan or expanded arrival tolerance. Runtime and measured cost unverified."
     }
   ],
   "implementationChange": {
@@ -101,10 +106,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1349,
-    "log": ".qa/cbe-arrival-stage-verified-build.log",
+    "tests": 1350,
+    "log": ".qa/cbe-arrival-witness-build.log",
     "exitCode": 0,
-    "packageFingerprint": "135f3d8d02d657240b80bea0fc9ef4d30522b4ab3d2bf0c9888dde7e62df681c"
+    "packageFingerprint": "cbf906f22a71446206b59dce2a2e2fa55bd14869519bdd44d3a2d128ea3b72a3"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
