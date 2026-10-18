@@ -129,3 +129,6 @@ observed; this must not be presented as zero cost. Ring overwrite can still hide
 
 No new runtime result is supplied by this schema change. Normal and actual-provider HC samples
 remain separate, and matched frame-time measurements are required for the 5% median / 10% p95 gate.
+
+
+Convoy opt-in control capture appends follower sample field10: [gap metric RADIAL/LONGITUDINAL, heading difference in degrees, signed raw longitudinal gap in metres, raw lateral offset in metres]. Existing fields0..9 retain their meaning. This exposes measurement-policy transitions; field4's legacy lateral value remains policy-local and can be0 in radial mode. The new measurements run only under CBE_Convoy_CaptureControl and add no world query, controller or network broadcast. No captured run or performance acceptance is implied.

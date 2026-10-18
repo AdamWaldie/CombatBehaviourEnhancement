@@ -34,6 +34,17 @@ class ConvoyPathHandoverTests(unittest.TestCase):
         self.assertIn('+(_progress param [6,[]])',text)
         self.assertNotIn('"STEERING",+_path,',text)
 
+    def test_spacing_mode_measurements_are_opt_in_and_never_write_movement(self):
+        text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        capture=text.split('// Audit-only measurement:',1)[1].split('// A stationary/braking predecessor',1)[0]
+        for field in ('"RADIAL","LONGITUDINAL"','_headingDifference,_longitudinal,_rawLateral',
+                      '_gap <= _desiredGap*1.8','_controlSample pushBack'):
+            self.assertIn(field,capture)
+        for command in ('forceSpeed','doMove','doStop','setDriveOnPath','nearEntities','lineIntersects'):
+            self.assertNotIn(command,capture)
+        location=text.index('// Audit-only measurement:')
+        self.assertGreater(text.rfind('if (_captureControl) then {',0,location),text.index('private _controlSample=[];'))
+
     def test_on_foot_leader_and_scripted_waypoint_do_not_receive_synthetic_recall(self):
         s=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         recall=s.split('if (_driver != _leader',1)[1]

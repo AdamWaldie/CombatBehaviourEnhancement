@@ -903,6 +903,17 @@ for "_i" from 1 to (count _vehicles - 1) do {
             [currentCommand _movementOperator,unitReady _vehicle,
                 +(expectedDestination _movementOperator),+(_progress param [5,[]]),
                 +(_progress param [6,[]]),_progress param [3,0]]];
+        // Audit-only measurement: radial policy previously reported lateral offset0,
+        // concealing the mode transition during a widely displaced recapture.
+        private _measurementBearing=getDir _front;
+        private _measurementAxis=[sin _measurementBearing,cos _measurementBearing,0];
+        private _measurementDelta=(getPosATL _front) vectorDiff (getPosATL _vehicle);
+        _measurementDelta set [2,0];
+        private _longitudinal=_measurementDelta vectorDotProduct _measurementAxis;
+        private _rawLateral=sqrt ((_gap*_gap-_longitudinal*_longitudinal) max 0);
+        _controlSample pushBack [["RADIAL","LONGITUDINAL"] select
+            (_headingDifference <= 25 && {_gap <= _desiredGap*1.8}),
+            _headingDifference,_longitudinal,_rawLateral];
     };
     // A stationary/braking predecessor must still constrain us inside the tolerance band.
     // Match the ordinary driving model in SI units, then convert its closing allowance
