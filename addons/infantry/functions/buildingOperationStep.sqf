@@ -325,20 +325,8 @@ private _delay=call {
             && {(_model select 1) >= (_low select 1)} && {(_model select 1) <= (_high select 1)}
             && {(_model select 2) >= (_low select 2)-0.5} && {(_model select 2) <= (_high select 2)};
         if (!_inside || {_roomGeometryBudget <= 0} || {!call _mayIssueMovement}) exitWith {false};
-        // Fixed ten-metre rays misclassify tall valid interiors. Transform all eight
-        // model corners so rotated/sloped placements retain a world-vertical upper bound.
         if (_roomRoofTop == -1e12) then {
-            {
-                private _cx=_x;
-                {
-                    private _cy=_x;
-                    {
-                        private _corner=_house modelToWorldWorld [_cx,_cy,_x];
-                        _roomRoofTop=_roomRoofTop max (_corner select 2);
-                    } forEach [_low select 2,_high select 2];
-                } forEach [_low select 1,_high select 1];
-            } forEach [_low select 0,_high select 0];
-            _roomRoofTop=_roomRoofTop+1;
+            _roomRoofTop=[_house,_bounds] call CBE_fnc_BuildingRoofTop;
         };
         _roomGeometryBudget=_roomGeometryBudget-1;
         private _roof=lineIntersectsSurfaces [_actual vectorAdd [0,0,0.5],

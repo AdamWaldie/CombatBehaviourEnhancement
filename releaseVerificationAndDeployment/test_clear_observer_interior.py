@@ -33,10 +33,12 @@ class ClearObserverInteriorTests(unittest.TestCase):
         observer=s.split('private _observerInside={',1)[1].split('private _roomSegmentClear=',1)[0]
         self.assertIn('if (_roomBuildingBounds isEqualTo [])',observer)
         self.assertIn('if (_roomRoofTop == -1e12)',observer)
+        helper=(ROOT/'addons/infantry/functions/buildingRoofTop.sqf').read_text()
         for axis in range(3):
-            self.assertIn(f'forEach [_low select {axis},_high select {axis}]',observer)
-        self.assertIn('modelToWorldWorld [_cx,_cy,_x]',observer)
-        self.assertIn('_roomRoofTop max (_corner select 2)',observer)
+            self.assertIn(f'forEach [_low select {axis},_high select {axis}]',helper)
+        self.assertIn('modelToWorldWorld [_cx,_cy,_x]',helper)
+        self.assertIn('_top max (_corner select 2)',helper)
+        self.assertIn('[_house,_bounds] call CBE_fnc_BuildingRoofTop',observer)
         self.assertIn('[_actual select 0,_actual select 1,_roomRoofTop]',observer)
         self.assertNotIn('_actual vectorAdd [0,0,10]',observer)
         self.assertEqual(observer.count('lineIntersectsSurfaces'),1)
@@ -51,4 +53,9 @@ class ClearObserverInteriorTests(unittest.TestCase):
             for fractions in itertools.product((0,0.25,0.5,0.75,1),repeat=3):
                 point=[a+(b-a)*f for a,b,f in zip(low,high,fractions)]
                 self.assertGreater(top,origin+sum(c*v for c,v in zip(point,up)))
-        self.assertGreater(25,10)
+
+    def test_discovery_and_natural_indoor_paths_share_model_roof_limit(self):
+        for name in ('cortexClearBuilding','indoorActorNodeSelect','indoorActorOperation'):
+            text=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
+            self.assertIn('call CBE_fnc_BuildingRoofTop',text)
+            self.assertNotIn('vectorAdd [0,0,10]',text)

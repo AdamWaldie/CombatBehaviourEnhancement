@@ -72,12 +72,13 @@ private _ranked=[];
 } forEach _positions;
 _ranked sort true;
 private _selected=[];
+private _roofTop=[_building] call CBE_fnc_BuildingRoofTop;
 {
     if (_selected isNotEqualTo []) exitWith {};
     private _node=_positions select (_x select 2);
     private _asl=AGLToASL _node;
     private _hits=lineIntersectsSurfaces [_asl vectorAdd [0,0,0.4],
-        _asl vectorAdd [0,0,10],_actor,objNull,true,1,"GEOM","NONE"];
+        [_asl select 0,_asl select 1,_roofTop],_actor,objNull,true,1,"GEOM","NONE"];
     if (_hits isNotEqualTo []) then {
         private _hit=_hits select 0;
         if ((_hit select 2) == _building || {(_hit select 3) == _building}) exitWith {

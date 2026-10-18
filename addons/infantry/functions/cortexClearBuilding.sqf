@@ -167,6 +167,7 @@ private _admissionStable={
 private _allPositions = _building buildingPos -1;
 if (count _allPositions > 512) exitWith {["POSITION_BUDGET_EXCEEDED"] call _refuse};
 private _seenPositions=createHashMap;
+private _roofTop=[_building] call CBE_fnc_BuildingRoofTop;
 private _positions = _allPositions select {
     private _position=_x;
     private _valid=_position isEqualType [] && {count _position == 3}
@@ -175,7 +176,7 @@ private _positions = _allPositions select {
     if (!_valid) exitWith {false};
     private _positionASL=AGLToASL _position;
     private _roofHits=lineIntersectsSurfaces [
-        _positionASL vectorAdd [0,0,0.5],_positionASL vectorAdd [0,0,10],objNull,objNull,true,4,"GEOM","NONE"
+        _positionASL vectorAdd [0,0,0.5],[_positionASL select 0,_positionASL select 1,_roofTop],objNull,objNull,true,4,"GEOM","NONE"
     ];
     _roofHits findIf {(_x select 2) == _building || {(_x select 3) == _building}} >= 0
 };

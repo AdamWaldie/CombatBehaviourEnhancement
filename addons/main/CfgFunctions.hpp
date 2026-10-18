@@ -257,6 +257,7 @@ class CfgFunctions {
             class CortexAirHandoverRestoreLocal {file = "\z\cbe\addons\infantry\functions\cortexAirHandoverRestoreLocal.sqf";};
             class CortexAircraftEligible {file = "\z\cbe\addons\aircraft\functions\cortexAircraftEligible.sqf";};
             class CortexDiscover {file = "\z\cbe\addons\core\functions\cortexDiscover.sqf";};
+            class BuildingRoofTop {file = "\z\cbe\addons\infantry\functions\buildingRoofTop.sqf";};
             class BuildingExteriorCandidate {file = "\z\cbe\addons\infantry\functions\buildingExteriorCandidate.sqf";};
             class BuildingExteriorProposal {file = "\z\cbe\addons\infantry\functions\buildingExteriorProposal.sqf";};
             class CortexFindCover {file = "\z\cbe\addons\infantry\functions\cortexFindCover.sqf";};
