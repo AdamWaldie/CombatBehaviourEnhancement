@@ -221,3 +221,29 @@ class ManoeuvreRosterCommitTests(unittest.TestCase):
         refusal=source.split('if (!_rosterCommitted)',1)[1].split('// Two ordinary survivors',1)[0]
         self.assertNotIn('call _end',refusal)
         self.assertNotIn('setVariable',refusal)
+
+
+class ManoeuvreMovementCommitTests(unittest.TestCase):
+    def test_bound_geometry_precedes_atomic_native_writes_and_journals(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        issue=source.split('private _issue = {',1)[1].split('private _result = 1.5;',1)[0]
+        planning,commit=issue.split('private _issued=false;',1)
+        self.assertIn('CBE_fnc_CortexFindCover',planning)
+        self.assertLess(planning.index('_point=+_point;'),planning.index('CBE_fnc_CortexFindCover'))
+        self.assertNotIn('doMove',planning)
+        self.assertNotIn('doStop',planning)
+        self.assertNotIn('setUnitPos',planning)
+        writer=commit.index('_unit doMove _spot;')
+        for guard in ['isNil {','!local _group','_issueEpoch !=','_liveState isNotEqualTo _state',
+                      '"token",""]) != _token','isNotEqualTo _issuePhase','isNotEqualTo _issueTeams',
+                      'isNotEqualTo _issueUnits','isNotEqualTo [_point,_kind]',
+                      'CBE_fnc_CortexIsPaused','isNotEqualTo _supportRole','CBE_fnc_CortexExternalTakeover',
+                      '"generation",-2','"ownerEpoch",-1','"phase",""]) == "CANCELLED"',
+                      'currentCommand _actor != _command','isNotEqualTo _destination',
+                      'formLeader _actor != _leader']:
+            self.assertLess(commit.index(guard),writer)
+        for journal in ['_drill set ["spots", _spots]','_drill set ["movers", +_units]',
+                        'CBE_Cortex_DrillMovementHandoffs','"BOUND_%1_ISSUED"']:
+            self.assertLess(commit.index(journal),commit.index('_issued=true;'))
+        self.assertNotIn('CBE_fnc_CortexFindCover',commit)
+        self.assertIn('if (!_issued) then {_result=0.25}',commit)

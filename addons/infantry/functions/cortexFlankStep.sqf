@@ -4,6 +4,8 @@
  * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
  * Casualty roster proposals remain isolated until current drill/operation/epoch and actor-native
  * observations pass an unscheduled publication boundary; refusal defers without renewing deadlines.
+ * Main bound cover geometry stays scheduled; its native movement/cover and bound journals commit
+ * together only under unchanged point/roster/phase, owner/operation and actor-native observations.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
  * Advances a running drill (flank, bounding advance, direct assault or coordinated bound) by one step: issue a bound, wait for arrival,
@@ -589,6 +591,13 @@ private _issue = {
     };
     if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
+    _point=+_point;
+    private _issueEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+    private _issuePhase=[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]];
+    private _issueTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+    private _issueUnits=+(_drill get "units");
+    private _issueNative=_fit apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
+    private _planned=[];
     private _direction = if (_kind in ["ASSAULT","CLEAR","CONSOLIDATE"]) then {_drill get "assaultDirection"} else {_point getDir _enemyPos};
     private _spots = [];
     // Retain only still-owned recovery overrides across the main element's next bound.
@@ -596,27 +605,8 @@ private _issue = {
     private _disabled = +(_drill get "disabled");
     private _combatModes = +(_drill getOrDefault ["combatModes",[]]);
     private _combatBehaviours = +(_drill getOrDefault ["combatBehaviours",[]]);
-    if (_teams isNotEqualTo []) then {
-        {
-            // Cover is a movement command too. A specialist or newer actor task may
-            // have claimed this soldier since the roster was selected.
-            if ([_x] call _mayIssueMovement) then {
-                doStop _x;
-                _x doWatch _enemyPos;
-            };
-        } forEach (_fit - _units);
-    };
     {
         private _unit = _x;
-        // Release only Cortex's matching cover stance when this soldier starts moving.
-        // A later mission-maker or Zeus stance remains authoritative.
-        if ([_unit] call _mayIssueMovement
-            && {_unit getVariable ["CBE_AIPass_StanceSet",false]}
-            && {toUpperANSI (unitPos _unit) == (_unit getVariable ["CBE_Cortex_AppliedStance",""])}) then {
-            _unit setUnitPos "AUTO";
-            _unit setVariable ["CBE_AIPass_StanceSet",nil,true];
-            _unit setVariable ["CBE_Cortex_AppliedStance",nil,true];
-        };
         private _spacing = [5, 3] select (_kind == "CLEAR");
         private _lateral = (_forEachIndex - (count _units - 1) / 2) * _spacing;
         // Tactical bounds form a shallow threat-facing line. Copying the group's
@@ -647,6 +637,61 @@ private _issue = {
             };
         };
         _spots pushBack _spot;
+        _planned pushBack [_unit,+_spot];
+    } forEach _units;
+    // Geometry above is scheduled. Native writes and their journals commit only while
+    // the same drill point, roster and observed actor tasks still own this entire bound.
+    private _issued=false;
+    isNil {
+        private _liveState=_group getVariable ["CBE_AIPass_State",createHashMap];
+        private _liveDrill=_liveState getOrDefault ["drill",createHashMap];
+        private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+        if (!local _group || {_issueEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+            || {_liveState isNotEqualTo _state} || {(_liveDrill getOrDefault ["token",""]) != _token}
+            || {[_liveDrill getOrDefault ["stage",""],_liveDrill getOrDefault ["index",0],_liveDrill getOrDefault ["teamTurn",0]] isNotEqualTo _issuePhase}
+            || {(_liveDrill getOrDefault ["teams",[]]) isNotEqualTo _issueTeams}
+            || {(_liveDrill getOrDefault ["units",[]]) isNotEqualTo _issueUnits}
+            || {((_liveDrill getOrDefault ["points",[]]) param [_issuePhase select 1,[]]) isNotEqualTo [_point,_kind]}
+            || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+            || {[] call CBE_fnc_CortexIsPaused}
+            || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
+            || {if (_support) then {!(_liveState getOrDefault ["assaulting",false])} else {
+                (_liveState getOrDefault ["phase",""]) != "CONTACT"
+            }}
+            || {_support && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _supportRole}}
+            || {[_group] call CBE_fnc_CortexExternalTakeover}
+            || {_operationGeneration >= 0 && {
+                (_liveOperation getOrDefault ["generation",-2]) != _operationGeneration
+                    || {(_liveOperation getOrDefault ["ownerEpoch",-1]) != _issueEpoch}
+                    || {(_liveOperation getOrDefault ["phase",""]) == "CANCELLED"}
+            }}
+            || {_issueNative findIf {
+                _x params ["_actor","_command","_destination","_leader"];
+                !([_actor] call _mayIssueMovement) || {currentCommand _actor != _command}
+                    || {(expectedDestination _actor) isNotEqualTo _destination}
+                    || {formLeader _actor != _leader}
+            } >= 0}) exitWith {};
+    if (_teams isNotEqualTo []) then {
+        {
+            // Cover is a movement command too. A specialist or newer actor task may
+            // have claimed this soldier since the roster was selected.
+            if ([_x] call _mayIssueMovement) then {
+                doStop _x;
+                _x doWatch _enemyPos;
+            };
+        } forEach (_fit - _units);
+    };
+    {
+        _x params ["_unit","_spot"];
+        // Release only Cortex's matching cover stance when this soldier starts moving.
+        // A later mission-maker or Zeus stance remains authoritative.
+        if ([_unit] call _mayIssueMovement
+            && {_unit getVariable ["CBE_AIPass_StanceSet",false]}
+            && {toUpperANSI (unitPos _unit) == (_unit getVariable ["CBE_Cortex_AppliedStance",""])}) then {
+            _unit setUnitPos "AUTO";
+            _unit setVariable ["CBE_AIPass_StanceSet",nil,true];
+            _unit setVariable ["CBE_Cortex_AppliedStance",nil,true];
+        };
         // Preserve native target acquisition, autonomous combat and the actor's current behaviour.
         // CBE commits a route and role but leaves moment-to-moment combat to the engine.
         // Do not issue doFollow or setDestination: either can create a second movement owner.
@@ -680,7 +725,7 @@ private _issue = {
                 _drill set ["movementHandoffs",_handoffs];
             };
         };
-    } forEach _units;
+    } forEach _planned;
     private _waypointIndex = currentWaypoint _group;
     private _waypointSnapshot = [];
     if (_waypointIndex < count waypoints _group) then {
@@ -715,6 +760,9 @@ private _issue = {
     // Replacing casualties or blocked movers cannot renew this bound's hard travel limit.
     _drill set ["boundStart", _now];
     [_group,_drill,"MOVE",format ["BOUND_%1_ISSUED",_drill get "index"]] call CBE_fnc_CortexDrillSetStage;
+    _issued=true;
+    };
+    if (!_issued) then {_result=0.25};
 };
 
 private _result = 1.5;

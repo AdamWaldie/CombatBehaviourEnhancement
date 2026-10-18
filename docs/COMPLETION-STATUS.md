@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Main manoeuvre bound geometry is now prepared before an atomic movement/cover commit. Current
+  point, roster, phase, operation/epoch, support role and actor-native observations must still match
+  before commands and bound journals publish. Refused proposals defer; physical timing remains unverified.
+
 - Manoeuvre casualty roster proposals now remain private until current drill membership, phase,
   operation/epoch, support role and actor-native observations pass one publication transaction.
   Refused observations defer without cleanup or renewed deadlines; physical refill remains unverified.
