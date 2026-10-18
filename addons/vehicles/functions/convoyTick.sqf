@@ -50,6 +50,8 @@
  * A public revision/route-bound retry journal permits at most six endpoint recalls within
  * the original 120 seconds, spaced at least fifteen seconds apart across owner migration.
  * Exhaustion leaves the native route untouched; only a new revision or authored identity starts anew.
+ * Final speed, follower MOVE and steering-path commits recheck two actual seats atomically;
+ * a service/reservation arriving during geometry cannot authorize those writes.
  * Actual driver/commander service or reserved tasks suspend the whole local column before
  * crew, formation, speed and follower-path writes; exact policy cleanup preserves native tasks.
  * Endpoint and active-route recalls refuse service/STOP/combat/reserved actors and unrelated
@@ -181,7 +183,25 @@ if (!local _group) exitWith {};
 // Recheck ownership at each command boundary so a curator or specialist controller that arrives
 // during that work receives an immediate clean handover rather than a stale speed or route update.
 private _mayIssueDriving = {
-    !([_group] call CBE_fnc_CortexExternalTakeover)
+    params [["_taskVehicle",objNull,[objNull]],["_expectedOperator",objNull,[objNull]]];
+    if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
+    if (isNull _taskVehicle) exitWith {true};
+    private _taskDriver=driver _taskVehicle;
+    private _taskOperator=effectiveCommander _taskVehicle;
+    if (isNull _taskOperator) then {_taskOperator=_taskDriver};
+    if (!local _taskVehicle || {!alive _taskVehicle} || {!simulationEnabled _taskVehicle}
+        || {isObjectHidden _taskVehicle} || {isNull _taskDriver} || {isNull _taskOperator}
+        || {!isNull _expectedOperator && {_taskOperator != _expectedOperator}}) exitWith {false};
+    [_taskDriver,_taskOperator] findIf {
+        !local _x || {group _x != _group} || {vehicle _x != _taskVehicle}
+        || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+        || {!isNull remoteControlled _x}
+        || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+        || {[_x] call CBE_fnc_CortexActorMoveReserved}
+        || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+    } < 0
 };
 // Recovery must not replay authored scripts, conditions, timers or trigger waits.
 // These values are inspected, never compiled or executed by the convoy controller.
@@ -703,13 +723,13 @@ if (_captureControl) then {(_leadControl select 4) pushBack ["trafficGeometry",_
 _leadLimit = [_lead,_leadLimit,_group] call CBE_fnc_CortexInfantrySpeed;
 if (_captureControl) then {(_leadControl select 4) pushBack ["infantry",_leadLimit]};
 _state set ["leadSpeedLimit",[_leadLimit,time]];
-if ([] call _mayIssueDriving) then {
+isNil {if ([_lead] call _mayIssueDriving) then {
     private _ownedSpeed=_leadLimit/3.6;
     _lead forceSpeed _ownedSpeed;
     if (_captureControl) then {_leadControl set [5,true]};
     if (_leadGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_lead,_leadGate,_revision] call CBE_fnc_DrivingGateRequest};
     _lead setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
-};
+}};;
 if (_captureControl) then {_state set ["leadControlSample",_leadControl]};
 // Speed limits cannot restart an engine movement order that stopped short. Retry only
 // after ten seconds without progress, while a real route destination remains active.
@@ -925,13 +945,13 @@ for "_i" from 1 to (count _vehicles - 1) do {
             ["beforeInfantry",_preInfantryLimit],["afterInfantry",_limit]];
         _controlSamples set [_key,_controlSample];
     };
-    if ([] call _mayIssueDriving) then {
+    isNil {if ([_vehicle] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
         _vehicle forceSpeed _ownedSpeed;
         if (_captureControl) then {(_controlSample select 7) pushBack ["PACE",_limit];_controlSample set [8,true]};
         if (_vehicleGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_vehicle,_vehicleGate,_revision] call CBE_fnc_DrivingGateRequest};
         _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
-    };
+    }};;
     _speedLimits set [_key,[_limit,time]];
     // Keep the committed native and steering-path destinations when progress is made. Rebuilding
     // this record as the former four-field array erased both commitments every few metres, so the
@@ -1087,12 +1107,12 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 if (_captureControl) then {(_controlSample select 6) pushBack ["freshPath",_pathCap]};
                 _progress set [8,_pathCap];
                 _limit=_limit min _pathCap;
-                if ([] call _mayIssueDriving) then {
+                isNil {if ([_vehicle] call _mayIssueDriving) then {
                     private _ownedSpeed=_limit/3.6;
                     _vehicle forceSpeed _ownedSpeed;
                     if (_captureControl) then {(_controlSample select 7) pushBack ["TRAIL",_limit];_controlSample set [8,true]};
                     _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
-                };
+                }};;
                 _speedLimits set [_key,[_limit,time]];
             };
             if (_native && {_path isNotEqualTo []}) then {
@@ -1157,7 +1177,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 };
                 if (count _committedDestination < 2
                     || {_committedDestination distance2D _destination > 8} || {_finishedLeg}) then {
-                    if ([] call _mayIssueDriving) then {
+                    isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
                         _movementOperator doMove _destination;
                         if (_endpointEvent isNotEqualTo []) then {_endpointAdvances set [_key,_endpointEvent]};
                         if (_captureControl) then {(_controlSample select 9) pushBack ["NATIVE",+_destination,_frontSpeed,_joining,_straightPath]};
@@ -1167,7 +1187,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
                         _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
                         _progress set [7,false];
-                    };
+                    }};;
                 };
                 _progress set [2, time + 1];
             } else {
@@ -1175,10 +1195,10 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     // Normal AI must relinquish its formation movement before path driving.
                     // Stop once per acquisition, not on every refreshed path (which would cancel it).
                     if (!(_pathOwners getOrDefault [_key,false])) then {
-                        if ([] call _mayIssueDriving) then {
+                        isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
                             doStop driver _vehicle;
                             _pathOwners set [_key,true];
-                        };
+                        }};;
                     };
                     // Commit a useful predecessor segment and refresh only when its endpoint advances.
                     // forceSpeed above owns continuous spacing/braking; embedding a new speed in a
@@ -1187,7 +1207,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     private _committedPathDestination=_progress param [6,[]];
                     if (count _committedPathDestination < 2
                         || {_committedPathDestination distance2D _pathDestination > 8}) then {
-                        if ([] call _mayIssueDriving) then {
+                        isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
                             _vehicle setDriveOnPath _path;
                             if (_captureControl) then {(_controlSample select 9) pushBack ["STEERING",+_pathDestination,count _path]};
                             // This is movement ownership evidence, never proof the path executed.
@@ -1200,7 +1220,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             _progress set [9,+_path];
                             _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
                         _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
-                        };
+                        }};;
                     };
                     _progress set [2, time + 1];
                 };

@@ -5415,7 +5415,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(capture,extend)
         commit=text.split('_movementOperator doMove _destination;',1)[1]
         self.assertIn('_progress set [12,+_recordedDestination]',commit)
-        self.assertIn('[] call _mayIssueDriving',text[text.rfind('if (',0,text.index('_movementOperator doMove _destination;')):text.index('_movementOperator doMove _destination;')])
+        self.assertIn('[_vehicle,_movementOperator] call _mayIssueDriving',text[text.rfind('if (',0,text.index('_movementOperator doMove _destination;')):text.index('_movementOperator doMove _destination;')])
 
     def test_convoy_two_point_tail_recomputes_cap_and_first_segment_grade(self):
         text=source('convoyTick')
@@ -6239,13 +6239,13 @@ class CortexOperations(unittest.TestCase):
     def test_convoy_tick_does_not_issue_late_driver_commands_after_external_takeover(self):
         tick=source('convoyTick')
         self.assertIn('private _mayIssueDriving = {',tick)
-        self.assertIn('!([_group] call CBE_fnc_CortexExternalTakeover)',tick)
+        self.assertIn('if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false}',tick)
         self.assertIn('[_group,false,_restore,_registered,"EXTERNAL"] call CBE_fnc_ConvoyReleaseLocal;',tick)
         for command in ['_lead forceSpeed _ownedSpeed',
                         '_leadOperator doMove _watchedPosition',
                         '_movementOperator doMove _destination',
                         '_vehicle setDriveOnPath _path']:
-            self.assertLess(tick.rindex('[] call _mayIssueDriving',0,tick.index(command)+len(command)),tick.index(command))
+            self.assertLess(tick.rindex('call _mayIssueDriving',0,tick.index(command)+len(command)),tick.index(command))
 
     def test_group_tick_does_not_rejoin_or_search_over_a_new_external_owner(self):
         tick=source('cortexGroupTick')

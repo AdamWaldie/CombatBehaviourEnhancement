@@ -114,4 +114,19 @@ class ConvoyWaypointGateTests(unittest.TestCase):
         self.assertLess(crew.index('if (_nativeCrewTask) exitWith {}'),crew.index('_vehicle forceSpeed 0'))
         self.assertIn('CortexActorMoveReserved',crew.split('if (_nativeCrewTask) exitWith {}',1)[0])
 
+    def test_final_speed_and_follower_commits_recheck_actual_seat_tasks(self):
+        s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        helper=s.split('private _mayIssueDriving = {',1)[1].split('// Recovery must not replay',1)[0]
+        for guard in ('_taskDriver,_taskOperator','CortexActorMoveReserved','currentCommand _x',
+                      '_taskOperator != _expectedOperator','CortexCombatEffective','local _taskVehicle'):
+            self.assertIn(guard,helper)
+        for marker in ('isNil {if ([_lead] call _mayIssueDriving)',
+                       'isNil {if ([_vehicle] call _mayIssueDriving)',
+                       'isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving)'):
+            self.assertIn(marker,s)
+        for write in ('_lead forceSpeed _ownedSpeed','_vehicle forceSpeed _ownedSpeed',
+                      '_movementOperator doMove _destination','_vehicle setDriveOnPath _path'):
+            for before in s.split(write)[:-1]:
+                tail=before[-1800:]
+                self.assertIn('isNil {if ([',tail)
 if __name__=='__main__': unittest.main()
