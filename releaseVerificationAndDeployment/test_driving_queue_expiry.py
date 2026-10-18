@@ -24,7 +24,13 @@ class DrivingQueueExpiry(unittest.TestCase):
         duplicate=s.split('private _duplicate=',1)[1].split('private _accepted=',1)[0]
         self.assertIn('if (_mode == "VERIFY") then',duplicate)
         self.assertIn('"ACK",[_token,true]',duplicate)
-        self.assertNotIn('setVariable',duplicate)
+        self.assertIn('private _stillCurrent=[_vehicles,_roles,_dependencies,_context,true]',duplicate)
+        self.assertLess(duplicate.index('if (!_stillCurrent) exitWith'),duplicate.index('"ACK",[_token,true]'))
+        refusal=duplicate.split('if (!_stillCurrent) exitWith',1)[1].split('if (_mode == "VERIFY") then',1)[0]
+        self.assertIn('(_old getOrDefault ["token",""]) == _token',refusal)
+        self.assertIn('"RELEASE",[_token]',refusal)
+        self.assertIn('"CBE_DrivingQueue_Consent",nil',refusal)
+        self.assertNotIn('"ACK",[_token,true]',refusal)
         self.assertNotIn('call _scheduleExpiry',duplicate)
         self.assertIn('if (!_pendingDuplicate) then {[_pendingKey] call _scheduleExpiry}',s)
         self.assertIn('"deadline","expires","phase"',s)

@@ -5,7 +5,8 @@
  * Repeat/JIP: Exact token/serial/context/roles/original expiry; duplicate agreed delivery does not renew or replay.
  * One timer per accepted phase retires matching local receipts even after movement scheduling
  * stops. Old-machine private metadata can retire after locality loss; no command is issued.
- * Duplicate VERIFY cannot downgrade AGREED. No movement, reservation or JIP commands.
+ * Valid duplicate VERIFY cannot downgrade AGREED; stale owner context releases exact consent.
+ * No movement, reservation or JIP commands.
  * Arguments: 0 mode STRING empty VERIFY/RESULT;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase].
  * Return: BOOL reply/result handled, not queue movement authority.
  * Current callers: DrivingQueueAgreementServer only.
@@ -70,6 +71,20 @@ private _duplicate=_owned findIf {
         || {(_old getOrDefault ["expires",-1]) != _expires} || {serverTime >= _expires}
 } < 0;
 if (_duplicate) exitWith {
+    // Delivery is deferred network work: matching receipt values do not establish that
+    // this owner's native order and controller admission still match the proposal.
+    // Server topology checks cannot replace these owner-local checks. Do not renew.
+    private _stillCurrent=[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent;
+    if (!_stillCurrent) exitWith {
+        {
+            private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+            if ((_old getOrDefault ["token",""]) == _token) then {
+                _x setVariable ["CBE_DrivingQueue_Consent",nil];
+            };
+        } forEach _owned;
+        ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
+        false
+    };
     if (_mode == "VERIFY") then {["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
     true
 };
