@@ -3,7 +3,7 @@
  * Purpose: Retires an exact refused ground-support reservation without cancelling the asset's task.
  * Locality/authority: Server only; authenticates the current group owner and exact public snapshot.
  * Repeat/JIP: A consumed or replaced snapshot is a no-op; only durable role metadata is cleared.
- * An owner refusal for missing loaded station ammunition retires the same exact reservation,
+ * An owner refusal for an ignored contact or missing loaded station ammunition retires the exact reservation,
  * so unusable armament cannot keep an asset reserved until the opportunity expires.
  * After exact retirement, one bounded ground fallback may replace this slot on another asset;
  * it preserves the original reported contact and expiry and leaves movement to that asset owner.
@@ -19,7 +19,7 @@ if (!isServer || {isNull _group} || {!((count _snapshot) in [7,8])}
     || {([_replyOwner,groupOwner _group] call CBE_fnc_HeadlessResolveSender) < 0}) exitWith {false};
 private _current=_group getVariable ["CBE_Cortex_CombinedRole",[]];
 if (_current isNotEqualTo _snapshot || {!((_current select 4) in ["GROUND_FIRE","GROUND_MANOEUVRE"])}
-    || {!(_reason in ["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_FIRE_PLATFORM","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","OTHER_INTENT_ACTIVE","NO_SAFE_ROUTE","EXTERNAL_BUSY","OWNER_LOST","MOVEMENT_REJECTED","ASSET_LOST","ASSET_IMMOBILE","BLOCKED"])}) exitWith {false};
+    || {!(_reason in ["TARGET_IGNORED","NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_FIRE_PLATFORM","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","OTHER_INTENT_ACTIVE","NO_SAFE_ROUTE","EXTERNAL_BUSY","OWNER_LOST","MOVEMENT_REJECTED","ASSET_LOST","ASSET_IMMOBILE","BLOCKED"])}) exitWith {false};
 _group setVariable ["CBE_Cortex_CombinedResult",[_current select 0,_current select 4,_reason,serverTime,_current select 2],true];
 _group setVariable ["CBE_Cortex_CombinedRole",nil,true];
 _group setVariable ["CBE_Cortex_CombinedApplied",nil,true];

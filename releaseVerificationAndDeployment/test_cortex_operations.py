@@ -4695,7 +4695,21 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',text)
         self.assertNotIn('doFollow',text)
         local=source('cortexCombinedArmsLocal')
-        self.assertEqual(local.count('remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2]'),9)
+        self.assertEqual(local.count('remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2]'),10)
+    def test_combined_ground_native_ignore_prevents_reveal_and_retires_active_route(self):
+        local=source('cortexCombinedArmsLocal')
+        step=source('cortexCombinedGroundStep')
+        server=source('cortexCombinedRejectServer')
+        check='(_contactObserver targetKnowledge _target) param [7,false,[true]]'
+        self.assertIn(check,local)
+        self.assertIn(check,step)
+        self.assertLess(local.index(check),local.index('private _applicationIdentity='))
+        self.assertLess(step.index('["TARGET_IGNORED"] call _finish'),step.index('private _stationOperator=gunner _asset;'))
+        self.assertIn('_reason in ["TARGET_IGNORED",',step)
+        self.assertIn('_reason in ["TARGET_IGNORED",',server)
+        self.assertIn('local _contactObserver',local)
+        self.assertIn('local _contactObserver',step)
+
     def test_combined_ground_refusal_producer_reasons_reach_server_retirement(self):
         local=source('cortexCombinedArmsLocal')
         server=source('cortexCombinedRejectServer')

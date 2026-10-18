@@ -3,6 +3,7 @@
  * Maintains one finite ground-vehicle manoeuvre issued by a combined-arms contact opportunity.
  * Arrival uses ASL three-dimensional distance within the existing seventy-metre firing area;
  * horizontal overlap above/below the area does not establish arrival.
+ * Native group-ignored contacts cancel owned movement and retire the exact support reservation.
  * Arrival fire rechecks actual loaded gunner-station ammunition against the target platform class.
  * A native magazine reload defers missing-ammo failure without renewing the original expiry.
  * Reload observation is not permission to fire or claim an effect.
@@ -78,7 +79,7 @@ private _finish={
             if (_operationMatches && {(count _snapshot) in [7,8]}
                 && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _snapshot}
                 && {serverTime < (_snapshot select 5)}
-                && {_reason in ["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_FIRE_PLATFORM","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED","OWNER_LOST"]}) then {
+                && {_reason in ["TARGET_IGNORED","NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_FIRE_PLATFORM","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED","OWNER_LOST"]}) then {
                 [_group,_snapshot,_reason,clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
             };
         };
@@ -136,6 +137,11 @@ if (isNull _target || {!alive _target}) exitWith {["TARGET_LOST"] call _finish};
 if (captive _target || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
     || {(side _group) getFriend (side _target) >= 0.6}) exitWith {["TARGET_NO_LONGER_HOSTILE"] call _finish};
+private _contactObserver=leader _group;
+if (!isNull _contactObserver && {local _contactObserver}
+    && {(_contactObserver targetKnowledge _target) param [7,false,[true]]}) exitWith {
+    ["TARGET_IGNORED"] call _finish
+};
 if (serverTime >= (_job getOrDefault ["expiry",serverTime])) exitWith {["EXPIRED"] call _finish};
 // Dormancy/locality convergence cannot manufacture capability loss or renew this expiry.
 if (!simulationEnabled _asset || {isObjectHidden _asset}) exitWith {1};
