@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Maintains one finite ground-vehicle manoeuvre issued by a combined-arms contact opportunity.
+ * Arrival uses ASL three-dimensional distance within the existing seventy-metre firing area;
+ * horizontal overlap above/below the area does not establish arrival.
  * Arrival fire rechecks actual loaded gunner-station ammunition against the target platform class.
  * A native magazine reload defers missing-ammo failure without renewing the original expiry.
  * Reload observation is not permission to fire or claim an effect.
@@ -100,6 +102,7 @@ if (isNull _driver || {isNull _operator}
     || {_driver isNotEqualTo (_job getOrDefault ["driver",objNull])}
     || {_operator isNotEqualTo (_job getOrDefault ["operator",objNull])}
     || {group _driver != _group && {group _operator != _group}}) exitWith {["OWNER_LOST"] call _finish};
+private _arrivalDistance=(getPosASL _asset) vectorDistance (AGLToASL _destination);
 // A waypoint description alone cannot preserve authority over edited native orders.
 private _routeCurrent={
     private _waypoint=_job getOrDefault ["moveWaypoint",[]];
@@ -117,7 +120,7 @@ private _routeCurrent={
     private _live=[_group] call CBE_fnc_NativeOrderReceipt;
     // Engine completion may advance to the original next node before this callback.
     // The owned waypoint must still exist unchanged; deletion cannot masquerade as arrival.
-    if (_asset distance2D _destination > 70 || {(_live select 0) != (_receipt select 0)}
+    if (_arrivalDistance > 70 || {(_live select 0) != (_receipt select 0)}
         || {currentWaypoint _group != (_waypoint select 1)+1}) exitWith {false};
     private _native=_job getOrDefault ["nativeOrder",[]];
     if (count _native == 2 && {(_native select 1) == -1}) exitWith {
@@ -168,9 +171,9 @@ if (serverTime >= (_job getOrDefault ["capabilityAt",serverTime])) then {
 if (_capabilityFailure in ["NO_STATION_AMMO","NO_TARGET_AMMO","NO_FIRE_PLATFORM"]
     && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {1};
 if (_capabilityFailure != "") exitWith {[_capabilityFailure] call _finish};
-if (_asset distance2D _destination > 70
+if (_arrivalDistance > 70
     && {simulationEnabled _asset && {!isObjectHidden _asset} && {!canMove _asset}}) exitWith {["ASSET_IMMOBILE"] call _finish};
-if (_asset distance2D _destination <= 70) exitWith {
+if (_arrivalDistance <= 70) exitWith {
     // Arrival grants no new observation. Preserve native/shared knowledge; do not refresh
     // an unseen moving target merely because the vehicle reached its firing position.
     private _gunner=gunner _asset;

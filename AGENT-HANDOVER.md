@@ -1886,3 +1886,9 @@ Initial build rejected upstream naming in product documentation; moved that cont
 
 ## Consolidated review preparation — 18 October 2026
 Source0ee32b82 carries the full validated local batch described in the latest continuation checkpoint. Full Build1372/327SQF/9PBO remains latest; no acceptance added. Preparing one batched push to existing draft PR17 after boundary verification. Verify actual remote before assuming delivery. Audits paused; protected untracked artwork preserved.
+
+## Combined-ground physical arrival — 18 October 2026
+
+CortexCombinedGroundStep used horizontal70m distance for owned-waypoint engine completion, immobility and arrival/fire admission. A vehicle far above/below the selected firing area could qualify. All three now share actual getPosASL asset to AGLToASL destination vector distance, retaining70m tolerance and existing finite role/route/fire gates. This is a coarse3D firing area, not proof of same-floor support, LOS, shots, suppression or target effect. No new scan/ray/controller. Full combined-arms sustained support remains incomplete.
+
+Complete local Build passed1,373tests/327compiledSQF/ninePBOs. Log .qa/cbe-combined-ground-asl-arrival-build.log; unsigned fingerprinta59844782945d4f701f6baeca0712e84458b2681b2b67b92fe53894c339baa04. Source/math regression checks cover horizontal-overlap and sloped-distance counterexamples and shared arrival/route conditions. Actual terrain/bridge manoeuvre, fire effect, HC and overhead unrun; audits paused, all65 partial. Previous coherent batch is confirmed pushed at c797c36e6f4e88560a1a00a45728aa143c29430a and PR17 description refreshed/REST verified. Current fix stays local for later batching.

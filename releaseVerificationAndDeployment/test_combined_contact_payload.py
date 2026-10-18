@@ -63,3 +63,16 @@ class CombinedContactPayloadTests(unittest.TestCase):
         self.assertFalse(transferable((1,100,3),105))
         self.assertFalse(transferable((1,200,1),105))
 if __name__=='__main__':unittest.main()
+
+
+class CombinedGroundPhysicalArrivalTests(unittest.TestCase):
+    def test_ground_arrival_and_completed_route_share_asl_distance(self):
+        text=(ROOT/'addons/infantry/functions/cortexCombinedGroundStep.sqf').read_text()
+        self.assertIn('private _arrivalDistance=(getPosASL _asset) vectorDistance (AGLToASL _destination)',text)
+        self.assertEqual(text.count('_arrivalDistance > 70'),2)
+        self.assertEqual(text.count('_arrivalDistance <= 70'),1)
+        self.assertNotIn('_asset distance2D _destination',text)
+        import math
+        self.assertLessEqual(math.dist((0,0,4),(0,0,0)),70)
+        self.assertGreater(math.dist((0,0,150),(0,0,0)),70)
+        self.assertGreater(math.dist((60,0,50),(0,0,0)),70)

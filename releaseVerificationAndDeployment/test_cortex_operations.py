@@ -2382,7 +2382,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('forEach crew _asset',combined)
         self.assertLess(combined.rindex('CortexExternalTakeover'),combined.index('call CBE_fnc_AirAttackOperationStart'))
         self.assertIn('!([_group] call CBE_fnc_CortexExternalTakeover) && {call _routeCurrent}',ground)
-        arrival=ground.split('if (_asset distance2D _destination <= 70)',1)[1].split('if (time >=',1)[0]
+        arrival=ground.split('if (_arrivalDistance <= 70)',1)[1].split('if (time >=',1)[0]
         self.assertLess(arrival.index('CortexExternalTakeover'),arrival.index('_gunner doTarget _target'))
         self.assertIn('if (_fireAllowed) then {',arrival)
         self.assertIn('if ([_group] call CBE_fnc_CortexExternalTakeover ||',crew)
@@ -4490,7 +4490,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('COORD-both-teams-physical-advance',text)
     def test_combined_arrival_preserves_fire_permissions_and_reports_order_not_effect(self):
         text=source('cortexCombinedGroundStep')
-        arrival=text.split('if (_asset distance2D _destination <= 70)',1)[1].split('if (time >=',1)[0]
+        arrival=text.split('if (_arrivalDistance <= 70)',1)[1].split('if (time >=',1)[0]
         self.assertIn('unitCombatMode _gunner in ["YELLOW","RED"]',arrival)
         self.assertIn('CBE_fnc_CortexLineOfFireClear',arrival)
         self.assertIn('CBE_fnc_CortexExternalOwner',arrival)
@@ -4521,7 +4521,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,role)
         finish=text.split('private _finish={',1)[1].split('if (isNull _group ||',1)[0]
         self.assertLess(finish.index('if (call _roleCurrent)'),finish.index('"CBE_Cortex_CombinedResult"'))
-        self.assertLess(text.index('if !(call _roleCurrent) exitWith'),text.index('if (_asset distance2D _destination <= 70)'))
+        self.assertLess(text.index('if !(call _roleCurrent) exitWith'),text.index('if (_arrivalDistance <= 70)'))
         self.assertIn('if (_laneClear && {call _roleCurrent})',text)
         self.assertIn('group _gunner == _group',text)
         self.assertIn('group _gunner != _group',source('cortexCombinedArmsLocal'))
@@ -4621,7 +4621,7 @@ class CortexOperations(unittest.TestCase):
         route=step.split('private _routeCurrent={',1)[1].split('if (isNull _target',1)[0]
         for guard in ('isNotEqualTo _waypoint','_owned isNotEqualTo (_receipt select 2)',
                       'currentWaypoint _group == (_receipt select 1)','currentWaypoint _group != (_waypoint select 1)+1',
-                      '_asset distance2D _destination > 70', 'isEqualTo ((_liveRows select 0) select [1])'):
+                      '_arrivalDistance > 70', 'isEqualTo ((_liveRows select 0) select [1])'):
             self.assertIn(guard,route)
         self.assertIn('["NATIVE_ORDER_CHANGED"] call _finish',route)
         self.assertIn('if !(call _routeCurrent) then {_fireDecision="NATIVE_ORDER_CHANGED"}',step)
@@ -4645,7 +4645,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_combined_enroute_capability_reassessment_is_finite_and_dormancy_preserves_expiry(self):
         text=source('cortexCombinedGroundStep')
-        block=text.split('// Dormancy/locality convergence',1)[1].split('if (_asset distance2D _destination > 70',1)[0]
+        block=text.split('// Dormancy/locality convergence',1)[1].split('if (_arrivalDistance > 70',1)[0]
         self.assertIn('exitWith {1}',block)
         self.assertIn('!local _stationOperator',block)
         defer=block.split('private _stationOperator=',1)[1].split('private _capabilityFailure=',1)[0]
@@ -8001,7 +8001,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('objNull,_ammoObservation',step)
         self.assertNotIn('_job set ["expiry"',step)
         self.assertNotIn('_job set ["deadline"',step)
-        arrival=step.split('if (_asset distance2D _destination <= 70) exitWith {',1)[1]
+        arrival=step.split('if (_arrivalDistance <= 70) exitWith {',1)[1]
         self.assertLess(arrival.index('reloadInProgress'),arrival.index('_gunner doFire'))
 
     def test_ground_fire_readiness_uses_loaded_station_muzzle_not_inventory(self):
