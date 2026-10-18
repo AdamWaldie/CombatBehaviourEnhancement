@@ -73,14 +73,39 @@ if (count _episode == 0) then {
         && {(_work getOrDefault ["controller",[]]) isEqualTo ["CONVOY",_revision]}) then {
         private _rows=_vehicles apply {[_x,driver _x,effectiveCommander _x,false,false]};
         private _route=_work get "route";
-        _episode=createHashMapFromArray [["identity",_identity],["lead",_lead],["started",serverTime],["revision",_revision],["area",_work get "area"],
+        private _workKey={
+            params ["_record"];
+            ["context","hardDeadline","controller","route","tailDeadline","area","definition","transform","travel","asl","far"] apply {
+                private _value=_record getOrDefault [_x,[]];
+                if (_value isEqualType []) then {+_value} else {_value}
+            }
+        };
+        private _creationWorkKey=[_work] call _workKey;
+        private _proposedEpisode=createHashMapFromArray [["identity",_identity],["lead",_lead],["started",serverTime],["revision",_revision],["area",_work get "area"],
             ["definition",_work get "definition"],["transform",_work get "transform"],
             ["travel",_work get "travel"],["asl",_work get "asl"],["far",_work get "far"],
             ["route",_route],["routeIndex",(_route select 0) select 0],["routeCount",count waypoints _group],
             ["zeus",+(_group getVariable ["CBE_AIPass_ZeusHold",[]])],
             ["deadline",_work get "tailDeadline"],["rows",_rows]];
-        _group setVariable ["CBE_Convoy_CorridorPassage",_episode,true];
-        _entryEpisodeKey=[_episode] call _episodeKey;
+        isNil {
+            private _liveWork=_lead getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+            if (!local _group || {(call _ownerContext) isNotEqualTo _entryOwnerContext}
+                || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+                || {(_brain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
+                || {count (_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap]) != 0}
+                || {(_group getVariable ["CBE_Convoy_CorridorResult",[]]) isNotEqualTo _terminal}
+                || {((_group getVariable ["CBE_Convoy_LocalState",createHashMap]) getOrDefault ["lead",objNull]) != _lead}
+                || {count _liveWork == 0} || {([_liveWork] call _workKey) isNotEqualTo _creationWorkKey}
+                || {serverTime >= (_proposedEpisode get "deadline")}
+                || {count waypoints _group != (_proposedEpisode get "routeCount")}
+                || {currentWaypoint _group < (_proposedEpisode get "routeIndex")}
+                || {([_group,"",false,_proposedEpisode get "routeIndex"] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo (_proposedEpisode get "route")}
+                || {!([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                || {[_group] call CBE_fnc_CortexZeusHeld} || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
+            _episode=_proposedEpisode;
+            _group setVariable ["CBE_Convoy_CorridorPassage",_episode,true];
+            _entryEpisodeKey=[_episode] call _episodeKey;
+        };
     };
 };
 if (count _episode == 0) exitWith {_inactive};

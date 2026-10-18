@@ -677,3 +677,18 @@ class ConvoyPassageProgressTests(unittest.TestCase):
             if kind=='Bypass':
                 self.assertIn('isNotEqualTo _captureState',body)
                 self.assertIn('setVariable ["CBE_Convoy_BypassCapture",[_captureIdentity,_nextCaptures]]',body)
+
+
+class ConvoyPassageCreationTests(unittest.TestCase):
+    def test_passage_creation_requires_original_lead_work_and_empty_slot(self):
+        for stem,kind in [('convoyCorridorStep','Corridor'),('convoyBypassStep','Bypass')]:
+            source=(ROOT/'addons/vehicles/functions'/f'{stem}.sqf').read_text()
+            self.assertLess(source.index('private _creationWorkKey='),source.index('private _proposedEpisode='))
+            creation=source.split('private _proposedEpisode=createHashMapFromArray',1)[1].split('if (count _episode == 0) exitWith',1)[0]
+            for guard in ('isNil {','isNotEqualTo _entryOwnerContext','"cancelled"','"finished"',
+                          'isNotEqualTo _configuration','isNotEqualTo _terminal','isNotEqualTo _creationWorkKey',
+                          'serverTime >= (_proposedEpisode get "deadline")','CortexZeusHeld','AuthoredRouteReceipt'):
+                self.assertIn(guard,creation)
+            self.assertIn(f'count (_group getVariable ["CBE_Convoy_{kind}Passage",createHashMap]) != 0',creation)
+            self.assertLess(creation.index('isNil {'),creation.index('_episode=_proposedEpisode;'))
+            self.assertNotIn('nearEntities',creation)

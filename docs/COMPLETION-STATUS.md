@@ -9,6 +9,8 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- New convoy corridor/bypass passage proposals now publish only while original owner, lead work, route, terminal result, gates, deadline and empty slot remain current. Geometry is prepared separately; physical crossing quality and aggregate cost remain unverified.
+
 - Corridor/bypass tail progress now uses copied rows and publishes only under unchanged episode/owner/original-row context. Bypass capture history commits with those rows; rejected proposals cannot overwrite successor progress. Active creation, geometric freshness and runtime/performance remain unverified.
 
 - Corridor/bypass cancellation now carries captured episode and owner-context receipts. Retirement atomically rechecks current episode/brain/job/epoch/registry before result publication and deletion, preserving retained or replaced successor work. Active passage creation/progress and physical cancellation/cost remain unverified.
