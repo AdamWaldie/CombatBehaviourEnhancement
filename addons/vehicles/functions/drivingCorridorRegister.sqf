@@ -5,6 +5,7 @@
  * explicit editable CBE corridor area; trusted local/server scripts may register another Logic.
  * Repeat/JIP: Identical definitions retain their revision. Changed definitions invalidate old
  * work. One public ordered snapshot replays passive definitions to JIP; no commands replay.
+ * The bounded registry mutation is unscheduled, preserving concurrent trusted local requests.
  * Arguments:
  * 0 area <OBJECT, objNull> - existing Logic defining centre, facing and elevation.
  * 1 dimensions <ARRAY, [25,5,15]> - half-length metres (5..45), half-width metres
@@ -14,6 +15,11 @@
  * Example: [corridorLogic,[25,5,15]] call CBE_fnc_DrivingCorridorRegister;
  */
 params [["_area",objNull,[objNull]],["_dimensions",[25,5,15],[[]]]];
+private _registration=[];
+// Serialize trusted scheduled calls as well as remoteExecCall delivery. Registry/sequence
+// read-modify-write and task creation/removal must not suspend across another request.
+isNil {
+    _registration=call {
 if (!isServer) exitWith {[false,"SERVER_ONLY",-1]};
 private _sender=remoteExecutedOwner;
 if (isRemoteExecuted && {_sender <= 0}) exitWith {[false,"INVALID_SENDER",-1]};
@@ -57,3 +63,7 @@ if (_dimensions isEqualTo []) then {
 };
 missionNamespace setVariable ["CBE_DrivingCorridor_Snapshot",[_revision,_records],true];
 [true,["REGISTERED","REMOVED"] select (_dimensions isEqualTo []),_revision]
+    };
+    false
+};
+_registration

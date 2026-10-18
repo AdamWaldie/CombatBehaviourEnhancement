@@ -4,6 +4,20 @@ import math
 import unittest
 ROOT = Path(__file__).resolve().parents[1]
 class CorridorFoundationTests(unittest.TestCase):
+    def test_server_area_and_request_registry_mutations_are_serialized(self):
+        for filename,result,read,effects in (
+            ('drivingCorridorRegister.sqf','_registration','private _snapshot=',
+             ('_area setVariable','CBE_DrivingCorridor_Snapshot",[_revision,_records],true')),
+            ('drivingCorridorDispatch.sqf','_applied','private _receipts=',
+             ('createGroup [sideLogic,true]','call CBE_fnc_DrivingCorridorRegister',
+              '_receipts set [_key,[_serial,_answer]]'))):
+            s=(ROOT/'addons/vehicles/functions'/filename).read_text(encoding='utf-8')
+            transaction=s.split('isNil {',1)[1]
+            self.assertLess(transaction.index(result+'=call {'),transaction.index(read))
+            for effect in effects:self.assertIn(effect,transaction)
+            self.assertTrue(s.rstrip().endswith(result))
+            for forbidden in ('sleep ','waitUntil','spawn {'):
+                self.assertNotIn(forbidden,transaction)
     def test_release_reads_and_retires_one_episode_without_a_scheduled_gap(self):
         s=(ROOT/'addons/vehicles/functions/drivingCorridorRelease.sqf').read_text(encoding='utf-8')
         transaction=s.split('isNil {',1)[1]
