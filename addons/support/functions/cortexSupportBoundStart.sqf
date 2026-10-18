@@ -4,6 +4,8 @@
  * Runs one reserved squad bound as two successive fire-team movements, retaining eligible
  * battle buddies together. Pair cohesion takes priority over equal team sizes; all fit actors remain enrolled.
  * Locality/authority: group owner consumes the current server role and matching lease.
+ * Admission, pair allocation and FSM registration share one unscheduled transaction. A stale
+ * state, disabled feature, pause, replacement role or task ownership change acquires no drill.
  * Repeat/JIP: sequence prevents duplicate starts; migration restores mover leases before
  * the new owner consumes the durable role. Uses the finite tactical-drill FSM and publishes a
  * heartbeat so GroupTick can fail and restore a lost or starved controller.
@@ -12,6 +14,13 @@
  * Example: [_group,_state,_role] call CBE_fnc_CortexSupportBoundStart;
  */
 params ["_group","_state","_role"];
+private _accepted=false;
+isNil {
+if (isNull _group || {_state isNotEqualTo (_group getVariable ["CBE_AIPass_State",createHashMap])}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Enable",false])}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+    || {[] call CBE_fnc_CortexIsPaused}
+    || {!([_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {false};
 if (!local _group || {count _role != 5} || {count (_state getOrDefault ["drill",createHashMap]) > 0}) exitWith {false};
 // SupportMaintain can observe the role just before a curator or specialist claims the group.
 // Recheck at the drill-allocation boundary: a rejected bound leaves the existing native/external
@@ -26,7 +35,8 @@ private _generation=_state getOrDefault ["supportOperationGeneration",-1];
 private _ownerEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
 if (_generation < 0 || {(_operation getOrDefault ["generation",-2]) != _generation}
     || {(_operation getOrDefault ["ownerEpoch",-1]) != _ownerEpoch}
-    || {(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}) exitWith {false};
+    || {(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}
+    || {(_operation getOrDefault ["phase",""]) == "CANCELLED"}) exitWith {false};
 private _final=_point distance2D (_lease select 5) < 2;
 private _unavailable=_operation getOrDefault ["unavailable",[]];
 private _fit=(units _group) select {
@@ -79,4 +89,6 @@ _state set ["supportBoundSequence",_sequence];
 _group setVariable ["CBE_Cortex_SupportBoundResult",[],true];
 _group setVariable ["CBE_Cortex_DrillReinforcements",[],true];
 [_group,_token] call CBE_fnc_CortexDrillStart;
-true
+_accepted=true;
+};
+_accepted

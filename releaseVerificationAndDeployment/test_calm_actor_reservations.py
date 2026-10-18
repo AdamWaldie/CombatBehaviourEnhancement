@@ -133,3 +133,22 @@ class ManoeuvreBuddyReliefTests(unittest.TestCase):
         self.assertIn('private _relief=[_coverAvailable,1] call _selectRelief;',source)
         self.assertIn('_relief apply {[format ["TEAM_%1_RECOVERY",_turn+1],netId _x]}',source)
         self.assertIn('"RECOVERY_REINFORCEMENT"',source)
+
+
+class SupportBoundCommitTests(unittest.TestCase):
+    def test_current_role_owner_and_actor_checks_share_allocation_transaction(self):
+        source=(ROOT/'addons/support/functions/cortexSupportBoundStart.sqf').read_text()
+        boundary=source.split('isNil {',1)[1].rsplit('};',1)[0]
+        allocation=boundary.index('_state set ["drill",')
+        for guard in ['_state isNotEqualTo (_group getVariable ["CBE_AIPass_State",createHashMap])',
+                      'CBE_AIPass_Enable','CBE_AIPass_Active','CBE_fnc_CortexIsPaused',
+                      'CBE_AIPass_CoordinatedAssault_Enable','!local _group',
+                      'CBE_fnc_CortexExternalTakeover','_role isNotEqualTo',
+                      'serverTime >= (_lease select 2)','"ownerEpoch",-1',
+                      '"phase",""]) == "CANCELLED"','CBE_fnc_CortexActorMoveReserved']:
+            self.assertLess(boundary.index(guard),allocation)
+        self.assertIn('CBE_fnc_CortexDrillStart',boundary)
+        self.assertLess(boundary.index('CBE_fnc_CortexDrillStart'),boundary.index('_accepted=true;'))
+        self.assertTrue(source.rstrip().endswith('_accepted'))
+        self.assertNotIn('sleep ',boundary)
+        self.assertNotIn('nearEntities',boundary)

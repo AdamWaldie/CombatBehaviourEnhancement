@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Coordinated bound admission now checks current state, gates, role/lease, actor availability and
+  owner epoch in one unscheduled allocation transaction. A superseded scheduled observation cannot
+  create a new local drill. Network cancellation delivery and physical takeover remain unverified.
+
 - Manoeuvre casualty and recovery transfers now prefer an unpaired survivor, then a whole buddy
   pair when donor cover can remain. Minimum surviving movement/cover capacity takes priority.
   Physical refill continuity and interruption remain unverified; no runtime acceptance is added.
