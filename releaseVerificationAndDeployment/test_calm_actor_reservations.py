@@ -347,3 +347,29 @@ class ManoeuvreArrivalRetryCommitTests(unittest.TestCase):
                         '_drill set ["arrivedUnits",_arrivedUnits]']:
             self.assertLess(commit.index(journal),commit.index('_moveCommitted=true;'))
         self.assertIn('if (!_moveCommitted) exitWith {_result=0.25}',move)
+
+
+class ManoeuvreHelperCommitTests(unittest.TestCase):
+    def test_helpers_share_current_context_and_refusal_defers_without_losses(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        helper=source.split('private _helperCurrent={',1)[1].split('// Two ordinary survivors',1)[0]
+        for guard in ['local _group','_rosterEpoch ==','_currentState isEqualTo _state',
+                      '"token",""]) == _token','CBE_fnc_CortexIsPaused','CBE_fnc_CortexFeatureEnabled',
+                      'CBE_fnc_CortexExternalTakeover','isEqualTo _supportRole',
+                      '"generation",-2','"ownerEpoch",-1','"phase",""]) != "CANCELLED"']:
+            self.assertIn(guard,helper)
+        team=source.split('private _ensureMovingTeam={',1)[1].split('if (_teams isNotEqualTo []) then {',1)[0]
+        self.assertIn('isNil {',team)
+        self.assertLess(team.index('call _helperCurrent'),team.index('_drill set ["teams",_teams]'))
+        self.assertIn('_available findIf {!([_x] call _actorTaskFree)',team)
+        self.assertIn('_turn != (_drill getOrDefault ["teamTurn",0])',team)
+        self.assertIn('if (!_committed) then {_teamDeferred=true}',team)
+        self.assertLess(source.index('if (_teamDeferred) exitWith {0.25}'),source.index('if (_teamRecoveryFailed)'))
+        restore=source.split('private _restoreFeatures = {',1)[1].split('private _issue = {',1)[0]
+        self.assertIn('isNil {',restore)
+        for write in ['setCombatBehaviour','setUnitCombatMode','enableAI _feature','_drill set ["disabled"']:
+            self.assertLess(restore.index('call _helperCurrent'),restore.index(write))
+            self.assertLess(restore.index(write),restore.index('_restored=true;'))
+        self.assertIn('if !([] call _restoreFeatures) exitWith {_result=0.25}',source)
+        self.assertIn('if !(call _restoreFeatures) exitWith {_result=0.25}',source)
+        self.assertIn('if (_teamDeferred) exitWith {_result=0.25}',source)

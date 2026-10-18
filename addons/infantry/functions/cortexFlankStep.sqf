@@ -410,6 +410,28 @@ _rosterCommitted=true;
 // Reconsider from fresh observations without recalling actors, releasing a successor or
 // renewing progress/deadlines. A replaced token retires at the next normal callback entry.
 if (!_rosterCommitted) exitWith {0.25};
+// Shared admission for small no-geometry helper transactions. The original callback
+// token/epoch and parent operation must still own this current state and feature.
+private _helperCurrent={
+    private _currentState=_group getVariable ["CBE_AIPass_State",createHashMap];
+    private _currentDrill=_currentState getOrDefault ["drill",createHashMap];
+    private _currentOperation=_group getVariable ["CBE_Operation",createHashMap];
+    local _group && {_rosterEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_currentState isEqualTo _state} && {(_currentDrill getOrDefault ["token",""]) == _token}
+        && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+        && {!([] call CBE_fnc_CortexIsPaused)}
+        && {[_group,_gate,true] call CBE_fnc_CortexFeatureEnabled}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {if (_support) then {
+            _currentState getOrDefault ["assaulting",false]
+                && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isEqualTo _supportRole}
+        } else {(_currentState getOrDefault ["phase",""]) == "CONTACT"}}
+        && {_operationGeneration < 0 || {
+            (_currentOperation getOrDefault ["generation",-2]) == _operationGeneration
+                && {(_currentOperation getOrDefault ["ownerEpoch",-1]) == _rosterEpoch}
+                && {(_currentOperation getOrDefault ["phase",""]) != "CANCELLED"}
+        }}
+};
 // Two ordinary survivors can still alternate a covered movement pair. Loss of half the
 // original roster alone is not a reason to discard their committed route; morale owns retreat.
 // Reserved multi-squad roles retain their existing three-person admission contract.
@@ -492,8 +514,17 @@ _units = _units - _recovering;
 // Never wait for a recovery actor which does not exist.
 private _waitForTeam=false;
 private _teamRecoveryFailed=false;
+private _teamDeferred=false;
 private _ensureMovingTeam={
     params ["_turn","_available"];
+    private _answer=[[],[]];
+    private _committed=false;
+    isNil {
+    if (!(call _helperCurrent)
+        || {_turn != (_drill getOrDefault ["teamTurn",0])}
+        || {_teams isNotEqualTo (_drill getOrDefault ["teams",[]])}
+        || {_available findIf {!([_x] call _actorTaskFree) || {!(_x checkAIFeature "MOVE")}
+            || {!(_x checkAIFeature "PATH") && {!(_x in _ownedPathUnits)}}} >= 0}) exitWith {};
     private _otherTurn=1-_turn;
     private _movingAvailable=(_teams select _turn) select {_x in _available};
     private _coverAvailable=(_teams select _otherTurn) select {_x in _available};
@@ -529,7 +560,11 @@ private _ensureMovingTeam={
         if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
         _group setVariable ["CBE_Cortex_DrillReinforcements",_history,true];
     };
-    [_movingAvailable,_coverAvailable]
+    _answer=[_movingAvailable,_coverAvailable];
+    _committed=true;
+    };
+    if (!_committed) then {_teamDeferred=true};
+    _answer
 };
 if (_teams isNotEqualTo []) then {
     private _turn=_drill getOrDefault ["teamTurn",0];
@@ -543,6 +578,7 @@ if (_teams isNotEqualTo []) then {
         if (_exhausted) then {_teamRecoveryFailed=true} else {_waitForTeam=true};
     };
 };
+if (_teamDeferred) exitWith {0.25};
 if (_teamRecoveryFailed) exitWith {"RECOVERY_FAILED" call _end};
 if (_waitForTeam) exitWith {1.5};
 if (count _units < 2) exitWith {"RECOVERY_FAILED" call _end};
@@ -569,6 +605,9 @@ if (_units isEqualTo [] || {_teams isNotEqualTo [] && {count (_fit - _units) == 
 private _points = _drill get "points";
 private _now = time;
 private _restoreFeatures = {
+    private _restored=false;
+    isNil {
+    if !(call _helperCurrent) exitWith {};
     private _stillRecovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
     private _keptBehaviours = [];
     {
@@ -598,9 +637,12 @@ private _restoreFeatures = {
         };
     } forEach (_drill get "disabled");
     _drill set ["disabled", _kept];
+    _restored=true;
+    };
+    _restored
 };
 private _issue = {
-    [] call _restoreFeatures;
+    if !([] call _restoreFeatures) exitWith {_result=0.25};
     private _viable=true;
     if (_teams isNotEqualTo []) then {
         // PAUSE can swap the team inside this same callback. Rebalance the newly selected
@@ -609,6 +651,7 @@ private _issue = {
         _units=_roster select 0;
         _viable=count _units >= _minimumMovers && {count (_roster select 1) >= 1};
     };
+    if (_teamDeferred) exitWith {_result=0.25};
     if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
     _point=+_point;
@@ -1005,7 +1048,7 @@ switch (_drill get "stage") do {
             _result = _reason call _end;
         };
         if (_arrived) then {
-            call _restoreFeatures;
+            if !(call _restoreFeatures) exitWith {_result=0.25};
             if (_teams isNotEqualTo [] && {(_drill get "teamTurn") == 0}) then {
                 [_group,_drill,"PAUSE","FIRE_TEAM_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
                 // A separate squad already covers a coordinated bound. Avoid stacking

@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- Manoeuvre feature restoration and recovery team reassignment now use current-context helper
+  transactions. Refusal defers instead of restoring over a replacement or reporting recovery losses.
+  This does not complete later phase bookkeeping, native acknowledgements or physical acceptance.
+
 - MOVE arrival holds and one-shot retries now commit with copied progress/retry observations under
   the current bound, task and actor-native context. Current waypoint metadata and fresh arrival/motion
   checks must still match; refused proposals spend no retry. Physical interruption remains unverified.

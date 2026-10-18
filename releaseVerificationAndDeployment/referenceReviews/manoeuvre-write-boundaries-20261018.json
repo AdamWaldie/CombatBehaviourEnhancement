@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "e117c515c5f23998b0e6ef4e5b1dbd57438970b77ae7bd1fe7daed9903764a8d"
+      "sha256": "2bd08a974abd931935a4257ec4e18d2aa485f4cedc21259bca7c821d60e3d3f7"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -43,13 +43,13 @@
     },
     {
       "area": "feature restoration before new bound",
-      "status": "open",
-      "notes": "_restoreFeatures uses actor/task gates but current token and native write do not share a new transaction."
+      "status": "current-context helper transaction",
+      "notes": "Shared helper checks live state/token/epoch/operation, feature/pause/contact/support role and external ownership before restoration and journal edits. Both callers defer on refusal; actual native acknowledgement/same-value ownership/cost unverified."
     },
     {
       "area": "team recovery reassignment",
-      "status": "open",
-      "notes": "_ensureMovingTeam changes team arrays/stage/history separately from the protected main issue; requires current input and refusal-path design."
+      "status": "current-context helper transaction",
+      "notes": "Current turn/team arrays and available actor tasks checked in the same transaction as transfers, stage/spot edits and bounded history. A refusal marks deferral before recovery-loss decisions or issue. Physical cohesion and repeated transitions unverified."
     },
     {
       "area": "MOVE arrival and retry",
@@ -67,10 +67,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1339,
-    "log": ".qa/cbe-manoeuvre-arrival-retry-verified-build.log",
+    "tests": 1340,
+    "log": ".qa/cbe-manoeuvre-helper-commit-verified-build.log",
     "exitCode": 0,
-    "packageFingerprint": "9e9a5524cea022cfb6b1631c79b466e86f1cea1f897b88ff827aafc9b66f79e5"
+    "packageFingerprint": "9ab77298b25442a954b866c4c17f3f1abfa3d9b2f89ccbb2e07bb160a27369e3"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false
