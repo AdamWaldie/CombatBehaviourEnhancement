@@ -32,4 +32,19 @@ class ArtilleryScootSession(unittest.TestCase):
         self.assertTrue(s.rstrip().endswith('_started'))
         mission=(ROOT/'addons/support/functions/cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
         self.assertIn('[_battery,_scootToken,_scootSession] remoteExecCall',mission)
+    def test_active_relocation_keeps_session_and_cancels_only_current_generation(self):
+        scoot=(ROOT/'addons/support/functions/cortexArtilleryScoot.sqf').read_text(encoding='utf-8')
+        self.assertIn('_operation set ["artilleryScootSession",[_battery,+_session]]',scoot)
+        tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text(encoding='utf-8')
+        active=tick.split('private _scootLease=',1)[1].split('private _movementLease =',1)[0]
+        for marker in ('"artilleryScootSession"','"ownerEpoch"','CBE_ArtilleryScoot_SupportGeneration',
+                       'CBE_ArtilleryScoot_CounterGeneration','CBE_AIPass_CounterGeneration',
+                       'CBE_fnc_CortexFeatureEnabled','SCOOT_SESSION_ENDED'):
+            self.assertIn(marker,active)
+        cleanup=active.split('// Cleanup can call other lifecycle helpers.',1)[1]
+        for guard in ('CBE_OperationGeneration','count (_group getVariable ["CBE_Operation"',
+                      'isEqualTo _scootLease','isEqualTo _scootAuthority','== _scootGeneration'):
+            self.assertIn(guard,cleanup)
+        self.assertNotIn('deleteWaypoint',active)
+        self.assertNotIn('serverTime < (_session select 3)',active)
 if __name__=='__main__': unittest.main()

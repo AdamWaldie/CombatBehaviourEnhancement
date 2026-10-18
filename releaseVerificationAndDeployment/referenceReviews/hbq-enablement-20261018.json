@@ -28,10 +28,11 @@
     "Owner shot payload carries original generation; final native fire admission atomically rechecks observed generation, live feature/ROE, current operator/token and smoke settings after safety work.",
     "Server publishes counter generation on feature disable and master stop for current/JIP owners. Publication is not proof of network cancellation ordering.",
     "Every artillery shot now has a monotonic per-mission request serial and public last-issued battery receipt. Atomic duplicate/stale suppression does not send rejection for an already pending native shot; same-serial payload conflicts do not issue commands.",
-    "Pending shoot-and-scoot now retains exact token/session, per-purpose cancellation generation and original deadline through retries/adoption; post-planning lease/operation/move admission is atomic, and old cleanup preserves successor sessions."
+    "Pending shoot-and-scoot now retains exact token/session, per-purpose cancellation generation and original deadline through retries/adoption; post-planning lease/operation/move admission is atomic, and old cleanup preserves successor sessions.",
+    "An admitted ARTILLERY_SCOOT operation retains its session after pending-token cleanup. The existing group callback cancels only its matching generation on purpose/session invalidation; retirement rechecks common operation generation, exact public authority lease and local bookkeeping before clearing."
   ],
   "remaining": [
-    "Issued shots retain quarantine. Repeated RPCs, generation/receipt delivery and owner migration need physical tests. Pending relocation now has session cancellation, but already-started relocation cancellation and newer native mission-order interruption remain separate execution cases.",
+    "Issued shots retain quarantine. Generation/receipt delivery, repeated RPCs, owner migration, active relocation stopping and newer authored/native order handback still need physical tests. Support fire-mission off/on generation remains an independent review item.",
     "Per-vehicle feature filtering, full-HBQ controller parity and physical live toggles remain incomplete."
   ],
   "validation": {

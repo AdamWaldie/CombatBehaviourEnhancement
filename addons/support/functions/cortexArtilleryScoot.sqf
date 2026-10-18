@@ -102,6 +102,10 @@ if (count _operation == 0) exitWith {
     false
 };
 private _generation=_operation get "generation";
+// Active relocation keeps the session after its pending token is retired. The ordinary
+// group callback can cancel only this generation when a live feature/session closes.
+_operation set ["artilleryScootSession",[_battery,+_session]];
+_group setVariable ["CBE_Operation",_operation,true];
 private _waypoint=[_group,_spot,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
 if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) exitWith {
     [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;

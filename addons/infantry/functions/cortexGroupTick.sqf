@@ -382,6 +382,54 @@ if (count _reverseRecord == 9) then {
     };
     };
 };
+// Pending tokens retire once relocation starts. Its current operation still retains
+// the original purpose/session so off/on cannot revive an already moving old episode.
+private _scootLease=_state getOrDefault ["movementLease",[]];
+if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT") then {
+    private _scootOperation=_group getVariable ["CBE_Operation",createHashMap];
+    private _scootAuthority=+(_group getVariable ["CBE_Cortex_MovementLease",[]]);
+    private _scootGeneration=_state getOrDefault ["artilleryScootOperationGeneration",-1];
+    if ((_scootOperation getOrDefault ["intent",""]) == "ARTILLERY_SCOOT"
+        && {(_scootOperation getOrDefault ["generation",-2]) == _scootGeneration}
+        && {(_scootOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+        private _record=_scootOperation getOrDefault ["artilleryScootSession",[]];
+        private _valid=_record isEqualType [] && {count _record == 2};
+        if (_valid) then {
+            private _battery=_record select 0;private _session=_record select 1;
+            _valid=_battery isEqualType objNull && {!isNull _battery} && {alive _battery}
+                && {local _battery} && {group driver _battery == _group}
+                && {_session isEqualType []} && {count _session == 5};
+            if (_valid) then {
+                private _purpose=_session select 4;private _counter=_purpose == "COUNTER";
+                private _epochName=["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select _counter;
+                private _feature=["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter;
+                private _setting=["CBE_AIPass_Artillery_ShootAndScoot","CBE_AIPass_CounterBattery_ShootAndScoot"] select _counter;
+                _valid=_purpose in ["SUPPORT","COUNTER"]
+                    && {(_session select 1) == (missionNamespace getVariable [_epochName,0])}
+                    && {!_counter || {(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}}
+                    && {missionNamespace getVariable [_setting,true]}
+                    && {[_group,_feature,false] call CBE_fnc_CortexFeatureEnabled};
+            };
+        };
+        if (!_valid) then {
+            if ([_group,_scootGeneration,"SCOOT_SESSION_ENDED"] call CBE_fnc_OperationCancel) then {
+                // Cleanup can call other lifecycle helpers. A successor generation/lease
+                // must survive; clear bookkeeping only while the cancelled identity remains.
+                isNil {
+                    if (local _group && {(_group getVariable ["CBE_OperationGeneration",-2]) == _scootGeneration}
+                        && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+                        && {(_group getVariable ["CBE_Cortex_MovementLease",[]]) isEqualTo _scootAuthority}
+                        && {(_state getOrDefault ["movementLease",[]]) isEqualTo _scootLease}
+                        && {(_state getOrDefault ["artilleryScootOperationGeneration",-1]) == _scootGeneration}) then {
+                        [_group,"ARTILLERY_SCOOT",false] call CBE_fnc_CortexOwnershipLease;
+                        _state deleteAt "movementLease";
+                        _state deleteAt "artilleryScootOperationGeneration";
+                    };
+                };
+            };
+        };
+    };
+};
 private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
 // Follow the committed screened corridor rather than skipping to its final endpoint. This
