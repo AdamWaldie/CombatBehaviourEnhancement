@@ -1556,3 +1556,10 @@ An expired exterior approach can now retire after its native command becomes idl
 
 
 Reserve eligibility also rechecks actual current group membership, including at each command commit. Migration-stage snapshots are built in scheduled code and recheck the current building operation atomically before public publication, preserving replacement jobs.
+
+
+### CQB casualty promotion and retained exit cover
+
+A settled exterior observer can reinforce an entry lane only while the same physically settled substitute still holds its exit. Candidate ranking retains a callback-local cover proof; promotion rechecks the candidate's native task/post receipt, the substitute's watch, native task, floor, heading and eye position, and the original casualty slot before changing roles. Cover proof expires after one second and adds no second visibility ray. If the casualty has recovered, the observer has moved or either task has changed, promotion waits within the original operation deadline.
+
+The role change updates lane and common-operation participants/pairs together, retires matching exterior-watch/stage metadata and preserves spent recovery budgets. Existing travel continues until the entry movement transaction replaces it. An already owned exterior hold transfers locally to the entry role without another stop; durable restoration of that hold across ownership transfer remains unresolved. The final public stage journal follows promotion so removed posts are not retained as established cover. This is source behaviour, not proof of casualty flow, sustained isolation, HC/JIP delivery ordering or the performance budget.

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Casualty promotion retains callback-local candidate/cover proof and atomically rechecks it
+ * before retiring an exterior leg and updating the lane/common participant roster together.
  * Exterior reserve hold/leg/arrival/watch/timeout commands commit against current episode,
  * native task and original deadlines. Watch changes retain the actual current-callback ray origin.
  * Every eligible uncommitted actor, including the local command anchor, joins the same bounded
@@ -1501,20 +1503,6 @@ private _delay=call {
     _job set ["reserveStageSearchCounts",_stageSearchCounts];
     _job set ["reserveStageTriedTargets",_stageTriedTargets];
     _job set ["reserveStageTriedEntries",_stageTriedEntries];
-    // Build the migration journal only after an owned stage transition. Idle callbacks
-    // retain the published receipt without copying every actor record again.
-    if (_stageJournalChanged && {call _mayIssueMovement}) then {
-        private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
-            [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]]),+(_stageTriedEntries getOrDefault [_x,[]])]
-        };
-        private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows];
-        isNil {
-            if (call _mayIssueMovement
-                && {(_group getVariable ["CBE_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget}) then {
-                _group setVariable ["CBE_Cortex_ClearStageBudget",_stageBudget,true];
-            };
-        };
-    };
     // Promotion cannot spend an established exit observer without a physically settled
     // substitute. One fresh VIEW ray per callback bounds casualty-time confirmation.
     // A stale role label, an approaching actor or a previous clear ray is not coverage.
@@ -1539,11 +1527,21 @@ private _delay=call {
         _promotionObservers=(_promotionObservers select [_cursor])+(_promotionObservers select [0,_cursor]);
         _job set ["promotionObserverCursor",(_cursor+1) mod count _promotionObservers];
     };
+    private _promotionProofs=createHashMap;
     private _mayPromoteReserve={
         params ["_candidate"];
         if (!(_candidate in _reserves) || {!([_candidate] call _reserveReady)}) exitWith {false};
         private _stage=_reserveStages getOrDefault [netId _candidate,[]];
-        if ((_stage param [2,""]) != "ARRIVED") exitWith {true};
+        private _proof=createHashMapFromArray [
+            ["stage",+_stage],["native",[toUpperANSI currentCommand _candidate,expectedDestination _candidate,formLeader _candidate]],
+            ["receipt",+(_candidate getVariable ["CBE_Cortex_ClearReserve",[]])],["pose",getPosASL _candidate],
+            ["at",serverTime],["observer",[]],
+            ["watch",+(_candidate getVariable ["CBE_Cortex_ClearExitWatch",[]])],
+            ["watchLocal",+(_candidate getVariable ["CBE_Cortex_ClearExitWatchLocal",[]])]
+        ];
+        if ((_stage param [2,""]) != "ARRIVED") exitWith {
+            _promotionProofs set [netId _candidate,_proof];true
+        };
         if (_promotionViewBudget <= 0) exitWith {false};
         private _exit=_stage param [5,[],[[]]];
         if (count _exit != 3) exitWith {false};
@@ -1551,9 +1549,12 @@ private _delay=call {
         {
             private _observer=_x;
             private _otherStage=_reserveStages getOrDefault [netId _observer,[]];
-            private _observerReady=_observer in _reserves && {[_observer] call _reserveReady};
+            private _observerSource=+_otherStage;
+            private _observerReserve=_observer in _reserves;
+            private _observerReady=_observerReserve && {[_observer] call _reserveReady};
             if (!(_observer in _reserves)) then {
                 private _row=_earlyExits getOrDefault [netId _observer,[]];
+                _observerSource=+_row;
                 _observerReady=(_row param [0,objNull]) == _observer
                     && {(_row param [3,""]) == "ARRIVED"}
                     && {[_observer] call _actorAvailable} && {[_observer] call _actorTaskFree}
@@ -1577,13 +1578,71 @@ private _delay=call {
                 && {_promotionViewBudget > 0}) then {
                 _promotionViewBudget=_promotionViewBudget-1;
                 private _eye=eyePos _observer;
+                private _observerNative=[currentCommand _observer,expectedDestination _observer,formLeader _observer];
                 private _watchASL=AGLToASL _watch;
                 _covered=!terrainIntersectASL [_eye,_watchASL]
                     && {(lineIntersectsSurfaces [_eye,_watchASL,_observer,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+                if (_covered) then {
+                    _proof set ["observer",[_observer,_observerReserve,+_observerSource,+_watchLease,
+                        +_eye,+_post,+_watch,_observerNative]];
+                    _proof set ["at",serverTime];
+                    _promotionProofs set [netId _candidate,_proof];
+                };
             };
             if (_covered) exitWith {};
         } forEach _promotionObservers;
         _covered
+    };
+    // Callback-local proof only: no visibility query or observer scan at the atomic commit.
+    private _promotionProofCurrent={
+        params ["_candidate","_proof"];
+        if (count _proof == 0 || {!(_candidate in _reserves)}
+            || {serverTime < (_proof get "at")} || {serverTime-(_proof get "at") > 1}
+            || {!([_candidate] call _reserveCommitReady)}
+            || {(_reserveStages getOrDefault [netId _candidate,[]]) isNotEqualTo (_proof get "stage")}
+            || {(_candidate getVariable ["CBE_Cortex_ClearReserve",[]]) isNotEqualTo (_proof get "receipt")}
+            || {(getPosASL _candidate) vectorDistance (_proof get "pose") > 1}) exitWith {false};
+        private _native=_proof get "native";
+        private _command=toUpperANSI currentCommand _candidate;
+        private _destination=expectedDestination _candidate;
+        if (_command != (_native select 0) || {formLeader _candidate != (_native select 2)}) exitWith {false};
+        private _nativeSame=_destination isEqualTo (_native select 1);
+        if (_command == "FOLLOW" && {count _destination == 3} && {count (_native select 1) == 3}) then {
+            _nativeSame=(_destination select [1,2]) isEqualTo ((_native select 1) select [1,2]);
+        };
+        if (!_nativeSame) exitWith {false};
+        private _watch=_candidate getVariable ["CBE_Cortex_ClearExitWatch",[]];
+        private _watchLocal=_candidate getVariable ["CBE_Cortex_ClearExitWatchLocal",[]];
+        if (_watch isNotEqualTo (_proof get "watch") || {_watchLocal isNotEqualTo (_proof get "watchLocal")}) exitWith {false};
+        if (_watch isEqualTo []) then {
+            if (_watchLocal isNotEqualTo []) then {_nativeSame=false};
+        } else {
+            _nativeSame=count _watch == 3 && {(_watch select 0) == (_job get "generation")}
+                && {(_watch select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                && {_watchLocal isEqualTo _watch};
+        };
+        if (!_nativeSame) exitWith {false};
+        private _evidence=_proof get "observer";
+        if (_evidence isEqualTo []) exitWith {((_proof get "stage") param [2,""]) != "ARRIVED"};
+        _evidence params ["_observer","_wasReserve","_source","_lease","_eye","_post","_view","_observerNative"];
+        private _observerReady=false;
+        if (_wasReserve) then {
+            _observerReady=_observer in _reserves && {[_observer] call _reserveReady}
+                && {(_reserveStages getOrDefault [netId _observer,[]]) isEqualTo _source};
+        } else {
+            _observerReady=(_earlyExits getOrDefault [netId _observer,[]]) isEqualTo _source
+                && {[_observer] call _actorAvailable} && {[_observer] call _actorTaskFree}
+                && {!(_observer in _unavailable)};
+        };
+        _observer != _candidate && {_observerReady}
+            && {currentCommand _observer in ["","STOP"]}
+            && {[currentCommand _observer,expectedDestination _observer,formLeader _observer] isEqualTo _observerNative}
+            && {(_observer getVariable ["CBE_Cortex_ClearExitWatch",[]]) isEqualTo _lease}
+            && {(_observer getVariable ["CBE_Cortex_ClearExitWatchLocal",[]]) isEqualTo _lease}
+            && {(getPosASL _observer) vectorDistance (AGLToASL _post) <= 2}
+            && {abs (((getPosASL _observer) select 2)-((AGLToASL _post) select 2)) <= 0.75}
+            && {(eyePos _observer) vectorDistance _eye <= 0.25}
+            && {abs (((getDir _observer-(_observer getDir _view)+540) mod 360)-180) <= 75}
     };
     private _pairRosterChanged=false;
     {
@@ -1615,69 +1674,96 @@ private _delay=call {
                 if (_replacementIndex < 0) then {continue};
                 // Candidate ranking may perform geometry work. Recheck its native task at admission.
                 if (!([_reserves select _replacementIndex] call _reserveReady) || {!call _mayIssueMovement}) then {continue};
-                private _replacement=_reserves deleteAt _replacementIndex;
-                // Promotion changes this actor's purpose. Retire only the matching
-                // exit watch before an interior movement leg can inherit it.
-                private _exitWatch=_replacement getVariable ["CBE_Cortex_ClearExitWatch",[]];
-                if (count _exitWatch == 3
-                    && {(_exitWatch select 0) == (_job get "generation")}
-                    && {(_exitWatch select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
-                    && {[_replacement] call _actorTaskFree} && {call _mayIssueMovement}) then {
-                    _replacement doWatch objNull;
-                    _replacement setVariable ["CBE_Cortex_ClearExitWatch",nil,true];
-                    _replacement setVariable ["CBE_Cortex_ClearExitWatchLocal",nil];
-                    _replacement setVariable ["CBE_Cortex_ClearReserve",nil];
-                };
-                _pair set [_slot,_replacement];
-                _laneReplacements pushBack _replacement;
-                _pairRosterChanged=true;
-                _laneRosterChanged=true;
-                _rotatedOut pushBackUnique _member;
-                private _team=_job get "team";
-                _team pushBackUnique _replacement;
-                // The pair and common lifecycle must account for the same replacement.
-                // A reserve's real travel cannot renew progress while absent from this roster.
-                private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
-                if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
-                    && {(_liveOperation getOrDefault ["intent",""]) == "CLEAR"}
-                    && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
-                    private _participants=+(_liveOperation getOrDefault ["participants",[]]);
-                    _participants=_participants-[_member];
-                    _participants pushBackUnique _replacement;
-                    private _progressRecords=(_liveOperation getOrDefault ["participantProgress",[]]) select {(_x select 0) != _member};
-                    if (_progressRecords findIf {(_x select 0) == _replacement} < 0) then {
-                        _progressRecords pushBack [_replacement,getPosATL _replacement];
+                private _replacement=_reserves select _replacementIndex;
+                private _promotionProof=_promotionProofs getOrDefault [netId _replacement,createHashMap];
+                private _promoted=false;
+                isNil {
+                    private _promotionOperation=_group getVariable ["CBE_Operation",createHashMap];
+                    if (call _mayIssueMovement && {[_replacement,_promotionProof] call _promotionProofCurrent}
+                        && {(_reserves param [_replacementIndex,objNull]) == _replacement}
+                        && {_pairIndex < count (_job get "pairs")}
+                        && {(((_job get "pairs") select _pairIndex) param [_slot,objNull]) == _member}
+                        && {!([_member] call _actorAvailable) || {_member in _unavailable}}
+                        && {(_promotionOperation getOrDefault ["generation",-1]) == _operationGeneration}
+                        && {(_promotionOperation getOrDefault ["intent",""]) == "CLEAR"}
+                        && {(_promotionOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                        _reserves deleteAt _replacementIndex;
+                        // Keep useful native travel until the entry transaction replaces it.
+                        // Transfer an already owned exterior STOP without issuing another stop.
+                        if (currentCommand _replacement == "STOP") then {
+                            (_job getOrDefault ["formationFallbackHolds",createHashMap]) set [netId _replacement,getPosATL _replacement];
+                        };
+                        _reserveStages deleteAt (netId _replacement);
+                        _stageJournalChanged=true;
+                        // Promotion changes this actor's purpose. Retire only the matching
+                        // exit watch before an interior movement leg can inherit it.
+                        private _exitWatch=_replacement getVariable ["CBE_Cortex_ClearExitWatch",[]];
+                        if (count _exitWatch == 3
+                            && {(_exitWatch select 0) == (_job get "generation")}
+                            && {(_exitWatch select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                            && {[_replacement] call _actorTaskFree} && {call _mayIssueMovement}) then {
+                            _replacement doWatch objNull;
+                            _replacement setVariable ["CBE_Cortex_ClearExitWatch",nil,true];
+                            if ((_replacement getVariable ["CBE_Cortex_ClearExitWatchLocal",[]]) isEqualTo _exitWatch) then {
+                                _replacement setVariable ["CBE_Cortex_ClearExitWatchLocal",nil];
+                            };
+                        };
+                        _replacement setVariable ["CBE_Cortex_ClearReserve",nil];
+                        _pair set [_slot,_replacement];
+                        _laneReplacements pushBack _replacement;
+                        _pairRosterChanged=true;
+                        _laneRosterChanged=true;
+                        _rotatedOut pushBackUnique _member;
+                        private _team=_job get "team";
+                        _team pushBackUnique _replacement;
+                        // The pair and common lifecycle must account for the same replacement.
+                        // A reserve's real travel cannot renew progress while absent from this roster.
+                        private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+                        if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
+                            && {(_liveOperation getOrDefault ["intent",""]) == "CLEAR"}
+                            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                            private _participants=+(_liveOperation getOrDefault ["participants",[]]);
+                            _participants=_participants-[_member];
+                            _participants pushBackUnique _replacement;
+                            private _progressRecords=(_liveOperation getOrDefault ["participantProgress",[]]) select {(_x select 0) != _member};
+                            if (_progressRecords findIf {(_x select 0) == _replacement} < 0) then {
+                                _progressRecords pushBack [_replacement,getPosATL _replacement];
+                            };
+                            // Retire only the removed actor's active observation. Its retry budget and
+                            // unavailable status remain generation-owned, preventing reserve rotation from
+                            // making a failed actor eligible for unlimited recovery attempts.
+                            private _recovery=_liveOperation getOrDefault ["recovery",createHashMap];
+                            _recovery deleteAt (netId _member);
+                            _liveOperation set ["recovery",_recovery];
+                            private _platforms=_liveOperation getOrDefault ["participantPlatforms",createHashMap];
+                            private _nextPlatforms=createHashMapFromArray (_participants apply {
+                                [netId _x,_platforms getOrDefault [netId _x,_x]]
+                            });
+                            _liveOperation set ["participantPlatforms",_nextPlatforms];
+                            _liveOperation set ["participants",_participants];
+                            _liveOperation set ["participantProgress",_progressRecords];
+                            _liveOperation set ["pairs",(_job get "pairs") apply {+_x}];
+                            _group setVariable ["CBE_Operation",_liveOperation,true];
+                        };
+                        (_job get "assigned") set [_team find _replacement,[]];
+                        private _lastPositions=_state select 2;
+                        _lastPositions set [_slot,getPosATL _replacement];
+                        _state set [2,_lastPositions];
+                        _state set [3,time];
+                        _state set [4,0];
+                        _state set [5,-1];
+                        // A reserve starts at its own physical position. Do not compare its travel
+                        // against the removed actor's nearer best-distance baseline.
+                        _state set [13,1e12];
+                        _state set [14,[]];
+                        private _evidence=_group getVariable ["CBE_Cortex_ClearReinforcements",[]];
+                        _evidence pushBack [serverTime,netId _member,netId _replacement,_pairIndex,_slot];
+                        _group setVariable ["CBE_Cortex_ClearReinforcements",_evidence,true];
+                        diag_log format ["[CBE] Clear pair %1 reinforced: %2 replaced %3",_pairIndex,_replacement,_member];
+                        _promoted=true;
                     };
-                    // Retire only the removed actor's active observation. Its retry budget and
-                    // unavailable status remain generation-owned, preventing reserve rotation from
-                    // making a failed actor eligible for unlimited recovery attempts.
-                    private _recovery=_liveOperation getOrDefault ["recovery",createHashMap];
-                    _recovery deleteAt (netId _member);
-                    _liveOperation set ["recovery",_recovery];
-                    private _platforms=_liveOperation getOrDefault ["participantPlatforms",createHashMap];
-                    private _nextPlatforms=createHashMapFromArray (_participants apply {
-                        [netId _x,_platforms getOrDefault [netId _x,_x]]
-                    });
-                    _liveOperation set ["participantPlatforms",_nextPlatforms];
-                    _liveOperation set ["participants",_participants];
-                    _liveOperation set ["participantProgress",_progressRecords];
-                    _group setVariable ["CBE_Operation",_liveOperation,true];
                 };
-                (_job get "assigned") pushBack [];
-                private _lastPositions=_state select 2;
-                _lastPositions set [_slot,getPosATL _replacement];
-                _state set [2,_lastPositions];
-                _state set [3,time];
-                _state set [4,0];
-                _state set [5,-1];
-                // A reserve starts at its own physical position. Do not compare its travel
-                // against the removed actor's nearer best-distance baseline.
-                _state set [13,1e12];
-                _state set [14,[]];
-                private _evidence=_group getVariable ["CBE_Cortex_ClearReinforcements",[]];
-                _evidence pushBack [serverTime,netId _member,netId _replacement,_pairIndex,_slot];
-                _group setVariable ["CBE_Cortex_ClearReinforcements",_evidence,true];
-                diag_log format ["[CBE] Clear pair %1 reinforced: %2 replaced %3",_pairIndex,_replacement,_member];
+                if (!_promoted) then {continue};
             };
         };
         // A wholly replaced exterior lane must establish its own physical entry.
@@ -1723,12 +1809,30 @@ private _delay=call {
     if (_pairRosterChanged) then {
         // Publish the actual lane partners, without rebuilding an active lane's route.
         private _pairSnapshot=_pairs apply {+_x};
-        _group setVariable ["CBE_CombatPairs",_pairSnapshot,true];
-        private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
-        if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
-            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
-            _liveOperation set ["pairs",_pairSnapshot];
-            _group setVariable ["CBE_Operation",_liveOperation,true];
+        isNil {
+            if (call _mayIssueMovement) then {
+                _group setVariable ["CBE_CombatPairs",_pairSnapshot,true];
+                private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+                if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
+                    && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                    _liveOperation set ["pairs",_pairSnapshot];
+                    _group setVariable ["CBE_Operation",_liveOperation,true];
+                };
+            };
+        };
+    };
+    // Build the migration journal only after an owned stage transition. Idle callbacks
+    // retain the published receipt without copying every actor record again.
+    if (_stageJournalChanged && {call _mayIssueMovement}) then {
+        private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
+            [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]]),+(_stageTriedEntries getOrDefault [_x,[]])]
+        };
+        private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows];
+        isNil {
+            if (call _mayIssueMovement
+                && {(_group getVariable ["CBE_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget}) then {
+                _group setVariable ["CBE_Cortex_ClearStageBudget",_stageBudget,true];
+            };
         };
     };
     // Release reservations before selection so another soldier can visit a casualty's room.

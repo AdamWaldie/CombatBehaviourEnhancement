@@ -4748,7 +4748,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(release.index('CBE_fnc_CortexFlankEnd'),release.index('call _finishOperation'))
     def test_building_replacement_rebases_approach_without_changing_room_sequence(self):
         text=source('buildingOperationStep')
-        replacement=text.split('private _replacement=_reserves deleteAt _replacementIndex;',1)[1].split('Clear pair %1 reinforced',1)[0]
+        replacement=text.split('private _replacement=_reserves select _replacementIndex;',1)[1].split('Clear pair %1 reinforced',1)[0]
         self.assertIn('_state set [13,1e12]',replacement)
         self.assertIn('_state set [14,[]]',replacement)
         self.assertNotIn('_state set [0,',replacement)
@@ -9142,11 +9142,11 @@ class CortexOperations(unittest.TestCase):
 
         self.assertLess(start.index('_previous param [9,_nativeOrderReceipt'),start.index('// Keep reserve search consumption'))
         step=source('buildingOperationStep')
-        publish=step.split('private _budgetRows=',1)[1].split('private _pairRosterChanged=',1)[0]
+        publish=step.split('private _budgetRows=',1)[1].split('// Release reservations before selection',1)[0]
         self.assertIn('select [0,64]',publish)
-        stage=step.split('private _stageSearchBudget=1;',1)[1].split('private _pairRosterChanged=',1)[0]
+        stage=step.split('private _stageSearchBudget=1;',1)[1].split('// Release reservations before selection',1)[0]
         self.assertLess(stage.index('if (_stageJournalChanged && {call _mayIssueMovement})'),stage.index('private _budgetRows='))
-        self.assertEqual(stage.count('_stageJournalChanged=true;'),4)
+        self.assertEqual(stage.count('_stageJournalChanged=true;'),5)
         self.assertIn('isNotEqualTo _stageBudget',publish)
         self.assertIn('setVariable ["CBE_Cortex_ClearStageBudget",_stageBudget,true]',publish)
 

@@ -10,7 +10,8 @@ class ClearPromotionCoverageTests(unittest.TestCase):
                        'CBE_Cortex_ClearExitWatchLocal','vectorDistance (AGLToASL _post) <= 2',
                        '<= 0.75','terrainIntersectASL','"VIEW","NONE"'):
             self.assertIn(marker,gate)
-        self.assertIn('if ((_stage param [2,""]) != "ARRIVED") exitWith {true}',gate)
+        self.assertIn('if ((_stage param [2,""]) != "ARRIVED") exitWith {',gate)
+        self.assertIn('_promotionProofs set [netId _candidate,_proof];true',gate)
         self.assertIn('_promotionViewBudget=_promotionViewBudget-1',gate)
         self.assertIn('if (_promotionViewBudget <= 0) exitWith {false}',gate)
         self.assertEqual(gate.count('lineIntersectsSurfaces'),1)
@@ -20,7 +21,7 @@ class ClearPromotionCoverageTests(unittest.TestCase):
         self.assertIn('private _replacementIndex=-1',s)
         self.assertIn('[_x] call _mayPromoteReserve',s)
         guard=s.index('if (_replacementIndex < 0) then {continue}')
-        self.assertLess(guard,s.index('private _replacement=_reserves deleteAt _replacementIndex'))
+        self.assertLess(guard,s.index('private _replacement=_reserves select _replacementIndex'))
         self.assertIn('private _promotionViewBudget=1',s)
         self.assertIn('promotionCandidateCursor',s)
         self.assertIn('!(_candidate in _reserves)',s)
