@@ -183,4 +183,16 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertIn('(_jam get "attempts") < 3',block)
         self.assertIn('serverTime < (_jam get "deadline")',block)
 
+    def test_native_reverse_probe_requires_backing_without_heading_or_physics_shortcuts(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
+        probe=s.split('// Queue room-making must first',1)[1]
+        for required in ('["MOVE","PATH","BACK"]','"CBE_AIPass_Exclude",true',
+                         '_operator != _driver','_headingError > 15','_reverseSamples >= 4',
+                         '_rear >= 4','_probe distance2D _goal <= 2.5',
+                         '(velocityModelSpace _probe select 1) < -0.25','time+12'):
+            self.assertIn(required,probe)
+        for forbidden in ('setVelocity','setPos','setEffectiveCommander','call CBE_fnc_DrivingRecoveryRelease',
+                          'setVariable ["CBE_DrivingRecovery_Work"'):
+            self.assertNotIn(forbidden,probe)
+
 if __name__=='__main__':unittest.main()

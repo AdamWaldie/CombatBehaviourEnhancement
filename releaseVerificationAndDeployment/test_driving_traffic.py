@@ -265,7 +265,7 @@ class ConvoyLeadGapMetricTests(unittest.TestCase):
 
     def test_oncoming_fixture_requires_actual_encounter_braking_and_hull_separation(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
-        case=qa.split('// Opposing native MOVE orders are the only stimulus.',1)[1]
+        case=qa.split('// Opposing native MOVE orders are the only stimulus.',1)[1].split('// Queue room-making must first',1)[0]
         for proof in ('CBE_Headless_ExcludeGroup','_closing > 5','_peerApproach > 1',
                       'vectorDotProduct (vectorDir _peer)) < -0.7','abs speed _own > 5',
                       'abs speed _peer > 5','_observation param [1,objNull]',

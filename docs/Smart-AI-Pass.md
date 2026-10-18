@@ -1506,3 +1506,6 @@ The prepared normal-only parkedbypass focus also replaces the authored waypoint 
 
 
 The existing stationary-traffic route retry now uses an isolated journal and one unscheduled observation/retry/publication section. Current driving brain/owner epoch and a traffic sample no older than1.5s are required on entry; successor journal or owner/order changes prevent stale publication. The original three retries, twenty-second dwell/spacing and eighty-second episode remain. This reissues only the unchanged native route; it does not implement negotiated backing, rear-to-front cascade or traffic-ignore windows. Physical jam resolution and cost remain unverified.
+
+
+The prepared normal vehicles focus includes six excluded native reverse controls: ordinary MOVE, a rearward fixed path and BACK, each on a wheeled truck and tracked APC. Each requires at least four consecutive negative-forward-velocity samples, four metres of measured rear travel toward the six-metre target, bounded heading/lateral deviation and no damage. BACK requires an already distinct native commander; the fixture never changes commander or injects physics. Unsupported/missing prerequisites fail visibly. These controls are prepared and unrun, are not CBE queue execution, and cannot establish broad native reverse capability or HC acceptance.

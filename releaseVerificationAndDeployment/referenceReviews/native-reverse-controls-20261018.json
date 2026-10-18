@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-18",
+  "scope": "Prepared native reverse primitive controls for queue recovery",
+  "source": "releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf",
+  "sha256": "71e9c5c7de6c36982d0b6ae49f4c4b0eb26f72ee6d6d6d9c8be0056011c181ab",
+  "status": "PREPARED_NOT_RUN",
+  "matrix": {
+    "vehicles": [
+      "O_Truck_03_transport_F",
+      "B_APC_Tracked_01_rcws_F"
+    ],
+    "requests": [
+      "MOVE via current native effective operator",
+      "rearward fixed path",
+      "sendSimpleCommand BACK with existing distinct commander"
+    ]
+  },
+  "requirements": [
+    "Server normal batch, per-group CBE/HC exclusion, local simulation/crew and no CBE driving lease.",
+    "Original heading and commander remain unchanged after native request.",
+    "Four consecutive samples below-0.25m/s forward velocity; >=4m rear displacement toward6m target, <=2.5m goal distance and <=2m height.",
+    "Heading departure<=15deg, lateral departure<=1.5m and no new damage. Native U-turn fails.",
+    "No physics, transform, result or controller callback injection. Positive2m/s native cap only; negative cap is not reverse.",
+    "BACK driver-as-commander prerequisite fails explicitly; do not silently change commander or count unsupported as success."
+  ],
+  "validation": {
+    "tests": 1190,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-native-reverse-controls-verified-build.log",
+    "fingerprint": "52c1187d423b77b3cf83061a841c1ce3deb54227ac17c63e56ec8c14134c6332",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "receipt": "Parente1ac3dea plus tracked fixture/docs diff, dirty Build; not signed Release.",
+    "initial_failure": "Existing oncoming no-forceSpeed assertion included remainder of file and caught separate excluded native controls; scoped to original oncoming case retaining all physical/no-injection assertions. Initial .qa/cbe-native-reverse-controls-build.log retained."
+  },
+  "limits": [
+    "Twelve-second clean fixture is not broad native reverse capability, production queue implementation, slope/traffic clearance, repeatability or performance acceptance.",
+    "Normal/providerHC controls remain separate; these are normal only.",
+    "Unsupported native method is a retained control failure, not implied CBE parity or successful recovery.",
+    "All65 feature families remain partial; queue protocol/execution and shutdown readiness cleanup remain incomplete."
+  ]
+}

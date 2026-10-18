@@ -6,6 +6,8 @@
  * A separate fresh pair exercises sub-1km/h predecessor creep without stationary retry credit.
  * A separate opposing pair requires actual lane closing, production traffic observation,
  * measured braking and physical hull separation without damage. No cap is injected.
+ * Native-only reverse comparisons then observe MOVE, fixed path and BACK on wheeled/tracked
+ * crews without changing commander, heading, physics or CBE result state after issuing orders.
  * No controller callbacks or success state are injected.
  * Locality/authority: scheduled server creates separate disposable driver groups. Predecessor
  * native waypoint/speed holds are fixture inputs; the follower is discovered and driven by CBE.
@@ -274,4 +276,73 @@ while {time < _opposingUntil} do {
 missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {private _vehicle=_x;{deleteVehicle _x} forEach crew _vehicle;deleteVehicle _vehicle} forEach _opposing;
 {deleteGroup _x} forEach _opposingGroups;
+// Queue room-making must first establish actual native reverse, not a speed-cap assumption.
+// These excluded vehicles are controls; no CBE executor is invoked or credited by them.
+if (isServer && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])}) then {
+    private _probeIndex=0;
+    {
+        private _class=_x;
+        {
+            private _method=_x;private _probeStart=[4800+_probeIndex*70,2800,0];_probeIndex=_probeIndex+1;
+            private _probe=createVehicle [_class,_probeStart,[],0,"NONE"];
+            _probe setDir 0;createVehicleCrew _probe;
+            private _probeGroup=group driver _probe;
+            _probeGroup setVariable ["CBE_AIPass_Exclude",true,true];
+            _probeGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
+            _probeGroup setVariable ["acex_headless_blacklist",true,true];
+            _probeGroup setBehaviour "SAFE";_probeGroup setCombatMode "BLUE";
+            private _driver=driver _probe;private _operator=effectiveCommander _probe;
+            if (isNull _operator) then {_operator=_driver};
+            private _origin=getPosASL _probe;private _axis=vectorDir _probe;_axis set [2,0];_axis=vectorNormalized _axis;
+            private _right=[_axis select 1,-(_axis select 0),0];
+            private _goalASL=_origin vectorDiff (_axis vectorMultiply 6);
+            private _goal=ASLToATL _goalASL;private _initialHeading=getDir _probe;private _initialDamage=damage _probe;
+            private _ready=local _probe && {local _probeGroup} && {local _driver} && {local _operator}
+                && {simulationEnabled _probe} && {canMove _probe} && {!surfaceIsWater _probeStart}
+                && {count (_probe getVariable ["CBE_DrivingAssist_State",[]]) == 0}
+                && {_method != "BACK" || {_operator != _driver}};
+            private _label=format ["%1-%2",_class,_method];
+            ["Native reverse: "+_label,"Excluded native control. Require measured negative forward velocity and rearward travel without a U-turn, lateral departure or damage. BACK with driver-as-commander is an unsupported prerequisite, not a reason to replace the commander. No physics is injected.",_probeStart] call _phase;
+            ["DRIVING-native-reverse-"+_label+"-prerequisite",_ready] call _check;
+            _driver setVariable ["CBE_CortexQA_Label","NATIVE REVERSE "+_label,true];
+            _driver setVariable ["CBE_CortexQA_Target",_goal,true];
+            missionNamespace setVariable ["CBE_CortexQA_Actors",[_probe,_driver],true];
+            if (_ready) then {
+                _probe forceSpeed 2;
+                switch (_method) do {
+                    case "MOVE": {
+                        if (_driver != _operator) then {_driver doFollow _operator};
+                        _operator doMove _goal;
+                    };
+                    case "PATH": {_probe setDriveOnPath [ASLToATL _origin,
+                        ASLToATL (_origin vectorDiff (_axis vectorMultiply 3)),_goal]};
+                    case "BACK": {_probe sendSimpleCommand "BACK"};
+                };
+            };
+            private _clean=true;private _reverseSamples=0;private _reverseObserved=false;
+            private _completed=false;private _maxRear=0;private _probeUntil=time+12;
+            while {_ready && {time < _probeUntil} && {_clean} && {!_completed}} do {
+                sleep 0.25;
+                private _delta=(getPosASL _probe) vectorDiff _origin;
+                private _rear=-(_delta vectorDotProduct _axis);_maxRear=_maxRear max _rear;
+                private _headingError=abs (((getDir _probe-_initialHeading+540) mod 360)-180);
+                if (_headingError > 15 || {abs (_delta vectorDotProduct _right) > 1.5}
+                    || {damage _probe > _initialDamage+0.01} || {!alive _probe}
+                    || {count (_probe getVariable ["CBE_DrivingAssist_State",[]]) > 0}) then {_clean=false};
+                _reverseSamples=if ((velocityModelSpace _probe select 1) < -0.25) then {_reverseSamples+1} else {0};
+                _reverseObserved=_reverseObserved || {_reverseSamples >= 4};
+                _completed=_clean && {_reverseObserved} && {_rear >= 4}
+                    && {_probe distance2D _goal <= 2.5}
+                    && {abs (((getPosASL _probe) select 2)-(_goalASL select 2)) <= 2};
+                diag_log format ["CBE NATIVE REVERSE: %1",[_label,time,getPosASL _probe,
+                    velocityModelSpace _probe,_rear,_headingError,_clean,_reverseSamples,_completed]];
+            };
+            if (_method == "BACK" && {_ready}) then {_probe sendSimpleCommand "STOP"};
+            ["DRIVING-native-reverse-"+_label+"-physical",_ready && {_completed} && {_clean},
+                str [_maxRear,_reverseObserved,_clean,getPosASL _probe]] call _check;
+            missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+            {deleteVehicle _x} forEach crew _probe;deleteVehicle _probe;deleteGroup _probeGroup;
+        } forEach ["MOVE","PATH","BACK"];
+    } forEach ["O_Truck_03_transport_F","B_APC_Tracked_01_rcws_F"];
+};
 [_previous] call CBE_fnc_CortexTuning;
