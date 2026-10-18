@@ -390,3 +390,23 @@ class ManoeuvreRetryObservationTests(unittest.TestCase):
         self.assertLess(commit.index('_unit doMove'),commit.index('_retry set [1,time]'))
         self.assertNotIn('set ["boundDeadline"',planning+commit)
         self.assertIn('["TIME_LIMIT","STALLED"] select (_stalled && {_now <= _moveDeadline})',source)
+
+
+class ManoeuvreDecisionCommitTests(unittest.TestCase):
+    def test_recovery_and_failure_publish_only_for_current_measured_bound(self):
+        source=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        helper=source.split('private _decisionCurrent={',1)[1].split('private _decisionDeferred=',1)[0]
+        for guard in ['call _helperCurrent','isEqualTo _moveIdentity','isEqualTo _spots',
+                      'isEqualTo _movers','isEqualTo _decisionProgress','isEqualTo _decisionRetries',
+                      'isEqualTo _arrivedUnits','isEqualTo _decisionRecovery','== _moveDeadline',
+                      'isEqualTo _moveRoute','call _actorTaskFree','currentCommand _actor != _command',
+                      'isNotEqualTo _destination','vectorDistance _pose >= 0.5',
+                      '_arrivedUnits findIf','_pose vectorDistance _target > 3']:
+            self.assertIn(guard,helper)
+        phase=source.split('if (_quorumReady) then {',1)[1].split('if (_arrived) then {',1)[0]
+        self.assertEqual(phase.count('if !(call _decisionCurrent)'),4)
+        self.assertIn('if (_decisionDeferred) exitWith {_result=0.25}',phase)
+        failure=phase.split('private _failureCommitted=false;',1)[1]
+        self.assertLess(failure.index('call _decisionCurrent'),failure.index('CBE_Cortex_DrillFailure'))
+        self.assertIn('if (_failureCommitted) then {_result = _reason call _end} else {_result=0.25}',failure)
+        self.assertNotIn('set ["boundDeadline"',phase)

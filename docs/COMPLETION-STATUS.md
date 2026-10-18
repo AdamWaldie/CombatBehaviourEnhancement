@@ -9,6 +9,10 @@ Workshop-parity percentage is available.
 
 ## Current evidence boundary
 
+- MOVE quorum/straggler recovery, replacement preparation and failure feedback now recheck the
+  committed bound records, current tasks/route and fresh arrival/blocked motion before publication.
+  Refusal defers; later arrived-phase side effects and physical behaviour still require review/validation.
+
 - A delayed manoeuvre callback no longer marks a newly retried actor stalled immediately. The sole
   admitted retry receives the existing eight-second observation interval; physical progress clocks
   and the fixed bound deadline remain unchanged. Expired bounds issue no retry; live timing remains unverified.

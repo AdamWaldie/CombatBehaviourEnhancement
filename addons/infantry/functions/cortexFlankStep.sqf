@@ -984,6 +984,39 @@ switch (_drill get "stage") do {
             _moveCommitted=true;
         };
         if (!_moveCommitted) exitWith {_result=0.25};
+        // Later recovery/failure decisions may be separated from measurement by a
+        // scheduler yield. Bind them to the committed records and current native tasks.
+        private _decisionProgress=_progress apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
+        private _decisionRetries=_retries apply {+_x};
+        private _decisionRecovery=(_drill getOrDefault ["recovery",[]]) apply {+_x};
+        _recovery=_recovery apply {+_x};
+        private _decisionNative=_units apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x,getPosASL _x]};
+        private _decisionCurrent={
+            call _helperCurrent && {(_drill getOrDefault ["stage",""]) == "MOVE"}
+                && {[_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _moveIdentity}
+                && {(_drill getOrDefault ["spots",[]]) isEqualTo _spots}
+                && {(_drill getOrDefault ["movers",[]]) isEqualTo _movers}
+                && {(_drill getOrDefault ["progress",[]]) isEqualTo _decisionProgress}
+                && {(_drill getOrDefault ["retries",[]]) isEqualTo _decisionRetries}
+                && {(_drill getOrDefault ["arrivedUnits",[]]) isEqualTo _arrivedUnits}
+                && {(_drill getOrDefault ["recovery",[]]) isEqualTo _decisionRecovery}
+                && {(_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4]) == _moveDeadline}
+                && {currentWaypoint _group == _moveWaypointIndex}
+                && {([_group,"",false,_moveWaypointIndex] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _moveRoute}
+                && {_decisionNative findIf {
+                    _x params ["_actor","_command","_destination","_leader","_pose"];
+                    !([_actor] call _actorTaskFree) || {currentCommand _actor != _command}
+                        || {(expectedDestination _actor) isNotEqualTo _destination}
+                        || {formLeader _actor != _leader}
+                        || {_actor in _blocked && {(getPosASL _actor) vectorDistance _pose >= 0.5}}
+                } < 0}
+                && {_arrivedUnits findIf {
+                    private _pose=getPosASL _x;
+                    private _target=ATLToASL (_spots select (_movers find _x));
+                    _pose vectorDistance _target > 3 || {abs ((_pose select 2)-(_target select 2)) > 1.5}
+                } < 0}
+        };
+        private _decisionDeferred=false;
         private _originalElement = if (_teams isEqualTo []) then {_allUnits} else {_teams select (_drill getOrDefault ["teamTurn",0])};
         // Use the live assigned movers for this bound. Casualty replacement, recovery and
         // consolidation can change the original team; a stale denominator must not hold the
@@ -1000,6 +1033,8 @@ switch (_drill get "stage") do {
             && {count _arrivedUnits >= _minimumArrivals}
             && {!_lateMoverProgressing || {_boundAge >= 12}};
         if (_quorumReady) then {
+            isNil {
+            if !(call _decisionCurrent) exitWith {_decisionDeferred=true};
             private _stragglers = _units - _arrivedUnits;
             {
                 private _straggler = _x;
@@ -1012,21 +1047,32 @@ switch (_drill get "stage") do {
             diag_log format ["[CBE] Bound role complete group=%1 arrived=%2/%3 recovery=%4",_group,count _arrivedUnits,count _units,_stragglers];
             _arrived = true;
             _stalled = false;
+            _decisionRecovery=_recovery apply {+_x};
+            };
         };
+        if (_decisionDeferred) exitWith {_result=0.25};
         if (_stalled && {count (_units - _blocked) >= 2}
             && {count (_units - _blocked) >= ceil (count _originalElement * 0.6)}) then {
+            isNil {
+            if !(call _decisionCurrent) exitWith {_decisionDeferred=true};
             // Continue with a viable majority. These actors are separated, not arrived.
             {_recovery pushBack [_x,0,_now]} forEach _blocked;
             _drill set ["recovery",_recovery];
             _group setVariable ["CBE_Cortex_DrillRecovery",["REJOINING",_recovery apply {_x select 0},_drill get "index"],true];
             diag_log format ["[CBE] Bound continues with stragglers group=%1 separated=%2 continuing=%3",_group,_blocked,_units-_blocked];
             _stalled = false;
+            _decisionRecovery=_recovery apply {+_x};
+            };
         };
+        if (_decisionDeferred) exitWith {_result=0.25};
         private _neededReplacements=(2-count (_units-_blocked)) max 0;
         private _availableCover=(_fit-_units)-_recovering;
         if (!_arrived && {_stalled} && {_teams isNotEqualTo []}
             && {_neededReplacements > 0} && {count _availableCover >= (_neededReplacements+1)}
             && {_now <= (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}) exitWith {
+            _result=0.25;
+            isNil {
+            if !(call _decisionCurrent) exitWith {};
             {
                 private _blockedActor=_x;
                 if (_recovery findIf {(_x select 0) == _blockedActor} < 0) then {
@@ -1039,6 +1085,7 @@ switch (_drill get "stage") do {
             [_group,_drill,"START","STALLED_ELEMENT_REINFORCEMENT"] call CBE_fnc_CortexDrillSetStage;
             diag_log format ["[CBE] Bound replacement pending group=%1 isolated=%2 reserve=%3",_group,_blocked,_availableCover];
             _result=1.5;
+            };
         };
         if (!_arrived && {_stalled || {_now > (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}}) exitWith {
             private _reason = ["TIME_LIMIT","STALLED"] select (_stalled && {_now <= _moveDeadline});
@@ -1057,9 +1104,14 @@ switch (_drill get "stage") do {
             } forEach _movers;
             private _failure = [_reason,_drill get "index",(_points select (_drill get "index")) select 1,
                 _now-(_drill get "boundStart"),_timeout,_measurements];
-            _group setVariable ["CBE_Cortex_DrillFailure",_failure,true];
-            diag_log format ["[CBE] Drill movement ended group=%1 details=%2",_group,_failure];
-            _result = _reason call _end;
+            private _failureCommitted=false;
+            isNil {
+                if !(call _decisionCurrent) exitWith {};
+                _group setVariable ["CBE_Cortex_DrillFailure",_failure,true];
+                diag_log format ["[CBE] Drill movement ended group=%1 details=%2",_group,_failure];
+                _failureCommitted=true;
+            };
+            if (_failureCommitted) then {_result = _reason call _end} else {_result=0.25};
         };
         if (_arrived) then {
             if !(call _restoreFeatures) exitWith {_result=0.25};

@@ -4,7 +4,7 @@
   "sources": [
     {
       "path": "addons/infantry/functions/cortexFlankStep.sqf",
-      "sha256": "19407b918d99bc00ab5abbe8a295a5bbcf9de4c88ffcc9176ad90c9a2c07827c"
+      "sha256": "bed293c92fda504991eebc44555c7930ffbc5d2da906253236e1c1f2f7a87419"
     },
     {
       "path": "addons/infantry/functions/cortexFlankEnd.sqf",
@@ -58,8 +58,13 @@
     },
     {
       "area": "MOVE quorum and failure bookkeeping",
+      "status": "current-observation transactions",
+      "notes": "Quorum/viable-majority recovery, replacement preparation and failure feedback recheck committed progress/retries/arrivals/recovery, current MOVE identity, original deadline/waypoint metadata, actor native tasks and fresh arrival/blocked motion. Refusal defers; admitted failure alone invokes token-bound cleanup. Later arrived-phase side effects remain separate."
+    },
+    {
+      "area": "Arrived phase side effects",
       "status": "open",
-      "notes": "Later phase decisions still need current-context journal review; protected stage publication and immutable cleanup token do not make every local/public write atomic."
+      "notes": "Team pause/road-edge smoke/assault grenade/consolidation and subsequent phase journals require their own context review. Existing actor helper and stage-token guards are not proof of whole-branch authority."
     }
   ],
   "implementationChange": {
@@ -67,10 +72,10 @@
     "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
   },
   "validation": {
-    "tests": 1341,
-    "log": ".qa/cbe-manoeuvre-retry-observation-verified-build.log",
+    "tests": 1342,
+    "log": ".qa/cbe-manoeuvre-decision-commit-build.log",
     "exitCode": 0,
-    "packageFingerprint": "c4922f8da9edc2176b4d00a36fcb54bf65bebff2a5b165ea7585ec945b8f2d9d"
+    "packageFingerprint": "52a8aae9804bc86d19be597f8d2c7e1f69344b2900f59c39aa74292900db331a"
   },
   "physicalAcceptance": false,
   "performanceAccepted": false,
