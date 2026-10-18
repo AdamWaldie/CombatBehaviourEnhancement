@@ -408,3 +408,26 @@ class DrivingPassPlanTests(unittest.TestCase):
         initial=s.split('if !(_work get "issued") exitWith {',1)[1].split('if (_phase == "OUT"',1)[0]
         self.assertIn('[true,_work get "cap","OUT"]',initial)
         self.assertNotIn('call CBE_fnc_DrivingPassTraffic',initial)
+
+    def test_return_leg_observes_live_traffic_before_reporting_arrival(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        merge=s.split('if (_phase == "RETURN") exitWith {',1)[1].split('// OUT retains',1)[0]
+        self.assertEqual(merge.count('call CBE_fnc_DrivingPassTraffic'),1)
+        for check in ('RETURN_TRAFFIC_REFUSED','RETURN_COMBAT','RETURN_STALLED'):
+            self.assertLess(merge.index(check),merge.index('RETURN_COMPLETE'))
+            self.assertIn('["'+check+'",false] call _finish',merge)
+        self.assertIn('(_work get "activePath") apply {ATLToASL _x}',merge)
+        self.assertIn('["requiredTravel",_work get "legTravel"]',merge)
+        self.assertIn('serverTime-(_work get "lastAt") >= 15',merge)
+        self.assertIn('(_work get "lastDistance")-_distance >= 1',merge)
+        self.assertNotIn('set ["deadline",',merge)
+
+    def test_return_context_loss_cannot_continue_or_infer_abort_clearance(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        guard=s.split('if (_phase == "RETURN" &&',1)[1].split('private _issue=',1)[0]
+        for check in ('!_peerCurrent','!alive _peer','!_aligned'):
+            self.assertIn(check,guard)
+        self.assertIn('["RETURN_CONTEXT_CHANGED",false] call _finish',guard)
+        issue=s.split('private _issue=',1)[1].split('if (!(_work get "issued")',1)[0]
+        self.assertIn('["activePath",_path apply {+_x}]',issue)
+        self.assertIn('["legTravel",_travel]',issue)

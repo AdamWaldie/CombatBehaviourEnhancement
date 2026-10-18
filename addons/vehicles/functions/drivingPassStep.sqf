@@ -4,6 +4,8 @@
  * Locality/authority: Existing current ordinary-driving callback only. Exact epoch, generation,
  * route, crew, token and issued command receipts guard every fixed-path write. No speed writer:
  * the caller applies the returned cap with its unchanged traffic/pedestrian/geometry limits.
+ * RETURN rechecks corridor traffic and physical progress; changed peer context or blocked/stalled
+ * merge ends the owned path without automatically redirecting through an occupied lane.
  * Observed native STOP events end work without recall. Own setup carries an exact write fence.
  * Repeated identical STOP delivery and event timing require physical interruption QA.
  * Repeat/JIP: Original consent context and finite expiry must still match; its deadline never renews. Return begins only after measured hull
@@ -85,6 +87,9 @@ private _peerCurrent=_pairContext isNotEqualTo [] && {((_pairContext select 1) s
 if ((!_peerCurrent || {!alive _peer} || {!_aligned}) && {_phase in ["OUT","RETURN_SCAN","RETURN_READY"]}) then {
     _phase="DROP_BACK";_work set ["phase",_phase];
 };
+if (_phase == "RETURN" && {!_peerCurrent || {!alive _peer} || {!_aligned}}) exitWith {
+    ["RETURN_CONTEXT_CHANGED",false] call _finish
+};
 private _issue={
     params ["_path","_newPhase"];
     private _issued=false;
@@ -144,6 +149,7 @@ private _issue={
                 _work set ["command",+(expectedDestination _operator)];
                 _work set ["issued",true];_work set ["phase",_newPhase];
                 if (_newPhase == "OUT") then {_work set ["outPath",_path apply {+_x}]};
+                _work set ["activePath",_path apply {+_x}];_work set ["legTravel",_travel];
                 // Cleanup identity only: successors must never replay the old fixed path.
                 _vehicle setVariable ["CBE_DrivingPass_Leg",["PASS_LEG_V1",clientOwner,_group,
                     _work get "epoch",_work get "generation",_work get "token",_driver,_operator,
@@ -195,8 +201,23 @@ if (_phase == "RETURN_READY") exitWith {
     [true,_work get "cap","RETURN"]
 };
 if (_phase == "RETURN") exitWith {
+    // Merge-back remains a live manoeuvre, not unconditional travel until expiry.
+    private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
+        ["context",_pairContext],["observedAt",serverTime],
+        ["guideASL",(_work get "activePath") apply {ATLToASL _x}],
+        ["estimatedSeconds",((_work get "deadline")-serverTime) min 24],
+        ["requiredTravel",_work get "legTravel"]];
+    private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
+    if ((_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION"
+        || {_traffic getOrDefault ["blocked",true]}) exitWith {["RETURN_TRAFFIC_REFUSED",false] call _finish};
+    if (behaviour leader _group in ["COMBAT","STEALTH"]) exitWith {["RETURN_COMBAT",false] call _finish};
     private _target=_work get "target";
-    if (_vehicle distance2D _target <= 4 && {abs (((getPosATL _vehicle) select 2)-(_target select 2)) <= 2}) exitWith {["RETURN_COMPLETE",true] call _finish};
+    private _distance=_vehicle distance2D _target;
+    if ((_work get "lastDistance")-_distance >= 1) then {
+        _work set ["lastDistance",_distance];_work set ["lastAt",serverTime];
+    };
+    if (serverTime-(_work get "lastAt") >= 15) exitWith {["RETURN_STALLED",false] call _finish};
+    if (_distance <= 4 && {abs (((getPosATL _vehicle) select 2)-(_target select 2)) <= 2}) exitWith {["RETURN_COMPLETE",true] call _finish};
     [true,_work get "cap","RETURN"]
 };
 // OUT retains all caller collision caps. An obstruction never grants traffic-ignore time.
