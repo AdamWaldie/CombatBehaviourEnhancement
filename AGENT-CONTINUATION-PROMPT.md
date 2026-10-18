@@ -37,6 +37,10 @@ Paths below are relative to the WAIT root unless absolute. Private local materia
 - `C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708`: preserved Pinned Down material. Verify its manifest. Some missing original PBOs were recovered only as extracted snapshots.
 - Workshop `3623550024` and `3798063749`: evaluate across their whole AI scope. `3819636004`: Advanced Rappelling and CBA dependencies. Consult the ledger/register for the remaining IDs.
 
+## Latest local evidence - 18 October 2026
+
+Current full offline checkpoint: 1,267 tests, 326 production SQF and nine PBOs; `.qa/cbe-driving-exhaustion-checkpoint-build.log`, fingerprint `1619575c4f80ed058dfeb66434285551571319c5f7533d9b333329d3749a0ebb`. Resolve HEAD and live PR17 before continuing. Later dated handover entries supersede older counts below. Common operation/danger ownership and ordinary/tracked driving admission/cleanup repairs are implemented but physically unverified. All65 families remain partial. Audits remain paused. Next prioritize whole-HBQ execution gaps, queue/native capability and coherent CQB/combined-arms behaviour; do not infer completion from receipts or package checks.
+
 ## Current checkpoint and next work
 
 Latest local implementation includes aircraft loaded-state planning/release and selected weapon operator authority. The latest full Build passed 1,110 tests and all offline gates. Read the latest dated handover notes for intervening ground reload/convoy/source review work. The last signed Release is still `48a77bb`, with 1,089 tests. Logs are under `.qa/workshop-evaluation-20261016/`. Audits have not run for these changes.

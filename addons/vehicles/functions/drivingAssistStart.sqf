@@ -780,10 +780,22 @@ _brain set ["geometryTracks",_geometryTracks];
                             // Spent retries do not release traffic/terrain safety for this group.
                             // Persist stage four across adoption; only measured route progress or
                             // a new authored route may replenish the recovery episode.
-                            _recoveryResult="EXHAUSTED";_reverseIssued=false;
-                            _recoveryStage=4;
-                            _recoveryUntil=["EXHAUSTED"] call _recordRecovery;
-                            _recoveryTransitioned=true;
+                            private _exhaustedJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                            isNil {
+                                if (!(call _mayIssueDriving) || {!(call _mayRecoverOrdinaryRoute)}
+                                    || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+                                    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                                    || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+                                    || {count _exhaustedJournal == 0}
+                                    || {(_exhaustedJournal get "group") != _group}
+                                    || {(_exhaustedJournal get "route") isNotEqualTo _routeIdentity}
+                                    || {_exhaustedJournal getOrDefault ["releasePending",false]}
+                                    || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _exhaustedJournal}) exitWith {false};
+                                _recoveryResult="EXHAUSTED";_reverseIssued=false;
+                                _recoveryStage=4;
+                                _recoveryUntil=["EXHAUSTED"] call _recordRecovery;
+                                _recoveryTransitioned=true;
+                            };
                         };
                     };
                     if (_recoveryTransitioned) then {

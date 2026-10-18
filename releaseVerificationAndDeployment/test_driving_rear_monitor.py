@@ -4,6 +4,16 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 def src(n):return (ROOT/'addons/vehicles/functions'/f'{n}.sqf').read_text(encoding='utf-8')
 class DrivingRearMonitorTests(unittest.TestCase):
+    def test_exhaustion_cannot_create_or_replace_a_recovery_episode(self):
+        text=src('drivingAssistStart')
+        commit=text.split('private _exhaustedJournal=',1)[1].split('// Scheduled observations',1)[0]
+        for proof in ('isNil {','call _mayIssueDriving','call _mayRecoverOrdinaryRoute',
+                      'ownerEpoch','cancelled','finished','count _exhaustedJournal == 0',
+                      'releasePending','isNotEqualTo _exhaustedJournal'):
+            self.assertLess(commit.index(proof),commit.index('call _recordRecovery'))
+        self.assertNotIn('doMove',commit)
+
+
     def test_cap_and_restore_receipt_commit_together(self):
         text=src('drivingAssistStart')
         commit=text.split('private _capCommitted=false;',1)[1].split('if (!_capCommitted)',1)[0]
