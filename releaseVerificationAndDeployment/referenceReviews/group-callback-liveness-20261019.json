@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-19",
+  "scope": "Recurring infantry group FSM queued decision authority",
+  "finding": "A queued group decision could outlive its FSM before discovery replaces it. Owner epoch, map and generation alone do not prove a live executor.",
+  "implementation": "GroupBrainStep now requires a typed finite nonnegative live current FSM handle after exact map/generation checks and before cleanup or tactical decisions. Ended callbacks clear pending/completed only. Existing discovery replaces the recurring brain; no new worker, restart limit, deadline or command. Queue initialization deliberately does not require the handle before execFSM publishes it.",
+  "dangerAssessment": "DangerStep runs directly inside dangerAssessment.fsm, not through this queue; this change does not impose the queued startup rule on that direct call.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/groupBrainStep.sqf",
+      "sha256": "4937f93b013268f63664b4b91beebb7c8d849e4b54063ed942950601e3845783"
+    },
+    {
+      "path": "addons/infantry/functions/groupBrainStart.sqf",
+      "sha256": "f80539dd2223a418bc92c96ae964e37bfbf87058b1dba694bd6b52846969fcb2"
+    },
+    {
+      "path": "addons/infantry/functions/groupBrainQueue.sqf",
+      "sha256": "50dedfca133644d67aa7c72932a0a5a2ae9391f7bd56e1b0275789c5c806f830"
+    },
+    {
+      "path": "addons/core/functions/cortexDiscover.sqf",
+      "sha256": "0e17f230172264a14e2fc3a7ae82acac43cfa95a675640de95e2a398571b0377"
+    },
+    {
+      "path": "addons/main/fsm/groupTactics.fsm",
+      "sha256": "ad4e39ff0a362657903a688bf3959adafedc61c7a6e38bdaa6224b059c9d0431"
+    }
+  ],
+  "validation": {
+    "focusedTests": 607,
+    "focusedLog": ".qa/cbe-group-start-lifecycle-focused.log",
+    "hemttLog": ".qa/cbe-group-start-lifecycle-hemtt.log",
+    "newTestCases": 0,
+    "physical": "Unverified; audits paused. Full pipeline and new package deferred to coherent checkpoint.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-infantry-lifecycle-build.log",
+    "independentLog": ".qa/cbe-infantry-lifecycle-independent.log",
+    "packageFingerprint": "22a294ec5caaba51d4c6257e9310aa532bdf28ab9059e261c6ee91fdd4334a31",
+    "packageSource": "1d453c8c+dirty; unsigned development; not later clean commit"
+  },
+  "startup": "Start reports success only for a finite live FSM on the exact local owner epoch/generation/map. Failed admission cancels only that brain queue and clears managed on the exact retained context. No specialist cleanup or new restart observer; discovery retries the recurring brain."
+}

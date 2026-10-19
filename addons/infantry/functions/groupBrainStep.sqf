@@ -12,6 +12,8 @@
  * locality, generation, Zeus and external ownership before invoking existing bounded feature logic.
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
  * committed delay or a danger wake. A migrated or superseded callback records cancellation only.
+ * A callback whose FSM ended retires its queue flags without running decisions or cleanup;
+ * the existing discovery sweep owns replacement of the recurring group brain.
  * Arguments: 0: brain <HASHMAP> created by CBE_fnc_GroupBrainStart.
  * Return Value: Number - always -1 because each FSM step is a separate coalesced scheduler job.
  * Current caller: CBE_fnc_GroupBrainQueue through CBE_fnc_CortexQueueJob.
@@ -38,6 +40,14 @@ if (!local _group) exitWith {["OWNERSHIP_LOST"] call _cancel};
 if (_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])) exitWith {["OWNER_EPOCH"] call _cancel};
 if (_generation != (_group getVariable ["CBE_GroupBrain_Generation",0])
     || {(_group getVariable ["CBE_GroupBrain",createHashMap]) isNotEqualTo _brain}) exitWith {["SUPERSEDED"] call _cancel};
+// Queue delivery follows execFSM handle publication. An ended executor cannot own
+// this decision; discovery may replace it without this callback issuing handback commands.
+private _executor=_group getVariable ["CBE_GroupBrain_FSM",-1];
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {
+    _brain set ["pending",false];
+    _brain set ["completed",true];
+    -1
+};
 if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])) exitWith {["DISABLED"] call _cancel};
 if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};

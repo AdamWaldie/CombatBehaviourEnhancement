@@ -215,6 +215,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_GroupBrainStart',discover)
         self.assertNotIn('[CBE_fnc_CortexGroupTick,_groupJob',discover)
         self.assertIn('groupTactics.fsm',start)
+        admission=start[start.index('private _accepted='):]
+        for proof in ('finite _handle','!completedFSM _handle','CBE_AIPass_Epoch',
+                      'CBE_GroupBrain_Generation','isEqualTo _brain','FSM_START_FAILED'):
+            self.assertIn(proof,admission)
+        self.assertIn('if (_accepted) then {',admission)
+        self.assertIn('setVariable ["CBE_AIPass_Managed",false]',admission)
+        self.assertTrue(start.rstrip().endswith('_accepted'))
+
         self.assertIn('CBE_fnc_CortexQueueJob',queue)
         self.assertIn('CBE_fnc_GroupBrainStep',queue)
         self.assertIn('ownerEpoch',step)
@@ -222,6 +230,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexZeusHeld',step)
         self.assertIn('CBE_fnc_CortexExternalTakeover',step)
         self.assertIn('CBE_fnc_CortexGroupTick',step)
+        executor=step[step.index('private _executor='):step.index('if (!(missionNamespace')]
+        for proof in ('CBE_GroupBrain_FSM','finite _executor','completedFSM _executor',
+                      '_brain set ["pending",false]','_brain set ["completed",true]'):
+            self.assertIn(proof,executor)
+        for forbidden in ('call CBE_fnc_', 'execFSM', 'doMove', 'doStop', '"cancelled",true'):
+            self.assertNotIn(forbidden,executor)
+        self.assertLess(step.index('completedFSM _executor'),step.index('call CBE_fnc_CortexSupportMaintain'))
+        self.assertLess(step.index('completedFSM _executor'),step.index('call CBE_fnc_CortexGroupTick'))
+        self.assertNotIn('completedFSM',queue)
+
         for state in ['Calm','Contact','Support','Manoeuvre','Assault','Clear','Security','Withdraw']:
             self.assertIn('class '+state,fsm)
         self.assertIn('CBE_GroupBrain_Generation',fsm)
