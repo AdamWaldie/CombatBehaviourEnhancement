@@ -207,6 +207,33 @@ class DrivingBypassTests(unittest.TestCase):
                        'currentCommand _operator == "MOVE"','_was vectorDistance _now > 0.25',
                        '"NEW_NATIVE_ORDER"','(_commandYield param [0,-1]) == _revision'):
             self.assertIn(marker,tick)
+        # Own delayed acknowledgement consumes a fixed request, while unrelated moves,
+        # explicit stops and unacknowledged expiry still surrender the revision.
+        def admission(now, command, destination, old='A', goal='B', deadline=2, before='STOP'):
+            if command in ('','MOVE') and destination == goal:
+                return 'ACK'
+            if now <= deadline and destination == old and command in (before,'MOVE'):
+                return 'PENDING'
+            return 'YIELD'
+        for args, expected in [((1,'MOVE','B'),'ACK'),((1,'STOP','A'),'PENDING'),
+                               ((1,'MOVE','A'),'PENDING'),((1,'MOVE','C'),'YIELD'),
+                               ((3,'MOVE','A'),'YIELD'),((3,'','B'),'ACK'),
+                               ((1,'STOP','B'),'YIELD')]:
+            self.assertEqual(admission(*args),expected)
+        for proof in ('count _receipt in [6,7]','serverTime <= (_request select 1)',
+                      '_nativeNow isEqualTo (_receipt select 4)',
+                      '_position vectorDistance (_request select 0) <= 0.25',
+                      '_receipt resize 6','_ackProgress set [10',
+                      'NATIVE_ACK_TIMEOUT','!(_vehicle in _nativePendingVehicles)'):
+            self.assertIn(proof,tick)
+        self.assertEqual(tick.count('serverTime+2,_nativeTaskBefore'),2)
+        for goal in ('_destination','_recoveryTarget'):
+            writer=tick.index('_movementOperator doMove '+goal+';')
+            self.assertLess(tick.rfind('private _nativeBefore=',0,writer),writer)
+            self.assertIn('"NATIVE",[+'+goal+',serverTime+2,_nativeTaskBefore]',tick)
+        retire=(ROOT/'addons/vehicles/functions/convoyRetireMoveReceipt.sqf').read_text()
+        self.assertIn('count _receipt in [6,7]',retire)
+        self.assertIn('_position vectorDistance (_request select 0) <= 0.25',retire)
         crew=(ROOT/'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
         self.assertLess(crew.index('CBE_Convoy_CommandYield'),crew.index('CBE_Convoy_CrewDue'))
         release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()

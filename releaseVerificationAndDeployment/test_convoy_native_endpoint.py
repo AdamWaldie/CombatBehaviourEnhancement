@@ -75,7 +75,7 @@ class ConvoyNativeIssueEvidenceTests(unittest.TestCase):
 
     def test_straight_native_goal_keeps_planner_until_existing_approach_envelope(self):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
-        gate=text.split('private _nativeRoute=[_group]',1)[1].split('if (count _committedDestination < 2 || {_refreshNative}',1)[0]
+        gate=text.split('private _nativeRoute=[_group]',1)[1].split('if (!(_vehicle in _nativePendingVehicles)',1)[0]
         for guard in ('_straightPath','!_bypassPassageActive','_frontSpeed > 2',
                       '(_progress param [13,[],[[]]]) isEqualTo _nativeRoute',
                       'expectedDestination driver _vehicle','expectedDestination _movementOperator',
@@ -94,15 +94,17 @@ class ConvoyNativeIssueEvidenceTests(unittest.TestCase):
     def test_native_stop_yields_but_owned_fixed_path_stop_does_not(self):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
         gate=text.split('private _commandYield=',1)[1].split('call CBE_fnc_ConvoyCrewLocal',1)[0]
-        for guard in ('count _receipt == 6','(_receipt select 5) == "NATIVE"',
+        for guard in ('count _receipt in [6,7]','(_receipt select 5) == "NATIVE"',
                       'toUpperANSI currentCommand _operator == "STOP"','_phase != "HALT"',
                       '"NEW_NATIVE_ORDER"','(_commandYield param [0,-1]) == _revision'):
             self.assertIn(guard,gate)
-        self.assertEqual(text.count('+(expectedDestination _movementOperator),"NATIVE"],true]'),2)
+        self.assertEqual(text.count('serverTime+2,_nativeTaskBefore]],true]'),2)
+        self.assertIn('!_pendingNative && {isNull _diverted}',gate)
+        self.assertNotIn('serverTime+2',gate)
         self.assertEqual(text.count('+(expectedDestination _movementOperator),"STEERING"],true]'),1)
         helper=(ROOT/'addons/vehicles/functions/convoyRetireMoveReceipt.sqf').read_text(encoding='utf-8').split('params [[',1)[1]
         for guard in ('local _group','local _vehicle','local _driver','local _operator',
-                      'count _receipt == 6','(_receipt select 5) == "NATIVE"',
+                      'count _receipt in [6,7]','(_receipt select 5) == "NATIVE"',
                       'getOrDefault ["revision",-1]','(expectedDestination _operator) isEqualTo (_receipt select 4)'):
             self.assertIn(guard,helper)
         for forbidden in ('doStop','doMove','doFollow','setDriveOnPath','forceSpeed','enableAI','waitAndExecute'):
