@@ -31,6 +31,8 @@
  * Gunnery (CBE_AIPass_VehicleGunnery_Enable): a fresh mounted danger event may orient the exact
  * affected armed platform and request one safe suppression response against an already known hostile.
  * Captive, surrendering and handcuffed sources cannot authorize targeted danger responses.
+ * Mounted danger watch converts its ASL firing point back to AGL; suppressive fire
+ * retains ASL, so elevation does not offset the watch point a second time.
  * Danger suppression uses the effective commander's native believed contact position, never
  * the hidden enemy's exact aim position. An unavailable estimate cannot authorize suppression.
  * A stopped or slow armed vehicle whose primary gunner has been lost may ask an existing dedicated
@@ -543,7 +545,8 @@ if (_dangerDismount isNotEqualTo []) then {
                     private _aimPosition=(ATLToASL _believed) vectorAdd [0,0,1];
                     if (_believed isNotEqualTo [0,0,0]
                         && {[_gunner,_aimPosition] call CBE_fnc_CortexLineOfFireClear}) then {
-                        _gunner doWatch _aimPosition;
+                        // Watching consumes ground-relative position; suppression consumes ASL.
+                        _gunner doWatch (ASLToAGL _aimPosition);
                         _gunner doSuppressiveFire _aimPosition;
                         _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
                         _vehicle setVariable ["CBE_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];

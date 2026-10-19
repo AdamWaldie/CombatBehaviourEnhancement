@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-19",
+  "scope": "Actual driving executor before pass/queue consent",
+  "finding": "Owner consent checked local crew and authored route but not actual ordinary driving executor lifetime. QueueProposalCurrent compared a stored generation but an ended noncancelled FSM could still leave that map/public generation intact. Such an owner could promise participation without a callback able to apply a hold.",
+  "change": "Shared DrivingPassCanConsent now requires exact current group/epoch/generation/route, noncancelled/nonfinished brain, and a typed finite nonnegative current live FSM. Both PASS and QUEUE callers inherit this observation. No startup, restart, timer, claim, native command or cleanup is performed by admission.",
+  "callTiming": "Consent runs from existing driving callbacks or later owner protocol delivery, not FSM initialization. The driving handle is published by DrivingOperationStart before queued callbacks. A participant not yet adopted must wait for existing discovery rather than manufacture a controller from consent.",
+  "validation": {
+    "existingFocusedTests": 47,
+    "focusedLog": ".qa/cbe-driving-consent-executor-focused.log",
+    "hemttLog": ".qa/cbe-driving-consent-executor-hemtt.log",
+    "newTestCases": 0,
+    "package": "Full local pipeline and independent verification passed; precommit dirty-source artifact, not later clean commit.",
+    "physical": "Unverified; audits paused.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-vehicle-consent-watch-build.log",
+    "independentLog": ".qa/cbe-vehicle-consent-watch-independent.log",
+    "packageFingerprint": "9304f5d3b71145b42bffa161ee6648b1718a02045d01ef36d93ba72c5d29a188",
+    "packageSource": "6f0f6e15+dirty unsigned development"
+  },
+  "remaining": "No moving queue context, leaf reverse or parent clearance implemented. Automatic queue initiation stays disabled.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingPassCanConsent.sqf",
+      "sha256": "8c6e5cfc5961f036ffbd70e20f8677da15ab4fb3f89f2e6cb18737fc79672746"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+      "sha256": "5f9d84634a81fe78f734e3a9c9158a52d78be24a268fd776fd05c508e668f529"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassPrepare.sqf",
+      "sha256": "90474056465fcb0c033986de21b4c4fe9c1a17546e458acb050b513398ab6306"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingOperationStart.sqf",
+      "sha256": "87ba5fbd8a170d4417a319fbf5633f870d7ee68a97f93318079d4d67e059c825"
+    }
+  ]
+}

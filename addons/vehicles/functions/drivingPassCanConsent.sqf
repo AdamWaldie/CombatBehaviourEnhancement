@@ -10,6 +10,8 @@
  * while their unit commands and waypoint destinations remain unchanged.
  * PASS refuses live/malformed queue consent; QUEUE reuses ordinary eligibility without rejecting
  * its own agreement. QueueProposalCurrent independently refuses passing consent.
+ * Consent requires the current route/epoch/generation and actual live ordinary driving FSM;
+ * an ended or replaced executor cannot promise participation from a stale public marker.
  * Return: BOOL - local ordinary-route eligibility, never authority to execute a pass.
  * Current callers: DrivingPassPrepare, authenticated DrivingPassAgreementOwner verification
  * and DrivingQueueProposalCurrent actual-owner admission.
@@ -62,6 +64,18 @@ if (["CBE_DrivingRecovery_Work","CBE_DrivingBypass_Work","CBE_DrivingCorridor_Wo
 } >= 0) exitWith {false};
 // Consent cannot displace a newer direct driver/commander destination or native CBE.
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
+// A route/crew snapshot cannot promise a hold when its ordinary executor ended.
+// Check the actual local handle; public state/generation alone is not liveness.
+private _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];
+private _executor=_group getVariable ["CBE_Driving_FSM",-1];
+if (count _brain == 0 || {(_brain getOrDefault ["group",grpNull]) != _group}
+    || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+    || {(_brain getOrDefault ["generation",-1]) != (_group getVariable ["CBE_Driving_Generation",0])}
+    || {(_brain getOrDefault ["route",[]]) isNotEqualTo _route}
+    || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+    || {!(_executor isEqualType 0)} || {!finite _executor} || {_executor < 0}
+    || {completedFSM _executor}) exitWith {false};
+
 if !([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent) exitWith {false};
 private _index=currentWaypoint _group;
 if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};

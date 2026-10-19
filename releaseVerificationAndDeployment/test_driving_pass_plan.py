@@ -99,6 +99,12 @@ class DrivingPassPlanTests(unittest.TestCase):
                       'call CBE_fnc_CortexActorMoveReserved','call CBE_fnc_DrivingGateIntent',
                       'waypointTimeout','synchronizedTriggers'):
             self.assertIn(guard,consent)
+        executor=consent[consent.index('private _brain='):consent.index('if !([_group,_vehicle,_route]')]
+        for proof in ('CBE_Driving_FSM','CBE_Driving_Generation','CBE_AIPass_Epoch',
+                      'finite _executor','completedFSM _executor','isNotEqualTo _route'):
+            self.assertIn(proof,executor)
+        for forbidden in ('execFSM','setVariable','forceSpeed','doMove'):
+            self.assertNotIn(forbidden,executor)
         prepare=(ROOT/'addons/vehicles/functions/drivingPassPrepare.sqf').read_text()
         gate=prepare.split('private _remoteOwners=',1)[1].split('if (_phase == "SCANNING")',1)[0]
         self.assertIn('if (local _x) exitWith',gate)

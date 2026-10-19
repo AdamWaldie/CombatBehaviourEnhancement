@@ -7991,6 +7991,8 @@ class CortexOperations(unittest.TestCase):
         for marker in ['vehicleDangerReaction','_dangerGeneration','CBE_Danger_VehicleReaction',
                        'call CBE_fnc_CortexLineOfFireClear','doSuppressiveFire _aimPosition']:
             self.assertIn(marker,danger)
+        self.assertIn('_gunner doWatch (ASLToAGL _aimPosition)',danger)
+        self.assertNotIn('_gunner doWatch _aimPosition;',danger)
         suppression=danger.split('// An intact armed platform',1)[1].split('// Defensive smoke is independent',1)[0]
         for forbidden in ['CortexGroupMove','addWaypoint','forceSpeed','setVelocity']:
             self.assertNotIn(forbidden,suppression)
