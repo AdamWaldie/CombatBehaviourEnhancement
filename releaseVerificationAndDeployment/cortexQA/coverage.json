@@ -1415,6 +1415,7 @@
         "addons/infantry/functions/buildingExteriorCandidate.sqf",
         "addons/infantry/functions/buildingExteriorProposal.sqf",
         "addons/infantry/functions/cortexClearRelease.sqf",
+        "addons/infantry/functions/cortexClearSettingsRelease.sqf",
         "addons/core/functions/nativeOrderReceipt.sqf",
         "addons/infantry/functions/combatPairs.sqf",
         "addons/infantry/functions/zenClearModule.sqf",

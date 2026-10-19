@@ -448,20 +448,8 @@ private _delay=call {
                     _restore=_restore && {!([_group] call CBE_fnc_CortexExternalTakeover)};
                     _leader=[_group] call CBE_fnc_CortexGroupAnchor;
                     if (isNull _leader) then {_leader=leader _group};
+                    [_x,_group,_job get "generation",_brain get "ownerEpoch"] call CBE_fnc_CortexClearSettingsRelease;
                     if ([_x] call _actorAvailable) then {
-                        // Releasing an unchanged cap is separate from recalling formation.
-                        // A temporary curator hold keeps its new destination; direct player,
-                        // specialist and explicit external ownership still prohibit writes.
-                        private _releaseOwnedSettings=!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)
-                            && {!(currentCommand _x in ["ACTION","SCRIPTED","HEAL","REARM","REPAIR","REFUEL","SUPPORT","GET IN","GET OUT","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
-
-                        // Preserve edited settings while releasing unchanged CBE leases.
-                        if (_releaseOwnedSettings && {unitPos _x == "UP"} && {!isNil {_x getVariable "CBE_Cortex_ClearStance"}}) then {
-                            _x setUnitPos (_x getVariable ["CBE_Cortex_ClearStance","AUTO"]);
-                        };
-                        if (_releaseOwnedSettings && {!isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["CBE_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
-                            _x forceSpeed (_x getVariable ["CBE_Cortex_ClearForcedSpeed",-1]);
-                        };
                         // Native tasks keep movement ownership during terminal cleanup too.
                         // Releasing our unchanged settings must not cancel treatment, boarding
                         // or a specialist action with a formation recall.
@@ -487,9 +475,6 @@ private _delay=call {
                             };
                         };
                     };
-                    _x setVariable ["CBE_Cortex_ClearForcedSpeed",nil,true];
-                    _x setVariable ["CBE_Cortex_ClearAppliedSpeed",nil,true];
-                    _x setVariable ["CBE_Cortex_ClearStance",nil,true];
                     // A terminal stage is historical evidence, not an active watch lease.
                     // Retire only this generation/epoch; successor observations remain intact.
                     private _retiredWatch=_x getVariable ["CBE_Cortex_ClearExitWatch",[]];

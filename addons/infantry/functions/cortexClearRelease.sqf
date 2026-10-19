@@ -108,6 +108,7 @@ if (isNull _leader) then {_leader=leader _group};
             || {private _stage=_x getVariable ["CBE_Cortex_ClearReserve",[]]; count _stage == 3
                 && {(_stage select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])-1}
                 && {(_stage select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}};
+        [_x,_group,_releaseGeneration,_entryEpoch] call CBE_fnc_CortexClearSettingsRelease;
         private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
         private _taskFree=!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]);
         if (_ownedActor && {_free} && {_taskFree || {currentCommand _x == "JOIN"}}
@@ -127,12 +128,6 @@ if (isNull _leader) then {_leader=leader _group};
                 && {(_x getVariable ["CBE_Cortex_ClearExitWatchLocal",[]]) isEqualTo _exitWatch}) then {
                 _x doWatch objNull;
             };
-            if (_releaseOwnedSettings && {unitPos _x == "UP"} && {!isNil {_x getVariable "CBE_Cortex_ClearStance"}}) then {
-                _x setUnitPos (_x getVariable ["CBE_Cortex_ClearStance","AUTO"]);
-            };
-            if (_releaseOwnedSettings && {!isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}} && {abs ((getForcedSpeed _x)-(_x getVariable ["CBE_Cortex_ClearAppliedSpeed",getForcedSpeed _x])) <= 0.1}) then {
-                _x forceSpeed (_x getVariable ["CBE_Cortex_ClearForcedSpeed",-1]);
-            };
             private _issued=_movementTargets getOrDefault [netId _x,[]];
             private _destination=(expectedDestination _x) param [0,[]];
             private _movementOwned=currentCommand _x in ["","STOP"]
@@ -143,9 +138,6 @@ if (isNull _leader) then {_leader=leader _group};
                 _x doFollow _leader;
             };
         };
-        _x setVariable ["CBE_Cortex_ClearStance",nil,true];
-        _x setVariable ["CBE_Cortex_ClearForcedSpeed",nil,true];
-        _x setVariable ["CBE_Cortex_ClearAppliedSpeed",nil,true];
         private _retiredWatch=_x getVariable ["CBE_Cortex_ClearExitWatch",[]];
         if (count _retiredWatch == 3
             && {(_retiredWatch select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])-1}

@@ -147,6 +147,7 @@ private _passVehicles=[];
 } forEach units _group;
 // Completed clearance has no active operation/order, but native STOP survives migration.
 // Adopt the public hold receipt into this owner's generation without replaying movement.
+private _settingsGenerationBeforeAdopt=_group getVariable ["CBE_AIPass_ClearGeneration",0];
 private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
 if (count _clearHold == 4) then {
     private _actors=_clearHold select 3;
@@ -166,6 +167,22 @@ if (count _clearHold == 4) then {
     } else {
         _group setVariable ["CBE_Cortex_ClearHold",nil,true];
     };
+};
+// Adopt only the original finite settings-cleanup window, with no control replay.
+private _clearSettings=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
+if (_clearSettings isEqualType [] && {count _clearSettings == 4}) then {
+    private _typed=[0,1,2,3] findIf {!((_clearSettings select _x) isEqualType 0)
+        || {!finite (_clearSettings select _x)}} < 0;
+    if (_typed && {(_clearSettings select 0) == _settingsGenerationBeforeAdopt}
+        && {serverTime < (_clearSettings select 2)}
+        && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+        && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
+        private _adoptedSettings=+_clearSettings;
+        _adoptedSettings set [0,_group getVariable ["CBE_AIPass_ClearGeneration",0]];
+        _adoptedSettings set [1,_group getVariable ["CBE_AIPass_Epoch",0]];
+        _group setVariable ["CBE_Cortex_ClearSettingsPending",_adoptedSettings,true];
+    } else {_group setVariable ["CBE_Cortex_ClearSettingsPending",nil,true]};
 };
 // Retire inherited simple driving before the new owner resumes the durable escape route.
 private _reverseCleanup=_group getVariable ["CBE_VehicleReverse",[]];

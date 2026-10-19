@@ -95,7 +95,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/groupBrainStep.sqf",
-              "sha256": "ce0093fd8dde465ecf4f600cda67fd2e66c5bc3a65763045c082c644f9d72fb2"
+              "sha256": "b2848591cd02af3f641301f2c79e57f485875fddc91b417acb6c8a4e63f46548"
             },
             {
               "path": "addons/infantry/functions/dangerStep.sqf",
@@ -112,7 +112,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "15cbcba066701ca8ad7c48a5579697c007fc9668d278cebbfc91ce5e23eebe25"
+              "sha256": "f396cd79203656a5cf9125aaaf971e1630dfc7ae9be3c46b8334a317e41b9fda"
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
@@ -140,7 +140,8 @@
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44",
+      "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
     },
     {
       "id": "COMPAT",
@@ -3108,7 +3109,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
+              "sha256": "173bad8d8b2382a39493a44410d4646fdae6cf945497b4d07ab17f632bf9100c"
             }
           ]
         },
@@ -3121,7 +3122,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
+              "sha256": "173bad8d8b2382a39493a44410d4646fdae6cf945497b4d07ab17f632bf9100c"
             }
           ]
         },
@@ -3138,7 +3139,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
+              "sha256": "173bad8d8b2382a39493a44410d4646fdae6cf945497b4d07ab17f632bf9100c"
             }
           ]
         },
@@ -3151,7 +3152,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
+              "sha256": "173bad8d8b2382a39493a44410d4646fdae6cf945497b4d07ab17f632bf9100c"
             },
             {
               "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
@@ -3176,16 +3177,20 @@
           "capability": "Interruption, repeat and handback",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Generation-scoped interruption and exact movement/settings retirement are implemented.",
-          "remaining_build_gap": "Complete post-clear security/repeat lifecycle still needs refinement.",
+          "implemented": "Generation-scoped interruption, exact movement retirement and shared settings-only release with finite existing-brain retries are wired.",
+          "remaining_build_gap": "Complete post-clear security/repeat lifecycle and deferred settings release after brain shutdown or retry expiry remain unfinished.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearRelease.sqf",
-              "sha256": "fc871a7c34d3aa70ed310a01999e177ea7654270f2be02a20937b2f48ad9ab35"
+              "sha256": "f6e5efb48471a4803b529011f27e3bd983b9d130fc48e52efebd76f31083eb08"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
+              "sha256": "173bad8d8b2382a39493a44410d4646fdae6cf945497b4d07ab17f632bf9100c"
+            },
+            {
+              "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",
+              "sha256": "dd6702b73a2177bf560896dd5583ea4f94bbabc0e2149c60fcbad0d475f17a25"
             }
           ]
         }
@@ -3193,7 +3198,7 @@
       "confidence": "medium",
       "reviewed_at": "2026-10-19",
       "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44",
-      "review_note": "Reassessed after bounded egress allocation retry change on baseline0db65e6d plus working source; partial score retained because consolidation is unfinished."
+      "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
     },
     {
       "id": "UI",
@@ -3270,7 +3275,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "15cbcba066701ca8ad7c48a5579697c007fc9668d278cebbfc91ce5e23eebe25"
+              "sha256": "f396cd79203656a5cf9125aaaf971e1630dfc7ae9be3c46b8334a317e41b9fda"
             },
             {
               "path": "addons/core/functions/operationStep.sqf",
@@ -3336,7 +3341,8 @@
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44",
+      "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
     },
     {
       "id": "MULTI-FLANK",

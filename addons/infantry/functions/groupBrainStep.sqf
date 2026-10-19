@@ -39,6 +39,40 @@ if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])) exitWith {["DIS
 if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};
 
+// Finite post-clear settings retirement uses this existing callback, never a new worker.
+private _clearSettings=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
+if (_clearSettings isEqualType [] && {count _clearSettings == 4}) then {
+    private _valid=[0,1,2,3] findIf {!((_clearSettings select _x) isEqualType 0)
+        || {!finite (_clearSettings select _x)}} < 0;
+    if (!_valid || {(_clearSettings select 0) != (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
+        || {(_clearSettings select 1) != _epoch} || {serverTime >= (_clearSettings select 2)}) then {
+        _group setVariable ["CBE_Cortex_ClearSettingsPending",nil,true];
+    } else {
+        if ((_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []
+            && {count (_group getVariable ["CBE_BuildingBrain",createHashMap]) == 0}
+            && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+            private _settingsMembers=units _group;
+            if (count _settingsMembers <= 64) then {
+            private _pendingActors=_settingsMembers select {
+                !isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}
+                    || {!isNil {_x getVariable "CBE_Cortex_ClearStance"}}
+            };
+            if (_pendingActors isEqualTo []) then {
+                _group setVariable ["CBE_Cortex_ClearSettingsPending",nil,true];
+            } else {
+                if (count _pendingActors <= 64) then {
+                    private _cursor=(floor (_clearSettings select 3)) max 0;
+                    [_pendingActors select (_cursor mod count _pendingActors),_group,
+                        _clearSettings select 0,_epoch,false] call CBE_fnc_CortexClearSettingsRelease;
+                    _clearSettings set [3,_cursor+1];
+                    _group setVariable ["CBE_Cortex_ClearSettingsPending",_clearSettings,true];
+                };
+            };
+            };
+        };
+    };
+};
+
 // A native STOP survives a new waypoint. Release only our matching post-clear hold
 // when its author order changes, before ordinary tactical processing resumes.
 private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
