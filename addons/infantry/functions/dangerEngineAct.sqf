@@ -112,8 +112,8 @@ if (_mode == "HIDE" && {_cause in [5,6,7]} && {!_committedMover}
         _actor glanceAt _position;
     };
 };
-// A native own-group casualty source can identify a real body without a world scan.
-// Null/unknown sources retain the finite glance. The separate point owner revalidates admission.
+// A native own-group casualty source or bounded actual-death receipt can identify a body.
+// Missing/ambiguous corroboration retains the glance; the point owner revalidates admission.
 if (_mode == "HIDE" && {_cause == 5} && {!_committedMover}) then {
     private _body=_record param [3,objNull,[objNull]];
     if (["START",_actor,createHashMapFromArray [["body",_body],

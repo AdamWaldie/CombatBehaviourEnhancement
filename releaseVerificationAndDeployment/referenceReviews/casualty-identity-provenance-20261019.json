@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "b8a528ea",
+  "scope": "Casualty point identity when native source/group retention is absent",
+  "finding": "Point START required a non-null native corpse and its current group to equal the observer group. The reference body-check uses position-based corpse discovery; CBE needed original affiliation evidence without a global allDeadMen scan. Actual runtime frequency of missing source/detachment is not measured.",
+  "implementation": [
+    "Existing owner-local EntityKilled intake records at most eight body identities with original five-minute server expiries, independently of survivor-regroup enable. Duplicate bodies retain original expiry. No new handler or worker.",
+    "Point START evaluates cheap actor/feature/route/cooldown guards before bounded read-only identity resolution. A valid explicit dead own-group source takes priority.",
+    "Without a valid explicit source, exactly one recent recorded casualty within3m of a fresh native own-group casualty observation may corroborate identity even after group detachment. Ambiguous, expired, missing, living or hidden bodies refuse. No world-object query.",
+    "Death records never dispatch movement or manufacture hostile knowledge; the later native cause5 observation remains the engine trigger. Current body position samples establish actual movement coordinates.",
+    "Body hiding cancels an admitted approach; normal stop clears group history. Public identity receipts survive owner transfer without replaying movement or extending expiry. Existing point deadlines/acknowledgement/native-order cleanup remain unchanged."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/casualtyObservationSelect.sqf": "ca6593060dd7303a534a24e4835fa2d089a95b17fde1612578866fc69904764c",
+    "addons/infantry/functions/pointActorOperation.sqf": "a7874aa8774b4034c6e2e293954980a80bd8afd4e24b6564ca2fd434b1d6106e",
+    "addons/core/functions/cortexInit.sqf": "1697ce6ede56c5e2e4686b4f5c9f4609712c32b3abcc2d19da3efe5c5cc8ed61",
+    "addons/core/functions/cortexStop.sqf": "3993555bf925e6b7a423096c39af313382a8d2136c006e62d3e1393ff2b15e23",
+    "addons/infantry/functions/dangerEngineAct.sqf": "67d7491f465b289212557abd36c965562aac72c4bbb774dc2ceb33bdfb32b1ae"
+  },
+  "engineReference": "https://community.bistudio.com/wiki/Arma_3:_Mission_Event_Handlers#EntityKilled",
+  "engineEvidenceLimit": "Documentation describes actual killed-entity callback, not corpse group lifetime or observed source reliability in this scenario. Those remain live retest items.",
+  "validation": {
+    "fullBuild": ".qa/cbe-casualty-identity-build.log",
+    "tests": 1476,
+    "independentVerify": ".qa/cbe-casualty-identity-independent.log",
+    "fingerprint": "aca316fd5da19c4d7d917e856ffa083166e8f84c32bc91c4761bcbd9b05b9c6f",
+    "source": "b8a528ea+dirty unsigned development; not a later clean commit package",
+    "focused": ".qa/cbe-casualty-identity-focused.log",
+    "buildoutEvidence": "passed; scores unchanged"
+  },
+  "newHandlers": 0,
+  "newWorkers": 0,
+  "newWorldQueries": 0,
+  "newTestCases": 0,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Actual group availability at EntityKilled and source/group retention timing unverified.",
+    "Deaths while runtime was off, deleted original groups and casualties older than five minutes have no retrospective affiliation recovery.",
+    "Multiple coincident bodies without an explicit valid source remain ambiguous.",
+    "Native approach/visit, repeated encounters, normal/HC/JIP and runtime overhead still require physical measurement."
+  ]
+}

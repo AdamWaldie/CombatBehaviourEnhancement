@@ -7,7 +7,8 @@
  * Unacknowledged cancellation retains its public receipt for existing discovery/locality cleanup;
  * no replacement command or renewed deadline is inferred from unchanged pre-issue state.
  * Arguments: mode STRING START; actor OBJECT objNull; context/brain HASHMAP empty.
- * START context: body OBJECT, observed ARRAY (native event position); caller supplies cause 5 only.
+ * START context: optional body OBJECT objNull, observed ARRAY (native event position); engine caller supplies cause 5 only.
+ * A bounded actual-death identity receipt can corroborate a missing source or detached corpse group.
  * Other modes: QUEUE/STEP/FINISH/TRANSFER/REAP use the current brain; TRANSFER may use journal alone.
  * Return: BOOL for admission/cleanup, NUMBER -1 for one queued STEP.
  * Current callers: DangerEngineAct, pointActor FSM, CortexDiscover/Locality/Stop.
@@ -97,9 +98,7 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
 };
 if (_mode == "START") exitWith {
     private _body=_brain getOrDefault ["body",objNull];private _observed=_brain getOrDefault ["observed",[]];
-    if (!(_body isEqualType objNull) || {isNull _body} || {alive _body} || {!(_body isKindOf "CAManBase")}
-        || {!(_observed call _vector)} || {_body distance2D _observed > 3}
-        || {group _body != _group} || {_actor distance2D _body > 25} || {_actor distance2D _body < 2}
+    if (!(_body isEqualType objNull) || {!(_observed call _vector)}
         || {!(call _available)} || {currentCommand _actor != ""}
         || {getUnitState _actor in ["PLANNING","REPLAN","BUSY"]}
         || {[_actor] call CBE_fnc_CortexActorMoveReserved}
@@ -107,6 +106,8 @@ if (_mode == "START") exitWith {
         || {!isNull (_group getVariable ["CBE_PointActor_Actor",objNull])}
         || {serverTime < (_group getVariable ["CBE_PointActor_After",-1])}
         || {(_group getVariable ["CBE_AIPass_Epoch",0]) <= 0}) exitWith {false};
+    _body=[_actor,_observed,_body] call CBE_fnc_CasualtyObservationSelect;
+    if (isNull _body || {_actor distance2D _body > 25} || {_actor distance2D _body < 2}) exitWith {false};
     private _route=[_group] call CBE_fnc_NativeOrderReceipt;
     if (count _route != 2 || {(_route select 1) != -1}) exitWith {false};
     private _goal=getPosATL _body;private _goalASL=getPosASL _body;
@@ -165,7 +166,7 @@ if (!(call _available)
     || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_brain get "route")}
     || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo (_brain get "lease")}) exitWith {["PREEMPTED"] call _finish};
 private _body=_brain get "body";
-if (isNull _body || {alive _body} || {(getPosASL _body) vectorDistance (_brain get "goalASL") > 1}) exitWith {["BODY_CHANGED"] call _finish};
+if (isNull _body || {alive _body} || {isObjectHidden _body} || {(getPosASL _body) vectorDistance (_brain get "goalASL") > 1}) exitWith {["BODY_CHANGED"] call _finish};
 private _target=_brain get "target";
 if ((_brain get "phase") == "ISSUE") exitWith {
     if (currentCommand _actor != "" || {getUnitState _actor in ["PLANNING","REPLAN","BUSY"]}) exitWith {["NATIVE_TASK"] call _finish};

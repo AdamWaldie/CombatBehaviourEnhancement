@@ -18,7 +18,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | DECEL - Helicopter braking | 14 | 1 | 3 | `runDeceleration.sqf` | 0 | implemented_partial |
 | REGROUP - Survivor regroup | 9 | 0 | 2 | `runMechanics.sqf` | 0 | implemented_partial |
 | MEDICAL - Finite squad medical assistance | 4 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
-| CONTACT - Contact detection | 9 | 0 | 22 | `runContact.sqf`, `runCombat.sqf`, `runTacticalAssessment.sqf`, `runScheduler.sqf`, `runVehicleDrills.sqf` | 0 | implemented_partial |
+| CONTACT - Contact detection | 9 | 0 | 23 | `runContact.sqf`, `runCombat.sqf`, `runTacticalAssessment.sqf`, `runScheduler.sqf`, `runVehicleDrills.sqf` | 0 | implemented_partial |
 | POST - Post-contact search | 5 | 0 | 2 | `runMechanics.sqf`, `runContact.sqf` | 0 | implemented_partial |
 | FLANK - Flanking bounds | 8 | 0 | 6 | `runCombat.sqf` | 3 | implemented_partial |
 | CROSS - Road crossing | 1 | 0 | 1 | `runCrossing.sqf` | 0 | implemented_partial |

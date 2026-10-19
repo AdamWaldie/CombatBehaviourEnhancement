@@ -528,9 +528,19 @@ class CortexOperations(unittest.TestCase):
 
         point=source('pointActorOperation')
         start=point.split('if (_mode == "START") exitWith {',1)[1].split('private _current=',1)[0]
-        for guard in ('group _body != _group','_body distance2D _observed > 3','currentCommand _actor != ""',
+        for guard in ('CBE_fnc_CasualtyObservationSelect','currentCommand _actor != ""',
                       'CortexActorMoveReserved','CBE_PointActor_After','_route select 1','serverTime+12'):
             self.assertIn(guard,start)
+        identity=source('casualtyObservationSelect')
+        for guard in ('select [0,8]','_this distance2D _observed <= 3','group _this == _group || {_this in _known}',
+                      'count _candidates == 1','(_x select 2) <= (_x select 1)+300','!alive'):
+            self.assertIn(guard,identity)
+        for forbidden in ('allDeadMen','nearestObjects','doMove','setVariable'):
+            self.assertNotIn(forbidden,identity)
+        capture=source('cortexInit').split('addMissionEventHandler ["EntityKilled"',1)[1].split('CBE_fnc_CortexRegroupOnKill',1)[0]
+        for guard in ('!local _group','select [0,8]','count _casualties >= 8','serverTime+300','findIf {(_x select 0) == _unit} < 0'):
+            self.assertIn(guard,capture)
+        self.assertIn('"CBE_Danger_Casualties",nil,true',source('cortexStop'))
         self.assertEqual(point.count('["deadline",_deadline]'),1)
         step=point.split('if (_mode != "STEP") exitWith',1)[1]
         self.assertLess(step.index('completedFSM _handle'),step.index('_actor doMove'))

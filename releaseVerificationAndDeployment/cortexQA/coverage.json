@@ -412,7 +412,8 @@
         "addons/infantry/functions/cortexGroupAnchor.sqf",
         "addons/infantry/functions/cortexStaticSupport.sqf",
         "addons/infantry/functions/cortexStaticDeployStep.sqf",
-        "addons/infantry/functions/pointActorOperation.sqf"
+        "addons/infantry/functions/pointActorOperation.sqf",
+        "addons/infantry/functions/casualtyObservationSelect.sqf"
       ]
     },
     {
