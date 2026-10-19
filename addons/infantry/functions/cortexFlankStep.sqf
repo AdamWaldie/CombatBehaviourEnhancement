@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Group attack permission is acquired through OperationAttackPolicy; a refused or changed
+ * policy ends admission rather than allowing unowned autonomous attack delegation.
  * Progress: bound approach and physical motion use ASL3D; arrival and recovery rejoin also
  * require the destination floor band. Recovery selects a real eligible peer, preferring its buddy,
  * rather than an average position between floors. Legacy progress conversion retains clocks.
@@ -179,22 +181,9 @@ private _mayIssueMovement = {
 // ends the drill rather than being forced back on every callback.
 private _movementOperation=_group getVariable ["CBE_Operation",createHashMap];
 if (_operationGeneration >= 0 && {(_movementOperation getOrDefault ["generation",-1]) == _operationGeneration}) then {
-    private _restore=_movementOperation getOrDefault ["restore",createHashMap];
-    private _attackLease=_restore getOrDefault ["groupAttack",[]];
-    if (_attackLease isEqualTo []) then {
-        private _delegates=units _group;
-        if (count _delegates <= 64 && {_delegates findIf {
-            isPlayer _x || {!isNull remoteControlled _x}
-                || {([_x] call CBE_fnc_CortexExternalOwner) != ""}
-                || {[_x] call CBE_fnc_CompatibilityExternalControl}
-        } < 0}) then {
-            _restore set ["groupAttack",[attackEnabled _group,false]];
-            _movementOperation set ["restore",_restore];
-            _group setVariable ["CBE_Operation",_movementOperation,true];
-            _group enableAttack false;
-        };
-    } else {
-        if (attackEnabled _group != (_attackLease select 1)) then {_operationEndReason="ATTACK_POLICY_CHANGED"};
+    private _policy=[_group,_movementOperation,false] call CBE_fnc_OperationAttackPolicy;
+    if !(_policy in ["ACQUIRED","OWNED"]) then {
+        _operationEndReason=if (_policy == "POLICY_CHANGED") then {"ATTACK_POLICY_CHANGED"} else {"ATTACK_POLICY_REFUSED"};
     };
 };
 if (_operationEndReason != "") exitWith {_operationEndReason call _end};

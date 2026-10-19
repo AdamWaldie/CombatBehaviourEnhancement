@@ -31,7 +31,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
 
     def test_operation_edits_preserve_current_map_and_actor_marker_rechecks_native_leg(self):
         text=clear()
-        self.assertIn('(_liveOperation get "restore") set ["groupAttack",[_baseAttack,false]]',text)
+        self.assertIn('[_group,_liveOperation,false,_originalPolicy] call CBE_fnc_OperationAttackPolicy',text)
         for field in ('participantPlatforms','participants','participantProgress','phase'):
             self.assertIn('_liveOperation set ["'+field+'"',text)
         self.assertNotIn('_operation set ["participants"',text)

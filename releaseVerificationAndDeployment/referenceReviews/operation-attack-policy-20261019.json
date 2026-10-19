@@ -1,0 +1,50 @@
+{
+  "baseline": "3673b78e",
+  "scope": "Common operation setting acquisition integrated into clearance and infantry manoeuvres",
+  "source_sha256": {
+    "addons/core/functions/operationAttackPolicy.sqf": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "5094eaca42db4bcd70d7270561364221ea9bf6adfb6cd0a11c220a761b378336",
+    "addons/infantry/functions/cortexFlankStep.sqf": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+  },
+  "findings": [
+    "Two policy acquisition paths had different actor/locality checks.",
+    "Clearance captured durable baseAttack before OperationStart retired a predecessor, while the new receipt must use the actual post-retirement baseline.",
+    "A matching operation receipt must be read-only on repeated calls and must not reapply a changed native policy."
+  ],
+  "source_intent": [
+    {
+      "workshop": "1858075458",
+      "source": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+      "lines": "31-65",
+      "contribution": "Existing busy native destinations are retained; avoid reissuing controls as a substitute for ownership. This policy helper does not implement or claim LAMBS building-entry parity.",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf"
+    },
+    {
+      "workshop": "3812620045",
+      "source": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "lines": "153-196",
+      "contribution": "Separate temporary hold and release intent; unconditional forceSpeed -1 reset is not a reusable original-baseline contract. No protected source is modified and no vehicle policy is changed by this batch.",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+    }
+  ],
+  "cost": "One synchronous call, at most64 member eligibility checks plus existing ownership predicates; repeated calls issue no native command/public receipt update. No geometry, global scan or new worker. Runtime cost unmeasured.",
+  "remaining": [
+    "shared actor speed/posture lease ownership",
+    "finite blocked release retention after brain shutdown",
+    "same-value external policy edits are ambiguous",
+    "physical owner migration, interruption, repeated CQB flow and measured overhead"
+  ],
+  "validation": {
+    "status": "full offline build passed",
+    "tests": 1453,
+    "compiled_sqf": 336,
+    "pbos": 9,
+    "log": ".qa/cbe-operation-policy-foundation-build.log",
+    "independent_verify": true,
+    "unsigned_fingerprint": "e0901565d9eaf2dd04c2daf283cefe8673ab7015aac20534fdc5b794c54d1783",
+    "manifest_commit": "3673b78e06cb91b8524dd7d6560adb104f6e2d26",
+    "manifest_dirty": true,
+    "physical_acceptance": false
+  },
+  "progress": "Existing build-out scores unchanged; referenced caller criteria reassessed to include the shared implementation dependency."
+}

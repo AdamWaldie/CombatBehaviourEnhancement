@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Group attack permission is acquired through OperationAttackPolicy; a refused or changed
+ * policy ends admission rather than allowing unowned autonomous attack delegation.
  * Egress adoption preserves original allocation attempt counts and retry times; it never grants a fresh budget.
  * Repeat/JIP: A fresh task replaces the prior episode only after admission checks. A matching
  * owner resume retains original deadlines, shared room coverage and validated individual visit
@@ -486,25 +488,33 @@ if (!_resume) then {
             (expectedDestination _x) apply {if (_x isEqualType []) then {+_x} else {_x}},formLeader _x]
     };
 };
-// Suppress only competing autonomous group attack assignment during the clear. Native
-// targeting, weapons and suppression remain enabled. Mixed specialist/player groups retain
-// their command policy; only ordinary groups acquire this exact-owned reversible setting.
+// Acquire the shared permission receipt only inside this preparation's current authority.
+// A resumed durable task retains its original baseline; repeated acquisition cannot replace it.
+private _attackPolicyReady=false;
 [{
     params ["_liveOperation"];
-    private _delegationMembers=units _group;
-    if (count _delegationMembers <= 64
-        && {_delegationMembers findIf {isPlayer _x || {[_x] call CBE_fnc_CompatibilityExternalControl}} < 0}
-        && {!([_group] call CBE_fnc_CortexExternalTakeover)}
-        && {((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["generation",-1]) == (_operation get "generation")}
-        && {(_operation get "ownerEpoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
-        (_liveOperation get "restore") set ["groupAttack",[_baseAttack,false]];
-        _group setVariable ["CBE_Operation",_liveOperation,true];
-        _group enableAttack false;
+    private _originalPolicy=if (_resume) then {[_baseAttack]} else {[]};
+    private _policy=[_group,_liveOperation,false,_originalPolicy] call CBE_fnc_OperationAttackPolicy;
+    _attackPolicyReady=_policy in ["ACQUIRED","OWNED"];
+    if (_attackPolicyReady) then {
+        _baseAttack=((_liveOperation get "restore") get "groupAttack") select 0;
+        // OperationStart may restore an outgoing task. Persist the actual acquired baseline,
+        // not the policy observed before that predecessor was retired.
+        private _ownedClearOrder=+(_group getVariable ["CBE_AIPass_ClearOrder",[]]);
+        if (count _ownedClearOrder == 14 && {(_ownedClearOrder select 8) != _baseAttack}) then {
+            _ownedClearOrder set [8,_baseAttack];
+            _group setVariable ["CBE_AIPass_ClearOrder",_ownedClearOrder,true];
+        };
+        // Initial owner adoption may reset replay markers; this admitted operation owns them.
+        _group setVariable ["CBE_AIPass_ClearApplied",true];
+        _group setVariable ["CBE_AIPass_ClearBuilding", true, true];
     };
-    // Initial owner adoption may reset replay markers; this successfully created job now owns them.
-    _group setVariable ["CBE_AIPass_ClearApplied",true];
-    _group setVariable ["CBE_AIPass_ClearBuilding", true, true];
 }] call _commitPreparation;
+if (!_attackPolicyReady) exitWith {
+    // A replaced preparation cannot retire its successor. The commit gate repeats its proof.
+    [{[_group,false] call CBE_fnc_CortexClearRelease}] call _commitPreparation;
+    ["ATTACK_POLICY_REFUSED"] call _refuse
+};
 private _entries=[];
 private _securityEntries=[];
 for "_exitIndex" from 0 to 15 do {

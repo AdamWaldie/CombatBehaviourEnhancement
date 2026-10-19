@@ -1478,7 +1478,8 @@
         "addons/core/functions/operationStep.sqf",
         "addons/core/functions/operationCancel.sqf",
         "addons/core/functions/operationRelease.sqf",
-        "addons/core/functions/operationRestore.sqf"
+        "addons/core/functions/operationRestore.sqf",
+        "addons/core/functions/operationAttackPolicy.sqf"
       ]
     },
     {

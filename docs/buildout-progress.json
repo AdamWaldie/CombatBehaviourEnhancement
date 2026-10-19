@@ -758,7 +758,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },
@@ -771,11 +775,15 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
             },
             {
               "path": "addons/infantry/functions/recoveryStep.sqf",
               "sha256": "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         }
@@ -815,7 +823,11 @@
             },
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },
@@ -828,7 +840,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         }
@@ -2569,7 +2585,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },
@@ -2582,7 +2602,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         }
@@ -2622,7 +2646,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },
@@ -3054,11 +3082,15 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "2f4e9a39513e4409c837c6d4521117e266317ffad52e9bc2bef8f85b42b0ae1d"
+              "sha256": "5094eaca42db4bcd70d7270561364221ea9bf6adfb6cd0a11c220a761b378336"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStart.sqf",
               "sha256": "85540c4799f3dba472a674071f5dbf7daceed3900482d502c4fe5aee5b616d30"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },
@@ -3071,11 +3103,15 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "2f4e9a39513e4409c837c6d4521117e266317ffad52e9bc2bef8f85b42b0ae1d"
+              "sha256": "5094eaca42db4bcd70d7270561364221ea9bf6adfb6cd0a11c220a761b378336"
             },
             {
               "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
               "sha256": "a4914fa0a102f855ba26a78f7248365c4235e8da62673fd9ad2d4428216861cc"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },
@@ -3358,7 +3394,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },
@@ -3411,7 +3451,11 @@
             },
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },
@@ -3538,7 +3582,11 @@
             },
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+              "sha256": "f43a6e08f42f1e77a2a5aaf6103c5ef4bfabbf19abb78182a88a05661536ec54"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
             }
           ]
         },

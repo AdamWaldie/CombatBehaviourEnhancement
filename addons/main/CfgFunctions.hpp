@@ -167,6 +167,7 @@ class CfgFunctions {
             class OperationCancel {file = "\z\cbe\addons\core\functions\operationCancel.sqf";};
             class OperationRelease {file = "\z\cbe\addons\core\functions\operationRelease.sqf";};
             class OperationRestore {file = "\z\cbe\addons\core\functions\operationRestore.sqf";};
+            class OperationAttackPolicy {file = "\z\cbe\addons\core\functions\operationAttackPolicy.sqf";};
             class CombatPairs {file = "\z\cbe\addons\infantry\functions\combatPairs.sqf";};
             class RebalanceRoles {file = "\z\cbe\addons\infantry\functions\rebalanceRoles.sqf";};
             class RecoveryStep {file = "\z\cbe\addons\infantry\functions\recoveryStep.sqf";};

@@ -253,8 +253,8 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
 | Avenue and successive bound route | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexSelectAvenue](../addons/infantry/functions/cortexSelectAvenue.sqf); [cortexFlankStart](../addons/infantry/functions/cortexFlankStart.sqf) |
-| Moving/covering pair execution | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
-| Recovery and final consolidation | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Straggler continuation and coherent final consolidation still need refinement. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [recoveryStep](../addons/infantry/functions/recoveryStep.sqf) |
+| Moving/covering pair execution | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
+| Recovery and final consolidation | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Straggler continuation and coherent final consolidation still need refinement. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [recoveryStep](../addons/infantry/functions/recoveryStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
@@ -265,8 +265,8 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
 | Road edge/crossing route markers | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexPlanRoute](../addons/infantry/functions/cortexPlanRoute.sqf) |
-| Bounded smoke/preparation | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexThrowGrenade](../addons/infantry/functions/cortexThrowGrenade.sqf); [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
-| Near/far movement under existing drill | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
+| Bounded smoke/preparation | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexThrowGrenade](../addons/infantry/functions/cortexThrowGrenade.sqf); [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
+| Near/far movement under existing drill | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
@@ -615,8 +615,8 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
 | Fresh target and pair admission | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexAssaultStart](../addons/infantry/functions/cortexAssaultStart.sqf) |
-| Preparation and native clear-through | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
-| Coherent follow-through/consolidation | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Pair flow and post-assault consolidation remain partially refined. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
+| Preparation and native clear-through | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
+| Coherent follow-through/consolidation | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Pair flow and post-assault consolidation remain partially refined. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
@@ -627,7 +627,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
 | Authored objective and tactical assessment | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexAdvanceStart](../addons/infantry/functions/cortexAdvanceStart.sqf); [cortexTacticalAssess](../addons/infantry/functions/cortexTacticalAssess.sqf) |
-| Finite moving/covering teams | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
+| Finite moving/covering teams | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
 | Casualty/straggler continuation | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Complete continuation without stranded actors remains unfinished. [rebalanceRoles](../addons/infantry/functions/rebalanceRoles.sqf); [recoveryStep](../addons/infantry/functions/recoveryStep.sqf) |
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
@@ -723,8 +723,8 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
-| Clear task and operation ownership | 1 / 1 | Explicit task dispatch, generation and owner-local operation are wired. [cortexClearBuilding](../addons/infantry/functions/cortexClearBuilding.sqf); [buildingOperationStart](../addons/infantry/functions/buildingOperationStart.sqf) |
-| Dynamic building topology and access | 0.5 / 1 | Runtime entrances, nodes and bounded selection exist. Remaining: Reliable classification of inaccessible modded points and general through-building routing remain unfinished. [cortexClearBuilding](../addons/infantry/functions/cortexClearBuilding.sqf); [indoorActorNodeSelect](../addons/infantry/functions/indoorActorNodeSelect.sqf) |
+| Clear task and operation ownership | 1 / 1 | Explicit task dispatch, generation and owner-local operation are wired. [cortexClearBuilding](../addons/infantry/functions/cortexClearBuilding.sqf); [buildingOperationStart](../addons/infantry/functions/buildingOperationStart.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
+| Dynamic building topology and access | 0.5 / 1 | Runtime entrances, nodes and bounded selection exist. Remaining: Reliable classification of inaccessible modded points and general through-building routing remain unfinished. [cortexClearBuilding](../addons/infantry/functions/cortexClearBuilding.sqf); [indoorActorNodeSelect](../addons/infantry/functions/indoorActorNodeSelect.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
 | Individual native interior movement | 1 / 1 | Finite native movement, command context, progress and cancellation paths are wired. [indoorActorOperation](../addons/infantry/functions/indoorActorOperation.sqf); [indoorActorDispatch](../addons/infantry/functions/indoorActorDispatch.sqf) |
 | Buddy and pair flow | 0.5 / 1 | Pair assignment, progress and follow-through paths exist. Remaining: Coherent concurrent entry and straggler handling still require logic refinement. [combatPairs](../addons/infantry/functions/combatPairs.sqf); [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf) |
 | Casualty replenishment | 0.5 / 1 | Survivor/pair replacement and role safeguards exist. Remaining: Whole-pair replacement continuity and relief of failed assaulters remain incomplete. [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf) |
@@ -766,7 +766,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
-| Independent local manoeuvre executors | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
+| Independent local manoeuvre executors | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
 | Complementary squad lanes | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Complete lane convergence and conflict resolution remain unfinished. [cortexSupportCoordinateStep](../addons/support/functions/cortexSupportCoordinateStep.sqf) |
 | Cross-squad continuation/relief | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: All multi-squad casualty and retasking transitions are not implemented. [cortexSupportMaintain](../addons/support/functions/cortexSupportMaintain.sqf) |
 
@@ -778,7 +778,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
-| Within-squad pair movement/cover | 1 / 1 | Scoped production path is wired in the referenced implementation. [combatPairs](../addons/infantry/functions/combatPairs.sqf); [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
+| Within-squad pair movement/cover | 1 / 1 | Scoped production path is wired in the referenced implementation. [combatPairs](../addons/infantry/functions/combatPairs.sqf); [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
 | Cross-squad finite turn allocation | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexSupportCoordinateStep](../addons/support/functions/cortexSupportCoordinateStep.sqf) |
 | Complete role exchange/recovery composition | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Cross-squad readiness and casualty continuity remain partial. [cortexSupportMaintain](../addons/support/functions/cortexSupportMaintain.sqf); [recoveryStep](../addons/infantry/functions/recoveryStep.sqf) |
 
@@ -803,7 +803,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
 | Explicit phase/stage and terminal outcomes | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexSetPhase](../addons/infantry/functions/cortexSetPhase.sqf); [cortexDrillSetStage](../addons/infantry/functions/cortexDrillSetStage.sqf) |
-| Generation-bound deferred effects | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexThrowGrenade](../addons/infantry/functions/cortexThrowGrenade.sqf); [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf) |
+| Generation-bound deferred effects | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexThrowGrenade](../addons/infantry/functions/cortexThrowGrenade.sqf); [cortexFlankStep](../addons/infantry/functions/cortexFlankStep.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
 | Complete cross-operation chaining | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Broader combined-operation/subcontact retasking remains unfinished. [cortexGroupTick](../addons/infantry/functions/cortexGroupTick.sqf) |
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
