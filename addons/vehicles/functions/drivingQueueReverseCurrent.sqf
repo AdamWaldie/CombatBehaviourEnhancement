@@ -1,8 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Observe an acknowledged queue reverse or bound crossing path without weakening admission.
- * CROSSING requires explicit root binding and a frozen path; current code does not produce
- * that grant yet. Only its exact QUEUE path journal can substitute owned root task receipts.
+ * CROSSING requires explicit root binding and a frozen path installed by every owner.
+ * Only its exact QUEUE path journal can substitute owned root task receipts.
  * All yielding rows remain stopped at their original bounded reverse poses; no completion credit.
  * Locality/authority: Read-only server or participant owner. The caller must already own an
  * authenticated moving phase; this observation never grants a phase or issues native work.

@@ -1579,7 +1579,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingBypassStep.sqf",
-              "sha256": "9a07e35f6a8261878132f39e2f144d16beacf2c057dc77988135bc99ba905f0e"
+              "sha256": "a6e3072ce926e361dc7162f14a95f53b9740f2be3d58a99afdce198276b65952"
             },
             {
               "path": "addons/vehicles/functions/drivingCorridorStep.sqf",
@@ -1617,11 +1617,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "5e9e630dfc93e67e8126329cfc42369e70fff34e08a5092c8f531b9e0669e1f2"
+              "sha256": "9ae99b8f6a0ae32917e334c4204f26ca9f583293fd0f561e25570e9dc690ec9a"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "2a4804a8fb1307ede38ccd78224f5216eb3da2ffeb732e4268fd61619f3abf27"
+              "sha256": "ff68adb3ce9701b89970c6908ad6da6c9e73b97ae012380c7d65a71fc674a977"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueContext.sqf",
@@ -1650,7 +1650,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "2a4804a8fb1307ede38ccd78224f5216eb3da2ffeb732e4268fd61619f3abf27"
+              "sha256": "ff68adb3ce9701b89970c6908ad6da6c9e73b97ae012380c7d65a71fc674a977"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
@@ -1662,11 +1662,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
-              "sha256": "8e9a09bc708360e007b6089e21a06b35ae038850aa8f968aac5d1298c46fedb8"
+              "sha256": "b2379d6b3abe62fe91ef2c103866431fe787054325d1b37da76bb6bc2e2d506b"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "5e9e630dfc93e67e8126329cfc42369e70fff34e08a5092c8f531b9e0669e1f2"
+              "sha256": "9ae99b8f6a0ae32917e334c4204f26ca9f583293fd0f561e25570e9dc690ec9a"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",

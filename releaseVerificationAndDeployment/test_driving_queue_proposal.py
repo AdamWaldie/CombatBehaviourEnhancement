@@ -98,6 +98,22 @@ class QueueProposalTests(unittest.TestCase):
             self.assertIn(proof,reply)
         self.assertNotIn('"EXECUTE"',reply)
         self.assertNotIn('set ["executionGranted"',reply)
+        cross_grant=owner.split('if (_mode in ["CROSS_ARM","CROSS_EXECUTE"]) exitWith {',1)[1].split('// An installed motion phase',1)[0]
+        for proof in ('_tokenClosed','_sameCross','_root in _owned','crossingPlanReceipt',
+                      '"crossingBinding",_crossBinding','"executionGranted",false',
+                      '"crossingGranted",_mode == "CROSS_EXECUTE"',
+                      '["CROSS_ARMED",[_token,_currentPhase,_descriptor select 1]]',
+                      'holdApplied','_linear >= 0.1','call CBE_fnc_DrivingQueueReverseCurrent'):
+            self.assertIn(proof,cross_grant)
+        for forbidden in ('setDriveOnPath','sendSimpleCommand','forceSpeed','waitAndExecute','set ["expires"'):
+            self.assertNotIn(forbidden,cross_grant)
+        armed=server.split('if (_mode == "CROSS_ARMED") exitWith {',1)[1].split('if (_mode == "ROOM")',1)[0]
+        for proof in ('_payload select [1,2]','_armed pushBackUnique _sender',
+                      'count _armed == count (_record get "owners")','crossingExecuteSent',
+                      'owner (_vehicles select 0)','call _current'):
+            self.assertIn(proof,armed)
+        self.assertNotIn('call _scheduleExpiry',armed)
+        self.assertIn('_crossingInstalled',owner)
         # Every dependency leg retains the original context/expiry, and needs all
         # owner acknowledgements for its own phase before the selected mover executes.
         for proof in ('_roomPhase != (_record getOrDefault ["phaseSerial",0])',

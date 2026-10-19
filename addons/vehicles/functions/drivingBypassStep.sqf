@@ -3,7 +3,8 @@
  * Purpose: Runs a finite ordinary/convoy-lead bypass or explicitly granted queue crossing through the existing controller.
  * QUEUE requires a private current CROSSING grant and frozen proposal. It rechecks path
  * geometry at issue, keeps original queue expiry, and holds at measured tail clearance.
- * No producer currently activates that grant; server handback integration remains required.
+ * Server grants require all-owner phase installation; driving callback dispatch and
+ * coordinated handback integration remain required before this controller is activated.
  * Locality / Authority: Internal synchronous owner callback only. Current driving brain and the
  * caller's fresh authority predicate and internal plain-route/crew gates protect every command. Never remote.
  * New PLAN acquisition preserves native STOP/FOLLOW/ATTACK/unowned CBE on either seat;

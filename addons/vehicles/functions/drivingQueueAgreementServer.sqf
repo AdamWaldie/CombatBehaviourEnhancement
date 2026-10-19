@@ -10,13 +10,13 @@
  * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM/CROSS_PLANNED;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation]; CROSS_PLANNED=[token,root,phaseSerial,requestSerial,[valid,reason]].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM/CROSS_PLANNED/CROSS_ARMED;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation]; CROSS_PLANNED=[token,root,phaseSerial,requestSerial,[valid,reason,optional pathASL,optional poses]]; CROSS_ARMED=[token,phaseSerial,planSerial].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
  * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED","HELD","ROOM","CROSS_PLANNED"])}) exitWith {false};
+if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED","HELD","ROOM","CROSS_PLANNED","CROSS_ARMED"])}) exitWith {false};
 private _sender=remoteExecutedOwner;
 private _registry=localNamespace getVariable ["CBE_DrivingQueue_Agreements",createHashMap];
 localNamespace setVariable ["CBE_DrivingQueue_Agreements",_registry];
@@ -111,7 +111,7 @@ if (_mode == "BEGIN") exitWith {
     {["VERIFY",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _owners;
     true
 };
-private _payloadCount=if (_mode == "ROOM") then {6} else {if (_mode == "CROSS_PLANNED") then {5} else {[1,2] select (_mode in ["ACK","READY","HELD","ARMED"])}};
+private _payloadCount=if (_mode == "ROOM") then {6} else {if (_mode == "CROSS_PLANNED") then {5} else {if (_mode == "CROSS_ARMED") then {3} else {[1,2] select (_mode in ["ACK","READY","HELD","ARMED"])}}};
 if (count _payload != _payloadCount || {!((_payload select 0) isEqualType "")}) exitWith {false};
 private _token=_payload select 0;private _record=_registry getOrDefault [_token,createHashMap];
 if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {false};
@@ -157,15 +157,46 @@ if (_mode == "CROSS_PLANNED") exitWith {
         || {_planSerial != (_record getOrDefault ["crossingPlanRequested",0])}
         || {(_record getOrDefault ["movingIndex",-1]) != 1}
         || {(_record get "phase") != "AGREED"} || {serverTime >= (_record get "expires")}
-        || {!(_result isEqualType [])} || {count _result != 2}
+        || {!(_result isEqualType [])} || {!(count _result in [2,4])}
         || {!((_result select 0) isEqualType true)} || {!((_result select 1) isEqualType "")}
         || {!([_record] call _current)}) exitWith {false};
     if (_planSerial <= (_record getOrDefault ["crossingPlanReplied",0])) exitWith {true};
     _record set ["crossingPlanReplied",_planSerial];
     _record set ["crossingPlanObservation",[_result select 0,_result select 1,_planPhase,_planSerial,serverTime]];
     if (!(_result select 0) && {_planSerial < 2}) then {[_record] call _requestCrossingPlan};
-    // Intentionally no crossing grant until owner path receipts and tail-clearance
-    // execution are integrated with the existing sole driving cap writer.
+    if (_result select 0) then {
+        if (count _result != 4) exitWith {};
+        private _vehicles=_record get "vehicles";
+        private _next=createHashMapFromArray (keys _record apply {[_x,_record get _x]});
+        private _binding=[_token,_record get "expires",_planPhase,_planSerial];
+        _next set ["motionBinding",[_root,_token,_record get "expires",8]];_next set ["motionStage","CROSSING"];
+        _next set ["movingIndex",0];_next set ["heldIndices",[1,2,3] select {_x < count _vehicles}];
+        _next set ["crossingBinding",_binding];_next set ["crossingPath",_result select 2];_next set ["crossingPoses",_result select 3];
+        if ([_next,false] call CBE_fnc_DrivingQueueReverseCurrent) then {
+            { _record set [_x,_next get _x] } forEach ["motionBinding","motionStage","movingIndex","heldIndices","crossingBinding","crossingPath","crossingPoses"];
+            _record set ["crossingArmedOwners",[]];_record set ["crossingExecuteSent",false];
+            private _message=[_token,_record get "serial",_vehicles,_record get "roles",_record get "dependencies",
+                _record get "context",_record get "deadline",_record get "expires","AGREED",[_planPhase,_planSerial,_result select 2,_result select 3]];
+            {["CROSS_ARM",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
+        };
+    };
+    // No native command follows; callback dispatch and coordinated handback remain unwired.
+    true
+};
+if (_mode == "CROSS_ARMED") exitWith {
+    private _binding=_record getOrDefault ["crossingBinding",[]];
+    if (count _binding != 4 || {(_record getOrDefault ["motionStage",""]) != "CROSSING"}
+        || {(_payload select [1,2]) isNotEqualTo (_binding select [2,2])}
+        || {serverTime >= (_record get "expires")} || {!([_record] call _current)}) exitWith {false};
+    private _armed=_record getOrDefault ["crossingArmedOwners",[]];_armed pushBackUnique _sender;
+    _record set ["crossingArmedOwners",_armed];
+    if (count _armed == count (_record get "owners") && {!(_record getOrDefault ["crossingExecuteSent",false])}) then {
+        _record set ["crossingExecuteSent",true];private _vehicles=_record get "vehicles";
+        private _message=[_token,_record get "serial",_vehicles,_record get "roles",_record get "dependencies",
+            _record get "context",_record get "deadline",_record get "expires","AGREED",
+            [_binding select 2,_binding select 3,_record get "crossingPath",_record get "crossingPoses"]];
+        ["CROSS_EXECUTE",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",owner (_vehicles select 0)];
+    };
     true
 };
 if (_mode == "ROOM") exitWith {
