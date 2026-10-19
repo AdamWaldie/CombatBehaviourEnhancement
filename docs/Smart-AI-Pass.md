@@ -1730,3 +1730,7 @@ A stationary soldier with a native path in PLANNING is not treated as idle for a
 Individual indoor dispatch and its START boundary share the same finite actor reservation predicate as danger cover and tactical reposition. Valid expired movement records permit reassessment; live or malformed reservations still refuse. An existing indoor order or brain also blocks a fresh START, and native task identity remains independently checked. No expired marker is cleared merely to admit a task.
 
 A CANFIRE suppression opportunity applies only to the contact in the matching surviving danger event. Its cause, observed time and position must match the active response, and that enemy must remain a live hostile in current native knowledge. CBE uses the contact belief rather than its live position. Missing or stale event identity leaves ordinary fire control in charge; another contact cannot inherit that opportunity.
+
+Tactical assessment feedback publishes once after the decision finishes, including refusal or handoff. When the preferred manoeuvre cannot start but another candidate succeeds, the reported intent names the candidate that actually started. Assessment records are decision feedback, not physical completion.
+
+Suppression checks loaded primary-weapon readiness before enumerating compatible reserve magazines. Soldiers holding another weapon, an empty muzzle or a non-bullet muzzle skip that inventory work. Required reserves, burst timing and firing-lane safety remain unchanged.

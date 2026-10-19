@@ -272,7 +272,7 @@ Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not 
 
 ## FIRE â€” Fire distribution and suppression
 
-Source checkpoint: `576afb57 + CANFIRE contact binding`; reviewed 2026-10-19; confidence: low.
+Source checkpoint: `c2fe087f + bounded fire-control cost simplification`; reviewed 2026-10-19; confidence: low.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |

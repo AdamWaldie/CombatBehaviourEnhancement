@@ -1443,6 +1443,9 @@ class CortexOperations(unittest.TestCase):
         ]:
             self.assertIn(marker,assessment)
         self.assertIn('case "REPOSITION"',selector)
+        self.assertIn('if (_started) exitWith {_intent=_x}',selector)
+        self.assertEqual(selector.count('setVariable ["CBE_Cortex_TacticalAssessment"'),2)
+        self.assertIn('["NATIVE_REASSESS","STARTED"] select _started',selector)
         self.assertIn('_reason == "ARMOUR_OVERMATCH"',reposition)
         self.assertIn('_distance <= 120',reposition)
         self.assertIn('call CBE_fnc_CortexSelectAvenue',reposition)
@@ -3586,10 +3589,12 @@ class CortexOperations(unittest.TestCase):
                       '(magazinesAmmoFull _unit) select',
                       '!(_x select 2) && {(_x select 1) > 0}',
                       'getNumber (_ammo >> "hit") > 0',
-                      'if (_rifleReady && {count _spare >= 2} && {_rounds >= 60}']:
+                      'if (count _spare >= 2 && {_rounds >= 60}']:
             self.assertLess(suppression.index(proof), boundary)
         self.assertNotIn('selectWeapon', suppression)
         self.assertNotIn('_unit ammo _weapon', suppression)
+        self.assertLess(suppression.index('if (_rifleReady) then'),suppression.index('compatibleMagazines [_weapon,_magazineMuzzle]'))
+        self.assertLess(suppression.index('if (_rifleReady) then'),suppression.index('magazinesAmmoFull _unit'))
 
     def test_native_canfire_uses_its_own_contact_and_existing_safe_suppression(self):
         fire = source("cortexFireControl")
@@ -4070,6 +4075,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["INCOMPLETE","COMPLETE"] select _arrived',tick)
         self.assertIn('class CortexTacticalReposition',functions)
         self.assertIn('case "REPOSITION"',selector)
+        self.assertIn('if (_started) exitWith {_intent=_x}',selector)
+        self.assertEqual(selector.count('setVariable ["CBE_Cortex_TacticalAssessment"'),2)
+        self.assertIn('["NATIVE_REASSESS","STARTED"] select _started',selector)
         self.assertNotIn('spawn',reposition)
         self.assertNotIn('while {',reposition)
         self.assertNotIn('setPos',reposition)

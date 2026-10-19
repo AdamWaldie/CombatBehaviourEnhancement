@@ -249,22 +249,25 @@ if (_suppressPos isNotEqualTo []) then {
                 private _rifleReady = _weapon != "" && {currentWeapon _unit == _weapon}
                     && {_loaded > 0} && {toLowerANSI getText (_ammo >> "simulation") == "shotbullet"}
                     && {getNumber (_ammo >> "hit") > 0};
-                // Weapon-wide compatibility includes underbarrel magazines. Count only loose,
-                // nonempty reserves for this muzzle; loaded magazines must not count twice.
-                private _magazineMuzzle = [ _muzzle, "this" ] select (_muzzle == _weapon);
-                private _compatible = compatibleMagazines [_weapon,_magazineMuzzle];
-                private _spare = (magazinesAmmoFull _unit) select {
-                    !(_x select 2) && {(_x select 1) > 0} && {(_x select 0) in _compatible}
-                };
-                private _rounds = _loaded;
-                {_rounds = _rounds + (_x select 1)} forEach _spare;
-                if (_rifleReady && {count _spare >= 2} && {_rounds >= 60} && {[_unit, _targetASL] call CBE_fnc_CortexLineOfFireClear}) then {
-                    _unit doSuppressiveFire _targetASL;
-                    _unit setVariable ["CBE_AIPass_LastSuppress", _now];
-                    _group setVariable ["CBE_AIPass_SuppressCursor",(_cursor + 1) mod count _ranked];
-                    _group setVariable ["CBE_AIPass_NextSuppress",_now + 2.5 + random 1.5];
-                    _issued = true;
-                    _orders = _orders + 1;
+                // No usable loaded primary means no reserve scan or firing-lane query.
+                if (_rifleReady) then {
+                    // Weapon-wide compatibility includes underbarrel magazines. Count only loose,
+                    // nonempty reserves for this muzzle; loaded magazines must not count twice.
+                    private _magazineMuzzle = [ _muzzle, "this" ] select (_muzzle == _weapon);
+                    private _compatible = compatibleMagazines [_weapon,_magazineMuzzle];
+                    private _spare = (magazinesAmmoFull _unit) select {
+                        !(_x select 2) && {(_x select 1) > 0} && {(_x select 0) in _compatible}
+                    };
+                    private _rounds = _loaded;
+                    {_rounds = _rounds + (_x select 1)} forEach _spare;
+                    if (count _spare >= 2 && {_rounds >= 60} && {[_unit, _targetASL] call CBE_fnc_CortexLineOfFireClear}) then {
+                        _unit doSuppressiveFire _targetASL;
+                        _unit setVariable ["CBE_AIPass_LastSuppress", _now];
+                        _group setVariable ["CBE_AIPass_SuppressCursor",(_cursor + 1) mod count _ranked];
+                        _group setVariable ["CBE_AIPass_NextSuppress",_now + 2.5 + random 1.5];
+                        _issued = true;
+                        _orders = _orders + 1;
+                    };
                 };
             };
         } forEach _ordered;
