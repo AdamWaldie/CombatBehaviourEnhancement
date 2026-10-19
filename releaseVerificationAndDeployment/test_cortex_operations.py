@@ -9685,6 +9685,13 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,defer)
         self.assertIn('_deferred pushBackUnique _x',defer)
         self.assertIn('_clearHold select 2,_deferred',defer)
+        split=defer.split('if (!local _x',1)[1].split('if (local _x',1)[0]
+        for proof in ('group _x == _group','alive _x','!isPlayer _x',
+                      'isNull objectParent _x','currentCommand _x == "STOP"','_deferred pushBackUnique _x'):
+            self.assertIn(proof,split)
+        for forbidden in ('getPos','doMove','doFollow','setVariable','CortexClearSettingsApply'):
+            self.assertNotIn(forbidden,split)
+
         for forbidden in ('doMove','doFollow','waitAndExecute','execFSM','enableAI'):
             self.assertNotIn(forbidden,defer)
 

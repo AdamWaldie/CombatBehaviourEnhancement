@@ -95,7 +95,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/groupBrainStep.sqf",
-              "sha256": "996802f44be4cd232d4b707fe543a154d5b24706f7329926f057671682fb2bfa"
+              "sha256": "c87198a2ea54bff928d5eacb0ed394a555b54c18d70838dd9cac877fa763fccf"
             },
             {
               "path": "addons/infantry/functions/dangerStep.sqf",

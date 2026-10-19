@@ -159,6 +159,13 @@ if (count _clearHold == 5) then {
                 // A newer individual order retires the old hold. A living soldier's unchanged
                 // STOP retains proof across temporary unavailability, not just reservations.
                 // The normal group callback retries; no extra observer or movement replay is added.
+                // Split actor/group locality cannot grant a native command. Retain only the
+                // original receipt until local observation can apply the strict pose/task checks.
+                // No new position, epoch, deadline or movement request is manufactured here.
+                if (!local _x && {group _x == _group} && {alive _x} && {!isPlayer _x}
+                    && {isNull objectParent _x} && {currentCommand _x == "STOP"}) then {
+                    _deferred pushBackUnique _x;
+                };
                 if (local _x && {group _x == _group} && {alive _x} && {!isPlayer _x}
                     && {isNull objectParent _x} && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
                     && {isNull remoteControlled _x}
