@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-19",
+  "scope": "Coordinated ground-fire safety-point knowledge",
+  "finding": "GROUND_FIRE and GROUND_MANOEUVRE arrival used live target aimPos for scripted cone checks although role/arrival grants no new sighting.",
+  "change": "Use finite nonzero local gunner getHideFrom; otherwise original admitted report position remains the fixed estimate. ASL plus1m feeds existing cone checks. Invalid both uses existing NO_KNOWN_CONTACT authenticated fallback. No current target pose, new reveal, refreshed report/expiry, worker or extra world query.",
+  "preserved": "Native doTarget/doFire still owns requested fire and engine tracking. Original report fallback keeps radio support usable without personal gunner estimate. Cone observation is not blast/penetration/effect proof.",
+  "validation": {
+    "existingFocusedTests": 607,
+    "focusedLog": ".qa/cbe-combined-muzzle-belief-focused.log",
+    "hemttLog": ".qa/cbe-combined-muzzle-belief-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "Passed1476 existing tests and local build gates.",
+    "physical": "Unverified, audits paused.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-combined-muzzle-belief-build.log",
+    "independentLog": ".qa/cbe-combined-muzzle-belief-independent.log",
+    "packageFingerprint": "49146251f7014c5e7a4b11323b6731f5ce35c47a5042c030f6c83fcc6e42165e",
+    "packageSource": "da7cd8a2+dirty unsigned development, not later clean commit"
+  },
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
+      "sha256": "91a2e98697f1519b22efd9b540179ec9dc159715dcef25ec30c5557b38d698d8"
+    },
+    {
+      "path": "addons/infantry/functions/cortexCombinedArmsServer.sqf",
+      "sha256": "93574f051ae226f570a214e86a84840722ee0589824c83c1b2dfd507b28f6637"
+    },
+    {
+      "path": "addons/infantry/functions/cortexCombinedGroundFallbackServer.sqf",
+      "sha256": "73f134c77a1c2cec5e42b0ef991b29ec21ef40fa36b444e9125a2f13b01c3ce6"
+    },
+    {
+      "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
+      "sha256": "72b25f037c85b5bae43a6ae42f2ea5b008c35404d52de9e5da055e882d62e3e0"
+    }
+  ],
+  "muzzleAdmission": "Immediate GROUND_FIRE now selects the loaded compatible muzzle returned by the fresh station check, waits for currentMuzzle equality, and remains unapplied through existing group replay while pending. Original opportunity/route/report/expiry remain. Shared retry helper distinguishes reload and MUZZLE_SELECTION_PENDING, coalesces status, and adds no timer. Both original server expiry and fallback expiry classify pending selection as EXPIRED. Manoeuvre-arrival path already had selected-muzzle confirmation."
+}

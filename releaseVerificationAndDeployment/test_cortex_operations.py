@@ -4764,6 +4764,15 @@ class CortexOperations(unittest.TestCase):
         arrival=text.split('if (_arrivalDistance <= 70)',1)[1].split('if (time >=',1)[0]
         self.assertIn('unitCombatMode _gunner in ["YELLOW","RED"]',arrival)
         self.assertIn('CBE_fnc_CortexLineOfFireClear',arrival)
+        for text in (arrival,source('cortexCombinedArmsLocal')):
+            self.assertIn('_gunner getHideFrom _target',text)
+            self.assertIn('[_gunner,_firePoint] call CBE_fnc_CortexLineOfFireClear',text)
+            self.assertNotIn('aimPos _target',text)
+            self.assertIn('_believed isNotEqualTo [0,0,0]',text)
+        self.assertIn('_believed=+_position',source('cortexCombinedArmsLocal'))
+        self.assertIn('_believed=+(_snapshot param [3,[],[[]]])',arrival)
+
+
         self.assertIn('CBE_fnc_CortexExternalOwner',arrival)
         self.assertIn('"ORDER_ISSUED"',arrival)
         self.assertIn('"CBE_Cortex_CombinedFireDecision"',arrival)
@@ -8331,6 +8340,12 @@ class CortexOperations(unittest.TestCase):
         local=source('cortexCombinedArmsLocal')
         wait=local.split('private _waitForReload={',1)[1].split('if (_role in',1)[0]
         self.assertIn('WAITING_FOR_RELOAD',wait)
+        self.assertIn('MUZZLE_SELECTION_PENDING',wait)
+        immediate=local.split('if (_role == "GROUND_FIRE") exitWith {',1)[1].split('if (_role == "GROUND_MANOEUVRE")',1)[0]
+        self.assertIn('[_gunner,"MUZZLE_SELECTION_PENDING"] call _waitForReload',immediate)
+        self.assertLess(immediate.index('currentMuzzle _gunner != _muzzle'),immediate.index('_gunner doFire _target'))
+        self.assertLess(immediate.index('_gunner doFire _target'),immediate.index('call _markApplied'))
+
         self.assertNotIn('call _markApplied',wait)
         self.assertNotIn('CortexQueueJob',wait)
         self.assertNotIn('waitAndExecute',wait)
@@ -8340,6 +8355,7 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(local.count('_group reveal [_target'),1)
         for name in ['cortexCombinedArmsServer','cortexCombinedGroundFallbackServer']:
             self.assertIn('"WAITING_FOR_RELOAD"',source(name))
+            self.assertIn('"MUZZLE_SELECTION_PENDING"',source(name))
         self.assertIn('[_group,_combinedRole] call CBE_fnc_CortexCombinedArmsLocal',source('cortexGroupTick'))
 
     def test_combined_ground_reload_wait_keeps_original_deadline_and_never_grants_fire(self):

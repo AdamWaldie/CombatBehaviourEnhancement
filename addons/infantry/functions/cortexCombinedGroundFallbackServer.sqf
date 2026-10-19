@@ -84,7 +84,7 @@ _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"FALLBACK_DI
     params ["_replacement","_token","_role","_target","_originalRole"];
     if (!isNull _replacement && {(_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _originalRole}) then {
         private _result=_replacement getVariable ["CBE_Cortex_CombinedResult",[]];
-        if ((_result param [0,""]) == _token && {(_result param [2,""]) in ["DISPATCHED","FALLBACK_DISPATCHED","APPLIED","WAITING_FOR_RELOAD"]}) then {
+        if ((_result param [0,""]) == _token && {(_result param [2,""]) in ["DISPATCHED","FALLBACK_DISPATCHED","APPLIED","WAITING_FOR_RELOAD","MUZZLE_SELECTION_PENDING"]}) then {
             _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
         };
         _replacement setVariable ["CBE_Cortex_CombinedRole",nil,true];

@@ -2932,7 +2932,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
-              "sha256": "7e4f8583ad64817c9887cfb9fbacc63d5439582354029fbbd0558c3f5bc3e0c2"
+              "sha256": "72b25f037c85b5bae43a6ae42f2ea5b008c35404d52de9e5da055e882d62e3e0"
             }
           ]
         }
@@ -3877,7 +3877,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexCombinedArmsServer.sqf",
-              "sha256": "c2c4881ed95996368757867a686ca0d09d03c5adca173493dc6e129f3f31fa47"
+              "sha256": "93574f051ae226f570a214e86a84840722ee0589824c83c1b2dfd507b28f6637"
             }
           ]
         },
@@ -3890,7 +3890,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
-              "sha256": "7e4f8583ad64817c9887cfb9fbacc63d5439582354029fbbd0558c3f5bc3e0c2"
+              "sha256": "72b25f037c85b5bae43a6ae42f2ea5b008c35404d52de9e5da055e882d62e3e0"
             },
             {
               "path": "addons/infantry/functions/cortexGroundFireReady.sqf",
@@ -3911,7 +3911,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
-              "sha256": "c75b5671acb65aeecaf4757d94dc4f474fe7757cc7f35b74cbb05670f0d7542f"
+              "sha256": "91a2e98697f1519b22efd9b540179ec9dc159715dcef25ec30c5557b38d698d8"
             }
           ]
         },
@@ -3924,7 +3924,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexCombinedGroundFallbackServer.sqf",
-              "sha256": "654c81fa2cc7544eb11b0c7a168d0e60cfdf7bfb675ee37e98e644b319467dba"
+              "sha256": "73f134c77a1c2cec5e42b0ef991b29ec21ef40fa36b444e9125a2f13b01c3ce6"
             },
             {
               "path": "addons/infantry/functions/cortexCombinedRejectServer.sqf",
@@ -3951,7 +3951,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexCombinedArmsServer.sqf",
-              "sha256": "c2c4881ed95996368757867a686ca0d09d03c5adca173493dc6e129f3f31fa47"
+              "sha256": "93574f051ae226f570a214e86a84840722ee0589824c83c1b2dfd507b28f6637"
             },
             {
               "path": "addons/support/functions/cortexSupportCoordinateStep.sqf",
@@ -3968,7 +3968,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
-              "sha256": "c75b5671acb65aeecaf4757d94dc4f474fe7757cc7f35b74cbb05670f0d7542f"
+              "sha256": "91a2e98697f1519b22efd9b540179ec9dc159715dcef25ec30c5557b38d698d8"
             },
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
@@ -3985,7 +3985,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexCombinedArmsServer.sqf",
-              "sha256": "c2c4881ed95996368757867a686ca0d09d03c5adca173493dc6e129f3f31fa47"
+              "sha256": "93574f051ae226f570a214e86a84840722ee0589824c83c1b2dfd507b28f6637"
             }
           ]
         },

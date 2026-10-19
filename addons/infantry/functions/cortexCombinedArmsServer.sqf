@@ -232,7 +232,7 @@ _requester setVariable ["CBE_Cortex_CombinedAirFallback",[_token,_target,+_posit
             // Expiry retires the reservation, not a completed/refused physical outcome.
             private _result=_roleGroup getVariable ["CBE_Cortex_CombinedResult",[]];
             if ((_result param [0,""]) == _token
-                && {(_result param [2,""]) in ["DISPATCHED","APPLIED","WAITING_FOR_RELOAD"]}) then {
+                && {(_result param [2,""]) in ["DISPATCHED","APPLIED","WAITING_FOR_RELOAD","MUZZLE_SELECTION_PENDING"]}) then {
                 _roleGroup setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
             };
             _roleGroup setVariable ["CBE_Cortex_CombinedRole",nil,true];

@@ -17,6 +17,8 @@
  * Locality/authority: runs only where the vehicle group is local after a server-authenticated role.
  * Repeat/JIP: the complete admitted opportunity rejects stale jobs, including same-token edits.
  * Locality replay queues one replacement job; legacy jobs without a snapshot retire safely.
+ * Arrival fire-lane geometry uses the local gunner native believed point, not a
+ * hidden target transform or a renewed report.
  * Arrival fire requests require a combat-effective local gunner; arrival alone never proves fire effect.
  * Cleanup requires the matching operation generation, so a late role cannot delete a newer route.
  * Failed arrival fire, asset loss, immobility and exhausted movement retire the exact admitted
@@ -197,6 +199,20 @@ if (_arrivalDistance <= 70) exitWith {
         && {[_gunner] call CBE_fnc_CortexActorFireTaskAvailable}
         && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)};
+    private _firePoint=[];
+    if (_fireAllowed) then {
+        private _believed=_gunner getHideFrom _target;
+        // An admitted report remains a fixed estimate, not a new sighting. Preserve
+        // radio support when this gunner has no personal native position estimate.
+        if (count _believed != 3 || {_believed isEqualTo [0,0,0]}
+            || {_believed findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) then {
+            _believed=+(_snapshot param [3,[],[[]]]);
+        };
+        if (count _believed == 3 && {_believed isNotEqualTo [0,0,0]}
+            && {_believed findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
+            _firePoint=(ATLToASL _believed) vectorAdd [0,0,1];
+        } else {_fireAllowed=false;_fireDecision="NO_KNOWN_CONTACT"};
+    };
     if (_fireAllowed) then {
         private _stationReady=[_asset,_gunner] call CBE_fnc_CortexGroundFireReady;
         private _targetReady=[_asset,_gunner,_target,_ammoObservation] call CBE_fnc_CortexGroundFireReady;
@@ -209,7 +225,7 @@ if (_arrivalDistance <= 70) exitWith {
         && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {1};
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";
-        private _laneClear=[_gunner,aimPos _target] call CBE_fnc_CortexLineOfFireClear;
+        private _laneClear=[_gunner,_firePoint] call CBE_fnc_CortexLineOfFireClear;
         if !(call _routeCurrent) then {_fireDecision="NATIVE_ORDER_CHANGED"} else {
             if (_laneClear && {call _roleCurrent}) then {
                 private _muzzle=_ammoObservation getOrDefault ["loadedMuzzle",""];
