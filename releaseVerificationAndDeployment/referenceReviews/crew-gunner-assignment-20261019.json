@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-19",
+  "scope": "Combat gunner replacement admission, not whole crew recovery parity",
+  "sourceIntent": "HBQ fn_driveAssist crew-return branch 1690-1769 preserves assignedVehicle intent and excludes incapacitated crew from return commands. CBE retains native internal casualty replacement without source teleport or group detachment.",
+  "nativeReference": "https://community.bistudio.com/wiki/fullCrew",
+  "finding": "An empty primary gunner position could still have a living assigned incoming occupant. Existing combat replacement also admitted explicit STOP and suspended/hidden crew.",
+  "implementation": [
+    "Read primary gunner seat assignedUnit; living foreign assignment refuses replacement.",
+    "Preserve STOP, foreign vehicle assignment, hidden or suspended actors/platforms, and disabled MOVE/PATH.",
+    "No new scheduler, event handler, forced seating or crew reassignment fallback. Existing once-per-generation admission remains."
+  ],
+  "validation": {
+    "tests": 1476,
+    "focusedTests": 607,
+    "buildLog": ".qa/cbe-gunner-assignment-build.log",
+    "independentLog": ".qa/cbe-gunner-assignment-independent.log",
+    "fingerprint": "984a3e62cb11a35c8292624652ed9556435ecc9e74690eeb297dad13c40f9bc5",
+    "sourceCommit": "d86f237efa7b9c0ac5220d3fe877ce871ad07f7d",
+    "dirty": true
+  },
+  "remaining": [
+    "Actual seat transition and firing unverified.",
+    "HBQ dismounted crew-return execution remains a separate implementation gap.",
+    "No measured runtime performance or normal/HC evidence."
+  ],
+  "physicalAcceptance": false,
+  "audits": "paused"
+}

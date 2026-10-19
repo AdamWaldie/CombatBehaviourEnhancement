@@ -8367,6 +8367,11 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('ACTOR_OWNERSHIP'),text.index('_candidate assignAsGunner'))
         self.assertLess(text.index('ACTOR_OWNERSHIP'),text.index('_candidate action'))
         self.assertNotIn('setVariable ["CBE_Cortex_ActorMove",nil]',text)
+        for guard in ['_command == "STOP"','simulationEnabled _candidate','checkAIFeature "MOVE"',
+                      'checkAIFeature "PATH"','fullCrew [_vehicle,"gunner",true]',
+                      '_gunnerSeat param [5,objNull]','alive _assignedGunner','GUNNER_ASSIGNED']:
+            self.assertIn(guard,text)
+        self.assertLess(text.index('GUNNER_ASSIGNED'),text.index('_candidate assignAsGunner'))
 
     def test_mounted_danger_recovers_a_lost_gunner_without_sacrificing_the_driver(self):
         registry=(ROOT/'addons/main/CfgFunctions.hpp').read_text(encoding='utf-8')
