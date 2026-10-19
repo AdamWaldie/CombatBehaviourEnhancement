@@ -4,6 +4,7 @@
  * same-contact native approach that must be observed without replaying movement.
  * Locality/authority: Read-only on actor/group owner. Actual engagement identity comes from
  * getAttackTarget; assignedTarget is only a conflicting mission-target veto. No hidden pose reads.
+ * Native planning and replanning never grant permission to replace a route.
  * Repeat/JIP: Stateless; current waypoint metadata and native command are read each call,
  * Native group-ignored contacts refuse admission; at most one believed-position FIRE visibility query. No exact hostile transform is read.
  * Arguments: actor OBJECT objNull, contact OBJECT objNull, believed ATL ARRAY [], building OBJECT objNull.
@@ -20,7 +21,7 @@ private _vectorValid={_this isEqualType [] && {count _this == 3}
 private _command=currentCommand _actor;
 if !(_command in ["","MOVE","ATTACK","FIRE"]) exitWith {[]};
 private _unitState=getUnitState _actor;
-if (_unitState == "PLANNING") exitWith {[]};
+if (_unitState in ["PLANNING","REPLAN"]) exitWith {[]};
 private _engaging=getAttackTarget _actor;
 private _assigned=assignedTarget _actor;
 if (isNull _contact && {!isNull _engaging || {!isNull _assigned}}) exitWith {[]};

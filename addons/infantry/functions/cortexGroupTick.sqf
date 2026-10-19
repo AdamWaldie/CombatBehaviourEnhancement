@@ -21,7 +21,7 @@
  *   CBE_AIPass_Investigate_Range that it has not seen, for example one revealed by a contact report
  *   or heard firing, and the behaviour profile permits investigation. This is a deterministic tactical
  *   eligibility decision rather than a random permission to act. Within 150 m, two riflemen check
- *   the believed position while the rest watch it; a small
+ *   the believed position while available support actors briefly glance toward it; a small
  *   squad, or any farther contact, has the whole squad move up together. It ends after
  *   CBE_AIPass_Investigate_Seconds or on arrival, back in CALM.
  * CONTACT -> SECURITY after CBE_AIPass_PostContact_LostSeconds without a sighting and after any
@@ -1184,8 +1184,10 @@ switch (_state get "phase") do {
                     _team=_issuedSearch apply {_x select 0};
                     _searchAccepted=_team isNotEqualTo [];
                     if (_searchAccepted) then {
+                        // Finite attention needs no persistent watch lease or blanket reset.
+                        // A later mission watch order must survive investigation teardown.
                         {if (!(_x in _team) && {local _x} && {currentCommand _x == ""}
-                            && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}) then {_x doWatch _target}} forEach _alive;
+                            && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}) then {_x glanceAt _target}} forEach _alive;
                     };
                 };
                 if (_searchAccepted) then {
@@ -1209,7 +1211,6 @@ switch (_state get "phase") do {
     };
     case "INVESTIGATE": {
         if (_visible isNotEqualTo []) exitWith {
-            {if (local _x) then {_x doWatch objNull}} forEach _alive;
             call _beginContact;
         };
         private _team = (_state getOrDefault ["searchTeam", []]) select {alive _x && {local _x}};
@@ -1222,7 +1223,6 @@ switch (_state get "phase") do {
             if (_alive findIf {_x call _hasLiveActorMove} >= 0) then {
                 _delay = 2;
             } else {
-                {if (local _x) then {_x doWatch objNull}} forEach _alive;
                 [_group, _state, true, false, ["INVESTIGATION_COMPLETE","INVESTIGATION_TIMEOUT"] select (_now - (_state get "phaseStart") > (["CBE_AIPass_Investigate_Seconds", 60] call _get))] call CBE_fnc_CortexRestoreCalm;
             };
         } else {

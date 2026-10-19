@@ -31,6 +31,9 @@ class SearchMoveOwnership(unittest.TestCase):
         for marker in ('"investigate", 120','"baseBehaviour"','"searchTeam"','"KNOWN_CONTACT"','CBE_AIPass_Investigations'):
             self.assertIn(marker,accepted)
         self.assertNotIn('currentCommand _searchActor in ["","STOP","FOLLOW"]',known)
+        self.assertIn("_x glanceAt _target",known)
+        investigation=text.split('case "INVESTIGATE": {',1)[1].split('case "CONTACT": {',1)[0]
+        self.assertNotIn("doWatch",known+investigation)
         area=calm.split('private _areaWaypoint=',1)[1].split('if (!_ordered &&',1)[0]
         self.assertLess(area.index('(_areaWaypoint select 0) == _group'),area.index('"investigate",120'))
 
