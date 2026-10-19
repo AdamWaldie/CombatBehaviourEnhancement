@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Executes one bounded aircraft-attack implementation step and reports its resulting semantic phase to the finite FSM.
  * Locality / Authority: Runs through CBE's shared scheduler on the aircraft owner. CBE_fnc_CortexAirAttack rechecks control before every native command boundary.
+ * Execution: Ended/invalid FSM handles retire the callback only, without cleanup,
+ * replay, phase changes or new deadlines. Existing bounded executor recovery remains owner.
  * Repeat/JIP: One-shot callback. Aircraft generation and brain identity reject stale work after replacement or locality migration.
  * Arguments: 0 aircraft attack brain <HASHMAP>.
  * Return Value: Number - always -1 because the FSM schedules later steps.
@@ -24,6 +26,12 @@ if (_brain getOrDefault ["cancelled",false] || {_brain getOrDefault ["finished",
 if (isNull _aircraft || {!local _aircraft}) exitWith {["OWNERSHIP_LOST"] call _cancel};
 if (_generation != (_aircraft getVariable ["CBE_AirAttack_BrainGeneration",-2])
     || {(_aircraft getVariable ["CBE_AirAttack_Brain",createHashMap]) isNotEqualTo _brain}) exitWith {["REPLACED"] call _cancel};
+// Only a live FSM may consume this queued execution callback. The existing
+// discovery/restart path retains the original job, leases and phase deadlines.
+private _executor=_aircraft getVariable ["CBE_AirAttack_Brain_FSM",-1];
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {
+    _brain set ["pending",false];_brain set ["completed",true];-1
+};
 private _job=_brain getOrDefault ["job",createHashMap];
 if (count _job == 0) exitWith {["INVALID_JOB"] call _cancel};
 private _leaseToken=_brain getOrDefault ["flightLeaseToken",""];

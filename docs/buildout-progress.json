@@ -2312,7 +2312,7 @@
             },
             {
               "path": "addons/support/functions/artilleryMissionStep.sqf",
-              "sha256": "5060922195ea2ef3738eb28947b028dbd7b4a07372089e2327e46974d4946a15"
+              "sha256": "8c9d39d5bb6f6414c8ddb32b265040cfedb5e0ccd321758eca09b113c96ad238"
             }
           ]
         }
@@ -4091,11 +4091,11 @@
           "evidence": [
             {
               "path": "addons/aircraft/functions/airAttackOperationStep.sqf",
-              "sha256": "e1782c14fe5771fb3fb75051950304b3c71baf72e4a6c5a0022e2431f5854d88"
+              "sha256": "cd1b4281207b5b96449cb7c515139397a1477976de37ecd8b76f592aead0f8e2"
             },
             {
               "path": "addons/aircraft/functions/cortexAirAttack.sqf",
-              "sha256": "38e555cb73d1aba754c9c968f69cf1618eac77dd7669ac6172a43eb4ff0ec475"
+              "sha256": "2b1b5702d28172d5673c6bd329f6e41ddfd5d1035a6f422efd66ed167180e350"
             }
           ]
         },

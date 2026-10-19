@@ -356,6 +356,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_AirAttackOperationStart',discover+combined)
         self.assertNotIn('[CBE_fnc_CortexAirAttack,',discover+combined)
         self.assertIn('airAttackOperation.fsm',start)
+        gate=step.split('private _executor=',1)[1].split('private _job=',1)[0]
+        for proof in ('CBE_AirAttack_Brain_FSM','_executor isEqualType 0','finite _executor',
+                      '_executor < 0','completedFSM _executor','["pending",false]','["completed",true]'):
+            self.assertIn(proof,gate)
+        for mutation in ('["cancelled",true]','["finished",true]','execFSM','deadline','remoteExec'):
+            self.assertNotIn(mutation,gate)
         reuse=start[start.index('private _current='):start.index('if (count _current > 0) then')]
         self.assertIn('!completedFSM _handle',reuse)
         self.assertIn('"executorRestarts",1',reuse)
@@ -365,6 +371,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('FSM_RESTART_EXHAUSTED',reuse)
         self.assertIn('FSM_START_FAILED',start)
         self.assertIn('CBE_AirAttack_Brain_FSM',discover)
+        self.assertIn('private _sameJob=_job isEqualTo _originalJob',reuse)
+        self.assertIn('if (!_workerAlive && {_sameJob} && {!_originalContext}) exitWith',reuse)
+        self.assertIn('(_sameJob || {!isNull _requestedTarget',reuse)
+        self.assertIn('FSM_RESTART_CONTEXT_LOST',reuse)
+        self.assertIn('FSM_RESTART_CONTEXT_LOST',attack)
+        self.assertIn('if (isNull _group && {!_alive} && {count _current > 0}',reuse)
+        self.assertIn('_job isEqualTo (_current getOrDefault ["job",createHashMap])',reuse)
+        self.assertLess(reuse.index('FSM_RESTART_CONTEXT_LOST'),reuse.index('if (!_sameRequest'))
         self.assertIn('[_airBrain getOrDefault ["job",createHashMap],0]',discover)
         failure=attack[attack.index('if (_executorFailure != "")'):attack.index('private _pilot=driver')]
         self.assertIn('isNotEqualTo _job',failure)
@@ -415,6 +429,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_ArtilleryMissionStart',fire)
         self.assertNotIn('[CBE_fnc_CortexArtilleryMissionStep, _mission, 0]',fire)
         self.assertIn('artilleryMission.fsm',start)
+        gate=step.split('private _executor=',1)[1].split('private _semantic=',1)[0]
+        for proof in ('CBE_Artillery_Brain_FSM','_executor isEqualType 0','finite _executor',
+                      '_executor < 0','completedFSM _executor','["pending",false]','["completed",true]'):
+            self.assertIn(proof,gate)
+        for mutation in ('["cancelled",true]','["finished",true]','execFSM','deadline','remoteExec'):
+            self.assertNotIn(mutation,gate)
         reuse=start[start.index('private _current='):start.index('if (count _current > 0) then')]
         self.assertIn('!completedFSM _handle',reuse)
         self.assertIn('"executorRestarts",1',reuse)
@@ -455,6 +475,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_SupportRequestStart',server)
         self.assertNotIn('[CBE_fnc_CortexSupportStep,_job,1]',server)
         self.assertIn('supportRequest.fsm',start)
+        gate=step.split('private _executor=',1)[1].split('private _delay=',1)[0]
+        for proof in ('CBE_Support_Brain_FSM','_executor isEqualType 0','finite _executor',
+                      '_executor < 0','completedFSM _executor','["pending",false]','["completed",true]'):
+            self.assertIn(proof,gate)
+        for mutation in ('["cancelled",true]','["finished",true]','execFSM','deadline','remoteExec'):
+            self.assertNotIn(mutation,gate)
         reuse=start[start.index('private _current='):start.index('if (count _current > 0) then')]
         self.assertIn('!completedFSM _handle',reuse)
         self.assertIn('"executorRestarts",1',reuse)

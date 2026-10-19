@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Executes one bounded support-request implementation step and reports its semantic phase to the finite FSM.
  * Locality / Authority: Server only through CBE's shared scheduler; current responder owners retain movement and combat authority.
+ * Execution: Ended/invalid FSM handles retire the callback only, without cleanup,
+ * replay, phase changes or new deadlines. Existing bounded executor recovery remains owner.
  * Repeat/JIP: One-shot callback. Registry identity, request serial, generation and brain identity reject stale work after replacement or shutdown.
  * Arguments: 0 support request brain <HASHMAP>.
  * Return Value: Number - always -1 because the FSM owns later scheduling.
@@ -28,6 +30,12 @@ if (_generation != (_requester getVariable ["CBE_Support_BrainGeneration",-2])
 private _key=_job getOrDefault ["key",""];
 private _registered=(missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap]) getOrDefault [_key,createHashMap];
 if (_registered isNotEqualTo _job || {(_job getOrDefault ["serial",-1]) != (_brain getOrDefault ["serial",-2])}) exitWith {["REQUEST_RELEASED"] call _cancel};
+// Only a live FSM may consume this queued execution callback. The existing
+// discovery/restart path retains the original job, leases and phase deadlines.
+private _executor=_requester getVariable ["CBE_Support_Brain_FSM",-1];
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {
+    _brain set ["pending",false];_brain set ["completed",true];-1
+};
 private _delay=[_job] call CBE_fnc_CortexSupportStep;
 private _leases=_job getOrDefault ["leases",[]];
 private _phase=if (_leases findIf {(_x param [4,""]) == "PENDING"} >= 0) then {"RESERVE"} else {

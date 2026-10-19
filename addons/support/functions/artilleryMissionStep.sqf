@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Executes one bounded artillery implementation step and reports its semantic phase to the finite mission FSM.
  * Locality / Authority: Server only through CBE's shared scheduler. Battery and observer owners still execute checked physical commands through existing callbacks.
+ * Execution: Ended/invalid FSM handles retire the callback only, without cleanup,
+ * replay, phase changes or new deadlines. Existing bounded executor recovery remains owner.
  * Repeat/JIP: One-shot callback. Exact token, generation, brain identity and mission registry identity reject stale work; no fire command is retried after an uncertain result.
  * Relocation observes only the original group/session within its original finite observation window.
  * Retirement reports observation ended/expired, not physical arrival; no movement is reissued.
@@ -28,6 +30,12 @@ if (_brain getOrDefault ["cancelled",false] || {_brain getOrDefault ["finished",
 if (!isServer || {isNull _battery} || {count _mission == 0}) exitWith {["INVALID_MISSION"] call _cancel};
 if (_generation != (_battery getVariable ["CBE_Artillery_BrainGeneration",-2])
     || {(_battery getVariable ["CBE_Artillery_Brain",createHashMap]) isNotEqualTo _brain}) exitWith {["REPLACED"] call _cancel};
+// Only a live FSM may consume this queued execution callback. The existing
+// discovery/restart path retains the original job, leases and phase deadlines.
+private _executor=_battery getVariable ["CBE_Artillery_Brain_FSM",-1];
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {
+    _brain set ["pending",false];_brain set ["completed",true];-1
+};
 private _semantic=toUpperANSI (_brain getOrDefault ["phase","REQUESTED"]);
 private _registered=createHashMap;
 if (_semantic != "RELOCATING") then {

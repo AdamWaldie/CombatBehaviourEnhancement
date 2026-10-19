@@ -303,7 +303,7 @@ private _finish={
 };
 if (_executorFailure != "") exitWith {
     private _failedBrain=_aircraft getVariable ["CBE_AirAttack_Brain",createHashMap];
-    if (!local _aircraft || {!(_executorFailure in ["FSM_START_FAILED","FSM_RESTART_FAILED","FSM_RESTART_EXHAUSTED"])}
+    if (!local _aircraft || {!(_executorFailure in ["FSM_START_FAILED","FSM_RESTART_FAILED","FSM_RESTART_EXHAUSTED","FSM_RESTART_CONTEXT_LOST"])}
         || {(_failedBrain getOrDefault ["job",createHashMap]) isNotEqualTo _job}
         || {(_failedBrain getOrDefault ["generation",-1]) != (_aircraft getVariable ["CBE_AirAttack_BrainGeneration",-2])}
         || {!(_failedBrain getOrDefault ["cancelled",false])} || {!(_failedBrain getOrDefault ["finished",false])}
