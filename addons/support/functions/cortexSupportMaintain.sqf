@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Actual COVER stops retain separate token/generation/epoch/native destination receipts. Release
  * recalls only unchanged current-owner holds, without enabling PATH. Deferred/changed proof is
- * retained locally. Pending cleanup uses the existing group callback, original lease expiry+30s
+ * retained locally. A missing/incapacitated formation leader defers release without consuming
+ * its receipt; the existing finite retry window is unchanged. Pending cleanup uses the existing group callback, original lease expiry+30s
  * and at most64 single-actor attempts; migration grants no portable cleanup authority.
  * Owner execution preserves unknown/malformed actor reservations through the shared strict predicate.
  * Releases only the current CBE support assignment when it expires, is revoked or loses every
@@ -135,7 +136,10 @@ private _releaseStopHolds={
         if (_cleanupOnly && {_keys isNotEqualTo []}) then {
             _dueKeys=[_keys select ((_cleanup select 4) mod count _keys)];
         };
-        if (_mayRestoreGroup && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        private _returnLeader=leader _group;
+        private _leaderReady=!isNull _returnLeader && {group _returnLeader == _group}
+            && {[_returnLeader] call CBE_fnc_CortexCombatEffective};
+        if (_leaderReady && {_mayRestoreGroup} && {!([_group] call CBE_fnc_CortexExternalTakeover)}
             && {(_cleanupOnly && {(_state getOrDefault ["supportToken",""]) == ""})
                 || {!_cleanupOnly && {(_state getOrDefault ["supportToken",""]) == _token}}}) then {
         {
@@ -153,7 +157,7 @@ private _releaseStopHolds={
                 && {simulationEnabled _actor} && {!isObjectHidden _actor}
                 && {toUpperANSI currentCommand _actor in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
                 && {(expectedDestination _actor) isEqualTo _native} && {formLeader _actor == _formationLeader}) then {
-                _actor doFollow leader _group;
+                _actor doFollow _returnLeader;
                 _holds deleteAt _x;
             };
         } forEach _dueKeys;

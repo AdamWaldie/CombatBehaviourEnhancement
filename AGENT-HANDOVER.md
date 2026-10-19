@@ -2339,3 +2339,6 @@ GroupTick previously subtracted near-leader holders even if movement permission 
 
 
 CALM release checkpoint 4633a3e6: explicit RELEASE before support token erasure; external yields/checkpoint-only maps excluded. No new tests/workers/scores. Focused checks/full offline build and independent verify passed .qa/cbe-calm-support-release-build.log; fingerprint49e7b403e8be5bb92a51552849a405751ea5bd750b0058dcce917f3545f80639, parent399540fb+dirty development. No physical acceptance. Audits PAUSED. Migration issuer proof remains open. PR17 open/draft; no push/merge/CI.
+
+
+Support leader casualty follow-up: release now requires a non-null combat-effective same-group leader before doFollow/receipt deletion. Existing finite retry retains proof while leader unavailable. Replacement can change formLeader/native proof and still prevent recall; do not claim reliable replacement handover. No new tests/workers/scores. Full .qa/cbe-support-leader-casualty-build.log and independent verification passed; fingerprint ee48475ab688633a6da67b94cffc15066af30c2515ba12fc3bec1a56e644ab95, manifest38968f4c+dirty development. Audits PAUSED; physical behaviour/performance and migration unverified. PR17 open/draft, no push/merge/CI.

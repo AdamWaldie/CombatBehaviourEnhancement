@@ -3,7 +3,7 @@
   "finding": "Actual COVER doStop was not enrolled in legacy supportHeld PATH ownership; early support release exited before that later legacy handback anyway. Failed-bound native stops likewise lacked release command proof.",
   "implementation": "Separate bounded local supportStopHolds records captured only after actual COVER/failed-bound stop. COVER and receipt share an unscheduled exact-state/role/lease/operation boundary. Release checks current token/generation/epoch, actual actor ownership, native destination/formLeader, service/reservation/external ownership and eligibility, then issues doFollow before route cleanup. No PATH enable, new scheduler or synthetic progress.",
   "source_sha256": {
-    "addons/support/functions/cortexSupportMaintain.sqf": "45127eaede2489acf22f9e186c9eb54e86dacd3520fbd72033b3528d743b67b4",
+    "addons/support/functions/cortexSupportMaintain.sqf": "43839f4f19917368bc9a3092b344af4927a1c5d0e9e9f615f7d6ab9c781b2180",
     "addons/infantry/functions/cortexFlankEnd.sqf": "7b59b16871d6246af2e9c55038452789ba882108687b5d23a5e0e60d687b2cd5",
     "addons/infantry/functions/groupBrainStep.sqf": "0193383b006d57947da7d5cf15a1b0207194ee0acbb8b33e9267a79f17e5205c",
     "addons/infantry/functions/cortexRestoreCalm.sqf": "cacafd03c3a5e13dcf5ff01a105bcbcd5ac68cce7da4eae87fd6a2410f9b8041"
@@ -21,5 +21,6 @@
   "physical_acceptance": false,
   "pending_cleanup": "Receipt adds original support expiry. Blocked release registers originalexpiry+30 deadline and at most64 attempts; repeat registration keeps earlier deadline/used attempts. GroupBrainStep calls cleanup-only SupportMaintain for one rotating matching actor, without active token or a new worker. Expiry, supersession or attempt exhaustion ends polling and retains hold proof. NO_MATCHING_HOLDS is distinct from FOLLOW_ISSUED; neither establishes physical reunion.",
   "calm_teardown": "Current-state normal CALM calls RELEASE before support token deletion, after ordinary drill CALM cleanup. External yields and checkpoint-only maps do not invoke it. RELEASE exits before tactical role processing.",
-  "migration_trace": "Local support hold records are not checkpointed and have no portable public issuer marker. Do not adopt them as authority on migration; migration remains unresolved."
+  "migration_trace": "Local support hold records are not checkpointed and have no portable public issuer marker. Do not adopt them as authority on migration; migration remains unresolved.",
+  "leader_casualty": "Release requires a non-null combat-effective current group leader in the same group. Missing/incapacitated leaders defer hold consumption within the unchanged finite pending window; no leader election or synthetic progress."
 }

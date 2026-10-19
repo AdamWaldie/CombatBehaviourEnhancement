@@ -159,7 +159,11 @@ class SupportBoundCommitTests(unittest.TestCase):
         for proof in ('isNil {','supportStopHolds','count _holds > 64','(_row select 1) == _token',
                       'CBE_OperationGeneration','CBE_AIPass_Epoch','CortexExternalTakeover',
                       'CortexActorMoveReserved','expectedDestination _actor','formLeader _actor'):
-            self.assertLess(cleanup.index(proof),cleanup.index('_actor doFollow leader _group'))
+            self.assertLess(cleanup.index(proof),cleanup.index('_actor doFollow _returnLeader'))
+        for proof in ('private _returnLeader=leader _group','!isNull _returnLeader','group _returnLeader == _group',
+                      '[_returnLeader] call CBE_fnc_CortexCombatEffective','if (_leaderReady &&'):
+            self.assertLess(cleanup.index(proof),cleanup.index('_actor doFollow _returnLeader'))
+        self.assertLess(cleanup.index('_actor doFollow _returnLeader'),cleanup.index('_holds deleteAt _x'))
         self.assertNotIn('enableAI',cleanup)
         for proof in ('(_expiry+30)','serverTime >= (_cleanup select 3)','(_cleanup select 4) >= 64',
                       '_dueKeys=[_keys select','_deadline min (_previous select 3)',
