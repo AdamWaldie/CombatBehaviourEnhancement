@@ -87,13 +87,13 @@ private _controllerCurrent={
             && {_mobile findIf {!local _x || {!local driver _x}} < 0}
             && {_vehicle getVariable ["CBE_Convoy_Active",false]}
             && {(_vehicle getVariable ["CBE_Convoy_Group",grpNull]) == _group}
-            && {[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+            && {[_group,"CBE_Convoy_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
             && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     };
     (_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain
         && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_brain getOrDefault ["route",[]]) isEqualTo _route}
-        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
         && {[_group] call CBE_fnc_DrivingMovementAvailable}
         && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
         && {vehicle leader _group isEqualTo _vehicle}

@@ -570,7 +570,7 @@ if (_hadBypassPassage && {!_bypassPassageActive}) then {
 };
 private _corridor=[false,1e6,""];
 private _hadCorridor=!isNil {_lead getVariable "CBE_DrivingCorridor_Work"};
-if ([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled
+if ([_group,"CBE_Convoy_DrivingAssist_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled
     && {!_hadBypass} && {!_bypassPassageActive} && {[] call _mayIssueDriving}) then {
     _corridor=[_group,_lead,_group getVariable ["CBE_Convoy_Brain",createHashMap],"CONVOY"] call CBE_fnc_DrivingCorridorStep;
 } else {
@@ -590,7 +590,7 @@ if (count waypoints _group > 1 && {currentWaypoint _group < count waypoints _gro
         [_group,"",false,_lastWaypoint select 1] call CBE_fnc_AuthoredRouteReceipt]];
 };
 private _routeWatch=_state getOrDefault ["routeWatch",[]];
-if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActive} && {[_group,"CBE_Convoy_RouteRecovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActive} && {[_group,"CBE_Convoy_RouteRecovery_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled}
     && {_routeWatch isNotEqualTo []} && {currentWaypoint _group >= count waypoints _group}
     && {time >= (_state getOrDefault ["routeRecoveryAt",-1])}) then {
     _routeWatch params ["_watchedIndex","_watchedPosition","_watchedRadius",["_watchedReceipt",[]]];
@@ -622,7 +622,7 @@ if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActi
                         (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
                     } < 0}
                     || {_phase != "TRAVEL"} || {!([] call _mayIssueDriving)}
-                    || {!([_group,"CBE_Convoy_RouteRecovery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                    || {!([_group,"CBE_Convoy_RouteRecovery_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled)}
                     || {currentWaypoint _group < count waypoints _group}
                     || {_watchedIndex >= count waypoints _group}
                     || {([_group,"",false,_watchedIndex] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _watchedReceipt}
@@ -721,7 +721,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
 // multiplying raycasts or schedulers per vehicle. It influences speed only: Arma retains route
 // choice, collision handling and the ability to remain stopped behind a deliberate roadblock.
 private _roadCap = _maximum;
-private _trafficAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled;
+private _trafficAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled;
 if (_trafficAssistEnabled) then {
     if (time >= (_state getOrDefault ["roadLookAt",-1])) then {
         private _roadObservation=[_lead,_maximum] call CBE_fnc_DrivingRoadCap;
@@ -895,7 +895,7 @@ _state set ["leadProgress", _leadProgress];
 private _followers = _state get "followers";
 private _speedLimits = _state get "speedLimits";
 private _pathOwners = _state getOrDefault ["pathOwners",createHashMap];
-private _pathAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled;
+
 _state set ["pathOwners",_pathOwners];
 // Internal audit capture is local to this owner and resets each travelling callback.
 // It cannot grant authority, change any cap, or retain an unbounded time series.
@@ -915,6 +915,7 @@ private _controlSamples=createHashMap;
 if (_captureControl) then {_state set ["controlSamples",_controlSamples]} else {_state deleteAt "controlSamples"};
 for "_i" from 1 to (count _vehicles - 1) do {
     private _vehicle = _vehicles select _i;
+    private _pathAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled;
     private _front = _vehicles select (_i - 1);
     private _record = _frontTrails get (netId _front);
     private _trail = _record select 0;
@@ -1019,16 +1020,16 @@ for "_i" from 1 to (count _vehicles - 1) do {
     if (_captureControl) then {(_controlSample select 6) pushBack ["retainedPath",_retainedPathCap]};
     // Preserve normal aligned predecessor spacing. Its turning/reversing hull and
     // contact-range occupancy still constrain us, as do all other occupied vehicles.
-    private _traffic=if (_trafficAssistEnabled) then {
+    private _traffic=if (_pathAssistEnabled) then {
         [_vehicle,_limit/3.6,_front] call CBE_fnc_DrivingFollowingCap
     } else {[_limit/3.6,objNull,-1,time,0]};
     private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],_geometryContext] call CBE_fnc_DrivingTurnTrack;
     _geometryTracks set [netId _vehicle,_turn select 1];
-    private _nativeHint=if (_trafficAssistEnabled) then {
+    private _nativeHint=if (_pathAssistEnabled) then {
         [_vehicle,_group,["CONVOY",_revision,_geometryContext]] call CBE_fnc_DrivingNativePathWatch
     } else {[_vehicle,_group,["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch};
     private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
-    private _vehicleGeometry=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6,false,_curveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
+    private _vehicleGeometry=if (_pathAssistEnabled) then {[_vehicle,_limit/3.6,false,_curveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
     private _vehicleGate=_vehicleGeometry select 0;private _vehicleObstacle=_vehicleGeometry select 1;
     if (_vehicleGate isNotEqualTo [] && {(_vehicleGate select 0) < (_traffic select 0)}) then {_traffic=_vehicleGate};
     // Source-constraint yielding requires this follower's unchanged committed trail, actual

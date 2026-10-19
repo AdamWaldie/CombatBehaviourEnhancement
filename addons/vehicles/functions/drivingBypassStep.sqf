@@ -93,13 +93,13 @@ private _controllerCurrent={
             && {_mobile findIf {!local _x || {!local driver _x}} < 0}
             && {_vehicle getVariable ["CBE_Convoy_Active",false]}
             && {(_vehicle getVariable ["CBE_Convoy_Group",grpNull]) == _group}
-            && {[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+            && {[_group,"CBE_Convoy_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
             && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     };
     (_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain
         && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_brain getOrDefault ["route",[]]) isEqualTo _route}
-        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
         && {[_group] call CBE_fnc_DrivingMovementAvailable}
         && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
         && {vehicle leader _group isEqualTo _vehicle}
@@ -113,7 +113,7 @@ private _mayWrite={
         && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {alive _vehicle} && {canMove _vehicle} && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
-        && {[_group,["CBE_AIPass_DrivingAssist_Recovery_Enable","CBE_Convoy_RouteRecovery_Enable"] select _convoy,true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,["CBE_AIPass_DrivingAssist_Recovery_Enable","CBE_Convoy_RouteRecovery_Enable"] select _convoy,true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
         && {isAISteeringComponentEnabled _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}
 };

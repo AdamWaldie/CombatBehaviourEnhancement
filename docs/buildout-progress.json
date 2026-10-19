@@ -82,7 +82,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexFeatureEnabled.sqf",
-              "sha256": "36e083560cde0629205bf81feaa32059ce92ed2cbfa305a2d258183575d19a43"
+              "sha256": "b0d7e26858bb56df0b0f65eabebe163457a0a80111d9a62a1ab9d34e83ce783c"
             }
           ]
         },
@@ -1482,7 +1482,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingOperationStart.sqf",
-              "sha256": "dcc0efda3221f6d1792486803fed14d9ec649798f12f70bf0da98e7af16f104d"
+              "sha256": "87ba5fbd8a170d4417a319fbf5633f870d7ee68a97f93318079d4d67e059c825"
             },
             {
               "path": "addons/vehicles/functions/drivingOperationStep.sqf",
@@ -1541,7 +1541,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingGateOpenServer.sqf",
-              "sha256": "6a9666379950f431b35678b6ffb9b3ea15691d44e9e8adab279ea9ae08220dd6"
+              "sha256": "3a87598ac7a1c44ed05f3271bcf7fd080a2defd8f005cf2f4e7984bfa6c30987"
             }
           ]
         },
@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "fd95cf1500b69eba6f4f955b8aad93a4bcbf900b5ba55ebd686aaef492084c02"
+              "sha256": "6a1450d809929c2f593a2333ce6778120687927131bda8cb3029431ec0298658"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1575,11 +1575,11 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingBypassStep.sqf",
-              "sha256": "7a4f994bcb903313b3f84ad21d13be8f68bf661301d4c66b20b81a586381afe1"
+              "sha256": "a16bc4dbef424e63224319a64766d0db688cf65c1a833fda335c5f8ee4bd3ecb"
             },
             {
               "path": "addons/vehicles/functions/drivingCorridorStep.sqf",
-              "sha256": "438e6fcfa315b26f23942d8f1e164e6f7fb9a6672665b017491855c9c1de5805"
+              "sha256": "39749208fa8e9f9d348d921c819173a083ddd2cb26ebef5e673c370b555fcb4b"
             }
           ]
         },
@@ -1625,11 +1625,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
-              "sha256": "71579d75be1aa22ae74eeee72f6344a9bc192036387bc28ed754b971559f0ccd"
+              "sha256": "dd1cf096dc375297f8e5636a676289d4861aecae4306b8330b83b3df394c31a8"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "fd95cf1500b69eba6f4f955b8aad93a4bcbf900b5ba55ebd686aaef492084c02"
+              "sha256": "6a1450d809929c2f593a2333ce6778120687927131bda8cb3029431ec0298658"
             }
           ]
         },
@@ -1655,7 +1655,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingCrewStep.sqf",
-              "sha256": "d375dc0104d7526c35ffeba33282293377b5d4d06065bcfc9c709edefd9fdc82"
+              "sha256": "79aa85cd40c318151f6135466e843b90d76c4db88fcb03a0737289267d652ce3"
             },
             {
               "path": "addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf",
@@ -1720,7 +1720,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         },
@@ -1733,7 +1733,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         },
@@ -1746,7 +1746,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         },
@@ -1763,7 +1763,7 @@
             },
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         },
@@ -1780,7 +1780,7 @@
             },
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         },
@@ -1867,7 +1867,7 @@
             },
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         }
@@ -1943,7 +1943,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         },
@@ -1956,7 +1956,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         },
@@ -1969,7 +1969,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         }
@@ -1992,7 +1992,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
-              "sha256": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+              "sha256": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
             }
           ]
         },

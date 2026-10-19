@@ -74,10 +74,11 @@ isNil {
         private _vehicle=vehicle _x;
         _vehicle != _x && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")}
             && {alive _vehicle} && {canMove _vehicle}
+            && {[_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
             && {(local _vehicle && {!isNull driver _vehicle} && {group driver _vehicle == _group})
                 || {vehicle leader _group == _vehicle && {[_x] call CBE_fnc_CortexCombatEffective}
                     && {(isNull driver _vehicle || {!alive driver _vehicle})}
-                    && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}}}
+                    && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}}}
             && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
     } >= 0;
     if (!_hasVehicle) exitWith {};

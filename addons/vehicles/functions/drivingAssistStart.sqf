@@ -229,7 +229,7 @@ _brain set ["geometryTracks",_geometryTracks];
     // cap before it can issue a recovery move; the individual driver checks below retain the
     // vehicle-specific local/remote-control safety boundary.
     private _yieldToOwner=[_group] call CBE_fnc_CortexExternalTakeover;
-    if (!_enabled || {!(call _destinationControlFree)} || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
+    if (!_enabled || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)} || {!(call _destinationControlFree)} || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
         || {!([_driver] call CBE_fnc_CortexCombatEffective)} || {isPlayer _driver}
         || {!isNull (_driver getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         || {[_driver] call CBE_fnc_CortexExternalOwner != ""}
@@ -568,7 +568,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 };
             };
             private _retryAllowed=!_reverseExpired || {
-                [_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled
+                [_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled
                     && {!(behaviour leader _group in ["COMBAT","STEALTH"])} && {getSuppression _driver <= 0.1}
                     && {call _mayRecoverOrdinaryRoute}
             };
@@ -689,7 +689,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                     || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
-                    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}
                     || {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo _entryAssistState}
                     || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _entryRestore}
                     || {abs ((getForcedSpeed _vehicle)-_entryForcedSpeed) > 0.1}) exitWith {false};
@@ -747,7 +747,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     && {_jamPeer isKindOf "LandVehicle"} && {([_jamPeer] call _stationary)} && {([_vehicle] call _stationary)}
                     && {_recoveryStage == 0} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass}
                     && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
-                    && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                    && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
                     && {call _mayRecoverOrdinaryRoute};
                 private _jamObserver=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_routeIdentity,_driver,_movementOperator];
                 private _jamSeen=_vehicle getVariable ["CBE_DrivingTrafficSeen",[]];
@@ -895,7 +895,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // Real progress, a replaced order, follower ownership or an intentional wait already
             // resets this stage and its progress clock above. A rear leg keeps its finite expiry.
             private _observationWindow=[20,30,0,60] param [_recoveryStage,60];
-            if (_hasRoute && {_recoveryStage in [0,1,2,3]} && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+            if (_hasRoute && {_recoveryStage in [0,1,2,3]} && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
                 && {!_inCombat} && {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {([_vehicle] call _stationary) || {_reverseComplete}}
                 && {time-_progressAt >= _observationWindow || {_reverseComplete} || {_finalExpired}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
@@ -913,7 +913,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                     || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
                                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                                     || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
-                                    || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                                    || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}
                                     || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _forwardJournal}
                                     || {[currentCommand _driver,+(expectedDestination _driver),
                                         currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _forwardCommands}) exitWith {false};
@@ -987,7 +987,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                     || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
                                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                                     || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
-                                    || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                                    || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}
                                     || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _forwardJournal}
                                     || {[currentCommand _driver,+(expectedDestination _driver),
                                         currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _forwardCommands}) exitWith {false};
@@ -1041,7 +1041,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                     || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
-                    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}
                     || {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo _entryAssistState}
                     || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _previous}
                     || {abs ((getForcedSpeed _vehicle)-_capMps) > 0.1}) exitWith {false};

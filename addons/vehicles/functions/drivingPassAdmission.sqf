@@ -69,7 +69,7 @@ if (_mode == "CANCEL") exitWith {
     };true
 };
 if !(_mode in ["OBSERVE","STEP"]) exitWith {false};
-private _enabled=[_group,"CBE_AIPass_DrivingAssist_Passing_Enable",false] call CBE_fnc_CortexFeatureEnabled;
+private _enabled=[_group,"CBE_AIPass_DrivingAssist_Passing_Enable",false,_vehicle] call CBE_fnc_CortexFeatureEnabled;
 if (_mode == "OBSERVE" && {!_enabled} && {isNil {_vehicle getVariable "CBE_DrivingPass_Admission"}}
     && {isNil {_vehicle getVariable "CBE_DrivingPass_AutoSeen"}}) exitWith {1e6};
 private _current=_enabled && {!isNull _group} && {local _group} && {!isNull _vehicle} && {local _vehicle}

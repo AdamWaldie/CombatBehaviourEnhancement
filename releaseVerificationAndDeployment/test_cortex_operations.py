@@ -1715,6 +1715,21 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,feature)
         self.assertLess(feature.index('_enabled isEqualType true'),feature.index('isNull _group'))
         self.assertLess(feature.index('_setting in _disabled'),feature.index('CBE_fnc_CompatibilityExternalControl'))
+        self.assertIn('CBE_Driving_DisabledFeatures',feature)
+        self.assertIn('_vehicleDisabled isEqualType []',feature)
+        self.assertIn('_setting in _vehicleDisabled',feature)
+        self.assertLess(feature.index('!_enabled'),feature.index('CBE_Driving_DisabledFeatures'))
+        convoy=source('convoyTick')
+        self.assertIn('"CBE_Convoy_DrivingAssist_Enable",true,_lead] call',convoy)
+        self.assertIn('"CBE_Convoy_DrivingAssist_Enable",true,_vehicle] call',convoy)
+        follower=convoy.split('private _pathAssistEnabled=',1)[1]
+        self.assertIn('private _traffic=if (_pathAssistEnabled)',follower)
+        self.assertNotIn('private _traffic=if (_trafficAssistEnabled)',follower)
+        for name in ('drivingCrewStep','drivingGateOpenServer','drivingBypassStep',
+                     'drivingCorridorStep','drivingPassAdmission','drivingPassCanConsent','drivingQueueProposalCurrent'):
+            self.assertRegex(source(name),r'(?:true|false),_vehicle\] call CBE_fnc_CortexFeatureEnabled')
+        self.assertIn('[_group,_feature,true,_vehicle]',source('drivingNativePathWatch'))
+
         ownership=source('compatibilityExternalControl')
         self.assertIn('!(_declared isEqualType true) || {_declared}',ownership)
         self.assertIn('!(_groupDeclared isEqualType true) || {_groupDeclared}',ownership)

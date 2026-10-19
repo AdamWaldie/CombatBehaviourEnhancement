@@ -25,7 +25,9 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         mode='param [0,"",[""]]) != "BACK"'
         self.assertIn(mode,text)
         self.assertIn('count _recoveryWork > 0 && {_recoveryCommandState in ["OWNED","PENDING"]} && {call _destinationControlFree}',text)
-        self.assertIn('if (!_enabled || {!(call _destinationControlFree)}',text)
+        gate=text.split('if (!_enabled ||',1)[1].split('private _mayIssueDriving',1)[0]
+        self.assertIn('"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled',gate)
+        self.assertIn('!(call _destinationControlFree)',gate)
         boundary=text.split('private _mayIssueDriving = {',1)[1].split('// A shared group waypoint',1)[0]
         self.assertIn('call _destinationControlFree',boundary)
         release=source('drivingRecoveryRelease')

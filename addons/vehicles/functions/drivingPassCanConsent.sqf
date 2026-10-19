@@ -50,7 +50,7 @@ if (isNull _group || {!local _group} || {group _operator != _group}
     || {!([_group] call CBE_fnc_CortexIsEligible)}
     || {[_group] call CBE_fnc_CortexExternalTakeover}
     || {!([_group] call CBE_fnc_DrivingMovementAvailable)}
-    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {false};
+    || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}) exitWith {false};
 if ([_driver,_operator] findIf {!local _x || {isPlayer _x} || {!isNull remoteControlled _x}
     || {!simulationEnabled _x} || {isObjectHidden _x}
     || {!([_x] call CBE_fnc_CortexCombatEffective)}

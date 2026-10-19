@@ -116,8 +116,8 @@ private _available={
         && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
         && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {!(_brain getOrDefault ["cancelled",false])} && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
-        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
-        && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
         && {[_group] call CBE_fnc_DrivingMovementAvailable}
         && {!([_group] call CBE_fnc_CortexZeusHeld)} && {!([_group] call CBE_fnc_CortexExternalTakeover)}
         && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}

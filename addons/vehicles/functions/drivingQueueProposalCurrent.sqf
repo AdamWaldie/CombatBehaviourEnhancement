@@ -79,7 +79,7 @@ for "_i" from 0 to (_n-1) do {
             || {(_brain getOrDefault ["generation",-2]) != ((_a select 2) select 5)}
             || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
             || {_passBusy}
-            || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+            || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}
             || {[_group] call CBE_fnc_CortexZeusHeld}) then {_valid=false};
     };
 };

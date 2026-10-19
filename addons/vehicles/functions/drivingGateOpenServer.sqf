@@ -73,12 +73,12 @@ if (_revision >= 0) then {
     private _config=(_registry select _index) select 1;
     if ((_config select 0) != _revision || {(_config select 5) != "TRAVEL"}
         || {!(_vehicle in (_config select 4))}
-        || {!([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) then {_revision=-2};
+        || {!([_group,"CBE_Convoy_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 } else {
     if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])
         || {_vehicle getVariable ["CBE_Convoy_Active",false]}
         || {!([_group,true] call CBE_fnc_DrivingMovementAvailable)}
-        || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) then {_revision=-2};
+        || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 };
 if (_revision == -2 || {_revision < 0 && {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}}) exitWith {false};
 // Check the server-local attempt history before geometry/config work. A delivery retry
@@ -192,7 +192,7 @@ isNil {
             private _liveConfig=(_liveRegistry select _liveIndex) select 1;
             _convoyCurrent=(_liveConfig select 0) == _revision && {(_liveConfig select 5) == "TRAVEL"}
                 && {_vehicle in (_liveConfig select 4)}
-                && {[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+                && {[_group,"CBE_Convoy_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled};
         };
     };
     private _liveCommander=effectiveCommander _vehicle;
@@ -201,7 +201,7 @@ isNil {
         || {_revision < 0 && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])
             || {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}
             || {!([_group,true] call CBE_fnc_DrivingMovementAvailable)}
-            || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}}
+            || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}}}
         || {call _locked} || {!alive _gate} || {!alive _vehicle} || {!canMove _vehicle}
         || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle} || {abs speed _vehicle > 8}
         || {driver _vehicle != _driver} || {_liveCommander != _requestedCommander}
