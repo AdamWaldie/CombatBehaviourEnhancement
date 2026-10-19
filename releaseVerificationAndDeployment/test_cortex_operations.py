@@ -3379,6 +3379,12 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard, text)
         self.assertNotIn(' reveal ', text)
         self.assertIn('private _suppressPos = +_reported;', text)
+        suppress=text.split('private _suppressPos = +_reported;',1)[1]
+        self.assertLess(suppress.index('_drill getOrDefault ["enemyPos"'),suppress.index('private _hiddenIndex'))
+        self.assertIn('if (_suppressPos isEqualTo []) then {',suppress.split('private _hiddenIndex',1)[0])
+        self.assertIn('!(_unit in _closeThreatActors) && {!(_unit call _held)}',suppress)
+        self.assertIn('!isNull _target && {!(_unit in _closeThreatActors)} && {!(_unit call _held)}',text)
+        self.assertLess(text.index('_closeThreatActors pushBack _unit'),text.index('if (assignedTarget _unit != _closest'))
 
     def test_moving_bounds_preserve_native_combat_behaviour(self):
         step = source("cortexFlankStep")

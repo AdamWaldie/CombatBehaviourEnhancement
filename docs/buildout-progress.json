@@ -887,7 +887,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexFireControl.sqf",
-              "sha256": "87b21b9e5c7b21dcf96500708c3f61169b41f4021926fda1f4e52da51f2f5372"
+              "sha256": "ef2c7796b0e454dd39f84fede1272c645b71df50b754bf99b9461264432490e8"
             }
           ]
         },
@@ -913,7 +913,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexFireControl.sqf",
-              "sha256": "87b21b9e5c7b21dcf96500708c3f61169b41f4021926fda1f4e52da51f2f5372"
+              "sha256": "ef2c7796b0e454dd39f84fede1272c645b71df50b754bf99b9461264432490e8"
             }
           ]
         }

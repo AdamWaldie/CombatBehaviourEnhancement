@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
+ * Current close-threat responders and active direct-target assignments are excluded from bursts.
  * Squad fire control while in contact: close-threat priority, target distribution and disciplined
  * suppression.
  *
@@ -120,6 +122,7 @@ if (_members isEqualTo []) exitWith {0};
 private _orders = 0;
 private _held = {(_this getVariable ["CBE_AIPass_TargetHold", -1]) > _now};
 
+private _closeThreatActors=[];
 // Close threat first for stationary and covering members. Moving actors retain normal
 // TARGET/AUTOTARGET/FIREWEAPON behavior, but an explicit doTarget/doFire pair would
 // replace their owned LEADER PLANNED destination with native ATTACK pursuit.
@@ -131,14 +134,18 @@ private _held = {(_this getVariable ["CBE_AIPass_TargetHold", -1]) > _now};
         private _distance = _unit distance2D (_x select 1);
         if ((_x select 2) <= 5 && {_distance < _closestDistance}) then {_closest = _x select 0; _closestDistance = _distance};
     } forEach _enemies;
-    if (!isNull _closest && {assignedTarget _unit != _closest}
-        && {alive _closest} && {!captive _closest}
-        && {[_unit,aimPos _closest] call CBE_fnc_CortexLineOfFireClear}) then {
-        _unit doTarget _closest;
-        _unit setVariable ["CBE_Cortex_FireTarget",[_group,_group getVariable ["CBE_AIPass_Epoch",0],_closest]];
-        _unit doFire _closest;
-        _unit setVariable ["CBE_AIPass_TargetHold", _now + 6];
-        _orders = _orders + 1;
+    if (!isNull _closest && {alive _closest} && {!captive _closest}) then {
+        // Already aiming at this close threat is still a priority response; do not require
+        // another target mutation to protect it from the suppression pass below.
+        _closeThreatActors pushBack _unit;
+        if (assignedTarget _unit != _closest
+            && {[_unit,aimPos _closest] call CBE_fnc_CortexLineOfFireClear}) then {
+            _unit doTarget _closest;
+            _unit setVariable ["CBE_Cortex_FireTarget",[_group,_group getVariable ["CBE_AIPass_Epoch",0],_closest]];
+            _unit doFire _closest;
+            _unit setVariable ["CBE_AIPass_TargetHold", _now + 6];
+            _orders = _orders + 1;
+        };
     };
 } forEach _members;
 
@@ -165,7 +172,7 @@ if (count _visible >= 2) then {
     {
         private _unit = _x;
         private _target = assignedTarget _unit;
-        if (!isNull _target && {!(_unit call _held)} && {(_target call _shootersOn) > _maximum}
+        if (!isNull _target && {!(_unit in _closeThreatActors)} && {!(_unit call _held)} && {(_target call _shootersOn) > _maximum}
             && {([_unit] call CBE_fnc_CortexUnitRole) != "AT"}) then {
             private _freeIndex = _visible findIf {(_x call _shootersOn) == 0};
             if (_freeIndex >= 0 && {alive (_visible select _freeIndex)}
@@ -185,9 +192,13 @@ if (count _visible >= 2) then {
 
 // Disciplined suppression at a known but unseen enemy, or the enemy a flank is working round.
 private _suppressPos = +_reported;
-private _hiddenIndex = _enemies findIf {(_x select 2) > 3 && {(_x select 2) <= 30} && {(_x select 3) <= 500}};
-if (_hiddenIndex >= 0) then {_suppressPos = (_enemies select _hiddenIndex) select 1};
 if (_suppressPos isEqualTo [] && {count _drill > 0}) then {_suppressPos = _drill getOrDefault ["enemyPos", []]};
+// The covering element supports its assigned objective. An unrelated hidden contact is
+// a fallback only; close threats still receive their independent immediate response above.
+if (_suppressPos isEqualTo []) then {
+    private _hiddenIndex = _enemies findIf {(_x select 2) > 3 && {(_x select 2) <= 30} && {(_x select 3) <= 500}};
+    if (_hiddenIndex >= 0) then {_suppressPos = (_enemies select _hiddenIndex) select 1};
+};
 // A native CANFIRE event is an immediate opportunity, not merely a posture change. When the
 // engine already knows a live contact beyond assault distance, feed its believed position into the
 // same bounded, ammunition-aware and friendly-fire-safe suppression rotation. This neither reveals
@@ -239,7 +250,8 @@ if (_suppressPos isNotEqualTo []) then {
         {
             if (_issued) exitWith {};
             private _unit = _members select (_x select 1);
-            if ((_unit getVariable ["CBE_AIPass_LastSuppress", -1e6]) <= _now - 8 && {getSuppression _unit < 0.5}) then {
+            if (!(_unit in _closeThreatActors) && {!(_unit call _held)}
+                && {(_unit getVariable ["CBE_AIPass_LastSuppress", -1e6]) <= _now - 8} && {getSuppression _unit < 0.5}) then {
                 private _weapon = primaryWeapon _unit;
                 // A carried rifle reserve does not qualify a pistol, empty muzzle or selected
                 // underbarrel launcher. Leave weapon selection/reloading to the current owner.

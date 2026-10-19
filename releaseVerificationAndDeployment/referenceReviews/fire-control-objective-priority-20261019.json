@@ -1,0 +1,11 @@
+{
+  "finding": "Hidden contact selection overwrote a live coordinated suppression position and preceded current drill objective. Later suppression could also replace an immediate direct-target response; target redistribution could redirect an already-assigned close responder once its old hold expired.",
+  "implementation": "Keep reported coordinated position, then current drill objective, then ordinary hidden-contact fallback. Collect current close-threat responders in the existing member pass, including already-assigned targets. Exclude them from distribution and suppression; exclude live direct-target holds from suppression. No new queries, target knowledge, state leases, settings or workers. Existing ammo, cadence, moving-actor and fire-lane safety remain.",
+  "reference": "Local LAMBS2621 brainEngage uses near assault versus distant CANFIRE suppression and preserves planning/hold-fire restrictions. CBE merges that intent through its existing covering-element pass rather than adding a second fire controller.",
+  "source_sha256": "ef2c7796b0e454dd39f84fede1272c645b71df50b754bf99b9461264432490e8",
+  "validation": "Full final .qa/cbe-support-fire-priority-final-build.log and independent package verification passed; fingerprint2974ef1ed14bf0d25b0c2bba1ef2a1a634ef07ab89c678035e46d85a7fc61b53, manifest7ea1f56f+dirtydevelopment. Existing source contract extended; no new tests. Initial build passed before final redistribution correction; final log covers both.",
+  "physical_acceptance": false,
+  "audits": "PAUSED",
+  "scores_changed": false,
+  "remaining": "Actual covering fire, interruption, multi-contact balance and frame-time overhead need engine verification. Queue/BACK execution remains missing."
+}
