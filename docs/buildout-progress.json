@@ -1486,7 +1486,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingOperationStep.sqf",
-              "sha256": "92f2742dc8d5be643caa92f670b8b220d9609b22a83b46d973807c4b57ef45dc"
+              "sha256": "c83bfa040490aceca88eec1123dd98f05ff339122a86db9a185afe46e0dac5f0"
             }
           ]
         },
@@ -1703,7 +1703,7 @@
             },
             {
               "path": "addons/vehicles/functions/convoyOperationStep.sqf",
-              "sha256": "76642d0a3ff48c226e65cc0a3b07226588c66101014ea53a58a978d3c1a6538f"
+              "sha256": "7de68606a5118148bced864e2873e29c2aba98488e686077abdc3edcc677e758"
             },
             {
               "path": "addons/vehicles/functions/convoySync.sqf",
@@ -1759,7 +1759,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyOperationStep.sqf",
-              "sha256": "76642d0a3ff48c226e65cc0a3b07226588c66101014ea53a58a978d3c1a6538f"
+              "sha256": "7de68606a5118148bced864e2873e29c2aba98488e686077abdc3edcc677e758"
             },
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
@@ -3193,7 +3193,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
+              "sha256": "fb424efbe6437b4e5253464190430ff1e1c2dd8c6fe70b1e085db725041bd691"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3214,7 +3214,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
+              "sha256": "fb424efbe6437b4e5253464190430ff1e1c2dd8c6fe70b1e085db725041bd691"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3239,7 +3239,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
+              "sha256": "fb424efbe6437b4e5253464190430ff1e1c2dd8c6fe70b1e085db725041bd691"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3260,7 +3260,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
+              "sha256": "fb424efbe6437b4e5253464190430ff1e1c2dd8c6fe70b1e085db725041bd691"
             },
             {
               "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
@@ -3302,7 +3302,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
+              "sha256": "fb424efbe6437b4e5253464190430ff1e1c2dd8c6fe70b1e085db725041bd691"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",

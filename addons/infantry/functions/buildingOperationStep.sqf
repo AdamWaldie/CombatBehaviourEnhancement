@@ -51,6 +51,8 @@
  * as replacement exit security; arrival/view checks still establish actual observation.
  * Locality / Authority: Runs through CBE's shared scheduler where the group is local. It checks the
  * operation generation, Zeus and external ownership before issuing any movement command.
+ * Execution: A queued callback requires a live current FSM handle. Ended work retires
+ * the callback only; existing restart admission retains all original task budgets/journals.
  * Repeat/JIP: One-shot callback. Shared and individual physical room progress is public; owner-local actor assignments are
  * generation scoped and reconstructed after locality migration. Each room, entrance and egress
  * leg has one generation-owned movement writer. Entry, room and recovery movement each issue one
@@ -194,6 +196,13 @@ if (isNull _group || {!local _group}
     _brain set ["cancelled",true];
     _brain set ["cancelReason","REPLACED_OR_LOST_OWNER"];
     -1
+};
+// Queued jobs outlive their submitting FSM. The shared scheduler runs them on a later
+// tick, after execFSM has published its handle. An ended executor grants no callback
+// command authority. Preserve journals/budgets for the existing bounded restart path.
+private _executor=_group getVariable ["CBE_BuildingBrain_FSM",-1];
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {
+    _brain set ["pending",false];_brain set ["completed",true];-1
 };
 private _delay=call {
     private _group = _job get "group";

@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Executes one bounded physical convoy step and derives its semantic FSM phase from the authoritative snapshot, contact evidence, recovery leases and measured predecessor gaps.
  * Locality / Authority: Runs through CBE's shared scheduler on the convoy group owner. ConvoyTick rechecks authority at every vehicle command boundary.
+ * Execution: A queued callback requires a live current FSM handle. Ended work retires
+ * the callback only; existing restart admission retains all original task budgets/journals.
  * Repeat/JIP: One-shot callback. Registry revision, configuration identity and job token reject stale work after settings changes, JIP replay or headless migration.
  * Spacing diagnostics reuse ConvoyTick's cached vehicle dimensions and aligned forward-gap rule.
  * Public status updates immediately on semantic changes, otherwise at the first existing callback
@@ -18,6 +20,13 @@ if (_brain getOrDefault ["cancelled",false] || {_brain getOrDefault ["finished",
 if (isNull _group || {!local _group}) exitWith {["OWNERSHIP_LOST"] call _cancel};
 if (_registryRevision != (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2]) || {_token isNotEqualTo (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
     || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _brain}) exitWith {["REPLACED"] call _cancel};
+// Queued jobs outlive their submitting FSM. The shared scheduler runs them on a later
+// tick, after execFSM has published its handle. An ended executor grants no callback
+// command authority. Preserve journals/budgets for the existing bounded restart path.
+private _executor=_group getVariable ["CBE_Convoy_Brain_FSM",-1];
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {
+    _brain set ["pending",false];_brain set ["completed",true];-1
+};
 private _entry=(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {(_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}};
 if (_entry < 0) exitWith {["REPLACED"] call _cancel};
 private _stepEpoch=_group getVariable ["CBE_AIPass_Epoch",0];

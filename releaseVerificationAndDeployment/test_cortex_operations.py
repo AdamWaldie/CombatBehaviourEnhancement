@@ -300,6 +300,13 @@ class CortexOperations(unittest.TestCase):
         sync=source('convoySync');adopt=source('convoyHeadlessAdoptLocal');start=source('convoyOperationStart');queue=source('convoyOperationQueue');step=source('convoyOperationStep');release=source('convoyReleaseLocal')
         fsm=(ROOT/'addons/main/fsm/convoyOperation.fsm').read_text(encoding='utf-8')
         self.assertIn('CBE_fnc_ConvoyOperationStart',sync+adopt)
+        gate=step.split('private _executor=',1)[1].split('private _entry=',1)[0]
+        self.assertIn('CBE_Convoy_Brain_FSM',gate)
+        self.assertIn('completedFSM _executor',gate)
+        self.assertIn('["pending",false]',gate)
+        self.assertIn('["completed",true]',gate)
+        for mutation in ('["cancelled",true]','["finished",true]','execFSM','ConvoyReleaseLocal','deadline'):
+            self.assertNotIn(mutation,gate)
         self.assertNotIn('CBE_fnc_ConvoyJobStep',sync+adopt)
         self.assertIn('convoyOperation.fsm',start)
         reuse=start[start.index('private _current='):start.index('if (count _current > 0) then')]

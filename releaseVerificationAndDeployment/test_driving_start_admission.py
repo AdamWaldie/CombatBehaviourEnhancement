@@ -53,6 +53,14 @@ class DrivingStartAdmissionTests(unittest.TestCase):
 
         finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text()
         self.assertIn('_reason in ["EXHAUSTED","FSM_START_FAILED","FSM_RESTART_EXHAUSTED"]',finish)
+        step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text(encoding='utf-8')
+        gate=step.split('private _executor=',1)[1].split('if ([_group] call',1)[0]
+        for proof in ('CBE_Driving_FSM','_executor isEqualType 0','finite _executor',
+                      '_executor < 0','completedFSM _executor','["pending",false]','["completed",true]'):
+            self.assertIn(proof,gate)
+        for mutation in ('["cancelled",true]','["finished",true]','execFSM','DrivingOperationFinish','deadline'):
+            self.assertNotIn(mutation,gate)
+        self.assertLess(step.index('completedFSM _executor'),step.index('call CBE_fnc_DrivingCrewStep'))
 
 
 

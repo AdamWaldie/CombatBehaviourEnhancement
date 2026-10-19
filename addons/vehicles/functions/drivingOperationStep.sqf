@@ -6,6 +6,8 @@
  * Nearby conflict hints request earlier existing callbacks without changing the phase
  * to TRAFFIC until a real constraint applies; braking assumptions remain unchanged.
  * Public diagnostics publish on state changes and a ten-second heartbeat using this same callback.
+ * Execution: A queued callback requires a live current FSM handle. Ended work retires
+ * the callback only; existing restart admission retains all original task budgets/journals.
  * Repeat/JIP: Epoch, generation and current-brain identity reject stale work. New owners start
  * their own execution; local jobs and FSM handles are never replayed to JIP.
  * Arguments: 0 brain <HASHMAP, empty>.
@@ -19,6 +21,13 @@ private _reject={params ["_reason"];_brain set ["cancelled",true];_brain set ["c
 if (isNull _group || {!local _group} || {_brain getOrDefault ["cancelled",false]}
     || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {["OWNER_CHANGED"] call _reject};
+// Queued jobs outlive their submitting FSM. The shared scheduler runs them on a later
+// tick, after execFSM has published its handle. An ended executor grants no callback
+// command authority. Preserve journals/budgets for the existing bounded restart path.
+private _executor=_group getVariable ["CBE_Driving_FSM",-1];
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {
+    _brain set ["pending",false];_brain set ["completed",true];-1
+};
 if ([_group] call CBE_fnc_CortexZeusHeld || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {["TAKEOVER"] call _reject};
 if (!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)) exitWith {["DISABLED"] call _reject};
 if (!([_group] call CBE_fnc_DrivingMovementAvailable)) exitWith {["TACTICAL_OWNER"] call _reject};

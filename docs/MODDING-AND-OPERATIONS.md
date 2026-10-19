@@ -386,3 +386,7 @@ if ((_agreement getOrDefault ["phase", ""]) == "AGREED") then {
 ```
 
 READY currently ends at the server's hold-readiness record. It does not start a reverse leg, grant passing priority or establish a cleared queue. Dependency-leaf reverse, independently measured full-hull clearance for parent movement, phase-specific native receipts and exact handback remain to implement. Normal/HC interruption, duplicate/delayed delivery, expiry, restoration and actual stationary readiness remain physically unverified while audits are paused. No Zeus module advertises this incomplete behaviour.
+
+### Queued work after an operation FSM ends
+
+Driving, convoy and building-clearance callbacks now require a live current FSM handle before executing their queued observation/command path. The scheduler delivers queued work on a later tick, so this execution check happens after startup publishes its handle. An ended or invalid handle retires only that queued callback and clears its pending flag. It does not start another FSM, clear movement/room evidence, cancel the admitted task, restore controls or renew a deadline. The existing bounded restart/discovery path retains responsibility for resuming the same admitted context and preserving its budgets. This guards callback authority; forced FSM termination, restart flow and normal/HC interruption still require in-game verification.

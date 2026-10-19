@@ -32,6 +32,14 @@ class BuildingStartAdmissionTests(unittest.TestCase):
         self.assertNotIn('execFSM',duplicate)
         self.assertNotIn('_old set',duplicate)
         self.assertIn('!completedFSM _existingHandle',start)
+        step=source('buildingOperationStep')
+        gate=step.split('private _executor=',1)[1].split('private _delay=call',1)[0]
+        self.assertIn('CBE_BuildingBrain_FSM',gate)
+        self.assertIn('completedFSM _executor',gate)
+        self.assertIn('["pending",false]',gate)
+        self.assertIn('["completed",true]',gate)
+        for mutation in ('["cancelled",true]','["finished",true]','execFSM','ClearRelease','deadline'):
+            self.assertNotIn(mutation,gate)
         self.assertIn('&& {_workerAlive}',duplicate)
         self.assertIn('(_job getOrDefault ["executorRestarts",0]) < 1',start)
         self.assertIn('!completedFSM _handle',start)
