@@ -3,6 +3,8 @@
  * Purpose: Plan one actor's indoor observation destination near a supplied native contact belief.
  * Locality/authority: Read-only on the actor and group owner. No movement or access is granted.
  * Repeat/JIP: Read-only. At most 512 native positions are ranked and three roof queries are issued.
+ * Reservation, failed-node and body separation use absolute ASL coordinates. Native
+ * outputs remain ATL; terrain-cell differences cannot alias distinct floors.
  * Current positions of at most16 living, simulated, visible, dismounted squadmates exclude
  * same-floor body overlap. No enemy/other-group scan or persistent occupancy cache is used.
  * Up to four actor-local failed-node observations temporarily exclude matching destinations only
@@ -26,6 +28,7 @@ if (isNull _actor || {!local _actor} || {!local group _actor}
     || {count _reserved > 16}) exitWith {[]};
 // Reject unknown reservations rather than sending a second actor to an unverified destination.
 if (_reserved findIf {!(_x call _positionValid)} >= 0) exitWith {[]};
+private _reservedASL=_reserved apply {AGLToASL _x};
 private _failedNodes=[];
 private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
 private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
@@ -33,7 +36,7 @@ private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building
     if (_x isEqualType [] && {count _x == 5} && {(_x select 0) isEqualTo _building}
         && {(_x select 1) isEqualTo _transform} && {(_x select 2) call _positionValid}
         && {(_x select 3) isEqualType 0} && {finite (_x select 3)} && {serverTime < (_x select 3)}
-        && {(_x select 4) isEqualTo _epoch}) then {_failedNodes pushBack +(_x select 2)};
+        && {(_x select 4) isEqualTo _epoch}) then {_failedNodes pushBack (AGLToASL (_x select 2))};
 } forEach ((_actor getVariable ["CBE_IndoorActor_NodeFailures",[]]) select [0,4]);
 private _positions=_building buildingPos -1;
 if (count _positions > 512) exitWith {[]};
@@ -62,9 +65,9 @@ private _ranked=[];
         private _nodeASL=AGLToASL _node;
         private _height=_nodeASL select 2;
         if (_inside && {abs (_height-_beliefHeight) <= 1.5}
-            && {_reserved findIf {_x vectorDistance _node < 1.5} < 0}
+            && {_reservedASL findIf {_x vectorDistance _nodeASL < 1.5} < 0}
             && {_bodies findIf {_x distance2D _nodeASL < 1.5 && {abs ((_x select 2)-_height) <= 1}} < 0}
-            && {_failedNodes findIf {_x vectorDistance _node < 1.5} < 0}) then {
+            && {_failedNodes findIf {_x vectorDistance _nodeASL < 1.5} < 0}) then {
             // Belief proximity first; actor travel breaks ties without consulting enemy transforms.
             _ranked pushBack [_node distance2D _belief,_node distance2D _origin,_forEachIndex];
         };

@@ -1,5 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
+ * Physical progress and arrival use absolute ASL coordinates; native destinations remain ATL.
+ * Terrain differences between cells cannot fabricate motion or hide same-floor arrival.
+ * An issued native move has one original two-second acknowledgement window. Only the
+ * exact pre-issue destination/form leader and original command or MOVE may wait; new
+ * orders preempt immediately. Waiting issues nothing and grants no cleanup or visit proof.
  * Purpose: Own one finite indoor investigation actor, independently of whole-group CLEAR.
  * Locality/authority: Actor and group owner only; the FSM queues bounded shared-scheduler work.
  * Native/Zeus/specialist tasks, native ignored or surrendered/restrained contacts and overlapping operations preempt this controller. Proven disjoint
@@ -202,7 +207,7 @@ if (_mode == "START") exitWith {
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],
         ["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
-        ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosATL _actor]];
+        ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosASL _actor]];
     // Release only this actor's owned danger posture before publishing the incoming task.
     [_actor] call CBE_fnc_DangerEngineRelease;
     if ((_actor getVariable ["CBE_Danger_EngineStanceLease",[]]) isNotEqualTo []) exitWith {false};
@@ -309,8 +314,8 @@ if (_phase == "SELECT") exitWith {
         -1
     };
     // A stall sample is not authority to reset a path that has since resumed.
-    if (_escalate && {(getPosATL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
-        _brain set ["progressPosition",getPosATL _actor]; _brain set ["progressAt",serverTime];
+    if (_escalate && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
+        _brain set ["progressPosition",getPosASL _actor]; _brain set ["progressAt",serverTime];
         _brain set ["escalate",false]; _brain set ["phase","APPROACH"];
         -1
     };
@@ -342,14 +347,16 @@ if (_phase == "SELECT") exitWith {
         || {(_group getVariable ["CBE_OperationGeneration",0]) != (_brain get "operationGeneration")}
         || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {["PREEMPTED"] call _finish};
     // A stall sample is not authority to reset a path that has since resumed.
-    if (_escalate && {(getPosATL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
-        _brain set ["progressPosition",getPosATL _actor]; _brain set ["progressAt",serverTime];
+    if (_escalate && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
+        _brain set ["progressPosition",getPosASL _actor]; _brain set ["progressAt",serverTime];
         _brain set ["escalate",false]; _brain set ["phase","APPROACH"];
         -1
     };
+    _brain set ["requestBefore",[currentCommand _actor,(expectedDestination _actor) call _copyArray,formLeader _actor]];
+    _brain set ["requestIssuedAt",serverTime];
     _actor doMove _node;
     if (_escalate) then {_brain set ["escalations",1]};
-    _brain set ["escalate",false]; _brain set ["progressAt",serverTime]; _brain set ["progressPosition",getPosATL _actor];
+    _brain set ["escalate",false]; _brain set ["progressAt",serverTime]; _brain set ["progressPosition",getPosASL _actor];
     _brain set ["target",+_node]; _brain set ["issued",true]; _brain set ["phase","APPROACH"];
     private _journal=+(_actor getVariable ["CBE_IndoorActor_Order",[]]);
     _journal set [6,+_node]; _journal set [8,true];
@@ -359,20 +366,35 @@ if (_phase == "SELECT") exitWith {
 private _target=_brain get "target";
 private _destination=(expectedDestination _actor) param [0,[],[[]]];
 private _combatCommand=currentCommand _actor in ["ATTACK","FIRE"] && {!isNull _contact} && {_engaging == _contact};
-if (!(currentCommand _actor in ["","MOVE"] || {_combatCommand}) || {!(_destination call _vectorValid)}
-    || {_destination vectorDistance _target > 0.25}) exitWith {["NATIVE_TASK"] call _finish};
+private _destinationCurrent=_destination call _vectorValid && {_destination vectorDistance _target <= 0.25};
+private _awaitingMove=false;
+if (_phase == "APPROACH" && {_brain getOrDefault ["issued",false]} && {!_destinationCurrent}) then {
+    private _requestAt=_brain getOrDefault ["requestIssuedAt",-1];
+    private _before=_brain getOrDefault ["requestBefore",[]];
+    _awaitingMove=_requestAt isEqualType 0 && {finite _requestAt} && {_requestAt >= 0}
+        && {serverTime >= _requestAt} && {serverTime-_requestAt < 2}
+        && {_before isEqualType []} && {count _before == 3}
+        && {currentCommand _actor in [_before select 0,"MOVE"]}
+        && {(expectedDestination _actor) isEqualTo (_before select 1)}
+        && {formLeader _actor isEqualTo (_before select 2)};
+};
+// Original issue time is never refreshed here. Observation of somebody else's native
+// approach cannot borrow this grace, and pending acknowledgement grants no new command.
+if (_awaitingMove) exitWith {-1};
+if (!(currentCommand _actor in ["","MOVE"] || {_combatCommand}) || {!_destinationCurrent}) exitWith {["NATIVE_TASK"] call _finish};
 if (_phase == "APPROACH") exitWith {
     [_actor,_building,["INDOOR",_brain get "generation"]] call CBE_fnc_CortexBuildingDoor;
     private _position=getPosATL _actor;
-    private _near=_position vectorDistance _target <= 1.5;
+    private _positionASL=getPosASL _actor;
+    private _near=_positionASL vectorDistance (AGLToASL _target) <= 1.5;
     private _inside=false;
     if (_near) then {
         private _model=_building worldToModel _position;
         private _bounds=boundingBoxReal _building;
         private _low=_bounds select 0; private _high=_bounds select 1;
-        private _height=abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2));
+        private _height=abs ((_positionASL select 2)-((AGLToASL _target) select 2));
         private _segment=lineIntersectsSurfaces [eyePos _actor,(AGLToASL _target) vectorAdd [0,0,1],_actor,objNull,true,1,"GEOM","NONE"];
-        private _actualASL=getPosASL _actor;
+        private _actualASL=_positionASL;
         private _roofTop=[_building,_bounds] call CBE_fnc_BuildingRoofTop;
         private _roof=if (_roofTop > (_actualASL select 2)+0.4) then {
             lineIntersectsSurfaces [_actualASL vectorAdd [0,0,0.4],
@@ -386,8 +408,8 @@ if (_phase == "APPROACH") exitWith {
     if (_inside) then {
         _brain set ["phase","OBSERVE"]; _brain set ["observeUntil",serverTime+2];
     } else {
-        if (_position vectorDistance (_brain get "progressPosition") >= 1) then {
-            _brain set ["progressPosition",_position]; _brain set ["progressAt",serverTime];
+        if (_positionASL vectorDistance (_brain get "progressPosition") >= 1) then {
+            _brain set ["progressPosition",_positionASL]; _brain set ["progressAt",serverTime];
         };
         if (serverTime-(_brain get "progressAt") >= 12) then {
             if (!(_brain get "issued") && {(_brain get "escalations") == 0}

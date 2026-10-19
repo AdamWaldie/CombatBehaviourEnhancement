@@ -40,6 +40,14 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '(_hit select 2) == _building','NO_PROGRESS','VISITED','BUILDING_CHANGED'):
             self.assertIn(guard,s)
         self.assertNotIn('_cleared pushBack',s)
+        self.assertIn('_positionASL vectorDistance (AGLToASL _target) <= 1.5',s)
+        self.assertIn('["progressPosition",getPosASL _actor]',s)
+        self.assertNotIn('["progressPosition",getPosATL _actor]',s)
+        # Different terrain cells can describe the same actual floor at different ATL heights.
+        import math
+        self.assertGreater(math.dist((0,0,1),(1,0,4)),1.5)
+        self.assertLessEqual(math.dist((0,0,11),(1,0,11)),1.5)
+
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         self.assertNotIn('CBE_fnc_IndoorActorOperation',tick)
         fsm=(ROOT/'addons/main/fsm/indoorActor.fsm').read_text()
@@ -70,6 +78,10 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(guard,bodies)
         self.assertLess(s.index('_bodies findIf'),s.index('_ranked pushBack'))
         self.assertIn('_x distance2D _nodeASL < 1.5',s)
+        self.assertIn('_reservedASL=_reserved apply {AGLToASL _x}',s)
+        self.assertIn('_reservedASL findIf {_x vectorDistance _nodeASL < 1.5}',s)
+        self.assertIn('_failedNodes findIf {_x vectorDistance _nodeASL < 1.5}',s)
+
         self.assertIn('abs ((_x select 2)-_height) <= 1',s)
         for forbidden in ('allUnits','nearEntities','nearestObjects','setVariable','_enemy'):
             self.assertNotIn(forbidden,s)
@@ -192,6 +204,18 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         finish=s.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
         self.assertIn('private _ownsLeg=_issued',finish)
         self.assertIn('_actor doMove waypointPosition _waypoint;',finish)
+        # A native issue may not acknowledge its new target before the next callback.
+        acknowledgement=s.split('private _awaitingMove=false;',1)[1].split('if (_phase == "APPROACH") exitWith',1)[0]
+        for guard in ('"APPROACH"','"issued",false','serverTime-_requestAt < 2',
+                      '(expectedDestination _actor) isEqualTo (_before select 1)',
+                      'formLeader _actor isEqualTo (_before select 2)',
+                      'currentCommand _actor in [_before select 0,"MOVE"]'):
+            self.assertIn(guard,acknowledgement)
+        self.assertNotIn('doMove',acknowledgement)
+        self.assertNotIn('set ["requestIssuedAt"',acknowledgement)
+        self.assertLess(s.index('_brain set ["requestIssuedAt",serverTime]'),s.index('_actor doMove _node'))
+        self.assertEqual(s.count('_brain set ["requestIssuedAt",serverTime]'),1)
+
     def test_routine_group_reposition_cannot_steal_an_actor_leg(self):
         s=(ROOT/'addons/infantry/functions/cortexTacticalReposition.sqf').read_text()
         guard=s.index('if ((units _group) findIf {[_x] call CBE_fnc_CortexActorMoveReserved}')
