@@ -3457,7 +3457,7 @@ class CortexOperations(unittest.TestCase):
         suppress=text.split('private _suppressPos = +_reported;',1)[1]
         self.assertLess(suppress.index('_drill getOrDefault ["enemyPos"'),suppress.index('private _hiddenIndex'))
         self.assertIn('if (_suppressPos isEqualTo []) then {',suppress.split('private _hiddenIndex',1)[0])
-        self.assertIn('!(_unit in _closeThreatActors) && {!(_unit call _held)}',suppress)
+        self.assertIn('unitReady _unit && {!(_unit in _closeThreatActors)} && {!(_unit call _held)}',suppress)
         self.assertIn('!isNull _target && {!(_unit in _closeThreatActors)} && {!(_unit call _held)}',text)
         self.assertLess(text.index('_closeThreatActors pushBack _unit'),text.index('if (assignedTarget _unit != _closest'))
 
@@ -3688,6 +3688,11 @@ class CortexOperations(unittest.TestCase):
 
     def test_native_canfire_uses_its_own_contact_and_existing_safe_suppression(self):
         fire = source("cortexFireControl")
+        roster=fire[fire.index('private _eligible ='):fire.index('private _members =')]
+        self.assertIn('getUnitState _x != "PLANNING"',roster)
+        self.assertLess(fire.index('getUnitState _x != "PLANNING"'),fire.index('_unit doTarget'))
+        self.assertLess(fire.index('unitReady _unit'),fire.index('magazinesAmmoFull _unit'))
+        self.assertLess(fire.index('unitReady _unit'),fire.index('_unit doSuppressiveFire'))
         suppression = fire.split('// Disciplined suppression', 1)[1]
         for token in ['getOrDefault ["dangerResponse",[]]',
                       '(_dangerResponse select 0) == "CANFIRE"',
@@ -4183,6 +4188,18 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('setPos',reposition)
 
     def test_direct_assault_uses_its_own_live_gate_and_cleanup_accounting(self):
+        start=source('cortexAssaultStart')
+        self.assertIn('if (count _onFoot < 2)',start)
+        self.assertIn('count _onFoot == 3) then {2}',start)
+        self.assertIn('private _minimumMovers=[2,1] select (count _onFoot == 2)',start)
+        self.assertIn('private _minimumCover=[2,1] select _smallElement',start)
+        self.assertIn('SMALL_ELEMENT_UNAVAILABLE',start)
+        self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',start)
+        self.assertIn('getUnitState _x == "PLANNING"',start)
+        self.assertIn('count _coverElement < _minimumCover',start)
+        reposition=source('cortexTacticalReposition')
+        self.assertIn('getUnitState _x == "PLANNING"',reposition)
+        self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',reposition)
         step=source('cortexFlankStep')
         end=source('cortexFlankEnd')
         functions=(ROOT/'addons/main/CfgFunctions.hpp').read_text(encoding='utf-8')

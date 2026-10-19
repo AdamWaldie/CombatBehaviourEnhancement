@@ -235,10 +235,14 @@ class IndoorActorLifecycleTests(unittest.TestCase):
 
     def test_routine_group_reposition_cannot_steal_an_actor_leg(self):
         s=(ROOT/'addons/infantry/functions/cortexTacticalReposition.sqf').read_text()
-        guard=s.index('if ((units _group) findIf {[_x] call CBE_fnc_CortexActorMoveReserved}')
+        guard=s.index('if ((units _group) findIf {alive _x && {getUnitState _x == "PLANNING"')
         self.assertLess(s.index('call CBE_fnc_CortexRetreat'),guard)
         self.assertLess(guard,s.index('call CBE_fnc_CortexFindCover'))
         self.assertLess(guard,s.index('call CBE_fnc_CortexOwnershipLease'))
+        self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',s[guard:s.index('private _toward=',guard)])
+        task=(ROOT/'addons/infantry/functions/cortexActorFireTaskAvailable.sqf').read_text()
+        self.assertIn('[_actor] call CBE_fnc_CortexActorMoveReserved',task)
+        self.assertIn('"HEAL"',task)
         shared=(ROOT/'addons/infantry/functions/cortexActorMoveReserved.sqf').read_text()
         for marker in ('_lease isEqualTo []','finite (_lease select 2)','!_expired'):
             self.assertIn(marker,shared)

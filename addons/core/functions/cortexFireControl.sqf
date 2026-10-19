@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
  * Current close-threat responders and active direct-target assignments are excluded from bursts.
+ * Native PLANNING actors defer all scripted fire-control orders; suppression additionally requires
+ * native unitReady before reserve-ammo scans or firing-lane geometry. Native combat remains enabled.
  * Squad fire control while in contact: close-threat priority, target distribution and disciplined
  * suppression.
  *
@@ -98,6 +100,7 @@ private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 // per roster member, before any scripted targeting or suppression command in this callback.
 private _eligible = (units _group) select {
     ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
+        && {getUnitState _x != "PLANNING"}
         && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
@@ -250,7 +253,7 @@ if (_suppressPos isNotEqualTo []) then {
         {
             if (_issued) exitWith {};
             private _unit = _members select (_x select 1);
-            if (!(_unit in _closeThreatActors) && {!(_unit call _held)}
+            if (unitReady _unit && {!(_unit in _closeThreatActors)} && {!(_unit call _held)}
                 && {(_unit getVariable ["CBE_AIPass_LastSuppress", -1e6]) <= _now - 8} && {getSuppression _unit < 0.5}) then {
                 private _weapon = primaryWeapon _unit;
                 // A carried rifle reserve does not qualify a pistol, empty muzzle or selected

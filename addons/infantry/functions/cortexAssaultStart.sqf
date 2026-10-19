@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Depleted admission: two armed available actors alternate one mover/one cover; three use
+ * two movers/one cover through the existing finite executor. Native planning/tasks defer admission.
  * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Starts a direct close assault when a fresh known dismounted infantry hostile is already too near
  * for an advance or flank approach. Vehicles, mounted crew and static weapons are refused at this
@@ -76,18 +78,28 @@ private _onFoot=(units _group) select {
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
-if (count _onFoot < 4) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
+if (count _onFoot < 2) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
+private _smallElement=count _onFoot < 4;
+if (_smallElement && {_onFoot findIf {primaryWeapon _x == "" || {getUnitState _x == "PLANNING"}
+    || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}} >= 0}) exitWith {
+    ["SMALL_ELEMENT_UNAVAILABLE",[count _onFoot]] call _refuse
+};
 private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
-private _riflemen=_onFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])}};
+// A depleted element uses its armed non-leaders rather than demanding squad-only roles.
+// The shared executor already uses one mover/one cover for two survivors, two/one for three.
+private _riflemen=_onFoot select {_x != _leader && {_smallElement || {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])}}};
 private _ranked=[];
 {_ranked pushBack [_x distance2D _enemyPos,_forEachIndex]} forEach _riflemen;
 _ranked sort true;
-private _assaultSize=((floor (count _onFoot/2)) min 5) min count _ranked;
-if (_assaultSize < 2) exitWith {["NO_ASSAULT_ELEMENT",[count _riflemen]] call _refuse};
+private _desiredMovers=if (count _onFoot == 3) then {2} else {floor (count _onFoot/2)};
+private _minimumMovers=[2,1] select (count _onFoot == 2);
+private _minimumCover=[2,1] select _smallElement;
+private _assaultSize=(_desiredMovers min 5) min count _ranked;
+if (_assaultSize < _minimumMovers) exitWith {["NO_ASSAULT_ELEMENT",[count _riflemen]] call _refuse};
 private _assaultElement=(_ranked select [0,_assaultSize]) apply {_riflemen select (_x select 1)};
 private _coverElement=_onFoot-_assaultElement;
-if (count _coverElement < 2) exitWith {["NO_COVER_ELEMENT",[count _coverElement]] call _refuse};
+if (count _coverElement < _minimumCover) exitWith {["NO_COVER_ELEMENT",[count _coverElement]] call _refuse};
 
 private _start=[0,0,0];
 {_start=_start vectorAdd getPosATL _x} forEach _assaultElement;

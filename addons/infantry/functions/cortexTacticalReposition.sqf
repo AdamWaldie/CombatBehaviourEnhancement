@@ -3,6 +3,7 @@
  * Purpose: Commits one short terrain-screened reposition when the current contact cannot support a useful assault, flank or advance.
  * Locality / Authority: Runs only on the current group owner after normal CBE eligibility checks. Zeus, players, authored HOLD/SENTRY orders, specialist owners and newer CBE operations take precedence.
  * A routine group-waypoint fallback yields to any live or malformed actor reservation;
+ * native planning and protected native tasks also defer the group waypoint;
  * the earlier close-armour withdrawal retains survival priority. Other native/fire and
  * independently scoped manoeuvre paths remain available to unreserved actors.
  * Repeat/JIP: One operation generation owns one waypoint. A public cooldown prevents route churn; locality migration retires the old generation and never replays its command blindly.
@@ -68,7 +69,8 @@ if (_reason == "ARMOUR_OVERMATCH" && {_distance <= 120}) exitWith {
 // This fallback writes a group-wide waypoint. It cannot reserve only the remaining
 // actors, so preserve finite actor work rather than stealing a grenade/AT/indoor leg.
 // The close-armour withdrawal above retains its urgent survival priority.
-if ((units _group) findIf {[_x] call CBE_fnc_CortexActorMoveReserved} >= 0) exitWith {false};
+if ((units _group) findIf {alive _x && {getUnitState _x == "PLANNING"
+    || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}}} >= 0) exitWith {false};
 private _toward=_origin getDir _threatPos;
 private _away=_threatPos getDir _origin;
 private _range=switch (_reason) do {

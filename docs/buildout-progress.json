@@ -887,7 +887,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexFireControl.sqf",
-              "sha256": "ef2c7796b0e454dd39f84fede1272c645b71df50b754bf99b9461264432490e8"
+              "sha256": "ee73b92938f2f41a9b0ab17202173130a5fd2f6a4beb1a4cb820d9e888ec0c5f"
             }
           ]
         },
@@ -913,7 +913,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexFireControl.sqf",
-              "sha256": "ef2c7796b0e454dd39f84fede1272c645b71df50b754bf99b9461264432490e8"
+              "sha256": "ee73b92938f2f41a9b0ab17202173130a5fd2f6a4beb1a4cb820d9e888ec0c5f"
             }
           ]
         }
@@ -2604,7 +2604,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexAssaultStart.sqf",
-              "sha256": "5e57551df574450e3ce77121b4c7951f7af431e0c777be9a2ea639cd595421a8"
+              "sha256": "7b70887a640d79930dc35e04f2ecc71f90394f09a5b8ab3acab390d8ad579f70"
             }
           ]
         },
