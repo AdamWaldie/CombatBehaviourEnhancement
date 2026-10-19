@@ -2342,3 +2342,6 @@ CALM release checkpoint 4633a3e6: explicit RELEASE before support token erasure;
 
 
 Support leader casualty follow-up: release now requires a non-null combat-effective same-group leader before doFollow/receipt deletion. Existing finite retry retains proof while leader unavailable. Replacement can change formLeader/native proof and still prevent recall; do not claim reliable replacement handover. No new tests/workers/scores. Full .qa/cbe-support-leader-casualty-build.log and independent verification passed; fingerprint ee48475ab688633a6da67b94cffc15066af30c2515ba12fc3bec1a56e644ab95, manifest38968f4c+dirty development. Audits PAUSED; physical behaviour/performance and migration unverified. PR17 open/draft, no push/merge/CI.
+
+
+CQB buddy target handoff: changed buddy destination independently admits unitIssue inside existing mutation boundary, without lead room-request/progress-clock dependency. Unchanged native requests still coalesce. No new tests/workers/scores. Review referenceReviews/cqb-buddy-target-handoff-20261019.json. Full .qa/cbe-buddy-independent-target-build.log and independent verify passed; fingerprint0ab8cffb24002054f355d937688256ca424b028cd25a252fdce9e42e6aa87d31, manifestbb50a150+dirtydevelopment. AuditsPAUSED, physical/performance unverified. PR17open/draft, no push/CI/merge.

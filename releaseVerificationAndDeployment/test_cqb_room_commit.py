@@ -6,6 +6,12 @@ def source():return (ROOT/'addons/infantry/functions/buildingOperationStep.sqf')
 class RoomCommitTests(unittest.TestCase):
     def test_mutations_and_assignment_follow_final_actor_and_episode_proof(self):
         body=source().split('// Native mutation commit:',1)[1].split('} forEach _pair;',1)[0]
+        for proof in ('private _buddyTargetChanged=_unit != _point','count _arrivalTarget == 3',
+                      '_buddyCommitted vectorDistance _arrivalTarget > 0.25','_issue || {_buddyTargetChanged}'):
+            self.assertIn(proof,body)
+        buddy=body.split('private _buddyCommitted=',1)[1].split('if (_unitIssue',1)[0]
+        self.assertNotIn('lastProgress',buddy)
+        self.assertNotIn('deadline',buddy)
         self.assertLess(body.index('isNil {'),body.index('doStop _unit'))
         for guard in ('call _mayIssueMovement','call _actorAvailable','call _actorTaskFree',
                       'call _roomCommandOwned','CortexZeusHeld','_job get "deadline"',

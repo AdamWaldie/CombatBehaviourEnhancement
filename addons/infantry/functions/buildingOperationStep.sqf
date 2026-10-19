@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * A changed buddy destination commits independently of the lead room-request flag. Unchanged
+ * native paths retain their existing acknowledgement/recovery budget; buddy movement never
+ * resets the room mover progress clock or proves an interior visit.
  * Room movement requires a current shared actor-settings lease; changed settings are not rebased.
  * Egress allocation retains up to three scene-query batches per actor, one due actor per callback.
  * Original deadlines and retry counts survive owner adoption; no retry grants arrival or task authority.
@@ -3056,7 +3059,10 @@ private _delay=call {
                                 // A refused first buddy admission must not depend on the lead
                                 // receiving another room request. Retry only this unstarted entrant;
                                 // existing paths still use their exact-target/timed-retry rules.
-                                private _unitIssue=_issue || {_unit != _point
+                                private _buddyCommitted=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
+                                private _buddyTargetChanged=_unit != _point && {count _arrivalTarget == 3}
+                                    && {count _buddyCommitted != 3 || {_buddyCommitted vectorDistance _arrivalTarget > 0.25}};
+                                private _unitIssue=_issue || {_buddyTargetChanged} || {_unit != _point
                                     && {!(_unit in (_job get "started"))}
                                     && {!(_unit in (_job getOrDefault ["enteredActors",[]]))}};
                                 if (_unitIssue && {!(_unit in (_job get "started"))}) then {

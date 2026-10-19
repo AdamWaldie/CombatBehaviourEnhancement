@@ -1,0 +1,13 @@
+{
+  "finding": "Already-started buddy movement depended on the lead room-request flag even when the selected support target changed. An exterior-to-interior handoff or refused prior support assignment could wait for another lead room claim.",
+  "implementation": "Inside existing final actor/episode/native/settings commit, compare buddy committed target to intended target with0.25m tolerance. Changed buddy target independently sets unitIssue. Existing sameActiveTarget guard still prevents repeated unchanged path requests. No lead progress/deadline/visit credit is granted.",
+  "source_reference": "LAMBS2621 doAssault retains useful BUSY native destination and avoids repeated unchanged movement. CBE uses distinct bounded native room points and its existing authority boundary; no dependency or upstream code copied.",
+  "source_sha256": {
+    "addons/infantry/functions/buildingOperationStep.sqf": "ab389b0624e536f2c061f2858566b46a9b2f396a56f312f65395acae93796588"
+  },
+  "validation": "Focused existing checks/full offline build .qa/cbe-buddy-independent-target-build.log and independent package verify passed. Manifestbb50a150+dirty development, fingerprint0ab8cffb24002054f355d937688256ca424b028cd25a252fdce9e42e6aa87d31.",
+  "physical_acceptance": false,
+  "new_tests": false,
+  "audits": "PAUSED",
+  "remaining": "Native doorway flow, path contention, inaccessible nodes, casualty/locality transitions and performance remain unverified. Build-out scores unchanged."
+}
