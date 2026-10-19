@@ -5532,6 +5532,20 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('in ["GROUND_FIRE","GROUND_MANOEUVRE"]',reservation)
         self.assertIn('serverTime < (_combinedGroundRole select 5)',reservation)
         self.assertNotIn('setVariable',reservation)
+        standoff=text.split('private _standoff =',1)[1]
+        for proof in ('vehicleStandoffYield','isEqualTo _combinedGroundRole',
+                      '"OTHER_INTENT_ACTIVE",clientOwner','CBE_fnc_CortexCombinedRejectServer',
+                      '&& {!_combinedGroundFireOwned}'):
+            self.assertIn(proof,standoff)
+        self.assertLess(standoff.index('remoteExecCall'),standoff.index('"VEHICLE_STANDOFF",true'))
+        commit=standoff.split('// A local synchronous reply',1)[1]
+        self.assertIn('isNil {',commit)
+        self.assertIn('getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole',commit)
+
+        request=standoff.split('// A stationary support gun',1)[1].split('// A local synchronous reply',1)[0]
+        for forbidden in ('CortexGroupMove','forceSpeed','doMove','OperationStart'):
+            self.assertNotIn(forbidden,request)
+
         authority=text.split('private _gunnerAvailable=',1)[1].split('if (_externalTakeover)',1)[0]
         for proof in ('group _gunner == _group','CortexCombatEffective','simulationEnabled _gunner','isObjectHidden _gunner','remoteControlled _gunner','CortexExternalOwner','CompatibilityExternalControl','CortexActorFireTaskAvailable'):
             self.assertIn(proof,authority)

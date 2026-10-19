@@ -1205,7 +1205,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "30a13e94238ed88512139ca6ba5309eb2dd2d583fc28d132dab521893d8e9361"
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
             },
             {
               "path": "addons/vehicles/functions/cortexVehicleCrewRecover.sqf",
@@ -1368,7 +1368,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "30a13e94238ed88512139ca6ba5309eb2dd2d583fc28d132dab521893d8e9361"
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
             },
             {
               "path": "addons/infantry/functions/cortexRetreat.sqf",
@@ -1389,7 +1389,7 @@
             },
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "30a13e94238ed88512139ca6ba5309eb2dd2d583fc28d132dab521893d8e9361"
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
             }
           ]
         },
@@ -1638,7 +1638,7 @@
           "weight": 1,
           "built": 0,
           "implemented": "Agreement handler records consent; it issues no movement.",
-          "remaining_build_gap": "COMMIT/HOLD/settled READY/rear-first movement/crossing/handback executor is absent.",
+          "remaining_build_gap": "Explicit COMMIT, owned HOLD and sampled READY exist; dependency-leaf reverse, moving-phase receipts, crossing and full handback remain unimplemented.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
@@ -2898,7 +2898,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "30a13e94238ed88512139ca6ba5309eb2dd2d583fc28d132dab521893d8e9361"
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
             },
             {
               "path": "addons/infantry/functions/cortexGroundFireReady.sqf",
@@ -2915,7 +2915,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "30a13e94238ed88512139ca6ba5309eb2dd2d583fc28d132dab521893d8e9361"
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
             }
           ]
         },
@@ -2928,7 +2928,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "30a13e94238ed88512139ca6ba5309eb2dd2d583fc28d132dab521893d8e9361"
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
             },
             {
               "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
@@ -3928,7 +3928,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexCombinedRejectServer.sqf",
-              "sha256": "261125e3ce77e75b5837fe3ad9f70c9c2a8a22d295be4a5328c9fb3f12dcfcc9"
+              "sha256": "250002c6817d0cc47cf990044c92a5ad0e8392554a9b82ef18b3ac0e511d16e1"
             }
           ]
         }

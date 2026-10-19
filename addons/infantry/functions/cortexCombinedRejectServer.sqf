@@ -11,7 +11,8 @@
  * 3 reply owner <NUMBER, -1>. No movement, target, skill or operation state is restored.
  * Return: BOOL indicating whether this exact ground reservation was retired.
  * Current callers: CortexCombinedArmsLocal admission/refusal and CortexCombinedGroundStep
- * post-cleanup capability, movement and arrival-fire failures.
+ * post-cleanup capability, movement and arrival-fire failures; CortexVehicles yields a
+ * stationary ground-fire slot before routine standoff.
  * Example: [_group,_opportunity,"NO_SAFE_ROUTE",clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
  */
 params [["_group",grpNull,[grpNull]],["_snapshot",[],[[]]],["_reason","REFUSED",[""]],["_replyOwner",-1,[0]]];

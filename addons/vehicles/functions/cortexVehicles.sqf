@@ -31,6 +31,8 @@
  * Gunnery (CBE_AIPass_VehicleGunnery_Enable): a fresh mounted danger event may orient the exact
  * affected armed platform and request one safe suppression response against an already known hostile.
  * Captive, surrendering and handcuffed sources cannot authorize targeted danger responses.
+ * Routine standoff first retires an exact stationary ground-fire role through server
+ * fallback, once per role, and waits for its removal; it never moves under that assignment.
  * Routine reports older than3s use native believed-position suppression, not hidden aimPos.
  * It requires nonexplosive station bullets/20 loaded rounds, >=50m separation, <30km/h,
  * no unrelated engagement and the existing eight-second fire hold; no new controller.
@@ -236,6 +238,7 @@ private _combinedGroundFireOwned=_combinedGroundRole isEqualType []
     && {(_combinedGroundRole select 4) in ["GROUND_FIRE","GROUND_MANOEUVRE"]}
     && {(_combinedGroundRole select 5) isEqualType 0} && {finite (_combinedGroundRole select 5)}
     && {serverTime < (_combinedGroundRole select 5)};
+if (!_combinedGroundFireOwned) then {_state deleteAt "vehicleStandoffYield"};
 private _gunnerAvailable={
     params ["_vehicle","_gunner"];
     !isNull _gunner && {local _gunner} && {group _gunner == _group}
@@ -790,7 +793,24 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             private _atThreat=(_enemies select _atIndex) select 0;
             private _away=[_vehicle,_atPos,_atThreat,(_standoff - (_vehicle distance2D _atPos)) max 60]
                 call _selectVehicleEscape;
-            if (_away isNotEqualTo [] && {[] call _mayIssueVehicle} && {[_group,"VEHICLE_STANDOFF",true,serverTime+60] call CBE_fnc_CortexOwnershipLease}) then {
+            // A stationary support gun may need distance from an AT threat, but its
+            // original fire assignment must be retired before routine hull movement.
+            // Let the authenticated server replace that slot without refreshing its report.
+            if (_away isNotEqualTo [] && {_combinedGroundFireOwned}
+                && {(_combinedGroundRole select 4) == "GROUND_FIRE"}
+                && {(_state getOrDefault ["vehicleStandoffYield",[]]) isNotEqualTo _combinedGroundRole}
+                && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
+                && {[] call _mayIssueVehicle}) then {
+                _state set ["vehicleStandoffYield",+_combinedGroundRole];
+                [_group,+_combinedGroundRole,"OTHER_INTENT_ACTIVE",clientOwner]
+                    remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
+            };
+            // A local synchronous reply also waits for the next callback. The captured
+            // role cannot be borrowed as permission to move after requesting its release.
+            isNil {
+            if (_away isNotEqualTo [] && {!_combinedGroundFireOwned} && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
+                && {[] call _mayIssueVehicle}
+                && {[_group,"VEHICLE_STANDOFF",true,serverTime+60] call CBE_fnc_CortexOwnershipLease}) then {
                 private _operation=[_group,"VEHICLE_STANDOFF",_atThreat,[],[_away],"MOVING"] call CBE_fnc_OperationStart;
                 if (count _operation == 0) then {
                     [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
@@ -801,6 +821,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                     _movementOwned = true;
                     [_state, "standoff", 60] call CBE_fnc_CortexCooldown;
                 };
+            };
             };
         };
     };
