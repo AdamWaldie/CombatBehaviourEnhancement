@@ -46,9 +46,19 @@ class ClearEntryFlowTests(unittest.TestCase):
         self.assertIn('_job set ["pairEntryTargets",_entryTargets]',recovery)
         self.assertNotIn('_entryTargets set [_entryKey',recovery)
         support=s.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
-        for gate in ('_supportTarget isEqualTo []','distance2D _anchor >= 1.2','_distance >= 2.5','distance2D _anchor <= 8','min 24','lineIntersectsSurfaces'):
+        for gate in ('_supportTarget isEqualTo []','distance2D _anchor >= 1.2','_distance >= 2.5','distance2D _anchor <= 8','min 24','lineIntersectsSurfaces','_entryProbes >= 4','_roomGeometryBudget <= 8','_roomGeometryBudget=_roomGeometryBudget-1'):
             self.assertIn(gate,support)
         self.assertIn('_entryTargets set [_entryKey,+_supportTarget]',support)
+        # Proposal ranking cannot spend the final eight physical-observation probes.
+        for initial in range(17):
+            budget=initial
+            for _pair in range(4):
+                for _probe in range(4):
+                    if budget <= 8:
+                        break
+                    budget-=1
+            self.assertEqual(budget,min(initial,8))
+
     def test_new_destinations_prefer_live_unoccupied_nodes_without_reserving_queue(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         helper=s.split('private _occupiedRoomTargets={',1)[1].split('// Callback-local geometry',1)[0]

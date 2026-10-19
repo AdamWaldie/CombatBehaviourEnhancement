@@ -2967,7 +2967,17 @@ private _delay=call {
                             private _ranked=if (_freeRanks isNotEqualTo []) then {_freeRanks} else {_busyRanks};
                             _ranked resize ((count _ranked) min 24);
                             private _origin=(AGLToASL _anchor) vectorAdd [0,0,0.8];
+                            // Connectivity only ranks a proposal; it does not prove native access.
+                            // Share the callback budget with physical room observations and inspect
+                            // at most four ranked alternatives per pair, leaving eight probes for later
+                            // physical observations when available. Exhaustion keeps the native
+                            // distinct-node fallback below, never serialises entry or credits a visit.
+                            private _entryProbes=0;
                             private _connected=_ranked findIf {
+                                if (_entryProbes >= 4 || {_roomGeometryBudget <= 8}) exitWith {false};
+                                _entryProbes=_entryProbes+1;
+                                _roomGeometryBudget=_roomGeometryBudget-1;
+                                _job set ["roomGeometryChecksLast",16-_roomGeometryBudget];
                                 (lineIntersectsSurfaces [_origin,(AGLToASL (_x select 1)) vectorAdd [0,0,0.8],objNull,objNull,true,1,"GEOM","NONE"]) isEqualTo []
                             };
                             _supportTarget=if (_connected >= 0) then {+((_ranked select _connected) select 1)} else {
