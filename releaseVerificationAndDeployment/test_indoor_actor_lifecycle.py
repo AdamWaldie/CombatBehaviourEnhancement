@@ -128,6 +128,23 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         early=stop.split('call CBE_fnc_IndoorActorOperation',1)[0].rsplit('private _indoor=',1)[1]
         self.assertIn('count _indoor > 0',early)
         self.assertNotIn('select [0,16]',stop.split('call CBE_fnc_IndoorActorOperation',1)[1].split('CortexHearingLocal',1)[0])
+        actor=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        reap=actor.split('if (_mode == "REAP") exitWith {',1)[1].split('if (_mode == "QUEUE")',1)[0]
+        self.assertIn('!_current || {!local _actor} || {!local _group}',reap)
+        self.assertIn('!completedFSM _handle',reap)
+        self.assertIn('if (_alive) exitWith {false}',reap)
+        self.assertIn('!(_brain getOrDefault ["finished",false])',reap)
+        self.assertIn('(_brain getOrDefault ["reason",""]) == ""',reap)
+        self.assertIn('["FINISH",_actor,_brain]',reap)
+        self.assertNotIn('doMove',reap)
+        self.assertNotIn('"START"',reap)
+        self.assertNotIn('serverTime+',reap)
+        discovery=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text()
+        self.assertIn('count _indoorActors <= 2',discovery)
+        self.assertIn('["REAP",_x,_indoorBrain]',discovery)
+        self.assertIn('group _x == _group',discovery)
+        self.assertIn('"FSM_START_FAILED"',actor)
+
     def test_owner_helpers_are_installed_and_server_authenticated(self):
         init=(ROOT/'releaseVerificationAndDeployment/auditMission/init.sqf').read_text()
         for name in ('cortexQAPerformanceOwner.sqf','cortexQAIndoorActorOwner.sqf'):

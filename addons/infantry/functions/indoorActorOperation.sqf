@@ -6,6 +6,8 @@
  * exact pre-issue destination/form leader and original command or MOVE may wait; new
  * orders preempt immediately. Waiting issues nothing and grants no cleanup or visit proof.
  * Purpose: Own one finite indoor investigation actor, independently of whole-group CLEAR.
+ * Existing discovery may REAP an ended current FSM through exact FINISH cleanup.
+ * REAP never restarts investigation, renews its deadline or classifies a node as unreachable.
  * Locality/authority: Actor and group owner only; the FSM queues bounded shared-scheduler work.
  * Native/Zeus/specialist tasks, native ignored or surrendered/restrained contacts and overlapping operations preempt this controller. Proven disjoint
  * infantry rosters may coexist when they own no group waypoint. No firing is forced.
@@ -20,8 +22,9 @@
  * Other modes carry the brain. Neither admission nor escalation renews the original deadline.
  * TRANSFER is locality cleanup only: an absent machine-local lease may use the public journal;
  * a different live actor reservation still forbids command cleanup.
- * Return: BOOL for START/QUEUE/FINISH/TRANSFER; NUMBER -1 for STEP (one shared-scheduler invocation).
- * Current callers: IndoorActorDispatch, indoorActor FSM, focused fixtures and locality/release cleanup.
+ * Return: BOOL for START/QUEUE/FINISH/TRANSFER/REAP; NUMBER -1 for STEP (one shared-scheduler invocation).
+ * Current callers: IndoorActorDispatch, indoorActor FSM, CortexDiscover ended-worker cleanup,
+ * focused fixtures and locality/release cleanup.
  * Example: ["START",soldier1,createHashMapFromArray [["building",house1],
  * ["belief",[[100,100,2],serverTime]]]] call CBE_fnc_IndoorActorOperation;
  */
@@ -220,11 +223,30 @@ if (_mode == "START") exitWith {
         _brain get "operationGeneration",_deadline,(_brain get "route") call _copyArray,+_initialTarget,_lease call _copyArray,false],true];
     private _handle=[_actor,_brain] execFSM "\z\cbe\addons\main\fsm\indoorActor.fsm";
     _actor setVariable ["CBE_IndoorActor_FSM",_handle];
-    true
+    private _started=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}
+        && {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain}
+        && {!(_brain getOrDefault ["finished",false])};
+    if (!_started && {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain}) then {
+        _brain set ["reason","FSM_START_FAILED"];
+        ["FINISH",_actor,_brain] call CBE_fnc_IndoorActorOperation;
+    };
+    _started
 };
 private _current=(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain
     && {count _brain > 0} && {(_brain getOrDefault ["group",grpNull]) == _group}
     && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])};
+if (_mode == "REAP") exitWith {
+    if (!_current || {!local _actor} || {!local _group}) exitWith {false};
+    private _handle=_actor getVariable ["CBE_IndoorActor_FSM",-1];
+    private _alive=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle};
+    if (_alive) exitWith {false};
+    // A dead executor is not evidence of entry or an inaccessible destination.
+    // FINISH alone decides whether the original unchanged native leg may be handed back.
+    if (!(_brain getOrDefault ["finished",false]) || {(_brain getOrDefault ["reason",""]) == ""}) then {
+        _brain set ["reason","EXECUTOR_ENDED"];
+    };
+    ["FINISH",_actor,_brain] call CBE_fnc_IndoorActorOperation
+};
 if (_mode == "QUEUE") exitWith {
     if (!_current || {_brain getOrDefault ["finished",false]}) exitWith {false};
     if (_brain getOrDefault ["pending",false]) exitWith {true};

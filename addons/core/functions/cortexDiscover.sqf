@@ -18,6 +18,8 @@
  *   replaced snapshots cannot be promoted to fresh clearance tasks;
  * - observes an active clearance executor at this existing cadence. One ended worker may
  *   resume the same job without new deadlines; failed restart retires only the exact old order;
+ * - retires ended current indoor-actor FSMs from their existing at-most-two registry;
+ *   exact cleanup grants no restart or extra investigation lifetime;
  * - re-applies defence-line orders after a locality change;
  * - installs the missile-warning handler on every locally owned, eligible AI aircraft. A warning
  *   starts one finite, threat-tracked countermeasure sequence with two energy-preserving break
@@ -110,6 +112,17 @@ private _spotters=_job get "spotters";
     };
     if (local _group && {(units _group) findIf {alive _x} >= 0}) then {
         _spotters append ((units _group) select {alive _x && {_x getVariable ["CBE_AIPass_Spotter", false]}});
+        private _indoorActors=_group getVariable ["CBE_IndoorActor_Actors",[]];
+        if (_indoorActors isEqualType [] && {count _indoorActors <= 2}) then {
+            {
+                if (_x isEqualType objNull && {!isNull _x} && {local _x} && {group _x == _group}) then {
+                    private _indoorBrain=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
+                    if (_indoorBrain isEqualType createHashMap && {count _indoorBrain > 0}) then {
+                        ["REAP",_x,_indoorBrain] call CBE_fnc_IndoorActorOperation;
+                    };
+                };
+            } forEach _indoorActors;
+        };
         if ((_group getVariable ["CBE_AIPass_Garrison", []]) isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_GarrisonApplied", false])}) then {
             [_group] call CBE_fnc_CortexGarrisonApplyLocal;
         };
