@@ -1,15 +1,19 @@
 # CBE completion status
 
-Checked against the feature registry and local build evidence on 18 October 2026.
+Checked against the feature registry and local build evidence on 19 October 2026.
 CBE is not production-ready. All **65 feature families remain partial; 0/65 have full acceptance**.
 This is an acceptance count, not an implementation percentage. Track capability build-out separately in
 [Build-out progress](BUILDOUT-PROGRESS.md), with explicit partial credit and remaining code/integration gaps.
 Physical acceptance does not reduce build-out to zero. Unassessed build scope stays unknown; source file,
 setting and test counts do not supply implementation or Workshop-parity percentages.
 
+## Current build-out estimate
+
+The current registered product-plan build-out index is **approximately 80%**, with explicit subsystem weights and capability denominators in [Build-out progress](BUILDOUT-PROGRESS.md). All 64 product families have provisional assessments; the equal-force battle scenario is acceptance-only and earns no build credit. Most broad-survey estimates are low-confidence and require deeper review. This index does not include a fully reconciled denominator for every remaining Workshop contribution, does not measure remaining effort and is not readiness. Physical acceptance and source parity stay separate.
+
 ## Current evidence boundary
 
-- Latest verified production source is `bd00ec04`, with **1,395 offline tests,327 compiled production SQF,nine PBOs**. Log: `.qa/cbe-rear-crew-query-sharing-build.log`; unsigned fingerprint `d2b09b9ddef047e00d4a748b1591efe082ce1fb6ba2ed17f8c955f5b7a7056f6`. Later checkpoint documentation does not change that artifact. These are offline gates, not behaviour acceptance.
+- Latest sealed full offline build records commit `8fa63881e466bb6599a6aff5a6b35815069e0e44`, with **1,443 tests,334 compiled production SQF,nine PBOs**. Log: `.qa/cbe-pushed-8fa63881-build.log`; unsigned fingerprint `6798b1f0a06eb12a5a9a7e10561ba7a9f2273d7c7e6697130438400152f7d959`. Independent verification passed. The manifest records dirty=true because seven unrelated tracked deletions were preserved outside the commits. This is not a clean release artifact. Later tracker/documentation changes do not establish new production or physical acceptance.
 - Recent implementation covers mounted support/report discovery, mutual radio eligibility, original observation age, personal native observer selection, ignored-target handling in natural indoor/ground/air work, exact support reservation binding/expiry, ASL ground arrival and indexed gate detection/opening. Gate phase sampling is bounded8; ambiguous barrier metadata checks can rise8to32 per class. Physical effects and aggregate cost remain unverified.
 - Latest changes add bounded gate-unlock reconsideration, shared CQB request observation across recovery/alternate/pair retries, unchanged lane clocks while yielding, explicit driver replacement role priority and reduced rear-clearance native queries. The302-case affine hull oracle proves the mathematical model only; native precision, actual flow, gunnery retention and measured overhead remain unverified.
 - The user explicitly keeps audits paused and asks implementation to continue. Negotiated queue movement remains unimplemented despite owner consent; native execution and physical handback are still required. No new completion percentage or parity credit is assigned.
