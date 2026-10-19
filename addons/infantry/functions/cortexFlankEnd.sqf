@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native STOP cleanup requires a matching current-drill HOLD receipt; unrecorded or MOVE-role
+ * stops are left untouched. Restoring owned feature settings does not authorize movement recall.
  * Completed ordinary holds retain original issuer and native destination/order provenance.
  * Failed support-bound and transient retry stops remain separate ownership roles.
  * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
@@ -118,11 +120,20 @@ private _members = (_drill getOrDefault ["units", []]) select {alive _x && {loca
         _x setVariable ["CBE_Cortex_FragHandler",-1];
     };
 } forEach _members;
+// A STOP is recallable only while an actual hold issued by this exact drill remains unchanged.
+// A MOVE receipt (including its short acknowledgement grace) grants no STOP cleanup authority.
+private _ownsStoppedActor={
+    params ["_actor"];
+    if (currentCommand _actor != "STOP") exitWith {true};
+    private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
+    count _row == 6 && {(_row select 0) == _actor} && {(_row select 1) == "HOLD"}
+        && {(expectedDestination _actor) isEqualTo (_row select 2)} && {formLeader _actor == (_row select 3)}
+};
 // Listener cleanup above still covers the old roster. Movement cleanup below may affect
 // only capable foot actors whose current task has not acquired a newer independent owner.
 _members=_members select {
     private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
-    _free && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x} && {isNull objectParent _x}
+    _free && {[_x] call _ownsStoppedActor} && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x} && {isNull objectParent _x}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };

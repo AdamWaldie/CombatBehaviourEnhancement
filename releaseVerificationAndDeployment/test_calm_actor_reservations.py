@@ -182,6 +182,17 @@ class SharedRoutineReservationTests(unittest.TestCase):
                 source=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
                 self.assertIn('call CBE_fnc_CortexActorMoveReserved',source)
                 self.assertNotIn('_reservation param [2,1e12',source)
+        drill=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        stop=drill.split('private _stopAvailable={',1)[1].split('private _actorTaskFree={',1)[0]
+        for proof in ('currentCommand _actor != "STOP"','count _row != 6','(_row select 0) != _actor',
+                      'serverTime <= (_row select 4)','expectedDestination _actor','formLeader _actor'):
+            self.assertIn(proof,stop)
+        self.assertIn('[_actor] call _stopAvailable',drill)
+        self.assertEqual(drill.count(',"HOLD"] call _recordNativeCommand'),2)
+        self.assertEqual(drill.count(',"MOVE"] call _recordNativeCommand'),3)
+        recording=drill.split('private _recordNativeCommand={',1)[1].split('private _stopAvailable={',1)[0]
+        self.assertIn('count _commands >= 64',recording)
+        self.assertIn('serverTime+2',recording)
         medical=(ROOT/'addons/infantry/functions/cortexMedicalStep.sqf').read_text()
         self.assertEqual(medical.count('call CBE_fnc_CortexActorMoveReserved'),2)
         self.assertIn('"ACTOR_TASK_CHANGED"',medical)
@@ -302,6 +313,12 @@ class DrillRestorationCommitTests(unittest.TestCase):
         for forbidden in ['CBE_fnc_OperationCancel','CBE_fnc_OperationRelease','nearEntities','lineIntersects','sleep ']:
             self.assertNotIn(forbidden,block)
         self.assertIn('if (!_restorationDone) exitWith {false};',source)
+        stopped=source.split('private _ownsStoppedActor={',1)[1].split('// Listener cleanup above',1)[0]
+        for proof in ('count _row == 6','(_row select 0) == _actor','(_row select 1) == "HOLD"',
+                      'expectedDestination _actor','formLeader _actor'):
+            self.assertIn(proof,stopped)
+        self.assertIn('[_x] call _ownsStoppedActor',source)
+        self.assertNotIn('serverTime+',stopped)
 
 
 class ManoeuvreFloorProgressTests(unittest.TestCase):
