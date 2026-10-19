@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-19",
+  "scope": "Finite granted dependency-leaf reverse through existing callback; not complete queue resolution",
+  "implemented": [
+    "All-owner PREPARED then ARMED acknowledgements before leaf-only EXECUTE; original expiry, idempotent late messages.",
+    "Existing driving callback consumes leaf admission, suppresses competing pass/corridor/bypass/ordinary recovery, requests a cautious cap from its existing sole writer, and commits fresh rear/damage-validated native BACK. Refusal rolls back to zero inside that transaction.",
+    "Original-expiry queue journal has bounded2s BACK acknowledgement; existing rear envelope/damage monitoring supplies endpoint/divergence safety. Queue native STOP retains SIMPLE_BACK identity and prevents ordinary forward retry. HELD requires native STOP and1s measured rest, not parent clearance.",
+    "Separate moving observation accepts exact pending BACK and owned STOP, freezing other participants while bounding leaf pose/motion. Epoch/order/crew changes revoke; original expiry/cancellation enters existing exact native cleanup."
+  ],
+  "remaining": [
+    "Measured parent-room advance and cascade through remaining dependencies.",
+    "Lateral crossing and all-participant physical handback/resumption.",
+    "Normal and separate HC in-engine validation, asynchronous native/journal replication evidence and actual runtime cost.",
+    "Automatic initiation remains disabled; entry is the explicitly committed internal protocol."
+  ],
+  "validation": {
+    "focusedExistingTests": 655,
+    "newCases": 0,
+    "compiler": "HEMTT check passed",
+    "physical": "Unverified; audits paused.",
+    "fullPipeline": "1477 existing tests and sequential compiler/FSM/config/docs/parity/performance/package gates passed",
+    "fullLog": ".qa/cbe-queue-native-leaf-final-build.log",
+    "independentLog": ".qa/cbe-queue-native-leaf-final-independent.log",
+    "packageSource": "0f4ef388+dirty",
+    "packageFingerprint": "565bb79251c6caaa7a25162284ebd7050cfd361406d7e0950ee6c20908277f38"
+  },
+  "buildCredit": "Queue room-making criterion0 to0.5 for the wired leaf subset only; no acceptance or whole-source parity credit."
+}

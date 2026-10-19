@@ -13,16 +13,19 @@
  * long/short rear observer. Blocked leaf refuses before a committed hold; no target
  * is retained and command admission must resample. At most two bounded rear observations
  * per leaf preflight; no recurring scan or new worker.
- * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message.
+ * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message.
  * PREPARE binds all this owner's settled participants to original token/expiry and their brains.
  * PREPARED acknowledges only those verified applied holds; the server waits for every owner.
  * It adds no timer, native command, cached clearance or execution permission.
- * Return: BOOL reply/result handled, not queue movement authority.
+ * ARM acknowledges phase installation on every owner before leaf-only EXECUTE may grant
+ * future issue admission. Neither path issues a native command; actual issue must revalidate.
+ * Duplicate installed phases/grants do not rewind a running native leg.
+ * Return: BOOL reply/result handled, never native issue or physical success.
  * Current callers: DrivingQueueAgreementServer only.
  * Example: ["VERIFY",_payload] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_owner];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE"])}
+if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE"])}
     || {count _payload != ([8,9] select (_mode != "VERIFY"))}) exitWith {false};
 _payload params ["_token","_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
 if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
@@ -34,7 +37,7 @@ if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
 private _owned=_vehicles select {!isNull _x && {local _x}};
 private _phase=["PENDING",_payload param [8,""]] select (_mode != "VERIFY");
 if (_mode == "RESULT" && {!(_phase in ["AGREED","REFUSED","RELEASED"])}) exitWith {false};
-if (_mode in ["COMMIT","PREPARE"] && {_phase != "AGREED"}) exitWith {false};
+if (_mode in ["COMMIT","PREPARE","ARM","EXECUTE"] && {_phase != "AGREED"}) exitWith {false};
 private _receiptKey={
     params ["_receipt"];
     ["token","serial","vehicles","roles","dependencies","context","deadline","expires","phase"] apply {
@@ -83,6 +86,23 @@ private _duplicate=_owned findIf {
         || {(_old getOrDefault ["dependencies",[]]) isNotEqualTo _dependencies}
         || {(_old getOrDefault ["expires",-1]) != _expires} || {serverTime >= _expires}
 } < 0;
+// Repeated authenticated ARM/EXECUTE never reapply phase metadata or rewind a
+// running leg. Returning the prior acknowledgement is not new movement authority.
+if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}) then {
+    private _motion=[_vehicles select (count _vehicles-1),_token,_expires,8];
+    private _already=_owned isNotEqualTo [] && {_owned findIf {
+        private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        (_old getOrDefault ["motionBinding",[]]) isNotEqualTo _motion
+            || {(_old getOrDefault ["motionStage",""]) != "ARMED"}
+            || {_mode == "EXECUTE" && {_x == (_motion select 0)}
+                && {!(_old getOrDefault ["executionGranted",false])}}
+    } < 0} && {_mode != "EXECUTE" || {(_motion select 0) in _owned}};
+    if (_already) then {_mode=["ARM_DUPLICATE","EXECUTE_DUPLICATE"] select (_mode == "EXECUTE")};
+};
+if (_mode in ["ARM_DUPLICATE","EXECUTE_DUPLICATE"]) exitWith {
+    if (_mode == "ARM_DUPLICATE") then {["ARMED",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    true
+};
 private _accepted=!_tokenClosed && {serverTime < ([_deadline,_expires] select (_mode == "RESULT" || {_duplicate}))}
     && {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent};
 {
@@ -116,6 +136,37 @@ if (_accepted && {_mode in ["VERIFY","COMMIT"]}) then {
             && {serverTime < ([_deadline,_expires] select (_mode == "COMMIT" || {_duplicate}))}
             && {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent};
     };
+};
+if (_mode in ["ARM","EXECUTE"]) exitWith {
+    private _leaf=_vehicles select (count _vehicles-1);
+    private _motion=[_leaf,_token,_expires,8];private _rows=[];
+    private _allowed=_duplicate && {_accepted} && {_owned isNotEqualTo []}
+        && {_mode != "EXECUTE" || {_leaf in _owned}};
+    {
+        private _target=_x;private _targetGroup=group driver _target;
+        private _targetBrain=_targetGroup getVariable ["CBE_Driving_Brain",createHashMap];
+        private _consent=_target getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        private _binding=[_token,_expires,_targetBrain getOrDefault ["ownerEpoch",-1],_targetBrain getOrDefault ["generation",-1]];
+        private _applied=[_token,_binding select 2,_binding select 3];
+        private _state=_target getVariable ["CBE_DrivingAssist_State",[]];
+        if ((_consent getOrDefault ["executionPreparation",[]]) isNotEqualTo _binding
+            || {(_consent getOrDefault ["holdApplied",[]]) isNotEqualTo _applied}
+            || {(_state param [0,-1]) != 0} || {(_state param [3,grpNull]) != _targetGroup}
+            || {abs getForcedSpeed _target > 0.001}
+            || {_mode == "EXECUTE" && {(_consent getOrDefault ["motionBinding",[]]) isNotEqualTo _motion
+                || {(_consent getOrDefault ["motionStage",""]) != "ARMED"}}}) exitWith {_allowed=false};
+        private _next=createHashMapFromArray (keys _consent apply {[_x,_consent get _x]});
+        _next set ["motionBinding",+_motion];_next set ["motionStage","ARMED"];
+        if (_mode == "EXECUTE" && {_target == _leaf}) then {_next set ["executionGranted",true]};
+        _rows pushBack [_target,_next];
+    } forEach _owned;
+    if (!_allowed) exitWith {
+        [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
+        ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];false
+    };
+    {_x params ["_target","_next"];_target setVariable ["CBE_DrivingQueue_Consent",_next]} forEach _rows;
+    if (_mode == "ARM") then {["ARMED",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    true
 };
 if (_mode == "PREPARE") exitWith {
     private _preparedRows=[];

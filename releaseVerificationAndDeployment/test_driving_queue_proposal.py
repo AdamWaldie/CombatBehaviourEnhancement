@@ -99,6 +99,15 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('forEach (_record get "owners")',server)
         self.assertIn('"PREPARED",[_token]',preparation)
         self.assertIn('_prepared pushBackUnique _sender',server)
+        self.assertIn('_armed pushBackUnique _sender',server)
+        self.assertIn('count _armed == count (_record get "owners")',server)
+        self.assertIn('["EXECUTE",_message]',server)
+        self.assertIn('owner _leaf',server)
+        duplicate=owner.split('// Repeated authenticated ARM/EXECUTE',1)[1].split('private _accepted=',1)[0]
+        self.assertIn('!_tokenClosed && {_duplicate}',duplicate)
+        for forbidden in ('setVariable','doMove','sendSimpleCommand','set ["expires"'):
+            self.assertNotIn(forbidden,duplicate)
+
         prepared=server.split('if (_mode == "PREPARED") exitWith {',1)[1].split('// COMMIT is separate',1)[0]
         for guard in ('serverTime >=','_linear >= 0.1','_angular >= 0.01','call _current'):
             self.assertLess(prepared.index(guard),prepared.index('_prepared pushBackUnique _sender'))
@@ -113,7 +122,7 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('!(_record getOrDefault ["executionPrepared",false])',server)
 
         self.assertIn('if (_mode == "COMMIT") exitWith',owner)
-        preflight=owner.split('if (_accepted && {_mode in ["VERIFY","COMMIT"]})',1)[1].split('if (_mode == "PREPARE") exitWith',1)[0]
+        preflight=owner.split('if (_accepted && {_mode in ["VERIFY","COMMIT"]})',1)[1].split('if (_mode in ["ARM","EXECUTE"]) exitWith',1)[0]
         for proof in ('count _vehicles-1','_leaf in _owned','call CBE_fnc_DrivingRearPlan',
                       '_leafObservation select 0','serverTime <','call CBE_fnc_DrivingQueueProposalCurrent'):
             self.assertIn(proof,preflight)

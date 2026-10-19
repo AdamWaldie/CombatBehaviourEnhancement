@@ -32,6 +32,16 @@ if (!(_vehicles isEqualType []) || {!(_context isEqualType [])} || {!(_token isE
     || {serverTime >= _expires} || {(_binding select 3) <= 0} || {(_binding select 3) > 8}
     || {(_binding select 0) != (_vehicles select (count _vehicles-1))}) exitWith {false};
 if (_localRows && {[_token] call CBE_fnc_DrivingQueueTokenClosed}) exitWith {false};
+// ARMED owners must all know the bounded moving context before the leaf receives
+// EXECUTE. Until native issue exists, retain the unchanged stationary comparison.
+// Pending issued BACK requires its own journal acknowledgement path, not this fallback.
+if ((_agreement getOrDefault ["motionStage",""]) != "ARMED") exitWith {false};
+private _leaf=_binding select 0;
+if (count (_leaf getVariable ["CBE_DrivingRecovery_Work",createHashMap]) == 0
+    && {toUpperANSI ((vehicleMoveInfo _leaf) param [0,""]) != "BACK"}
+    && {(getPosWorld _leaf) vectorDistance (((_context select (count _context-1)) select 4) select 0) <= 1.5}) exitWith {
+    [_vehicles,_roles,_dependencies,_context,_localRows] call CBE_fnc_DrivingQueueProposalCurrent
+};
 private _live=[_vehicles] call CBE_fnc_DrivingQueueContext;
 if (count _live != count _context) exitWith {false};
 private _valid=true;private _localCount=0;
@@ -66,7 +76,9 @@ private _valid=true;private _localCount=0;
         || {_vehicle getVariable ["CBE_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}) exitWith {_valid=false};
     if (_moving) then {
-        if (toUpperANSI ((_row select 5) param [0,""]) != "BACK"
+        private _moveInput=toUpperANSI ((_row select 5) param [0,""]);
+        private _pendingInput=(_row select 5) isEqualTo (_old select 5);
+        if (!(_moveInput in ["BACK","STOP"]) && {!_pendingInput}
             || {toUpperANSI ((_row select 5) param [1,""]) != "NONE"}
             || {_rear < -0.25} || {_rear > (_binding select 3)+0.5}
             || {abs (_delta vectorDotProduct _right) > 1}
@@ -93,7 +105,7 @@ private _valid=true;private _localCount=0;
                 || {(_work getOrDefault ["driver",objNull]) != driver _vehicle}
                 || {(_work getOrDefault ["operator",objNull]) != effectiveCommander _vehicle}
                 || {(_work getOrDefault ["route",[]]) isNotEqualTo ((_row select 2) select 10)}
-                || {(_work getOrDefault ["cap",-1]) <= 0} || {(_work getOrDefault ["cap",-1]) > (10/3.6)}
+                || {(_work getOrDefault ["cap",-1]) < 0} || {(_work getOrDefault ["cap",-1]) > (10/3.6)}
                 || {[driver _vehicle,effectiveCommander _vehicle] findIf {
                     !simulationEnabled _x || {isObjectHidden _x} || {!(_x checkAIFeature "MOVE")}
                         || {!(_x checkAIFeature "PATH")} || {!([_x] call CBE_fnc_CortexCombatEffective)}
@@ -101,7 +113,12 @@ private _valid=true;private _localCount=0;
                 } >= 0}
                 || {(_work getOrDefault ["queueBinding",[]]) isNotEqualTo _expected}
                 || {(_work getOrDefault ["commandMode",""]) != "SIMPLE_BACK"}
-                || {!(_work getOrDefault ["simpleAcknowledged",false])}
+                || {private _native=vehicleMoveInfo _vehicle;
+                    private _back=toUpperANSI (_native param [0,""]) == "BACK" && {_work getOrDefault ["simpleAcknowledged",false]};
+                    private _stop=toUpperANSI (_native param [0,""]) == "STOP" && {_work getOrDefault ["simpleStopIssued",false]};
+                    private _pending=!(_work getOrDefault ["simpleAcknowledged",false])
+                        && {_native isEqualTo (_work getOrDefault ["simpleBefore",[]])};
+                    !(_back || {_stop} || {_pending})}
                 || {(_work getOrDefault ["kind",""]) != "REVERSE"}
                 || {(_work getOrDefault ["hardDeadline",1e12]) > _expires}
                 || {serverTime >= (_work getOrDefault ["hardDeadline",-1])}

@@ -22,7 +22,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         changed=s.split('(_state param [9,[]]) isNotEqualTo _routeIdentity',1)[1].split('// A follower',1)[0]
         for marker in ('_state set [5,time]','_state set [6,0]','_state set [7,-1]'):
             self.assertIn(marker,changed)
-        progress=s.split('if (_recoveryStage != 2 && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D',1)[1].split('private _waypointIndex=',1)[0]
+        progress=s.split('if (!_queueNativeActive && {_recoveryStage != 2} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D',1)[1].split('private _waypointIndex=',1)[0]
         self.assertIn('_progressAt=time',progress)
         self.assertIn('_recoveryStage=0',progress)
     def test_follower_handover_retires_owned_reverse_before_stage_reset(self):
@@ -90,7 +90,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertNotIn('distance2D',guard)
         for receipt in ('get "group"','get "route"','get "driver"','get "operator"','get "driverCommand"','get "command"'):
             self.assertIn(receipt,guard)
-        self.assertIn('private _mayRecoverOrdinaryRoute={!_recoveryRequestPending && {call _mayRecoverRoute} && {call _nativeRouteIntent}',guard)
+        self.assertIn('private _mayRecoverOrdinaryRoute={!_queueNativeActive && {!_recoveryRequestPending} && {call _mayRecoverRoute} && {call _nativeRouteIntent}',guard)
         self.assertIn('currentCommand _movementOperator != "STOP"',s.split('private _release=',1)[0])
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
         self.assertIn('(driver _follower) doMove _directDestination',audit)

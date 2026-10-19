@@ -35,7 +35,7 @@ class RearMotionTests(unittest.TestCase):
                 self.assertAlmostEqual(travelled+remaining,distance)
                 self.assertGreaterEqual(remaining,distance-stop)
                 self.assertGreater(remaining,0)
-        ending=text.split('if (_reverseExpired) then {',1)[1].split('private _retryAllowed=',1)[0]
+        ending=text.split('if (_reverseExpired && {!("queueBinding" in',1)[1].split('private _retryAllowed=',1)[0]
         self.assertIn('sendSimpleCommand "STOP"',ending)
         self.assertIn('"kind","REAR_STOP_ACKNOWLEDGED"',ending)
         self.assertIn('"commandMode","DESTINATION"',ending)

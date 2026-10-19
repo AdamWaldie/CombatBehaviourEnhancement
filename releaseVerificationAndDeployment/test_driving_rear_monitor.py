@@ -129,7 +129,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertNotIn('while',short)
         self.assertNotIn('serverTime+',short)
         self.assertIn('&& {!_pendingRear || {_rearPathRejected}}',s)
-        self.assertIn('private _mayRecoverOrdinaryRoute={!_recoveryRequestPending',s)
+        self.assertIn('private _mayRecoverOrdinaryRoute={!_queueNativeActive && {!_recoveryRequestPending}',s)
         self.assertIn('if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]}',s)
     def test_direction_and_issued_receipt_survive_stop_and_expire(self):
         s=src('drivingAssistStart')
@@ -137,7 +137,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('_recoveryResult="CAUTIOUS_REVERSE";_reverseIssued=true',s)
         self.assertIn('_recoveryResult="REAR_BLOCKED";_reverseIssued=false',s)
         self.assertIn('_recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false',s)
-        self.assertIn('if (_rearSafetyRequired) then {-1}',s)
+        self.assertIn('if (_rearSafetyRequired || {_queueNativeActive}) then {-1}',s)
         self.assertIn('_routeIdentity,_reverseIssued',s)
         observer=(ROOT/'addons/infantry/functions/cortexInfantrySpeed.sqf').read_text(encoding='utf-8')
         self.assertIn('["_travelIntent",0,[0]]',observer)
@@ -192,7 +192,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         s=src('drivingAssistStart')
         for marker in ('CBE_DrivingRecovery_Work','CBE_DrivingRecovery_Yield',
                        'serverTime+96','_hard-66','_hard-60','["REFRESH",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',
-                       '["FINAL",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery','ADOPTED_RECOVERY','_recoveryStage != 2 &&'):
+                       '["FINAL",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery','ADOPTED_RECOVERY','{_recoveryStage != 2} &&'):
             self.assertIn(marker,s)
         release=src('drivingRecoveryRelease')
         for marker in ('expectedDestination _driver','expectedDestination _operator',

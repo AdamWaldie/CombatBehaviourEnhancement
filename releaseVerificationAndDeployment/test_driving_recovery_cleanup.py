@@ -13,6 +13,28 @@ class RecoveryCleanupTests(unittest.TestCase):
         self.assertIn('"simpleBefore","request","queueBinding"] apply',text)
         self.assertIn('([_current] call _signature) isEqualTo _proof',text)
         self.assertIn('local _target',text)
+        native=(ROOT/'addons/vehicles/functions/drivingQueueReverseCommit.sqf').read_text()
+        issue=native.index('_vehicle sendSimpleCommand "BACK"')
+        for proof in ('executionGranted','CBE_Driving_Brain','executionPreparation','motionBinding',
+                      'serverTime >= _expires','CBE_fnc_DrivingRearPlan','CBE_fnc_DrivingDamageReceipt',
+                      'CBE_fnc_DrivingQueueReverseCurrent','_linear >= 0.1','_angular >= 0.01'):
+            self.assertLess(native.index(proof),issue)
+        stop=native.split('// STOP is permitted only',1)[1]
+        for proof in ('_cap > 0.001','"driverTask","__MISSING__"','"operatorTask","__MISSING__"',
+                      'simpleStopIssued','_linear < 0.1','_angular < 0.01','serverTime-_since >= 1'):
+            self.assertIn(proof,stop)
+        for forbidden in (' forceSpeed ','setVelocity','setPos','doMove','waitAndExecute','addPerFrameHandler'):
+            self.assertNotIn(forbidden,native)
+        self.assertIn('["deadline",_expires],["hardDeadline",_expires]',native)
+        self.assertIn('["ackUntil",(serverTime+2) min _expires]',native)
+        integration=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        for proof in ('["ADMIT",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit',
+                      '[_nativeQueueMode,_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit',
+                      '_queueHold=!_queueNativeActive', '_queueJournal getOrDefault ["ackUntil",-1]',
+                      '_queueStarted', '_capReceipt set [0,0];_vehicle forceSpeed 0'):
+            self.assertIn(proof,integration)
+
+
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         gate=assist.split('private _mayRecoverOrdinaryRoute=',1)[1].split('private _priorOwner=',1)[0]
         self.assertIn('!("queueBinding" in',gate)
@@ -120,7 +142,7 @@ class RecoveryCleanupTests(unittest.TestCase):
             self.assertNotIn(forbidden,terminal)
         self.assertIn('_commandState == "OWNED"',release.split('private _owned=',1)[1])
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
-        self.assertIn('!_recoveryRequestPending && {call _mayRecoverRoute}',start)
+        self.assertIn('!_queueNativeActive && {!_recoveryRequestPending} && {call _mayRecoverRoute}',start)
         self.assertIn('"NATIVE_ACK_UNRESOLVED"] call CBE_fnc_DrivingRecoveryRelease',start)
         for goal, receipt in (('_destination','_forwardCommands'),('_rear','_rearCommands')):
             self.assertIn('[+'+goal+',serverTime+2,'+receipt+']',start)

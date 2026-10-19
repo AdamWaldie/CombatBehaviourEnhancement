@@ -171,6 +171,18 @@ _brain set ["geometryTracks",_geometryTracks];
         [_vehicle,_group,"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease;
         _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
     };
+    // Queue lifetime ends through existing exact native/cap cleanup, not an ordinary
+    // forward retry. Do not leave a completed queue STOP parked forever after expiry.
+    if ("queueBinding" in _recoveryWork && {(_recoveryWork getOrDefault ["group",grpNull]) == _group}) then {
+        private _queueBinding=_recoveryWork get "queueBinding";
+        private _queueConsent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        private _queueEnded=!(_queueBinding isEqualType []) || {count _queueBinding != 4}
+            || {serverTime >= (_queueBinding param [1,-1])}
+            || {(_queueConsent getOrDefault ["token",""]) != (_queueBinding param [0,""])}
+            || {[_queueBinding param [0,""]] call CBE_fnc_DrivingQueueTokenClosed};
+        if (_queueEnded) then {[_vehicle,_group] call CBE_fnc_DrivingAssistRelease};
+        if (_queueEnded) then {_recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]};
+    };
     // Destination recovery cannot adopt or retire another native command mode.
     if (count _recoveryWork > 0 && {!((_recoveryWork getOrDefault ["commandMode","DESTINATION"]) in ["DESTINATION","SIMPLE_BACK"])}) then {continue};
     // This destination executor never issues native BACK. It belongs to a different
@@ -330,7 +342,8 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {(expectedDestination _driver) isEqualTo (_owned get "driverCommand")}
                 && {_native isEqualTo (_owned get "command")}
         };
-        private _mayRecoverOrdinaryRoute={!_recoveryRequestPending && {call _mayRecoverRoute} && {call _nativeRouteIntent}
+        private _queueNativeActive=false;
+        private _mayRecoverOrdinaryRoute={!_queueNativeActive && {!_recoveryRequestPending} && {call _mayRecoverRoute} && {call _nativeRouteIntent}
             // A queue-bound native leg belongs to its finite queue phase, never the
             // ordinary REFRESH/FINAL route retry. Cleanup retains separate exact proof.
             && {!("queueBinding" in (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]))}
@@ -572,7 +585,7 @@ _brain set ["geometryTracks",_geometryTracks];
             };
             private _reverseExpired=(_state param [6,0]) == 2 && {_reverseIssued} && {!_reverseLeg}
                 && {!_pendingRear || {_rearPathRejected}};
-            if (_reverseExpired) then {
+            if (_reverseExpired && {!("queueBinding" in (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]))}) then {
                 // Native backing must stop at its original endpoint/deadline even when
                 // combat or a disabled recovery feature currently forbids the forward retry.
                 private _endingRear=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
@@ -616,8 +629,21 @@ _brain set ["geometryTracks",_geometryTracks];
                     && {!(behaviour leader _group in ["COMBAT","STEALTH"])} && {getSuppression _driver <= 0.1}
                     && {call _mayRecoverOrdinaryRoute}
             };
-            _queueHold=["OBSERVE",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold;
-            _crewBoardingHold=!_queueHold && {[_group,_vehicle,_brain,{call _mayIssueDriving
+            private _queueConsent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+            _queueNativeActive=(_queueConsent getOrDefault ["executionGranted",false])
+                && {["ADMIT",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit};
+            private _queueJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            private _queueStarted="queueBinding" in _queueJournal;
+            private _queueStop=_queueStarted && {_rearPathRejected || {_reverseExpired}
+                || {_queueJournal getOrDefault ["simpleStopIssued",false]}
+                || {!(_queueJournal getOrDefault ["simpleAcknowledged",false])
+                    && {serverTime >= (_queueJournal getOrDefault ["ackUntil",-1])}}};
+            if (_queueNativeActive) then {
+                _reverseLeg=true;
+                _capMps=if (_queueStop) then {0} else {_capMps min 2};
+            };
+            _queueHold=!_queueNativeActive && {["OBSERVE",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold};
+            _crewBoardingHold=!_queueHold && {!_queueNativeActive} && {[_group,_vehicle,_brain,{call _mayIssueDriving
                 && {call _recoveryOrderFree} && {call _nativeRouteIntent}}] call CBE_fnc_DrivingCrewBoarding};
             private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call CBE_fnc_DrivingFollowingCap
@@ -653,7 +679,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // uses the existing traffic lease and faster sampling, and cannot trigger recovery.
             // Check the intended rear direction even while stopped. At the finite rear-leg
             // deadline observe the forward retry, so a rear-only obstacle cannot trap handback.
-            private _travelIntent=if (_rearSafetyRequired) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
+            private _travelIntent=if (_rearSafetyRequired || {_queueNativeActive}) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
             private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true,_travelIntent] call CBE_fnc_CortexInfantrySpeed;
             if (_rearSafetyRequired && {!_rearPathRejected}) then {
                 private _rearObservation=[_vehicle,_rearClearDistance] call CBE_fnc_DrivingRearClear;
@@ -668,14 +694,14 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
             // Corridor execution is part of this same owner callback, never a second controller.
             // Do not take over an issued/expired rear leg. Existing traffic and pedestrian caps win.
-            private _passingHeadway=if (_crewBoardingHold || {_queueHold}) then {-1} else {
+            private _passingHeadway=if (_crewBoardingHold || {_queueHold} || {_queueNativeActive}) then {-1} else {
                 ["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call CBE_fnc_DrivingPassAdmission
             };
             if (_passingHeadway isEqualType 0 && {finite _passingHeadway} && {_passingHeadway >= 0}) then {
                 _capMps=_capMps min _passingHeadway;
             };
             private _hadPass=!isNil {_vehicle getVariable "CBE_DrivingPass_Work"};
-            private _pass=[_group,_vehicle,_brain,_mayIssueDriving] call CBE_fnc_DrivingPassStep;
+            private _pass=if (_queueNativeActive) then {[false,1e6,""]} else {[_group,_vehicle,_brain,_mayIssueDriving] call CBE_fnc_DrivingPassStep};
             private _passActive=_pass select 0;
             private _hadBypass=!isNil {_vehicle getVariable "CBE_DrivingBypass_Work"};
             private _hadCorridor=!isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"};
@@ -744,6 +770,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _entryRestore}
                     || {abs ((getForcedSpeed _vehicle)-_entryForcedSpeed) > 0.1}
                     || {_queueHold && {!( ["OBSERVE",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold)}}
+                    || {_queueNativeActive && {!( ["ADMIT",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit)}}
                     || {_crewBoardingHold && {!([_group,_vehicle,_brain,{call _mayIssueDriving
                         && {call _recoveryOrderFree} && {call _nativeRouteIntent}}] call CBE_fnc_DrivingCrewBoarding)}}) exitWith {false};
                 // Publish a minimal current cap receipt together with its original baseline.
@@ -757,6 +784,22 @@ _brain set ["geometryTracks",_geometryTracks];
                 _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
                 _entryAssistState=+_capReceipt;
                 if (_queueHold) then {["APPLIED",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold};
+                if (_queueNativeActive) then {
+                    private _nativeQueueMode=if (_queueStarted) then {["ISSUE","STOP"] select _queueStop} else {"ISSUE"};
+                    private _queueCommitted=[_nativeQueueMode,_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit;
+                    if (!_queueCommitted) then {
+                        // Refused issue cannot leave a positive cap on the original forward
+                        // task. Roll back in this same sole-writer transaction; never replay BACK.
+                        _capMps=0;_capReceipt set [0,0];_vehicle forceSpeed 0;
+                        _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
+                        _entryAssistState=+_capReceipt;
+                    };
+                    private _issuedQueue=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                    if ("queueBinding" in _issuedQueue) then {
+                        _state set [6,2];_state set [7,time+((_issuedQueue get "hardDeadline")-serverTime)];
+                        _state set [10,true];_reverseIssued=true;
+                    };
+                };
                 _capCommitted=true;
             };
             if (!_capCommitted) then {
@@ -928,7 +971,7 @@ _brain set ["geometryTracks",_geometryTracks];
             };
             // Reversing is a recovery leg, not proof that the original route resumed.
             // Do not reset its finite stages merely because the vehicle moved backwards.
-            if (_recoveryStage != 2 && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D _progressPosition >= 3} && {_routeProgress}) then {
+            if (!_queueNativeActive && {_recoveryStage != 2} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D _progressPosition >= 3} && {_routeProgress}) then {
                 _progressPosition=getPosATL _vehicle;
                 _progressAt=time;
                 _recoveryStage=0;
@@ -1122,10 +1165,13 @@ _brain set ["geometryTracks",_geometryTracks];
                 };
                 if (_crewBoardingHold) then {_recoveryResult="CREW_BOARDING"};
                 if (_queueHold) then {_recoveryResult="QUEUE_HOLD"};
+                if (_queueNativeActive) then {
+                    _recoveryResult="QUEUE_"+((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) getOrDefault ["queuePhase","ISSUE_REFUSED"]);
+                };
                 _vehicle setVariable ["CBE_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
                     _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued,_trafficWatch]];
                 _vehicle setVariable ["CBE_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_trafficWatch} || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))];
-                if (_passActive) then {_vehicle setVariable ["CBE_DrivingAssist_Next",time+1]};
+                if (_passActive || {_queueNativeActive}) then {_vehicle setVariable ["CBE_DrivingAssist_Next",time+1]};
             };
             };
             };

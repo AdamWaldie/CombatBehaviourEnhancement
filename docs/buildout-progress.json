@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "6284a937243443469a729ae3d886b7fc0792326c27aa0d23867d6e9d4b6abde9"
+              "sha256": "94bd99c0b20161e597b25703ee64ea51d6a0e14266247e170669d13bf54df86f"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1617,11 +1617,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "6c97b49ed5ab11750132a43bd801a83edc1ee13a069497d3510cff616ce6228b"
+              "sha256": "84a9cf515703e65f312e967732d1e87d74a2f3ae5a5c760ecf06fc5476926c71"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "e3f830c5e8c9e7341476e743bdf03f24fd22450755a4154dc97df5ca8afcf6dd"
+              "sha256": "c2ca097797ecfbc0f577995df8fc217c3f829393c3b4d6d466ff4448543c3673"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueContext.sqf",
@@ -1633,7 +1633,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "6284a937243443469a729ae3d886b7fc0792326c27aa0d23867d6e9d4b6abde9"
+              "sha256": "94bd99c0b20161e597b25703ee64ea51d6a0e14266247e170669d13bf54df86f"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1644,13 +1644,29 @@
         {
           "capability": "Queue room-making execution",
           "weight": 1,
-          "built": 0,
-          "implemented": "Agreement handler records consent; it issues no movement.",
-          "remaining_build_gap": "Explicit COMMIT, owned HOLD and sampled READY exist; dependency-leaf reverse, moving-phase receipts, crossing and full handback remain unimplemented.",
+          "built": 0.5,
+          "implemented": "Explicitly committed internal queue API reaches all-owner preparation/arming, leaf-only grant, sole-writer native BACK, bounded acknowledgement/rear monitoring, zero-cap STOP and measured leaf hold under original expiry. This is a wired leaf subset, physically unverified.",
+          "remaining_build_gap": "Measured parent-room dependency advance, lateral crossing and all-participant handback remain unimplemented. Automatic initiation remains disabled.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "e3f830c5e8c9e7341476e743bdf03f24fd22450755a4154dc97df5ca8afcf6dd"
+              "sha256": "c2ca097797ecfbc0f577995df8fc217c3f829393c3b4d6d466ff4448543c3673"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+              "sha256": "94bd99c0b20161e597b25703ee64ea51d6a0e14266247e170669d13bf54df86f"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+              "sha256": "0f5cb304f6162917bc865cefaa3b3b4fac80786b34b7790c5eb027926ba49ae4"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+              "sha256": "94a1caf21e0397b63c8ae48da92d80c688582d1fb6cf789fc9ae6a097bb03a64"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+              "sha256": "84a9cf515703e65f312e967732d1e87d74a2f3ae5a5c760ecf06fc5476926c71"
             }
           ]
         },

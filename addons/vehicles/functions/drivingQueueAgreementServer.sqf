@@ -10,13 +10,13 @@
  * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED/ARMED=[token].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
  * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED"])}) exitWith {false};
+if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED"])}) exitWith {false};
 private _sender=remoteExecutedOwner;
 private _registry=localNamespace getVariable ["CBE_DrivingQueue_Agreements",createHashMap];
 localNamespace setVariable ["CBE_DrivingQueue_Agreements",_registry];
@@ -104,6 +104,8 @@ if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {fals
 if (_mode == "RELEASE") exitWith {
     _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;true
 };
+if (_mode == "PREPARED" && {_sender in (_record getOrDefault ["preparedOwners",[]])}) exitWith {true};
+if (_mode == "ARMED" && {_sender in (_record getOrDefault ["armedOwners",[]])}) exitWith {true};
 // Every actual participant owner must preserve the prepared hold before a later
 // execution grant can exist. This acknowledgement is metadata, never movement authority.
 if (_mode == "PREPARED") exitWith {
@@ -122,6 +124,31 @@ if (_mode == "PREPARED") exitWith {
     _prepared pushBackUnique _sender;
     _record set ["preparedOwners",_prepared];
     _record set ["executionReady",count _prepared == count (_record get "owners")];
+    if (_record get "executionReady" && {!(_record getOrDefault ["armSent",false])}) then {
+        private _vehicles=_record get "vehicles";
+        _record set ["motionBinding",[_vehicles select (count _vehicles-1),_token,_record get "expires",8]];
+        _record set ["motionStage","ARMED"];_record set ["armSent",true];
+        private _message=[_token,_record get "serial",_vehicles,_record get "roles",
+            _record get "dependencies",_record get "context",_record get "deadline",_record get "expires","AGREED"];
+        {["ARM",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
+    };
+    true
+};
+if (_mode == "ARMED") exitWith {
+    if ((_record get "phase") != "AGREED" || {serverTime >= (_record get "expires")}
+        || {!(_record getOrDefault ["executionReady",false])}
+        || {!(_record getOrDefault ["armSent",false])} || {!([_record] call _current)}) exitWith {
+        _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;false
+    };
+    private _armed=_record getOrDefault ["armedOwners",[]];_armed pushBackUnique _sender;
+    _record set ["armedOwners",_armed];
+    if (count _armed == count (_record get "owners") && {!(_record getOrDefault ["executeSent",false])}) then {
+        private _vehicles=_record get "vehicles";private _leaf=_vehicles select (count _vehicles-1);
+        _record set ["executeSent",true];
+        private _message=[_token,_record get "serial",_vehicles,_record get "roles",
+            _record get "dependencies",_record get "context",_record get "deadline",_record get "expires","AGREED"];
+        ["EXECUTE",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",owner _leaf];
+    };
     true
 };
 // COMMIT is separate from consent and can originate only from the actual root owner.

@@ -825,7 +825,8 @@
         "addons/vehicles/functions/drivingOwnerReceipt.sqf",
         "addons/vehicles/functions/drivingHullInterval.sqf",
         "addons/vehicles/functions/drivingRearPlan.sqf",
-        "addons/vehicles/functions/drivingQueueReverseCurrent.sqf"
+        "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+        "addons/vehicles/functions/drivingQueueReverseCommit.sqf"
       ]
     },
     {

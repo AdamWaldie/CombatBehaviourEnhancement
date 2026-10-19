@@ -70,6 +70,7 @@ class CfgFunctions {
             class DrivingPassCanConsent {file = "\z\cbe\addons\vehicles\functions\drivingPassCanConsent.sqf";};
             class DrivingPassPrepare {file = "\z\cbe\addons\vehicles\functions\drivingPassPrepare.sqf";};
             class DrivingPassTraffic {file = "\z\cbe\addons\vehicles\functions\drivingPassTraffic.sqf";};
+            class DrivingQueueReverseCommit {file = "\z\cbe\addons\vehicles\functions\drivingQueueReverseCommit.sqf";};
             class DrivingQueueReverseCurrent {file = "\z\cbe\addons\vehicles\functions\drivingQueueReverseCurrent.sqf";};
             class DrivingQueueProposalCurrent {file = "\z\cbe\addons\vehicles\functions\drivingQueueProposalCurrent.sqf";};
             class DrivingQueueAgreementRequest {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementRequest.sqf";};
