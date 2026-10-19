@@ -7,6 +7,9 @@
  * its two actors must be idle or moving to the full three-dimensional authored destination. Owned FOLLOW-phase
  * doStop receipts retain their separate retirement contract.
  * Individual actor reservations on either seat veto acquisition and every later command.
+ * Independent native driving/turning refuses PLAN acquisition. During FOLLOW, a native
+ * BACK, keyboard commander input or scripted turn yields without stopping/resuming that input.
+ * Ordinary AI forward speed changes remain valid during the owned fixed path.
  * PLAN geometry stays outside a short unscheduled issue commit. Exact live episode/phase,
  * original deadline, proposal transforms, native seats/orders and caller authority repeat inside
  * that boundary before stop/path writes and FOLLOW publication; refused commits issue nothing.
@@ -64,7 +67,15 @@ private _plainRoute={
 };
 // Before any alternate movement exists, only idle or route-matching native MOVE
 // commands authorize acquisition. STOP/FOLLOW/ATTACK and unowned CBE are not consent.
+private _nativePathFree={
+    private _pathInput=vehicleMoveInfo _vehicle;
+    !(toUpperANSI (_pathInput param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
+        && {!(toUpperANSI (_pathInput param [1,""]) in ["LEFT","RIGHT"])}
+};
 private _nativeAdmissionReady={
+    private _admissionInput=vehicleMoveInfo _vehicle;
+    if (toUpperANSI (_admissionInput param [0,""]) in ["BACK","FORWARD","FAST","SLOW","DIRECTBYCOMANDER","SIMPLE","CONVOY"]
+        || {toUpperANSI (_admissionInput param [1,""]) in ["LEFT","RIGHT"]}) exitWith {false};
     private _destination=waypointPosition [_group,currentWaypoint _group];
     [_driver,_operator] findIf {
         private _command=toUpperANSI currentCommand _x;
@@ -109,7 +120,7 @@ private _mayWrite={
         && {call _controllerCurrent}
         && {!(_brain getOrDefault ["cancelled",false])}
         && {_route isNotEqualTo []} && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
-        && {call _plainRoute} && {call _authority} && {call _seatsAvailable}
+        && {call _plainRoute} && {call _authority} && {call _seatsAvailable} && {call _nativePathFree}
         && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {alive _vehicle} && {canMove _vehicle} && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}

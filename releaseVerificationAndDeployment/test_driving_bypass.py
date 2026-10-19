@@ -145,6 +145,23 @@ class DrivingBypassTests(unittest.TestCase):
         for forbidden in ('setPos','setVelocity','enableAI','addWaypoint','deleteWaypoint','spawn','waitUntil'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
 
+        step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
+        release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        self.assertIn('&& {call _nativePathFree}',step)
+        self.assertIn('&& {_nativePathFree}',release)
+        for body in (step,release):
+            for proof in ('vehicleMoveInfo _vehicle','["BACK","DIRECTBYCOMANDER"]','["LEFT","RIGHT"]'):
+                self.assertIn(proof,body)
+        admission=step.split('private _nativeAdmissionReady=',1)[1].split('private _controllerCurrent=',1)[0]
+        self.assertIn('"SIMPLE","CONVOY"',admission)
+        self.assertIn('exitWith {false}',admission)
+        # Independent reverse/turn takes authority despite unchanged unit receipts;
+        # ordinary forward speed states do not falsely cancel a valid FOLLOW path.
+        for move,turn,free in [('BACK','NONE',False),('MOVE','LEFT',False),
+                               ('MOVE','RIGHT',False),('DirectByComander','NONE',False),
+                               ('FORWARD','NONE',True),('SLOW','NONE',True),('SIMPLE','NONE',True)]:
+            self.assertEqual(move.upper() not in ('BACK','DIRECTBYCOMANDER') and turn not in ('LEFT','RIGHT'),free)
+
     def test_executor_rechecks_plain_order_and_both_crew_tasks_before_writes(self):
         s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
         gate=s.split('private _plainRoute={',1)[1].split('private _work=',1)[0]

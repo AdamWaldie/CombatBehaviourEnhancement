@@ -6,6 +6,8 @@
  * matching destinations alone cannot recall a changed MOVE/STOP/FOLLOW command. Identical
  * repeated commands remain indistinguishable; missing legacy task receipts grant no recall.
  * New individual reservations prevent movement cleanup; actor leases remain untouched.
+ * New native BACK, keyboard commander input or scripted LEFT/RIGHT revokes native path
+ * cleanup too, even while both unit destination/task receipts remain unchanged.
  * Live episode/locality, controller revision, command admission and retirement share one
  * unscheduled section. Identity repeats after native commands before metadata deletion; a
  * replacement episode survives. No geometry or world query runs in this section.
@@ -44,11 +46,15 @@ isNil {
         } >= 0};
     if (_successor && {!_haltCleanup} && {!(_reason in ["CONTROLLER_CHANGED","CONVOY_LEAD_CHANGED"])}) exitWith {false};
     private _driver=_work get "driver";private _operator=_work get "operator";private _route=_work get "route";
+    private _pathInput=vehicleMoveInfo _vehicle;
+    private _nativePathFree=!(toUpperANSI (_pathInput param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
+        && {!(toUpperANSI (_pathInput param [1,""]) in ["LEFT","RIGHT"])};
     private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly}}
         && {!isNull _driver} && {!isNull _operator} && {local _driver} && {local _operator}
         && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
         && {group _driver == _group} && {group _operator == _group}
         && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
+        && {_nativePathFree}
         && {(expectedDestination _operator) isEqualTo (_work get "command")}
         && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
         && {(toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])}
