@@ -4,6 +4,8 @@
  * Locality / Authority: Runs through CBE's shared scheduler on the convoy group owner. ConvoyTick rechecks authority at every vehicle command boundary.
  * Repeat/JIP: One-shot callback. Registry revision, configuration identity and job token reject stale work after settings changes, JIP replay or headless migration.
  * Spacing diagnostics reuse ConvoyTick's cached vehicle dimensions and aligned forward-gap rule.
+ * Public status updates immediately on semantic changes, otherwise at the first existing callback
+ * after ten seconds. Local FSM execution is not throttled; a new brain publishes its first sample.
  * Arguments: 0 convoy brain <HASHMAP> created by CBE_fnc_ConvoyOperationStart.
  * Return Value: Number - always -1 because the FSM schedules each later step separately.
  * Current caller: CBE_fnc_ConvoyOperationQueue through CBE_fnc_CortexQueueJob.
@@ -83,7 +85,15 @@ isNil {
     if (!(call _stepCurrent)
         || {(_group getVariable ["CBE_Convoy_LocalState",createHashMap]) isNotEqualTo _state}) exitWith {};
     _brain set ["phase",_phase];_brain set ["spacingPairs",_spacingPairs];_brain set ["recoveryActors",_recoveryActors];_brain set ["lastStepAt",time];_brain set ["lastDelay",_delay];_brain set ["nextAt",time+_delay];_brain set ["pending",false];_brain set ["completed",true];
-    _group setVariable ["CBE_Convoy_Brain_State",[_phase,_configuration param [0,-1],_registryRevision,serverTime,"",_spacingPairs,_recoveryActors],true];
+    // Execution completion is local even when the public diagnostic packet is unchanged.
+    // Keep this cache on the current brain so a replacement/migrated owner publishes anew.
+    private _statusKey=[_phase,_configuration param [0,-1],_registryRevision,_spacingPairs,_recoveryActors];
+    private _lastStatusAt=_brain getOrDefault ["lastStatusAt",-1e9];
+    if (_statusKey isNotEqualTo (_brain getOrDefault ["lastStatus",[]])
+        || {serverTime-_lastStatusAt >= 10} || {serverTime < _lastStatusAt}) then {
+        _group setVariable ["CBE_Convoy_Brain_State",[_phase,_configuration param [0,-1],_registryRevision,serverTime,"",_spacingPairs,_recoveryActors],true];
+        _brain set ["lastStatus",_statusKey];_brain set ["lastStatusAt",serverTime];
+    };
     _stepPublished=true;
 };
 if (!_stepPublished) exitWith {["REPLACED_DURING_PHASE"] call _cancel};

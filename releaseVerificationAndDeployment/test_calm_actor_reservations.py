@@ -611,6 +611,10 @@ class ConvoySemanticPublicationTests(unittest.TestCase):
         self.assertLess(publication.index('isNil {'),publication.index('_brain set ["phase",_phase]'))
         self.assertLess(publication.index('call _stepCurrent'),publication.index('setVariable ["CBE_Convoy_Brain_State"'))
         self.assertIn('if (!_stepPublished) exitWith',publication)
+        self.assertIn('[_phase,_configuration param [0,-1],_registryRevision,_spacingPairs,_recoveryActors]',publication)
+        self.assertIn('serverTime-_lastStatusAt >= 10',publication)
+        self.assertIn('serverTime < _lastStatusAt',publication)
+        self.assertLess(publication.index('_brain set ["completed",true]'),publication.index('private _statusKey='))
 
 
 class ConvoyTerminalRetirementTests(unittest.TestCase):

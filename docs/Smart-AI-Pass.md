@@ -125,6 +125,8 @@ the entry element without forcing a group merge.
 
 ## Vehicles and convoys
 
+Convoy status broadcasts immediately when phase, task revision, spacing count or recovery count changes. Stable status refreshes at the first existing callback after ten seconds; vehicle control and local FSM completion keep their normal cadence.
+
 General driving assistance is separate from registered convoy control. General
 driving retains native waypoints and applies sparse speed/terrain observation
 plus one bounded physical recovery. Convoys add an ordered vehicle column,

@@ -1691,7 +1691,7 @@
             },
             {
               "path": "addons/vehicles/functions/convoyOperationStep.sqf",
-              "sha256": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6"
+              "sha256": "76642d0a3ff48c226e65cc0a3b07226588c66101014ea53a58a978d3c1a6538f"
             },
             {
               "path": "addons/vehicles/functions/convoySync.sqf",
@@ -1747,7 +1747,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyOperationStep.sqf",
-              "sha256": "1fec4def9e72a68b8c355c6761554bb58d5d8d86ba348155b033baf00d0847b6"
+              "sha256": "76642d0a3ff48c226e65cc0a3b07226588c66101014ea53a58a978d3c1a6538f"
             },
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
