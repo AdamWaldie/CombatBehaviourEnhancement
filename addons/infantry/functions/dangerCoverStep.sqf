@@ -5,7 +5,8 @@
  * It runs on the actor and group owner and yields
  * to player, Zeus, specialist, native-command and CBE-operation ownership before selecting or issuing movement.
  * Repeat/JIP: One group lease coalesces a danger burst. Each call either retains, releases or creates
- * one finite move. Physical arrival releases the movement reservation immediately; the deadline is a failure bound.
+ * one finite move. Admission ignores only valid expired actor reservations; live or malformed leases block.
+ * Physical arrival releases the movement reservation immediately; the deadline is a failure bound.
  * The lease also binds owner epoch, operation generation and full authored waypoint receipt.
  * Changed orders and legacy leases retire metadata without return-to-formation commands.
  * A locality or generation change retires it without restoring over newer work. Failed approach cleanup
@@ -158,13 +159,15 @@ if (_generation != (_group getVariable ["CBE_Danger_Generation",0])
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {[_group] call CBE_fnc_CortexExternalTakeover}
     || {[_group] call CBE_fnc_CortexZeusHeld}) exitWith {[] call _clearLease};
+// Use the shared finite reservation gate: expired valid markers are free, while live or malformed
+// markers still block admission. Do not let stale metadata permanently suppress cover response.
 // Recheck at the final command boundary. A danger observation recorded before a new order or operation
 // must retire instead of turning its stale observation into a movement instruction.
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {!isNull objectParent _actor}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}
-    || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}) exitWith {
+    || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {
     _group setVariable ["CBE_Danger_CoverBlockedContext",[time,currentCommand _actor,
         _actor checkAIFeature "MOVE",_actor checkAIFeature "PATH",
         count (_group getVariable ["CBE_Operation",createHashMap]),
@@ -232,6 +235,7 @@ if (_entryContext isNotEqualTo (call _readOrderContext)
     || {[_group] call CBE_fnc_CortexExternalTakeover} || {[_group] call CBE_fnc_CortexZeusHeld}
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
+    || {[_actor] call CBE_fnc_CortexActorMoveReserved}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}) exitWith {[] call _clearLease};
 _group setVariable ["CBE_Danger_CoverPending",nil];
 _group setVariable ["CBE_Danger_CoverDecision",["COMMITTED",time,_actor,_generation,+_spot,_screenMode]];

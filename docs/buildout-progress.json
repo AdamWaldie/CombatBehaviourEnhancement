@@ -1442,7 +1442,7 @@
             },
             {
               "path": "addons/infantry/functions/dangerCoverStep.sqf",
-              "sha256": "f26c444d3bd81ebdb9f21c8c2cad3ad9d9b3a9110dac414c8cf3451e8912a818"
+              "sha256": "22fcebd0c79082c943a45c277a09a76e75fa8426dde95a35c374a8797b4e799a"
             }
           ]
         },
@@ -1459,14 +1459,14 @@
             },
             {
               "path": "addons/infantry/functions/dangerCoverStep.sqf",
-              "sha256": "f26c444d3bd81ebdb9f21c8c2cad3ad9d9b3a9110dac414c8cf3451e8912a818"
+              "sha256": "22fcebd0c79082c943a45c277a09a76e75fa8426dde95a35c374a8797b4e799a"
             }
           ]
         }
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "source_commit": "1fbb771c + danger cover admission fix"
     },
     {
       "id": "VEH-DRIVING",
