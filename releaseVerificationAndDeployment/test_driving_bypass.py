@@ -209,7 +209,8 @@ class DrivingBypassTests(unittest.TestCase):
             self.assertIn(marker,tick)
         # Own delayed acknowledgement consumes a fixed request, while unrelated moves,
         # explicit stops and unacknowledged expiry still surrender the revision.
-        def admission(now, command, destination, old='A', goal='B', deadline=2, before='STOP'):
+        def admission(now, command, destination, old='A', goal='B', deadline=2, before='STOP', driver_same=True):
+            if not driver_same:return 'YIELD'
             if command in ('','MOVE') and destination == goal:
                 return 'ACK'
             if now <= deadline and destination == old and command in (before,'MOVE'):
@@ -220,10 +221,16 @@ class DrivingBypassTests(unittest.TestCase):
                                ((3,'MOVE','A'),'YIELD'),((3,'','B'),'ACK'),
                                ((1,'STOP','B'),'YIELD')]:
             self.assertEqual(admission(*args),expected)
-        for proof in ('count _receipt in [6,7]','serverTime <= (_request select 1)',
+        self.assertEqual(admission(1,'MOVE','B',driver_same=False),'YIELD')
+        self.assertLess(tick.index('private _driverProof='),tick.index('private _acknowledged='))
+        self.assertIn('DRIVER_NATIVE_ORDER_CHANGED',tick)
+        self.assertIn('driver _vehicle == _operator',tick)
+        self.assertIn('_receipt set [7,[currentCommand _operator,+_nativeNow]]',tick)
+
+        for proof in ('count _receipt == 8','serverTime <= (_request select 1)',
                       '_nativeNow isEqualTo (_receipt select 4)',
                       '_position vectorDistance (_request select 0) <= 0.25',
-                      '_receipt resize 6','_ackProgress set [10',
+                      '_receipt set [6,[]]','_ackProgress set [10',
                       'NATIVE_ACK_TIMEOUT','!(_vehicle in _nativePendingVehicles)'):
             self.assertIn(proof,tick)
         self.assertEqual(tick.count('serverTime+2,_nativeTaskBefore'),2)
@@ -232,7 +239,7 @@ class DrivingBypassTests(unittest.TestCase):
             self.assertLess(tick.rfind('private _nativeBefore=',0,writer),writer)
             self.assertIn('"NATIVE",[+'+goal+',serverTime+2,_nativeTaskBefore]',tick)
         retire=(ROOT/'addons/vehicles/functions/convoyRetireMoveReceipt.sqf').read_text()
-        self.assertIn('count _receipt in [6,7]',retire)
+        self.assertIn('count _receipt == 8',retire)
         self.assertIn('_position vectorDistance (_request select 0) <= 0.25',retire)
         crew=(ROOT/'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
         self.assertLess(crew.index('CBE_Convoy_CommandYield'),crew.index('CBE_Convoy_CrewDue'))

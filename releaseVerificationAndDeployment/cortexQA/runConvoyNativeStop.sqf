@@ -69,10 +69,12 @@ private _accepted=[_group,15,30,true] call CBE_fnc_SimpleAiConvoy;
 private _revision=_group getVariable ["CBE_Convoy_Revision",-1];
 private _moving=_accepted && {[{
     private _receipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
-    private _nativeOwned=call _ownersCurrent && {count _receipt == 6} && {(_receipt select 0) == _group}
+    private _nativeOwned=call _ownersCurrent && {count _receipt == 8 && {(_receipt select 6) isEqualTo []}} && {(_receipt select 0) == _group}
         && {(_receipt select 1) == _revision} && {(_receipt select 2) == _driver}
         && {(_receipt select 3) == _operator} && {(_receipt select 5) == "NATIVE"}
         && {((expectedDestination _operator) param [0,[]]) vectorDistance ((_receipt select 4) param [0,[]]) <= 0.25}
+        && {(_receipt select 7) isEqualType []} && {count (_receipt select 7) == 2}
+        && {_driver == _operator || {(expectedDestination _driver) isEqualTo ((_receipt select 7) select 1)}}
         && {currentCommand _operator == "MOVE"};
     if (!_nativeOwned) exitWith {false};
     if (_observedNativeReceipt isNotEqualTo _receipt) then {

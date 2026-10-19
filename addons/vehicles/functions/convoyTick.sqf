@@ -11,6 +11,8 @@
  * 0.01rad/s angular motion for every vehicle; non-finite samples reset that window.
  * A stopped, exactly owned steering endpoint can continue onto fresh ordered trail after
  * more than3m endpoint advance; moving legs retain the8m refresh threshold.
+ * Ongoing native/steering receipts bind both crew destinations. A distinct driver order
+ * yields the current revision before commander acknowledgement can adopt it as our own.
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
  * Excess stretch beyond the upper band adds a continuous nonlinear catch-up correction capped
  * at 8 km/h; crossing the band never imposes a new minimum-speed step.
@@ -165,6 +167,9 @@ if (_paused || {_playerCrew} || {_zeus} || {_nativeCrewTask}) exitWith {
     };
 };
 _group setVariable ["CBE_Convoy_Suspended", false];
+// Both crew destinations bind ongoing control. A distinct driver replacement wins even
+// when our commander goal acknowledges in the same tick; acknowledgement cannot mint that
+// driver order as our own. Same-actor acknowledgement updates its one destination receipt.
 // A changed individual MOVE or a STOP after an owned native MOVE is a replacement order. Keep this
 // revision yielded across later ticks and owner migration; only a new server revision may re-admit.
 private _nativePendingVehicles=[];
@@ -174,12 +179,23 @@ if ((_commandYield param [0,-1]) != _revision) then {
     {
         private _vehicle=_x;private _receipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
         private _operator=effectiveCommander _vehicle;
-        if (isNull _diverted && {local _vehicle} && {count _receipt in [6,7]} && {(_receipt select 5) in ["NATIVE","STEERING"]}
+        if (isNull _diverted && {local _vehicle} && {count _receipt == 8} && {(_receipt select 5) in ["NATIVE","STEERING"]}
             && {(_receipt select 0) == _group} && {(_receipt select 1) == _revision}
             && {(_receipt select 2) == driver _vehicle} && {(_receipt select 3) == _operator}
             && {!isNull _operator} && {local _operator}) then {
             private _pendingNative=false;
-            if (count _receipt == 7 && {(_receipt select 5) == "NATIVE"}) then {
+            private _driverProof=_receipt select 7;
+            private _driverUnchanged=_driverProof isEqualType [] && {count _driverProof == 2}
+                && {(_driverProof select 0) isEqualType ""} && {(_driverProof select 1) isEqualType []}
+                && {driver _vehicle == _operator || {
+                    (expectedDestination driver _vehicle) isEqualTo (_driverProof select 1)
+                        && {toUpperANSI currentCommand driver _vehicle != "STOP"
+                            || {toUpperANSI (_driverProof select 0) == "STOP"}}
+                }};
+            if (!_driverUnchanged) then {
+                _diverted=_vehicle;_diversion=getPosATL _vehicle;_yieldReason="DRIVER_NATIVE_ORDER_CHANGED";
+            };
+            if (isNull _diverted && {(_receipt select 5) == "NATIVE"} && {(_receipt select 6) isNotEqualTo []}) then {
                 private _request=_receipt select 6;
                 private _validRequest=_request isEqualType [] && {count _request == 3}
                     && {(_request select 0) isEqualType []} && {count (_request select 0) == 3}
@@ -193,7 +209,10 @@ if ((_commandYield param [0,-1]) != _revision) then {
                 if (_acknowledged) then {
                     // Accept only our originally issued goal, not any changed destination.
                     // This consumes the request; neither movement nor its clock is replayed.
-                    _receipt=+_receipt;_receipt resize 6;_receipt set [4,+_nativeNow];
+                    _receipt=+_receipt;_receipt set [6,[]];_receipt set [4,+_nativeNow];
+                    if (driver _vehicle == _operator) then {
+                        _receipt set [7,[currentCommand _operator,+_nativeNow]];
+                    };
                     _vehicle setVariable ["CBE_Convoy_MovementReceipt",_receipt,true];
                     private _ackFollowers=_state getOrDefault ["followers",createHashMap];
                     private _ackProgress=_ackFollowers getOrDefault [netId _vehicle,[]];
@@ -1145,7 +1164,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             _progress set [10,[driver _vehicle,_movementOperator,
                                 +(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
                             _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,
-                                driver _vehicle,_movementOperator,_nativeBefore,"NATIVE",[+_recoveryTarget,serverTime+2,_nativeTaskBefore]],true];
+                                driver _vehicle,_movementOperator,_nativeBefore,"NATIVE",[+_recoveryTarget,serverTime+2,_nativeTaskBefore],
+                                [currentCommand driver _vehicle,+(expectedDestination driver _vehicle)]],true];
                         } else {
                             // A native doMove competes with the retained steering path.
                             // Invalidate only its commitment so path refresh below
@@ -1394,7 +1414,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         _progress set [14,vectorMagnitude velocity _vehicle];
                         _progress set [9,+_path];
                         _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,_nativeBefore,"NATIVE",[+_destination,serverTime+2,_nativeTaskBefore]],true];
+                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,_nativeBefore,"NATIVE",[+_destination,serverTime+2,_nativeTaskBefore],
+                            [currentCommand driver _vehicle,+(expectedDestination driver _vehicle)]],true];
                         _progress set [7,false];
                     }};;
                 };
@@ -1449,7 +1470,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             _progress set [6,+_pathDestination];
                             _progress set [9,+_path];
                             _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator),"STEERING"],true];
+                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator),"STEERING",[],
+                            [currentCommand driver _vehicle,+(expectedDestination driver _vehicle)]],true];
                         }};;
                     };
                     _progress set [2, time + 1];
