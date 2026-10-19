@@ -887,7 +887,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexFireControl.sqf",
-              "sha256": "1f835c6ddefc1524083a4d34667d60e29e9a483cd56593bde919a71320fa9fe2"
+              "sha256": "87b21b9e5c7b21dcf96500708c3f61169b41f4021926fda1f4e52da51f2f5372"
             }
           ]
         },
@@ -913,14 +913,14 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexFireControl.sqf",
-              "sha256": "1f835c6ddefc1524083a4d34667d60e29e9a483cd56593bde919a71320fa9fe2"
+              "sha256": "87b21b9e5c7b21dcf96500708c3f61169b41f4021926fda1f4e52da51f2f5372"
             }
           ]
         }
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-19",
-      "source_commit": "c2fe087f + bounded fire-control cost simplification"
+      "source_commit": "b8ac7bae + native MOVE fire-control protection"
     },
     {
       "id": "MORALE",

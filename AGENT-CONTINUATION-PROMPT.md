@@ -1,3 +1,9 @@
+## Current local native infantry MOVE protection
+
+Afterb8ac7bae, CortexFireControl excludes native MOVE from scripted target/fire/distribution/suppression admission even when no CBE reservation exists. Prevents doTarget/doFire changing that authored/native movement into ATTACK pursuit. Native TARGET/AUTOTARGET/FIREWEAPON remain enabled; ordinary autonomous ATTACK remains eligible. Removes unused movingMembers array and returns immediately when scripted actor pool empty. Other weapon/safety/cadence rules unchanged. Important: actual aimPos reads in fire control are firing-lane safety for object-target commands; do not substitute an approximate belief there and weaken friendly-fire checks merely to remove all live geometry.
+
+Full offline gates/independent verify passed .qa/cbe-native-move-fire-build.log / verify.log, fingerprint172affdeec813282eeba6e050475ed69ac964f79b0139a4c9c035c884efd2df7, manifestb8ac7bae+dirtydevelopment. Existing tests updated, no newcases/controller. Scoresunchanged. AuditsPAUSED; physical authored-MOVE/movingfire remain unverified. Local batch for later coherentcommit/push; remote draftPR17 remainsf5e54d0d.
+
 ## Native engagement and belief assessment checkpoint
 
 Current batch aftera498b71a changes CortexTacticalAssess: elevated threat uses validated native believed3D height rather than live hostile getPosASL; fresh<=30s/range>300 unchanged. Low armedheadcount no longer forces REPOSITION when exactlyonearmedfoot soldier faces exactlyonefresh(dangerage<=5s) dismounted live hostile believed<=20m. It returns existing HOLD/nativehandoff with NATIVE_CLOSE_CONTACT; no new assault/firing/movement command. Earlier mounted-group and shaken/broken morale decisions remain, other low-firepower cases still reposition. No sensor/controller/worker/test added.

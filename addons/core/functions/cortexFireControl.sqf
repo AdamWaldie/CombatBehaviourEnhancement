@@ -29,7 +29,7 @@
  * An opportunistic drill grenade thrower is not retargeted during its two-second action window;
  * the grenade never blocks the squad manoeuvre state.
  * Repeat/JIP: checks current ownership, eligibility and gates on every call. START/MOVE
- * actors are left to normal target acquisition; explicit priority, distribution and suppression
+ * actors and actors executing a native MOVE are left to normal target acquisition; explicit priority, distribution and suppression
  * remain with stationary elements. Recovering stragglers are excluded. This function creates no JIP actions.
  *
  * Arguments:
@@ -90,6 +90,8 @@ if (_now < (_drill getOrDefault ["grenadeActionUntil",-1])) then {
     _drillUnits pushBackUnique (_drill getOrDefault ["grenadeThrower",objNull]);
 };
 private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
+// A native MOVE is still movement authority without a CBE reservation. Scripted targeting
+// must not replace it with ATTACK pursuit; native firing remains enabled.
 // Physical capability does not imply firing authority. Evaluate specialist ownership once
 // per roster member, before any scripted targeting or suppression command in this callback.
 private _eligible = (units _group) select {
@@ -100,7 +102,7 @@ private _eligible = (units _group) select {
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x}
         && {!(_x in _recovering)} && {primaryWeapon _x != ""}
-        && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        && {!(toUpperANSI currentCommand _x in ["MOVE","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 // Route ownership extends beyond drills: a clearer, evading actor or finite aid mover
 // must not receive an ATTACK/SUPPRESS command over its current destination.
@@ -114,8 +116,7 @@ if ((_operation getOrDefault ["intent",""]) in ["CLEAR","MEDICAL_AID","WITHDRAW"
 };
 _drillUnits=(_drillUnits+_reservedActors) arrayIntersect (_drillUnits+_reservedActors);
 private _members = _eligible - _drillUnits;
-private _movingMembers = _eligible arrayIntersect _drillUnits;
-if (_members isEqualTo [] && {_movingMembers isEqualTo []}) exitWith {0};
+if (_members isEqualTo []) exitWith {0};
 private _orders = 0;
 private _held = {(_this getVariable ["CBE_AIPass_TargetHold", -1]) > _now};
 
