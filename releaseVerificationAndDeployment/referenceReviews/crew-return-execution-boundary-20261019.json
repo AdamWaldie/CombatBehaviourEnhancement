@@ -51,5 +51,19 @@
     "Automatic recall of dismounted operating crew is not implemented.",
     "Absent driver return and cross-group boarding are not implemented.",
     "Physical re-entry, blocked boarding, repeated departures, split ownership and measured runtime cost remain unverified."
-  ]
+  ],
+  "boardingProgressFollowup": {
+    "implementation": "Original public per-seat receipt now carries ASL motion anchor and last measured progress time. Two metres of actual actor motion updates only progress metadata; twelve seconds without motion ends cooperation without any boarding cancellation. Original sixty-second deadline never renews.",
+    "schema": "Seven-field rows are required; unknown/old shapes refuse without native commands.",
+    "cost": "At most20 actor position observations per helper sample; active waits recheck at existing cap commit. Public progress updates only when the anchor changes by two metres. No new rays, world scan, worker or handler.",
+    "limits": "Detour/stair motion is progress, not boarding proof. Motion wholly between observations is not reconstructed; fixed expiry remains authoritative. Actual path-planning latency and boarding timing unverified.",
+    "validation": {
+      "tests": 1476,
+      "buildLog": ".qa/cbe-driving-gates-boarding-build.log",
+      "independentLog": ".qa/cbe-driving-gates-boarding-independent.log",
+      "fingerprint": "f76ff4f1564fbca8c2ae8361a1c5cead9eb5d2e02001ad108110f3c62ff54853",
+      "packageSource": "cfd3d02f2fd3aed6d411efe615c610afcbc7c100+dirty unsigned development",
+      "physicalAcceptance": false
+    }
+  }
 }

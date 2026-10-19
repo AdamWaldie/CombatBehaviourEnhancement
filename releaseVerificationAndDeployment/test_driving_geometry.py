@@ -36,6 +36,11 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertIn('for "_index" from 1 to 8',s)
         self.assertIn('private _sourceConfig=configOf _object >> "AnimationSources"',s)
         self.assertIn('isClass (_sourceConfig >> _x)',s)
+        candidates=s.split('if (!_isGate && {',1)[1].split('_gateClasses set',1)[0]
+        for native_class in ('Wall','Fence'):
+            self.assertIn('_object isKindOf "'+native_class+'"',candidates)
+        self.assertNotIn('isKindOf "House"',candidates)
+        self.assertLess(candidates.index('isClass (_sourceConfig >> _x)'),candidates.index('exitWith {_isGate=true}'))
         self.assertIn('[_gateObservation,_solidObservation]',s)
     def test_solid_constraints_reuse_existing_writers_and_fsm_queue(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()

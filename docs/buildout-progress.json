@@ -1520,7 +1520,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingGeometryCap.sqf",
-              "sha256": "6f1ea78cd44870b7cce3c02e9c3025832bda3d3364ff8addf1bc8d18e61a8869"
+              "sha256": "85d941289e34443aa0494cc1db923cb858331644f3cc1b21fbed0c61078f0fe6"
             },
             {
               "path": "addons/vehicles/functions/drivingPathGeometry.sqf",

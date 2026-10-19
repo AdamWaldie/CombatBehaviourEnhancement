@@ -115,6 +115,11 @@ class DrivingCrewTests(unittest.TestCase):
             self.assertIn(proof,body)
         self.assertEqual(body.count('serverTime+60'),1)
         self.assertNotIn('_row set [3,',body)
+        self.assertIn('_position vectorDistance (_row select 5) >= 2',body)
+        self.assertIn('serverTime-(_row select 6) >= 12',body)
+        self.assertIn('_row set [5,_position];_row set [6,serverTime]',body)
+        self.assertIn('count _x != 7',body)
+        self.assertNotIn('time+60',body.replace('serverTime+60',''))
         for command in ('orderGetIn','assignAs','moveIn','forceSpeed','setVelocity','spawn','sleep','execFSM'):
             self.assertNotIn(command,body)
         self.assertEqual(assist.count('call CBE_fnc_DrivingCrewBoarding'),2)

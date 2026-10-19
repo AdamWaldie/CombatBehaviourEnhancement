@@ -6,6 +6,8 @@
  * changes assignments or changes speed. DrivingAssistStart remains the sole speed writer.
  * Repeat/JIP: Public per-seat deadlines survive owner/brain replacement on the same authored
  * route. Expired attempts cannot renew until physical boarding or assignment removal/change.
+ * A twelve-second absence of measured two-metre actor motion ends the wait without
+ * cancelling native boarding. Progress anchors/clocks survive migration; no lifetime renews.
  * Changed route starts distinct work. No native command, handler or movement job is replayed.
  * Arguments: group GROUP grpNull; vehicle OBJECT objNull; current brain HASHMAP empty;
  * current plain-route/crew admission CODE {false}, evaluated synchronously in caller context.
@@ -13,7 +15,8 @@
  * Cost: one fullCrew observation (engine cost), at most20 seat rows/20 retained attempts;
  * no world query, geometry rays, worker or event handler. Oversized/unknown journals refuse.
  * Current caller: DrivingAssistStart at its existing vehicle sample cadence.
- * Example: private _wait=[group driver truck1,truck1,_brain] call CBE_fnc_DrivingCrewBoarding;
+ * Example: private _wait=[_group,_vehicle,_brain,{call _mayIssueDriving
+ *     && {call _recoveryOrderFree} && {call _nativeRouteIntent}}] call CBE_fnc_DrivingCrewBoarding;
  */
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],
     ["_brain",createHashMap,[createHashMap]],["_mayWait",{false},[{}]]];
@@ -32,10 +35,13 @@ private _valid=_entry isEqualType [] && {_entry isEqualTo [] || {count _entry ==
     && {(_entry select 0) isEqualType grpNull} && {(_entry select 1) isEqualType []}
     && {(_entry select 2) isEqualType []} && {count (_entry select 2) <= 20}
     && {(_entry select 2) findIf {
-        !(_x isEqualType []) || {count _x != 5} || {!((_x select 0) isEqualType objNull)}
+        !(_x isEqualType []) || {count _x != 7} || {!((_x select 0) isEqualType objNull)}
             || {!((_x select 1) isEqualType "")} || {!((_x select 2) isEqualType [])}
             || {!((_x select 3) isEqualType 0)} || {!finite (_x select 3)}
             || {!((_x select 4) isEqualType true)}
+            || {!((_x select 5) isEqualType [])} || {count (_x select 5) != 3}
+            || {(_x select 5) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+            || {!((_x select 6) isEqualType 0)} || {!finite (_x select 6)}
     } < 0}}};
 if (!_valid) exitWith {false};
 private _rows=if (_entry isNotEqualTo [] && {(_entry select 0) == _group}
@@ -79,13 +85,19 @@ private _next=[];
         && {[_actor] call CBE_fnc_CortexExternalOwner == ""}
         && {_actor distance2D _vehicle <= 100};
     if (_row isEqualTo [] && {_available} && {_boarding}) then {
-        _row=[_actor,_role,+_path,serverTime+60,false];
+        _row=[_actor,_role,+_path,serverTime+60,false,getPosASL _actor,serverTime];
     };
     if (_row isNotEqualTo []) then {
         // A newer task or tactical owner ends cooperation; original expiry stays immutable.
         // Split actor locality suspends observation without creating another lifetime.
         if (!_available || {local _actor && {!_boarding}}) then {_row set [4,true]};
-        if (!(_row select 4) && {_available} && {_boarding} && {serverTime < (_row select 3)}) then {_wait=true};
+        if (!(_row select 4) && {_available} && {_boarding} && {serverTime < (_row select 3)}) then {
+            private _position=getPosASL _actor;
+            if (_position vectorDistance (_row select 5) >= 2) then {
+                _row set [5,_position];_row set [6,serverTime];
+            };
+            if (serverTime-(_row select 6) >= 12) then {_row set [4,true]} else {_wait=true};
+        };
         _next pushBack _row;
     };
 } forEach _seats;

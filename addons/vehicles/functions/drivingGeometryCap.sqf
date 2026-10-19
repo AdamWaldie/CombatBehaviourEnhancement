@@ -15,7 +15,8 @@
  * [cap m/s, object (objNull for terrain), gap, time, rays, kind, hit ASL, normal, transform].
  * Work: nine straight or at most 27 turning GEOM rays/four hits each; nominal braking horizon <=600 m.
  * Gate classification is cached only within this call: up to 108 hit objects/up to32 config checks
- * each for ambiguous barrier names. Static H-barriers are not assumed to be animated gates.
+ * each for ambiguous barrier names and native Wall/Fence classes. Static walls and
+ * H-barriers are not assumed to be animated gates; house doors gain no generic fallback.
  * Current forward motion and model-space yaw predict at most 2.5 seconds of curved travel,
  * clamped to 70 degrees; the remaining horizon follows the final tangent. Rigid hull offsets
  * rotate with each predicted pose. Unsupported/stationary yaw falls back to straight sensing.
@@ -108,10 +109,12 @@ _heights=_heights arrayIntersect _heights;
                     private _name=toLowerANSI ((typeOf _object)+" "+((getModelInfo _object) param [0,""]));
                     _isGate=["gate","zavora","vrata","branka"] findIf {_name find _x >= 0} >= 0;
                     // Concrete H-barriers and bag walls are obstacles, not gates to animate.
-                    // Barrier-only classes require one supported indexed source. Stop on the
-                    // first match; static barriers remain solid obstacles, never animated clearance.
+                    // Native wall/fence gates may have no gate/barrier word in the model name.
+                    // Require a supported indexed source for these candidates too. Ordinary house
+                    // doors gain no generic animation fallback; static walls stay solid obstacles.
                     // At most32 config existence checks per distinct class in this observation.
-                    if (!_isGate && {_name find "barrier" >= 0}) then {
+                    if (!_isGate && {_name find "barrier" >= 0
+                        || {_object isKindOf "Wall"} || {_object isKindOf "Fence"}}) then {
                         private _sourceConfig=configOf _object >> "AnimationSources";
                         for "_index" from 1 to 8 do {
                             if ([format ["Door_%1_sound_source",_index],format ["Gate_%1_sound_source",_index],
