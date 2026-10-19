@@ -434,7 +434,8 @@
         "runContact.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexSearchMoveOwned.sqf"
+        "addons/infantry/functions/cortexSearchMoveOwned.sqf",
+        "addons/infantry/functions/cortexSearchHoldRelease.sqf"
       ]
     },
     {

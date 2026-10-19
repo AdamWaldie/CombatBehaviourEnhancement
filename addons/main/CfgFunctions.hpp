@@ -315,6 +315,7 @@ class CfgFunctions {
             class CortexReleaseGroup {file = "\z\cbe\addons\infantry\functions\cortexReleaseGroup.sqf";};
             class CortexHolderRecallOwned {file = "\z\cbe\addons\infantry\functions\cortexHolderRecallOwned.sqf";};
             class CortexHolderRecallPending {file = "\z\cbe\addons\infantry\functions\cortexHolderRecallPending.sqf";};
+            class CortexSearchHoldRelease {file = "\z\cbe\addons\infantry\functions\cortexSearchHoldRelease.sqf";};
             class CortexSearchMoveOwned {file = "\z\cbe\addons\infantry\functions\cortexSearchMoveOwned.sqf";};
             class CortexRestoreCalm {file = "\z\cbe\addons\infantry\functions\cortexRestoreCalm.sqf";};
             class CortexRetreat {file = "\z\cbe\addons\infantry\functions\cortexRetreat.sqf";};
