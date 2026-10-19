@@ -1,0 +1,12 @@
+{
+  "finding": "Internal dead-driver replacement waited for native Eject to produce vacancy. A retained corpse could exhaust that episode before the candidate tried the native internal seat-swap mechanism. This is a possible execution limitation, not proof Eject fails on all corpses.",
+  "implementation": "Record original Eject issue time once. Vacancy permits native MoveToDriver immediately; after2s the same local simulated visible dead AI occupant permits one native internal attempt. Existing current journal/candidate/order/route/assignment/motion/seat-lock/incoming-driver checks remain. Phase SWITCHING prevents reissue and original25s deadline remains. Actual driver occupancy, not the action call, confirms completion. No moveIn/setPos/deleteVehicle/physics operation or new worker.",
+  "reference": "https://community.bistudio.com/wiki/Arma_3%3A_Actions",
+  "source_comparison": "HBQ driveAssist CrewBack returns separated assigned crew to original seats and has a forced-seating fallback. CBE internal driver replacement has a different purpose. Existing hbq-route-crew-proximity-20261017.json already retains external native crew-return/immobility handback as open; do not claim new discovery or full parity.",
+  "source_sha256": "d375dc0104d7526c35ffeba33282293377b5d4d06065bcfc9c709edefd9fdc82",
+  "validation": "Full .qa/cbe-dead-driver-native-seat-build.log and independent verify passed; fingerprint5f98bd36c7b5e2557d224055131298a715b15e3bd4ea2e3d69c1bee2cdd1492e, manifest64070381+dirtydevelopment. Existing tests extended, no test cases added.",
+  "physical_acceptance": false,
+  "audits": "PAUSED",
+  "scores_changed": false,
+  "remaining": "Actual native corpse swap/seating, interrupted seat transition, HC ownership and performance unverified. Separated crew return and native queue execution remain missing."
+}

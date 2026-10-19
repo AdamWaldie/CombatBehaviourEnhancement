@@ -1643,7 +1643,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingCrewStep.sqf",
-              "sha256": "538795a538f03e3029396177202a554a08516a4ce3a10bca1d13bf067f8406bc"
+              "sha256": "d375dc0104d7526c35ffeba33282293377b5d4d06065bcfc9c709edefd9fdc82"
             },
             {
               "path": "addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf",

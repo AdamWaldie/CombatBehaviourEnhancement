@@ -26,7 +26,14 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertEqual(s.count('call _commandsOwned'),2)
         self.assertIn('_phase="VACATING_ISSUED"',s)
         self.assertIn('if (_phase in ["READY","VACATING"]) then {',s)
-        self.assertIn('call _commandsOwned} && {isNull driver _vehicle}',s)
+        self.assertIn('call _commandsOwned} && {call _vacatedOrDead}',s)
+        seat=s.split('private _vacatedOrDead={',1)[1].split('if (_phase in',1)[0]
+        for proof in ('if (isNull _occupant) exitWith {true}','_phase == "VACATING"',
+                      '_occupant isEqualTo (_work get "driver")','!alive _occupant',
+                      'local _occupant','!isPlayer _occupant','finite _issued','serverTime >= _issued+2'):
+            self.assertIn(proof,seat)
+        self.assertLess(s.index('_driver action ["Eject"'),s.index('_work set ["vacateIssuedAt",serverTime]'))
+        self.assertEqual(s.count('_work set ["vacateIssuedAt",serverTime]'),1)
         self.assertIn('_work set ["phase","SWITCHING"]',s)
         for command in ('moveInDriver','moveOut','setPos','setVelocity','setHitPointDamage','allowDamage','enableAI','doMove','setDriveOnPath','spawn','sleep'):
             self.assertNotIn(command,s)

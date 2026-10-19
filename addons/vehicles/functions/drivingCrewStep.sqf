@@ -1,7 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Executes one finite native internal-seat replacement for an ordinary leader vehicle.
- * A dead driver receives one native Eject action; only a confirmed vacant seat permits MoveToDriver.
+ * A dead driver receives one native Eject action. A vacant seat permits MoveToDriver; after
+ * two seconds the same dead AI occupant also permits one native internal seat-swap attempt.
+ * This is not forced seating or successful recovery: only actual driver occupancy confirms it.
  * Seat actions require finite total linear speed below1km/h and angular speed below0.01rad/s.
  * Read-only SWITCHING completion may observe a moving new driver; all other admission guards remain.
  * Living incapacitated drivers are never displaced. New candidate priority is eligible cargo,
@@ -223,14 +225,27 @@ if (_phase == "READY" && {!isNull _driver}) then {
         if ([true] call _available && {call _commandsOwned} && {driver _vehicle == _driver} && {!alive _driver}
             && {local _driver} && {!isPlayer _driver} && {simulationEnabled _driver} && {!isObjectHidden _driver}) then {
             _driver action ["Eject",_vehicle];
+            _work set ["vacateIssuedAt",serverTime];
             _work set ["phase","VACATING"];_changed=true;_phase="VACATING_ISSUED";
             call _publish;
         };
     };
 };
+// Native Eject may leave a corpse occupying the seat. The engine also supports an
+// internal MoveToDriver swap; try it once without moving/deleting the body ourselves.
+private _vacatedOrDead={
+    private _occupant=driver _vehicle;
+    if (isNull _occupant) exitWith {true};
+    private _issued=_work getOrDefault ["vacateIssuedAt",-1];
+    _phase == "VACATING" && {_occupant isEqualTo (_work get "driver")}
+        && {!alive _occupant} && {local _occupant} && {!isPlayer _occupant}
+        && {simulationEnabled _occupant} && {!isObjectHidden _occupant}
+        && {_issued isEqualType 0} && {finite _issued} && {_issued >= 0}
+        && {serverTime >= _issued+2}
+};
 if (_phase in ["READY","VACATING"]) then {
     isNil {
-        if ([true] call _available && {call _commandsOwned} && {isNull driver _vehicle}) then {
+        if ([true] call _available && {call _commandsOwned} && {call _vacatedOrDead}) then {
             _candidate action ["MoveToDriver",_vehicle];
             _work set ["nativeCommand",currentCommand _candidate];
             _work set ["leaderNativeCommand",currentCommand leader _group];
