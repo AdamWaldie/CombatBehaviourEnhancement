@@ -2663,6 +2663,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_Cortex_GarrisonCandidates',order)
         self.assertIn('CBE_Cortex_GarrisonCandidates',release)
         self.assertIn('_reassignments < 2',apply)
+        self.assertIn('private _retiredPosts=createHashMap',apply)
+        self.assertEqual(apply.count('_retiredPosts set [str (_assignment select [0,4]),true]'),2)
+        self.assertIn('&& {!(str (_x select [0,4]) in _retiredPosts)}',apply)
+        retire=apply.split('// Exhaustion is episode-local',1)[1].split('_group setVariable ["CBE_Cortex_GarrisonPending"',1)[0]
+        for proof in ('CBE_AIPass_GarrisonGeneration','CortexExternalTakeover','count _pool <= 512',
+                      'in _retiredPosts','setVariable ["CBE_Cortex_GarrisonCandidates",_remaining,true]'):
+            self.assertIn(proof,retire)
+        for forbidden in ('doMove','disableAI','forceSpeed','GarrisonDeadline'):
+            self.assertNotIn(forbidden,retire)
+
         self.assertIn('_x setVariable ["CBE_AIPass_GarrisonPos",_replacement,true]',apply)
         self.assertIn('!(_key in _attempted)',apply)
         self.assertIn('for "_index" from 0 to 31 do',apply)

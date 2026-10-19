@@ -12,6 +12,8 @@
  * Exterior arrival requires a 2 m/0.75 m supported exterior pose with an actual observation ray.
  * Other actors retain their native approach. Only validated physical arrival locks PATH; a fixed safety deadline records
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
+ * Exhausted interior posts leave this order refill/reassignment pool in one bounded batch;
+ * a new explicit order rebuilds candidates. This is not a permanent accessibility verdict.
  * Arrival and failure release only an unchanged CBE approach speed cap; newer speed commands survive.
  * Saved and applied speed values are published with the actor so owner adoption preserves restoration.
  * Approach stance also has a public applied-value lease for unchanged-stance restoration on release.
@@ -311,6 +313,7 @@ private _buildingAnchor = {
         [_group,false] call CBE_fnc_CortexGarrisonRelease;
         -1
     };
+    private _retiredPosts=createHashMap;
     private _assignmentValid=_job get "assignmentValid";
     private _assignmentArrived=_job get "assignmentArrived";
     private _invalidActors=(units _group) select {
@@ -493,6 +496,9 @@ private _buildingAnchor = {
                         _x forceSpeed (_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
                     };
                     _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
+                    if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
+                        _retiredPosts set [str (_assignment select [0,4]),true];
+                    };
                     diag_log format ["[CBE] Garrison arrival failed unit=%1 remaining=%2",_x,_x distance (_assignment select 0)];
                 } else {
                     _pending = _pending + 1;
@@ -550,7 +556,8 @@ private _buildingAnchor = {
                                     };
                                     private _alternatives=(_group getVariable ["CBE_Cortex_GarrisonCandidates",[]]) select {
                                         private _key=str (_x select 0);
-                                        !(_key in _attempted) && {!(_key in _occupied)} && {[_x] call _assignmentValid}
+                                        !(_key in _attempted) && {!(_key in _occupied)}
+                                            && {!(str (_x select [0,4]) in _retiredPosts)} && {[_x] call _assignmentValid}
                                             && {(_x param [4,"INTERIOR"]) == (_assignment param [4,"INTERIOR"])}
                                     };
                                     if (_reassignments < 2 && {_alternatives isNotEqualTo []} && {[_x] call _mayIssueMovement}) then {
@@ -578,6 +585,9 @@ private _buildingAnchor = {
                         _x forceSpeed (_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
                     };
                     _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
+                    if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
+                        _retiredPosts set [str (_assignment select [0,4]),true];
+                    };
                                         diag_log format ["[CBE] Garrison arrival failed unit=%1 attempted=%2 remaining=%3",_x,count _attempted,_x distance (_assignment select 0)];
                                     };
                                     };
@@ -591,6 +601,25 @@ private _buildingAnchor = {
             };
         };
     } forEach units _group;
+    // Exhaustion is episode-local, not proof that a model point is universally
+    // inaccessible. Remove it from this order's refill/reassignment pool once,
+    // so a later casualty cannot offer the same failed slot to another actor.
+    // Admission already bounds this pool to512; do no per-actor pool rewriting.
+    if (count _retiredPosts > 0) then {
+        isNil {
+            if (local _group && {(_group getVariable ["CBE_AIPass_GarrisonGeneration",-1]) == (_job get "generation")}
+                && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []}
+                && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
+                private _pool=_group getVariable ["CBE_Cortex_GarrisonCandidates",[]];
+                if (_pool isEqualType [] && {count _pool <= 512}) then {
+                    private _remaining=_pool select {!(str (_x select [0,4]) in _retiredPosts)};
+                    if (_remaining isNotEqualTo _pool) then {
+                        _group setVariable ["CBE_Cortex_GarrisonCandidates",_remaining,true];
+                    };
+                };
+            };
+        };
+    };
     _group setVariable ["CBE_Cortex_GarrisonPending",_pending,true];
     if (_pending == 0) then {
         private _assigned=(units _group) select {

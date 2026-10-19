@@ -2462,7 +2462,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
-              "sha256": "4805548a567e33523750566505180d1c1c4093c7afa932af4ba02acd60b60967"
+              "sha256": "9e4be2be8650b6f7600e8c99382ec3868b4764fd2ac6bde2e7d7b42787a0647b"
             },
             {
               "path": "addons/infantry/functions/cortexGarrisonArrived.sqf",
