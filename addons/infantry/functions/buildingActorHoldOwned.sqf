@@ -7,7 +7,7 @@
  * Arguments: 0 actor <OBJECT, objNull>; 1 clearance job <HASHMAP, empty>.
  * Return: BOOL - current STOP at a recorded same-floor hold, never general movement permission.
  * Cost: At most four recorded positions, one current pose, no geometry query/timer/worker.
- * Current callers: BuildingOperationStep and CortexClearRelease.
+ * Current callers: BuildingOperationStep, CortexClearRelease, GroupBrainStep and CortexReleaseGroup.
  * Example: private _held=[soldier1,_job] call CBE_fnc_BuildingActorHoldOwned;
  */
 params [["_actor",objNull,[objNull]],["_job",createHashMap,[createHashMap]]];

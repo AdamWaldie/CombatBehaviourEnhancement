@@ -156,10 +156,16 @@ private _passVehicles=[];
 // Adopt the public hold receipt into this owner's generation without replaying movement.
 private _settingsGenerationBeforeAdopt=_group getVariable ["CBE_AIPass_ClearGeneration",0];
 private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
-if (count _clearHold == 4) then {
+if (count _clearHold == 5) then {
     private _actors=_clearHold select 3;
     private _canAdopt=_actors isEqualType [] && {count _actors <= 16}
         && {(_clearHold select 0) isEqualType 0}
+        && {(_clearHold select 4) isEqualType []} && {count (_clearHold select 4) <= 16}
+        && {(_clearHold select 4) findIf {
+            !(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}
+                || {!((_x select 1) isEqualType [])} || {count (_x select 1) != 3}
+                || {(_x select 1) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+        } < 0}
         && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
         && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)};
@@ -170,6 +176,7 @@ if (count _clearHold == 4) then {
         _adoptedHold set [0,_holdGeneration];
         _adoptedHold set [1,_group getVariable ["CBE_AIPass_Epoch",0]];
         _adoptedHold set [3,_actors select {group _x == _group}];
+        _adoptedHold set [4,(_clearHold select 4) select {(_x select 0) in ((_adoptedHold select 3) apply {netId _x})}];
         _group setVariable ["CBE_Cortex_ClearHold",_adoptedHold,true];
     } else {
         _group setVariable ["CBE_Cortex_ClearHold",nil,true];

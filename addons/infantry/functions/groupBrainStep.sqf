@@ -129,7 +129,7 @@ if (_clearSettings isEqualType [] && {count _clearSettings == 4}) then {
 // A native STOP survives a new waypoint. Release only our matching post-clear hold
 // when its author order changes, before ordinary tactical processing resumes.
 private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
-if (count _clearHold == 4) then {
+if (count _clearHold == 5) then {
     private _owned=(_clearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])
         && {(_clearHold select 1) == _epoch};
     // Another operation owns the decision window. Retain our exact hold metadata until
@@ -140,9 +140,11 @@ if (count _clearHold == 4) then {
         if (_owned && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
             private _leader=leader _group;
             private _deferred=[];
+            private _holdJob=createHashMapFromArray [["group",_group],["nativeHoldPositions",createHashMapFromArray (_clearHold select 4)]];
+
             {
                 if (local _x && {group _x == _group} && {!isPlayer _x}
-                    && {currentCommand _x == "STOP"} && {isNull remoteControlled _x}
+                    && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned} && {isNull remoteControlled _x}
                     && {[_x] call CBE_fnc_CortexCombatEffective}
                     && {isNull objectParent _x} && {simulationEnabled _x} && {!isObjectHidden _x}
                     && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
@@ -158,7 +160,7 @@ if (count _clearHold == 4) then {
                 // STOP retains proof across temporary unavailability, not just reservations.
                 // The normal group callback retries; no extra observer or movement replay is added.
                 if (local _x && {group _x == _group} && {alive _x} && {!isPlayer _x}
-                    && {isNull objectParent _x} && {currentCommand _x == "STOP"}
+                    && {isNull objectParent _x} && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
                     && {isNull remoteControlled _x}
                     && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                     && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}
@@ -170,7 +172,7 @@ if (count _clearHold == 4) then {
                 };
             } forEach (_clearHold select 3);
             if (_deferred isNotEqualTo []) then {
-                _group setVariable ["CBE_Cortex_ClearHold",[_clearHold select 0,_clearHold select 1,_clearHold select 2,_deferred],true];
+                _group setVariable ["CBE_Cortex_ClearHold",[_clearHold select 0,_clearHold select 1,_clearHold select 2,_deferred,(_clearHold select 4) select {(_x select 0) in (_deferred apply {netId _x})}],true];
             };
         };
     };

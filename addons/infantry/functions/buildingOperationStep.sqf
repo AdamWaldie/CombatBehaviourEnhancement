@@ -439,6 +439,7 @@ private _delay=call {
         if (_reason != "COMPLETE") then {_result="CANCELLED"};
         private _handbacks=[];
         private _settled=[];
+        private _settledPosts=[];
         // One bounded terminal snapshot preserves the route which actually failed before cleanup
         // clears actors' destinations. No geometry query or recurring trace is added to the hot path.
         private _routeActors=(_job getOrDefault ["team",[]])+(_job getOrDefault ["securityActors",[]]);
@@ -499,6 +500,7 @@ private _delay=call {
                                 // A later native/Zeus order replaces this one-shot hold; no loop rewrites it.
                                 doStop _x;
                                 _settled pushBackUnique _x;
+                                _settledPosts pushBack [netId _x,getPosATL _x];
                             } else {
                                 _x setVariable ["CBE_Cortex_ClearRecall",[_job get "generation",_group getVariable ["CBE_AIPass_Epoch",0],_leader,time+5]];
                                 _x doFollow _leader;
@@ -534,7 +536,7 @@ private _delay=call {
         if (_reason == "COMPLETE" && {_restore} && {_settled isNotEqualTo []}) then {
             // Record only actors this finish actually stopped. A diverted or service actor
             // must never inherit a later formation recall from a hold it did not receive.
-            _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_group getVariable ["CBE_AIPass_Epoch",0],[_group] call CBE_fnc_NativeOrderReceipt,+_settled],true];
+            _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_group getVariable ["CBE_AIPass_Epoch",0],[_group] call CBE_fnc_NativeOrderReceipt,+_settled,+_settledPosts],true];
         };
             };
             };
@@ -637,7 +639,7 @@ private _delay=call {
                 } forEach _settled;
                 private _remaining=_settled-_continued;
                 if (_remaining isEqualTo []) then {_group setVariable ["CBE_Cortex_ClearHold",nil,true]} else {
-                    _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_brain get "ownerEpoch",[_group] call CBE_fnc_NativeOrderReceipt,_remaining],true];
+                    _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_brain get "ownerEpoch",[_group] call CBE_fnc_NativeOrderReceipt,_remaining,_settledPosts select {(_x select 0) in (_remaining apply {netId _x})}],true];
                 };
             };
             };

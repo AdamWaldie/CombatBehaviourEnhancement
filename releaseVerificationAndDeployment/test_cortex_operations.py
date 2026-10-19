@@ -9668,6 +9668,8 @@ class CortexOperations(unittest.TestCase):
         for guard in ['CBE_AIPass_ClearGeneration','(_clearHold select 1) == _epoch','CBE_fnc_NativeOrderReceipt','currentCommand _x == "STOP"','CBE_fnc_CortexExternalTakeover','CBE_fnc_CompatibilityExternalControl','CBE_fnc_CortexActorMoveReserved','count (_group getVariable ["CBE_Operation",createHashMap]) == 0']:
             self.assertIn(guard,branch)
         self.assertLess(branch.index('CBE_Cortex_ClearHold",nil'),branch.index('_x doFollow _leader'))
+        self.assertIn('[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned',branch)
+        self.assertIn('createHashMapFromArray (_clearHold select 4)',branch)
     def test_post_clear_hold_defers_temporary_motion_loss_without_stale_recall(self):
         branch=source('groupBrainStep').split('private _clearHold=',1)[1].split('private _legacyJob=',1)[0]
         issue=branch.split('// A newer individual order retires',1)[0]
@@ -9707,7 +9709,7 @@ class CortexOperations(unittest.TestCase):
     def test_completed_clear_hold_adoption_changes_receipt_without_replaying_movement(self):
         text=source('cortexLocality')
         branch=text.split('private _clearHold=',1)[1].split('// Retire inherited simple driving',1)[0]
-        for guard in ['count _actors <= 16','CBE_Operation','CBE_AIPass_ClearOrder','CBE_fnc_CortexExternalTakeover','_adoptedHold set [1','group _x == _group']:
+        for guard in ['count _actors <= 16','CBE_Operation','CBE_AIPass_ClearOrder','CBE_fnc_CortexExternalTakeover','_adoptedHold set [1','group _x == _group','_adoptedHold set [4']:
             self.assertIn(guard,branch)
         self.assertNotIn('doMove',branch)
         self.assertNotIn('doStop',branch)

@@ -911,7 +911,7 @@ if (count _holderOperation > 0
 // A replacement operation also defers this old hold handback; exclude those actors
 // from unrelated drill reunion until GroupBrainStep can release them deliberately.
 private _holderClearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
-if (count _holderClearHold == 4
+if (count _holderClearHold == 5
     && {(_holderClearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
     && {(_holderClearHold select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
     && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_holderClearHold select 2)

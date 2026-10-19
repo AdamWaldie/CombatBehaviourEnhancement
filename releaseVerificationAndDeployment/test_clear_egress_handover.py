@@ -15,7 +15,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
         self.assertNotIn('egressDiverted',loop)
         hold = finish.split('if (_reason == "COMPLETE" && {_restore}',1)[1]
         self.assertIn('_settled isNotEqualTo []',hold)
-        self.assertIn('CBE_fnc_NativeOrderReceipt,+_settled]',hold)
+        self.assertIn('CBE_fnc_NativeOrderReceipt,+_settled,+_settledPosts]',hold)
         self.assertIn('CBE_Cortex_ClearEarlyExits",nil,true',finish)
         release = (ROOT / 'addons/infantry/functions/cortexClearRelease.sqf').read_text(encoding='utf-8')
         self.assertIn('CBE_Cortex_ClearEarlyExits",nil,true',release)
