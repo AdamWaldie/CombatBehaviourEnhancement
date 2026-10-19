@@ -4,6 +4,8 @@
  * Locality/authority: Existing ordinary-driving callback, actual group/vehicle/crew owner only.
  * OBSERVE requests zero cap; APPLIED journals that the existing writer actually holds its cap.
  * READY requires the exact applied token/brain plus sampled linear/angular stillness for1s.
+ * One retry after2s tolerates stale server motion replication; the existing callback services it.
+ * Both reports retain the original expiry and all owner/cap/stillness checks.
  * No native movement/speed commands, reverse leg, worker or ownership transfer occur here.
  * Repeat/JIP: Private exact consent/commit and original expiry only. Duplicate application does
  * not reset dwell. Changed order/context/locality or expired consent grants no hold/replay.
@@ -43,7 +45,9 @@ if (_mode == "APPLIED") exitWith {
     if ((_consent getOrDefault ["holdApplied",[]]) isNotEqualTo _applied) then {
         private _updated=createHashMapFromArray (keys _consent apply {[_x,_consent get _x]});
         _updated set ["holdApplied",_applied];_updated set ["holdStillSince",-1];
-        _updated set ["holdReadySent",false];_vehicle setVariable ["CBE_DrivingQueue_Consent",_updated];
+        _updated set ["holdReadySent",false];
+        _updated set ["holdReadyReports",0];_updated set ["holdReadyReportedAt",-1];
+        _vehicle setVariable ["CBE_DrivingQueue_Consent",_updated];
     };
     true
 };
@@ -68,8 +72,13 @@ private _updated=createHashMapFromArray (keys _consent apply {[_x,_consent get _
 private _reportReady=false;
 if (_settled) then {
     if (_since < 0) then {_since=serverTime;_updated set ["holdStillSince",_since]};
-    if (!_ready && {serverTime-_since >= 1}) then {
+    private _reports=_consent getOrDefault ["holdReadyReports",[0,1] select _ready];
+    private _reportedAt=_consent getOrDefault ["holdReadyReportedAt",_since+1];
+    if (serverTime-_since >= 1 && {_reports < 2}
+        && {!_ready || {serverTime-_reportedAt >= 2}}) then {
         _updated set ["holdReadySent",true];
+        _updated set ["holdReadyReports",_reports+1];
+        _updated set ["holdReadyReportedAt",serverTime];
         _reportReady=true;
     };
 } else {_updated set ["holdStillSince",-1]};

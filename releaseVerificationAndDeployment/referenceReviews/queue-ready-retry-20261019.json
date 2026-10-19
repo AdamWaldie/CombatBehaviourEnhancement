@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-19",
+  "scope": "Queue hold READY replication delay",
+  "finding": "Owner records its one-shot READY send before delivery. Server independently rejects when its reporting-vehicle motion sample is not settled. A transient stale server sample could therefore leave an otherwise held episode without another readiness report. This is a call-path finding, not an observed network failure.",
+  "change": "At most two READY reports per exact applied hold, at least two seconds apart. Existing ordinary driving callback services retry. Both require original expiry, actual owner/current brain, canonical stationary proposal context, owned zero cap and continuing sampled stillness. Movement after first READY still releases. Publish count/time before RPC; duplicate server reports already coalesce by vehicle.",
+  "limits": "No ACK or guaranteed delivery. Two rejected reports may leave readiness false until original expiry. No reverse grant, automatic initiation, timer, controller, deadline renewal or native command. Dependency reverse and moving-phase context remain unimplemented.",
+  "validation": {
+    "focusedTests": 9,
+    "focusedLog": ".qa/cbe-queue-ready-retry-focused.log",
+    "hemttLog": ".qa/cbe-queue-ready-retry-hemtt.log",
+    "newTestCases": 0,
+    "physical": "Unverified; audits paused. Full local regression passed; no physical queue acceptance.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-queue-ready-retry-build.log",
+    "independentLog": ".qa/cbe-queue-ready-retry-independent.log",
+    "packageFingerprint": "336d6ed62c15d972782e861b05ddf771110ce8aa36f5afd26c75e4e3a214bbe5",
+    "packageSource": "4b4553ea+dirty unsigned development"
+  },
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingQueueHold.sqf",
+      "sha256": "dbb26a8700279a2a5da59608b392ff4062f484e570a37bbc6a701d3e8027bf32"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+      "sha256": "f16e2fcb0c78f22395bed06eb3fffb27d59515cc7fc47c7b49a1e65ffed4ced0"
+    }
+  ]
+}

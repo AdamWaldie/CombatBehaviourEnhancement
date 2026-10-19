@@ -77,6 +77,12 @@ class QueueProposalTests(unittest.TestCase):
                       '_linear < 0.1','_angular < 0.01','CBE_fnc_DrivingQueueAgreementRelease'):
             self.assertIn(proof,body)
         self.assertNotIn('set ["expires",',body)
+        for proof in ('holdReadyReports','holdReadyReportedAt','_reports < 2',
+                      'serverTime-_reportedAt >= 2','_reports+1'):
+            self.assertIn(proof,body)
+        self.assertLess(body.index('if (!_settled && {_ready})'),body.index('private _reports='))
+        self.assertNotIn('CBA_fnc_waitAndExecute',body)
+
         self.assertLess(body.index('if (_updated isNotEqualTo _consent)'),body.index('if (_reportReady) then'))
         for command in ('forceSpeed','doMove','doStop','setDriveOnPath','sendSimpleCommand','spawn','sleep'):
             self.assertNotIn(command,body)
