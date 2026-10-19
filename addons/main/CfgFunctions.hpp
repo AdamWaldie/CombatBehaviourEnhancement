@@ -80,6 +80,7 @@ class CfgFunctions {
             class DrivingOwnerReceipt {file = "\z\cbe\addons\vehicles\functions\drivingOwnerReceipt.sqf";};
             class DrivingQueueContext {file = "\z\cbe\addons\vehicles\functions\drivingQueueContext.sqf";};
             class DrivingQueueCrossingVehicle {file = "\z\cbe\addons\vehicles\functions\drivingQueueCrossingVehicle.sqf";};
+            class DrivingHullInterval {file = "\z\cbe\addons\vehicles\functions\drivingHullInterval.sqf";};
             class DrivingQueueProposal {file = "\z\cbe\addons\vehicles\functions\drivingQueueProposal.sqf";};
             class DrivingPassContext {file = "\z\cbe\addons\vehicles\functions\drivingPassContext.sqf";};
             class DrivingPassGeometry {file = "\z\cbe\addons\vehicles\functions\drivingPassGeometry.sqf";};

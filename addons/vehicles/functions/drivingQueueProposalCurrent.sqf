@@ -10,6 +10,8 @@
  * The crossing holder has no reverse role; no crew or input is changed to manufacture capability.
  * Actual owners compare the original vehicle move/turn input too; unchanged crew
  * destinations alone cannot preserve consent after a new independent driving directive.
+ * Rear dependencies retain a nonnegative whole-hull gap of at most25m; centre distance
+ * cannot admit overlapping bodies or overlook long vehicles. At most four projections.
  * Arguments: 0 vehicles ARRAY [];1 roles ARRAY [];2 dependencies ARRAY [];3 context ARRAY [];4 localRows BOOL false.
  * Return: BOOL current proposal observation, never execution authority.
  * Current callers: DrivingQueueAgreementRequest/Server/Owner and DrivingQueueHold.
@@ -104,10 +106,14 @@ private _front=(getPosASL _first) vectorDiff (getPosASL _yield);
 if (_first distance2D _yield > 30 || {(_front vectorDotProduct _axis) <= 0}
     || {abs (_front vectorDotProduct _right) > 6} || {abs (_front select 2) > 2}
     || {(vectorDir _first) vectorDotProduct _axis > -(cos 25)}) exitWith {false};
+private _origin=getPosWorld _yield;
+private _spans=_vehicles apply {[_x,_origin,_axis] call CBE_fnc_DrivingHullInterval};
+if (_spans findIf {_x isEqualTo []} >= 0) exitWith {false};
 for "_i" from 2 to (_n-1) do {
+    private _gap=((_spans select (_i-1)) select 0)-((_spans select _i) select 1);
     private _delta=(getPosASL (_vehicles select _i)) vectorDiff (getPosASL (_vehicles select (_i-1)));
     private _rear=-(_delta vectorDotProduct _axis);
-    if (_rear <= 0 || {_rear > 25} || {abs (_delta vectorDotProduct _right) > 6}
+    if (_rear <= 0 || {_gap < 0} || {_gap > 25} || {abs (_delta vectorDotProduct _right) > 6}
         || {abs (_delta select 2) > 2} || {(vectorDir (_vehicles select _i)) vectorDotProduct _axis < cos 25}) exitWith {_valid=false};
 };
 _valid

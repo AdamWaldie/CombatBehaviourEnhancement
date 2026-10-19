@@ -822,7 +822,8 @@
         "addons/vehicles/functions/drivingDamageReceipt.sqf",
         "addons/vehicles/functions/moduleDrivingCorridorMission.sqf",
         "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
-        "addons/vehicles/functions/drivingOwnerReceipt.sqf"
+        "addons/vehicles/functions/drivingOwnerReceipt.sqf",
+        "addons/vehicles/functions/drivingHullInterval.sqf"
       ]
     },
     {

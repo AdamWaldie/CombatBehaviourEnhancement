@@ -12,6 +12,8 @@
  * velocity below0.01rad/s, not only forward-axis speed. Pivoting is not stationary.
  * This instantaneous observation is not a physically settled HOLD/READY receipt.
  * At most one120m dead-inclusive vehicle query/64 candidates; overflow/fifth chain member refuses.
+ * Rear adjacency uses padded whole-hull gaps, not centre distance. Candidate projections
+ * are cached once per bounded discovery; interpenetrating chain bodies refuse admission.
  * Arguments:0 initiator <OBJECT>,objNull;1 opposing limiting peer <OBJECT>,objNull;
  * 2 original episode deadline <NUMBER>,-1,serverTime. Caller supplies continuous jam dwell.
  * Return: HASHMAP status REFUSED/PROPOSAL,reason; proposal adds vehicles,roles,dependencies,
@@ -69,22 +71,30 @@ if ((_toward vectorDotProduct _axis) <= 0 || {abs (_toward vectorDotProduct _rig
 private _area=[getPosATL _peer,120,120,0,false,120];
 private _candidates=_area nearEntities [["LandVehicle"],false,false,false];
 if (count _candidates > 64) exitWith {["CHAIN_DISCOVERY_BUDGET"] call _fail};
+private _origin=getPosWorld _peer;
+private _candidateSpans=_candidates apply {[_x,[_x,_origin,_axis] call CBE_fnc_DrivingHullInterval]};
 private _vehicles=[_vehicle,_peer];private _roles=["HOLD_CROSSING","YIELD_ROOT"];
 private _dependencies=[-1,-1];private _previous=_peer;private _reason="";
 // Three bounded searches: up to two followers plus a mandatory over-budget tail check.
 for "_step" from 1 to 3 do {
     private _nearest=objNull;private _best=1e9;
+    private _previousSpan=[_previous,_origin,_axis] call CBE_fnc_DrivingHullInterval;
+    if (_previousSpan isEqualTo []) exitWith {_reason="REAR_HULL_UNAVAILABLE"};
     {
-        private _other=_x;
+        private _other=_x select 0;private _otherSpan=_x select 1;
         if (_other != _previous && {_other != _vehicle}) then {
             private _delta=(getPosASL _other) vectorDiff (getPosASL _previous);
             private _behind=-(_delta vectorDotProduct _axis);
-            if (_behind > 0 && {_behind <= 25} && {_behind < _best}
+            private _gap=if (_otherSpan isEqualTo []) then {-1e9} else {
+                (_previousSpan select 0)-(_otherSpan select 1)
+            };
+            if (_behind > 0 && {_gap <= 25} && {_gap < _best}
                 && {abs (_delta vectorDotProduct _right) <= 6}
-                && {abs (_delta select 2) <= 2}) then {_nearest=_other;_best=_behind};
+                && {abs (_delta select 2) <= 2}) then {_nearest=_other;_best=_gap};
         };
-    } forEach _candidates;
+    } forEach _candidateSpans;
     if (isNull _nearest) exitWith {};
+    if (_best < 0) exitWith {_reason="OVERLAPPING_OR_UNKNOWN_REAR_HULL"};
     if (_nearest in _vehicles) exitWith {_reason="DEPENDENCY_CYCLE"};
     if (count _vehicles >= 4) exitWith {_reason="CHAIN_PARTICIPANT_BUDGET"};
     if (!([_nearest] call _observedEligible)

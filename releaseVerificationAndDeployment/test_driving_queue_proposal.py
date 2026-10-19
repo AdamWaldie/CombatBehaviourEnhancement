@@ -41,6 +41,18 @@ class QueueProposalTests(unittest.TestCase):
         for command in ('setVariable','doMove','doStop','setDriveOnPath','forceSpeed',
                         'setPos','setVelocity','remoteExec','spawn','waitUntil'):
             self.assertNotIn(command,body)
+        current=(ROOT/'addons/vehicles/functions/drivingQueueProposalCurrent.sqf').read_text(encoding='utf-8')
+        self.assertIn('_gap <= 25',body)
+        self.assertIn('OVERLAPPING_OR_UNKNOWN_REAR_HULL',body)
+        self.assertIn('forEach _candidateSpans',body)
+        self.assertIn('_gap < 0',current)
+        self.assertIn('_gap > 25',current)
+        self.assertNotIn('_rear > 25',current)
+        # A long aligned pair can have 35m centre spacing but only 15m body clearance.
+        # Two overlapping 20m bodies can have distinct, correctly ordered centres.
+        for front,back,expected in (([-10,10],[-45,-25],15),([-10,10],[-25,-5],-5)):
+            self.assertEqual(front[0]-back[1],expected)
+
     def test_unconsumed_queue_consent_is_not_requested_by_ordinary_driving(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         self.assertNotIn('call CBE_fnc_DrivingQueueProposal',s)

@@ -62,25 +62,9 @@ if (isNull _peer) exitWith {["PEER_DELETED",true] call _finish};
 // Even the permitted heading difference changes longitudinal extent at the outer corners.
 private _heading=getDir _peer;private _axis=[sin _heading,cos _heading,0];
 private _origin=getPosWorld _peer;
-private _span={
-    params ["_object"];
-    private _box=boundingBoxReal _object;private _low=_box select 0;private _high=_box select 1;
-    // An affine box projection reaches each extremum by independently selecting
-    // the low/high end of every edge. This represents all eight corners with four
-    // native transforms, including tilt, scale and asymmetric model bounds.
-    private _corner=_object modelToWorldWorld _low;
-    private _cornerAlong=(_corner vectorDiff _origin) vectorDotProduct _axis;
-    private _minimum=_cornerAlong;private _maximum=_cornerAlong;
-    {
-        private _edge=(_object modelToWorldWorld _x) vectorDiff _corner;
-        private _along=_edge vectorDotProduct _axis;
-        _minimum=_minimum+(_along min 0);_maximum=_maximum+(_along max 0);
-    } forEach [[_high select 0,_low select 1,_low select 2],
-        [_low select 0,_high select 1,_low select 2],
-        [_low select 0,_low select 1,_high select 2]];
-    [_minimum-0.05,_maximum+0.05]
-};
-private _ownSpan=[_vehicle] call _span;private _peerSpan=[_peer] call _span;
+private _ownSpan=[_vehicle,_origin,_axis] call CBE_fnc_DrivingHullInterval;
+private _peerSpan=[_peer,_origin,_axis] call CBE_fnc_DrivingHullInterval;
+if (_ownSpan isEqualTo [] || {_peerSpan isEqualTo []}) exitWith {["HULL_UNAVAILABLE",true] call _finish};
 private _aligned=abs (((getDir _vehicle-getDir _peer+540) mod 360)-180) <= 25;
 private _ahead=_aligned && {(_ownSpan select 0) > (_peerSpan select 1)+6};
 private _behind=_aligned && {(_ownSpan select 1) < (_peerSpan select 0)-3};
