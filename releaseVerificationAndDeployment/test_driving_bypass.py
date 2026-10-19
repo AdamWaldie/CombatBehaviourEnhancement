@@ -17,8 +17,9 @@ class DrivingBypassTests(unittest.TestCase):
         plan=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
         self.assertEqual(plan.count('call CBE_fnc_DrivingBypassObstacleAvailable'),2)
         step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
-        self.assertEqual(step.count('call CBE_fnc_DrivingBypassObstacleAvailable'),3)
-        self.assertLess(step.rindex('call CBE_fnc_DrivingBypassObstacleAvailable'),step.index('_vehicle setDriveOnPath'))
+        self.assertEqual(step.count('call CBE_fnc_DrivingBypassObstacleAvailable'),1)
+        self.assertEqual(step.count('call _obstacleAvailable'),3)
+        self.assertLess(step.rindex('call _obstacleAvailable'),step.index('_vehicle setDriveOnPath'))
         following=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text(encoding='utf-8')
         self.assertNotIn('DrivingBypassObstacleAvailable',following)
 
@@ -111,7 +112,7 @@ class DrivingBypassTests(unittest.TestCase):
     def test_executor_has_one_path_write_finite_budget_and_actual_completion(self):
         s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
         self.assertEqual(s.count('setDriveOnPath'),1)
-        self.assertIn('["deadline",serverTime+90]',s)
+        self.assertIn('["deadline",if (_queue) then {_queueAgreement get "expires"} else {serverTime+90}]',s)
         self.assertIn('serverTime >= (_work get "deadline")',s)
         self.assertIn('_work set ["side",-1]',s)
         self.assertIn('for "_i" from 1 to 4',s)
@@ -147,6 +148,15 @@ class DrivingBypassTests(unittest.TestCase):
 
         step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
         release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        for proof in ('_queueAgreement getOrDefault ["crossingGranted",false]',
+                      '"queueCrossingBinding"','_queueAgreement get "expires"',
+                      '"QUEUE_PROPOSAL_CHANGED"','"QUEUE_PATH_BLOCKED"',
+                      '[true,0,"QUEUE_CROSSED_HOLD",false]',
+                      '[_vehicle,_asl,_radius,((_high select 2)-(_low select 2))] call CBE_fnc_DrivingPathGeometry'):
+            self.assertIn(proof,step)
+        for proof in ('_queueMayRetire','_queueMayResume','"QUEUE_COMPLETE"','crossingComplete',
+                      'call CBE_fnc_DrivingQueueAgreementRelease'):
+            self.assertIn(proof,release)
         self.assertIn('&& {call _nativePathFree}',step)
         self.assertIn('&& {_nativePathFree}',release)
         for body in (step,release):
@@ -421,7 +431,7 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
                       'getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work',
                       '(_work get "phase") == "PLAN"','serverTime < (_work get "deadline")',
                       'expectedDestination _operator','expectedDestination _driver',
-                      'call CBE_fnc_DrivingBypassObstacleAvailable',
+                      'call _obstacleAvailable',
                       'isEqualTo (_proposal select 4)','isEqualTo (_proposal select 5)'):
             self.assertLess(commit.index(check),commit.index('doStop _operator'))
         self.assertLess(write,commit.index('_work set ["phase","FOLLOW"]'))

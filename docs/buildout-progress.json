@@ -1579,7 +1579,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingBypassStep.sqf",
-              "sha256": "d82a11518b22180192ea18ae9fa9cebf0689510fba23126d00e68a96d71bbfcf"
+              "sha256": "9a07e35f6a8261878132f39e2f144d16beacf2c057dc77988135bc99ba905f0e"
             },
             {
               "path": "addons/vehicles/functions/drivingCorridorStep.sqf",
@@ -1662,7 +1662,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
-              "sha256": "717d300230e54951945a8442a33bc5e7cf4c944f34f16c0dff9057caaaceff71"
+              "sha256": "8e9a09bc708360e007b6089e21a06b35ae038850aa8f968aac5d1298c46fedb8"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",

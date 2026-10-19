@@ -28,6 +28,7 @@ private _heldIndices=_agreement getOrDefault ["heldIndices",[]];
 private _crossing=(_agreement getOrDefault ["motionStage",""]) == "CROSSING";
 private _crossBinding=_agreement getOrDefault ["crossingBinding",[]];
 private _crossPath=_agreement getOrDefault ["crossingPath",[]];
+private _crossPoses=_agreement getOrDefault ["crossingPoses",[]];
 private _rootWork=if (_vehicles isEqualType [] && {count _vehicles > 0} && {(_vehicles select 0) isEqualType objNull}) then {
     (_vehicles select 0) getVariable ["CBE_DrivingBypass_Work",createHashMap]
 } else {createHashMap};
@@ -50,6 +51,10 @@ if (_crossing && {_movingIndex != 0 || {!(_crossBinding isEqualType [])} || {cou
     || {(_crossBinding select [0,2]) isNotEqualTo [_token,_expires]}
     || {(_crossBinding select 2) isNotEqualTo (count _vehicles-2)}
     || {!((_crossBinding select 3) in [1,2])}
+    || {!(_crossPoses isEqualType [])} || {count _crossPoses != count _vehicles}
+    || {_crossPoses findIf {!(_x isEqualType []) || {count _x != 3}
+        || {_x findIf {!(_x isEqualType []) || {count _x != 3}
+            || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} >= 0}} >= 0}
     || {!(_crossPath isEqualType [])} || {count _crossPath < 2} || {count _crossPath > 24}
     || {_crossPath findIf {!(_x isEqualType []) || {count _x != 3}
         || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} >= 0}}) exitWith {false};
@@ -112,6 +117,13 @@ private _valid=true;private _localCount=0;
     if (abs ((vectorMagnitude (_before select 1))-1) > 0.01
         || {abs ((vectorMagnitude (_before select 2))-1) > 0.01}
         || {abs ((_before select 1) vectorDotProduct (_before select 2)) > 0.02}) exitWith {_valid=false};
+    if (_crossing && {_held}) then {
+        private _frozenPose=_crossPoses select _forEachIndex;
+        if ((_pose select 0) vectorDistance (_frozenPose select 0) > 0.25
+            || {(_pose select 1) vectorDotProduct (_frozenPose select 1) < cos 1}
+            || {(_pose select 2) vectorDotProduct (_frozenPose select 2) < cos 1}) exitWith {_valid=false};
+    };
+    if (!_valid) exitWith {};
     private _delta=(_pose select 0) vectorDiff (_before select 0);
     private _forward=_before select 1;private _up=_before select 2;
     private _right=_forward vectorCrossProduct _up;

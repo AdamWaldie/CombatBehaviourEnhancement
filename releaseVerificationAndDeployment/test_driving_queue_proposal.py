@@ -135,6 +135,8 @@ class QueueProposalTests(unittest.TestCase):
                       '(_rootWork getOrDefault ["deadline",-1]) == _expires',
                       '_cap > 8/3.6','_pathSegmentsValid'):
             self.assertIn(proof,motion)
+        self.assertIn('count _crossPoses != count _vehicles',motion)
+        self.assertIn('vectorDistance (_frozenPose select 0) > 0.25',motion)
         # A crossing is bound to a contiguous short-segment path, not just any
         # nearby future point. Root identity/route remains separate from own STOP.
         def segments_valid(points):

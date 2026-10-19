@@ -13,6 +13,9 @@
  * replacement episode survives. No geometry or world query runs in this section.
  * Repeat/JIP: Public episode retires once; bounded 32-entry object/route cooldown lasts 120 s.
  * PLAN owns no movement and cannot stop native actors. Local handles/code are never published.
+ * QUEUE cleanup cannot resume a route until an explicit matching completed handback;
+ * failed/expired owned paths stop only, then retire their exact original queue consent.
+ * A successor queue binding forbids native cleanup and survives metadata retirement.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
  * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact unchanged authored-route handback.
  * 4 stopOnly <BOOL, false> stops exact-owned work without route recall;
@@ -33,6 +36,14 @@ isNil {
         || {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isNotEqualTo _work}) exitWith {false};
     private _controller=_work getOrDefault ["controller",["ORDINARY",-1]];
     private _convoy=(_controller param [0,""]) == "CONVOY";
+    private _queue=(_controller param [0,""]) == "QUEUE";
+    private _queueBinding=_work getOrDefault ["queueCrossingBinding",[]];
+    private _queueConsent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+    private _queueMatches=_queue && {_queueBinding isEqualType []} && {count _queueBinding == 4}
+        && {(_queueConsent getOrDefault ["crossingBinding",[]]) isEqualTo _queueBinding};
+    private _queueMayRetire=!_queue || {count _queueConsent == 0 || {_queueMatches}};
+    private _queueMayResume=!_queue || {_queueMatches && {_reason == "QUEUE_COMPLETE"}
+        && {_queueConsent getOrDefault ["crossingComplete",false]}};
     if (_expectedRevision >= 0 && {(!_convoy) || {(_controller param [1,-2]) != _expectedRevision}}) exitWith {false};
     private _current=_group getVariable ["CBE_Convoy_Brain",createHashMap];
     private _currentConfiguration=_current getOrDefault ["configuration",[]];
@@ -49,7 +60,7 @@ isNil {
     private _pathInput=vehicleMoveInfo _vehicle;
     private _nativePathFree=!(toUpperANSI (_pathInput param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
         && {!(toUpperANSI (_pathInput param [1,""]) in ["LEFT","RIGHT"])};
-    private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly}}
+    private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly} || {_queue}} && {_queueMayRetire}
         && {!isNull _driver} && {!isNull _operator} && {local _driver} && {local _operator}
         && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
         && {group _driver == _group} && {group _operator == _group}
@@ -78,7 +89,7 @@ isNil {
         [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
         doStop _driver;if (_operator != _driver) then {doStop _operator};
         private _index=currentWaypoint _group;
-        if (_resume && {_index > 0} && {_index < count waypoints _group}
+        if (_resume && {_queueMayResume} && {_index > 0} && {_index < count waypoints _group}
             && {_convoy || {vehicle leader _group == _vehicle}}
             && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
             && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
@@ -98,6 +109,14 @@ isNil {
     _vehicle setVariable ["CBE_DrivingBypass_Cooldown",_cooldown,true];
     _vehicle setVariable ["CBE_DrivingBypass_Result",[_reason,serverTime,_work get "obstacle",_work get "index"],true];
     _vehicle setVariable ["CBE_DrivingBypass_Work",nil,true];
+    if (_queueMatches && {((_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["crossingBinding",[]]) isEqualTo _queueBinding}) then {
+        private _queueRows=_queueConsent getOrDefault ["context",[]];
+        if (count _queueRows > 0 && {count (_queueRows select 0) == 6}
+            && {count ((_queueRows select 0) select 2) == 11}) then {
+            private _rootActor=(_queueRows select 0) select 2;
+            [_vehicle,_group,_rootActor select 4,_rootActor select 5] call CBE_fnc_DrivingQueueAgreementRelease;
+        };
+    };
     _retired=true;
     false
 };
