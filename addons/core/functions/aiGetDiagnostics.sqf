@@ -27,7 +27,7 @@
 
 if !(isServer) exitWith {["ai", []] call CBE_fnc_AITweaksDiagnosticReport};
 private _groups = allGroups;
-private _enabled = missionNamespace getVariable ["CBE_AIRebalance_Enable", true];
+private _enabled = missionNamespace getVariable ["CBE_AIRebalance_Enable", false];
 private _hcOwners = (entities "HeadlessClient_F") apply {owner _x};
 private _hcGroups = _groups select {
     groupOwner _x in _hcOwners

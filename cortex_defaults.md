@@ -17,7 +17,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | Setting key | Default | Purpose / units |
 |---|---|---|
 | `CBE_AIPass_AmmoCapabilityOverrides` | `createHashMap` | MAP: magazine class to ["AT"] / ["AA"] / ["AT","AA"] role overrides. |
-| `CBE_AIRebalance_Enable` | `true` | BOOL: true applies CBE skill profiles to eligible AI. |
+| `CBE_AIRebalance_Enable` | `false` | BOOL: opt in to CBE skill profiles; mission skills are preserved by default. |
 | `CBE_AIRebalance_Profile` | `"LINE"` | STRING: MILITIA, LINE, VETERAN or ELITE. |
 | `CBE_AIRebalance_Mode` | `"AUTO"` | Ambient-darkness and NVG-aware; DAY disables the extra penalty; NIGHT retains legacy night tiers. |
 | `CBE_AI_ApplyMode` | `"BOTH"` | STRING: EXISTING, NEW or BOTH AI populations. |

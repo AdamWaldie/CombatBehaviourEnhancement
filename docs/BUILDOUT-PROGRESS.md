@@ -157,7 +157,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | --- | ---: | --- |
 | Profile precedence and tuning | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexProfile](../addons/core/functions/cortexProfile.sqf) |
 | Aggression selects eligible tactics | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexGroupTick](../addons/infantry/functions/cortexGroupTick.sqf); [cortexProfile](../addons/core/functions/cortexProfile.sqf) |
-| Independent skill/profile application | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf); [cortexProfile](../addons/core/functions/cortexProfile.sqf) |
+| Independent skill/profile application | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf); [cortexProfile](../addons/core/functions/cortexProfile.sqf); [aiProfileYield](../addons/core/functions/aiProfileYield.sqf) |
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
@@ -167,7 +167,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
-| Apply stable configured skill profile | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf) |
+| Apply stable configured skill profile | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf); [aiProfileYield](../addons/core/functions/aiProfileYield.sqf) |
 | Exclusions and owner-local refresh | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiRebalanceInit](../addons/core/functions/aiRebalanceInit.sqf) |
 | Restore captured skill values | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiRestoreProfile](../addons/core/functions/aiRestoreProfile.sqf); [aiRebalanceStop](../addons/core/functions/aiRebalanceStop.sqf) |
 
@@ -815,7 +815,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
 | Ambient/NVG/flashlight capability policy | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiLightingStep](../addons/core/functions/aiLightingStep.sqf) |
-| Stable skill refresh without compounding | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf); [aiRestoreProfile](../addons/core/functions/aiRestoreProfile.sqf) |
+| Stable skill refresh without compounding | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf); [aiRestoreProfile](../addons/core/functions/aiRestoreProfile.sqf); [aiProfileYield](../addons/core/functions/aiProfileYield.sqf) |
 | Shared scheduler and specialist exclusion | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiLightingStep](../addons/core/functions/aiLightingStep.sqf) |
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.

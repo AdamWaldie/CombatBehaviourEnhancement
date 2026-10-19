@@ -60,7 +60,7 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
     [_vehicle,local _vehicle] call CBE_fnc_DrivingRecoveryAdopt;
 },true,[],true] call CBA_fnc_addClassEventHandler;
 
-if (missionNamespace getVariable ["CBE_AIRebalance_Enable", true]) then {
+if (missionNamespace getVariable ["CBE_AIRebalance_Enable", false]) then {
     [
         missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"],
         missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"]

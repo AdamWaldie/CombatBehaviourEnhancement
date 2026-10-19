@@ -38,7 +38,7 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 
 | Variable | Label | Type | Default | Range / choices | Activation | Purpose |
 | --- | --- | --- | --- | --- | --- | --- |
-| `CBE_AIRebalance_Enable` | Apply CBE skill profiles | CHECKBOX | true | [] | LIVE | Master control for CBE skill adjustment. When enabled, the selected skill profile is applied by the machine that owns each AI unit. |
+| `CBE_AIRebalance_Enable` | Apply CBE skill profiles | CHECKBOX | false | [] | LIVE | Optional skill adjustment, off by default to preserve mission skills. Later skill or aim edits yield the unit to mission control until explicitly released. |
 | `CBE_AIRebalance_Mode` | Lighting | COMBO | "AUTO" | [["AUTO", "DAY", "NIGHT"], ["Automatic visibility", "Daylight override", "Low light (legacy)"]] | LIVE | Automatic follows ambient darkness and equipped night vision. Day disables the extra penalty; Low light retains the legacy night profile. |
 | `CBE_AIRebalance_Profile` | Selected CBE skill profile | COMBO | "LINE" | [["LEGACY", "MILITIA", "LINE", "VETERAN", "ELITE"], ["LEGACY", "MILITIA", "LINE", "VETERAN", "ELITE"]] | LIVE | Skill values used when Apply CBE skill profiles is enabled. This is independent of the tactical behaviour profile. |
 

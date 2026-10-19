@@ -123,6 +123,7 @@ class CfgFunctions {
                 file = "\z\cbe\addons\core\functions\aiApplyProfile.sqf";
             };
             class AIRestoreProfile {file = "\z\cbe\addons\core\functions\aiRestoreProfile.sqf";};
+            class AIProfileYield {file = "\z\cbe\addons\core\functions\aiProfileYield.sqf";};
             class AIRebalanceStop {
                 file = "\z\cbe\addons\core\functions\aiRebalanceStop.sqf";
             };

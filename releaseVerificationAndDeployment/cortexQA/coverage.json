@@ -200,7 +200,7 @@
       "id": "SKILL",
       "title": "AI skill rebalance",
       "setup": "Spawn eligible and filtered units before/after enabling; sample actual subskills, day/night variants and restoration.",
-      "expected": "Expected units receive configured skills once, variance remains stable, excluded/player units retain their values and stop restores captured values.",
+      "expected": "Skill profiles are opt-in; default startup preserves mission skills. Explicit profiles use original baselines without multiplier accumulation. Later native skill/aim edits or declared skill ownership yield the optional profile while preserving changed values, including through transfer/restart. Excluded/player units retain values and stop restores only unchanged owned settings.",
       "settings": [
         "CBE_AIRebalance_Enable",
         "CBE_AIRebalance_Profile",
@@ -228,7 +228,8 @@
         "addons/core/functions/aiRestoreProfile.sqf",
         "addons/core/functions/aiRebalanceInit.sqf",
         "addons/core/functions/aiRebalanceStop.sqf",
-        "addons/core/functions/AISkillAdjustmentSystem.sqf"
+        "addons/core/functions/AISkillAdjustmentSystem.sqf",
+        "addons/core/functions/aiProfileYield.sqf"
       ]
     },
     {

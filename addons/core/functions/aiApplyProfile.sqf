@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
- * Applies the active base, night-sensor, faction, role and vehicle-crew skill layers to one local AI unit.
+ * Applies explicitly enabled base, night-sensor, faction, role and vehicle-crew skill layers.
+ * Mission ownership or an observed later skill/aim edit yields this entire optional layer.
+ * Each refresh is planned from the immutable baseline; partial profiles cannot compound modifiers.
  * Locality and authority: call where the AI unit is local; the unit Local handler reapplies after
  * ownership migration. Original skill values and the optional per-unit variance are captured once
  * and published on the unit so a headless-client handoff cannot recapture CBE-modified skills or
@@ -57,6 +59,8 @@ if (count _includedSides > 0 && {!(_unitSideKey in _includedSideKeys)}) exitWith
 if (count _includedFactions > 0 && {!(faction _unit in _includedFactions)}) exitWith {false};
 if (faction _unit in _excludedFactions || {typeOf _unit in _excludedClasses}) exitWith {false};
 
+if ([_unit] call CBE_fnc_AIProfileYield) exitWith {false};
+private _profileGeneration=missionNamespace getVariable ["CBE_AI_LightingGeneration",0];
 private _skillNames = ["aimingSpeed", "aimingAccuracy", "aimingShake", "spotTime", "spotDistance", "commanding", "general", "courage", "reloadSpeed"];
 if (isNil {_unit getVariable "CBE_AI_OriginalSkills"}) then {
     private _original = createHashMap;
@@ -75,15 +79,22 @@ if !(_unit getVariable ["CBE_AI_LocalHandlerInstalled", false]) then {
     }];
 };
 
+private _originalSkills=_unit getVariable ["CBE_AI_OriginalSkills",createHashMap];
+private _profileSkills=createHashMapFromArray (_skillNames apply {[_x,_originalSkills get _x]});
 private _applySkills = {
-    params ["_target", "_skills"];
-    {_target setSkill [_x, ((_skills get _x) max 0) min 1]} forEach keys _skills;
+    params ["_skills"];
+    if !(_skills isEqualType createHashMap) exitWith {};
+    // Fixed supported keys bound custom-profile work; only the final commit writes native skills.
+    {
+        private _value=_skills getOrDefault [_x,_profileSkills get _x];
+        if (_value isEqualType 0 && {finite _value}) then {_profileSkills set [_x,(_value max 0) min 1]};
+    } forEach _skillNames;
 };
 
 private _profiles = missionNamespace getVariable ["CBE_AI_Profiles", createHashMap];
 private _profileKey = missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"];
 private _mode = missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"];
-[_unit, _profiles getOrDefault [_profileKey, createHashMap]] call _applySkills;
+[_profiles getOrDefault [_profileKey, createHashMap]] call _applySkills;
 
 private _roleText = toUpperANSI (getText (configFile >> "CfgVehicles" >> typeOf _unit >> "textSingular"));
 private _role = [_roleText, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"] call BIS_fnc_filterString;
@@ -119,21 +130,21 @@ if (_profileKey == "LEGACY" && {_mode == "NIGHT"}) then {
             ["aimingAccuracy", 0.83], ["aimingShake", 0.36], ["reloadSpeed", 0.75]
         ]
     };
-    [_unit, _nightSkills] call _applySkills;
+    [_nightSkills] call _applySkills;
 
     private _legacyRoleSkills = switch (_role) do {
         case "MACHINEGUNNER": {createHashMapFromArray [["aimingSpeed", 0.82], ["aimingAccuracy", 0.82], ["aimingShake", 0.35], ["reloadSpeed", 0.8]]};
         case "SNIPER": {createHashMapFromArray [["aimingSpeed", 0.6], ["aimingAccuracy", 0.95], ["aimingShake", 0.1], ["reloadSpeed", 0.8]]};
         default {createHashMap};
     };
-    [_unit, _legacyRoleSkills] call _applySkills;
+    [_legacyRoleSkills] call _applySkills;
 };
 
 private _factionOverrides = missionNamespace getVariable ["CBE_AI_FactionOverrides", createHashMap];
-[_unit, _factionOverrides getOrDefault [faction _unit, createHashMap]] call _applySkills;
+[_factionOverrides getOrDefault [faction _unit, createHashMap]] call _applySkills;
 
 private _roleOverrides = missionNamespace getVariable ["CBE_AI_RoleOverrides", createHashMap];
-[_unit, _roleOverrides getOrDefault [_role, createHashMap]] call _applySkills;
+[_roleOverrides getOrDefault [_role, createHashMap]] call _applySkills;
 
 if (_mode in ["AUTO","NIGHT"] && {(getLighting select 1) <= (missionNamespace getVariable ["CBE_AI_DarknessThreshold", 5])}) then {
     if (_profileKey == "LEGACY") then {
@@ -142,8 +153,8 @@ if (_mode in ["AUTO","NIGHT"] && {(getLighting select 1) <= (missionNamespace ge
         } else {
             missionNamespace getVariable ["CBE_AI_NightSpotWithoutNVG", 0.12]
         };
-        _unit setSkill ["spotTime", _spot];
-        _unit setSkill ["spotDistance", _spot];
+        _profileSkills set ["spotTime", _spot];
+        _profileSkills set ["spotDistance", _spot];
     } else {
         // Night profiles degrade the AI itself. Assigned NVG/HMD equipment offsets, but does not
         // completely remove, the low-light penalty. Mission makers can replace either map.
@@ -161,8 +172,11 @@ if (_mode in ["AUTO","NIGHT"] && {(getLighting select 1) <= (missionNamespace ge
             ]]
         };
         {
-            _unit setSkill [_x, ((_unit skill _x) * (_multipliers getOrDefault [_x, 1])) max 0 min 1];
-        } forEach keys _multipliers;
+            private _factor=_multipliers getOrDefault [_x,1];
+            if (_factor isEqualType 0 && {finite _factor}) then {
+                _profileSkills set [_x, ((_profileSkills get _x) * _factor) max 0 min 1];
+            };
+        } forEach _skillNames;
     };
 };
 private _variance = ((missionNamespace getVariable ["CBE_AI_SkillVariance", 0]) max 0) min 0.25;
@@ -175,8 +189,8 @@ if (_variance > 0) then {
         _unit setVariable ["CBE_AI_SkillVarianceOffsets", _offsets, true];
     };
     {
-        private _current = _unit skill _x;
-        _unit setSkill [_x, ((_current + (_offsets select _forEachIndex)) max 0) min 1];
+        private _current = _profileSkills get _x;
+        _profileSkills set [_x, ((_current + (_offsets select _forEachIndex)) max 0) min 1];
     } forEach _skillNames;
 };
 // Skill profiles apply to every CAManBase AI, including crew. Add the vehicle layer after variance
@@ -193,42 +207,67 @@ private _precisionExcluded = [_unit] call CBE_fnc_CompatibilityPrecisionExcluded
 if (isNil {_unit getVariable "CBE_AI_OriginalAimCoef"}) then {
     _unit setVariable ["CBE_AI_OriginalAimCoef", getCustomAimCoef _unit, true];
 };
+private _profileAim=getCustomAimCoef _unit;
 if (_operatingCrew && {!_precisionExcluded}) then {
     private _crewMultiplier = ((missionNamespace getVariable ["CBE_AI_VehicleCrewAimMultiplier", 0.6]) max 0.25) min 1;
     {
-        _unit setSkill [_x, ((_unit skill _x) * _crewMultiplier) max 0 min 1];
+        _profileSkills set [_x, ((_profileSkills get _x) * _crewMultiplier) max 0 min 1];
     } forEach ["aimingAccuracy", "aimingShake", "aimingSpeed"];
     private _dispersionSetting=["CBE_AI_VehicleCrewDispersion","CBE_AI_AirCrewDispersion"] select (_vehicle isKindOf "Air");
     private _dispersionDefault=[3.5,4.25] select (_vehicle isKindOf "Air");
     private _dispersion = ((missionNamespace getVariable [_dispersionSetting, _dispersionDefault]) max 1) min 7;
     // Better profiles still matter: general skill trims up to 25 percent from the configured
     // coefficient while never making a crew more precise than the mission's original baseline.
-    private _profileFactor = 1 - (0.25 * (_unit skill "general"));
-    _unit setCustomAimCoef ((_dispersion * _profileFactor) max (_unit getVariable ["CBE_AI_OriginalAimCoef", 1]));
+    private _profileFactor = 1 - (0.25 * (_profileSkills get "general"));
+    _profileAim=(_dispersion * _profileFactor) max (_unit getVariable ["CBE_AI_OriginalAimCoef", 1]);
 } else {if (!_precisionExcluded) then {
     private _infantryDispersion=((missionNamespace getVariable ["CBE_AI_InfantryDispersion",1.35]) max 1) min 3;
-    _unit setCustomAimCoef ((_infantryDispersion * (1-(0.15*(_unit skill "general")))) max (_unit getVariable ["CBE_AI_OriginalAimCoef",1]));
+    _profileAim=(_infantryDispersion * (1-(0.15*(_profileSkills get "general")))) max (_unit getVariable ["CBE_AI_OriginalAimCoef",1]);
 } else {
     private _priorAppliedAim=_unit getVariable ["CBE_AI_AppliedAimCoef",-1];
     if (_priorAppliedAim >= 0 && {abs (getCustomAimCoef _unit-_priorAppliedAim) < 0.00001}) then {
-        _unit setCustomAimCoef (_unit getVariable ["CBE_AI_OriginalAimCoef", 1]);
+        _profileAim=_unit getVariable ["CBE_AI_OriginalAimCoef", 1];
     };
 }};
-private _appliedSkills=createHashMap;
-{_appliedSkills set [_x,_unit skill _x]} forEach _skillNames;
-if (_appliedSkills isNotEqualTo (_unit getVariable ["CBE_AI_AppliedSkills",createHashMap])) then {
-    _unit setVariable ["CBE_AI_AppliedSkills",_appliedSkills,true];
+private _profileCommitted=false;
+isNil {
+    if (!local _unit || {isPlayer _unit} || {!isNull remoteControlled _unit}
+        || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {!(missionNamespace getVariable ["CBE_AI_RebalanceActive",false])}
+        || {_unit getVariable ["CBE_AI_Exclude",false]}
+        || {_profileGeneration != (missionNamespace getVariable ["CBE_AI_LightingGeneration",0])}
+        || {_profileKey != (missionNamespace getVariable ["CBE_AIRebalance_Profile","LINE"])}
+        || {_mode != (missionNamespace getVariable ["CBE_AIRebalance_Mode","AUTO"])}
+        || {[_unit] call CBE_fnc_CortexExternalOwner != ""}
+        || {[_unit] call CBE_fnc_AIProfileYield}
+        || {!(_profileAim isEqualType 0)} || {!finite _profileAim} || {_profileAim < 0}
+        || {_skillNames findIf {
+            private _value=_profileSkills get _x;
+            !(_value isEqualType 0) || {!finite _value} || {_value < 0} || {_value > 1}
+        } >= 0}) exitWith {};
+    {
+        private _value=_profileSkills get _x;
+        if (abs ((_unit skill _x)-_value) >= 0.00001) then {_unit setSkill [_x,_value]};
+    } forEach _skillNames;
+    if (abs (getCustomAimCoef _unit-_profileAim) >= 0.00001) then {_unit setCustomAimCoef _profileAim};
+    private _appliedSkills=createHashMap;
+    {_appliedSkills set [_x,_unit skill _x]} forEach _skillNames;
+    if (_appliedSkills isNotEqualTo (_unit getVariable ["CBE_AI_AppliedSkills",createHashMap])) then {
+        _unit setVariable ["CBE_AI_AppliedSkills",_appliedSkills,true];
+    };
+    private _appliedAim=getCustomAimCoef _unit;
+    if (_precisionExcluded) then {
+        _unit setVariable ["CBE_AI_AppliedAimCoef",nil,true];
+    } else {if (_appliedAim != (_unit getVariable ["CBE_AI_AppliedAimCoef",-1])) then {
+        _unit setVariable ["CBE_AI_AppliedAimCoef",_appliedAim,true];
+    }};
+    _unit setVariable ["CBE_Cortex_LightingSignature", [
+        _mode, (getLighting select 1) <= (missionNamespace getVariable ["CBE_AI_DarknessThreshold",5]), hmd _unit,
+        netId _vehicle, _seatName, _precisionExcluded
+    ]];
+    _profileCommitted=true;
 };
-private _appliedAim=getCustomAimCoef _unit;
-if (_precisionExcluded) then {
-    _unit setVariable ["CBE_AI_AppliedAimCoef",nil,true];
-} else {if (_appliedAim != (_unit getVariable ["CBE_AI_AppliedAimCoef",-1])) then {
-    _unit setVariable ["CBE_AI_AppliedAimCoef",_appliedAim,true];
-}};
-_unit setVariable ["CBE_Cortex_LightingSignature", [
-    _mode, (getLighting select 1) <= (missionNamespace getVariable ["CBE_AI_DarknessThreshold",5]), hmd _unit,
-    netId _vehicle, _seatName, _precisionExcluded
-]];
+if (!_profileCommitted) exitWith {false};
 private _lightingUnits = missionNamespace getVariable ["CBE_Cortex_LightingUnits",[]];
 _lightingUnits pushBackUnique _unit;
 missionNamespace setVariable ["CBE_Cortex_LightingUnits",_lightingUnits];

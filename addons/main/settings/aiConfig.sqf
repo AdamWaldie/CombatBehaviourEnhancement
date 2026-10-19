@@ -265,7 +265,7 @@ createHashMapFromArray [
     ["shared", [
         ["CBE_AIPass_AmmoCapabilityOverrides", createHashMap], // MAP: magazine class to ["AT"] / ["AA"] / ["AT","AA"] role overrides.
         // MISSION MAKER: AI population, profile and filtering policy.
-        ["CBE_AIRebalance_Enable", true],          // BOOL: true applies CBE skill profiles to eligible AI.
+        ["CBE_AIRebalance_Enable", false],         // BOOL: opt in to CBE skill profiles; mission skills are preserved by default.
         ["CBE_AIRebalance_Profile", "LINE"],      // STRING: MILITIA, LINE, VETERAN or ELITE.
         ["CBE_AIRebalance_Mode", "AUTO"],          // STRING: AUTO ambient-darkness/NVG aware; DAY override; NIGHT legacy variant.
         ["CBE_AI_ApplyMode", "BOTH"],             // STRING: EXISTING, NEW or BOTH AI populations.

@@ -1792,10 +1792,11 @@ class CortexOperations(unittest.TestCase):
     def test_diagnostics_master_fallbacks_match_enabled_defaults(self):
         config=(ROOT/'addons/main/settings/aiConfig.sqf').read_text(encoding='utf-8')
         diagnostics=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text(encoding='utf-8')
-        for key in ['CBE_AIRebalance_Enable','CBE_AIPass_Enable']:
-            self.assertIn(f'["{key}", true]',config)
-            self.assertIn(f'missionNamespace getVariable ["{key}", true]',diagnostics)
-            self.assertNotIn(f'missionNamespace getVariable ["{key}", false]',diagnostics)
+        for key,default in [('CBE_AIRebalance_Enable','false'),('CBE_AIPass_Enable','true')]:
+            self.assertIn(f'["{key}", {default}]',config)
+            self.assertIn(f'missionNamespace getVariable ["{key}", {default}]',diagnostics)
+            opposite='false' if default == 'true' else 'true'
+            self.assertNotIn(f'missionNamespace getVariable ["{key}", {opposite}]',diagnostics)
 
     def test_replacement_clear_retires_old_movement_after_validation(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')

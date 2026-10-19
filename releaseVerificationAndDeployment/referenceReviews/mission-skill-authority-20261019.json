@@ -1,0 +1,65 @@
+{
+  "baseline": "6ae5f63a",
+  "scope": "Mission-first skill authority; separate mission framework examined read-only",
+  "provider_checkout": "See the latest mission-skill note in AGENT-HANDOVER.md for the separate local repository location.",
+  "provider_head": "0ff8ae1ced9bb31c8ea7143673966c4f2c12ce32",
+  "provider_reviewed_files_match_head": true,
+  "provider_files_sha256": {
+    "init.sqf": "f46f10e5e36d8413986cded145a68bcb3192f50a395c9f9df838f20dd6210d17",
+    "MissionConfig/aiConfig.sqf": "866b6bf3f0ac9c47250fe700dc474acbfd5edb3fd90f11b3cf93db36df92591e",
+    "MissionScripts/AiScripting/aiApplyProfile.sqf": "f2cecccafc2a4f2afa48456314b854f355d439e10fe7a304357c6acdbf28802e",
+    "MissionScripts/AiScripting/aiRebalanceInit.sqf": "d1b1c4711776449f19263ed90e762900b6dc8c58c919af7eaa102d48d3f852c9",
+    "MissionScripts/AiScripting/aiRebalanceStop.sqf": "65bd9229a8a4ae6e118d3e48b08743452a107a7d2170200b3b74abb8a619cdbb",
+    "MissionScripts/AiScripting/improvedHelicopterLandingExecuteLocal.sqf": "96fc2f932cebdbf681dd8a97a94ae8062dbbcb25dfdd810be5a5d9bb627310be",
+    "MissionScripts/AiScripting/improvedHelicopterLandingAnchorLocal.sqf": "fb41c43dae38a20ffcb2007fc556bd653dfc73531c1c9805b36ae8aaea2b9a16",
+    "MissionScripts/AiScripting/improvedHelicopterLandingRestoreLocal.sqf": "c03cb8b0fd2fbce46b0397b6f00bfaa6a225a22358c0c925ac140835a43fa2e2",
+    "MissionScripts/AiScripting/helicopterDecelerationTrackLocal.sqf": "bfbf93bbef77efb277372a0980861c2ead284df5fa7ac4a6f3313362b8d28970",
+    "MissionScripts/Logistics/TransportServices/transportDispatchLocal.sqf": "efa86e5b2050f5f4cc08ad66738c86728a42192ee7dfe165cb8d9c0b8c6d1728",
+    "MissionScripts/Logistics/TransportServices/transportRegister.sqf": "fe88000b4343555b9535781506646d600d1ec656fc1c0d8b53ab4b33cbc5cf0b"
+  },
+  "source_sha256": {
+    "addons/core/functions/aiProfileYield.sqf": "7645a18ca0fc03027fb99df7d2aa749a66c4607243d9967640a60e026f89db4d",
+    "addons/core/functions/aiApplyProfile.sqf": "2f5f1cf33f1cbc42ecbc224f6082e2b5b427f915fde30c0f705e700bc98c2cbe",
+    "addons/core/functions/aiRestoreProfile.sqf": "da649416eb07515a9e4abcd8f17c90a48e9b48601a41da5901a46f46d6cfac03",
+    "addons/core/functions/aiRebalanceInit.sqf": "e18473fdbfa977680f66605e777dda0e180344d9082ddf209387c3063094f230",
+    "addons/core/functions/cortexTuningSpec.sqf": "fb39190c1e7ad09802df8ac606c5d1b850938419a26d4ca8eff6c41d0a43bd0c",
+    "addons/main/settings/aiConfig.sqf": "f88d68ef40829afb1d03d66e3fa8a979d2470c74788dc7c4fe228a64cdc9a075",
+    "addons/main/XEH_postInit.sqf": "7812aaebb301134b58a57de9d79fd75660df806a8df7e7c69c022f592e4e59d3"
+  },
+  "findings": [
+    "Both profile systems write absolute subskills at startup, class initialization and locality/ACE adoption. Last callback wins; no event-order guarantee establishes exclusive authority.",
+    "CBE also reapplies after lighting/equipment/crew-seat signature changes. It is event/signature driven, not a continuous per-frame skill overwrite.",
+    "Provider stop restores captured skills unconditionally. CBE previously preserved edits only at final restore, but repeated application could overwrite them first.",
+    "Partial custom CBE profiles could accumulate lighting, variance or crew multipliers on the previous native result.",
+    "Provider landing anchor/execute/restore writes MOVE/PATH/FSM state, and its deceleration correction is another aircraft controller.",
+    "Provider taxi dispatch owns waypoints, strong behaviour, combat and speed mode; registered crew are assigned allowFleeing 0. A skill label does not protect these movement tasks."
+  ],
+  "implemented": [
+    "Skill-profile CBA/shipped/startup/diagnostic fallbacks default false. Existing saved CBA choices remain authoritative; tactical startup and its headless bridge are independent.",
+    "CBE_AI_SkillOwner is a public unit-only external skill owner label. Nonempty or unknown-type ownership refuses skill/aim application, not tactical behaviour.",
+    "AIProfileYield validates at most9 original/applied subskills and finite aim receipts on the actual owner; observed native edits publish OBSERVED_EXTERNAL_CHANGE then restore only unchanged owned effects.",
+    "The owner label survives global skill-profile changes, stop/restart and locality. Only deliberate mission clearing authorises automatic reacquisition.",
+    "Profile/faction/role/night/variance/crew results are calculated from an immutable original map; one guarded native commit avoids repeated multiplier accumulation and intermediate native writes.",
+    "Final commit rechecks actual unit owner, human/specialist exclusion, skill generation/current profile and mission ownership. No new watcher or world scan."
+  ],
+  "remaining": [
+    "Same-value external writes cannot be identified; no claim to identify the responsible script.",
+    "Release of the entire optional layer is intentional; fine-grained simultaneous per-subskill providers are not composed.",
+    "The separate framework can still overwrite values itself. Choose one profile authority; no provider source was edited.",
+    "Landing, cruise correction, taxi and headless distribution need actual task-token/quiescence contracts; startup/running markers cannot prove exclusive control. Do not add superficial name-based takeover.",
+    "Physical default/custom-skill, repeated partial-profile, lighting/seat, JIP/HC and measured overhead acceptance remain pending while audits are paused."
+  ],
+  "validation": {
+    "tests": 1458,
+    "compiled_sqf": 337,
+    "pbos": 9,
+    "log": ".qa/cbe-mission-skill-authority-sealed-build.log",
+    "physical_acceptance": false,
+    "initial_gate_findings": "Three stale default/product-guide source contracts corrected; all checks then passed.",
+    "independent_verify": true,
+    "unsigned_fingerprint": "73beb094dc3191c0307767a91cedc185ce02ada48d1056739713ecb9dd29ebc2",
+    "manifest_commit": "6ae5f63a",
+    "manifest_dirty": true
+  },
+  "buildout": "Existing source criteria reassessed; no score increase or physical acceptance inferred."
+}

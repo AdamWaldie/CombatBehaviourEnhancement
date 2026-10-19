@@ -69,7 +69,7 @@ if (_name == "CBE_AIPass_Danger_Enable" && {missionNamespace getVariable ["CBE_A
     {if (local _x) then {[_x] call CBE_fnc_DangerSetup}} forEach allGroups;
 };
 if (_name find "CBE_AIRebalance_" == 0 || {_name in ["CBE_AI_InfantryDispersion", "CBE_AI_VehicleCrewAimMultiplier", "CBE_AI_VehicleCrewDispersion", "CBE_AI_AirCrewDispersion"]}) then {
-    if (missionNamespace getVariable ["CBE_AIRebalance_Enable", true]) then {
+    if (missionNamespace getVariable ["CBE_AIRebalance_Enable", false]) then {
         [
             missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"],
             missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"]

@@ -13,7 +13,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | COMPAT - Specialist ownership and alternative-controller handover | 0 | 0 | 8 | `runCompatibility.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | SCHED - Scheduler and distance tiers | 11 | 0 | 6 | `runScheduler.sqf`, `runPerformance.sqf`, `runPerformanceContact.sqf` | 3 | implemented_partial |
 | PROFILE - Behaviour profiles and aggression | 4 | 1 | 1 | `runProfiles.sqf` | 1 | implemented_partial |
-| SKILL - AI skill rebalance | 14 | 0 | 5 | `runMechanics.sqf` | 0 | implemented_partial |
+| SKILL - AI skill rebalance | 14 | 0 | 6 | `runMechanics.sqf` | 0 | implemented_partial |
 | LAND - Helicopter landing | 21 | 0 | 8 | `runLanding.sqf` | 1 | implemented_partial |
 | DECEL - Helicopter braking | 14 | 1 | 3 | `runDeceleration.sqf` | 0 | implemented_partial |
 | REGROUP - Survivor regroup | 9 | 0 | 2 | `runMechanics.sqf` | 0 | implemented_partial |
@@ -130,7 +130,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 ### SKILL - AI skill rebalance
 
-**Expected:** Expected units receive configured skills once, variance remains stable, excluded/player units retain their values and stop restores captured values.
+**Expected:** Skill profiles are opt-in; default startup preserves mission skills. Explicit profiles use original baselines without multiplier accumulation. Later native skill/aim edits or declared skill ownership yield the optional profile while preserving changed values, including through transfer/restart. Excluded/player units retain values and stop restores only unchanged owned settings.
 
 **Automation and open work:** runMechanics.sqf compares dismounted infantry, cargo, ground-vehicle crew, aircraft crew and a named Dynamic AA crew. It measures the distinct configured aim coefficients, reduced operator skill and retained Dynamic AA profile/aim coefficient. The expanded fixture awaits a rebuilt live run.
 
