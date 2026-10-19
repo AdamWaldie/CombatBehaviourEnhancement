@@ -13,7 +13,7 @@
  * long/short rear observer. Blocked leaf refuses before a committed hold; no target
  * is retained and command admission must resample. At most two bounded rear observations
  * per leaf preflight; no recurring scan or new worker.
- * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message.
+ * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE/CHECK_ROOM;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message; CHECK_ROOM appends request serial1..2.
  * PREPARE binds all this owner's settled participants to original token/expiry and their brains.
  * PREPARED acknowledges only those verified applied holds; the server waits for every owner.
  * It adds no timer, native command, cached clearance or execution permission.
@@ -25,8 +25,8 @@
  * Example: ["VERIFY",_payload] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_owner];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE"])}
-    || {count _payload != ([8,9] select (_mode != "VERIFY"))}) exitWith {false};
+if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE","CHECK_ROOM"])}
+    || {count _payload != (if (_mode == "CHECK_ROOM") then {10} else {[8,9] select (_mode != "VERIFY")})}) exitWith {false};
 _payload params ["_token","_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
 if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
     || {!(_vehicles isEqualType [])} || {count _vehicles < 2} || {count _vehicles > 4}
@@ -37,7 +37,7 @@ if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
 private _owned=_vehicles select {!isNull _x && {local _x}};
 private _phase=["PENDING",_payload param [8,""]] select (_mode != "VERIFY");
 if (_mode == "RESULT" && {!(_phase in ["AGREED","REFUSED","RELEASED"])}) exitWith {false};
-if (_mode in ["COMMIT","PREPARE","ARM","EXECUTE"] && {_phase != "AGREED"}) exitWith {false};
+if (_mode in ["COMMIT","PREPARE","ARM","EXECUTE","CHECK_ROOM"] && {_phase != "AGREED"}) exitWith {false};
 private _receiptKey={
     params ["_receipt"];
     ["token","serial","vehicles","roles","dependencies","context","deadline","expires","phase"] apply {
@@ -86,6 +86,17 @@ private _duplicate=_owned findIf {
         || {(_old getOrDefault ["dependencies",[]]) isNotEqualTo _dependencies}
         || {(_old getOrDefault ["expires",-1]) != _expires} || {serverTime >= _expires}
 } < 0;
+if (_mode == "CHECK_ROOM") exitWith {
+    if (_tokenClosed || {!_duplicate} || {count _vehicles < 3}) exitWith {false};
+    private _parent=_vehicles select (count _vehicles-2);private _leaf=_vehicles select (count _vehicles-1);
+    if (!(_parent in _owned)) exitWith {false};
+    private _roomSerial=_payload select 9;
+    if (!(_roomSerial isEqualType 0) || {!finite _roomSerial} || {!(_roomSerial in [1,2])}) exitWith {false};
+    private _consent=_parent getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+    private _observation=[_parent,_consent] call CBE_fnc_DrivingQueueParentRoom;
+    ["ROOM",[_token,_parent,_leaf,_roomSerial,_observation]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
+    _observation select 0
+};
 // Repeated authenticated ARM/EXECUTE never reapply phase metadata or rewind a
 // running leg. Returning the prior acknowledgement is not new movement authority.
 if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}) then {

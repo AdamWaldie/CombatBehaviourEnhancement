@@ -71,6 +71,21 @@ class QueueProposalTests(unittest.TestCase):
                       '_expires > serverTime+30','_deadline > serverTime+2'):
             self.assertIn(proof,server)
         self.assertIn('remoteExecutedOwner != 2',owner)
+        room=(ROOT/'addons/vehicles/functions/drivingQueueParentRoom.sqf').read_text()
+        for proof in ('count _vehicles < 3','!local _parent','count _vehicles-2',
+                      '"queuePhase",""','queueStopAcknowledged','NO_MEASURED_REAR_ROOM',
+                      'CBE_fnc_DrivingHullInterval','CBE_fnc_DrivingRearPlan','ROOM_OBSERVATION_STALE'):
+            self.assertIn(proof,room)
+        for forbidden in (' doMove ',' forceSpeed ','sendSimpleCommand','setVariable','waitAndExecute'):
+            self.assertNotIn(forbidden,room)
+        self.assertIn('_roomSerial <= (_record getOrDefault ["parentRoomReply",0])',server)
+        self.assertIn('_reports >= 2',server)
+        self.assertIn('["CHECK_ROOM",_message]',server)
+        # Ten metres between centres still overlaps two twelve-metre hulls.
+        parent_rear=-6
+        dependency_front=-10+6
+        self.assertLess(parent_rear-dependency_front,0)
+
         motion=(ROOT/'addons/vehicles/functions/drivingQueueReverseCurrent.sqf').read_text()
         for proof in ('count _vehicles > 4','count _vehicles-1','serverTime >= _expires',
                       '_actor isNotEqualTo _original','_rear < -0.25','(_binding select 3)+0.5',

@@ -10,13 +10,13 @@
  * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED/ARMED=[token].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED/ARMED=[token]; HELD=[token,leaf]; ROOM=[token,parent,leaf,requestSerial,observation].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
  * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED"])}) exitWith {false};
+if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED","HELD","ROOM"])}) exitWith {false};
 private _sender=remoteExecutedOwner;
 private _registry=localNamespace getVariable ["CBE_DrivingQueue_Agreements",createHashMap];
 localNamespace setVariable ["CBE_DrivingQueue_Agreements",_registry];
@@ -98,11 +98,74 @@ if (_mode == "BEGIN") exitWith {
     {["VERIFY",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _owners;
     true
 };
-if (count _payload != ([1,2] select (_mode in ["ACK","READY"])) || {!((_payload select 0) isEqualType "")}) exitWith {false};
+private _payloadCount=if (_mode == "ROOM") then {5} else {[1,2] select (_mode in ["ACK","READY","HELD"])};
+if (count _payload != _payloadCount || {!((_payload select 0) isEqualType "")}) exitWith {false};
 private _token=_payload select 0;private _record=_registry getOrDefault [_token,createHashMap];
 if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {false};
 if (_mode == "RELEASE") exitWith {
     _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;true
+};
+// HELD is reported only by the actual leaf owner after native STOP and a rest dwell.
+// It triggers an owner-local room observation, never a parent movement grant.
+if (_mode == "HELD") exitWith {
+    private _vehicle=_payload select 1;private _vehicles=_record get "vehicles";
+    if (!(_vehicle isEqualType objNull) || {isNull _vehicle}
+        || {_vehicle != (_vehicles select (count _vehicles-1))}
+        || {(_record get "phase") != "AGREED"} || {serverTime >= (_record get "expires")}
+        || {!(_record getOrDefault ["executeSent",false])}
+        || {owner _vehicle != _sender} || {owner driver _vehicle != _sender}
+        || {owner effectiveCommander _vehicle != _sender} || {groupOwner group driver _vehicle != _sender}
+        || {toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) != "STOP"}
+        || {!([_record] call _current)}) exitWith {false};
+    private _linear=vectorMagnitude velocity _vehicle;private _angular=vectorMagnitude angularVelocity _vehicle;
+    if (!finite _linear || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}) exitWith {false};
+    private _reports=_record getOrDefault ["heldChecks",0];
+    if (_reports >= 2 || {_reports > 0 && {serverTime-(_record getOrDefault ["heldCheckedAt",-1]) < 2}}) exitWith {true};
+    _record set ["heldChecks",_reports+1];_record set ["heldCheckedAt",serverTime];
+    _record set ["heldLeaf",_vehicle];
+    if (count _vehicles > 2) then {
+        private _parent=_vehicles select (count _vehicles-2);
+        private _message=[_token,_record get "serial",_vehicles,_record get "roles",_record get "dependencies",
+            _record get "context",_record get "deadline",_record get "expires","AGREED",_reports+1];
+        ["CHECK_ROOM",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",owner _parent];
+    };
+    true
+};
+if (_mode == "ROOM") exitWith {
+    _payload params ["_roomToken","_parent","_leaf","_roomSerial","_observation"];
+    private _vehicles=_record get "vehicles";
+    if (!(_roomSerial isEqualType 0) || {!finite _roomSerial} || {_roomSerial != floor _roomSerial}
+        || {_roomSerial < 1} || {_roomSerial > 2}
+        || {_roomSerial > (_record getOrDefault ["heldChecks",0])}) exitWith {false};
+    if (_roomSerial <= (_record getOrDefault ["parentRoomReply",0])) exitWith {true};
+    if (count _vehicles < 3 || {!(_parent isEqualType objNull)} || {!(_leaf isEqualType objNull)}
+        || {isNull _parent} || {isNull _leaf}
+        || {_parent != (_vehicles select (count _vehicles-2))} || {_leaf != (_record getOrDefault ["heldLeaf",objNull])}
+        || {owner _parent != _sender} || {owner driver _parent != _sender}
+        || {owner effectiveCommander _parent != _sender} || {groupOwner group driver _parent != _sender}
+        || {(_record get "phase") != "AGREED"} || {serverTime >= (_record get "expires")}
+        || {!(_observation isEqualType [])} || {count _observation != 5}
+        || {!((_observation select 0) isEqualType true)} || {!((_observation select 1) isEqualType "")}
+        || {_observation select [2,2] findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+        || {!([_record] call _current)}) exitWith {false};
+    private _verified=_observation select 0;private _gap=-1;
+    if (_verified) then {
+        private _envelope=_observation select 4;
+        private _origin=getPosWorld _parent;private _axis=vectorDir _parent;
+        private _parentHull=[_parent,_origin,_axis] call CBE_fnc_DrivingHullInterval;
+        private _leafHull=[_leaf,_origin,_axis] call CBE_fnc_DrivingHullInterval;
+        _verified=_envelope in [[8,6],[3.5,2]] && {_parentHull isNotEqualTo []} && {_leafHull isNotEqualTo []};
+        _verified=_verified && {toUpperANSI ((vehicleMoveInfo _leaf) param [0,""]) == "STOP"}
+            && {[_parent,_leaf] findIf {
+                private _linear=vectorMagnitude velocity _x;private _angular=vectorMagnitude angularVelocity _x;
+                !finite _linear || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}
+            } < 0};
+        if (_verified) then {_gap=(_parentHull select 0)-(_leafHull select 1);_verified=_gap >= (_envelope select 0)};
+    };
+    // Observation only. A later phase must resample both support and physical clearance.
+    _record set ["parentRoomReply",_roomSerial];
+    _record set ["parentRoomObservation",[_verified,_parent,_leaf,serverTime,_gap,_observation select 1]];
+    true
 };
 if (_mode == "PREPARED" && {_sender in (_record getOrDefault ["preparedOwners",[]])}) exitWith {true};
 if (_mode == "ARMED" && {_sender in (_record getOrDefault ["armedOwners",[]])}) exitWith {true};

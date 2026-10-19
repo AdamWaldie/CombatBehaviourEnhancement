@@ -142,7 +142,17 @@ if (!_stopped) then {_next set ["queueStillSince",-1]} else {
     if (_since < 0) then {_since=serverTime;_next set ["queueStillSince",_since]};
     if (serverTime-_since >= 1) then {_next set ["queuePhase","HELD"]};
 };
+private _reportHeld=false;
+if ((_next getOrDefault ["queuePhase",""]) == "HELD") then {
+    private _reports=_next getOrDefault ["queueHeldReports",0];
+    private _reportedAt=_next getOrDefault ["queueHeldReportedAt",-1];
+    if (_reports < 2 && {_reports == 0 || {serverTime-_reportedAt >= 2}}) then {
+        _next set ["queueHeldReports",_reports+1];_next set ["queueHeldReportedAt",serverTime];
+        _reportHeld=true;
+    };
+};
 if (_next isNotEqualTo _work) then {_vehicle setVariable ["CBE_DrivingRecovery_Work",_next,true]};
+if (_reportHeld) then {["HELD",[_token,_vehicle]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
 true
 };
 };

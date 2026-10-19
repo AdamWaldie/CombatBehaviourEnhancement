@@ -1617,11 +1617,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "84a9cf515703e65f312e967732d1e87d74a2f3ae5a5c760ecf06fc5476926c71"
+              "sha256": "c6cbb86a72d545b2ef9ffd49202cc426c2c1332edd96637597a29e9aefc3ad8d"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "c2ca097797ecfbc0f577995df8fc217c3f829393c3b4d6d466ff4448543c3673"
+              "sha256": "a2e457f0bfc3f29d9eea4e7c783480ee5268f9263f3f7067474e38fffa046d2e"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueContext.sqf",
@@ -1645,12 +1645,12 @@
           "capability": "Queue room-making execution",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Explicitly committed internal queue API reaches all-owner preparation/arming, leaf-only grant, sole-writer native BACK, bounded acknowledgement/rear monitoring, zero-cap STOP and measured leaf hold under original expiry. This is a wired leaf subset, physically unverified.",
-          "remaining_build_gap": "Measured parent-room dependency advance, lateral crossing and all-participant handback remain unimplemented. Automatic initiation remains disabled.",
+          "implemented": "Explicitly committed internal queue API reaches all-owner preparation/arming, leaf-only grant, sole-writer native BACK, bounded acknowledgement/rear monitoring, zero-cap STOP and measured leaf hold under original expiry. This is a wired leaf subset, physically unverified. Measured held-leaf reports now trigger current parent-owner full-hull/rear-room observation with sequenced server hull-gap verification; this grants no movement.",
+          "remaining_build_gap": "Authenticated parent/dependency phase advance, lateral crossing and all-participant handback remain unimplemented. Automatic initiation remains disabled; room must be resampled at native issue.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "c2ca097797ecfbc0f577995df8fc217c3f829393c3b4d6d466ff4448543c3673"
+              "sha256": "a2e457f0bfc3f29d9eea4e7c783480ee5268f9263f3f7067474e38fffa046d2e"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
@@ -1658,7 +1658,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
-              "sha256": "9c01c3f1f001407f1ee6e17672b9ca18f414cfe63cd4a56a63d442a66d24a769"
+              "sha256": "900b26a3a6940d4c7e2f270a54714fdcb2723e3b126eda92fc930e5556f08293"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
@@ -1666,7 +1666,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "84a9cf515703e65f312e967732d1e87d74a2f3ae5a5c760ecf06fc5476926c71"
+              "sha256": "c6cbb86a72d545b2ef9ffd49202cc426c2c1332edd96637597a29e9aefc3ad8d"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+              "sha256": "49ce67a847991c7324638eb33570390b1aba1a55ddcaf4039a279bc2d1cb3884"
             }
           ]
         },

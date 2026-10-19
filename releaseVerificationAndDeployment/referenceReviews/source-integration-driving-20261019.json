@@ -57,8 +57,8 @@
         "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
         "addons/vehicles/functions/drivingRearPlan.sqf"
       ],
-      "implemented": "Bounded whole-hull dependency discovery (at most4 vehicles), stable capability-aware crossing/yield roles, owner/epoch/generation/native input context, authenticated consent and explicit COMMIT; existing sole cap writer applies zero hold and owner reports exact-cap finite linear/angular stillness after1s, at most2 reports separated by2s; server authenticates participant owner and checks current simultaneous stillness. Actual leaf owner freshly preflights rear space at VERIFY and COMMIT. Original expiry is retained. All-owner PREPARED/ARMED barriers now precede leaf-only EXECUTE. The existing ordinary callback consumes the grant through its sole cap writer and existing rear/damage monitor, fresh rear-validated native BACK, bounded acknowledgement, zero-cap native STOP and measured leaf hold under original expiry.",
-      "missing": "Measured parent-room advance and remaining dependency cascade, lateral crossing and complete all-participant handback. Automatic initiation remains off. Native/replication/HC physical behavior and overhead remain unverified."
+      "implemented": "Bounded whole-hull dependency discovery (at most4 vehicles), stable capability-aware crossing/yield roles, owner/epoch/generation/native input context, authenticated consent and explicit COMMIT; existing sole cap writer applies zero hold and owner reports exact-cap finite linear/angular stillness after1s, at most2 reports separated by2s; server authenticates participant owner and checks current simultaneous stillness. Actual leaf owner freshly preflights rear space at VERIFY and COMMIT. Original expiry is retained. All-owner PREPARED/ARMED barriers now precede leaf-only EXECUTE. The existing ordinary callback consumes the grant through its sole cap writer and existing rear/damage monitor, fresh rear-validated native BACK, bounded acknowledgement, zero-cap native STOP and measured leaf hold under original expiry. Measured leaf HELD reports trigger at most two parent-owner full-hull and supported rear-room observations, with independent current server hull-gap/rest recheck and monotonic reply serials. No parent movement is granted.",
+      "missing": "Authenticated original-expiry parent phase transition and remaining dependency cascade, lateral crossing and complete all-participant handback. Automatic initiation remains off. Native/replication/HC behavior and overhead remain unverified."
     },
     "ownership_conflict": {
       "files": [
@@ -131,8 +131,8 @@
   "physical_acceptance": false,
   "whole_mod_parity": false,
   "currentReconciliation": {
-    "commit": "0f4ef388 plus native-leaf working changes",
-    "note": "Latest code reconciliation; prior baseline/source witnesses remain historical. Native leaf subset is wired, not physically accepted or complete queue resolution."
+    "commit": "8ed75beb plus parent-room observation working changes",
+    "note": "Current scoped code reconciliation; physical queue resolution and automatic initiation remain incomplete."
   },
   "nextImplementationBoundary": [
     "Require fresh measured whole-hull parent room after actual leaf hold; HELD alone is not room or queue success.",
@@ -147,11 +147,11 @@
     },
     {
       "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-      "sha256": "c2ca097797ecfbc0f577995df8fc217c3f829393c3b4d6d466ff4448543c3673"
+      "sha256": "a2e457f0bfc3f29d9eea4e7c783480ee5268f9263f3f7067474e38fffa046d2e"
     },
     {
       "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-      "sha256": "84a9cf515703e65f312e967732d1e87d74a2f3ae5a5c760ecf06fc5476926c71"
+      "sha256": "c6cbb86a72d545b2ef9ffd49202cc426c2c1332edd96637597a29e9aefc3ad8d"
     },
     {
       "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
@@ -159,7 +159,7 @@
     },
     {
       "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-      "sha256": "94bd99c0b20161e597b25703ee64ea51d6a0e14266247e170669d13bf54df86f"
+      "sha256": "67663f4bfec9596f23fdae584fdaf0a8189c331ef0bd3c2e940368022c3c3264"
     },
     {
       "path": "addons/vehicles/functions/drivingRearPlan.sqf",
@@ -167,11 +167,19 @@
     },
     {
       "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
-      "sha256": "0f5cb304f6162917bc865cefaa3b3b4fac80786b34b7790c5eb027926ba49ae4"
+      "sha256": "900b26a3a6940d4c7e2f270a54714fdcb2723e3b126eda92fc930e5556f08293"
     },
     {
       "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
-      "sha256": "94a1caf21e0397b63c8ae48da92d80c688582d1fb6cf789fc9ae6a097bb03a64"
+      "sha256": "16fb0a93a75fa444c7eb66086cf94079c137f63063415edc4ed51a8ea6826474"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+      "sha256": "49ce67a847991c7324638eb33570390b1aba1a55ddcaf4039a279bc2d1cb3884"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "sha256": "f755e2e0c3303760ae45e869fe373e4762310591b8c28fbb21d4eb58a119d228"
     }
   ]
 }
