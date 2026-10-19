@@ -3,6 +3,7 @@
  * Purpose: Select one fresh hostile infantry belief inside target-owned building geometry.
  * Locality/authority: read-only, current local group owner. Uses native knowledge records,
  * never a hostile live transform; does not create an operation or grant movement authority.
+ * Captive, surrendered and restrained contacts do not initiate contact-driven building work.
  * Repeat/JIP: stateless, bounded to three eligible records and at most three roof queries.
  * Results are observations for this call, not persistent access or room-clearance receipts.
  * Arguments: 0: group <GROUP>, grpNull; 1: knowledge records <ARRAY>, [], each
@@ -26,6 +27,8 @@ private _records=_enemies select {
         && {finite _age} && {_age >= 0} && {_age <= 5}
         && {finite _distance} && {_distance >= 0} && {_distance <= _range}
         && {!isNull _enemy} && {_enemy isKindOf "CAManBase"} && {alive _enemy}
+        && {!captive _enemy} && {!(_enemy getVariable ["ace_captives_isSurrendering",false])}
+        && {!(_enemy getVariable ["ace_captives_isHandcuffed",false])}
         && {isNull objectParent _enemy} && {(side _group) getFriend (side _enemy) < 0.6}
 };
 if (count _records > 3) then {_records resize 3};

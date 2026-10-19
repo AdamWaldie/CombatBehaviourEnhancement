@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Own one finite indoor investigation actor, independently of whole-group CLEAR.
  * Locality/authority: Actor and group owner only; the FSM queues bounded shared-scheduler work.
- * Native/Zeus/specialist tasks, native ignored contacts and overlapping operations preempt this controller. Proven disjoint
+ * Native/Zeus/specialist tasks, native ignored or surrendered/restrained contacts and overlapping operations preempt this controller. Proven disjoint
  * infantry rosters may coexist when they own no group waypoint. No firing is forced.
  * Repeat/JIP: One exact generation per actor; a public cancellation journal allows a new owner
  * to retire an unchanged native leg without replaying movement or renewing the original deadline.
@@ -277,7 +277,10 @@ if ((!isNull _engaging && {_engaging != _contact}) || {!isNull _assigned && {_as
     ["OTHER_CONTACT"] call _finish
 };
 if ((_brain getOrDefault ["contactRequired",false] && {isNull _contact})
-    || {!isNull _contact && {!alive _contact || {(side _group) getFriend (side _contact) >= 0.6}}}) exitWith {
+    || {!isNull _contact && {!alive _contact || {captive _contact}
+        || {_contact getVariable ["ace_captives_isSurrendering",false]}
+        || {_contact getVariable ["ace_captives_isHandcuffed",false]}
+        || {(side _group) getFriend (side _contact) >= 0.6}}}) exitWith {
     ["CONTACT_GONE"] call _finish
 };
 // A later mission ignoreTarget instruction supersedes this contact-driven investigation.

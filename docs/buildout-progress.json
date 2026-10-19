@@ -3160,7 +3160,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/indoorActorOperation.sqf",
-              "sha256": "bc69bf62407b711f91384e55bc1941fbf3156af20c094f598ecc8b29b94febb4"
+              "sha256": "0aba7e2de32ebb3ff5cbe1db0a427332ba3b60c7033ea6e418f67cebb7bb982c"
             },
             {
               "path": "addons/infantry/functions/indoorActorDispatch.sqf",
@@ -3273,7 +3273,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
-              "sha256": "3206259d73b99ee9309b6873e838659dc1cf490c9bf37edd36aeced2991094b5"
+              "sha256": "ac90f75197147ad0a0f7a50a6fc12124d983a7c1e89fa97879cecd8ec0995dc9"
             }
           ]
         },

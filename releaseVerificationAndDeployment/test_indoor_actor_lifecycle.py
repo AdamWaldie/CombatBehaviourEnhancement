@@ -162,6 +162,14 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         door=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
         self.assertIn('!((_actor targetKnowledge _contact) param [7,false,[true]])',admission)
+
+        selection=(ROOT/'addons/infantry/functions/buildingContactSelect.sqf').read_text()
+        self.assertIn('!captive _enemy',selection)
+        for text in (admission,operation,door):
+            self.assertIn('captive _contact',text)
+        for marker in ('ace_captives_isSurrendering','ace_captives_isHandcuffed'):
+            for text in (selection,admission,operation,door):
+                self.assertIn(marker,text)
         stop=operation.index('["TARGET_IGNORED"] call _finish')
         self.assertLess(stop,operation.index('private _phase=_brain get "phase";'))
         self.assertIn('(_actor targetKnowledge _contact) param [7,false,[true]]',operation[:stop])

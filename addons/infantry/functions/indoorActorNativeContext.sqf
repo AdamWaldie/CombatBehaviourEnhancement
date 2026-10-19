@@ -27,6 +27,8 @@ if (isNull _contact && {!isNull _engaging || {!isNull _assigned}}) exitWith {[]}
 if (!isNull _contact && {(!isNull _engaging && {_engaging != _contact})
     || {!isNull _assigned && {_assigned != _contact}}}) exitWith {[]};
 private _contactValid=!isNull _contact && {alive _contact} && {_contact isKindOf "CAManBase"}
+    && {!captive _contact} && {!(_contact getVariable ["ace_captives_isSurrendering",false])}
+    && {!(_contact getVariable ["ace_captives_isHandcuffed",false])}
     && {isNull objectParent _contact} && {(side group _actor) getFriend (side _contact) < 0.6}
     && {!((_actor targetKnowledge _contact) param [7,false,[true]])}
     && {_actor knowsAbout _contact >= 1} && {_belief call _vectorValid} && {!isNull _building};

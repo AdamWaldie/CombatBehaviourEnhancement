@@ -67,7 +67,10 @@ private _orderCurrent={
         private _engaging=getAttackTarget _unit;
         private _assigned=assignedTarget _unit;
         if ((_brain getOrDefault ["contactRequired",false] && {isNull _contact})
-            || {!isNull _contact && {!alive _contact || {(side _group) getFriend (side _contact) >= 0.6}
+            || {!isNull _contact && {!alive _contact || {captive _contact}
+                || {_contact getVariable ["ace_captives_isSurrendering",false]}
+                || {_contact getVariable ["ace_captives_isHandcuffed",false]}
+                || {(side _group) getFriend (side _contact) >= 0.6}
                 || {(_unit targetKnowledge _contact) param [7,false,[true]]}}}
             || {!isNull _engaging && {_engaging != _contact}}
             || {!isNull _assigned && {_assigned != _contact}}) exitWith {false};
