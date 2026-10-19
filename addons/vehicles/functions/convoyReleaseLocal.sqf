@@ -1,7 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Restores recorded formation, attack permission, vehicle speed and unload settings;
- * retires only exact-owned follower paths before guarded native handback. A speed baseline is restored only when the
+ * Both driver and movement-operator destination receipts must match before path stop/handback.
+ * Older incomplete path receipts grant no native cleanup authority.
+ * Retires only exact-owned follower paths before guarded native handback. A speed baseline is restored only when the
  * vehicle is leaving CBE control, CBE still owns the current cap and no newer controller owns it.
  * Unload policy restores from its exact lease only while its applied value remains current;
  * missing leases never authorize a guessed baseline restoration. Retained successor vehicles
@@ -175,12 +177,13 @@ if (_restore isNotEqualTo []) then {
                 _vehicle setVariable ["CBE_Convoy_MovementReceipt",nil,true];
             };
             private _pathLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
-            private _pathOwned=!isNull _driver && {!isNull _movementOperator} && {count _pathLease == 7}
+            private _pathOwned=!isNull _driver && {!isNull _movementOperator} && {count _pathLease == 8}
                 && {(_pathLease select 0) == _group}
                 && {(_pathLease select 1) == (_navigation getOrDefault ["revision",-1])}
                 && {(_pathLease select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
                 && {(_pathLease select 3) == _driver} && {(_pathLease select 4) == _movementOperator}
-                && {(expectedDestination _movementOperator) isEqualTo (_pathLease select 5)};
+                && {(expectedDestination _movementOperator) isEqualTo (_pathLease select 5)}
+                && {(expectedDestination _driver) isEqualTo (_pathLease select 7)};
             private _taskFree=[_driver,_movementOperator] findIf {
                 isNull _x || {!local _x} || {isPlayer _x} || {!isNull remoteControlled _x}
                     || {!([_x] call CBE_fnc_CortexCombatEffective)}
@@ -203,7 +206,7 @@ if (_restore isNotEqualTo []) then {
                 doStop _driver;
                 _endedPath=true;
             };
-            if (!(_vehicle in _keepCrew) && {count _pathLease == 7} && {(_pathLease select 0) == _group}
+            if (!(_vehicle in _keepCrew) && {count _pathLease == 8} && {(_pathLease select 0) == _group}
                 && {(_vehicle getVariable ["CBE_Convoy_PathLease",[]]) isEqualTo _pathLease}) then {
                 _vehicle setVariable ["CBE_Convoy_PathLease",nil,true];
             };

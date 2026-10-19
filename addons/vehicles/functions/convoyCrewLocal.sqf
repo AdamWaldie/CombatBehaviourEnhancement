@@ -12,7 +12,8 @@
  * Steering HALT records actual seats, native commands and the current authored waypoint
  * after STOP. Resume consumes that local receipt only while those identities still match.
  * Repeat/JIP: five-second owner checks repair occupied seat assignments and replay a durable halt
- * after transfer. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
+ * after transfer. HALT retires the current eight-field steering receipt; its cleanup
+ * authority includes both original driver and operator destinations. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, speed, gap, push, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
  * Arguments: 2: full reservation cargo <ARRAY>, [] uses configuration cargo; does not expand actor writes.
  * Return Value: Nothing. Unconscious passengers wait until capable; players and remote-controlled units are skipped.
@@ -203,7 +204,7 @@ private _seats = createHashMap;
                         [_vehicle,_group,"CONVOY_HALT",false,false,_bypassController select 1] call CBE_fnc_DrivingBypassRelease;
                     };
                     private _pathLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
-                    if (count _pathLease == 7 && {(_pathLease select 0) == _group}
+                    if (count _pathLease == 8 && {(_pathLease select 0) == _group}
                         && {(_pathLease select 1) == _revision}) then {_vehicle setVariable ["CBE_Convoy_PathLease",nil,true]};
                 };
                 false

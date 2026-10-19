@@ -30,6 +30,23 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
         self.assertIn('[_lead] call _convoyStopped',text)
         self.assertIn('[_vehicle] call _convoyStopped',text)
         self.assertNotIn('setVelocity',gate)
+        steering=text.split('private _finishedSteering=',1)[1].split('if (count _committedPathDestination < 2',1)[0]
+        for guard in ('call _convoyStopped','_limit > 0','distance2D _committedPathDestination <= 3',
+                      'ATLToASL _committedPathDestination','<= 1.5',
+                      '_committedPathDestination distance2D _pathDestination > 3',
+                      'CBE_AIPass_Epoch','_steeringLease select 3','_steeringLease select 4',
+                      '_steeringLease select 6','_steeringLease select 7','_steeringReceipt select 2','_steeringReceipt select 3'):
+            self.assertIn(guard,steering)
+        self.assertIn('> 8} || {_finishedSteering}',text)
+        # 4m of new trail is enough only for an owned, stopped endpoint; a moving
+        # leg or a stalled vehicle far from that endpoint retains its current path.
+        def continue_leg(owned,stopped,distance,height,advance,cap):
+            return owned and stopped and distance<=3 and abs(height)<=1.5 and advance>3 and cap>0
+        self.assertTrue(continue_leg(True,True,1,0,4,12))
+        for args in ((False,True,1,0,4,12),(True,False,1,0,4,12),
+                     (True,True,10,0,4,12),(True,True,1,3,4,12),(True,True,1,0,4,0)):
+            self.assertFalse(continue_leg(*args))
+
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf').read_text(encoding='utf-8')
         self.assertIn('count _event == 14',qa)
         self.assertIn('(vectorMagnitude _velocityAt)*3.6 < 1',qa)

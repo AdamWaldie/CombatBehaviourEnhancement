@@ -9,6 +9,8 @@
  * the measured gap and lateral spread cannot satisfy it or stabilize a wedge.
  * Arrival requires the existing five-second window below1km/h total linear motion and
  * 0.01rad/s angular motion for every vehicle; non-finite samples reset that window.
+ * A stopped, exactly owned steering endpoint can continue onto fresh ordered trail after
+ * more than3m endpoint advance; moving legs retain the8m refresh threshold.
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
  * Excess stretch beyond the upper band adds a continuous nonlinear catch-up correction capped
  * at 8 km/h; crossing the band never imposes a new minimum-speed step.
@@ -1413,8 +1415,28 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     // replacement path every second restarted steering and produced stop/start waves.
                     private _pathDestination=_path select ((count _path)-1);
                     private _committedPathDestination=_progress param [6,[]];
+                    // A slow predecessor may advance less than8m after this leg ends.
+                    // Continue only our exact stopped steering lease on fresh ordered trail;
+                    // do not repeatedly refresh a still-moving native steering decision.
+                    private _steeringLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
+                    private _steeringReceipt=_progress param [10,[],[[]]];
+                    private _finishedSteering=count _committedPathDestination == 3
+                        && {count _steeringLease == 8} && {count _steeringReceipt == 4}
+                        && {_limit > 0} && {[_vehicle] call _convoyStopped}
+                        && {_vehicle distance2D _committedPathDestination <= 3}
+                        && {abs (((getPosASL _vehicle) select 2)-((ATLToASL _committedPathDestination) select 2)) <= 1.5}
+                        && {_committedPathDestination distance2D _pathDestination > 3}
+                        && {(_steeringLease select [0,3]) isEqualTo [_group,_revision,_group getVariable ["CBE_AIPass_Epoch",0]]}
+                        && {(_steeringLease select 3) == driver _vehicle}
+                        && {(_steeringLease select 4) == _movementOperator}
+                        && {(_steeringLease select 6) isEqualTo _committedPathDestination}
+                        && {(expectedDestination _movementOperator) isEqualTo (_steeringLease select 5)}
+                        && {(expectedDestination driver _vehicle) isEqualTo (_steeringLease select 7)}
+                        && {(_steeringReceipt select [0,2]) isEqualTo [driver _vehicle,_movementOperator]}
+                        && {(expectedDestination driver _vehicle) isEqualTo (_steeringReceipt select 2)}
+                        && {(expectedDestination _movementOperator) isEqualTo (_steeringReceipt select 3)};
                     if (count _committedPathDestination < 2
-                        || {_committedPathDestination distance2D _pathDestination > 8}) then {
+                        || {_committedPathDestination distance2D _pathDestination > 8} || {_finishedSteering}) then {
                         isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
                             _vehicle setDriveOnPath _path;
                             if (_captureControl) then {(_controlSample select 9) pushBack ["STEERING",+_pathDestination,count _path]};
@@ -1423,7 +1445,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             // cannot cancel a later native destination or a changed driver/operator.
                             _vehicle setVariable ["CBE_Convoy_PathLease",[_group,_revision,
                                 _group getVariable ["CBE_AIPass_Epoch",0],driver _vehicle,_movementOperator,
-                                +(expectedDestination _movementOperator),+_pathDestination],true];
+                                +(expectedDestination _movementOperator),+_pathDestination,+(expectedDestination driver _vehicle)],true];
                             _progress set [6,+_pathDestination];
                             _progress set [9,+_path];
                             _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
