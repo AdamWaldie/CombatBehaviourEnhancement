@@ -6,7 +6,8 @@
  * Repeat/JIP: One attempt per canonical roster/roles/native topology and original retry deadline; no renewal, movement or JIP replay.
  * Arguments: 0 proposal HASHMAP empty;1 cancel BOOL false. Proposal from DrivingQueueProposal.
  * Return: BOOL submitted/cancelled, not agreed or physically cleared.
- * Current callers: DrivingAssistStart proposal hook; trusted local cancellation.
+ * Current callers: Explicit local development/protocol callers and trusted local cancellation.
+ * Automatic driving admission remains inactive until physical queue execution is implemented.
  * Example: [_proposal] call CBE_fnc_DrivingQueueAgreementRequest;
  */
 params [["_proposal",createHashMap,[createHashMap]],["_cancel",false,[true]]];

@@ -773,45 +773,9 @@ _brain set ["geometryTracks",_geometryTracks];
                 false
             };
 
-            // Queue proposal discovery is not movement ownership or an acknowledgement.
-            // Keep its world query outside the unscheduled retry/publication section.
-            private _queuePrior=_vehicle getVariable ["CBE_DrivingQueue_ProposalAt",-1e9];
-            private _queueSeen=_vehicle getVariable ["CBE_DrivingTrafficSeen",[]];
-            private _queueRetry=_vehicle getVariable ["CBE_DrivingTrafficRetry",createHashMap];
-            if (call _mayRecoverOrdinaryRoute && {count _queueSeen == 5} && {count _queueRetry > 0}
-                && {serverTime >= (_queueSeen select 2)} && {serverTime-(_queueSeen select 2) <= 1.5}
-                && {serverTime-(_queueRetry get "since") >= 5} && {(_queueRetry get "since") >= 0}
-                && {serverTime < (_queueRetry get "deadline")} && {serverTime-_queuePrior >= 30}) then {
-                private _queueClaimAt=serverTime;
-                private _queueClaimed=false;
-                private _queueCurrent={
-                    call _mayRecoverOrdinaryRoute
-                        && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
-                        && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
-                        && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])}
-                        && {(_vehicle getVariable ["CBE_DrivingTrafficSeen",[]]) isEqualTo _queueSeen}
-                        && {(_vehicle getVariable ["CBE_DrivingTrafficRetry",createHashMap]) isEqualTo _queueRetry}
-                        && {serverTime >= (_queueSeen select 2)} && {serverTime-(_queueSeen select 2) <= 1.5}
-                        && {serverTime < (_queueRetry get "deadline")}
-                };
-                isNil {
-                    if (!(call _queueCurrent)
-                        || {(_vehicle getVariable ["CBE_DrivingQueue_ProposalAt",-1e9]) != _queuePrior}) exitWith {};
-                    _vehicle setVariable ["CBE_DrivingQueue_ProposalAt",_queueClaimAt];
-                    _queueClaimed=true;
-                };
-                if (_queueClaimed) then {
-                    private _queueProposal=[_vehicle,_queueSeen select 1,_queueRetry get "deadline"] call CBE_fnc_DrivingQueueProposal;
-                    isNil {
-                        if (!(call _queueCurrent)
-                            || {(_vehicle getVariable ["CBE_DrivingQueue_ProposalAt",-1e9]) != _queueClaimAt}) exitWith {};
-                        _vehicle setVariable ["CBE_DrivingQueue_Proposal",_queueProposal];
-                        if ((_queueProposal getOrDefault ["status",""]) == "PROPOSAL") then {
-                            [_queueProposal] call CBE_fnc_DrivingQueueAgreementRequest;
-                        };
-                    };
-                };
-            };
+            // Automatic queue negotiation stays inactive until its physical executor exists.
+            // Unconsumed consent would block passing for30s without making any room.
+            // Keep ordinary traffic recovery active; internal proposal/consent APIs remain separate.
 
             // Waiting behind traffic is not a route fault. Keep the last progress sample current so
             // clearing the queue does not immediately inherit a stale reverse deadline.

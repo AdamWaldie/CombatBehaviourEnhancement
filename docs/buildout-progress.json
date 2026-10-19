@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "b00556d4afdcfc5a050b957a5b8e721c5aaa20becc8daad8422406130a707e06"
+              "sha256": "7e80753d42de48e5774e7cb330e1e8af6ef01e603e7bab78b660ec8aa2b17218"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1603,13 +1603,13 @@
         {
           "capability": "Queue discovery and agreement",
           "weight": 1,
-          "built": 1,
-          "implemented": "Bounded dependency discovery, owner agreement and monotonic retirement are wired.",
-          "remaining_build_gap": "",
+          "built": 0.5,
+          "implemented": "Bounded dependency discovery, owner agreement and monotonic retirement exist as internal APIs; owners also bind native vehicle move/turn input.",
+          "remaining_build_gap": "Automatic runtime admission is inactive until an execution path can consume agreement without blocking passing. Reintegrate discovery/consent with that executor.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
-              "sha256": "2d7f1988a9adac09ff9a20ea16b05ac578f7ce2e71388c9668a1757a78392e43"
+              "sha256": "77be04281df14f7710b915b0b7181caf01c3e753821d1ca8827b5bf99505efae"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
@@ -1618,6 +1618,18 @@
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
               "sha256": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueContext.sqf",
+              "sha256": "5edd88423be2b3d2427567a1a8e9063032df17ce4db0df1ff1e9c31af0bcf317"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+              "sha256": "71579d75be1aa22ae74eeee72f6344a9bc192036387bc28ed754b971559f0ccd"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+              "sha256": "7e80753d42de48e5774e7cb330e1e8af6ef01e603e7bab78b660ec8aa2b17218"
             }
           ]
         },

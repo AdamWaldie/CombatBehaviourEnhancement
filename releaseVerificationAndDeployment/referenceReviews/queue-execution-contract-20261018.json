@@ -181,5 +181,35 @@
       "https://community.bistudio.com/wiki/sendSimpleCommand",
       "https://community.bistudio.com/wiki/vehicleMoveInfo"
     ]
+  },
+  "queue_runtime_admission_update_20261019": {
+    "finding": "Automatic discovery requested consent that no physical executor consumed. Live consent blocks passing for up to30seconds, so the prepared negotiation could worsen an actual jam. Crew/pose context also omitted independent native vehicle input.",
+    "implementation": "Removed automatic query/request from ordinary driving; preserved finite ordinary traffic retries and internal proposal/broker APIs. Queue context now carries six-field rows including native move/turn input; actual owners compare it before ACK/results, while remote observation does not count as ownership. Passing/queue local admission refuses independent native drive/turn/fixed-path commands. Exact-token release accepts the new row shape.",
+    "remaining": "Reintegrate automatic discovery only with real COMMIT/HOLD/settled READY/rear-first dependency execution and exact handback. Full goal unchanged; no queue movement credit.",
+    "sourceHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "7e80753d42de48e5774e7cb330e1e8af6ef01e603e7bab78b660ec8aa2b17218",
+      "addons/vehicles/functions/drivingPassCanConsent.sqf": "5b179c0b4a8f9d08d54763459734469602e1ec0bf85139a6dddb0d1883c8dcb2",
+      "addons/vehicles/functions/drivingQueueContext.sqf": "5edd88423be2b3d2427567a1a8e9063032df17ce4db0df1ff1e9c31af0bcf317",
+      "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "71579d75be1aa22ae74eeee72f6344a9bc192036387bc28ed754b971559f0ccd",
+      "addons/vehicles/functions/drivingQueueProposal.sqf": "77be04281df14f7710b915b0b7181caf01c3e753821d1ca8827b5bf99505efae",
+      "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "9f54160e6b1473eb5c5c6e76c3ff758fde7cc637e944d0014fe063ebd49d2d6c",
+      "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "8bdc80b23a55cb0416f95f0a1d6b9d3748adbf92db250433e0b5ca8de647d158"
+    },
+    "buildoutReassessment": "Queue discovery/agreement criterion lowered from1 to0.5 (the ledger uses0/0.5/1) for missing automatic integration, not lack of physical acceptance.",
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "rawSourcesModified": false,
+    "validation": {
+      "fullPipeline": ".qa/cbe-queue-runtime-admission-build.log",
+      "initialLedgerFinding": "0.75 is unsupported; corrected to the defined0.5 partial score. Initial rendered report was stale and was not accepted.",
+      "correctedDocGates": "buildout render/check, documentation contracts and wiki check passed.",
+      "finalPackage": ".qa/cbe-queue-runtime-admission-final-package.log",
+      "finalPackageScope": "Production source unchanged since successful full pipeline; only corrected ledger/report changed before repackage with already-passed static checks retained.",
+      "independentFingerprint": "0636834604a90650fbe3e6620fc3d180406bc6b350852eca7f3c9d275ee8091d",
+      "manifestCommit": "4cdf93df56e95bf05f348c93f0eecc31fed5eba4",
+      "manifestDirty": true,
+      "newTestCases": 0,
+      "physicalAcceptance": false
+    }
   }
 }

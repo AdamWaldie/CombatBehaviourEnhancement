@@ -34,7 +34,7 @@ These are provisional source-based estimates using explicit, equally weighted ca
 | REMOUNT â€” Contact passenger remount | ~83% | implemented_partial |
 | WITHDRAW â€” Damaged vehicle withdrawal | ~83% | implemented_partial |
 | COVER â€” Cover selection and clearance | ~100% | implemented_partial |
-| VEH-DRIVING â€” Ordinary vehicle route safety | ~68% | implemented_partial |
+| VEH-DRIVING â€” Ordinary vehicle route safety | ~64% | implemented_partial |
 | CNV-MOVE â€” Mixed convoy path and spacing | ~81% | implemented_partial |
 | CNV-FIRE â€” Convoy weapon crew | ~100% | implemented_partial |
 | CNV-COVER â€” Convoy dismount positions | ~83% | implemented_partial |
@@ -84,13 +84,13 @@ The total uses explicit subsystem and family scope weights in the ledger. They r
 | Individual and squad infantry | 15% | ~92% |
 | CQB, garrison and defence | 15% | ~74% |
 | Coordination and combined operations | 20% | ~67% |
-| Driving and convoy | 20% | ~82% |
+| Driving and convoy | 20% | ~81% |
 | Ground vehicles and passengers | 5% | ~86% |
 | Aircraft and airborne | 8% | ~96% |
 | Reports, reinforcement and artillery | 5% | ~91% |
 | Compatibility handovers | 2% | ~50% |
 
-**Current registered-plan build-out index: approximately 80%.** The underlying weighted estimate is 81.0%; rounding avoids false precision. This is provisional and mostly low-confidence. It is not an estimate of remaining time or proof that the behaviour works.
+**Current registered-plan build-out index: approximately 80%.** The underlying weighted estimate is 80.7%; rounding avoids false precision. This is provisional and mostly low-confidence. It is not an estimate of remaining time or proof that the behaviour works.
 
 The broad survey uses sampled production call paths and explicit registered intent. New rows are low-confidence provisional engineering estimates, not exhaustive semantic reviews or proof of working balance. The aggregate covers the current registered product plan; broader Workshop-source contributions are not fully reconciled and cannot be described as this percentage complete. No whole-source parity percentage is claimed.
 
@@ -415,12 +415,12 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | Finite native rear recovery | 1 / 1 | Native rear request, live corridor/damage monitoring and owned release are implemented. [drivingAssistStart](../addons/vehicles/functions/drivingAssistStart.sqf); [drivingRearClear](../addons/vehicles/functions/drivingRearClear.sqf); [drivingRecoveryRelease](../addons/vehicles/functions/drivingRecoveryRelease.sqf) |
 | Static bypass and corridor execution | 1 / 1 | Finite owner-local approach/crossing/return executors exist. [drivingBypassStep](../addons/vehicles/functions/drivingBypassStep.sqf); [drivingCorridorStep](../addons/vehicles/functions/drivingCorridorStep.sqf) |
 | Negotiated passing | 0.5 / 1 | Consent and finite passing/return execution are wired. Remaining: Stopped-merge recovery and all native handover cases remain unfinished. [drivingPassAgreementOwner](../addons/vehicles/functions/drivingPassAgreementOwner.sqf); [drivingPassStep](../addons/vehicles/functions/drivingPassStep.sqf) |
-| Queue discovery and agreement | 1 / 1 | Bounded dependency discovery, owner agreement and monotonic retirement are wired. [drivingQueueProposal](../addons/vehicles/functions/drivingQueueProposal.sqf); [drivingQueueAgreementServer](../addons/vehicles/functions/drivingQueueAgreementServer.sqf); [drivingQueueAgreementOwner](../addons/vehicles/functions/drivingQueueAgreementOwner.sqf) |
+| Queue discovery and agreement | 0.5 / 1 | Bounded dependency discovery, owner agreement and monotonic retirement exist as internal APIs; owners also bind native vehicle move/turn input. Remaining: Automatic runtime admission is inactive until an execution path can consume agreement without blocking passing. Reintegrate discovery/consent with that executor. [drivingQueueProposal](../addons/vehicles/functions/drivingQueueProposal.sqf); [drivingQueueAgreementServer](../addons/vehicles/functions/drivingQueueAgreementServer.sqf); [drivingQueueAgreementOwner](../addons/vehicles/functions/drivingQueueAgreementOwner.sqf); [drivingQueueContext](../addons/vehicles/functions/drivingQueueContext.sqf); [drivingQueueProposalCurrent](../addons/vehicles/functions/drivingQueueProposalCurrent.sqf); [drivingAssistStart](../addons/vehicles/functions/drivingAssistStart.sqf) |
 | Queue room-making execution | 0 / 1 | Agreement handler records consent; it issues no movement. Remaining: COMMIT/HOLD/settled READY/rear-first movement/crossing/handback executor is absent. [drivingQueueAgreementOwner](../addons/vehicles/functions/drivingQueueAgreementOwner.sqf) |
 | Crew handover | 0.5 / 1 | Current seat and replacement-driver ownership paths exist. Remaining: Complete cross-owner crew transitions and native task preservation still need implementation review. [drivingCrewStep](../addons/vehicles/functions/drivingCrewStep.sqf); [drivingRecoveryCrewAdopt](../addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf) |
 | Native order and external handback | 0.5 / 1 | Exact owned settings and changed routes are guarded. Remaining: Separate crew STOP and repeated identical native command cases are not completely resolved. [drivingAssistRelease](../addons/vehicles/functions/drivingAssistRelease.sqf); [drivingOperationFinish](../addons/vehicles/functions/drivingOperationFinish.sqf) |
 
-Calculation: 7.5 implemented capability units / 11 scoped units. Acceptance is not part of this calculation.
+Calculation: 7 implemented capability units / 11 scoped units. Acceptance is not part of this calculation.
 
 ## CNV-MOVE â€” Mixed convoy path and spacing
 

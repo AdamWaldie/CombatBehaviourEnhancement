@@ -25,7 +25,7 @@ private _context=_consent getOrDefault ["context",[]];
 if (!(_token isEqualType "") || {_token == ""}
     || {!((_consent getOrDefault ["phase",""]) in ["PENDING","AGREED"])}
     || {!(_context isEqualType [])} || {count _context < 2} || {count _context > 4}) exitWith {false};
-private _index=_context findIf {_x isEqualType [] && {count _x == 5} && {(_x select 0) isEqualTo _vehicle}};
+private _index=_context findIf {_x isEqualType [] && {count _x == 6} && {(_x select 0) isEqualTo _vehicle}};
 if (_index < 0) exitWith {false};
 private _row=_context select _index;
 if ((_row select 1) != clientOwner) exitWith {false};

@@ -5,6 +5,8 @@
  * Repeat/JIP: No state/commands/handlers; re-read before every deferred protocol action.
  * Total finite linear velocity must remain below1km/h, including lateral/vertical motion.
  * This instantaneous test grants neither an execution hold nor physical READY.
+ * Actual owners compare the original vehicle move/turn input too; unchanged crew
+ * destinations alone cannot preserve consent after a new independent driving directive.
  * Arguments: 0 vehicles ARRAY [];1 roles ARRAY [];2 dependencies ARRAY [];3 context ARRAY [];4 localRows BOOL false.
  * Return: BOOL current proposal observation, never execution authority.
  * Current callers: DrivingQueueAgreementRequest/Server/Owner.
@@ -26,7 +28,7 @@ if (count _live != _n) exitWith {false};
 private _valid=true;private _localCount=0;private _groups=[];
 for "_i" from 0 to (_n-1) do {
     private _a=_live select _i;private _e=_context select _i;
-    if (!(_e isEqualType []) || {count _e != 5} || {(_a select [0,2]) isNotEqualTo (_e select [0,2])}) exitWith {_valid=false};
+    if (!(_e isEqualType []) || {count _e != 6} || {(_a select [0,2]) isNotEqualTo (_e select [0,2])}) exitWith {_valid=false};
     {
         private _ar=_a select _x;private _er=_e select _x;
         if (!(_er isEqualType []) || {count _er != 11} || {count _ar != 11}
@@ -36,6 +38,12 @@ for "_i" from 0 to (_n-1) do {
         if (_localRows && {local (_vehicles select _i)} && {_ar isNotEqualTo _er}) exitWith {_valid=false};
     } forEach [2,3];
     if (!_valid) exitWith {};
+    private _nativeReceipt=_e select 5;
+    if (!(_nativeReceipt isEqualType []) || {count _nativeReceipt != 2}
+        || {_nativeReceipt findIf {!(_x isEqualType "")} >= 0}) exitWith {_valid=false};
+    // Remote observation cannot stand in for this participant's actual owner ACK.
+    if (_localRows && {local (_vehicles select _i)}
+        && {(_a select 5) isNotEqualTo _nativeReceipt}) exitWith {_valid=false};
     private _ep=_e select 4;private _ap=_a select 4;
     if (!(_ep isEqualType []) || {count _ep != 3}
         || {_ep findIf {!(_x isEqualType []) || {count _x != 3}

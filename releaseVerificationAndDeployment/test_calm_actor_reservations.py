@@ -628,19 +628,13 @@ class RecoveryLivePeerTests(unittest.TestCase):
 
 
 class DrivingQueueDiscoveryAuthorityTests(unittest.TestCase):
-    def test_queue_discovery_cannot_adopt_a_replacement_brain(self):
-        source=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
-        body=source.split('private _queueClaimAt=',1)[1].split('// Waiting behind traffic',1)[0]
-        for guard in ('call _mayRecoverOrdinaryRoute','isEqualTo _brain','CBE_AIPass_Epoch',
-                      '"cancelled"','"finished"','isEqualTo _queueSeen','isEqualTo _queueRetry'):
-            self.assertIn(guard,body)
-        self.assertEqual(body.count('call _queueCurrent'),2)
-        self.assertIn('!= _queuePrior',body)
-        self.assertIn('!= _queueClaimAt',body)
-        self.assertLess(body.index('if (_queueClaimed)'),body.index('call CBE_fnc_DrivingQueueProposal'))
-        publication=body.split('call CBE_fnc_DrivingQueueProposal;',1)[1]
-        self.assertLess(publication.index('isNil {'),publication.index('call CBE_fnc_DrivingQueueAgreementRequest'))
-        self.assertNotIn('doMove',body)
+    def test_queue_request_retains_owner_admission_while_automatic_hook_is_inactive(self):
+        source=(ROOT/'addons/vehicles/functions/drivingQueueAgreementRequest.sqf').read_text()
+        self.assertIn('isRemoteExecuted',source)
+        self.assertIn('call CBE_fnc_DrivingQueueProposalCurrent',source)
+        self.assertLess(source.index('call CBE_fnc_DrivingQueueProposalCurrent'),source.index('"BEGIN"'))
+        driving=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertNotIn('call CBE_fnc_DrivingQueueAgreementRequest',driving)
 
 
 class ConvoyCapCommitIdentityTests(unittest.TestCase):

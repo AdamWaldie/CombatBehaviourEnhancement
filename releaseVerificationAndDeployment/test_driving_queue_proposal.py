@@ -26,6 +26,7 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('CBE_Driving_State',body)
         self.assertIn('call CBE_fnc_DrivingRouteReceipt',body)
         self.assertIn('getPosWorld _x,vectorDir _x,vectorUp _x',body)
+        self.assertIn('+(vehicleMoveInfo _x)',body)
         for command in ('setVariable','doMove','forceSpeed','remoteExec'):
             self.assertNotIn(command,body)
     def test_discovery_has_one_bounded_query_and_no_movement_or_consent(self):
@@ -39,21 +40,14 @@ class QueueProposalTests(unittest.TestCase):
         for command in ('setVariable','doMove','doStop','setDriveOnPath','forceSpeed',
                         'setPos','setVelocity','remoteExec','spawn','waitUntil'):
             self.assertNotIn(command,body)
-    def test_natural_discovery_follows_dwell_and_stays_outside_atomic_retry(self):
+    def test_unconsumed_queue_consent_is_not_requested_by_ordinary_driving(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
-        block=s.split('// Queue proposal discovery',1)[1].split('// Waiting behind traffic',1)[0]
-        self.assertIn('serverTime-(_queueRetry get "since") >= 5',block)
-        self.assertIn('serverTime-_queuePrior >= 30',block)
-        self.assertIn('serverTime-(_queueSeen select 2) <= 1.5',block)
-        self.assertEqual(block.count('call CBE_fnc_DrivingQueueProposal'),1)
-        claim=block.index('_queueClaimed=true;')
-        query=block.index('call CBE_fnc_DrivingQueueProposal;')
-        self.assertIn('};\n                if (_queueClaimed) then {',block[claim:query])
-        self.assertTrue(block[query:].startswith('call CBE_fnc_DrivingQueueProposal;\n                    isNil {'))
-        self.assertIn('call CBE_fnc_DrivingQueueAgreementRequest',block)
-        self.assertNotIn('remoteExec',block)
-        self.assertNotIn('forceSpeed',block)
-        self.assertIn('serverTime < (_queueRetry get "deadline")',block)
+        self.assertNotIn('call CBE_fnc_DrivingQueueProposal',s)
+        self.assertNotIn('call CBE_fnc_DrivingQueueAgreementRequest',s)
+        self.assertNotIn('CBE_DrivingQueue_ProposalAt',s)
+        # Ordinary finite traffic retries remain available; this is not disabling recovery.
+        self.assertIn('private _jamEligible=',s)
+        self.assertIn('_jam set ["attempts",(_jam get "attempts")+1]',s)
 
     def test_queue_broker_authenticates_each_owner_with_distinct_role_contract(self):
         server=(ROOT/'addons/vehicles/functions/drivingQueueAgreementServer.sqf').read_text(encoding='utf-8')
@@ -78,6 +72,12 @@ class QueueProposalTests(unittest.TestCase):
                       'vectorMagnitude (_ep select 1)','_localCount == 0','CBE_AIPass_DrivingAssist_Recovery_Enable'):
             self.assertIn(proof,s)
         self.assertNotIn('setVariable',s)
+        self.assertIn('count _e != 6',s)
+        self.assertIn('(_a select 5) isNotEqualTo _nativeReceipt',s)
+        admission=(ROOT/'addons/vehicles/functions/drivingPassCanConsent.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _nativeDriveInfo=vehicleMoveInfo _vehicle',admission)
+        self.assertIn('["BACK","FORWARD","FAST","SLOW","DIRECTBYCOMANDER","SIMPLE","CONVOY"]',admission)
+        self.assertIn('in ["LEFT","RIGHT"]',admission)
     def test_stale_cancel_and_late_results_cannot_clear_successor_consent(self):
         request=(ROOT/'addons/vehicles/functions/drivingQueueAgreementRequest.sqf').read_text(encoding='utf-8')
         cancel=request.split('if (_cancel) exitWith {',1)[1].split('private _roles=',1)[0]

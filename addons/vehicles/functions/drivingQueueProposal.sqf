@@ -12,7 +12,8 @@
  * 2 original episode deadline <NUMBER>,-1,serverTime. Caller supplies continuous jam dwell.
  * Return: HASHMAP status REFUSED/PROPOSAL,reason; proposal adds vehicles,roles,dependencies,
  * canonical context,observedAt,deadline. Geometry/reverse/consent/success are never inferred.
- * Current callers: DrivingAssistStart after continuous stationary traffic dwell, at most once/30s.
+ * Current callers: Explicit local development/protocol callers only. Automatic admission is
+ * inactive until a physical queue executor can consume agreement without blocking other recovery.
  * Example: private _p=[_own,_peer,_retryDeadline] call CBE_fnc_DrivingQueueProposal;
  */
 params [["_vehicle",objNull,[objNull]],["_peer",objNull,[objNull]],["_until",-1,[0]]];

@@ -333,3 +333,6 @@ Common operation completion/cancellation now retire their public operation and r
 Operation attack-permission restoration now checks the exact current operation and performs its existing bounded roster/lease/value checks in the same unscheduled block as lease consumption and enableAttack. No movement, geometry query or additional observer is added. This closes a scheduled check/write gap; same-value external setting edits and physical handover remain unverified.
 
 Vehicle withdrawal now publishes RETREAT/MOVING and marks the hull withdrawn only after matching current reverse admission or a committed generation-bound fallback waypoint. State/operation/epoch are rechecked in the transaction; lease timing derives from original operation start. Refusal retires only the matching incomplete operation and releases its lease only after matching termination with no successor. Existing sparse retry remains; physical withdrawal and long-contact retry policy remain unverified.
+
+
+Automatic queue negotiation is inactive until its physical executor exists. Internal discovery/consent APIs remain implemented, now with actual-owner native move/turn receipts. This removes unconsumed automatic agreements that could block passing for30seconds; ordinary traffic recovery remains available. Queue HOLD/READY/dependency execution is still missing.

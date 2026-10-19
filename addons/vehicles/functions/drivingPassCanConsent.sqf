@@ -6,10 +6,13 @@
  * Repeat/JIP: No commands, state, claims, handlers or cached permission. Recheck at negotiation
  * and every future command boundary. True is eligibility only, not an acknowledgement or priority.
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 protocol <STRING, PASS>, PASS or internal QUEUE.
+ * Both protocols refuse independent native driving/turning and fixed-path input, even
+ * while their unit commands and waypoint destinations remain unchanged.
  * PASS refuses live/malformed queue consent; QUEUE reuses ordinary eligibility without rejecting
  * its own agreement. QueueProposalCurrent independently refuses passing consent.
  * Return: BOOL - local ordinary-route eligibility, never authority to execute a pass.
- * Current callers: DrivingPassPrepare and authenticated DrivingPassAgreementOwner verification.
+ * Current callers: DrivingPassPrepare, authenticated DrivingPassAgreementOwner verification
+ * and DrivingQueueProposalCurrent actual-owner admission.
  * Example: private _eligible=[truck1] call CBE_fnc_DrivingPassCanConsent;
  */
 params [["_vehicle",objNull,[objNull]],["_protocol","PASS",[""]]];
@@ -35,6 +38,9 @@ if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}
     || {!isNil {_vehicle getVariable "CBE_DrivingPass_Leg"}}
     || {_vehicle getVariable ["CBE_Convoy_Active",false]}
     || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}) exitWith {false};
+private _nativeDriveInfo=vehicleMoveInfo _vehicle;
+if (toUpperANSI (_nativeDriveInfo param [0,"",[""]]) in ["BACK","FORWARD","FAST","SLOW","DIRECTBYCOMANDER","SIMPLE","CONVOY"]
+    || {toUpperANSI (_nativeDriveInfo param [1,"",[""]]) in ["LEFT","RIGHT"]}) exitWith {false};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _operator) then {_operator=_driver};
 if (isNull _driver || {isNull _operator}) exitWith {false};
