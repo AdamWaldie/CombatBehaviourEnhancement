@@ -165,7 +165,7 @@ class RecoveryCleanupTests(unittest.TestCase):
             self.assertNotIn(forbidden,terminal)
         self.assertIn('_commandState == "OWNED"',release.split('private _owned=',1)[1])
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
-        self.assertIn('!_queueNativeActive && {!_recoveryRequestPending} && {call _mayRecoverRoute}',start)
+        self.assertIn('!_queueCrossing && {!_queueNativeActive} && {!_recoveryRequestPending} && {call _mayRecoverRoute}',start)
         self.assertIn('"NATIVE_ACK_UNRESOLVED"] call CBE_fnc_DrivingRecoveryRelease',start)
         for goal, receipt in (('_destination','_forwardCommands'),('_rear','_rearCommands')):
             self.assertIn('[+'+goal+',serverTime+2,'+receipt+']',start)

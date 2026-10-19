@@ -5,12 +5,13 @@
  * OBSERVE requests zero cap; APPLIED journals that the existing writer actually holds its cap.
  * READY requires the exact applied token/brain plus sampled linear/angular stillness for1s.
  * One retry after2s tolerates stale server motion replication; the existing callback services it.
- * Both reports retain the original expiry and all owner/cap/stillness checks.
+ * Hold/path reports retain original expiry; PATH_READY observes the published root
+ * path at zero cap, at most two reports per vehicle through existing callbacks.
  * No native movement/speed commands, reverse leg, worker or ownership transfer occur here.
  * Repeat/JIP: Private exact consent/commit and original expiry only. Duplicate application does
  * not reset dwell. Changed order/context/locality or expired consent grants no hold/replay.
  * Existing consent timers retire requests; existing driving release restores only its own cap.
- * Arguments: mode STRING OBSERVE/APPLIED, group GROUP grpNull, vehicle OBJECT objNull,
+ * Arguments: mode STRING OBSERVE/APPLIED/PATH_READY, group GROUP grpNull, vehicle OBJECT objNull,
  * current driving brain HASHMAP empty.
  * Return: BOOL - valid committed hold requested/applied, never reverse or queue success.
  * Cost: OBSERVE revalidates at most4 participants through existing canonical context; APPLIED
@@ -23,7 +24,7 @@ params [["_mode","OBSERVE",[""]],["_group",grpNull,[grpNull]],
 private _holding=false;
 isNil {
     _holding=call {
-if (!(_mode in ["OBSERVE","APPLIED"]) || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}
+if (!(_mode in ["OBSERVE","APPLIED","PATH_READY"]) || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}
     || {isNull _group} || {!local _group} || {isNull _vehicle} || {!local _vehicle}
     || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
@@ -61,6 +62,29 @@ private _contextCurrent=if ("motionBinding" in _consent) then {
 if (!_contextCurrent) exitWith {
     [_vehicle,_group,_epoch,_generation] call CBE_fnc_DrivingQueueAgreementRelease;false
 };
+private _pathReport=false;private _pathReportBinding=[];
+// Each existing participant callback acknowledges observation of the published
+// root path while it is still held at zero cap. At most two reports per vehicle;
+// the broker deduplicates owners. No timer, speed write or new movement permission.
+if ((_consent getOrDefault ["motionStage",""]) == "CROSSING") then {
+    private _root=(_consent getOrDefault ["vehicles",[]]) param [0,objNull];
+    private _pathWork=_root getVariable ["CBE_DrivingBypass_Work",createHashMap];
+    private _pathBinding=_consent getOrDefault ["crossingBinding",[]];
+    if (_capOwned && {(_pathWork getOrDefault ["phase",""]) == "FOLLOW"}
+        && {(_pathWork getOrDefault ["queueCrossingBinding",[]]) isEqualTo _pathBinding}) then {
+        private _pathReports=_consent getOrDefault ["pathReadyReports",0];
+        if (_pathReports < 2 && {_pathReports == 0 || {serverTime-(_consent getOrDefault ["pathReadyAt",-1]) >= 2}}) then {
+            private _next=createHashMapFromArray (keys _consent apply {[_x,_consent get _x]});
+            _next set ["pathReadyReports",_pathReports+1];_next set ["pathReadyAt",serverTime];
+            _vehicle setVariable ["CBE_DrivingQueue_Consent",_next];_consent=_next;
+            _pathReport=true;_pathReportBinding=_pathBinding;
+        };
+    };
+};
+if (_mode == "PATH_READY") exitWith {
+    if (_pathReport) then {["CROSS_PATH_READY",[_token,_pathReportBinding]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    _contextCurrent
+};
 // Once applied, a changed cap/lease is a takeover, not permission to reacquire it.
 if ((_consent getOrDefault ["holdApplied",[]]) isEqualTo _applied && {!_capOwned}) exitWith {
     [_vehicle,_group,_epoch,_generation] call CBE_fnc_DrivingQueueAgreementRelease;false
@@ -89,6 +113,7 @@ if (_settled) then {
 } else {_updated set ["holdStillSince",-1]};
 if (_updated isNotEqualTo _consent) then {_vehicle setVariable ["CBE_DrivingQueue_Consent",_updated]};
 // Publish before delivery; synchronous local delivery cannot resurrect a retired receipt.
+if (_pathReport) then {["CROSS_PATH_READY",[_token,_pathReportBinding]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
 if (_reportReady) then {["READY",[_token,_vehicle]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
 true
     };

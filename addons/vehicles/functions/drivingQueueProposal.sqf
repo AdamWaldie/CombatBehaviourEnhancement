@@ -5,8 +5,8 @@
  * Purpose: Proposes a bounded head-on queue roster and rear-to-front room-making dependencies.
  * Locality/authority: Initiating vehicle owner, read-only. Proposed roles are not priority or
  * consent. Remote participant eligibility is observational; actual-owner ACK is separately brokered; a native
- * reverse/dependency execution remains required and unimplemented. Explicit committed holds
- * have a separate existing-driving executor. This proposal writes no movement/reservations/speed.
+ * reverse/dependency/crossing execution is separately granted through existing driving callbacks.
+ * This proposal writes no movement/reservations/speed.
  * Repeat/JIP: Stateless fresh proposal, expires within original retry deadline and two seconds.
  * Stationary admission requires finite total linear velocity below1km/h and angular
  * velocity below0.01rad/s, not only forward-axis speed. Pivoting is not stationary.
@@ -19,7 +19,7 @@
  * Return: HASHMAP status REFUSED/PROPOSAL,reason; proposal adds vehicles,roles,dependencies,
  * canonical context,observedAt,deadline. Geometry/reverse/consent/success are never inferred.
  * Current callers: Explicit local development/protocol callers only. Automatic admission is
- * inactive until a physical queue executor can consume agreement without blocking other recovery.
+ * inactive pending physical reliability and repeated-jam policy validation.
  * Example: private _p=[_own,_peer,_retryDeadline] call CBE_fnc_DrivingQueueProposal;
  */
 params [["_vehicle",objNull,[objNull]],["_peer",objNull,[objNull]],["_until",-1,[0]]];

@@ -127,7 +127,8 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertNotIn('["authority",',s)
     def test_controller_preserves_other_constraints_and_excludes_other_paths(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
-        self.assertEqual(s.count('call CBE_fnc_DrivingBypassStep'),1)
+        self.assertEqual(s.count('call CBE_fnc_DrivingBypassStep'),2)
+        self.assertIn('if (_queueCrossing) then {',s)
         self.assertIn('!_hadBypass',s)
         self.assertIn('_traffic=+_withoutObstacle;',s)
         self.assertIn('_bypass select 3',s)
@@ -148,11 +149,11 @@ class DrivingBypassTests(unittest.TestCase):
 
         step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
         release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
-        for proof in ('_queueAgreement getOrDefault ["crossingGranted",false]',
+        for proof in ('_liveQueue getOrDefault ["crossingGranted",false]',
                       '"queueCrossingBinding"','_queueAgreement get "expires"',
                       '"QUEUE_PROPOSAL_CHANGED"','"QUEUE_PATH_BLOCKED"',
                       '[true,0,"QUEUE_CROSSED_HOLD",false]',
-                      '[_vehicle,_asl,_radius,((_high select 2)-(_low select 2))] call CBE_fnc_DrivingPathGeometry'):
+                      '[_vehicle,_freshGuide,_radius,((_high select 2)-(_low select 2))] call CBE_fnc_DrivingPathGeometry'):
             self.assertIn(proof,step)
         for proof in ('_queueMayRetire','_queueMayResume','"QUEUE_COMPLETE"','queueClearanceAccepted',
                       'call CBE_fnc_DrivingQueueAgreementRelease'):
@@ -163,6 +164,17 @@ class DrivingBypassTests(unittest.TestCase):
             self.assertIn(proof,step)
         self.assertIn('_reason in ["QUEUE_COMPLETE","DRIVING_RELEASED"]',release)
         self.assertIn('isEqualTo _queueBinding',release)
+        self.assertIn('_freshGuide set [0,getPosASL _vehicle]',step)
+        self.assertIn('_proposal set [5,[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle]]',step)
+        self.assertIn('crossingMotionGranted',step)
+        self.assertIn('["PATH_READY",_group,_vehicle,_brain]',step)
+        driving=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('_queueCrossAuthority,"QUEUE"] call CBE_fnc_DrivingBypassStep',driving)
+        self.assertIn('_queueCrossing && {!(call _queueCrossAuthority)}',driving)
+        following=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text()
+        for proof in ('crossingGranted','"FOLLOW"','"QUEUE",-1','_other in _pathHulls',
+                      'call CBE_fnc_DrivingQueueReverseCurrent','count _candidates > 64'):
+            self.assertIn(proof,following)
         self.assertIn('&& {call _nativePathFree}',step)
         self.assertIn('&& {_nativePathFree}',release)
         for body in (step,release):

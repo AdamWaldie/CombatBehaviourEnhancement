@@ -129,7 +129,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertNotIn('while',short)
         self.assertNotIn('serverTime+',short)
         self.assertIn('&& {!_pendingRear || {_rearPathRejected}}',s)
-        self.assertIn('private _mayRecoverOrdinaryRoute={!_queueNativeActive && {!_recoveryRequestPending}',s)
+        self.assertIn('private _mayRecoverOrdinaryRoute={!_queueCrossing && {!_queueNativeActive} && {!_recoveryRequestPending}',s)
         self.assertIn('if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]}',s)
     def test_direction_and_issued_receipt_survive_stop_and_expire(self):
         s=src('drivingAssistStart')

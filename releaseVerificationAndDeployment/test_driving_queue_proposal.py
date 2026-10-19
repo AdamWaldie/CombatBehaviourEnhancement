@@ -68,7 +68,7 @@ class QueueProposalTests(unittest.TestCase):
         for proof in ('!isServer','remoteExecutedOwner <= 0','owner _vehicle != _sender',
                       '_sender in (_record get "owners")','count _registry >= 32',
                       '_acks pushBackUnique _sender','count _acks == count (_record get "owners")',
-                      '_expires > serverTime+30','_deadline > serverTime+2'):
+                      '_expires > serverTime+90','_deadline > serverTime+2'):
             self.assertIn(proof,server)
         self.assertIn('remoteExecutedOwner != 2',owner)
         room=(ROOT/'addons/vehicles/functions/drivingQueueParentRoom.sqf').read_text()
@@ -98,7 +98,7 @@ class QueueProposalTests(unittest.TestCase):
             self.assertIn(proof,reply)
         self.assertNotIn('"EXECUTE"',reply)
         self.assertNotIn('set ["executionGranted"',reply)
-        cross_grant=owner.split('if (_mode in ["CROSS_ARM","CROSS_EXECUTE"]) exitWith {',1)[1].split('// An installed motion phase',1)[0]
+        cross_grant=owner.split('if (_mode in ["CROSS_ARM","CROSS_EXECUTE","CROSS_MOVE"]) exitWith {',1)[1].split('// An installed motion phase',1)[0]
         for proof in ('_tokenClosed','_sameCross','_root in _owned','crossingPlanReceipt',
                       '"crossingBinding",_crossBinding','"executionGranted",false',
                       '"crossingGranted",_mode == "CROSS_EXECUTE"',
@@ -126,6 +126,13 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('count _payload == 10',terminal)
         self.assertIn('queueClearanceAccepted',terminal)
         self.assertLess(terminal.index('queueClearanceAccepted'),terminal.index('[_token,_expires] call CBE_fnc_DrivingQueueTokenClosed'))
+        path_ready=server.split('if (_mode == "CROSS_PATH_READY") exitWith {',1)[1].split('if (_mode == "CROSS_CLEAR")',1)[0]
+        for proof in ('_ready pushBackUnique _sender','count _ready == count (_record get "owners")',
+                      'crossingMotionSent','"FOLLOW"','abs getForcedSpeed _root > 0.001','["CROSS_MOVE",_message]'):
+            self.assertIn(proof,path_ready)
+        self.assertNotIn('call _scheduleExpiry',path_ready)
+        self.assertIn('crossingMotionGranted',owner)
+        self.assertIn('crossingIssueUntil',(ROOT/'addons/vehicles/functions/drivingQueueReverseCurrent.sqf').read_text())
         # Every dependency leg retains the original context/expiry, and needs all
         # owner acknowledgements for its own phase before the selected mover executes.
         for proof in ('_roomPhase != (_record getOrDefault ["phaseSerial",0])',
@@ -229,6 +236,8 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('if (!_duplicate || {!_accepted}) exitWith',owner)
         hold=(ROOT/'addons/vehicles/functions/drivingQueueHold.sqf').read_text(encoding='utf-8')
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        for proof in ('"PATH_READY"','pathReadyReports','_pathReports < 2','"CROSS_PATH_READY"'):
+            self.assertIn(proof,hold)
         body='\n'.join(line.split('//',1)[0] for line in hold.split('params [[',1)[1].splitlines())
         for proof in ('CBE_Driving_Brain','CBE_AIPass_Epoch','serverTime >= _expires',
                       'CBE_fnc_DrivingQueueTokenClosed','_mode == "APPLIED"',
@@ -291,7 +300,7 @@ class QueueProposalTests(unittest.TestCase):
         self.assertLess(cancel.index('(_request select 0) != _serial'),cancel.index('CBE_DrivingQueue_Request",nil'))
         self.assertIn('(_request select 1) isNotEqualTo _context',cancel)
         self.assertIn('_old isEqualTo _key',request)
-        self.assertIn('(_at+30) min _retryDeadline',request)
+        self.assertIn('(_at+90) min _retryDeadline',request)
         owner=(ROOT/'addons/vehicles/functions/drivingQueueAgreementOwner.sqf').read_text(encoding='utf-8')
         terminal=owner.split('// Terminal token cleanup',1)[1].split('private _duplicate=',1)[0]
         self.assertIn('(_old getOrDefault ["token",""]) == _token',terminal)

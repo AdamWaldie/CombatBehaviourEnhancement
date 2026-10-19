@@ -87,7 +87,7 @@ class DrivingQueueExpiry(unittest.TestCase):
     def test_server_bounds_timer_churn_across_fresh_serial_release_cycles(self):
         s=source('drivingQueueAgreementServer')
         for guard in ('"CBE_DrivingQueue_Admissions"','serverTime < (_admissions getOrDefault',
-                      'count _admissions >= 64','_admissions set [_admissionKey,serverTime+30]'):
+                      'count _admissions >= 64','_admissions set [_admissionKey,serverTime+90]'):
             self.assertIn(guard,s)
         self.assertLess(s.index('count _admissions >= 64'),s.index('_registry set [_token,_record]'))
         self.assertLess(s.index('_admissions set [_admissionKey'),s.index('[_record] call _scheduleExpiry'))

@@ -3,8 +3,8 @@
  * Purpose: Runs a finite ordinary/convoy-lead bypass or explicitly granted queue crossing through the existing controller.
  * QUEUE requires a private current CROSSING grant and frozen proposal. It rechecks path
  * geometry at issue, keeps original queue expiry, and holds at measured tail clearance.
- * Server grants require all-owner phase installation; driving callback dispatch and
- * coordinated handback integration remain required before this controller is activated.
+ * Server grants require all-owner phase installation and path-publication acknowledgement.
+ * The existing driving callback consumes this internal path; automatic queue admission remains off.
  * Locality / Authority: Internal synchronous owner callback only. Current driving brain and the
  * caller's fresh authority predicate and internal plain-route/crew gates protect every command. Never remote.
  * New PLAN acquisition preserves native STOP/FOLLOW/ATTACK/unowned CBE on either seat;
@@ -93,10 +93,12 @@ private _nativeAdmissionReady={
     } < 0
 };
 private _queueCurrent={
-    !_queue || {(_queueAgreement getOrDefault ["motionStage",""]) == "CROSSING"
-        && {_queueAgreement getOrDefault ["crossingGranted",false]}
-        && {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isEqualTo _queueAgreement}
-        && {[_queueAgreement,true] call CBE_fnc_DrivingQueueReverseCurrent}}
+    private _liveQueue=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+    !_queue || {(_liveQueue getOrDefault ["motionStage",""]) == "CROSSING"
+        && {_liveQueue getOrDefault ["crossingGranted",false]}
+        && {(_liveQueue getOrDefault ["crossingBinding",[]]) isEqualTo (_queueAgreement getOrDefault ["crossingBinding",[]])}
+        && {(_liveQueue getOrDefault ["crossingPath",[]]) isEqualTo (_queueAgreement getOrDefault ["crossingPath",[]])}
+        && {[_liveQueue,true] call CBE_fnc_DrivingQueueReverseCurrent}}
 };
 private _obstacleAvailable={
     params ["_target"];
@@ -238,8 +240,15 @@ if ((_work get "phase") == "PLAN") exitWith {
     if (_queue) then {
         // A stored proposal never grants cached collision/support clearance.
         // Reuse the same bounded validator immediately before the native commit.
-        private _fresh=[_vehicle,_asl,_radius,((_high select 2)-(_low select 2))] call CBE_fnc_DrivingPathGeometry;
-        if (!(_fresh select 0)) then {_proposal=[]};
+        private _freshGuide=+_asl;_freshGuide set [0,getPosASL _vehicle];
+        private _fresh=[_vehicle,_freshGuide,_radius,((_high select 2)-(_low select 2))] call CBE_fnc_DrivingPathGeometry;
+        if (!(_fresh select 0)) then {_proposal=[]} else {
+            // Only the stationary start is normalised within the frozen pose tolerance.
+            // Subsequent granted anchors and journal checkpoints remain unchanged.
+            _points=+_points;_points set [0,ASLToATL (_freshGuide select 0)];
+            _proposal=+_proposal;_proposal set [4,[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle]];
+            _proposal set [5,[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle]];
+        };
     };
     if (_proposal isEqualTo []) exitWith {[_vehicle,_group,"QUEUE_PATH_BLOCKED"] call CBE_fnc_DrivingBypassRelease;_inactive};
     private _issued=false;
@@ -268,8 +277,9 @@ if ((_work get "phase") == "PLAN") exitWith {
         false
     };
     if (!_issued) exitWith {_inactive};
-    [true,8/3.6,"BYPASS_FOLLOW",false]
+    [true,if (_queue && {!((_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["crossingMotionGranted",false])}) then {0} else {8/3.6},"BYPASS_FOLLOW",false]
 };
+if (_queue) then {["PATH_READY",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold};
 private _points=_work get "points";private _index=_work get "index";private _origin=getPosASL _vehicle;
 // A callback can arrive after a checkpoint was passed. Capture only the next ordered
 // prefix against a short observed movement segment, never an arbitrary nearest future point.
@@ -329,9 +339,9 @@ if (_index >= count _points) exitWith {
             [true,0,"QUEUE_CROSSED_HOLD",false]
         } else {[_vehicle,_group,"PHYSICALLY_PASSED"] call CBE_fnc_DrivingBypassRelease;_inactive}
     }
-    else {[true,8/3.6,"BYPASS_FOLLOW",false]}
+    else {[true,if (_queue && {!((_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["crossingMotionGranted",false])}) then {0} else {8/3.6},"BYPASS_FOLLOW",false]}
 };
 private _next=_points select _index;
 private _health=[_vehicle,[_origin,_next],_work get "radius",_work get "height"] call CBE_fnc_DrivingPathGeometry;
 if (!(_health select 0)) exitWith {[_vehicle,_group,"LEG_"+(_health select 1)] call CBE_fnc_DrivingBypassRelease;_inactive};
-[true,8/3.6,"BYPASS_FOLLOW",true]
+[true,if (_queue && {!((_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["crossingMotionGranted",false])}) then {0} else {8/3.6},"BYPASS_FOLLOW",true]

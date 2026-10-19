@@ -90,7 +90,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertNotIn('distance2D',guard)
         for receipt in ('get "group"','get "route"','get "driver"','get "operator"','get "driverCommand"','get "command"'):
             self.assertIn(receipt,guard)
-        self.assertIn('private _mayRecoverOrdinaryRoute={!_queueNativeActive && {!_recoveryRequestPending} && {call _mayRecoverRoute} && {call _nativeRouteIntent}',guard)
+        self.assertIn('private _mayRecoverOrdinaryRoute={!_queueCrossing && {!_queueNativeActive} && {!_recoveryRequestPending} && {call _mayRecoverRoute} && {call _nativeRouteIntent}',guard)
         self.assertIn('currentCommand _movementOperator != "STOP"',s.split('private _release=',1)[0])
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
         self.assertIn('(driver _follower) doMove _directDestination',audit)

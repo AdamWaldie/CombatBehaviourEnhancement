@@ -24,7 +24,7 @@ private _live=0;
 if (_unknown) exitWith {true};
 if (_closeUntil >= 0 && {_closeUntil > serverTime}) then {
     // Only retirement prunes. Queries cannot mutate or renew the journal.
-    if (_closeUntil <= serverTime+30) then {
+    if (_closeUntil <= serverTime+90) then {
         {if (serverTime >= (_closed get _x)) then {_closed deleteAt _x}} forEach keys _closed;
         if (_token in _closed) then {
             _closed set [_token,(_closed get _token) min _closeUntil];

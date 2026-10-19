@@ -52,7 +52,7 @@ private _key=[_vehicles,_roles,_dependencies,_context apply {
 private _old=_vehicle getVariable ["CBE_DrivingQueue_Attempt",[]];
 if (_old isEqualTo _key) exitWith {false};
 private _serial=(_vehicle getVariable ["CBE_DrivingQueue_Serial",0])+1;
-private _expires=(_at+30) min _retryDeadline;
+private _expires=(_at+90) min _retryDeadline;
 if (_expires <= _deadline) exitWith {false};
 _vehicle setVariable ["CBE_DrivingQueue_Attempt",_key];
 _vehicle setVariable ["CBE_DrivingQueue_Serial",_serial];

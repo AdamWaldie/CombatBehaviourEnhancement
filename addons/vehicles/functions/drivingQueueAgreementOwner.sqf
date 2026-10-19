@@ -13,7 +13,7 @@
  * long/short rear observer. Blocked leaf refuses before a committed hold; no target
  * is retained and command admission must resample. At most two bounded rear observations
  * per leaf preflight; no recurring scan or new worker.
- * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE/CHECK_ROOM/CROSS_PLAN/CROSS_ARM/CROSS_EXECUTE;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message; ARM/EXECUTE optionally append [phaseSerial,movingIndex,heldIndices]; CHECK_ROOM/CROSS_PLAN append request serial1..2 and phaseSerial. CROSS_PLAN stores a private geometry proposal only. CROSS_ARM/CROSS_EXECUTE append [phaseSerial,planSerial,pathASL,participantPoses]; installation precedes all-owner acknowledgement and root-only grant.
+ * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE/CHECK_ROOM/CROSS_PLAN/CROSS_ARM/CROSS_EXECUTE/CROSS_MOVE;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message; ARM/EXECUTE optionally append [phaseSerial,movingIndex,heldIndices]; CHECK_ROOM/CROSS_PLAN append request serial1..2 and phaseSerial. CROSS_PLAN stores a private geometry proposal only. CROSS_ARM/CROSS_EXECUTE/CROSS_MOVE append [phaseSerial,planSerial,pathASL,participantPoses]; installation precedes all-owner acknowledgement and root-only grant.
  * PREPARE binds all this owner's settled participants to original token/expiry and their brains.
  * PREPARED acknowledges only those verified applied holds; the server waits for every owner.
  * It adds no timer, native command, cached clearance or execution permission.
@@ -25,9 +25,9 @@
  * Example: ["VERIFY",_payload] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_owner];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE","CHECK_ROOM","CROSS_PLAN","CROSS_ARM","CROSS_EXECUTE"])}
+if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE","CHECK_ROOM","CROSS_PLAN","CROSS_ARM","CROSS_EXECUTE","CROSS_MOVE"])}
     || {!(count _payload in (if (_mode in ["CHECK_ROOM","CROSS_PLAN"]) then {[11]} else {
-        if (_mode in ["ARM","EXECUTE"]) then {[9,10]} else {if (_mode in ["CROSS_ARM","CROSS_EXECUTE"]) then {[10]} else {if (_mode == "RESULT") then {[9,10]} else {[[8],[9]] select (_mode != "VERIFY")}}}
+        if (_mode in ["ARM","EXECUTE"]) then {[9,10]} else {if (_mode in ["CROSS_ARM","CROSS_EXECUTE","CROSS_MOVE"]) then {[10]} else {if (_mode == "RESULT") then {[9,10]} else {[[8],[9]] select (_mode != "VERIFY")}}}
     }))}) exitWith {false};
 _payload params ["_token","_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
 if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
@@ -126,7 +126,7 @@ if (!_tokenClosed && {_crossingInstalled} && {_mode in ["VERIFY","RESULT","COMMI
     if (!_currentCross) then {[_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
     _currentCross
 };
-if (_mode in ["CROSS_ARM","CROSS_EXECUTE"]) exitWith {
+if (_mode in ["CROSS_ARM","CROSS_EXECUTE","CROSS_MOVE"]) exitWith {
     private _descriptor=_payload select 9;
     if (_tokenClosed || {!_duplicate} || {!(_descriptor isEqualType [])} || {count _descriptor != 4}
         || {(_descriptor select 0) isNotEqualTo _currentPhase}
@@ -143,6 +143,20 @@ if (_mode in ["CROSS_ARM","CROSS_EXECUTE"]) exitWith {
     if (_sameCross && {_mode == "CROSS_ARM"}) exitWith {
         if (!([(_owned select 0) getVariable ["CBE_DrivingQueue_Consent",createHashMap],true] call CBE_fnc_DrivingQueueReverseCurrent)) exitWith {false};
         ["CROSS_ARMED",[_token,_currentPhase,_descriptor select 1]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];true
+    };
+    if (_mode == "CROSS_MOVE") exitWith {
+        private _consent=_root getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        private _work=_root getVariable ["CBE_DrivingBypass_Work",createHashMap];
+        if (!_sameCross || {!(_root in _owned)} || {!(_consent getOrDefault ["crossingGranted",false])}
+            || {(_work getOrDefault ["phase",""]) != "FOLLOW"}
+            || {(_work getOrDefault ["queueCrossingBinding",[]]) isNotEqualTo _crossBinding}
+            || {!([_consent,true] call CBE_fnc_DrivingQueueReverseCurrent)}) exitWith {false};
+        if (_consent getOrDefault ["crossingMotionGranted",false]) exitWith {true};
+        private _linear=vectorMagnitude velocity _root;private _angular=vectorMagnitude angularVelocity _root;
+        if (!finite _linear || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}
+            || {abs getForcedSpeed _root > 0.001}) exitWith {false};
+        private _next=createHashMapFromArray (keys _consent apply {[_x,_consent get _x]});
+        _next set ["crossingMotionGranted",true];_root setVariable ["CBE_DrivingQueue_Consent",_next];true
     };
     if (_mode == "CROSS_EXECUTE" && {!_sameCross || {!(_root in _owned)}}) exitWith {false};
     if (_sameCross && {_mode == "CROSS_EXECUTE"}
@@ -168,6 +182,10 @@ if (_mode in ["CROSS_ARM","CROSS_EXECUTE"]) exitWith {
         _next set ["motionBinding",[_root,_token,_expires,8]];_next set ["motionStage","CROSSING"];
         _next set ["movingIndex",0];_next set ["heldIndices",[1,2,3] select {_x < count _vehicles}];
         _next set ["crossingBinding",_crossBinding];_next set ["crossingPath",_path];_next set ["crossingPoses",_poses];
+        if (_mode == "CROSS_ARM") then {
+            _next set ["crossingIssueUntil",(serverTime+2) min _expires];
+            _next set ["crossingMotionGranted",false];
+        };
         _next set ["executionGranted",false];
         _next set ["crossingGranted",_mode == "CROSS_EXECUTE" && {_target == _root}];
         if (!([_next,true] call CBE_fnc_DrivingQueueReverseCurrent)) exitWith {_allowed=false};

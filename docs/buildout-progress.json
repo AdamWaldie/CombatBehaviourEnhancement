@@ -1503,7 +1503,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingFollowingCap.sqf",
-              "sha256": "3a4940e55f851899d64f4173afa1c9bb2c5a0071bc6115529b06054b7b73762b"
+              "sha256": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1"
             },
             {
               "path": "addons/vehicles/functions/drivingRoadCap.sqf",
@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "67663f4bfec9596f23fdae584fdaf0a8189c331ef0bd3c2e940368022c3c3264"
+              "sha256": "70a0edef85cbb92dcafe42f06ac3c23f1be31d56840a3c7162ad9a45770481c5"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1579,7 +1579,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingBypassStep.sqf",
-              "sha256": "ecd7a46c50a9f1aeeafdc62f6b07e5bc6bdac30491d931c2800e5043d4da7597"
+              "sha256": "0621d068fdda825e735339cdbed00543b82cdc75e87b78e6e616d522c609530e"
             },
             {
               "path": "addons/vehicles/functions/drivingCorridorStep.sqf",
@@ -1613,15 +1613,15 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
-              "sha256": "136d0ae67406b468e79a766f77c1e8127c899cc451f958617468cd4116325a08"
+              "sha256": "d167b9d1287e7d9bdcc3758896b01c5bdcc37e3681599d43eb3fa3bd93331f7d"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "5b34921578039d058c5271c659467e3916973f17f32289cd746bba1bfda82220"
+              "sha256": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "82bcfdd710e68aab2705eac7d2369f50ddd306f70efc3585e704193f0c94fa93"
+              "sha256": "5a49518b1c0ade572cb2880bc6ccd4021ff85b7ebcd01c0a4f774144cc8cbd19"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueContext.sqf",
@@ -1633,7 +1633,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "67663f4bfec9596f23fdae584fdaf0a8189c331ef0bd3c2e940368022c3c3264"
+              "sha256": "70a0edef85cbb92dcafe42f06ac3c23f1be31d56840a3c7162ad9a45770481c5"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1645,16 +1645,16 @@
           "capability": "Queue room-making execution",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Explicitly committed internal queue API reaches all-owner preparation/arming, phase-bound selected-mover grants, sole-writer native BACK, bounded rear monitoring, zero-cap STOP and measured hold. Fresh owner room evidence plus server hull-gap verification advances the dependency chain through the yield root; each phase requires every owner to acknowledge and native issue resamples clearance. Original context and expiry remain fixed. Physically unverified. Read-only crossing geometry can project all held queue hulls under the same private root agreement, retaining ordinary geometry budgets; The final held yield-root report now dispatches bounded authenticated owner planning (one side per callback, two per episode); no crossing executor consumes the proposal yet.",
-          "remaining_build_gap": "Lateral crossing and all-participant handback remain unimplemented. Automatic initiation remains disabled; cross-owner delivery and physical cascade reliability remain unverified.",
+          "implemented": "Explicit internal COMMIT now reaches all-owner holds and preparation, finite reverse dependency phases, crossing planning/installation, zero-cap native path issue, all-owner published-path acknowledgement, root-only motion grant, physical checkpoint/tail observation and exact completion-receipt cleanup through the existing driving callback. Ordinary traffic constraints remain; only frozen held queue hulls delegate to validated path geometry. One original maximum90-second episode, no phase renewal. In-game outcomes remain unverified.",
+          "remaining_build_gap": "Automatic jam admission and repeated-jam/recovery-choice policy remain disabled or incomplete. Physical route continuation, delayed replication, normal/HC interruption and performance acceptance remain separate unverified work.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "82bcfdd710e68aab2705eac7d2369f50ddd306f70efc3585e704193f0c94fa93"
+              "sha256": "5a49518b1c0ade572cb2880bc6ccd4021ff85b7ebcd01c0a4f774144cc8cbd19"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "67663f4bfec9596f23fdae584fdaf0a8189c331ef0bd3c2e940368022c3c3264"
+              "sha256": "70a0edef85cbb92dcafe42f06ac3c23f1be31d56840a3c7162ad9a45770481c5"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
@@ -1662,11 +1662,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
-              "sha256": "b2379d6b3abe62fe91ef2c103866431fe787054325d1b37da76bb6bc2e2d506b"
+              "sha256": "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "5b34921578039d058c5271c659467e3916973f17f32289cd746bba1bfda82220"
+              "sha256": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",

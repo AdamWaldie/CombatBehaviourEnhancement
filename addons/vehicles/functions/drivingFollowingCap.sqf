@@ -23,6 +23,8 @@
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap m/s <NUMBER>, 20 (0..35);
  * 2 registered predecessor <OBJECT>, objNull. Only its alive, aligned, non-reversing
  * longitudinal spacing is delegated to the convoy; crossing and close hull occupancy remain checked.
+ * 3 optional queue proof HASHMAP empty: only a current granted QUEUE FOLLOW delegates
+ * its frozen held hulls to the existing path geometry; all other vehicles remain observed.
  * Return: ARRAY [cap m/s NUMBER, limiting vehicle OBJECT, hull gap m NUMBER,
  * sampledAt NUMBER, candidate count NUMBER, nearby conflict BOOL]. The sixth field requests
  * earlier observation only for closing/crossing conflicts; stable same-speed following
@@ -36,7 +38,7 @@
  * Current callers: DrivingAssistStart and ConvoyTick through their finite operation schedulers.
  * Example: private _traffic = [truck1,20] call CBE_fnc_DrivingFollowingCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]]];
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]],["_queueProof",createHashMap,[createHashMap]]];
 _requested=(_requested max 0) min 35;
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0,false]};
 private _box=boundingBoxReal _vehicle;
@@ -70,10 +72,24 @@ if (!finite _radius || {_radius > 500}) exitWith {[0,_vehicle,-1,time,0,true]};
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 private _candidates=_area nearEntities [["LandVehicle"],false,false,false];
 if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates,true]};
+// Only a current granted QUEUE FOLLOW path can delegate its frozen held hulls
+// to the shared path geometry. Other traffic and the dense-candidate budget remain.
+private _pathHulls=[];
+if (count _queueProof > 0) then {
+    private _queueVehicles=_queueProof getOrDefault ["vehicles",[]];
+    private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+    if ((_queueVehicles param [0,objNull]) == _vehicle
+        && {_queueProof getOrDefault ["crossingGranted",false]}
+        && {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isEqualTo _queueProof}
+        && {(_work getOrDefault ["controller",[]]) isEqualTo ["QUEUE",-1]}
+        && {(_work getOrDefault ["phase",""]) == "FOLLOW"}
+        && {(_work getOrDefault ["queueCrossingBinding",[]]) isEqualTo (_queueProof getOrDefault ["crossingBinding",[]])}
+        && {[_queueProof,true] call CBE_fnc_DrivingQueueReverseCurrent}) then {_pathHulls=_queueVehicles select [1]};
+};
 private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearConflict=false;
 {
     private _other=_x;
-    if (_other != _vehicle && {!isNull _other}) then {
+    if (_other != _vehicle && {!isNull _other} && {!(_other in _pathHulls)}) then {
         // Heading selects only the following-speed allowance, never obstacle admission.
         // An angled parked hull or a reversing/oncoming vehicle still occupies this lane.
         private _following=((vectorDir _other) vectorDotProduct _forward) > 0.7

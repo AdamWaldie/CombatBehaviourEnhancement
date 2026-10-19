@@ -188,5 +188,54 @@
     "implementation": "Existing DrivingBypassPlan accepts an optional current private root queue agreement only after all dependencies have measured HELD/STOP/zero cap. Projects all yielding hulls, unchanged span/station/ray limits, post-geometry pose and context revalidation. Proposal only, no native command or new controller.",
     "remaining": "Crossing owner grant, finite actual execution with held participants preserved, measured tail clearance, complete handback and physical/performance verification. Close approach may refuse under the existing smooth ramp constraint; do not bypass that constraint.",
     "credit": "No additional build score or source parity claim."
+  },
+  "queue_runtime_followup_20261020": {
+    "checkpoint": "b9709116 plus explicit queue runtime integration",
+    "implementation": "Existing ordinary callback now dispatches granted QUEUE path and cleans ended exact journals. Path issues at zero cap, all owners acknowledge actual FOLLOW publication before root motion; held hulls delegate only to active verified path geometry. Completion preserves server-accepted tail/rest receipt for unchanged authored-route cleanup. Original maximum90s budget, fixed32 live/64 admission-token bounds, no phase renewal or new worker.",
+    "limits": "Automatic admission off. A two-second zero-motion issue transition only tolerates remote observation of own STOP; local root still needs actual journal. Frozen stationary start permits0.25m/one-degree support recheck before exact native commit; remaining anchors stay fixed.",
+    "remaining": "Physical normal/HC cascade, crossing, route continuation, cancellation, repeated jams, delayed replication and performance budget; complete source integration is not claimed.",
+    "credit": "Queue criterion remains partial; no physical acceptance or whole-source parity increase.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+        "sha256": "70a0edef85cbb92dcafe42f06ac3c23f1be31d56840a3c7162ad9a45770481c5"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassStep.sqf",
+        "sha256": "0621d068fdda825e735339cdbed00543b82cdc75e87b78e6e616d522c609530e"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingFollowingCap.sqf",
+        "sha256": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "5a49518b1c0ade572cb2880bc6ccd4021ff85b7ebcd01c0a4f774144cc8cbd19"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",
+        "sha256": "1ac79206dc37a31f062d26aabb844b9d42872bf11ac260159b4e1774e0cd8063"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueHold.sqf",
+        "sha256": "4400459fabc65c3cfa0ceee7dc234716ab472bdbd22cc6cd728a65df2c41793f"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+        "sha256": "d167b9d1287e7d9bdcc3758896b01c5bdcc37e3681599d43eb3fa3bd93331f7d"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+        "sha256": "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueTokenClosed.sqf",
+        "sha256": "8054f5f298e7259e028276d33fe0d88307ac1cc5ba6e8365392d660080c87281"
+      }
+    ]
   }
 }

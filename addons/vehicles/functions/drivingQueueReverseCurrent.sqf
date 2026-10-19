@@ -107,7 +107,19 @@ private _valid=true;private _localCount=0;
                 || {(_rootWork getOrDefault ["group",grpNull]) != (_actor select 2)}
                 || {(_rootWork getOrDefault ["route",[]]) isNotEqualTo (_original select 10)}
                 || {(_rootWork getOrDefault [["driver","operator"] select (_x == 3),objNull]) != (_actor select 0)}) then {_valid=false};
-        } else {if (_actor isNotEqualTo _original) then {_valid=false}};
+        } else {
+            private _pendingStop=false;
+            if (_crossing && {_moving} && {!(_localRows && {local _vehicle})}
+                && {serverTime <= (_agreement getOrDefault ["crossingIssueUntil",-1])}
+                && {(_actor select [0,8]) isEqualTo (_original select [0,8])}
+                && {(_actor select 10) isEqualTo (_original select 10)} && {toUpperANSI (_actor select 8) == "STOP"}) then {
+                private _goal=(_actor select 9) param [0,[]];
+                _pendingStop=_goal isEqualType [] && {count _goal == 3}
+                    && {_goal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {_goal distance2D (getPosATL _vehicle) <= 3};
+            };
+            if (_actor isNotEqualTo _original && {!_pendingStop}) then {_valid=false};
+        };
     } forEach [2,3];
     if (!_valid) exitWith {};
     private _pose=_row select 4;private _before=_old select 4;
@@ -141,7 +153,15 @@ private _valid=true;private _localCount=0;
         if (toUpperANSI (_native param [0,""]) in ["BACK","DIRECTBYCOMANDER"]
             || {toUpperANSI (_native param [1,""]) in ["LEFT","RIGHT"]}
             || {_linear > (8/3.6)+0.2} || {_angular > 0.5}
-            || {!_pathOwned && {vectorMagnitude _delta > 1.5 || {_linear >= 0.1} || {_angular >= 0.01}}}) then {_valid=false};
+            || {!_pathOwned && {vectorMagnitude _delta > 1.5 || {_linear >= 0.1} || {_angular >= 0.01}
+                || {(_pose select 1) vectorDotProduct _forward < cos 5}
+                || {(_pose select 2) vectorDotProduct _up < cos 5}}}) then {_valid=false};
+        if (!_pathOwned) then {
+            private _rootPose=_crossPoses select 0;
+            if ((_pose select 0) vectorDistance (_rootPose select 0) > 0.25
+                || {(_pose select 1) vectorDotProduct (_rootPose select 1) < cos 1}
+                || {(_pose select 2) vectorDotProduct (_rootPose select 2) < cos 1}) then {_valid=false};
+        };
         if (_pathOwned) then {
             private _nearPath=false;private _rootASL=getPosASL _vehicle;
             for "_segment" from 1 to (count _crossPath-1) do {
