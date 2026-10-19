@@ -8,6 +8,11 @@
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 solid observation <ARRAY, []> from DrivingGeometryCap;
  * 2 side <NUMBER, 1> exactly -1 left or 1 right; 3 convoy envelope <ARRAY, []> optional
  * [halfWidth, halfLength, height] metres expanding the current vehicle only.
+ * 4 queue agreement <HASHMAP, empty> optional read-only crossing preflight. Only the
+ * unchanged local crossing root after all dependency legs hold may use this mode.
+ * It projects every held queue hull; it never relaxes ordinary static-obstacle admission.
+ * Queue proposals append an eighth field [token,expires,phaseSerial,participantPoses].
+ * No queue crossing executor consumes these proposals yet; they grant no movement.
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY,
  * obstacle transform ARRAY, vehicle transform ARRAY, rayCount NUMBER].
  * Limits: stationary STATIC object only (vehicle hulls must remain engine-off and unoccupied), observation <=1.5 seconds old/50 m away, vehicle <=8 km/h;
@@ -20,7 +25,7 @@
  * Current callers: DrivingBypassStep and trusted diagnostic/script preflight.
  * Example: [truck1,_solidObservation,-1] call CBE_fnc_DrivingBypassPlan;
  */
-params [["_vehicle",objNull,[objNull]],["_observed",[],[[]]],["_side",1,[0]],["_envelope",[],[[]]]];
+params [["_vehicle",objNull,[objNull]],["_observed",[],[[]]],["_side",1,[0]],["_envelope",[],[[]]],["_queueAgreement",createHashMap,[createHashMap]]];
 private _fail={params ["_reason",["_rays",0]];[false,_reason,[],[],[],[],_rays]};
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
     || {!(_vehicle isKindOf "LandVehicle")}) exitWith {["OWNER_UNAVAILABLE"] call _fail};
@@ -28,9 +33,43 @@ if (count _observed != 9 || {!(_side in [-1,1])}
     || {_envelope isNotEqualTo [] && {count _envelope != 3 || {
         _envelope findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x > 100}} >= 0
     }}}) exitWith {["INVALID_OBSERVATION"] call _fail};
+private _queueMode=count _queueAgreement > 0;
+private _queueVehicles=_queueAgreement getOrDefault ["vehicles",[]];
+private _queuePoses=[];
+private _queueCurrent={
+    if (!_queueMode) exitWith {false};
+    if (count _queueVehicles < 2 || {count _queueVehicles > 4}
+        || {(_queueVehicles select 0) != _vehicle}
+        || {(_queueAgreement getOrDefault ["movingIndex",-1]) != 1}
+        || {(_queueAgreement getOrDefault ["phaseSerial",-1]) != count _queueVehicles-2}
+        || {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isNotEqualTo _queueAgreement}
+        || {!([_queueAgreement,true] call CBE_fnc_DrivingQueueReverseCurrent)}) exitWith {false};
+    private _queueContext=_queueAgreement getOrDefault ["context",[]];
+    private _queueToken=_queueAgreement getOrDefault ["token",""];
+    private _queueExpires=_queueAgreement getOrDefault ["expires",-1];
+    private _queueValid=true;
+    {
+        private _queueIndex=_forEachIndex;
+        private _queueLinear=vectorMagnitude velocity _x;private _queueAngular=vectorMagnitude angularVelocity _x;
+        if (!finite _queueLinear || {!finite _queueAngular} || {_queueLinear >= 0.1} || {_queueAngular >= 0.01}) exitWith {_queueValid=false};
+        if (_queueIndex > 0) then {
+            private _queueWork=_x getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            private _queueActor=(_queueContext select _queueIndex) select 2;
+            if ((_queueWork getOrDefault ["queueBinding",[]]) isNotEqualTo [_queueToken,_queueExpires,_queueActor select 4,_queueActor select 5]
+                || {(_queueWork getOrDefault ["queuePhase",""]) != "HELD"}
+                || {!(_queueWork getOrDefault ["queueStopAcknowledged",false])}
+                || {toUpperANSI ((vehicleMoveInfo _x) param [0,""]) != "STOP"}
+                || {abs getForcedSpeed _x > 0.001}) then {_queueValid=false};
+        };
+        if (!_queueValid) exitWith {};
+    } forEach _queueVehicles;
+    _queueValid
+};
+if (_queueMode && {!(call _queueCurrent)}) exitWith {["QUEUE_NOT_HELD"] call _fail};
+if (_queueMode) then {_queuePoses=_queueVehicles apply {[getPosWorld _x,vectorDir _x,vectorUp _x]}};
 private _obstacle=_observed select 1;
 if (!(_obstacle isEqualType objNull) || {isNull _obstacle} || {(_observed select 5) != "STATIC"}
-    || {!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)} || {abs speed _vehicle > 8}) exitWith {["NOT_STATIC_BYPASS"] call _fail};
+    || {if (_queueMode) then {_obstacle != (_queueVehicles select 1)} else {!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)}} || {abs speed _vehicle > 8}) exitWith {["NOT_STATIC_BYPASS"] call _fail};
 private _sampled=_observed select 3;private _gap=_observed select 2;
 if (!(_sampled isEqualType 0) || {!finite _sampled} || {_sampled > time} || {time-_sampled > 1.5}
     || {!(_gap isEqualType 0)} || {!finite _gap} || {_gap < 0} || {_gap > 50}) exitWith {["STALE_OBSERVATION"] call _fail};
@@ -45,17 +84,23 @@ private _halfLength=((abs (_low select 1)) max (abs (_high select 1))) max (_env
 private _height=((_high select 2)-(_low select 2)) max (_envelope param [2,0]);
 private _radius=sqrt ((_halfWidth^2)+(_halfLength^2))+1;
 if (_radius > 12) exitWith {["HULL_BUDGET"] call _fail};
-private _other=boundingBoxReal _obstacle;private _otherLow=_other select 0;private _otherHigh=_other select 1;
-if (_otherLow vectorDistance _otherHigh < 0.5) exitWith {["UNCERTAIN_OBSTACLE_HULL"] call _fail};
+private _bodies=if (_queueMode) then {_queueVehicles select [1]} else {[_obstacle]};
 private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
+private _knownHull=true;
 {
-    private _xCoord=_x;
-    {private _yCoord=_x;{
-        private _delta=(_obstacle modelToWorldWorld [_xCoord,_yCoord,_x]) vectorDiff _origin;
-        private _lateral=_delta vectorDotProduct _right;private _along=_delta vectorDotProduct _forward;
-        _minX=_minX min _lateral;_maxX=_maxX max _lateral;_minY=_minY min _along;_maxY=_maxY max _along;
-    } forEach [_otherLow select 2,_otherHigh select 2];} forEach [_otherLow select 1,_otherHigh select 1];
-} forEach [_otherLow select 0,_otherHigh select 0];
+    private _body=_x;private _other=boundingBoxReal _body;
+    private _otherLow=_other select 0;private _otherHigh=_other select 1;
+    if (_otherLow vectorDistance _otherHigh < 0.5) exitWith {_knownHull=false};
+    {
+        private _xCoord=_x;
+        {private _yCoord=_x;{
+            private _delta=(_body modelToWorldWorld [_xCoord,_yCoord,_x]) vectorDiff _origin;
+            private _lateral=_delta vectorDotProduct _right;private _along=_delta vectorDotProduct _forward;
+            _minX=_minX min _lateral;_maxX=_maxX max _lateral;_minY=_minY min _along;_maxY=_maxY max _along;
+        } forEach [_otherLow select 2,_otherHigh select 2];} forEach [_otherLow select 1,_otherHigh select 1];
+    } forEach [_otherLow select 0,_otherHigh select 0];
+} forEach _bodies;
+if (!_knownHull) exitWith {["UNCERTAIN_OBSTACLE_HULL"] call _fail};
 if (_maxX-_minX > 30 || {_maxY-_minY > 30} || {_minY <= _radius+6}) exitWith {["INSUFFICIENT_APPROACH_ROOM"] call _fail};
 private _before=_minY-_radius-3;
 private _lateral=if (_side > 0) then {_maxX+_radius+3} else {_minX-_radius-3};
@@ -93,9 +138,13 @@ if (_overBudget) exitWith {["PATH_BUDGET"] call _fail};
 // Circumscribed support/body clearance overbounds corners without pretending a point fits a hull.
 private _geometry=[_vehicle,_guide,_radius,_height] call CBE_fnc_DrivingPathGeometry;
 if (!(_geometry select 0)) exitWith {[_geometry select 1,_geometry select 4] call _fail};
-if (!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)
+if ((if (_queueMode) then {!(call _queueCurrent)
+        || {(_queueVehicles apply {[getPosWorld _x,vectorDir _x,vectorUp _x]}) isNotEqualTo _queuePoses}}
+    else {!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)})
     || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo _transform}
     || {[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle] isNotEqualTo _vehicleTransform}) exitWith {
     ["GEOMETRY_CHANGED",_geometry select 4] call _fail
 };
-[true,"PROPOSAL",_geometry select 2,_geometry select 3,_transform,_vehicleTransform,_geometry select 4]
+private _proposal=[true,"PROPOSAL",_geometry select 2,_geometry select 3,_transform,_vehicleTransform,_geometry select 4];
+if (_queueMode) then {_proposal pushBack [_queueAgreement get "token",_queueAgreement get "expires",_queueAgreement get "phaseSerial",_queuePoses]};
+_proposal

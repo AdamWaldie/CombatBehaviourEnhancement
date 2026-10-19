@@ -1645,7 +1645,7 @@
           "capability": "Queue room-making execution",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Explicitly committed internal queue API reaches all-owner preparation/arming, phase-bound selected-mover grants, sole-writer native BACK, bounded rear monitoring, zero-cap STOP and measured hold. Fresh owner room evidence plus server hull-gap verification advances the dependency chain through the yield root; each phase requires every owner to acknowledge and native issue resamples clearance. Original context and expiry remain fixed. Physically unverified.",
+          "implemented": "Explicitly committed internal queue API reaches all-owner preparation/arming, phase-bound selected-mover grants, sole-writer native BACK, bounded rear monitoring, zero-cap STOP and measured hold. Fresh owner room evidence plus server hull-gap verification advances the dependency chain through the yield root; each phase requires every owner to acknowledge and native issue resamples clearance. Original context and expiry remain fixed. Physically unverified. Read-only crossing geometry can project all held queue hulls under the same private root agreement, retaining ordinary geometry budgets; no crossing executor consumes it yet.",
           "remaining_build_gap": "Lateral crossing and all-participant handback remain unimplemented. Automatic initiation remains disabled; cross-owner delivery and physical cascade reliability remain unverified.",
           "evidence": [
             {

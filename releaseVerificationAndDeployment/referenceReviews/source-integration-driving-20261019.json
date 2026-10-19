@@ -181,5 +181,12 @@
       "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
       "sha256": "f755e2e0c3303760ae45e869fe373e4762310591b8c28fbb21d4eb58a119d228"
     }
-  ]
+  ],
+  "held_queue_crossing_followup": {
+    "checkpoint": "13d35bbd plus held queue planner working changes",
+    "source_intent": "HBQ fn_driveAssist documents jam yield/pass pairs and oncoming waiting/backing; occupied held vehicles need a distinct contract from ordinary static obstacle bypass. No source scripts executed or modified.",
+    "implementation": "Existing DrivingBypassPlan accepts an optional current private root queue agreement only after all dependencies have measured HELD/STOP/zero cap. Projects all yielding hulls, unchanged span/station/ray limits, post-geometry pose and context revalidation. Proposal only, no native command or new controller.",
+    "remaining": "Crossing owner grant, finite actual execution with held participants preserved, measured tail clearance, complete handback and physical/performance verification. Close approach may refuse under the existing smooth ramp constraint; do not bypass that constraint.",
+    "credit": "No additional build score or source parity claim."
+  }
 }

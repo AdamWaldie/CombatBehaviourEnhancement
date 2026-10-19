@@ -71,10 +71,21 @@ class DrivingBypassTests(unittest.TestCase):
     def test_proposal_binds_actual_source_and_vehicle_geometry(self):
         body=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text()
         for gate in ('time-_sampled > 1.5','_gap > 50','abs speed _vehicle > 8',
-                     '(_observed select 5) != "STATIC"','_observed select 8','boundingBoxReal _obstacle',
+                     '(_observed select 5) != "STATIC"','_observed select 8','boundingBoxReal _body',
                      'modelToWorldWorld','_radius > 12','count _guide+_segments > 24',
                      '"GEOMETRY_CHANGED"','call CBE_fnc_DrivingPathGeometry'):
             self.assertIn(gate,body)
+        for gate in ('"QUEUE_NOT_HELD"','(_queueVehicles select 0) != _vehicle',
+                     '"movingIndex",-1','"phaseSerial",-1','call CBE_fnc_DrivingQueueReverseCurrent',
+                     '"queuePhase",""','queueStopAcknowledged','_queueWork getOrDefault ["queueBinding",[]]',
+                     'abs getForcedSpeed _x > 0.001','_queueVehicles select [1]',
+                     'forEach _bodies','isNotEqualTo _queuePoses'):
+            self.assertIn(gate,body)
+        # The static policy remains mandatory for ordinary callers. Queue mode can
+        # substitute only its own verified held dependency, not an arbitrary vehicle.
+        self.assertIn('_obstacle != (_queueVehicles select 1)',body)
+        self.assertIn('else {!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)}',body)
+        self.assertIn('_proposal pushBack [_queueAgreement get "token"',body)
         self.assertEqual(body.count('call CBE_fnc_DrivingPathGeometry'),1)
         self.assertNotIn('lineIntersectsSurfaces',body.split('params [[',1)[1])
     def test_shared_validator_keeps_three_body_heights_and_bounded_support(self):
