@@ -50,7 +50,7 @@ class RecoveryCleanupTests(unittest.TestCase):
 
     def test_each_deferred_return_registers_observation_before_returning(self):
         text=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
-        locality=text.split('if (_retainAcrossLocality &&',1)[1].split('private _handback=',1)[0]
+        locality=text.split('if (_retainAcrossLocality && {!local',1)[1].split('private _handback=',1)[0]
         mobility=text.split('if (_owned && {!_executable}) exitWith {',1)[1].split('if (_owned) then {',1)[0]
         for branch in (locality,mobility):
             self.assertIn('[_vehicle] call CBE_fnc_DrivingRecoveryCleanup;',branch)
@@ -60,7 +60,7 @@ class RecoveryCleanupTests(unittest.TestCase):
             for command in ('doMove','doStop','doFollow','forceSpeed','remoteExec','serverTime+'):
                 self.assertNotIn(command,branch)
 
-    def test_expired_pending_handback_keeps_proof_without_commands_or_renewal(self):
+    def test_expired_pending_handback_keeps_proof_and_owned_zero_cap_without_replay_or_renewal(self):
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
         gate=release.split('private _releaseExpired={',1)[1].split('private _driver=',1)[0]
         for marker in ('releasePending','hardDeadline','serverTime < _until','releaseUnresolved',
@@ -82,8 +82,21 @@ class RecoveryCleanupTests(unittest.TestCase):
         for marker in ('["PENDING","EXPIRED"]','call _releaseExpired','DEFERRED_NATIVE_ACK',
                        'call CBE_fnc_DrivingRecoveryCleanup'):
             self.assertIn(marker,pending)
-        for forbidden in ('doMove','doStop','forceSpeed','serverTime+','set ["hardDeadline"'):
-            self.assertNotIn(forbidden,pending)
+        for forbidden in ('doMove','doStop','sendSimpleCommand','serverTime+','set ["hardDeadline"'):
+            self.assertNotIn(forbidden,pending.split('// An unacknowledged',1)[1].split('private _expiredCap=',1)[-1])
+        self.assertEqual(pending.count('forceSpeed'),1)
+        self.assertIn('_vehicle forceSpeed 0',pending)
+        for proof in ('_commandState == "EXPIRED"','_expiredCap > 0','local _group',
+                      'local _driver','local _operator','CortexZeusHeld','DrivingMovementAvailable',
+                      'CortexCombatEffective','checkAIFeature "MOVE"','checkAIFeature "PATH"',
+                      '(_assistState param [3,grpNull]) == _group',
+                      '(_assistState param [0,-2]) == _expiredCap',
+                      'isEqualTo (_work get "baseline")','isEqualTo _work'):
+            self.assertLess(pending.index(proof),pending.index('_vehicle forceSpeed 0'))
+        self.assertIn('_heldWork set ["cap",0];_assistState set [0,0]',pending)
+        self.assertIn('_work=_heldWork',pending)
+        self.assertNotIn('deleteAt "request"',pending)
+        self.assertLess(pending.index('_vehicle forceSpeed 0'),pending.index('call _releaseExpired'))
         self.assertIn('_commandState == "OWNED"',release.split('private _owned=',1)[1])
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         self.assertIn('!_recoveryRequestPending && {call _mayRecoverRoute}',start)

@@ -17,6 +17,9 @@
  * Pending destination requests retain their exact rear journal/cap without stop or route
  * commands. Expired unchanged requests remain uncertain within the original hard deadline;
  * expiry never proves native rejection or authorizes a replay.
+ * On the exact current owner, an expired unacknowledged reverse can lower its owned
+ * positive cap to zero while retaining command/baseline/deadline proof. This is a safety
+ * cap, not acknowledgement or proof of physical stopping. Newer cap/task ownership wins.
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
  * Admission, route metadata, native command checks and handback execute without suspension.
@@ -118,6 +121,30 @@ private _retainAcrossLocality=_resume && {_destinationControlFree} && {(_work ge
 // rear move. Retain its exact safety journal/cap; only acknowledged command proof can
 // authorize stop/handback. The original hard deadline still bounds automatic observation.
 if (_retainAcrossLocality && {_commandState in ["PENDING","EXPIRED"]}) exitWith {
+    // An unacknowledged doMove may already be acting. After its original ACK
+    // window, retaining a positive cap would let that uncertain rear request run
+    // while the ordinary callback yields to cleanup. Only lower our exact lease;
+    // never stop/replay a command whose native acknowledgement is still unknown.
+    private _expiredCap=_work get "cap";
+    private _assistState=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
+    if (_commandState == "EXPIRED" && {_expiredCap > 0}
+        && {local _group} && {local _driver} && {local _operator}
+        && {!([_group] call CBE_fnc_CortexZeusHeld)}
+        && {[_group] call CBE_fnc_DrivingMovementAvailable}
+        && {[_driver,_operator] findIf {!([_x] call CBE_fnc_CortexCombatEffective)
+            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} < 0}
+        && {(_assistState param [3,grpNull]) == _group}
+        && {(_assistState param [0,-2]) == _expiredCap}
+        && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo (_work get "baseline")}
+        && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work}) then {
+        private _heldWork=createHashMapFromArray (keys _work apply {[_x,_work get _x]});
+        _heldWork set ["cap",0];_assistState set [0,0];
+        _vehicle forceSpeed 0;
+        _vehicle setVariable ["CBE_DrivingAssist_State",_assistState];
+        _vehicle setVariable ["CBE_DrivingAssist_Traffic",[0,_vehicle,-1,time,0]];
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",_heldWork,true];
+        _work=_heldWork;
+    };
     if (call _releaseExpired) exitWith {false};
     if !(_work getOrDefault ["releasePending",false]) then {
         _work set ["releasePending",true];

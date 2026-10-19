@@ -12,7 +12,12 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         self.assertLess(text.index('getForcedSpeed _vehicle'),text.index('doStop _driver'))
         self.assertIn('if (_owned) then {',text)
         self.assertIn('private _handback="METADATA_ONLY"',text)
-        self.assertNotIn('forceSpeed',text.split('params [[',1)[1])
+        body=text.split('params [[',1)[1]
+        self.assertEqual(body.count('forceSpeed'),1)
+        self.assertIn('_vehicle forceSpeed 0',body)
+        self.assertLess(body.index('getForcedSpeed _vehicle'),body.index('_vehicle forceSpeed 0'))
+        self.assertLess(body.index('(_assistState param [0,-2]) == _expiredCap'),body.index('_vehicle forceSpeed 0'))
+        self.assertLess(body.index('isEqualTo (_work get "baseline")'),body.index('_vehicle forceSpeed 0'))
     def test_main_callback_yields_changed_cap_journal_before_release_or_reacquisition(self):
         text=source('drivingAssistStart')
         owned=text.split('private _recoveryOwned=',1)[1].split('private _release=',1)[0]

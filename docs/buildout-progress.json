@@ -1562,7 +1562,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
-              "sha256": "a0ecd6fa6460012160c78f2611634eccb46bce8a6e4087d58b582e0b7d0f148e"
+              "sha256": "dab60cd4a201a25bb04d6318ca4621549ebf40e03fd4e5d853d9e770fadbd284"
             }
           ]
         },
@@ -1609,7 +1609,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
-              "sha256": "f21c12ccf2bd0259ad2745629f0aef2c16d03f2f13f004413b4d2db2b1723a47"
+              "sha256": "d09e4b9a4eb1e051181e81fb941ecb5e2ad8295126229aacb2f5b4a9fb1b962b"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
@@ -1625,7 +1625,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
-              "sha256": "5f9d84634a81fe78f734e3a9c9158a52d78be24a268fd776fd05c508e668f529"
+              "sha256": "6364dccfa1d69f706404883874a4d3a73f5b550da0a52eded70c75bc5bbcbd61"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",

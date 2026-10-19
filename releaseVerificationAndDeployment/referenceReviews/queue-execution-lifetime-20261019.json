@@ -7,12 +7,14 @@
     "journal": "DrivingAssistStart local _recordRecovery creates public native command and cap provenance. Queue legs need an explicit broker token and original expiry in this existing journal, with deadline and hardDeadline clamped to that expiry; no new independent worker.",
     "nativeLeg": "Existing rear commit already validates rear observation, native command snapshots, brain and crew. Native BACK requires a separate movement operator and unchanged NONE turn; driver-only doMove is destination control, not demonstrated reverse.",
     "cleanup": "DrivingRecoveryRelease and Cleanup own exact pending-command handback. Queue expiry must retire motion authority while preserving an unresolved issued-command receipt; clearing consent must not erase that provenance or manufacture route handback.",
-    "movingContext": "Original queue proposal is stationary. A separate moving-phase comparison must freeze other participants while allowing only the selected leaf exact issued command and bounded pose change. No relaxation of the original admission comparison."
+    "movingContext": "Original queue proposal is stationary. A separate moving-phase comparison must freeze other participants while allowing only the selected leaf exact issued command and bounded pose change. No relaxation of the original admission comparison.",
+    "postReverse": "Ordinary stage2 invokes FINAL forward doMove and SIMPLE_BACK endpoint cleanup can hand straight to authored MOVE. Queue room must instead remain reserved under an explicit hold-after-reverse phase until parent crossing is measured or the episode is cancelled. Merely sharing a reverse command and expiry does not preserve newly created clearance."
   },
   "implementationOrder": [
     "Bind original queue token/expiry to the existing recovery journal and cleanup signature before admitting any native queue leg.",
     "Add authenticated leaf phase to broker and owner context; original expiry never renews.",
     "Permit only the selected leaf through the existing sole writer, retaining other holds and fresh rear body clearance.",
+    "At measured reverse endpoint acknowledge native stop and retain sole-writer hold; forbid ordinary FINAL forward retry until the queue releases that vehicle after parent crossing.",
     "Measure separation and independently check parent full-hull room before advancing dependency; then complete exact command/cap handback."
   ],
   "limits": "Review only. Automatic queue initiation remains disabled. No motion implemented or physical result claimed. Audits paused.",

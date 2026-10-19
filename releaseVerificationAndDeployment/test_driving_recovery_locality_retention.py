@@ -19,7 +19,7 @@ class RecoveryLocalityRetentionTests(unittest.TestCase):
         self.assertNotIn('serverTime+',gate)
     def test_split_owner_path_retains_original_journal_without_native_write_or_clock_renewal(self):
         text=source()
-        branch=text.split('if (_retainAcrossLocality &&',1)[1].split('private _handback=',1)[0]
+        branch=text[text.index('if (_retainAcrossLocality && {!local'):].split('private _handback=',1)[0]
         for proof in ('!local _group','!local _driver','!local _operator','releasePending',
                       '"DEFERRED_LOCALITY"','_work get "hardDeadline"','false'):
             self.assertIn(proof,branch)

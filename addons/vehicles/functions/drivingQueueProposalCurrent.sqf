@@ -6,6 +6,8 @@
  * Total finite linear velocity must remain below1km/h, including lateral/vertical motion;
  * finite angular velocity must remain below0.01rad/s. Pivoting revokes admission.
  * This instantaneous test grants neither an execution hold nor physical READY.
+ * Reverse-role participants need distinct driver/operator and unchanged native NONE turn.
+ * The crossing holder has no reverse role; no crew or input is changed to manufacture capability.
  * Actual owners compare the original vehicle move/turn input too; unchanged crew
  * destinations alone cannot preserve consent after a new independent driving directive.
  * Arguments: 0 vehicles ARRAY [];1 roles ARRAY [];2 dependencies ARRAY [];3 context ARRAY [];4 localRows BOOL false.
@@ -42,6 +44,12 @@ for "_i" from 0 to (_n-1) do {
     private _nativeReceipt=_e select 5;
     if (!(_nativeReceipt isEqualType []) || {count _nativeReceipt != 2}
         || {_nativeReceipt findIf {!(_x isEqualType "")} >= 0}) exitWith {_valid=false};
+    // Consent must cover a native command the assigned role can actually use.
+    // A driver-only rear destination is not proven reverse capability. Refuse
+    // before COMMIT/HOLD rather than parking the whole chain for an unsupported role.
+    if (_i > 0 && {((_a select 2) select 0) == ((_a select 3) select 0)
+        || {toUpperANSI (_nativeReceipt select 1) != "NONE"}
+        || {toUpperANSI ((_a select 5) param [1,""]) != "NONE"}}) exitWith {_valid=false};
     // Remote observation cannot stand in for this participant's actual owner ACK.
     if (_localRows && {local (_vehicles select _i)}
         && {(_a select 5) isNotEqualTo _nativeReceipt}) exitWith {_valid=false};

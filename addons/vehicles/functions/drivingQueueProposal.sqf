@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reverse-role proposals require distinct native driver/operator and NONE turn input.
+ * Unsupported crew arrangements refuse; discovery never reassigns crew or clears a turn.
  * Purpose: Proposes a bounded head-on queue roster and rear-to-front room-making dependencies.
  * Locality/authority: Initiating vehicle owner, read-only. Proposed roles are not priority or
  * consent. Remote participant eligibility is observational; actual-owner ACK is separately brokered; a native
@@ -91,6 +93,15 @@ if (_reason != "") exitWith {[_reason] call _fail};
 private _context=[_vehicles] call CBE_fnc_DrivingQueueContext;
 if (_context isEqualTo [] || {serverTime-_at > 2} || {serverTime >= _until}
     || {!local _vehicle} || {_vehicles findIf {!([_x] call _observedEligible)} >= 0}) exitWith {["STALE_CHAIN"] call _fail};
+// Native capability belongs to the role, not a vehicle class guess. The first
+// participant only holds; yielding/rear roles need the existing BACK crew/input prerequisites.
+private _reverseCapable=true;
+for "_i" from 1 to ((count _context)-1) do {
+    private _row=_context select _i;
+    if (((_row select 2) select 0) == ((_row select 3) select 0)
+        || {toUpperANSI ((_row select 5) param [1,""]) != "NONE"}) exitWith {_reverseCapable=false};
+};
+if (!_reverseCapable) exitWith {["NATIVE_REVERSE_UNAVAILABLE"] call _fail};
 createHashMapFromArray [["status","PROPOSAL"],["reason","OWNER_CONSENT_AND_NATIVE_EXECUTION_REQUIRED"],
     ["vehicles",_vehicles],["roles",_roles],["dependencies",_dependencies],["context",_context],
     ["observedAt",_at],["deadline",(_at+2) min _until],["retryDeadline",_until]]
