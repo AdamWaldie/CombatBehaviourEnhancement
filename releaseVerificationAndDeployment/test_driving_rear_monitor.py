@@ -12,6 +12,25 @@ class DrivingRearMonitorTests(unittest.TestCase):
                       'releasePending','isNotEqualTo _exhaustedJournal'):
             self.assertLess(commit.index(proof),commit.index('call _recordRecovery'))
         self.assertNotIn('doMove',commit)
+        record=text.split('private _recordRecovery={',1)[1].split('private _reverseIssued=',1)[0]
+        self.assertIn('private _sameEpisode=',record)
+        self.assertIn('private _progressAnchor=if (_sameEpisode)',record)
+        self.assertIn('_old getOrDefault ["progressAnchor",[]]',record)
+        self.assertIn('["progressAnchor",_progressAnchor]',record)
+        progress=text.split('private _routeProgress=true;',1)[1].split('// Reversing is a recovery leg',1)[0]
+        self.assertIn('_progressAnchor distance2D _progressDestination',progress)
+        self.assertNotIn('_progressPosition distance2D _progressDestination',progress)
+        for proof in ('getOrDefault ["group",grpNull]','getOrDefault ["route",[]]',
+                      '_progressAnchor isEqualType []','count _progressAnchor == 3','finite _x'):
+            self.assertIn(proof,progress)
+        # An ordinary forward return from either reverse cannot buy another
+        # episode. Three metres beyond the original stalled point can.
+        goal=100
+        for rear in (-8,-3.5):
+            for current in (rear,rear+3,0,2.9):
+                self.assertFalse(abs(goal)-abs(goal-current)>=3)
+            self.assertTrue(abs(goal)-abs(goal-3)>=3)
+        self.assertTrue(abs(goal+8)-abs(goal+5)>=3)  # old rear-relative false credit
 
 
     def test_cap_and_restore_receipt_commit_together(self):

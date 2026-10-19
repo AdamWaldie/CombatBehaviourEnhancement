@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-19",
+  "scope": "Original stalled-position accounting for finite ordinary recovery",
+  "finding": "Each recovery transition refreshed progressPosition. FINAL forward retry could travel3m from its reverse endpoint and reset recovery while still behind its original stalled position. Repeating rear/forward motion could therefore replenish the supposedly finite command budget without clearing the obstruction.",
+  "implementation": "The original journal captures one finite ATL progressAnchor. Same-group/same-route stage records preserve it together with the existing hard deadline, including after owner adoption. Stage-local origin and movement clocks remain separate. Route-progress credit compares current waypoint distance against this anchor, requiring3m beyond the original stalled position plus existing movement/safety constraints. Missing/malformed inherited anchor remains empty and grants no reset; it is not minted from a later reverse endpoint. New authored route remains a separate episode.",
+  "sourceRelation": "Continues the retained HBQ smooth rear recovery intent without copying renewable pushes or treating any displacement as success. The original-deadline/owner-local native command policy is CBE-specific; no whole-source parity claim.",
+  "cost": "One bounded three-number journal field and constant metadata/distance checks at existing stage callbacks. No world query, scheduler, route rewrite, native movement command or increased retry/deadline.",
+  "validation": {
+    "focusedExistingTests": 634,
+    "focusedLog": ".qa/cbe-recovery-progress-anchor-focused.log",
+    "hemttLog": ".qa/cbe-recovery-progress-anchor-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "Passed1476 existing tests and complete build gates after final normalization; .qa/cbe-recovery-progress-anchor-build.log",
+    "physical": "Unverified; audits paused.",
+    "independentPackage": "Passed .qa/cbe-recovery-progress-anchor-independent.log",
+    "package": {
+      "commit": "68c0c9096edc871eabbe94499e681f95bb6ead5c",
+      "dirty": true,
+      "fingerprint": "639f4ac4fc9f39774b580265f40f37d7ff841232c37570a4d990b6a92bd834f5",
+      "signed": false
+    }
+  },
+  "limits": "Waypoint-distance progress remains an approximation on curved routes; this change does not introduce a route-arc metric. Registered convoy following is unchanged. Queue crossing, native leaf phases and handback remain incomplete.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "fde15a28285d5adde7ff518f02e0eb7fe6e774ce1857a5261cba04362dfaff85"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_rear_monitor.py",
+      "sha256": "a40ee0793ee63b29bed2bab4fd0ba4ba15d72a67c3ed1e03e393cdb3019bc893"
+    }
+  ]
+}

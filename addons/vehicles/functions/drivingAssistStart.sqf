@@ -20,6 +20,8 @@
  * Changed or expired unacknowledged requests yield that episode. The public request survives
  * locality changes without renewing its expiry or the existing three-attempt/original deadline.
  * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
+ * The original episode progress anchor survives every stage and owner adoption. Merely
+ * undoing a reverse cannot replenish attempts; unknown anchors grant no reset credit.
  * Rear destinations retain the actual sampled support height, including raised decks.
  * One short rear option follows a blocked long observation; its selected envelope stays
  * in the original episode. Active safety observes remaining travel plus the original buffer.
@@ -422,14 +424,20 @@ _brain set ["geometryTracks",_geometryTracks];
             private _recordRecovery={
                 params ["_kind",["_rearHitpointReceipt",[],[[]]],["_commandMode","DESTINATION",[""]],["_simpleBefore",[],[[]]],["_nativeRequest",[],[[]]],["_rearEnvelope",[8,6],[[]]]];
                 private _old=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
-                private _hard=if (count _old > 0 && {(_old get "group") == _group} && {(_old get "route") isEqualTo _routeIdentity}) then {
+                private _sameEpisode=count _old > 0 && {(_old get "group") == _group}
+                    && {(_old get "route") isEqualTo _routeIdentity};
+                private _origin=getPosATL _vehicle;
+                private _progressAnchor=if (_sameEpisode) then {_old getOrDefault ["progressAnchor",[]]} else {_origin};
+                _progressAnchor=if (_progressAnchor isEqualType [] && {count _progressAnchor == 3}
+                    && {_progressAnchor findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {+_progressAnchor} else {[]};
+                private _hard=if (_sameEpisode) then {
                     _old get "hardDeadline"
                 } else {serverTime+96};
                 private _deadline=switch (_kind) do {case "REFRESH":{_hard-66};case "FINAL":{_hard};case "EXHAUSTED":{_hard};default {_hard-60}};
                 private _work=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
                     ["kind",_kind],["commandMode",_commandMode],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
-                    ["origin",getPosATL _vehicle],["baseline",+_previous],["cap",_capMps]];
+                    ["origin",_origin],["progressAnchor",_progressAnchor],["baseline",+_previous],["cap",_capMps]];
                 if (_commandMode == "DESTINATION" && {count _nativeRequest == 3}
                     && {_kind in ["REFRESH","FINAL","REVERSE"]}) then {_work set ["request",_nativeRequest]};
                 if (_commandMode == "SIMPLE_BACK") then {
@@ -888,9 +896,17 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_recoveryStage > 0) then {
                 private _progressWaypoint=currentWaypoint _group;
                 _routeProgress=false;
-                if (_progressWaypoint < count waypoints _group) then {
+                private _progressJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                private _progressAnchor=_progressJournal getOrDefault ["progressAnchor",[]];
+                // Stage clocks/positions change at each retry. Only progress beyond
+                // the original stalled position can replenish this finite episode.
+                if (_progressWaypoint < count waypoints _group
+                    && {(_progressJournal getOrDefault ["group",grpNull]) == _group}
+                    && {(_progressJournal getOrDefault ["route",[]]) isEqualTo _routeIdentity}
+                    && {_progressAnchor isEqualType []} && {count _progressAnchor == 3}
+                    && {_progressAnchor findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
                     private _progressDestination=waypointPosition [_group,_progressWaypoint];
-                    _routeProgress=(_progressPosition distance2D _progressDestination)
+                    _routeProgress=(_progressAnchor distance2D _progressDestination)
                         -(_vehicle distance2D _progressDestination) >= 3;
                 };
             };
