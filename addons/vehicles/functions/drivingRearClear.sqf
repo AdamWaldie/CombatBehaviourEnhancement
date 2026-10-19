@@ -26,7 +26,7 @@
  * overlap policy; the solid-geometry rays remain independent and can still find obstructions.
  * Discovery uses one live-infantry and one dead-inclusive vehicle query; native query cost
  * remains engine-dependent even though subsequent hull evaluation is capped.
- * Current callers: DrivingAssistStart and CortexVehicleReverseStep.
+ * Current callers: DrivingRearPlan, active DrivingAssistStart monitoring and CortexVehicleReverseStep.
  * Example: private _clearance = [truck1,8] call CBE_fnc_DrivingRearClear;
  */
 params [["_vehicle",objNull,[objNull]],["_distance",8,[0]]];

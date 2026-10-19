@@ -73,7 +73,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
     def test_rear_issue_and_journal_have_fresh_atomic_authority(self):
         text=src('drivingAssistStart')
         case=text.split('private _rearPose=',1)[1].split('case 2:',1)[0]
-        self.assertLess(case.index('call CBE_fnc_DrivingRearClear'),case.index('isNil {'))
+        self.assertLess(case.index('call CBE_fnc_DrivingRearPlan'),case.index('isNil {'))
         commit=case.split('isNil {',1)[1]
         for guard in ('call _mayIssueDriving','call _mayRecoverOrdinaryRoute','ownerEpoch',
                       'isNotEqualTo _rearJournal','hardDeadline','_rearPose select 2','cos 5','isNotEqualTo _rearCommands'):
@@ -118,11 +118,12 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('private _pendingRear=_recoveryRequestPending && {_recoveryOwned} && {_reverseIssued}',s)
         self.assertIn('(_recoveryWork getOrDefault ["kind",""]) == "REVERSE"',s)
         self.assertIn('private _rearSafetyRequired=_reverseLeg || {_pendingRear}',s)
-        self.assertIn('private _rearEnvelope=[8,6]',s)
-        self.assertIn('_rearEnvelope=[3.5,2]',s)
-        self.assertEqual(s.count('[_vehicle,3.5] call CBE_fnc_DrivingRearClear'),1)
+        plan=src('drivingRearPlan')
+        self.assertIn('private _cbeRearPlanEnvelope=[8,6]',plan)
+        self.assertIn('_cbeRearPlanEnvelope=[3.5,2]',plan)
+        self.assertEqual(plan.count('[_vehicle,3.5] call CBE_fnc_DrivingRearClear'),1)
         self.assertIn('} else {[]},_rearEnvelope] call _recordRecovery',s)
-        short=s.split('if (!(_clearance select 0)',1)[1].split('_rear=+',1)[0]
+        short=plan.split('if (!(_cbeRearPlanClearance select 0)',1)[1]
         for failure in ('REAR_SCAN_BUDGET','DENSE_REAR_TRAFFIC','OWNER_UNAVAILABLE','REAR_TURN_ENVELOPE'):
             self.assertNotIn(failure,short)
         self.assertNotIn('while',short)
@@ -218,7 +219,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('_trafficLimited && {!_solidCandidate}',s)
         self.assertIn('!_trafficLimited || {_solidReady} || {_reverseHandback}',s)
         self.assertIn('private _reverseHandback=_reverseComplete && {_reverseIssued}',s)
-        self.assertIn('[_vehicle,8] call CBE_fnc_DrivingRearClear',s)
+        self.assertIn('[_vehicle] call CBE_fnc_DrivingRearPlan',s)
         release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text(encoding='utf-8')
         self.assertIn('setVariable ["CBE_DrivingSolidSeen",nil]',release)
 

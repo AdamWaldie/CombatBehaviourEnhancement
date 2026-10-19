@@ -9,6 +9,10 @@
  * Machine-private original-expiry closures reject deferred readmission, including after local retirement.
  * Explicit server COMMIT arms a hold request only after exact AGREED consent; no native
  * movement, reservation or JIP commands. The existing driving cap writer executes the hold.
+ * VERIFY and COMMIT preflight only the actual-owner dependency leaf with the shared
+ * long/short rear observer. Blocked leaf refuses before a committed hold; no target
+ * is retained and command admission must resample. At most two bounded rear observations
+ * per leaf preflight; no recurring scan or new worker.
  * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message.
  * Return: BOOL reply/result handled, not queue movement authority.
  * Current callers: DrivingQueueAgreementServer only.
@@ -97,6 +101,19 @@ private _accepted=!_tokenClosed && {serverTime < ([_deadline,_expires] select (_
     if (count _old > 0 && {(_old getOrDefault ["token",""]) != _token}
         && {serverTime < (_old getOrDefault ["expires",-1])}) then {_accepted=false};
 } forEach _owned;
+// Only the dependency leaf needs rear space before the first reverse. Parents may
+// be deliberately blocked by that leaf. This owner-local observation is never cached
+// as execution clearance: native issue must obtain another fresh observation.
+if (_accepted && {_mode in ["VERIFY","COMMIT"]}) then {
+    private _leaf=_vehicles select (count _vehicles-1);
+    if (_leaf in _owned) then {
+        private _leafPlan=[_leaf] call CBE_fnc_DrivingRearPlan;
+        private _leafObservation=_leafPlan select 0;
+        _accepted=(_leafObservation select 0) && {count (_leafObservation param [4,[]]) == 3}
+            && {serverTime < ([_deadline,_expires] select (_mode == "COMMIT" || {_duplicate}))}
+            && {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent};
+    };
+};
 if (_mode == "COMMIT") exitWith {
     if (!_duplicate || {!_accepted}) exitWith {
         [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;

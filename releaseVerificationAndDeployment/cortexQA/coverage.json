@@ -823,7 +823,8 @@
         "addons/vehicles/functions/moduleDrivingCorridorMission.sqf",
         "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
         "addons/vehicles/functions/drivingOwnerReceipt.sqf",
-        "addons/vehicles/functions/drivingHullInterval.sqf"
+        "addons/vehicles/functions/drivingHullInterval.sqf",
+        "addons/vehicles/functions/drivingRearPlan.sqf"
       ]
     },
     {

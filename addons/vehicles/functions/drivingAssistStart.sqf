@@ -987,16 +987,8 @@ _brain set ["geometryTracks",_geometryTracks];
                                 currentCommand _movementOperator,+(expectedDestination _movementOperator)];
                             private _rearJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                             // Fresh shared body-width observation; no fixed-width centre probe.
-                            private _rearEnvelope=[8,6];
-                            private _clearance=[_vehicle,8] call CBE_fnc_DrivingRearClear;
-                            // Retry only spatial obstruction/support failures, never an
-                            // unknown owner, scan overflow or unsupported turn envelope.
-                            if (!(_clearance select 0) && {(_clearance select 1) in [
-                                "REAR_GEOMETRY","REAR_SUPPORT","REAR_TARGET_SUPPORT",
-                                "REAR_OCCUPIED","REAR_APPROACHING"]}) then {
-                                _rearEnvelope=[3.5,2];
-                                _clearance=[_vehicle,3.5] call CBE_fnc_DrivingRearClear;
-                            };
+                            private _rearPlan=[_vehicle] call CBE_fnc_DrivingRearPlan;
+                            private _clearance=_rearPlan select 0;private _rearEnvelope=_rearPlan select 1;
                             _rear=+(_clearance param [4,[]]);
                             private _rearSafe=(_clearance select 0) && {count _rear == 3} && {count _rearHitpointReceipt == 3};
                             // Geometry uses the current callback context; native issue and its exact command journal

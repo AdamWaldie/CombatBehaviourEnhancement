@@ -80,6 +80,13 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('&& {_allSettled}',server)
         self.assertIn('_deliveries >= 2',server)
         self.assertIn('if (_mode == "COMMIT") exitWith',owner)
+        preflight=owner.split('if (_accepted && {_mode in ["VERIFY","COMMIT"]})',1)[1].split('if (_mode == "COMMIT") exitWith',1)[0]
+        for proof in ('count _vehicles-1','_leaf in _owned','call CBE_fnc_DrivingRearPlan',
+                      '_leafObservation select 0','serverTime <','call CBE_fnc_DrivingQueueProposalCurrent'):
+            self.assertIn(proof,preflight)
+        for forbidden in ('setVariable','forceSpeed','doMove','sendSimpleCommand','waitAndExecute'):
+            self.assertNotIn(forbidden,preflight)
+
         self.assertIn('if (!_duplicate || {!_accepted}) exitWith',owner)
         hold=(ROOT/'addons/vehicles/functions/drivingQueueHold.sqf').read_text(encoding='utf-8')
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')

@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-19",
+  "scope": "Actual-owner rear preflight for the queue dependency leaf",
+  "finding": "The protocol previously checked role, crew, stationary topology and native reverse input, but a leaf blocked by geometry/actors/support could still consent and receive a hold commit. Parents may be intentionally blocked by that leaf, so preflighting every member would prevent the intended dependency chain.",
+  "implementation": "Extract existing ordinary long8m/stop6m and spatial-only short3.5m/stop2m fallback into DrivingRearPlan, preserving reasons and bounds. Actual leaf owner consumes it in VERIFY and COMMIT, then rechecks original expiry and canonical context. No target or clearance is retained; failed VERIFY refuses consent, failed COMMIT requests original-token release. Ordinary native issue consumes the same helper and retains its existing atomic pose/crew/order/journal checks.",
+  "cost": "At most two existing bounded rear observations per leaf VERIFY/COMMIT. Each observation retains its original two actor queries,64-actor evaluation ceiling and70-ray maximum. No new recurring scan, timer or worker. Actual overhead unmeasured.",
+  "limits": "Observation only; no native queue leg or crossing implemented. COMMIT refusal can arrive after another owner briefly applies its hold. Original broker release/expiry bounds that state. Execution must resample. Audits paused.",
+  "validation": {
+    "focusedExistingTests": 633,
+    "focusedLog": ".qa/cbe-queue-leaf-focused.log",
+    "hemttLog": ".qa/cbe-queue-leaf-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "1476 existing tests and full sequential compiler/FSM/config/docs/parity/performance/package gates passed.",
+    "fullLog": ".qa/cbe-queue-leaf-final-build.log",
+    "independentLog": ".qa/cbe-queue-leaf-final-independent.log",
+    "packageSource": "b51ff5feb52cc3b73bdaf4c495e9a60a596707cc+dirty",
+    "packageFingerprint": "e7a2155a0375ab1d0f93c51683b5f8fa080491d375c3b330acd49ce117af3b97"
+  },
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+      "sha256": "b8835ba389d82556beedfa70ae92187987e441b465fd1bb39f1f637a6648f51b"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRearClear.sqf",
+      "sha256": "b0ff813f93dd5474af9b647e0eb48e5ab715ef538fda7f576dc67df439443e21"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "68a4acd73fdd74158643fd0d66f50f93c6952676621755aa534cbbf82ee7e4f4"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+      "sha256": "eb9858a9ff7b75b5220ccef9bb745179b9a132c9399a141536c8e2ed386acbcc"
+    }
+  ]
+}

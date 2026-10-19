@@ -1554,15 +1554,19 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "20fab9147abe03e98340af28fd46e42e58a8347b0d68b91d8cd84b7b54d30fd4"
+              "sha256": "68a4acd73fdd74158643fd0d66f50f93c6952676621755aa534cbbf82ee7e4f4"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
-              "sha256": "f39f82669e827442e17beb11ea34e6fc553a984d60815ad7b7a222c4bf6f500f"
+              "sha256": "b0ff813f93dd5474af9b647e0eb48e5ab715ef538fda7f576dc67df439443e21"
             },
             {
               "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
               "sha256": "d6cb1c70437ee589d1cba60717569cbff39c0aa1b0db76579dce8b8517a29eac"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+              "sha256": "b8835ba389d82556beedfa70ae92187987e441b465fd1bb39f1f637a6648f51b"
             }
           ]
         },
@@ -1617,7 +1621,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "3102a0b21ef92342b069c397afc8ee5884b4bb1d162debfb0e76d27e5c121acb"
+              "sha256": "eb9858a9ff7b75b5220ccef9bb745179b9a132c9399a141536c8e2ed386acbcc"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueContext.sqf",
@@ -1629,7 +1633,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "20fab9147abe03e98340af28fd46e42e58a8347b0d68b91d8cd84b7b54d30fd4"
+              "sha256": "68a4acd73fdd74158643fd0d66f50f93c6952676621755aa534cbbf82ee7e4f4"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1646,7 +1650,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "3102a0b21ef92342b069c397afc8ee5884b4bb1d162debfb0e76d27e5c121acb"
+              "sha256": "eb9858a9ff7b75b5220ccef9bb745179b9a132c9399a141536c8e2ed386acbcc"
             }
           ]
         },
