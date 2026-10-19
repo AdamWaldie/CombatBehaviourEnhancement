@@ -21,6 +21,8 @@
  * locality changes without renewing its expiry or the existing three-attempt/original deadline.
  * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
  * Rear destinations retain the actual sampled support height, including raised decks.
+ * One short rear option follows a blocked long observation; its selected envelope stays
+ * in the original episode. Active safety observes remaining travel plus the original buffer.
  * Terrain water without a supporting structure remains refused by DrivingRearClear.
  * Stationary waits/recovery require finite total linear velocity below1km/h, not forward speed.
  * This instantaneous admission is not physical HOLD/READY or proof of native reversing.
@@ -418,7 +420,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
             private _recordRecovery={
-                params ["_kind",["_rearHitpointReceipt",[],[[]]],["_commandMode","DESTINATION",[""]],["_simpleBefore",[],[[]]],["_nativeRequest",[],[[]]]];
+                params ["_kind",["_rearHitpointReceipt",[],[[]]],["_commandMode","DESTINATION",[""]],["_simpleBefore",[],[[]]],["_nativeRequest",[],[[]]],["_rearEnvelope",[8,6],[[]]]];
                 private _old=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                 private _hard=if (count _old > 0 && {(_old get "group") == _group} && {(_old get "route") isEqualTo _routeIdentity}) then {
                     _old get "hardDeadline"
@@ -435,6 +437,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     _work set ["simpleAcknowledged",toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) == "BACK"];
                 };
                 if (_kind == "REVERSE") then {
+                    _work set ["rearEnvelope",+_rearEnvelope];
                     _work set ["rearOriginASL",getPosASL _vehicle];
                     _work set ["rearDirection",vectorDir _vehicle];
                     _work set ["rearDamage",damage _vehicle];
@@ -455,8 +458,10 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {(_recoveryWork getOrDefault ["kind",""]) == "REVERSE"};
             private _rearSafetyRequired=_reverseLeg || {_pendingRear};
             private _rearPathRejected=false;
+            private _rearClearDistance=8;
             if (_rearSafetyRequired) then {
                 private _rearWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                private _rearEnvelope=_rearWork getOrDefault ["rearEnvelope",[8,6]];
                 private _rearOrigin=_rearWork getOrDefault ["rearOriginASL",[]];
                 private _rearDirection=_rearWork getOrDefault ["rearDirection",[]];
                 private _rearDamage=_rearWork getOrDefault ["rearDamage",-1];
@@ -465,7 +470,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _liveDamage=damage _vehicle;
                 private _minimumDamage=_rearWork getOrDefault ["rearMinimumDamage",-1];
                 private _minimumHitpoints=[objNull,_rearWork getOrDefault ["rearMinimumHitpoints",[]]] call CBE_fnc_DrivingDamageReceipt;
-                private _proofValid=_rearDamage isEqualType 0 && {finite _rearDamage} && {_rearDamage >= 0}
+                private _proofValid=_rearEnvelope in [[8,6],[3.5,2]] && {_rearDamage isEqualType 0} && {finite _rearDamage} && {_rearDamage >= 0}
                     && {count _rearHitpoints == 3} && {count _liveHitpoints == 3} && {count _minimumHitpoints == 3}
                     && {_minimumDamage isEqualType 0} && {finite _minimumDamage}
                     && {_minimumDamage >= 0} && {_minimumDamage <= _rearDamage}
@@ -490,11 +495,16 @@ _brain set ["geometryTracks",_geometryTracks];
                     private _delta=(getPosASL _vehicle) vectorDiff _rearOrigin;
                     private _along=_delta vectorDotProduct _rearDirection;
                     private _lateral=vectorMagnitude (_delta vectorDiff (_rearDirection vectorMultiply _along));
+                    // Retain the remaining leg plus its original end buffer. Requiring
+                    // the full initial distance again would creep the clearance envelope
+                    // backwards and stop a valid short leg before its endpoint.
+                    _rearClearDistance=(((_rearEnvelope select 0)+_along)
+                        max ((_rearEnvelope select 0)-(_rearEnvelope select 1))) min (_rearEnvelope select 0);
                     _rearPathRejected=(vectorDir _vehicle) vectorDotProduct _rearDirection < cos 20
-                        || {_along > 1} || {_along < -10} || {_lateral > 2.5}
+                        || {_along > 1} || {_along < -((_rearEnvelope select 0)+2)} || {_lateral > 2.5}
                         || {_liveDamage > _minimumDamage+0.01} || {_componentDamage} || {_historyInvalid};
                     if (!_rearPathRejected && {(_rearWork getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK"}
-                        && {_along <= -6}) then {
+                        && {_along <= -(_rearEnvelope select 1)}) then {
                         // Native BACK has no destination endpoint. End after observed room,
                         // without waiting for overshoot or claiming the authored route resumed.
                         _reverseLeg=false;_state set [7,time];_state set [8,"REAR_ROOM_OBSERVED"];
@@ -621,8 +631,8 @@ _brain set ["geometryTracks",_geometryTracks];
             // deadline observe the forward retry, so a rear-only obstacle cannot trap handback.
             private _travelIntent=if (_rearSafetyRequired) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
             private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true,_travelIntent] call CBE_fnc_CortexInfantrySpeed;
-            if (_rearSafetyRequired) then {
-                private _rearObservation=[_vehicle,8] call CBE_fnc_DrivingRearClear;
+            if (_rearSafetyRequired && {!_rearPathRejected}) then {
+                private _rearObservation=[_vehicle,_rearClearDistance] call CBE_fnc_DrivingRearClear;
                 if !(_rearObservation select 0) then {_traffic=[0,_vehicle,-1,time,0]};
             };
             if (_pedestrianCap/3.6 < (_traffic select 0)) then {
@@ -958,7 +968,16 @@ _brain set ["geometryTracks",_geometryTracks];
                                 currentCommand _movementOperator,+(expectedDestination _movementOperator)];
                             private _rearJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                             // Fresh shared body-width observation; no fixed-width centre probe.
+                            private _rearEnvelope=[8,6];
                             private _clearance=[_vehicle,8] call CBE_fnc_DrivingRearClear;
+                            // Retry only spatial obstruction/support failures, never an
+                            // unknown owner, scan overflow or unsupported turn envelope.
+                            if (!(_clearance select 0) && {(_clearance select 1) in [
+                                "REAR_GEOMETRY","REAR_SUPPORT","REAR_TARGET_SUPPORT",
+                                "REAR_OCCUPIED","REAR_APPROACHING"]}) then {
+                                _rearEnvelope=[3.5,2];
+                                _clearance=[_vehicle,3.5] call CBE_fnc_DrivingRearClear;
+                            };
                             _rear=+(_clearance param [4,[]]);
                             private _rearSafe=(_clearance select 0) && {count _rear == 3} && {count _rearHitpointReceipt == 3};
                             // Geometry uses the current callback context; native issue and its exact command journal
@@ -994,7 +1013,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                 _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued,_rearHitpointReceipt,
                                     _rearCommandMode,_rearSimpleBefore,if (_reverseIssued && {_rearCommandMode == "DESTINATION"}) then {
                                         [+_rear,serverTime+2,_rearCommands]
-                                    } else {[]}] call _recordRecovery;
+                                    } else {[]},_rearEnvelope] call _recordRecovery;
                                 _recoveryTransitioned=true;
                             };
                         };

@@ -92,13 +92,22 @@ class DrivingRearMonitorTests(unittest.TestCase):
     def test_rear_observation_applies_before_speed_write_without_extending_deadline(self):
         s=src('drivingAssistStart')
         sample=s.split('if (_rearSafetyRequired) then {',1)[1].split('private _trafficLimited=',1)[0]
-        self.assertIn('[_vehicle,8] call CBE_fnc_DrivingRearClear',sample)
+        self.assertIn('[_vehicle,_rearClearDistance] call CBE_fnc_DrivingRearClear',sample)
         self.assertIn('_traffic=[0,_vehicle,-1,time,0]',sample)
         self.assertNotIn('_recoveryUntil=',sample)
         self.assertLess(s.index('private _rearObservation='),s.index('_vehicle forceSpeed _capMps'))
         self.assertIn('private _pendingRear=_recoveryRequestPending && {_recoveryOwned} && {_reverseIssued}',s)
         self.assertIn('(_recoveryWork getOrDefault ["kind",""]) == "REVERSE"',s)
         self.assertIn('private _rearSafetyRequired=_reverseLeg || {_pendingRear}',s)
+        self.assertIn('private _rearEnvelope=[8,6]',s)
+        self.assertIn('_rearEnvelope=[3.5,2]',s)
+        self.assertEqual(s.count('[_vehicle,3.5] call CBE_fnc_DrivingRearClear'),1)
+        self.assertIn('} else {[]},_rearEnvelope] call _recordRecovery',s)
+        short=s.split('if (!(_clearance select 0)',1)[1].split('_rear=+',1)[0]
+        for failure in ('REAR_SCAN_BUDGET','DENSE_REAR_TRAFFIC','OWNER_UNAVAILABLE','REAR_TURN_ENVELOPE'):
+            self.assertNotIn(failure,short)
+        self.assertNotIn('while',short)
+        self.assertNotIn('serverTime+',short)
         self.assertIn('&& {!_pendingRear || {_rearPathRejected}}',s)
         self.assertIn('private _mayRecoverOrdinaryRoute={!_recoveryRequestPending',s)
         self.assertIn('if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]}',s)
