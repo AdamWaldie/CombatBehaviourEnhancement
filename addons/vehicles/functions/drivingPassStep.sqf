@@ -1,6 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Executes finite OUT, DROP_BACK, RETURN_SCAN, RETURN_READY and RETURN pass work in the driving FSM.
+ * Hull intervals retain all box corners through one corner and three affine edges per
+ * object, with a0.05m outward tolerance. Eight model transforms per pair replace sixteen;
+ * this changes no peer consent, physical gap thresholds, rays or callback cadence.
  * Locality/authority: Existing current ordinary-driving callback only. Exact epoch, generation,
  * route, crew, token and issued command receipts guard every fixed-path write. No speed writer:
  * the caller applies the returned cap with its unchanged traffic/pedestrian/geometry limits.
@@ -62,13 +65,20 @@ private _origin=getPosWorld _peer;
 private _span={
     params ["_object"];
     private _box=boundingBoxReal _object;private _low=_box select 0;private _high=_box select 1;
-    private _minimum=1e9;private _maximum=-1e9;
-    {private _xx=_x;{private _yy=_x;{
-        private _point=(_object modelToWorldWorld [_xx,_yy,_x]) vectorDiff _origin;
-        private _along=_point vectorDotProduct _axis;
-        _minimum=_minimum min _along;_maximum=_maximum max _along;
-    } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];} forEach [_low select 0,_high select 0];
-    [_minimum,_maximum]
+    // An affine box projection reaches each extremum by independently selecting
+    // the low/high end of every edge. This represents all eight corners with four
+    // native transforms, including tilt, scale and asymmetric model bounds.
+    private _corner=_object modelToWorldWorld _low;
+    private _cornerAlong=(_corner vectorDiff _origin) vectorDotProduct _axis;
+    private _minimum=_cornerAlong;private _maximum=_cornerAlong;
+    {
+        private _edge=(_object modelToWorldWorld _x) vectorDiff _corner;
+        private _along=_edge vectorDotProduct _axis;
+        _minimum=_minimum+(_along min 0);_maximum=_maximum+(_along max 0);
+    } forEach [[_high select 0,_low select 1,_low select 2],
+        [_low select 0,_high select 1,_low select 2],
+        [_low select 0,_low select 1,_high select 2]];
+    [_minimum-0.05,_maximum+0.05]
 };
 private _ownSpan=[_vehicle] call _span;private _peerSpan=[_peer] call _span;
 private _aligned=abs (((getDir _vehicle-getDir _peer+540) mod 360)-180) <= 25;

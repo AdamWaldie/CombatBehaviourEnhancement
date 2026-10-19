@@ -189,10 +189,13 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('_phase == "OUT" && {_ahead} && {_atReturnEntry}',s)
         self.assertIn('(_ownSpan select 0) > (_peerSpan select 1)+6',s)
         self.assertIn('(_ownSpan select 1) < (_peerSpan select 0)-3',s)
-        self.assertIn('modelToWorldWorld [_xx,_yy,_x]',s)
-        self.assertIn('[_low select 2,_high select 2]',s)
-        self.assertIn('[_low select 1,_high select 1]',s)
-        self.assertIn('[_low select 0,_high select 0]',s)
+        span=s.split('private _span={',1)[1].split('private _ownSpan=',1)[0]
+        self.assertEqual(span.count('modelToWorldWorld'),2)  # one corner + three loop edges
+        for endpoint in ('[_high select 0,_low select 1,_low select 2]',
+                         '[_low select 0,_high select 1,_low select 2]',
+                         '[_low select 0,_low select 1,_high select 2]'):
+            self.assertIn(endpoint,span)
+        self.assertIn('[_minimum-0.05,_maximum+0.05]',span)
         self.assertIn('RETURN_SCAN',s)
         self.assertIn('DROP_BACK',s)
         self.assertNotIn('set ["deadline",',s)

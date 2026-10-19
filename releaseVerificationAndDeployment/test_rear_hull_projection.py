@@ -44,6 +44,19 @@ class RearHullProjectionTests(unittest.TestCase):
                     self.assertAlmostEqual(actual[boundary][axis],expected[boundary][axis],places=7)
                     self.assertLessEqual(actual[0][axis]-0.05,expected[0][axis])
                     self.assertGreaterEqual(actual[1][axis]+0.05,expected[1][axis])
+            # Passing projects onto an arbitrary peer heading, rather than one
+            # model axis. Compare that scalar interval to all eight world corners.
+            direction=[rng.uniform(-1,1) for _ in range(3)]
+            scalar_matrix=[[sum(direction[k]*matrix[k][j] for k in range(3)) for j in range(3)],
+                           [0,0,0],[0,0,0]]
+            scalar_offset=[sum(direction[k]*offset[k] for k in range(3)),0,0]
+            scalar=edge_bounds(low,high,scalar_matrix,scalar_offset)
+            corners=[transform(p,matrix,offset) for p in product(*zip(low,high))]
+            projected=[sum(direction[k]*p[k] for k in range(3)) for p in corners]
+            self.assertAlmostEqual(scalar[0][0],min(projected),places=7)
+            self.assertAlmostEqual(scalar[1][0],max(projected),places=7)
+            self.assertLessEqual(scalar[0][0]-0.05,min(projected))
+            self.assertGreaterEqual(scalar[1][0]+0.05,max(projected))
 
     def test_native_integration_uses_four_transform_pairs_and_preserves_prediction(self):
         source=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text()

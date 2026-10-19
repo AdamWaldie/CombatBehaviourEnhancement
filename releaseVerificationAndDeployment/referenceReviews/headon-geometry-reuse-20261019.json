@@ -13,9 +13,10 @@
     "DrivingPassGeometry": "Read-only oriented guide body/support slices, <=12stations/243rays per call, context/freshness before and after. Potential reusable observation for a separately admitted lateral guide. It grants no traffic/role/movement authority and does not validate the whole queue roster.",
     "DrivingPassContext": "Observer-specific two-vehicle native-order receipt, not canonical queue consent. Geometry observations can use it locally, but cannot substitute for all queue participants authenticated ownership.",
     "DrivingBypassObstacleAvailable": "Requires engine-off unoccupied vehicle hull. Do not weaken it to treat a live opposing participant as static bypass material.",
-    "DrivingCorridorStep": "Useful owner-local native approach/fixed-path/handback pattern, but requires an explicit registered area and controller. Automatic traffic must not invent a Zeus area or borrow its task authority."
+    "DrivingCorridorStep": "Useful owner-local native approach/fixed-path/handback pattern, but requires an explicit registered area and controller. Automatic traffic must not invent a Zeus area or borrow its task authority.",
+    "DrivingPassBegin/AgreementOwner/Admission": "Passing AGREED checks only the pair context/token/expiry and successful preparation; no peer-zero-cap applied/settled READY exists. Admission headway cap belongs to the passing vehicle, while the peer continues its authored route. Do not reinterpret passing ACK as stopped-peer consent by adding an oncoming flag."
   },
-  "nextImplementation": "Use a separately validated oncoming lateral guide with existing bounded body/support observation, stable complementary role selection and full queue owner receipts. Bind native execution to original expiry and selected participant, hold others, measure crossing before releasing room. No new scan worker or automatic activation until this consuming path exists.",
+  "nextImplementation": "Retain existing queue authenticated COMMIT/HOLD/settled READY and original expiry. Reuse bounded path/body observations and native-leg execution mechanics beneath explicit queue phase receipts; do not create a second stop protocol or borrow passing consent. Frozen role choice must survive only its explicitly owned moving commands. Add native lateral guide, measured whole-hull crossing and exact handback before automatic activation.",
   "implementationThisReview": "No production behavior changed. Prior validated recovery improvements were batch-pushed to draftPR17 at0276de45.",
   "limits": "No oncoming crossing or whole-HBQ parity claimed. Physical and performance acceptance absent; audits paused.",
   "evidence": [
@@ -42,6 +43,18 @@
     {
       "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
       "sha256": "f16e2fcb0c78f22395bed06eb3fffb27d59515cc7fc47c7b49a1e65ffed4ced0"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassBegin.sqf",
+      "sha256": "c6f387e3cc4af7c5e6596c1d1b1e68c708be8c55cc7e9c0b882cf771eae4868a"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassAgreementOwner.sqf",
+      "sha256": "5c5f1487eddf075cca85302054881697036c0fbfc059a50a6e860a20d75b49b7"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassAdmission.sqf",
+      "sha256": "4047d926a95085c3e72a162de0067355780dae05c9ca1a6bd9206f47b2a38495"
     }
   ]
 }
