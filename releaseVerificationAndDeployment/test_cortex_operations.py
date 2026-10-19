@@ -3591,14 +3591,19 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('selectWeapon', suppression)
         self.assertNotIn('_unit ammo _weapon', suppression)
 
-    def test_native_canfire_gets_immediate_safe_suppression_parity(self):
+    def test_native_canfire_uses_its_own_contact_and_existing_safe_suppression(self):
         fire = source("cortexFireControl")
         suppression = fire.split('// Disciplined suppression', 1)[1]
         for token in ['getOrDefault ["dangerResponse",[]]',
                       '(_dangerResponse select 0) == "CANFIRE"',
                       'CBE_Danger_Generation',
                       '(_x select 3) > _assaultRange',
-                      '(_x select 3) <= 500']:
+                      '(_x select 3) <= 500',
+                      'CBE_Danger_ResponseEvent',
+                      '(_dangerEvent select 2) == (_dangerResponse select 2)',
+                      '(_dangerEvent select 1) isEqualTo (_dangerResponse select 1)',
+                      '(_x select 0) isEqualTo _eventTarget',
+                      'getFriend (side _eventTarget) < 0.6']:
             self.assertIn(token,suppression)
         # The parity handoff must still use the existing bounded safety path rather than
         # manufacture target knowledge, direct fire, or a second worker.

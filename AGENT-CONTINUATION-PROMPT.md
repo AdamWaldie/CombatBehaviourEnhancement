@@ -1,3 +1,7 @@
+## Current CANFIRE engagement fix
+
+After576afb57, CBE CANFIRE suppression now selects only the contact from its matching surviving danger event (cause/position/observed time), rechecks live hostility and uses current native belief. Previously the first qualifying unrelated enemy could inherit that opportunity. Existing hidden/drill/reported suppression, ammo/line-of-fire timing and stationary actor protection are unchanged. Existing regression extended, no new test. Full offline build and independent verification passed; fingerprintab43c79b0551cc6280c452d13941377dd15171a7a74ecd660008031045d75fed, manifest576afb572a95551255991ed607d02d0471079ce6+dirtydevelopment. Review canfire-contact-binding-20261019.json. Audits remainPAUSED; no physical/performance/source-parity claim or scoreincrease. User asks fewer brittle source tests, simpler engine-native behaviour and outcome-focused reporting.
+
 ## Latest shared-admission implementation
 
 Native PLANNING guard and indoor/tactical shared reservation integration are validated together:1476tests/340SQF/9PBOs, independent verify a8327bf9f23f3a1cbaefce52b7aae92adc3624c735efa725687bd15db85f795c. Manifestf32bcf1f+dirty development source, not cleanrelease. Full log .qa/cbe-indoor-shared-admission-build.log. Indoor dispatch and START now permit valid expired actor reservations while preserving live/malformed markers, existing indoor orders/brains and native command identity. TacticalReposition reuses the same helper instead of duplicating expiry logic. Build-out scores unchanged.

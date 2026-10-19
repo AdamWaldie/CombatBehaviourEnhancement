@@ -13,7 +13,7 @@
  * A switched soldier keeps his target for 6 s, so orders do not flicker.
  * Suppression: at an enemy that is known but not currently seen (last seen 3-30 s ago), at the
  * drill's enemy while a flank is running, or at a distant native-known contact which has just
- * produced a finite CANFIRE danger response, up to CBE_AIPass_FireControl_MaxSuppressors soldiers
+ * produced a finite CANFIRE danger response for that same contact, up to CBE_AIPass_FireControl_MaxSuppressors soldiers
  * (machine gunners first) fire suppressively. One eligible suppressor is ordered at a time; the group
  * rotates through its candidates at a 2.5-4 s interval. The first order receives a 0.25-2.25 s
  * short per-group random delay, so separate squads do not produce an uncanny global volley. This models
@@ -200,9 +200,21 @@ if (_suppressPos isEqualTo []) then {
         && {(_dangerResponse select 0) == "CANFIRE"}
         && {(_dangerResponse select 4) == _dangerGeneration}
         && {_now < (_dangerResponse select 3)};
-    if (_canFireWindow) then {
+    // A firing opportunity belongs to the contact that produced it, not whichever
+    // unrelated enemy happens to sort first. Use only that contact's current native belief.
+    private _dangerEvent=_group getVariable ["CBE_Danger_ResponseEvent",[]];
+    private _eventMatches=_canFireWindow && {count _dangerEvent in [6,7]}
+        && {(_dangerEvent select 0) == (_dangerResponse select 0)}
+        && {(_dangerEvent select 1) isEqualTo (_dangerResponse select 1)}
+        && {(_dangerEvent select 2) == (_dangerResponse select 2)};
+    private _eventTarget=if (_eventMatches) then {_dangerEvent param [4,objNull,[objNull]]} else {objNull};
+    if (!isNull _eventTarget && {alive _eventTarget} && {!captive _eventTarget}
+        && {!(_eventTarget getVariable ["ace_captives_isSurrendering",false])}
+        && {!(_eventTarget getVariable ["ace_captives_isHandcuffed",false])}
+        && {(side _group) getFriend (side _eventTarget) < 0.6}) then {
         private _knownIndex=_enemies findIf {
-            (_x select 2) <= 3 && {(_x select 3) > _assaultRange} && {(_x select 3) <= 500}
+            (_x select 0) isEqualTo _eventTarget && {(_x select 2) <= 3}
+                && {(_x select 3) > _assaultRange} && {(_x select 3) <= 500}
         };
         if (_knownIndex >= 0) then {_suppressPos=+((_enemies select _knownIndex) select 1)};
     };
