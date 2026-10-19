@@ -156,11 +156,18 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertTrue(source.rstrip().endswith('_accepted'))
         maintain=(ROOT/'addons/support/functions/cortexSupportMaintain.sqf').read_text()
         cleanup=maintain.split('private _releaseStopHolds={',1)[1].split('private _releaseSupport={',1)[0]
-        for proof in ('isNil {','supportStopHolds','count _holds > 64','_issuer == _token',
+        for proof in ('isNil {','supportStopHolds','count _holds > 64','(_row select 1) == _token',
                       'CBE_OperationGeneration','CBE_AIPass_Epoch','CortexExternalTakeover',
                       'CortexActorMoveReserved','expectedDestination _actor','formLeader _actor'):
             self.assertLess(cleanup.index(proof),cleanup.index('_actor doFollow leader _group'))
         self.assertNotIn('enableAI',cleanup)
+        for proof in ('(_expiry+30)','serverTime >= (_cleanup select 3)','(_cleanup select 4) >= 64',
+                      '_dueKeys=[_keys select','_deadline min (_previous select 3)',
+                      'UNRESOLVED_OR_SUPERSEDED','NO_MATCHING_HOLDS'):
+            self.assertIn(proof,cleanup)
+        brain=(ROOT/'addons/infantry/functions/groupBrainStep.sqf').read_text()
+        self.assertIn('[_group,_supportCleanupState,true] call CBE_fnc_CortexSupportMaintain',brain)
+        self.assertIn('supportStopCleanup',brain)
         release=maintain.split('private _releaseSupport={',1)[1].split('// The cached operation step',1)[0]
         self.assertLess(release.index('call _releaseStopHolds'),release.index('CortexGroupMoveClear'))
         cover=maintain.split('private _stopHolds=',1)[1]

@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Actual COVER stops retain separate token/generation/epoch/native destination receipts. Release
  * recalls only unchanged current-owner holds, without enabling PATH. Deferred/changed proof is
- * retained locally; automatic cleanup after ownership migration or token retirement is not guaranteed.
+ * retained locally. Pending cleanup uses the existing group callback, original lease expiry+30s
+ * and at most64 single-actor attempts; migration grants no portable cleanup authority.
  * Owner execution preserves unknown/malformed actor reservations through the shared strict predicate.
  * Releases only the current CBE support assignment when it expires, is revoked or loses every
  * feature gate capable of owning it. A mode must remain enabled at both ends of the reservation;
@@ -32,12 +33,12 @@
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
  * Route cleanup requires a matching generation and never touches a replacement operation.
  * Arguments: 0: group <GROUP>; 1: local state <HASHMAP>.
- * Return Value: Nothing.
- * Current callers: GroupTick.
+ * Return Value: Nothing for maintenance; cleanup-only returns the internal commit BOOL, not reunion.
+ * Current callers: GroupTick; GroupBrainStep services pending cleanup only.
  * Example: [_group, _state] call CBE_fnc_CortexSupportMaintain;
  * Result: the active assignment advances, holds, or releases without competing movement owners.
  */
-params ["_group","_state"];
+params ["_group","_state",["_cleanupOnly",false,[true]]];
 if (!local _group) exitWith {};
 // The reservation may expire in the same scheduler turn that Zeus or another
 // controller claims the group. Retire CBE's lease either way. A normal feature
@@ -60,7 +61,7 @@ private _movementLeaseActive = count _movementLease == 2 && {time < (_movementLe
 };
 private _supportOwnsMovement = _movementLeaseActive && {_movementOwner in ["SUPPORT_RALLY","COORDINATED_ASSAULT"]};
 private _token = _state getOrDefault ["supportToken",""];
-if (_token == "") exitWith {
+if (_token == "" && {!_cleanupOnly}) exitWith {
     // A locality/checkpoint loss can leave the public movement lease after the local support token.
     // There is no remaining Cortex assignment to own movement, so return it immediately.
     private _dangerLease = _group getVariable ["CBE_Cortex_OwnershipLease",[]];
@@ -69,6 +70,12 @@ if (_token == "") exitWith {
     };
 };
 private _operationGeneration=_state getOrDefault ["supportOperationGeneration",-1];
+private _cleanup=_state getOrDefault ["supportStopCleanup",[]];
+if (_cleanupOnly) then {
+    if (_cleanup isEqualType [] && {count _cleanup == 5}) then {
+        _token=_cleanup select 0; _operationGeneration=_cleanup select 1;
+    };
+};
 private _finishOperation={
     params ["_result","_reason"];
     if (_operationGeneration >= 0) then {
@@ -97,37 +104,89 @@ private _supportEnabled = _sharedReinforce || {_sharedCoordinated};
 // Only actual stop issuers populate this bounded local map; later orders retain their destination.
 private _releaseStopHolds={
     isNil {
-        if (!local _group || {!_mayRestoreGroup}
-            || {(_group getVariable ["CBE_AIPass_State",createHashMap]) isNotEqualTo _state}
-            || {(_state getOrDefault ["supportToken",""]) != _token}
-            || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
+        if (!local _group || {(_group getVariable ["CBE_AIPass_State",createHashMap]) isNotEqualTo _state}) exitWith {};
         private _holds=_state getOrDefault ["supportStopHolds",createHashMap];
         if (!(_holds isEqualType createHashMap) || {count _holds > 64}) exitWith {};
+        if (_cleanupOnly) then {
+            private _typed=_cleanup isEqualType [] && {count _cleanup == 5}
+                && {(_cleanup select 0) isEqualType ""} && {(_cleanup select 0) != ""}
+                && {[1,2,3,4] findIf {!((_cleanup select _x) isEqualType 0) || {!finite (_cleanup select _x)} || {(_cleanup select _x) < 0}} < 0}
+                && {[1,2,4] findIf {(_cleanup select _x) != floor (_cleanup select _x)} < 0};
+            if (!_typed || {serverTime >= (_cleanup select 3)} || {(_cleanup select 4) >= 64}
+                || {(_cleanup select 1) != (_group getVariable ["CBE_OperationGeneration",-1])}
+                || {(_cleanup select 2) != (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                || {(_state getOrDefault ["supportToken",""]) != ""}) exitWith {
+                _state set ["supportStopCleanupResult",["UNRESOLVED_OR_SUPERSEDED",serverTime,+_cleanup]];
+                _state deleteAt "supportStopCleanup";
+            };
+        };
+        // The preceding exit belongs to its if block, so enforce retirement at function scope.
+        if (_cleanupOnly && {isNil {_state get "supportStopCleanup"}}) exitWith {};
+        private _keys=(keys _holds) select {
+            private _row=_holds get _x;
+            _row isEqualType [] && {count _row == 7} && {(_row select 0) isEqualType objNull}
+                && {(_row select 1) == _token} && {(_row select 2) == _operationGeneration}
+        };
+        private _dueKeys=_keys;
+        if (_cleanupOnly && {_keys isNotEqualTo []}) then {
+            _dueKeys=[_keys select ((_cleanup select 4) mod count _keys)];
+        };
+        if (_mayRestoreGroup && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+            && {(_cleanupOnly && {(_state getOrDefault ["supportToken",""]) == ""})
+                || {!_cleanupOnly && {(_state getOrDefault ["supportToken",""]) == _token}}}) then {
         {
             private _row=_holds get _x;
-            if (_row isEqualType [] && {count _row == 6} && {(_row select 0) isEqualType objNull}) then {
-                _row params ["_actor","_issuer","_generation","_epoch","_native","_formationLeader"];
-                if (_issuer == _token && {_generation == _operationGeneration}
-                    && {_generation == (_group getVariable ["CBE_OperationGeneration",-1])}
-                    && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",-1])}
-                    && {!isNull _actor} && {local _actor} && {group _actor == _group}
-                    && {[_actor] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _actor}
-                    && {!isPlayer _actor} && {isNull remoteControlled _actor}
-                    && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
-                    && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
-                    && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
-                    && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
-                    && {simulationEnabled _actor} && {!isObjectHidden _actor}
-                    && {toUpperANSI currentCommand _actor in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
-                    && {(expectedDestination _actor) isEqualTo _native} && {formLeader _actor == _formationLeader}) then {
-                    _actor doFollow leader _group;
-                    _holds deleteAt _x;
-                };
+            _row params ["_actor","_issuer","_generation","_epoch","_native","_formationLeader","_expiry"];
+            if (_generation == (_group getVariable ["CBE_OperationGeneration",-1])
+                && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                && {!isNull _actor} && {local _actor} && {group _actor == _group}
+                && {[_actor] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _actor}
+                && {!isPlayer _actor} && {isNull remoteControlled _actor}
+                && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+                && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+                && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
+                && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+                && {simulationEnabled _actor} && {!isObjectHidden _actor}
+                && {toUpperANSI currentCommand _actor in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
+                && {(expectedDestination _actor) isEqualTo _native} && {formLeader _actor == _formationLeader}) then {
+                _actor doFollow leader _group;
+                _holds deleteAt _x;
             };
-        } forEach (keys _holds);
+        } forEach _dueKeys;
+        };
         _state set ["supportStopHolds",_holds];
+        private _remaining=_keys select {_x in _holds};
+        if (_cleanupOnly) then {
+            if (_remaining isEqualTo []) then {
+                _state set ["supportStopCleanupResult",[["NO_MATCHING_HOLDS","FOLLOW_ISSUED"] select (_keys isNotEqualTo []),serverTime,+_cleanup]];
+                _state deleteAt "supportStopCleanup";
+            } else {
+                private _next=+_cleanup; _next set [4,(_cleanup select 4)+1];
+                _state set ["supportStopCleanup",_next];
+            };
+        } else {
+            private _deadline=1e12;
+            {
+                private _expiry=(_holds get _x) select 6;
+                if (_expiry isEqualType 0 && {finite _expiry}) then {_deadline=_deadline min (_expiry+30)};
+            } forEach _remaining;
+            if (_remaining isNotEqualTo [] && {_deadline < 1e12} && {serverTime < _deadline}) then {
+                private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
+                private _previous=_state getOrDefault ["supportStopCleanup",[]];
+                private _attempts=0;
+                if (_previous isEqualType [] && {count _previous == 5}
+                    && {(_previous select [0,3]) isEqualTo [_token,_operationGeneration,_epoch]}
+                    && {(_previous select 3) isEqualType 0} && {finite (_previous select 3)}
+                    && {(_previous select 4) isEqualType 0} && {finite (_previous select 4)}
+                    && {(_previous select 4) >= 0} && {(_previous select 4) == floor (_previous select 4)}) then {
+                    _deadline=_deadline min (_previous select 3); _attempts=_previous select 4;
+                };
+                _state set ["supportStopCleanup",[_token,_operationGeneration,_epoch,_deadline,_attempts]];
+            };
+        };
     };
 };
+if (_cleanupOnly) exitWith {call _releaseStopHolds};
 private _releaseSupport={
     params [["_reason","SUPPORT_RELEASED"]];
     // Retire the exact outgoing bound before a replacement reservation can be admitted.
@@ -287,7 +346,7 @@ if (_coordinating) then {
             if (count _stopHolds > 64) exitWith {};
             // Old invalid/dead/moved-group rows grant no recall authority and consume no new slot.
             {private _row=_stopHolds get _x;
-                if (!(_row isEqualType []) || {count _row != 6} || {!((_row select 0) isEqualType objNull)}
+                if (!(_row isEqualType []) || {count _row != 7} || {!((_row select 0) isEqualType objNull)}
                     || {isNull (_row select 0)} || {!alive (_row select 0)} || {group (_row select 0) != _group}) then {_stopHolds deleteAt _x};
             } forEach (keys _stopHolds);
             {
@@ -301,7 +360,7 @@ if (_coordinating) then {
                     && {count _stopHolds < 64 || {netId _x in _stopHolds}}) then {
                     doStop _x;
                     _stopHolds set [netId _x,[_x,_token,_operationGeneration,
-                        _group getVariable ["CBE_AIPass_Epoch",0],+(expectedDestination _x),formLeader _x]];
+                        _group getVariable ["CBE_AIPass_Epoch",0],+(expectedDestination _x),formLeader _x,_lease select 2]];
                 };
             } forEach units _group;
             _state set ["supportStopHolds",_stopHolds];

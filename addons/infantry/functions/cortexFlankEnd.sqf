@@ -166,7 +166,7 @@ if (_holdFailedBound) then {
         if (count _supportHolds < 64 || {netId _x in _supportHolds}) then {
             doStop _x;
             _supportHolds set [netId _x,[_x,_supportToken,_endingGeneration,_endingEpoch,
-                +(expectedDestination _x),formLeader _x]];
+                +(expectedDestination _x),formLeader _x,_lease select 2]];
         };
     } forEach _members;
     _state set ["supportStopHolds",_supportHolds];

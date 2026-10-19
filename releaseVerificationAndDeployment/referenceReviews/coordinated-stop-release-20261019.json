@@ -3,18 +3,20 @@
   "finding": "Actual COVER doStop was not enrolled in legacy supportHeld PATH ownership; early support release exited before that later legacy handback anyway. Failed-bound native stops likewise lacked release command proof.",
   "implementation": "Separate bounded local supportStopHolds records captured only after actual COVER/failed-bound stop. COVER and receipt share an unscheduled exact-state/role/lease/operation boundary. Release checks current token/generation/epoch, actual actor ownership, native destination/formLeader, service/reservation/external ownership and eligibility, then issues doFollow before route cleanup. No PATH enable, new scheduler or synthetic progress.",
   "source_sha256": {
-    "addons/support/functions/cortexSupportMaintain.sqf": "a2652a370b19c899672b5f6c41a6f5cd67ebb8829eda7f27c719bbae32490328",
-    "addons/infantry/functions/cortexFlankEnd.sqf": "c913c3ef75cd98cf5c2fed0fe1d0771cf3b2a6f8f75bbe1938e9a9c1c0be6d8f"
+    "addons/support/functions/cortexSupportMaintain.sqf": "528b86ff9646e3cd64b89964f59392736199a83839c51852bb7ebbdd687ab625",
+    "addons/infantry/functions/cortexFlankEnd.sqf": "7b59b16871d6246af2e9c55038452789ba882108687b5d23a5e0e60d687b2cd5",
+    "addons/infantry/functions/groupBrainStep.sqf": "bdee3cde7bdf16fa4afa775339d831baa6691fed159c9c046f6c6094ec4810d2"
   },
   "remaining": [
     "Local receipts are not portable owner-adoption proof.",
-    "Blocked release retains local rows, but token retirement leaves no guaranteed automatic retry.",
     "Initial coordinated STOP/MOVE admission and full standing-role lifecycle remain open.",
     "Identical replacement native command state is observationally indistinguishable.",
-    "Physical repeated COVER/MOVE/release, failed-bound release, real-provider HC and performance remain unverified."
+    "Physical repeated COVER/MOVE/release, failed-bound release, real-provider HC and performance remain unverified.",
+    "Paused/retired group brains provide no pending service; original finite window may expire without a follow."
   ],
   "audits": "PAUSED",
   "new_tests": false,
   "buildout_scores_changed": false,
-  "physical_acceptance": false
+  "physical_acceptance": false,
+  "pending_cleanup": "Receipt adds original support expiry. Blocked release registers originalexpiry+30 deadline and at most64 attempts; repeat registration keeps earlier deadline/used attempts. GroupBrainStep calls cleanup-only SupportMaintain for one rotating matching actor, without active token or a new worker. Expiry, supersession or attempt exhaustion ends polling and retains hold proof. NO_MATCHING_HOLDS is distinct from FOLLOW_ISSUED; neither establishes physical reunion."
 }

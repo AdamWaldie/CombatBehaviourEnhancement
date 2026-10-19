@@ -95,7 +95,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/groupBrainStep.sqf",
-              "sha256": "1c2dcd5d7d558a54fe4b1414cbe497b9c6c92ee6d8b71c7bbdb8a07739bdc1d3"
+              "sha256": "bdee3cde7bdf16fa4afa775339d831baa6691fed159c9c046f6c6094ec4810d2"
             },
             {
               "path": "addons/infantry/functions/dangerStep.sqf",
@@ -3500,7 +3500,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "a2652a370b19c899672b5f6c41a6f5cd67ebb8829eda7f27c719bbae32490328"
+              "sha256": "528b86ff9646e3cd64b89964f59392736199a83839c51852bb7ebbdd687ab625"
             }
           ]
         }
@@ -3557,7 +3557,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "a2652a370b19c899672b5f6c41a6f5cd67ebb8829eda7f27c719bbae32490328"
+              "sha256": "528b86ff9646e3cd64b89964f59392736199a83839c51852bb7ebbdd687ab625"
             },
             {
               "path": "addons/infantry/functions/recoveryStep.sqf",
@@ -3772,7 +3772,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankEnd.sqf",
-              "sha256": "c913c3ef75cd98cf5c2fed0fe1d0771cf3b2a6f8f75bbe1938e9a9c1c0be6d8f"
+              "sha256": "7b59b16871d6246af2e9c55038452789ba882108687b5d23a5e0e60d687b2cd5"
             }
           ]
         },
@@ -3960,7 +3960,7 @@
             },
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "a2652a370b19c899672b5f6c41a6f5cd67ebb8829eda7f27c719bbae32490328"
+              "sha256": "528b86ff9646e3cd64b89964f59392736199a83839c51852bb7ebbdd687ab625"
             }
           ]
         },

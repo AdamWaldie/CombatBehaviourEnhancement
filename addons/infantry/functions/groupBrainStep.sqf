@@ -42,6 +42,12 @@ if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])) exitWith {["DIS
 if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};
 
+// Retired coordinated holds share this callback; no token is reacquired and no clock is renewed.
+private _supportCleanupState=_group getVariable ["CBE_AIPass_State",createHashMap];
+if ((_supportCleanupState getOrDefault ["supportStopCleanup",[]]) isNotEqualTo []) then {
+    [_group,_supportCleanupState,true] call CBE_fnc_CortexSupportMaintain;
+};
+
 // Service expired weak posture through this existing owner-local callback. A refused
 // actor keeps its original proof; rotation prevents it blocking another actor's cleanup.
 // This does not wake/extend the brain or create another observer.
