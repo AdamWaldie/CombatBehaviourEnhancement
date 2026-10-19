@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Non-finite geometry/timestamps are rejected before selection or observation side effects.
  * Purpose: Select one unexpired danger event using a bounded linear priority pass.
  * Locality / Authority: owner-local; never reveals targets or sends movement commands.
  * Repeat/JIP: generation-checked, machine-local state; new owners rebuild from new observations.
@@ -11,6 +12,7 @@
  */
 
 params [["_events",[],[[]]],["_now",time,[0]]];
+if (!finite _now) exitWith {[]};
 private _chosen=[];
 private _best=-1;
 private _latest=-1;
@@ -22,8 +24,9 @@ private _priority=createHashMapFromArray [["HIT",9],["CANFIRE",8],["SUPPRESSED",
     if (_x isEqualType [] && {count _x in [4,5,6,7]}) then {
         _x params ["_cause","_position","_created","_expires"];
         if (_cause isEqualType "" && {_position isEqualType []} && {count _position == 3}
-            && {_position findIf {!(_x isEqualType 0)} < 0}
-            && {_created isEqualType 0} && {_expires isEqualType 0} && {_expires > _now}) then {
+            && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_created isEqualType 0} && {finite _created}
+            && {_expires isEqualType 0} && {finite _expires} && {_expires > _now}) then {
             private _rank=_priority getOrDefault [_cause,-1];
             if (_rank > _best || {_rank >= 0 && {_rank == _best} && {_created > _latest}}) then {
                 _chosen=+_x; _best=_rank; _latest=_created;

@@ -185,6 +185,10 @@ if (!isNil "_civilianCreated") then {
 } forEach (allUnits select {side group _x == civilian});
 {
     {
+        private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
+        if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+            ["FINISH",_x,_point] call CBE_fnc_PointActorOperation;
+        };
         private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
         if (count _indoor > 0 || {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}) then {
             ["FINISH",_x,_indoor] call CBE_fnc_IndoorActorOperation;

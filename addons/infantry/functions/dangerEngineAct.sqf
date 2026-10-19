@@ -9,7 +9,8 @@
  * Idle prone riflemen may perform one native lateral evasion after a hit or near round.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
  * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
- * It never creates a movement, target or firing lease.
+ * The separate finite point executor may admit an identified own-group casualty investigation.
+ * Posture itself creates no movement, target or firing lease.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: mode <STRING>, ASSESS; 2: selected record <ARRAY>, [].
  * Return Value: Number - short observation deadline in seconds.
  * Current callers: Engine-loaded infantry danger FSM action states.
@@ -110,6 +111,13 @@ if (_mode == "HIDE" && {_cause in [5,6,7]} && {!_committedMover}
     if (count _position == 3 && {_position findIf {!(_x isEqualType 0)} < 0}) then {
         _actor glanceAt _position;
     };
+};
+// A native own-group casualty source can identify a real body without a world scan.
+// Null/unknown sources retain the finite glance. The separate point owner revalidates admission.
+if (_mode == "HIDE" && {_cause == 5} && {!_committedMover}) then {
+    private _body=_record param [3,objNull,[objNull]];
+    if (["START",_actor,createHashMapFromArray [["body",_body],
+        ["observed",_record param [1,[],[[]]]]]] call CBE_fnc_PointActorOperation) then {_committedMover=true};
 };
 // Forced orders and vehicle crews already have an engine movement owner. Recording the response is
 // useful, but changing their posture would compete with that owner. Foot soldiers receive only a

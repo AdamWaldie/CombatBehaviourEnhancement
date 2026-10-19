@@ -112,7 +112,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "f396cd79203656a5cf9125aaaf971e1630dfc7ae9be3c46b8334a317e41b9fda"
+              "sha256": "eeb4a3db150487665d70b5b7e695f57d4316009a35a8bf9e1cdd63ff6b182c9b"
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
@@ -630,11 +630,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/dangerSelect.sqf",
-              "sha256": "b8cb284955127e08d4015af8434377cf4e4b6ebf3d04e376eb7902b581201bfc"
+              "sha256": "648b04327d2309d79c522dcb61206b26dc95d6d7c8c9aab31d8ac4ad430f9c2d"
             },
             {
               "path": "addons/infantry/functions/dangerEngineSelect.sqf",
-              "sha256": "822a27c2cca800f09447b142d9f9388bafadbc54c1a755e1a7058663e4e91024"
+              "sha256": "807ae67888c5f7665417358735846acb47f4ec54207199a6c8af3b817669df35"
             }
           ]
         },
@@ -651,7 +651,7 @@
             },
             {
               "path": "addons/infantry/functions/dangerEngineSubmit.sqf",
-              "sha256": "dbd19dd998e83a2977ed365ee7701a4e49b2638f9d90bf65b99bfa18850e214d"
+              "sha256": "9a8dd9b8b183d50004f8c017b66bdb20f105fb7fd998fb6585cd93577fabb2c2"
             }
           ]
         },
@@ -1059,7 +1059,7 @@
             },
             {
               "path": "addons/infantry/functions/dangerEngineAct.sqf",
-              "sha256": "53379611e2079f44c0d2cdda8edf34741e04528039d38b1d47134d24c413979d"
+              "sha256": "12c7c3bbd28b72a7b035bbee8a9ec7af8e4ea12f5388b8c9bcd9a2589ff7f654"
             }
           ]
         },
@@ -3399,7 +3399,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "f396cd79203656a5cf9125aaaf971e1630dfc7ae9be3c46b8334a317e41b9fda"
+              "sha256": "eeb4a3db150487665d70b5b7e695f57d4316009a35a8bf9e1cdd63ff6b182c9b"
             },
             {
               "path": "addons/core/functions/operationStep.sqf",

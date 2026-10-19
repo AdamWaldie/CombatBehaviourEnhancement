@@ -516,6 +516,45 @@ class CortexOperations(unittest.TestCase):
         vehicle_profile=source('dangerVehicleProfile')
         engine_mode=source('dangerEngineMode')
         engine_select=source('dangerEngineSelect')
+        point=source('pointActorOperation')
+        start=point.split('if (_mode == "START") exitWith {',1)[1].split('private _current=',1)[0]
+        for guard in ('group _body != _group','_body distance2D _observed > 3','currentCommand _actor != ""',
+                      'CortexActorMoveReserved','CBE_PointActor_After','_route select 1','serverTime+12'):
+            self.assertIn(guard,start)
+        self.assertEqual(point.count('["deadline",_deadline]'),1)
+        step=point.split('if (_mode != "STEP") exitWith',1)[1]
+        self.assertLess(step.index('completedFSM _handle'),step.index('_actor doMove'))
+        self.assertLess(step.index('"requestAt",serverTime'),step.index('_actor doMove'))
+        self.assertLess(step.index('_actor doMove'),step.index('_order set [8,true]'))
+        for guard in ('serverTime-(_brain get "requestAt") < 2','expectedDestination _actor',
+                      'formLeader _actor isEqualTo','vectorDistance (_brain get "goalASL") <= 2',
+                      'lineIntersects','"NO_PROGRESS"','"BODY_CHANGED"'):
+            self.assertIn(guard,step)
+        finish=point.split('if (_mode in ["FINISH","TRANSFER"]) exitWith {',1)[1].split('if (_mode == "START")',1)[0]
+        for guard in ('"CANCEL_PENDING"','_reservation isEqualTo _lease','_destination vectorDistance _target <= 0.25',
+                      '_route isEqualTo','CortexExternalTakeover','_issued'):
+            self.assertIn(guard,finish if guard != 'CortexExternalTakeover' else point)
+        for forbidden in ('allDeadMen','nearestObjects','setPos','addBackpack','rearm','reveal '):
+            # Ignore documentation: this task never copies inventory or global discovery shortcuts.
+            self.assertNotIn(forbidden,re.sub(r'/\*.*?\*/|//[^\n]*','',point,flags=re.S))
+        point_fsm=(ROOT/'addons/main/fsm/pointActor.fsm').read_text()
+        self.assertIn('CBE_fnc_PointActorOperation',point_fsm)
+        self.assertIn('serverTime >=',point_fsm)
+        for name in ('cortexLocality','cortexStop','cortexDiscover'):
+            self.assertIn('CBE_fnc_PointActorOperation',source(name))
+        self.assertIn('_cause == 5',engine_act)
+        self.assertIn('CBE_fnc_PointActorOperation',engine_act)
+
+        for intake in (engine_select,engine,source('dangerRequest'),source('dangerSelect')):
+            self.assertIn('!finite _x',intake)
+        for intake in (engine_select,engine):
+            self.assertIn('_cause == floor _cause',intake)
+            self.assertLess(intake.index('_cause == floor _cause'),intake.index('select _cause'))
+        self.assertIn('finite _expiry',engine_select)
+        self.assertIn('finite _expires',engine)
+        for guard in ('finite _now','finite _created','finite _expires'):
+            self.assertIn(guard,source('dangerSelect'))
+
         danger_cover=source('dangerCoverStep')
         danger_smoke=source('dangerSmokeStep')
         engine_fsm=(ROOT/'addons/danger/danger.fsm').read_text()
@@ -852,8 +891,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_records select [0,12]',engine_select)
         self.assertIn('private _priorities=[2,1,9,4,3,6,3,5,8,7,0]',engine_select)
         self.assertIn('_rank >= 0 && {count _position in [2,3]}',engine_select)
-        self.assertIn('_position findIf {!(_x isEqualType 0)} < 0',engine_select)
-        self.assertIn('_position findIf {!(_x isEqualType 0)} < 0',source('dangerEngineSubmit'))
+        self.assertIn('_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0',engine_select)
+        self.assertIn('_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0',source('dangerEngineSubmit'))
         self.assertIn('_queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]+(_queue select [0,11])',engine_fsm)
         self.assertLess(engine_select.index('private _priorities='),engine_select.index('forEach (_records select [0,12])'))
         self.assertIn('currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]',engine_mode)

@@ -96,6 +96,13 @@ _group setVariable ["CBE_BuildingBrain",nil];
 _group setVariable ["CBE_BuildingBrain_FSM",nil];
 {
         private _unit = _x;
+        private _point=_unit getVariable ["CBE_PointActor_Brain",createHashMap];
+        if (count _point > 0 || {(_unit getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+            ["TRANSFER",_unit,createHashMap] call CBE_fnc_PointActorOperation;
+            if ((_unit getVariable ["CBE_PointActor_Brain",createHashMap]) isEqualTo _point) then {
+                _unit setVariable ["CBE_PointActor_Brain",nil];_unit setVariable ["CBE_PointActor_FSM",nil];
+            };
+        };
         private _indoor=_unit getVariable ["CBE_IndoorActor_Brain",createHashMap];
         if (count _indoor > 0 || {(_unit getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}
             || {!isNil {_unit getVariable "CBE_IndoorActor_FSM"}}) then {

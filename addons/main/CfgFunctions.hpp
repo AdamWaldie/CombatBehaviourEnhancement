@@ -156,6 +156,7 @@ class CfgFunctions {
             class IndoorActorDispatch {file = "\z\cbe\addons\infantry\functions\indoorActorDispatch.sqf";};
             class IndoorActorGroupAvailable {file = "\z\cbe\addons\infantry\functions\indoorActorGroupAvailable.sqf";};
             class IndoorActorNativeContext {file = "\z\cbe\addons\infantry\functions\indoorActorNativeContext.sqf";};
+            class PointActorOperation {file = "\z\cbe\addons\infantry\functions\pointActorOperation.sqf";};
             class IndoorActorOperation {file = "\z\cbe\addons\infantry\functions\indoorActorOperation.sqf";};
             class IndoorActorNodeSelect {file = "\z\cbe\addons\infantry\functions\indoorActorNodeSelect.sqf";};
             class BuildingActorMotion {file = "\z\cbe\addons\infantry\functions\buildingActorMotion.sqf";};

@@ -126,6 +126,19 @@ private _spotters=_job get "spotters";
     };
     if (local _group && {(units _group) findIf {alive _x} >= 0}) then {
         _spotters append ((units _group) select {alive _x && {_x getVariable ["CBE_AIPass_Spotter", false]}});
+        private _pointActor=_group getVariable ["CBE_PointActor_Actor",objNull];
+        // A deleted, dead or regrouped investigator cannot occupy this group's sole slot.
+        if (!isNull _pointActor && {!alive _pointActor || {group _pointActor != _group}}) then {
+            _group setVariable ["CBE_PointActor_Actor",nil,true];
+        };
+        if (!isNull _pointActor && {local _pointActor} && {group _pointActor == _group}) then {
+            private _pointBrain=_pointActor getVariable ["CBE_PointActor_Brain",createHashMap];
+            if (count _pointBrain > 0) then {["REAP",_pointActor,_pointBrain] call CBE_fnc_PointActorOperation} else {
+                if ((_pointActor getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []) then {
+                    ["TRANSFER",_pointActor,createHashMap] call CBE_fnc_PointActorOperation;
+                };
+            };
+        };
         private _indoorActors=_group getVariable ["CBE_IndoorActor_Actors",[]];
         if (_indoorActors isEqualType [] && {count _indoorActors <= 2}) then {
             {
