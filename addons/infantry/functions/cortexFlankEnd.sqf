@@ -159,9 +159,18 @@ _group setVariable ["CBE_Cortex_DrillRecovery",[_reason,_stragglers,_drill getOr
 if (_holdFailedBound) then {
     // A failed movement remains a failure. Preserve physical gains while the server
     // yields the turn; doFollow here creates repeated outward/return journeys.
+    private _supportHolds=_state getOrDefault ["supportStopHolds",createHashMap];
+    if !(_supportHolds isEqualType createHashMap) then {_supportHolds=createHashMap};
+    if (count _supportHolds <= 64) then {
     {
-        doStop _x;
+        if (count _supportHolds < 64 || {netId _x in _supportHolds}) then {
+            doStop _x;
+            _supportHolds set [netId _x,[_x,_supportToken,_endingGeneration,_endingEpoch,
+                +(expectedDestination _x),formLeader _x]];
+        };
     } forEach _members;
+    _state set ["supportStopHolds",_supportHolds];
+    };
 } else {
 if (_hold) then {
     private _holders = _state getOrDefault ["holders", []];

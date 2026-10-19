@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Actual COVER stops retain separate token/generation/epoch/native destination receipts. Release
+ * recalls only unchanged current-owner holds, without enabling PATH. Deferred/changed proof is
+ * retained locally; automatic cleanup after ownership migration or token retirement is not guaranteed.
  * Owner execution preserves unknown/malformed actor reservations through the shared strict predicate.
  * Releases only the current CBE support assignment when it expires, is revoked or loses every
  * feature gate capable of owning it. A mode must remain enabled at both ends of the reservation;
@@ -90,6 +93,41 @@ private _sharedCoordinated = !isNull _requester
     && {[_requester,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {[_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 private _supportEnabled = _sharedReinforce || {_sharedCoordinated};
+// Record native stops separately from legacy PATH restrictions: these holds never disabled PATH.
+// Only actual stop issuers populate this bounded local map; later orders retain their destination.
+private _releaseStopHolds={
+    isNil {
+        if (!local _group || {!_mayRestoreGroup}
+            || {(_group getVariable ["CBE_AIPass_State",createHashMap]) isNotEqualTo _state}
+            || {(_state getOrDefault ["supportToken",""]) != _token}
+            || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
+        private _holds=_state getOrDefault ["supportStopHolds",createHashMap];
+        if (!(_holds isEqualType createHashMap) || {count _holds > 64}) exitWith {};
+        {
+            private _row=_holds get _x;
+            if (_row isEqualType [] && {count _row == 6} && {(_row select 0) isEqualType objNull}) then {
+                _row params ["_actor","_issuer","_generation","_epoch","_native","_formationLeader"];
+                if (_issuer == _token && {_generation == _operationGeneration}
+                    && {_generation == (_group getVariable ["CBE_OperationGeneration",-1])}
+                    && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                    && {!isNull _actor} && {local _actor} && {group _actor == _group}
+                    && {[_actor] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _actor}
+                    && {!isPlayer _actor} && {isNull remoteControlled _actor}
+                    && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+                    && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+                    && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
+                    && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+                    && {simulationEnabled _actor} && {!isObjectHidden _actor}
+                    && {toUpperANSI currentCommand _actor in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
+                    && {(expectedDestination _actor) isEqualTo _native} && {formLeader _actor == _formationLeader}) then {
+                    _actor doFollow leader _group;
+                    _holds deleteAt _x;
+                };
+            };
+        } forEach (keys _holds);
+        _state set ["supportStopHolds",_holds];
+    };
+};
 private _releaseSupport={
     params [["_reason","SUPPORT_RELEASED"]];
     // Retire the exact outgoing bound before a replacement reservation can be admitted.
@@ -98,6 +136,7 @@ private _releaseSupport={
     if ((_outgoingDrill getOrDefault ["supportToken",""]) == _token) then {
         [_group,_state,"ROLE_HANDOVER"] call CBE_fnc_CortexFlankEnd;
     };
+    call _releaseStopHolds;
     // Reject only the exact lease snapshot accepted by this owner. The server validates token,
     // snapshot and sender again, making repeated cleanup and a racing replacement lease harmless.
     if (count _lease == 6 && {_token == (_lease select 0)}) then {
@@ -230,13 +269,27 @@ if (_coordinating) then {
         if ((_drill getOrDefault ["supportToken",""]) == _token) then {[_group,_state,"ROLE_HANDOVER"] call CBE_fnc_CortexFlankEnd};
         private _coverIdentity=[_token,_role select 1];
         if ((_state getOrDefault ["supportCoverIdentity",[]]) isNotEqualTo _coverIdentity) then {
+            isNil {
+            if (!local _group || {(_group getVariable ["CBE_AIPass_State",createHashMap]) isNotEqualTo _state}
+                || {(_state getOrDefault ["supportToken",""]) != _token}
+                || {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role}
+                || {(_group getVariable ["CBE_AIPass_SupportLease",[]]) isNotEqualTo _lease}
+                || {serverTime >= (_lease select 2)} || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
             private _coverOperation=_group getVariable ["CBE_Operation",createHashMap];
-            if ((_coverOperation getOrDefault ["generation",-2]) == _operationGeneration
-                && {(_coverOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
-                && {(_coverOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}) then {
-                _coverOperation set ["phase","SUPPORT"];
-                _group setVariable ["CBE_Operation",_coverOperation,true];
-            };
+            if ((_coverOperation getOrDefault ["generation",-2]) != _operationGeneration
+                || {(_coverOperation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                || {(_coverOperation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}
+                || {(_coverOperation getOrDefault ["phase",""]) == "CANCELLED"}) exitWith {};
+            _coverOperation set ["phase","SUPPORT"];
+            _group setVariable ["CBE_Operation",_coverOperation,true];
+            private _stopHolds=_state getOrDefault ["supportStopHolds",createHashMap];
+            if !(_stopHolds isEqualType createHashMap) then {_stopHolds=createHashMap};
+            if (count _stopHolds > 64) exitWith {};
+            // Old invalid/dead/moved-group rows grant no recall authority and consume no new slot.
+            {private _row=_stopHolds get _x;
+                if (!(_row isEqualType []) || {count _row != 6} || {!((_row select 0) isEqualType objNull)}
+                    || {isNull (_row select 0)} || {!alive (_row select 0)} || {group (_row select 0) != _group}) then {_stopHolds deleteAt _x};
+            } forEach (keys _stopHolds);
             {
                 if (local _x && {group _x == _group} && {isNull objectParent _x}
                     && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x}
@@ -244,11 +297,16 @@ if (_coordinating) then {
                     && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                     && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
                     && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
-                    && {!([_x] call CBE_fnc_CortexActorMoveReserved)}) then {
+                    && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+                    && {count _stopHolds < 64 || {netId _x in _stopHolds}}) then {
                     doStop _x;
+                    _stopHolds set [netId _x,[_x,_token,_operationGeneration,
+                        _group getVariable ["CBE_AIPass_Epoch",0],+(expectedDestination _x),formLeader _x]];
                 };
             } forEach units _group;
+            _state set ["supportStopHolds",_stopHolds];
             _state set ["supportCoverIdentity",_coverIdentity];
+            };
         };
     };
 };

@@ -154,6 +154,22 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexDrillStart',boundary)
         self.assertLess(boundary.index('CBE_fnc_CortexDrillStart'),boundary.index('_accepted=true;'))
         self.assertTrue(source.rstrip().endswith('_accepted'))
+        maintain=(ROOT/'addons/support/functions/cortexSupportMaintain.sqf').read_text()
+        cleanup=maintain.split('private _releaseStopHolds={',1)[1].split('private _releaseSupport={',1)[0]
+        for proof in ('isNil {','supportStopHolds','count _holds > 64','_issuer == _token',
+                      'CBE_OperationGeneration','CBE_AIPass_Epoch','CortexExternalTakeover',
+                      'CortexActorMoveReserved','expectedDestination _actor','formLeader _actor'):
+            self.assertLess(cleanup.index(proof),cleanup.index('_actor doFollow leader _group'))
+        self.assertNotIn('enableAI',cleanup)
+        release=maintain.split('private _releaseSupport={',1)[1].split('// The cached operation step',1)[0]
+        self.assertLess(release.index('call _releaseStopHolds'),release.index('CortexGroupMoveClear'))
+        cover=maintain.split('private _stopHolds=',1)[1]
+        self.assertLess(cover.index('doStop _x'),cover.index('_stopHolds set [netId _x'))
+        self.assertIn('count _stopHolds < 64',cover)
+        end=(ROOT/'addons/infantry/functions/cortexFlankEnd.sqf').read_text()
+        failed=end.split('if (_holdFailedBound) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('supportStopHolds',failed)
+        self.assertLess(failed.index('doStop _x'),failed.index('_supportHolds set [netId _x'))
         self.assertNotIn('sleep ',boundary)
         self.assertNotIn('nearEntities',boundary)
 
