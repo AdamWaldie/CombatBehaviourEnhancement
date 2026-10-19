@@ -14,6 +14,9 @@
  * Effective-commander absence resolves to the driver exactly as at journal capture.
  * A native STOP or individual movement reservation overrides an unchanged destination receipt
  * and forbids movement cleanup; reservation state is never cleared by recovery release.
+ * Pending destination requests retain their exact rear journal/cap without stop or route
+ * commands. Expired unchanged requests remain uncertain within the original hard deadline;
+ * expiry never proves native rejection or authorizes a replay.
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
  * Admission, route metadata, native command checks and handback execute without suspension.
@@ -64,6 +67,20 @@ private _releaseExpired={
     };
     true
 };
+private _commandState="OWNED";
+if (_commandMode == "DESTINATION") then {
+    _commandState=[_vehicle,_work] call CBE_fnc_DrivingRecoveryCommandState;
+    if (_commandState == "OWNED" && {"request" in _work}
+        && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work}
+        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")}
+        && {abs ((getForcedSpeed _vehicle)-(_work get "cap")) <= 0.1}) then {
+        _work set ["driverCommand",+(expectedDestination driver _vehicle)];
+        private _ackOperator=effectiveCommander _vehicle;
+        if (isNull _ackOperator) then {_ackOperator=driver _vehicle};
+        _work set ["command",+(expectedDestination _ackOperator)];_work deleteAt "request";
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+    };
+};
 private _simpleInfo=vehicleMoveInfo _vehicle;
 private _destinationControlFree=if (_commandMode == "SIMPLE_BACK") then {
     (_work getOrDefault ["driver",objNull]) != (_work getOrDefault ["operator",objNull])
@@ -97,6 +114,21 @@ private _retainAcrossLocality=_resume && {_destinationControlFree} && {(_work ge
             || {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}
             || {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])}
     } < 0};
+// Pending/expired unchanged destination requests do not prove rejection of an issued
+// rear move. Retain its exact safety journal/cap; only acknowledged command proof can
+// authorize stop/handback. The original hard deadline still bounds automatic observation.
+if (_retainAcrossLocality && {_commandState in ["PENDING","EXPIRED"]}) exitWith {
+    if (call _releaseExpired) exitWith {false};
+    if !(_work getOrDefault ["releasePending",false]) then {
+        _work set ["releasePending",true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Result",[
+            _reason,serverTime,_group,_work get "kind",_work get "hardDeadline","DEFERRED_NATIVE_ACK"
+        ],true];
+    };
+    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+    false
+};
 if (_retainAcrossLocality && {!local _group || {!local _driver} || {!local _operator}}) exitWith {
     if (call _releaseExpired) exitWith {false};
     if !(_work getOrDefault ["releasePending",false]) then {
@@ -110,7 +142,7 @@ if (_retainAcrossLocality && {!local _group || {!local _driver} || {!local _oper
     false
 };
 private _handback="METADATA_ONLY";
-private _owned=_resume && {_destinationControlFree} && {(_work get "kind") == "REVERSE"}
+private _owned=_resume && {_commandState == "OWNED"} && {_destinationControlFree} && {(_work get "kind") == "REVERSE"}
     && {alive _vehicle}
     && {local _group} && {!isNull _driver} && {!isNull _operator}
     && {driver _vehicle == _driver} && {_liveOperator == _operator}

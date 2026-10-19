@@ -181,7 +181,29 @@ _brain set ["geometryTracks",_geometryTracks];
         };
         toUpperANSI (_info param [0,"",[""]]) != "BACK"
     };
-    private _recoveryOwned=count _recoveryWork > 0 && {call _destinationControlFree}
+    private _recoveryCommandState="OWNED";
+    if (count _recoveryWork > 0 && {(_recoveryWork getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"}) then {
+        isNil {
+            _recoveryCommandState=[_vehicle,_recoveryWork] call CBE_fnc_DrivingRecoveryCommandState;
+            if (_recoveryCommandState == "OWNED" && {"request" in _recoveryWork}
+                && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _recoveryWork}
+                && {(_recoveryWork get "group") == _group} && {(_recoveryWork get "route") isEqualTo _routeIdentity}
+                && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}) then {
+                _recoveryWork set ["driverCommand",+(expectedDestination _driver)];
+                _recoveryWork set ["command",+(expectedDestination _movementOperator)];
+                _recoveryWork deleteAt "request";
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_recoveryWork,true];
+            };
+        };
+    };
+    // An unchanged expired rear request is uncertain, not rejected. Preserve its safety
+    // journal through the existing bounded release observer; never create another rear leg.
+    if (_recoveryCommandState == "EXPIRED" && {(_recoveryWork getOrDefault ["kind",""]) == "REVERSE"}) then {
+        [_vehicle,_group,"NATIVE_ACK_UNRESOLVED"] call CBE_fnc_DrivingRecoveryRelease;
+        continue;
+    };
+    private _recoveryRequestPending=_recoveryCommandState == "PENDING";
+    private _recoveryOwned=count _recoveryWork > 0 && {_recoveryCommandState in ["OWNED","PENDING"]} && {call _destinationControlFree}
         && {(_recoveryWork get "group") == _group}
         && {(_recoveryWork get "route") isEqualTo _routeIdentity}
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
@@ -298,7 +320,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {(expectedDestination _driver) isEqualTo (_owned get "driverCommand")}
                 && {_native isEqualTo (_owned get "command")}
         };
-        private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}
+        private _mayRecoverOrdinaryRoute={!_recoveryRequestPending && {call _mayRecoverRoute} && {call _nativeRouteIntent}
             && {toUpperANSI currentCommand _driver in ["","MOVE","WAIT"]}};
         private _priorOwner=(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
@@ -393,7 +415,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
             private _recordRecovery={
-                params ["_kind",["_rearHitpointReceipt",[],[[]]],["_commandMode","DESTINATION",[""]],["_simpleBefore",[],[[]]]];
+                params ["_kind",["_rearHitpointReceipt",[],[[]]],["_commandMode","DESTINATION",[""]],["_simpleBefore",[],[[]]],["_nativeRequest",[],[[]]]];
                 private _old=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                 private _hard=if (count _old > 0 && {(_old get "group") == _group} && {(_old get "route") isEqualTo _routeIdentity}) then {
                     _old get "hardDeadline"
@@ -403,6 +425,8 @@ _brain set ["geometryTracks",_geometryTracks];
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
                     ["kind",_kind],["commandMode",_commandMode],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
                     ["origin",getPosATL _vehicle],["baseline",+_previous],["cap",_capMps]];
+                if (_commandMode == "DESTINATION" && {count _nativeRequest == 3}
+                    && {_kind in ["REFRESH","FINAL","REVERSE"]}) then {_work set ["request",_nativeRequest]};
                 if (_commandMode == "SIMPLE_BACK") then {
                     _work set ["simpleBefore",+_simpleBefore];
                     _work set ["simpleAcknowledged",toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) == "BACK"];
@@ -419,7 +443,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 time+(_deadline-serverTime)
             };
             private _reverseIssued=_state param [10,(_state param [8,""]) == "CAUTIOUS_REVERSE"];
-            private _reverseLeg=(_state param [6,0]) == 2 && {_reverseIssued}
+            private _reverseLeg=(_state param [6,0]) == 2 && {_reverseIssued} && {!_recoveryRequestPending}
                 && {time < (_state param [7,-1])};
             private _rearPathRejected=false;
             if (_reverseLeg) then {
@@ -899,7 +923,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                 } else {
                                     _movementOperator doMove _destination;
                                     _recoveryStage=1;
-                                    _recoveryUntil=["REFRESH"] call _recordRecovery;
+                                    _recoveryUntil=["REFRESH",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery;
                                     _recoveryResult="ROUTE_REFRESH";_reverseIssued=false;
                                 };
                                 _recoveryTransitioned=true;
@@ -948,7 +972,9 @@ _brain set ["geometryTracks",_geometryTracks];
                                 };
                                 _recoveryStage=2;
                                 _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued,_rearHitpointReceipt,
-                                    _rearCommandMode,_rearSimpleBefore] call _recordRecovery;
+                                    _rearCommandMode,_rearSimpleBefore,if (_reverseIssued && {_rearCommandMode == "DESTINATION"}) then {
+                                        [+_rear,serverTime+2,_rearCommands]
+                                    } else {[]}] call _recordRecovery;
                                 _recoveryTransitioned=true;
                             };
                         };
@@ -974,7 +1000,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                 } else {
                                     _movementOperator doMove _destination;
                                     _recoveryStage=3;
-                                    _recoveryUntil=["FINAL"] call _recordRecovery;
+                                    _recoveryUntil=["FINAL",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery;
                                     _recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false;
                                 };
                                 _recoveryTransitioned=true;

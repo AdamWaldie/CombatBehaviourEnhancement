@@ -24,7 +24,7 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         # Vehicle-level BACK is independent of unchanged unit destinations.
         mode='param [0,"",[""]]) != "BACK"'
         self.assertIn(mode,text)
-        self.assertIn('count _recoveryWork > 0 && {call _destinationControlFree}',text)
+        self.assertIn('count _recoveryWork > 0 && {_recoveryCommandState in ["OWNED","PENDING"]} && {call _destinationControlFree}',text)
         self.assertIn('if (!_enabled || {!(call _destinationControlFree)}',text)
         boundary=text.split('private _mayIssueDriving = {',1)[1].split('// A shared group waypoint',1)[0]
         self.assertIn('call _destinationControlFree',boundary)
@@ -37,7 +37,7 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         self.assertIn('if (_nativeStopPending) exitWith {}',release)
         self.assertIn('if (_nativeStopPending) exitWith {',release)
 
-        self.assertIn('private _owned=_resume && {_destinationControlFree}',release)
+        self.assertIn('private _owned=_resume && {_commandState == "OWNED"} && {_destinationControlFree}',release)
         self.assertIn('private _retainAcrossLocality=_resume && {_destinationControlFree}',release)
 
     def test_operator_fallback_matches_capture_without_accepting_replacement_commander(self):

@@ -10,9 +10,9 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         refresh=s.split('case 0: {',1)[1].split('case 1:',1)[0]
         reverse=s.split('case 1: {',1)[1].split('case 2:',1)[0]
         retry=s.split('case 2: {',1)[1].split('default {',1)[0]
-        self.assertIn('_recoveryUntil=["REFRESH"] call _recordRecovery',refresh)
+        self.assertIn('_recoveryUntil=["REFRESH",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',refresh)
         self.assertIn('call _recordRecovery',reverse)
-        self.assertIn('_recoveryUntil=["FINAL"] call _recordRecovery',retry)
+        self.assertIn('_recoveryUntil=["FINAL",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',retry)
         self.assertIn('case "REFRESH":{_hard-66}',s)
         self.assertIn('default {_hard-60}',s)
         self.assertIn('serverTime >= (_scheduledRecovery get "hardDeadline")-60',s)
@@ -90,7 +90,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertNotIn('distance2D',guard)
         for receipt in ('get "group"','get "route"','get "driver"','get "operator"','get "driverCommand"','get "command"'):
             self.assertIn(receipt,guard)
-        self.assertIn('private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}',guard)
+        self.assertIn('private _mayRecoverOrdinaryRoute={!_recoveryRequestPending && {call _mayRecoverRoute} && {call _nativeRouteIntent}',guard)
         self.assertIn('currentCommand _movementOperator != "STOP"',s.split('private _release=',1)[0])
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
         self.assertIn('(driver _follower) doMove _directDestination',audit)

@@ -48,7 +48,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
                           'isNotEqualTo _forwardJournal','isNotEqualTo _forwardCommands','hardDeadline'):
                 self.assertLess(case.index(guard),case.index('_movementOperator doMove _destination'))
             self.assertIn('_recoveryStage=4',case)
-            self.assertIn(f'_recoveryUntil=["{kind}"] call _recordRecovery',case)
+            self.assertIn(f'_recoveryUntil=["{kind}",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',case)
 
 
     def test_rear_issue_and_journal_have_fresh_atomic_authority(self):
@@ -157,8 +157,8 @@ class DrivingRearMonitorTests(unittest.TestCase):
     def test_ordinary_recovery_has_owned_cleanup_and_original_stage_schedule(self):
         s=src('drivingAssistStart')
         for marker in ('CBE_DrivingRecovery_Work','CBE_DrivingRecovery_Yield',
-                       'serverTime+96','_hard-66','_hard-60','["REFRESH"] call _recordRecovery',
-                       '["FINAL"] call _recordRecovery','ADOPTED_RECOVERY','_recoveryStage != 2 &&'):
+                       'serverTime+96','_hard-66','_hard-60','["REFRESH",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',
+                       '["FINAL",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery','ADOPTED_RECOVERY','_recoveryStage != 2 &&'):
             self.assertIn(marker,s)
         release=src('drivingRecoveryRelease')
         for marker in ('expectedDestination _driver','expectedDestination _operator',

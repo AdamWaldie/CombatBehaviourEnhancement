@@ -10,6 +10,7 @@ class RecoveryCleanupTests(unittest.TestCase):
                           'set ["deadline"', 'set ["hardDeadline"'):
             self.assertNotIn(forbidden,text)
         self.assertIn('call CBE_fnc_DrivingAssistRelease',text)
+        self.assertIn('"simpleBefore","request"] apply',text)
         self.assertIn('([_current] call _signature) isEqualTo _proof',text)
         self.assertIn('local _target',text)
         for identity in ('"route"','"driver"','"operator"','"driverCommand"','"command"',
@@ -67,9 +68,29 @@ class RecoveryCleanupTests(unittest.TestCase):
             self.assertIn(marker,gate)
         for forbidden in (' doMove ', 'doStop','forceSpeed','nil,true','serverTime+','set ["hardDeadline"'):
             self.assertNotIn(forbidden,gate)
-        self.assertEqual(release.count('call _releaseExpired'),2)
+        self.assertEqual(release.count('call _releaseExpired'),3)
         self.assertLess(release.index('if (_owned && {call _releaseExpired})'),release.index('if (_owned) then {'))
         self.assertIn('if (!_resume || {!(_work getOrDefault ["releasePending",false])}) exitWith {false}',gate)
+        classify=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text()
+        body=classify.split('params [[',1)[1]
+        for forbidden in ('setVariable','doMove','doStop','forceSpeed','spawn','waitAndExecute'):
+            self.assertNotIn(forbidden,body)
+        for marker in ('"OWNED"','"PENDING"','"EXPIRED"','"LOST"','serverTime > _until',
+                       '_position vectorDistance _goal <= 0.25','group _driver != _group'):
+            self.assertIn(marker,classify)
+        pending=release.split('// Pending/expired unchanged destination requests',1)[1].split('if (_retainAcrossLocality && {!local',1)[0]
+        for marker in ('["PENDING","EXPIRED"]','call _releaseExpired','DEFERRED_NATIVE_ACK',
+                       'call CBE_fnc_DrivingRecoveryCleanup'):
+            self.assertIn(marker,pending)
+        for forbidden in ('doMove','doStop','forceSpeed','serverTime+','set ["hardDeadline"'):
+            self.assertNotIn(forbidden,pending)
+        self.assertIn('_commandState == "OWNED"',release.split('private _owned=',1)[1])
+        start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('!_recoveryRequestPending && {call _mayRecoverRoute}',start)
+        self.assertIn('"NATIVE_ACK_UNRESOLVED"] call CBE_fnc_DrivingRecoveryRelease',start)
+        for goal, receipt in (('_destination','_forwardCommands'),('_rear','_rearCommands')):
+            self.assertIn('[+'+goal+',serverTime+2,'+receipt+']',start)
+
     def test_unresolved_tickets_retire_and_do_not_reenter_fresh_assistance(self):
         cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text(encoding='utf-8')
         self.assertEqual(cleanup.count('getOrDefault ["releaseUnresolved",false]'),3)
