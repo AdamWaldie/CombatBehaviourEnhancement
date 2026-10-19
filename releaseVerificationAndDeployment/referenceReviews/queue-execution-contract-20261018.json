@@ -20,7 +20,8 @@
     "addons/vehicles/functions/drivingRecoveryRelease.sqf": "937c1fcf81b3b3e49094671331b457cf15a1c98dc8d668890f9029e81ea2e4ea",
     "addons/vehicles/functions/drivingPassCanConsent.sqf": "7d2a45be485837975ac94312a47228cf795e882e7a408d53a321c13c922dae6c",
     "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "e8b0b1a6ddf8a9e31b19d7b9a43e5d188b23268b41e9dcc1992107ebe9c834f3",
-    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "3dfd95237866632fb252d432d7f3ea04397383e30b6a2318c56f4481ae3adfce"
+    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "3dfd95237866632fb252d432d7f3ea04397383e30b6a2318c56f4481ae3adfce",
+    "addons/vehicles/functions/cortexVehicleReverseStep.sqf": "ea1e43e71cc39e6c15b7662a2047f9bb530d4575aa37fb27883ae74d9d46040a"
   },
   "findings": [
     "DrivingOperationStep/AssistStart already own finite owner callbacks and sole ordinary speed writer. Queue work must integrate there, not spawn another movement controller.",
@@ -144,5 +145,6 @@
     "audits": "PAUSED"
   },
   "command_mode_foundation_20261019": "Recovery journal now explicitly records DESTINATION. Active assistance yields unknown modes; release refuses them before native cleanup; deferred cleanup signatures include mode and only destination work registers; adoption/late lookup refuse other modes. Missing field retains existing destination interpretation. This does not implement BACK, COMMIT, HOLD or READY. Full offline .qa/cbe-recovery-command-mode-build.log/independent verify passed; fingerprint6092e29ecd63628dc8db80c776a9c4e4270917cc513390f5e06f259898c8ce59, manifestd6ff65a4+dirtydevelopment. No new tests/workers/scores or physical acceptance.",
-  "outer_cap_release_20261019": "DrivingAssistRelease refuses unknown recovery command modes before cap-state adoption/helper cleanup and in final cap restoration/deletion transaction. This closes fallthrough after DrivingRecoveryRelease mode refusal. No native BACK/queue executor added. Full .qa/cbe-command-mode-cap-release-build.log/independent verify passed, fingerprintf5ecf8bcee54a156c651b207c1f6a5feeb0004559b05379a81d248c570673e29, manifeste646da37+dirtydevelopment; no new tests/workers/scores or physical acceptance."
+  "outer_cap_release_20261019": "DrivingAssistRelease refuses unknown recovery command modes before cap-state adoption/helper cleanup and in final cap restoration/deletion transaction. This closes fallthrough after DrivingRecoveryRelease mode refusal. No native BACK/queue executor added. Full .qa/cbe-command-mode-cap-release-build.log/independent verify passed, fingerprintf5ecf8bcee54a156c651b207c1f6a5feeb0004559b05379a81d248c570673e29, manifeste646da37+dirtydevelopment; no new tests/workers/scores or physical acceptance.",
+  "existing_tactical_path_clarification": "cortexVehicleReverseStep already uses native BACK/turn/STOP for tactical tracked VEHICLE_WITHDRAW with distinct effective commander and common operation ownership. Ordinary driving recovery does not share that operation contract; do not start a common operation merely to steal the driving parent. Native queue execution remains missing. Current tactical helper now yields explicit forward modes and snapshots move/turn across geometry."
 }

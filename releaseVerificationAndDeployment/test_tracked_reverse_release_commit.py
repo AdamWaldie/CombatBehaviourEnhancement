@@ -14,6 +14,10 @@ class ReverseReleaseCommit(unittest.TestCase):
         self.assertIn('private _commandReceipt=+(_group getVariable',text)
         self.assertNotIn('lineIntersects',body)
         self.assertNotIn('doMove',body)
+        commands=text.split('private _commandsUnchanged={',1)[1].split('private _release=',1)[0]
+        self.assertIn('vehicleMoveInfo _ownedVehicle',commands)
+        self.assertIn('["FORWARD","FAST","SLOW","DIRECTBYCOMANDER"]',commands)
+        self.assertIn('+(vehicleMoveInfo _vehicle)] isEqualTo _nativeSnapshot',text)
     def test_retirement_and_progress_compare_original_not_locally_edited_record(self):
         text=(ROOT/'addons/vehicles/functions/cortexVehicleReverseStep.sqf').read_text(encoding='utf-8')
         release=text.split('private _release={',1)[1].split('if (toUpperANSI _mode',1)[0]

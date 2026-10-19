@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Explicit native forward/keyboard inputs revoke reverse ownership even when destination
+ * receipts are unchanged. Native move/turn mode also participates in geometry-to-command snapshots.
  * Purpose: Own one finite tracked reverse leg while preserving a threat-facing hull and native turret engagement.
  * Locality/authority: Current AI group and vehicle owner only; all command boundaries yield to external ownership.
  * A vehicle-specific external driving marker blocks reverse commands and release STOP/turn writes.
@@ -30,7 +32,11 @@ private _entryRecord=+_record;
 private _commandReceipt=+(_group getVariable ["CBE_VehicleReverse_Command",[]]);
 private _commandsUnchanged={
     params ["_ownedVehicle"];
-    count _commandReceipt == 6 && {(_commandReceipt select 0) == _generation}
+    // This controller issues BACK and turn commands, never a forward/keyboard input.
+    // Destination receipts alone cannot distinguish those independent native directives.
+    private _simpleMode=toUpperANSI ((vehicleMoveInfo _ownedVehicle) param [0,"",[""]]);
+    !(_simpleMode in ["FORWARD","FAST","SLOW","DIRECTBYCOMANDER"])
+        && {count _commandReceipt == 6} && {(_commandReceipt select 0) == _generation}
         && {driver _ownedVehicle == (_commandReceipt select 1)}
         && {effectiveCommander _ownedVehicle == (_commandReceipt select 2)}
         && {(expectedDestination (_commandReceipt select 1)) isEqualTo (_commandReceipt select 3)}
@@ -136,7 +142,7 @@ if (!_eligible) exitWith {
 // Observe only the short swept rear area of this active finite reverse leg. This is
 // actor safety, not a path replacement or a global traffic scan. Keep native collisions.
 private _nativeSnapshot=[currentCommand _driver,+(expectedDestination _driver),
-    currentCommand _commander,+(expectedDestination _commander),[_group] call CBE_fnc_DrivingRouteReceipt];
+    currentCommand _commander,+(expectedDestination _commander),[_group] call CBE_fnc_DrivingRouteReceipt,+(vehicleMoveInfo _vehicle)];
 private _poseSnapshot=[getPosASL _vehicle,vectorDir _vehicle,time];
 private _rearDepth=(4+(abs speed _vehicle)/1.8) min 12;
 private _rearClearance=[_vehicle,_rearDepth] call CBE_fnc_DrivingRearClear;
@@ -169,7 +175,7 @@ private _commitReady={
             || {!simulationEnabled _x} || {isObjectHidden _x}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} < 0}
         && {[currentCommand _driver,expectedDestination _driver,currentCommand _commander,
-            expectedDestination _commander,[_group] call CBE_fnc_DrivingRouteReceipt] isEqualTo _nativeSnapshot}
+            expectedDestination _commander,[_group] call CBE_fnc_DrivingRouteReceipt,+(vehicleMoveInfo _vehicle)] isEqualTo _nativeSnapshot}
         && {(_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo _entryRecord}
         && {(_group getVariable ["CBE_VehicleReverse_Command",[]]) isEqualTo _commandReceipt}
         && {time >= (_rearClearance select 2)} && {time-(_rearClearance select 2) <= 1}
