@@ -7497,6 +7497,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_dueAt min (_existingState getOrDefault ["wakeAt",_dueAt])',queue)
         self.assertIn('_existingState set ["wakeAt", _wakeAt]',queue)
         self.assertIn('_pending pushBack [_dueAt, _job, _state]',queue)
+        self.assertIn('forEach ["CBE_AIPass_Jobs", "CBE_AIPass_PendingJobs"]',queue)
+        self.assertIn('if (_found) exitWith {};',queue)
+        self.assertNotIn('forEach ((missionNamespace',queue)
 
     def test_attack_flare_audit_preserves_missile_cases_and_uses_real_flight(self):
         text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runAircraft.sqf').read_text()
