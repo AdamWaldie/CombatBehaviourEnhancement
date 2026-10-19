@@ -11,6 +11,9 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
             self.assertLess(commit.index(proof),commit.index('_vehicle forceSpeed'))
             self.assertLess(commit.index(proof),commit.index('setVariable ["CBE_DrivingAssist_State",nil]'))
         self.assertLess(text.index('_releaseState=+('),text.index('call CBE_fnc_DrivingPassAdmission'))
+        self.assertIn('getOrDefault ["commandMode","DESTINATION"]',text)
+        self.assertLess(text.index('if !(call _destinationReleaseAvailable)'),text.index('_releaseState=+('))
+        self.assertLess(commit.index('if !(call _destinationReleaseAvailable)'),commit.index('_vehicle forceSpeed'))
         adoption=text.split('private _recovery=_vehicle getVariable',1)[1].split('private _retired=',1)[0]
         self.assertIn('isEqualTo _releaseState',adoption)
         self.assertIn('isEqualTo _releaseRestore',adoption)

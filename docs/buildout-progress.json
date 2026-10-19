@@ -1660,7 +1660,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
-              "sha256": "0df8abdaa9b15a762ca9d294d969af19c286cd781ff9fa65d214352fa9b87b06"
+              "sha256": "e1324383d511abd64410af01893fe9656f7d1240d9dcb66cec434efcb5358ff4"
             },
             {
               "path": "addons/vehicles/functions/drivingOperationFinish.sqf",

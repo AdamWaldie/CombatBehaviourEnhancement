@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * A different recovery command mode retains its cap/baseline and journal; destination
+ * shutdown cannot bypass the command-specific release refusal.
  * Purpose: Releases the standalone CBE driving safety speed cap and restores the exact pre-CBE
  * forced-speed value only while that cap remains owned by CBE; a newer controller cap is preserved.
  * Matching pass consent retires its exact broker token before ordinary cap cleanup.
@@ -23,6 +25,11 @@
 
 params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
+private _destinationReleaseAvailable={
+    private _modeWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+    count _modeWork == 0 || {(_modeWork getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"}
+};
+if !(call _destinationReleaseAvailable) exitWith {};
 // Capture the cap lease before helper cleanup can yield. A same-group successor is still
 // a different receipt and must survive this release callback.
 private _releaseState=[];private _releaseRestore=[];private _releaseEpochGroup=grpNull;private _releaseEpoch=-1;
@@ -80,6 +87,7 @@ if (!isNull _bypassGroup && {isNull _expectedGroup || {_expectedGroup == _bypass
 // Final cap restoration and receipt retirement are one transaction. Earlier helpers do not
 // authorise deletion of a successor's state, even when its group and native cap are identical.
 isNil {
+if !(call _destinationReleaseAvailable) exitWith {false};
 if (!local _vehicle
     || {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo _releaseState}
     || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _releaseRestore}
