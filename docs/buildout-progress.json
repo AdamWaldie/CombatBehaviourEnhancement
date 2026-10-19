@@ -1205,7 +1205,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "ba14925b6c42f401a51c951eac5a06a1910808af40e5cc0eb8f8b2a5dec93cc6"
+              "sha256": "80792411cee2b052fdff173f8efa5a70e0ec4928808264bb8e53035ad18414f5"
             },
             {
               "path": "addons/vehicles/functions/cortexVehicleCrewRecover.sqf",
@@ -1368,7 +1368,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "ba14925b6c42f401a51c951eac5a06a1910808af40e5cc0eb8f8b2a5dec93cc6"
+              "sha256": "80792411cee2b052fdff173f8efa5a70e0ec4928808264bb8e53035ad18414f5"
             },
             {
               "path": "addons/infantry/functions/cortexRetreat.sqf",
@@ -1389,7 +1389,7 @@
             },
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "ba14925b6c42f401a51c951eac5a06a1910808af40e5cc0eb8f8b2a5dec93cc6"
+              "sha256": "80792411cee2b052fdff173f8efa5a70e0ec4928808264bb8e53035ad18414f5"
             }
           ]
         },
@@ -2886,11 +2886,11 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "ba14925b6c42f401a51c951eac5a06a1910808af40e5cc0eb8f8b2a5dec93cc6"
+              "sha256": "80792411cee2b052fdff173f8efa5a70e0ec4928808264bb8e53035ad18414f5"
             },
             {
               "path": "addons/infantry/functions/cortexGroundFireReady.sqf",
-              "sha256": "2e1553f5d2e431009f8abf435cfcf2ff89717c566e528a3f432b7cc26c17776f"
+              "sha256": "2660fa092674dcd76aaecb7cdb5554ceb7e9aad3eac284cb05551e3ea42fd7b4"
             }
           ]
         },
@@ -2903,7 +2903,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "ba14925b6c42f401a51c951eac5a06a1910808af40e5cc0eb8f8b2a5dec93cc6"
+              "sha256": "80792411cee2b052fdff173f8efa5a70e0ec4928808264bb8e53035ad18414f5"
             }
           ]
         },
@@ -2916,11 +2916,11 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
-              "sha256": "ba14925b6c42f401a51c951eac5a06a1910808af40e5cc0eb8f8b2a5dec93cc6"
+              "sha256": "80792411cee2b052fdff173f8efa5a70e0ec4928808264bb8e53035ad18414f5"
             },
             {
               "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
-              "sha256": "a6e32c0cc646b762da574b2cc83aa2200750a57638ea7b14f75d1a4c302ce13d"
+              "sha256": "7e4f8583ad64817c9887cfb9fbacc63d5439582354029fbbd0558c3f5bc3e0c2"
             }
           ]
         }
@@ -3878,11 +3878,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
-              "sha256": "a6e32c0cc646b762da574b2cc83aa2200750a57638ea7b14f75d1a4c302ce13d"
+              "sha256": "7e4f8583ad64817c9887cfb9fbacc63d5439582354029fbbd0558c3f5bc3e0c2"
             },
             {
               "path": "addons/infantry/functions/cortexGroundFireReady.sqf",
-              "sha256": "2e1553f5d2e431009f8abf435cfcf2ff89717c566e528a3f432b7cc26c17776f"
+              "sha256": "2660fa092674dcd76aaecb7cdb5554ceb7e9aad3eac284cb05551e3ea42fd7b4"
             }
           ]
         },

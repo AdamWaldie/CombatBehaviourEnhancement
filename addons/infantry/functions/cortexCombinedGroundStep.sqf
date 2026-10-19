@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ground fire selects only a freshly qualified loaded station muzzle. A pending native
+ * switch reuses this finite callback/role expiry; it grants no shot or completed fire effect.
  * Maintains one finite ground-vehicle manoeuvre issued by a combined-arms contact opportunity.
  * Arrival uses ASL three-dimensional distance within the existing seventy-metre firing area;
  * horizontal overlap above/below the area does not establish arrival.
@@ -210,15 +212,20 @@ if (_arrivalDistance <= 70) exitWith {
         private _laneClear=[_gunner,aimPos _target] call CBE_fnc_CortexLineOfFireClear;
         if !(call _routeCurrent) then {_fireDecision="NATIVE_ORDER_CHANGED"} else {
             if (_laneClear && {call _roleCurrent}) then {
-                _gunner doTarget _target;
-                _gunner doFire _target;
-                _fireDecision="ORDER_ISSUED";
+                private _muzzle=_ammoObservation getOrDefault ["loadedMuzzle",""];
+                if (_muzzle != "" && {currentMuzzle _gunner != _muzzle}) then {_gunner selectWeapon _muzzle};
+                if (_muzzle != "" && {currentMuzzle _gunner == _muzzle}) then {
+                    _gunner doTarget _target;
+                    _gunner doFire _target;
+                    _fireDecision="ORDER_ISSUED";
+                } else {_fireDecision="MUZZLE_SELECTION_PENDING"};
             };
         };
     };
     // Physical arrival completes the move, not the requested fire effect. Fired-event and
     // target-damage evidence are still required by combat acceptance.
     _group setVariable ["CBE_Cortex_CombinedFireDecision",[_token,_fireDecision,serverTime,_gunner,_target],true];
+    if (_fireDecision == "MUZZLE_SELECTION_PENDING") exitWith {1};
     [[_fireDecision,"POSITION_REACHED"] select (_fireDecision == "ORDER_ISSUED")] call _finish
 };
 if (time >= (_job getOrDefault ["progressAt",time])+10) then {

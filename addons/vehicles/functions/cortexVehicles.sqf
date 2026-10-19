@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ground gunnery selects the freshly qualified loaded station muzzle before requesting fire.
+ * Native selection must be observed; no magazine loading, ammunition creation or forced shot.
  * Ground contact ranking may reuse a completed failed station scan within the same frame;
  * the selected target receives a fresh default ammunition check before target/fire commands.
  * Vehicle drills for a squad in contact: dismount infantry under fire, and pull a
@@ -724,16 +726,22 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             if (!isNull _target) then {
                 // Selection may reuse one complete same-frame observation. It is not
                 // fire authority: fresh native rounds must still qualify this target.
+                private _fireObservation=createHashMap;
                 private _freshStationReady=!(_vehicle isKindOf "LandVehicle")
-                    || {[_vehicle,_gunner,_target] call CBE_fnc_CortexGroundFireReady};
-                if (_freshStationReady && {[] call _mayIssueVehicle} && {assignedTarget _gunner != _target}) then {
-                    _gunner doTarget _target;
-                };
-                // A shared target still needs its own bounded native fire request.
+                    || {[_vehicle,_gunner,_target,_fireObservation] call CBE_fnc_CortexGroundFireReady};
                 if (_freshStationReady && {[] call _mayIssueVehicle}) then {
-                    _gunner doFire _target;
-                    _gunner setVariable ["CBE_AIPass_TargetHold", time + 8];
-                    _gunner setVariable ["CBE_AIPass_VehicleTarget", _target, true];
+                    private _muzzle=_fireObservation getOrDefault ["loadedMuzzle",""];
+                    if (_vehicle isKindOf "LandVehicle" && {_muzzle != ""} && {currentMuzzle _gunner != _muzzle}) then {
+                        _gunner selectWeapon _muzzle;
+                    };
+                    // Selection acceptance is not firing. Wait for the native selected muzzle;
+                    // ordinary engine targeting remains available if the switch is unsupported.
+                    if (!(_vehicle isKindOf "LandVehicle") || {_muzzle != "" && {currentMuzzle _gunner == _muzzle}}) then {
+                        if (assignedTarget _gunner != _target) then {_gunner doTarget _target};
+                        _gunner doFire _target;
+                        _gunner setVariable ["CBE_AIPass_TargetHold", time + 8];
+                        _gunner setVariable ["CBE_AIPass_VehicleTarget", _target, true];
+                    };
                 };
             };
         };

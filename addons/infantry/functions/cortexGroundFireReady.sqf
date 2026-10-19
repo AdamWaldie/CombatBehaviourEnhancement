@@ -8,7 +8,8 @@
  * Missing usage flags retain a conservative legacy fallback; no targeting command is issued.
  * Locality/authority: Read-only on the gunner owner; vehicle locality may differ; callers retain ROE, safety and token checks.
  * Repeat/JIP: No world state, commands or handlers; rereads native station state at each boundary.
- * Optional caller-local observation is reset per call; reload evidence grants no firing permission.
+ * Optional observation also returns loadedWeapon/loadedMuzzle/loadedMagazine for the qualifying
+ * actual station state. Outputs reset every call; reload or selection evidence grants no firing permission.
  * Arguments: 0 platform <OBJECT, objNull>; 1 selected gunner <OBJECT, objNull>;
  * 2 target <OBJECT, objNull>, omitted means the station-only ammunition check;
  * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles;
@@ -22,6 +23,7 @@
  */
 params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]]];
 _observation set ["reloadInProgress",false];
+{_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine"];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
     || {gunner _asset != _gunner} || {vehicle _gunner != _asset}) exitWith {false};
@@ -70,9 +72,15 @@ private _evaluateState={
         && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1}) then {
         _observation set ["reloadInProgress",true];
     };
-    count _state >= 5 && {(_state select 0) == _weapon}
+    private _usable=count _state >= 5 && {(_state select 0) == _weapon}
         && {(_state select 1) == _muzzle}
-        && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable}
+        && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable};
+    if (_usable) then {
+        _observation set ["loadedWeapon",_weapon];
+        _observation set ["loadedMuzzle",_muzzle];
+        _observation set ["loadedMagazine",_magazine];
+    };
+    _usable
 };
 private _cached=_observation getOrDefault ["stationSnapshot",[]];
 private _reuse=_selectionPass && {_cached isEqualType []} && {count _cached == 6}

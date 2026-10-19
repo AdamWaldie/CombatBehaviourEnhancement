@@ -5330,7 +5330,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_vehicle_gunnery_refreshes_fire_when_contact_was_already_shared(self):
         vehicles=source('cortexVehicles')
-        target_change=vehicles.index('if (_freshStationReady && {[] call _mayIssueVehicle} && {assignedTarget _gunner != _target}) then {')
+        target_change=vehicles.index('if (assignedTarget _gunner != _target) then {_gunner doTarget _target};')
         target_change_end=vehicles.index('};',target_change)
         fire=vehicles.index('_gunner doFire _target;',target_change)
         hold=vehicles.index('_gunner setVariable ["CBE_AIPass_TargetHold", time + 8]',fire)
@@ -8043,7 +8043,15 @@ class CortexOperations(unittest.TestCase):
         vehicles=source('cortexVehicles')
         fire=vehicles.split('private _target=objNull;',1)[1].split('private _standoff',1)[0]
         self.assertIn('private _stationSelection=createHashMap',fire)
-        self.assertIn('[_vehicle,_gunner,_target] call CBE_fnc_CortexGroundFireReady',fire)
+        self.assertIn('[_vehicle,_gunner,_target,_fireObservation] call CBE_fnc_CortexGroundFireReady',fire)
+        self.assertIn('_gunner selectWeapon _muzzle',fire)
+        self.assertLess(fire.index('currentMuzzle _gunner == _muzzle'),fire.index('_gunner doFire'))
+        combined=source('cortexCombinedGroundStep')
+        self.assertLess(combined.index('_gunner selectWeapon _muzzle'),combined.index('_gunner doFire _target'))
+        self.assertIn('if (_fireDecision == "MUZZLE_SELECTION_PENDING") exitWith {1}',combined)
+        self.assertNotIn('forceWeaponFire',combined)
+        for output in ('loadedWeapon','loadedMuzzle','loadedMagazine'):
+            self.assertIn(f'_observation set ["{output}"',ready)
         self.assertLess(fire.index('private _freshStationReady='),fire.index('_gunner doTarget'))
         self.assertIn('if (_freshStationReady && {[] call _mayIssueVehicle}) then {',fire)
 
