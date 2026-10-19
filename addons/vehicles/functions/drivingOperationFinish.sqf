@@ -3,14 +3,18 @@
  * Purpose: Retires matching ordinary driving work and releases only its tracked speed leases.
  * Failed FSM startup or exhausted executor restart retains a terminal route receipt after exact cleanup, so discovery
  * cannot loop on a failed executor or silently replenish its retry budgets.
- * Locality / Authority: Owner-local group only; no ownership transfer or second scheduler.
+ * Locality / Authority: Native cleanup requires the current local group/brain. Exact private
+ * observer/consent retirement runs on the original machine even after locality loss; it grants
+ * no native command. No ownership transfer or second scheduler.
  * Repeat/JIP: Exact epoch/generation removes the finite pass STOP observer without touching
- * a successor handler. Queue consent bound to this exact epoch/generation retires through
- * authenticated broker release, without cancelling a successor or waiting for its timer. Epoch, generation and current-brain identity reject stale work. New owners start
+ * a successor handler. Tracked queue/pass consent and preparation retire only for this
+ * exact brain/epoch/generation through authenticated broker release, without cancelling
+ * successors or waiting for the old token timer. Current-brain identity gates native cleanup. New owners start
  * their own execution; local jobs and FSM handles are never replayed to JIP.
  * Arguments: 0 brain <HASHMAP, empty>; 1 reason <STRING, RELEASED>.
  * Return Value: Nothing.
- * Current callers: CBE drivingOperation FSM, DrivingOperationStart and CortexReleaseGroup.
+ * Current callers: CBE drivingOperation FSM, DrivingOperationStart, CortexReleaseGroup
+ * and CortexLocality.
  * Example: [_brain,"ZEUS"] call CBE_fnc_DrivingOperationFinish;
  */
 params [["_brain",createHashMap,[createHashMap]],["_reason","RELEASED",[""]]];
@@ -26,12 +30,20 @@ if (!isNull _group) then {
             call CBE_fnc_DrivingPassCommandWatch;
     };
 };
-// Consent can outlive this brain's command authority. Retire only its exact owner-local
+// Consent can outlive this brain's command authority. Retire only its exact machine-local
 // receipt before the current-brain guard; successor generations are checked by the helper.
 if (!isNull _group) then {
     {
         [_x,_group,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["generation",-1]]
             call CBE_fnc_DrivingQueueAgreementRelease;
+        ["CANCEL",_group,_x,_brain] call CBE_fnc_DrivingPassAdmission;
+        private _retireEpoch=_brain getOrDefault ["ownerEpoch",-1];
+        private _retireGeneration=_brain getOrDefault ["generation",-1];
+        if (_retireEpoch >= 0 && {_retireGeneration >= 0}) then {
+            // Context generation binds active, pending and passive peer consent.
+            // No active pass-work record is required to withdraw participation.
+            [_x,_group,"",_retireEpoch,_retireGeneration] call CBE_fnc_DrivingPassAgreementRelease;
+        };
     } forEach (_group getVariable ["CBE_DrivingAssist_Vehicles",[]]);
 };
 if (isNull _group || {!local _group}
@@ -41,6 +53,6 @@ if (isNull _group || {!local _group}
 {[_x,_group] call CBE_fnc_DrivingAssistRelease} forEach (_group getVariable ["CBE_DrivingAssist_Vehicles",[]]);
 _group setVariable ["CBE_DrivingAssist_Vehicles",nil];
 _group setVariable ["CBE_Driving_FSM",nil];
-_group setVariable ["CBE_Driving_State",["HANDBACK",_brain get "generation",serverTime,_reason],true];
+_group setVariable ["CBE_Driving_State",["HANDBACK",_brain get "generation",serverTime,_reason,clientOwner,_brain get "ownerEpoch"],true];
 // Keep exhausted/failed-start routes terminal. A new order may start a new operation.
 if !(_reason in ["EXHAUSTED","FSM_START_FAILED","FSM_RESTART_EXHAUSTED"]) then {_group setVariable ["CBE_Driving_Brain",nil]};

@@ -31,8 +31,8 @@ class DrivingPassPlanTests(unittest.TestCase):
             self.assertNotIn(forbidden,code)
     def test_deferred_scan_is_bound_to_both_crews_and_authored_orders(self):
         context=(ROOT/'addons/vehicles/functions/drivingPassContext.sqf').read_text()
-        for guard in ('owner _x','driver _x','effectiveCommander _x','groupOwner _group',
-                      'CBE_AIPass_Epoch','remoteControlled _actor','currentCommand _actor',
+        for guard in ('owner _x','driver _x','effectiveCommander _x','call CBE_fnc_DrivingOwnerReceipt',
+                      'if (!_receiptsReady) exitWith {[]}','remoteControlled _actor','currentCommand _actor',
                       'expectedDestination _actor','call CBE_fnc_NativeOrderReceipt'):
             self.assertIn(guard,context)
         planner=(ROOT/'addons/vehicles/functions/drivingPassPlan.sqf').read_text()
@@ -134,12 +134,38 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('_registry deleteAt _token',release)
     def test_driving_shutdown_retires_only_recorded_group_and_exact_consent(self):
         release=(ROOT/'addons/vehicles/functions/drivingPassAgreementRelease.sqf').read_text()
-        for guard in ('!local _vehicle','remoteExecutedOwner != 2','(_driverReceipt select 2) != _expectedGroup',
+        for guard in ('select 1) != clientOwner','remoteExecutedOwner != 2','(_driverReceipt select 2) != _expectedGroup',
                       '(_agreement select 0) isEqualTo _token','isEqualTo _consent','isEqualTo _agreement',
                       '(_request select 0) isEqualTo _context','["RELEASE",[_token]] remoteExecCall'):
             self.assertIn(guard,release)
         for command in ('doMove','doFollow','setDriveOnPath','forceSpeed','setVelocity','setPosATL'):
             self.assertNotIn(command,release)
+        self.assertNotIn('local _vehicle',release.split('params [[',1)[1])
+        self.assertIn('isNil {',release)
+        finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text()
+        boundary=finish.index('if (isNull _group || {!local _group}')
+        self.assertLess(finish.index('["CANCEL",_group,_x,_brain]'),boundary)
+        self.assertLess(finish.index('call CBE_fnc_DrivingPassAgreementRelease'),boundary)
+        self.assertIn('[_x,_group,"",_retireEpoch,_retireGeneration]',finish)
+        self.assertIn('(_actorReceipt select 4) isNotEqualTo _expectedEpoch',release)
+        self.assertIn('(_actorReceipt select 10) isNotEqualTo _expectedGeneration',release)
+        context=(ROOT/'addons/vehicles/functions/drivingPassContext.sqf').read_text()
+        self.assertIn('call CBE_fnc_DrivingOwnerReceipt',context)
+        owner=(ROOT/'addons/vehicles/functions/drivingOwnerReceipt.sqf').read_text()
+        self.assertIn('if (local _group)',owner)
+        self.assertIn('"CBE_Driving_Generation",-1',owner)
+        self.assertIn('count _status == 6',owner)
+        self.assertIn('(_status select 4) isEqualTo _owner',owner)
+        self.assertIn('_epoch=_status select 5;_generation=_status select 1',owner)
+        server=(ROOT/'addons/vehicles/functions/drivingPassAgreementServer.sqf').read_text()
+        self.assertIn('count _ar != 11',server)
+        self.assertIn('(_ar select 10) isNotEqualTo (_er select 10)',server)
+        admission=(ROOT/'addons/vehicles/functions/drivingPassAdmission.sqf').read_text()
+        cancel=admission.split('if (_mode == "CANCEL") exitWith {',1)[1].split('if !(_mode in',1)[0]
+        for proof in ('isNil {','isNotEqualTo _brain','"generation",-2','"ownerEpoch",-2',
+                      '[_group,_generation,_epoch]','[_group,_epoch,_generation]'):
+            self.assertIn(proof,cancel)
+        self.assertLess(cancel.index('isNotEqualTo _brain'),cancel.index('["CANCELLED"] call _finish'))
         driving=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
         self.assertLess(driving.index('call CBE_fnc_DrivingPassAgreementRelease'),driving.index('private _recovery='))
     def test_broker_ack_does_not_rescan_registry_and_private_state_cannot_replay(self):

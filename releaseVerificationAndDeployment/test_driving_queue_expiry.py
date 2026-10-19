@@ -89,7 +89,7 @@ class DrivingQueueExpiry(unittest.TestCase):
         finish=source('drivingOperationFinish')
         release=source('drivingQueueAgreementRelease')
         self.assertLess(finish.index('call CBE_fnc_DrivingQueueAgreementRelease'),finish.index('if (isNull _group || {!local _group}'))
-        for guard in ('local _vehicle','remoteExecutedOwner != 2','count _context > 4',
+        for guard in ('!isNull _vehicle','remoteExecutedOwner != 2','count _context > 4',
                       '(_row select 1) != clientOwner','count _actorReceipt != 11',
                       '(_actorReceipt select 2) isNotEqualTo _expectedGroup',
                       '(_actorReceipt select 4) isNotEqualTo _expectedEpoch',
@@ -98,6 +98,9 @@ class DrivingQueueExpiry(unittest.TestCase):
                       '["RELEASE",[_token]] remoteExecCall'):
             self.assertIn(guard,release)
         executable=release.split('params [[',1)[1]
+        self.assertNotIn('local _vehicle',executable)
+        server=source('drivingQueueAgreementServer')
+        self.assertLess(server.index('_sender in (_record get "owners")'),server.index('if (_mode == "RELEASE")'))
         for forbidden in ('doMove','doStop','forceSpeed','setDriveOnPath','nearEntities','waitAndExecute'):
             self.assertNotIn(forbidden,executable)
         self.assertLess(release.index('if (!_matches) exitWith'),release.index('setVariable ["CBE_DrivingQueue_Consent",nil]'))

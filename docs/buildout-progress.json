@@ -1486,7 +1486,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingOperationStep.sqf",
-              "sha256": "c83bfa040490aceca88eec1123dd98f05ff339122a86db9a185afe46e0dac5f0"
+              "sha256": "8aeee561bf029cee1b9d28ff67ed62eeb01f3fbddc7e4fbd989ccbefbc401c3b"
             }
           ]
         },
@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "fde15a28285d5adde7ff518f02e0eb7fe6e774ce1857a5261cba04362dfaff85"
+              "sha256": "20fab9147abe03e98340af28fd46e42e58a8347b0d68b91d8cd84b7b54d30fd4"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1621,7 +1621,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueContext.sqf",
-              "sha256": "5edd88423be2b3d2427567a1a8e9063032df17ce4db0df1ff1e9c31af0bcf317"
+              "sha256": "6e8e3773f107feee87e101916a6bab8148ed109f19bda3306e2a0b8573c1f86d"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
@@ -1629,7 +1629,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "fde15a28285d5adde7ff518f02e0eb7fe6e774ce1857a5261cba04362dfaff85"
+              "sha256": "20fab9147abe03e98340af28fd46e42e58a8347b0d68b91d8cd84b7b54d30fd4"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1680,7 +1680,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingOperationFinish.sqf",
-              "sha256": "4c218ead6b04a57d1a1b816b82bf9196854c9eb11294a69911d33293eead1368"
+              "sha256": "bce811c3534a8b9cc4cddc2b7f8a3b7cc6240a00cd937f63e36bc743dbe10918"
             }
           ]
         }

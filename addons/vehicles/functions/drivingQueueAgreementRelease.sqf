@@ -1,9 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Releases queue consent belonging to one retiring driving brain, without native commands.
- * Locality/authority: Current vehicle owner; local call or trusted server call. Both captured crew
- * receipts must belong to the supplied group, owner epoch and driving generation. The server
- * independently authenticates the exact-token release. No successor receipt is overwritten.
+ * Locality/authority: Machine holding the original private consent; local or trusted server call.
+ * The captured vehicle-owner row must name this machine and both crew receipts must match the
+ * retiring group, owner epoch and generation. Metadata cancellation remains valid after vehicle
+ * locality is lost. The server authenticates this original participant; no native command follows.
+ * A successor private receipt is never overwritten.
  * Repeat/JIP: Missing, malformed or replaced receipts do nothing. No handlers, timer renewal,
  * movement, speed restoration, peer state writes or JIP replay. Old expiry timers remain harmless.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
@@ -14,7 +16,7 @@
  */
 params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]],
     ["_expectedEpoch",-1,[0]],["_expectedGeneration",-1,[0]]];
-if (isNull _vehicle || {!local _vehicle} || {isNull _expectedGroup}
+if (isNull _vehicle || {isNull _expectedGroup}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}
     || {!finite _expectedEpoch} || {_expectedEpoch < 0}
     || {!finite _expectedGeneration} || {_expectedGeneration < 0}) exitWith {false};
@@ -40,7 +42,9 @@ private _matches=true;
 if (!_matches) exitWith {false};
 private _retired=false;
 isNil {
-    if (local _vehicle && {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isEqualTo _consent}) then {
+    // This is a machine-private receipt, not a command on the migrated vehicle.
+    // Original participant identity above, not current locality, owns cancellation.
+    if (!isNull _vehicle && {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isEqualTo _consent}) then {
         [_token,_consent getOrDefault ["expires",-1]] call CBE_fnc_DrivingQueueTokenClosed;
         _vehicle setVariable ["CBE_DrivingQueue_Consent",nil];
         _retired=true;

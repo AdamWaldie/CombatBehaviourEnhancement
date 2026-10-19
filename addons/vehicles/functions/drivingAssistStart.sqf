@@ -95,8 +95,11 @@
  * Traffic holds, native waits and becoming a follower cannot renew the spent episode.
  * One group driving FSM admits the existing executor through the shared
  * scheduler; group decisions never issue these commands directly.
- * Repeat/JIP: State is stored on the vehicle and is idempotent. The next local group step resumes
- * it after a locality change; route changes reset finite recovery; release restores only the forced speed captured by this function.
+ * Repeat/JIP: Ordinary cap/baseline observations are machine-local, not a JIP replay.
+ * A new owner admits its current native state; it does not inherit these private records.
+ * Public finite recovery metadata requires current native command/cap proof before adoption;
+ * metadata alone never reapplies an old owner's cap or rear command. Route changes reset
+ * finite recovery; release restores only the baseline whose applied cap is still owned.
  * Arguments:
  * 0: group <GROUP> - local AI group commanding the vehicle.
  * 1: operation brain <HASHMAP, empty> - internal current-owner executor receipt.

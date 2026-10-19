@@ -70,7 +70,7 @@ private _statusKey=[_phase,_brain get "generation",_brain get "cancelReason"];
 private _lastStatusAt=_brain getOrDefault ["lastStatusAt",-1e9];
 if (_statusKey isNotEqualTo (_brain getOrDefault ["lastStatus",[]])
     || {serverTime-_lastStatusAt >= 10} || {serverTime < _lastStatusAt}) then {
-    _group setVariable ["CBE_Driving_State",[_phase,_brain get "generation",serverTime,_brain get "cancelReason"],true];
+    _group setVariable ["CBE_Driving_State",[_phase,_brain get "generation",serverTime,_brain get "cancelReason",clientOwner,_brain get "ownerEpoch"],true];
     _brain set ["lastStatus",_statusKey];_brain set ["lastStatusAt",serverTime];
 };
 -1
