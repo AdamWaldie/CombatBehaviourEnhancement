@@ -208,6 +208,24 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('!_activated', module)
         self.assertIn('CBE_processed', module)
         self.assertIn('deleteVehicle _logic;', module)
+        mission=(ROOT/'addons/vehicles/functions/moduleDrivingCorridorMission.sqf').read_text()
+        for guard in ('!isServer','is3DEN','remoteExecutedOwner','if (!_activated)',
+                      '[_logic,[]] call CBE_fnc_DrivingCorridorRegister',
+                      '[_area select 1,_area select 0,_speed]','CBE_DrivingCorridor_MissionResult'):
+            self.assertIn(guard,mission)
+        for forbidden in ('deleteVehicle','createUnit','setPos','hasInterface','doMove','forceSpeed','setDriveOnPath'):
+            self.assertNotIn(forbidden,mission)
+        eden=config.split('class CBE_ModuleDrivingCorridorMission:',1)[1].split('class CBE_ModuleGarrison:',1)[0]
+        for field in ('scope = 2','scopeCurator = 0','isGlobal = 0','isDisposable = 0',
+                      'isTriggerActivated = 1','canSetArea = 1','size3[] = {5, 25, -1}',
+                      'class Speed: Combo','CBE_DrivingCorridor_EdenSpeed'):
+            self.assertIn(field,eden)
+        for name in ('drivingCorridorDispatch','drivingCorridorRegister','zenDrivingCorridorModule'):
+            text=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text()
+            self.assertIn('isKindOf "CBE_ModuleDrivingCorridorMission"',text)
+        register=(ROOT/'addons/vehicles/functions/drivingCorridorRegister.sqf').read_text()
+        self.assertIn('_dimensions isEqualTo [] && {_index < 0}',register)
+
         self.assertIn('[_position,_target,_facing] call CBE_fnc_ZenDrivingCorridorModule', module)
 
     def test_tail_passage_has_no_second_movement_or_speed_writer(self):

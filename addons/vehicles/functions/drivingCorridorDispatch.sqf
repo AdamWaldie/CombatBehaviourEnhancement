@@ -83,7 +83,7 @@ if (_mode == "CREATE" && {!isNull _area || {count _position != 3}
     || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}}) exitWith {
     [false,"Select an explicit valid area position for a new corridor."] call _reply
 };
-if (_mode != "CREATE" && {isNull _area || {!(_area isKindOf "CBE_DrivingCorridorArea")}
+if (_mode != "CREATE" && {isNull _area || {!(_area isKindOf "CBE_DrivingCorridorArea" || {_area isKindOf "CBE_ModuleDrivingCorridorMission"})}
     || {_sender > 2 && {owner _area != _sender && {!(_area in curatorEditableObjects _curator)}}}
     || {[getPosWorld _area,vectorDir _area,vectorUp _area] isNotEqualTo _transform}}) exitWith {
     [false,"The selected corridor was removed, moved or is not editable. Reopen its task dialog."] call _reply

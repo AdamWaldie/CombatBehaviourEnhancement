@@ -26,7 +26,7 @@ if (isRemoteExecuted && {_sender <= 0}) exitWith {[false,"INVALID_SENDER",-1]};
 if (_sender > 2) then {
     private _curatorPlayer=allPlayers findIf {owner _x == _sender && {!isNull getAssignedCuratorLogic _x}};
     private _curator=if (_curatorPlayer < 0) then {objNull} else {getAssignedCuratorLogic (allPlayers select _curatorPlayer)};
-    if (isNull _curator || {isNull _area} || {!(_area isKindOf "CBE_DrivingCorridorArea")}
+    if (isNull _curator || {isNull _area} || {!(_area isKindOf "CBE_DrivingCorridorArea" || {_area isKindOf "CBE_ModuleDrivingCorridorMission"})}
         || {owner _area != _sender && {!(_area in curatorEditableObjects _curator)}}) exitWith {
         _sender=-1;
     };
@@ -45,6 +45,10 @@ private _snapshot=missionNamespace getVariable ["CBE_DrivingCorridor_Snapshot",[
 private _records=(_snapshot select 1) select {!isNull (_x select 0)};
 private _index=_records findIf {(_x select 0) isEqualTo _area};
 private _old=if (_index >= 0) then {(_records select _index) select 1} else {[]};
+if (_dimensions isEqualTo [] && {_index < 0}
+    && {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo []}) exitWith {
+    [true,"UNCHANGED",_snapshot select 0]
+};
 if (_dimensions isNotEqualTo [] && {_old isNotEqualTo []}
     && {(_old select [1,3]) isEqualTo _dimensions}
     && {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo _old}) exitWith {

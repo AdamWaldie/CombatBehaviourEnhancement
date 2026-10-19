@@ -11,7 +11,7 @@
  */
 params [["_position",[],[[]]],["_target",objNull,[objNull]],["_defaultFacing",0,[0]]];
 if (!hasInterface || {isNil "zen_dialog_fnc_create"} || {count _position != 3}) exitWith {false};
-if (!isNull _target && {!(_target isKindOf "CBE_DrivingCorridorArea")}) exitWith {
+if (!isNull _target && {!(_target isKindOf "CBE_DrivingCorridorArea" || {_target isKindOf "CBE_ModuleDrivingCorridorMission"})}) exitWith {
     ["NAVIGATION CORRIDOR","Place on empty ground to create, or on the exact existing corridor area to edit. No nearest area is selected.","ERROR"] call CBE_fnc_AITweaksNotifyLocal;false
 };
 private _editing=!isNull _target;
