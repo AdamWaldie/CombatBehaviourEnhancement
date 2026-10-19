@@ -18,10 +18,21 @@ class ClearEntryFlowTests(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         observation=s.split('private _nativeMoveAwaited={',1)[1].split('// Keep building authority',1)[0]
         for guard in ('movementRequestTimes','(_planningRequest select 0) isNotEqualTo _target','_requestAge < 30',
-                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["PLANNING","BUSY"]','_requestAge < 2'):
+                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["INIT","PLANNING","REPLAN","BUSY"]','_requestAge < 2'):
             self.assertIn(guard,observation)
         self.assertNotIn(' set [',observation)
         self.assertNotIn('doMove',observation)
+        # Planner transitions do not restart the original issue age or grant ownership.
+        def awaited(age,owned,state):
+            return age>=0 and (age<2 or (age<30 and owned and state in ('INIT','PLANNING','REPLAN','BUSY')))
+        for state in ('INIT','PLANNING','REPLAN','BUSY'):
+            self.assertTrue(awaited(29,True,state))
+            self.assertFalse(awaited(30,True,state))
+            self.assertFalse(awaited(10,False,state))
+        for state in ('INITFAILED','DELAY','STOPPED','OK'):
+            self.assertFalse(awaited(10,True,state))
+        self.assertFalse(awaited(-1,True,'REPLAN'))
+
         recovery=s.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]
         self.assertLess(recovery.index('call _nativeMoveAwaited'),recovery.index('call CBE_fnc_RecoveryStep'))
         self.assertIn('private _result="YIELDED"',recovery)

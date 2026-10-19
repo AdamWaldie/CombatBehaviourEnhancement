@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Use an unknown-body clue to inspect nearby building positions without inventing an enemy.
+ * Native INIT/PLANNING/REPLAN/BUSY work is not an idle actor available for this clue.
  * Locality/authority: Current group owner only. Existing indoor actor FSM owns all movement.
  * Repeat/JIP: One public clue with original twenty-second expiry and owner epoch; no replay on gain.
  * At most one bounded selection per eight seconds, four nearby buildings and sixteen squad actors.
@@ -39,7 +40,7 @@ if ([_state,"bodyBuilding"] call CBE_fnc_CortexCooldown
 private _actors=((units _group) select [0,16]) select {
     local _x && {!isPlayer _x} && {_x != leader _group} && {isNull objectParent _x}
         && {[_x] call CBE_fnc_CortexCombatEffective} && {_x distance2D _position <= 50}
-        && {currentCommand _x == ""} && {!(getUnitState _x in ["PLANNING","REPLAN","BUSY"])}
+        && {currentCommand _x == ""} && {!(getUnitState _x in ["INIT","PLANNING","REPLAN","BUSY"])}
         && {isNull getAttackTarget _x} && {isNull assignedTarget _x}
         && {serverTime >= (_x getVariable ["CBE_IndoorActor_Cooldown",-1])}
         && {(_x getVariable ["CBE_IndoorActor_Order",[]]) isEqualTo []}

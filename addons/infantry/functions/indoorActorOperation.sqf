@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Physical progress and arrival use absolute ASL coordinates; native destinations remain ATL.
  * Terrain differences between cells cannot fabricate motion or hide same-floor arrival.
- * Native planning/replanning blocks new legs and defers stagnation classification within the original deadline.
+ * Native INIT/planning/replanning blocks new legs and defers stagnation classification within the original deadline.
  * An issued native move has one original two-second acknowledgement window. Only the
  * exact pre-issue destination/form leader and original command or MOVE may wait; new
  * orders preempt immediately. Waiting issues nothing and grants no cleanup or visit proof.
@@ -357,7 +357,7 @@ if (_phase == "SELECT") exitWith {
     if (_escalate && {(_brain getOrDefault ["escalations",0]) >= 1
         || {serverTime-(_brain get "progressAt") < 12}
         || {(_admission select 0) != "OBSERVE"}
-        || {getUnitState _actor in ["PLANNING","REPLAN"]} || {currentCommand _actor == "FIRE"}}) exitWith {["ESCALATION_REFUSED"] call _finish};
+        || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]} || {currentCommand _actor == "FIRE"}}) exitWith {["ESCALATION_REFUSED"] call _finish};
     private _reserved=[];
     // A peer following native AI still occupies its recorded destination. The issued flag
     // grants cleanup rights only; using it here would invite a second actor to the same node.
@@ -448,10 +448,10 @@ if (_phase == "APPROACH") exitWith {
         };
         // Path recalculation is not evidence of an inaccessible node. Observe only;
         // the original FSM deadline still bounds this wait and is never renewed.
-        if (getUnitState _actor in ["PLANNING","REPLAN"]) exitWith {-1};
+        if (getUnitState _actor in ["INIT","PLANNING","REPLAN"]) exitWith {-1};
         if (serverTime-(_brain get "progressAt") >= 12) then {
             if (!(_brain get "issued") && {(_brain get "escalations") == 0}
-                && {!(getUnitState _actor in ["PLANNING","REPLAN"])} && {currentCommand _actor != "FIRE"}) then {
+                && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])} && {currentCommand _actor != "FIRE"}) then {
                 private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext;
                 if (_admission isNotEqualTo [] && {(_admission select 0) == "OBSERVE"}
                     && {(_admission select 2) isEqualTo _target}) then {

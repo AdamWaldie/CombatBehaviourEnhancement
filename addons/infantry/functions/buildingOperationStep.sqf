@@ -29,9 +29,9 @@
  * current episode/owner/native intent, building transform, unchanged proposal and original deadlines.
  * Purpose: Execute one bounded physical building-clearance step for the owner-local building FSM.
  * Buddy separation requests do not renew the room mover's finite no-progress clock.
- * Owned matching PLANNING/BUSY room paths receive a fixed thirty-second no-progress
+ * Owned matching INIT/PLANNING/REPLAN/BUSY room paths receive a fixed thirty-second no-progress
  * allowance before retry; ended native commands retain four seconds and clocks never renew.
- * Common partner/egress recovery also preserves an exact owned PLANNING/BUSY leg for
+ * Common partner/egress recovery also preserves an exact owned INIT/PLANNING/REPLAN/BUSY leg for
  * thirty seconds from its original native issue, without spending a recovery attempt.
  * Recovery and alternate-entry selection share a two-second request acknowledgement grace;
  * a fresh recovery leg cannot be overwritten by an already-elapsed alternative threshold.
@@ -741,6 +741,8 @@ private _delay=call {
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };
+    // Native INIT/REPLAN are still active planner work, not an ended path. Preserve
+    // them only under the same exact MOVE receipt and original thirty-second issue age.
     // One receipt-based observation policy for recovery and alternative entry. An issue is
     // not native acknowledgement; neither branch may replace the same fresh request twice.
     private _nativeMoveAwaited={
@@ -752,7 +754,7 @@ private _delay=call {
             || {serverTime < _planningRequestAt}) exitWith {false};
         private _requestAge=serverTime-_planningRequestAt;
         _requestAge < 2 || {_requestAge < 30 && {[_actor] call _ownsCurrentMove}
-            && {getUnitState _actor in ["PLANNING","BUSY"]}}
+            && {getUnitState _actor in ["INIT","PLANNING","REPLAN","BUSY"]}}
     };
     // Keep building authority and generic retry admission in the same native-write transaction.
     private _recoverClearActor={
@@ -3257,7 +3259,7 @@ private _delay=call {
                         // path for a bounded allowance rather than restarting it every12s.
                         // This changes no progress clock, attempt count or episode deadline.
                         if (!_commandEnded && {[_point] call _ownsCurrentMove}
-                            && {getUnitState _point in ["PLANNING","BUSY"]}) then {
+                            && {getUnitState _point in ["INIT","PLANNING","REPLAN","BUSY"]}) then {
                             _retryDelay=30;
                         };
                         if (_now-_lastProgress > _retryDelay && {[_point] call _actorTaskFree}) then {
