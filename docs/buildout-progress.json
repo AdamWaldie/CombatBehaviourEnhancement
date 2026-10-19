@@ -1562,7 +1562,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
-              "sha256": "f755e2e0c3303760ae45e869fe373e4762310591b8c28fbb21d4eb58a119d228"
+              "sha256": "5c69019e178d810c21056553c746a7a6a2c3af8d21e69d6a0a1c5b60b3bb5cfa"
             },
             {
               "path": "addons/vehicles/functions/drivingRearPlan.sqf",

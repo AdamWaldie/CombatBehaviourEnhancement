@@ -32,6 +32,16 @@ class RecoveryCleanupTests(unittest.TestCase):
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text()
         for guard in (observer,release):
             self.assertIn('queueStopAcknowledged',guard)
+        settling=release.split('private _stopAcknowledged=',1)[1].split('[_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt',1)[0]
+        for proof in ('queueStopAcknowledged','vectorMagnitude velocity _vehicle',
+                      'vectorMagnitude angularVelocity _vehicle','!finite _stopLinear',
+                      '!finite _stopAngular','_stopLinear >= 0.1','_stopAngular >= 0.01',
+                      'if (_nativeStopPending) exitWith {}'):
+            self.assertIn(proof,settling)
+        pending_stop=release.split('if (_nativeStopPending) exitWith {\n    _work',1)[1].split('if ((_vehicle getVariable',1)[0]
+        self.assertIn('call _holdOwnedRearCap',pending_stop)
+        for forbidden in ('doMove','doFollow','sendSimpleCommand','serverTime+','set ["hardDeadline"'):
+            self.assertNotIn(forbidden,pending_stop)
         self.assertIn('== "BACK" && {!_queueStopped}',release)
         # Acknowledged STOP retires old BACK authority even if destinations are unchanged.
         def owned_input(native_input,stop_acknowledged):

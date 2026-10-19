@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Native BACK requires its explicit SIMPLE_BACK journal, original distinct crew and unchanged
  * turn/input receipt. An unowned BACK revokes stop/route handback and deferred retention.
+ * Native STOP acknowledgement must also have finite measured rest before forward handback.
+ * Existing owner cleanup observes a pending stop at zero owned cap; no timer or renewed deadline.
  * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
  * Purpose: Retires a matching ordinary recovery journal; only its exact owned reverse can stop
@@ -248,7 +250,17 @@ if (_owned) then {
                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
                 _simpleInfo=vehicleMoveInfo _vehicle;
             };
-            _nativeStopPending=toUpperANSI (_simpleInfo param [0,""]) != "STOP";
+            private _stopAcknowledged=toUpperANSI (_simpleInfo param [0,""]) == "STOP";
+            if (_stopAcknowledged && {"queueBinding" in _work}) then {
+                // Once STOP was observed, a later BACK belongs to a newer directive.
+                // Retain that fact even while braking inertia delays physical handback.
+                _work set ["queueStopAcknowledged",true];
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+            };
+            private _stopLinear=vectorMagnitude velocity _vehicle;
+            private _stopAngular=vectorMagnitude angularVelocity _vehicle;
+            _nativeStopPending=!_stopAcknowledged || {!finite _stopLinear} || {!finite _stopAngular}
+                || {_stopLinear >= 0.1} || {_stopAngular >= 0.01};
         };
         if (_nativeStopPending) exitWith {};
         [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
@@ -268,6 +280,9 @@ if (_owned) then {
 if (_nativeStopPending) exitWith {
     _work set ["releasePending",true];
     _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+    // This exact owned native reverse is still stopping. Constrain its existing
+    // cap before the caller restores anything; no forward order or new lifetime.
+    call _holdOwnedRearCap;
     [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
     false
 };
