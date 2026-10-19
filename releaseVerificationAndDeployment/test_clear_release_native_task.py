@@ -5,21 +5,35 @@ ROOT=Path(__file__).resolve().parents[1]
 
 class ClearReleaseNativeTaskTests(unittest.TestCase):
     def test_new_nonmovement_tasks_cannot_grant_formation_recall(self):
-        def owned(command,matching_destination):
-            return command in ("","STOP") or (command=="MOVE" and matching_destination)
+        def owned(command,matching_destination,matching_hold=False):
+            return command == "" or (command == "STOP" and matching_hold) or (command=="MOVE" and matching_destination)
         for command in ("FOLLOW","ATTACK","WAIT","FIRE","SUPPRESS","HIDE","EXPECT","JOIN","SCRIPTED"):
             self.assertFalse(owned(command,True),command)
         self.assertTrue(owned("MOVE",True))
         self.assertFalse(owned("MOVE",False))
-        self.assertTrue(owned("STOP",False))
+        self.assertFalse(owned("STOP",False))
+        self.assertTrue(owned("STOP",False,True))
         self.assertTrue(owned("",False))
+        # A settings lease or a previous stop elsewhere is not a current spatial hold.
+        def same_hold(pose,post):
+            return sum((a-b)**2 for a,b in zip(pose,post)) <= 1.5**2 and abs(pose[2]-post[2]) <= .75
+        self.assertTrue(same_hold((0,0,0),(1,0,0)))
+        self.assertFalse(same_hold((0,0,0),(2,0,0)))
+        self.assertFalse(same_hold((0,0,0),(0,0,1)))
+        helper=(ROOT/'addons/infantry/functions/buildingActorHoldOwned.sqf').read_text()
+        self.assertIn('vectorDistance (AGLToASL _x) <= 1.5',helper)
+        self.assertIn('<= 0.75',helper)
+        self.assertIn('(_receipt select 1) isEqualTo _context',helper)
+        for command in ('doMove','doStop','doFollow'):
+            self.assertNotIn(command,helper)
 
     def test_recall_boundary_requires_allowed_command_and_move_receipt(self):
         s=(ROOT/'addons/infantry/functions/cortexClearRelease.sqf').read_text()
         start=s.index('private _movementOwned=')
         end=s.index('if (_restore && {_taskFree} && {_movementOwned} && {isNull objectParent _x})',start)
         guard=s[start:end]
-        self.assertIn('currentCommand _x in ["","STOP"]',guard)
+        self.assertIn('currentCommand _x == ""',guard)
+        self.assertIn('[_x,_releaseJob] call CBE_fnc_BuildingActorHoldOwned',guard)
         self.assertIn('currentCommand _x == "MOVE"',guard)
         self.assertIn('_destination vectorDistance _issued <= 0.25',guard)
         self.assertNotIn('!= "MOVE"',guard)
@@ -31,7 +45,9 @@ class ClearFinishNativeTaskTests(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
         start=s.index('private _exitMovementOwned=')
         end=s.index('private _activeOwnMove=',start)
-        self.assertIn('currentCommand _actor in ["","STOP"] || {[_actor] call _ownsCurrentMove}',s[start:end])
+        self.assertIn('currentCommand _actor == ""',s[start:end])
+        self.assertIn('[_actor,_job] call CBE_fnc_BuildingActorHoldOwned',s[start:end])
+        self.assertIn('[_actor] call _ownsCurrentMove',s[start:end])
         self.assertIn('&& {[_x] call _exitMovementOwned}) then {',s)
         self.assertIn('if !([_unit] call _exitMovementOwned) then {',s)
         self.assertIn('if !([_actor] call _exitMovementOwned) then {',s)

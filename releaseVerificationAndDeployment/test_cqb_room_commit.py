@@ -25,8 +25,11 @@ class RoomCommitTests(unittest.TestCase):
         self.assertIn('if (_roomRequestChanged && {_roomMoverCommitted})',source())
     def test_replacement_tasks_require_real_owned_hold_or_original_admission(self):
         owned=source().split('private _roomCommandOwned={',1)[1].split('// Native task ownership also applies',1)[0]
-        for requirement in ('call _ownsCurrentMove','_command == "STOP"','"roomHolds"',
-                            '"formationFallbackHolds"','vectorDistance (AGLToASL _x) <= 1.5',
+        helper=(ROOT/'addons/infantry/functions/buildingActorHoldOwned.sqf').read_text()
+        for proof in ('currentCommand _actor != "STOP"','"roomHolds"','"formationFallbackHolds"',
+                      'vectorDistance (AGLToASL _x) <= 1.5','<= 0.75'):
+            self.assertIn(proof,helper)
+        for requirement in ('call _ownsCurrentMove','call CBE_fnc_BuildingActorHoldOwned',
                             'if (_ownedHold) exitWith {true}',
                             'if (_actor in (_job get "started")) exitWith {false}',
                             '"reserveAdmissionCommands"','formLeader _actor == (_admitted select 3)',

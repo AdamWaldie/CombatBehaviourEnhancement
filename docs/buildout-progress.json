@@ -3122,7 +3122,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "7d224ad706fa50a0ec29d27266fb50850a0154cc1a8b4ee434c1f266bf5dde00"
+              "sha256": "e6ddec265460852bcffb78fef3b22035b9d7db9d86976098244e8f5feb68e90b"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStart.sqf",
@@ -3151,7 +3151,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "7d224ad706fa50a0ec29d27266fb50850a0154cc1a8b4ee434c1f266bf5dde00"
+              "sha256": "e6ddec265460852bcffb78fef3b22035b9d7db9d86976098244e8f5feb68e90b"
             },
             {
               "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
@@ -3201,7 +3201,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "188938fbfc1428ba4d561b0a85b391dc1641d7fe2898c28e5ab87383214ab925"
+              "sha256": "acd063f082d22071cb824dc178a9e05ebc635f0206b7b215d885f1b67759c8ef"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3222,7 +3222,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "188938fbfc1428ba4d561b0a85b391dc1641d7fe2898c28e5ab87383214ab925"
+              "sha256": "acd063f082d22071cb824dc178a9e05ebc635f0206b7b215d885f1b67759c8ef"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3247,7 +3247,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "188938fbfc1428ba4d561b0a85b391dc1641d7fe2898c28e5ab87383214ab925"
+              "sha256": "acd063f082d22071cb824dc178a9e05ebc635f0206b7b215d885f1b67759c8ef"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3268,7 +3268,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "188938fbfc1428ba4d561b0a85b391dc1641d7fe2898c28e5ab87383214ab925"
+              "sha256": "acd063f082d22071cb824dc178a9e05ebc635f0206b7b215d885f1b67759c8ef"
             },
             {
               "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
@@ -3310,11 +3310,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearRelease.sqf",
-              "sha256": "f6e5efb48471a4803b529011f27e3bd983b9d130fc48e52efebd76f31083eb08"
+              "sha256": "a962efa40ae65b7a96411a8c2a8c96c2a32dcd7009bcaae4dcebe95324f557dc"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "188938fbfc1428ba4d561b0a85b391dc1641d7fe2898c28e5ab87383214ab925"
+              "sha256": "acd063f082d22071cb824dc178a9e05ebc635f0206b7b215d885f1b67759c8ef"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",

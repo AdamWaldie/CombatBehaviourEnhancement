@@ -27,7 +27,7 @@ class MotionReceiptTests(unittest.TestCase):
         self.assertLess(adopt,text.index('call CBE_fnc_BuildingOperationStart'))
         self.assertIn('if (_resume) then {',text[:adopt][-220:])
         step=read('buildingOperationStep.sqf')
-        self.assertIn('if !([_unit] call _ownsCurrentMove) then {doStop _unit}',step)
+        self.assertIn('if !([_unit] call _ownsCurrentMove) then {doStop _unit; [_unit] call _rememberHold}',step)
         self.assertIn('// Synchronise only already-owned native work.',step)
     def test_retirement_does_not_require_current_operation_or_erase_other_context(self):
         text=read('buildingActorMotion.sqf')

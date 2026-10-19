@@ -469,6 +469,7 @@ private _commitPreparation={
     };
     _committed
 };
+private _admissionHoldPositions=createHashMap;
 // A valid new operation now owns the selected actors. Retire only its predecessor's
 // matching recall so the initial building step sees STOP instead of protected JOIN.
 [{
@@ -476,6 +477,7 @@ private _commitPreparation={
         if ([_x,_generation-1] call _ownedRecall && {local _x} && {!isPlayer _x}
             && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}) then {
             doStop _x;
+            _admissionHoldPositions set [netId _x,getPosATL _x];
             _x setVariable ["CBE_Cortex_ClearRecall",nil];
         };
     } forEach _team;
@@ -611,6 +613,7 @@ private _claimedEntryIndices=[];
 } forEach _pairs;
 [{_group setVariable ["CBE_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true]}] call _commitPreparation;
 private _job=createHashMapFromArray [
+    ["nativeHoldPositions",_admissionHoldPositions],
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["securityEntries",_securityEntries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],
     ["deadline", _deadline], ["hardDeadline",_hardDeadline], ["baseBehaviour", _baseBehaviour], ["baseAttack",_baseAttack], ["generation", _generation], ["operationGeneration",_operationGeneration], ["ownerEpoch",_operation get "ownerEpoch"], ["failedBy",_failedBy], ["lastProgressAt",_lastProgressAt], ["visitCursor",0],

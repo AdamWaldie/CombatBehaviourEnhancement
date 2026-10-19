@@ -1438,7 +1438,8 @@
         "addons/infantry/functions/indoorActorDispatch.sqf",
         "addons/infantry/functions/cortexClearSettingsApply.sqf",
         "addons/infantry/functions/indoorObservationDispatch.sqf",
-        "addons/infantry/functions/cortexRouteDoors.sqf"
+        "addons/infantry/functions/cortexRouteDoors.sqf",
+        "addons/infantry/functions/buildingActorHoldOwned.sqf"
       ]
     },
     {

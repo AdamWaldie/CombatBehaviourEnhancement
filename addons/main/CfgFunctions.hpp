@@ -169,6 +169,7 @@ class CfgFunctions {
             class IndoorActorOperation {file = "\z\cbe\addons\infantry\functions\indoorActorOperation.sqf";};
             class IndoorActorNodeSelect {file = "\z\cbe\addons\infantry\functions\indoorActorNodeSelect.sqf";};
             class BuildingActorMotion {file = "\z\cbe\addons\infantry\functions\buildingActorMotion.sqf";};
+            class BuildingActorHoldOwned {file = "\z\cbe\addons\infantry\functions\buildingActorHoldOwned.sqf";};
             class BuildingOperationStart {file = "\z\cbe\addons\infantry\functions\buildingOperationStart.sqf";};
             class BuildingOperationQueue {file = "\z\cbe\addons\infantry\functions\buildingOperationQueue.sqf";};
             class BuildingOperationStep {file = "\z\cbe\addons\infantry\functions\buildingOperationStep.sqf";};

@@ -242,6 +242,15 @@ private _delay=call {
         simulationEnabled _actor && {!isObjectHidden _actor}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
+    // Record only stops actually issued by this callback. Native holds are not inferred
+    // from posture/speed settings or an arbitrary later STOP elsewhere.
+    private _rememberHold={
+        params ["_holdActor"];
+        private _nativeHolds=_job getOrDefault ["nativeHoldPositions",createHashMap];
+        private _holdPosition=getPosATL _holdActor;
+        _nativeHolds set [netId _holdActor,+_holdPosition];_job set ["nativeHoldPositions",_nativeHolds];
+        ["HOLD",_holdActor,_job,_holdPosition] call CBE_fnc_BuildingActorMotion;
+    };
     private _rememberMove={
         params ["_actor","_target"];
         private _targets=_job getOrDefault ["movementTargets",createHashMap];
@@ -254,6 +263,7 @@ private _delay=call {
         _job set ["movementRequestTimes",_requestTimes];
         // A new owned request retires the previous arrival hold, even when the next
         // leg fails before reaching another node. A historical hold is not a live stop.
+        (_job getOrDefault ["nativeHoldPositions",createHashMap]) deleteAt (netId _actor);
         (_job getOrDefault ["roomHolds",createHashMap]) deleteAt (netId _actor);
         (_job getOrDefault ["formationFallbackHolds",createHashMap]) deleteAt (netId _actor);
         ["MOVE",_actor,_job,_target] call CBE_fnc_BuildingActorMotion;
@@ -278,15 +288,7 @@ private _delay=call {
             && {([_actor,_job,4,"CHECK"] call CBE_fnc_CortexClearSettingsApply) != "OWNED"}) exitWith {false};
         private _command=toUpperANSI currentCommand _actor;
         if ([_actor] call _ownsCurrentMove || {_command == ""}) exitWith {true};
-        private _ownedHold=false;
-        if (_command == "STOP") then {
-            private _key=netId _actor;
-            private _holds=[
-                (_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [_key,[]],
-                (_job getOrDefault ["formationFallbackHolds",createHashMap]) getOrDefault [_key,[]]
-            ];
-            _ownedHold=_holds findIf {count _x == 3 && {(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5}} >= 0;
-        };
+        private _ownedHold=[_actor,_job] call CBE_fnc_BuildingActorHoldOwned;
         if (_ownedHold) exitWith {true};
         if (_actor in (_job get "started")) exitWith {false};
         private _admitted=(_job getOrDefault ["reserveAdmissionCommands",createHashMap]) getOrDefault [netId _actor,[]];
@@ -302,7 +304,8 @@ private _delay=call {
     // FOLLOW/ATTACK/CBE is not permission to stop, recall or send an actor to an exit.
     private _exitMovementOwned={
         params ["_actor"];
-        currentCommand _actor in ["","STOP"] || {[_actor] call _ownsCurrentMove}
+        currentCommand _actor == "" || {[_actor,_job] call CBE_fnc_BuildingActorHoldOwned}
+            || {[_actor] call _ownsCurrentMove}
     };
     private _activeOwnMove={
         params ["_actor"];
@@ -812,7 +815,7 @@ private _delay=call {
         private _held=_job getOrDefault ["accessHeld",[]];
         {
             if (!(_x in _held) && {[_x] call _actorAvailable} && {[_x] call _actorTaskFree}
-                && {call _mayIssueMovement}) then {doStop _x; _held pushBackUnique _x};
+                && {call _mayIssueMovement}) then {doStop _x; [_x] call _rememberHold; _held pushBackUnique _x};
         } forEach (_job get "team");
         _job set ["accessHeld",_held];
         if !(_job getOrDefault ["accessReported",false]) then {
@@ -905,7 +908,7 @@ private _delay=call {
                                 && {(_earlyExits getOrDefault [netId _actor,[]]) isEqualTo _record}
                                 && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo _reliefJournal}) then {
                                 private _hold=getPosATL _actor;
-                                doStop _actor;
+                                doStop _actor; [_actor] call _rememberHold;
                                 (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
                                 (_job getOrDefault ["movementRequestTimes",createHashMap]) deleteAt (netId _actor);
                                 (_job getOrDefault ["roomHolds",createHashMap]) set [netId _actor,+_hold];
@@ -921,11 +924,11 @@ private _delay=call {
                 if (_state == "MOVING" && {call _mayIssueMovement}) then {
                     if ((getPosASL _actor) vectorDistance (AGLToASL _target) <= 1
                         && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 1.5}) then {
-                        doStop _actor;
+                        doStop _actor; [_actor] call _rememberHold;
                         _record set [3,"ARRIVED"];
                     } else {
                         if (serverTime >= _deadline) then {
-                            if ([_actor] call _ownsCurrentMove) then {doStop _actor};
+                            if ([_actor] call _ownsCurrentMove) then {doStop _actor; [_actor] call _rememberHold};
                             _record set [3,"FAILED"];
                             _job set ["egressFailed",true];
                         } else {
@@ -1169,7 +1172,7 @@ private _delay=call {
                 _assignment set [2,true];
                 if ([_unit] call _actorAvailable && {[_unit] call _actorTaskFree}
                     && {call _mayIssueMovement}) then {
-                    doStop _unit;
+                    doStop _unit; [_unit] call _rememberHold;
                 };
             };
             _outside
@@ -1309,7 +1312,7 @@ private _delay=call {
     {
         if (_x in _unavailable && {!(_x in _quarantineHeld)} && {[_x] call _actorAvailable}
             && {[_x] call _actorTaskFree} && {call _mayIssueMovement}) then {
-            doStop _x;
+            doStop _x; [_x] call _rememberHold;
             _quarantineHeld pushBackUnique _x;
             // Continuing with replacements cannot erase an ordinary stranded worker.
             if !(_job getOrDefault ["entryFailed",false]) then {
@@ -1445,7 +1448,7 @@ private _delay=call {
                     if ([_reserve] call _reserveCommitReady
                         && {[currentCommand _reserve,expectedDestination _reserve,formLeader _reserve] isEqualTo _reserveNativeBefore}) then {
                         private _hold=getPosATL _reserve;
-                        doStop _reserve;
+                        doStop _reserve; [_reserve] call _rememberHold;
                         _stageAttempts pushBackUnique _key;
                         _stageSearchCounts set [_key,(_searchCount+1) min 3];
                         _stageJournalChanged=true;
@@ -1614,7 +1617,7 @@ private _delay=call {
                     && {abs (((getPosASL _reserve) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}
                     && {currentCommand _reserve in ["","STOP"] || {[_reserve] call _ownsCurrentMove}}
                     && {!([_reserve] call _activeOwnMove)}) then {
-                    doStop _reserve;
+                    doStop _reserve; [_reserve] call _rememberHold;
                     _stage set [1,true];
                     _stage set [2,"ARRIVED"];
                     _stageJournalChanged=true;
@@ -1713,7 +1716,7 @@ private _delay=call {
                     && {[currentCommand _reserve,expectedDestination _reserve,formLeader _reserve] isEqualTo _timeoutNative}
                     && {serverTime >= (_stage param [3,1e12])}) then {
                     private _hold=getPosATL _reserve;
-                    doStop _reserve;
+                    doStop _reserve; [_reserve] call _rememberHold;
                     (_job getOrDefault ["movementTargets",createHashMap]) deleteAt _key;
                     _reserve setVariable ["CBE_Cortex_ClearReserve",[_job get "generation",_group getVariable ["CBE_AIPass_Epoch",0],+_hold]];
                     _stage=[+_hold,true,"REJECTED"];
@@ -2594,7 +2597,7 @@ private _delay=call {
                                     && {currentCommand _waitingActor in ["","STOP","FOLLOW"]}
                                     && {!(_key in _holds) || {currentCommand _waitingActor != "STOP"}}) then {
                                     private _hold=getPosATL _waitingActor;
-                                    doStop _waitingActor;
+                                    doStop _waitingActor; [_waitingActor] call _rememberHold;
                                     _holds set [_key,+_hold];
                                     _job set ["roomHolds",_holds];
                                     diag_log format ["CBE CLEAR FLOOR QUEUE HOLD: %1",[_job get "generation",_pairIndex,_key,_lowestUnfinishedFloor,+_hold,["COMPLETED_QUEUE","LOWER_FLOOR"] select _waitingForFloor]];
@@ -3119,7 +3122,7 @@ private _delay=call {
                                 if (_unitIssue && {_settingsReady} && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
                                     private _started=_job get "started";
                                     if !(_unit in _started) then {
-                                        if !([_unit] call _ownsCurrentMove) then {doStop _unit};
+                                        if !([_unit] call _ownsCurrentMove) then {doStop _unit; [_unit] call _rememberHold};
                                         _started pushBack _unit;
                                     };
                                     private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
@@ -3165,7 +3168,7 @@ private _delay=call {
                                         && {(_nativeDestination param [1,"",[""]]) in ["DoNotPlanFormation","FORMATION PLANNED"]}
                                         && {count _issued == 3} && {!(netId _unit in _fallbackHolds)}) then {
                                         private _hold=getPosATL _unit;
-                                        doStop _unit;
+                                        doStop _unit; [_unit] call _rememberHold;
                                         _fallbackHolds set [netId _unit,+_hold];
                                         _job set ["formationFallbackHolds",_fallbackHolds];
                                     };
@@ -3180,7 +3183,7 @@ private _delay=call {
                                         && {_arrivalSegment} && {(getPosASL _unit) vectorDistance _arrivalPose <= 0.25}
                                         && {currentCommand _unit != "MOVE" || {[_unit] call _ownsCurrentMove}}
                                         && {!([_unit] call _activeOwnMove)}) then {
-                                        doStop _unit;
+                                        doStop _unit; [_unit] call _rememberHold;
                                         _roomHolds set [_holdKey,+_speedTarget];
                                         _job set ["roomHolds",_roomHolds];
                                     };
@@ -3480,7 +3483,7 @@ private _delay=call {
                 && {(getPosASL _unit) vectorDistance (AGLToASL (_positions select (_arrived select 0))) <= 1.5}
                 && {[_unit,AGLToASL (_positions select (_arrived select 0))] call _roomSegmentClear}
             ) then {
-                doStop _unit;
+                doStop _unit; [_unit] call _rememberHold;
                 _arrived set [4,true];
             };
             // Keep an unentered actor's useful entry path intact. Once its one-shot entry
