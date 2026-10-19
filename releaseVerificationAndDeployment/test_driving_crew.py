@@ -42,6 +42,7 @@ class DrivingCrewTests(unittest.TestCase):
             self.assertIn(guard,s)
         self.assertIn('alive _driver}) exitWith {}',s)
         self.assertIn('private _available={\n    _crew=fullCrew',s)
+        self.assertEqual(s.count('fullCrew [_vehicle,"",false]'),1)
         self.assertIn('_previousVehicle != vehicle leader _group',s)
         self.assertIn('toLowerANSI (_x select 1) == "cargo"',s)
         self.assertEqual(s.count('call _available'),4)

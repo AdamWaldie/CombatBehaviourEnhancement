@@ -89,7 +89,9 @@ private _commandOwned={
     currentCommand _actor == _receipt
         || {_actor == _candidate && {_phase == "SWITCHING"} && {currentCommand _actor == "ACTION"}}
 };
-private _crew=fullCrew [_vehicle,"",false];
+// The availability check supplies the crew snapshot used for candidate selection.
+// Refresh again at each native seat action; do not enumerate an unused entry snapshot.
+private _crew=[];
 private _tasks=["GET IN","GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
     "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
 private _available={

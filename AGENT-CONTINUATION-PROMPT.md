@@ -1,3 +1,7 @@
+## Driving crew enumeration checkpoint
+
+After1f6c14b2, DrivingCrewStep removes its unused entry fullCrew enumeration. The existing availability boundary still refreshes occupied crew before candidate selection and again at each seat action; incoming-driver assignment scan remains. No new controller, test case or score increase. Existing regression checks the occupied-crew scan has one source call site. Full offline build and independent package verification passed: .qa/cbe-driving-crew-scan-build.log; fingerprint33d2c1da1cdd55d3623f74cdc7471e1c375a88012938269befdc21dcc7062506 (manifest1f6c14b2+dirty development). Build-out report check passed with scores unchanged. Audits remain PAUSED; no physical performance claim.
+
 ## Current local native infantry MOVE protection
 
 Afterb8ac7bae, CortexFireControl excludes native MOVE from scripted target/fire/distribution/suppression admission even when no CBE reservation exists. Prevents doTarget/doFire changing that authored/native movement into ATTACK pursuit. Native TARGET/AUTOTARGET/FIREWEAPON remain enabled; ordinary autonomous ATTACK remains eligible. Removes unused movingMembers array and returns immediately when scripted actor pool empty. Other weapon/safety/cadence rules unchanged. Important: actual aimPos reads in fire control are firing-lane safety for object-target commands; do not substitute an approximate belief there and weaken friendly-fire checks merely to remove all live geometry.
