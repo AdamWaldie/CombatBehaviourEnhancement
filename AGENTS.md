@@ -92,3 +92,7 @@ Build-out scope clarification: the 65-row acceptance registry contains 64 produc
 ## Build upward from foundations
 
 User clarification2026-10-19: build upward, not by chasing disconnected tactical feature patches or raising tracker figures. Prioritise shared ownership/admission, interruption and exact restoration, scheduler/FSM lifecycle, movement/sensing primitives and bounded cost. Compose individual behaviours only on those foundations, then buddy/pair work, squad roles, coordination and combined operations. Carry source intent through the layers and keep compatibility expansion last. Finish and validate in-flight work safely, then return to the shared foundation gaps; do not treat another feature checkbox as the next priority by default.
+
+## Settings receipt cleanup
+
+Application-time validation is not sufficient when direct stop/exclusion paths call restoration independently. Use the shared typed receipt boundary at every native settings cleanup. A missing applied or original value grants no restoration authority and must not consume the other half. Skill/aim pairs can retire independently; retain pending metadata. AIProfileReceipt is structural evidence only, not proof of ordered replication, never-profiled state, owner admission acknowledgement or eventual handback. Do not add a timer that reclaims mission-owned settings.

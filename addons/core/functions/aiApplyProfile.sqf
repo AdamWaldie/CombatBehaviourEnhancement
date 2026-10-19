@@ -204,9 +204,10 @@ private _operatingCrew = _vehicle != _unit && {_seatName != "CARGO"};
 // A mission or another addon may opt an actor out of the precision layer without coupling this
 // standalone addon to that product's private variables or implementation.
 private _precisionExcluded = [_unit] call CBE_fnc_CompatibilityPrecisionExcluded;
-if (isNil {_unit getVariable "CBE_AI_OriginalAimCoef"}) then {
+if (!_precisionExcluded && {isNil {_unit getVariable "CBE_AI_OriginalAimCoef"}}) then {
     _unit setVariable ["CBE_AI_OriginalAimCoef", getCustomAimCoef _unit, true];
 };
+private _entryAppliedAim=_unit getVariable ["CBE_AI_AppliedAimCoef",-1];
 private _profileAim=getCustomAimCoef _unit;
 if (_operatingCrew && {!_precisionExcluded}) then {
     private _crewMultiplier = ((missionNamespace getVariable ["CBE_AI_VehicleCrewAimMultiplier", 0.6]) max 0.25) min 1;
@@ -224,8 +225,7 @@ if (_operatingCrew && {!_precisionExcluded}) then {
     private _infantryDispersion=((missionNamespace getVariable ["CBE_AI_InfantryDispersion",1.35]) max 1) min 3;
     _profileAim=(_infantryDispersion * (1-(0.15*(_profileSkills get "general")))) max (_unit getVariable ["CBE_AI_OriginalAimCoef",1]);
 } else {
-    private _priorAppliedAim=_unit getVariable ["CBE_AI_AppliedAimCoef",-1];
-    if (_priorAppliedAim >= 0 && {abs (getCustomAimCoef _unit-_priorAppliedAim) < 0.00001}) then {
+    if (_entryAppliedAim >= 0 && {abs (getCustomAimCoef _unit-_entryAppliedAim) < 0.00001}) then {
         _profileAim=_unit getVariable ["CBE_AI_OriginalAimCoef", 1];
     };
 }};
@@ -257,7 +257,13 @@ isNil {
     };
     private _appliedAim=getCustomAimCoef _unit;
     if (_precisionExcluded) then {
-        _unit setVariable ["CBE_AI_AppliedAimCoef",nil,true];
+        // Retire a known coefficient pair only after the native baseline is observed.
+        // A baseline without a matching prior application remains unresolved, not disposable.
+        private _originalAim=_unit getVariable ["CBE_AI_OriginalAimCoef",-1];
+        if (_entryAppliedAim >= 0 && {_originalAim >= 0} && {abs (_appliedAim-_originalAim) < 0.00001}) then {
+            _unit setVariable ["CBE_AI_OriginalAimCoef",nil,true];
+            _unit setVariable ["CBE_AI_AppliedAimCoef",nil,true];
+        };
     } else {if (_appliedAim != (_unit getVariable ["CBE_AI_AppliedAimCoef",-1])) then {
         _unit setVariable ["CBE_AI_AppliedAimCoef",_appliedAim,true];
     }};

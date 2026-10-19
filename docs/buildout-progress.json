@@ -310,7 +310,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/aiApplyProfile.sqf",
-              "sha256": "2f5f1cf33f1cbc42ecbc224f6082e2b5b427f915fde30c0f705e700bc98c2cbe"
+              "sha256": "4bc27785f6f6778f8e403a75122a635c2e4ea825f6666d14ff0f6e76db4f1fe9"
             },
             {
               "path": "addons/core/functions/cortexProfile.sqf",
@@ -318,7 +318,11 @@
             },
             {
               "path": "addons/core/functions/aiProfileYield.sqf",
-              "sha256": "7645a18ca0fc03027fb99df7d2aa749a66c4607243d9967640a60e026f89db4d"
+              "sha256": "411a80b4708316c47430f0cf052c60287bd6c20acdabe08fa1044c35a3278d75"
+            },
+            {
+              "path": "addons/core/functions/aiProfileReceipt.sqf",
+              "sha256": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d"
             }
           ]
         }
@@ -341,11 +345,15 @@
           "evidence": [
             {
               "path": "addons/core/functions/aiApplyProfile.sqf",
-              "sha256": "2f5f1cf33f1cbc42ecbc224f6082e2b5b427f915fde30c0f705e700bc98c2cbe"
+              "sha256": "4bc27785f6f6778f8e403a75122a635c2e4ea825f6666d14ff0f6e76db4f1fe9"
             },
             {
               "path": "addons/core/functions/aiProfileYield.sqf",
-              "sha256": "7645a18ca0fc03027fb99df7d2aa749a66c4607243d9967640a60e026f89db4d"
+              "sha256": "411a80b4708316c47430f0cf052c60287bd6c20acdabe08fa1044c35a3278d75"
+            },
+            {
+              "path": "addons/core/functions/aiProfileReceipt.sqf",
+              "sha256": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d"
             }
           ]
         },
@@ -371,11 +379,15 @@
           "evidence": [
             {
               "path": "addons/core/functions/aiRestoreProfile.sqf",
-              "sha256": "da649416eb07515a9e4abcd8f17c90a48e9b48601a41da5901a46f46d6cfac03"
+              "sha256": "af466d06e82609e1ce4c9a09daaf59b15aeb25ea6e923e5845187478fb50a19a"
             },
             {
               "path": "addons/core/functions/aiRebalanceStop.sqf",
               "sha256": "356b2f7dfc3cbf82bc45f8b037b9945b806007ab2c05a9bb6163583fabe66c73"
+            },
+            {
+              "path": "addons/core/functions/aiProfileReceipt.sqf",
+              "sha256": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d"
             }
           ]
         }
@@ -3643,15 +3655,19 @@
           "evidence": [
             {
               "path": "addons/core/functions/aiApplyProfile.sqf",
-              "sha256": "2f5f1cf33f1cbc42ecbc224f6082e2b5b427f915fde30c0f705e700bc98c2cbe"
+              "sha256": "4bc27785f6f6778f8e403a75122a635c2e4ea825f6666d14ff0f6e76db4f1fe9"
             },
             {
               "path": "addons/core/functions/aiRestoreProfile.sqf",
-              "sha256": "da649416eb07515a9e4abcd8f17c90a48e9b48601a41da5901a46f46d6cfac03"
+              "sha256": "af466d06e82609e1ce4c9a09daaf59b15aeb25ea6e923e5845187478fb50a19a"
             },
             {
               "path": "addons/core/functions/aiProfileYield.sqf",
-              "sha256": "7645a18ca0fc03027fb99df7d2aa749a66c4607243d9967640a60e026f89db4d"
+              "sha256": "411a80b4708316c47430f0cf052c60287bd6c20acdabe08fa1044c35a3278d75"
+            },
+            {
+              "path": "addons/core/functions/aiProfileReceipt.sqf",
+              "sha256": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d"
             }
           ]
         },

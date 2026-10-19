@@ -16,9 +16,12 @@ class SkillAuthorityTests(unittest.TestCase):
         self.assertIn('ace_headless_groupTransferPost',src('addons/core/functions/cortexInit.sqf'))
     def test_yield_is_actual_owner_bounded_and_validated_before_restore(self):
         text=src('addons/core/functions/aiProfileYield.sqf')
-        for proof in ('!local _unit','isNil {','count _receipt in [0,9]','finite (_receipt get _x)',
-                      'keys _applied findIf','finite _originalAim','finite _appliedAim'):
+        for proof in ('!local _unit','isNil {','call CBE_fnc_AIProfileReceipt','getOrDefault ["valid",false]'):
             self.assertLess(text.index(proof),text.index('call CBE_fnc_AIRestoreProfile'))
+        reader=src('addons/core/functions/aiProfileReceipt.sqf')
+        for proof in ('count _receipt in [0,9]','finite (_receipt get _x)','_value == -1 || {_value >= 0}',
+                      '"applicationReady"','"skillsPending"','"aimPending"'):
+            self.assertIn(proof,reader)
         for forbidden in ('allUnits','spawn {','waitUntil','addPerFrameHandler','doMove','setSkill'):
             self.assertNotIn(forbidden,text)
     def test_later_skill_or_aim_changes_yield_without_provider_detection(self):

@@ -229,7 +229,8 @@
         "addons/core/functions/aiRebalanceInit.sqf",
         "addons/core/functions/aiRebalanceStop.sqf",
         "addons/core/functions/AISkillAdjustmentSystem.sqf",
-        "addons/core/functions/aiProfileYield.sqf"
+        "addons/core/functions/aiProfileYield.sqf",
+        "addons/core/functions/aiProfileReceipt.sqf"
       ]
     },
     {

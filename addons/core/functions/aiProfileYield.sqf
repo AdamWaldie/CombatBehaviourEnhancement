@@ -4,7 +4,8 @@
  * Locality/authority: Actual unit owner; synchronous setting-only receipt check and release.
  * Repeat/JIP: Public CBE_AI_SkillOwner survives owner transfer and profile stop/restart. A nonempty
  * owner label blocks automatic reacquisition; only the mission clears it to authorise a new episode.
- * Original/applied receipts are validated before cleanup; malformed state refuses without writes.
+ * Shared typed receipt validation gates cleanup. Incomplete pairs remain pending rather than
+ * being deleted by a direct restoration caller; malformed state refuses without writes.
  * Arguments: 0 unit <OBJECT>, objNull.
  * Return: BOOL - true when profiling must not write. False grants no movement authority.
  * Current callers: AIApplyProfile before planning and at its final setting commit.
@@ -16,27 +17,18 @@ private _cbeSkillBlocked=true;
 isNil {
 _cbeSkillBlocked=call {
     if (!local _unit) exitWith {true};
-    private _names=["aimingSpeed","aimingAccuracy","aimingShake","spotTime","spotDistance","commanding","general","courage","reloadSpeed"];
-    private _original=_unit getVariable ["CBE_AI_OriginalSkills",createHashMap];
-    private _applied=_unit getVariable ["CBE_AI_AppliedSkills",createHashMap];
-    private _valid={
-        params ["_receipt"];
-        _receipt isEqualType createHashMap && {count _receipt in [0,9]}
-            && {keys _receipt findIf {!(_x in _names) || {!((_receipt get _x) isEqualType 0)}
-                || {!finite (_receipt get _x)} || {(_receipt get _x) < 0} || {(_receipt get _x) > 1}} < 0}
-    };
-    if (!([_original] call _valid) || {!([_applied] call _valid)}) exitWith {true};
-    if (keys _applied findIf {!(_x in _original)} >= 0) exitWith {true};
-    private _originalAim=_unit getVariable ["CBE_AI_OriginalAimCoef",-1];
-    private _appliedAim=_unit getVariable ["CBE_AI_AppliedAimCoef",-1];
-    if (!(_originalAim isEqualType 0) || {!finite _originalAim} || {_originalAim < -1}
-        || {!(_appliedAim isEqualType 0)} || {!finite _appliedAim} || {_appliedAim < -1}
-        || {_appliedAim >= 0 && {_originalAim < 0}}) exitWith {true};
+    private _receipt=[_unit] call CBE_fnc_AIProfileReceipt;
+    if !(_receipt getOrDefault ["valid",false]) exitWith {true};
+    private _original=_receipt get "original";
+    private _applied=_receipt get "applied";
+    private _originalAim=_receipt get "originalAim";
+    private _appliedAim=_receipt get "appliedAim";
     private _owner=_unit getVariable ["CBE_AI_SkillOwner",""];
     if (!(_owner isEqualType "") || {_owner != ""}) exitWith {
         [_unit] call CBE_fnc_AIRestoreProfile;
         true
     };
+    if !(_receipt get "applicationReady") exitWith {true};
     // An interrupted first plan can have a baseline without an applied receipt. That baseline
     // must not become permission to overwrite a later mission edit on the retry.
     private _expected=if (count _applied > 0) then {_applied} else {_original};
