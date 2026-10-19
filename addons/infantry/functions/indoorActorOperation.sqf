@@ -10,6 +10,8 @@
  * START context: building OBJECT, belief [ATL ARRAY, server timestamp], optional contact OBJECT.
  * Idle/plain-route contexts may issue one leg. An unchanged same-contact native approach is
  * observed without a reset; after measured stagnation one alternate-node escalation is permitted.
+ * Observed native destinations are recorded at admission and kept distinct from another
+ * investigator's selected node; this grants no native-path ownership or cleanup authority.
  * Other modes carry the brain. Neither admission nor escalation renews the original deadline.
  * TRANSFER is locality cleanup only: an absent machine-local lease may use the public journal;
  * a different live actor reservation still forbids command cleanup.
@@ -190,6 +192,7 @@ if (_mode == "START") exitWith {
     private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
     private _deadline=(serverTime+45) min ((_belief select 1)+30);
     private _lease=["INDOOR_INVESTIGATE",+(_belief select 0),time+(_deadline-serverTime)];
+    private _initialTarget=if ((_admission select 0) == "OBSERVE") then {+(_admission select 2)} else {[]};
     private _serial=(missionNamespace getVariable ["CBE_IndoorActor_Serial",0])+1;
     missionNamespace setVariable ["CBE_IndoorActor_Serial",_serial];
     _brain=createHashMapFromArray [["jobKey",format ["CBE_INDOOR_%1",_serial]],["actor",_actor],["group",_group],["generation",_generation],
@@ -197,7 +200,7 @@ if (_mode == "START") exitWith {
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],
-        ["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",[]],["issued",false],
+        ["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosATL _actor]];
     // Release only this actor's owned danger posture before publishing the incoming task.
@@ -209,7 +212,7 @@ if (_mode == "START") exitWith {
     _group setVariable ["CBE_IndoorActor_Actors",_investigators+[_actor]];
     _actor setVariable ["CBE_Cortex_ActorMove",_lease call _copyArray];
     _actor setVariable ["CBE_IndoorActor_Order",[_generation,_epoch,_group,
-        _brain get "operationGeneration",_deadline,(_brain get "route") call _copyArray,[],_lease call _copyArray,false],true];
+        _brain get "operationGeneration",_deadline,(_brain get "route") call _copyArray,+_initialTarget,_lease call _copyArray,false],true];
     private _handle=[_actor,_brain] execFSM "\z\cbe\addons\main\fsm\indoorActor.fsm";
     _actor setVariable ["CBE_IndoorActor_FSM",_handle];
     true
@@ -313,8 +316,15 @@ if (_phase == "SELECT") exitWith {
         || {(_admission select 0) != "OBSERVE"}
         || {getUnitState _actor == "PLANNING"} || {currentCommand _actor == "FIRE"}}) exitWith {["ESCALATION_REFUSED"] call _finish};
     private _reserved=[];
-    {private _order=_x getVariable ["CBE_IndoorActor_Order",[]];
-        if (count _order == 9 && {_order select 8}) then {_reserved pushBack (_order select 6)};
+    // A peer following native AI still occupies its recorded destination. The issued flag
+    // grants cleanup rights only; using it here would invite a second actor to the same node.
+    {
+        if (_x != _actor) then {
+            private _order=_x getVariable ["CBE_IndoorActor_Order",[]];
+            if (count _order == 9 && {(_order select 6) isNotEqualTo []}) then {
+                _reserved pushBack (_order select 6);
+            };
+        };
     } forEach ((_group getVariable ["CBE_IndoorActor_Actors",[]]) select [0,2]);
     if (_escalate) then {_reserved pushBack +(_brain get "target")};
     private _node=[_actor,_building,(_brain get "belief") select 0,_reserved] call CBE_fnc_IndoorActorNodeSelect;

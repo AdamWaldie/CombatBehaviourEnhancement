@@ -53,6 +53,13 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(guard,s)
         self.assertEqual(s.count('lineIntersectsSurfaces'),1)
         self.assertNotIn('getPosATL _enemy',s)
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        self.assertIn('private _initialTarget=if ((_admission select 0) == "OBSERVE")',operation)
+        self.assertIn('call _copyArray,+_initialTarget,_lease call _copyArray,false],true]',operation)
+        reservation=operation.split('private _reserved=[];',1)[1].split('private _node=',1)[0]
+        self.assertIn('_x != _actor',reservation)
+        self.assertIn('(_order select 6) isNotEqualTo []',reservation)
+        self.assertNotIn('_order select 8',reservation)
 
     def test_planner_avoids_current_squad_body_overlap_without_enemy_or_world_scan(self):
         s=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text()

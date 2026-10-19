@@ -3160,7 +3160,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/indoorActorOperation.sqf",
-              "sha256": "b9a7f96d052404f950c1fff2cf305baf995dea89d62ada8bc23a86572eb1d7f6"
+              "sha256": "bc69bf62407b711f91384e55bc1941fbf3156af20c094f598ecc8b29b94febb4"
             },
             {
               "path": "addons/infantry/functions/indoorActorDispatch.sqf",
