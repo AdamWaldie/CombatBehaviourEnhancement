@@ -4005,7 +4005,17 @@ class CortexOperations(unittest.TestCase):
                        'B_Heli_Attack_01_F','setVelocityModelSpace','magazinesAllTurrets']:
             self.assertIn(marker,tactical_qa)
         self.assertIn('"INSUFFICIENT_FIREPOWER"',assessment)
+        depleted=assessment.split('if (count _armedFoot < 2) exitWith {',1)[1].split('private _capableAT=',1)[0]
+        for guard in ('count _armedFoot == 1','count _enemies == 1','isNull objectParent _target',
+                      'param [2,1e9,[0]]) <= 5','param [3,1e9,[0]]) <= 20','NATIVE_CLOSE_CONTACT'):
+            self.assertIn(guard,depleted)
+        self.assertLess(depleted.index('NATIVE_CLOSE_CONTACT'),depleted.index('INSUFFICIENT_FIREPOWER'))
+        self.assertNotIn('doMove',depleted)
+        self.assertNotIn('doFire',depleted)
         self.assertIn('"ELEVATED_FIRE_POSITION"',assessment)
+        self.assertIn('((AGLToASL _position) select 2)',assessment)
+        self.assertIn('count _position == 3',assessment)
+        self.assertNotIn('getPosASL _target',assessment)
         self.assertIn('"CONCEALED_ELEVATED_APPROACH"',assessment)
         self.assertIn('"REPOSITION"',assessment)
         self.assertIn('"NO_SAFE_MANOEUVRE"',selector)

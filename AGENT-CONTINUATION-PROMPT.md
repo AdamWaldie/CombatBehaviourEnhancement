@@ -1,3 +1,15 @@
+## Native engagement and belief assessment checkpoint
+
+Current batch aftera498b71a changes CortexTacticalAssess: elevated threat uses validated native believed3D height rather than live hostile getPosASL; fresh<=30s/range>300 unchanged. Low armedheadcount no longer forces REPOSITION when exactlyonearmedfoot soldier faces exactlyonefresh(dangerage<=5s) dismounted live hostile believed<=20m. It returns existing HOLD/nativehandoff with NATIVE_CLOSE_CONTACT; no new assault/firing/movement command. Earlier mounted-group and shaken/broken morale decisions remain, other low-firepower cases still reposition. No sensor/controller/worker/test added.
+
+Full offline gates and independentverify passed .qa/cbe-native-engagement-assessment-build.log / verify.log; fingerprint976669bf27b3d1303a8d0e1acf46428c9f0cdd8df0f6067422e5ddd8401f456b, manifesta498b71a+dirtydevelopment. Scoresunchanged; physical firing/movement/balance remain unverified; auditsPAUSED. Remote draftPR17 remainsf5e54d0d; local posture/sensing/nativehandoff batch is for later coherentpush.
+
+## Current local sensing correction
+
+Aftera498b71a, CortexTacticalAssess elevated-contact selection now validates the supplied3D belief and uses AGLToASL(believedposition) height rather than getPosASL hostile. Range>300 and age<=30 rules remain; missing/invalid height cannot establish elevated threat. No extra sensor/cache/worker and no new test; existing regression extended. Full offline gates and independent verify passed .qa/cbe-believed-elevation-build.log / verify.log; fingerprintc11944f68892809d57418da2bbc2604fc1a4c0303513639a2caf87d59b18ff7c, manifesta498b71a+dirtydevelopment. Build-out scores unchanged. AuditsPAUSED; no physical or measured cost claim.
+
+Read-only tactical trace also finds countarmedFoot<2 selects REPOSITION before considering close infantry contact. That may make depleted/single-actor groups abandon native close engagement; no policy change has yet been made. Examine current threat/morale/mission authority before choosing a sensible native fallback, and avoid another movement controller. Remote draftPR17 remainsf5e54d0d; recent posture/sensing batch local.
+
 ## Finite pending posture cleanup checkpoint
 
 Current batch afterfb392dd1 services only owner-local registered pending weak-stance actors through existingGroupBrainStep (one attempt/callback, rotated, max64records; no idle roster scan/network/wake/newworker). Automatic retry admission and retained-list pruning both use original stanceexpiry+30seconds. Expiry records RESTORE_WINDOW_EXPIRED, removes only pending polling entry, retains original stance lease. No renewed cleanup clock. New live EngineResponse is left alone. Explicit later task can still invoke guarded cleanup directly. Disabled/paused/external/retired brain gives no service; no universal cleanup guarantee.

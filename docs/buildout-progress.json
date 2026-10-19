@@ -2653,7 +2653,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexTacticalAssess.sqf",
-              "sha256": "aad31e3f9496a482dcc72de7a63eff5251dbdaedb1e7195757d7bb703af75eec"
+              "sha256": "2f95153aa99d11275af56f7dc3b91be01a37311565c37853e0a6f20bb772b57d"
             }
           ]
         },
@@ -2694,7 +2694,7 @@
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "source_commit": "a498b71a + belief and depleted native engagement"
     },
     {
       "id": "COORD",

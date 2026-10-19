@@ -622,7 +622,7 @@ Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is no
 
 ## ADVANCE â€” Bounding advance
 
-Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
+Source checkpoint: `a498b71a + belief and depleted native engagement`; reviewed 2026-10-19; confidence: low.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
