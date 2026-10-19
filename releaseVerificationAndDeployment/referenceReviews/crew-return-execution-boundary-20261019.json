@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-19",
+  "scope": "HBQ crew-left-behind intent and CBE passenger/crew boundary",
+  "source": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+  "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+  "rangesRead": [
+    "1680-1769"
+  ],
+  "sourceIntent": [
+    "Remember operating seat role/turret path, exclude cargo and FFV.",
+    "Preserve unassignment and incapacitation; native assigned-seat re-entry after delay.",
+    "Later forced seating and group detachment are source shortcuts, not adopted by CBE."
+  ],
+  "currentCallPaths": [
+    "DrivingOperationStep -> DrivingCrewStep: internal dead-driver seat replacement only.",
+    "CortexRestoreCalm / CortexGroupTick -> CortexPassengerReady: cargo-only finite remount.",
+    "CortexLocality resumes public passenger remount original deadline; it does not retain operating role/turret path."
+  ],
+  "finding": "Passenger remount cannot stand in for operating-crew return: assignAsCargo would discard operating-role intent. No complete ordinary dismounted-crew return executor exists.",
+  "implementedThisBatch": [
+    "Shared passenger admission now refuses boarding over explicit STOP or disabled MOVE/PATH, and refuses hidden/suspended actor/platform routine transitions.",
+    "DrivingCrewBoarding cooperates with current native GET IN for exact assigned empty operating seats through the existing sole driving cap writer.",
+    "Per-seat original 60-second public limits survive owner change on the same route; expired attempts cannot renew until boarding or assignment/context change.",
+    "New actor tasks end cooperation; active reverse/pass/bypass/corridor work prevents admission. Fresh plain route/crew intent is checked at the cap commit.",
+    "No recall order, assignment mutation, boarding permission override, forced seating or independent speed writer."
+  ],
+  "nextFoundation": [
+    "Capture actual occupied operating-seat provenance within existing driving operation, excluding cargo and FFV.",
+    "Observe still-assigned dismounted crew with original finite deadlines; preserve explicit unassignment and newer actor tasks.",
+    "Keep role/turret identity and issue at most one native re-entry attempt through current actor owner; do not reuse cargo remount.",
+    "Vehicle cooperation must use existing sole speed writer with exact finite receipt; no separate movement loop.",
+    "Owner migration must preserve original deadline and issued-state provenance without replay."
+  ],
+  "validation": {
+    "tests": 1476,
+    "buildLog": ".qa/cbe-crew-boarding-build.log",
+    "independentLog": ".qa/cbe-crew-boarding-independent.log",
+    "fingerprint": "415395540c1c3a4aca7c8d12571dc7605021945e3fd65db8575c1d194779160d",
+    "packageSource": "7db002b716d222fd2da6731eb6c30d3c2460f539+dirty unsigned development",
+    "failedFocusedCheck": "An explanatory comment matched a forbidden-command assertion; executable-body check corrected. Full existing suite then passed."
+  },
+  "physicalAcceptance": false,
+  "audits": "paused",
+  "nativeReferences": [
+    "https://community.bistudio.com/wiki/fullCrew",
+    "https://community.bistudio.com/wiki/AI_Group_Vehicle_Management",
+    "https://community.bistudio.com/wiki/orderGetIn"
+  ],
+  "authorityLimit": "orderGetIn false preserves assignedVehicle. Assignment alone is not recall permission. The implementation supports an observed GET IN without re-enabling boarding. Same-value native command changes wholly between observations remain unobservable.",
+  "remaining": [
+    "Automatic recall of dismounted operating crew is not implemented.",
+    "Absent driver return and cross-group boarding are not implemented.",
+    "Physical re-entry, blocked boarding, repeated departures, split ownership and measured runtime cost remain unverified."
+  ]
+}

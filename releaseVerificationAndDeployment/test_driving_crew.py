@@ -103,6 +103,25 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('isNull driver _vehicle || {!alive driver _vehicle}',start)
         self.assertIn('class CrewHandover',fsm)
         self.assertNotIn('execFSM',self.source())
+        boarding=(ROOT/'addons/vehicles/functions/drivingCrewBoarding.sqf').read_text(encoding='utf-8')
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        body=boarding.split('params [[',1)[1]
+        body='\n'.join(line.split('//',1)[0] for line in body.splitlines())
+        for proof in ('currentCommand _actor == "GET IN"','assignedVehicle _actor != _vehicle',
+                      '_role == "cargo"','_seat select 4','_seat select 5','count _seats > 20',
+                      'serverTime+60','serverTime < (_row select 3)','_row set [4,true]',
+                      'CBE_AIPass_VehicleRemount_Enable','CBE_DrivingRecovery_Work',
+                      'CBE_DrivingPass_Work','CBE_DrivingBypass_Work','CBE_DrivingCorridor_Work'):
+            self.assertIn(proof,body)
+        self.assertEqual(body.count('serverTime+60'),1)
+        self.assertNotIn('_row set [3,',body)
+        for command in ('orderGetIn','assignAs','moveIn','forceSpeed','setVelocity','spawn','sleep','execFSM'):
+            self.assertNotIn(command,body)
+        self.assertEqual(assist.count('call CBE_fnc_DrivingCrewBoarding'),2)
+        self.assertIn('if (_crewBoardingHold) then {_traffic=[0,_vehicle,-1,time,0]}',assist)
+        self.assertIn('&& {!_crewBoardingHold}',assist)
+        self.assertIn('"CREW_BOARDING"',step)
+
         source=self.source()
         self.assertLess(source.index('count _liveWork == 0'),source.index('call CBE_fnc_DrivingRouteReceipt'))
         self.assertLess(source.index('count _liveWork == 0'),source.index('fullCrew'))

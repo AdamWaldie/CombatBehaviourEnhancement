@@ -71,7 +71,7 @@ class AIModularityContracts(unittest.TestCase):
             self.assertIn('CBE_fnc_CortexCapabilities',src(name))
     def test_passengers_share_safety_checks_and_cleanup_does_not_board(self):
         text = src('cortexPassengerReady')
-        for check in ['local _unit','isPlayer','CBE_fnc_CortexCombatEffective','vectorMagnitude velocity _vehicle','vectorMagnitude angularVelocity _vehicle','surfaceIsWater','lineIntersectsSurfaces','fullCrew','emptyPositions']:
+        for check in ['simulationEnabled _vehicle','isObjectHidden _unit','_boarding && {_command == "STOP"','checkAIFeature "MOVE"','checkAIFeature "PATH"','local _unit','isPlayer','CBE_fnc_CortexCombatEffective','vectorMagnitude velocity _vehicle','vectorMagnitude angularVelocity _vehicle','surfaceIsWater','lineIntersectsSurfaces','fullCrew','emptyPositions']:
             self.assertIn(check,text)
         dismount = src('convoyDismountLocal')
         self.assertIn('CBE_fnc_CortexExternalTakeover',dismount)

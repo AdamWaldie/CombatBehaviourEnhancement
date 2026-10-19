@@ -7,6 +7,8 @@
  * below0.01rad/s; this instantaneous observation does not authorize a later deferred command.
  * Matching boarding may continue, but medical, equipment, finite actor reservations and replacement
  * boarding tasks yield without issuing seat or movement commands.
+ * Hidden/suspended actors or vehicles refuse routine transitions. Boarding additionally
+ * preserves explicit STOP and disabled MOVE/PATH; no path request is issued for them.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: vehicle <OBJECT>, objNull; 2: boarding <BOOL>, false.
  * Return Value: Boolean.
  * Current callers: ConvoyCrewLocal, Vehicles and RestoreCalm.
@@ -14,6 +16,8 @@
  */
 params [["_unit", objNull, [objNull]], ["_vehicle", objNull, [objNull]], ["_boarding", false, [true]]];
 if (isNull _vehicle || {!alive _vehicle} || {!local _unit} || {isPlayer _unit}
+    || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
+    || {!simulationEnabled _unit} || {isObjectHidden _unit}
     || {!([_unit] call CBE_fnc_CortexCombatEffective)}
     || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}
     || {"ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures", []])}
@@ -38,6 +42,8 @@ if (_reserved) exitWith {false};
 // Routine seat changes must not steal an actor's medical, equipment or other authored task.
 // The matching GET IN is our permitted continuation, not permission to replace a different seat.
 private _command=toUpperANSI currentCommand _unit;
+if (_boarding && {_command == "STOP" || {!(_unit checkAIFeature "MOVE")}
+    || {!(_unit checkAIFeature "PATH")}}) exitWith {false};
 if (_command in ["GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]
     || {_command == "GET IN" && {!_boarding || {assignedVehicle _unit != _vehicle}}}) exitWith {false};
 // A ground-level bridge deck is allowed only when a short downward geometry ray actually hits it.

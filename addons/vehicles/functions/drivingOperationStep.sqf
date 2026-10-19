@@ -37,7 +37,7 @@ private _phase="HANDBACK";private _owned=0;private _recovery=false;private _wait
         if ((_state param [8,""]) in ["BYPASS_PLAN","BYPASS_FOLLOW"]) then {_bypass=_state select 8};
         _obstacle=_obstacle || {(_state param [8,""]) in ["OBSTACLE_APPROACH","OBSTACLE_WAIT"]};
         if ((_state param [8,""]) in ["CORRIDOR_APPROACH","CORRIDOR_CROSS"]) then {_corridor=_state select 8};
-        _traffic=_traffic || {(_state param [8,""]) == "TRAFFIC_FOLLOW"};
+        _traffic=_traffic || {(_state param [8,""]) in ["TRAFFIC_FOLLOW","CREW_BOARDING"]};
         _waiting=_waiting || {(_state param [8,""]) == "INTENTIONAL_WAIT"};
         _recovery=_recovery || {(_state param [6,0]) in [1,2,3]};
         _rearLeg=_rearLeg || {(_state param [6,0]) == 2};

@@ -92,6 +92,7 @@ class CfgFunctions {
             class DrivingRearClear {file = "\z\cbe\addons\vehicles\functions\drivingRearClear.sqf";};
             class DrivingDamageReceipt {file = "\z\cbe\addons\vehicles\functions\drivingDamageReceipt.sqf";};
             class DrivingRouteReceipt {file = "\z\cbe\addons\vehicles\functions\drivingRouteReceipt.sqf";};
+            class DrivingCrewBoarding {file = "\z\cbe\addons\vehicles\functions\drivingCrewBoarding.sqf";};
             class DrivingCrewStep {file = "\z\cbe\addons\vehicles\functions\drivingCrewStep.sqf";};
             class DrivingOperationStart {file = "\z\cbe\addons\vehicles\functions\drivingOperationStart.sqf";};
             class DrivingOperationQueue {file = "\z\cbe\addons\vehicles\functions\drivingOperationQueue.sqf";};
