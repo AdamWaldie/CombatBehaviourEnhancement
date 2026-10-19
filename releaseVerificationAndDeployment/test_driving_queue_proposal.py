@@ -48,6 +48,13 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('_gap < 0',current)
         self.assertIn('_gap > 25',current)
         self.assertNotIn('_rear > 25',current)
+        self.assertIn('private _leadGap=((_spans select 0) select 0)-((_spans select 1) select 1)',current)
+        self.assertIn('if (_leadGap < 0) exitWith {false}',current)
+        # Facing vehicles can have correctly ordered centres yet intersect:
+        # yield hull [-6,6], crossing hull [4,16] at 10m centre distance.
+        for crossing,yielding,admitted in (([4,16],[-6,6],False),
+                                           ([6.1,18.1],[-6,6],True)):
+            self.assertEqual(crossing[0]-yielding[1] >= 0,admitted)
         # A long aligned pair can have 35m centre spacing but only 15m body clearance.
         # Two overlapping 20m bodies can have distinct, correctly ordered centres.
         for front,back,expected in (([-10,10],[-45,-25],15),([-10,10],[-25,-5],-5)):
