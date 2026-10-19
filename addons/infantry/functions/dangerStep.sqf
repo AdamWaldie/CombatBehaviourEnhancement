@@ -248,11 +248,10 @@ private _responsiveUntil=if (count _effectiveResponse == 5
     time+_responseLifetime
 };
 // A group retains one movement/decision owner. Events only shorten its existing deadline.
+// Startup reuses a live current generation or replaces stale/cancelled/ended work. This
+// readmission does not bypass the wake throttle; a newly created brain is already due now.
+[_group,false] call CBE_fnc_GroupBrainStart;
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
-if (count _brain == 0) then {
-    [_group,true] call CBE_fnc_GroupBrainStart;
-    _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
-};
 if (count _brain > 0 && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}) then {
     // A throttled wake is not a shortened response. A newly accepted stronger event may
     // outlive the previous window even though no second immediate wake is necessary.

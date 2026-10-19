@@ -2,9 +2,14 @@
   "finding": "DangerStep extended responsiveUntil only inside immediate wake throttle. A stronger event accepted within0.5s could extend response expiry but leave shorter brain cadence window. Empty-queue assessments do not extend that brain deadline.",
   "implementation": "For current owner epoch, extend responsiveUntil from surviving effective response before testing wake throttle. wakeAt/nextAt and scheduler due hint remain inside unchanged0.5s throttle. No new wake, response duration, priority, target knowledge or movement command.",
   "source_sha256": "584553c4d4efe3e85e73d81e80c86cd03c007e37283336b5de54cfc54879fbb2",
-  "validation": "Full .qa/cbe-danger-response-wake-window-build.log and independent verification passed; fingerprint f42cc7dcdbe1af2c1a398baa9493730bc8df66ffbb4da3de0eef1f58d0d538d7, manifest85dcef5d+dirty development.",
+  "validation": "Full .qa/cbe-danger-brain-liveness-build.log and independent verify passed; fingerprint792f1acc1e65b79fcdbcfbb1991527430e77004da07d7c4d75108e3a0ff6ff2c, manifestb61225d3+dirtydevelopment; physical liveness/performance unverified.",
   "tests": "Existing assertion extended; no new tests. AST review found no identical same/cross-file test bodies or shadowed test names. Prior complete suite log recorded1476 tests/11.322s; this does not establish runtime performance or test quality.",
   "physical_acceptance": false,
   "audits": "PAUSED",
-  "scores_changed": false
+  "scores_changed": false,
+  "brain_liveness_followup": "DangerStep now calls GroupBrainStart with wakefalse before handoff. Starter reuse requires matching epoch/generation, not cancelled, a numeric nonnegative FSM handle and not completedFSM. Stale maps are replaced via existing generation startup; current brains receive no new immediate wake. Old FSM pointer/generation guards protect successor state. No scheduler/worker/test added.",
+  "current_source_sha256": {
+    "addons/infantry/functions/dangerStep.sqf": "981ebb3fdce7d742e8a693918fd6bf482a7cd0bdf6cb088ae085798eb4cb084b",
+    "addons/infantry/functions/groupBrainStart.sqf": "f1f36a85d721b62b9475c586d057080149db84f11cd65bb894d3988ccb298790"
+  }
 }

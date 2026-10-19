@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reuse requires the current generation and a live FSM handle as well as matching owner epoch.
+ * A stale map cannot consume a danger wake after its executor has ended.
  * Purpose: Start or wake the one owner-local tactical brain for an eligible ground group.
  * Locality / Authority: Must run where the group is local. It never transfers ownership and never
  * issues movement; the FSM routes bounded decisions through the shared CBE scheduler.
@@ -23,9 +25,13 @@ if (!(_group getVariable ["CBE_AIPass_Adopted",false])) then {
 if (!local _group || {!(_group getVariable ["CBE_AIPass_Adopted",false])}) exitWith {false};
 private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
+private _existingHandle=_group getVariable ["CBE_GroupBrain_FSM",-1];
 if (count _brain > 0
     && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}
-    && {!(_brain getOrDefault ["cancelled",false])}) exitWith {
+    && {(_brain getOrDefault ["generation",-1]) == (_group getVariable ["CBE_GroupBrain_Generation",0])}
+    && {!(_brain getOrDefault ["cancelled",false])}
+    && {_existingHandle isEqualType 0} && {_existingHandle >= 0}
+    && {!completedFSM _existingHandle}) exitWith {
     if (_wake) then {
         _brain set ["wakeAt",time];
         _brain set ["nextAt",time];

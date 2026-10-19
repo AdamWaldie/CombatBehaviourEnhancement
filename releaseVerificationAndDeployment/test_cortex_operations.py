@@ -506,6 +506,12 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(tail.index('_brain set ["responsiveUntil"'),tail.index('if (time >= (_group getVariable ["CBE_Danger_WakeAfter"'))
         self.assertLess(tail.index('if (time >= (_group getVariable ["CBE_Danger_WakeAfter"'),tail.index('_brain set ["wakeAt"'))
         self.assertIn('CBE_fnc_GroupBrainStart',step)
+        self.assertIn('[_group,false] call CBE_fnc_GroupBrainStart',step)
+        starter=source('groupBrainStart')
+        reuse=starter.split('private _existingHandle=',1)[1].split('private _generation=',1)[0]
+        for proof in ('CBE_GroupBrain_Generation','_existingHandle isEqualType 0',
+                      '_existingHandle >= 0','!completedFSM _existingHandle'):
+            self.assertIn(proof,reuse)
         self.assertIn('_state deleteAt "wakeAt"',scheduler)
         self.assertIn('getOrDefault ["wakeAt",_dueAt]',scheduler)
         self.assertIn('getOrDefault ["responsiveUntil",-1]',scheduler)
