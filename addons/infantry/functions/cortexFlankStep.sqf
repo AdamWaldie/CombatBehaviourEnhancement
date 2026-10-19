@@ -110,13 +110,14 @@
  * A casualty during movement restarts the same bound so the surviving formation cannot inherit another
  * soldier's destination.
  * Arguments:
- * 0: job <HASHMAP> - contains "group" and the matching "drillToken" (required)
+ * 0: job <HASHMAP> - current FSM-owned job with group, drillToken, ownerEpoch,
+ * operationGeneration and fsmHandle; direct reconstructed jobs have no movement authority.
  *
  * Return Value:
  * Number - seconds until the next step, or -1 when the drill ended
  *
  * Example:
- * [createHashMapFromArray [["group", _group],["drillToken",_drill get "token"]]] call CBE_fnc_CortexFlankStep;
+ * [_group getVariable ["CBE_Cortex_DrillFSMJob",createHashMap]] call CBE_fnc_CortexFlankStep;
  * Result: the element moves one stage further.
  *
  * Current caller: the finite tacticalDrill FSM launched by CBE_fnc_CortexDrillStart.
@@ -136,6 +137,18 @@ private _end = {
     [_group, _state, _this, _token] call CBE_fnc_CortexFlankEnd;
     -1
 };
+// A surviving callback is not an alternate lifecycle controller. Only the registered
+// job of this exact owner/operation/FSM may advance; an old job cannot retire a successor.
+if (_job getOrDefault ["cancelled",false]
+    || {(_group getVariable ["CBE_Cortex_DrillFSMJob",createHashMap]) isNotEqualTo _job}
+    || {(_job getOrDefault ["ownerEpoch",-1]) != (_drill getOrDefault ["ownerEpoch",-2])}
+    || {(_job getOrDefault ["operationGeneration",-1]) != (_drill getOrDefault ["operationGeneration",-2])}) exitWith {-1};
+private _executor=_job getOrDefault ["fsmHandle",-1];
+private _executorRecord=_group getVariable ["CBE_Cortex_DrillFSM",[]];
+if (count _executorRecord != 2 || {(_executorRecord select 0) != _token}
+    || {(_executorRecord select 1) isNotEqualTo _executor}) exitWith {-1};
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0}
+    || {completedFSM _executor}) exitWith {"FSM_EXECUTOR_ENDED" call _end};
 // The generic lifecycle owns interruption and physical-progress accounting.  The drill remains
 // responsible for its own finite bound recovery, but it cannot continue after a replacement
 // order, Zeus intervention, ownership migration or external controller handover.

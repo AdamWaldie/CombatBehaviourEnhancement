@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "a9d4b529",
+  "scope": "Shared tactical FSM callback retirement",
+  "finding": "Tactical callback token checks did not prove its lifecycle FSM was still live; a surviving queued callback could maintain heartbeat after executor loss. Cleanup did not explicitly cancel the matching queued job.",
+  "implementation": [
+    "FSM job carries original ownerEpoch, operationGeneration and fsmHandle.",
+    "Step requires exact registered job and matching handle record before OperationStep. Ended numeric executor triggers exact-token FSM_EXECUTOR_ENDED cleanup; stale/inconsistent records issue no movement.",
+    "Same-token ended executor admission retires instead of rebuilding the journal or renewing task budgets.",
+    "Terminal cleanup cancels/dones only matching token/epoch/generation job and clears only its exact handle. Existing 30-second silence watchdog retains missing/inconsistent journal cleanup; latency follows owner scheduling."
+  ],
+  "sourceIntent": "Continue shared finite ownership foundations used by infantry and coordinated bounds. No new reference-source parity claimed.",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexFlankEnd.sqf": "56b48ba8c79e0258b890ee3553840f27d587d938d65a3c5b712ce211f8d9d686",
+    "addons/infantry/functions/cortexFlankStep.sqf": "9d69f89bae465da73b7f4309a374cdd61669459fc3d2bd13d76f0513fbc9d1e4",
+    "addons/infantry/functions/cortexDrillStart.sqf": "11ea6ae8ca22a4893d350ea148eaedebed86776fe778ca62a1ec05b6962fb372",
+    "docs/Smart-AI-Pass.md": "414434ade32778dafd8182a5b98026a3a1e6e776ec97ffe23b72c68ea1d3a52a",
+    "addons/main/fsm/tacticalDrill.fsm": "95b3fac731dfdd04750a859cb20e0322f1ab0b79f28f96cc8017b3df28fd4ea8"
+  },
+  "validation": {
+    "focused": ".qa/cbe-drill-retirement-focused.log",
+    "existingFocusedCases": 607,
+    "fullPipeline": ".qa/cbe-drill-retirement-build.log",
+    "independent": ".qa/cbe-drill-retirement-independent.log",
+    "existingTestsPassed": 1476,
+    "fingerprint": "298e6bd7fa4dbbfa40ba44c5a02aa8871cd0a7de512eebd0195d6e61d6a976eb",
+    "manifestSource": "a9d4b529+dirty unsigned development"
+  },
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "newTestCases": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "No physical executor termination/queued-callback/replacement-order injection evidence.",
+    "Native command restoration, normal/HC migration and measured performance unverified.",
+    "Missing/malformed journals are not reconstructed; silence-watchdog cleanup retains existing finite delay."
+  ]
+}

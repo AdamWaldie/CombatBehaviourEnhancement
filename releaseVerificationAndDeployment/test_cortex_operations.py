@@ -5542,6 +5542,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group,_state,"FSM_START_FAILED",_token] call CBE_fnc_CortexFlankEnd',launcher)
         self.assertNotIn('call CBE_fnc_CortexQueueJob',launcher)
         self.assertNotIn('_handle <= 0',launcher)
+        self.assertLess(launcher.index('"FSM_EXECUTOR_ENDED"'),launcher.index('private _handle='))
         self.assertLess(launcher.index('operationGeneration'),launcher.index('private _existing='))
         for name in ['cortexFlankStart','cortexAdvanceStart','cortexSupportBoundStart']:
             start=source(name)
@@ -5563,6 +5564,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_job get ""jobKey""] call CBE_fnc_CortexQueueJob',fsm)
         self.assertIn('])+15)',fsm)
         self.assertIn('CBE_Cortex_DrillFSMJob',fsm+source('aiGetDiagnostics'))
+        for field in ['ownerEpoch','operationGeneration','fsmHandle']:
+            self.assertIn('""'+field+'""',fsm)
+        step=source('cortexFlankStep')
+        executor=step[step.index('// A surviving callback'):step.index('// The generic lifecycle')]
+        for proof in ['"cancelled",false','isNotEqualTo _job','"ownerEpoch",-1','"operationGeneration",-1',
+                      'CBE_Cortex_DrillFSM','completedFSM _executor','"FSM_EXECUTOR_ENDED" call _end']:
+            self.assertIn(proof,executor)
+        self.assertLess(step.index('completedFSM _executor'),step.index('call CBE_fnc_OperationStep'))
+        end=source('cortexFlankEnd')
+        retirement=end[end.index('// Cancel only this exact queued executor.'):end.index('_state deleteAt "drill";')]
+        for proof in ['_endingToken','_endingEpoch','_endingGeneration','"cancelled",true','"done",true','fsmHandle']:
+            self.assertIn(proof,retirement)
+
         self.assertNotIn('allGroups',fsm)
         self.assertNotIn('allUnits',fsm)
 

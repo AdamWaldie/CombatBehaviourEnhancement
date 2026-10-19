@@ -36,6 +36,14 @@ if (count _existing == 2 && {(_existing select 0) == _token} && {
     private _existingHandle=_existing select 1;
     _existingHandle isEqualType 0 && {finite _existingHandle} && {_existingHandle >= 0} && {!completedFSM _existingHandle}
 }) exitWith {true};
+// An ended executor is not permission to recreate the accepted drill. Retire its exact
+// journals; a new tactical decision must obtain a new operation through normal admission.
+private _registeredJob=_group getVariable ["CBE_Cortex_DrillFSMJob",createHashMap];
+if ((count _existing == 2 && {(_existing select 0) == _token})
+    || {(_registeredJob getOrDefault ["drillToken",""]) == _token}) exitWith {
+    [_group,_state,"FSM_EXECUTOR_ENDED",_token] call CBE_fnc_CortexFlankEnd;
+    false
+};
 
 // Natural starts may inherit an exact completed CBE hold, never a bare native STOP.
 // Move its passive proof into this already-accepted drill and retire the old recall token

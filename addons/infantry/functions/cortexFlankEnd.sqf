@@ -34,7 +34,7 @@
  * 0: group <GROUP>
  * 1: state <HASHMAP>
  * 2: reason <STRING> - COMPLETE, CLOSE, ABORT, LOSSES, STALLED, TIME_LIMIT, RELEASE, ZEUS, CALM,
- *    ROE_CHANGED, SPEED_CHANGED, ATTACK_POLICY_CHANGED, GRENADE_UNRESOLVED, RECOVERY_FAILED, OWNERSHIP_LOST, FSM_START_FAILED or SCHEDULER_STALLED
+ *    ROE_CHANGED, SPEED_CHANGED, ATTACK_POLICY_CHANGED, GRENADE_UNRESOLVED, RECOVERY_FAILED, OWNERSHIP_LOST, FSM_START_FAILED, FSM_EXECUTOR_ENDED or SCHEDULER_STALLED
  * 3: expected drill token <STRING, empty> - finite callbacks pass their original token;
  *    empty retains direct current-task administrative cleanup.
  * Unresolved stragglers change COMPLETE/CLOSE to PARTIAL; main actors hold while stragglers rejoin.
@@ -229,6 +229,21 @@ isNil {
 if !(call _stillEnding) exitWith {};
 _group setVariable ["CBE_Cortex_DrillResult",[_type,_reason,time],true];
 [_group,_drill,"ENDED",_reason] call CBE_fnc_CortexDrillSetStage;
+// Cancel only this exact queued executor. Its callback may survive until the next
+// scheduler opportunity; it must neither refresh a heartbeat nor act on a successor.
+private _executorJob=_group getVariable ["CBE_Cortex_DrillFSMJob",createHashMap];
+if ((_executorJob getOrDefault ["drillToken",""]) == _endingToken
+    && {(_executorJob getOrDefault ["ownerEpoch",-1]) == _endingEpoch}
+    && {(_executorJob getOrDefault ["operationGeneration",-1]) == _endingGeneration}) then {
+    _executorJob set ["cancelled",true];
+    _executorJob set ["done",true];
+    private _executorRecord=_group getVariable ["CBE_Cortex_DrillFSM",[]];
+    if (count _executorRecord == 2 && {(_executorRecord select 0) == _endingToken}
+        && {(_executorRecord select 1) isEqualTo (_executorJob getOrDefault ["fsmHandle",-1])}) then {
+        _group setVariable ["CBE_Cortex_DrillFSM",nil];
+    };
+    _group setVariable ["CBE_Cortex_DrillFSMJob",nil];
+};
 _state deleteAt "drill";
 private _movementLease = _state getOrDefault ["movementLease",[]];
 if (count _movementLease == 2 && {(_movementLease select 0) == "TACTICAL_DRILL"}) then {
