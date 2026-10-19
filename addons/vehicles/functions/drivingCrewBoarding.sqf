@@ -6,8 +6,10 @@
  * changes assignments or changes speed. DrivingAssistStart remains the sole speed writer.
  * Repeat/JIP: Public per-seat deadlines survive owner/brain replacement on the same authored
  * route. Expired attempts cannot renew until physical boarding or assignment removal/change.
- * A twelve-second absence of measured two-metre actor motion ends the wait without
- * cancelling native boarding. Progress anchors/clocks survive migration; no lifetime renews.
+ * Twelve seconds without measured two-metre actor motion ends the wait unless native
+ * INIT/PLANNING/REPLAN is pending. That search may use only the original60-second limit;
+ * it does not update motion evidence or renew any clock. Native boarding is never cancelled.
+ * Progress anchors/clocks survive migration; no lifetime renews.
  * Changed route starts distinct work. No native command, handler or movement job is replayed.
  * Arguments: group GROUP grpNull; vehicle OBJECT objNull; current brain HASHMAP empty;
  * current plain-route/crew admission CODE {false}, evaluated synchronously in caller context.
@@ -96,7 +98,12 @@ private _next=[];
             if (_position vectorDistance (_row select 5) >= 2) then {
                 _row set [5,_position];_row set [6,serverTime];
             };
-            if (serverTime-(_row select 6) >= 12) then {_row set [4,true]} else {_wait=true};
+            private _stalled=serverTime-(_row select 6) >= 12;
+            // Native search can be stationary while still preparing its GET IN route.
+            // Preserve that plan only inside the existing original seat deadline.
+            // BUSY/WAIT/failed plans do not count as measured movement or restart grace.
+            private _planning=_stalled && {toUpperANSI getUnitState _actor in ["INIT","PLANNING","REPLAN"]};
+            if (_stalled && {!_planning}) then {_row set [4,true]} else {_wait=true};
         };
         _next pushBack _row;
     };

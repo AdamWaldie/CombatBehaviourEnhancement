@@ -237,5 +237,15 @@
         "sha256": "8054f5f298e7259e028276d33fe0d88307ac1cc5ba6e8365392d660080c87281"
       }
     ]
+  },
+  "historicReviewIndexHealth20261020": {
+    "checkedIndex": ".qa\\workshop-comparison-20261014\\HBQ-SEMANTIC-REVIEWS.json",
+    "scope": "Checked each recorded review path relative to the CBE checkout and the index folder. No machine-wide or archive-loss conclusion.",
+    "unresolvedTextReferences": 31,
+    "privateDetails": ".qa/hbq-historic-review-link-check-20261020.json",
+    "sourceControllerVerified": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_driveAssist.sqf",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "impact": "Do not infer current semantic review coverage or implementation parity from unresolved old references. Preserved controller text remains available for a fresh comparison.",
+    "next": "Reconcile old review names with readable tracked follow-ups or re-read the preserved source; retain historical hashes instead of replacing evidence silently."
   }
 }

@@ -102,6 +102,7 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('_crewPending || {_traffic}',step)
         self.assertIn('isNull driver _vehicle || {!alive driver _vehicle}',start)
         self.assertIn('class CrewHandover',fsm)
+        self.assertIn('["TRAFFIC_FOLLOW","CREW_BOARDING","QUEUE_HOLD","QUEUE_CROSSED_HOLD"]',step)
         self.assertNotIn('execFSM',self.source())
         boarding=(ROOT/'addons/vehicles/functions/drivingCrewBoarding.sqf').read_text(encoding='utf-8')
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
@@ -117,6 +118,19 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertNotIn('_row set [3,',body)
         self.assertIn('_position vectorDistance (_row select 5) >= 2',body)
         self.assertIn('serverTime-(_row select 6) >= 12',body)
+        self.assertIn('toUpperANSI getUnitState _actor in ["INIT","PLANNING","REPLAN"]',body)
+        self.assertIn('_stalled && {!_planning}',body)
+        # Only an actual native planning state can defer a no-motion exhaustion,
+        # and no planning state can outlive the original seat deadline.
+        def wait_for_boarding(now,deadline,last_motion,state):
+            return now < deadline and (now-last_motion < 12 or state in ('INIT','PLANNING','REPLAN'))
+        for state in ('INIT','PLANNING','REPLAN'):
+            self.assertTrue(wait_for_boarding(20,60,0,state))
+            self.assertFalse(wait_for_boarding(60,60,0,state))
+        for state in ('BUSY','WAIT','INITFAILED','DELAY','STOPPED',''):
+            self.assertFalse(wait_for_boarding(20,60,0,state))
+        self.assertTrue(wait_for_boarding(8,60,0,'BUSY'))
+
         self.assertIn('_row set [5,_position];_row set [6,serverTime]',body)
         self.assertIn('count _x != 7',body)
         self.assertNotIn('time+60',body.replace('serverTime+60',''))

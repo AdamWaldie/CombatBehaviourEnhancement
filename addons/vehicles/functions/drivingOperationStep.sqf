@@ -5,6 +5,8 @@
  * Exhausted route retries retain the existing safety executor rather than ending the group FSM.
  * Nearby conflict hints request earlier existing callbacks without changing the phase
  * to TRAFFIC until a real constraint applies; braking assumptions remain unchanged.
+ * A crossed queue root waiting for clearance remains TRAFFIC at the existing one-second
+ * constrained cadence, rather than returning to CRUISE before receipt cleanup.
  * Public diagnostics publish on state changes and a ten-second heartbeat using this same callback.
  * Execution: A queued callback requires a live current FSM handle. Ended work retires
  * the callback only; existing restart admission retains all original task budgets/journals.
@@ -46,7 +48,7 @@ private _phase="HANDBACK";private _owned=0;private _recovery=false;private _wait
         if ((_state param [8,""]) in ["BYPASS_PLAN","BYPASS_FOLLOW"]) then {_bypass=_state select 8};
         _obstacle=_obstacle || {(_state param [8,""]) in ["OBSTACLE_APPROACH","OBSTACLE_WAIT"]};
         if ((_state param [8,""]) in ["CORRIDOR_APPROACH","CORRIDOR_CROSS"]) then {_corridor=_state select 8};
-        _traffic=_traffic || {(_state param [8,""]) in ["TRAFFIC_FOLLOW","CREW_BOARDING","QUEUE_HOLD"]};
+        _traffic=_traffic || {(_state param [8,""]) in ["TRAFFIC_FOLLOW","CREW_BOARDING","QUEUE_HOLD","QUEUE_CROSSED_HOLD"]};
         _waiting=_waiting || {(_state param [8,""]) == "INTENTIONAL_WAIT"};
         _recovery=_recovery || {(_state param [6,0]) in [1,2,3]};
         _rearLeg=_rearLeg || {(_state param [6,0]) == 2};

@@ -65,5 +65,20 @@
       "packageSource": "cfd3d02f2fd3aed6d411efe615c610afcbc7c100+dirty unsigned development",
       "physicalAcceptance": false
     }
+  },
+  "nativePlanningFollowup20261020": {
+    "sourceRangesReread": [
+      "1691-1772"
+    ],
+    "sourceIntent": "Preserve an operating crew role and let native return finish before moving on. Source forced seating and group detachment are not adopted. Retained assignment alone cannot override mission boarding permission.",
+    "implementation": "Existing GET IN cooperation now defers the twelve-second no-motion exhaustion only for native INIT/PLANNING/REPLAN. Search can consume only the original60-second seat deadline and never updates motion anchors or progress time. BUSY/WAIT/INITFAILED/DELAY/STOPPED do not receive this allowance. Queue root QUEUE_CROSSED_HOLD is classified TRAFFIC to retain existing one-second callback cadence.",
+    "authority": "Still requires local eligible actor, actual native GET IN, current exact assigned empty operating seat and live plain-route/crew admission. No assignment, orderGetIn, forced seating, group transfer or new worker.",
+    "cost": "Native planner query only for stalled eligible seat rows, at most20 rows per helper call. Existing cap commit rechecks waiting admission. No world/ray query or new timer. Engine cost unmeasured.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/getUnitState",
+      "https://community.bistudio.com/wiki/AI_Group_Vehicle_Management"
+    ],
+    "remaining": "Automatic operating-crew recall, absent-driver return and cross-group pickup remain incomplete; physical re-entry, delayed planning, repeated departures, interruption and normal/HC cost remain unverified.",
+    "physicalAcceptance": false
   }
 }
