@@ -16,6 +16,8 @@
  * to retire an unchanged native leg without replaying movement or renewing the original deadline.
  * Arguments: 0 mode <STRING>, START; 1 actor <OBJECT>, objNull; 2 context <HASHMAP>, empty.
  * START context: building OBJECT, belief [ATL ARRAY, server timestamp], optional contact OBJECT.
+ * Optional deadline NUMBER only shortens the original maximum; position-only clues cannot renew it.
+ * observationOnly BOOL false keeps position-only tasks bound to investigation enable/stealth policy.
  * Idle/plain-route contexts may issue one leg. An unchanged same-contact native approach is
  * observed without a reset; after measured stagnation one alternate-node escalation is permitted.
  * Observed native destinations are recorded at admission and kept distinct from another
@@ -32,6 +34,8 @@
 params [["_mode","START",[""]],["_actor",objNull,[objNull]],
     ["_brain",createHashMap,[createHashMap]]];
 _mode=toUpperANSI _mode;
+private _observationOnly=_brain getOrDefault ["observationOnly",false];
+if !(_observationOnly isEqualType true) exitWith {false};
 private _migration=_mode == "TRANSFER";
 if (_migration) then {_mode="FINISH"};
 if (isNull _actor) exitWith {if (_mode == "STEP") then {-1} else {false}};
@@ -71,6 +75,8 @@ private _available={
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
         && {[_group,"CBE_AIPass_BuildingCombat_Enable",true] call CBE_fnc_CortexFeatureEnabled}
         && {[_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {!_observationOnly || {!(behaviour _actor in ["STEALTH","CARELESS"])
+            && {[_group,"CBE_AIPass_Investigate_Enable",true] call CBE_fnc_CortexFeatureEnabled}}}
         && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}
         && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
         && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])}
@@ -200,6 +206,12 @@ if (_mode == "START") exitWith {
     private _generation=(_actor getVariable ["CBE_IndoorActor_Generation",0])+1;
     private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
     private _deadline=(serverTime+45) min ((_belief select 1)+30);
+    // Position-only observations may shorten the task to their original clue expiry.
+    // This parameter can never extend the ordinary indoor deadline.
+    private _requestedDeadline=_brain getOrDefault ["deadline",_deadline];
+    if (!(_requestedDeadline isEqualType 0) || {!finite _requestedDeadline}
+        || {_requestedDeadline <= serverTime}) exitWith {false};
+    _deadline=_deadline min _requestedDeadline;
     private _lease=["INDOOR_INVESTIGATE",+(_belief select 0),time+(_deadline-serverTime)];
     private _initialTarget=if ((_admission select 0) == "OBSERVE") then {+(_admission select 2)} else {[]};
     private _serial=(missionNamespace getVariable ["CBE_IndoorActor_Serial",0])+1;
@@ -209,7 +221,7 @@ if (_mode == "START") exitWith {
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],
-        ["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
+        ["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosASL _actor]];
     // Release only this actor's owned danger posture before publishing the incoming task.

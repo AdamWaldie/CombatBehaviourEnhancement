@@ -516,6 +516,16 @@ class CortexOperations(unittest.TestCase):
         vehicle_profile=source('dangerVehicleProfile')
         engine_mode=source('dangerEngineMode')
         engine_select=source('dangerEngineSelect')
+        memory=source('dangerStep')
+        self.assertIn('_cause == "BODY_FOUND" && {_action == "HIDE"}',memory)
+        self.assertIn('_observedServer+20',memory)
+        self.assertIn('_observedServer+60',memory)
+        self.assertIn('if (!_repeat',memory)
+        calm=source('cortexGroupTick').split('case "CALM": {',1)[1].split('case "INVESTIGATE": {',1)[0]
+        self.assertGreater(calm.index('CBE_fnc_IndoorObservationDispatch'),calm.index('"KNOWN_CONTACT"'))
+        self.assertIn('(_state get "phase") == "CALM"',calm)
+        self.assertIn('"CBE_Danger_BuildingClueSeen",nil,true',source('cortexStop'))
+
         point=source('pointActorOperation')
         start=point.split('if (_mode == "START") exitWith {',1)[1].split('private _current=',1)[0]
         for guard in ('group _body != _group','_body distance2D _observed > 3','currentCommand _actor != ""',

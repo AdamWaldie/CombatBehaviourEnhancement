@@ -1208,6 +1208,12 @@ switch (_state get "phase") do {
                 };
             };
         };
+        // Body clues are lower priority than confirmed contact and fresh area reports.
+        // Do not admit investigators just before this same tick creates a group route.
+        if ((_state get "phase") == "CALM" && {!_ordered} && {!_groupMovementOwned}
+            && {_enemies isEqualTo []} && {!(_state getOrDefault ["responding",false])}) then {
+            [_group,_state] call CBE_fnc_IndoorObservationDispatch;
+        };
     };
     case "INVESTIGATE": {
         if (_visible isNotEqualTo []) exitWith {

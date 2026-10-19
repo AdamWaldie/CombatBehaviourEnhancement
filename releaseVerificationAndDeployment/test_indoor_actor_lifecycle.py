@@ -218,7 +218,21 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '_reserved pushBack +(_brain get "target")','currentCommand _actor == "FIRE"',
                       'getUnitState _actor in ["PLANNING","REPLAN"]','contactRequired','vectorDistance (_brain get "progressPosition") >= 1','_admission isNotEqualTo (_brain get "admission")'):
             self.assertIn(guard,s)
-        self.assertEqual(s.count('["deadline",_deadline]'),1)
+        self.assertEqual(s.split("_brain=createHashMapFromArray",1)[1].count('["deadline",_deadline]'),1)
+        self.assertNotIn('_brain set ["deadline",',s)
+        self.assertIn('_deadline=_deadline min _requestedDeadline',s)
+        self.assertIn('finite _requestedDeadline',s)
+        dispatch=(ROOT/'addons/infantry/functions/indoorObservationDispatch.sqf').read_text()
+        for guard in ('_expires <= _observed+20','CBE_AIPass_Epoch','select [0,16]',
+                      'select [0,4]','select [0,2]','["deadline",_expires]','["observationOnly",true]',
+                      'count _nodes <= 512','serverTime >= _expires'):
+            self.assertIn(guard,dispatch)
+        self.assertLess(dispatch.index('if (_admitted > 0'),dispatch.index('setVariable ["CBE_Danger_BuildingClue",nil,true]',dispatch.index('if (_admitted > 0')))
+        self.assertNotIn(' doMove ',dispatch)
+        self.assertNotIn('["contact",',dispatch)
+        self.assertIn('!_observationOnly ||',s)
+        self.assertIn('CBE_AIPass_Investigate_Enable',s)
+
         approach=s.split('if (_phase == "APPROACH") exitWith {',1)[1]
         self.assertLess(approach.index('if (getUnitState _actor in ["PLANNING","REPLAN"]) exitWith {-1}'),approach.index('if (serverTime-(_brain get "progressAt") >= 12)'))
         finish=s.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]

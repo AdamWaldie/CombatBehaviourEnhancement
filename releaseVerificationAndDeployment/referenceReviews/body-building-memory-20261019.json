@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "cee4c53d",
+  "scope": "Unknown-body nearby-building suspicion and finite individual investigation",
+  "referenceHashes": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84"
+  },
+  "originalsModified": false,
+  "runtimeDependency": false,
+  "sourceIntent": "Unknown body creates nearby-building memory; later unsuppressed/free actors inspect remembered positions. Screams alone provide finite attention. Native positions are not proof of enemy occupancy or room safety.",
+  "implementation": [
+    "DangerStep HIDE/BODY_FOUND retains one observer/epoch-bound clue for original20s; same-location observations within3m are suppressed for60s rather than refreshing expiry. No hostile contact is invented.",
+    "CALM evaluates body suspicion after known contact and fresh area report opportunities; no authored/group/support movement is displaced.",
+    "Dispatcher checks sixteen group actors, processes at most four houses within15m and at most512 positions each, and admits at most two investigators through existing IndoorActorOperation. It excludes live actor journals, reservations and cooldowns.",
+    "Low-floor native candidates are ranked by absolute ASL, avoiding event altitude assumptions. Existing roof/body/node checks, door interaction, native acknowledgement and physical visit stay authoritative.",
+    "Optional indoor deadline is finite and may only shorten existing lifetime; clue expiry caps position-only work. observationOnly tasks recheck Investigate enable and stealth/careless interruption.",
+    "Only accepted admission consumes matching clue. Refusal preserves original expiry. New-owner/expired/unavailable-witness clues are discarded, not replayed. Stop clears clue/seen metadata."
+  ],
+  "departures": [
+    "Source sympathetic inspection is implemented as finite individual investigation, not suppression or whole-squad reset.",
+    "No nearby-building occupancy claim, hidden enemy transform, global corpse scan, teleport or room-clear declaration.",
+    "A single suspicion clue replaces unbounded building memory; no new persistent controller."
+  ],
+  "validation": {
+    "fullBuild": ".qa/cbe-body-building-memory-final-build.log",
+    "tests": 1476,
+    "independentVerify": ".qa/cbe-body-building-memory-independent.log",
+    "fingerprint": "fc4f195c79b6b320c430829f913c4360d42c93d2e03d24cc0b30160213c4c417",
+    "source": "cee4c53d+dirty unsigned development; not later clean commit package",
+    "focused": ".qa/cbe-body-building-memory-focused.log",
+    "retainedFailedBuild": ".qa/cbe-body-building-memory-build.log",
+    "fixedFailure": "SQF validator caught _forEachIndex inside apply; actor ranking now uses indexed forEach.",
+    "testMaintenance": "Existing deadline cardinality test now isolates initialization and forbids renewal. Stop cleanup remains in existing teardown block."
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/indoorObservationDispatch.sqf": "3141c5ba20094a750810afd425c76bad0049d24eb42f579e30465c33bfe2d11e",
+    "addons/infantry/functions/indoorActorOperation.sqf": "7194f719a5996f53d6caee7cf1f72e9f5525f1dcabaea1674f9a5f1ede552d36",
+    "addons/infantry/functions/dangerStep.sqf": "c1232fa4bd9b980be360ee0db1f533100e18a522f8de120c71e81e62f163b50c",
+    "addons/infantry/functions/cortexGroupTick.sqf": "d712eccddb56e8897fdb5a9c7a36dedbd88b936e2cd47a4a1865cedd0672a410",
+    "addons/core/functions/cortexStop.sqf": "127448b4183f103e5613465b048dad707a809d85439a24fa843159daf1b4b73f"
+  },
+  "newWorkers": 0,
+  "newTestCases": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "No runtime proof of entry, normal/HC/JIP/stop/stealth interruption or repeated clue flow.",
+    "Nearby-house native query cost depends on local object density; no measured performance-budget result.",
+    "Existing indoor inaccessible-node/failure reporting remains authoritative; admission is not physical traversal.",
+    "Whole LAMBS parity and balance remain incomplete."
+  ]
+}

@@ -229,6 +229,8 @@ if (!isNil "_civilianCreated") then {
         [_x] call CBE_fnc_CortexDefendRelease;
         [_x] call CBE_fnc_CortexGarrisonRelease;
         [_x] call CBE_fnc_CortexClearRelease;
+        _x setVariable ["CBE_Danger_BuildingClue",nil,true];
+        _x setVariable ["CBE_Danger_BuildingClueSeen",nil,true];
     };
     {
         private _unit = _x;

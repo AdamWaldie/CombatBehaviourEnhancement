@@ -153,6 +153,7 @@ class CfgFunctions {
             class GroupBrainStart {file = "\z\cbe\addons\infantry\functions\groupBrainStart.sqf";};
             class GroupBrainQueue {file = "\z\cbe\addons\infantry\functions\groupBrainQueue.sqf";};
             class GroupBrainStep {file = "\z\cbe\addons\infantry\functions\groupBrainStep.sqf";};
+            class IndoorObservationDispatch {file = "\z\cbe\addons\infantry\functions\indoorObservationDispatch.sqf";};
             class IndoorActorDispatch {file = "\z\cbe\addons\infantry\functions\indoorActorDispatch.sqf";};
             class IndoorActorGroupAvailable {file = "\z\cbe\addons\infantry\functions\indoorActorGroupAvailable.sqf";};
             class IndoorActorNativeContext {file = "\z\cbe\addons\infantry\functions\indoorActorNativeContext.sqf";};
