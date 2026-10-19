@@ -5537,11 +5537,20 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexVehicles')
         selection=text.split('private _target=objNull;',1)[1].split('private _standoff',1)[0]
         self.assertIn('forEach (_ranked select [0,8])',selection)
-        self.assertIn('[_vehicle,_gunner,_candidate,_stationSelection,true] call CBE_fnc_CortexGroundFireReady',selection)
-        self.assertIn('[_gunner,aimPos _candidate] call CBE_fnc_CortexLineOfFireClear',selection)
+        self.assertIn('[_vehicle,_gunner,_candidate,_stationSelection,true,_suppressOnly] call CBE_fnc_CortexGroundFireReady',selection)
+        self.assertIn('[_gunner,_reportedASL] call CBE_fnc_CortexLineOfFireClear',selection)
         self.assertIn('exitWith {\n                    _target=_candidate;',selection)
         self.assertLess(selection.index('if (!isNull _target)'),selection.index('_gunner doTarget _target'))
         self.assertNotIn('nearEntities',selection)
+        self.assertNotIn('aimPos _candidate',selection)
+        for proof in ('(_contactRow select 2) > 3','_vehicle distance2D _reported >= 50',
+                      'abs speed _vehicle < 30','currentCommand _gunner != "SUPPRESS"',
+                      'isNull _engaging || {_engaging == _candidate}',
+                      'isNull _assigned || {_assigned == _candidate}',
+                      '!terrainIntersectASL [eyePos _gunner,_reportedASL]',
+                      '_gunner doSuppressiveFire _suppressionPoint'):
+            self.assertIn(proof,selection)
+
         self.assertNotIn(' reveal ',selection)
         self.assertIn('if (count _candidates > 8) then {_candidates resize 8}',source('cortexKnowledge'))
 
@@ -8306,7 +8315,7 @@ class CortexOperations(unittest.TestCase):
         vehicles=source('cortexVehicles')
         fire=vehicles.split('private _target=objNull;',1)[1].split('private _standoff',1)[0]
         self.assertIn('private _stationSelection=createHashMap',fire)
-        self.assertIn('[_vehicle,_gunner,_target,_fireObservation] call CBE_fnc_CortexGroundFireReady',fire)
+        self.assertIn('[_vehicle,_gunner,_target,_fireObservation,false,_suppressionPoint isNotEqualTo []] call CBE_fnc_CortexGroundFireReady',fire)
         self.assertIn('_gunner selectWeapon _muzzle',fire)
         self.assertLess(fire.index('currentMuzzle _gunner == _muzzle'),fire.index('_gunner doFire'))
         combined=source('cortexCombinedGroundStep')
@@ -8360,6 +8369,10 @@ class CortexOperations(unittest.TestCase):
                       '_weapons select [0,16]','_muzzles select [0,8]','_queries >= 32']:
             self.assertIn(proof,text)
         self.assertIn('[_ammo] call _targetSuitable',text)
+        for proof in ('_bulletSuppression','"shotbullet"','_rounds >= 20',
+                      'getNumber (_ammo >> "indirectHit") <= 0','getNumber (_ammo >> "explosive") <= 0'):
+            self.assertIn(proof,text)
+
         self.assertNotIn('selectWeapon',text)
         self.assertNotIn('loadMagazine',text)
 

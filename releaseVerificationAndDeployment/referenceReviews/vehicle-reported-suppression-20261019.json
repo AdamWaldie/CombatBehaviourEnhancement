@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-19",
+  "scope": "Routine vehicle report-position suppression",
+  "sourceIntent": "LAMBS doVehicleSuppress uses a supplied location, low-speed/minimum-distance/terrain/friendly checks, watch conversion and a delayed forced weapon action. Adopt report-support intent; do not copy random offsets or forced action.",
+  "finding": "Routine CBE gunnery previously used current aimPos and object fire for all ranked reports up to15s old. Danger-only suppression did not provide routine report-support.",
+  "implementation": [
+    "Reports older than3s within existing15s window now suppress the native believed position plus1m in ASL; very recent reports retain native object targeting. Recency is not proof of visual sight. Routine selection no longer reads hidden aimPos.",
+    "Ground vehicle only under30km/h and >=50m separation; refuse ongoing SUPPRESS, unrelated attack/assigned target and terrain occlusion. Existing ROE, native actor tasks, combined-ground reservation and friendly/civilian cone checks stay.",
+    "GroundFireReady optional sixth BOOL requires compatible actual-station nonexplosive shotBullet and >=20 loaded rounds. Raw same-frame station snapshots reevaluate this policy; fresh native check still precedes actual selected-muzzle acknowledgement/fire. Original32-query/16-weapon/8-muzzle limits unchanged.",
+    "Ground-relative doWatch and ASL doSuppressiveFire use the existing8s hold and callback. No new scheduler, setting, reveal or forced fire action."
+  ],
+  "cost": "At most8 candidate terrain checks added; no measured performance claim. Existing station and cone-query bounds remain.",
+  "validation": {
+    "focusedTests": 607,
+    "focusedLog": ".qa/cbe-vehicle-reported-suppression-final-focused.log",
+    "hemttLog": ".qa/cbe-vehicle-reported-suppression-hemtt.log",
+    "newTestCases": 0,
+    "fullPipeline": "Passed:1476 existing tests, SQF/config/HEMTT/FSM/docs/source gates.",
+    "physical": "Unverified, audits paused.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-vehicle-reported-suppression-build.log",
+    "independentLog": ".qa/cbe-vehicle-reported-suppression-independent.log",
+    "packageFingerprint": "8fbb214e7b65b0f13bd9e855a82acbcf61f56e34393111c3df6526be7cad68d1",
+    "packageSource": "ba69c93b+dirty unsigned development, not later clean commit"
+  },
+  "limits": "Engine controls suppression burst length.20 loaded-round threshold is not reserve/effect proof. No explosive suppression, building demolition or effect-based weapon selection added. Need terrain/low-ammo/moving/unrelated-target/combined-role/normalHC/performance verification.",
+  "evidence": [
+    {
+      "path": ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleSuppress.sqf",
+      "sha256": "4fcbcdf0a08deabf78a27c2edd1efd2792fa3dba82b599ae77af89174b5f898a"
+    },
+    {
+      "path": "addons/infantry/functions/cortexGroundFireReady.sqf",
+      "sha256": "47ffe2b948909616f4f4ac5c7e96f9e86a409631a647844c9a6184eb0be84e42"
+    },
+    {
+      "path": "addons/vehicles/functions/cortexVehicles.sqf",
+      "sha256": "30a13e94238ed88512139ca6ba5309eb2dd2d583fc28d132dab521893d8e9361"
+    }
+  ]
+}

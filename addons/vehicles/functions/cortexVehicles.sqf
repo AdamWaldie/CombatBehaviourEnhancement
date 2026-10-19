@@ -31,6 +31,9 @@
  * Gunnery (CBE_AIPass_VehicleGunnery_Enable): a fresh mounted danger event may orient the exact
  * affected armed platform and request one safe suppression response against an already known hostile.
  * Captive, surrendering and handcuffed sources cannot authorize targeted danger responses.
+ * Routine reports older than3s use native believed-position suppression, not hidden aimPos.
+ * It requires nonexplosive station bullets/20 loaded rounds, >=50m separation, <30km/h,
+ * no unrelated engagement and the existing eight-second fire hold; no new controller.
  * Mounted danger watch converts its ASL firing point back to AGL; suppressive fire
  * retains ASL, so elevation does not offset the watch point a second time.
  * Danger suppression uses the effective commander's native believed contact position, never
@@ -689,6 +692,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
     };
     // Gunner priorities and standoff (CBE_AIPass_VehicleGunnery_Enable): anti-tank infantry
     // first, then armour, then everything else; armour keeps its distance from known AT teams.
+    // Reports older than3s use fixed-position bullet suppression within the existing15s window.
     if (_commandsVehicle && {alive _vehicle} && {[_group, "CBE_AIPass_VehicleGunnery_Enable", true] call CBE_fnc_CortexFeatureEnabled}) then {
         private _gunner = gunner _vehicle;
         private _ranked = [];
@@ -717,13 +721,34 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             // an unusable first contact must not starve the next safe, compatible target.
             // Each candidate gets at most one station/lane observation; stop on first success.
             private _target=objNull;
+            private _suppressionPoint=[];
             private _stationSelection=createHashMap;
             {
-                private _candidate=(_enemies select (_x select 2)) select 0;
-                private _stationReady=!(_vehicle isKindOf "LandVehicle")
-                    || {[_vehicle,_gunner,_candidate,_stationSelection,true] call CBE_fnc_CortexGroundFireReady};
-                if (_stationReady && {[_gunner,aimPos _candidate] call CBE_fnc_CortexLineOfFireClear}) exitWith {
+                private _contactRow=_enemies select (_x select 2);
+                private _candidate=_contactRow select 0;
+                private _reported=+(_contactRow select 1);
+                private _suppressOnly=(_contactRow select 2) > 3;
+                private _reportedASL=(ATLToASL _reported) vectorAdd [0,0,1];
+                // Older native reports authorize a fixed estimate, never a hidden live aimPos.
+                // Preserve an existing burst and unrelated native engagement. No explosive
+                // station ammunition is selected for this routine suppression fallback.
+                private _engaging=getAttackTarget _gunner;
+                private _assigned=assignedTarget _gunner;
+                private _suppressionAllowed=!_suppressOnly || {
+                    _vehicle isKindOf "LandVehicle" && {abs speed _vehicle < 30}
+                        && {_vehicle distance2D _reported >= 50}
+                        && {toUpperANSI currentCommand _gunner != "SUPPRESS"}
+                        && {isNull _engaging || {_engaging == _candidate}}
+                        && {isNull _assigned || {_assigned == _candidate}}
+                        && {!terrainIntersectASL [eyePos _gunner,_reportedASL]}
+                };
+                private _stationReady=_suppressionAllowed && {
+                    !(_vehicle isKindOf "LandVehicle")
+                        || {[_vehicle,_gunner,_candidate,_stationSelection,true,_suppressOnly] call CBE_fnc_CortexGroundFireReady}
+                };
+                if (_stationReady && {[_gunner,_reportedASL] call CBE_fnc_CortexLineOfFireClear}) exitWith {
                     _target=_candidate;
+                    if (_suppressOnly) then {_suppressionPoint=+_reportedASL};
                 };
             } forEach (_ranked select [0,8]);
             if (!isNull _target) then {
@@ -731,7 +756,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 // fire authority: fresh native rounds must still qualify this target.
                 private _fireObservation=createHashMap;
                 private _freshStationReady=!(_vehicle isKindOf "LandVehicle")
-                    || {[_vehicle,_gunner,_target,_fireObservation] call CBE_fnc_CortexGroundFireReady};
+                    || {[_vehicle,_gunner,_target,_fireObservation,false,_suppressionPoint isNotEqualTo []] call CBE_fnc_CortexGroundFireReady};
                 if (_freshStationReady && {[] call _mayIssueVehicle}) then {
                     private _muzzle=_fireObservation getOrDefault ["loadedMuzzle",""];
                     if (_vehicle isKindOf "LandVehicle" && {_muzzle != ""} && {currentMuzzle _gunner != _muzzle}) then {
@@ -740,8 +765,13 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                     // Selection acceptance is not firing. Wait for the native selected muzzle;
                     // ordinary engine targeting remains available if the switch is unsupported.
                     if (!(_vehicle isKindOf "LandVehicle") || {_muzzle != "" && {currentMuzzle _gunner == _muzzle}}) then {
-                        if (assignedTarget _gunner != _target) then {_gunner doTarget _target};
-                        _gunner doFire _target;
+                        if (_suppressionPoint isEqualTo []) then {
+                            if (assignedTarget _gunner != _target) then {_gunner doTarget _target};
+                            _gunner doFire _target;
+                        } else {
+                            _gunner doWatch (ASLToAGL _suppressionPoint);
+                            _gunner doSuppressiveFire _suppressionPoint;
+                        };
                         _gunner setVariable ["CBE_AIPass_TargetHold", time + 8];
                         _gunner setVariable ["CBE_AIPass_VehicleTarget", _target, true];
                     };

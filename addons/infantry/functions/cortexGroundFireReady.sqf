@@ -14,6 +14,8 @@
  * 2 target <OBJECT, objNull>, omitted means the station-only ammunition check;
  * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles;
  * 4 selection pass <BOOL, false>, permits completed failed-scan reuse in this local frame only.
+ * 5 bullet suppression <BOOL, false>, requires nonexplosive shotBullet and >=20 loaded rounds.
+ * Raw selection snapshots are reevaluated against this policy; they never cache permission.
  * Selection snapshots never authorize firing: the caller must repeat a fresh default check.
  * No native rows are collected or reused by default; optional rows remain caller-local and <=32.
  * Return Value: BOOL, station has usable damaging ammunition for the supplied target,
@@ -21,7 +23,7 @@
  * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
  * Example: [_vehicle,gunner _vehicle,_enemy] call CBE_fnc_CortexGroundFireReady;
  */
-params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]]];
+params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]],["_bulletSuppression",false,[true]]];
 _observation set ["reloadInProgress",false];
 {_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine"];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
@@ -66,7 +68,13 @@ private _evaluateState={
     private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
     private _suitable=_magazine != ""
         && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
-        && {[_ammo] call _targetSuitable};
+        && {[_ammo] call _targetSuitable}
+        && {!_bulletSuppression || {
+            toLowerANSI getText (_ammo >> "simulation") == "shotbullet"
+                && {getNumber (_ammo >> "indirectHit") <= 0}
+                && {getNumber (_ammo >> "explosive") <= 0}
+                && {finite _rounds} && {_rounds >= 20}
+        }};
     private _reload=_state param [6,0,[0]];
     if (count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
         && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1}) then {
