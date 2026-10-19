@@ -182,6 +182,16 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertLess(block.index('_movementOperator doMove'),block.index('isEqualTo _jamPrior'))
         self.assertIn('(_jam get "attempts") < 3',block)
         self.assertIn('serverTime < (_jam get "deadline")',block)
+        request=block.split('private _requestPending=false;',1)[1].split('if (!_jamContinuous ||',1)[0]
+        for guard in ('_request isEqualType []','_sameSeats','serverTime <= (_request select 1)',
+                      '_goalNow vectorDistance (_request select 0) <= 0.25',
+                      '_jam deleteAt "request"','_jam set ["yielded",true]'):
+            self.assertIn(guard,request)
+        for forbidden in ('doMove','"deadline",serverTime','"attempts",0','serverTime+2'):
+            self.assertNotIn(forbidden,request)
+        self.assertIn('!_requestPending',block)
+        self.assertEqual(block.count('serverTime+2,_requestTasks'),1)
+
 
     def test_native_reverse_probe_requires_backing_without_heading_or_physics_shortcuts(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')

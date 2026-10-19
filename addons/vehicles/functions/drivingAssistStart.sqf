@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Repeat/JIP: Original public route/recovery clocks survive migration; acknowledgement never replays movement.
  * Native BACK uses the existing finite rear leg only with distinct driver/effective commander.
  * Its immutable pre-command turn/move receipt and observed acknowledgement bind ownership;
  * no new worker, crew reassignment or command replay is added. Unowned BACK still yields.
@@ -12,6 +13,10 @@
  * At most128 hitpoints are compared per rear sample; native table retrieval cost remains engine-dependent.
  * Original damage receipts stay immutable; observed repairs lower per-leg minima, so later increases
  * above those minima abort. Repair and damage wholly between samples remain unobservable.
+ * Traffic route refresh keeps one original two-second native acknowledgement request. Only
+ * its issued goal refreshes command proof; unchanged state waits without another attempt.
+ * Changed or expired unacknowledged requests yield that episode. The public request survives
+ * locality changes without renewing its expiry or the existing three-attempt/original deadline.
  * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
  * Rear destinations retain the actual sampled support height, including raised decks.
  * Terrain water without a supporting structure remains refused by DrivingRearClear.
@@ -744,6 +749,33 @@ _brain set ["geometryTracks",_geometryTracks];
                             ["attempts",0],["peer",_jamPeer],["since",serverTime],["yielded",false]];
                         _jamChanged=true;
                     };
+                    private _requestPending=false;
+                    private _request=_jam getOrDefault ["request",[]];
+                    if (!(_jam get "yielded") && {_request isNotEqualTo []}) then {
+                        private _validRequest=_request isEqualType [] && {count _request == 3}
+                            && {(_request select 0) isEqualType []} && {count (_request select 0) == 3}
+                            && {(_request select 0) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                            && {(_request select 1) isEqualType 0} && {finite (_request select 1)}
+                            && {(_request select 2) isEqualType []} && {count (_request select 2) == 2};
+                        private _nativeNow=expectedDestination _movementOperator;
+                        private _goalNow=_nativeNow param [0,[],[[]]];
+                        private _sameSeats=(_jam get "driver") == _driver && {(_jam get "operator") == _movementOperator};
+                        if (_validRequest && {_sameSeats} && {count _goalNow == 3}
+                            && {_goalNow vectorDistance (_request select 0) <= 0.25}
+                            && {currentCommand _movementOperator in ["","MOVE"]}) then {
+                            // Consume the issued target, including a late observation, without
+                            // replaying the command or renewing the episode/attempt budget.
+                            _jam set ["driverCommand",+(expectedDestination _driver)];
+                            _jam set ["command",+_nativeNow];_jam deleteAt "request";_jamChanged=true;
+                        } else {
+                            _requestPending=_validRequest && {_sameSeats} && {serverTime <= (_request select 1)}
+                                && {(expectedDestination _driver) isEqualTo (_jam get "driverCommand")}
+                                && {_nativeNow isEqualTo (_jam get "command")}
+                                && {currentCommand _driver in [(_request select 2) select 0,"MOVE"]}
+                                && {currentCommand _movementOperator in [(_request select 2) select 1,"MOVE"]};
+                            if (!_requestPending) then {_jam set ["yielded",true];_jamChanged=true};
+                        };
+                    };
                     if ((_jam get "driver") != _driver || {(_jam get "operator") != _movementOperator}
                         || {(expectedDestination _driver) isNotEqualTo (_jam get "driverCommand")}
                         || {(expectedDestination _movementOperator) isNotEqualTo (_jam get "command")}) then {
@@ -752,10 +784,13 @@ _brain set ["geometryTracks",_geometryTracks];
                     if (!_jamContinuous || {(_jam get "peer") != _jamPeer} || {(_jam get "since") < 0}) then {
                         _jam set ["peer",_jamPeer];_jam set ["since",serverTime];_jamChanged=true;
                     };
-                    if (!(_jam get "yielded") && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
+                    if (!(_jam get "yielded") && {!_requestPending} && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
                         && {serverTime >= (_jam get "next")} && {serverTime-(_jam get "since") >= 20}
                         && {call _mayRecoverOrdinaryRoute}) then {
-                        _movementOperator doMove waypointPosition [_group,currentWaypoint _group];
+                        private _requestGoal=waypointPosition [_group,currentWaypoint _group];
+                        private _requestTasks=[currentCommand _driver,currentCommand _movementOperator];
+                        _movementOperator doMove _requestGoal;
+                        _jam set ["request",[+_requestGoal,serverTime+2,_requestTasks]];
                         _jam set ["attempts",(_jam get "attempts")+1];_jam set ["next",serverTime+20];
                         _jam set ["driverCommand",+(expectedDestination _driver)];
                         _jam set ["command",+(expectedDestination _movementOperator)];_jamChanged=true;

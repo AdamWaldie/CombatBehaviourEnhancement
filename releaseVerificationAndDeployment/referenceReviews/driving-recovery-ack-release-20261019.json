@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "06271670",
+  "scope": "Destination recovery acknowledgement/release design trace; implementation pending",
+  "finding": "REFRESH, FINAL and destination REVERSE use immediate post-command destination samples in _recordRecovery. _recoveryOwned can lose exact proof on later own acknowledgement. SIMPLE_BACK has distinct pre-input/turn acknowledgement and must remain separate.",
+  "releaseHazard": [
+    "RecoveryRelease metadata-only retirement is appropriate for proven changed commands; it is not proof that an issued but unacknowledged rear command was rejected.",
+    "A finite wait timeout with unchanged pre-command state cannot authorize dropping reverse stop/cap provenance or replaying a rear command. Late acknowledgement remains possible.",
+    "Direct release/exclusion can run independently before next DrivingAssistStart observation; fixing only the normal tick leaves a separate cleanup gap.",
+    "Public releasePending/locality retention and releaseUnresolved hard-deadline handling already exist; use original lifetime, no replacement retry timer or new permanent controller."
+  ],
+  "requiredDesign": [
+    "Record exact requested destination and pre-command seats/tasks/destinations with original acknowledgement deadline at the actual write boundary.",
+    "A single mode-aware read-only classification should distinguish own acknowledged target, original pending state, unchanged but unacknowledged expiry, and proven changed command.",
+    "Both normal step and independent cleanup must consume the same classification. Own acknowledgement may refresh proof but never replay movement, renew deadline or infer physical travel.",
+    "Unchanged expired reverse request must retain safety provenance as uncertainty; it cannot become movement success, fresh recovery or permission to redirect unknown native authority.",
+    "Changed route/seats/commands/external controller must continue to prevent stop/recall. Preserve SIMPLE_BACK receipt semantics and current physical rear geometry/damage/total-motion guards."
+  ],
+  "implementation": "Not changed; traffic replan acknowledgement is separate and does not establish recovery correctness.",
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "daba0edf5598a465f543611ee6076b86ad48c550c79f43272e35891dc5e6bf30",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "e449808a8edb4335f5c290bf1d242b3338bc294e5ac2437268d35f04fa37b06e",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "ba6ed9ca2ade445d501bbc009e8694a372e57a373635a9a4091c5f8706944a75"
+  },
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}
