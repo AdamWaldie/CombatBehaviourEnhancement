@@ -8843,6 +8843,14 @@ class CortexOperations(unittest.TestCase):
 
     def test_actor_reservations_keep_mobile_danger_posture_including_indoor(self):
         actor=source('dangerEngineAct')
+        self.assertIn('private _nativeRouteTask=currentCommand _actor == "MOVE"',actor)
+        self.assertIn('getUnitState _actor in ["PLANNING","REPLAN"]',actor)
+        native=actor.index('if (_nativeRouteTask) then {_committedMover=true}')
+        self.assertLess(native,actor.index('playActionNow'))
+        self.assertLess(native,actor.index('if (_mode == "IMMEDIATE")'))
+        self.assertIn('_hardCover && {!_committedMover}',actor)
+        self.assertIn('stance _actor == "PRONE"',actor)
+
         self.assertIn('if ([_actor] call CBE_fnc_CortexActorMoveReserved) then {_committedMover=true;}',actor)
         self.assertLess(actor.index('_committedMover=true'),actor.index('if (_mode == "IMMEDIATE")'))
         indoor=source('indoorActorOperation')

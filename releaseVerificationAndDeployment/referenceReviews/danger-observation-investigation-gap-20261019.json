@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "2ed432a4",
+  "scope": "Body/scream observation to individual investigation; source comparison only",
+  "reference": {
+    "workshopId": "1858075458",
+    "files": {
+      ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+      ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCheckBody.sqf": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c"
+    },
+    "originalsModified": false,
+    "runtimeDependency": false
+  },
+  "sourceIntent": [
+    "Scream causes brief look/watch; body types distinguish own-group physical check from unknown-body observation and nearby-building memory.",
+    "Own-body check moves one actor, waits for real proximity or timeout/death, performs rearm/inventory collection, then returns to leader.",
+    "Assessment can use accumulated building memory, while suppression, STOP, stealth and hold-fire defer autonomous action."
+  ],
+  "actualCbePath": [
+    "Engine HIDE body/scream cause may glanceAt known position for idle actor; no target identity disclosure.",
+    "Group assessment retains finite alerting response and prompt cadence, without treating body/scream as incoming-fire geometry or confirmed attacker.",
+    "CALM investigations consume known hostiles or SOUND/REPORT area reports; native body/scream response does not create that memory or an individual body-check operation."
+  ],
+  "gap": "Individual body investigation and memory-driven follow-on are not implemented by a brief look. No whole-source parity credit.",
+  "disposition": [
+    "Retain separation of alerting evidence from hostile knowledge and immediate physical hazard.",
+    "Build finite individual point investigation on owner/epoch/native-task/actor-reservation foundations; do not repurpose cover-away movement or send whole squad merely to reuse group investigation.",
+    "Use bounded local discovery only if physical corpse identity is needed; no allDeadMen world scan.",
+    "Treat inventory/rearm/launcher/backpack transfer separately with ammunition/loadout/mission-authority balance. No automatic raw upstream inventory mutation copied.",
+    "Actual position visit, cancellation, no-progress, original deadline and guarded continuation are required; flags or guessed corpse identity cannot count as physical success."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/dangerEngineAct.sqf": "53379611e2079f44c0d2cdda8edf34741e04528039d38b1d47134d24c413979d",
+    "addons/infantry/functions/dangerReact.sqf": "9825c08e2c5c8263f8d6206de83bd9319ec3a4ab8b7c0210ffcc5b7bc792bc4f",
+    "addons/infantry/functions/dangerStep.sqf": "981ebb3fdce7d742e8a693918fd6bf482a7cd0bdf6cb088ae085798eb4cb084b",
+    "addons/infantry/functions/cortexGroupTick.sqf": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
+  },
+  "implementationChange": false,
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

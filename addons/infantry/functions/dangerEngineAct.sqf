@@ -5,6 +5,7 @@
  * Repeat/JIP: Uses one machine-local, expiring weak-stance lease. A repeated danger response retains
  * the original authored stance and refreshes only CBE's applied value. Native or external stance
  * changes invalidate the lease and are not overwritten. A committed mover is never forced prone.
+ * Native MOVE and PLANNING/REPLAN tasks retain mobile posture as scripted movers do.
  * Idle prone riflemen may perform one native lateral evasion after a hit or near round.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
  * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
@@ -74,6 +75,10 @@ if (count _operation > 0 && {count _drill > 0}
 // investigation. Reuse the shared typed/expiry gate rather than maintaining a partial intent list.
 // Unknown reservation state also cannot grant permission to pin its actor prone.
 if ([_actor] call CBE_fnc_CortexActorMoveReserved) then {_committedMover=true;};
+// Ordinary native routes deserve the same mobility as scripted manoeuvres. A stationary
+// path-planning actor is not idle permission to roll or pin prone before its move begins.
+private _nativeRouteTask=currentCommand _actor == "MOVE" || {getUnitState _actor in ["PLANNING","REPLAN"]};
+if (_nativeRouteTask) then {_committedMover=true};
 // An idle prone rifleman can react physically without a new destination or a tactical worker.
 // Native actions retain engine collision and animation handling. Never roll a committed mover,
 // override another native action, or replay this response on every danger recycle.

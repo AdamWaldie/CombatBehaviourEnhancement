@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "2ed432a4",
+  "scope": "Individual native-route mobility during danger reactions",
+  "reference": {
+    "workshopId": "1858075458",
+    "files": {
+      ".qa/lambs-2621-review/danger/functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7"
+    },
+    "intent": "Immediate reaction combines lower silhouette, local cover and direction/context-dependent evasive actions. Cover lowers standing actors to crouch; movement versus still/near context affects dodge.",
+    "originalsModified": false,
+    "runtimeDependency": false
+  },
+  "finding": "CBE immediate hard-cover branch protected CBE operations/reservations but ordinary native MOVE/path planning could still be forced prone or treated as an idle lateral-evasion candidate.",
+  "implementation": "Extend existing committed-mobility decision after child-drill classification with native MOVE or PLANNING/REPLAN. Existing stance selector gives mobile crouch; idle cover/evasion and all native weapon/path/target controls retained. No source animation/route controller copied.",
+  "departure": "Native authored movement receives stronger mobility preservation than the reference far-threat moving dodge branch. This is deliberate route-intent integration, not claimed whole-source parity or proven tactical superiority.",
+  "sourceHashes": {
+    "addons/infantry/functions/dangerEngineAct.sqf": "53379611e2079f44c0d2cdda8edf34741e04528039d38b1d47134d24c413979d",
+    "docs/Smart-AI-Pass.md": "648ac2e8b7e4608056f793c6d975fbfe93e0c7a212496a201dc7302b5b24a6e4"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-danger-native-route-hemtt.log",
+    "focused": ".qa/cbe-danger-native-route-focused.log",
+    "existingCases": 607,
+    "fullPipeline": ".qa/cbe-danger-native-route-build.log",
+    "independent": ".qa/cbe-danger-native-route-independent.log",
+    "existingTestsPassed": 1476,
+    "fingerprint": "f785121de266ffb635f14f45023d831f7af7bb1d2cff01d5910022fb91f2f98a",
+    "manifestSource": "2ed432a4+dirty unsigned development"
+  },
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "newTestCases": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "fullBuild": "Passed checkpoint; physical acceptance remains absent",
+  "audits": "PAUSED",
+  "remaining": [
+    "Native reaction/travel under repeated fire, delay and casualty outcome unverified.",
+    "Implicit native formation/follow motion without MOVE or path-planning state is not newly classified.",
+    "Other complete reference FSM/cover/dodge behaviour and performance remain incomplete."
+  ]
+}
