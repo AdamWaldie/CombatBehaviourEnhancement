@@ -190,8 +190,12 @@ private _nativeCommandAvailable={
     private _command=currentCommand _actor;
     if !(_command in ["STOP","MOVE"]) exitWith {true};
     private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
-    // Initial admission keeps its existing policy; only actual CBE writes establish receipts.
-    if (_row isEqualTo []) exitWith {!(_drill getOrDefault ["nativeCommandsFull",false])};
+    // Natural starts preflight STOP and may transfer only exact completed CBE holds.
+    // Separate coordinated-role and owner-resume admission retain their current policies.
+    if (_row isEqualTo []) exitWith {
+        !(_drill getOrDefault ["nativeCommandsFull",false])
+            && {_command != "STOP" || {!(_drill getOrDefault ["nativeAdmissionChecked",false])}}
+    };
     if (count _row != 7 || {(_row select 0) != _actor}) exitWith {false};
     private _native=expectedDestination _actor;
     private _acknowledging=serverTime <= (_row select 4);

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Starts a direct close assault when a fresh known dismounted infantry hostile is already too near
  * for an advance or flank approach. Vehicles, mounted crew and static weapons are refused at this
  * operation boundary so a direct caller cannot bypass the tactical selector and make infantry clear
@@ -73,6 +74,7 @@ private _onFoot=(units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 if (count _onFoot < 4) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
 private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
@@ -137,6 +139,7 @@ if (count _operation == 0) exitWith {
 };
 (_state get "drill") set ["operationGeneration",_operation get "generation"];
 (_state get "drill") set ["ownerEpoch",_operation get "ownerEpoch"];
+(_state get "drill") set ["nativeAdmissionChecked",true];
 [_group,_state get "drill","START","ASSAULT_COMMITTED"] call CBE_fnc_CortexDrillSetStage;
 _group setVariable ["CBE_Cortex_AssaultRefusal",nil,true];
 _state set ["movementLease",["TACTICAL_DRILL",time+90]];

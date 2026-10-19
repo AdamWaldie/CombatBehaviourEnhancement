@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Starts a bounding advance: a squad under fire that still has somewhere to go pushes an element
  * forward in covered bounds instead of stalling.
  *
@@ -92,6 +93,7 @@ private _onFoot = (units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {vehicle _x == _x}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 private _riflemen = _onFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}};
 private _candidates = [];
@@ -147,6 +149,7 @@ if (count _operation == 0) exitWith {
 };
 (_state get "drill") set ["operationGeneration",_operation get "generation"];
 (_state get "drill") set ["ownerEpoch",_operation get "ownerEpoch"];
+(_state get "drill") set ["nativeAdmissionChecked",true];
 [_group,_state get "drill","START","ADVANCE_ACCEPTED"] call CBE_fnc_CortexDrillSetStage;
 _group setVariable ["CBE_Cortex_AdvanceRefusal",nil,true];
 // Direct fire-team bounds are a group movement owner even though they do not

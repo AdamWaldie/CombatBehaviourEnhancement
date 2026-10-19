@@ -11,7 +11,8 @@
  * 2 actor <OBJECT>, objNull. holderRecallReceipts rows have eight fields:
  * [actor,group,issuer token,issuer owner,issuer epoch,issuer generation,native ATL target,order receipt].
  * Return: BOOL - true for an unchanged idle/STOP hold with no competing actor task.
- * Current callers: CortexGroupTick, CortexRestoreCalm and CortexRetreat.
+ * Current callers: CortexGroupTick, CortexRestoreCalm, CortexRetreat, natural manoeuvre
+ * admission and CortexDrillStart completed-hold transfer.
  * Example: if ([_group,_state,_unit] call CBE_fnc_CortexHolderRecallOwned) then {_unit doFollow leader _group};
  */
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_actor",objNull,[objNull]]];

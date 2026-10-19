@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Decides whether a squad in contact should flank, and if so plans the manoeuvre.
  *
  * Base of fire and manoeuvre uses multiple movement bounds. The leader, machine gunners and anti-tank gunners stay as the base of fire,
@@ -72,6 +73,7 @@ if (vehicle _leader != _leader) exitWith {["LEADER_MOUNTED"] call _refuse};
 private _onFoot = (units _group) select {
     alive _x && {local _x} && {vehicle _x == _x} && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 if (count _onFoot < (missionNamespace getVariable ["CBE_AIPass_Flank_MinGroupSize", 6])) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
 if (count _onFoot / ((_group getVariable ["CBE_AIPass_PeakSize", count _onFoot]) max 1) < 0.6) exitWith {["CASUALTY_STRENGTH",[count _onFoot,_group getVariable ["CBE_AIPass_PeakSize",count _onFoot]]] call _refuse};
@@ -185,6 +187,7 @@ if (count _operation == 0) exitWith {
 };
 (_state get "drill") set ["operationGeneration",_operation get "generation"];
 (_state get "drill") set ["ownerEpoch",_operation get "ownerEpoch"];
+(_state get "drill") set ["nativeAdmissionChecked",true];
 [_group,_state get "drill","START","FLANK_ACCEPTED"] call CBE_fnc_CortexDrillSetStage;
 _group setVariable ["CBE_Cortex_FlankRefusal",nil,true];
 // The drill moves selected actors directly rather than adding a group waypoint.

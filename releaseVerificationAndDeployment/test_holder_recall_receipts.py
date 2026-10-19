@@ -33,6 +33,19 @@ class HolderRecallReceiptTests(unittest.TestCase):
         self.assertLess(retreat.index('CortexHolderRecallOwned'),retreat.index('call CBE_fnc_CortexGroupMove'))
         self.assertIn('(_live getOrDefault ["generation",-2]) == _generation',retreat)
         self.assertNotIn('_state set ["holders", []]',retreat)
+        for name in ('cortexAdvanceStart','cortexAssaultStart','cortexFlankStart'):
+            admission=source(name)
+            self.assertIn('currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}',admission)
+            self.assertIn('set ["nativeAdmissionChecked",true]',admission)
+        start=source('cortexDrillStart')
+        transfer=start.split('if (_drill getOrDefault ["nativeAdmissionChecked",false]) then {',1)[1].split('private _handle=',1)[0]
+        for proof in ('isNil {','_liveState isNotEqualTo _state','_liveDrill isNotEqualTo _drill',
+                      'CBE_AIPass_Epoch','CBE_OperationGeneration','select [0,64]',
+                      'CortexHolderRecallOwned','CBE_Cortex_HolderToken",nil,true','"nativeCommands"'):
+            self.assertIn(proof,transfer)
+        self.assertLess(transfer.index('CortexHolderRecallOwned'),transfer.index('CBE_Cortex_HolderToken",nil,true'))
+        for forbidden in (' doMove ','doStop','doFollow','serverTime+'):
+            self.assertNotIn(forbidden,transfer)
 
     def test_pending_locality_recall_is_finite_and_keeps_original_native_proof(self):
         worker=source('cortexHolderRecallPending')

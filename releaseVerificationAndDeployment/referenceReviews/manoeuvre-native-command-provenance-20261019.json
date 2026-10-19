@@ -1,16 +1,18 @@
 {
   "baseline": "fedab7ef6abdeff4af94e77f3622efe3ba16e8fc",
   "scope": "Active manoeuvre native command provenance and buddy handoff",
-  "status": "Owner-local changed STOP/MOVE and cleanup guards implemented; initial admission and portable/identical-order proof remain open",
+  "status": "Natural STOP admission, owner-local changed STOP/MOVE and cleanup guards implemented; coordinated/resume initial admission and portable/identical-order proof remain open",
   "source_sha256": {
     "addons/infantry/functions/combatPairs.sqf": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f",
-    "addons/infantry/functions/cortexFlankStep.sqf": "292710bc0afb337dfe7ff3183ba6f653373ed5f5bf90963bf4503836feac249d",
+    "addons/infantry/functions/cortexFlankStep.sqf": "c0f2c81ea4ad9d68031ecba533d928c8cb822f3ef83ab8ad533b42c919eecb39",
     "addons/infantry/functions/cortexFlankEnd.sqf": "0f230544b844cb622951a956dab304cb3bb5abc27440b47eedf33f83ca362eba",
     "addons/infantry/functions/cortexDrillResume.sqf": "75a3bea227f145236095ef8572d4e37b11c1ea78dfeb3ca9ba0e9aa867df8118",
-    "addons/infantry/functions/cortexAdvanceStart.sqf": "6c354bfbc1a84b088f01bb6a56ff7f9c70279ca65cf3ecfa6cb1bfe7d0bd1c30",
-    "addons/infantry/functions/cortexAssaultStart.sqf": "b4abca863111c95a970166023e38714a6836c33bfd8020834fce6b4eeb358ccc",
-    "addons/infantry/functions/cortexFlankStart.sqf": "4efeb461b39957923452e833e5553a1b0a94ca88ea40aabdebc29f73797cc07a",
-    "addons/support/functions/cortexSupportBoundStart.sqf": "07964ffc92ee1fe0eca077d7b85d9cbffc770bf4f3d72572fba624c6607148ae"
+    "addons/infantry/functions/cortexAdvanceStart.sqf": "bd658c1b381c47588c82a8a926b81c5cb988bb7bfa20359f1be13f69c224a140",
+    "addons/infantry/functions/cortexAssaultStart.sqf": "5e57551df574450e3ce77121b4c7951f7af431e0c777be9a2ea639cd595421a8",
+    "addons/infantry/functions/cortexFlankStart.sqf": "e912cdb239ca354f847bd8ecd84e860a1a693125e7112cac155d3e219fad2548",
+    "addons/support/functions/cortexSupportBoundStart.sqf": "07964ffc92ee1fe0eca077d7b85d9cbffc770bf4f3d72572fba624c6607148ae",
+    "addons/infantry/functions/cortexDrillStart.sqf": "5f4f2f1f69d1adcb998955a75d20c6c1586fd9e43ae55749bfde7458f3805574",
+    "addons/infantry/functions/cortexHolderRecallOwned.sqf": "df26f778de1115760cd1ef37af65ee3c2b7429c1149e719becc1477d6ef5d4cb"
   },
   "findings": [
     {
@@ -55,10 +57,11 @@
   },
   "implementation": {
     "new_relief": "Unassigned candidates in CortexFlankStep reject native STOP before joining a fire team. RebalanceRoles rejects STOP for actors outside its entry participant roster, with the same predicate rechecked at publication.",
-    "retained_gap": "Initial task admission retains existing policy. Receipts remain owner-local and absent from checkpoints; no portable proof claim. Replacement orders with identical observable state remain indistinguishable.",
+    "retained_gap": "Initial individual MOVE attribution and coordinated/owner-resume initial admission remain open. Active command receipts remain owner-local and absent from checkpoints. Identical replacement orders remain observationally indistinguishable.",
     "no_new_tests_or_controller": true,
     "active_stop": "Current-drill nativeCommands records actual MOVE/HOLD issues, at most64 actors. After a recorded MOVE, STOP requires an unchanged prior owned HOLD within the original2second acknowledgement; a HOLD receipt permits next-bound transition only with matching destination/formLeader.",
     "cleanup": "CortexFlankEnd recalls native STOP only with exact current-drill HOLD receipt. MOVE or absent receipts grant no STOP cleanup authority.",
-    "move_destination": "Actual main/retry/recovery requested destinations are retained independently of expectedDestination. Active MOVE must match the requested point, except unchanged post-write sampled native state during original2second acknowledgement. HOLD-to-MOVE acknowledgement remains bounded. Cleanup has no acknowledgement exemption and requires a matching MOVE target/formLeader."
+    "move_destination": "Actual main/retry/recovery requested destinations are retained independently of expectedDestination. Active MOVE must match the requested point, except unchanged post-write sampled native state during original2second acknowledgement. HOLD-to-MOVE acknowledgement remains bounded. Cleanup has no acknowledgement exemption and requires a matching MOVE target/formLeader.",
+    "natural_admission": "Advance/flank/assault initial rosters reject unknown STOP; exact completed CBE holder receipts may transfer in CortexDrillStart under current state/token/epoch/generation. Old holder recall tokens/rows retire atomically. Passive transfer issues no command or new acknowledgement interval. Checked natural starts refuse an unknown STOP before first callback."
   }
 }
