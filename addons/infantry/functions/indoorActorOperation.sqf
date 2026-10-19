@@ -168,7 +168,7 @@ if (_mode == "START") exitWith {
         || {serverTime-(_belief select 1) > 5}) exitWith {false};
     private _admission=[_actor,_contact,_belief select 0,_building] call CBE_fnc_IndoorActorNativeContext;
     if (_admission isEqualTo [] || {serverTime < (_actor getVariable ["CBE_IndoorActor_Cooldown",-1])}
-        || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}
+        || {[_actor] call CBE_fnc_CortexActorMoveReserved}
         || {(_actor getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}
         || {count (_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) > 0}
         || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {false};

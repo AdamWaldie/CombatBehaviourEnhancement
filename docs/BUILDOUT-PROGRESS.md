@@ -392,7 +392,7 @@ Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is no
 
 ## COVER â€” Cover selection and clearance
 
-Source checkpoint: `1fbb771c + danger cover admission fix`; reviewed 2026-10-19; confidence: low.
+Source checkpoint: `f32bcf1f + native planning and shared admission`; reviewed 2026-10-19; confidence: low.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
@@ -719,7 +719,7 @@ Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is no
 
 ## CLEAR â€” Building clearance
 
-Source checkpoint: `cea876af + actor-settings working changes`; reviewed 2026-10-19; confidence: medium.
+Source checkpoint: `f32bcf1f + native planning and shared admission`; reviewed 2026-10-19; confidence: medium.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |

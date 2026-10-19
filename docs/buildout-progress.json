@@ -1442,7 +1442,7 @@
             },
             {
               "path": "addons/infantry/functions/dangerCoverStep.sqf",
-              "sha256": "22fcebd0c79082c943a45c277a09a76e75fa8426dde95a35c374a8797b4e799a"
+              "sha256": "f77bfbc6f833acc3563a687098c7435392f9a8a62d58440b8563f72fe0f70208"
             }
           ]
         },
@@ -1459,14 +1459,14 @@
             },
             {
               "path": "addons/infantry/functions/dangerCoverStep.sqf",
-              "sha256": "22fcebd0c79082c943a45c277a09a76e75fa8426dde95a35c374a8797b4e799a"
+              "sha256": "f77bfbc6f833acc3563a687098c7435392f9a8a62d58440b8563f72fe0f70208"
             }
           ]
         }
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-19",
-      "source_commit": "1fbb771c + danger cover admission fix"
+      "source_commit": "f32bcf1f + native planning and shared admission"
     },
     {
       "id": "VEH-DRIVING",
@@ -3160,11 +3160,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/indoorActorOperation.sqf",
-              "sha256": "8e0754a713a946484b980e9d0e150b7c0793434836b2c9321e8ad5d54b954c41"
+              "sha256": "33442bdb9a6308c245165c294d05cfabd2884d108555428f37691fb8535ded5c"
             },
             {
               "path": "addons/infantry/functions/indoorActorDispatch.sqf",
-              "sha256": "b6828ee1fb466fcfcd331dae9bb90d4d94afbf1916e20165ab317101b90b5872"
+              "sha256": "1773c34127c15741063bb274708ead8015337c5b469cc1aada7be5eb31b6b51a"
             }
           ]
         },
@@ -3309,7 +3309,7 @@
       ],
       "confidence": "medium",
       "reviewed_at": "2026-10-19",
-      "source_commit": "cea876af + actor-settings working changes",
+      "source_commit": "f32bcf1f + native planning and shared admission",
       "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
     },
     {

@@ -6,6 +6,7 @@
  * native orders and feature gates before movement; this dispatcher issues no movement itself.
  * Repeat/JIP: At most one building selection per eight seconds per owner-local group state.
  * Actor journals, hard deadlines and cooldowns prevent replay; locality does not resume old jobs.
+ * Shared reservation admission permits valid expired markers but refuses live or malformed records.
  * Arguments: 0 group <GROUP>, grpNull; 1 group state <HASHMAP>, empty;
  * 2 native knowledge records <ARRAY>, [] (same format as BuildingContactSelect).
  * Return: NUMBER of newly admitted actors, 0..2; admission is not physical entry or clearance.
@@ -30,7 +31,7 @@ private _actors=(units _group) select [0,16];
         && {isNull objectParent _x} && {_x knowsAbout _contact >= 1}
         && {_x distance2D (_belief select 0) <= (_range min 40)}
         && {[_x] call CBE_fnc_IndoorActorGroupAvailable}
-        && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {serverTime >= (_x getVariable ["CBE_IndoorActor_Cooldown",-1])}) then {
         // Prefer another available soldier over displacing the squad's leader/formation anchor.
         _ranked pushBack [[0,1] select (_x == leader _group),_x distance2D (_belief select 0),_forEachIndex];

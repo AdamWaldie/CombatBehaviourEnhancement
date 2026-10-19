@@ -6,6 +6,7 @@
  * to player, Zeus, specialist, native-command and CBE-operation ownership before selecting or issuing movement.
  * Repeat/JIP: One group lease coalesces a danger burst. Each call either retains, releases or creates
  * one finite move. Admission ignores only valid expired actor reservations; live or malformed leases block.
+ * Native path planning also defers new cover admission without cancelling its destination.
  * Physical arrival releases the movement reservation immediately; the deadline is a failure bound.
  * The lease also binds owner epoch, operation generation and full authored waypoint receipt.
  * Changed orders and legacy leases retire metadata without return-to-formation commands.
@@ -161,11 +162,13 @@ if (_generation != (_group getVariable ["CBE_Danger_Generation",0])
     || {[_group] call CBE_fnc_CortexZeusHeld}) exitWith {[] call _clearLease};
 // Use the shared finite reservation gate: expired valid markers are free, while live or malformed
 // markers still block admission. Do not let stale metadata permanently suppress cover response.
+// A stationary native planner is not idle. Let its pending path resolve before choosing cover.
 // Recheck at the final command boundary. A danger observation recorded before a new order or operation
 // must retire instead of turning its stale observation into a movement instruction.
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {!isNull objectParent _actor}
+    || {getUnitState _actor == "PLANNING"}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {
     _group setVariable ["CBE_Danger_CoverBlockedContext",[time,currentCommand _actor,
@@ -236,6 +239,7 @@ if (_entryContext isNotEqualTo (call _readOrderContext)
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}
+    || {getUnitState _actor == "PLANNING"}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}) exitWith {[] call _clearLease};
 _group setVariable ["CBE_Danger_CoverPending",nil];
 _group setVariable ["CBE_Danger_CoverDecision",["COMMITTED",time,_actor,_generation,+_spot,_screenMode]];

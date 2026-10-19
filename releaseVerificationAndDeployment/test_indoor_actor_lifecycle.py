@@ -179,12 +179,13 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('_actor doMove waypointPosition _waypoint;',finish)
     def test_routine_group_reposition_cannot_steal_an_actor_leg(self):
         s=(ROOT/'addons/infantry/functions/cortexTacticalReposition.sqf').read_text()
-        guard=s.index('if ((units _group) findIf {_x call _actorReserved}')
+        guard=s.index('if ((units _group) findIf {[_x] call CBE_fnc_CortexActorMoveReserved}')
         self.assertLess(s.index('call CBE_fnc_CortexRetreat'),guard)
         self.assertLess(guard,s.index('call CBE_fnc_CortexFindCover'))
         self.assertLess(guard,s.index('call CBE_fnc_CortexOwnershipLease'))
+        shared=(ROOT/'addons/infantry/functions/cortexActorMoveReserved.sqf').read_text()
         for marker in ('_lease isEqualTo []','finite (_lease select 2)','!_expired'):
-            self.assertIn(marker,s)
+            self.assertIn(marker,shared)
 
     def test_door_side_effect_rechecks_contact_and_higher_priority_tasks(self):
         s=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
