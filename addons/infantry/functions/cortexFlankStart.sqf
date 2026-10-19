@@ -193,7 +193,7 @@ _group setVariable ["CBE_Cortex_FlankRefusal",nil,true];
 // The drill moves selected actors directly rather than adding a group waypoint.
 // Publish that ownership so support, vehicles and artillery cannot replace it mid-bound.
 _state set ["movementLease",["TACTICAL_DRILL",time+90]];
-[_group,_token] call CBE_fnc_CortexDrillStart;
+if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};
 if (missionNamespace getVariable ["CBE_AIPass_Debug", false]) then {
     diag_log format ["[CBE] %1 FLANK element=%2 points=%3 crossings=%4", _group, count _element, count _points, {(_x select 1) == "CROSS_NEAR"} count _points];
 };

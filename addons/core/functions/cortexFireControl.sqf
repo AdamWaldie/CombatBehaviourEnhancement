@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
  * Current close-threat responders and active direct-target assignments are excluded from bursts.
- * Native PLANNING actors defer all scripted fire-control orders; suppression additionally requires
+ * Native PLANNING and STEALTH actors defer all scripted fire-control orders; suppression additionally requires
  * native unitReady before reserve-ammo scans or firing-lane geometry. Native combat remains enabled.
  * Squad fire control while in contact: close-threat priority, target distribution and disciplined
  * suppression.
@@ -101,6 +101,7 @@ private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 private _eligible = (units _group) select {
     ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
         && {getUnitState _x != "PLANNING"}
+        && {behaviour _x != "STEALTH"}
         && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}

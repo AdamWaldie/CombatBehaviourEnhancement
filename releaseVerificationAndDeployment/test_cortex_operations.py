@@ -3690,6 +3690,7 @@ class CortexOperations(unittest.TestCase):
         fire = source("cortexFireControl")
         roster=fire[fire.index('private _eligible ='):fire.index('private _members =')]
         self.assertIn('getUnitState _x != "PLANNING"',roster)
+        self.assertIn('behaviour _x != "STEALTH"',roster)
         self.assertLess(fire.index('getUnitState _x != "PLANNING"'),fire.index('_unit doTarget'))
         self.assertLess(fire.index('unitReady _unit'),fire.index('magazinesAmmoFull _unit'))
         self.assertLess(fire.index('unitReady _unit'),fire.index('_unit doSuppressiveFire'))
@@ -4941,6 +4942,11 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(qa.index('_requester setCombatMode "YELLOW";'),qa.index('COORD-natural-contact'))
         tick=source('cortexGroupTick')
         self.assertIn('private _holdFire=combatMode _group in ["BLUE","GREEN"];',tick)
+        self.assertIn('private _nativeHoldFire=_holdFire;',tick)
+        self.assertIn('_holdFire=_holdFire || {behaviour _leader == "STEALTH"}',tick)
+        self.assertIn('if (!_nativeHoldFire && {["CBE_AIPass_ContactReports_Enable",true]',tick)
+        posture=source('dangerReact').split('private _postureResult=',1)[1]
+        self.assertLess(posture.index('behaviour _postureActor == "STEALTH"'),posture.index('_group setCombatMode _desiredCombat'))
         self.assertIn('if (!_holdFire && {_visible isNotEqualTo []} && {!_ordered}',tick)
     def test_coordinator_geometry_retry_is_finite_and_element_scoped(self):
         text=source('cortexSupportCoordinateStep')
@@ -5528,11 +5534,25 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('execFSM "\\z\\cbe\\addons\\main\\fsm\\tacticalDrill.fsm"',launcher)
         self.assertIn('completedFSM _existingHandle',launcher)
         self.assertIn('CBE_Cortex_DrillFSM',launcher)
-        self.assertIn('call CBE_fnc_CortexQueueJob',launcher)
+        self.assertIn('finite _existingHandle',launcher)
+        self.assertIn('_existingHandle >= 0',launcher)
+        self.assertIn('finite _handle',launcher)
+        self.assertIn('_handle >= 0',launcher)
+        self.assertIn('!completedFSM _handle',launcher)
+        self.assertIn('[_group,_state,"FSM_START_FAILED",_token] call CBE_fnc_CortexFlankEnd',launcher)
+        self.assertNotIn('call CBE_fnc_CortexQueueJob',launcher)
+        self.assertNotIn('_handle <= 0',launcher)
+        self.assertLess(launcher.index('operationGeneration'),launcher.index('private _existing='))
         for name in ['cortexFlankStart','cortexAdvanceStart','cortexSupportBoundStart']:
             start=source(name)
             self.assertIn('call CBE_fnc_CortexDrillStart',start)
             self.assertNotIn('CBE_fnc_CortexFlankStep,',start)
+            if name == 'cortexSupportBoundStart':
+                self.assertIn('_accepted=[_group,_token] call CBE_fnc_CortexDrillStart;',start)
+            else:
+                self.assertIn('if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};',start)
+        for name in ['cortexAssaultStart','cortexDrillResume']:
+            self.assertIn('if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};',source(name))
         fsm=(ROOT/'addons/main/fsm/tacticalDrill.fsm').read_text(encoding='utf-8')
         self.assertIn('fsmName = "CBE finite tactical drill"',fsm)
         self.assertIn('call CBE_fnc_CortexFlankStep',fsm)

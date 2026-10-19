@@ -88,7 +88,6 @@ _state set ["drill",createHashMapFromArray [
 _state set ["supportBoundSequence",_sequence];
 _group setVariable ["CBE_Cortex_SupportBoundResult",[],true];
 _group setVariable ["CBE_Cortex_DrillReinforcements",[],true];
-[_group,_token] call CBE_fnc_CortexDrillStart;
-_accepted=true;
+_accepted=[_group,_token] call CBE_fnc_CortexDrillStart;
 };
 _accepted

@@ -152,7 +152,8 @@ class SupportBoundCommitTests(unittest.TestCase):
                       '"phase",""]) == "CANCELLED"','CBE_fnc_CortexActorMoveReserved']:
             self.assertLess(boundary.index(guard),allocation)
         self.assertIn('CBE_fnc_CortexDrillStart',boundary)
-        self.assertLess(boundary.index('CBE_fnc_CortexDrillStart'),boundary.index('_accepted=true;'))
+        self.assertIn('_accepted=[_group,_token] call CBE_fnc_CortexDrillStart;',boundary)
+        self.assertNotIn('_accepted=true;',boundary)
         self.assertTrue(source.rstrip().endswith('_accepted'))
         maintain=(ROOT/'addons/support/functions/cortexSupportMaintain.sqf').read_text()
         cleanup=maintain.split('private _releaseStopHolds={',1)[1].split('private _releaseSupport={',1)[0]

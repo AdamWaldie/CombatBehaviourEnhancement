@@ -118,5 +118,5 @@ _state set ["movementLease",["TACTICAL_DRILL",time+90]];
 [_group,_drill,if (_stage in ["PAUSE","HOLD"]) then {_stage} else {"START"},"OWNERSHIP_RESUME"] call CBE_fnc_CortexDrillSetStage;
 [_group] call CBE_fnc_CortexCheckpoint;
 _group setVariable ["CBE_Cortex_DrillMigration",[_sourceToken,_token,_sourceGeneration,_operation get "generation",serverTime,_index,_deadline],true];
-[_group,_token] call CBE_fnc_CortexDrillStart;
+if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};
 true

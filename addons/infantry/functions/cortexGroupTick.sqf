@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Natural contact escalation defers mission STEALTH while passive reports and native self-defence remain available.
  * Contact-loss cleanup waits for a matching owner/generation CLEAR FSM to finish or cancel;
  * its independent finite deadlines and newer mission/Zeus orders retain authority.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
@@ -721,6 +722,10 @@ private _dangerVehicleContact=_dangerVehicleSafety && {_dangerConfirmed}
     && {(_dangerResponse param [0,"",[""]]) in ["HIT","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE"]};
 _tacticalTier=_tacticalTier || {_dangerVehicleContact};
 private _holdFire=combatMode _group in ["BLUE","GREEN"];
+private _nativeHoldFire=_holdFire;
+// This gate controls CBE's natural engagement, never the native weapon policy.
+// Concealed groups keep sensing/reporting but do not acquire scripted attack roles.
+_holdFire=_holdFire || {behaviour _leader == "STEALTH"};
 // Run only the bounded vehicle/passenger safety slice for a targetless mounted danger event. With an
 // empty enemy list CortexVehicles exits immediately after its safe-stop/dismount handshake, so this
 // cannot select a target, withdrawal, standoff or infantry phase.
@@ -1290,7 +1295,7 @@ switch (_state get "phase") do {
             // A fresh observed contact is also a short-lived combined-arms opportunity. This
             // only shares the target with a bounded number of independently capable assets;
             // it creates no rally, readiness barrier or replacement infantry movement order.
-            if (!_holdFire && {["CBE_AIPass_ContactReports_Enable",true] call _get}) then {
+            if (!_nativeHoldFire && {["CBE_AIPass_ContactReports_Enable",true] call _get}) then {
                 [_group,_state,_visible] call CBE_fnc_CortexCombinedArmsRequest;
             };
             if (!_holdFire && {_hasTargetKnowledge} && {["CBE_AIPass_Artillery_Enable", false] call _get}) then {[_group, _state, _enemies] call CBE_fnc_CortexArtilleryRequest};

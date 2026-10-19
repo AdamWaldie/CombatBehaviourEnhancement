@@ -155,7 +155,7 @@ _group setVariable ["CBE_Cortex_AdvanceRefusal",nil,true];
 // Direct fire-team bounds are a group movement owner even though they do not
 // create a CBE waypoint. Other behaviours must wait until CortexFlankEnd releases it.
 _state set ["movementLease",["TACTICAL_DRILL",time+90]];
-[_group,_token] call CBE_fnc_CortexDrillStart;
+if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};
 if (missionNamespace getVariable ["CBE_AIPass_Debug", false]) then {
     diag_log format ["[CBE] %1 ADVANCE element=%2 points=%3", _group, count _element, count _points];
 };

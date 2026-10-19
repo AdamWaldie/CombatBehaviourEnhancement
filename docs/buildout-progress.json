@@ -293,7 +293,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             },
             {
               "path": "addons/core/functions/cortexProfile.sqf",
@@ -668,7 +668,7 @@
             },
             {
               "path": "addons/infantry/functions/dangerReact.sqf",
-              "sha256": "1bfb987800fd682ea4b4c161d569cede6bf91df13cb0c5ed30dfbb6897e88fad"
+              "sha256": "9825c08e2c5c8263f8d6206de83bd9319ec3a4ab8b7c0210ffcc5b7bc792bc4f"
             }
           ]
         },
@@ -681,7 +681,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             }
           ]
         }
@@ -704,7 +704,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             }
           ]
         },
@@ -734,7 +734,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             },
             {
               "path": "addons/infantry/functions/cortexGroupMoveClear.sqf",
@@ -765,7 +765,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexFlankStart.sqf",
-              "sha256": "e912cdb239ca354f847bd8ecd84e860a1a693125e7112cac155d3e219fad2548"
+              "sha256": "575c192a24bd4b717280255bc1711bbc4d75510132f02d864bd7353ea825ca9b"
             }
           ]
         },
@@ -887,7 +887,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexFireControl.sqf",
-              "sha256": "ee73b92938f2f41a9b0ab17202173130a5fd2f6a4beb1a4cb820d9e888ec0c5f"
+              "sha256": "2a39a4438917270a0f80d692b0db2a3597d257cf97c03d2c6ed9eb76203908ff"
             }
           ]
         },
@@ -913,7 +913,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexFireControl.sqf",
-              "sha256": "ee73b92938f2f41a9b0ab17202173130a5fd2f6a4beb1a4cb820d9e888ec0c5f"
+              "sha256": "2a39a4438917270a0f80d692b0db2a3597d257cf97c03d2c6ed9eb76203908ff"
             }
           ]
         }
@@ -953,7 +953,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             }
           ]
         },
@@ -966,7 +966,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             },
             {
               "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
@@ -1178,7 +1178,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             },
             {
               "path": "addons/infantry/functions/cortexRetreat.sqf",
@@ -2124,7 +2124,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             }
           ]
         }
@@ -2604,7 +2604,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexAssaultStart.sqf",
-              "sha256": "7b70887a640d79930dc35e04f2ecc71f90394f09a5b8ab3acab390d8ad579f70"
+              "sha256": "0009dbca8ce9688359f79149575954095753ba09c3cc327efd5cb954bd5fc4fe"
             }
           ]
         },
@@ -2661,7 +2661,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexAdvanceStart.sqf",
-              "sha256": "bd658c1b381c47588c82a8a926b81c5cb988bb7bfa20359f1be13f69c224a140"
+              "sha256": "977e959034a367000a347ec3c91c5741ac2ffdb39d4fbadaf544b137e8b70e06"
             },
             {
               "path": "addons/infantry/functions/cortexTacticalAssess.sqf",
@@ -2752,7 +2752,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportBoundStart.sqf",
-              "sha256": "07964ffc92ee1fe0eca077d7b85d9cbffc770bf4f3d72572fba624c6607148ae"
+              "sha256": "5f2232411c47e0a125236d222357d6717356ac63fa09693adf728c150ddb7027"
             },
             {
               "path": "addons/support/functions/cortexSupportLocal.sqf",
@@ -3687,7 +3687,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+              "sha256": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
             }
           ]
         }
@@ -3784,7 +3784,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankEnd.sqf",
-              "sha256": "7b59b16871d6246af2e9c55038452789ba882108687b5d23a5e0e60d687b2cd5"
+              "sha256": "896c26c4655fabc6def455ad7636e5b07e11174fccd2fd552b261b3836c38a96"
             }
           ]
         },

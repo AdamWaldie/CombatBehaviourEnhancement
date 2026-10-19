@@ -155,6 +155,6 @@ if (count _operation == 0) exitWith {
 [_group,_state get "drill","START","ASSAULT_COMMITTED"] call CBE_fnc_CortexDrillSetStage;
 _group setVariable ["CBE_Cortex_AssaultRefusal",nil,true];
 _state set ["movementLease",["TACTICAL_DRILL",time+90]];
+if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};
 missionNamespace setVariable ["CBE_AIPass_Assaults",(missionNamespace getVariable ["CBE_AIPass_Assaults",0])+1];
-[_group,_token] call CBE_fnc_CortexDrillStart;
 true

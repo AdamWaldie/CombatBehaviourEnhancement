@@ -34,7 +34,7 @@
  * 0: group <GROUP>
  * 1: state <HASHMAP>
  * 2: reason <STRING> - COMPLETE, CLOSE, ABORT, LOSSES, STALLED, TIME_LIMIT, RELEASE, ZEUS, CALM,
- *    ROE_CHANGED, SPEED_CHANGED, ATTACK_POLICY_CHANGED, GRENADE_UNRESOLVED, RECOVERY_FAILED, OWNERSHIP_LOST or SCHEDULER_STALLED
+ *    ROE_CHANGED, SPEED_CHANGED, ATTACK_POLICY_CHANGED, GRENADE_UNRESOLVED, RECOVERY_FAILED, OWNERSHIP_LOST, FSM_START_FAILED or SCHEDULER_STALLED
  * 3: expected drill token <STRING, empty> - finite callbacks pass their original token;
  *    empty retains direct current-task administrative cleanup.
  * Unresolved stragglers change COMPLETE/CLOSE to PARTIAL; main actors hold while stragglers rejoin.
@@ -46,7 +46,7 @@
  * [_group, _state, "COMPLETE"] call CBE_fnc_CortexFlankEnd;
  * Result: the element stays on the enemy's flank instead of running back to the leader.
  *
- * Current callers: CBE_fnc_CortexFlankStep and CBE_fnc_CortexReleaseGroup.
+ * Current callers: CortexFlankStep, CortexReleaseGroup, CortexGroupTick, CortexDrillStart and CortexDrillInterrupt.
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_reason", "", [""]], ["_expectedToken","",[""]]];

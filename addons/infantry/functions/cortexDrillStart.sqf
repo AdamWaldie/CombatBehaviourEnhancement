@@ -13,8 +13,9 @@
  * Arguments:
  * 0: group <GROUP> - locally owned group with an accepted drill.
  * 1: drill token <STRING> - token stored in the group's Cortex state.
- * Return Value: Boolean - true when the matching FSM is already running or was started.
- * Current callers: CortexFlankStart, CortexAdvanceStart, CortexAssaultStart and CortexSupportBoundStart.
+ * Return Value: Boolean - true only while the matching FSM is live. Failed startup releases
+ * only this accepted drill through the existing exact-token cleanup; no alternate executor is queued.
+ * Current callers: CortexFlankStart, CortexAdvanceStart, CortexAssaultStart, CortexSupportBoundStart and CortexDrillResume.
  * Example: [_group,_drill get "token"] call CBE_fnc_CortexDrillStart;
  */
 
@@ -26,12 +27,14 @@ if (isNull _group || {!local _group} || {_token == ""}) exitWith {false};
 
 private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
 private _drill=_state getOrDefault ["drill",createHashMap];
-if (count _drill == 0 || {(_drill getOrDefault ["token",""]) != _token}) exitWith {false};
+if (count _drill == 0 || {(_drill getOrDefault ["token",""]) != _token}
+    || {(_drill getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+    || {(_drill getOrDefault ["operationGeneration",-1]) != (_group getVariable ["CBE_OperationGeneration",0])}) exitWith {false};
 
 private _existing=_group getVariable ["CBE_Cortex_DrillFSM",[]];
 if (count _existing == 2 && {(_existing select 0) == _token} && {
     private _existingHandle=_existing select 1;
-    _existingHandle isEqualType 0 && {_existingHandle > 0} && {!completedFSM _existingHandle}
+    _existingHandle isEqualType 0 && {finite _existingHandle} && {_existingHandle >= 0} && {!completedFSM _existingHandle}
 }) exitWith {true};
 
 // Natural starts may inherit an exact completed CBE hold, never a bare native STOP.
@@ -66,12 +69,12 @@ if (_drill getOrDefault ["nativeAdmissionChecked",false]) then {
     };
 };
 private _handle=[_group,_token] execFSM "\z\cbe\addons\main\fsm\tacticalDrill.fsm";
-if (_handle <= 0) exitWith {
-    // Keep an explicit degraded path for malformed or unavailable addon content. The same finite
-    // step contract runs through the budgeted CBE scheduler instead of leaving leased AI state set.
-    [CBE_fnc_CortexFlankStep,createHashMapFromArray [["group",_group],["drillToken",_token]],0]
-        call CBE_fnc_CortexQueueJob;
-    true
+private _started=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle};
+if (!_started) exitWith {
+    // An accepted token is not evidence that an executor started. Keep the same owned
+    // cleanup path, rather than bypassing the FSM with a second scheduler controller.
+    [_group,_state,"FSM_START_FAILED",_token] call CBE_fnc_CortexFlankEnd;
+    false
 };
 
 _group setVariable ["CBE_Cortex_DrillFSM",[_token,_handle]];

@@ -3,6 +3,7 @@
  * Purpose: Applies a short, local danger posture selected by the danger FSM without replacing an active CBE or external movement operation.
  * Locality/authority: Runs where the observed actor and its group are local. It changes only group behaviour and combat mode that it records as owned. Explicit BLUE/GREEN hold-fire discipline remains authoritative.
  * Application and its lease commit atomically after current native-task/hold-fire/owner checks.
+ * STEALTH defers group posture/RED escalation; native defence and weak actor reflexes remain independent.
  * Restoration atomically rechecks the exact lease, actor/group locality, epoch and generation.
  * Cleanup may retire a dead observer's group lease using a surviving local posture anchor. New reactions require a live observer.
  * Repeat/JIP: One public lease contains prior/applied values, operation generation, locality epoch and owner. Repeated events extend the lease; restore changes only values still matching CBE's application and discards its lease on external takeover. DangerStep owns the finite response context.
@@ -100,6 +101,9 @@ isNil {
         _postureActor=[_group] call CBE_fnc_CortexGroupAnchor;
         if (isNull _postureActor) then {_postureActor=leader _group};
         if (!([_postureActor] call CBE_fnc_CortexCombatEffective) || {!local _postureActor}) exitWith {"IGNORED"};
+        // Retain the mission's concealment policy. Weak self-defence posture/native
+        // combat still operate; observing a hostile cannot authorise RED pursuit here.
+        if (behaviour _postureActor == "STEALTH") exitWith {"ASSESS"};
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if ((_operation getOrDefault ["phase",""]) == "CANCELLED") exitWith {"ASSESS"};
 // MAINTAIN is valid only while a real operation still owns the committed route. A delayed danger
