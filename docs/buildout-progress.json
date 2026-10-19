@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "aa4bc4d2d17349b5670f7161c62885437d20117344372c784c336c64603da985"
+              "sha256": "917f16671fe1e8419e4288170e9f01a27f768e07b4a90dcedecefb3282214ab3"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1562,7 +1562,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
-              "sha256": "937c1fcf81b3b3e49094671331b457cf15a1c98dc8d668890f9029e81ea2e4ea"
+              "sha256": "a01464fbffbffdfa9fcb09884bdb706d18cdff0fec7db1d76ef96fc7e1516823"
             }
           ]
         },

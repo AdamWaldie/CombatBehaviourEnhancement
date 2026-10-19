@@ -21,6 +21,18 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         self.assertIn('setVariable ["CBE_DrivingRecovery_Yield",_routeIdentity,true]',owned)
         self.assertIn('"ORDER_OR_SEATS_CHANGED",false] call CBE_fnc_DrivingRecoveryRelease',owned)
         self.assertLess(text.index('private _recoveryOwned='),text.index('private _mayIssueDriving ='))
+        # Vehicle-level BACK is independent of unchanged unit destinations.
+        mode='toUpperANSI ((vehicleMoveInfo _vehicle) param [0,"",[""]]) != "BACK"'
+        self.assertIn(mode,text)
+        self.assertIn('count _recoveryWork > 0 && {call _destinationControlFree}',text)
+        self.assertIn('if (!_enabled || {!(call _destinationControlFree)}',text)
+        boundary=text.split('private _mayIssueDriving = {',1)[1].split('// A shared group waypoint',1)[0]
+        self.assertIn('call _destinationControlFree',boundary)
+        release=source('drivingRecoveryRelease')
+        self.assertIn(mode,release)
+        self.assertIn('private _owned=_resume && {_destinationControlFree}',release)
+        self.assertIn('private _retainAcrossLocality=_resume && {_destinationControlFree}',release)
+
     def test_operator_fallback_matches_capture_without_accepting_replacement_commander(self):
         release=source('drivingRecoveryRelease')
         self.assertIn('private _liveOperator=effectiveCommander _vehicle;',release)

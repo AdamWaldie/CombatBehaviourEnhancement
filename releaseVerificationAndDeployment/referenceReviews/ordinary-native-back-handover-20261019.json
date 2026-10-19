@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-19",
+  "scope": "Ordinary destination recovery versus independent native BACK",
+  "finding": "Crew command/destination and route receipts did not distinguish an independent vehicle-level native BACK input. Destination recovery could otherwise refresh its route or stop an old rear destination over it.",
+  "implementation": [
+    "Ordinary recovery ownership and active cap/recovery mutation require native mode other than BACK.",
+    "Initial assistance yields BACK even without a recovery journal.",
+    "Release refuses stop/route handback and split-locality retention for BACK; old destination metadata retires without native movement writes. Existing exact speed lease restoration is unchanged."
+  ],
+  "sources": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "917f16671fe1e8419e4288170e9f01a27f768e07b4a90dcedecefb3282214ab3",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "a01464fbffbffdfa9fcb09884bdb706d18cdff0fec7db1d76ef96fc7e1516823"
+  },
+  "validation": {
+    "focused": "Existing recovery cap authority cases passed; no new test cases.",
+    "full": ".qa/cbe-native-back-handover-batch-build.log",
+    "packageFingerprint": "1e73ea0ff915760ef478b7963c0e0bd63cb1cf96bc7a94d1667c9a9a63ad2071",
+    "manifestCommit": "ed4366264176488880f246df93305bb26bdd4376",
+    "manifestDirty": true,
+    "independentVerification": true,
+    "physicalAcceptance": false
+  },
+  "reference": "queue-execution-contract-20261018.json records native mode distinctions; fresh official vehicleMoveInfo fetch returned403, not new documentation verification.",
+  "remaining": [
+    "Ordinary native BACK execution, command acknowledgement and exact mode-specific handback remain missing.",
+    "Queue HOLD/READY and physical dependency execution remain missing.",
+    "Same-value native input replacements remain indistinguishable.",
+    "Physical handover and performance unverified; audits paused."
+  ],
+  "scoresChanged": false,
+  "rawSourcesModified": false
+}

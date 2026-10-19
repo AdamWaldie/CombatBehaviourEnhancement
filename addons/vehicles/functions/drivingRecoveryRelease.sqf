@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native BACK is never authored by destination recovery. Its presence revokes native
+ * stop/route-handback and deferred retention, even when both crew destinations match.
  * Destination recovery is explicitly mode-bound; other native command modes grant no
  * destination handback, cleanup registration or adoption authority through this path.
  * Purpose: Retires a matching ordinary recovery journal; only its exact owned reverse can stop
@@ -61,13 +63,14 @@ private _releaseExpired={
     };
     true
 };
+private _destinationControlFree=toUpperANSI ((vehicleMoveInfo _vehicle) param [0,"",[""]]) != "BACK";
 private _driver=_work get "driver";private _operator=_work get "operator";
 private _liveOperator=effectiveCommander _vehicle;
 if (isNull _liveOperator) then {_liveOperator=driver _vehicle};
 // Vehicle locality can arrive before group/crew locality. Do not mistake that gap
 // for revoked command identity and erase the only public cleanup receipt. This proof
 // permits retention only; ordinary handback below still requires every actual owner.
-private _retainAcrossLocality=_resume && {(_work get "kind") == "REVERSE"}
+private _retainAcrossLocality=_resume && {_destinationControlFree} && {(_work get "kind") == "REVERSE"}
     && {alive _vehicle} && {!isNull _group} && {!isNull _driver} && {!isNull _operator}
     && {driver _vehicle == _driver} && {_liveOperator == _operator}
     && {abs ((getForcedSpeed _vehicle)-(_work get "cap")) <= 0.1}
@@ -98,7 +101,7 @@ if (_retainAcrossLocality && {!local _group || {!local _driver} || {!local _oper
     false
 };
 private _handback="METADATA_ONLY";
-private _owned=_resume && {(_work get "kind") == "REVERSE"}
+private _owned=_resume && {_destinationControlFree} && {(_work get "kind") == "REVERSE"}
     && {alive _vehicle}
     && {local _group} && {!isNull _driver} && {!isNull _operator}
     && {driver _vehicle == _driver} && {_liveOperator == _operator}

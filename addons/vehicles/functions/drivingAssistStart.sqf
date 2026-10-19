@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * An independent native BACK directive yields ordinary assistance and destination recovery.
+ * Crew destinations alone do not own that vehicle-level command; no STOP is sent over it.
  * Destination recovery is explicitly mode-bound; other native command modes grant no
  * destination handback, cleanup registration or adoption authority through this path.
  * Traffic retry journal: current brain/epoch and fresh observation are checked in one unscheduled
@@ -156,7 +158,13 @@ _brain set ["geometryTracks",_geometryTracks];
     };
     // Destination recovery cannot adopt or retire another native command mode.
     if (count _recoveryWork > 0 && {(_recoveryWork getOrDefault ["commandMode","DESTINATION"]) != "DESTINATION"}) then {continue};
-    private _recoveryOwned=count _recoveryWork > 0 && {(_recoveryWork get "group") == _group}
+    // This destination executor never issues native BACK. It belongs to a different
+    // command authority even when crew destinations still match our old journal.
+    private _destinationControlFree={
+        toUpperANSI ((vehicleMoveInfo _vehicle) param [0,"",[""]]) != "BACK"
+    };
+    private _recoveryOwned=count _recoveryWork > 0 && {call _destinationControlFree}
+        && {(_recoveryWork get "group") == _group}
         && {(_recoveryWork get "route") isEqualTo _routeIdentity}
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
         && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}
@@ -181,7 +189,7 @@ _brain set ["geometryTracks",_geometryTracks];
     // cap before it can issue a recovery move; the individual driver checks below retain the
     // vehicle-specific local/remote-control safety boundary.
     private _yieldToOwner=[_group] call CBE_fnc_CortexExternalTakeover;
-    if (!_enabled || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
+    if (!_enabled || {!(call _destinationControlFree)} || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
         || {!([_driver] call CBE_fnc_CortexCombatEffective)} || {isPlayer _driver}
         || {!isNull (_driver getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         || {[_driver] call CBE_fnc_CortexExternalOwner != ""}
@@ -201,7 +209,7 @@ _brain set ["geometryTracks",_geometryTracks];
         // Terrain sampling is deliberately sparse but may still overlap a newer Zeus or specialist
         // order. Preserve that order at the actual cap/recovery command boundary.
         private _mayIssueDriving = {
-            local _group && {local _vehicle}
+            local _group && {local _vehicle} && {call _destinationControlFree}
                 && {[_group] call CBE_fnc_DrivingMovementAvailable}
                 && {driver _vehicle isEqualTo _driver}
                 && {(effectiveCommander _vehicle) in [_movementOperator,objNull]}
