@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Brokers distinct bounded queue-role owner consent without movement or priority.
+ * Purpose: Brokers bounded queue-role consent, explicit root commit and measured hold readiness.
+ * Consent/READY never authorizes a reverse leg; dependency execution remains separate.
  * Locality/authority: Authenticated server remote calls only; BEGIN requires current initiator vehicle/crew/group owner, ACK its expected actual owner.
  * Repeat/JIP: Private32episode registry, fixed2s handshake/30s maximum consent; idempotent replies and exact-token release.
  * A private64-entry vehicle admission journal allows one accepted BEGIN per30seconds,
@@ -8,13 +9,13 @@
  * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE=[token].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
  * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE"])}) exitWith {false};
+if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY"])}) exitWith {false};
 private _sender=remoteExecutedOwner;
 private _registry=localNamespace getVariable ["CBE_DrivingQueue_Agreements",createHashMap];
 localNamespace setVariable ["CBE_DrivingQueue_Agreements",_registry];
@@ -95,11 +96,51 @@ if (_mode == "BEGIN") exitWith {
     {["VERIFY",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _owners;
     true
 };
-if (count _payload != ([1,2] select (_mode == "ACK")) || {!((_payload select 0) isEqualType "")}) exitWith {false};
+if (count _payload != ([1,2] select (_mode in ["ACK","READY"])) || {!((_payload select 0) isEqualType "")}) exitWith {false};
 private _token=_payload select 0;private _record=_registry getOrDefault [_token,createHashMap];
 if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {false};
 if (_mode == "RELEASE") exitWith {
     _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;true
+};
+// COMMIT is separate from consent and can originate only from the actual root owner.
+// READY is an actual participant-owner report, never a public variable or a motion grant.
+if (_mode in ["COMMIT","READY"]) exitWith {
+    if ((_record get "phase") != "AGREED" || {serverTime >= (_record get "expires")}
+        || {!([_record] call _current)}) exitWith {
+        _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;false
+    };
+    if (_mode == "COMMIT") exitWith {
+        private _root=(_record get "vehicles") select 0;
+        private _operator=effectiveCommander _root;if (isNull _operator) then {_operator=driver _root};
+        if (_sender != owner _root || {_sender != owner driver _root}
+            || {_sender != owner _operator} || {_sender != groupOwner group driver _root}) exitWith {false};
+        private _deliveries=_record getOrDefault ["commitDeliveries",0];
+        if (_deliveries >= 2) exitWith {true};
+        _record set ["commitDeliveries",_deliveries+1];
+        _record set ["committed",true];
+        private _message=[_token,_record get "serial",_record get "vehicles",_record get "roles",
+            _record get "dependencies",_record get "context",_record get "deadline",_record get "expires","AGREED"];
+        {["COMMIT",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
+        true
+    };
+    private _vehicle=_payload select 1;
+    if (!(_vehicle isEqualType objNull) || {isNull _vehicle}
+        || {!(_record getOrDefault ["committed",false])}
+        || {!(_vehicle in (_record get "vehicles"))} || {owner _vehicle != _sender}
+        || {owner driver _vehicle != _sender} || {groupOwner group driver _vehicle != _sender}) exitWith {false};
+    private _operator=effectiveCommander _vehicle;if (isNull _operator) then {_operator=driver _vehicle};
+    private _linear=vectorMagnitude velocity _vehicle;private _angular=vectorMagnitude angularVelocity _vehicle;
+    if (owner _operator != _sender || {!finite _linear} || {!finite _angular}
+        || {_linear >= 0.1} || {_angular >= 0.01}) exitWith {false};
+    private _ready=_record getOrDefault ["holdReadyVehicles",[]];_ready pushBackUnique _vehicle;
+    _record set ["holdReadyVehicles",_ready];
+    // Collected reports alone do not prove simultaneous stillness at this observation.
+    private _allSettled=(_record get "vehicles") findIf {
+        private _linear=vectorMagnitude velocity _x;private _angular=vectorMagnitude angularVelocity _x;
+        !finite _linear || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}
+    } < 0;
+    _record set ["holdReady",count _ready == count (_record get "vehicles") && {_allSettled}];
+    true
 };
 if (!((_payload select 1) isEqualType true)) exitWith {false};
 private _until=[_record get "deadline",_record get "expires"] select ((_record get "phase") == "AGREED");

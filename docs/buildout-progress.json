@@ -1486,7 +1486,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingOperationStep.sqf",
-              "sha256": "a7011ff53fbbd6e08604a8482d138dfc402ba0c3825652b05be78616941f1573"
+              "sha256": "92f2742dc8d5be643caa92f670b8b220d9609b22a83b46d973807c4b57ef45dc"
             }
           ]
         },
@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "1e135cb8307206f929cd5cf84e3698b1ac8e3fc1ba6ff70151a1e76c3f8cbd9a"
+              "sha256": "634d7a180045198691310020cbb5770987c7f99eecc48c8e697ed8c56f67bef1"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1609,15 +1609,15 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
-              "sha256": "77be04281df14f7710b915b0b7181caf01c3e753821d1ca8827b5bf99505efae"
+              "sha256": "f21c12ccf2bd0259ad2745629f0aef2c16d03f2f13f004413b4d2db2b1723a47"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "406d6399f9341f67362e1dde7a2863e99d14d594cc4e1d8ceb8b600f0637b2c8"
+              "sha256": "f16e2fcb0c78f22395bed06eb3fffb27d59515cc7fc47c7b49a1e65ffed4ced0"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003"
+              "sha256": "3102a0b21ef92342b069c397afc8ee5884b4bb1d162debfb0e76d27e5c121acb"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueContext.sqf",
@@ -1625,11 +1625,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
-              "sha256": "dd1cf096dc375297f8e5636a676289d4861aecae4306b8330b83b3df394c31a8"
+              "sha256": "5f9d84634a81fe78f734e3a9c9158a52d78be24a268fd776fd05c508e668f529"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "1e135cb8307206f929cd5cf84e3698b1ac8e3fc1ba6ff70151a1e76c3f8cbd9a"
+              "sha256": "634d7a180045198691310020cbb5770987c7f99eecc48c8e697ed8c56f67bef1"
             }
           ]
         },
@@ -1642,7 +1642,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003"
+              "sha256": "3102a0b21ef92342b069c397afc8ee5884b4bb1d162debfb0e76d27e5c121acb"
             }
           ]
         },

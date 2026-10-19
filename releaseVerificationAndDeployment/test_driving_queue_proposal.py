@@ -59,6 +59,30 @@ class QueueProposalTests(unittest.TestCase):
             self.assertIn(proof,server)
         self.assertIn('remoteExecutedOwner != 2',owner)
         self.assertIn('call CBE_fnc_DrivingQueueProposalCurrent',owner)
+        self.assertIn('if (_mode in ["COMMIT","READY"]) exitWith',server)
+        self.assertIn('_sender != owner _root',server)
+        self.assertIn('_record getOrDefault ["committed",false]',server)
+        self.assertIn('_record set ["holdReadyVehicles",_ready]',server)
+        self.assertIn('private _allSettled=(_record get "vehicles") findIf',server)
+        self.assertIn('&& {_allSettled}',server)
+        self.assertIn('_deliveries >= 2',server)
+        self.assertIn('if (_mode == "COMMIT") exitWith',owner)
+        self.assertIn('if (!_duplicate || {!_accepted}) exitWith',owner)
+        hold=(ROOT/'addons/vehicles/functions/drivingQueueHold.sqf').read_text(encoding='utf-8')
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        body='\n'.join(line.split('//',1)[0] for line in hold.split('params [[',1)[1].splitlines())
+        for proof in ('CBE_Driving_Brain','CBE_AIPass_Epoch','serverTime >= _expires',
+                      'CBE_fnc_DrivingQueueTokenClosed','_mode == "APPLIED"',
+                      'holdApplied','holdStillSince','holdReadySent','serverTime-_since >= 1',
+                      '_linear < 0.1','_angular < 0.01','CBE_fnc_DrivingQueueAgreementRelease'):
+            self.assertIn(proof,body)
+        self.assertNotIn('set ["expires",',body)
+        self.assertLess(body.index('if (_updated isNotEqualTo _consent)'),body.index('if (_reportReady) then'))
+        for command in ('forceSpeed','doMove','doStop','setDriveOnPath','sendSimpleCommand','spawn','sleep'):
+            self.assertNotIn(command,body)
+        self.assertEqual(assist.count('call CBE_fnc_DrivingQueueHold'),3)
+        self.assertLess(assist.index('_vehicle forceSpeed _capMps'),assist.index('["APPLIED",_group,_vehicle,_brain]'))
+        self.assertIn('&& {!_queueHold}',assist)
         for text in (server,owner):
             self.assertNotIn('DrivingPassAgreement',text)
             for command in ('doMove','doStop','setDriveOnPath','forceSpeed','setVelocity'):
@@ -106,6 +130,9 @@ class QueueProposalTests(unittest.TestCase):
             self.assertIn(f'private _queueLinearSpeed=vectorMagnitude velocity {actor}',text)
             self.assertIn('!finite _queueLinearSpeed',text)
             self.assertIn('_queueLinearSpeed >= (1/3.6)',text)
+            self.assertIn(f'private _queueAngularSpeed=vectorMagnitude angularVelocity {actor}',text)
+            self.assertIn('!finite _queueAngularSpeed',text)
+            self.assertIn('_queueAngularSpeed >= 0.01',text)
             self.assertNotIn(f'abs speed {actor}',text)
         # Forward-axis speed can be zero during fast translation in either other axis.
         # The norm keeps the original1km/h threshold independent of vehicle orientation.

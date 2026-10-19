@@ -299,10 +299,10 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {(synchronizedWaypoints _waypoint) isEqualTo []}
                 && {(synchronizedTriggers _waypoint) isEqualTo []}
         };
-        private _crewBoardingHold=false;
+        private _crewBoardingHold=false;private _queueHold=false;
         private _mayRecoverRoute = {
             call _mayIssueDriving && {vehicle leader _group isEqualTo _vehicle} && {!(call _nativeWaiting)}
-                && {call _recoveryOrderFree} && {!_crewBoardingHold}
+                && {call _recoveryOrderFree} && {!_crewBoardingHold} && {!_queueHold}
         };
         private _nativeRouteIntent={
             private _command=toUpperANSI currentCommand _movementOperator;
@@ -573,15 +573,16 @@ _brain set ["geometryTracks",_geometryTracks];
                     && {!(behaviour leader _group in ["COMBAT","STEALTH"])} && {getSuppression _driver <= 0.1}
                     && {call _mayRecoverOrdinaryRoute}
             };
-            _crewBoardingHold=[_group,_vehicle,_brain,{call _mayIssueDriving
-                && {call _recoveryOrderFree} && {call _nativeRouteIntent}}] call CBE_fnc_DrivingCrewBoarding;
+            _queueHold=["OBSERVE",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold;
+            _crewBoardingHold=!_queueHold && {[_group,_vehicle,_brain,{call _mayIssueDriving
+                && {call _recoveryOrderFree} && {call _nativeRouteIntent}}] call CBE_fnc_DrivingCrewBoarding};
             private _traffic=if (!_reverseLeg) then {
                 [_vehicle,_capMps] call CBE_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
             // Preserve this observation before gate/body/pedestrian caps replace the row.
             // It affects callback cadence only, not speed or recovery admission.
             private _trafficWatch=_traffic param [5,false,[true]];
-            if (_crewBoardingHold) then {_traffic=[0,_vehicle,-1,time,0]};
+            if (_crewBoardingHold || {_queueHold}) then {_traffic=[0,_vehicle,-1,time,0]};
             if (_rearPathRejected) then {_traffic=[0,_vehicle,-1,time,0]};
             if (_reverseExpired && {((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap])
                 getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK"}) then {
@@ -624,7 +625,7 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
             // Corridor execution is part of this same owner callback, never a second controller.
             // Do not take over an issued/expired rear leg. Existing traffic and pedestrian caps win.
-            private _passingHeadway=if (_crewBoardingHold) then {-1} else {
+            private _passingHeadway=if (_crewBoardingHold || {_queueHold}) then {-1} else {
                 ["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call CBE_fnc_DrivingPassAdmission
             };
             if (_passingHeadway isEqualType 0 && {finite _passingHeadway} && {_passingHeadway >= 0}) then {
@@ -699,6 +700,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     || {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo _entryAssistState}
                     || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _entryRestore}
                     || {abs ((getForcedSpeed _vehicle)-_entryForcedSpeed) > 0.1}
+                    || {_queueHold && {!( ["OBSERVE",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold)}}
                     || {_crewBoardingHold && {!([_group,_vehicle,_brain,{call _mayIssueDriving
                         && {call _recoveryOrderFree} && {call _nativeRouteIntent}}] call CBE_fnc_DrivingCrewBoarding)}}) exitWith {false};
                 // Publish a minimal current cap receipt together with its original baseline.
@@ -711,6 +713,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 _vehicle forceSpeed _capMps;
                 _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
                 _entryAssistState=+_capReceipt;
+                if (_queueHold) then {["APPLIED",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold};
                 _capCommitted=true;
             };
             if (!_capCommitted) then {
@@ -1066,6 +1069,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     _vehicle setVariable ["CBE_DrivingRecovery_Work",_updatedRecovery,true];
                 };
                 if (_crewBoardingHold) then {_recoveryResult="CREW_BOARDING"};
+                if (_queueHold) then {_recoveryResult="QUEUE_HOLD"};
                 _vehicle setVariable ["CBE_DrivingAssist_State",[_capMps,_maximumGrade,time,_group,
                     _progressPosition,_progressAt,_recoveryStage,_recoveryUntil,_recoveryResult,_routeIdentity,_reverseIssued,_trafficWatch]];
                 _vehicle setVariable ["CBE_DrivingAssist_Next",time+([4,1] select (_trafficLimited || {_trafficWatch} || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))];

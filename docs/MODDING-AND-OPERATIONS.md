@@ -363,3 +363,26 @@ This supports crew already trying to enter a driven vehicle. It does not automat
 ### Animated wall and fence gates
 
 The shared ordinary-driving/convoy geometry observer recognises native Wall/Fence-derived objects with a supported indexed door/gate animation source even when their names omit gate or barrier. Recognition uses the same bounded source checks as animated barriers. Static walls remain solid obstacles; ordinary house doors gain no generic fallback. Gate opening still requires authoritative route/crew/lock validation, and fresh physical geometry controls passage regardless of animation or timeout. Unknown animation conventions, automatic closure and physical traversal remain unverified or unimplemented as recorded in the source reviews.
+
+### Queue negotiation motion boundary
+
+Queue proposals and every deferred owner/server revalidation require finite total linear motion below 1 km/h and angular motion below 0.01 rad/s. Pivoting, sliding or falling vehicles cannot qualify through a near-zero forward speed. These are instantaneous admission observations; owner consent still does not establish a held or physically settled vehicle. Automatic queue admission remains inactive pending dependency-ordered native movement and exact phase cancellation/handback. Explicit committed hold and sampled readiness are described below. No speed or reverse command is issued by negotiation.
+
+### Explicit queue hold and measured readiness (development protocol)
+
+A completed queue agreement can now be explicitly committed by its initiating vehicle's actual owner. COMMIT is a separate authenticated server request; AGREED alone never stops a vehicle. Every participant owner must still hold the exact AGREED token, serial, canonical crew/order context and original expiry. One initial commit delivery and one delivery retry are permitted per token. Duplicates preserve the original values and do not reset dwell or expiry. Automatic queue requests remain inactive.
+
+For a current committed participant, the existing ordinary driving callback requests a zero cap from its sole speed writer. It records APPLIED only after writing that cap. READY additionally requires the matching token/current brain, a still-owned zero cap, and samples at least one second apart with total linear speed below 0.1 m/s and angular speed below 0.01 rad/s. These are sampled observations, not a continuous physics guarantee. The server authenticates the reporting participant owner and independently rechecks topology, the reporting vehicle and all participants' current motion before setting aggregate readiness. The record is not an ongoing lease; a future movement phase must revalidate current ownership, hold and physical room. Public markers are never substituted for owner acknowledgement.
+
+Hold metadata lives inside the private agreement, so its original expiry timer retires it even if tactical scheduling stops. The existing driving release owns cap restoration. Changed cap, native order, context, controller or locality revokes cooperation; a changed cap after application is never reacquired by this hold. No new speed writer, movement worker, recurring timer, native STOP, reverse or waypoint is added. Active holds use the existing one-second constrained-driving cadence. Canonical checks cover at most four participants; their engine/metadata cost remains unmeasured.
+
+Explicit local development example, after the initiating vehicle has received AGREED:
+
+```sqf
+private _agreement = leadVehicle getVariable ["CBE_DrivingQueue_Consent", createHashMap];
+if ((_agreement getOrDefault ["phase", ""]) == "AGREED") then {
+    ["COMMIT", [_agreement get "token"]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer", 2];
+};
+```
+
+READY currently ends at the server's hold-readiness record. It does not start a reverse leg, grant passing priority or establish a cleared queue. Dependency-leaf reverse, independently measured full-hull clearance for parent movement, phase-specific native receipts and exact handback remain to implement. Normal/HC interruption, duplicate/delayed delivery, expiry, restoration and actual stationary readiness remain physically unverified while audits are paused. No Zeus module advertises this incomplete behaviour.

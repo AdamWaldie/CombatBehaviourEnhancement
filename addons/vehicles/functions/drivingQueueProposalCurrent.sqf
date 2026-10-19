@@ -3,13 +3,14 @@
  * Purpose: Checks queue roster/role topology and optionally each actual local owner row.
  * Locality/authority: Read-only anywhere; localRows requires real local crew/group/brain and native-route eligibility. Snapshot topology is not owner consent.
  * Repeat/JIP: No state/commands/handlers; re-read before every deferred protocol action.
- * Total finite linear velocity must remain below1km/h, including lateral/vertical motion.
+ * Total finite linear velocity must remain below1km/h, including lateral/vertical motion;
+ * finite angular velocity must remain below0.01rad/s. Pivoting revokes admission.
  * This instantaneous test grants neither an execution hold nor physical READY.
  * Actual owners compare the original vehicle move/turn input too; unchanged crew
  * destinations alone cannot preserve consent after a new independent driving directive.
  * Arguments: 0 vehicles ARRAY [];1 roles ARRAY [];2 dependencies ARRAY [];3 context ARRAY [];4 localRows BOOL false.
  * Return: BOOL current proposal observation, never execution authority.
- * Current callers: DrivingQueueAgreementRequest/Server/Owner.
+ * Current callers: DrivingQueueAgreementRequest/Server/Owner and DrivingQueueHold.
  * Example: [_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent;
  */
 params [["_vehicles",[],[[]]],["_roles",[],[[]]],["_dependencies",[],[[]]],
@@ -55,9 +56,12 @@ for "_i" from 0 to (_n-1) do {
         || {((_ap select 1) vectorDotProduct (_ep select 1)) < cos 5}
         || {((_ap select 2) vectorDotProduct (_ep select 2)) < cos 5}) exitWith {_valid=false};
     private _vehicle=_vehicles select _i;private _driver=driver _vehicle;private _group=group _driver;
-    // speed measures only model-forward motion; lateral sliding/falling must revoke admission too.
+    // Forward speed alone misses sliding/falling, and linear speed misses pivoting.
+    // Both observed motion bounds must hold at every deferred owner/server check.
     private _queueLinearSpeed=vectorMagnitude velocity _vehicle;
-    if (_group in _groups || {!finite _queueLinearSpeed} || {_queueLinearSpeed >= (1/3.6)} || {!canMove _vehicle}
+    private _queueAngularSpeed=vectorMagnitude angularVelocity _vehicle;
+    if (_group in _groups || {!finite _queueLinearSpeed} || {!finite _queueAngularSpeed}
+        || {_queueLinearSpeed >= (1/3.6)} || {_queueAngularSpeed >= 0.01} || {!canMove _vehicle}
         || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
         || {_vehicle getVariable ["CBE_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}) exitWith {_valid=false};

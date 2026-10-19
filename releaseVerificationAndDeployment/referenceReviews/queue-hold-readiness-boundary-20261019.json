@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-19",
+  "scope": "Queue execution boundary and stationary proposal validation",
+  "reviewedCallChain": [
+    "DrivingQueueProposal -> DrivingQueueContext",
+    "DrivingQueueAgreementRequest -> server BEGIN",
+    "DrivingQueueAgreementServer -> owner VERIFY -> server ACK -> owner RESULT AGREED",
+    "DrivingQueueAgreementRelease and original-expiry closures retire consent only",
+    "Explicit root COMMIT -> broker -> owner COMMIT -> private armed consent",
+    "DrivingAssistStart -> DrivingQueueHold OBSERVE -> sole cap write -> APPLIED -> later sampled READY",
+    "Participant READY -> broker current all-motion check -> passive holdReady record; no reverse executor"
+  ],
+  "implemented": [
+    "Proposal and every deferred current-context validation now require finite angular speed below0.01rad/s in addition to total linear speed below1km/h.",
+    "No new messages, speed writer, actor/native movement command, scheduler or automatic queue activation.",
+    "Explicit root-owner COMMIT authenticated against exact AGREED token/context/original expiry; at most initial delivery plus one retry.",
+    "Authenticated owner COMMIT arms private consent without movement commands or new expiry timers.",
+    "DrivingQueueHold OBSERVE/APPLIED feeds the existing sole speed writer; exact token/brain/cap proof plus sampled1s linear<0.1m/s and angular<0.01rad/s permits one owner READY report.",
+    "Server authenticates the participant and checks current motion for all participants before setting aggregate readiness; readiness remains an observation, never a reverse grant.",
+    "Metadata publishes before READY delivery; cap takeover after application closes exact consent instead of reacquisition. Existing consent expiry and driving cap cleanup remain in charge."
+  ],
+  "executionPlan": [
+    "Explicit root-owner COMMIT must bind the exact agreed token/serial/context and original expiry; authenticate it server-side before commanding owners.",
+    "Owners may arm only their own current driving brain and contribute a hold through the existing sole speed writer, retaining native command and cap provenance.",
+    "READY requires exact applied hold proof plus independently observed total linear and angular stillness over a bounded dwell; receipt presence is insufficient.",
+    "Only the dependency leaf may acquire a native reverse leg after all required participants are physically ready. Parent movement requires fresh full-hull room, not leaf acknowledgement.",
+    "Release/expiry/new native order/locality change must retire exact hold requests and restore only owned caps. Do not replay a command or replenish expiry.",
+    "Automatic proposal callers remain inactive until the entire execution/handback path exists."
+  ],
+  "remaining": [
+    "Dependency-leaf reverse, phase-specific native receipts and independently measured full-hull room before parent movement remain unimplemented.",
+    "Explicit commit can safely refuse if an owner has not yet received matching AGREED; it never borrows PENDING. Actual delivery/retry order requires runtime validation.",
+    "READY does not start movement and is not an ongoing motion lease; any future executor must revalidate native context, holds and physical room.",
+    "Automatic queue initiation remains inactive.",
+    "Actual holds, stillness dwell, cancelled/expired restoration, normal/HC/JIP and measured overhead remain unverified."
+  ],
+  "validation": {
+    "tests": 1476,
+    "focusedTests": 24,
+    "focusedLog": ".qa/cbe-queue-hold-focused.log",
+    "buildLog": ".qa/cbe-queue-hold-readiness-final-build.log",
+    "independentLog": ".qa/cbe-queue-hold-readiness-independent.log",
+    "fingerprint": "b8c924ae08e6100a57f89b9949805fdf49c025108a99ef28f31aa4f57bcd225c",
+    "packageSource": "a793ef3e9acf330473fa603cf33bde4aaaa65cbe+dirty unsigned development",
+    "interimLogs": [
+      ".qa/cbe-queue-hold-build.log",
+      ".qa/cbe-queue-hold-final-build.log"
+    ],
+    "interimDisposition": "Passed but superseded by corrected source/guide scope and aggregate current-motion readiness check; final exact artifact independently verified."
+  },
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "paused",
+  "originalFinding": "Current server protocol has BEGIN/ACK/RELEASE; owner protocol has VERIFY/RESULT. There is no COMMIT, speed hold, settled READY or native queue leg. AGREED must not be repurposed as physical movement authority.",
+  "cost": "No new movement scheduler, world query, ray or recurring timer. OBSERVE uses at most4 canonical participants twice per cap sample; APPLIED uses cap metadata. Server READY adds at most4 current motion checks. Native metadata cost remains unmeasured."
+}

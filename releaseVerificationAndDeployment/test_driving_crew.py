@@ -123,7 +123,7 @@ class DrivingCrewTests(unittest.TestCase):
         for command in ('orderGetIn','assignAs','moveIn','forceSpeed','setVelocity','spawn','sleep','execFSM'):
             self.assertNotIn(command,body)
         self.assertEqual(assist.count('call CBE_fnc_DrivingCrewBoarding'),2)
-        self.assertIn('if (_crewBoardingHold) then {_traffic=[0,_vehicle,-1,time,0]}',assist)
+        self.assertIn('if (_crewBoardingHold || {_queueHold}) then {_traffic=[0,_vehicle,-1,time,0]}',assist)
         self.assertIn('&& {!_crewBoardingHold}',assist)
         self.assertIn('"CREW_BOARDING"',step)
 

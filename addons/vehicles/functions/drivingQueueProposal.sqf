@@ -3,9 +3,11 @@
  * Purpose: Proposes a bounded head-on queue roster and rear-to-front room-making dependencies.
  * Locality/authority: Initiating vehicle owner, read-only. Proposed roles are not priority or
  * consent. Remote participant eligibility is observational; actual-owner ACK is separately brokered; a native
- * execution/cleanup FSM remains required and unimplemented. No movement, reservations or speed writes.
+ * reverse/dependency execution remains required and unimplemented. Explicit committed holds
+ * have a separate existing-driving executor. This proposal writes no movement/reservations/speed.
  * Repeat/JIP: Stateless fresh proposal, expires within original retry deadline and two seconds.
- * Stationary admission requires total finite linear velocity below1km/h, not only forward-axis speed.
+ * Stationary admission requires finite total linear velocity below1km/h and angular
+ * velocity below0.01rad/s, not only forward-axis speed. Pivoting is not stationary.
  * This instantaneous observation is not a physically settled HOLD/READY receipt.
  * At most one120m dead-inclusive vehicle query/64 candidates; overflow/fifth chain member refuses.
  * Arguments:0 initiator <OBJECT>,objNull;1 opposing limiting peer <OBJECT>,objNull;
@@ -26,7 +28,9 @@ private _observedEligible={
     if (isNull _object || {!alive _object} || {!canMove _object} || {!simulationEnabled _object}
         || {isObjectHidden _object} || {!(_object isKindOf "LandVehicle")}
         || {private _queueLinearSpeed=vectorMagnitude velocity _object;
-            !finite _queueLinearSpeed || {_queueLinearSpeed >= (1/3.6)}}
+            private _queueAngularSpeed=vectorMagnitude angularVelocity _object;
+            !finite _queueLinearSpeed || {!finite _queueAngularSpeed}
+                || {_queueLinearSpeed >= (1/3.6)} || {_queueAngularSpeed >= 0.01}}
         || {_object getVariable ["CBE_Convoy_Active",false]}
         || {!isNil {_object getVariable "CBE_ExternalDrivingOwner"}}) exitWith {false};
     private _driver=driver _object;private _operator=effectiveCommander _object;

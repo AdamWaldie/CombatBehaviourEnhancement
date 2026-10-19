@@ -811,6 +811,7 @@
         "addons/vehicles/functions/drivingCrewStep.sqf",
         "addons/vehicles/functions/drivingCrewBoarding.sqf",
         "addons/vehicles/functions/drivingQueueContext.sqf",
+        "addons/vehicles/functions/drivingQueueHold.sqf",
         "addons/vehicles/functions/drivingQueueProposal.sqf",
         "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
         "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",

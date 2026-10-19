@@ -7,15 +7,16 @@
  * stops. Old-machine private metadata can retire after locality loss; no command is issued.
  * Valid duplicate VERIFY cannot downgrade AGREED; stale owner context releases exact consent.
  * Machine-private original-expiry closures reject deferred readmission, including after local retirement.
- * No movement, reservation or JIP commands.
- * Arguments: 0 mode STRING empty VERIFY/RESULT;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase].
+ * Explicit server COMMIT arms a hold request only after exact AGREED consent; no native
+ * movement, reservation or JIP commands. The existing driving cap writer executes the hold.
+ * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message.
  * Return: BOOL reply/result handled, not queue movement authority.
  * Current callers: DrivingQueueAgreementServer only.
  * Example: ["VERIFY",_payload] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_owner];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT"])}
-    || {count _payload != ([8,9] select (_mode == "RESULT"))}) exitWith {false};
+if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT"])}
+    || {count _payload != ([8,9] select (_mode != "VERIFY"))}) exitWith {false};
 _payload params ["_token","_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
 if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
     || {!(_vehicles isEqualType [])} || {count _vehicles < 2} || {count _vehicles > 4}
@@ -24,8 +25,9 @@ if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
     || {!(_deadline isEqualType 0)} || {!finite _deadline}
     || {!(_expires isEqualType 0)} || {!finite _expires}) exitWith {false};
 private _owned=_vehicles select {!isNull _x && {local _x}};
-private _phase=["PENDING",_payload param [8,""]] select (_mode == "RESULT");
+private _phase=["PENDING",_payload param [8,""]] select (_mode != "VERIFY");
 if (_mode == "RESULT" && {!(_phase in ["AGREED","REFUSED","RELEASED"])}) exitWith {false};
+if (_mode == "COMMIT" && {_phase != "AGREED"}) exitWith {false};
 private _receiptKey={
     params ["_receipt"];
     ["token","serial","vehicles","roles","dependencies","context","deadline","expires","phase"] apply {
@@ -95,6 +97,23 @@ private _accepted=!_tokenClosed && {serverTime < ([_deadline,_expires] select (_
     if (count _old > 0 && {(_old getOrDefault ["token",""]) != _token}
         && {serverTime < (_old getOrDefault ["expires",-1])}) then {_accepted=false};
 } forEach _owned;
+if (_mode == "COMMIT") exitWith {
+    if (!_duplicate || {!_accepted}) exitWith {
+        [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
+        {private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+            if ((_old getOrDefault ["token",""]) == _token) then {_x setVariable ["CBE_DrivingQueue_Consent",nil]};
+        } forEach _owned;
+        ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];false
+    };
+    {
+        private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        if !(_old getOrDefault ["committed",false]) then {
+            private _armed=createHashMapFromArray (keys _old apply {[_x,_old get _x]});
+            _armed set ["committed",true];_x setVariable ["CBE_DrivingQueue_Consent",_armed];
+        };
+    } forEach _owned;
+    true
+};
 if (_duplicate) exitWith {
     // Delivery is deferred network work: matching receipt values do not establish that
     // this owner's native order and controller admission still match the proposal.
