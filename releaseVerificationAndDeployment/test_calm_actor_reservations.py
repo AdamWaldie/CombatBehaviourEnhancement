@@ -101,6 +101,7 @@ class OperationProgressDomainTests(unittest.TestCase):
             self.assertIn('set ["participantPlatforms"',source)
         rebalance=(ROOT/'addons/infantry/functions/rebalanceRoles.sqf').read_text()
         self.assertIn('call CBE_fnc_CortexActorMoveReserved',rebalance)
+        self.assertIn('currentCommand _actor != "STOP" || {_actor in _entryParticipants}',rebalance)
         self.assertIn('_platforms getOrDefault [netId _x,_x]',rebalance)
         self.assertNotIn('_reservation param [2',rebalance)
 
@@ -129,6 +130,8 @@ class ManoeuvreBuddyReliefTests(unittest.TestCase):
         self.assertIn('+(_intact select 0)',helper)
         for forbidden in ['doMove','doFollow','setVariable','nearEntities']:
             self.assertNotIn(forbidden,helper)
+        candidates=source.split('private _rankCandidates={',1)[1].split('private _units=[];',1)[0]
+        self.assertIn('currentCommand _x != "STOP"',candidates)
         self.assertIn('forEach ([_second,2] call _selectRelief)',source)
         self.assertIn('forEach ([_first,2] call _selectRelief)',source)
         self.assertIn('private _relief=[_coverAvailable,1] call _selectRelief;',source)

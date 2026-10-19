@@ -3,6 +3,8 @@
  * Purpose: Replaces unavailable tactical-role participants with capable surviving soldiers without dropping the active element from progress accounting.
  * Locality/authority: Reads only local actors and updates the current group operation on its owner.
  * Roster/pair publication atomically rechecks current operation and candidate native-task eligibility.
+ * A stopped actor outside the entry roster cannot be recruited. Existing covering/arrival
+ * participants retain the current policy; this does not prove ownership of a later STOP on them.
  * Newly enrolled replacements capture their platform; retained actors never rebind theirs.
  * Protected native tasks and strictly typed finite actor reservations cannot be recruited or retained as active role participants; an earlier roster entry does not override a newer finite owner.
  * Repeat/JIP: Idempotent for an unchanged generation and owner epoch. Only roster changes publish
@@ -35,6 +37,7 @@ private _actorEligible={
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {_reservationFree}
+        && {currentCommand _actor != "STOP" || {_actor in _entryParticipants}}
 };
 private _capable=(units _group) select {[_x] call _actorEligible};
 // Narrow specialist ownership to an eligible ordinary candidate; player/Zeus/group control

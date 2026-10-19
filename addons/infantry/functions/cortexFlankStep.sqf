@@ -279,9 +279,10 @@ private _rankCandidates={
     params ["_candidates"];
     // Reserve selection must honour finite actor tasks before the drill mutates its own roster;
     // the later shared operation roster check cannot undo a carrier already added to a fire team.
+    // These are unassigned replacements, so no current drill cover/arrival hold grants a STOP override.
     _candidates=_candidates select {
         private _reservationFree=!([_x] call CBE_fnc_CortexActorMoveReserved);
-        _reservationFree
+        _reservationFree && {currentCommand _x != "STOP"}
             && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
             && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };

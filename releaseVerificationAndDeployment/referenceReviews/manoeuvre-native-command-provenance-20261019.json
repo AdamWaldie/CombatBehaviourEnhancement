@@ -1,0 +1,61 @@
+{
+  "baseline": "fedab7ef6abdeff4af94e77f3622efe3ba16e8fc",
+  "scope": "Active manoeuvre native command provenance and buddy handoff",
+  "status": "Partial recruitment fix; active-member native STOP and abort cleanup remain open",
+  "source_sha256": {
+    "addons/infantry/functions/combatPairs.sqf": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f",
+    "addons/infantry/functions/cortexFlankStep.sqf": "a7203a337ac9117994e5d6bfc19299ff659fae8f7eee2a9025e80d44f7c592c5",
+    "addons/infantry/functions/cortexFlankEnd.sqf": "a7fb538b7c2c12495b1f43814fa6e1f5e3cc11687e5fc58b653072d8ba0f6d42",
+    "addons/infantry/functions/cortexDrillResume.sqf": "75a3bea227f145236095ef8572d4e37b11c1ea78dfeb3ca9ba0e9aa867df8118",
+    "addons/infantry/functions/cortexAdvanceStart.sqf": "6c354bfbc1a84b088f01bb6a56ff7f9c70279ca65cf3ecfa6cb1bfe7d0bd1c30",
+    "addons/infantry/functions/cortexAssaultStart.sqf": "b4abca863111c95a970166023e38714a6836c33bfd8020834fce6b4eeb358ccc",
+    "addons/infantry/functions/cortexFlankStart.sqf": "4efeb461b39957923452e833e5553a1b0a94ca88ea40aabdebc29f73797cc07a",
+    "addons/support/functions/cortexSupportBoundStart.sqf": "07964ffc92ee1fe0eca077d7b85d9cbffc770bf4f3d72572fba624c6607148ae"
+  },
+  "findings": [
+    {
+      "path": "addons/infantry/functions/combatPairs.sqf",
+      "finding": "Intact eligible pairs are retained; nearest eligible survivors repair orphans. This is pairing metadata, not movement or arrival proof."
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankStep.sqf",
+      "finding": "_actorTaskFree excludes finite actor reservations, specialists and service tasks but does not distinguish a native STOP from a CBE-issued covering/arrival STOP. _rankCandidates has the same STOP admission gap for unassigned relief. _mayIssueMovement delegates to that predicate. Native snapshots at commit protect against changes since observation, not an independent order already present at callback entry.",
+      "writes": [
+        "Cover doStop in _issueMoves",
+        "Arrival doStop in MOVE action commit",
+        "Main bound doMove",
+        "Timed retry doMove",
+        "Recovery rally doMove",
+        "Consolidation doMove"
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankEnd.sqf",
+      "finding": "Movement cleanup filters reservations and service tasks but not independent STOP. On ordinary abort _mayCommand can doFollow for the remaining roster. Completed holds have separate holderRecallReceipts, but those do not prove ownership of active-bound STOP commands."
+    }
+  ],
+  "required_change": [
+    "Record active-drill command provenance at accepted actor admission and each actual native movement/hold write, scoped to token/epoch/generation and actor identity. Reuse existing drill state; no global registry or per-actor worker.",
+    "Compare current native intent with that proof before movement, cover, retry, casualty recruitment and end cleanup. A newer independent command yields that actor and never receives formation-return cleanup.",
+    "Keep current CBE-issued cover/arrival STOP eligible for the next bound; a blanket STOP veto is not a valid fix. New unassigned stopped relief actors must not be recruited.",
+    "Audit initial start, replacement admission and owner-resume paths together. Old-machine proof must not authorize replay after migration. Do not capture a new native baseline merely because a callback ran.",
+    "A native command identical to an owned command may be observationally indistinguishable. State that limit instead of claiming perfect order attribution."
+  ],
+  "validation_required": [
+    "Existing regression cases extended; no new tests.",
+    "Offline full build and package verification after implementation.",
+    "Later physical authored STOP/MOVE interruption during bounds, normal cover-to-move progression, casualty refill, abort cleanup and actual-provider locality transfer. Audits remain paused."
+  ],
+  "acceptance": {
+    "implemented": false,
+    "physical": false,
+    "performance_measured": false,
+    "buildout_scores_changed": false,
+    "new_controller": false
+  },
+  "implementation": {
+    "new_relief": "Unassigned candidates in CortexFlankStep reject native STOP before joining a fire team. RebalanceRoles rejects STOP for actors outside its entry participant roster, with the same predicate rechecked at publication.",
+    "retained_gap": "Already assigned CBE cover/arrival STOP remains eligible under the existing policy. No new command-provenance proof is implemented; newer independent STOP and abort cleanup remain unresolved.",
+    "no_new_tests_or_controller": true
+  }
+}
