@@ -8,6 +8,7 @@
  * An unconfirmed native shot reaches the original deadline without renewal, then parks its
  * registry/token reservation with no recurring scheduler work or duplicate fire request.
  * Qualified event/rejection callbacks restart settlement only; parking is not completion.
+ * Executor failure parks an uncertain native shot without replay or deadline renewal; otherwise it retires the registry.
  * Counter-generation cancellation blocks future shots while uncertain native shots retain
  * their token/quarantine; re-enabling cannot revive queued counter missions.
  * Each dispatched native shot has a monotonic per-mission serial, independent of fired counts.
@@ -30,6 +31,15 @@ private _finish = {
     _battery setVariable ["CBE_AIPass_FireToken", nil, true];
     _battery setVariable ["CBE_AIPass_BusyUntil", nil, true];
     -1
+};
+// Executor loss is not proof that an owner-issued round failed. Keep uncertain
+// native work reserved and parked; qualified callbacks may only settle it later.
+if ((_mission getOrDefault ["executorFailure",""]) != "") exitWith {
+    _mission set ["remaining",0];_mission set ["burstsLeft",0];_mission set ["scoot",false];
+    if (alive _battery && {(_mission get "phase") in ["PENDING","UNCERTAIN"]}) then {
+        _mission set ["phase","UNCERTAIN"];_mission set ["parked",true];
+        -1
+    } else {call _finish}
 };
 if ((_mission get "phase") in ["PENDING", "UNCERTAIN"] && {alive _battery}
     && {time > (_mission get "deadline")}) exitWith {

@@ -71,11 +71,12 @@
  * named waypoint, speed limit and public plan; a short owner-local re-attack interval prevents immediate duplicate runs.
  * Arguments: 0: scheduler job <HASHMAP>; aircraft <OBJECT> is required; target <OBJECT> is optional
  * when an authenticated combined-arms opportunity already selected it.
+ * 1: internal executor failure <STRING>, default empty; only exact current failed-brain jobs may clean up. No attack step runs.
  * Return Value: NUMBER delay for the owning FSM, or -1 after cleanup.
- * Current caller: CBE_fnc_AirAttackOperationStep through the shared scheduler.
+ * Current caller: CBE_fnc_AirAttackOperationStep through the shared scheduler; AirAttackOperationStart for exact executor-failure cleanup.
  * Example: [createHashMapFromArray [["aircraft",_plane]]] call CBE_fnc_CortexAirAttack;
  */
-params [["_job",createHashMap,[createHashMap]]];
+params [["_job",createHashMap,[createHashMap]],["_executorFailure","",[""]]];
 private _aircraft=_job getOrDefault ["aircraft",objNull];
 if (isNull _aircraft) exitWith {-1};
 private _finish={
@@ -110,7 +111,7 @@ private _finish={
         private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call CBE_fnc_FlightLeaseValid
             && {group driver _aircraft == _finishGroup};
         // A newer flight controller owns speed and pilot features. Retire only our bookkeeping.
-        if (_ownsFlight) then {_aircraft limitSpeed (2 * getNumber (configOf _aircraft >> "maxSpeed"))};
+        if (_ownsFlight && {_job getOrDefault ["speedLimitApplied",false]}) then {_aircraft limitSpeed (2 * getNumber (configOf _aircraft >> "maxSpeed"))};
         // Remove exactly the lease-owned waypoint before selecting any authored route. Searching
         // by name remains correct when Zeus added or removed other waypoints and shifted indices.
         private _ownedWaypointName=_job getOrDefault ["ownedWaypointName",""];
@@ -288,6 +289,15 @@ private _finish={
         [_supportSnapshot select 1,_finishGroup,_supportToken,+_supportSnapshot] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
     };
     -1
+};
+if (_executorFailure != "") exitWith {
+    private _failedBrain=_aircraft getVariable ["CBE_AirAttack_Brain",createHashMap];
+    if (!local _aircraft || {!(_executorFailure in ["FSM_START_FAILED","FSM_RESTART_FAILED","FSM_RESTART_EXHAUSTED"])}
+        || {(_failedBrain getOrDefault ["job",createHashMap]) isNotEqualTo _job}
+        || {(_failedBrain getOrDefault ["generation",-1]) != (_aircraft getVariable ["CBE_AirAttack_BrainGeneration",-2])}
+        || {!(_failedBrain getOrDefault ["cancelled",false])} || {!(_failedBrain getOrDefault ["finished",false])}
+        || {(_failedBrain getOrDefault ["cancelReason",""]) != _executorFailure}) exitWith {-1};
+    [_executorFailure,true] call _finish
 };
 private _pilot=driver _aircraft;
 private _group=group _pilot;
@@ -736,6 +746,7 @@ private _interceptRefresh=_job getOrDefault ["airToAir",false] && {_stage == "IN
 if (_interceptRefresh) then {_commandedStage=""};
 if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith {["CONTROL_RELEASED"] call _finish};
 if (_commandedStage != _stage) then {
+    _job set ["speedLimitApplied",true];
     _aircraft limitSpeed (_stageSpeeds select _stageIndex);
     // MOVE waypoint height is not a reliable flight-profile input for native aircraft. Apply one
     // terrain-relative height hint when the leg changes, then leave the flight model alone. The

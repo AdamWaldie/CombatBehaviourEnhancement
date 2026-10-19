@@ -18,6 +18,10 @@
  *   replaced snapshots cannot be promoted to fresh clearance tasks;
  * - observes an active clearance executor at this existing cadence. One ended worker may
  *   resume the same job without new deadlines; failed restart retires only the exact old order;
+ * - services ended exact support/artillery executors on the server during existing group/vehicle
+ *   slices, including remote-owned requesters/batteries; parked terminal shots are never redispatched;
+ * - checks existing aircraft executors during the bounded vehicle sweep; one exact-job restart
+ *   preserves original lease, phase and pending work instead of creating another attack;
  * - retires ended current indoor-actor FSMs from their existing at-most-two registry;
  *   exact cleanup grants no restart or extra investigation lifetime;
  * - re-applies defence-line orders after a locality change;
@@ -75,6 +79,16 @@ private _vehicleCursor=_job get "vehicleCursor";
 private _spotters=_job get "spotters";
 {
     private _group = _x;
+    if (isServer) then {
+        private _supportBrain=_group getVariable ["CBE_Support_Brain",createHashMap];
+        if (count _supportBrain > 0 && {!(_supportBrain getOrDefault ["cancelled",false])}
+            && {!(_supportBrain getOrDefault ["finished",false])}) then {
+            private _supportHandle=_group getVariable ["CBE_Support_Brain_FSM",-1];
+            if !(_supportHandle isEqualType 0 && {finite _supportHandle} && {_supportHandle >= 0} && {!completedFSM _supportHandle}) then {
+                [_supportBrain getOrDefault ["job",createHashMap],0] call CBE_fnc_SupportRequestStart;
+            };
+        };
+    };
     // Aircraft occupants remain eligible for the dedicated air systems below, but the generic
     // infantry/ground-vehicle domain must not install hearing, locality adoption or a group tick.
     // If a previously managed ground group boards an aircraft, release that old owner immediately.
@@ -199,9 +213,30 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
     private _allArtillery=_job get "allArtillery";
     {
         private _vehicle = _x;
+        // Fire missions are server-owned even when the battery belongs to an HC.
+        if (isServer) then {
+            private _fireBrain=_vehicle getVariable ["CBE_Artillery_Brain",createHashMap];
+            if (count _fireBrain > 0 && {!(_fireBrain getOrDefault ["cancelled",false])}
+                && {!(_fireBrain getOrDefault ["finished",false])}) then {
+                private _fireHandle=_vehicle getVariable ["CBE_Artillery_Brain_FSM",-1];
+                if !(_fireHandle isEqualType 0 && {finite _fireHandle} && {_fireHandle >= 0} && {!completedFSM _fireHandle}) then {
+                    [_fireBrain getOrDefault ["mission",createHashMap],0] call CBE_fnc_ArtilleryMissionStart;
+                };
+            };
+        };
         if (isServer && {alive _vehicle} && {getNumber (configOf _vehicle >> "artilleryScanner") == 1}) then {_allArtillery pushBack _vehicle};
         if (local _vehicle && {alive _vehicle}) then {
             private _pilot = driver _vehicle;
+            // Service the original job before the active flag suppresses new admission.
+            // Recovery never selects another contact or renews the original flight lease.
+            private _airBrain=_vehicle getVariable ["CBE_AirAttack_Brain",createHashMap];
+            if (count _airBrain > 0 && {!(_airBrain getOrDefault ["cancelled",false])}
+                && {!(_airBrain getOrDefault ["finished",false])}) then {
+                private _airHandle=_vehicle getVariable ["CBE_AirAttack_Brain_FSM",-1];
+                if !(_airHandle isEqualType 0 && {finite _airHandle} && {_airHandle >= 0} && {!completedFSM _airHandle}) then {
+                    [_airBrain getOrDefault ["job",createHashMap],0] call CBE_fnc_AirAttackOperationStart;
+                };
+            };
             private _attackFlareEligible = _wantAttackFlares && {_vehicle isKindOf "Air"}
                 && {!isNull _pilot} && {alive _pilot} && {!isPlayer _pilot} && {!unitIsUAV _vehicle}
                 && {[group _pilot,"CBE_Cortex_AttackRunFlares_Enable",true] call CBE_fnc_CortexFeatureEnabled}

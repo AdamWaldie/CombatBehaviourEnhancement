@@ -18,6 +18,7 @@
  * When every candidate is exhausted without an accepted lease, publishes NO_RESPONDER once so the
  * requester owner can make its single bounded retry instead of remaining inert for the engagement.
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
+ * An exact executor failure invalidates the request and releases its existing leases; it cannot discover replacements.
  * Arguments: 0: request job <HASHMAP>.
  * Return Value: Next delay in seconds, or -1 on cleanup.
  * Current caller: CBE_fnc_SupportRequestStep as one bounded action under the support request FSM.
@@ -34,7 +35,7 @@ private _requesterReinforce = !isNull _requester && {[_requester,"CBE_AIPass_Rei
 private _requesterCoordinated = !isNull _requester && {[_requester,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 private _requesterSupport = _requesterReinforce || {_requesterCoordinated};
 private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;
-private _valid = !isNull _requester && {!isNull _requesterTransmitter} && {serverTime < (_job get "expiry")}
+private _valid = (_job getOrDefault ["executorFailure",""]) == "" && {!isNull _requester} && {!isNull _requesterTransmitter} && {serverTime < (_job get "expiry")}
     && {missionNamespace getVariable ["CBE_AIPass_Enable",false]}
     && {[_requester,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {_requesterSupport}
@@ -69,6 +70,7 @@ private _kept = [];
 _job set ["leases",_kept];
 if (!_valid) exitWith {
     private _reason=call {
+        if ((_job getOrDefault ["executorFailure",""]) != "") exitWith {_job get "executorFailure"};
         if (isNull _requester) exitWith {"REQUESTER_DELETED"};
         if (serverTime >= (_job get "expiry")) exitWith {"EXPIRED"};
         if (!(missionNamespace getVariable ["CBE_AIPass_Enable",false]) || {!_requesterSupport}

@@ -1707,7 +1707,7 @@
             },
             {
               "path": "addons/vehicles/functions/convoySync.sqf",
-              "sha256": "dfddfa88eb4765a7b23586aad147897ad285d7fc6a2d59980475e43a03d722d0"
+              "sha256": "a7e25836448f96d1cb357469e8e174456cdf75b227e3eeb8fce5a5312d1624f9"
             }
           ]
         },
@@ -2022,7 +2022,7 @@
             },
             {
               "path": "addons/vehicles/functions/convoySync.sqf",
-              "sha256": "dfddfa88eb4765a7b23586aad147897ad285d7fc6a2d59980475e43a03d722d0"
+              "sha256": "a7e25836448f96d1cb357469e8e174456cdf75b227e3eeb8fce5a5312d1624f9"
             }
           ]
         }
@@ -2274,7 +2274,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexArtilleryMissionStep.sqf",
-              "sha256": "06b58582633950726bf7afd29d67e0ac2ba30289cee28fba8af15b97bf5654a1"
+              "sha256": "b5eb19b3e23638ac328a8c95ecdde3a2e6e5e1155138ea9d7fb3d2366ad0200b"
             },
             {
               "path": "addons/support/functions/cortexArtilleryObserve.sqf",
@@ -2769,7 +2769,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportStep.sqf",
-              "sha256": "a6001f0764fc487780486e32de6f89a5f54bec480f819b06c4762d0a00b59ab7"
+              "sha256": "aafa830d813ba4646c05a11df8ef4f6bfc020375cd1b7642b3b62dd52c861ab1"
             }
           ]
         }
@@ -2985,7 +2985,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexArtilleryMissionStep.sqf",
-              "sha256": "06b58582633950726bf7afd29d67e0ac2ba30289cee28fba8af15b97bf5654a1"
+              "sha256": "b5eb19b3e23638ac328a8c95ecdde3a2e6e5e1155138ea9d7fb3d2366ad0200b"
             }
           ]
         }
@@ -3998,7 +3998,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportStep.sqf",
-              "sha256": "a6001f0764fc487780486e32de6f89a5f54bec480f819b06c4762d0a00b59ab7"
+              "sha256": "aafa830d813ba4646c05a11df8ef4f6bfc020375cd1b7642b3b62dd52c861ab1"
             },
             {
               "path": "addons/core/functions/operationRelease.sqf",
@@ -4095,7 +4095,7 @@
             },
             {
               "path": "addons/aircraft/functions/cortexAirAttack.sqf",
-              "sha256": "4ed2305ceba697ad120e591f33450fc09f48fa131fc18fbdd138b1723a41bcdf"
+              "sha256": "bab3c0825c3f6fb1caf0cad9b7711b8803f829819681b0dd8bfb420ed26cec23"
             }
           ]
         },

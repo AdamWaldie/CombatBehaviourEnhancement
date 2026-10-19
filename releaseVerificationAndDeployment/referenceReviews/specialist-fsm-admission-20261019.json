@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-19",
+  "sourceCommit": "b0713619",
+  "scope": "Remaining specialist executor admission and recovery boundaries",
+  "status": "SPECIALIST_LIFECYCLE_BATCH_IMPLEMENTED_PHYSICAL_ACCEPTANCE_OPEN",
+  "findings": [
+    {
+      "subsystem": "CONVOY",
+      "evidence": "ConvoyOperationStart matching revision/token returns true without checking finished state or FSM handle; its final return also ignores execFSM outcome. ConvoySync calls start on registry sync; matching Companion adoption may return before reaching start.",
+      "implementationRequired": "Separate live duplicate admission from executor loss. Preserve original configuration, local spacing/recovery state and job token; do not use the adoption reset path as generic recovery. Trace a bounded existing maintenance entry point before claiming eventual recovery."
+    },
+    {
+      "subsystem": "AIR_ATTACK",
+      "evidence": "Duplicate admission checks target/opportunity/group/flight lease, but not the executor handle. Initial execFSM result is stored then unconditional true returned. The FSM terminal state owns flight lease and lateral pilot feature cleanup.",
+      "implementationRequired": "Keep target/opportunity and original flight budget. Any failed-start or ended-worker cleanup must respect exact lease and pilot-feature receipts; metadata cancellation alone does not release native effects."
+    },
+    {
+      "subsystem": "SUPPORT",
+      "evidence": "Exact serial duplicate admission returns true for an unfinished brain without checking executor. Shared step retains job registry identity and responder lease state.",
+      "implementationRequired": "Preserve exact request job, original deadlines, leases and pending acknowledgements. Do not rediscover/re-reserve responders merely to recover executor liveness."
+    },
+    {
+      "subsystem": "ARTILLERY",
+      "evidence": "Exact token duplicate admission reports true without a handle check. Native PENDING/UNCERTAIN shots retain registry/token at deadline and park without polling. Qualified fired/rejected callbacks deliberately wake settlement.",
+      "implementationRequired": "Preserve phase, shotSerial, due/deadline, original mission object and uncertainty quarantine. Distinguish parked terminal settlement from an unexpectedly ended executor. Never recreate a fire mission or reissue an uncertain shot as recovery."
+    }
+  ],
+  "crossCutting": {
+    "scheduler": "Existing queued callbacks are separate from the FSM. Missing executor is not proof that a pending native command failed. Preserve pending job identity and existing watchdog timing; no blanket timer/worker/replay.",
+    "testPolicy": "Extend meaningful existing lifecycle checks within the implementation batch; no new cases or full pipeline for this source-only review.",
+    "acceptance": "No fault injection, recovery, physical behaviour or overhead has been demonstrated by this review."
+  },
+  "sourceHashes": {
+    "addons/vehicles/functions/convoyOperationStart.sqf": "4a9d52fa9e4304e935b468d109fe45b9df08971db33eb5101e726e44b5fea240",
+    "addons/vehicles/functions/convoySync.sqf": "dfddfa88eb4765a7b23586aad147897ad285d7fc6a2d59980475e43a03d722d0",
+    "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf": "822c3ceb4786d66a229330061893a2f1c044e9d43783c84471c3bbcc30ec032a",
+    "addons/aircraft/functions/airAttackOperationStart.sqf": "021d6a2b0f45f80c3f174ea12df41268aae46c086010dea421663751341a2a0d",
+    "addons/aircraft/functions/airAttackOperationStep.sqf": "e1782c14fe5771fb3fb75051950304b3c71baf72e4a6c5a0022e2431f5854d88",
+    "addons/main/fsm/airAttackOperation.fsm": "130780f8f2acd235dee8de966896a9292653a4ca52074c0408f9c2f431544442",
+    "addons/support/functions/supportRequestStart.sqf": "b5935185a197a7f7670401a6af40d6f01199d24b7b3172a7e891cfa0f3276ebb",
+    "addons/support/functions/supportRequestStep.sqf": "919e729c4dad3f3112f0ceb3dcdda6069464a15b5b9b42dcb558f92443b4f4b0",
+    "addons/support/functions/artilleryMissionStart.sqf": "d1a85544edc34565d318b37c92a8243da84fbdab4684449a7b629f0689b43858",
+    "addons/support/functions/artilleryMissionStep.sqf": "d4c43830678b8024549f6f489ad1c4f959b4adf26c115002d50ca2a473eaca8a",
+    "addons/support/functions/cortexArtilleryMissionStep.sqf": "06b58582633950726bf7afd29d67e0ac2ba30289cee28fba8af15b97bf5654a1",
+    "addons/support/functions/cortexArtilleryFired.sqf": "7624cdcc682000feeaf9fecab536f1077478d950e574390755efd69bddc67415",
+    "addons/support/functions/cortexArtilleryRejected.sqf": "8275870b13bea96e2268c558109710de1d4d9925c82aa0bdda7295b5ea9c5acd"
+  },
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "convoyImplementationInProgress": {
+    "sourceHash": "f0aa2c3bf2ec46bc1df65848cfb144df041f8d522566fa98dfdd95d0e910d64e",
+    "behaviour": "Live same-context admission requires an actual finite active handle. One ended nonterminal executor can resume the same brain through explicit admission, preserving pending callback state, phase, nextAt, watchdog timing, spacing and native recovery journals. Original owner epoch, job token, snapshot and registry membership required. Terminal or exhausted brains refuse admission. Initial execFSM success is checked.",
+    "validation": [
+      ".qa/cbe-convoy-executor-maintenance-hemtt.log",
+      ".qa/cbe-convoy-executor-maintenance-focused.log"
+    ],
+    "existingTestsPassed": 632,
+    "newTestCases": 0,
+    "harnessFailure": "Initial module invocation lacked sibling test import directory; corrected invocation passed all existing operation cases.",
+    "remaining": [
+      "Missing or malformed original brain/registry records are not reconstructed.",
+      "Detection latency scales as five seconds per four registry entries, subject to scheduler budget and low-FPS delays.",
+      "No full package was rebuilt; latest sealed package predates this source change.",
+      "Physical fault injection, terminal native handback, normal/HC travel and performance remain unverified."
+    ],
+    "physicalAcceptance": false,
+    "sourceHashes": {
+      "addons/vehicles/functions/convoyOperationStart.sqf": "f7dddbdfe733d5f4f6700fd25c23dcd74a4abc3631f074a19a1936a3856a6a09",
+      "addons/vehicles/functions/convoySync.sqf": "a7e25836448f96d1cb357469e8e174456cdf75b227e3eeb8fce5a5312d1624f9",
+      "docs/Smart-AI-Pass.md": "2b9e38eea80ced4a41376b4cad688b9b3fe93ad2942af5241ccc8e151e45b6d3"
+    },
+    "automaticService": "One coalesced CONVOY job on the existing budgeted scheduler checks at most four live-registry records per five-second pass. Handle checks skip healthy brains. Cursor is not reset by coalesced snapshots. Missing/terminal brains are not created. No world scan or second PFH.",
+    "terminalCleanup": "Failed startup, failed restart or a second executor loss marks the exact unchanged brain terminal and invokes ConvoyReleaseLocal with its expected token; terminal record prevents maintenance resurrection. Existing native receipt guards preserve successor orders.",
+    "newSharedSchedulerJobs": 1,
+    "newPerFrameHandlers": 0
+  },
+  "aircraftImplementationInProgress": {
+    "sourceHashes": {
+      "addons/aircraft/functions/airAttackOperationStart.sqf": "8e864a1bb751fe15e94a5752ddec3f27e5d4c541fc5ac85c9bf50702954e177f",
+      "addons/aircraft/functions/cortexAirAttack.sqf": "bab3c0825c3f6fb1caf0cad9b7711b8803f829819681b0dd8bfb420ed26cec23",
+      "addons/core/functions/cortexDiscover.sqf": "e1ab249e4ce92212be0bc01585e6f61f214b1b88f220a46e00135382cb86c849"
+    },
+    "implementation": "Actual handle checked at admission/start. One ended exact current job/generation/epoch may resume with original flight lease and pending/phase/deadline state. Existing bounded discovery checks active jobs before the discovery active flag. Terminal failure uses exact current failed-job cleanup before exact lease release. Cleanup resets speed only if this job applied a cap. Zeus/external control blocks restart and exhausted-restart cleanup.",
+    "focused": ".qa/cbe-air-executor-liveness-focused.log",
+    "compiler": ".qa/cbe-air-executor-liveness-hemtt.log",
+    "existingTestsPassed": 614,
+    "newTestCases": 0,
+    "newSchedulerJobs": 0,
+    "newGeometryQueries": 0,
+    "physicalAcceptance": false,
+    "remaining": [
+      "Changed group/owner epoch, invalid lease or unavailable pilot do not authorize restart; missing or malformed jobs are not reconstructed.",
+      "Original cleanup still uses the existing post-attack speed restoration policy; speedLimitApplied proves a write, not a native baseline or intervening same-value command.",
+      "No rebuilt package yet; latest sealed package predates this batch.",
+      "Fault injection, native route/pilot handback, HC and measured overhead remain unverified."
+    ]
+  },
+  "supportArtilleryImplementation": {
+    "sourceHashes": {
+      "addons/core/functions/cortexDiscover.sqf": "dd33cf78454cfcf769dc01f1d5d04740ffee85322b932e7ad7f35b6e7fcf5bde",
+      "addons/support/functions/supportRequestStart.sqf": "ad041403d97ed9383214b70b3a260e5363316f84bce39c117afdeab0d1b4106a",
+      "addons/support/functions/artilleryMissionStart.sqf": "c7277fb2c2e5ce07a5de5b39169964c7a72fb052b5f8efff82fe6e859b439970",
+      "addons/support/functions/cortexSupportStep.sqf": "aafa830d813ba4646c05a11df8ef4f6bfc020375cd1b7642b3b62dd52c861ab1",
+      "addons/support/functions/cortexArtilleryMissionStep.sqf": "b5eb19b3e23638ac328a8c95ecdde3a2e6e5e1155138ea9d7fb3d2366ad0200b"
+    },
+    "implementation": "Same exact record/generation resumes one ended nonterminal executor; real handle required for duplicate admission and initial startup success. Pending callbacks, original phase, deadlines, shot serials and responder reservations persist. Existing server discovery group/vehicle slices service remote-owned requesters/batteries. Terminal support failure invalidates request through existing lease cleanup. Terminal fire-mission failure sets remaining/bursts zero and disables scoot; uncertain issued shot stays reserved and parked until qualified reply settles it.",
+    "focused": ".qa/cbe-support-executor-liveness-focused.log",
+    "compiler": ".qa/cbe-support-executor-liveness-hemtt.log",
+    "existingTestsPassed": 626,
+    "newTestCases": 0,
+    "newSchedulerJobs": 0,
+    "physicalAcceptance": false,
+    "remaining": [
+      "Missing/partial registry records are not reconstructed.",
+      "An ended artillery relocation observer after fire registry retirement is not restarted by this exact mission-admission path.",
+      "Actual shot uncertainty, pending responder acknowledgements, terminal native handback and normal/HC recovery require in-engine evidence.",
+      "Measured performance budget remains unproved."
+    ]
+  },
+  "batchSourceHashes": {
+    "addons/vehicles/functions/convoyOperationStart.sqf": "f7dddbdfe733d5f4f6700fd25c23dcd74a4abc3631f074a19a1936a3856a6a09",
+    "addons/vehicles/functions/convoySync.sqf": "a7e25836448f96d1cb357469e8e174456cdf75b227e3eeb8fce5a5312d1624f9",
+    "addons/aircraft/functions/airAttackOperationStart.sqf": "8e864a1bb751fe15e94a5752ddec3f27e5d4c541fc5ac85c9bf50702954e177f",
+    "addons/aircraft/functions/cortexAirAttack.sqf": "bab3c0825c3f6fb1caf0cad9b7711b8803f829819681b0dd8bfb420ed26cec23",
+    "addons/core/functions/cortexDiscover.sqf": "dd33cf78454cfcf769dc01f1d5d04740ffee85322b932e7ad7f35b6e7fcf5bde",
+    "addons/support/functions/supportRequestStart.sqf": "ad041403d97ed9383214b70b3a260e5363316f84bce39c117afdeab0d1b4106a",
+    "addons/support/functions/artilleryMissionStart.sqf": "c7277fb2c2e5ce07a5de5b39169964c7a72fb052b5f8efff82fe6e859b439970",
+    "addons/support/functions/cortexSupportStep.sqf": "aafa830d813ba4646c05a11df8ef4f6bfc020375cd1b7642b3b62dd52c861ab1",
+    "addons/support/functions/cortexArtilleryMissionStep.sqf": "b5eb19b3e23638ac328a8c95ecdde3a2e6e5e1155138ea9d7fb3d2366ad0200b",
+    "docs/Smart-AI-Pass.md": "1808cf19de6b07a6cf73588a3e099a29d848651a09c9700d0a022d34b231a45d"
+  },
+  "checkpoint": {
+    "fullBuild": ".qa/cbe-specialist-executor-batch-build.log",
+    "independentVerify": ".qa/cbe-specialist-executor-batch-independent.log",
+    "manifestCommit": "b071361990663398447de35c6aedf5072a9ad033",
+    "manifestDirty": true,
+    "fingerprint": "3c9d9ade7c2344628d71b3939372a3a74cec90e52322e49de1016bc3ce5e0b4d",
+    "tests": 1476,
+    "newTestCases": 0,
+    "physicalAcceptance": false,
+    "audits": "PAUSED"
+  }
+}
