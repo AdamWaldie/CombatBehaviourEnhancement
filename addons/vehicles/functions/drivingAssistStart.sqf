@@ -15,6 +15,8 @@
  * above those minima abort. Repair and damage wholly between samples remain unobservable.
  * Traffic route refresh keeps one original two-second native acknowledgement request. Only
  * its issued goal refreshes command proof; unchanged state waits without another attempt.
+ * Pending issued rear requests retain rear pedestrian/body/support and divergence checks;
+ * lack of acknowledgement is not evidence that native movement has not started.
  * Changed or expired unacknowledged requests yield that episode. The public request survives
  * locality changes without renewing its expiry or the existing three-attempt/original deadline.
  * Existing three-attempt/original-deadline limits remain; no queue cascade implied.
@@ -446,8 +448,14 @@ _brain set ["geometryTracks",_geometryTracks];
             private _reverseIssued=_state param [10,(_state param [8,""]) == "CAUTIOUS_REVERSE"];
             private _reverseLeg=(_state param [6,0]) == 2 && {_reverseIssued} && {!_recoveryRequestPending}
                 && {time < (_state param [7,-1])};
+            // An issued doMove may act before expectedDestination acknowledges it.
+            // Keep the rear safety envelope while ownership acknowledgement is pending;
+            // this does not grant forward retry, completion or a renewed deadline.
+            private _pendingRear=_recoveryRequestPending && {_recoveryOwned} && {_reverseIssued}
+                && {(_recoveryWork getOrDefault ["kind",""]) == "REVERSE"};
+            private _rearSafetyRequired=_reverseLeg || {_pendingRear};
             private _rearPathRejected=false;
-            if (_reverseLeg) then {
+            if (_rearSafetyRequired) then {
                 private _rearWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                 private _rearOrigin=_rearWork getOrDefault ["rearOriginASL",[]];
                 private _rearDirection=_rearWork getOrDefault ["rearDirection",[]];
@@ -528,7 +536,8 @@ _brain set ["geometryTracks",_geometryTracks];
                     _state set [8,"REAR_PATH_DIVERGED"];
                 };
             };
-            private _reverseExpired=(_state param [6,0]) == 2 && {_reverseIssued} && {!_reverseLeg};
+            private _reverseExpired=(_state param [6,0]) == 2 && {_reverseIssued} && {!_reverseLeg}
+                && {!_pendingRear || {_rearPathRejected}};
             if (_reverseExpired) then {
                 // Native backing must stop at its original endpoint/deadline even when
                 // combat or a disabled recovery feature currently forbids the forward retry.
@@ -610,9 +619,9 @@ _brain set ["geometryTracks",_geometryTracks];
             // uses the existing traffic lease and faster sampling, and cannot trigger recovery.
             // Check the intended rear direction even while stopped. At the finite rear-leg
             // deadline observe the forward retry, so a rear-only obstacle cannot trap handback.
-            private _travelIntent=if (_reverseLeg) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
+            private _travelIntent=if (_rearSafetyRequired) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
             private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true,_travelIntent] call CBE_fnc_CortexInfantrySpeed;
-            if (_reverseLeg) then {
+            if (_rearSafetyRequired) then {
                 private _rearObservation=[_vehicle,8] call CBE_fnc_DrivingRearClear;
                 if !(_rearObservation select 0) then {_traffic=[0,_vehicle,-1,time,0]};
             };

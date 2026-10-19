@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-19",
+  "scope": "Queue execution lifetime and sole-writer integration",
+  "finding": "Queue BEGIN admits at most30s original expiry. Ordinary recovery uses20s/30s observation windows and a96s hard lifetime. Removing the queue hold veto alone cannot implement queue room-making: it either prevents timely entry or leaves native movement beyond agreement expiry.",
+  "executionSeams": {
+    "hold": "DrivingQueueHold OBSERVE feeds the existing sole speed-cap writer; all nonmoving participants must retain this hold. APPLIED is evidence of cap application, not reverse authority.",
+    "journal": "DrivingAssistStart local _recordRecovery creates public native command and cap provenance. Queue legs need an explicit broker token and original expiry in this existing journal, with deadline and hardDeadline clamped to that expiry; no new independent worker.",
+    "nativeLeg": "Existing rear commit already validates rear observation, native command snapshots, brain and crew. Native BACK requires a separate movement operator and unchanged NONE turn; driver-only doMove is destination control, not demonstrated reverse.",
+    "cleanup": "DrivingRecoveryRelease and Cleanup own exact pending-command handback. Queue expiry must retire motion authority while preserving an unresolved issued-command receipt; clearing consent must not erase that provenance or manufacture route handback.",
+    "movingContext": "Original queue proposal is stationary. A separate moving-phase comparison must freeze other participants while allowing only the selected leaf exact issued command and bounded pose change. No relaxation of the original admission comparison."
+  },
+  "implementationOrder": [
+    "Bind original queue token/expiry to the existing recovery journal and cleanup signature before admitting any native queue leg.",
+    "Add authenticated leaf phase to broker and owner context; original expiry never renews.",
+    "Permit only the selected leaf through the existing sole writer, retaining other holds and fresh rear body clearance.",
+    "Measure separation and independently check parent full-hull room before advancing dependency; then complete exact command/cap handback."
+  ],
+  "limits": "Review only. Automatic queue initiation remains disabled. No motion implemented or physical result claimed. Audits paused.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "634d7a180045198691310020cbb5770987c7f99eecc48c8e697ed8c56f67bef1"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueHold.sqf",
+      "sha256": "dbb26a8700279a2a5da59608b392ff4062f484e570a37bbc6a701d3e8027bf32"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+      "sha256": "f16e2fcb0c78f22395bed06eb3fffb27d59515cc7fc47c7b49a1e65ffed4ced0"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "sha256": "a0ecd6fa6460012160c78f2611634eccb46bce8a6e4087d58b582e0b7d0f148e"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryCleanup.sqf",
+      "sha256": "1b9991e2ff5cec70f789f32942d58446d2ca0081b263afd7ca248ddce6499feb"
+    }
+  ]
+}

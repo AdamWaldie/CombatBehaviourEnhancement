@@ -91,11 +91,16 @@ class DrivingRearMonitorTests(unittest.TestCase):
 
     def test_rear_observation_applies_before_speed_write_without_extending_deadline(self):
         s=src('drivingAssistStart')
-        sample=s.split('if (_reverseLeg) then {',1)[1].split('private _trafficLimited=',1)[0]
+        sample=s.split('if (_rearSafetyRequired) then {',1)[1].split('private _trafficLimited=',1)[0]
         self.assertIn('[_vehicle,8] call CBE_fnc_DrivingRearClear',sample)
         self.assertIn('_traffic=[0,_vehicle,-1,time,0]',sample)
         self.assertNotIn('_recoveryUntil=',sample)
         self.assertLess(s.index('private _rearObservation='),s.index('_vehicle forceSpeed _capMps'))
+        self.assertIn('private _pendingRear=_recoveryRequestPending && {_recoveryOwned} && {_reverseIssued}',s)
+        self.assertIn('(_recoveryWork getOrDefault ["kind",""]) == "REVERSE"',s)
+        self.assertIn('private _rearSafetyRequired=_reverseLeg || {_pendingRear}',s)
+        self.assertIn('&& {!_pendingRear || {_rearPathRejected}}',s)
+        self.assertIn('private _mayRecoverOrdinaryRoute={!_recoveryRequestPending',s)
         self.assertIn('if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]}',s)
     def test_direction_and_issued_receipt_survive_stop_and_expire(self):
         s=src('drivingAssistStart')
@@ -103,7 +108,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('_recoveryResult="CAUTIOUS_REVERSE";_reverseIssued=true',s)
         self.assertIn('_recoveryResult="REAR_BLOCKED";_reverseIssued=false',s)
         self.assertIn('_recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false',s)
-        self.assertIn('if (_reverseLeg) then {-1}',s)
+        self.assertIn('if (_rearSafetyRequired) then {-1}',s)
         self.assertIn('_routeIdentity,_reverseIssued',s)
         observer=(ROOT/'addons/infantry/functions/cortexInfantrySpeed.sqf').read_text(encoding='utf-8')
         self.assertIn('["_travelIntent",0,[0]]',observer)
