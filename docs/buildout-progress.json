@@ -1562,7 +1562,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
-              "sha256": "dab60cd4a201a25bb04d6318ca4621549ebf40e03fd4e5d853d9e770fadbd284"
+              "sha256": "d6cb1c70437ee589d1cba60717569cbff39c0aa1b0db76579dce8b8517a29eac"
             }
           ]
         },

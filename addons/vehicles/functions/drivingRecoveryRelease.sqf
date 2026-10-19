@@ -19,7 +19,9 @@
  * expiry never proves native rejection or authorizes a replay.
  * On the exact current owner, an expired unacknowledged reverse can lower its owned
  * positive cap to zero while retaining command/baseline/deadline proof. This is a safety
- * cap, not acknowledgement or proof of physical stopping. Newer cap/task ownership wins.
+ * cap, not acknowledgement or proof of physical stopping. An exact owned pending reverse
+ * also lowers its cap at the original hard deadline when native stop remains uncertain,
+ * including SIMPLE_BACK after the ordinary callback ends. Newer cap/task ownership wins.
  * Repeat/JIP: Public stage clocks and cap baseline survive migration without command replay.
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
  * Admission, route metadata, native command checks and handback execute without suspension.
@@ -117,17 +119,12 @@ private _retainAcrossLocality=_resume && {_destinationControlFree} && {(_work ge
             || {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}
             || {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])}
     } < 0};
-// Pending/expired unchanged destination requests do not prove rejection of an issued
-// rear move. Retain its exact safety journal/cap; only acknowledged command proof can
-// authorize stop/handback. The original hard deadline still bounds automatic observation.
-if (_retainAcrossLocality && {_commandState in ["PENDING","EXPIRED"]}) exitWith {
-    // An unacknowledged doMove may already be acting. After its original ACK
-    // window, retaining a positive cap would let that uncertain rear request run
-    // while the ordinary callback yields to cleanup. Only lower our exact lease;
-    // never stop/replay a command whose native acknowledgement is still unknown.
+// Both call sites separately establish exact reverse ownership. This helper only
+// lowers that same cap, preserving command/baseline/deadline provenance.
+private _holdOwnedRearCap={
     private _expiredCap=_work get "cap";
     private _assistState=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
-    if (_commandState == "EXPIRED" && {_expiredCap > 0}
+    if (_expiredCap > 0
         && {local _group} && {local _driver} && {local _operator}
         && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {[_group] call CBE_fnc_DrivingMovementAvailable}
@@ -145,6 +142,16 @@ if (_retainAcrossLocality && {_commandState in ["PENDING","EXPIRED"]}) exitWith 
         _vehicle setVariable ["CBE_DrivingRecovery_Work",_heldWork,true];
         _work=_heldWork;
     };
+};
+// Pending/expired unchanged destination requests do not prove rejection of an issued
+// rear move. Retain its exact safety journal/cap; only acknowledged command proof can
+// authorize stop/handback. The original hard deadline still bounds automatic observation.
+if (_retainAcrossLocality && {_commandState in ["PENDING","EXPIRED"]}) exitWith {
+    // An unacknowledged doMove may already be acting. After its original ACK
+    // window, retaining a positive cap would let that uncertain rear request run
+    // while the ordinary callback yields to cleanup. Only lower our exact lease;
+    // never stop/replay a command whose native acknowledgement is still unknown.
+    if (_commandState == "EXPIRED") then {call _holdOwnedRearCap};
     if (call _releaseExpired) exitWith {false};
     if !(_work getOrDefault ["releasePending",false]) then {
         _work set ["releasePending",true];
@@ -193,6 +200,13 @@ private _owned=_resume && {_commandState == "OWNED"} && {_destinationControlFree
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
 } forEach [_driver,_operator];
+// A pending native BACK stop may outlive the ordinary driving callback. At the
+// original hard deadline keep the exact owned reverse constrained before its
+// observation becomes terminal; expiry never grants another STOP or route replay.
+private _hardUntil=_work getOrDefault ["hardDeadline",-1];
+if (_owned && {_work getOrDefault ["releasePending",false]}
+    && {_hardUntil isEqualType 0} && {finite _hardUntil} && {_hardUntil >= 0}
+    && {serverTime >= _hardUntil}) then {call _holdOwnedRearCap};
 if (_owned && {call _releaseExpired}) exitWith {false};
 private _executable=canMove _vehicle && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
     && {[_driver,_operator] findIf {!simulationEnabled _x || {isObjectHidden _x}} < 0};
