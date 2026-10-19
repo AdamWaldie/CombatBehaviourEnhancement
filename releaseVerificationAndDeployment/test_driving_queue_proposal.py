@@ -128,6 +128,21 @@ class QueueProposalTests(unittest.TestCase):
                       '_actor isNotEqualTo _original','_rear < -0.25','(_binding select 3)+0.5',
                       '"queueBinding",[]','simpleAcknowledged','completedFSM','CortexActorMoveReserved'):
             self.assertIn(proof,motion)
+        for proof in ('"CROSSING"','"crossingBinding",[]','"crossingPath",[]',
+                      'count _crossPath > 24','_segmentLength > 8.01','"queueCrossingBinding",[]',
+                      'isEqualTo ["QUEUE",-1]','"driverTask","operatorTask"',
+                      '_actor select [0,8]','_actor select 10','_rootASL distance2D _closest <= 3',
+                      '(_rootWork getOrDefault ["deadline",-1]) == _expires',
+                      '_cap > 8/3.6','_pathSegmentsValid'):
+            self.assertIn(proof,motion)
+        # A crossing is bound to a contiguous short-segment path, not just any
+        # nearby future point. Root identity/route remains separate from own STOP.
+        def segments_valid(points):
+            import math
+            return 2 <= len(points) <= 24 and all(0.01 < math.dist(a,b) <= 8.01 for a,b in zip(points,points[1:]))
+        self.assertTrue(segments_valid([(0,0,0),(0,5,0),(3,9,0)]))
+        self.assertFalse(segments_valid([(0,0,0),(0,50,0),(3,9,0)]))
+        self.assertFalse(segments_valid([(0,0,0),(0,0,0)]))
         for forbidden in (' doMove ',' forceSpeed ','sendSimpleCommand','setVelocity','waitAndExecute'):
             self.assertNotIn(forbidden,motion)
 

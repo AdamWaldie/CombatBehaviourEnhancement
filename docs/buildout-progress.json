@@ -1662,7 +1662,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
-              "sha256": "2001c2aa3184581b21cbfe35efdf0bb0add83ae7ff67080dc6d83cef782ee2ef"
+              "sha256": "717d300230e54951945a8442a33bc5e7cf4c944f34f16c0dff9057caaaceff71"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
