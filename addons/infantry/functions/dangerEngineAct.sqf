@@ -7,6 +7,7 @@
  * changes invalidate the lease and are not overwritten. A committed mover is never forced prone.
  * Idle prone riflemen may perform one native lateral evasion after a hit or near round.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
+ * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
  * It never creates a movement, target or firing lease.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: mode <STRING>, ASSESS; 2: selected record <ARRAY>, [].
  * Return Value: Number - short observation deadline in seconds.
@@ -69,14 +70,10 @@ if (count _operation > 0 && {count _drill > 0}
     _committedMover=_actor in _moving
         || {(_drill getOrDefault ["recovery",[]]) findIf {(_x select 0) == _actor} >= 0};
 };
-// Some finite actor-level opportunities compose beside the group operation. Static deployment,
-// packing, cover, grenade evasion and launcher relocation already own an exact destination and deadline; an immediate
-// danger response must not force these movers prone merely because they are not group participants.
-private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-if (count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time}
-    && {(_actorMove param [0,"",[""]]) in ["STATIC_DEPLOY","STATIC_PACK","DANGER_COVER","GRENADE_EVASION","ANTI_ARMOUR","STATIC_SUPPORT"]}) then {
-    _committedMover=true;
-};
+// Any live actor movement reservation must retain mobility, including individual indoor
+// investigation. Reuse the shared typed/expiry gate rather than maintaining a partial intent list.
+// Unknown reservation state also cannot grant permission to pin its actor prone.
+if ([_actor] call CBE_fnc_CortexActorMoveReserved) then {_committedMover=true;};
 // An idle prone rifleman can react physically without a new destination or a tactical worker.
 // Native actions retain engine collision and animation handling. Never roll a committed mover,
 // override another native action, or replay this response on every danger recycle.

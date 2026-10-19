@@ -200,6 +200,9 @@ if (_mode == "START") exitWith {
         ["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",[]],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosATL _actor]];
+    // Release only this actor's owned danger posture before publishing the incoming task.
+    [_actor] call CBE_fnc_DangerEngineRelease;
+    if !([_group,-1,false,"",objNull,_actor] call CBE_fnc_DangerGroupHideStep) exitWith {false};
     _actor setVariable ["CBE_IndoorActor_Generation",_generation];
     _actor setVariable ["CBE_IndoorActor_Brain",_brain];
     _group setVariable ["CBE_IndoorActor_Actors",_investigators+[_actor]];

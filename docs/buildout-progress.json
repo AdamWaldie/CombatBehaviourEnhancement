@@ -1059,7 +1059,7 @@
             },
             {
               "path": "addons/infantry/functions/dangerEngineAct.sqf",
-              "sha256": "627a8551ac4cf7e0a62baaf803712bd9222fb92b69bcc091456df9674dc58a9c"
+              "sha256": "5777f18cd885ff0a56170db3c715ef76fcf926da4d5803fd9e968a12a5eceac7"
             }
           ]
         },
@@ -1079,7 +1079,7 @@
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "source_commit": "f5e54d0d + actor danger posture handover"
     },
     {
       "id": "CIVILIAN",
@@ -3160,7 +3160,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/indoorActorOperation.sqf",
-              "sha256": "33442bdb9a6308c245165c294d05cfabd2884d108555428f37691fb8535ded5c"
+              "sha256": "a518fd65710a08213ca2aaa7992bc9744ecd2ea70bab70f989ec281515995a25"
             },
             {
               "path": "addons/infantry/functions/indoorActorDispatch.sqf",
@@ -3309,7 +3309,7 @@
       ],
       "confidence": "medium",
       "reviewed_at": "2026-10-19",
-      "source_commit": "f32bcf1f + native planning and shared admission",
+      "source_commit": "f5e54d0d + actor danger posture handover",
       "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
     },
     {

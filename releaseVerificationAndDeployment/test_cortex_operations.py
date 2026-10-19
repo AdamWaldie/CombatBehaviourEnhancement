@@ -8674,13 +8674,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_groupLeases deleteAt _groupLeaseIndex',actor)
         self.assertLess(actor.index('_groupLeases deleteAt'),actor.index('_actor setUnitPosWeak'))
 
-    def test_actor_level_static_and_safety_moves_keep_mobile_danger_posture(self):
+    def test_actor_reservations_keep_mobile_danger_posture_including_indoor(self):
         actor=source('dangerEngineAct')
-        self.assertIn('CBE_Cortex_ActorMove',actor)
-        self.assertIn('(_actorMove param [2,-1,[0]]) > time',actor)
-        for intent in ['STATIC_DEPLOY','STATIC_PACK','DANGER_COVER','GRENADE_EVASION']:
-            self.assertIn('"'+intent+'"',actor)
+        self.assertIn('if ([_actor] call CBE_fnc_CortexActorMoveReserved) then {_committedMover=true;}',actor)
         self.assertLess(actor.index('_committedMover=true'),actor.index('if (_mode == "IMMEDIATE")'))
+        indoor=source('indoorActorOperation')
+        start=indoor.split('if (_mode == "START") exitWith {',1)[1]
+        self.assertLess(start.index('call CBE_fnc_DangerEngineRelease'),start.index('_actor setVariable ["CBE_Cortex_ActorMove"'))
+        self.assertLess(start.index('call CBE_fnc_DangerGroupHideStep'),start.index('_actor setVariable ["CBE_IndoorActor_Brain"'))
+        hide=source('dangerGroupHideStep')
+        handover=hide.split('if (!isNull _releaseActor) exitWith {',1)[1].split('private _release={',1)[0]
+        for guard in ('_remaining deleteAt _index','call _mayRestore','unitPos _releaseActor == _applied','exitWith {false}'):
+            self.assertIn(guard,handover)
+        self.assertNotIn('doMove',handover)
 
     def test_infantry_assessment_does_not_take_mounted_vehicle_destinations(self):
         assess=source('cortexTacticalAssess')
@@ -8884,11 +8890,13 @@ class CortexOperations(unittest.TestCase):
 
     def test_launcher_relocation_remains_mobile_under_immediate_danger(self):
         text=source('dangerEngineAct')
-        actor=text.split('private _actorMove=',1)[1].split('// Forced orders',1)[0]
-        self.assertIn('"ANTI_ARMOUR"',actor)
-        self.assertIn('"STATIC_SUPPORT"',actor)
-        self.assertIn('> time',actor)
-        self.assertIn('_committedMover=true',actor)
+        guard=text.index('call CBE_fnc_CortexActorMoveReserved')
+        self.assertLess(guard,text.index('if (_mode == "IMMEDIATE")'))
+        self.assertIn('_committedMover=true',text)
+        shared=source('cortexActorMoveReserved')
+        self.assertIn('time >= (_lease select 2)',shared)
+        self.assertNotIn('STATIC_SUPPORT',shared)
+        self.assertNotIn('ANTI_ARMOUR',shared)
 
     def test_cover_arrival_does_not_force_return_into_exposure(self):
         text=source('dangerCoverStep')

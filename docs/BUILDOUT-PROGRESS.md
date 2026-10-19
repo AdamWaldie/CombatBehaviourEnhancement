@@ -308,7 +308,7 @@ Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not 
 
 ## GRENADE â€” Grenade avoidance
 
-Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
+Source checkpoint: `f5e54d0d + actor danger posture handover`; reviewed 2026-10-19; confidence: low.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
@@ -719,7 +719,7 @@ Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is no
 
 ## CLEAR â€” Building clearance
 
-Source checkpoint: `f32bcf1f + native planning and shared admission`; reviewed 2026-10-19; confidence: medium.
+Source checkpoint: `f5e54d0d + actor danger posture handover`; reviewed 2026-10-19; confidence: medium.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
