@@ -1776,3 +1776,5 @@ Convoy catch-up adds its bounded outer-band correction continuously from zero, w
 Ordinary recovery journals identify destination-based commands explicitly. Active recovery, release, deferred cleanup and locality adoption handle only that command mode; an unknown mode remains untouched. Existing destination receipts without the field retain their original interpretation. This does not issue a native reverse command or implement queue execution.
 
 Ordinary driving shutdown also preserves the cap and saved restoration baseline when a recovery journal declares another command mode. It refuses before helper cleanup or cap adoption and rechecks inside the final cap-restoration transaction. A command-specific release refusal cannot fall through into destination-based speed restoration.
+
+A surviving danger response extends the current group brain's responsive deadline even when the 0.5-second immediate-wake throttle is closed. Only wake requests are throttled; a stronger event cannot inherit an earlier, shorter scheduling window. This changes scheduling continuity, not event priority, response duration, target knowledge or movement ownership.

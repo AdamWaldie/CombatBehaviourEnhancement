@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Response-deadline extension is independent of the group wake throttle. A stronger event
+ * inside that throttle retains the complete surviving response window without extra wakes.
  * Purpose: Assess current danger, publish one finite response context and wake the existing group tactics FSM without creating a second tactical owner.
  * Locality / Authority: owner-local; never reveals targets or sends movement commands.
  * Repeat/JIP: generation-checked response context is public for diagnostics; a new owner rebuilds it from fresh observations.
@@ -251,12 +253,15 @@ if (count _brain == 0) then {
     [_group,true] call CBE_fnc_GroupBrainStart;
     _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
 };
-if (count _brain > 0 && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}
-    && {time >= (_group getVariable ["CBE_Danger_WakeAfter",0])}) then {
-    _group setVariable ["CBE_Danger_WakeAfter",time+0.5];
+if (count _brain > 0 && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}) then {
+    // A throttled wake is not a shortened response. A newly accepted stronger event may
+    // outlive the previous window even though no second immediate wake is necessary.
     _brain set ["responsiveUntil",_responsiveUntil max (_brain getOrDefault ["responsiveUntil",0])];
-    _brain set ["wakeAt",time];
-    _brain set ["nextAt",time];
-    missionNamespace setVariable ["CBE_AIPass_NextJobDue",time];
+    if (time >= (_group getVariable ["CBE_Danger_WakeAfter",0])) then {
+        _group setVariable ["CBE_Danger_WakeAfter",time+0.5];
+        _brain set ["wakeAt",time];
+        _brain set ["nextAt",time];
+        missionNamespace setVariable ["CBE_AIPass_NextJobDue",time];
+    };
 };
 0.25

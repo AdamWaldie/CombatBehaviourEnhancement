@@ -502,6 +502,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_effectiveResponse select 3',step)
         self.assertIn('_brain set ["responsiveUntil",_responsiveUntil max (_brain getOrDefault ["responsiveUntil",0])]',step)
         self.assertNotIn('_brain set ["responsiveUntil",time+_responseLifetime]',step)
+        tail=step.split('// A group retains one movement/decision owner.',1)[1]
+        self.assertLess(tail.index('_brain set ["responsiveUntil"'),tail.index('if (time >= (_group getVariable ["CBE_Danger_WakeAfter"'))
+        self.assertLess(tail.index('if (time >= (_group getVariable ["CBE_Danger_WakeAfter"'),tail.index('_brain set ["wakeAt"'))
         self.assertIn('CBE_fnc_GroupBrainStart',step)
         self.assertIn('_state deleteAt "wakeAt"',scheduler)
         self.assertIn('getOrDefault ["wakeAt",_dueAt]',scheduler)

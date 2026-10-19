@@ -1,0 +1,10 @@
+{
+  "finding": "DangerStep extended responsiveUntil only inside immediate wake throttle. A stronger event accepted within0.5s could extend response expiry but leave shorter brain cadence window. Empty-queue assessments do not extend that brain deadline.",
+  "implementation": "For current owner epoch, extend responsiveUntil from surviving effective response before testing wake throttle. wakeAt/nextAt and scheduler due hint remain inside unchanged0.5s throttle. No new wake, response duration, priority, target knowledge or movement command.",
+  "source_sha256": "584553c4d4efe3e85e73d81e80c86cd03c007e37283336b5de54cfc54879fbb2",
+  "validation": "Full .qa/cbe-danger-response-wake-window-build.log and independent verification passed; fingerprint f42cc7dcdbe1af2c1a398baa9493730bc8df66ffbb4da3de0eef1f58d0d538d7, manifest85dcef5d+dirty development.",
+  "tests": "Existing assertion extended; no new tests. AST review found no identical same/cross-file test bodies or shadowed test names. Prior complete suite log recorded1476 tests/11.322s; this does not establish runtime performance or test quality.",
+  "physical_acceptance": false,
+  "audits": "PAUSED",
+  "scores_changed": false
+}
