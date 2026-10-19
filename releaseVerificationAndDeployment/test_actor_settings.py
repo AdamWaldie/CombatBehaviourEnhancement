@@ -22,6 +22,7 @@ class ActorSettingsTests(unittest.TestCase):
             self.assertLess(s.index(required),s.index('private _nextOwned='))
         self.assertLess(s.index('count units _group > 64'),s.index('call CBE_fnc_CortexExternalTakeover'))
         self.assertIn('call _write',apply)
+        self.assertIn('then {toUpperANSI (unitPos _actor)} else {getForcedSpeed _actor}',s)
     def test_preserve_baseline_and_refuse_changed_or_replaced_context(self):
         s=core()
         self.assertIn('(_oldContext select 1) != _issuer',s)

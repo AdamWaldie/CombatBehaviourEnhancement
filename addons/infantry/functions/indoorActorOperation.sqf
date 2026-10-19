@@ -202,6 +202,7 @@ if (_mode == "START") exitWith {
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosATL _actor]];
     // Release only this actor's owned danger posture before publishing the incoming task.
     [_actor] call CBE_fnc_DangerEngineRelease;
+    if ((_actor getVariable ["CBE_Danger_EngineStanceLease",[]]) isNotEqualTo []) exitWith {false};
     if !([_group,-1,false,"",objNull,_actor] call CBE_fnc_DangerGroupHideStep) exitWith {false};
     _actor setVariable ["CBE_IndoorActor_Generation",_generation];
     _actor setVariable ["CBE_IndoorActor_Brain",_brain];

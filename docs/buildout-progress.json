@@ -3114,7 +3114,7 @@
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "0c4bd9ea4735d36eb79bd75566566aaa5b52bea0b6009010c660c992f2a4fca7"
+              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
@@ -3143,7 +3143,7 @@
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "0c4bd9ea4735d36eb79bd75566566aaa5b52bea0b6009010c660c992f2a4fca7"
+              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
@@ -3160,7 +3160,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/indoorActorOperation.sqf",
-              "sha256": "a518fd65710a08213ca2aaa7992bc9744ecd2ea70bab70f989ec281515995a25"
+              "sha256": "b9a7f96d052404f950c1fff2cf305baf995dea89d62ada8bc23a86572eb1d7f6"
             },
             {
               "path": "addons/infantry/functions/indoorActorDispatch.sqf",
@@ -3185,7 +3185,7 @@
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "0c4bd9ea4735d36eb79bd75566566aaa5b52bea0b6009010c660c992f2a4fca7"
+              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
@@ -3206,7 +3206,7 @@
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "0c4bd9ea4735d36eb79bd75566566aaa5b52bea0b6009010c660c992f2a4fca7"
+              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
@@ -3231,7 +3231,7 @@
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "0c4bd9ea4735d36eb79bd75566566aaa5b52bea0b6009010c660c992f2a4fca7"
+              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
@@ -3256,7 +3256,7 @@
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "0c4bd9ea4735d36eb79bd75566566aaa5b52bea0b6009010c660c992f2a4fca7"
+              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
@@ -3298,7 +3298,7 @@
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "0c4bd9ea4735d36eb79bd75566566aaa5b52bea0b6009010c660c992f2a4fca7"
+              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
@@ -3309,7 +3309,7 @@
       ],
       "confidence": "medium",
       "reviewed_at": "2026-10-19",
-      "source_commit": "f5e54d0d + actor danger posture handover",
+      "source_commit": "c2aca953 + native stance normalisation and retained restoration",
       "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
     },
     {

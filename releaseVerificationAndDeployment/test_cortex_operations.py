@@ -8824,11 +8824,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_objects=(_ranked select [0,10])',text)
         self.assertLess(text.index('forEach _placed'),text.index('_ranked sort true'))
 
-    def test_danger_release_retires_lease_before_yielding_to_actor_reservation(self):
+    def test_danger_release_retains_blocked_original_and_confirms_restore(self):
         release=source('dangerEngineRelease')
         guard=release.index('["ACTOR_RESERVATION"] call _evidence')
         self.assertLess(release.index('setVariable ["CBE_Danger_EngineResponse",nil]'),guard)
-        self.assertLess(release.index('setVariable ["CBE_Danger_EngineStanceLease",nil]'),guard)
+        self.assertIn('params ["_reason",["_retire",false]]',release)
+        self.assertIn('if (_retire) then',release)
+        self.assertNotIn('["ACTOR_RESERVATION",true]',release)
+        self.assertNotIn('["NATIVE_TASK_OR_MEDICAL",true]',release)
+        self.assertIn('["STANCE_CHANGED",true]',release)
+        self.assertIn('["RESTORED",true]',release)
+        self.assertIn('!= _prior) exitWith {["RESTORE_PENDING"]',release)
+        self.assertNotIn('_prior="AUTO"',release)
         self.assertLess(guard,release.index('_actor setUnitPosWeak _prior'))
         self.assertIn('if ([_actor] call CBE_fnc_CortexActorMoveReserved) exitWith {',release)
         self.assertNotIn('enableAI',release)

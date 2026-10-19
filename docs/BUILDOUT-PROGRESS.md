@@ -719,7 +719,7 @@ Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is no
 
 ## CLEAR â€” Building clearance
 
-Source checkpoint: `f5e54d0d + actor danger posture handover`; reviewed 2026-10-19; confidence: medium.
+Source checkpoint: `c2aca953 + native stance normalisation and retained restoration`; reviewed 2026-10-19; confidence: medium.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |

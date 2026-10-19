@@ -319,3 +319,5 @@ The clearance adapter binds acquisition to the current operation, building trans
 Release restores a setting only while its native value still matches the last CBE value. Later mission edits survive. Unconfirmed restoration retains the remaining original/applied pairs and permits at most one retry per second through the existing finite cleanup caller. It creates no worker and does not renew the caller deadline. Existing clearance mirrors support the movement journal but cannot replace the canonical receipt.
 
 This foundation currently serves clearance. Initial network receipt readiness, cleanup after the finite caller expires and adoption by other behaviour subsystems remain incomplete. Static readback guards do not prove engine acknowledgement, physical movement or performance.
+
+Native stance-rule reads are normalised to uppercase before settings enum validation and receipt comparison. Arma documents mixed-case `unitPos` values; their spelling must not make a valid actor fail settings admission. This reads the position rule, not the current animation stance.

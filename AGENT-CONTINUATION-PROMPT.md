@@ -1,3 +1,15 @@
+## Latest native stance-rule correction
+
+Current local batch afterc2aca953 includes retained DangerEngineRelease restoration plus ActorSettings native getter normalisation: toUpperANSI(unitPos actor) before enum validation/equality. Official unitPos documentation lists Auto/Up/Middle/Down and notes weak stance is not returned remotely. The previous strict uppercase enum plus raw getter could refuse valid CQB admission. Source https://community.bistudio.com/wiki/unitPos; stance https://community.bistudio.com/wiki/stance distinguishes physical animation. Do not use remote getter or stance as portable settings acknowledgement.
+
+Full offline build/independent verify passed: .qa/cbe-native-stance-rule-build.log / verify.log; fingerprint6efbb29636540f85dd0b9a75260e1e1c6a504611eecff81a77812a653cc83fc9, manifestc2aca953+dirtydevelopment. Existing tests extended, no new tests/workers. Scores unchanged; no physical acceptance. AuditsPAUSED. Includes earlier engine restore retention and indoor refusal while unresolved. No eventual cleanup guarantee after callers cease.
+
+## Current local actor danger restoration retention
+
+After local committed c2aca953, DangerEngineRelease no longer deletes original stance proof before its guard. Existing native task/reservation refusal and unconfirmed native restore retain the record. Explicit retirement flag applies only on restored/changed-native or retired authority/owner/generation paths. Invalid stance proof no longer manufactures AUTO. Indoor START refuses while retained engine stance remains before actor-scoped group-hide release and task publication. No added retry worker, timer or test; existing callers can retry, eventual cleanup still not guaranteed.
+
+Full offline gates and independent verify passed: .qa/cbe-danger-restore-retention-build.log / verify.log; fingerprint7632b3cd7cb0fd054c44f0cb736ce01f8f4bfd0ef5b0e5383f6492aab06eb01f, manifestc2aca953+dirtydevelopment. Build-out scores unchanged, affected evidence reassessed. Physical acknowledgement/repeat handover remain unverified; auditsPAUSED. These changes are local for next coherent checkpoint; remote draftPR17 remains f5e54d0d.
+
 ## Latest actor danger posture handover batch
 
 Current local implementation after pushedf5e54d0d combines shared reservation mobile posture with actor-scoped group-hide release. DangerEngineAct no longer omits INDOOR_INVESTIGATE from mobile actors. Indoor START calls DangerEngineRelease, then DangerGroupHideStep sixth optional releaseActor mode before publishing brain/order/reservation. That mode touches only the selected actor row, preserves changed native stance, checks current owner/proof, and retains unconfirmed/blocked restoration while refusing admission; other soldiers keep their group posture. No new worker/timer/controller. Existing regression tests extended, no additions.

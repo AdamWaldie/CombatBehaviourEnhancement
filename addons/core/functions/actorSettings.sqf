@@ -11,6 +11,7 @@
  * 2 context ARRAY [] = [group,issuer token,operation generation,owner epoch,server deadline];
  * 3 requested HASHMAP empty, supported keys STANCE (AUTO/UP/MIDDLE/DOWN), SPEED (-1 or >=0).
  * Return: STRING APPLIED/OWNED/ADOPTED/RELEASED/ABSENT/CHANGED/PENDING/REFUSED.
+ * Native stance rule names are normalised before enum validation and exact receipt comparisons.
  * A settings acknowledgement never grants movement, target or physical-progress authority.
  * Current callers: CortexClearSettingsApply and CortexClearSettingsRelease.
  * Example: ["APPLY",soldier1,[_group,"task-token",4,2,serverTime+30],createHashMapFromArray [["SPEED",4]]] call CBE_fnc_ActorSettings;
@@ -44,7 +45,7 @@ _result=call {
         _key == "SPEED" && {_value isEqualType 0} && {finite _value} && {_value == -1 || {_value >= 0}}
     };
     if (keys _requested findIf {!([_x,_requested get _x] call _valueValid)} >= 0) exitWith {"REFUSED"};
-    private _read={params ["_key"];if (_key == "STANCE") then {unitPos _actor} else {getForcedSpeed _actor}};
+    private _read={params ["_key"];if (_key == "STANCE") then {toUpperANSI (unitPos _actor)} else {getForcedSpeed _actor}};
     private _same={params ["_key","_a","_b"];if (_key == "STANCE") then {_a isEqualTo _b} else {abs (_a-_b) <= 0.00001}};
     private _write={params ["_key","_value"];if (_key == "STANCE") then {_actor setUnitPos _value} else {_actor forceSpeed _value}};
     private _lease=_actor getVariable ["CBE_ActorSettings",[]];
