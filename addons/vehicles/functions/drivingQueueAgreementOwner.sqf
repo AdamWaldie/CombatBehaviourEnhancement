@@ -13,7 +13,7 @@
  * long/short rear observer. Blocked leaf refuses before a committed hold; no target
  * is retained and command admission must resample. At most two bounded rear observations
  * per leaf preflight; no recurring scan or new worker.
- * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE/CHECK_ROOM;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message; ARM/EXECUTE optionally append [phaseSerial,movingIndex,heldIndices]; CHECK_ROOM appends request serial1..2 and phaseSerial.
+ * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE/CHECK_ROOM/CROSS_PLAN;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message; ARM/EXECUTE optionally append [phaseSerial,movingIndex,heldIndices]; CHECK_ROOM/CROSS_PLAN append request serial1..2 and phaseSerial. CROSS_PLAN stores a private geometry proposal only, never a crossing grant.
  * PREPARE binds all this owner's settled participants to original token/expiry and their brains.
  * PREPARED acknowledges only those verified applied holds; the server waits for every owner.
  * It adds no timer, native command, cached clearance or execution permission.
@@ -25,8 +25,8 @@
  * Example: ["VERIFY",_payload] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_owner];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE","CHECK_ROOM"])}
-    || {!(count _payload in (if (_mode == "CHECK_ROOM") then {[11]} else {
+if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE","CHECK_ROOM","CROSS_PLAN"])}
+    || {!(count _payload in (if (_mode in ["CHECK_ROOM","CROSS_PLAN"]) then {[11]} else {
         if (_mode in ["ARM","EXECUTE"]) then {[9,10]} else {[[8],[9]] select (_mode != "VERIFY")}
     }))}) exitWith {false};
 _payload params ["_token","_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
@@ -124,6 +124,31 @@ if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}
     && {_requestedPhase < _currentPhase}) exitWith {true};
 if (_mode in ["ARM","EXECUTE"] && {_requestedPhase > _currentPhase+1
     || {_mode == "EXECUTE" && {_requestedPhase != _currentPhase}}}) exitWith {false};
+if (_mode == "CROSS_PLAN") exitWith {
+    private _root=_vehicles select 0;private _planSerial=_payload select 9;private _planPhase=_payload select 10;
+    if (_tokenClosed || {!_duplicate} || {!(_root in _owned)}
+        || {!(_planSerial isEqualType 0)} || {!(_planSerial in [1,2])}
+        || {!(_planPhase isEqualType 0)} || {_planPhase != _currentPhase}) exitWith {false};
+    private _rootConsent=_root getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+    if ((_rootConsent getOrDefault ["movingIndex",-1]) != 1
+        || {_currentPhase != count _vehicles-2}
+        || {!([_rootConsent,true] call CBE_fnc_DrivingQueueReverseCurrent)}) exitWith {false};
+    private _before=_rootConsent getOrDefault ["crossingPlanReceipt",[]];
+    if (_before isEqualType [] && {count _before == 4} && {(_before select 0) >= _planSerial}) exitWith {true};
+    private _yield=_vehicles select 1;
+    private _solid=[0,_yield,_root distance _yield,time,0,"STATIC",0,0,[getPosWorld _yield,vectorDir _yield,vectorUp _yield]];
+    private _proposal=[_root,_solid,[1,-1] select (_planSerial == 2),[],_rootConsent] call CBE_fnc_DrivingBypassPlan;
+    if (serverTime >= _expires || {(_root getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isNotEqualTo _rootConsent}
+        || {!([_rootConsent,true] call CBE_fnc_DrivingQueueReverseCurrent)}) exitWith {false};
+    private _next=createHashMapFromArray (keys _rootConsent apply {[_x,_rootConsent get _x]});
+    _next set ["crossingPlanReceipt",[_planSerial,_currentPhase,_proposal select 0,_proposal select 1]];
+    _next set ["crossingProposal",if (_proposal select 0) then {_proposal} else {[]}];
+    _root setVariable ["CBE_DrivingQueue_Consent",_next];
+    // Geometry evidence is not an execution acknowledgement. No native/cap writer here.
+    ["CROSS_PLANNED",[_token,_root,_currentPhase,_planSerial,[_proposal select 0,_proposal select 1]]]
+        remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
+    true
+};
 if (_mode == "CHECK_ROOM") exitWith {
     if (_tokenClosed || {!_duplicate} || {count _vehicles < 3}) exitWith {false};
     private _requestedRoomPhase=_payload select 10;

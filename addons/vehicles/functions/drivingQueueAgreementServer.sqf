@@ -10,13 +10,13 @@
  * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM/CROSS_PLANNED;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation]; CROSS_PLANNED=[token,root,phaseSerial,requestSerial,[valid,reason]].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
  * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED","HELD","ROOM"])}) exitWith {false};
+if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED","HELD","ROOM","CROSS_PLANNED"])}) exitWith {false};
 private _sender=remoteExecutedOwner;
 private _registry=localNamespace getVariable ["CBE_DrivingQueue_Agreements",createHashMap];
 localNamespace setVariable ["CBE_DrivingQueue_Agreements",_registry];
@@ -24,6 +24,19 @@ private _current={params ["_record"];
     if ("motionBinding" in _record) exitWith {[_record,false] call CBE_fnc_DrivingQueueReverseCurrent};
     [_record get "vehicles",_record get "roles",_record get "dependencies",_record get "context",false]
         call CBE_fnc_DrivingQueueProposalCurrent
+};
+// At most one side per authenticated owner callback and two sides per original
+// episode. No planning timer, deadline renewal or movement permission is added.
+private _requestCrossingPlan={
+    params ["_record"];
+    private _attempt=_record getOrDefault ["crossingPlanRequested",0];
+    if (_attempt >= 2 || {serverTime >= (_record get "expires")}) exitWith {false};
+    _attempt=_attempt+1;_record set ["crossingPlanRequested",_attempt];
+    private _queueVehicles=_record get "vehicles";
+    private _message=[_record get "token",_record get "serial",_queueVehicles,_record get "roles",_record get "dependencies",
+        _record get "context",_record get "deadline",_record get "expires","AGREED",_attempt,_record getOrDefault ["phaseSerial",0]];
+    ["CROSS_PLAN",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",owner (_queueVehicles select 0)];
+    true
 };
 private _send={params ["_record"];
     private _message=[_record get "token",_record get "serial",_record get "vehicles",_record get "roles",
@@ -98,7 +111,7 @@ if (_mode == "BEGIN") exitWith {
     {["VERIFY",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _owners;
     true
 };
-private _payloadCount=if (_mode == "ROOM") then {6} else {[1,2] select (_mode in ["ACK","READY","HELD","ARMED"])};
+private _payloadCount=if (_mode == "ROOM") then {6} else {if (_mode == "CROSS_PLANNED") then {5} else {[1,2] select (_mode in ["ACK","READY","HELD","ARMED"])}};
 if (count _payload != _payloadCount || {!((_payload select 0) isEqualType "")}) exitWith {false};
 private _token=_payload select 0;private _record=_registry getOrDefault [_token,createHashMap];
 if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {false};
@@ -129,7 +142,30 @@ if (_mode == "HELD") exitWith {
         private _message=[_token,_record get "serial",_vehicles,_record get "roles",_record get "dependencies",
             _record get "context",_record get "deadline",_record get "expires","AGREED",_reports+1,_record getOrDefault ["phaseSerial",0]];
         ["CHECK_ROOM",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",owner _parent];
+    } else {
+        if ((_record getOrDefault ["crossingPlanRequested",0]) == 0) then {[_record] call _requestCrossingPlan};
     };
+    true
+};
+if (_mode == "CROSS_PLANNED") exitWith {
+    _payload params ["_planToken","_root","_planPhase","_planSerial","_result"];
+    if (!(_root isEqualType objNull) || {isNull _root} || {_root != ((_record get "vehicles") select 0)}
+        || {owner _root != _sender} || {owner driver _root != _sender}
+        || {owner effectiveCommander _root != _sender} || {groupOwner group driver _root != _sender}
+        || {!(_planPhase isEqualType 0)} || {_planPhase != (_record getOrDefault ["phaseSerial",0])}
+        || {!(_planSerial isEqualType 0)} || {!(_planSerial in [1,2])}
+        || {_planSerial != (_record getOrDefault ["crossingPlanRequested",0])}
+        || {(_record getOrDefault ["movingIndex",-1]) != 1}
+        || {(_record get "phase") != "AGREED"} || {serverTime >= (_record get "expires")}
+        || {!(_result isEqualType [])} || {count _result != 2}
+        || {!((_result select 0) isEqualType true)} || {!((_result select 1) isEqualType "")}
+        || {!([_record] call _current)}) exitWith {false};
+    if (_planSerial <= (_record getOrDefault ["crossingPlanReplied",0])) exitWith {true};
+    _record set ["crossingPlanReplied",_planSerial];
+    _record set ["crossingPlanObservation",[_result select 0,_result select 1,_planPhase,_planSerial,serverTime]];
+    if (!(_result select 0) && {_planSerial < 2}) then {[_record] call _requestCrossingPlan};
+    // Intentionally no crossing grant until owner path receipts and tail-clearance
+    // execution are integrated with the existing sole driving cap writer.
     true
 };
 if (_mode == "ROOM") exitWith {

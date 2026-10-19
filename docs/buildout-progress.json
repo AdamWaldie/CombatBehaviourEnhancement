@@ -1617,11 +1617,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "0e0878597eefdb4b4743f48b559ad86f8b550c5db4572aebb008d614e4152639"
+              "sha256": "5e9e630dfc93e67e8126329cfc42369e70fff34e08a5092c8f531b9e0669e1f2"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "4d01101368296c00732eb5243a88da0a6452102ac2ab9322f000690be2559b1a"
+              "sha256": "2a4804a8fb1307ede38ccd78224f5216eb3da2ffeb732e4268fd61619f3abf27"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueContext.sqf",
@@ -1645,12 +1645,12 @@
           "capability": "Queue room-making execution",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Explicitly committed internal queue API reaches all-owner preparation/arming, phase-bound selected-mover grants, sole-writer native BACK, bounded rear monitoring, zero-cap STOP and measured hold. Fresh owner room evidence plus server hull-gap verification advances the dependency chain through the yield root; each phase requires every owner to acknowledge and native issue resamples clearance. Original context and expiry remain fixed. Physically unverified. Read-only crossing geometry can project all held queue hulls under the same private root agreement, retaining ordinary geometry budgets; no crossing executor consumes it yet.",
+          "implemented": "Explicitly committed internal queue API reaches all-owner preparation/arming, phase-bound selected-mover grants, sole-writer native BACK, bounded rear monitoring, zero-cap STOP and measured hold. Fresh owner room evidence plus server hull-gap verification advances the dependency chain through the yield root; each phase requires every owner to acknowledge and native issue resamples clearance. Original context and expiry remain fixed. Physically unverified. Read-only crossing geometry can project all held queue hulls under the same private root agreement, retaining ordinary geometry budgets; The final held yield-root report now dispatches bounded authenticated owner planning (one side per callback, two per episode); no crossing executor consumes the proposal yet.",
           "remaining_build_gap": "Lateral crossing and all-participant handback remain unimplemented. Automatic initiation remains disabled; cross-owner delivery and physical cascade reliability remain unverified.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
-              "sha256": "4d01101368296c00732eb5243a88da0a6452102ac2ab9322f000690be2559b1a"
+              "sha256": "2a4804a8fb1307ede38ccd78224f5216eb3da2ffeb732e4268fd61619f3abf27"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
@@ -1666,7 +1666,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
-              "sha256": "0e0878597eefdb4b4743f48b559ad86f8b550c5db4572aebb008d614e4152639"
+              "sha256": "5e9e630dfc93e67e8126329cfc42369e70fff34e08a5092c8f531b9e0669e1f2"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",

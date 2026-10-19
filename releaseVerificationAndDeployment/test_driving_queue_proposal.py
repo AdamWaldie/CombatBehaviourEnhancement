@@ -81,6 +81,23 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('_roomSerial <= (_record getOrDefault ["parentRoomReply",0])',server)
         self.assertIn('_reports >= 2',server)
         self.assertIn('["CHECK_ROOM",_message]',server)
+        crossing=owner.split('if (_mode == "CROSS_PLAN") exitWith {',1)[1].split('if (_mode == "CHECK_ROOM")',1)[0]
+        for proof in ('_root in _owned','_planPhase != _currentPhase','_currentPhase != count _vehicles-2',
+                      'call CBE_fnc_DrivingBypassPlan','crossingPlanReceipt','crossingProposal',
+                      'isNotEqualTo _rootConsent','serverTime >= _expires','"CROSS_PLANNED"'):
+            self.assertIn(proof,crossing)
+        for forbidden in ('setDriveOnPath','sendSimpleCommand','doMove','forceSpeed','waitAndExecute','set ["expires"'):
+            self.assertNotIn(forbidden,crossing)
+        planner=server.split('private _requestCrossingPlan={',1)[1].split('private _send=',1)[0]
+        self.assertIn('_attempt >= 2',planner)
+        self.assertIn('owner (_queueVehicles select 0)',planner)
+        self.assertNotIn('call _scheduleExpiry',planner)
+        reply=server.split('if (_mode == "CROSS_PLANNED") exitWith {',1)[1].split('if (_mode == "ROOM")',1)[0]
+        for proof in ('owner _root != _sender','groupOwner group driver _root != _sender',
+                      'crossingPlanRequested','crossingPlanReplied','crossingPlanObservation','call _current'):
+            self.assertIn(proof,reply)
+        self.assertNotIn('"EXECUTE"',reply)
+        self.assertNotIn('set ["executionGranted"',reply)
         # Every dependency leg retains the original context/expiry, and needs all
         # owner acknowledgements for its own phase before the selected mover executes.
         for proof in ('_roomPhase != (_record getOrDefault ["phaseSerial",0])',
