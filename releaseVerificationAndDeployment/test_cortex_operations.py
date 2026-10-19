@@ -9692,6 +9692,14 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(stage.index('doStop _reserve'),stage.index('call CBE_fnc_BuildingExteriorCandidate'))
         geometry=source('buildingExteriorCandidate')
         self.assertIn('lineIntersectsSurfaces',geometry)
+        reject=geometry[geometry.index('private _exitDistance='):geometry.index('// Prospective posts')]
+        for proof in ('!_diagnostics','!_exterior','_blocksExit','_exitDistance < 3','_exitDistance > 18','exitWith {false}'):
+            self.assertIn(proof,reject)
+        self.assertLess(geometry.index('exitWith {false}',geometry.index('private _exitDistance=')),geometry.index('nearEntities'))
+        self.assertIn('if (!_diagnostics && {_laneBlocked || {!_separated}}) exitWith {false}',geometry)
+        self.assertLess(geometry.index('private _separated='),geometry.index('private _observationClear='))
+
+
         self.assertNotIn('doMove',geometry)
         self.assertIn('_stage=[+_hold,true,"REJECTED"]',stage)
         self.assertIn('_stage=[+_target,false,"APPROACH"]',stage)

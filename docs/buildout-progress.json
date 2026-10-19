@@ -3235,7 +3235,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
-              "sha256": "2c5446a5e7f31a03705d9148a6d69ca9da27904664e508645f25da98b983107a"
+              "sha256": "cd2d32b066729e8870631ddeeb7ea8dcfc3945b5007b151e3da304c44576b23d"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
