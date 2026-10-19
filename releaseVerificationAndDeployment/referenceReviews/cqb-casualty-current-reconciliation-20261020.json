@@ -1,0 +1,55 @@
+{
+  "reviewed": "2026-10-20",
+  "sourceCommit": "d57ed03c",
+  "scope": "Current casualty promotion and in-flight exit relief reconciliation; comparison to LAMBS individual doAssault only, not whole-mod parity.",
+  "sources": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "778dd5a7e066cc5bbcc803ac2bc0a61e7ece1765b7edeaaf9e09c241aaf448eb"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "sha256": "e6ddec265460852bcffb78fef3b22035b9d7db9d86976098244e8f5feb68e90b"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
+      "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf"
+    }
+  ],
+  "findings": [
+    {
+      "area": "Interior casualty replacement",
+      "evidence": "buildingOperationStep ranks reserve candidates near surviving buddy/building, authenticates original pair slot and operation, retains reserve movement/hold provenance, updates participants/progress/platforms/pairs and publishes ClearRoster. Shared coverage and hard deadline remain unchanged.",
+      "disposition": "Existing implementation; do not create a parallel casualty controller. Physical replacement remains unverified."
+    },
+    {
+      "area": "Lane continuity",
+      "evidence": "Roster change invalidates buddy entry proposals. Healthy entered original survivors keep lane progress; whole-lane replacement restarts entry without manufacturing entered receipts. Removed member assignments are cleared before room selection.",
+      "disposition": "Retain these ownership and continuity constraints when extending exterior roles."
+    },
+    {
+      "area": "Existing exit relief",
+      "evidence": "Original vacancy and guard state bind pending relief. A known non-null dead/incapacitated guard permits its original bounded in-flight exit leg to finish even if interior vacancy was filled. Actual arrival/watch/VIEW remains separate.",
+      "disposition": "Earlier demandLifecycleFollowUp observer-death limit was superseded by securityLossFollowUp. Do not treat historic text as a current implementation gap."
+    },
+    {
+      "area": "Remaining exterior adaptation",
+      "evidence": "_requestExitRelief is called from a pending interior casualty slot and selects ARRIVED current reserve posts. Known guard loss continuation applies only to already MOVING relief. No general proactive uncovered-exit reassignment was established in this inspected path.",
+      "disposition": "Open implementation scope: rebalance existing eligible security actors toward a genuinely uncovered discovered exit, preserving authored actor orders, finite allocation budgets, useful current coverage and physical observation requirements. Do not infer death from null replication lookup."
+    },
+    {
+      "area": "LAMBS helper intent",
+      "evidence": "doAssault follows known enemy hide position, preserves nearby BUSY destination, selects same-floor nearer building nodes and avoids redundant destination issue. It contains no squad reserve/pair casualty roster or exit isolation lifecycle.",
+      "disposition": "Retain reactive individual intent as a foundation. This helper alone is neither a squad-clearance model nor evidence of complete LAMBS feature parity."
+    }
+  ],
+  "nextImplementation": "Trace existing security-post allocation and observer ownership before adding proactive uncovered-exit reassignment within the current clearance callback. Do not add a second scheduler or reset episode/search budgets.",
+  "physicalAcceptance": false,
+  "performanceAcceptance": false,
+  "audits": "paused",
+  "parityPercentage": null
+}
