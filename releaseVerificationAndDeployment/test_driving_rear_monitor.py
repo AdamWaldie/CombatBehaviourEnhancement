@@ -60,6 +60,14 @@ class DrivingRearMonitorTests(unittest.TestCase):
                       'isNotEqualTo _rearJournal','hardDeadline','_rearPose select 2','cos 5','isNotEqualTo _rearCommands'):
             self.assertLess(commit.index(guard),commit.index('_movementOperator doMove _rear'))
         self.assertLess(commit.index('_movementOperator doMove _rear'),commit.index('call _recordRecovery'))
+        self.assertIn('_driver != _movementOperator',commit)
+        self.assertIn('(_rearSimpleBefore param [1,""]) == "NONE"',commit)
+        self.assertEqual(commit.count('sendSimpleCommand "BACK"'),1)
+        self.assertIn('_rearCommandMode="SIMPLE_BACK"',commit)
+        self.assertLess(commit.index('sendSimpleCommand "BACK"'),commit.index('call _recordRecovery'))
+        final=text.split('case 2: {',1)[1].split('default {',1)[0]
+        self.assertLess(final.index('"SIMPLE_BACK") exitWith {false}'),final.index('_movementOperator doMove _destination'))
+
         self.assertIn('if (_recoveryTransitioned) then {',text)
 
     def test_reverse_requires_sampled_physical_support_not_terrain_water_only(self):

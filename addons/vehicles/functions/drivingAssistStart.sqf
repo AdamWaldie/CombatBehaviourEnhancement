@@ -1,9 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
- * An independent native BACK directive yields ordinary assistance and destination recovery.
- * Crew destinations alone do not own that vehicle-level command; no STOP is sent over it.
- * Destination recovery is explicitly mode-bound; other native command modes grant no
- * destination handback, cleanup registration or adoption authority through this path.
+ * Native BACK uses the existing finite rear leg only with distinct driver/effective commander.
+ * Its immutable pre-command turn/move receipt and observed acknowledgement bind ownership;
+ * no new worker, crew reassignment or command replay is added. Unowned BACK still yields.
+ * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
+ * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
  * Traffic retry journal: current brain/epoch and fresh observation are checked in one unscheduled
  * retry/publication section. Edit an isolated journal; successor/native-order changes prevent
  * publication. Rear recovery aborts on aggregate or per-hitpoint damage increase against its
@@ -157,11 +158,23 @@ _brain set ["geometryTracks",_geometryTracks];
         _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
     };
     // Destination recovery cannot adopt or retire another native command mode.
-    if (count _recoveryWork > 0 && {(_recoveryWork getOrDefault ["commandMode","DESTINATION"]) != "DESTINATION"}) then {continue};
+    if (count _recoveryWork > 0 && {!((_recoveryWork getOrDefault ["commandMode","DESTINATION"]) in ["DESTINATION","SIMPLE_BACK"])}) then {continue};
     // This destination executor never issues native BACK. It belongs to a different
     // command authority even when crew destinations still match our old journal.
     private _destinationControlFree={
-        toUpperANSI ((vehicleMoveInfo _vehicle) param [0,"",[""]]) != "BACK"
+        private _modeWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+        private _info=vehicleMoveInfo _vehicle;
+        if ((_modeWork getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK") exitWith {
+            (_modeWork getOrDefault ["group",grpNull]) == _group
+                && {(_modeWork getOrDefault ["kind",""]) == "REVERSE"}
+                && {_driver != _movementOperator}
+                && {(_info param [1,""]) == ((_modeWork getOrDefault ["simpleBefore",[]]) param [1,"MISSING"])}
+                && {toUpperANSI (_info param [0,""]) == "BACK"
+                    || {_modeWork getOrDefault ["simpleStopIssued",false] && {toUpperANSI (_info param [0,""]) == "STOP"}}
+                    || {!(_modeWork getOrDefault ["simpleAcknowledged",false])
+                        && {_info isEqualTo (_modeWork getOrDefault ["simpleBefore",[]])}}}
+        };
+        toUpperANSI (_info param [0,"",[""]]) != "BACK"
     };
     private _recoveryOwned=count _recoveryWork > 0 && {call _destinationControlFree}
         && {(_recoveryWork get "group") == _group}
@@ -375,7 +388,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _capMps=_cap/3.6;
             if (_saved > 0) then {_capMps=_capMps min _saved};
             private _recordRecovery={
-                params ["_kind",["_rearHitpointReceipt",[],[[]]]];
+                params ["_kind",["_rearHitpointReceipt",[],[[]]],["_commandMode","DESTINATION",[""]],["_simpleBefore",[],[[]]]];
                 private _old=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                 private _hard=if (count _old > 0 && {(_old get "group") == _group} && {(_old get "route") isEqualTo _routeIdentity}) then {
                     _old get "hardDeadline"
@@ -383,8 +396,12 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _deadline=switch (_kind) do {case "REFRESH":{_hard-66};case "FINAL":{_hard};case "EXHAUSTED":{_hard};default {_hard-60}};
                 private _work=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
-                    ["kind",_kind],["commandMode","DESTINATION"],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
+                    ["kind",_kind],["commandMode",_commandMode],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
                     ["origin",getPosATL _vehicle],["baseline",+_previous],["cap",_capMps]];
+                if (_commandMode == "SIMPLE_BACK") then {
+                    _work set ["simpleBefore",+_simpleBefore];
+                    _work set ["simpleAcknowledged",toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) == "BACK"];
+                };
                 if (_kind == "REVERSE") then {
                     _work set ["rearOriginASL",getPosASL _vehicle];
                     _work set ["rearDirection",vectorDir _vehicle];
@@ -438,10 +455,19 @@ _brain set ["geometryTracks",_geometryTracks];
                     _rearPathRejected=(vectorDir _vehicle) vectorDotProduct _rearDirection < cos 20
                         || {_along > 1} || {_along < -10} || {_lateral > 2.5}
                         || {_liveDamage > _minimumDamage+0.01} || {_componentDamage} || {_historyInvalid};
+                    if (!_rearPathRejected && {(_rearWork getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK"}
+                        && {_along <= -6}) then {
+                        // Native BACK has no destination endpoint. End after observed room,
+                        // without waiting for overshoot or claiming the authored route resumed.
+                        _reverseLeg=false;_state set [7,time];_state set [8,"REAR_ROOM_OBSERVED"];
+                    };
                     // Repairs lower observation minima; damage can never raise them. Publish only
                     // a real decrease on this exact live rear leg, without changing its lifetime.
                     private _nextMinimumDamage=_minimumDamage min _liveDamage;
-                    if (!_rearPathRejected && {_nextMinimumDamage < _minimumDamage
+                    private _acknowledgeBack=(_rearWork getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK"
+                        && {!(_rearWork getOrDefault ["simpleAcknowledged",false])}
+                        && {toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) == "BACK"};
+                    if (!_rearPathRejected && {_acknowledgeBack || {_nextMinimumDamage < _minimumDamage}
                         || {_nextMinimumValues isNotEqualTo (_minimumHitpoints select 2)}}) then {
                         isNil {
                             if (call _mayIssueDriving
@@ -456,6 +482,7 @@ _brain set ["geometryTracks",_geometryTracks];
                                 && {(expectedDestination _driver) isEqualTo (_rearWork getOrDefault ["driverCommand",[]])}
                                 && {(expectedDestination _movementOperator) isEqualTo (_rearWork getOrDefault ["command",[]])}
                                 && {time < (_state param [7,-1])} && {serverTime < (_rearWork getOrDefault ["deadline",-1])}) then {
+                                if (_acknowledgeBack) then {_rearWork set ["simpleAcknowledged",true]};
                                 _rearWork set ["rearMinimumDamage",_nextMinimumDamage];
                                 _rearWork set ["rearMinimumHitpoints",[+(_minimumHitpoints select 0),+(_minimumHitpoints select 1),_nextMinimumValues]];
                                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_rearWork,true];
@@ -472,6 +499,45 @@ _brain set ["geometryTracks",_geometryTracks];
                 };
             };
             private _reverseExpired=(_state param [6,0]) == 2 && {_reverseIssued} && {!_reverseLeg};
+            if (_reverseExpired) then {
+                // Native backing must stop at its original endpoint/deadline even when
+                // combat or a disabled recovery feature currently forbids the forward retry.
+                private _endingRear=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                if ((_endingRear getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK") then {
+                    isNil {
+                        if (call _mayIssueDriving
+                            && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
+                            && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                            && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])}
+                            && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _endingRear}
+                            && {(_endingRear get "group") == _group}
+                            && {(_endingRear get "driver") == _driver} && {(_endingRear get "operator") == _movementOperator}
+                            && {(expectedDestination _driver) isEqualTo (_endingRear get "driverCommand")}
+                            && {(expectedDestination _movementOperator) isEqualTo (_endingRear get "command")}
+                            && {abs ((getForcedSpeed _vehicle)-(_endingRear get "cap")) <= 0.1}) then {
+                            private _stoppedRear=+_endingRear;
+                            if (serverTime >= (_endingRear get "hardDeadline")) then {
+                                _stoppedRear set ["releasePending",true];
+                                _stoppedRear set ["releaseUnresolved",true];
+                            } else {
+                                if (toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) != "STOP") then {
+                                    _vehicle sendSimpleCommand "STOP";
+                                    _stoppedRear set ["simpleStopIssued",true];
+                                };
+                                if (toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) == "STOP") then {
+                                    // Native mode acknowledgement is not physical stationarity.
+                                    _stoppedRear set ["kind","REAR_STOP_ACKNOWLEDGED"];
+                                    _stoppedRear set ["commandMode","DESTINATION"];
+                                    _stoppedRear set ["driverCommand",+(expectedDestination _driver)];
+                                    _stoppedRear set ["command",+(expectedDestination _movementOperator)];
+                                    _reverseIssued=false;_state set [10,false];
+                                };
+                            };
+                            _vehicle setVariable ["CBE_DrivingRecovery_Work",_stoppedRear,true];
+                        };
+                    };
+                };
+            };
             private _retryAllowed=!_reverseExpired || {
                 [_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_CortexFeatureEnabled
                     && {!(behaviour leader _group in ["COMBAT","STEALTH"])} && {getSuppression _driver <= 0.1}
@@ -484,6 +550,12 @@ _brain set ["geometryTracks",_geometryTracks];
             // It affects callback cadence only, not speed or recovery admission.
             private _trafficWatch=_traffic param [5,false,[true]];
             if (_rearPathRejected) then {_traffic=[0,_vehicle,-1,time,0]};
+            if (_reverseExpired && {((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap])
+                getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK"}) then {
+                // A native STOP request is not acknowledgement. Keep the sole speed cap
+                // at zero while the exact expired BACK remains pending; never retry forward.
+                _traffic=[0,_vehicle,-1,time,0];
+            };
             private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingTurnTrack;
             _geometryTracks set [netId _vehicle,_turn select 1];
             private _nativeHint=[_vehicle,_group,["ORDINARY",_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingNativePathWatch;
@@ -836,6 +908,7 @@ _brain set ["geometryTracks",_geometryTracks];
                         };
                         case 1: {
                             private _rear=[];
+                            private _rearSimpleBefore=+(vehicleMoveInfo _vehicle);
                             private _rearPose=[getPosASL _vehicle,vectorDir _vehicle,time];
                             private _rearHitpointReceipt=[_vehicle] call CBE_fnc_DrivingDamageReceipt;
                             private _rearCommands=[currentCommand _driver,+(expectedDestination _driver),
@@ -853,20 +926,30 @@ _brain set ["geometryTracks",_geometryTracks];
                                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                                     || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _rearJournal}
                                     || {count _rearJournal == 0} || {serverTime >= (_rearJournal get "hardDeadline")-60}
+                                    || {(vehicleMoveInfo _vehicle) isNotEqualTo _rearSimpleBefore}
                                     || {([_vehicle] call CBE_fnc_DrivingDamageReceipt) isNotEqualTo _rearHitpointReceipt}
                                     || {time < (_rearPose select 2)} || {time-(_rearPose select 2) > 1}
                                     || {(getPosASL _vehicle) vectorDistance (_rearPose select 0) > 1}
                                     || {(vectorDir _vehicle) vectorDotProduct (_rearPose select 1) < cos 5}
                                     || {[currentCommand _driver,+(expectedDestination _driver),
                                         currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _rearCommands}) exitWith {false};
+                                private _rearCommandMode="DESTINATION";
                                 if (_rearSafe) then {
-                                    _movementOperator doMove _rear;
+                                    // A separate native commander is required; preserve mission crew roles.
+                                    // Do not cancel a pre-existing turn merely to make BACK applicable.
+                                    if (_driver != _movementOperator && {(_rearSimpleBefore param [1,""]) == "NONE"}) then {
+                                        _vehicle sendSimpleCommand "BACK";
+                                        _rearCommandMode="SIMPLE_BACK";
+                                    } else {
+                                        _movementOperator doMove _rear;
+                                    };
                                     _recoveryResult="CAUTIOUS_REVERSE";_reverseIssued=true;
                                 } else {
                                     _recoveryResult="REAR_BLOCKED";_reverseIssued=false;
                                 };
                                 _recoveryStage=2;
-                                _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued,_rearHitpointReceipt] call _recordRecovery;
+                                _recoveryUntil=[["BLOCKED","REVERSE"] select _reverseIssued,_rearHitpointReceipt,
+                                    _rearCommandMode,_rearSimpleBefore] call _recordRecovery;
                                 _recoveryTransitioned=true;
                             };
                         };
@@ -883,6 +966,9 @@ _brain set ["geometryTracks",_geometryTracks];
                                     || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _forwardJournal}
                                     || {[currentCommand _driver,+(expectedDestination _driver),
                                         currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _forwardCommands}) exitWith {false};
+                                // The earlier endpoint boundary must acknowledge native STOP
+                                // before this path can replace the journal with a forward retry.
+                                if ((_forwardJournal getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK") exitWith {false};
                                 if (count _forwardJournal > 0 && {serverTime >= (_forwardJournal get "hardDeadline")}) then {
                                     _recoveryStage=4;_recoveryResult="EXHAUSTED";_reverseIssued=false;
                                     _recoveryUntil=["EXHAUSTED"] call _recordRecovery;

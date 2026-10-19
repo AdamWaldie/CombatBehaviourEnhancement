@@ -32,7 +32,7 @@ class RecoveryCleanupTests(unittest.TestCase):
         self.assertIn('_epoch == (_vehicle getVariable ["CBE_DrivingRecovery_LocalEpoch",0])',text)
         self.assertIn('&& {_gained} && {local _vehicle} && {alive _vehicle}',text)
         self.assertIn('private _lookup=count _work == 0 || {(_work getOrDefault ["kind",""]) == "REVERSE"',text)
-        self.assertIn('(_work getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"',text)
+        self.assertIn('(_work getOrDefault ["commandMode","DESTINATION"]) in ["DESTINATION","SIMPLE_BACK"]',text)
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
         self.assertLess(release.index('getOrDefault ["commandMode","DESTINATION"]'),release.index('private _retainAcrossLocality='))
         self.assertIn('if (_lookup && {_attempt < 5}',text)

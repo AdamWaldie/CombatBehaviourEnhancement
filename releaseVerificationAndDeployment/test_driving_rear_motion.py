@@ -21,4 +21,13 @@ class RearMotionTests(unittest.TestCase):
         self.assertNotIn('setPos',block)
         self.assertIn('if (_rearPathRejected) then {_traffic=[0,_vehicle,-1,time,0]}',text)
         self.assertIn('private _reverseHandback=_reverseComplete && {_reverseIssued}',text)
+        self.assertIn('_along <= -6',block)
+        self.assertIn('"REAR_ROOM_OBSERVED"',block)
+        ending=text.split('if (_reverseExpired) then {',1)[1].split('private _retryAllowed=',1)[0]
+        self.assertIn('sendSimpleCommand "STOP"',ending)
+        self.assertIn('"kind","REAR_STOP_ACKNOWLEDGED"',ending)
+        self.assertIn('"commandMode","DESTINATION"',ending)
+        self.assertNotIn('doMove',ending)
+        self.assertNotIn('serverTime+',ending)
+
 if __name__=='__main__': unittest.main()

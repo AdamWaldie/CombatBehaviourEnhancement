@@ -22,7 +22,7 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         self.assertIn('"ORDER_OR_SEATS_CHANGED",false] call CBE_fnc_DrivingRecoveryRelease',owned)
         self.assertLess(text.index('private _recoveryOwned='),text.index('private _mayIssueDriving ='))
         # Vehicle-level BACK is independent of unchanged unit destinations.
-        mode='toUpperANSI ((vehicleMoveInfo _vehicle) param [0,"",[""]]) != "BACK"'
+        mode='param [0,"",[""]]) != "BACK"'
         self.assertIn(mode,text)
         self.assertIn('count _recoveryWork > 0 && {call _destinationControlFree}',text)
         self.assertIn('if (!_enabled || {!(call _destinationControlFree)}',text)
@@ -30,6 +30,13 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         self.assertIn('call _destinationControlFree',boundary)
         release=source('drivingRecoveryRelease')
         self.assertIn(mode,release)
+        self.assertIn('if (_commandMode == "SIMPLE_BACK") then',release)
+        self.assertIn('simpleAcknowledged',release)
+        self.assertIn('simpleBefore',release)
+        self.assertLess(release.index('waypointType _waypoint == "MOVE"'),release.index('sendSimpleCommand "STOP"'))
+        self.assertIn('if (_nativeStopPending) exitWith {}',release)
+        self.assertIn('if (_nativeStopPending) exitWith {',release)
+
         self.assertIn('private _owned=_resume && {_destinationControlFree}',release)
         self.assertIn('private _retainAcrossLocality=_resume && {_destinationControlFree}',release)
 

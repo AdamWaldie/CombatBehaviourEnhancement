@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * A different recovery command mode retains its cap/baseline and journal; destination
- * shutdown cannot bypass the command-specific release refusal.
+ * Unknown recovery command modes retain their cap/baseline and journal. Destination and
+ * SIMPLE_BACK cleanup use their own exact native ownership proof before cap restoration.
  * Purpose: Releases the standalone CBE driving safety speed cap and restores the exact pre-CBE
  * forced-speed value only while that cap remains owned by CBE; a newer controller cap is preserved.
  * Matching pass consent retires its exact broker token before ordinary cap cleanup.
@@ -27,7 +27,7 @@ params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
 private _destinationReleaseAvailable={
     private _modeWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
-    count _modeWork == 0 || {(_modeWork getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"}
+    count _modeWork == 0 || {(_modeWork getOrDefault ["commandMode","DESTINATION"]) in ["DESTINATION","SIMPLE_BACK"]}
 };
 if !(call _destinationReleaseAvailable) exitWith {};
 // Capture the cap lease before helper cleanup can yield. A same-group successor is still

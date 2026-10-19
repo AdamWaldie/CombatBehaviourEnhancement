@@ -146,5 +146,40 @@
   },
   "command_mode_foundation_20261019": "Recovery journal now explicitly records DESTINATION. Active assistance yields unknown modes; release refuses them before native cleanup; deferred cleanup signatures include mode and only destination work registers; adoption/late lookup refuse other modes. Missing field retains existing destination interpretation. This does not implement BACK, COMMIT, HOLD or READY. Full offline .qa/cbe-recovery-command-mode-build.log/independent verify passed; fingerprint6092e29ecd63628dc8db80c776a9c4e4270917cc513390f5e06f259898c8ce59, manifestd6ff65a4+dirtydevelopment. No new tests/workers/scores or physical acceptance.",
   "outer_cap_release_20261019": "DrivingAssistRelease refuses unknown recovery command modes before cap-state adoption/helper cleanup and in final cap restoration/deletion transaction. This closes fallthrough after DrivingRecoveryRelease mode refusal. No native BACK/queue executor added. Full .qa/cbe-command-mode-cap-release-build.log/independent verify passed, fingerprintf5ecf8bcee54a156c651b207c1f6a5feeb0004559b05379a81d248c570673e29, manifeste646da37+dirtydevelopment; no new tests/workers/scores or physical acceptance.",
-  "existing_tactical_path_clarification": "cortexVehicleReverseStep already uses native BACK/turn/STOP for tactical tracked VEHICLE_WITHDRAW with distinct effective commander and common operation ownership. Ordinary driving recovery does not share that operation contract; do not start a common operation merely to steal the driving parent. Native queue execution remains missing. Current tactical helper now yields explicit forward modes and snapshots move/turn across geometry."
+  "existing_tactical_path_clarification": "cortexVehicleReverseStep already uses native BACK/turn/STOP for tactical tracked VEHICLE_WITHDRAW with distinct effective commander and common operation ownership. Ordinary driving recovery does not share that operation contract; do not start a common operation merely to steal the driving parent. Native queue execution remains missing. Current tactical helper now yields explicit forward modes and snapshots move/turn across geometry.",
+  "ordinary_native_back_update_20261019": {
+    "implementation": "Ordinary recovery now has a distinct SIMPLE_BACK mode for unchanged separate driver/effective commander and no active native turn. One BACK, native mode acknowledgement, original finite rear geometry/damage/deadline, six-metre observed endpoint, acknowledged STOP before final route retry, and mode-aware existing shutdown/locality cleanup.",
+    "remaining": "Queue COMMIT/HOLD/physical READY/dependency execution remains absent. Single-driver arrangements retain monitored rear doMove, not native BACK parity. Physical and performance evidence absent; audits paused.",
+    "sourceHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "b00556d4afdcfc5a050b957a5b8e721c5aaa20becc8daad8422406130a707e06",
+      "addons/vehicles/functions/drivingAssistRelease.sqf": "282fc0661677e90a27babfcf5211376b2661aac0332fde0471a92b81f9f5ad93",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "e449808a8edb4335f5c290bf1d242b3338bc294e5ac2437268d35f04fa37b06e",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "25874ba1114af89ac47872fb88deda5e13b4472a438bd9c07261abbac477d3d4",
+      "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "ba6ed9ca2ade445d501bbc009e8694a372e57a373635a9a4091c5f8706944a75"
+    },
+    "noNewWorkers": true,
+    "noNewTestCases": true,
+    "physicalAcceptance": false,
+    "validation": {
+      "focusedExistingCases": 251,
+      "wholeSuiteAddedCases": 0,
+      "fullBuild": ".qa/cbe-ordinary-native-back-build.log",
+      "compilerCheck": ".qa/cbe-native-back-hemtt-check.log",
+      "independentPackageFingerprint": "06789b444d57f2cab66376e209257ed28e18adbe90101bb89866f83e5f6104b1",
+      "manifestSource": "09189e42 plus dirty development source",
+      "physicalAcceptance": false
+    },
+    "limitations": [
+      "Native BACK and STOP modes are acknowledgements, not measured physical motion or braking.",
+      "Original six-second leg and original hard deadline remain; scheduler latency is unmeasured.",
+      "While expired native STOP acknowledgement is pending, retain exact journal and zero safety cap; hard expiry marks unresolved without renewing movement authority.",
+      "Single-driver or active-turn configurations retain the monitored destination fallback, which can turn.",
+      "New same-value native BACK/STOP inputs remain indistinguishable without cooperative authority.",
+      "Queue execution and actual engine/HC/performance evidence remain absent."
+    ],
+    "references": [
+      "https://community.bistudio.com/wiki/sendSimpleCommand",
+      "https://community.bistudio.com/wiki/vehicleMoveInfo"
+    ]
+  }
 }

@@ -1,9 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
- * Native BACK is never authored by destination recovery. Its presence revokes native
- * stop/route-handback and deferred retention, even when both crew destinations match.
- * Destination recovery is explicitly mode-bound; other native command modes grant no
- * destination handback, cleanup registration or adoption authority through this path.
+ * Native BACK requires its explicit SIMPLE_BACK journal, original distinct crew and unchanged
+ * turn/input receipt. An unowned BACK revokes stop/route handback and deferred retention.
+ * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
+ * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
  * Purpose: Retires a matching ordinary recovery journal; only its exact owned reverse can stop
  * and hand back to the unchanged plain authored MOVE. Forward retries retire metadata only.
  * Locality / Authority: Current vehicle/group owner. Original seats, both native destinations,
@@ -43,7 +43,8 @@ if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle}
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 // This executor restores destination commands only, never a different native command mode.
-if ((_work getOrDefault ["commandMode","DESTINATION"]) != "DESTINATION") exitWith {false};
+private _commandMode=_work getOrDefault ["commandMode","DESTINATION"];
+if !(_commandMode in ["DESTINATION","SIMPLE_BACK"]) exitWith {false};
 // A blocked exact handback has only the original recovery lifetime. Expiry preserves
 // command/cap provenance but never grants a late command or a newly renewed cleanup window.
 // Call this only after proving unchanged ownership; newer orders still retire metadata normally.
@@ -63,7 +64,15 @@ private _releaseExpired={
     };
     true
 };
-private _destinationControlFree=toUpperANSI ((vehicleMoveInfo _vehicle) param [0,"",[""]]) != "BACK";
+private _simpleInfo=vehicleMoveInfo _vehicle;
+private _destinationControlFree=if (_commandMode == "SIMPLE_BACK") then {
+    (_work getOrDefault ["driver",objNull]) != (_work getOrDefault ["operator",objNull])
+        && {(_simpleInfo param [1,""]) == ((_work getOrDefault ["simpleBefore",[]]) param [1,"MISSING"])}
+        && {toUpperANSI (_simpleInfo param [0,""]) == "BACK"
+            || {_work getOrDefault ["simpleStopIssued",false] && {toUpperANSI (_simpleInfo param [0,""]) == "STOP"}}
+            || {!(_work getOrDefault ["simpleAcknowledged",false])
+                && {_simpleInfo isEqualTo (_work getOrDefault ["simpleBefore",[]])}}}
+} else {toUpperANSI (_simpleInfo param [0,"",[""]]) != "BACK"};
 private _driver=_work get "driver";private _operator=_work get "operator";
 private _liveOperator=effectiveCommander _vehicle;
 if (isNull _liveOperator) then {_liveOperator=driver _vehicle};
@@ -141,6 +150,7 @@ if (_owned && {!_executable}) exitWith {
     [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
     false
 };
+private _nativeStopPending=false;
 if (_owned) then {
     private _index=currentWaypoint _group;private _waypoint=[_group,_index];private _statements=waypointStatements _waypoint;
     private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
@@ -155,6 +165,18 @@ if (_owned) then {
             && {_leaderVehicle != _leader} && {_leaderVehicle isKindOf "LandVehicle"}
             && {alive _leaderVehicle} && {canMove _leaderVehicle}
             && {simulationEnabled _leaderVehicle} && {!isObjectHidden _leaderVehicle};
+        // Cancel only this exact native leg, after plain-MOVE validation too.
+        // A STOP request alone cannot authorize forward route handback.
+        if (_commandMode == "SIMPLE_BACK") then {
+            if (toUpperANSI (_simpleInfo param [0,""]) != "STOP") then {
+                _vehicle sendSimpleCommand "STOP";
+                _work set ["simpleStopIssued",true];
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+                _simpleInfo=vehicleMoveInfo _vehicle;
+            };
+            _nativeStopPending=toUpperANSI (_simpleInfo param [0,""]) != "STOP";
+        };
+        if (_nativeStopPending) exitWith {};
         [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
         doStop _driver;if (_operator != _driver) then {doStop _operator};
         _handback="STOP_ONLY";
@@ -168,6 +190,12 @@ if (_owned) then {
             };
         };
     };
+};
+if (_nativeStopPending) exitWith {
+    _work set ["releasePending",true];
+    _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+    false
 };
 if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work) then {
     _vehicle setVariable ["CBE_DrivingRecovery_Result",[_reason,serverTime,_group,_work get "kind",_work get "hardDeadline",_handback],true];
