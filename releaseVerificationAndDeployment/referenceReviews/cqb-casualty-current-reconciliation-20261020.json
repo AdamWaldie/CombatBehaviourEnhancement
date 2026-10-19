@@ -51,5 +51,23 @@
   "physicalAcceptance": false,
   "performanceAcceptance": false,
   "audits": "paused",
-  "parityPercentage": null
+  "parityPercentage": null,
+  "proactiveSecurityFollowUp": {
+    "baselineCommit": "ab3a081f",
+    "implementation": "Existing clearance callback now rotates at most16 historic post rows, recognizes a non-null established guard dead/incapacitated, and checks whether the discovered exit already has a current assignment. A reserve at a different duplicated ARRIVED post may be reassigned only after the existing promotion proof establishes another physical observer at its source exit. One native endpoint proposal and exterior candidate validation share the remaining stage-selection budget; original three-search budget is consumed and journalled before queries. The same callback rechecks source observer proof, original lost-stage identity, casualty and still-vacant target before retiring only its own watch and issuing the new leg. Existing APPROACH/arrival/VIEW and migration journals are reused.",
+    "limits": [
+      "Known guard casualty only; null/deleted guard references, dormancy and new guard orders do not infer death.",
+      "No idle interior worker is newly recruited here. No sole guard is stripped; exhausted original stage budgets remain exhausted.",
+      "No physical/HC/repeat/performance acceptance. Audits paused."
+    ],
+    "runtimeSha256": "fef3a388a39b18f653f3273b27d089d1e9143a71f78bc4efe66f2a93c9653dda",
+    "validation": {
+      "tests": 1477,
+      "buildExit": 0,
+      "buildLog": ".qa/cbe-cqb-exit-rebalance-final-build.log",
+      "independentLog": ".qa/cbe-cqb-exit-rebalance-independent.log",
+      "packageFingerprint": "19c8286e8d0684687adf15ae565ccf7fbf7890254b5f2a1c95835feb652d1dd1",
+      "packageSource": "ab3a081f plus dirty runtime/documentation edits"
+    }
+  }
 }

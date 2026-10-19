@@ -9633,7 +9633,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('select [0,64]',publish)
         stage=step.split('private _stageSearchBudget=1;',1)[1].split('// Release reservations before selection',1)[0]
         self.assertLess(stage.index('if (_stageJournalChanged && {call _mayIssueMovement})'),stage.index('private _budgetRows='))
-        self.assertEqual(stage.count('_stageJournalChanged=true;'),5)
+        original,rebalance=stage.split('// Rebalance one duplicated live post',1)
+        self.assertEqual(original.count('_stageJournalChanged=true;'),5)
+        # A new security allocation must consume and journal its attempt before geometry,
+        # even if no safe endpoint is found. Migration must not replenish that search.
+        admission=rebalance.split('if (_searchAdmitted) then {',1)[0]
+        self.assertIn('_stageSearchCounts set [_candidateKey,_searchCount+1]',admission)
+        self.assertIn('_stageJournalChanged=true;',admission)
+        self.assertLess(rebalance.index('_stageJournalChanged=true;'),rebalance.index('call CBE_fnc_BuildingExteriorProposal'))
         self.assertIn('isNotEqualTo _stageBudget',publish)
         self.assertIn('setVariable ["CBE_Cortex_ClearStageBudget",_stageBudget,true]',publish)
 

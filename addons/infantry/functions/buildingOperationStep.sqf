@@ -114,6 +114,8 @@
  * and sixteen reserve candidates bound this check; deferral never renews the episode deadline.
  * Before first staging, reserves retain their episode admission command; a new MOVE/FOLLOW/CBE
  * or active task is preserved. Same-leader FOLLOW can move naturally without a stale point lock.
+ * A known exterior casualty can rebalance one duplicated live post using existing
+ * coverage proof and allocation budgets, with same-callback native dispatch.
  * Casualty selection prefers the nearest eligible reserve to a surviving buddy, or the
  * building when the whole lane is unavailable; no geometry scan or deadline renewal is added.
  * A single exterior replacement follows its healthy original surviving mover through bounded
@@ -2179,6 +2181,129 @@ private _delay=call {
             };
         };
     };
+    // Rebalance one duplicated live post after a known exterior casualty. This shares
+    // the existing allocation and promotion VIEW budgets. Proof, planning and native
+    // dispatch complete in this callback; no pending transfer may shed sole coverage.
+    private _securityEntries=(_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]]) select [0,16];
+    private _exitAssigned={
+        params ["_exit"];
+        private _found=_reserves findIf {
+            private _actor=_x;
+            private _post=_reserveStages getOrDefault [netId _actor,[]];
+            (_post param [5,[]]) isEqualTo _exit && {[_actor] call _reserveReady}
+                && {((_post param [2,""]) == "APPROACH" && {[_actor] call _ownsCurrentMove})
+                    || {(_post param [2,""]) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
+                        && {(getPosASL _actor) vectorDistance (AGLToASL (_post select 0)) <= 2}}}
+        } >= 0;
+        _found || {(keys _earlyExits select [0,8]) findIf {
+            private _row=_earlyExits get _x;
+            private _actor=_row param [0,objNull];
+            (_row param [5,[]]) isEqualTo _exit && {[_actor] call _actorAvailable}
+                && {[_actor] call _actorTaskFree} && {!(_actor in _unavailable)}
+                && {((_row param [3,""]) == "MOVING" && {[_actor] call _ownsCurrentMove})
+                    || {(_row param [3,""]) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
+                        && {(getPosASL _actor) vectorDistance (AGLToASL (_row select 1)) <= 2}}}
+        } >= 0}
+    };
+    private _lostKeys=keys _reserveStages;
+    if (_lostKeys isNotEqualTo []) then {
+        private _cursor=(_job getOrDefault ["securityLossCursor",0]) mod count _lostKeys;
+        _lostKeys=(_lostKeys select [_cursor])+(_lostKeys select [0,_cursor]);
+        _job set ["securityLossCursor",(_cursor+16) mod count _lostKeys];
+    };
+    private _securityRebalanced=false;
+    {
+        if (_securityRebalanced || {_promotionViewBudget <= 0} || {_stageSearchBudget <= 0}) exitWith {};
+        private _lostKey=_x;
+        private _lostGuard=objectFromNetId _lostKey;
+        private _lostStage=+(_reserveStages getOrDefault [_lostKey,[]]);
+        private _lostExit=_lostStage param [5,[]];
+        private _knownLoss=!isNull _lostGuard && {!alive _lostGuard
+            || {lifeState _lostGuard == "INCAPACITATED"}
+            || {_lostGuard getVariable ["ACE_isUnconscious",false]}};
+        if (_knownLoss && {(_lostStage param [2,""]) == "ARRIVED"}
+            && {_lostExit in _securityEntries} && {!([_lostExit] call _exitAssigned)}) then {
+            {
+                if (_securityRebalanced || {_promotionViewBudget <= 0} || {_stageSearchBudget <= 0}) exitWith {};
+                private _candidate=_x;
+                private _candidateKey=netId _candidate;
+                private _candidateStage=_reserveStages getOrDefault [_candidateKey,[]];
+                private _searchCount=_stageSearchCounts getOrDefault [_candidateKey,0];
+                if ((_candidateStage param [2,""]) == "ARRIVED"
+                    && {(_candidateStage param [5,[]]) isNotEqualTo _lostExit}
+                    && {_searchCount < 3} && {[_candidate] call _mayPromoteReserve}) then {
+                    private _proof=_promotionProofs get _candidateKey;
+                    private _searchAdmitted=false;
+                    isNil {
+                        if (call _mayIssueMovement && {[_candidate,_proof] call _promotionProofCurrent}) then {
+                            _stageSearchBudget=_stageSearchBudget-1;
+                            _stageAttempts pushBackUnique _candidateKey;
+                            _stageSearchCounts set [_candidateKey,_searchCount+1];
+                            _stageJournalChanged=true;
+                            _searchAdmitted=true;
+                        };
+                    };
+                    if (_searchAdmitted) then {
+                        private _taken=[];private _lanes=[];
+                        {
+                            private _post=_reserveStages getOrDefault [netId _x,[]];
+                            if (_x != _candidate && {[_x] call _reserveReady}
+                                && {(_post param [2,""]) in ["APPROACH","ARRIVED"]}
+                                && {count (_post param [4,[]]) == 3}) then {
+                                _taken pushBack +(_post select 0);
+                                _lanes pushBack [+(_post select 0),+(_post select 4)];
+                            };
+                        } forEach (_reserves select [0,16]);
+                        {
+                            private _row=_earlyExits get _x;
+                            if ((_row param [3,""]) in ["MOVING","ARRIVED"] && {count (_row param [6,[]]) == 3}) then {
+                                _taken pushBack +(_row select 1);
+                                _lanes pushBack [+(_row select 1),+(_row select 6)];
+                            };
+                        } forEach (keys _earlyExits select [0,8]);
+                        private _watch=+(_lostStage select 4);
+                        private _target=[_candidate,_lostStage select 0,_lostExit,_taken,_lanes] call CBE_fnc_BuildingExteriorProposal;
+                        private _valid=count _target == 3 && {[_candidate,_building,_target,_lostExit,_watch,
+                            _securityEntries,_taken,_lanes] call CBE_fnc_BuildingExteriorCandidate};
+                        if (_valid) then {
+                            isNil {
+                                if (call _mayIssueMovement && {[_candidate,_proof] call _promotionProofCurrent}
+                                    && {(_reserveStages getOrDefault [_lostKey,[]]) isEqualTo _lostStage}
+                                    && {!isNull _lostGuard} && {!alive _lostGuard
+                                        || {lifeState _lostGuard == "INCAPACITATED"}
+                                        || {_lostGuard getVariable ["ACE_isUnconscious",false]}}
+                                    && {!([_lostExit] call _exitAssigned)}) then {
+                                    private _watchLease=_candidate getVariable ["CBE_Cortex_ClearExitWatch",[]];
+                                    if (_watchLease isNotEqualTo []) then {
+                                        _candidate doWatch objNull;
+                                        _candidate setVariable ["CBE_Cortex_ClearExitWatch",nil,true];
+                                        _candidate setVariable ["CBE_Cortex_ClearExitWatchLocal",nil];
+                                    };
+                                    _candidate setVariable ["CBE_Cortex_ClearReserve",[_job get "generation",
+                                        _group getVariable ["CBE_AIPass_Epoch",0],+_target]];
+                                    _candidate doMove _target;
+                                    [_candidate,_target] call _rememberMove;
+                                    _reserveStages set [_candidateKey,[+_target,false,"APPROACH",
+                                        (serverTime+60) min (_job get "deadline") min (_job get "hardDeadline"),
+                                        +_watch,+_lostExit,false]];
+                                    _stageViewChecks deleteAt _candidateKey;
+                                    private _triedEntries=+(_stageTriedEntries getOrDefault [_candidateKey,[]]);
+                                    _triedEntries pushBackUnique +_lostExit;
+                                    _stageTriedEntries set [_candidateKey,_triedEntries select [0,3]];
+                                    private _triedTargets=+(_stageTriedTargets getOrDefault [_candidateKey,[]]);
+                                    _triedTargets pushBackUnique +_target;
+                                    _stageTriedTargets set [_candidateKey,_triedTargets select [0,6]];
+                                    _securityRebalanced=true;
+                                    diag_log format ["CBE CLEAR EXIT REBALANCE: %1",[
+                                        _job get "generation",_lostKey,_candidateKey,+_lostExit]];
+                                };
+                            };
+                        };
+                    };
+                };
+            } forEach _promotionCandidates;
+        };
+    } forEach (_lostKeys select [0,16]);
     // Build the migration journal only after an owned stage transition. Idle callbacks
     // retain the published receipt without copying every actor record again.
     if (_stageJournalChanged && {call _mayIssueMovement}) then {

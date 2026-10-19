@@ -32,6 +32,23 @@ class ClearExitRelief(unittest.TestCase):
             self.assertIn(guard,p)
         self.assertIn('[_pairIndex,_slot,_member] call _requestExitRelief',s)
         self.assertIn('[_replacement,_promotionProof] call _promotionProofCurrent',s)
+        rebalance=s.split('// Rebalance one duplicated live post',1)[1].split('// Build the migration journal',1)[0]
+        for gate in ('_stageSearchBudget <= 0','_promotionViewBudget <= 0','_lostKeys select [0,16]',
+                     '!isNull _lostGuard','lifeState _lostGuard == "INCAPACITATED"',
+                     '_lostExit in _securityEntries','call _exitAssigned','_searchCount < 3',
+                     'call _mayPromoteReserve','call _promotionProofCurrent',
+                     'call CBE_fnc_BuildingExteriorProposal','call CBE_fnc_BuildingExteriorCandidate',
+                     '(_job get "deadline") min (_job get "hardDeadline")'):
+            self.assertIn(gate,rebalance)
+        dispatch=rebalance.split('if (_valid) then {',1)[1]
+        for proof in ('isNil {','call _promotionProofCurrent','isEqualTo _lostStage','call _exitAssigned'):
+            self.assertLess(dispatch.index(proof),dispatch.index('_candidate doMove _target'))
+        for forbidden in ('lineIntersectsSurfaces','spawn','waitAndExecute','setPos','enableSimulation',
+                          '_job set ["hardDeadline"','_reserves deleteAt','_cleared pushBack'):
+            self.assertNotIn(forbidden,rebalance)
+        self.assertLess(rebalance.index('_stageSearchCounts set'),rebalance.index('call CBE_fnc_BuildingExteriorProposal'))
+        self.assertIn('_reserveStages set [_candidateKey,[+_target,false,"APPROACH"',dispatch)
+
     def test_unrun_fixture_requires_natural_readiness_and_physical_overlap(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')
         r=s.split('// Exit-relief acceptance uses only ordinary clearance',1)[1].split('// Whole-lane loss',1)[0]
