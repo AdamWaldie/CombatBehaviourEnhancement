@@ -363,8 +363,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('isNotEqualTo _job',failure)
         self.assertIn('"cancelReason"',failure)
         self.assertIn('[_executorFailure,true] call _finish',failure)
-        self.assertIn('if (_ownsFlight && {_job getOrDefault ["speedLimitApplied",false]})',attack)
-        self.assertLess(attack.index('_job set ["speedLimitApplied",true]'),attack.index('_aircraft limitSpeed (_stageSpeeds'))
+        self.assertIn('getForcedSpeed _aircraft',attack)
+        self.assertIn('_aircraft forceSpeed (_restoreSpeed select 1)',attack)
+        self.assertIn('"PILOT_CHANGED",true',attack)
+        self.assertIn('"NATIVE_SPEED_CHANGED"',attack)
+        self.assertIn('if (_resume && {_ownsFlight}',attack)
+        speed_cleanup=attack[attack.index('private _restoreSpeed='):attack.index('// Remove exactly the lease-owned waypoint')]
+        self.assertIn('if (_ownsFlight',speed_cleanup)
+        self.assertIn('getForcedSpeed _aircraft',speed_cleanup)
+        self.assertNotIn('driver _aircraft == (_restoreSpeed select 0)',speed_cleanup)
+        self.assertIn('_appliedSpeed min _originalSpeed',attack)
+        self.assertIn('(_stageSpeeds select _stageIndex)/3.6',attack)
+        self.assertNotIn('_aircraft limitSpeed',attack)
+        self.assertLess(attack.index('_job set ["forcedSpeedReceipt",'),attack.index('_aircraft forceSpeed _appliedSpeed;'))
         self.assertIn('CBE_fnc_CortexQueueJob',queue)
         self.assertIn('CBE_fnc_AirAttackOperationStep',queue)
         self.assertIn('call CBE_fnc_CortexAirAttack',step)
@@ -7175,7 +7186,7 @@ class CortexOperations(unittest.TestCase):
         controller=source('cortexAirAttack')
         for requirement in ['local _aircraft','CBE_Cortex_AirAttack_Enable','CortexExternalTakeover','CortexZeusHeld',
                             'addEventHandler ["Fired"','ownedWaypointName','setWaypointPosition',
-                            'limitSpeed','INGRESS','ATTACK','EGRESS','GROUND_CLEARANCE','EGRESS_NONPROGRESS',
+                            'forceSpeed','INGRESS','ATTACK','EGRESS','GROUND_CLEARANCE','EGRESS_NONPROGRESS',
                             'routeSignature','AUTHORED_ROUTE_CHANGED','CortexFireCountermeasure','CBE_Cortex_AirAttackOutcome',
                             'aimedAtTarget','fireAtTarget','NO_FIRE_SOLUTION','attackStartedAt',
                             'stageBestDistance','stageProgressAt','INGRESS_NONPROGRESS','ATTACK_NONPROGRESS',
@@ -7496,8 +7507,8 @@ class CortexOperations(unittest.TestCase):
                          'if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith',
                          'if (_stage == "ATTACK" && {!([] call _mayControlAircraft)}) exitWith']:
             self.assertIn(boundary,controller)
-        self.assertLess(controller.index('private _mayControlAircraft = {'),controller.index('_aircraft limitSpeed (_stageSpeeds select _stageIndex);'))
-        self.assertLess(controller.index('if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith'),controller.index('_aircraft limitSpeed (_stageSpeeds select _stageIndex);'))
+        self.assertLess(controller.index('private _mayControlAircraft = {'),controller.index('_aircraft forceSpeed _appliedSpeed;'))
+        self.assertLess(controller.index('if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith'),controller.index('_aircraft forceSpeed _appliedSpeed;'))
         self.assertLess(controller.index('if (_stage == "ATTACK" && {!([] call _mayControlAircraft)}) exitWith'),controller.index('_aircraft fireAtTarget'))
 
     def test_aircraft_crew_never_acquire_generic_group_ownership(self):
@@ -8025,8 +8036,10 @@ class CortexOperations(unittest.TestCase):
         admission=job.split('private _allowed=',1)[1].split('if (!_allowed)',1)[0]
         self.assertIn('local _pilot',admission)
         self.assertIn('[_pilot] call CBE_fnc_CortexActorFireTaskAvailable',admission)
-        boundary=job.split('private _mayControlAircraft = {',1)[1].split('};',1)[0]
+        boundary=job.split('private _mayControlAircraft = {',1)[1].split('private _liveSpeedReceipt=',1)[0]
         self.assertIn('local _livePilot',boundary)
+        self.assertIn('(_speedReceipt select 0) == _livePilot',boundary)
+        self.assertIn('getForcedSpeed _aircraft',boundary)
         self.assertIn('[_livePilot] call CBE_fnc_CortexActorFireTaskAvailable',boundary)
         cleanup=job.split('private _finishPilot=_job getOrDefault ["lateralPilot",objNull];',1)[1].split('_finishPilot enableAI',1)[0]
         self.assertIn('[_finishPilot] call CBE_fnc_CortexActorFireTaskAvailable',cleanup)

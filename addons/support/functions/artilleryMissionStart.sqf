@@ -5,6 +5,8 @@
  * Repeat/JIP: The exact mission token reuses its brain. A newer token increments the generation and invalidates older queued work; missions are not replayed after restart.
  * Executor recovery: one ended nonterminal executor resumes the identical admitted record, generation,
  * phase and pending callbacks without new deadlines. Failed execution retires through existing bounded cleanup.
+ * After fire-registry retirement, only the existing relocation observer can resume; it cannot fire,
+ * recreate a mission or cancel a native move. Its original session/window remains authoritative.
  * Arguments: 0 fire mission <HASHMAP>; 1 initial delay <NUMBER>, default 0.
  * Return Value: Boolean - true when the exact mission has an active brain.
  * Current callers: CBE_fnc_CortexArtilleryFire, server-side CortexDiscover executor maintenance
@@ -19,7 +21,13 @@ private _token=_mission getOrDefault ["token",""];
 private _key=_mission getOrDefault ["key",""];
 if (isNull _battery || {_token == ""} || {_key == ""}) exitWith {false};
 private _registered=(missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]) getOrDefault [_key,createHashMap];
-if (_registered isNotEqualTo _mission) exitWith {false};
+private _existing=_battery getVariable ["CBE_Artillery_Brain",createHashMap];
+private _relocationObserver=count _registered == 0 && {count _existing > 0}
+    && {(_existing getOrDefault ["mission",createHashMap]) isEqualTo _mission}
+    && {(_existing getOrDefault ["phase",""]) == "RELOCATING"}
+    && {(_existing getOrDefault ["token",""]) == _token}
+    && {(_existing getOrDefault ["generation",-1]) == (_battery getVariable ["CBE_Artillery_BrainGeneration",-2])};
+if (_registered isNotEqualTo _mission && {!_relocationObserver}) exitWith {false};
 // A parked request has no polling job. Deletion must still release its registry
 // through one server event, with no world scan and no retained deleted-object key.
 _battery setVariable ["CBE_Artillery_RegistryKey",_key];
@@ -42,11 +50,13 @@ private _retireExecutor={
     if ((_battery getVariable ["CBE_Artillery_Brain",createHashMap]) isNotEqualTo _failedBrain
         || {(_failedBrain getOrDefault ["generation",-1]) != (_battery getVariable ["CBE_Artillery_BrainGeneration",-2])}
         || {(_failedBrain getOrDefault ["mission",createHashMap]) isNotEqualTo _mission}
-        || {((missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]) getOrDefault [_key,createHashMap]) isNotEqualTo _mission}) exitWith {false};
+        || {!_relocationObserver && {((missionNamespace getVariable ["CBE_AIPass_FireMissions",createHashMap]) getOrDefault [_key,createHashMap]) isNotEqualTo _mission}}) exitWith {false};
     _failedBrain set ["cancelled",true];_failedBrain set ["finished",true];_failedBrain set ["pending",false];
     _failedBrain set ["cancelReason",_failure];
-    _mission set ["executorFailure",_failure];
-    [_mission] call CBE_fnc_CortexArtilleryMissionStep;
+    if (!_relocationObserver) then {
+        _mission set ["executorFailure",_failure];
+        [_mission] call CBE_fnc_CortexArtilleryMissionStep;
+    };
     _battery setVariable ["CBE_Artillery_Brain_State",["FAILED",_failedBrain getOrDefault ["generation",-1],serverTime,_failure],true];
     false
 };
@@ -68,6 +78,7 @@ if (count _current > 0 && {(_current getOrDefault ["token",""]) == _token}
     if (!_started) then {[_current,"FSM_RESTART_FAILED"] call _retireExecutor};
     _started
 };
+if (_relocationObserver) exitWith {false};
 if (count _current > 0) then {_current set ["cancelled",true];_current set ["cancelReason","REPLACED"]};
 private _generation=(_battery getVariable ["CBE_Artillery_BrainGeneration",0])+1;
 private _brain=createHashMapFromArray [

@@ -2274,7 +2274,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexArtilleryMissionStep.sqf",
-              "sha256": "b5eb19b3e23638ac328a8c95ecdde3a2e6e5e1155138ea9d7fb3d2366ad0200b"
+              "sha256": "2453f89866729f395ee2d95039814c54d5ef53c77ef240341eede4f371f9b0da"
             },
             {
               "path": "addons/support/functions/cortexArtilleryObserve.sqf",
@@ -2312,7 +2312,7 @@
             },
             {
               "path": "addons/support/functions/artilleryMissionStep.sqf",
-              "sha256": "d4c43830678b8024549f6f489ad1c4f959b4adf26c115002d50ca2a473eaca8a"
+              "sha256": "5060922195ea2ef3738eb28947b028dbd7b4a07372089e2327e46974d4946a15"
             }
           ]
         }
@@ -2985,7 +2985,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexArtilleryMissionStep.sqf",
-              "sha256": "b5eb19b3e23638ac328a8c95ecdde3a2e6e5e1155138ea9d7fb3d2366ad0200b"
+              "sha256": "2453f89866729f395ee2d95039814c54d5ef53c77ef240341eede4f371f9b0da"
             }
           ]
         }
@@ -4095,7 +4095,7 @@
             },
             {
               "path": "addons/aircraft/functions/cortexAirAttack.sqf",
-              "sha256": "bab3c0825c3f6fb1caf0cad9b7711b8803f829819681b0dd8bfb420ed26cec23"
+              "sha256": "38e555cb73d1aba754c9c968f69cf1618eac77dd7669ac6172a43eb4ff0ec475"
             }
           ]
         },

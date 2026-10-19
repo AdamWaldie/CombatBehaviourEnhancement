@@ -68,7 +68,10 @@
  * Locality/authority: aircraft owner only. Public summary/outcome arrays support Zeus diagnostics;
  * movement commands and Fired handlers remain owner-local.
  * Repeat/JIP: one finite FSM brain per aircraft. Cleanup removes the owned handler,
- * named waypoint, speed limit and public plan; a short owner-local re-attack interval prevents immediate duplicate runs.
+ * named waypoint, exact unchanged forced-speed receipt and public plan; a short owner-local re-attack interval prevents immediate duplicate runs.
+ * Temporary speed caps retain the original pilot/value, preserve stricter authored forceSpeed and never
+ * write native limitSpeed. Changed pilot/input preempts attack; same-group policy cleanup can restore
+ * only an unchanged applied cap under the original flight lease. Same-value external writes are indistinguishable.
  * Arguments: 0: scheduler job <HASHMAP>; aircraft <OBJECT> is required; target <OBJECT> is optional
  * when an authenticated combined-arms opportunity already selected it.
  * 1: internal executor failure <STRING>, default empty; only exact current failed-brain jobs may clean up. No attack step runs.
@@ -111,7 +114,15 @@ private _finish={
         private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call CBE_fnc_FlightLeaseValid
             && {group driver _aircraft == _finishGroup};
         // A newer flight controller owns speed and pilot features. Retire only our bookkeeping.
-        if (_ownsFlight && {_job getOrDefault ["speedLimitApplied",false]}) then {_aircraft limitSpeed (2 * getNumber (configOf _aircraft >> "maxSpeed"))};
+        private _restoreSpeed=_job getOrDefault ["forcedSpeedReceipt",[]];
+        // This is vehicle-policy cleanup, not permission to command a replacement pilot.
+        // Same-group pilot replacement still releases our unchanged cap under the old flight lease.
+        if (_ownsFlight && {count _restoreSpeed == 3}
+            && {(_restoreSpeed select 1) isEqualType 0} && {finite (_restoreSpeed select 1)}
+            && {(_restoreSpeed select 2) isEqualType 0} && {finite (_restoreSpeed select 2)}
+            && {abs ((getForcedSpeed _aircraft)-(_restoreSpeed select 2)) <= 0.1}) then {
+            _aircraft forceSpeed (_restoreSpeed select 1);
+        };
         // Remove exactly the lease-owned waypoint before selecting any authored route. Searching
         // by name remains correct when Zeus added or removed other waypoints and shifted indices.
         private _ownedWaypointName=_job getOrDefault ["ownedWaypointName",""];
@@ -223,7 +234,7 @@ private _finish={
                 } forEach crew _aircraft;
             };
         };
-        if (_resume && {!_preserveEditedLeg} && {!isNull _finishGroup} && {local _finishGroup}) then {
+        if (_resume && {_ownsFlight} && {!_preserveEditedLeg} && {!isNull _finishGroup} && {local _finishGroup}) then {
             private _resumePosition=_job getOrDefault ["resumePosition",[]];
             private _resumeGroup=group driver _aircraft;
             private _resumeWaypointIndex=if (count _resumePosition >= 2) then {
@@ -335,13 +346,25 @@ private _explicitlyExcluded=[_group] call CBE_fnc_CompatibilityExternalControl
 // flight, targeting or fire request.
 private _mayControlAircraft = {
     private _livePilot=driver _aircraft;
-    local _aircraft && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
+    private _speedReceipt=_job getOrDefault ["forcedSpeedReceipt",[]];
+    private _speedCurrent=_speedReceipt isEqualTo [] || {count _speedReceipt == 3
+        && {(_speedReceipt select 0) == _livePilot}
+        && {(_speedReceipt select 2) isEqualType 0} && {finite (_speedReceipt select 2)}
+        && {abs ((getForcedSpeed _aircraft)-(_speedReceipt select 2)) <= 0.1}};
+    _speedCurrent && {local _aircraft} && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
         && {[_livePilot] call CBE_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
         && {local _livePilot} && {[_livePilot] call CBE_fnc_CortexActorFireTaskAvailable}
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]} && {!([] call CBE_fnc_CortexIsPaused)}
         && {[_aircraft,"AIR_ATTACK",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)}
         && {!([_group] call CBE_fnc_CortexZeusHeld)}
+};
+private _liveSpeedReceipt=_job getOrDefault ["forcedSpeedReceipt",[]];
+if (count _liveSpeedReceipt == 3 && {(_liveSpeedReceipt select 0) != _pilot}) exitWith {
+    ["PILOT_CHANGED",true] call _finish
+};
+if (count _liveSpeedReceipt == 3 && {abs ((getForcedSpeed _aircraft)-(_liveSpeedReceipt select 2)) > 0.1}) exitWith {
+    ["NATIVE_SPEED_CHANGED"] call _finish
 };
 if (_job getOrDefault ["flightLeaseLost",false]
     || {!([_aircraft,"AIR_ATTACK",_flightLeaseToken] call CBE_fnc_FlightLeaseValid)}) exitWith {
@@ -746,8 +769,14 @@ private _interceptRefresh=_job getOrDefault ["airToAir",false] && {_stage == "IN
 if (_interceptRefresh) then {_commandedStage=""};
 if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith {["CONTROL_RELEASED"] call _finish};
 if (_commandedStage != _stage) then {
-    _job set ["speedLimitApplied",true];
-    _aircraft limitSpeed (_stageSpeeds select _stageIndex);
+    // forceSpeed/getForcedSpeed are metres per second; planned stage speeds are km/h.
+    // Preserve a stricter authored cap and leave independent native limitSpeed untouched.
+    private _speedReceipt=_job getOrDefault ["forcedSpeedReceipt",[]];
+    private _originalSpeed=if (_speedReceipt isEqualTo []) then {getForcedSpeed _aircraft} else {_speedReceipt select 1};
+    private _appliedSpeed=((_stageSpeeds select _stageIndex)/3.6) max 0;
+    if (_originalSpeed >= 0) then {_appliedSpeed=_appliedSpeed min _originalSpeed};
+    _job set ["forcedSpeedReceipt",[_pilot,_originalSpeed,_appliedSpeed]];
+    _aircraft forceSpeed _appliedSpeed;
     // MOVE waypoint height is not a reliable flight-profile input for native aircraft. Apply one
     // terrain-relative height hint when the leg changes, then leave the flight model alone. The
     // terminal delivery assist below supplies only final weapon alignment; it does not become a

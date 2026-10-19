@@ -141,5 +141,38 @@
     "newTestCases": 0,
     "physicalAcceptance": false,
     "audits": "PAUSED"
+  },
+  "postRegistryRelocationObserverInProgress": {
+    "sourceHashes": {
+      "addons/support/functions/cortexArtilleryMissionStep.sqf": "2453f89866729f395ee2d95039814c54d5ef53c77ef240341eede4f371f9b0da",
+      "addons/support/functions/artilleryMissionStep.sqf": "5060922195ea2ef3738eb28947b028dbd7b4a07372089e2327e46974d4946a15",
+      "addons/support/functions/artilleryMissionStart.sqf": "7ec54ec133631852547fbd7ff1e4e074b516ebf0d755c956772472c79fb3803b",
+      "docs/Smart-AI-Pass.md": "f9122b2aeb7e9e0cf97384b10854149bd6f8322763282dfd5e0e56c437dfcb9b"
+    },
+    "finding": "RELOCATING observed any ARTILLERY_SCOOT operation and could wait on a successor; active native acceptance clearing the pending token synchronously could also bypass relocation observation. Exact mission admission required the already-retired fire registry.",
+    "implementation": "Dispatch records original session, group and fixed observe-until (original pending expiry plus bounded movement120s). Observation matches full original battery/session and group, and reports ended/expired rather than physical completion. Existing exact nonterminal observer may restart after fire registry retirement only if its registry slot is empty. Failure retires observer metadata without replaying fire, cancelling movement or touching a successor registry. The same one-restart budget applies.",
+    "focused": ".qa/cbe-artillery-relocation-observer-focused.log",
+    "compiler": ".qa/cbe-artillery-relocation-observer-hemtt.log",
+    "existingTestsPassed": 616,
+    "newTestCases": 0,
+    "newWorkers": 0,
+    "physicalAcceptance": false,
+    "remaining": [
+      "Native acceptance/replication timing, subsequent missions, observer loss and HC migration need physical evidence.",
+      "The bounded observation result is not an arrival proof; owner-side movement/result remains authoritative.",
+      "No full rebuild/package for this follow-up; current package predates it."
+    ]
+  },
+  "flightRelocationCheckpoint": {
+    "fullBuild": ".qa/cbe-flight-relocation-handback-final-build.log",
+    "independentVerify": ".qa/cbe-flight-relocation-handback-independent.log",
+    "manifestCommit": "b3e5811e49dcdd82c67ef4932c3b3d93a7bb0a75",
+    "manifestDirty": true,
+    "fingerprint": "cf66977d21d1e674c9b44ea8b4a816191a18c25693eab1f50747f96434d358d7",
+    "tests": 1476,
+    "newTestCases": 0,
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "initialFullFinding": "Two authored-route source assertions still named the removed limitSpeed writer and old resume gate. Existing assertions updated to actual forceSpeed writer and stronger ownsFlight guard; no tests removed/added."
   }
 }

@@ -35,6 +35,16 @@ class ArtilleryScootSession(unittest.TestCase):
     def test_active_relocation_keeps_session_and_cancels_only_current_generation(self):
         scoot=(ROOT/'addons/support/functions/cortexArtilleryScoot.sqf').read_text(encoding='utf-8')
         self.assertIn('_operation set ["artilleryScootSession",[_battery,+_session]]',scoot)
+        observe=(ROOT/'addons/support/functions/artilleryMissionStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('isEqualTo [_battery,_session]',observe)
+        self.assertIn('RELOCATION_OBSERVER_EXPIRED',observe)
+        self.assertIn('RELOCATION_ENDED',observe)
+        self.assertNotIn('_activeToken == _token ||',observe)
+        self.assertNotIn('remoteExecCall',observe)
+        start=(ROOT/'addons/support/functions/artilleryMissionStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('count _registered == 0',start)
+        self.assertIn('if (_relocationObserver) exitWith {false}',start)
+        self.assertIn('if (!_relocationObserver) then',start)
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text(encoding='utf-8')
         active=tick.split('private _scootLease=',1)[1].split('private _movementLease =',1)[0]
         for marker in ('"artilleryScootSession"','"ownerEpoch"','CBE_ArtilleryScoot_SupportGeneration',
