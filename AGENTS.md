@@ -9,7 +9,7 @@
 - Optional AI addons receive explicit ownership; never run two movement controllers over the same group.
 
 - Follow CONTRIBUTING.md for source, feature-guide and PR documentation requirements.
-- Run the complete build_mod.ps1 gates, including config, documentation/link checks, CBA/Zeus/script parity and static performance regression checks. HEMTT compilation/lint and FSM validation are mandatory.
+- Run the complete build_mod.ps1 gates at a coherent implementation checkpoint, including config, documentation/link checks, CBA/Zeus/script parity and static performance regression checks. HEMTT compilation/lint and FSM validation remain mandatory before that checkpoint is delivered. During development use focused existing checks; a local commit or goal continuation alone is not a reason to rerun the full build.
 - Never blanket-accept performance findings or claim static/package success as live tactical acceptance. Preserve the exact packaged candidate for audit and release.
 
 ## Standing user scope and priorities
@@ -96,3 +96,13 @@ User clarification2026-10-19: build upward, not by chasing disconnected tactical
 ## Settings receipt cleanup
 
 Application-time validation is not sufficient when direct stop/exclusion paths call restoration independently. Use the shared typed receipt boundary at every native settings cleanup. A missing applied or original value grants no restoration authority and must not consume the other half. Skill/aim pairs can retire independently; retain pending metadata. AIProfileReceipt is structural evidence only, not proof of ordered replication, never-profiled state, owner admission acknowledgement or eventual handback. Do not add a timer that reclaims mission-owned settings.
+
+## Validation cost and implementation batches
+
+User clarification 2026-10-19: validation must support implementation rather than dominate it.
+
+- Group related foundation and behaviour changes into a coherent implementation batch. Run focused existing checks during development, then the complete sequential pipeline before delivering or pushing that checkpoint. Do not repeat an unchanged successful full build just because a new turn began or a bookkeeping commit was made.
+- Repeat a failed gate after addressing its cause. Broaden checks when changed code, shared dependencies or unresolved findings justify it. Record the exact source and dirty-state provenance of the last successful package; later source changes are not covered by it.
+- Prefer extending a meaningful existing regression case. Add a case only for a distinct failure mode or behavioural invariant; avoid a new source-spelling assertion for each guard, branch or helper. Never remove a check merely to reduce the count or conceal a failure.
+- Keep static contracts, physical behaviour and measured performance separate. More tests and green source-shape assertions do not establish better AI. Audits remain paused until the user authorises them.
+- Do not push micro-commits, dispatch remote checks or mark a draft ready to obtain routine development feedback. Preserve the complete release gates.

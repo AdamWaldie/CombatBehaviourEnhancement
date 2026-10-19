@@ -29,7 +29,9 @@ Keep PR descriptions current with the final scope. List changed behaviour, contr
 
 ## Required checks
 
-Run `releaseVerificationAndDeployment/build_mod.ps1` for the sequential local pipeline. It runs unit tests, SQF structure checks, config checks, source/documentation contracts, CBA/Zeus/script parity, performance regression checks, feature coverage, HEMTT compilation, FSM validation and package sealing. CI runs the same checks for builds and signed candidates.
+Use focused existing checks while developing a coherent implementation batch. A local commit or a new continuation does not by itself require another complete build. Before delivering or pushing the batch, run `releaseVerificationAndDeployment/build_mod.ps1` for the sequential local pipeline. It runs unit tests, SQF structure checks, config checks, source/documentation contracts, CBA/Zeus/script parity, performance regression checks, feature coverage, HEMTT compilation, FSM validation and package sealing. CI runs the same checks for builds and signed candidates.
+
+Reuse the last successful full result only for the exact source it covered. Repeat checks when source changes, failures or unresolved concerns justify them. Prefer extending an existing regression case for a meaningful failure mode; avoid adding source-spelling checks for each implementation detail. Test counts are not behaviour acceptance.
 
 HEMTT provides compiler and lint diagnostics for current Arma commands. Fix compiler errors; review performance warnings. A static performance scan cannot establish the frame-time budget. Its high-severity baseline starts empty; an exception needs a specific reviewed reason and bounded count. Never regenerate a baseline merely to hide a new finding.
 
