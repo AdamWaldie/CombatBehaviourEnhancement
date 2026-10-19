@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Destination recovery is explicitly mode-bound; other native command modes grant no
+ * destination handback, cleanup registration or adoption authority through this path.
  * Traffic retry journal: current brain/epoch and fresh observation are checked in one unscheduled
  * retry/publication section. Edit an isolated journal; successor/native-order changes prevent
  * publication. Rear recovery aborts on aggregate or per-hitpoint damage increase against its
@@ -152,6 +154,8 @@ _brain set ["geometryTracks",_geometryTracks];
         [_vehicle,_group,"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease;
         _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
     };
+    // Destination recovery cannot adopt or retire another native command mode.
+    if (count _recoveryWork > 0 && {(_recoveryWork getOrDefault ["commandMode","DESTINATION"]) != "DESTINATION"}) then {continue};
     private _recoveryOwned=count _recoveryWork > 0 && {(_recoveryWork get "group") == _group}
         && {(_recoveryWork get "route") isEqualTo _routeIdentity}
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
@@ -371,7 +375,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _deadline=switch (_kind) do {case "REFRESH":{_hard-66};case "FINAL":{_hard};case "EXHAUSTED":{_hard};default {_hard-60}};
                 private _work=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
-                    ["kind",_kind],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
+                    ["kind",_kind],["commandMode","DESTINATION"],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
                     ["origin",getPosATL _vehicle],["baseline",+_previous],["cap",_capMps]];
                 if (_kind == "REVERSE") then {
                     _work set ["rearOriginASL",getPosASL _vehicle];

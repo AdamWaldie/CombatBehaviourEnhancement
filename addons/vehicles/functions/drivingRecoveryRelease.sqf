@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Destination recovery is explicitly mode-bound; other native command modes grant no
+ * destination handback, cleanup registration or adoption authority through this path.
  * Purpose: Retires a matching ordinary recovery journal; only its exact owned reverse can stop
  * and hand back to the unchanged plain authored MOVE. Forward retries retire metadata only.
  * Locality / Authority: Current vehicle/group owner. Original seats, both native destinations,
@@ -38,6 +40,8 @@ isNil {
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}) exitWith {false};
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
+// This executor restores destination commands only, never a different native command mode.
+if ((_work getOrDefault ["commandMode","DESTINATION"]) != "DESTINATION") exitWith {false};
 // A blocked exact handback has only the original recovery lifetime. Expiry preserves
 // command/cap provenance but never grants a late command or a newly renewed cleanup window.
 // Call this only after proving unchanged ownership; newer orders still retire metadata normally.

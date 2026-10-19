@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Destination recovery is explicitly mode-bound; other native command modes grant no
+ * destination handback, cleanup registration or adoption authority through this path.
  * Purpose: Offers an existing pending driving-release receipt to its new vehicle owner.
  * Locality / Authority: Native LandVehicle init/Local and actual driving-seat events on each machine, never remote calls.
  * Only cleanup registration is permitted; the existing exact release guards authorize commands.
@@ -27,13 +29,15 @@ isNil {
         && {_gained} && {local _vehicle} && {alive _vehicle}) then {
         private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         if (_work getOrDefault ["releasePending",false]
-            && {(_work getOrDefault ["kind",""]) == "REVERSE"}) then {
+            && {(_work getOrDefault ["kind",""]) == "REVERSE"}
+            && {(_work getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"}) then {
             [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
             _accepted=true;
         } else {
             // A reverse receipt and its later pending flag can arrive separately. Observe
             // within the original window only; nonpending work never authorizes release.
-            private _lookup=count _work == 0 || {(_work getOrDefault ["kind",""]) == "REVERSE"};
+            private _lookup=count _work == 0 || {(_work getOrDefault ["kind",""]) == "REVERSE"
+                && {(_work getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"}};
             if (_lookup && {_attempt < 5} && {count crew _vehicle > 0}) then {
                 [{_this call CBE_fnc_DrivingRecoveryAdopt},
                     [_vehicle,true,_attempt+1,_epoch],1] call CBA_fnc_waitAndExecute;

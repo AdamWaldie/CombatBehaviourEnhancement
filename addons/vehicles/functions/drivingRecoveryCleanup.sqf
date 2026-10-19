@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Destination recovery is explicitly mode-bound; other native command modes grant no
+ * destination handback, cleanup registration or adoption authority through this path.
  * Purpose: Observes exact pending reverse-release receipts after tactical workers stop.
  * Locality / Authority: Local calls only, on the current vehicle owner. Existing release
  * guards alone authorize native handback and cap restoration; this service issues no rear leg.
@@ -22,12 +24,13 @@ isNil {
     private _signature={
         params ["_work"];
         ["group","route","driver","operator","started","deadline","hardDeadline",
-            "driverCommand","command","kind","cap","baseline"] apply {_work getOrDefault [_x,[]]}
+            "driverCommand","command","kind","cap","baseline","commandMode"] apply {_work getOrDefault [_x,[]]}
     };
     if (!isNull _vehicle && {local _vehicle}) then {
         private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         if (_work getOrDefault ["releasePending",false] && {!(_work getOrDefault ["releaseUnresolved",false])}
-            && {(_work getOrDefault ["kind",""]) == "REVERSE"}) then {
+            && {(_work getOrDefault ["kind",""]) == "REVERSE"}
+            && {(_work getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"}) then {
             private _proof=[_work] call _signature;
             private _existing=_vehicle getVariable ["CBE_DrivingRecovery_CleanupTicket",""];
             private _record=_registry getOrDefault [_existing,[]];

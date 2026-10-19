@@ -4,7 +4,7 @@
   "scope": "Native negotiated queue room-making and rear-to-front dependency execution",
   "sources": {
     "addons/vehicles/functions/drivingOperationStep.sqf": "63e6b844679b46eaeb0035212d62be4c00e1d914e7890118a71178ccd6ffd950",
-    "addons/vehicles/functions/drivingAssistStart.sqf": "51018762e8353418dbf067bc4c199c48a1570198fb84b4615f466ab6742f6b5a",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "aa4bc4d2d17349b5670f7161c62885437d20117344372c784c336c64603da985",
     "addons/vehicles/functions/drivingAssistRelease.sqf": "0df8abdaa9b15a762ca9d294d969af19c286cd781ff9fa65d214352fa9b87b06",
     "addons/vehicles/functions/drivingOperationFinish.sqf": "9742f96263d2ff43e81977b9c47b0b1c6762248914c8fea380e6c14e081feeab",
     "addons/vehicles/functions/drivingPassContext.sqf": "3efe9903f79961c1ba2f6f5667aa8343e6edd1c2dd75fa31768e5ce589991cc7",
@@ -17,8 +17,10 @@
     "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "19b031c6db177b3fbe2b7c86a091cd574c39eaa5b7fab545d440d5d62dfd7cd5",
     "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "e82fe5a09fbd42156b675722657c2e000a288529942793c990d3d98bcefd3b89",
     "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003",
-    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "0f693212e3eb595bf07d3fadd761ff2b8ff8eca8a21f1dd45279eb2d35ad356b",
-    "addons/vehicles/functions/drivingPassCanConsent.sqf": "7d2a45be485837975ac94312a47228cf795e882e7a408d53a321c13c922dae6c"
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "937c1fcf81b3b3e49094671331b457cf15a1c98dc8d668890f9029e81ea2e4ea",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "7d2a45be485837975ac94312a47228cf795e882e7a408d53a321c13c922dae6c",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "e8b0b1a6ddf8a9e31b19d7b9a43e5d188b23268b41e9dcc1992107ebe9c834f3",
+    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "3dfd95237866632fb252d432d7f3ea04397383e30b6a2318c56f4481ae3adfce"
   },
   "findings": [
     "DrivingOperationStep/AssistStart already own finite owner callbacks and sole ordinary speed writer. Queue work must integrate there, not spawn another movement controller.",
@@ -140,5 +142,6 @@
     ],
     "status": "DESIGN_CONSTRAINT_VERIFIED_NO_EXECUTOR_ADDED_NO_PARITY_CREDIT",
     "audits": "PAUSED"
-  }
+  },
+  "command_mode_foundation_20261019": "Recovery journal now explicitly records DESTINATION. Active assistance yields unknown modes; release refuses them before native cleanup; deferred cleanup signatures include mode and only destination work registers; adoption/late lookup refuse other modes. Missing field retains existing destination interpretation. This does not implement BACK, COMMIT, HOLD or READY. Full offline .qa/cbe-recovery-command-mode-build.log/independent verify passed; fingerprint6092e29ecd63628dc8db80c776a9c4e4270917cc513390f5e06f259898c8ce59, manifestd6ff65a4+dirtydevelopment. No new tests/workers/scores or physical acceptance."
 }
