@@ -166,8 +166,16 @@ class SupportBoundCommitTests(unittest.TestCase):
                       'UNRESOLVED_OR_SUPERSEDED','NO_MATCHING_HOLDS'):
             self.assertIn(proof,cleanup)
         brain=(ROOT/'addons/infantry/functions/groupBrainStep.sqf').read_text()
-        self.assertIn('[_group,_supportCleanupState,true] call CBE_fnc_CortexSupportMaintain',brain)
+        self.assertIn('[_group,_supportCleanupState,"PENDING"] call CBE_fnc_CortexSupportMaintain',brain)
         self.assertIn('supportStopCleanup',brain)
+        self.assertIn('_mode in ["MAINTAIN","PENDING","RELEASE"]',maintain)
+        release_only=maintain.index('if (_mode == "RELEASE") exitWith')
+        self.assertLess(release_only,maintain.index('// The cached operation step'))
+        calm=(ROOT/'addons/infantry/functions/cortexRestoreCalm.sqf').read_text()
+        handback=calm.split('// Finish exact coordinated native holds',1)[1].split('// Generic engagement cleanup',1)[0]
+        for proof in ('!_yieldToExternal','isEqualTo _state','supportToken','"RELEASE"'):
+            self.assertIn(proof,handback)
+        self.assertLess(calm.index('[_group,_state,"RELEASE"]'),calm.index('_state deleteAt "supportHeld"'))
         release=maintain.split('private _releaseSupport={',1)[1].split('// The cached operation step',1)[0]
         self.assertLess(release.index('call _releaseStopHolds'),release.index('CortexGroupMoveClear'))
         cover=maintain.split('private _stopHolds=',1)[1]

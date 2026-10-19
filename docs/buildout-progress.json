@@ -95,7 +95,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/groupBrainStep.sqf",
-              "sha256": "bdee3cde7bdf16fa4afa775339d831baa6691fed159c9c046f6c6094ec4810d2"
+              "sha256": "0193383b006d57947da7d5cf15a1b0207194ee0acbb8b33e9267a79f17e5205c"
             },
             {
               "path": "addons/infantry/functions/dangerStep.sqf",
@@ -133,7 +133,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
-              "sha256": "fee0d064844dba9c45c29d253d9f1ef5ac2356309053fcd7a98ebefc3c9d8d0e"
+              "sha256": "cacafd03c3a5e13dcf5ff01a105bcbcd5ac68cce7da4eae87fd6a2410f9b8041"
             }
           ]
         }
@@ -970,7 +970,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
-              "sha256": "fee0d064844dba9c45c29d253d9f1ef5ac2356309053fcd7a98ebefc3c9d8d0e"
+              "sha256": "cacafd03c3a5e13dcf5ff01a105bcbcd5ac68cce7da4eae87fd6a2410f9b8041"
             }
           ]
         }
@@ -3500,7 +3500,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "528b86ff9646e3cd64b89964f59392736199a83839c51852bb7ebbdd687ab625"
+              "sha256": "45127eaede2489acf22f9e186c9eb54e86dacd3520fbd72033b3528d743b67b4"
             }
           ]
         }
@@ -3557,7 +3557,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "528b86ff9646e3cd64b89964f59392736199a83839c51852bb7ebbdd687ab625"
+              "sha256": "45127eaede2489acf22f9e186c9eb54e86dacd3520fbd72033b3528d743b67b4"
             },
             {
               "path": "addons/infantry/functions/recoveryStep.sqf",
@@ -3960,7 +3960,7 @@
             },
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "528b86ff9646e3cd64b89964f59392736199a83839c51852bb7ebbdd687ab625"
+              "sha256": "45127eaede2489acf22f9e186c9eb54e86dacd3520fbd72033b3528d743b67b4"
             }
           ]
         },

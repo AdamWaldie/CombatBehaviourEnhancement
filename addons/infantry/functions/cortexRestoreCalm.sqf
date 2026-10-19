@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ordinary current-owner support teardown uses release-only native hold handback before
+ * erasing its token. External yields and checkpoint-only restoration never invoke that executor.
  * Remount cleanup preserves a newer vehicle assignment from Zeus or another controller.
  * Returns a group to CALM and releases the engagement controls it still owns.
  * Live independent actor-movement reservations survive generic cleanup; only their
@@ -68,6 +70,12 @@ if (isNull _leader) then {_leader=leader _group};
 // Restore its movement restrictions now, before clearing the checkpoint below.
 if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
     [_group,_state,"CALM"] call CBE_fnc_CortexFlankEnd;
+};
+// Finish exact coordinated native holds before generic teardown erases their support token.
+// Checkpoint-only restoration and external yields must not turn into a fresh release executor.
+if (!_yieldToExternal && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+    && {(_state getOrDefault ["supportToken",""]) != ""}) then {
+    [_group,_state,"RELEASE"] call CBE_fnc_CortexSupportMaintain;
 };
 // Generic engagement cleanup is not the owner of every finite actor task. An
 // unknown reservation is also not permission to issue a return-to-formation order.

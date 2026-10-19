@@ -32,14 +32,18 @@
  * lease prevents COMPAT and Cortex from issuing movement to the same group during rally or assault.
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
  * Route cleanup requires a matching generation and never touches a replacement operation.
- * Arguments: 0: group <GROUP>; 1: local state <HASHMAP>.
+ * Arguments: 0: group <GROUP>; 1: local state <HASHMAP>;
+ * 2: mode <STRING>, default MAINTAIN; PENDING services registered cleanup only;
+ * RELEASE retires the current assignment without starting another role or bound.
  * Return Value: Nothing for maintenance; cleanup-only returns the internal commit BOOL, not reunion.
- * Current callers: GroupTick; GroupBrainStep services pending cleanup only.
+ * Current callers: GroupTick (MAINTAIN), GroupBrainStep (PENDING), CortexRestoreCalm (RELEASE).
  * Example: [_group, _state] call CBE_fnc_CortexSupportMaintain;
  * Result: the active assignment advances, holds, or releases without competing movement owners.
  */
-params ["_group","_state",["_cleanupOnly",false,[true]]];
-if (!local _group) exitWith {};
+params ["_group","_state",["_mode","MAINTAIN",[""]]];
+_mode=toUpperANSI _mode;
+if (!(_mode in ["MAINTAIN","PENDING","RELEASE"]) || {!local _group}) exitWith {};
+private _cleanupOnly=_mode == "PENDING";
 // The reservation may expire in the same scheduler turn that Zeus or another
 // controller claims the group. Retire CBE's lease either way. A normal feature
 // shutdown still restores the support hold; only an actual replacement owner keeps
@@ -213,6 +217,12 @@ private _releaseSupport={
     [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     call _restoreAttack;
     {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling"];
+};
+// Engagement teardown requests release only; it must never consume a fresh role or start a bound.
+if (_mode == "RELEASE") exitWith {
+    if ((_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state) then {
+        ["ENGAGEMENT_HANDOVER"] call _releaseSupport;
+    };
 };
 // The cached operation step is intentionally infrequent. A curator or specialist can claim this
 // group between those steps, so retire the matching support lease before any covering hold or bound
