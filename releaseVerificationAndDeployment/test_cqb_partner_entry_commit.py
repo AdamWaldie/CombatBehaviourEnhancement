@@ -59,4 +59,13 @@ class PartnerProgressTargetTests(unittest.TestCase):
         self.assertIn('private _receipt=+(',section)
         self.assertIn('_receipt set [3,+_alternative]',section)
         self.assertIn('[_distance,_now,false,+_entryTarget]',section)
-
+        self.assertIn('_receipt set [4,+_entryPosition]',block)
+        motion=section.split('private _entryPosition=',1)[1].split('if (!(_receipt select 2)',1)[0]
+        self.assertIn('_entryPosition vectorDistance _entryMotionAnchor >= 1',motion)
+        self.assertIn('[_partner] call _ownsCurrentMove',motion)
+        self.assertIn('simulationEnabled _partner',motion)
+        self.assertIn('!isObjectHidden _partner',motion)
+        self.assertIn('|| {_entryMoved}',motion)
+        self.assertNotIn('hardDeadline',motion)
+        self.assertNotIn('doMove',motion)
+        self.assertNotIn('_receipt set [2,',motion)

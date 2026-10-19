@@ -1,5 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
+ * Room exhaustion requires failures from every currently capable lane; inactive lane
+ * failures cannot replace another lane attempt, and no capable lanes proves no clearance.
+ * The original configured lane count still bounds retries after casualties.
+ * Partner entry stall timing accepts actual motion on its unchanged owned native leg,
+ * including detours around the building. A target change adopts a position baseline
+ * without renewing progress, retry or operation deadlines; motion never credits entry.
  * A changed buddy destination commits independently of the lead room-request flag. Unchanged
  * native paths retain their existing acknowledgement/recovery budget; buddy movement never
  * resets the room mover progress clock or proves an interior visit.
@@ -2175,10 +2181,19 @@ private _delay=call {
     // Reassigned units belong to their new commander and must receive no further orders here.
     private _activeWorkers=(_job get "team") select {[_x] call _actorAvailable
         && {!(_x in _rotatedOut)} && {!(_x in _unavailable)}};
-    // Every assigned lane gets a chance before a room is declared exhausted.
-    // A fixed two-lane threshold abandoned rooms while a third capable pair existed.
-    // The operation deadline and finite per-room recovery budget still bound retries.
+    // Original lane count bounds total retries; casualties cannot replenish that budget.
     private _failureThreshold=(count (_job get "pairs")) max 1;
+    // Exhaustion waits for every currently capable lane, not impossible attempts from
+    // dead/retired/exited pairs. Historical failures from other lanes cannot substitute.
+    private _capablePairIds=[];
+    {
+        private _laneId=format ["PAIR_%1",_forEachIndex];
+        if (_x findIf {[_x] call _actorAvailable && {!(_x in _rotatedOut)}
+            && {!(_x in _unavailable)} && {!(netId _x in _earlyExits)}} >= 0) then {
+            _capablePairIds pushBack _laneId;
+        };
+    } forEach (_job get "pairs");
+    private _failureRosterChanged=_capablePairIds isNotEqualTo (_job getOrDefault ["failureLaneRoster",[]]);
     {
         if (!([_x] call _actorAvailable) || {_x in _rotatedOut} || {_x in _unavailable}) then {
             _assigned set [_forEachIndex,[]];
@@ -2383,17 +2398,32 @@ private _delay=call {
                         };
                         private _entryRecovery=_job getOrDefault ["entryRecovery",createHashMap];
                         private _key=netId _partner;
-                        private _distance=(getPosASL _partner) vectorDistance (AGLToASL _entryTarget);
+                        private _entryPosition=getPosASL _partner;
+                        private _distance=_entryPosition vectorDistance (AGLToASL _entryTarget);
                         private _receipt=+(_entryRecovery getOrDefault [_key,[_distance,_now,false,+_entryTarget]]);
+                        private _entryMotionAnchor=_receipt param [4,[],[[]]];
+                        private _entryMotionValid=count _entryMotionAnchor == 3
+                            && {_entryMotionAnchor findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
+                        private _entryMoved=_entryMotionValid
+                            && {_entryPosition vectorDistance _entryMotionAnchor >= 1}
+                            && {[_partner] call _ownsCurrentMove} && {[_partner] call _actorAvailable}
+                            && {simulationEnabled _partner} && {!isObjectHidden _partner};
+                        // Old receipts acquire a real motion baseline without inventing progress.
+                        if (!_entryMotionValid) then {_receipt set [4,+_entryPosition]};
                         // Distances to different nodes cannot prove actor progress. Adopt a new
                         // target baseline without renewing the no-progress clock or spent retry.
                         // Legacy three-field records acquire target identity the same way.
                         if ((_receipt param [3,[]]) isNotEqualTo _entryTarget) then {
                             _receipt set [0,_distance];
                             _receipt set [3,+_entryTarget];
+                            _receipt set [4,+_entryPosition];
                         } else {
-                            if ((_receipt select 0)-_distance >= 1) then {
-                                _receipt set [0,_distance]; _receipt set [1,_now];
+                            // A valid native route may initially lead away from the destination.
+                            // Preserve that travel without treating a different target as progress.
+                            if ((_receipt select 0)-_distance >= 1 || {_entryMoved}) then {
+                                _receipt set [0,(_receipt select 0) min _distance];
+                                _receipt set [1,_now];
+                                _receipt set [4,+_entryPosition];
                             };
                         };
                         if (!(_receipt select 2) && {_now-(_receipt select 1) >= 12}
@@ -2410,6 +2440,7 @@ private _delay=call {
                                 _entryTarget=+_anchor;
                                 _receipt set [0,(getPosASL _partner) vectorDistance (AGLToASL _entryTarget)];
                                 _receipt set [3,+_entryTarget];
+                                _receipt set [4,+_entryPosition];
                                 (_job get "pairEntryTargets") set [str _pairIndex,+_anchor];
                                 diag_log format ["CBE CLEAR PARTNER ACCESS: %1",[_job get "generation",_pairIndex,netId _partner,+_anchor]];
                             };
@@ -2496,6 +2527,7 @@ private _delay=call {
                                         (_job get "pairEntryTargets") set [str _pairIndex,+_alternative];
                                         _receipt set [0,_pose vectorDistance (AGLToASL _alternative)];
                                         _receipt set [3,+_alternative];
+                                    _receipt set [4,+_pose];
                                         _partner doMove _alternative;
                                         [_partner,_alternative] call _rememberMove;
                                         _lastTarget=-1;
@@ -3322,7 +3354,9 @@ private _delay=call {
                                         _failures pushBackUnique _pairId;
                                         _failedBy set [_positionIndex,_failures];
                                         // A failed entry lane cannot undo another worker's physical room visit.
-                                        if (count _failures >= _failureThreshold && {!(_positionIndex in _cleared)}) then {
+                                        if (_capablePairIds isNotEqualTo []
+                                            && {_capablePairIds findIf {!(_x in _failures)} < 0}
+                                            && {!(_positionIndex in _cleared)}) then {
                                             if !(_positionIndex in _unreachable) then {
                                                 // A configured building point is only a candidate. Preserve the
                                                 // actual failed request without calling it physically cleared or
@@ -3363,6 +3397,24 @@ private _delay=call {
             };
         };
     } forEach _pairs;
+    if (_failureRosterChanged && {call _mayIssueMovement}) then {
+        // An empty lane may have returned its claim during the loop above. Reconcile
+        // only on capability changes, after those claims rejoin the pending queue.
+        // No remaining lane is not evidence of room failure; the operation must fail normally.
+        if (_capablePairIds isNotEqualTo []) then {
+            private _pendingFailures=_job get "pending";
+            {
+                private _room=_x;
+                private _failures=_failedBy select _room;
+                if (!(_room in _cleared) && {_capablePairIds findIf {!(_x in _failures)} < 0}) then {
+                    _unreachable pushBackUnique _room;
+                    _pendingFailures deleteAt (_pendingFailures find _room);
+                    _retryChanged=true;
+                };
+            } forEach (+_pendingFailures);
+        };
+        _job set ["failureLaneRoster",+_capablePairIds];
+    };
     private _madeProgress=count _cleared != _before || {count _unreachable != _unreachableBefore};
     if (_pairStates findIf {_x param [12,false]} >= 0 && {(_job getOrDefault ["phase","ENTRY"]) == "ENTRY"}) then {_job set ["phase","SWEEP"]};
     if (_madeProgress) then {_job set ["phase","SWEEP"]} else {if (_retryChanged) then {_job set ["phase","REPLAN"]}};

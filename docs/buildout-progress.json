@@ -3193,7 +3193,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "ab389b0624e536f2c061f2858566b46a9b2f396a56f312f65395acae93796588"
+              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3214,7 +3214,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "ab389b0624e536f2c061f2858566b46a9b2f396a56f312f65395acae93796588"
+              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3239,7 +3239,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "ab389b0624e536f2c061f2858566b46a9b2f396a56f312f65395acae93796588"
+              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3260,7 +3260,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "ab389b0624e536f2c061f2858566b46a9b2f396a56f312f65395acae93796588"
+              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
             },
             {
               "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
@@ -3302,7 +3302,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "ab389b0624e536f2c061f2858566b46a9b2f396a56f312f65395acae93796588"
+              "sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",

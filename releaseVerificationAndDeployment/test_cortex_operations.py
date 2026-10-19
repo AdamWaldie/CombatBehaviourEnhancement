@@ -1933,7 +1933,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('movementFailed',text)
         self.assertIn('_unreachable pushBackUnique _positionIndex',timeout)
         self.assertIn('_failures pushBackUnique _pairId',timeout)
-        self.assertIn('count _failures >= _failureThreshold',timeout)
+        self.assertIn('_capablePairIds findIf {!(_x in _failures)} < 0',timeout)
         self.assertIn('_x doMove _unitTarget',timeout)
         self.assertIn('[_x] call _actorTaskFree',timeout)
         self.assertNotIn('_x setDestination',timeout)
@@ -9108,6 +9108,18 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('private _failureThreshold=(count (_job get "pairs")) min 2',text)
         self.assertIn('private _roomRetryBudget=3*_failureThreshold;',text)
         self.assertIn('serverTime > (_job get "deadline")',text)
+        self.assertIn('private _capablePairIds=[]',text)
+        self.assertIn('!(netId _x in _earlyExits)',text)
+        self.assertIn('if (_failureRosterChanged && {call _mayIssueMovement})',text)
+        self.assertIn('forEach (+_pendingFailures)',text)
+        self.assertIn('_capablePairIds isNotEqualTo []',text)
+        self.assertIn('_capablePairIds findIf {!(_x in _failures)} < 0',text)
+        # Only failures of remaining capable lanes count; no lanes is not exhaustion proof.
+        capable={'PAIR_1','PAIR_3'}
+        self.assertFalse(bool(capable) and capable <= {'PAIR_0','PAIR_1'})
+        self.assertTrue(bool(capable) and capable <= {'PAIR_1','PAIR_3'})
+        self.assertFalse(bool(set()) and set() <= {'PAIR_0'})
+
 
     def test_garrison_world_position_cache_invalidates_building_transforms(self):
         text=source('cortexGarrisonApplyLocal')
