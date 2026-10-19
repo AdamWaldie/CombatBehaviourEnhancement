@@ -1437,7 +1437,8 @@
         "addons/infantry/functions/indoorActorGroupAvailable.sqf",
         "addons/infantry/functions/indoorActorDispatch.sqf",
         "addons/infantry/functions/cortexClearSettingsApply.sqf",
-        "addons/infantry/functions/indoorObservationDispatch.sqf"
+        "addons/infantry/functions/indoorObservationDispatch.sqf",
+        "addons/infantry/functions/cortexRouteDoors.sqf"
       ]
     },
     {

@@ -245,6 +245,7 @@ class CfgFunctions {
             class CortexGroupAnchor {file = "\z\cbe\addons\infantry\functions\cortexGroupAnchor.sqf";};
             class CortexGroupTransmitter {file = "\z\cbe\addons\infantry\functions\cortexGroupTransmitter.sqf";};
             class CortexBuildingDoor {file = "\z\cbe\addons\infantry\functions\cortexBuildingDoor.sqf";};
+            class CortexRouteDoors {file = "\z\cbe\addons\infantry\functions\cortexRouteDoors.sqf";};
             class BuildingContactSelect {file = "\z\cbe\addons\infantry\functions\buildingContactSelect.sqf";};
             class CortexBuildingContact {file = "\z\cbe\addons\infantry\functions\cortexBuildingContact.sqf";};
             class CortexClearBuilding {file = "\z\cbe\addons\infantry\functions\cortexClearBuilding.sqf";};

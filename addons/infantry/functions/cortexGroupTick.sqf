@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm authored foot travel can request near unlocked doors through its existing tick,
+ * independently of autonomous Contact decisions and without acquiring movement.
  * Natural contact escalation defers mission STEALTH while passive reports and native self-defence remain available.
  * Contact-loss cleanup waits for a matching owner/generation CLEAR FSM to finish or cancel;
  * its independent finite deadlines and newer mission/Zeus orders retain authority.
@@ -654,6 +656,13 @@ private _delay = switch (true) do {
     case (_nearest <= (["CBE_AIPass_NearRange", 1000] call _get)): {["CBE_AIPass_TickNear", 4] call _get};
     case (_nearTier): {["CBE_AIPass_TickMid", 8] call _get};
     default {["CBE_AIPass_TickFar", 20] call _get};
+};
+// Native authored travel keeps its own planner. Door assistance only operates the
+// near unlocked leaf on that actual approach, without an indoor movement operation.
+// It is independent of autonomous contact decisions; actor target/task gates still win.
+if ((_state get "phase") == "CALM" && {!_dangerActive} && {!_groupMovementOwned}
+    && {!(_state getOrDefault ["responding",false])}) then {
+    [_group,_state] call CBE_fnc_CortexRouteDoors;
 };
 if !(["CBE_AIPass_Contact_Enable", true] call _get) exitWith {
     // Explicit building orders have their own feature gate and generation-owned FSM.

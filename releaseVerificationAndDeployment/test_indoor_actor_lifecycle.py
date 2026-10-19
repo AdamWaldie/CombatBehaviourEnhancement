@@ -4,6 +4,38 @@ import re
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class IndoorActorLifecycleTests(unittest.TestCase):
+    def test_plain_route_door_assistance_never_takes_movement_or_opens_an_unrelated_door(self):
+        route=(ROOT/'addons/infantry/functions/cortexRouteDoors.sqf').read_text()
+        door=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
+        tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
+        body=route.split('params [[',1)[1]
+        self.assertEqual(body.count('lineIntersectsSurfaces'),1)
+        self.assertNotIn('nearestObjects',body)
+        for proof in ('select [0,16]','routeDoorNextAt','serverTime+2','routeDoorCursor',
+                      '(3 min _length)/_length','_hit select 2','_hit select 3',
+                      '_target vectorDistance _goal <= 3','CBE_fnc_CortexBuildingDoor'):
+            self.assertIn(proof,body)
+        for forbidden in ('doMove','doFollow','doStop','setDestination','spawn','waitAndExecute','animateSource'):
+            self.assertNotIn(forbidden,body)
+        admission=door.split('== "ROUTE") exitWith',1)[1].split('if (count _context != 2',1)[0]
+        for proof in ('CBE_AIPass_Epoch','CortexIsPaused','STEALTH','currentCommand _unit != "MOVE"',
+                      'waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers',
+                      'waypointAttachedObject','CortexActorMoveReserved','IndoorActorGroupAvailable'):
+            self.assertIn(proof,admission)
+        self.assertEqual(door.count('call _routeDoorRelevant'),2)
+        hook=tick.split('// Native authored travel keeps its own planner.',1)[1].split('if !(["CBE_AIPass_Contact_Enable"',1)[0]
+        self.assertIn('!_dangerActive',hook)
+        self.assertNotIn('{_ordered}',hook)
+        self.assertLess(tick.index('call CBE_fnc_CortexRouteDoors'),tick.index('if !(["CBE_AIPass_Contact_Enable"'))
+        self.assertIn('!_groupMovementOwned',hook)
+        self.assertIn('CBE_fnc_CortexRouteDoors',hook)
+        # Geometric admission only: a doorway must lie along, before the native
+        # goal and within the narrow approach strip. This proves no Arma entry.
+        def relevant(along,lateral,length):return 0<=along<=length and abs(lateral)<=0.8
+        self.assertTrue(relevant(2,0.5,20))
+        for values in ((-1,0,20),(2,2,20),(4,0,2)):
+            self.assertFalse(relevant(*values))
+
     def test_start_cannot_replace_existing_actor_or_group_owners(self):
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         start=s.split('if (_mode == "START") exitWith {',1)[1].split('private _current=',1)[0]
