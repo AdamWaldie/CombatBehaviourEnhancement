@@ -114,6 +114,18 @@ class QueueProposalTests(unittest.TestCase):
             self.assertIn(proof,armed)
         self.assertNotIn('call _scheduleExpiry',armed)
         self.assertIn('_crossingInstalled',owner)
+        cleared=server.split('if (_mode == "CROSS_CLEAR") exitWith {',1)[1].split('if (_mode == "CROSS_ARMED")',1)[0]
+        for proof in ('owner _root != _sender','queueCrossingBinding','queueClearStillSince',
+                      'abs getForcedSpeed _root > 0.001','_work getOrDefault ["index",-1]',
+                      'boundingBoxReal _root','modelToWorldWorld','_radius+10',
+                      '_record set ["completionBinding",_binding]','_registry deleteAt _token'):
+            self.assertIn(proof,cleared)
+        for forbidden in ('forceSpeed 0','doMove','doStop','setDriveOnPath','call _scheduleExpiry'):
+            self.assertNotIn(forbidden,cleared)
+        terminal=owner.split('// Terminal token cleanup',1)[1].split('if (_owned isEqualTo [])',1)[0]
+        self.assertIn('count _payload == 10',terminal)
+        self.assertIn('queueClearanceAccepted',terminal)
+        self.assertLess(terminal.index('queueClearanceAccepted'),terminal.index('[_token,_expires] call CBE_fnc_DrivingQueueTokenClosed'))
         # Every dependency leg retains the original context/expiry, and needs all
         # owner acknowledgements for its own phase before the selected mover executes.
         for proof in ('_roomPhase != (_record getOrDefault ["phaseSerial",0])',

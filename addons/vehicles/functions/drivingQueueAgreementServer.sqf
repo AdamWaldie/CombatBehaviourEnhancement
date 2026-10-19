@@ -10,13 +10,13 @@
  * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM/CROSS_PLANNED/CROSS_ARMED;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation]; CROSS_PLANNED=[token,root,phaseSerial,requestSerial,[valid,reason,optional pathASL,optional poses]]; CROSS_ARMED=[token,phaseSerial,planSerial].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM/CROSS_PLANNED/CROSS_ARMED/CROSS_CLEAR;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation]; CROSS_PLANNED=[token,root,phaseSerial,requestSerial,[valid,reason,optional pathASL,optional poses]]; CROSS_ARMED=[token,phaseSerial,planSerial]; CROSS_CLEAR=[token,root,crossingBinding].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
  * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED","HELD","ROOM","CROSS_PLANNED","CROSS_ARMED"])}) exitWith {false};
+if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED","HELD","ROOM","CROSS_PLANNED","CROSS_ARMED","CROSS_CLEAR"])}) exitWith {false};
 private _sender=remoteExecutedOwner;
 private _registry=localNamespace getVariable ["CBE_DrivingQueue_Agreements",createHashMap];
 localNamespace setVariable ["CBE_DrivingQueue_Agreements",_registry];
@@ -41,6 +41,7 @@ private _requestCrossingPlan={
 private _send={params ["_record"];
     private _message=[_record get "token",_record get "serial",_record get "vehicles",_record get "roles",
         _record get "dependencies",_record get "context",_record get "deadline",_record get "expires",_record get "phase"];
+    if ("completionBinding" in _record) then {_message pushBack (_record get "completionBinding")};
     {["RESULT",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
 };
 // Fixed one-shot retirement remains independent of tactical scheduling/owner disconnect.
@@ -111,7 +112,7 @@ if (_mode == "BEGIN") exitWith {
     {["VERIFY",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _owners;
     true
 };
-private _payloadCount=if (_mode == "ROOM") then {6} else {if (_mode == "CROSS_PLANNED") then {5} else {if (_mode == "CROSS_ARMED") then {3} else {[1,2] select (_mode in ["ACK","READY","HELD","ARMED"])}}};
+private _payloadCount=if (_mode == "ROOM") then {6} else {if (_mode == "CROSS_PLANNED") then {5} else {if (_mode in ["CROSS_ARMED","CROSS_CLEAR"]) then {3} else {[1,2] select (_mode in ["ACK","READY","HELD","ARMED"])}}};
 if (count _payload != _payloadCount || {!((_payload select 0) isEqualType "")}) exitWith {false};
 private _token=_payload select 0;private _record=_registry getOrDefault [_token,createHashMap];
 if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {false};
@@ -182,6 +183,42 @@ if (_mode == "CROSS_PLANNED") exitWith {
     };
     // No native command follows; callback dispatch and coordinated handback remain unwired.
     true
+};
+if (_mode == "CROSS_CLEAR") exitWith {
+    private _root=_payload select 1;private _binding=_record getOrDefault ["crossingBinding",[]];
+    if (!(_root isEqualType objNull) || {isNull _root} || {_root != ((_record get "vehicles") select 0)}
+        || {owner _root != _sender} || {owner driver _root != _sender}
+        || {owner effectiveCommander _root != _sender} || {groupOwner group driver _root != _sender}
+        || {(_payload select 2) isNotEqualTo _binding} || {count _binding != 4}
+        || {!(_record getOrDefault ["crossingExecuteSent",false])}
+        || {(_record getOrDefault ["motionStage",""]) != "CROSSING"}
+        || {serverTime >= (_record get "expires")} || {!([_record] call _current)}) exitWith {false};
+    private _linear=vectorMagnitude velocity _root;private _angular=vectorMagnitude angularVelocity _root;
+    private _work=_root getVariable ["CBE_DrivingBypass_Work",createHashMap];
+    private _path=_record get "crossingPath";
+    if (!finite _linear || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}
+        || {abs getForcedSpeed _root > 0.001}
+        || {(_work getOrDefault ["queueCrossingBinding",[]]) isNotEqualTo _binding}
+        || {!(_work getOrDefault ["queueCrossed",false])}
+        || {(_work getOrDefault ["points",[]]) isNotEqualTo _path}
+        || {(_work getOrDefault ["index",-1]) < count _path}
+        || {(_work getOrDefault ["queueClearStillSince",-1]) < 0}
+        || {serverTime-(_work get "queueClearStillSince") < 1}) exitWith {false};
+    // Independently derive the root tail plane from frozen path and actual hull;
+    // an owner's journal marker alone cannot establish crossing clearance.
+    private _box=boundingBoxReal _root;private _low=_box select 0;private _high=_box select 1;
+    private _width=(abs (_low select 0)) max (abs (_high select 0));
+    private _length=(abs (_low select 1)) max (abs (_high select 1));
+    private _radius=sqrt (_width*_width+_length*_length)+1;
+    private _axis=+((((_record get "context") select 0) select 4) select 1);_axis set [2,0];_axis=vectorNormalized _axis;
+    private _far=(_path select (count _path-1)) vectorDiff (_axis vectorMultiply (_radius+10));
+    private _clear=true;
+    {private _xCoord=_x;{private _yCoord=_x;{
+        if (((_root modelToWorldWorld [_xCoord,_yCoord,_x]) vectorDiff _far) vectorDotProduct _axis < 5) then {_clear=false};
+    } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];} forEach [_low select 0,_high select 0];
+    if (!_clear) exitWith {false};
+    _record set ["completionBinding",_binding];_record set ["phase","RELEASED"];
+    [_record] call _send;_registry deleteAt _token;true
 };
 if (_mode == "CROSS_ARMED") exitWith {
     private _binding=_record getOrDefault ["crossingBinding",[]];

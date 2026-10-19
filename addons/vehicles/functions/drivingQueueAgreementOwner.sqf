@@ -27,7 +27,7 @@
 params [["_mode","",[""]],["_payload",[],[[]]]];
 if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE","CHECK_ROOM","CROSS_PLAN","CROSS_ARM","CROSS_EXECUTE"])}
     || {!(count _payload in (if (_mode in ["CHECK_ROOM","CROSS_PLAN"]) then {[11]} else {
-        if (_mode in ["ARM","EXECUTE"]) then {[9,10]} else {if (_mode in ["CROSS_ARM","CROSS_EXECUTE"]) then {[10]} else {[[8],[9]] select (_mode != "VERIFY")}}
+        if (_mode in ["ARM","EXECUTE"]) then {[9,10]} else {if (_mode in ["CROSS_ARM","CROSS_EXECUTE"]) then {[10]} else {if (_mode == "RESULT") then {[9,10]} else {[[8],[9]] select (_mode != "VERIFY")}}}
     }))}) exitWith {false};
 _payload params ["_token","_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
 if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
@@ -69,6 +69,24 @@ private _scheduleExpiry={
 };
 // Terminal token cleanup must work even if another participant was deleted or changed owner.
 if (_mode == "RESULT" && {_phase in ["REFUSED","RELEASED"]}) exitWith {
+    // Preserve exact accepted root completion before closing the token. Cancellation
+    // has no tenth field and can never create route-resume authority.
+    if (_phase == "RELEASED" && {count _payload == 10} && {_vehicles isNotEqualTo []}) then {
+        private _root=_vehicles select 0;private _binding=_payload select 9;
+        private _consent=_root getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        private _work=_root getVariable ["CBE_DrivingBypass_Work",createHashMap];
+        if (_root in _owned && {_binding isEqualType []} && {count _binding == 4}
+            && {(_binding select [0,2]) isEqualTo [_token,_expires]}
+            && {(_consent getOrDefault ["token",""]) == _token}
+            && {(_consent getOrDefault ["crossingBinding",[]]) isEqualTo _binding}
+            && {(_work getOrDefault ["queueCrossingBinding",[]]) isEqualTo _binding}
+            && {_work getOrDefault ["queueCrossed",false]}
+            && {serverTime < _expires} && {[_consent,true] call CBE_fnc_DrivingQueueReverseCurrent}) then {
+            private _completedWork=createHashMapFromArray (keys _work apply {[_x,_work get _x]});
+            _completedWork set ["queueClearanceAccepted",_binding];
+            _root setVariable ["CBE_DrivingBypass_Work",_completedWork,true];
+        };
+    };
     [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
     {private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
         if ((_old getOrDefault ["token",""]) == _token) then {_x setVariable ["CBE_DrivingQueue_Consent",nil]};

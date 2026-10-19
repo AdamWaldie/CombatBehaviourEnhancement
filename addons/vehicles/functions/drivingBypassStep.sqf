@@ -303,10 +303,29 @@ if (_index >= count _points) exitWith {
         if (_queue) then {
             // The sole speed writer consumes zero cap. Keep the path/native journal
             // until authenticated all-participant handback is implemented; no recall here.
+            private _changed=false;private _reportClear=false;
             if (!(_work getOrDefault ["queueCrossed",false])) then {
-                _work set ["queueCrossed",true];_work set ["queueCrossedAt",serverTime];
-                _vehicle setVariable ["CBE_DrivingBypass_Work",_work,true];
+                _work set ["queueCrossed",true];_work set ["queueCrossedAt",serverTime];_changed=true;
             };
+            private _linear=vectorMagnitude velocity _vehicle;private _angular=vectorMagnitude angularVelocity _vehicle;
+            private _assist=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+            private _still=finite _linear && {finite _angular} && {_linear < 0.1} && {_angular < 0.01}
+                && {(_assist param [3,grpNull]) == _group} && {(_assist param [0,-1]) == 0} && {abs getForcedSpeed _vehicle < 0.001};
+            private _since=_work getOrDefault ["queueClearStillSince",-1];
+            if (!_still) then {
+                if (_since >= 0) then {_work set ["queueClearStillSince",-1];_changed=true};
+            } else {
+                if (_since < 0) then {_since=serverTime;_work set ["queueClearStillSince",_since];_changed=true};
+                private _reports=_work getOrDefault ["queueClearReports",0];
+                if (serverTime-_since >= 1 && {_reports < 2}
+                    && {_reports == 0 || {serverTime-(_work getOrDefault ["queueClearReportedAt",-1]) >= 2}}) then {
+                    _work set ["queueClearReports",_reports+1];_work set ["queueClearReportedAt",serverTime];
+                    _changed=true;_reportClear=true;
+                };
+            };
+            if (_changed) then {_vehicle setVariable ["CBE_DrivingBypass_Work",_work,true]};
+            if (_reportClear) then {["CROSS_CLEAR",[_queueAgreement get "token",_vehicle,_work get "queueCrossingBinding"]]
+                remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
             [true,0,"QUEUE_CROSSED_HOLD",false]
         } else {[_vehicle,_group,"PHYSICALLY_PASSED"] call CBE_fnc_DrivingBypassRelease;_inactive}
     }

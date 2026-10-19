@@ -154,9 +154,15 @@ class DrivingBypassTests(unittest.TestCase):
                       '[true,0,"QUEUE_CROSSED_HOLD",false]',
                       '[_vehicle,_asl,_radius,((_high select 2)-(_low select 2))] call CBE_fnc_DrivingPathGeometry'):
             self.assertIn(proof,step)
-        for proof in ('_queueMayRetire','_queueMayResume','"QUEUE_COMPLETE"','crossingComplete',
+        for proof in ('_queueMayRetire','_queueMayResume','"QUEUE_COMPLETE"','queueClearanceAccepted',
                       'call CBE_fnc_DrivingQueueAgreementRelease'):
             self.assertIn(proof,release)
+        for proof in ('queueClearStillSince','_reports < 2','serverTime-_since >= 1',
+                      'queueClearReportedAt','["CROSS_CLEAR",',
+                      '(_assist param [0,-1]) == 0'):
+            self.assertIn(proof,step)
+        self.assertIn('_reason in ["QUEUE_COMPLETE","DRIVING_RELEASED"]',release)
+        self.assertIn('isEqualTo _queueBinding',release)
         self.assertIn('&& {call _nativePathFree}',step)
         self.assertIn('&& {_nativePathFree}',release)
         for body in (step,release):

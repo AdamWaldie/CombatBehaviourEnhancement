@@ -42,8 +42,11 @@ isNil {
     private _queueMatches=_queue && {_queueBinding isEqualType []} && {count _queueBinding == 4}
         && {(_queueConsent getOrDefault ["crossingBinding",[]]) isEqualTo _queueBinding};
     private _queueMayRetire=!_queue || {count _queueConsent == 0 || {_queueMatches}};
-    private _queueMayResume=!_queue || {_queueMatches && {_reason == "QUEUE_COMPLETE"}
-        && {_queueConsent getOrDefault ["crossingComplete",false]}};
+    private _acceptedClearance=_queueBinding isEqualType [] && {count _queueBinding == 4}
+        && {(_work getOrDefault ["queueClearanceAccepted",[]]) isEqualTo _queueBinding}
+        && {_work getOrDefault ["queueCrossed",false]};
+    private _queueMayResume=!_queue || {_queueMayRetire && {_acceptedClearance}
+        && {_reason in ["QUEUE_COMPLETE","DRIVING_RELEASED"]}};
     if (_expectedRevision >= 0 && {(!_convoy) || {(_controller param [1,-2]) != _expectedRevision}}) exitWith {false};
     private _current=_group getVariable ["CBE_Convoy_Brain",createHashMap];
     private _currentConfiguration=_current getOrDefault ["configuration",[]];
