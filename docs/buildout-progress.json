@@ -82,7 +82,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexFeatureEnabled.sqf",
-              "sha256": "fa36bd1e69ae485de26ce48202f83001b03dd04e3f7a2c6fb35b2c1dc459e8ac"
+              "sha256": "36e083560cde0629205bf81feaa32059ce92ed2cbfa305a2d258183575d19a43"
             }
           ]
         },
@@ -157,7 +157,7 @@
           "evidence": [
             {
               "path": "addons/compatibility/functions/compatibilityExternalControl.sqf",
-              "sha256": "888b15e7aec80cf1d8a71f10fe594cecd7d3b6b7ded81b1dd4d9108b71c8dfb2"
+              "sha256": "6c52a733f5808f89bbea512fac44e0db6d8121c3dbbe1e91203a8bb58c542dad"
             },
             {
               "path": "addons/compatibility/functions/cortexExternalTakeover.sqf",
@@ -200,7 +200,7 @@
           "evidence": [
             {
               "path": "addons/compatibility/functions/compatibilityExternalControl.sqf",
-              "sha256": "888b15e7aec80cf1d8a71f10fe594cecd7d3b6b7ded81b1dd4d9108b71c8dfb2"
+              "sha256": "6c52a733f5808f89bbea512fac44e0db6d8121c3dbbe1e91203a8bb58c542dad"
             }
           ]
         }

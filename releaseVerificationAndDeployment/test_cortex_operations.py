@@ -1710,6 +1710,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_dangerActor,"RELEASE"] call CBE_fnc_DangerReact',source('cortexReleaseGroup'))
 
     def test_engine_danger_reflex_obeys_runtime_feature_and_pause_gates(self):
+        feature=source('cortexFeatureEnabled')
+        for guard in ('_setting == ""','_enabled isEqualType true','_disabled isEqualType []'):
+            self.assertIn(guard,feature)
+        self.assertLess(feature.index('_enabled isEqualType true'),feature.index('isNull _group'))
+        self.assertLess(feature.index('_setting in _disabled'),feature.index('CBE_fnc_CompatibilityExternalControl'))
+        ownership=source('compatibilityExternalControl')
+        self.assertIn('!(_declared isEqualType true) || {_declared}',ownership)
+        self.assertIn('!(_groupDeclared isEqualType true) || {_groupDeclared}',ownership)
         mode=source('dangerEngineMode')
         action=source('dangerEngineAct')
         for text in [mode,action]:

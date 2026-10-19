@@ -6,7 +6,7 @@ settings and runtime entry points. Missions do not copy its files or execute an 
 ## Startup and authority
 
 CBA pre-init loads guarded defaults and registers the shared tuning specification on every machine.
-CBA owns global setting persistence and synchronization. Post-init starts enabled systems after addon
+CBA owns global setting persistence and synchronization. Live feature gates require boolean values and an array for group exclusions; invalid values refuse admission instead of throwing inside an owner FSM. Missing values retain the documented fallback. Malformed declared ownership is treated as external control until corrected, and no helper repairs or overwrites the mission value. Post-init starts enabled systems after addon
 initialization. The server coordinates cross-group decisions; the current AI owner executes movement,
 fire and local handlers. Interface clients provide Zeus controls and interruption monitoring.
 
