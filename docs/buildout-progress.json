@@ -35,7 +35,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
-              "sha256": "548fafc5a2b618229bdb927f7072640560f89843e0bc7d7cc0f5a8749a2d5123"
+              "sha256": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de"
             }
           ]
         },
@@ -1524,7 +1524,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
-              "sha256": "548fafc5a2b618229bdb927f7072640560f89843e0bc7d7cc0f5a8749a2d5123"
+              "sha256": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de"
             }
           ]
         },
@@ -1609,7 +1609,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
-              "sha256": "d09e4b9a4eb1e051181e81fb941ecb5e2ad8295126229aacb2f5b4a9fb1b962b"
+              "sha256": "0a1f65827ffde734d76d8072c4ffb1eb5f754610e30c7312778f607735128893"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
@@ -1625,11 +1625,15 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
-              "sha256": "6364dccfa1d69f706404883874a4d3a73f5b550da0a52eded70c75bc5bbcbd61"
+              "sha256": "edcd8c309eaa142b1b09ab8b64f150df196c78512a95dab8ae50371c8c2ab995"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
               "sha256": "fde15a28285d5adde7ff518f02e0eb7fe6e774ce1857a5261cba04362dfaff85"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
+              "sha256": "805ddf39f3751aecb0b4c9c47b188292a632a4cb2277b4b4166034d594e280f7"
             }
           ]
         },

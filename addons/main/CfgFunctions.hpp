@@ -78,6 +78,7 @@ class CfgFunctions {
             class DrivingQueueHold {file = "\z\cbe\addons\vehicles\functions\drivingQueueHold.sqf";};
             class DrivingQueueTokenClosed {file = "\z\cbe\addons\vehicles\functions\drivingQueueTokenClosed.sqf";};
             class DrivingQueueContext {file = "\z\cbe\addons\vehicles\functions\drivingQueueContext.sqf";};
+            class DrivingQueueCrossingVehicle {file = "\z\cbe\addons\vehicles\functions\drivingQueueCrossingVehicle.sqf";};
             class DrivingQueueProposal {file = "\z\cbe\addons\vehicles\functions\drivingQueueProposal.sqf";};
             class DrivingPassContext {file = "\z\cbe\addons\vehicles\functions\drivingPassContext.sqf";};
             class DrivingPassGeometry {file = "\z\cbe\addons\vehicles\functions\drivingPassGeometry.sqf";};

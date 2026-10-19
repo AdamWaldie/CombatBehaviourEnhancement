@@ -103,6 +103,15 @@ class QueueProposalTests(unittest.TestCase):
             self.assertIn(proof,s)
         self.assertNotIn('setVariable',s)
         self.assertIn('count _e != 6',s)
+        self.assertIn('call CBE_fnc_DrivingQueueCrossingVehicle',s)
+        selector=(ROOT/'addons/vehicles/functions/drivingQueueCrossingVehicle.sqf').read_text(encoding='utf-8')
+        body=selector.split('params [[',1)[1]
+        for forbidden in ('setVariable','remoteExec','waitAndExecute','nearEntities','lineIntersectsSurfaces',
+                          'doMove','forceSpeed','sendSimpleCommand','setEffectiveCommander'):
+            self.assertNotIn(forbidden,body)
+        proposal=(ROOT/'addons/vehicles/functions/drivingQueueProposal.sqf').read_text(encoding='utf-8')
+        self.assertLess(proposal.index('call CBE_fnc_DrivingQueueCrossingVehicle'),proposal.index('nearEntities'))
+        self.assertIn('class DrivingQueueCrossingVehicle', (ROOT/'addons/main/CfgFunctions.hpp').read_text())
         self.assertIn('if (_i > 0 && {((_a select 2) select 0) == ((_a select 3) select 0)',s)
         self.assertIn('toUpperANSI (_nativeReceipt select 1) != "NONE"',s)
         self.assertIn('toUpperANSI ((_a select 5) param [1,""]) != "NONE"',s)

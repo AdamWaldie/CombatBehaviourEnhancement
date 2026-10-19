@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-19",
+  "scope": "Head-on crossing geometry and stable-role source comparison",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "lines": "1355-1514 and1605-1633",
+    "observed": "One persistent randomized rank distinguishes yielding/passing roles; unranked peer gets priority. Rear-first room requests and shorter back-offs address longitudinal space. Both facing vehicles can shift right, at most3 lateral pushes, with side clearance and delayed native replanning.",
+    "disposition": "Retain stable complementary roles, current side/body clearance and staged room. Redesign physics pushes and route mutation as finite owner-local native movement. A rank/observed intent never grants control of a player or external controller."
+  },
+  "reuseBoundaries": {
+    "DrivingPassPlan": "Same-direction heading <=25degrees, road-chain/ramp/return planner. It refuses the oncoming pair. Do not relax this gate and assume its return/crossing semantics still apply.",
+    "DrivingPassGeometry": "Read-only oriented guide body/support slices, <=12stations/243rays per call, context/freshness before and after. Potential reusable observation for a separately admitted lateral guide. It grants no traffic/role/movement authority and does not validate the whole queue roster.",
+    "DrivingPassContext": "Observer-specific two-vehicle native-order receipt, not canonical queue consent. Geometry observations can use it locally, but cannot substitute for all queue participants authenticated ownership.",
+    "DrivingBypassObstacleAvailable": "Requires engine-off unoccupied vehicle hull. Do not weaken it to treat a live opposing participant as static bypass material.",
+    "DrivingCorridorStep": "Useful owner-local native approach/fixed-path/handback pattern, but requires an explicit registered area and controller. Automatic traffic must not invent a Zeus area or borrow its task authority."
+  },
+  "nextImplementation": "Use a separately validated oncoming lateral guide with existing bounded body/support observation, stable complementary role selection and full queue owner receipts. Bind native execution to original expiry and selected participant, hold others, measure crossing before releasing room. No new scan worker or automatic activation until this consuming path exists.",
+  "implementationThisReview": "No production behavior changed. Prior validated recovery improvements were batch-pushed to draftPR17 at0276de45.",
+  "limits": "No oncoming crossing or whole-HBQ parity claimed. Physical and performance acceptance absent; audits paused.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingPassPlan.sqf",
+      "sha256": "1232e9457f452af780ec5ae7e1aa2c17fd8190fad49e47e6cda8f34b332edfb0"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassGeometry.sqf",
+      "sha256": "ebf750e6f7c5fa15965cce931bf1fcb5d1dc07b8c9750f830aa87391385ad2bc"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassContext.sqf",
+      "sha256": "3efe9903f79961c1ba2f6f5667aa8343e6edd1c2dd75fa31768e5ce589991cc7"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf",
+      "sha256": "114b0c9f5c723cf9b766405fa018b2ef9d512966c6477165f87f8f81b4851a39"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingCorridorStep.sqf",
+      "sha256": "39749208fa8e9f9d348d921c819173a083ddd2cb26ebef5e673c370b555fcb4b"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+      "sha256": "f16e2fcb0c78f22395bed06eb3fffb27d59515cc7fc47c7b49a1e65ffed4ced0"
+    }
+  ]
+}

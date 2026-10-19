@@ -259,6 +259,10 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('_supportObject isKindOf "AllVehicles"',support)
         self.assertIn('vectorMagnitude velocity _supportObject > 0.1',support)
         self.assertIn('_reason="UNSTABLE_SUPPORT"',support)
+        water=support.split('if (surfaceIsWater _sample',1)[1].split(';',1)[0]
+        self.assertIn('isNull _supportObject',water)
+        self.assertNotIn('isNull (_hit select 2)',water)
+        self.assertIn('select 2) <= 0.25',water)
         self.assertIn('if (_reason != "") exitWith',s)
         self.assertEqual(s.count('lineIntersectsSurfaces'),2)
 

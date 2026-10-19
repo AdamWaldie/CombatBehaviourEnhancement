@@ -97,6 +97,7 @@ for "_i" from 0 to (_n-1) do {
 };
 if (!_valid || {_localRows && {_localCount == 0}}) exitWith {false};
 private _first=_vehicles select 0;private _yield=_vehicles select 1;
+if (([[_first,_yield]] call CBE_fnc_DrivingQueueCrossingVehicle) != _first) exitWith {false};
 private _axis=vectorDir _yield;_axis set [2,0];_axis=vectorNormalized _axis;
 private _right=[_axis select 1,-(_axis select 0),0];
 private _front=(getPosASL _first) vectorDiff (getPosASL _yield);

@@ -97,7 +97,8 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('"MISSING_SUPPORT"', body)
         self.assertIn('"WET_SUPPORT"', body)
         self.assertIn('surfaceIsWater _sample', body)
-        self.assertIn('isNull (_hit select 2)', body)
+        self.assertIn('isNull _supportObject', body)
+        self.assertIn('if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2}', body)
         self.assertIn('"AREA_CHANGED"', body)
         self.assertIn('"HULL_TOO_WIDE"', body)
     def test_declared_sampling_bound_holds_across_allowed_lengths(self):

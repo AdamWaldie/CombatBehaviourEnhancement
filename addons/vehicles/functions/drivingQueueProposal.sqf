@@ -57,6 +57,11 @@ if (!([_vehicle] call _observedEligible) || {!([_peer] call _observedEligible)}
     || {abs (((getPosASL _vehicle) select 2)-((getPosASL _peer) select 2)) > 2}
     || {_vehicle distance2D _peer > 30}
     || {(vectorDir _vehicle) vectorDotProduct (vectorDir _peer) > -(cos 25)}) exitWith {["NOT_STATIONARY_ONCOMING_PAIR"] call _fail};
+// Both owners must nominate the same crossing/yield roles. Refuse the
+// mirrored initiator before the rear-chain query, never command the peer.
+private _crossing=[[_vehicle,_peer]] call CBE_fnc_DrivingQueueCrossingVehicle;
+if (isNull _crossing) exitWith {["NO_SUPPORTED_CROSSING_PAIR"] call _fail};
+if (_crossing != _vehicle) exitWith {["PEER_HAS_CROSSING_ROLE"] call _fail};
 private _axis=vectorDir _peer;_axis set [2,0];_axis=vectorNormalized _axis;
 private _right=[_axis select 1,-(_axis select 0),0];
 private _toward=(getPosASL _vehicle) vectorDiff (getPosASL _peer);

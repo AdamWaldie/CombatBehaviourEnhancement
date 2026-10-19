@@ -820,7 +820,8 @@
         "addons/vehicles/functions/drivingQueueAgreementRelease.sqf",
         "addons/vehicles/functions/drivingQueueTokenClosed.sqf",
         "addons/vehicles/functions/drivingDamageReceipt.sqf",
-        "addons/vehicles/functions/moduleDrivingCorridorMission.sqf"
+        "addons/vehicles/functions/moduleDrivingCorridorMission.sqf",
+        "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf"
       ]
     },
     {
