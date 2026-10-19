@@ -12,13 +12,17 @@ class ClearSettingsRelease(unittest.TestCase):
         body=s.split('params [[',1)[1]
         for command in ('doMove','doFollow','doStop','doWatch','doTarget','currentCommand'):
             self.assertNotIn(command,body)
-        self.assertIn('abs ((getForcedSpeed _actor)-_applied) <= 0.1',body)
-        self.assertIn('unitPos _actor == "UP"',body)
-        self.assertLess(body.index('if (!_safe || {!_typed}) exitWith'),body.index('_actor forceSpeed'))
-        self.assertLess(body.index('_actor forceSpeed'),body.index('ClearForcedSpeed",nil'))
-        for guard in ('local _actor','CortexActorMoveReserved','CortexExternalTakeover',
-                      'CBE_AIPass_ClearGeneration','CBE_AIPass_Epoch','finite _applied'):
-            self.assertIn(guard,body)
+        core=read("addons/core/functions/actorSettings.sqf")
+        self.assertNotIn('forceSpeed',body)
+        self.assertNotIn('setUnitPos',body)
+        self.assertLess(body.index('CBE_AIPass_ClearGeneration'),body.index('call CBE_fnc_ActorSettings'))
+        self.assertLess(body.index('CBE_AIPass_Epoch'),body.index('call CBE_fnc_ActorSettings'))
+        self.assertLess(body.index('_status == "RELEASED"'),body.index('"CBE_Cortex_ClearForcedSpeed",'))
+        release=core.split('if (_mode == "RELEASE") exitWith {',1)[1].split('private _operation=',1)[0]
+        self.assertIn('_pair select 1',release)
+        self.assertIn('_remaining set [_key,_pair]',release)
+        for guard in ('local _actor','CortexActorMoveReserved','CortexExternalTakeover'):
+            self.assertLess(core.index(guard),core.index('if (_mode == "RELEASE")'))
 
     def test_finish_and_explicit_release_share_settings_retirement(self):
         for file in ('buildingOperationStep','cortexClearRelease'):

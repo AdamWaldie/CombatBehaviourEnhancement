@@ -917,12 +917,13 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
     _job set ["securityActors",(units _group) select {netId _x in _stages}];
 };
 // Resume restores native-work bookkeeping only, never commands, visits or deadlines.
-if (_resume) then {
-    {
-        private _motionActor=_x;
-        [{["ADOPT",_motionActor,_job] call CBE_fnc_BuildingActorMotion}] call _commitPreparation;
-    } forEach (_team select [0,8]);
-};
+{
+    private _motionActor=_x;
+    [{
+        [_motionActor,_job,4,if (_resume) then {"ADOPT"} else {"PREPARE"}] call CBE_fnc_CortexClearSettingsApply;
+        if (_resume) then {["ADOPT",_motionActor,_job] call CBE_fnc_BuildingActorMotion};
+    }] call _commitPreparation;
+} forEach (_team select [0,8]);
 if !([_job] call CBE_fnc_BuildingOperationStart) exitWith {
     // Never report a worker-less order as accepted. If preparation lost ownership,
     // the new owner/episode keeps its durable order; no cleanup is remoted or restamped.

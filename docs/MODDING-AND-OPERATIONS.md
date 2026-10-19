@@ -309,3 +309,13 @@ The first successful call captures the native baseline and requested applied per
 Clearance refuses before starting its worker if permission acquisition fails. Cleanup is attempted only through that preparation's original generation/epoch/order gate. Manoeuvres use the same boundary on subsequent steps. No new setting, module, recurring job, geometry query or deadline is added. Admission inspects at most 64 members; helper calls still have a bounded per-member cost that requires measurement in game.
 
 This is a shared control foundation, not demonstrated CQB flow or whole-mod settings-lease parity. Same-value external edits cannot be distinguished by comparing a boolean. Generic actor speed/posture ownership, release retention after brain shutdown, movement provenance, migration and interruption acceptance remain open. Audits remain paused; offline gates do not establish physical or performance acceptance.
+
+## Temporary actor settings ownership
+
+Clearance uses the shared ActorSettings contract for temporary stance and forced speed. Its receipt records the group, issuer, operation generation, owner epoch and original hard deadline, plus the original and last applied value of each setting. Only the actual actor/group owner can apply controls. A later native setting change refuses further application rather than becoming a new baseline.
+
+The clearance adapter binds acquisition to the current operation, building transform, authored route and live job. Native movement remains independently owned; a settings receipt grants no movement authority. Room movement requires acknowledged settings. Locality adoption changes receipt metadata without reissuing native controls. A fresh task can retire its known predecessor before capturing new settings; foreign or incomplete metadata cannot grant takeover.
+
+Release restores a setting only while its native value still matches the last CBE value. Later mission edits survive. Unconfirmed restoration retains the remaining original/applied pairs and permits at most one retry per second through the existing finite cleanup caller. It creates no worker and does not renew the caller deadline. Existing clearance mirrors support the movement journal but cannot replace the canonical receipt.
+
+This foundation currently serves clearance. Initial network receipt readiness, cleanup after the finite caller expires and adoption by other behaviour subsystems remain incomplete. Static readback guards do not prove engine acknowledgement, physical movement or performance.

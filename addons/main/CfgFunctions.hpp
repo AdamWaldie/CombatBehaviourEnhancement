@@ -170,6 +170,7 @@ class CfgFunctions {
             class OperationRelease {file = "\z\cbe\addons\core\functions\operationRelease.sqf";};
             class OperationRestore {file = "\z\cbe\addons\core\functions\operationRestore.sqf";};
             class OperationAttackPolicy {file = "\z\cbe\addons\core\functions\operationAttackPolicy.sqf";};
+            class ActorSettings {file = "\z\cbe\addons\core\functions\actorSettings.sqf";};
             class CombatPairs {file = "\z\cbe\addons\infantry\functions\combatPairs.sqf";};
             class RebalanceRoles {file = "\z\cbe\addons\infantry\functions\rebalanceRoles.sqf";};
             class RecoveryStep {file = "\z\cbe\addons\infantry\functions\recoveryStep.sqf";};
@@ -215,6 +216,7 @@ class CfgFunctions {
             class CortexArtilleryShot {file = "\z\cbe\addons\support\functions\cortexArtilleryShot.sqf";};
             class CortexArtilleryScoot {file = "\z\cbe\addons\support\functions\cortexArtilleryScoot.sqf";};
             class CortexClearSettingsRelease {file = "\z\cbe\addons\infantry\functions\cortexClearSettingsRelease.sqf";};
+            class CortexClearSettingsApply {file = "\z\cbe\addons\infantry\functions\cortexClearSettingsApply.sqf";};
             class CortexClearRelease {file = "\z\cbe\addons\infantry\functions\cortexClearRelease.sqf";};
             class ModuleGarrison {file = "\z\cbe\addons\infantry\functions\moduleGarrison.sqf";};
             class ZenClearModule {file = "\z\cbe\addons\infantry\functions\zenClearModule.sqf";};

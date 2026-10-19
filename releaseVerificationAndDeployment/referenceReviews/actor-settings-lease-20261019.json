@@ -1,0 +1,46 @@
+{
+  "baseline": "cea876aff9f0c31b85756d5c96961f111f40e41a",
+  "scope": "Shared temporary actor settings integrated into clearance; bounded acquisition, adoption and release",
+  "source_sha256": {
+    "addons/core/functions/actorSettings.sqf": "0c4bd9ea4735d36eb79bd75566566aaa5b52bea0b6009010c660c992f2a4fca7",
+    "addons/infantry/functions/cortexClearSettingsApply.sqf": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51",
+    "addons/infantry/functions/cortexClearSettingsRelease.sqf": "014bd27dab6fd858cb5fa5306fa82eea7daf1e0b5bf92be6aa0aab7cb8b66e69",
+    "addons/infantry/functions/buildingActorMotion.sqf": "0cc11b7fe571ef32266ffc7bbe9ece48741a12b91296d07a89d783163c808167",
+    "addons/infantry/functions/buildingOperationStep.sqf": "a10decb3a5a8e4fe5c4ad4dd8358e1b4b37d60d0ef8527c7291cb86d3984e396",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "7d224ad706fa50a0ec29d27266fb50850a0154cc1a8b4ee434c1f266bf5dde00",
+    "addons/infantry/functions/groupBrainStep.sqf": "104430fa31f316d0ebc644fe2494bf291a9a249ec1aecd918ca19f0896e4ed75"
+  },
+  "defects": [
+    "Feature-local refresh could rebase and reapply changed native speed/stance.",
+    "Settings cleanup and movement journals used different ownership evidence."
+  ],
+  "implementation": [
+    "One issuer-scoped current-owner settings contract; original baseline and hard deadline retained.",
+    "Current CLEAR adapter requires operation, visit, building transform and native route.",
+    "Movement remains separately owned and settings acknowledgement precedes room mutation.",
+    "Fresh known predecessor cleanup and metadata-only locality adoption.",
+    "Changed native settings preserved; incomplete restoration pairs retained.",
+    "Unchanged room controls skip receipt copying, writes and publication after ownership checks.",
+    "No new worker or world scan; pending release uses existing finite caller, at most once per second."
+  ],
+  "validation": {
+    "tests": 1472,
+    "compiled_sqf": 340,
+    "pbos": 9,
+    "full_log": ".qa/cbe-actor-settings-final-build.log",
+    "independent_verify": true,
+    "unsigned_fingerprint": "5f4744a71a995f336cb99767016e86b64ec7a1ac002e52e840af56693c5d61ba",
+    "dirty_manifest_baseline": "cea876aff9f0c31b85756d5c96961f111f40e41a",
+    "physical_acceptance": false
+  },
+  "limits": [
+    "Only clearance migrated to the shared settings contract.",
+    "Initial network receipt readiness remains unresolved.",
+    "No eventual cleanup guarantee after existing finite caller expires or brain stops.",
+    "Same-value external edits are unidentifiable.",
+    "Native setter timing, locality migration and runtime cost remain unmeasured."
+  ],
+  "source_intent": "Use reference danger FSM/script functionality as a role model for useful native actions, then evolve CBE. Reference addons are not required runtime dependencies. No whole-source parity claim.",
+  "buildout_scores": "Unchanged; affected integration evidence reassessed.",
+  "audit_policy": "PAUSED"
+}

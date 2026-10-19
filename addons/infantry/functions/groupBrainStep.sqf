@@ -56,6 +56,7 @@ if (_clearSettings isEqualType [] && {count _clearSettings == 4}) then {
             private _pendingActors=_settingsMembers select {
                 !isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}
                     || {!isNil {_x getVariable "CBE_Cortex_ClearStance"}}
+                    || {!isNil {_x getVariable "CBE_Cortex_ClearSettingToken"}}
             };
             if (_pendingActors isEqualTo []) then {
                 _group setVariable ["CBE_Cortex_ClearSettingsPending",nil,true];

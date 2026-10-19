@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Releases unchanged clearance speed/posture independently of native movement tasks.
+ * Purpose: Releases exact-issued clearance setting leases independently of native movement tasks.
  * Locality/authority: Current group and actor owner; exact supplied clear generation/epoch.
  * Player, remote, mounted, reserved and specialist actors retain their settings/baselines.
  * Repeat/JIP: Captured metadata is consumed only after a safe restore or observed setting change.
@@ -23,38 +23,33 @@ isNil {
         || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",-1])}) exitWith {};
     private _hasSpeed=!isNil {_actor getVariable "CBE_Cortex_ClearForcedSpeed"};
     private _hasStance=!isNil {_actor getVariable "CBE_Cortex_ClearStance"};
-    if (!_hasSpeed && {!_hasStance}) exitWith {_retired=true};
-    private _safe=local _actor && {!isPlayer _actor} && {isNull objectParent _actor}
-        && {isNull remoteControlled _actor}
-        && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-        && {simulationEnabled _actor} && {!isObjectHidden _actor}
-        && {[_actor] call CBE_fnc_CortexCombatEffective}
-        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
-        && {!([_group,true,_actor] call CBE_fnc_CortexExternalTakeover)};
-    private _baseline=_actor getVariable ["CBE_Cortex_ClearForcedSpeed",-1];
-    private _applied=_actor getVariable ["CBE_Cortex_ClearAppliedSpeed",[]];
-    private _stance=_actor getVariable ["CBE_Cortex_ClearStance","AUTO"];
-    private _typed=(!_hasSpeed || {_baseline isEqualType 0 && {finite _baseline}
-        && {_applied isEqualType 0} && {finite _applied}})
-        && {!_hasStance || {_stance isEqualType "" && {_stance in ["AUTO","UP","MIDDLE","DOWN"]}}};
-    if (!_safe || {!_typed}) exitWith {
-        if (_defer) then {
-            private _pending=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
-            private _retiredEpisode=_pending isEqualType [] && {count _pending == 4}
-                && {(_pending select 0) isEqualType 0} && {(_pending select 1) isEqualType 0}
-                && {(_pending select 0) != _generation || {(_pending select 1) != _epoch}};
-            if (_pending isEqualTo [] || {_retiredEpisode}) then {
-                _group setVariable ["CBE_Cortex_ClearSettingsPending",[_generation,_epoch,serverTime+30,0],true];
-            };
+    private _lease=_actor getVariable ["CBE_ActorSettings",[]];
+    private _issuer=_actor getVariable ["CBE_Cortex_ClearSettingToken",""];
+    if (!_hasSpeed && {!_hasStance} && {_lease isEqualTo []} && {_issuer isEqualTo ""}) exitWith {_retired=true};
+    if (_lease isEqualType [] && {count _lease == 3}
+        && {(_lease select 0) isEqualType []} && {count (_lease select 0) == 5}
+        && {_issuer isEqualType ""} && {_issuer != ""}
+        && {((_lease select 0) select 0) isEqualTo _group}
+        && {((_lease select 0) select 1) isEqualTo _issuer}) then {
+        private _releaseContext=+(_lease select 0);
+        // Only the actual new owner may release a portable old setting; this grants no replay.
+        _releaseContext set [3,_epoch];
+        private _status=["RELEASE",_actor,_releaseContext] call CBE_fnc_ActorSettings;
+        if (_status == "RELEASED") then {
+            {_actor setVariable [_x,nil,true]} forEach ["CBE_Cortex_ClearForcedSpeed",
+                "CBE_Cortex_ClearAppliedSpeed","CBE_Cortex_ClearStance","CBE_Cortex_ClearSettingToken"];
+            _retired=true;
         };
     };
-    // Releasing our unchanged cap/posture does not cancel a native treatment/boarding task.
-    // A later different setting is preserved and ends this old lease without restoration.
-    if (_hasSpeed && {abs ((getForcedSpeed _actor)-_applied) <= 0.1}) then {_actor forceSpeed _baseline};
-    if (_hasStance && {unitPos _actor == "UP"}) then {_actor setUnitPos _stance};
-    _actor setVariable ["CBE_Cortex_ClearForcedSpeed",nil,true];
-    _actor setVariable ["CBE_Cortex_ClearAppliedSpeed",nil,true];
-    _actor setVariable ["CBE_Cortex_ClearStance",nil,true];
-    _retired=true;
+    // Unknown/missing canonical state cannot turn surviving mirrors into a new baseline.
+    if (!_retired && {_defer}) then {
+        private _pending=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
+        private _retiredEpisode=_pending isEqualType [] && {count _pending == 4}
+            && {(_pending select 0) isEqualType 0} && {(_pending select 1) isEqualType 0}
+            && {(_pending select 0) != _generation || {(_pending select 1) != _epoch}};
+        if (_pending isEqualTo [] || {_retiredEpisode}) then {
+            _group setVariable ["CBE_Cortex_ClearSettingsPending",[_generation,_epoch,serverTime+30,0],true];
+        };
+    };
 };
 _retired

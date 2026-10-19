@@ -1424,7 +1424,8 @@
         "addons/core/functions/positionBucketAdmit.sqf",
         "addons/infantry/functions/indoorActorNativeContext.sqf",
         "addons/infantry/functions/indoorActorGroupAvailable.sqf",
-        "addons/infantry/functions/indoorActorDispatch.sqf"
+        "addons/infantry/functions/indoorActorDispatch.sqf",
+        "addons/infantry/functions/cortexClearSettingsApply.sqf"
       ]
     },
     {
@@ -1481,7 +1482,8 @@
         "addons/core/functions/operationCancel.sqf",
         "addons/core/functions/operationRelease.sqf",
         "addons/core/functions/operationRestore.sqf",
-        "addons/core/functions/operationAttackPolicy.sqf"
+        "addons/core/functions/operationAttackPolicy.sqf",
+        "addons/core/functions/actorSettings.sqf"
       ]
     },
     {

@@ -11,7 +11,7 @@ class RoomCommitTests(unittest.TestCase):
                       'call _roomCommandOwned','CortexZeusHeld','_job get "deadline"',
                       '_job get "hardDeadline"','isEqualTo (_roomSnapshot select 1)',
                       'vectorDistance (_roomSnapshot select 2) <= 1'):
-            for mutation in ('doStop _unit','_unit forceSpeed','_unit doMove','_assigned set'):
+            for mutation in ('doStop _unit','call CBE_fnc_CortexClearSettingsApply','_unit doMove','_assigned set'):
                 self.assertLess(body.index(guard),body.index(mutation))
         self.assertNotIn('call _roomSegmentClear',body)
         self.assertIn('vectorDistance _arrivalPose <= 0.25',body)
@@ -68,7 +68,7 @@ class IndependentBuddyAdmissionTests(unittest.TestCase):
         self.assertIn('_unit != _point',block)
         self.assertIn('!(_unit in (_job get "started"))',block)
         self.assertIn('!(_unit in (_job getOrDefault ["enteredActors",[]]))',block)
-        self.assertIn('if (_unitIssue && {call _mayIssueMovement}',block)
+        self.assertIn('if (_unitIssue && {_settingsReady} && {call _mayIssueMovement}',block)
         self.assertIn('if (!_unitIssue && {!_awaitingNative} && {currentCommand _unit == ""}',block)
         self.assertIn('if (!_sameActiveTarget',block)
         self.assertNotIn('_lastProgress=_now',block)

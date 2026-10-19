@@ -91,7 +91,9 @@ isNil {
             private _stance=_actor getVariable ["CBE_Cortex_ClearStance",""];
             private _baseline=_actor getVariable ["CBE_Cortex_ClearForcedSpeed",[]];
             private _applied=_actor getVariable ["CBE_Cortex_ClearAppliedSpeed",[]];
-            if (_actor in (_job getOrDefault ["started",[]]) && {_stance in ["UP","MIDDLE","DOWN","AUTO"]}
+            if (_actor in (_job getOrDefault ["started",[]])
+                && {([_actor,_job,4,"CHECK"] call CBE_fnc_CortexClearSettingsApply) == "OWNED"}
+                && {_stance in ["UP","MIDDLE","DOWN","AUTO"]}
                 && {_baseline isEqualType 0} && {finite _baseline} && {_applied isEqualType 0} && {finite _applied}
                 && {unitPos _actor == "UP"} && {abs ((getForcedSpeed _actor)-_applied) <= 0.1}) then {
                 _settings=[_stance,_baseline,_applied];
@@ -107,7 +109,9 @@ isNil {
             _holds set [netId _actor,+_target];_job set ["formationFallbackHolds",_holds];
         };
         // Adopt unchanged settings metadata only. Never reapply a stance, cap or native order.
-        if (count _settings == 3 && {(_settings select 0) in ["UP","MIDDLE","DOWN","AUTO"]}
+        if (count _settings == 3
+            && {([_actor,_job,4,"CHECK"] call CBE_fnc_CortexClearSettingsApply) == "OWNED"}
+            && {(_settings select 0) in ["UP","MIDDLE","DOWN","AUTO"]}
             && {(_settings select 1) isEqualType 0} && {finite (_settings select 1)}
             && {(_settings select 2) isEqualType 0} && {finite (_settings select 2)}
             && {(_actor getVariable ["CBE_Cortex_ClearStance",""]) isEqualTo (_settings select 0)}

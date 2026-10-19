@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Room movement requires a current shared actor-settings lease; changed settings are not rebased.
  * Egress allocation retains up to three scene-query batches per actor, one due actor per callback.
  * Original deadlines and retry counts survive owner adoption; no retry grants arrival or task authority.
  * Casualty promotion retains callback-local candidate/cover proof and atomically rechecks it
@@ -248,7 +249,15 @@ private _delay=call {
     };
     // Preserve native replacement tasks; only owned legs/holds or exact initial admission may issue.
     private _roomCommandOwned={
-        params ["_actor"];
+        params [["_actor",objNull,[objNull]],["_prepareSettings",false,[true]]];
+        // Shared settings are a prerequisite, not movement authority. First admission may
+        // acquire them below; a later conflicting/partial lease cannot authorise a retry.
+        private _settingsHeld=(_actor getVariable ["CBE_ActorSettings",[]]) isNotEqualTo []
+            || {!isNil {_actor getVariable "CBE_Cortex_ClearSettingToken"}}
+            || {!isNil {_actor getVariable "CBE_Cortex_ClearForcedSpeed"}}
+            || {!isNil {_actor getVariable "CBE_Cortex_ClearStance"}};
+        if (_settingsHeld && {!_prepareSettings || {_actor in (_job get "started")}}
+            && {([_actor,_job,4,"CHECK"] call CBE_fnc_CortexClearSettingsApply) != "OWNED"}) exitWith {false};
         private _command=toUpperANSI currentCommand _actor;
         if ([_actor] call _ownsCurrentMove || {_command == ""}) exitWith {true};
         private _ownedHold=false;
@@ -3039,7 +3048,7 @@ private _delay=call {
                         // Native mutation commit: geometry was prepared above.
                         isNil {
                             if (call _mayIssueMovement && {[_unit] call _actorAvailable}
-                                && {[_unit] call _actorTaskFree} && {[_unit] call _roomCommandOwned}
+                                && {[_unit] call _actorTaskFree} && {[_unit,true] call _roomCommandOwned}
                                 && {!([_group] call CBE_fnc_CortexZeusHeld)}
                                 && {serverTime <= (_job get "deadline")} && {serverTime <= (_job get "hardDeadline")}
                                 && {[currentCommand _unit,expectedDestination _unit,formLeader _unit,unitPos _unit,getForcedSpeed _unit] isEqualTo (_roomSnapshot select 1)}
@@ -3050,24 +3059,18 @@ private _delay=call {
                                 private _unitIssue=_issue || {_unit != _point
                                     && {!(_unit in (_job get "started"))}
                                     && {!(_unit in (_job getOrDefault ["enteredActors",[]]))}};
-                                if (_unitIssue && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
+                                if (_unitIssue && {!(_unit in (_job get "started"))}) then {
+                                    [_unit,_job,4,"PREPARE"] call CBE_fnc_CortexClearSettingsApply;
+                                };
+                                private _clearStepSpeed=[4,2] select (_unit distance2D _arrivalTarget < 5);
+                                private _settingsStatus=if (_unit in (_job get "started") || {_unitIssue}) then {
+                                    [_unit,_job,_clearStepSpeed] call CBE_fnc_CortexClearSettingsApply
+                                } else {"REFUSED"};
+                                private _settingsReady=_settingsStatus in ["APPLIED","OWNED"];
+                                if (_unitIssue && {_settingsReady} && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
                                     private _started=_job get "started";
                                     if !(_unit in _started) then {
                                         if !([_unit] call _ownsCurrentMove) then {doStop _unit};
-                                        // Preserve the original baseline across owner-local worker rebuilds.
-                                        // A later different setting becomes the new baseline, not old CBE state.
-                                        private _priorStance=_unit getVariable ["CBE_Cortex_ClearStance",unitPos _unit];
-                                        if (toUpperANSI (unitPos _unit) != "UP") then {_priorStance=unitPos _unit};
-                                        private _priorSpeed=_unit getVariable ["CBE_Cortex_ClearForcedSpeed",getForcedSpeed _unit];
-                                        if (abs ((getForcedSpeed _unit)-(_unit getVariable ["CBE_Cortex_ClearAppliedSpeed",getForcedSpeed _unit])) > 0.1) then {
-                                            _priorSpeed=getForcedSpeed _unit;
-                                        };
-                                        _unit setVariable ["CBE_Cortex_ClearStance",_priorStance,true];
-                                        _unit setVariable ["CBE_Cortex_ClearForcedSpeed",_priorSpeed,true];
-                                        _unit setUnitPos "UP";
-                                        private _clearSpeed=4;
-                                        _unit setVariable ["CBE_Cortex_ClearAppliedSpeed",_clearSpeed,true];
-                                        _unit forceSpeed _clearSpeed;
                                         _started pushBack _unit;
                                     };
                                     private _unitTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
@@ -3095,16 +3098,9 @@ private _delay=call {
                                 // Slow the final indoor approach without replacing its destination.
                                 // Update only our unchanged cap; an externally edited speed remains owned
                                 // by that controller. Distance checks reuse the existing bounded pair step.
-                                if (_unit in (_job get "started") && {call _mayIssueMovement}
+                                if (_settingsReady && {_unit in (_job get "started")} && {call _mayIssueMovement}
                                     && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree}) then {
                                     private _speedTarget=if (_unit == _point || {_supportTarget isEqualTo []}) then {_target} else {_supportTarget};
-                                    private _applied=_unit getVariable ["CBE_Cortex_ClearAppliedSpeed",-1];
-                                    private _desiredSpeed=[4,2] select (_unit distance2D _speedTarget < 5);
-                                    if (abs ((getForcedSpeed _unit)-_applied) <= 0.1
-                                        && {abs (_desiredSpeed-_applied) > 0.1}) then {
-                                        _unit forceSpeed _desiredSpeed;
-                                        _unit setVariable ["CBE_Cortex_ClearAppliedSpeed",_desiredSpeed,true];
-                                    };
                                     // A failed native path can silently return a worker to formation:
                                     // command becomes empty and the planner reports its
                                     // formation destination (planned or direct formation mode). Arrest that fallback once per owned request;
@@ -3140,6 +3136,7 @@ private _delay=call {
                                         _job set ["roomHolds",_roomHolds];
                                     };
                                 };
+                                if (_settingsReady) then {
                                 // Synchronise only already-owned native work. This also observes delayed
                                 // native MOVE acknowledgement without issuing another path request.
                                 if ([_unit] call _ownsCurrentMove) then {
@@ -3154,6 +3151,7 @@ private _delay=call {
                                 };
                                 _assigned set [(_job get "team") find _unit,[_positionIndex,_lastProgress,getPosATL _unit,_retries,_approachingEntry]];
                                 if (_unit == _point) then {_roomMoverCommitted=true};
+                                };
                             };
                         };
                         if (_captureEntryEnabled && {!_entered || {!_partnerEntered}}) then {
