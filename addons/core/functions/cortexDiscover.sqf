@@ -16,6 +16,8 @@
  * - caches locally owned, eligible artillery for fire support and counter-battery;
  * - resumes clearance only against its observed durable order and generation; cancelled or
  *   replaced snapshots cannot be promoted to fresh clearance tasks;
+ * - observes an active clearance executor at this existing cadence. One ended worker may
+ *   resume the same job without new deadlines; failed restart retires only the exact old order;
  * - re-applies defence-line orders after a locality change;
  * - installs the missile-warning handler on every locally owned, eligible AI aircraft. A warning
  *   starts one finite, threat-tracked countermeasure sequence with two energy-preserving break
@@ -115,6 +117,34 @@ private _spotters=_job get "spotters";
             [_group] call CBE_fnc_CortexDefendApplyLocal;
         };
         private _clear = _group getVariable ["CBE_AIPass_ClearOrder", []];
+        if (_clear isNotEqualTo [] && {_group getVariable ["CBE_AIPass_ClearApplied",false]}) then {
+            private _clearBrain=_group getVariable ["CBE_BuildingBrain",createHashMap];
+            private _clearJob=_clearBrain getOrDefault ["job",createHashMap];
+            private _clearEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+            private _clearGeneration=_group getVariable ["CBE_AIPass_ClearGeneration",-1];
+            private _clearHandle=_group getVariable ["CBE_BuildingBrain_FSM",-1];
+            private _clearAlive=_clearHandle isEqualType 0 && {finite _clearHandle}
+                && {_clearHandle >= 0} && {!completedFSM _clearHandle};
+            if (!_clearAlive && {count _clearJob > 0}
+                && {(_clearBrain getOrDefault ["ownerEpoch",-1]) == _clearEpoch}
+                && {(_clearBrain getOrDefault ["generation",-2]) == _clearGeneration}
+                && {!(_clearBrain getOrDefault ["cancelled",false])}
+                && {!(_clearBrain getOrDefault ["finished",false])}) then {
+                private _restarted=[_clearJob] call CBE_fnc_BuildingOperationStart;
+                if (!_restarted) then {
+                    isNil {
+                        if (local _group && {_clearEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                            && {_clearGeneration == (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
+                            && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _clear}
+                            && {((_group getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap]) isEqualTo _clearJob}) then {
+                            _group setVariable ["CBE_BuildingBrain_State",["FAILED",_clearGeneration,_clearEpoch,serverTime,"EXECUTOR_ENDED"],true];
+                            [_group,false] call CBE_fnc_CortexClearRelease;
+                        };
+                    };
+                };
+            };
+            _clear=_group getVariable ["CBE_AIPass_ClearOrder",[]];
+        };
         if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}) then {
             [_group, _clear select 0, createHashMapFromArray [["resume", true],["resumeOrder",+_clear],["resumeGeneration",_group getVariable ["CBE_AIPass_ClearGeneration",0]]]] call CBE_fnc_CortexClearBuilding;
         };

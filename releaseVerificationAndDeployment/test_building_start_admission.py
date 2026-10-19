@@ -31,6 +31,19 @@ class BuildingStartAdmissionTests(unittest.TestCase):
             self.assertIn(proof,duplicate)
         self.assertNotIn('execFSM',duplicate)
         self.assertNotIn('_old set',duplicate)
+        self.assertIn('!completedFSM _existingHandle',start)
+        self.assertIn('&& {_workerAlive}',duplicate)
+        self.assertIn('(_job getOrDefault ["executorRestarts",0]) < 1',start)
+        self.assertIn('!completedFSM _handle',start)
+        discovery=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text()
+        recovery=discovery.split('private _clearAlive=',1)[1].split('if (_clear isNotEqualTo [] && {!(',1)[0]
+        self.assertIn('[_clearJob] call CBE_fnc_BuildingOperationStart',recovery)
+        self.assertIn('isEqualTo _clear',recovery)
+        self.assertIn('isEqualTo _clearJob',recovery)
+        self.assertIn('[_group,false] call CBE_fnc_CortexClearRelease',recovery)
+        self.assertNotIn('serverTime+',recovery)
+        self.assertNotIn('doMove',recovery)
+
 
     def test_start_refusal_is_returned_and_only_matching_episode_retires(self):
         clear=source('cortexClearBuilding')

@@ -33,6 +33,28 @@ class DrivingStartAdmissionTests(unittest.TestCase):
         self.assertIn('"finished",false',duplicate)
         self.assertNotIn('setVariable',duplicate)
         self.assertNotIn('execFSM',duplicate)
+        self.assertIn('!completedFSM _existingHandle',text)
+        self.assertIn('_accepted=_workerAlive',duplicate)
+        self.assertIn('_workerAlive || {_current getOrDefault ["cancelled",false]}',duplicate)
+        self.assertIn('!completedFSM _handle',text)
+        failure=text.split('if (!_accepted &&',1)[1]
+        self.assertIn('"FSM_START_FAILED"',failure)
+        self.assertIn('call CBE_fnc_DrivingOperationFinish',failure)
+        self.assertNotIn('doMove',failure)
+        self.assertNotIn('serverTime+',failure)
+        resume=text.split('if (_resumeEnded) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('"EXECUTOR_RESTART"',resume)
+        self.assertNotIn('DrivingOperationFinish',resume)
+        self.assertNotIn('DrivingAssistRelease',resume)
+        self.assertIn('_brain set ["crewVehicle",_current getOrDefault ["crewVehicle",objNull]]',text)
+        self.assertIn('(_current getOrDefault ["executorRestarts",0]) >= 1',text)
+        self.assertIn('[_current,"FSM_RESTART_EXHAUSTED"] call CBE_fnc_DrivingOperationFinish',text)
+        self.assertIn('if (_resumeEnded) then {1+(_current getOrDefault ["executorRestarts",0])} else {0}',text)
+
+        finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text()
+        self.assertIn('_reason in ["EXHAUSTED","FSM_START_FAILED","FSM_RESTART_EXHAUSTED"]',finish)
+
+
 
     def test_prepared_duplicate_fixture_requires_real_prior_movement_and_same_handle(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')

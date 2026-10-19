@@ -1482,7 +1482,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingOperationStart.sqf",
-              "sha256": "761056860bf605e6924ef7704ddc156dd1acb80012f84a86752ac90f61cd36a7"
+              "sha256": "dcc0efda3221f6d1792486803fed14d9ec649798f12f70bf0da98e7af16f104d"
             },
             {
               "path": "addons/vehicles/functions/drivingOperationStep.sqf",
@@ -1676,7 +1676,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingOperationFinish.sqf",
-              "sha256": "bd6244fb5d7417da93aa056719f183bef145df9037b09531010f017aba07422f"
+              "sha256": "4c218ead6b04a57d1a1b816b82bf9196854c9eb11294a69911d33293eead1368"
             }
           ]
         }
@@ -3118,7 +3118,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStart.sqf",
-              "sha256": "85540c4799f3dba472a674071f5dbf7daceed3900482d502c4fe5aee5b616d30"
+              "sha256": "e09b06cf779d1e62568cb367d77aa54728299ef40625edce4ef85c15a81c42ec"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",

@@ -8548,7 +8548,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('CBE_Driving_Brain',text)
             self.assertIn('ownerEpoch',text)
         self.assertIn('EXHAUSTED',start+step+finish)
-        self.assertIn('if (_reason != "EXHAUSTED")',finish)
+        self.assertIn('if !(_reason in ["EXHAUSTED","FSM_START_FAILED","FSM_RESTART_EXHAUSTED"])',finish)
         self.assertIn('CBE_fnc_DrivingOperationFinish',source('cortexReleaseGroup'))
         self.assertNotIn('sleep',step)
         self.assertNotIn('forceSpeed',queue)

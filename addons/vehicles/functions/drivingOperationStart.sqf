@@ -1,5 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
+ * Duplicate success requires a live numeric FSM handle. An ended nonterminal worker
+ * may replace only its executor metadata; public recovery/crew deadlines are not renewed.
+ * At most one ended-worker restart per owner/route is allowed. A failed startup or
+ * second executor loss remains terminal rather than retrying every discovery.
  * Purpose: Starts one route-scoped ordinary driving FSM; registered convoys retain their own writer.
  * Seat-only casualty handover can start for local crew in a remote vehicle. Driving still requires
  * vehicle locality; native unit seat actions never acquire its speed/path authority.
@@ -49,10 +53,22 @@ isNil {
     };
     if (!(call _available)
         || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _current}) exitWith {};
+    private _existingHandle=_group getVariable ["CBE_Driving_FSM",-1];
+    private _workerAlive=_existingHandle isEqualType 0 && {finite _existingHandle}
+        && {_existingHandle >= 0} && {!completedFSM _existingHandle};
     if (count _current > 0 && {(_current getOrDefault ["ownerEpoch",-1]) == _epoch}
-        && {(_current getOrDefault ["route",[]]) isEqualTo _route}) exitWith {
+        && {(_current getOrDefault ["route",[]]) isEqualTo _route}
+        && {_workerAlive || {_current getOrDefault ["cancelled",false]} || {_current getOrDefault ["finished",false]}}) exitWith {
         // Exhaustion belongs to the exact order; duplicate discovery cannot restart it.
-        _accepted=!(_current getOrDefault ["cancelled",false]) && {!(_current getOrDefault ["finished",false])};
+        _accepted=_workerAlive && {!(_current getOrDefault ["cancelled",false])}
+            && {!(_current getOrDefault ["finished",false])};
+    };
+    private _resumeEnded=count _current > 0 && {!_workerAlive}
+        && {(_current getOrDefault ["ownerEpoch",-1]) == _epoch}
+        && {(_current getOrDefault ["route",[]]) isEqualTo _route}
+        && {!(_current getOrDefault ["cancelled",false])} && {!(_current getOrDefault ["finished",false])};
+    if (_resumeEnded && {(_current getOrDefault ["executorRestarts",0]) >= 1}) exitWith {
+        [_current,"FSM_RESTART_EXHAUSTED"] call CBE_fnc_DrivingOperationFinish;
     };
     private _hasVehicle=(units _group) findIf {
         private _vehicle=vehicle _x;
@@ -65,7 +81,15 @@ isNil {
             && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
     } >= 0;
     if (!_hasVehicle) exitWith {};
-    if (count _current > 0) then {[_current,"REPLACED"] call CBE_fnc_DrivingOperationFinish};
+    if (count _current > 0) then {
+        if (_resumeEnded) then {
+            // The route/owner still match. Keep existing cap, rear-leg, retry and crew
+            // journals in place; ordinary finish would erase their original budgets.
+            // Replacing the brain pointer rejects any queued callback from this executor.
+            _current set ["cancelled",true];_current set ["finished",true];
+            _current set ["pending",false];_current set ["cancelReason","EXECUTOR_RESTART"];
+        } else {[_current,"REPLACED"] call CBE_fnc_DrivingOperationFinish};
+    };
     // Cleanup may invoke other feature handlers. Recheck their resulting authority before
     // clearing a yield or overwriting a worker, even within this unscheduled commit.
     private _after=_group getVariable ["CBE_Driving_Brain",createHashMap];
@@ -76,10 +100,19 @@ isNil {
     private _brain=createHashMapFromArray [["group",_group],["ownerEpoch",_epoch],
         ["generation",_generation],["route",_route],["phase","CRUISE"],["pending",false],
         ["completed",false],["cancelled",false],["finished",false],["cancelReason",""],
-        ["nextAt",time],["queuedAt",time],["watchdogCount",0]];
+        ["nextAt",time],["queuedAt",time],["watchdogCount",0],
+        ["executorRestarts",if (_resumeEnded) then {1+(_current getOrDefault ["executorRestarts",0])} else {0}]];
+    if (_resumeEnded) then {_brain set ["crewVehicle",_current getOrDefault ["crewVehicle",objNull]]};
     _group setVariable ["CBE_Driving_Brain",_brain];
     private _handle=[_brain] execFSM "\z\cbe\addons\main\fsm\drivingOperation.fsm";
     _group setVariable ["CBE_Driving_FSM",_handle];
-    _accepted=true;
+    _accepted=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}
+        && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}
+        && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])};
+    if (!_accepted && {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain}) then {
+        // If startup fails, exact existing cleanup must still retire any retained
+        // native leg/cap. Its terminal receipt prevents same-route discovery retries.
+        [_brain,"FSM_START_FAILED"] call CBE_fnc_DrivingOperationFinish;
+    };
 };
 _accepted

@@ -1,16 +1,18 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Start the single owner-local building operation FSM for a prepared physical-clearance job.
+ * Duplicate success requires a live FSM handle. The same unchanged job may replace one
+ * ended executor while retaining room evidence, movement requests and original deadlines.
  * Locality / Authority: Must run where the group is local. It owns semantic building progression but
  * delegates each bounded movement/progress step to CBE's shared scheduler.
  * Repeat/JIP: Exact admitted operation/epoch, target transform, native intent and original deadlines
  * are checked in one unscheduled startup block. A repeated start for its live identical job
  * reuses the existing brain; stale work never stamps a new epoch or cancels a successor.
- * Replaces only an older clear generation. Public room evidence remains durable and a
+ * Replaces an older clear generation or one ended matching executor. Public room evidence remains durable and a
  * new owner reconstructs actor assignments through the ordinary clear-order resume path.
  * Arguments: 0: prepared building job <HASHMAP>.
  * Return Value: Boolean - true when a building brain was started for the current owner.
- * Current caller: CBE_fnc_CortexClearBuilding.
+ * Current callers: CBE_fnc_CortexClearBuilding and CortexDiscover ended-worker recovery.
  * Example: [_job] call CBE_fnc_BuildingOperationStart;
  */
 
@@ -40,14 +42,24 @@ isNil {
         || {(_job getOrDefault ["nativeOrderReceipt",[]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
         || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {};
     private _old=_group getVariable ["CBE_BuildingBrain",createHashMap];
-    if (count _old > 0 && {(_old getOrDefault ["generation",-1]) == _generation}) exitWith {
+    private _existingHandle=_group getVariable ["CBE_BuildingBrain_FSM",-1];
+    private _workerAlive=_existingHandle isEqualType 0 && {finite _existingHandle}
+        && {_existingHandle >= 0} && {!completedFSM _existingHandle};
+    private _resumeEnded=count _old > 0 && {!_workerAlive}
+        && {(_old getOrDefault ["generation",-1]) == _generation}
+        && {(_old getOrDefault ["job",createHashMap]) isEqualTo _job}
+        && {(_old getOrDefault ["ownerEpoch",-1]) == _epoch}
+        && {!(_old getOrDefault ["cancelled",false])} && {!(_old getOrDefault ["finished",false])}
+        && {(_job getOrDefault ["executorRestarts",0]) < 1};
+    if (count _old > 0 && {(_old getOrDefault ["generation",-1]) == _generation} && {!_resumeEnded}) exitWith {
         // A duplicate call can acknowledge its own live worker, never restart a retired
         // one or replace different work that happens to present the same generation.
         _started=(_old getOrDefault ["job",createHashMap]) isEqualTo _job
             && {(_old getOrDefault ["ownerEpoch",-1]) == _epoch}
             && {!(_old getOrDefault ["cancelled",false])}
-            && {!(_old getOrDefault ["finished",false])};
+            && {!(_old getOrDefault ["finished",false])} && {_workerAlive};
     };
+    if (_resumeEnded) then {_job set ["executorRestarts",1+(_job getOrDefault ["executorRestarts",0])]};
     if (count _old > 0) then {
         _old set ["cancelled",true];
         _old set ["cancelReason","REPLACED"];
@@ -73,6 +85,18 @@ isNil {
     _group setVariable ["CBE_BuildingBrain_State",[_brain get "phase",_generation,_epoch,serverTime,"STARTED",0,0,count (_job getOrDefault ["positions",[]])],true];
     private _handle=[_group,_epoch,_generation,_brain] execFSM "\z\cbe\addons\main\fsm\buildingOperation.fsm";
     _group setVariable ["CBE_BuildingBrain_FSM",_handle];
-    _started=true;
+    _started=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}
+        && {(_group getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _brain}
+        && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])};
+    if (!_started && {(_group getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _brain}) then {
+        _brain set ["cancelled",true];_brain set ["finished",true];
+        _brain set ["pending",false];_brain set ["completed",true];
+        _brain set ["cancelReason","FSM_START_FAILED"];
+        _group setVariable ["CBE_BuildingBrain_FSM",nil];
+        if (local _group && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {_generation == (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}) then {
+            _group setVariable ["CBE_BuildingBrain_State",["FAILED",_generation,_epoch,serverTime,"FSM_START_FAILED"],true];
+        };
+    };
 };
 _started

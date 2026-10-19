@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Retires matching ordinary driving work and releases only its tracked speed leases.
+ * Failed FSM startup or exhausted executor restart retains a terminal route receipt after exact cleanup, so discovery
+ * cannot loop on a failed executor or silently replenish its retry budgets.
  * Locality / Authority: Owner-local group only; no ownership transfer or second scheduler.
  * Repeat/JIP: Exact epoch/generation removes the finite pass STOP observer without touching
  * a successor handler. Queue consent bound to this exact epoch/generation retires through
@@ -40,5 +42,5 @@ if (isNull _group || {!local _group}
 _group setVariable ["CBE_DrivingAssist_Vehicles",nil];
 _group setVariable ["CBE_Driving_FSM",nil];
 _group setVariable ["CBE_Driving_State",["HANDBACK",_brain get "generation",serverTime,_reason],true];
-// Keep a terminal receipt only for exhausted retries. A new order may start a new operation.
-if (_reason != "EXHAUSTED") then {_group setVariable ["CBE_Driving_Brain",nil]};
+// Keep exhausted/failed-start routes terminal. A new order may start a new operation.
+if !(_reason in ["EXHAUSTED","FSM_START_FAILED","FSM_RESTART_EXHAUSTED"]) then {_group setVariable ["CBE_Driving_Brain",nil]};
