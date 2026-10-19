@@ -13,7 +13,7 @@
  * long/short rear observer. Blocked leaf refuses before a committed hold; no target
  * is retained and command admission must resample. At most two bounded rear observations
  * per leaf preflight; no recurring scan or new worker.
- * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE/CHECK_ROOM;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message; CHECK_ROOM appends request serial1..2.
+ * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE/ARM/EXECUTE/CHECK_ROOM;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message; ARM/EXECUTE optionally append [phaseSerial,movingIndex,heldIndices]; CHECK_ROOM appends request serial1..2 and phaseSerial.
  * PREPARE binds all this owner's settled participants to original token/expiry and their brains.
  * PREPARED acknowledges only those verified applied holds; the server waits for every owner.
  * It adds no timer, native command, cached clearance or execution permission.
@@ -98,10 +98,28 @@ private _duplicate=_owned findIf {
         || {(_old getOrDefault ["dependencies",[]]) isNotEqualTo _dependencies}
         || {(_old getOrDefault ["expires",-1]) != _expires} || {serverTime >= _expires}
 } < 0;
-// Original handshake messages cannot downgrade a later dependency phase.
-// Terminal RESULT was handled above and still retires the entire original token.
-if (!_tokenClosed && {_duplicate} && {_currentPhase > 0}
-    && {_mode in ["VERIFY","RESULT","COMMIT","PREPARE"]}) exitWith {true};
+// An installed motion phase owns duplicate initial handshake delivery, including
+// phase zero while its first vehicle is already reversing. Recheck current native
+// authority; never compare movement against the original stationary admission or
+// replay PREPARE. Terminal RESULT has already retired its token above.
+private _motionInstalled=_duplicate && {_owned findIf {
+    private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+    (_old getOrDefault ["motionStage",""]) != "ARMED"
+        || {count (_old getOrDefault ["motionBinding",[]]) != 4}
+        || {(_old getOrDefault ["phaseSerial",0]) != _currentPhase}
+} < 0};
+if (!_tokenClosed && {_motionInstalled} && {_mode in ["VERIFY","RESULT","COMMIT","PREPARE"]}) exitWith {
+    private _stillCurrent=[(_owned select 0) getVariable ["CBE_DrivingQueue_Consent",createHashMap],true]
+        call CBE_fnc_DrivingQueueReverseCurrent;
+    if (!_stillCurrent) then {
+        [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
+        {private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+            if ((_old getOrDefault ["token",""]) == _token) then {_x setVariable ["CBE_DrivingQueue_Consent",nil]};
+        } forEach _owned;
+        ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
+    };
+    _stillCurrent
+};
 if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}
     && {_requestedPhase < _currentPhase}) exitWith {true};
 if (_mode in ["ARM","EXECUTE"] && {_requestedPhase > _currentPhase+1

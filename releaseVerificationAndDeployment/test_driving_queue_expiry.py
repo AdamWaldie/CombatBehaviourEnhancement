@@ -55,6 +55,14 @@ class DrivingQueueExpiry(unittest.TestCase):
         self.assertIn('private _accepted=!_tokenClosed',owner)
         terminal=owner.split('// Terminal token cleanup',1)[1].split('private _tokenClosed=',1)[0]
         self.assertLess(terminal.index('call CBE_fnc_DrivingQueueTokenClosed'),terminal.index('if (_owned isEqualTo [])'))
+        motion_duplicate=owner.split('private _motionInstalled=',1)[1].split('if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}',1)[0]
+        self.assertIn('_mode in ["VERIFY","RESULT","COMMIT","PREPARE"]',motion_duplicate)
+        self.assertIn('call CBE_fnc_DrivingQueueReverseCurrent',motion_duplicate)
+        self.assertIn('if (!_stillCurrent) then',motion_duplicate)
+        self.assertIn('call CBE_fnc_DrivingQueueTokenClosed',motion_duplicate)
+        self.assertNotIn('call CBE_fnc_DrivingQueueProposalCurrent',motion_duplicate)
+        self.assertNotIn('set ["expires"',motion_duplicate)
+        self.assertNotIn('call _scheduleExpiry',motion_duplicate)
         verify=owner.split('if (_mode == "VERIFY") exitWith {',1)[1].split('["ACK",[_token,_accepted]]',1)[0]
         self.assertIn('} else {',verify)
         self.assertIn('call CBE_fnc_DrivingQueueTokenClosed',verify)
