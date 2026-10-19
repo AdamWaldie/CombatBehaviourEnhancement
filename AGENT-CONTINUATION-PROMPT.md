@@ -694,3 +694,6 @@ Support leader casualty follow-up: release now requires a non-null combat-effect
 
 
 CQB buddy target handoff: changed buddy destination independently admits unitIssue inside existing mutation boundary, without lead room-request/progress-clock dependency. Unchanged native requests still coalesce. No new tests/workers/scores. Review referenceReviews/cqb-buddy-target-handoff-20261019.json. Full .qa/cbe-buddy-independent-target-build.log and independent verify passed; fingerprint0ab8cffb24002054f355d937688256ca424b028cd25a252fdce9e42e6aa87d31, manifestbb50a150+dirtydevelopment. AuditsPAUSED, physical/performance unverified. PR17open/draft, no push/CI/merge.
+
+
+Convoy catch-up continuity: outer-band boost no longer imposes max5 km/h at gapHigh; normal proportional request and bounded boost now meet continuously. All downstream braking/traffic/reverse/acceleration caps unchanged. Algebraic review referenceReviews/convoy-continuous-catchup-20261019.json is pre-clamp numeric evidence, not engine simulation. No tests/workers/settings/scores added. Full offline .qa/cbe-continuous-convoy-catchup-build.log and independent verify passed; fingerprinta398255dba6682846d90d35ea4ab80a49fd41b7be043a14f3fbcc422c5083ebe, manifestdfa43388+dirtydevelopment. AuditsPAUSED; mixed-convoy smoothness/performance unverified. PR17open/draft; no push/CI/merge.

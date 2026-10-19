@@ -10,7 +10,8 @@
  * Arrival requires the existing five-second window below1km/h total linear motion and
  * 0.01rad/s angular motion for every vehicle; non-finite samples reset that window.
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
- * Excess stretch beyond the upper band adds a nonlinear catch-up correction capped at 8 km/h.
+ * Excess stretch beyond the upper band adds a continuous nonlinear catch-up correction capped
+ * at 8 km/h; crossing the band never imposes a new minimum-speed step.
  * Native acceleration, shared cruise/terrain limits, immediate closing caps and reverse yields remain authoritative.
  * Follower curve/grade caps persist between path refreshes until fresh trail geometry replaces them;
  * disabling convoy driving assist clears that local cap without changing native route ownership.
@@ -925,7 +926,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
         // the normal band or adding another stop/start threshold.
         private _excess=_controlGap-_gapHigh;
         private _catchupBoost=((_excess*sqrt _excess)*0.15) min 8;
-        _limit=(_limit+_catchupBoost) max 5;
+        _limit=_limit+_catchupBoost;
     };
     if (_controlGap < _gapLow) then {_limit = _limit min ((_frontSpeed-(_gapLow-_controlGap)*1.2) max 0)};
     private _controlSample=[];
