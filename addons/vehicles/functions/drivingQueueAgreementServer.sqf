@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Brokers bounded queue-role consent, explicit root commit and measured hold readiness.
  * Consent/READY never authorizes a reverse leg; dependency execution remains separate.
+ * All-ready observation sends one metadata-only PREPARE to all participant owners at original expiry; each acknowledges its own applied holds.
  * Locality/authority: Authenticated server remote calls only; BEGIN requires current initiator vehicle/crew/group owner, ACK its expected actual owner.
  * Repeat/JIP: Private32episode registry, fixed2s handshake/30s maximum consent; idempotent replies and exact-token release.
  * A private64-entry vehicle admission journal allows one accepted BEGIN per30seconds,
@@ -9,17 +10,18 @@
  * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
  * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY"])}) exitWith {false};
+if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED"])}) exitWith {false};
 private _sender=remoteExecutedOwner;
 private _registry=localNamespace getVariable ["CBE_DrivingQueue_Agreements",createHashMap];
 localNamespace setVariable ["CBE_DrivingQueue_Agreements",_registry];
 private _current={params ["_record"];
+    if ("motionBinding" in _record) exitWith {[_record,false] call CBE_fnc_DrivingQueueReverseCurrent};
     [_record get "vehicles",_record get "roles",_record get "dependencies",_record get "context",false]
         call CBE_fnc_DrivingQueueProposalCurrent
 };
@@ -102,6 +104,26 @@ if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {fals
 if (_mode == "RELEASE") exitWith {
     _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;true
 };
+// Every actual participant owner must preserve the prepared hold before a later
+// execution grant can exist. This acknowledgement is metadata, never movement authority.
+if (_mode == "PREPARED") exitWith {
+    if ((_record get "phase") != "AGREED" || {serverTime >= (_record get "expires")}
+        || {!(_record getOrDefault ["committed",false])}
+        || {!(_record getOrDefault ["holdReady",false])}
+        || {!(_record getOrDefault ["executionPrepared",false])}
+        || {(_record get "vehicles") findIf {
+            private _linear=vectorMagnitude velocity _x;private _angular=vectorMagnitude angularVelocity _x;
+            !finite _linear || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}
+        } >= 0}
+        || {!([_record] call _current)}) exitWith {
+        _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;false
+    };
+    private _prepared=_record getOrDefault ["preparedOwners",[]];
+    _prepared pushBackUnique _sender;
+    _record set ["preparedOwners",_prepared];
+    _record set ["executionReady",count _prepared == count (_record get "owners")];
+    true
+};
 // COMMIT is separate from consent and can originate only from the actual root owner.
 // READY is an actual participant-owner report, never a public variable or a motion grant.
 if (_mode in ["COMMIT","READY"]) exitWith {
@@ -140,6 +162,15 @@ if (_mode in ["COMMIT","READY"]) exitWith {
         !finite _linear || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}
     } < 0;
     _record set ["holdReady",count _ready == count (_record get "vehicles") && {_allSettled}];
+    // Preparation selects one dependency leaf under the original agreement. It is
+    // metadata only: no owner may infer native motion authority from this message.
+    if (_record get "holdReady" && {!(_record getOrDefault ["executionPrepared",false])}) then {
+        private _vehicles=_record get "vehicles";
+        _record set ["executionPrepared",true];
+        private _message=[_token,_record get "serial",_vehicles,_record get "roles",
+            _record get "dependencies",_record get "context",_record get "deadline",_record get "expires","AGREED"];
+        {["PREPARE",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
+    };
     true
 };
 if (!((_payload select 1) isEqualType true)) exitWith {false};

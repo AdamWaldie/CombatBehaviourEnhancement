@@ -331,6 +331,9 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {_native isEqualTo (_owned get "command")}
         };
         private _mayRecoverOrdinaryRoute={!_recoveryRequestPending && {call _mayRecoverRoute} && {call _nativeRouteIntent}
+            // A queue-bound native leg belongs to its finite queue phase, never the
+            // ordinary REFRESH/FINAL route retry. Cleanup retains separate exact proof.
+            && {!("queueBinding" in (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]))}
             && {toUpperANSI currentCommand _driver in ["","MOVE","WAIT"]}};
         private _priorOwner=(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) param [3,grpNull];
         if (!isNull _priorOwner && {_priorOwner != _group}) then {
@@ -436,11 +439,21 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _hard=if (_sameEpisode) then {
                     _old get "hardDeadline"
                 } else {serverTime+96};
+                // Preserve a queue episode's original binding if this journal is rewritten.
+                // This only narrows lifetime; it cannot authenticate or start queue movement.
+                private _queueBound=_sameEpisode && {"queueBinding" in _old};
+                private _queueBinding=if (_queueBound) then {_old get "queueBinding"} else {[]};
+                private _queueBindingValid=_queueBinding isEqualType [] && {count _queueBinding == 4}
+                    && {(_queueBinding select 0) isEqualType ""} && {(_queueBinding select 0) != ""}
+                    && {_queueBinding select [1,3] findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
+                if (_queueBound) then {_hard=if (_queueBindingValid) then {_hard min (_queueBinding select 1)} else {serverTime}};
                 private _deadline=switch (_kind) do {case "REFRESH":{_hard-66};case "FINAL":{_hard};case "EXHAUSTED":{_hard};default {_hard-60}};
+                if (_queueBound) then {_deadline=_hard};
                 private _work=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
                     ["kind",_kind],["commandMode",_commandMode],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
                     ["origin",_origin],["progressAnchor",_progressAnchor],["baseline",+_previous],["cap",_capMps]];
+                if (_queueBound) then {_work set ["queueBinding",_queueBinding]};
                 if (_commandMode == "DESTINATION" && {count _nativeRequest == 3}
                     && {_kind in ["REFRESH","FINAL","REVERSE"]}) then {_work set ["request",_nativeRequest]};
                 if (_commandMode == "SIMPLE_BACK") then {

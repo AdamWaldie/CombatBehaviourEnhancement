@@ -10,9 +10,22 @@ class RecoveryCleanupTests(unittest.TestCase):
                           'set ["deadline"', 'set ["hardDeadline"'):
             self.assertNotIn(forbidden,text)
         self.assertIn('call CBE_fnc_DrivingAssistRelease',text)
-        self.assertIn('"simpleBefore","request"] apply',text)
+        self.assertIn('"simpleBefore","request","queueBinding"] apply',text)
         self.assertIn('([_current] call _signature) isEqualTo _proof',text)
         self.assertIn('local _target',text)
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        gate=assist.split('private _mayRecoverOrdinaryRoute=',1)[1].split('private _priorOwner=',1)[0]
+        self.assertIn('!("queueBinding" in',gate)
+        record=assist.split('private _recordRecovery={',1)[1].split('private _reverseIssued=',1)[0]
+        for proof in ('_sameEpisode && {"queueBinding" in _old}',
+                      '_hard min (_queueBinding select 1)','else {serverTime}',
+                      '_work set ["queueBinding",_queueBinding]','if (_queueBound) then {_deadline=_hard}'):
+            self.assertIn(proof,record)
+        # Original queue expiry narrows an existing recovery lifetime, never renews it.
+        for original,expires in ((96,30),(20,30),(30,30)):
+            self.assertLessEqual(min(original,expires),original)
+            self.assertLessEqual(min(original,expires),expires)
+
         for identity in ('"route"','"driver"','"operator"','"driverCommand"','"command"',
                          '"started"','"deadline"','"hardDeadline"','"cap"','"baseline"'):
             self.assertIn(identity,text)

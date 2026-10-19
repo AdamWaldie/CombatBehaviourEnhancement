@@ -51,9 +51,14 @@ if (_mode == "APPLIED") exitWith {
     };
     true
 };
-if (!([_consent getOrDefault ["vehicles",[]],_consent getOrDefault ["roles",[]],
-    _consent getOrDefault ["dependencies",[]],_consent getOrDefault ["context",[]],true]
-    call CBE_fnc_DrivingQueueProposalCurrent)) exitWith {
+private _contextCurrent=if ("motionBinding" in _consent) then {
+    [_consent,true] call CBE_fnc_DrivingQueueReverseCurrent
+} else {
+    [_consent getOrDefault ["vehicles",[]],_consent getOrDefault ["roles",[]],
+        _consent getOrDefault ["dependencies",[]],_consent getOrDefault ["context",[]],true]
+        call CBE_fnc_DrivingQueueProposalCurrent
+};
+if (!_contextCurrent) exitWith {
     [_vehicle,_group,_epoch,_generation] call CBE_fnc_DrivingQueueAgreementRelease;false
 };
 // Once applied, a changed cap/lease is a takeover, not permission to reacquire it.

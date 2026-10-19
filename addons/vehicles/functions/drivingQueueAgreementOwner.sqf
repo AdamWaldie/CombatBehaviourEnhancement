@@ -13,13 +13,16 @@
  * long/short rear observer. Blocked leaf refuses before a committed hold; no target
  * is retained and command admission must resample. At most two bounded rear observations
  * per leaf preflight; no recurring scan or new worker.
- * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message.
+ * Arguments: 0 mode STRING empty VERIFY/RESULT/COMMIT/PREPARE;1 payload ARRAY [],[token,serial,vehicles,roles,dependencies,context,deadline,expires,optional phase]. COMMIT uses the nine-field AGREED message.
+ * PREPARE binds all this owner's settled participants to original token/expiry and their brains.
+ * PREPARED acknowledges only those verified applied holds; the server waits for every owner.
+ * It adds no timer, native command, cached clearance or execution permission.
  * Return: BOOL reply/result handled, not queue movement authority.
  * Current callers: DrivingQueueAgreementServer only.
  * Example: ["VERIFY",_payload] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_owner];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
-if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT"])}
+if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE"])}
     || {count _payload != ([8,9] select (_mode != "VERIFY"))}) exitWith {false};
 _payload params ["_token","_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
 if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
@@ -31,7 +34,7 @@ if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
 private _owned=_vehicles select {!isNull _x && {local _x}};
 private _phase=["PENDING",_payload param [8,""]] select (_mode != "VERIFY");
 if (_mode == "RESULT" && {!(_phase in ["AGREED","REFUSED","RELEASED"])}) exitWith {false};
-if (_mode == "COMMIT" && {_phase != "AGREED"}) exitWith {false};
+if (_mode in ["COMMIT","PREPARE"] && {_phase != "AGREED"}) exitWith {false};
 private _receiptKey={
     params ["_receipt"];
     ["token","serial","vehicles","roles","dependencies","context","deadline","expires","phase"] apply {
@@ -113,6 +116,41 @@ if (_accepted && {_mode in ["VERIFY","COMMIT"]}) then {
             && {serverTime < ([_deadline,_expires] select (_mode == "COMMIT" || {_duplicate}))}
             && {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent};
     };
+};
+if (_mode == "PREPARE") exitWith {
+    private _preparedRows=[];
+    private _canPrepare=_duplicate && {_accepted} && {_owned isNotEqualTo []};
+    {
+        private _heldVehicle=_x;
+        private _heldGroup=group driver _heldVehicle;
+        private _heldBrain=_heldGroup getVariable ["CBE_Driving_Brain",createHashMap];
+        private _consent=_heldVehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        private _applied=[_token,_heldBrain getOrDefault ["ownerEpoch",-1],_heldBrain getOrDefault ["generation",-1]];
+        private _state=_heldVehicle getVariable ["CBE_DrivingAssist_State",[]];
+        private _linear=vectorMagnitude velocity _heldVehicle;private _angular=vectorMagnitude angularVelocity _heldVehicle;
+        private _binding=[_token,_expires,_applied select 1,_applied select 2];
+        private _before=_consent getOrDefault ["executionPreparation",[]];
+        if (!(_consent getOrDefault ["committed",false])
+            || {!(_consent getOrDefault ["holdReadySent",false])}
+            || {(_consent getOrDefault ["holdApplied",[]]) isNotEqualTo _applied}
+            || {!local _heldGroup} || {(_heldBrain getOrDefault ["ownerEpoch",-1]) != (_heldGroup getVariable ["CBE_AIPass_Epoch",0])}
+            || {(_state param [0,-1]) != 0} || {(_state param [3,grpNull]) != _heldGroup}
+            || {abs getForcedSpeed _heldVehicle > 0.001} || {!finite _linear} || {!finite _angular}
+            || {_linear >= 0.1} || {_angular >= 0.01}
+            || {_before isNotEqualTo [] && {_before isNotEqualTo _binding}}) exitWith {_canPrepare=false};
+        private _prepared=createHashMapFromArray (keys _consent apply {[_x,_consent get _x]});
+        _prepared set ["executionPreparation",_binding];
+        _preparedRows pushBack [_heldVehicle,_prepared];
+    } forEach _owned;
+    if (!_canPrepare) exitWith {
+        [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
+        ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];false
+    };
+    // Publish all owner-local metadata before acknowledging. No partial successful
+    // preparation or duplicate can renew expiry or become a native movement grant.
+    {_x params ["_heldVehicle","_prepared"];_heldVehicle setVariable ["CBE_DrivingQueue_Consent",_prepared]} forEach _preparedRows;
+    ["PREPARED",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
+    true
 };
 if (_mode == "COMMIT") exitWith {
     if (!_duplicate || {!_accepted}) exitWith {

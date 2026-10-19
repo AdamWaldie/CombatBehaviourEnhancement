@@ -71,6 +71,14 @@ class QueueProposalTests(unittest.TestCase):
                       '_expires > serverTime+30','_deadline > serverTime+2'):
             self.assertIn(proof,server)
         self.assertIn('remoteExecutedOwner != 2',owner)
+        motion=(ROOT/'addons/vehicles/functions/drivingQueueReverseCurrent.sqf').read_text()
+        for proof in ('count _vehicles > 4','count _vehicles-1','serverTime >= _expires',
+                      '_actor isNotEqualTo _original','_rear < -0.25','(_binding select 3)+0.5',
+                      '"queueBinding",[]','simpleAcknowledged','completedFSM','CortexActorMoveReserved'):
+            self.assertIn(proof,motion)
+        for forbidden in (' doMove ',' forceSpeed ','sendSimpleCommand','setVelocity','waitAndExecute'):
+            self.assertNotIn(forbidden,motion)
+
         self.assertIn('call CBE_fnc_DrivingQueueProposalCurrent',owner)
         self.assertIn('if (_mode in ["COMMIT","READY"]) exitWith',server)
         self.assertIn('_sender != owner _root',server)
@@ -79,8 +87,33 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('private _allSettled=(_record get "vehicles") findIf',server)
         self.assertIn('&& {_allSettled}',server)
         self.assertIn('_deliveries >= 2',server)
+        preparation=owner.split('if (_mode == "PREPARE") exitWith {',1)[1].split('if (_mode == "COMMIT") exitWith',1)[0]
+        for proof in ('_duplicate','_accepted','holdReadySent','holdApplied','CBE_AIPass_Epoch',
+                      'getForcedSpeed _heldVehicle','_linear >= 0.1','_angular >= 0.01',
+                      '[_token,_expires,_applied select 1,_applied select 2]',
+                      '"executionPreparation",_binding','_before isNotEqualTo []'):
+            self.assertIn(proof,preparation)
+        for forbidden in ('doMove','doStop','forceSpeed','sendSimpleCommand','waitAndExecute','set ["expires"'):
+            self.assertNotIn(forbidden,preparation)
+        self.assertIn('"PREPARE",_message',server)
+        self.assertIn('forEach (_record get "owners")',server)
+        self.assertIn('"PREPARED",[_token]',preparation)
+        self.assertIn('_prepared pushBackUnique _sender',server)
+        prepared=server.split('if (_mode == "PREPARED") exitWith {',1)[1].split('// COMMIT is separate',1)[0]
+        for guard in ('serverTime >=','_linear >= 0.1','_angular >= 0.01','call _current'):
+            self.assertLess(prepared.index(guard),prepared.index('_prepared pushBackUnique _sender'))
+        owners={2,10,20}
+        acknowledgements=set()
+        for sender,expected in ((2,False),(2,False),(20,False),(10,True)):
+            acknowledgements.add(sender)
+            self.assertEqual(acknowledgements==owners,expected)
+
+        self.assertIn('count _prepared == count (_record get "owners")',server)
+        self.assertLess(preparation.index('forEach _preparedRows'),preparation.index('"PREPARED",[_token]'))
+        self.assertIn('!(_record getOrDefault ["executionPrepared",false])',server)
+
         self.assertIn('if (_mode == "COMMIT") exitWith',owner)
-        preflight=owner.split('if (_accepted && {_mode in ["VERIFY","COMMIT"]})',1)[1].split('if (_mode == "COMMIT") exitWith',1)[0]
+        preflight=owner.split('if (_accepted && {_mode in ["VERIFY","COMMIT"]})',1)[1].split('if (_mode == "PREPARE") exitWith',1)[0]
         for proof in ('count _vehicles-1','_leaf in _owned','call CBE_fnc_DrivingRearPlan',
                       '_leafObservation select 0','serverTime <','call CBE_fnc_DrivingQueueProposalCurrent'):
             self.assertIn(proof,preflight)
