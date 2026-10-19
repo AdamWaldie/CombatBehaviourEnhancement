@@ -87,12 +87,13 @@ if (_commandMode == "DESTINATION") then {
     };
 };
 private _simpleInfo=vehicleMoveInfo _vehicle;
+private _queueStopped="queueBinding" in _work && {_work getOrDefault ["queueStopAcknowledged",false]};
 private _destinationControlFree=if (_commandMode == "SIMPLE_BACK") then {
     (_work getOrDefault ["driver",objNull]) != (_work getOrDefault ["operator",objNull])
         && {(_simpleInfo param [1,""]) == ((_work getOrDefault ["simpleBefore",[]]) param [1,"MISSING"])}
-        && {toUpperANSI (_simpleInfo param [0,""]) == "BACK"
+        && {toUpperANSI (_simpleInfo param [0,""]) == "BACK" && {!_queueStopped}
             || {_work getOrDefault ["simpleStopIssued",false] && {toUpperANSI (_simpleInfo param [0,""]) == "STOP"}}
-            || {!(_work getOrDefault ["simpleAcknowledged",false])
+            || {!(_work getOrDefault ["simpleAcknowledged",false]) && {!_queueStopped}
                 && {_simpleInfo isEqualTo (_work getOrDefault ["simpleBefore",[]])}}}
 } else {toUpperANSI (_simpleInfo param [0,"",[""]]) != "BACK"};
 private _driver=_work get "driver";private _operator=_work get "operator";

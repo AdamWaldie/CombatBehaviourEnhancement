@@ -27,6 +27,19 @@ class RecoveryCleanupTests(unittest.TestCase):
             self.assertNotIn(forbidden,native)
         self.assertIn('["deadline",_expires],["hardDeadline",_expires]',native)
         self.assertIn('["ackUntil",(serverTime+2) min _expires]',native)
+        self.assertIn('_next set ["queueStopAcknowledged",true]',native)
+        observer=(ROOT/'addons/vehicles/functions/drivingQueueReverseCurrent.sqf').read_text()
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text()
+        for guard in (observer,release):
+            self.assertIn('queueStopAcknowledged',guard)
+        self.assertIn('== "BACK" && {!_queueStopped}',release)
+        # Acknowledged STOP retires old BACK authority even if destinations are unchanged.
+        def owned_input(native_input,stop_acknowledged):
+            return native_input == 'STOP' or (native_input == 'BACK' and not stop_acknowledged)
+        self.assertTrue(owned_input('BACK',False))
+        self.assertTrue(owned_input('STOP',True))
+        self.assertFalse(owned_input('BACK',True))
+
         integration=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         for proof in ('["ADMIT",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit',
                       '[_nativeQueueMode,_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit',

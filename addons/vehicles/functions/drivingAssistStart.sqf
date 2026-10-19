@@ -191,13 +191,14 @@ _brain set ["geometryTracks",_geometryTracks];
         private _modeWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         private _info=vehicleMoveInfo _vehicle;
         if ((_modeWork getOrDefault ["commandMode","DESTINATION"]) == "SIMPLE_BACK") exitWith {
+            private _queueStopped="queueBinding" in _modeWork && {_modeWork getOrDefault ["queueStopAcknowledged",false]};
             (_modeWork getOrDefault ["group",grpNull]) == _group
                 && {(_modeWork getOrDefault ["kind",""]) == "REVERSE"}
                 && {_driver != _movementOperator}
                 && {(_info param [1,""]) == ((_modeWork getOrDefault ["simpleBefore",[]]) param [1,"MISSING"])}
-                && {toUpperANSI (_info param [0,""]) == "BACK"
+                && {toUpperANSI (_info param [0,""]) == "BACK" && {!_queueStopped}
                     || {_modeWork getOrDefault ["simpleStopIssued",false] && {toUpperANSI (_info param [0,""]) == "STOP"}}
-                    || {!(_modeWork getOrDefault ["simpleAcknowledged",false])
+                    || {!(_modeWork getOrDefault ["simpleAcknowledged",false]) && {!_queueStopped}
                         && {_info isEqualTo (_modeWork getOrDefault ["simpleBefore",[]])}}}
         };
         toUpperANSI (_info param [0,"",[""]]) != "BACK"

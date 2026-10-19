@@ -114,10 +114,11 @@ private _valid=true;private _localCount=0;
                 || {(_work getOrDefault ["queueBinding",[]]) isNotEqualTo _expected}
                 || {(_work getOrDefault ["commandMode",""]) != "SIMPLE_BACK"}
                 || {private _native=vehicleMoveInfo _vehicle;
-                    private _back=toUpperANSI (_native param [0,""]) == "BACK" && {_work getOrDefault ["simpleAcknowledged",false]};
+                    private _back=toUpperANSI (_native param [0,""]) == "BACK" && {_work getOrDefault ["simpleAcknowledged",false]}
+                        && {!(_work getOrDefault ["queueStopAcknowledged",false])};
                     private _stop=toUpperANSI (_native param [0,""]) == "STOP" && {_work getOrDefault ["simpleStopIssued",false]};
                     private _pending=!(_work getOrDefault ["simpleAcknowledged",false])
-                        && {_native isEqualTo (_work getOrDefault ["simpleBefore",[]])};
+                        && {!(_work getOrDefault ["queueStopAcknowledged",false])} && {_native isEqualTo (_work getOrDefault ["simpleBefore",[]])};
                     !(_back || {_stop} || {_pending})}
                 || {(_work getOrDefault ["kind",""]) != "REVERSE"}
                 || {(_work getOrDefault ["hardDeadline",1e12]) > _expires}

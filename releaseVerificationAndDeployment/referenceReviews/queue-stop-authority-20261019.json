@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-19",
+  "scope": "Queue native ownership after STOP acknowledgement",
+  "finding": "Earlier reverse acknowledgement remained true after queue STOP, so a later native BACK with unchanged destinations could be treated as the old issued reverse and stopped/handed back over.",
+  "implementation": "Sticky queueStopAcknowledged records actual native STOP input. Queue observation, active destination-control ownership and recovery release no longer accept BACK or the original pre-issue input after that acknowledgement. Replacement commands retire metadata without replaying old native control.",
+  "validation": {
+    "focusedExistingTests": 655,
+    "newCases": 0,
+    "compiler": "HEMTT check passed",
+    "physical": "Unverified; audits paused.",
+    "fullPipeline": "1477 existing tests and sequential compiler/FSM/config/docs/parity/performance/package gates passed",
+    "fullLog": ".qa/cbe-queue-stop-authority-final-build.log",
+    "independentLog": ".qa/cbe-queue-stop-authority-final-independent.log",
+    "packageSource": "78eea199+dirty",
+    "packageFingerprint": "04e0e5f4e62997a52a5236376a7079c85981c38813226c0881931117a187ca91"
+  },
+  "limits": [
+    "This is an observable STOP-to-BACK transition, not a solution for identical directives while the original BACK is still active.",
+    "Queue parent-room/cascade/crossing/all-participant handback remain unfinished.",
+    "No new build credit or performance claim."
+  ]
+}

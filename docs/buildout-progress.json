@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "94bd99c0b20161e597b25703ee64ea51d6a0e14266247e170669d13bf54df86f"
+              "sha256": "67663f4bfec9596f23fdae584fdaf0a8189c331ef0bd3c2e940368022c3c3264"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1562,7 +1562,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
-              "sha256": "d6cb1c70437ee589d1cba60717569cbff39c0aa1b0db76579dce8b8517a29eac"
+              "sha256": "f755e2e0c3303760ae45e869fe373e4762310591b8c28fbb21d4eb58a119d228"
             },
             {
               "path": "addons/vehicles/functions/drivingRearPlan.sqf",
@@ -1633,7 +1633,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "94bd99c0b20161e597b25703ee64ea51d6a0e14266247e170669d13bf54df86f"
+              "sha256": "67663f4bfec9596f23fdae584fdaf0a8189c331ef0bd3c2e940368022c3c3264"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1654,15 +1654,15 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "94bd99c0b20161e597b25703ee64ea51d6a0e14266247e170669d13bf54df86f"
+              "sha256": "67663f4bfec9596f23fdae584fdaf0a8189c331ef0bd3c2e940368022c3c3264"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
-              "sha256": "0f5cb304f6162917bc865cefaa3b3b4fac80786b34b7790c5eb027926ba49ae4"
+              "sha256": "9c01c3f1f001407f1ee6e17672b9ca18f414cfe63cd4a56a63d442a66d24a769"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
-              "sha256": "94a1caf21e0397b63c8ae48da92d80c688582d1fb6cf789fc9ae6a097bb03a64"
+              "sha256": "16fb0a93a75fa444c7eb66086cf94079c137f63063415edc4ed51a8ea6826474"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",

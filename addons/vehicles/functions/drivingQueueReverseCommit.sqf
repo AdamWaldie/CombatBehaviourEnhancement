@@ -123,6 +123,8 @@ if (count _work == 0 || {_cap > 0.001}
     || {currentCommand _operator != (_work getOrDefault ["operatorTask","__MISSING__"])}
     || {(expectedDestination _driver) isNotEqualTo (_work getOrDefault ["driverCommand",[]])}
     || {(expectedDestination _operator) isNotEqualTo (_work getOrDefault ["command",[]])}
+    || {_work getOrDefault ["queueStopAcknowledged",false]
+        && {toUpperANSI (_input param [0,""]) != "STOP"}}
     || {toUpperANSI (_input param [0,""]) != "BACK"
         && {!(_work getOrDefault ["simpleStopIssued",false]) || {toUpperANSI (_input param [0,""]) != "STOP"}}
         && {_work getOrDefault ["simpleAcknowledged",false]
@@ -132,8 +134,9 @@ _next set ["cap",0];_next set ["queuePhase","STOPPING"];
 if (!(_next getOrDefault ["simpleStopIssued",false])) then {
     _vehicle sendSimpleCommand "STOP";_next set ["simpleStopIssued",true];
 };
-private _stopped=toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) == "STOP"
-    && {_linear < 0.1} && {_angular < 0.01};
+private _stopAcknowledged=toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) == "STOP";
+if (_stopAcknowledged) then {_next set ["queueStopAcknowledged",true]};
+private _stopped=_stopAcknowledged && {_linear < 0.1} && {_angular < 0.01};
 private _since=_next getOrDefault ["queueStillSince",-1];
 if (!_stopped) then {_next set ["queueStillSince",-1]} else {
     if (_since < 0) then {_since=serverTime;_next set ["queueStillSince",_since]};
