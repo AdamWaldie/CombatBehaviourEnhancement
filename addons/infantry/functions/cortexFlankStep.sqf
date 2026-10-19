@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Active native STOP after a recorded MOVE yields the actor. Exact owned cover/arrival holds
+ * Changed native MOVE destinations and STOP after a recorded MOVE yield the actor. Exact owned cover/arrival holds
  * permit the next bound; only the original two-second MOVE acknowledgement retains a prior hold.
  * Local command receipts do not migrate. Initial admission and indistinguishable replacement
  * STOP over an unchanged owned hold remain limits; no native command-origin identity is available.
@@ -168,7 +168,7 @@ if (!isNull _intentTarget && {captive _intentTarget
 // These local receipts belong to this already-validated token/epoch/generation only.
 // They are deliberately absent from portable drill checkpoints: a new owner cannot replay them.
 private _recordNativeCommand={
-    params ["_actor","_kind"];
+    params ["_actor","_kind",["_goal",[],[[]]]];
     private _commands=_drill getOrDefault ["nativeCommands",createHashMap];
     private _key=netId _actor;
     if (count _commands >= 64 && {!(_key in _commands)}) then {
@@ -179,33 +179,45 @@ private _recordNativeCommand={
     if (count _commands >= 64 && {!(_key in _commands)}) exitWith {_drill set ["nativeCommandsFull",true]};
     private _previous=_commands getOrDefault [_key,[]];
     // Only our previous covering/arrival hold can survive the short native MOVE acknowledgement.
-    private _priorHold=if (_kind == "MOVE" && {count _previous == 6} && {(_previous select 1) == "HOLD"}) then {
+    private _priorHold=if (_kind == "MOVE" && {count _previous == 7} && {(_previous select 1) == "HOLD"}) then {
         _previous select [0,4]
     } else {[]};
-    _commands set [_key,[_actor,_kind,+(expectedDestination _actor),formLeader _actor,serverTime+2,_priorHold]];
+    _commands set [_key,[_actor,_kind,+(expectedDestination _actor),formLeader _actor,serverTime+2,_priorHold,+_goal]];
     _drill set ["nativeCommands",_commands];
 };
-private _stopAvailable={
+private _nativeCommandAvailable={
     params ["_actor"];
-    if (currentCommand _actor != "STOP") exitWith {true};
+    private _command=currentCommand _actor;
+    if !(_command in ["STOP","MOVE"]) exitWith {true};
     private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
-    // Initial task admission retains its existing policy. Once CBE commands an actor,
-    // an unknown STOP can no longer be treated as the drill's own covering hold.
+    // Initial admission keeps its existing policy; only actual CBE writes establish receipts.
     if (_row isEqualTo []) exitWith {!(_drill getOrDefault ["nativeCommandsFull",false])};
-    if (count _row != 6 || {(_row select 0) != _actor}) exitWith {false};
+    if (count _row != 7 || {(_row select 0) != _actor}) exitWith {false};
+    private _native=expectedDestination _actor;
+    private _acknowledging=serverTime <= (_row select 4);
+    if (_command == "MOVE") exitWith {
+        private _position=_native param [0,[],[[]]];
+        private _goal=_row select 6;
+        private _owned=(_row select 1) == "MOVE" && {count _position == 3} && {count _goal == 3}
+            && {_position vectorDistance _goal <= 0.25};
+        // Native command/destination acknowledgement may lag our admitted write. Only the
+        // unchanged sampled native receipt can bridge that original two-second interval.
+        (_owned || {_acknowledging && {_native isEqualTo (_row select 2)}})
+            && {formLeader _actor == (_row select 3)}
+    };
     private _hold=if ((_row select 1) == "HOLD") then {_row select [0,4]} else {
-        if (serverTime <= (_row select 4)) then {_row select 5} else {[]}
+        if (_acknowledging) then {_row select 5} else {[]}
     };
     count _hold == 4 && {(_hold select 0) == _actor} && {(_hold select 1) == "HOLD"}
-        && {(expectedDestination _actor) isEqualTo (_hold select 2)
-            || {(_row select 1) == "MOVE" && {(expectedDestination _actor) isEqualTo (_row select 2)}}}
+        && {_native isEqualTo (_hold select 2)
+            || {(_row select 1) == "MOVE" && {_native isEqualTo (_row select 2)}}}
         && {formLeader _actor == (_hold select 3)
             || {(_row select 1) == "MOVE" && {formLeader _actor == (_row select 3)}}}
 };
 private _actorTaskFree={
     params ["_actor"];
     private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
-    _free && {[_actor] call _stopAvailable} && {[_actor] call CBE_fnc_CortexCombatEffective}
+    _free && {[_actor] call _nativeCommandAvailable} && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {local _actor} && {!isPlayer _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {isNull remoteControlled _actor}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
@@ -536,7 +548,7 @@ if (_main isNotEqualTo []) then {
                             _recoveryResult="RECOVERING";
                         };
                     };
-                    if (_recoveryResult == "RECOVERING") then {[_actor,"MOVE"] call _recordNativeCommand};
+                    if (_recoveryResult == "RECOVERING") then {[_actor,"MOVE",_rally] call _recordNativeCommand};
                     // Refused movement is not an issued attempt. Preserve the retry budget
                     // while another finite task owns this actor; the remaining element continues.
                     switch (_recoveryResult) do {
@@ -857,7 +869,7 @@ private _issue = {
             if ([_unit] call _mayIssueMovement) then {
                 _unit doWatch _enemyPos;
                 _unit doMove _spot;
-                [_unit,"MOVE"] call _recordNativeCommand;
+                [_unit,"MOVE",_spot] call _recordNativeCommand;
             };
             // Keep a bounded pre-command record; native aiming remains untouched.
             private _handoffs=_drill getOrDefault ["movementHandoffs",[]];
@@ -1049,7 +1061,7 @@ switch (_drill get "stage") do {
                         _unit doWatch _enemyPos;
                     } else {
                         _unit doMove (_spots select _slot);
-                        [_unit,"MOVE"] call _recordNativeCommand;
+                        [_unit,"MOVE",_spots select _slot] call _recordNativeCommand;
                         private _retry=_retries select _slot;
                         _retry set [0,(_retry select 0)+1];
                         _retry set [1,time];

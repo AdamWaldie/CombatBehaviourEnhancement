@@ -183,13 +183,16 @@ class SharedRoutineReservationTests(unittest.TestCase):
                 self.assertIn('call CBE_fnc_CortexActorMoveReserved',source)
                 self.assertNotIn('_reservation param [2,1e12',source)
         drill=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
-        stop=drill.split('private _stopAvailable={',1)[1].split('private _actorTaskFree={',1)[0]
-        for proof in ('currentCommand _actor != "STOP"','count _row != 6','(_row select 0) != _actor',
+        stop=drill.split('private _nativeCommandAvailable={',1)[1].split('private _actorTaskFree={',1)[0]
+        for proof in ('_command in ["STOP","MOVE"]','count _row != 7','(_row select 0) != _actor',
                       'serverTime <= (_row select 4)','expectedDestination _actor','formLeader _actor'):
             self.assertIn(proof,stop)
-        self.assertIn('[_actor] call _stopAvailable',drill)
+        self.assertIn('[_actor] call _nativeCommandAvailable',drill)
         self.assertEqual(drill.count(',"HOLD"] call _recordNativeCommand'),2)
-        self.assertEqual(drill.count(',"MOVE"] call _recordNativeCommand'),3)
+        self.assertIn('[_actor,"MOVE",_rally] call _recordNativeCommand',drill)
+        self.assertIn('[_unit,"MOVE",_spot] call _recordNativeCommand',drill)
+        self.assertIn('[_unit,"MOVE",_spots select _slot] call _recordNativeCommand',drill)
+        self.assertIn('_position vectorDistance _goal <= 0.25',stop)
         recording=drill.split('private _recordNativeCommand={',1)[1].split('private _stopAvailable={',1)[0]
         self.assertIn('count _commands >= 64',recording)
         self.assertIn('serverTime+2',recording)
@@ -313,11 +316,12 @@ class DrillRestorationCommitTests(unittest.TestCase):
         for forbidden in ['CBE_fnc_OperationCancel','CBE_fnc_OperationRelease','nearEntities','lineIntersects','sleep ']:
             self.assertNotIn(forbidden,block)
         self.assertIn('if (!_restorationDone) exitWith {false};',source)
-        stopped=source.split('private _ownsStoppedActor={',1)[1].split('// Listener cleanup above',1)[0]
-        for proof in ('count _row == 6','(_row select 0) == _actor','(_row select 1) == "HOLD"',
+        stopped=source.split('private _ownsNativeMovement={',1)[1].split('// Listener cleanup above',1)[0]
+        for proof in ('count _row != 7','(_row select 0) != _actor','(_row select 1) == "HOLD"',
                       'expectedDestination _actor','formLeader _actor'):
             self.assertIn(proof,stopped)
-        self.assertIn('[_x] call _ownsStoppedActor',source)
+        self.assertIn('[_x] call _ownsNativeMovement',source)
+        self.assertIn('_position vectorDistance _goal <= 0.25',stopped)
         self.assertNotIn('serverTime+',stopped)
 
 
