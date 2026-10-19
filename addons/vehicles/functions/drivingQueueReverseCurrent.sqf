@@ -20,6 +20,8 @@ private _token=_agreement getOrDefault ["token",""];
 private _expires=_agreement getOrDefault ["expires",-1];
 private _roles=_agreement getOrDefault ["roles",[]];
 private _dependencies=_agreement getOrDefault ["dependencies",[]];
+private _movingIndex=_agreement getOrDefault ["movingIndex",count _vehicles-1];
+private _heldIndices=_agreement getOrDefault ["heldIndices",[]];
 if (!(_vehicles isEqualType []) || {!(_context isEqualType [])} || {!(_token isEqualType "")}
     || {!(_expires isEqualType 0)} || {!finite _expires}
     || {count _vehicles < 2} || {count _vehicles > 4} || {count _roles != count _vehicles} || {count _dependencies != count _vehicles}
@@ -30,16 +32,20 @@ if (!(_vehicles isEqualType []) || {!(_context isEqualType [])} || {!(_token isE
     || {!((_binding select 3) isEqualType 0)} || {!finite (_binding select 3)}
     || {_token == ""} || {(_binding select 1) != _token} || {(_binding select 2) != _expires}
     || {serverTime >= _expires} || {(_binding select 3) <= 0} || {(_binding select 3) > 8}
-    || {(_binding select 0) != (_vehicles select (count _vehicles-1))}) exitWith {false};
+    || {!(_movingIndex isEqualType 0)} || {_movingIndex != floor _movingIndex}
+    || {_movingIndex < 1} || {_movingIndex >= count _vehicles}
+    || {!(_heldIndices isEqualType [])}
+    || {_heldIndices isNotEqualTo ([1,2,3] select {_x > _movingIndex && {_x < count _vehicles}})}
+    || {(_binding select 0) != (_vehicles select _movingIndex)}) exitWith {false};
 if (_localRows && {[_token] call CBE_fnc_DrivingQueueTokenClosed}) exitWith {false};
 // ARMED owners must all know the bounded moving context before the leaf receives
 // EXECUTE. Until native issue exists, retain the unchanged stationary comparison.
 // Pending issued BACK requires its own journal acknowledgement path, not this fallback.
 if ((_agreement getOrDefault ["motionStage",""]) != "ARMED") exitWith {false};
 private _leaf=_binding select 0;
-if (count (_leaf getVariable ["CBE_DrivingRecovery_Work",createHashMap]) == 0
+if (_heldIndices isEqualTo [] && {count (_leaf getVariable ["CBE_DrivingRecovery_Work",createHashMap]) == 0}
     && {toUpperANSI ((vehicleMoveInfo _leaf) param [0,""]) != "BACK"}
-    && {(getPosWorld _leaf) vectorDistance (((_context select (count _context-1)) select 4) select 0) <= 1.5}) exitWith {
+    && {(getPosWorld _leaf) vectorDistance (((_context select _movingIndex) select 4) select 0) <= 1.5}) exitWith {
     [_vehicles,_roles,_dependencies,_context,_localRows] call CBE_fnc_DrivingQueueProposalCurrent
 };
 private _live=[_vehicles] call CBE_fnc_DrivingQueueContext;
@@ -49,6 +55,7 @@ private _valid=true;private _localCount=0;
     private _row=_x;private _old=_context select _forEachIndex;
     private _vehicle=_vehicles select _forEachIndex;
     private _moving=_vehicle == (_binding select 0);
+    private _held=_forEachIndex in _heldIndices;
     if (!(_old isEqualType []) || {count _old != 6}
         || {(_row select [0,2]) isNotEqualTo (_old select [0,2])}) exitWith {_valid=false};
     {
@@ -75,15 +82,16 @@ private _valid=true;private _localCount=0;
         || {(_pose select 2) vectorDotProduct _up < cos 5}
         || {_vehicle getVariable ["CBE_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}) exitWith {_valid=false};
-    if (_moving) then {
+    if (_moving || {_held}) then {
         private _moveInput=toUpperANSI ((_row select 5) param [0,""]);
-        private _pendingInput=(_row select 5) isEqualTo (_old select 5);
+        private _pendingInput=!_held && {(_row select 5) isEqualTo (_old select 5)};
         if (!(_moveInput in ["BACK","STOP"]) && {!_pendingInput}
             || {toUpperANSI ((_row select 5) param [1,""]) != "NONE"}
             || {_rear < -0.25} || {_rear > (_binding select 3)+0.5}
             || {abs (_delta vectorDotProduct _right) > 1}
             || {abs (_delta vectorDotProduct _up) > 1.5}
-            || {_linear > (10/3.6)} || {_angular > 0.05}) then {_valid=false};
+            || {_linear > (10/3.6)} || {_angular > 0.05}
+            || {_held && {_moveInput != "STOP" || {_linear >= 0.1} || {_angular >= 0.01}}}) then {_valid=false};
     } else {
         if (vectorMagnitude _delta > 1.5 || {_linear >= (1/3.6)} || {_angular >= 0.01}
             || {(_row select 5) isNotEqualTo (_old select 5)}) then {_valid=false};
@@ -93,10 +101,15 @@ private _valid=true;private _localCount=0;
         _localCount=_localCount+1;
         private _group=group driver _vehicle;
         private _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];
-        if (!_moving) then {
+        if (!_moving && {!_held}) then {
             if (!([_vehicle,"QUEUE"] call CBE_fnc_DrivingPassCanConsent)) then {_valid=false};
         } else {
             private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            // A new phase may select a still-held parent with no issued journal yet.
+            // The existing ordinary eligibility remains required for that pre-issue state.
+            if (_moving && {count _work == 0}) then {
+                if (!([_vehicle,"QUEUE"] call CBE_fnc_DrivingPassCanConsent)) then {_valid=false};
+            } else {
             private _expected=[_token,_expires,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["generation",-1]];
             if (!local _group || {!local driver _vehicle} || {!local effectiveCommander _vehicle}
                 || {driver _vehicle == effectiveCommander _vehicle}
@@ -120,6 +133,9 @@ private _valid=true;private _localCount=0;
                     private _pending=!(_work getOrDefault ["simpleAcknowledged",false])
                         && {!(_work getOrDefault ["queueStopAcknowledged",false])} && {_native isEqualTo (_work getOrDefault ["simpleBefore",[]])};
                     !(_back || {_stop} || {_pending})}
+                || {_held && {(_work getOrDefault ["queuePhase",""]) != "HELD"
+                    || {!(_work getOrDefault ["queueStopAcknowledged",false])}
+                    || {(_work getOrDefault ["cap",-1]) != 0}}}
                 || {(_work getOrDefault ["kind",""]) != "REVERSE"}
                 || {(_work getOrDefault ["hardDeadline",1e12]) > _expires}
                 || {serverTime >= (_work getOrDefault ["hardDeadline",-1])}
@@ -132,6 +148,7 @@ private _valid=true;private _localCount=0;
                 || {(_group getVariable ["CBE_Driving_FSM",-1]) < 0}
                 || {completedFSM (_group getVariable ["CBE_Driving_FSM",-1])}
                 || {!([_group,"CBE_AIPass_DrivingAssist_Recovery_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}) then {_valid=false};
+            };
         };
     };
     if (!_valid) exitWith {};

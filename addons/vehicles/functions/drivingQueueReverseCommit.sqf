@@ -38,6 +38,7 @@ if (remoteExecutedOwner > 0 || {!(_mode in ["ADMIT","ISSUE","STOP"])}
 private _consent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
 private _token=_consent getOrDefault ["token",""];private _expires=_consent getOrDefault ["expires",-1];
 private _vehicles=_consent getOrDefault ["vehicles",[]];
+private _movingIndex=_consent getOrDefault ["movingIndex",count _vehicles-1];
 private _binding=[_token,_expires,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["generation",-1]];
 if (_token == "" || {!(_expires isEqualType 0)} || {!finite _expires} || {serverTime >= _expires}
     || {[_token] call CBE_fnc_DrivingQueueTokenClosed}
@@ -45,7 +46,9 @@ if (_token == "" || {!(_expires isEqualType 0)} || {!finite _expires} || {server
     || {(_consent getOrDefault ["executionPreparation",[]]) isNotEqualTo _binding}
     || {(_consent getOrDefault ["motionStage",""]) != "ARMED"}
     || {count _vehicles < 2} || {count _vehicles > 4}
-    || {(_vehicles select (count _vehicles-1)) != _vehicle}
+    || {!(_movingIndex isEqualType 0)} || {_movingIndex != floor _movingIndex}
+    || {_movingIndex < 1} || {_movingIndex >= count _vehicles}
+    || {(_vehicles select _movingIndex) != _vehicle}
     || {(_consent getOrDefault ["motionBinding",[]]) isNotEqualTo [_vehicle,_token,_expires,8]}) exitWith {false};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _driver || {isNull _operator} || {_driver == _operator}
@@ -84,10 +87,19 @@ if (_mode == "ISSUE") exitWith {
     };
     if (_cap <= 0 || {_linear >= 0.1} || {_angular >= 0.01}
         || {!([_consent,true] call CBE_fnc_DrivingQueueReverseCurrent)}) exitWith {false};
-    private _plan=[_vehicle] call CBE_fnc_DrivingRearPlan;
-    private _observation=_plan select 0;private _envelope=_plan select 1;
+    private _envelope=[];private _rearReady=false;
+    if (_movingIndex < count _vehicles-1) then {
+        // Parent issue obtains measured dependency room and a fresh rear plan here,
+        // in the same native transaction. No earlier ROOM reply grants clearance.
+        private _room=[_vehicle,_consent] call CBE_fnc_DrivingQueueParentRoom;
+        _rearReady=_room select 0;_envelope=+(_room select 4);
+    } else {
+        private _plan=[_vehicle] call CBE_fnc_DrivingRearPlan;
+        private _observation=_plan select 0;_envelope=+(_plan select 1);
+        _rearReady=(_observation select 0) && {count (_observation param [4,[]]) == 3};
+    };
     private _hitpoints=[_vehicle] call CBE_fnc_DrivingDamageReceipt;
-    if (!(_observation select 0) || {count (_observation param [4,[]]) != 3}
+    if (!_rearReady
         || {count _hitpoints != 3}
         || {serverTime >= _expires}
         || {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isNotEqualTo _consent}

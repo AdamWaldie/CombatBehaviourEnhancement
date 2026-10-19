@@ -26,7 +26,9 @@
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
 if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT","COMMIT","PREPARE","ARM","EXECUTE","CHECK_ROOM"])}
-    || {count _payload != (if (_mode == "CHECK_ROOM") then {10} else {[8,9] select (_mode != "VERIFY")})}) exitWith {false};
+    || {!(count _payload in (if (_mode == "CHECK_ROOM") then {[11]} else {
+        if (_mode in ["ARM","EXECUTE"]) then {[9,10]} else {[[8],[9]] select (_mode != "VERIFY")}
+    }))}) exitWith {false};
 _payload params ["_token","_serial","_vehicles","_roles","_dependencies","_context","_deadline","_expires"];
 if (!(_token isEqualType "") || {!(_serial isEqualType 0)} || {!finite _serial}
     || {!(_vehicles isEqualType [])} || {count _vehicles < 2} || {count _vehicles > 4}
@@ -75,6 +77,16 @@ if (_mode == "RESULT" && {_phase in ["REFUSED","RELEASED"]}) exitWith {
 };
 if (_owned isEqualTo []) exitWith {false};
 private _tokenClosed=[_token] call CBE_fnc_DrivingQueueTokenClosed;
+private _currentPhase=((_owned select 0) getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["phaseSerial",0];
+private _phaseMeta=[0,count _vehicles-1,[]];
+if (_mode in ["ARM","EXECUTE"] && {count _payload == 10}) then {_phaseMeta=_payload select 9};
+if (!(_phaseMeta isEqualType []) || {count _phaseMeta != 3}
+    || {_phaseMeta select [0,2] findIf {!(_x isEqualType 0) || {!finite _x} || {_x != floor _x}} >= 0}
+    || {(_phaseMeta select 1) < 1} || {(_phaseMeta select 1) >= count _vehicles}
+    || {(_phaseMeta select 0) != count _vehicles-1-(_phaseMeta select 1)}
+    || {(_phaseMeta select 2) isNotEqualTo ([1,2,3] select {_x > (_phaseMeta select 1) && {_x < count _vehicles}})}) exitWith {false};
+private _requestedPhase=_phaseMeta select 0;private _selectedIndex=_phaseMeta select 1;
+
 private _duplicate=_owned findIf {
     private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
     (_old getOrDefault ["token",""]) != _token || {(_old getOrDefault ["phase",""]) != "AGREED"}
@@ -86,24 +98,37 @@ private _duplicate=_owned findIf {
         || {(_old getOrDefault ["dependencies",[]]) isNotEqualTo _dependencies}
         || {(_old getOrDefault ["expires",-1]) != _expires} || {serverTime >= _expires}
 } < 0;
+// Original handshake messages cannot downgrade a later dependency phase.
+// Terminal RESULT was handled above and still retires the entire original token.
+if (!_tokenClosed && {_duplicate} && {_currentPhase > 0}
+    && {_mode in ["VERIFY","RESULT","COMMIT","PREPARE"]}) exitWith {true};
+if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}
+    && {_requestedPhase < _currentPhase}) exitWith {true};
+if (_mode in ["ARM","EXECUTE"] && {_requestedPhase > _currentPhase+1
+    || {_mode == "EXECUTE" && {_requestedPhase != _currentPhase}}}) exitWith {false};
 if (_mode == "CHECK_ROOM") exitWith {
     if (_tokenClosed || {!_duplicate} || {count _vehicles < 3}) exitWith {false};
-    private _parent=_vehicles select (count _vehicles-2);private _leaf=_vehicles select (count _vehicles-1);
+    private _requestedRoomPhase=_payload select 10;
+    if (!(_requestedRoomPhase isEqualType 0) || {_requestedRoomPhase != _currentPhase}) exitWith {false};
+    private _moving=((_owned select 0) getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["movingIndex",count _vehicles-1];
+    if (_moving <= 1) exitWith {false};
+    private _parent=_vehicles select (_moving-1);private _leaf=_vehicles select _moving;
     if (!(_parent in _owned)) exitWith {false};
     private _roomSerial=_payload select 9;
     if (!(_roomSerial isEqualType 0) || {!finite _roomSerial} || {!(_roomSerial in [1,2])}) exitWith {false};
     private _consent=_parent getVariable ["CBE_DrivingQueue_Consent",createHashMap];
     private _observation=[_parent,_consent] call CBE_fnc_DrivingQueueParentRoom;
-    ["ROOM",[_token,_parent,_leaf,_roomSerial,_observation]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
+    ["ROOM",[_token,_parent,_leaf,_currentPhase,_roomSerial,_observation]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
     _observation select 0
 };
 // Repeated authenticated ARM/EXECUTE never reapply phase metadata or rewind a
 // running leg. Returning the prior acknowledgement is not new movement authority.
 if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}) then {
-    private _motion=[_vehicles select (count _vehicles-1),_token,_expires,8];
+    private _motion=[_vehicles select _selectedIndex,_token,_expires,8];
     private _already=_owned isNotEqualTo [] && {_owned findIf {
         private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
-        (_old getOrDefault ["motionBinding",[]]) isNotEqualTo _motion
+        (_old getOrDefault ["phaseSerial",0]) != _requestedPhase
+            || {(_old getOrDefault ["motionBinding",[]]) isNotEqualTo _motion}
             || {(_old getOrDefault ["motionStage",""]) != "ARMED"}
             || {_mode == "EXECUTE" && {_x == (_motion select 0)}
                 && {!(_old getOrDefault ["executionGranted",false])}}
@@ -111,11 +136,13 @@ if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}) then {
     if (_already) then {_mode=["ARM_DUPLICATE","EXECUTE_DUPLICATE"] select (_mode == "EXECUTE")};
 };
 if (_mode in ["ARM_DUPLICATE","EXECUTE_DUPLICATE"]) exitWith {
-    if (_mode == "ARM_DUPLICATE") then {["ARMED",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    if (_mode == "ARM_DUPLICATE") then {["ARMED",[_token,_requestedPhase]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
     true
 };
 private _accepted=!_tokenClosed && {serverTime < ([_deadline,_expires] select (_mode == "RESULT" || {_duplicate}))}
-    && {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent};
+    && {if (_currentPhase > 0 || {_mode in ["ARM","EXECUTE"] && {_requestedPhase > 0}}) then {
+        [(_owned select 0) getVariable ["CBE_DrivingQueue_Consent",createHashMap],true] call CBE_fnc_DrivingQueueReverseCurrent
+    } else {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent}};
 {
     if (_x == (_vehicles select 0)) then {
         private _request=_x getVariable ["CBE_DrivingQueue_Request",[]];
@@ -149,7 +176,7 @@ if (_accepted && {_mode in ["VERIFY","COMMIT"]}) then {
     };
 };
 if (_mode in ["ARM","EXECUTE"]) exitWith {
-    private _leaf=_vehicles select (count _vehicles-1);
+    private _leaf=_vehicles select _selectedIndex;
     private _motion=[_leaf,_token,_expires,8];private _rows=[];
     private _allowed=_duplicate && {_accepted} && {_owned isNotEqualTo []}
         && {_mode != "EXECUTE" || {_leaf in _owned}};
@@ -160,14 +187,21 @@ if (_mode in ["ARM","EXECUTE"]) exitWith {
         private _binding=[_token,_expires,_targetBrain getOrDefault ["ownerEpoch",-1],_targetBrain getOrDefault ["generation",-1]];
         private _applied=[_token,_binding select 2,_binding select 3];
         private _state=_target getVariable ["CBE_DrivingAssist_State",[]];
+        private _linear=vectorMagnitude velocity _target;private _angular=vectorMagnitude angularVelocity _target;
         if ((_consent getOrDefault ["executionPreparation",[]]) isNotEqualTo _binding
             || {(_consent getOrDefault ["holdApplied",[]]) isNotEqualTo _applied}
             || {(_state param [0,-1]) != 0} || {(_state param [3,grpNull]) != _targetGroup}
             || {abs getForcedSpeed _target > 0.001}
+            || {!finite _linear} || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}
+            || {(_consent getOrDefault ["phaseSerial",0]) != _currentPhase}
             || {_mode == "EXECUTE" && {(_consent getOrDefault ["motionBinding",[]]) isNotEqualTo _motion
                 || {(_consent getOrDefault ["motionStage",""]) != "ARMED"}}}) exitWith {_allowed=false};
         private _next=createHashMapFromArray (keys _consent apply {[_x,_consent get _x]});
         _next set ["motionBinding",+_motion];_next set ["motionStage","ARMED"];
+        _next set ["phaseSerial",_requestedPhase];_next set ["movingIndex",_selectedIndex];
+        _next set ["heldIndices",+(_phaseMeta select 2)];
+        if (_mode == "ARM") then {_next set ["executionGranted",false]};
+        if (!([_next,true] call CBE_fnc_DrivingQueueReverseCurrent)) exitWith {_allowed=false};
         if (_mode == "EXECUTE" && {_target == _leaf}) then {_next set ["executionGranted",true]};
         _rows pushBack [_target,_next];
     } forEach _owned;
@@ -176,7 +210,7 @@ if (_mode in ["ARM","EXECUTE"]) exitWith {
         ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];false
     };
     {_x params ["_target","_next"];_target setVariable ["CBE_DrivingQueue_Consent",_next]} forEach _rows;
-    if (_mode == "ARM") then {["ARMED",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    if (_mode == "ARM") then {["ARMED",[_token,_requestedPhase]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
     true
 };
 if (_mode == "PREPARE") exitWith {

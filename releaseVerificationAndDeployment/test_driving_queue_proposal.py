@@ -72,7 +72,7 @@ class QueueProposalTests(unittest.TestCase):
             self.assertIn(proof,server)
         self.assertIn('remoteExecutedOwner != 2',owner)
         room=(ROOT/'addons/vehicles/functions/drivingQueueParentRoom.sqf').read_text()
-        for proof in ('count _vehicles < 3','!local _parent','count _vehicles-2',
+        for proof in ('count _vehicles < 3','!local _parent','_parentIndex < 1',
                       '"queuePhase",""','queueStopAcknowledged','NO_MEASURED_REAR_ROOM',
                       'CBE_fnc_DrivingHullInterval','CBE_fnc_DrivingRearPlan','ROOM_OBSERVATION_STALE'):
             self.assertIn(proof,room)
@@ -81,6 +81,26 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('_roomSerial <= (_record getOrDefault ["parentRoomReply",0])',server)
         self.assertIn('_reports >= 2',server)
         self.assertIn('["CHECK_ROOM",_message]',server)
+        # Every dependency leg retains the original context/expiry, and needs all
+        # owner acknowledgements for its own phase before the selected mover executes.
+        for proof in ('_roomPhase != (_record getOrDefault ["phaseSerial",0])',
+                      '_movingIndex <= 1', '_record set ["armedOwners",[]]',
+                      '_record set ["executeSent",false]',
+                      '[_next,false] call CBE_fnc_DrivingQueueReverseCurrent',
+                      '(_payload select 1) != (_record getOrDefault ["phaseSerial",0])'):
+            self.assertIn(proof,server)
+        for proof in ('_requestedPhase < _currentPhase',
+                      '_requestedPhase != _currentPhase',
+                      '_next set ["executionGranted",false]',
+                      '["ARMED",[_token,_requestedPhase]]'):
+            self.assertIn(proof,owner)
+        commit=(ROOT/'addons/vehicles/functions/drivingQueueReverseCommit.sqf').read_text()
+        self.assertIn('call CBE_fnc_DrivingQueueParentRoom',commit)
+        for count in (2,3,4):
+            phases=[(count-1-i,i,list(range(i+1,count))) for i in range(count-1,0,-1)]
+            self.assertEqual([row[0] for row in phases],list(range(count-1)))
+            self.assertEqual(phases[-1][1],1)  # Crossing holder never reverses.
+            self.assertTrue(all(0 not in held for _,_,held in phases))
         # Ten metres between centres still overlaps two twelve-metre hulls.
         parent_rear=-6
         dependency_front=-10+6

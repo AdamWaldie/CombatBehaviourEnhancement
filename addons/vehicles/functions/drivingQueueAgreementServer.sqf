@@ -10,7 +10,7 @@
  * A negative ACK from an expected owner withdraws an existing agreement immediately.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED/ARMED=[token]; HELD=[token,leaf]; ROOM=[token,parent,leaf,requestSerial,observation].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
  * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
@@ -98,7 +98,7 @@ if (_mode == "BEGIN") exitWith {
     {["VERIFY",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _owners;
     true
 };
-private _payloadCount=if (_mode == "ROOM") then {5} else {[1,2] select (_mode in ["ACK","READY","HELD"])};
+private _payloadCount=if (_mode == "ROOM") then {6} else {[1,2] select (_mode in ["ACK","READY","HELD","ARMED"])};
 if (count _payload != _payloadCount || {!((_payload select 0) isEqualType "")}) exitWith {false};
 private _token=_payload select 0;private _record=_registry getOrDefault [_token,createHashMap];
 if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {false};
@@ -106,11 +106,12 @@ if (_mode == "RELEASE") exitWith {
     _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;true
 };
 // HELD is reported only by the actual leaf owner after native STOP and a rest dwell.
-// It triggers an owner-local room observation, never a parent movement grant.
+// Each completed leg requests fresh room evidence before an all-owner phase handshake.
 if (_mode == "HELD") exitWith {
     private _vehicle=_payload select 1;private _vehicles=_record get "vehicles";
+    private _movingIndex=_record getOrDefault ["movingIndex",count _vehicles-1];
     if (!(_vehicle isEqualType objNull) || {isNull _vehicle}
-        || {_vehicle != (_vehicles select (count _vehicles-1))}
+        || {_vehicle != (_vehicles select _movingIndex)}
         || {(_record get "phase") != "AGREED"} || {serverTime >= (_record get "expires")}
         || {!(_record getOrDefault ["executeSent",false])}
         || {owner _vehicle != _sender} || {owner driver _vehicle != _sender}
@@ -123,24 +124,28 @@ if (_mode == "HELD") exitWith {
     if (_reports >= 2 || {_reports > 0 && {serverTime-(_record getOrDefault ["heldCheckedAt",-1]) < 2}}) exitWith {true};
     _record set ["heldChecks",_reports+1];_record set ["heldCheckedAt",serverTime];
     _record set ["heldLeaf",_vehicle];
-    if (count _vehicles > 2) then {
-        private _parent=_vehicles select (count _vehicles-2);
+    if (_movingIndex > 1) then {
+        private _parent=_vehicles select (_movingIndex-1);
         private _message=[_token,_record get "serial",_vehicles,_record get "roles",_record get "dependencies",
-            _record get "context",_record get "deadline",_record get "expires","AGREED",_reports+1];
+            _record get "context",_record get "deadline",_record get "expires","AGREED",_reports+1,_record getOrDefault ["phaseSerial",0]];
         ["CHECK_ROOM",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",owner _parent];
     };
     true
 };
 if (_mode == "ROOM") exitWith {
-    _payload params ["_roomToken","_parent","_leaf","_roomSerial","_observation"];
+    _payload params ["_roomToken","_parent","_leaf","_roomPhase","_roomSerial","_observation"];
+    if (!(_roomPhase isEqualType 0) || {!finite _roomPhase}
+        || {_roomPhase != (_record getOrDefault ["phaseSerial",0])}) exitWith {false};
     private _vehicles=_record get "vehicles";
+    private _movingIndex=_record getOrDefault ["movingIndex",count _vehicles-1];
+    if (_movingIndex <= 1) exitWith {false};
     if (!(_roomSerial isEqualType 0) || {!finite _roomSerial} || {_roomSerial != floor _roomSerial}
         || {_roomSerial < 1} || {_roomSerial > 2}
         || {_roomSerial > (_record getOrDefault ["heldChecks",0])}) exitWith {false};
     if (_roomSerial <= (_record getOrDefault ["parentRoomReply",0])) exitWith {true};
     if (count _vehicles < 3 || {!(_parent isEqualType objNull)} || {!(_leaf isEqualType objNull)}
         || {isNull _parent} || {isNull _leaf}
-        || {_parent != (_vehicles select (count _vehicles-2))} || {_leaf != (_record getOrDefault ["heldLeaf",objNull])}
+        || {_parent != (_vehicles select (_movingIndex-1))} || {_leaf != (_record getOrDefault ["heldLeaf",objNull])}
         || {owner _parent != _sender} || {owner driver _parent != _sender}
         || {owner effectiveCommander _parent != _sender} || {groupOwner group driver _parent != _sender}
         || {(_record get "phase") != "AGREED"} || {serverTime >= (_record get "expires")}
@@ -162,12 +167,33 @@ if (_mode == "ROOM") exitWith {
             } < 0};
         if (_verified) then {_gap=(_parentHull select 0)-(_leafHull select 1);_verified=_gap >= (_envelope select 0)};
     };
-    // Observation only. A later phase must resample both support and physical clearance.
+    // The parent owner resamples support and clearance again at the native ISSUE boundary.
     _record set ["parentRoomReply",_roomSerial];
     _record set ["parentRoomObservation",[_verified,_parent,_leaf,serverTime,_gap,_observation select 1]];
+    if (_verified) then {
+        private _nextIndex=_movingIndex-1;private _nextPhase=_roomPhase+1;
+        private _held=[1,2,3] select {_x > _nextIndex && {_x < count _vehicles}};
+        private _next=createHashMapFromArray ((keys _record) apply {[_x,_record get _x]});
+        _next set ["movingIndex",_nextIndex];_next set ["phaseSerial",_nextPhase];_next set ["heldIndices",_held];
+        _next set ["motionBinding",[_parent,_token,_record get "expires",8]];
+        if ([_next,false] call CBE_fnc_DrivingQueueReverseCurrent) then {
+            _record set ["movingIndex",_nextIndex];_record set ["phaseSerial",_nextPhase];_record set ["heldIndices",_held];
+            _record set ["motionBinding",_next get "motionBinding"];
+            _record set ["armedOwners",[]];_record set ["executeSent",false];
+            _record set ["heldChecks",0];_record set ["heldCheckedAt",-1];
+            _record set ["parentRoomReply",0];_record set ["heldLeaf",objNull];
+            private _message=[_token,_record get "serial",_vehicles,_record get "roles",_record get "dependencies",
+                _record get "context",_record get "deadline",_record get "expires","AGREED",[_nextPhase,_nextIndex,_held]];
+            {["ARM",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
+        };
+    };
     true
 };
 if (_mode == "PREPARED" && {_sender in (_record getOrDefault ["preparedOwners",[]])}) exitWith {true};
+// Authenticate the phase before treating a repeated owner acknowledgement as idempotent.
+if (_mode == "ARMED" && {!((_payload select 1) isEqualType 0)
+    || {!finite (_payload select 1)} || {(_payload select 1) != floor (_payload select 1)}
+    || {(_payload select 1) != (_record getOrDefault ["phaseSerial",0])}}) exitWith {false};
 if (_mode == "ARMED" && {_sender in (_record getOrDefault ["armedOwners",[]])}) exitWith {true};
 // Every actual participant owner must preserve the prepared hold before a later
 // execution grant can exist. This acknowledgement is metadata, never movement authority.
@@ -190,6 +216,7 @@ if (_mode == "PREPARED") exitWith {
     if (_record get "executionReady" && {!(_record getOrDefault ["armSent",false])}) then {
         private _vehicles=_record get "vehicles";
         _record set ["motionBinding",[_vehicles select (count _vehicles-1),_token,_record get "expires",8]];
+        _record set ["phaseSerial",0];_record set ["movingIndex",count _vehicles-1];_record set ["heldIndices",[]];
         _record set ["motionStage","ARMED"];_record set ["armSent",true];
         private _message=[_token,_record get "serial",_vehicles,_record get "roles",
             _record get "dependencies",_record get "context",_record get "deadline",_record get "expires","AGREED"];
@@ -206,10 +233,11 @@ if (_mode == "ARMED") exitWith {
     private _armed=_record getOrDefault ["armedOwners",[]];_armed pushBackUnique _sender;
     _record set ["armedOwners",_armed];
     if (count _armed == count (_record get "owners") && {!(_record getOrDefault ["executeSent",false])}) then {
-        private _vehicles=_record get "vehicles";private _leaf=_vehicles select (count _vehicles-1);
+        private _vehicles=_record get "vehicles";private _leaf=_vehicles select (_record getOrDefault ["movingIndex",count _vehicles-1]);
         _record set ["executeSent",true];
         private _message=[_token,_record get "serial",_vehicles,_record get "roles",
-            _record get "dependencies",_record get "context",_record get "deadline",_record get "expires","AGREED"];
+            _record get "dependencies",_record get "context",_record get "deadline",_record get "expires","AGREED",
+            [_record getOrDefault ["phaseSerial",0],_record getOrDefault ["movingIndex",count _vehicles-1],_record getOrDefault ["heldIndices",[]]]];
         ["EXECUTE",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",owner _leaf];
     };
     true

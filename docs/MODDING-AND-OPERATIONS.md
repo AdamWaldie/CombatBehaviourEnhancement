@@ -385,7 +385,7 @@ if ((_agreement getOrDefault ["phase", ""]) == "AGREED") then {
 };
 ```
 
-READY currently ends at the server's hold-readiness record. It does not start a reverse leg, grant passing priority or establish a cleared queue. Dependency-leaf reverse, independently measured full-hull clearance for parent movement, phase-specific native receipts and exact handback remain to implement. Normal/HC interruption, duplicate/delayed delivery, expiry, restoration and actual stationary readiness remain physically unverified while audits are paused. No Zeus module advertises this incomplete behaviour.
+READY records applied stationary holds; it grants no movement by itself. All owners must then acknowledge preparation and the current dependency phase before only its selected vehicle receives a finite reverse grant. Native issue resamples rear clearance through the existing driving controller. A measured STOP/hold triggers parent-owner room observation and independent server hull-gap checks; positive evidence can advance to the next parent, ending at the yield root. Completed rear vehicles remain held, and original actor/order context and expiry are unchanged. Lateral crossing and complete handback remain unfinished; automatic initiation remains disabled. Normal/HC delivery, interruption, expiry, restoration and physical recovery remain unverified while audits are paused. No Zeus module advertises this incomplete behaviour.
 
 ### Queued work after an operation FSM ends
 
