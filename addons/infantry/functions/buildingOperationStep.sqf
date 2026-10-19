@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Egress allocation retains up to three scene-query batches per actor, one due actor per callback.
+ * Original deadlines and retry counts survive owner adoption; no retry grants arrival or task authority.
  * Casualty promotion retains callback-local candidate/cover proof and atomically rechecks it
  * before retiring an exterior leg and updating the lane/common participant roster together.
  * Reserve staging records attempts only after its initial hold is admitted; refused holds
@@ -988,7 +990,7 @@ private _delay=call {
     // Shared bounded planner: at most four proposals/entrances, existing geometry checks.
     // Selection grants no movement authority or physical arrival receipt.
     private _chooseExteriorExit={
-        params ["_unit","_reservationsIn","_securityLanes","_exitUses",["_observation",false],["_preferredEntry",[]]];
+        params ["_unit","_reservationsIn","_securityLanes","_exitUses",["_observation",false],["_preferredEntry",[]],["_proposalOffset",0]];
         private _entries=_job get "entries";
         private _planningEntries=+_entries;
         if (_preferredEntry isNotEqualTo []) then {
@@ -1023,8 +1025,8 @@ private _delay=call {
             private _outward=_buildingPos getDir _entry;
             // A repeated entrance must explore a different exterior approach, not repeat
             // the same blocked native search. Keep the original proposal/ray budget.
-            private _entryAttempt=floor (_proposalIndex/count _ranked);
-            private _searchBearing=_outward+([0,-35,35] select (_entryAttempt min 2));
+            private _entryAttempt=_proposalOffset+floor (_proposalIndex/count _ranked);
+            private _searchBearing=_outward+([0,-35,35,-70,70,-105,105] select (_entryAttempt min 6));
             private _search=_entry getPos [10,_searchBearing];
             private _watch=_entry getPos [2,_outward];
             _watch set [2,(_entry select 2)+1.2];
@@ -1050,9 +1052,11 @@ private _delay=call {
     if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS") exitWith {
         private _diverted=_job getOrDefault ["egressDiverted",[]];
         private _pending=_job getOrDefault ["egressPending",[]];
-        if (_pending isNotEqualTo [] && {time < (_job get "egressDeadline")} && {call _mayIssueMovement}) then {
-            private _row=_pending deleteAt 0;
-            _row params ["_unit","_leg"];
+        // One due actor per callback; a cooling retry cannot block another worker.
+        private _readyIndex=_pending findIf {serverTime >= (_x param [3,0,[0]])};
+        if (_readyIndex >= 0 && {time < (_job get "egressDeadline")} && {call _mayIssueMovement}) then {
+            private _row=_pending deleteAt _readyIndex;
+            _row params ["_unit","_leg",["_planAttempts",0]];
             private _live=(expectedDestination _unit) param [0,[]];
             private _owned=currentCommand _unit in ["","STOP"]
                 || {currentCommand _unit == "MOVE" && {count _leg == 3}
@@ -1082,7 +1086,7 @@ private _delay=call {
                 } forEach ((_job getOrDefault ["securityActors",[]]) select [0,64]);
                 { _claimedExitPoints pushBackUnique +(_x select 1) } forEach (_job get "egressAssignments");
                 private _exitUses=_job getOrDefault ["egressExitUses",createHashMap];
-                private _target=[_unit,_claimedExitPoints+_securityPoints,_securityLanes,_exitUses] call _chooseExteriorExit;
+                private _target=[_unit,_claimedExitPoints+_securityPoints,_securityLanes,_exitUses,false,[],2*_planAttempts] call _chooseExteriorExit;
                 _job set ["egressExitUses",_exitUses];
                 // A failed proposal cannot become an arrival at the actor's current position.
                 if (count _target == 3 && {[_unit] call _actorAvailable}
@@ -1091,7 +1095,17 @@ private _delay=call {
                     (_job get "egressProgress") pushBack [_unit,(getPosATL _unit) vectorDistance _target,time,0];
                     _unit doMove _target;
                     [_unit,_target] call _rememberMove;
-                } else {_job set ["egressFailed",true]};
+                } else {
+                    // A temporary occupied/blocked proposal is not a terminal straggler.
+                    // Keep the exact native leg and original server deadline; never move
+                    // to the actor's current position or retry over a replacement order.
+                    if (_target isEqualTo [] && {_planAttempts < 2}
+                        && {serverTime+2 < (_job get "egressDeadlineServer")}
+                        && {[_unit] call _actorAvailable} && {[_unit] call _exitMovementOwned}
+                        && {call _mayIssueMovement}) then {
+                        _pending pushBack [_unit,+_leg,_planAttempts+1,serverTime+2];
+                    } else {_job set ["egressFailed",true]};
+                };
             } else {
                 _job set ["egressFailed",true];
                 _diverted pushBackUnique _unit;
@@ -3703,7 +3717,7 @@ private _delay=call {
             if (_early isNotEqualTo []) then {
                 _egressAssignments pushBack [_unit,+(_early select 1),(_early select 3) == "ARRIVED"];
             } else {
-                _pending pushBack [_unit,+(_moves getOrDefault [netId _unit,[]])];
+                _pending pushBack [_unit,+(_moves getOrDefault [netId _unit,[]]),0,0];
             };
         } forEach _active;
         _job set ["egressPending",_pending];
@@ -3770,7 +3784,7 @@ if (_phase == "EGRESS" && {!(_job getOrDefault ["finished",false])}
     private _journal=["EGRESS",_rows apply {_x select 1},_job get "egressStartedServer",_rows,
         _job get "building",_job get "buildingTransform",_job get "hardDeadline",
         _job get "egressDeadlineServer",_job getOrDefault ["egressFailed",false],
-        _job getOrDefault ["entryFailed",false],2,
+        _job getOrDefault ["entryFailed",false],3,
         +(_job getOrDefault ["egressPending",[]]),
         ((keys (_job getOrDefault ["egressExitUses",createHashMap])) apply {[_x,(_job get "egressExitUses") get _x]})];
     if ((_group getVariable ["CBE_Cortex_ClearEgress",[]]) isNotEqualTo _journal) then {

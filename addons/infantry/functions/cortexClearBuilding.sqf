@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Egress adoption preserves original allocation attempt counts and retry times; it never grants a fresh budget.
  * Repeat/JIP: A fresh task replaces the prior episode only after admission checks. A matching
  * owner resume retains original deadlines, shared room coverage and validated individual visit
  * receipts. Fresh-task tokens reject historical participation from earlier clearances. JIP
@@ -722,7 +723,7 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
     && {(_egressJournal select 6) == _hardDeadline}
     && {(_egressJournal select 7) isEqualType 0} && {finite (_egressJournal select 7)}
     && {count (_egressJournal select 3) <= 8}
-    && {count _egressJournal == 10 || {(_egressJournal select 10) isEqualTo 2
+    && {count _egressJournal == 10 || {(_egressJournal select 10) in [2,3]
         && {(_egressJournal select 11) isEqualType []} && {(_egressJournal select 12) isEqualType []} && {count (_egressJournal select 12) <= 4}
         && {count (_egressJournal select 11)+count (_egressJournal select 3) <= 8}}}) then {
     private _assignments=[];
@@ -750,24 +751,29 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
             } else {_failed=true};
         } else {_failed=true};
     } forEach (_egressJournal select 3);
-    // Version 2 appends pending native-leg receipts and bounded entrance-use counts.
+    // Version 2 appends pending legs/use counts; version 3 retains allocation attempts and next server time.
     // Legacy ten-field journals have no pending work. Adoption never issues movement.
     private _pending=[];
     private _uses=createHashMap;
     if (count _egressJournal == 13) then {
         {
-            if (_x isEqualType [] && {count _x == 2}
+            private _pendingSize=[2,4] select ((_egressJournal select 10) == 3);
+            if (_x isEqualType [] && {count _x == _pendingSize}
                 && {(_x select 0) isEqualType objNull} && {(_x select 1) isEqualType []}
                 && {count (_x select 1) in [0,3]}
-                && {(_x select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
-                _x params ["_actor","_leg"];
+                && {(_x select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {count _x == 2 || {(_x select 2) isEqualType 0 && {finite (_x select 2)}
+                    && {(_x select 2) in [0,1,2]} && {(_x select 3) isEqualType 0}
+                    && {finite (_x select 3)} && {(_x select 3) >= 0}
+                    && {(_x select 3) <= (_egressJournal select 7)}}}) then {
+                _x params ["_actor","_leg",["_planAttempts",0],["_nextPlanAt",0]];
                 private _live=(expectedDestination _actor) param [0,[]];
                 private _owned=currentCommand _actor in ["","STOP"]
                     || {currentCommand _actor == "MOVE" && {_leg isEqualType []} && {count _leg == 3}
                         && {count _live == 3} && {_live vectorDistance _leg <= 0.25}};
                 if (_actor in _available && {group _actor == _group} && {_leg isEqualType []}
                     && {_owned} && {!(_actor in ((_assignments+_pending) apply {_x select 0}))}) then {
-                    _pending pushBack [_actor,+_leg];
+                    _pending pushBack [_actor,+_leg,_planAttempts,_nextPlanAt];
                     _moves set [netId _actor,+_leg];
                 } else {_failed=true};
             } else {_failed=true};

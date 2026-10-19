@@ -3053,7 +3053,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "f3241cffa17735cc3404d1f593114e40f916f3988aed5d685e562c44a0302ef1"
+              "sha256": "2f4e9a39513e4409c837c6d4521117e266317ffad52e9bc2bef8f85b42b0ae1d"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStart.sqf",
@@ -3070,7 +3070,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "f3241cffa17735cc3404d1f593114e40f916f3988aed5d685e562c44a0302ef1"
+              "sha256": "2f4e9a39513e4409c837c6d4521117e266317ffad52e9bc2bef8f85b42b0ae1d"
             },
             {
               "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
@@ -3108,7 +3108,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
             }
           ]
         },
@@ -3121,7 +3121,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
             }
           ]
         },
@@ -3138,7 +3138,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
             }
           ]
         },
@@ -3146,12 +3146,12 @@
           "capability": "Egress and consolidation",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Separated exterior assignment and physical egress tracking exist.",
-          "remaining_build_gap": "One failed exterior allocation currently discards a pending worker; coherent post-clear flow remains incomplete.",
+          "implemented": "Separated exterior assignments, physical exit tracking and bounded allocation retries with owner-adopted budgets are wired.",
+          "remaining_build_gap": "Coherent post-clear security/consolidation and broader straggler flow remain incomplete.",
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
             },
             {
               "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
@@ -3185,14 +3185,15 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "602a4468d9db30b9c9ab5cf0d548344d1a86528cb5cd0d570d714c6bb5cc9319"
+              "sha256": "da04ed4b7fc88f4bfd629873c56e19b8999c4793323869da46119d451ec9e89e"
             }
           ]
         }
       ],
       "confidence": "medium",
       "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44",
+      "review_note": "Reassessed after bounded egress allocation retry change on baseline0db65e6d plus working source; partial score retained because consolidation is unfinished."
     },
     {
       "id": "UI",
