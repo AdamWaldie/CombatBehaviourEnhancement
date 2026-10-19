@@ -4,7 +4,7 @@
   "scope": "Native negotiated queue room-making and rear-to-front dependency execution",
   "sources": {
     "addons/vehicles/functions/drivingOperationStep.sqf": "63e6b844679b46eaeb0035212d62be4c00e1d914e7890118a71178ccd6ffd950",
-    "addons/vehicles/functions/drivingAssistStart.sqf": "e61dd4cfcf580a1d9166fa597354d3d91ff38353bd09da353cb045ba9816251c",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "51018762e8353418dbf067bc4c199c48a1570198fb84b4615f466ab6742f6b5a",
     "addons/vehicles/functions/drivingAssistRelease.sqf": "0df8abdaa9b15a762ca9d294d969af19c286cd781ff9fa65d214352fa9b87b06",
     "addons/vehicles/functions/drivingOperationFinish.sqf": "9742f96263d2ff43e81977b9c47b0b1c6762248914c8fea380e6c14e081feeab",
     "addons/vehicles/functions/drivingPassContext.sqf": "3efe9903f79961c1ba2f6f5667aa8343e6edd1c2dd75fa31768e5ce589991cc7",
@@ -16,7 +16,9 @@
     "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "e3118ab46f2bd67e8eb113eceae09f5fc7505cd9a2224227e2af68338ffc1313",
     "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "19b031c6db177b3fbe2b7c86a091cd574c39eaa5b7fab545d440d5d62dfd7cd5",
     "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "e82fe5a09fbd42156b675722657c2e000a288529942793c990d3d98bcefd3b89",
-    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "4311645f47ba593feb77c4564fde57b8b7e40754c17d1e7cbe8c8dbaf0c4f5de"
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "0f693212e3eb595bf07d3fadd761ff2b8ff8eca8a21f1dd45279eb2d35ad356b",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "7d2a45be485837975ac94312a47228cf795e882e7a408d53a321c13c922dae6c"
   },
   "findings": [
     "DrivingOperationStep/AssistStart already own finite owner callbacks and sole ordinary speed writer. Queue work must integrate there, not spawn another movement controller.",
@@ -115,5 +117,28 @@
     "consent": "Distinct QUEUE proposal and actual-owner agreement now exist; original passing-only current-state finding is superseded.",
     "execution": "Still absent: HOLD/READY, native dependency execution and exact executed-command handback.",
     "audit_authority": "User explicitly keeps audits paused; continue implementation."
+  },
+  "verified_native_command_constraints_20261019": {
+    "references": [
+      "https://community.bistudio.com/wiki/sendSimpleCommand",
+      "https://community.bistudio.com/wiki/vehicleMoveInfo"
+    ],
+    "documentation": "sendSimpleCommand BACK is a vehicle-driver command; documentation warns that driver==effectiveCommander refuses driving commands and requires another effective commander. Air vehicles ignore it. STOPTURNING is required to cancel a preceding LEFT/RIGHT command. This is documentation, not verified engine capability.",
+    "observable": "vehicleMoveInfo exposes BACK/STOP and turn state. BACK is an execution-state observation only; actual negative longitudinal velocity, measured rear displacement, hull clearance and bounded heading remain required.",
+    "current_cbe_path": {
+      "entry": "DrivingOperationStep calls DrivingAssistStart through the existing owner-local driving brain. AssistStart queue block only submits proposal/request. No queue execution branch exists.",
+      "rear_attempt": "DrivingAssistStart recovery stage1 calls movementOperator doMove rear, then records a finite REVERSE journal. This can turn the vehicle and is not a guaranteed reverse command.",
+      "handover": "DrivingRecoveryRelease binds crew, authored route, cap and both native destination receipts. It has no simple-command mode/vehicleMoveInfo receipt or STOP cleanup. Reusing it unchanged for BACK would lose command ownership proof.",
+      "consent": "DrivingQueueAgreementOwner AGREED remains negotiated eligibility. DrivingPassCanConsent refuses its live queue receipt; no blanket ignore or movement authority is added."
+    },
+    "implementation_order": [
+      "Add explicit command-mode ownership to the existing recovery journal and release/adoption lifecycle before issuing BACK. Preserve ordinary doMove history as its distinct mode.",
+      "Only consider BACK for a current local separate commander and driver, with existing actor/route/feature authority. Do not reassign commander, add crew, toggle steering, or apply physics to manufacture capability.",
+      "Bind original vehicleMoveInfo and post-issue acknowledgement to the immutable execution episode. A newer simple-command mode revokes cleanup authority; do not overwrite it with STOP.",
+      "Use the existing driving callback and sole speed-cap writer for finite HOLD/physical READY, then one leaf rear leg and independent physical dependency clearance. The stationary proposal validator cannot serve as the moving-episode validator.",
+      "Refuse unsupported crew arrangements without retaining a 30-second movement hold. Full implementation and later engine validation are still required."
+    ],
+    "status": "DESIGN_CONSTRAINT_VERIFIED_NO_EXECUTOR_ADDED_NO_PARITY_CREDIT",
+    "audits": "PAUSED"
   }
 }
