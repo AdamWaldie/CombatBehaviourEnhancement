@@ -119,12 +119,15 @@ private _enabled=[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_Co
 // Read only the current authored waypoint. Conditions and trigger identities belong to the order,
 // just as its position does. A same-index edit must not inherit a reverse request for the old order.
 private _readRouteIdentity={[_group] call CBE_fnc_DrivingRouteReceipt};
-// Native speed is model-forward only. Sliding or falling is movement, not a stationary jam.
-// Read on demand so scheduled direct callers do not reuse a pre-yield motion sample.
+// Native speed is model-forward only. Sliding, falling or pivoting is movement,
+// not a stationary jam or settled handback. Read both motion components on demand
+// so scheduled direct callers do not reuse a pre-yield motion sample.
 private _stationary={
     params ["_candidate"];
     private _linearSpeed=vectorMagnitude velocity _candidate;
-    finite _linearSpeed && {_linearSpeed < (1/3.6)}
+    private _angularSpeed=vectorMagnitude angularVelocity _candidate;
+    finite _linearSpeed && {finite _angularSpeed}
+        && {_linearSpeed < (1/3.6)} && {_angularSpeed < 0.01}
 };
 // Capture/validate engine hit-point identity without changing damage or installing handlers.
 private _vehicles=[];

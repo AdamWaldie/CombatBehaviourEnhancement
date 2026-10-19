@@ -68,6 +68,15 @@ class DrivingPlanningGraceTests(unittest.TestCase):
             self.assertIn(gate,dwell)
         self.assertNotIn('"deadline"',dwell)
         self.assertNotIn('"attempts"',dwell)
+        stationary=s.split('private _stationary={',1)[1].split('};',1)[0]
+        for gate in ('vectorMagnitude angularVelocity _candidate','finite _angularSpeed','_angularSpeed < 0.01'):
+            self.assertIn(gate,stationary)
+        # A zero-translation pivot is active motion; nonfinite motion cannot settle.
+        import math
+        for linear,angular,settled in ((0,0,True),(0,0.02,False),(0,float('nan'),False),
+                                       (float('inf'),0,False),(0.4,0,False)):
+            self.assertEqual(math.isfinite(linear) and math.isfinite(angular)
+                             and linear < 1/3.6 and angular < 0.01,settled)
         # At 0.2m/s all four-second steps are below1.5m, but twenty-second dwell is false.
         anchor=0;since=0;last=0
         for now in range(4,25,4):

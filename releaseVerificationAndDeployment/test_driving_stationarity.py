@@ -8,7 +8,10 @@ class DrivingStationarityTests(unittest.TestCase):
         text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         gate=text.split('private _stationary={',1)[1].split('};',1)[0]
         self.assertIn('vectorMagnitude velocity _candidate',gate)
-        self.assertIn('finite _linearSpeed && {_linearSpeed < (1/3.6)}',gate)
+        self.assertIn('finite _linearSpeed && {finite _angularSpeed}',gate)
+        self.assertIn('_linearSpeed < (1/3.6)',gate)
+        self.assertIn('vectorMagnitude angularVelocity _candidate',gate)
+        self.assertIn('_angularSpeed < 0.01',gate)
         self.assertNotIn('abs speed _vehicle',text)
         self.assertNotIn('abs speed _jamPeer',text)
         self.assertIn('([_jamPeer] call _stationary)',text)
