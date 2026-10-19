@@ -1,3 +1,15 @@
+## Finite pending posture cleanup checkpoint
+
+Current batch afterfb392dd1 services only owner-local registered pending weak-stance actors through existingGroupBrainStep (one attempt/callback, rotated, max64records; no idle roster scan/network/wake/newworker). Automatic retry admission and retained-list pruning both use original stanceexpiry+30seconds. Expiry records RESTORE_WINDOW_EXPIRED, removes only pending polling entry, retains original stance lease. No renewed cleanup clock. New live EngineResponse is left alone. Explicit later task can still invoke guarded cleanup directly. Disabled/paused/external/retired brain gives no service; no universal cleanup guarantee.
+
+Full offline gates and independent verify passed .qa/cbe-finite-posture-cleanup-build.log / verify.log; fingerprintc0ebc1c42e9a4c2ce2ca82a395b17a1e35f7fae2d3973c3887a0a84d542786b4, manifestfb392dd1+dirtydevelopment. Scores unchanged; existing tests extended, no new cases. Physical ack/cadence/runtimecost remain unverified; auditsPAUSED. This supersedes the intermediate unbounded-registration version below. Remote draftPR17 remainsf5e54d0d; batch futurepush rather than microchanges.
+
+## Current local pending danger posture service
+
+Afterfb392dd1, blocked DangerEngineRelease (actor reservation/native task/unconfirmed restore) registers actor in owner-local CBE_Danger_StancePendingActors, capped64records, no networkpublish. Existing GroupBrainStep retries one expired record per callback, rotating locally. No new worker/wake/deadline renewal; no roster scan while list empty. It prunes absent/nonlocal/reassigned/no-lease actors and leaves a newer live EngineResponse alone. Existing owner/brain/epoch/external checks precede service. Disabled/paused/retired/external brains do not service cleanup; malformed/full registration retains baseline but no delivery guarantee. Locality records remain machine-private; no portable restoration claim.
+
+Full offline gates and independent verify passed: .qa/cbe-pending-posture-cleanup-build.log / verify.log. Fingerprinte9051ab22e69ba2a52bf3419de1371de3be282399bf62bea65dc261c48bd184e; manifestfb392dd1+dirtydevelopment. Initial squad-wide scan version was replaced before checkpoint; do not describe idle cost as scanning64members. No new tests, scores unchanged; physical timing/cost/repeat flow unverified. AuditsPAUSED. Current batch local for coherentcommit; remote draftPR17 remainsf5e54d0d.
+
 ## Latest native stance-rule correction
 
 Current local batch afterc2aca953 includes retained DangerEngineRelease restoration plus ActorSettings native getter normalisation: toUpperANSI(unitPos actor) before enum validation/equality. Official unitPos documentation lists Auto/Up/Middle/Down and notes weak stance is not returned remotely. The previous strict uppercase enum plus raw getter could refuse valid CQB admission. Source https://community.bistudio.com/wiki/unitPos; stance https://community.bistudio.com/wiki/stance distinguishes physical animation. Do not use remote getter or stance as portable settings acknowledgement.

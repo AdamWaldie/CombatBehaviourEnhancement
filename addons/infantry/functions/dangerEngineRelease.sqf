@@ -6,7 +6,8 @@
  * the recorded prior stance only while the actor still has CBE's exact applied stance and no player,
  * Zeus, specialist controller or finite actor reservation has taken ownership. New leases also bind operation generation, owner epoch and group; replacement work cannot inherit the restoration.
  * Blocked native tasks/reservations and unconfirmed restores retain the original lease for a later
- * existing caller. No retry worker or deadline renewal is created; later cleanup is not guaranteed.
+ * existing caller. Automatic retries stop 30 seconds after the original stance expiry; proof remains.
+ * No retry worker or deadline renewal is created; later cleanup is not guaranteed.
  * Arguments: 0: soldier <OBJECT>, objNull.
  * Return Value: Boolean - true when CBE restored its exact owned stance, otherwise false.
  * Current callers: Engine danger FSM Finished, OperationStart and IndoorActorOperation START.
@@ -24,6 +25,17 @@ if (count _lease != 6) exitWith {false};
 private _evidence={
     params ["_reason",["_retire",false]];
     if (_retire) then {_actor setVariable ["CBE_Danger_EngineStanceLease",nil]};
+    if (!_retire && {_reason in ["ACTOR_RESERVATION","NATIVE_TASK_OR_MEDICAL","RESTORE_PENDING"]}) then {
+        private _pendingGroup=group _actor;
+        private _pending=_pendingGroup getVariable ["CBE_Danger_StancePendingActors",[]];
+        if (local _pendingGroup && {_pending isEqualType []} && {count _pending < 64}
+            && {(_lease select 2) isEqualType 0} && {finite (_lease select 2)}
+            && {time < (_lease select 2)+30}
+            && {!(_actor in _pending)}) then {
+            _pending pushBack _actor;
+            _pendingGroup setVariable ["CBE_Danger_StancePendingActors",_pending];
+        };
+    };
     _actor setVariable ["CBE_Danger_EngineReleaseEvidence",[serverTime,_reason,+_lease,unitPos _actor]];
     false
 };

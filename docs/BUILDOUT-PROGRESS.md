@@ -113,7 +113,7 @@ Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is no
 
 ## CORE â€” Master, exclusions and ownership
 
-Source checkpoint: `cea876af + actor-settings working changes`; reviewed 2026-10-19; confidence: low.
+Source checkpoint: `fb392dd1 + finite pending posture cleanup`; reviewed 2026-10-19; confidence: low.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |

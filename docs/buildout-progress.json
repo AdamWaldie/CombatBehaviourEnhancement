@@ -95,7 +95,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/groupBrainStep.sqf",
-              "sha256": "104430fa31f316d0ebc644fe2494bf291a9a249ec1aecd918ca19f0896e4ed75"
+              "sha256": "1c2dcd5d7d558a54fe4b1414cbe497b9c6c92ee6d8b71c7bbdb8a07739bdc1d3"
             },
             {
               "path": "addons/infantry/functions/dangerStep.sqf",
@@ -140,7 +140,7 @@
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-19",
-      "source_commit": "cea876af + actor-settings working changes",
+      "source_commit": "fb392dd1 + finite pending posture cleanup",
       "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
     },
     {
