@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-20",
+  "baseline": "0402843d",
+  "scope": "Door interaction pending-care authority",
+  "finding": "Global door animation had actor/order/visibility gates but no pending medical queue check common to all CLEAR/GARRISON/INDOOR/ROUTE/direct contexts. Metadata discovery is intentionally independent.",
+  "change": "Read queued care before interaction query work and atomically before animation. Refuse nonempty/malformed queue without mutation. Metadata-only discovery unchanged; no new queries/workers/settings/deadlines.",
+  "limits": "Existing3m samefloor/visibility gates and bounded inaccessible-room handling are source evidence only. Actual door entry/CQB movement remains unverified; no parity/score credit.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
+      "sha256": "fa098c3df91815c62fd454709ed1e712070afb472a96a3d4e970aac1c7e646cb"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py",
+      "sha256": "c68060916d28a49595347b6d624fc68aae6bdb4a382935169bd06a114a2ddfb0"
+    }
+  ],
+  "validation": "Full1482 unit/static, HEMTT/SQF/config/FSM/docs/package gates pass .qa/cqb-door-care-build.log. Unsignedcandidate .qa/candidates/cqb-door-care-0402843d independentlyverified fingerprint7b895125344449e3d3161356db5b16eb73bbf3203328813df7a0f5aace97bed5. No Arma run/score claim."
+}

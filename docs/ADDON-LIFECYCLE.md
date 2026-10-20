@@ -1290,3 +1290,10 @@ read only; no treatment is cancelled or cleared. Duplicate simulation/hidden/nat
 checks are replaced by the shared predicate, with no new scheduler, scan or recovery budget.
 This closes a reserve/interior task-policy mismatch; actual casualty replacement, useful
 exterior isolation and physical post-clear flow remain unverified.
+
+Door assistance respects pending medical care in every request context. The owner reads the
+existing care queue before interaction visibility checks and again before door animation;
+metadata-only discovery remains read-only and available. No queue is cleared, door unlocked
+or interaction radius changed. Existing three-metre, same-floor, lock, task, ownership and
+fresh visibility gates remain. This avoids an unrelated world interaction while treatment
+is pending; it does not establish successful building entry or improve inaccessible model paths.

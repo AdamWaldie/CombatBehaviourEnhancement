@@ -22,7 +22,8 @@
  * native-goal line. It never redirects movement, unlocks doors or admits a scripted/wait waypoint.
  * 3 metadata only <BOOL, false> - cache model definitions without interaction or cooldown.
  * Metadata discovery is read-only world observation and does not require an available actor.
- * STOP, disabled movement, hidden actors and disabled simulation veto opening requests.
+ * STOP, pending medical care, disabled movement, hidden actors and disabled simulation veto
+ * opening requests. Care is read before interaction queries and again before animation.
  * Empty-context direct calls require an unreserved idle/MOVE actor; owned INDOOR combat
  * retains its separate exact contact/task receipt rather than borrowing this exemption.
  * Return: BOOL, an opening request was issued (not proof of entry).
@@ -167,6 +168,7 @@ private _orderCurrent={
 if (isNull _unit || {isNull _building} || {!local _unit} || {!([_unit] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _unit} || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}
     || {vehicle _unit != _unit} || {!alive _building}
+    || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!([group _unit] call CBE_fnc_CortexIsEligible)}) exitWith {false};
 if !(call _orderCurrent) exitWith {false};
 if (serverTime < (_building getVariable ["CBE_Cortex_DoorRequestUntil",-1])) exitWith {false};
@@ -237,6 +239,7 @@ private _visibilityChecks=0;
             && {(_building getVariable [format ["bis_disabled_Door_%1",_index],0]) isEqualTo 0}
             && {call _orderCurrent} && {[_position] call _routeDoorRelevant}
             && {[_unit] call CBE_fnc_CortexCombatEffective}
+            && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!isPlayer _unit} && {isNull remoteControlled _unit}
             && {local _unit} && {isNull objectParent _unit} && {simulationEnabled _unit}
             && {!isObjectHidden _unit} && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}

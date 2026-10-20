@@ -450,6 +450,10 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(guard,indoor)
         final=s.split('if (_near && {_visible}',1)[1].split('call BIS_fnc_door',1)[0]
         self.assertIn('call _orderCurrent',final)
+        self.assertIn('(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',final)
+        admission=s.split('if (isNull _unit ||',1)[1].split('private _doorCount=',1)[0]
+        self.assertIn('(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []',admission)
+        self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',s)
 
     def test_existing_disjoint_roster_requires_current_bounded_actor_ownership(self):
         s=(ROOT/'addons/infantry/functions/indoorActorGroupAvailable.sqf').read_text()
