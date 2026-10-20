@@ -14,7 +14,10 @@ class ArtilleryScootSession(unittest.TestCase):
         self.assertNotIn('CortexStop',block)
     def test_pending_session_carries_original_expiry_and_generation_through_retries(self):
         s=(ROOT/'addons/support/functions/cortexArtilleryScoot.sqf').read_text(encoding='utf-8')
-        for marker in ('count _session != 5','serverTime < (_session select 3)',
+        self.assertIn('group driver _battery == (_movementOrder select 0)',s)
+        self.assertIn('isEqualTo (_movementOrder select 1)',s)
+        self.assertNotIn('private _nativeOrder=[_group] call',s)
+        for marker in ('count _session != 6','serverTime < (_session select 3)',
                        '(_session select 1) == (missionNamespace getVariable [_scootGenerationName,0])',
                        '(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])'):
             self.assertIn(marker,s)

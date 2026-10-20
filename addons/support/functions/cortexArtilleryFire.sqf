@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Automatic and explicit admission refuse visibly incapacitated, player-controlled or dormant
  * operating crew before reservation. Remote observations never replace owner-local task checks.
+ * Delayed post-fire movement retains the request-time movement group/authored route;
+ * a later mission order cannot become a new scoot baseline.
  * Magazine preference is ranked only among currently loaded target-reaching candidates.
  * A stronger but out-of-range shell cannot hide another eligible loaded magazine.
  * Queues a finite mission of bounded bursts on the authoritative server. This is dispatch
@@ -135,8 +137,10 @@ if (_danger) then {
 private _serial = (missionNamespace getVariable ["CBE_AIPass_FireSerial", 0]) + 1;
 missionNamespace setVariable ["CBE_AIPass_FireSerial", _serial];
 private _token = format ["%1:%2", netId _battery, _serial];
+private _movementGroup=group driver _battery;
+private _movementOrder=[_movementGroup,[_movementGroup] call CBE_fnc_NativeOrderReceipt];
 private _mission = createHashMapFromArray [
-    ["battery", _battery], ["key", netId _battery], ["token", _token], ["fix", [+_target, _error max 0]], ["mode", _mode], ["purpose", _purpose],
+    ["movementOrder",_movementOrder], ["battery", _battery], ["key", netId _battery], ["token", _token], ["fix", [+_target, _error max 0]], ["mode", _mode], ["purpose", _purpose],
     ["counterGeneration",_fireEpochs select 3],["shotSerial",0],
     ["fireGeneration",_fireEpochs select (if (_counter) then {3} else {[0,1] select _danger})],
     ["smokeGeneration",_fireEpochs select 2],

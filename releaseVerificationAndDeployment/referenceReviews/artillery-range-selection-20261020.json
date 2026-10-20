@@ -8,9 +8,12 @@
   "remainingGap": "Actual out-of-range mobile battery pre-fire movement with original reported-fix age, magazine, route/crew/owner authority, finite deadline, physical arrival and fresh native range proof remains unimplemented. Post-fire Scoot is not equivalent.",
   "files": {
     "addons/support/functions/cortexArtilleryAmmo.sqf": "769eaecae227d0ce3396d15130864df59f968f1229176c8e1176253d92acde3f",
-    "addons/support/functions/cortexArtilleryFire.sqf": "eae86b6639dde315bbd799a6d80e730aad9f6051a1505d9c4b51d885060b2bea",
+    "addons/support/functions/cortexArtilleryFire.sqf": "4865ea2e49f0ce9213251a66452117e252453aed88580414b8c41bb678f109eb",
     "addons/support/functions/cortexArtilleryShot.sqf": "951bcf051d7cad5c795b16390ad71b94a3df404b00ada8ed2121488a201806ca",
-    "addons/support/functions/cortexArtilleryScoot.sqf": "902c97dfb9ef2d493c395cee4f6aa779d58667c0d02ec27626909369d4ff6f5c"
+    "addons/support/functions/cortexArtilleryScoot.sqf": "e3987bd0d0a65188cc5e5afa25c9f110a447d27a8b1dfe7dada48370e163738d",
+    "addons/support/functions/cortexArtilleryMissionStep.sqf": "39555ca7774454b8870e082198f08854a7664bf3659d08f31b324749878e4e74",
+    "addons/support/functions/artilleryMissionStep.sqf": "cd4f2264c7de6559a1bc9ee13a1b61c31a2322a785ea9c459e6bf44d1363a544",
+    "addons/infantry/functions/cortexGroupTick.sqf": "c78cfdcdd4a45228b4fae85256ff6f148b0e4931ebbd9258dbf5288ca723a7dc"
   },
   "validation": {
     "tests": 1477,
@@ -66,6 +69,16 @@
     "candidate": ".qa/candidates/artillery-movement-crew-a6a99a09",
     "fingerprint": "cd2af07d734b4bc18b2580191067792de927729c29fc6c8e3aee12b6b4f5bee5",
     "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
+    "physicalAcceptance": false
+  },
+  "requestRouteContinuity": {
+    "baseline": "68612e90",
+    "finding": "Scoot captured movement route only when delayed relocation callback started; a route replaced during firing could be adopted as fresh baseline.",
+    "implementation": "Fire mission captures [movementGroup,full NativeOrderReceipt] at reservation. Post-fire six-field session carries that exact row. Scoot validates original group/order before busy wait, planning and issue, and derives callback route proof from it. Server observer and active group session validators use the six-field receipt.",
+    "limits": "Active own waypoint execution keeps existing movement-operation native receipts; it does not compare its inserted CBE waypoint to the pre-insertion route. This protects delayed movement admission, not fire cancellation on any route edit. Pre-fire relocation remains absent.",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed; initial new test variable typo corrected",
+    "candidate": ".qa/candidates/artillery-request-route-68612e90",
+    "fingerprint": "ef6571fdc14261d829875a8fd16d00895f549fb4b7e14a23f0938287126c923c",
     "physicalAcceptance": false
   }
 }

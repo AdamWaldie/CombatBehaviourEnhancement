@@ -2168,3 +2168,5 @@ Artillery admission selects from loaded, role-suitable magazines that currently 
 Artillery selection skips visibly unavailable operating crew. The battery owner independently checks the actual gunner, protected tasks/treatment, simulation, fire capability and player/specialist control before safety work and again before native fire. A server-side eligibility observation never substitutes for owner authority or a confirmed shot.
 
 Post-fire artillery movement requires both actual AI control seats to remain available and on the unchanged authored route. Treatment, specialist work, direct STOP and a MOVE to a different destination prevent a scoot from acquiring movement. This protection also applies at the existing movement-issue boundary.
+
+Delayed post-fire movement remains bound to the fire request's original movement group and full authored route receipt. Changing that order during the fire mission prevents scoot admission, including after locality transfer. The delayed callback cannot adopt the replacement route as its baseline.

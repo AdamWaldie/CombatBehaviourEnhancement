@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * The fire request's original movement-group and authored-order receipt remain authoritative
+ * through delayed admission; owner migration cannot rebase onto a newer mission route.
  * Both actual AI movement seats must remain local, available and free of treatment,
  * protected tasks, direct native STOP and non-route MOVE commands before planning and issue.
  * Geometry cannot grant authority over changed crew or authored route metadata.
@@ -17,7 +19,7 @@
  * stale cleanup cannot clear a successor. Geometry precedes atomic session/lease/move admission.
  * Arguments: 0: battery <OBJECT>, default objNull; 1: mission token <STRING>, default "";
  * 2 session <ARRAY, [] reads public receipt> [token, purpose generation, counter generation,
- * original server deadline, purpose]. Server dispatch and delayed retries carry the exact session.
+ * original server deadline, purpose, [original movement group, authored route]]. Server dispatch and delayed retries carry the exact session.
  * Return Value: Boolean - true when relocation started or remains pending.
  * Current callers: ArtilleryMissionStep and CortexLocality.
  * Example: [_gun,_token] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _gun];
@@ -27,7 +29,7 @@ if (isNull _battery || {_token == ""} || {_battery getVariable ["CBE_Cortex_Arti
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
 if (!local _battery) exitWith {false};
 if (_session isEqualTo []) then {_session=+(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]])};
-if (count _session != 5 || {(_session select 0) != _token}
+if (count _session != 6 || {(_session select 0) != _token}
     || {!((_session select 4) in ["SUPPORT","COUNTER"])}
     || {[1,2,3] findIf {!((_session select _x) isEqualType 0) || {!finite (_session select _x)}} >= 0}) exitWith {false};
 private _clear = {
@@ -42,6 +44,10 @@ private _clear = {
         };
     };
 };
+private _movementOrder=_session select 5;
+if (!(_movementOrder isEqualType []) || {count _movementOrder != 2}
+    || {!((_movementOrder select 0) isEqualType grpNull)} || {isNull (_movementOrder select 0)}
+    || {!((_movementOrder select 1) isEqualType [])} || {(_movementOrder select 1) isEqualTo []}) exitWith {call _clear;false};
 private _purpose=_session select 4;
 private _counter=_purpose == "COUNTER";
 private _feature=["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter;
@@ -51,6 +57,8 @@ private _sessionCurrent={
     local _battery && {(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token}
         && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo _session}
         && {serverTime < (_session select 3)}
+        && {group driver _battery == (_movementOrder select 0)}
+        && {([_movementOrder select 0] call CBE_fnc_NativeOrderReceipt) isEqualTo (_movementOrder select 1)}
         && {(_session select 1) == (missionNamespace getVariable [_scootGenerationName,0])}
         && {!_counter || {(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}}
         && {missionNamespace getVariable [_scootSetting,true]}
@@ -92,7 +100,7 @@ private _crewReady={
             }
         } < 0}
 };
-private _nativeOrder=[_group] call CBE_fnc_NativeOrderReceipt;
+private _nativeOrder=+(_movementOrder select 1);
 if !(call _crewReady) exitWith {call _clear;false};
 private _activeWaypoint = (waypoints _group) findIf {
     (_x select 1) >= currentWaypoint _group && {waypointDescription _x == "CBE AI PASS"}

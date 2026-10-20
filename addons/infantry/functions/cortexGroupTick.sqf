@@ -412,7 +412,7 @@ if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT") then {
             private _battery=_record select 0;private _session=_record select 1;
             _valid=_battery isEqualType objNull && {!isNull _battery} && {alive _battery}
                 && {local _battery} && {group driver _battery == _group}
-                && {_session isEqualType []} && {count _session == 5};
+                && {_session isEqualType []} && {count _session == 6};
             if (_valid) then {
                 private _purpose=_session select 4;private _counter=_purpose == "COUNTER";
                 private _epochName=["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select _counter;
