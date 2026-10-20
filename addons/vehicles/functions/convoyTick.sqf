@@ -121,6 +121,8 @@ if (_tickRegistryIndex < 0 || {_tickToken == ""} || {!local _group}) exitWith {}
 if (time < (_group getVariable ["CBE_Convoy_NextTick", -1])) exitWith {};
 _group setVariable ["CBE_Convoy_NextTick", time + 1];
 private _state = _group getVariable ["CBE_Convoy_LocalState", createHashMap];
+// Only measurements produced by this invocation may describe its spacing phase.
+_state deleteAt "spacingObservation";
 // Convoy may own its own active marker, but must otherwise yield before it reaches crew, route or
 // formation commands. A later eligible tick starts from the current native route rather than
 // cancelling a possibly newer external order.
@@ -757,15 +759,21 @@ private _measurePairGap={
     // closing/traffic/hull checks remain separate; this is only the pacing measurement.
     [_gap+(_projected-_gap)*_weight,_rawLateral*_weight,_heading,_longitudinal,_rawLateral,_weight]
 };
-private _stretch = 0;private _spacingGaps=[0];
+private _stretch = 0;private _spacingGaps=[0];private _spacingPairCount=0;
 for "_i" from 1 to (count _vehicles - 1) do {
     private _follower=_vehicles select _i;
     private _front=_vehicles select (_i-1);
     private _pairGap=_follower distance2D _front;
     _pairGap=([_follower,_front,_gaps select _i,_pairGap] call _measurePairGap) select 0;
     _spacingGaps pushBack _pairGap;
+    private _targetGap=_gaps select _i;
+    private _spacingTolerance=(_targetGap*0.2) max 3;
+    if (_pairGap < _targetGap-_spacingTolerance || {_pairGap > _targetGap+_spacingTolerance}) then {
+        _spacingPairCount=_spacingPairCount+1;
+    };
     _stretch = _stretch max (_pairGap / (_gaps select _i));
 };
+_state set ["spacingObservation",[time,_revision,_spacingPairCount]];
 // One bounded road walk per convoy every three seconds is enough to anticipate geometry without
 // multiplying raycasts or schedulers per vehicle. It influences speed only: Arma retains route
 // choice, collision handling and the ability to remain stopped behind a deliberate roadblock.

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Spacing phase consumes only the current tick/revision gap observation; no duplicate transform scan.
  * Purpose: Executes one bounded physical convoy step and derives its semantic FSM phase from the authoritative snapshot, contact evidence, recovery leases and measured predecessor gaps.
  * Locality / Authority: Runs through CBE's shared scheduler on the convoy group owner. ConvoyTick rechecks authority at every vehicle command boundary.
  * Execution: A queued callback requires a live current FSM handle. Ended work retires
@@ -56,22 +57,12 @@ if ((_configuration param [5,"TRAVEL"]) == "HALT") then {
  if ((_state getOrDefault ["routeRecoveryAt",-1]) > time) then {_recoveryActors=_recoveryActors+1};
  private _followers=_state getOrDefault ["followers",createHashMap];
  {if (((_followers getOrDefault [_x,[]]) param [4,0]) > 0) then {_recoveryActors=_recoveryActors+1}} forEach (keys _followers);
- private _vehicles=_configuration param [4,[]];private _requested=_configuration param [2,30];
- private _specs=_state getOrDefault ["specs",createHashMap];
- for "_i" from 1 to (count _vehicles-1) do {
-  private _vehicle=_vehicles select _i;private _front=_vehicles select (_i-1);
-  if (!isNull _vehicle && {!isNull _front}) then {
-   private _lv=(_specs getOrDefault [netId _vehicle,[0,0]]) param [1,0];
-   private _lf=(_specs getOrDefault [netId _front,[0,0]]) param [1,0];
-   private _target=_requested max ((_lv+_lf)*0.5+5);private _tolerance=(_target*0.2) max 3;private _gap=_vehicle distance2D _front;
-   private _headingDifference=abs (((getDir _vehicle-getDir _front+540) mod 360)-180);
-   if (_headingDifference <= 25 && {_gap <= _target*1.8}) then {
-    private _bearing=getDir _front;private _direction=[sin _bearing,cos _bearing,0];
-    private _delta=(getPosATL _front) vectorDiff (getPosATL _vehicle);_delta set [2,0];
-    _gap=(_delta vectorDotProduct _direction) max 0;
-   };
-   if (_gap < (_target-_tolerance) || {_gap > (_target+_tolerance)}) then {_spacingPairs=_spacingPairs+1};
-  };
+ // Consume this exact tick's measured gaps; do not recompute an obsolete projection
+ // switch or read vehicle transforms a second time merely to publish an FSM phase.
+ private _spacingObservation=_state getOrDefault ["spacingObservation",[]];
+ if (count _spacingObservation == 3 && {(_spacingObservation select 0) == time}
+     && {(_spacingObservation select 1) == (_configuration param [0,-1])}) then {
+     _spacingPairs=_spacingObservation select 2;
  };
  if (_recoveryActors > 0) then {_phase="RECOVERY"} else {if (_phase != "CONTACT_HOLD" && {_spacingPairs > 0}) then {_phase="SPACING"}};
 };

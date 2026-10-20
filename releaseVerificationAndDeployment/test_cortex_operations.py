@@ -6718,6 +6718,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_limit max 5) min _closingCap',recovery)
         self.assertNotIn('then {_limit=_limit max 5}',recovery)
         self.assertIn('_pairGap=([_follower,_front,_gaps select _i,_pairGap] call _measurePairGap) select 0;',text)
+        self.assertIn('_state deleteAt "spacingObservation"',text)
+        self.assertIn('["spacingObservation",[time,_revision,_spacingPairCount]]',text)
+        phase=source('convoyOperationStep')
+        observation=phase.split('private _spacingObservation=',1)[1].split('if (_recoveryActors > 0)',1)[0]
+        self.assertIn('(_spacingObservation select 0) == time',observation)
+        self.assertIn('(_spacingObservation select 1) == (_configuration param [0,-1])',observation)
+        self.assertIn('_spacingPairs=_spacingObservation select 2',observation)
+        self.assertNotIn('getPosATL',observation)
+        self.assertNotIn('getDir',observation)
+
         measure=text.split('private _measurePairGap={',1)[1].split('private _stretch =',1)[0]
         for proof in ('35-_heading','2-_gap/(_desired max 1)','3-2*_angleWeight',
                       '3-2*_rangeWeight','_gap+(_projected-_gap)*_weight'):

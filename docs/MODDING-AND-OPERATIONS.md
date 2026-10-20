@@ -522,3 +522,8 @@ Native INIT, PLANNING and REPLAN states retain mobile danger posture. New danger
 ### One alternative for a stalled indoor investigation
 
 An individual indoor investigator with a CBE-issued ISSUE leg may select one alternative node after twelve seconds without one metre of progress. Native INIT/PLANNING/REPLAN defers this decision. The same owner, operation, building transform, native route, exact old destination, actor reservation and formation leader must still match. Movement resuming before selection or after geometry cancels the retry. The alternative consumes the existing twelve-node/three-roof-rays-per-callback search budget and original task deadline; neither is reset. A native OBSERVE approach keeps its separate existing escalation path and cannot borrow this retry. No alternative is NO_CANDIDATE, not a visit; only confirmed interior arrival can produce visit history. This finite fallback does not prove modded navigation points accessible or implement full-squad clearance. Physical entry, recovery and cost remain unverified while audits are paused.
+
+
+### Convoy spacing phase observations
+
+The convoy FSM takes its spacing-pair count from the current tick and task revision, using the same continuous gap measurements as lead pacing. It no longer repeats the obsolete abrupt projection/radial switch or reads each vehicle transform again for phase reporting. Tick entry discards the previous observation; early returns cannot reuse an old sample. Missing current observations do not assert a spacing violation. This changes phase evidence and removes duplicate observations, not acceleration, braking, recovery or physical acceptance. Runtime spacing stability and the performance budget remain unverified.
