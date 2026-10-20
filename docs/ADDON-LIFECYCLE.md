@@ -1263,3 +1263,11 @@ CALM/completion clear the proof. NativeOrderReceipt covers current-node metadata
 count; future-node edits without a changed current receipt and same-value native commands remain
 indistinguishable. This adds no recurring world scan or extra movement controller. Actual repeated
 HC transfer, mission replacement and overhead remain unverified while audits are paused.
+
+Rear recovery support now follows the existing forward-path policy: terrain and static
+bridge/deck hits remain eligible, while vehicle/person hulls and moving-prop hits are rejected.
+The same parent-first hit resolution runs on existing corridor and destination rays; there are
+no extra rays, entity queries or workers. Existing support refusal reasons and recovery deadlines
+remain unchanged. This closes a support-policy mismatch between rear and forward observation;
+it does not prove continuous clearance or native reverse capability.
+Actual bridge, moving support, parked hull and repeated recovery cases remain unverified.

@@ -99,6 +99,15 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('_distance*0.5',support)
         self.assertNotIn('surfaceIsWater',support)
         self.assertNotIn('nearEntities',support)
+        stable=text.split('private _stableSupport={',1)[1].split('private _supported=true;',1)[0]
+        self.assertIn('if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2}',stable)
+        self.assertIn('isNull _support ||',stable)
+        self.assertIn('!(_support isKindOf "AllVehicles")',stable)
+        self.assertIn('vectorMagnitude velocity _support <= 0.1',stable)
+        self.assertNotIn('lineIntersectsSurfaces',stable)
+        self.assertIn('[_hits select 0] call _stableSupport',support)
+        target=text.split('private _targetHit=',1)[1].split('forEach _heights;',1)[0]
+        self.assertIn('[_targetHit] call _stableSupport',target)
         self.assertLess(text.index('"REAR_SUPPORT"'),text.index('// Retain knee') if '// Retain knee' in text and text.index('// Retain knee') > text.index('"REAR_SUPPORT"') else text.index('forEach _heights;'))
 
     def test_nonfinite_rear_distance_refuses_before_queries_and_hull_work(self):

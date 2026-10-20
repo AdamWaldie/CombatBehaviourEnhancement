@@ -390,6 +390,16 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-rear-support-20261020.json",
+      "sha256": "ff221439d7e1fcf70fa79055255803301ca04d720e157325c4fae54e7bc1014b",
+      "scope": "HBQ rear/forward obstruction observation comparison and stable rear support",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_rearClear.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-crew-proximity-20261017.json",
       "sha256": "3ff5d7469d35ecf7be7faeaa08dd2503909a751b117748a9a9d4eb30748314ed",
       "scope": "HBQ route refresh, intentional waiting, crew retention and proximity observation; scoped source review, not whole-mod parity",
