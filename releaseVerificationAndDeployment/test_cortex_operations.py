@@ -6758,9 +6758,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_tracked isNotEqualTo _previousTracked) then {',removal)
 
         self.assertIn('_vehicle setUnloadInCombat _previous;',policy)
+        self.assertIn('getUnloadInCombat _vehicle isEqualTo _applied} && {_previous isNotEqualTo _applied}',policy)
+        self.assertIn('if (_previous isNotEqualTo _applied) then {_vehicle setUnloadInCombat _applied}',policy)
         self.assertIn('CBE_Cortex_UnloadPolicyBlocked',policy)
         initial=policy.split('// First acquisition alone',1)[1].split('if (count _lease == 5) then',1)[0]
-        for guard in ('count _lease != 5','count _seats > 64','fullCrew [_vehicle,"",true]',
+        for guard in ('count _lease != 5 && {getUnloadInCombat _vehicle isNotEqualTo [false,false]}','count _seats > 64','fullCrew [_vehicle,"",true]',
                       'assignedVehicle _incoming == _vehicle','objectParent _incoming != _vehicle',
                       '!local _incoming','== "GET IN"','if (_incomingBoarding) exitWith {false}'):
             self.assertIn(guard,initial)

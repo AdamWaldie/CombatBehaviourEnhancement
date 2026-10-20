@@ -94,5 +94,19 @@
       "addons/vehicles/functions/convoyUnloadPolicy.sqf": "5d33c36e665c9952f9e53d2ad4af9e7bf5aaf4f1c758f04b50479c51a7eb0fbc"
     },
     "audits": "PAUSED"
+  },
+  "unloadNoopWrites20261020": {
+    "sourceParent": "090afe15",
+    "finding": "Initial acquire and exact release could call setUnloadInCombat with an already-current value. This needlessly repeats documented engine boarding side effects even when previous==applied.",
+    "implementation": "Both ordinary/convoy acquisition and restoration skip the engine command when previous==applied. Initial boarding preflight runs only when a policy change is needed; already-matching policy can record its ordinary exact lease without interrupting boarding. Leases/current-value proof, external-change blocking, restoration permission and newer controller protection remain.",
+    "cost": "One existing policy read qualifies first-acquisition seat scan; matching baseline avoids that scan and native write. No new worker/state/timer. Frame and network effect unmeasured.",
+    "limits": "Restoration to a different previous value can still have native side effects; no deferred restoration lifetime or stale replay is introduced. Existing actual native boarding, repeated use, locality/HC and performance unverified.",
+    "engineReference": "https://community.bistudio.com/wiki/setUnloadInCombat",
+    "implementationHashes": {
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "735f996a52adeaf2fec3bbaca220b861a10a5b73ce6d01e591f7c6779195cbcc",
+      "addons/vehicles/functions/convoyUnloadPolicy.sqf": "d98b15ef554b344f8e85385e1fc9e556f0cc5573e3e2b03a0ababb4cac337859"
+    },
+    "validation": "613 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-unload-noop-build.log. Candidate .qa/candidates/unload-noop-090afe15-3d4f22e5 fingerprint 3d4f22e5dc64ccea49e80fb24dbc05f3926930da9668a4a54c8bc7c780d0c4dd actual090afe15+dirtysource. Independent copied-package verification .qa/cbe-unload-noop-independent.log. No added cases or scores.",
+    "audits": "PAUSED"
   }
 }

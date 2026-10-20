@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Matching policy values never repeat the engine command on acquisition or restoration.
  * Initial acquisition defers for assigned incoming native GET IN or unknown remote intent;
  * at most64 returned seat rows are inspected before the first engine policy write. No boarding is issued.
  * Owns the engine unload-in-combat policy for one ordinary CBE-controlled ground vehicle.
@@ -64,7 +65,7 @@ if (_action == "RELEASE") exitWith {
         false
     };
     _lease params ["_leaseGroup","_leaseEpoch","_previous","_applied","_leaseOwner"];
-    if (_restore && {getUnloadInCombat _vehicle isEqualTo _applied}) then {
+    if (_restore && {getUnloadInCombat _vehicle isEqualTo _applied} && {_previous isNotEqualTo _applied}) then {
         _vehicle setUnloadInCombat _previous;
     };
     _vehicle setVariable ["CBE_Cortex_UnloadPolicyLease",nil,true];
@@ -92,7 +93,7 @@ if (count _lease == 5 && {getUnloadInCombat _vehicle isNotEqualTo (_lease select
 // First acquisition alone can change engine boarding state. Refusal must leave
 // without publishing a lease, tracked membership or a success result.
 private _incomingBoarding=false;
-if (count _lease != 5) then {
+if (count _lease != 5 && {getUnloadInCombat _vehicle isNotEqualTo [false,false]}) then {
     private _seats=fullCrew [_vehicle,"",true];
     _incomingBoarding=count _seats > 64 || {_seats findIf {
         private _incoming=_x param [5,objNull];
@@ -112,7 +113,7 @@ if (count _lease == 5) then {
 } else {
     private _previous=getUnloadInCombat _vehicle;
     private _applied=[false,false];
-    _vehicle setUnloadInCombat _applied;
+    if (_previous isNotEqualTo _applied) then {_vehicle setUnloadInCombat _applied};
     _vehicle setVariable ["CBE_Cortex_UnloadPolicyLease",[_group,_epoch,_previous,_applied,clientOwner],true];
     _vehicle setVariable ["CBE_Cortex_UnloadPolicyBlocked",nil,true];
 };

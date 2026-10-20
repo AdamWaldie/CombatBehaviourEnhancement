@@ -20,7 +20,7 @@ class ConvoyUnloadPolicyTests(unittest.TestCase):
         self.assertNotIn('setUnloadInCombat',mutation)
         self.assertIn('if (_blocked == _group) exitWith {false}',s)
         first=s.split('// First acquisition alone',1)[1].split('if (count _lease == 5) then',1)[0]
-        for guard in ('count _lease != 5','fullCrew [_vehicle,"",true]','count _seats > 64',
+        for guard in ('count _lease != 5 && {getUnloadInCombat _vehicle isNotEqualTo [false,false]}','fullCrew [_vehicle,"",true]','count _seats > 64',
                       'assignedVehicle _incoming == _vehicle','objectParent _incoming != _vehicle',
                       '!local _incoming','== "GET IN"','if (_incomingBoarding) exitWith {false}'):
             self.assertIn(guard,first)
@@ -39,6 +39,8 @@ class ConvoyUnloadPolicyTests(unittest.TestCase):
         self.assertIn('if (_ours) then {',release)
         self.assertIn('_restore && {getUnloadInCombat _vehicle isEqualTo _applied}',release)
         self.assertIn('_vehicle setUnloadInCombat _previous',release)
+        self.assertIn('_previous isNotEqualTo _applied',release)
+        self.assertIn('if (_previous isNotEqualTo _applied) then {_vehicle setUnloadInCombat _applied}',s)
         self.assertIn('if (_blocked == _group)',release)
     def test_admission_is_current_registered_and_bounded(self):
         s=src('convoyUnloadPolicy')
