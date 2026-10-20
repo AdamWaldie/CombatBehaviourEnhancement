@@ -510,7 +510,8 @@
       ],
       "production_sources": [
         "addons/core/functions/cortexFireControl.sqf",
-        "addons/infantry/functions/cortexLineOfFireClear.sqf"
+        "addons/infantry/functions/cortexLineOfFireClear.sqf",
+        "addons/infantry/functions/cortexSuppressionAim.sqf"
       ]
     },
     {

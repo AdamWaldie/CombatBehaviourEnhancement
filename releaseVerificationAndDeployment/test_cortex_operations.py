@@ -5938,7 +5938,8 @@ class CortexOperations(unittest.TestCase):
                       'abs speed _vehicle < 30','currentCommand _gunner != "SUPPRESS"',
                       'isNull _engaging || {_engaging == _candidate}',
                       'isNull _assigned || {_assigned == _candidate}',
-                      '!terrainIntersectASL [eyePos _gunner,_reportedASL]',
+                      '_suppressionGeometryChecks < 3',
+                      '[_gunner,_reportedASL,50] call CBE_fnc_CortexSuppressionAim',
                       '_gunner doSuppressiveFire _suppressionPoint'):
             self.assertIn(proof,selection)
 
@@ -6652,16 +6653,19 @@ class CortexOperations(unittest.TestCase):
         physical=assessment.split('private _foot=',1)[1].split('private _availableFoot=',1)[0]
         self.assertNotIn('FIREWEAPON',physical)
         suppression=source('cortexFireControl').split('// Disciplined suppression',1)[1]
-        for marker in ('_geometryChecks >= 3','!terrainIntersectASL',
-                       'true,1,"FIRE","GEOM"','_surface vectorDistance _targetASL <= 3',
+        for marker in ('_geometryChecks >= 3','CortexSuppressionAim',
                        '[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear',
                        '_unit doSuppressiveFire _aimASL','_cursor+(_geometryChecks max 1)'):
             self.assertIn(marker,suppression)
         self.assertNotIn('doMove',suppression)
-        self.assertLess(suppression.index('(_from vectorDistance _targetASL) >= 20'),
-                        suppression.index('lineIntersectsSurfaces'))
-        self.assertLess(suppression.index('_from vectorDistance _aimASL >= 20'),
-                        suppression.index('_unit doSuppressiveFire _aimASL'))
+        geometry=source('cortexSuppressionAim')
+        for marker in ('terrainIntersectASL','true,1,"FIRE","GEOM"',
+                       '_surface vectorDistance _targetASL <= 3',
+                       '_from vectorDistance _aimASL < _minimum','_platform=vehicle _shooter'):
+            self.assertIn(marker,geometry)
+        self.assertLess(geometry.index('(_from vectorDistance _targetASL) < _minimum'),
+                        geometry.index('lineIntersectsSurfaces'))
+        self.assertEqual(geometry.count('lineIntersectsSurfaces'),1)
         for belief,face,allowed in ((30,29,True),(30,19,False),(19,19,False),(20,20,True)):
             self.assertEqual(belief>=20 and face>=20,allowed)
 

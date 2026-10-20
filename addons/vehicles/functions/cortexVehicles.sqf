@@ -805,6 +805,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             // Each candidate gets at most one station/lane observation; stop on first success.
             private _target=objNull;
             private _suppressionPoint=[];private _targetLanePoint=[];
+            private _suppressionGeometryChecks=0;
             {
                 private _contactRow=_gunneryContacts select (_x select 2);
                 private _candidate=_contactRow select 0;
@@ -822,11 +823,16 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                         && {toUpperANSI currentCommand _gunner != "SUPPRESS"}
                         && {isNull _engaging || {_engaging == _candidate}}
                         && {isNull _assigned || {_assigned == _candidate}}
-                        && {!terrainIntersectASL [eyePos _gunner,_reportedASL]}
+                        && {_suppressionGeometryChecks < 3}
                 };
                 private _stationReady=_suppressionAllowed && {
                     !(_vehicle isKindOf "LandVehicle")
                         || {[_vehicle,_gunner,_candidate,_stationSelection,true,_suppressOnly] call CBE_fnc_CortexGroundFireReady}
+                };
+                if (_stationReady && {_suppressOnly}) then {
+                    _suppressionGeometryChecks=_suppressionGeometryChecks+1;
+                    _reportedASL=[_gunner,_reportedASL,50] call CBE_fnc_CortexSuppressionAim;
+                    _stationReady=_reportedASL isNotEqualTo [];
                 };
                 if (_stationReady && {[_gunner,_reportedASL,_stationSelection getOrDefault ["loadedMagazine",""]] call CBE_fnc_CortexLineOfFireClear}) exitWith {
                     _target=_candidate;_targetLanePoint=+_reportedASL;

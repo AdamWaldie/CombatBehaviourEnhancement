@@ -289,25 +289,8 @@ if (_suppressPos isNotEqualTo []) then {
                     {_rounds = _rounds + (_x select 1)} forEach _spare;
                     if (count _spare >= 2 && {_rounds >= 60}) then {
                         _geometryChecks=_geometryChecks+1;
-                        private _from=eyePos _unit;
-                        private _aimASL=+_targetASL;
-                        // Keep suppression outside the existing20m close-threat domain.
-                        private _clear=(_from vectorDistance _targetASL) >= 20
-                            && {!terrainIntersectASL [_from,_targetASL]};
-                        if (_clear) then {
-                            private _hits=lineIntersectsSurfaces [_from,_targetASL,_unit,objNull,true,1,"FIRE","GEOM"];
-                            if (_hits isNotEqualTo []) then {
-                                private _hit=_hits select 0;
-                                private _surface=_hit select 0;
-                                // Suppress the near face of cover at the believed objective,
-                                // never an unrelated intervening wall or unclassified terrain.
-                                _clear=!isNull (_hit select 2) && {_surface vectorDistance _targetASL <= 3};
-                                if (_clear) then {
-                                    _aimASL=_surface vectorDiff ((_from vectorFromTo _surface) vectorMultiply 0.05);
-                                };
-                            };
-                        };
-                        if (_clear && {_from vectorDistance _aimASL >= 20}
+                        private _aimASL=[_unit,_targetASL,20] call CBE_fnc_CortexSuppressionAim;
+                        if (_aimASL isNotEqualTo []
                             && {[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear}) then {
                         _unit doSuppressiveFire _aimASL;
                         _unit setVariable ["CBE_AIPass_LastSuppress", _now];

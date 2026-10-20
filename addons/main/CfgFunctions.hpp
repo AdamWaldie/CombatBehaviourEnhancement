@@ -323,6 +323,7 @@ class CfgFunctions {
             class CortexKnowledge {file = "\z\cbe\addons\infantry\functions\cortexKnowledge.sqf";};
             class CortexTacticalAssess {file = "\z\cbe\addons\infantry\functions\cortexTacticalAssess.sqf";};
             class CortexTacticalReposition {file = "\z\cbe\addons\infantry\functions\cortexTacticalReposition.sqf";};
+            class CortexSuppressionAim {file = "\z\cbe\addons\infantry\functions\cortexSuppressionAim.sqf";};
             class CortexLineOfFireClear {file = "\z\cbe\addons\infantry\functions\cortexLineOfFireClear.sqf";};
             class CortexMorale {file = "\z\cbe\addons\infantry\functions\cortexMorale.sqf";};
             class CortexMedicalStep {file = "\z\cbe\addons\infantry\functions\cortexMedicalStep.sqf";};
