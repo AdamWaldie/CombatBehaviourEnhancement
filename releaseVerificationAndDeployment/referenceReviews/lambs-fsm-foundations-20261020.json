@@ -19,7 +19,11 @@
     ".qa/lambs-2621-review/danger/functions/fnc_tactics.sqf": "5be7f059257f9173eae92d9d1d32a65e09085c44d0df94968189ace056dd3ee5",
     ".qa/lambs-2621-review/danger/functions/fnc_tacticsAssess.sqf": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
     ".qa/lambs-2621-review/danger/functions/fnc_contact.sqf": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
-    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84"
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doUGL.sqf": "d9a617b963a790a8da98d46d9f4e2ca528148f4d93075fcc614e822a37d80fb1",
+    ".qa/lambs-2621-review/main/functions/fnc_isNight.sqf": "c3de1e27654819ba3eb5bd8b7d883581594a80581d1867f3234f416d765f4642",
+    ".qa/lambs-2621-review/danger/functions/fnc_tacticsReinforce.sqf": "c6477a2ca420d4a77787f611540647874a7703b937d46b3914952cc205de51d9",
+    ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticFind.sqf": "8cff7212a9714655acae6d4ff36f247ff35e14082e2856954b0cde33a85e2e13"
   },
   "branches": [
     {
@@ -29,8 +33,8 @@
     },
     {
       "source": "Forced work: fleeing, forceMove, ATTACK/GET IN/ACTION/HEAL/REARM/JOIN, incapacitation, ACE heal queue, player-led group exclusion",
-      "CBE": "Explicit actor reservations, native concrete task commands, combat effectiveness and ownership guards; autonomous ATTACK deliberately remains combat-enabled. No ace_medical_ai_healQueue reference found in addons.",
-      "disposition": "Queued ACE medical work is a candidate lifecycle gap. Verify current ACE source/queue semantics before adding guard; no speculative provider marker."
+      "CBE": "Explicit actor reservations, native concrete tasks, combat effectiveness and owner guards; autonomous ATTACK remains combat-enabled. Queued ACE healer work now yields at danger classification/continuation/action/group posture and several shared movement/fire/vehicle boundaries; not an exhaustive whole-addon compatibility claim.",
+      "disposition": "Previously identified queued-care gap has concrete implementations recorded below and in AGENT-HANDOVER.md. Physical sequencing remains unverified; do not reopen it solely from the historical initial search."
     },
     {
       "source": "Evaluate infantry -> Immediate/Hide/Engage/Assess, then reset/leader/group memory queue",
@@ -43,7 +47,7 @@
       "disposition": "Existing implementation with recent ground suppression qualification; full crew-domain parity and physical evidence incomplete."
     }
   ],
-  "nextAction": "Verify ACE medical AI queued-work API from installed/current source; then trace actual reaction and cleanup command boundaries, including group DangerReact, without altering roster membership.",
+  "nextAction": "Implement missing infantry UGL illumination through finite owner-local native execution; continue complete LAMBS/static-support and Protocol source comparison. Do not equate aircraft countermeasures or lighting policy with UGL illumination. Audits remain paused.",
   "validation": "No product edits in this comparison; prior candidate full1477/HEMTT/package verified. Audits PAUSED.",
   "sourceProtection": "No raw source copied into product; protected original sources unchanged.",
   "queuedMedicalFollowup": {
@@ -396,5 +400,31 @@
     "performanceMeasured": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "infantryIlluminationComparison": {
+    "baseline": "7d00c8cf",
+    "status": "MISSING_EXECUTION_PATH_NOT_AIRCRAFT_COUNTERMEASURES",
+    "sourceEntry": [
+      "tacticsAssess and tacticsReinforce call isNight then doUGL on available infantry.",
+      "isNight refuses STEALTH or an equipped HMD; otherwise reads native night environment controller."
+    ],
+    "sourceSelection": "doUGL finds first local nonplayer grenadier, first non-main/non-SAFE muzzle, compatible magazine arrays plus magazine wells intersected with carried magazines, then shotIlluminating simulation (optional other type).",
+    "sourceExecution": "Removes chosen actor from returned roster; doStop, weak crouch and forceMove flag; creates/reveals dummy high target; modifies current/flare magazine inventory; after2s selects muzzle/forces fire, clears watch, doFollow and forceMove, deletes dummy.",
+    "existingCBE": "AILightingStep provides ambient/NVG/flashlight policy. CortexAttackRunFlares, CortexFireCountermeasure and missile defence cover aircraft/vehicle countermeasures. No standalone infantry UGL illumination selector/executor or registration was found in production addons. ArtilleryAmmo deliberately excludes illumination.",
+    "requiredIntent": "One eligible grenadier provides finite native illumination support when darkness and actual equipment justify it, preserving stealth, mission orders, ammunition and other actor tasks.",
+    "doNotCopy": [
+      "Dummy hostile/target revelation or projectile fabrication.",
+      "Inventory duplication or remove/add magazine reload emulation.",
+      "Blind delayed force fire or whole-group recall after ownership changes.",
+      "Treating fire request acknowledgement as observed flare release."
+    ],
+    "implementationBoundary": "Use existing owner-local actor admission/scheduler/lifecycle. Complete actual compatible muzzle/magazine selection, finite native aim/loading/fire acknowledgement and exact restoration before wiring autonomous tactical/support callers. New CBA setting only when backed by the executor; Zeus is behaviour control, not global configuration.",
+    "completionEvidence": "Actual illumination projectile from existing inventory, useful trajectory/light, preserved rifle/UGL state and mission/treatment/Zeus interruption with finite cleanup; requires later authorized engine validation.",
+    "notImplemented": true,
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false,
+    "validation": "Full readable source and current production registration/implementation search; no product edit and no repeated package build."
   }
 }
