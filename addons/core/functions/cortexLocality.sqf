@@ -19,6 +19,8 @@
  * Combat-mode restoration checks the applied value before restoring, preserving newer ROE changes.
  * Aircraft occupants are restored from any earlier ground lease but are not adopted into ground
  * transitions; their dedicated flight controllers remain the sole movement owner.
+ * Released queue-abort adoption captures the prior published identity at this group edge;
+ * split vehicle/crew arrival uses the existing five-lookups service and original cleanup deadline.
  * Ordinary driving brains retire before the owner epoch changes; successor queued work starts
  * against the new epoch and does not inherit an exhausted old-owner receipt. Public pass-leg
  * cleanup may hand back only unchanged native commands; split vehicle locality waits for discovery.
@@ -32,6 +34,16 @@
  */
 params [["_group", grpNull, [grpNull]], ["_gained", false, [true]]];
 if (isNull _group) exitWith {};
+// Capture the previous published driving identity at the actual group locality edge,
+// before retirement can overwrite it. This local proposal alone grants no commands.
+private _abortSource=[];
+private _priorDrivingStatus=_group getVariable ["CBE_Driving_State",[]];
+if (_gained && {local _group} && {_priorDrivingStatus isEqualType []} && {count _priorDrivingStatus == 6}
+    && {[1,4,5] findIf {private _value=_priorDrivingStatus select _x;
+        !(_value isEqualType 0) || {!finite _value} || {_value < 0} || {_value != floor _value}} < 0}
+    && {(_priorDrivingStatus select 4) != clientOwner}) then {
+    _abortSource=[_priorDrivingStatus select 4,_priorDrivingStatus select 5,_priorDrivingStatus select 1];
+};
 private _firstAdoption=_gained && {local _group} && {(_group getVariable ["CBE_AIPass_Epoch",0]) == 0};
 private _withdrawalIntent = _group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
 private _transitionIntent = _group getVariable ["CBE_Cortex_TransitionIntent",[]];
@@ -157,6 +169,11 @@ _group setVariable ["CBE_BuildingBrain_FSM",nil];
         _unit setVariable ["CBE_Cortex_ActorMove",nil];
 } forEach units _group;
 _group setVariable ["CBE_AIPass_Epoch", (_group getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+_group setVariable ["CBE_DrivingAbort_Transfer",nil];
+if (_abortSource isNotEqualTo []) then {
+    if (isNil {_group getVariable "CBE_Driving_Generation"}) then {_group setVariable ["CBE_Driving_Generation",0]};
+    _group setVariable ["CBE_DrivingAbort_Transfer",[_abortSource,_group getVariable ["CBE_AIPass_Epoch",0],serverTime+5]];
+};
 // First adoption establishes this machine's epoch; it is not a transfer from another
 // owner. Keep the existing map object so an initiating feature's local reference remains
 // authoritative. Real owner changes rebuild state from the published checkpoint.
@@ -173,6 +190,7 @@ private _passVehicles=[];
     private _vehicle=vehicle _x;
     if (_vehicle != _x && {!(_vehicle in _passVehicles)}) then {
         _passVehicles pushBack _vehicle;
+        [_vehicle,local _vehicle] call CBE_fnc_DrivingRecoveryAdopt;
         if (!isNil {_vehicle getVariable "CBE_DrivingPass_Leg"}) then {
             [_vehicle] call CBE_fnc_DrivingPassRetireInherited;
         };

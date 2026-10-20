@@ -4,13 +4,14 @@
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
  * Purpose: Offers an existing pending driving-release receipt to its new vehicle owner.
  * Locality / Authority: Native LandVehicle init/Local and actual driving-seat events on each machine, never remote calls.
+ * Released abort STOP may adopt only the locally captured group-edge identity after exact native validation.
  * Only cleanup registration is permitted; the existing exact release guards authorize commands.
  * Repeat/JIP: Every locality edge invalidates older lookup callbacks. At most five one-second
  * late-receipt or pending-flag lookups for occupied vehicles; later delivery remains unsupported.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 gained locality <BOOL, false>;
  * 2 lookup attempt <NUMBER, 0>; 3 local epoch <NUMBER, -1>.
  * Return Value: BOOL - true only when a pending reverse receipt was offered, not physical success.
- * Current callers: XEH_postInit LandVehicle init/Local, DrivingRecoveryCrewAdopt and bounded delayed lookup.
+ * Current callers: XEH_postInit LandVehicle init/Local, CortexLocality, DrivingRecoveryCrewAdopt and bounded delayed lookup.
  * Crew locality/entry/seat changes start a fresh observation window, never a fresh movement or recovery lifetime.
  * Example: [truck1,local truck1] call CBE_fnc_DrivingRecoveryAdopt;
  */
@@ -27,6 +28,17 @@ isNil {
     };
     if (_epoch == (_vehicle getVariable ["CBE_DrivingRecovery_LocalEpoch",0])
         && {_gained} && {local _vehicle} && {alive _vehicle}) then {
+        private _abort=_vehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
+        if (_abort isEqualType createHashMap && {"releasedCap" in _abort}) then {
+            private _abortGroup=_abort getOrDefault ["group",grpNull];
+            if (!isNull _abortGroup && {local _abortGroup}) then {
+                private _transfer=_abortGroup getVariable ["CBE_DrivingAbort_Transfer",[]];
+                if (count _transfer == 3) then {
+                    [_vehicle,_abortGroup,createHashMap,[],{false},_transfer select 0] call CBE_fnc_DrivingAbortHandback;
+                };
+                [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+            };
+        };
         private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         if (_work getOrDefault ["releasePending",false]
             && {(_work getOrDefault ["kind",""]) == "REVERSE"}

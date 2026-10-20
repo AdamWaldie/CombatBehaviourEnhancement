@@ -34,6 +34,27 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_DrivingFollowingCap',handback)
         self.assertIn('call CBE_fnc_DrivingGeometryCap',handback)
         self.assertNotIn('CBA_fnc_waitAndExecute',handback)
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text()
+        self.assertLess(locality.index('private _abortSource='),locality.index('call CBE_fnc_DrivingOperationFinish'))
+        self.assertIn('(_priorDrivingStatus select 4) != clientOwner',locality)
+        self.assertIn('serverTime+5',locality)
+        start=(ROOT/'addons/vehicles/functions/drivingOperationStart.sqf').read_text()
+        self.assertLess(start.index('if (_abortPending) exitWith'),start.index('private _generation='))
+        self.assertIn('(_transfer select 1) == _epoch',start)
+        self.assertIn('serverTime < _until',start)
+        self.assertIn('serverTime < (_transfer select 2)',handback)
+        self.assertIn('CBE_DrivingRecovery_Work',handback)
+        self.assertIn('private _transferValid=',handback)
+        # Edge observation is finite and tied to the receiving epoch. Neither a late
+        # arrival nor a same-value successor may renew it or the original hold clock.
+        def pending(now,edge_until,epoch,proof_epoch,hold_until,owner_matches):
+            return now < hold_until and (owner_matches or (epoch == proof_epoch and now < edge_until))
+        self.assertTrue(pending(11,15,3,3,40,False))
+        self.assertFalse(pending(16,15,3,3,40,False))
+        self.assertFalse(pending(11,15,4,3,40,False))
+        self.assertFalse(pending(41,15,3,3,40,True))
+        self.assertTrue(pending(16,15,3,3,40,True))
+
 
         for proof in ('isNil {','!local _vehicle','isNotEqualTo _releaseState',
                       'isNotEqualTo _releaseRestore','_releaseEpoch !='):

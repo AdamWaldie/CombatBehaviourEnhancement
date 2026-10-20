@@ -463,5 +463,32 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "abortLocalityAdoptionFollowUp20261020": {
+    "baseline": "a4a50256",
+    "finding": "Fresh owner generation and cap admission could retire an exact old-owner abort STOP before bounded cleanup observed safe route handback.",
+    "change": "Capture prior published identity at actual group locality edge before old work retirement. Local five-second proposal binds source identity to receiving epoch. Existing vehicle/crew bounded adoption callbacks validate released baseline, local STOP/native/crew/route and successor guards. Fresh driving admission waits for live exact cleanup before creating another generation. Original hold deadline unchanged; no new timer, speed writer or native replay at adoption.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "6d19e9cf1131c4c365819450865281eaa9899c615fafb3ff9c0211da3524add2",
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "37436c6f17e1950d618ae61a66f6e26230c9e9a0c1ded7890f4830fb027e97d2",
+      "addons/vehicles/functions/drivingOperationStart.sqf": "281a2482ea013f82f3b7f49a2c473f6029511577db1c70f5edff9a5b084ae9ca",
+      "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "afb5640a167f1943663d326b99b66bec6229085f118cc4d91c37b967d884d257"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-abort-transfer-build.log",
+      "independent": ".qa/cbe-abort-transfer-independent.log",
+      "candidate": ".qa/candidates/abort-transfer-a4a50256-1cbad7ca",
+      "fingerprint": "1cbad7ca64f81da1a8d051d2c3807bb111621b2ea85c63bc141021d2b76615df",
+      "source": "a4a50256 plus intended dirty abort-locality edits"
+    },
+    "remaining": [
+      "Delivery outside existing lookup window unsupported. Feature-disabled migration after group handler removal remains uncovered.",
+      "Actual normal/provider-HC split arrival, repeat transfer, native command acknowledgement and physical route continuation unverified.",
+      "Performance budget unmeasured."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

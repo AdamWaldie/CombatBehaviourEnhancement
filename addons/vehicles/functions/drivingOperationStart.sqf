@@ -5,6 +5,8 @@
  * At most one ended-worker restart per owner/route is allowed. A failed startup or
  * second executor loss remains terminal rather than retrying every discovery.
  * Purpose: Starts one route-scoped ordinary driving FSM; registered convoys retain their own writer.
+ * Exact released abort cleanup gates new generation/cap admission until handback or original expiry;
+ * incoming owner proposals come only from the actual group-locality edge.
  * Seat-only casualty handover can start for local crew in a remote vehicle. Driving still requires
  * vehicle locality; native unit seat actions never acquire its speed/path authority.
  * Locality / Authority: Owner-local group only; no ownership transfer or second scheduler.
@@ -35,6 +37,33 @@ if (!local _group || {!(_group getVariable ["CBE_AIPass_Adopted",false])}) exitW
 private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
 if (_route isEqualTo []) exitWith {false};
+// Released abort cleanup must settle before a new generation/cap can overwrite its proof.
+// Split locality may wait only within the original edge window; no new timer is installed.
+private _abortPending=false;private _abortSeen=[];
+{
+    private _abortVehicle=vehicle _x;
+    if (_abortVehicle != _x && {!(_abortVehicle in _abortSeen)}) then {
+        _abortSeen pushBack _abortVehicle;
+        private _hold=_abortVehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
+        if (_hold isEqualType createHashMap && {"releasedCap" in _hold}
+            && {(_hold getOrDefault ["group",grpNull]) == _group}) then {
+            private _transfer=_group getVariable ["CBE_DrivingAbort_Transfer",[]];
+            private _waiting=count _transfer == 3 && {(_transfer select 0) isEqualTo (_hold getOrDefault ["owner",[]])}
+                && {(_transfer select 1) == _epoch} && {serverTime < (_transfer select 2)};
+            if (local _abortVehicle) then {
+                if (_waiting) then {
+                    [_abortVehicle,_group,createHashMap,[],{false},_transfer select 0] call CBE_fnc_DrivingAbortHandback;
+                } else {[_abortVehicle,_group,createHashMap,[],{false}] call CBE_fnc_DrivingAbortHandback};
+                [_abortVehicle] call CBE_fnc_DrivingRecoveryCleanup;
+            };
+            _hold=_abortVehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
+            private _until=_hold getOrDefault ["deadline",-1];
+            if (_until isEqualType 0 && {finite _until} && {serverTime < _until}
+                && {_waiting || {(_hold getOrDefault ["owner",[]]) isEqualTo ([_group] call CBE_fnc_DrivingOwnerReceipt)}}) then {_abortPending=true};
+        };
+    };
+} forEach units _group;
+if (_abortPending) exitWith {false};
 private _current=_group getVariable ["CBE_Driving_Brain",createHashMap];
 private _yieldSnapshot=+(_group getVariable ["CBE_DrivingRecovery_Yield",[]]);
 private _accepted=false;

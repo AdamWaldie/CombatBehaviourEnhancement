@@ -112,7 +112,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "9f67647c04b142146bc8166b594aeff7090a891b3ecbb31a34ae435b819ebf9c"
+              "sha256": "6d19e9cf1131c4c365819450865281eaa9899c615fafb3ff9c0211da3524add2"
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
@@ -1482,7 +1482,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingOperationStart.sqf",
-              "sha256": "87ba5fbd8a170d4417a319fbf5633f870d7ee68a97f93318079d4d67e059c825"
+              "sha256": "281a2482ea013f82f3b7f49a2c473f6029511577db1c70f5edff9a5b084ae9ca"
             },
             {
               "path": "addons/vehicles/functions/drivingOperationStep.sqf",
@@ -1724,7 +1724,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAbortHandback.sqf",
-              "sha256": "370cb2a39fa7ab2eebf51b1d0768d0ef00fab745b43e9e485d772518c43d8fe2"
+              "sha256": "37436c6f17e1950d618ae61a66f6e26230c9e9a0c1ded7890f4830fb027e97d2"
             }
           ]
         }
@@ -3452,7 +3452,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "9f67647c04b142146bc8166b594aeff7090a891b3ecbb31a34ae435b819ebf9c"
+              "sha256": "6d19e9cf1131c4c365819450865281eaa9899c615fafb3ff9c0211da3524add2"
             },
             {
               "path": "addons/core/functions/operationStep.sqf",

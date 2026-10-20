@@ -5,7 +5,8 @@
  * Locality/authority: current ordinary-driving vehicle/group owner and exact original brain
  * identity. New native orders, seats, route, reservations or successor work retire authority.
  * Repeat/JIP: consume once before native issue; original queue expiry plus15s bounds cleanup.
- * Public receipt is diagnostic on JIP, not replay authority. Migration does not auto-adopt it.
+ * Public receipt alone grants no replay authority. Migration requires the local group-edge proposal,
+ * unchanged released baseline and native/crew/route proof before registering existing cleanup.
  * Controlled same-owner master-stop adoption requires source identity, exact next epoch,
  * unchanged generation, released baseline and current STOP/route/crew validation; it issues no movement.
  * A released-cap receipt permits original-owner cleanup through the existing bounded observer,
@@ -13,7 +14,7 @@
  * Arguments: 0 vehicle <OBJECT,objNull>; 1 group <GROUP,grpNull>; 2 brain <HASHMAP,empty>;
  * 3 safety <ARRAY,[]> [traffic observation, gate observation, solid observation, cap m/s];
  * 4 current route/authority predicate <CODE,{false}>, synchronous caller context only;
- * 5 source owner receipt <ARRAY,[]> internal same-owner master-stop adoption only.
+ * 5 source owner receipt <ARRAY,[]> internal master-stop or group-edge transfer proposal.
  * Return: BOOL true when route handoff was issued, not proof of travel or queue completion.
  * Cost: fixed two-seat checks; released cleanup uses existing bounded traffic/geometry sensors
  * at most once per second per receipt. No speed write, new timer or new controller.
@@ -32,17 +33,26 @@ private _retire={
         _vehicle setVariable ["CBE_DrivingAbort_Result",[_result,serverTime,_hold getOrDefault ["binding",[]]],true];
     };
 };
-// Only the controlled same-owner master-stop epoch edge may rebind this receipt.
+// Controlled master-stop or a captured group-locality edge may propose rebinding.
 // This changes no native state and grants no extra lifetime. Ordinary calls cannot
 // silently accept a different owner or executor generation.
 private _ownerNow=[_group] call CBE_fnc_DrivingOwnerReceipt;
 private _adoption=_adoptFrom isNotEqualTo [];
+private _transfer=_group getVariable ["CBE_DrivingAbort_Transfer",[]];
+private _transferValid=_transfer isEqualType [] && {count _transfer == 3}
+    && {(_transfer select 0) isEqualTo _adoptFrom}
+    && {(_transfer select 1) isEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_transfer select 2) isEqualType 0} && {finite (_transfer select 2)} && {serverTime < (_transfer select 2)}
+    && {count _adoptFrom == 3} && {(_adoptFrom select 0) != clientOwner}
+    && {count (_group getVariable ["CBE_Driving_Brain",createHashMap]) == 0}
+    && {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isEqualTo []};
 private _adoptionValid=_adoption && {count _adoptFrom == 3} && {count _ownerNow == 3}
     && {_adoptFrom findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} < 0}
     && {(_hold getOrDefault ["owner",[]]) isEqualTo _adoptFrom}
-    && {(_adoptFrom select 0) == clientOwner} && {(_ownerNow select 0) == clientOwner}
-    && {(_ownerNow select 1) == (_adoptFrom select 1)+1}
-    && {(_ownerNow select 2) == (_adoptFrom select 2)}
+    && {(_ownerNow select 0) == clientOwner}
+    && {_transferValid || {(_adoptFrom select 0) == clientOwner
+        && {(_ownerNow select 1) == (_adoptFrom select 1)+1}
+        && {(_ownerNow select 2) == (_adoptFrom select 2)}}}
     && {"releasedCap" in _hold}
     && {private _baseline=_hold get "releasedCap";
         _baseline isEqualType 0 && {finite _baseline} && {_baseline != 0}
@@ -51,6 +61,8 @@ if (_adoption && {!_adoptionValid}) exitWith {false};
 private _deadline=_hold getOrDefault ["deadline",-1];
 private _route=_hold getOrDefault ["route",[]];
 private _driver=_hold getOrDefault ["driver",objNull];private _operator=_hold getOrDefault ["operator",objNull];
+// Crew locality can follow group and vehicle arrival. No native observation is trusted yet.
+if (_adoptionValid && {[_driver,_operator] findIf {!isNull _x && {!local _x}} >= 0}) exitWith {false};
 if (!(_deadline isEqualType 0) || {!finite _deadline} || {serverTime >= _deadline}
     || {(_hold getOrDefault ["group",grpNull]) != _group}
     || {!_adoptionValid && {(_hold getOrDefault ["owner",[]]) isNotEqualTo _ownerNow}}
