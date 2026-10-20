@@ -6,6 +6,7 @@
  * Locality/authority: group owner consumes the current server role and matching lease.
  * Native STOP requires an exact existing support hold; matching holds transfer into the drill
  * without commands, new deadlines or an acknowledgement grace period.
+ * Parent progress retains original teams and witnessed completed turns; a finished sequence only republishes its result.
  * Admission requires the matching server role/deadline/point receipt and retains that original
  * absolute limit across child reconstruction; owner changes cannot renew the server bound.
  * Admission, pair allocation and FSM registration share one unscheduled transaction. A stale
@@ -14,7 +15,7 @@
  * the new owner consumes the durable role. Uses the finite tactical-drill FSM and publishes a
  * heartbeat so GroupTick can fail and restore a lost or starved controller.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: role <ARRAY>, required.
- * Return: Boolean, true if a finite bound starts. Current caller: CortexSupportMaintain.
+ * Return: Boolean, true if a finite bound starts or its already-completed sequence is acknowledged. Current caller: CortexSupportMaintain.
  * Example: [_group,_state,_role] call CBE_fnc_CortexSupportBoundStart;
  */
 params ["_group","_state","_role"];
@@ -47,6 +48,33 @@ if (_generation < 0 || {(_operation getOrDefault ["generation",-2]) != _generati
     || {(_operation getOrDefault ["ownerEpoch",-1]) != _ownerEpoch}
     || {(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}
     || {(_operation getOrDefault ["phase",""]) == "CANCELLED"}) exitWith {false};
+private _progress=_operation getOrDefault ["boundProgress",[]];
+if (!(_sequence isEqualType 0) || {!finite _sequence} || {_sequence < 0} || {_sequence != floor _sequence}) exitWith {false};
+if (!(_progress isEqualType []) || {_progress isNotEqualTo [] && {
+    count _progress != 4 || {!((_progress select 0) isEqualType 0)} || {!finite (_progress select 0)}
+        || {(_progress select 0) < 0} || {(_progress select 0) != floor (_progress select 0)}
+        || {!((_progress select 1) isEqualType [])} || {count (_progress select 1) != 3}
+        || {(_progress select 1) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+        || {!((_progress select 2) isEqualType [])} || {count (_progress select 2) != 2}
+        || {(_progress select 2) findIf {!(_x isEqualType []) || {count _x > 64}
+            || {_x findIf {!(_x isEqualType objNull)} >= 0}} >= 0}
+        || {!((_progress select 3) in [0,1,2])}
+        || {private _all=+((_progress select 2) select 0); _all append ((_progress select 2) select 1);
+            private _present=_all select {!isNull _x};
+            count _all > 64 || {count (_present arrayIntersect _present) != count _present}}
+}}) exitWith {false};
+private _completedTurns=0;
+if (_progress isNotEqualTo []) then {
+    if ((_progress select 0) == _sequence) then {
+        if ((_progress select 1) isEqualTo _point) then {_completedTurns=_progress select 3} else {_completedTurns=-1};
+    };
+};
+if (_progress isNotEqualTo [] && {(_progress select 0) > _sequence} || {_completedTurns < 0}) exitWith {false};
+if (_completedTurns == 2) exitWith {
+    _state set ["supportBoundSequence",_sequence];
+    _group setVariable ["CBE_Cortex_SupportBoundResult",[_leaseToken,_sequence,"COMPLETE"],true];
+    _accepted=true;
+};
 private _final=_point distance2D (_lease select 5) < 2;
 private _unavailable=_operation getOrDefault ["unavailable",[]];
 private _fit=(units _group) select {
@@ -94,14 +122,28 @@ if (_pairs isEqualType []) then {
 if (count _first < count _second) then {
     private _swap=_first;_first=_second;_second=_swap;
 };
-if (count _first < 2 || {count _second < 1}) exitWith {false};
+// Preserve the original partition when reconstructing this server bound. Newcomers
+// join the pending second element after the first has completed; completion grants no command authority.
+if (_progress isNotEqualTo [] && {(_progress select 0) == _sequence}) then {
+    private _savedTeams=_progress select 2;
+    _first=(_savedTeams select 0) select {_x in _fit};
+    _second=(_savedTeams select 1) select {_x in _fit};
+    private _newcomers=_fit-(_first+_second);
+    if (_completedTurns == 1) then {_second append _newcomers} else {
+        {( [_first,_second] select (count _first > count _second)) pushBack _x} forEach _newcomers;
+    };
+};
+if ((_completedTurns == 0 && {count _first < 2 || {count _second < 1}})
+    || {_completedTurns == 1 && {count _first < 1 || {count _second < 1}}}) exitWith {false};
+_operation set ["boundProgress",[_sequence,+_point,[+_first,+_second],_completedTurns]];
+_group setVariable ["CBE_Operation",_operation,true];
 private _token=format ["SUPPORT:%1:%2:%3",_leaseToken,_sequence,clientOwner];
 _state set ["drill",createHashMapFromArray [
     ["token",_token],["supportToken",_leaseToken],["supportSequence",_sequence],
     ["operationGeneration",_generation],["ownerEpoch",_ownerEpoch],
     ["supportDeadline",_deadlineReceipt select 2],["supportClock",+_deadlineReceipt],
     ["nativeAdmissionChecked",true],["nativeCommands",_nativeCommands],
-    ["type","ADVANCE"],["teams",[_first,_second]],["teamSizes",[count _first,count _second]],["teamTurn",0],["units",_fit],["desiredStrength",count _fit],
+    ["type","ADVANCE"],["teams",[_first,_second]],["teamSizes",[count _first,count _second]],["teamTurn",_completedTurns],["units",_fit],["desiredStrength",count _fit],
     ["points",[[+_point,["SUPPORT_BOUND","FINAL"] select _final]]],["index",0],["stage",""],
     ["enemyPos",+_enemy],["disabled",[]],["spots",[]],["started",time],["lastStep",time],
     ["boundStart",time],["pauseUntil",0]

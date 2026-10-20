@@ -347,5 +347,63 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "supportTeamContinuationReview20261020": {
+    "baseline": "3c096600",
+    "finding": "BoundStart always constructs teamTurn0/index0. Apply adoption resets supportBoundSequence to-1. Standalone drillIntent serialization explicitly excludes supportToken children. Public SupportTeams reports stage/turn/teams/movers but is diagnostic, without generation/epoch, original clock or native receipts. Therefore it cannot safely authorize child restoration.",
+    "secondaryFinding": "Maintain treats any sequence unequal to consumed sequence as new, including a lower sequence. Parent retry budget prevents replenishing an already-spent refresh but does not by itself prevent first-leg replay or team reallocation.",
+    "sourceIntent": {
+      "reference": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+      "observation": "LAMBS individual doAssault retains expectedDestination for a BUSY unit when its goal remains near getHideFrom. Useful intent is preserving current work, not arbitrarily reissuing it; this helper has no CBE coordinated migration contract.",
+      "disposition": "Implement continuity in CBE owner-local parent/child execution; no dependency or upstream code copied."
+    },
+    "nextImplementation": [
+      "Record semantic team membership, consumed server sequence and completed turn in current parent, bound to token, original expiry and point. Preserve through validated adoption.",
+      "Distinguish completed first turn, pending first turn and finished sequence. Never reset completed turns or restart an already-finished same sequence.",
+      "Revalidate native movement/hold ownership and actual arrival before continuing; do not treat diagnostic team labels as movement authority.",
+      "Preserve original deadline/retry counters, reject older role sequences, and reconcile casualties through existing finite roster logic."
+    ],
+    "sources": {
+      "addons/support/functions/cortexSupportBoundStart.sqf": "0ad30d08fd9caa5ee11c486ac13c357508d4c080b8b5c716fe4bb57b647c9eef",
+      "addons/support/functions/cortexSupportApply.sqf": "068c72e699e13d211dff41a849bdacb10f5f8b57a307e0c59f09985954635e1b",
+      "addons/support/functions/cortexSupportMaintain.sqf": "5bd587d4de378d523de99dce3438d28ee1a41064bcfb9005974b8035f1b6b444",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "78fe5156705fd69c94084645bbb87b5b8e449505166544ea666f794eb733dd85",
+      "addons/infantry/functions/cortexFlankStep.sqf": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4",
+      "addons/core/functions/cortexLocality.sqf": "9bc9d19883f24ac2cdbb60c76a7e58451f7b6a73147f012db517a1437c0e7aba"
+    },
+    "validation": {
+      "kind": "read-only call-path/source review",
+      "runtimeChanged": false,
+      "testsRepeated": false
+    },
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportTeamContinuationImplementation20261020": {
+    "baseline": "3c096600",
+    "change": "Parent boundProgress retains current sequence/point/two teams/completed turns. Arrival-only stage transitions publish progress before PAUSE continuation. Reconstructed same-sequence child retains partition and completed turn; newcomers enter pending second team. Completed two-turn sequence ACKs result without another FSM or command. Maintain uses monotonic new-sequence comparison and refuses roles older than parent progress. Eight-field recoveryProof validates and restores bounded semantic record. No new worker or command ownership granted.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "b03f3ad93b96883caa2d240999d89b9f0da92d82b8098f0f6fdd61e9b38a4115",
+      "addons/support/functions/cortexSupportApply.sqf": "b70e2b865cc05589c18d1e6ac4fb6389389adfc4745a18face6f8183f22305cf",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "3da8e75246c6dbfa06a00cdfd33d4baa1dbf932e9a66022882974c081547ad55",
+      "addons/support/functions/cortexSupportMaintain.sqf": "229fece931058d4327ec970b547828fb581d7261d14f48117cfa1cfabffefd39",
+      "addons/infantry/functions/cortexDrillSetStage.sqf": "965823d91b791d8f56a6fdaef5789a1a3f6d4f0cefaf59aca154eefcf3741e6c"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-team-continuation-build.log",
+      "independent": ".qa/cbe-support-team-continuation-independent.log",
+      "candidate": ".qa/candidates/support-team-3c096600-7dad3d16",
+      "fingerprint": "7dad3d1617a2ffe6e6b75cb13f4c1a2129d5c91343bc4359f1902f7f4f6dc4a9",
+      "source": "3c096600 plus intended dirty team-continuation edits"
+    },
+    "remaining": [
+      "Native MOVE ownership and uninterrupted pending-leg transfer remain separate implementation work.",
+      "Physical ordering, casualty flow, normal/providerHC transfer and measured overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

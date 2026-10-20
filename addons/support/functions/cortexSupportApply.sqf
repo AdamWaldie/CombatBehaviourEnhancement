@@ -211,7 +211,7 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     private _objective=if (_attackAllowed) then {+_attack} else {+_rally};
     private _sourceRecovery=_job getOrDefault ["recoveryProof",[]];
     private _recoveryValid=!(_adopting && {_attackAllowed}) || {
-        _sourceRecovery isEqualType [] && {count _sourceRecovery == 7}
+        _sourceRecovery isEqualType [] && {count _sourceRecovery == 8}
             && {(_sourceRecovery select 0) isEqualTo _token} && {(_sourceRecovery select 3) isEqualTo _expiry}
             && {(_sourceRecovery select 1) isEqualTo (_group getVariable ["CBE_OperationGeneration",-1])}
             && {(_sourceRecovery select 2) isEqualType 0} && {finite (_sourceRecovery select 2)}
@@ -233,6 +233,26 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
                     || {(_x select 0) == ""} || {!((_x select 1) isEqualType [])} || {count (_x select 1) != 2}
                     || {(_x select 1) findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} >= 0}
             } < 0};
+    };
+    private _sourceBoundProgress=[];
+    if (_recoveryValid && {_adopting} && {_attackAllowed}) then {
+        _sourceBoundProgress=_sourceRecovery select 7;
+        _recoveryValid=_sourceBoundProgress isEqualType [] && {
+            _sourceBoundProgress isEqualTo [] || {count _sourceBoundProgress == 4
+                && {(_sourceBoundProgress select 0) isEqualType 0} && {finite (_sourceBoundProgress select 0)}
+                && {(_sourceBoundProgress select 0) >= 0} && {(_sourceBoundProgress select 0) == floor (_sourceBoundProgress select 0)}
+                && {(_sourceBoundProgress select 1) isEqualType []} && {count (_sourceBoundProgress select 1) == 3}
+                && {(_sourceBoundProgress select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {(_sourceBoundProgress select 3) in [0,1,2]}
+                && {(_sourceBoundProgress select 2) isEqualType []} && {count (_sourceBoundProgress select 2) == 2}
+                && {(_sourceBoundProgress select 2) findIf {!(_x isEqualType []) || {count _x > 64}
+                    || {_x findIf {!(_x isEqualType objNull)} >= 0}} < 0}
+                && {private _roster=(_sourceBoundProgress select 2) select 0;
+                    private _all=+_roster; _all append ((_sourceBoundProgress select 2) select 1);
+                    count _all <= 64 && {private _present=_all select {!isNull _x};
+                        count (_present arrayIntersect _present) == count _present}}
+            }
+        };
     };
     private _sourceBoundAttempts=createHashMap;
     private _sourceAttempts=createHashMap;
@@ -268,6 +288,7 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
         _operation set ["unavailable",+(_sourceRecovery select 4)];
         _operation set ["recoveryAttempts",_sourceAttempts];
         _operation set ["boundRetryAttempts",_sourceBoundAttempts];
+        _operation set ["boundProgress",_sourceBoundProgress];
     };
     _group setVariable ["CBE_Operation",_operation,true];
     private _generation=_operation get "generation";

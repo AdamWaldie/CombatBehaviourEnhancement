@@ -1951,3 +1951,9 @@ This prevents server redelivery from independently resetting recovery journals o
 A coordinated bound permits one native route refresh per actor and server bound sequence. The parent records that spent refresh before issuing the command, so rebuilding the child or adopting the parent cannot replenish it. A newer server sequence gets its own budget; an older sequence cannot replace a newer record. The journal retains at most 64 actor records. Malformed or oversized records refuse refresh/adoption rather than granting fresh authority. Standalone bounds retain their existing local policy.
 
 Ownership transfer carries these counts alongside generic recovery counts and exclusions, before the new parent is acknowledged. No command, destination or observation timer is replayed. This adds bounded journal work to existing callbacks and transfer, with no new worker. Team-turn continuation, physical transfer ordering and measured cost remain unverified.
+
+### Coordinated fire-team progress after reconstruction
+
+The parent retains the current server sequence, destination, team membership and number of completed turns. Only the existing witnessed arrival transitions advance that count. Rebuilding an interrupted child keeps the completed first turn and sends the pending team through the existing movement checks. Available newcomers join that pending team. A finished sequence republishes its result without starting another drill. Older server sequences cannot rewind progress.
+
+Validated ownership adoption carries this bounded record with the original lease and recovery budgets. The record contains at most two teams and 64 actors; malformed records refuse adoption. Deleted actors grant no movement authority. Existing casualty rebalance still applies. This preserves completed progress; it does not establish ownership of a still-running native command or prove uninterrupted transfer. Physical flow, replication ordering and performance remain unverified.

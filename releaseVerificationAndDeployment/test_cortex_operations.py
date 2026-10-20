@@ -2970,7 +2970,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_supportToken,_drill get "supportSequence",_reason]',end)
         maintain=source('cortexSupportMaintain')
         self.assertIn('if (_newMove || {!_coordinating})',maintain)
-        self.assertIn('private _newMove=_moving && {(_state getOrDefault ["supportBoundSequence",-1]) != (_role select 1)}',maintain)
+        self.assertIn('private _newMove=_moving && {(_state getOrDefault ["supportBoundSequence",-1]) < (_role select 1)}',maintain)
 
     def test_coordinated_clean_approach_is_additive(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf').read_text(encoding='utf-8')

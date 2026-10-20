@@ -166,7 +166,11 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('if (_supportAwaitClock) exitWith {_drill set ["lastStep",time];0.25}',active)
 
         self.assertIn('_accepted=[_group,_token] call CBE_fnc_CortexDrillStart;',boundary)
-        self.assertNotIn('_accepted=true;',boundary)
+        completed=boundary.split('if (_completedTurns == 2) exitWith {',1)[1].split('};',1)[0]
+        self.assertIn('_accepted=true;',completed)
+        self.assertNotIn('doMove',completed)
+        self.assertNotIn('CortexDrillStart',completed)
+        self.assertEqual(boundary.count('_accepted=true;'),1)
         self.assertIn('CBE_fnc_CortexSupportStopOwned',boundary)
         self.assertIn('["nativeAdmissionChecked",true],["nativeCommands",_nativeCommands]',boundary)
         self.assertIn('[_x,"HOLD",+(expectedDestination _x),formLeader _x,-1,[],[]]',boundary)
@@ -220,7 +224,14 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('count _sourceAttempts == count (_sourceRecovery select 5)',apply)
         self.assertIn('_operation set ["supportExpiry",_expiry]',apply)
         self.assertIn('_operation set ["boundRetryAttempts",_sourceBoundAttempts]',apply)
-        self.assertIn('count _sourceRecovery == 7',apply)
+        self.assertIn('_operation set ["boundProgress",_sourceBoundProgress]',apply)
+        self.assertIn('["teamTurn",_completedTurns]',source)
+        self.assertIn('(_progress select 0) > _sequence',source)
+        self.assertIn('_second append _newcomers',source)
+        stages=(ROOT/'addons/infantry/functions/cortexDrillSetStage.sqf').read_text()
+        self.assertIn('_reason in ["FIRE_TEAM_ARRIVED","BOUND_ARRIVED"]',stages)
+        self.assertIn('(_progress select 3) max ((_drill get "teamTurn")+1)',stages)
+        self.assertIn('count _sourceRecovery == 8',apply)
         self.assertIn('count _sourceBoundAttempts == count (_sourceRecovery select 6)',apply)
         retry=active.split('private _supportRetryAvailable=',1)[1].split('private _nativeCommandAvailable=',1)[0]
         self.assertIn('count _budget > 64',retry)

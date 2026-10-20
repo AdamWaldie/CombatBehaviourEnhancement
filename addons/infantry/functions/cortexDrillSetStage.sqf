@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Coordinated witnessed arrival transitions retain completed turns and team membership in the current parent.
  * Changes one Cortex manoeuvre stage and publishes a bounded transition ledger for diagnostics.
  * Locality/authority: call only on the local group owner which owns the supplied drill HashMap.
  * Repeat/JIP: stale supplied drill tokens/generations/epochs and identical stages are ignored.
@@ -46,6 +47,20 @@ if (_next in ["START","MOVE","PAUSE","HOLD"] && {_generation >= 0}) then {
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     if ((_operation getOrDefault ["generation",-2]) == _generation
         && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+        // Only physically witnessed arrivals advance coordinated progress. Store this
+        // before the PAUSE callback, so a child rebuilt between callbacks cannot repeat a completed turn.
+        private _supportToken=_drill getOrDefault ["supportToken",""];
+        if (_supportToken != "" && {_next == "PAUSE"} && {_reason in ["FIRE_TEAM_ARRIVED","BOUND_ARRIVED"]}
+            && {(_operation getOrDefault ["supportToken",""]) == _supportToken}) then {
+            private _progress=_operation getOrDefault ["boundProgress",[]];
+            if (_progress isEqualType [] && {count _progress == 4}
+                && {(_progress select 0) == (_drill get "supportSequence")}) then {
+                _progress=[_progress select 0,+(_progress select 1),(_drill get "teams") apply {+_x},
+                    (_progress select 3) max ((_drill get "teamTurn")+1)];
+                _operation set ["boundProgress",_progress];
+                _group setVariable ["CBE_Operation",_operation,true];
+            };
+        };
         private _phase=switch (_next) do {
             case "PAUSE": {"SUPPORT"};
             case "HOLD": {"SECURITY"};

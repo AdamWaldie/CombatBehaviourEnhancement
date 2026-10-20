@@ -55,6 +55,7 @@ if (local _group) then {
             private _spent=_previousOperation getOrDefault ["recoveryAttempts",createHashMap];
             private _unavailable=_previousOperation getOrDefault ["unavailable",[]];
             private _boundSpent=_previousOperation getOrDefault ["boundRetryAttempts",createHashMap];
+            private _boundProgress=_previousOperation getOrDefault ["boundProgress",[]];
             if (count _supportLease == 6 && {(_previousOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
                 && {(_previousOperation getOrDefault ["supportToken",""]) == (_supportLease select 0)}
                 && {(_previousOperation getOrDefault ["supportExpiry",-1]) == (_supportLease select 2)}
@@ -65,7 +66,10 @@ if (local _group) then {
                     _previousOperation getOrDefault ["ownerEpoch",-1],_supportLease select 2,+_unavailable,
                     (keys _spent) apply {[_x,_spent get _x]},
                     (keys _boundSpent) apply {private _entry=_boundSpent get _x;
-                        [_x,if (_entry isEqualType []) then {+_entry} else {_entry}]}];
+                        [_x,if (_entry isEqualType []) then {+_entry} else {_entry}]},
+                    if (_boundProgress isEqualType []) then {_boundProgress apply {
+                        if (_x isEqualType []) then {_x apply {if (_x isEqualType []) then {+_x} else {_x}}} else {_x}
+                    }} else {_boundProgress}];
             };
             private _checkpoint=createHashMapFromArray (_group getVariable ["CBE_AIPass_Checkpoint",[]]);
             private _candidate=_checkpoint getOrDefault ["drillIntent",[]];

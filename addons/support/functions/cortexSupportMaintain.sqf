@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Older server role sequences never rewind the parent bound progress or consumed local sequence.
  * Actual COVER stops retain separate token/generation/epoch/native destination receipts. Release
  * recalls only unchanged current-owner holds, without enabling PATH. Deferred/changed proof is
  * retained locally. A missing/incapacitated formation leader defers release without consuming
@@ -348,13 +349,17 @@ if ((_state getOrDefault ["supportToken",""]) == _token
 private _role=_group getVariable ["CBE_Cortex_SupportRole",[]];
 private _coordinating=(_state getOrDefault ["supportToken",""]) == _token
     && {_state getOrDefault ["assaulting",false]} && {count _role == 5} && {(_role select 0) == _token};
+// A late role cannot rewind a consumed or partially completed server bound.
+private _boundProgress=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["boundProgress",[]];
+if (_coordinating && {_boundProgress isEqualType []} && {count _boundProgress == 4}
+    && {(_role select 1) < (_boundProgress select 0)}) exitWith {-1};
 private _moving=_coordinating && {(_role select 2) == "MOVE"};
 // Retain cleanup for holds created by an older packaged version. New cover roles use doStop only.
 private _held=_state getOrDefault ["supportHeld",[]];
 {
     if (_x getVariable ["CBE_Cortex_SupportPathHold",false]) then {_held pushBackUnique _x};
 } forEach units _group;
-private _newMove=_moving && {(_state getOrDefault ["supportBoundSequence",-1]) != (_role select 1)};
+private _newMove=_moving && {(_state getOrDefault ["supportBoundSequence",-1]) < (_role select 1)};
 if (_newMove || {!_coordinating}) then {
     _state deleteAt "supportCoverIdentity";
     {
@@ -378,7 +383,7 @@ if (_newMove || {!_coordinating}) then {
 };
 if (_coordinating) then {
     if (_moving) then {
-        if ((_state getOrDefault ["supportBoundSequence",-1]) != (_role select 1)) then {
+        if ((_state getOrDefault ["supportBoundSequence",-1]) < (_role select 1)) then {
             // Group locality may arrive before member locality. Do not turn that transient
             // ownership edge into NOT_READY or consume the sequence; the existing server
             // bound deadline still applies and this allowance lasts at most five seconds.
