@@ -51,5 +51,55 @@
   "performanceMeasured": false,
   "audits": "PAUSED",
   "scoresChanged": false,
-  "productChanged": false
+  "productChanged": false,
+  "engineActionReview20261020": {
+    "sources": [
+      "https://community.bistudio.com/wiki/Arma_3%3A_Actions",
+      "https://community.bistudio.com/wiki/action"
+    ],
+    "retrieval": "Official indexed page text retrieved; direct opens returned403, retained as limitation.",
+    "facts": [
+      "Rearm accepts a source object and can operate at arbitrary distance; animation is not proof of physical approach.",
+      "action returns Nothing, so dispatch provides no success acknowledgement.",
+      "CancelAction cancels an in-progress action while allowing its current animation to finish; no per-request token is documented.",
+      "TakeMagazine specifies a class/source but transfers immediately at arbitrary distance and plays pickup animation at current position."
+    ],
+    "integrationConsequences": [
+      "Do not add action call at an assumed arrival or mark recovery from command issue/animation. Revalidate actual body proximity/LOS/current actor task and compatible source availability immediately before any inventory action.",
+      "Do not use generic CancelAction on timeout or migration without evidence identifying the current action as ours; it can cancel replacement mission activity.",
+      "TakeMagazine is a candidate for bounded single-magazine native transfer after physical approach, not an alternative to approach. Body cargo/container semantics and before/after actual magazine evidence still require verification.",
+      "PointActorOperation currently rejects native tasks through _available and cleanup checks, so adding a REARM phase without a distinct admitted state would self-preempt or misreport VISITED.",
+      "Existing original twelve-second movement deadline must not silently become a new recovery allowance. Design explicit phase result/remaining time and migration cancellation; preserve observation-only semantics."
+    ],
+    "productChanged": false,
+    "next": "Trace native body containers and selected-magazine transfer semantics before implementing actor phase. Prefer exact native item action after validated approach over indiscriminate Rearm, if source/round conservation can be established."
+  },
+  "ammunitionPickupImplementation20261020": {
+    "baseline": "8978028d",
+    "sourceSHA256": "4cb2a78e457334754720e29d539cf88c5a24cb8d5ca59257266b61658e5cf46d",
+    "implementation": [
+      "Existing physical <=2m/LOS casualty visit and all actor/native/operation guards precede pickup. Existing AmmoShare feature gate and dry primary required.",
+      "Inspect only observed casualty three clothing containers, <=128 candidate rows each. Native TakeMagazine requests one positive compatible magazine with receiver capacity. No cloned inventory/new controller/backpack/weapon adoption.",
+      "Existing original deadline and lease unchanged. Separate recovery journal VERIFIED only for positive equal receiver/source round deltas and unchanged primary; otherwise UNVERIFIED. Point outcome remains VISITED. No generic CancelAction."
+    ],
+    "validation": {
+      "tests": 1477,
+      "focusedTests": 607,
+      "newCases": 0,
+      "full": ".qa/cbe-casualty-ammo-build.log",
+      "independent": ".qa/cbe-casualty-ammo-independent.log",
+      "candidate": ".qa/candidates/casualty-ammo-8978028d",
+      "fingerprint": "bdacc9b1eddee2356d4e390ac88a161a3305f97eda1e0f2c703872344962fb29"
+    },
+    "limits": [
+      "Actual corpse-container native pickup/animation and ammo preservation require in-engine validation.",
+      "Source replication lag can leave real transfer UNVERIFIED; never infer success.",
+      "Only observed own-group body visit; does not independently route dry soldiers to arbitrary bodies.",
+      "Loaded body magazines, weapon/backpack recovery and wider source parity remain incomplete.",
+      "Static guards do not establish5percent median/10percent p95 performance budget."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
 }

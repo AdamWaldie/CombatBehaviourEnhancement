@@ -16,7 +16,12 @@
  * Current callers: DangerEngineAct, pointActor FSM, CortexDiscover/Locality/Stop.
  * Example: ["START",soldier1,createHashMapFromArray [["body",casualty1],
  * ["observed",getPosATL casualty1]]] call CBE_fnc_PointActorOperation;
- * A VISITED result proves a position visit, never medical treatment, rearming or room safety.
+ * A VISITED result proves a position visit, never medical treatment or room safety.
+ * At a verified visit, enabled ammunition sharing permits one native compatible-magazine pickup
+ * for an empty primary weapon from the observed casualty clothing containers. No equipment is cloned.
+ * Recovery journal records VERIFIED only for matching positive receiver/source round deltas;
+ * command issue alone remains UNVERIFIED. The point result stays VISITED either way.
+ * No recovery timer, generic action cancellation, backpack/weapon pickup or deadline extension.
  */
 params [["_mode","START",[""]],["_actor",objNull,[objNull]],["_brain",createHashMap,[createHashMap]]];
 if (isNull _actor || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
@@ -193,7 +198,48 @@ if (!_ack) exitWith {
 if (!(currentCommand _actor in ["","MOVE"])) exitWith {["NATIVE_TASK"] call _finish};
 private _position=getPosASL _actor;
 if (_position vectorDistance (_brain get "goalASL") <= 2
-    && {!(lineIntersects [eyePos _actor,(_brain get "goalASL") vectorAdd [0,0,0.5],_actor,_body])}) exitWith {["VISITED"] call _finish};
+    && {!(lineIntersects [eyePos _actor,(_brain get "goalASL") vectorAdd [0,0,0.5],_actor,_body])}) exitWith {
+    // Native TakeMagazine can act at arbitrary distance: only this physical visit grants it.
+    // One attempt uses the existing observation lease/deadline, never a new rearm controller.
+    if (primaryWeapon _actor != ""
+        && {[_group,"CBE_AIPass_AmmoShare_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {!([_actor] call CBE_fnc_CortexPrimaryAmmoAvailable)}) then {
+        private _weapon=primaryWeapon _actor;
+        private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");
+        private _main=if ("this" in _muzzles) then {"this"} else {_muzzles param [0,"this"]};
+        private _compatible=compatibleMagazines [_weapon,_main];
+        private _supply=objNull; private _magazine=""; private _sourceBefore=0;
+        {
+            if (!isNull _x && {_compatible isNotEqualTo []}) then {
+                private _cargo=magazinesAmmoCargo _x;
+                private _index=(_cargo select [0,128]) findIf {
+                    (_x select 1) > 0 && {(_x select 0) in _compatible} && {_actor canAdd (_x select 0)}
+                };
+                if (_index >= 0) exitWith {
+                    _supply=_x; _magazine=(_cargo select _index) select 0;
+                    {if ((_x select 0) == _magazine) then {_sourceBefore=_sourceBefore+(_x select 1)}} forEach _cargo;
+                };
+            };
+        } forEach [uniformContainer _body,vestContainer _body,backpackContainer _body];
+        if (!isNull _supply && {_weapon != ""}) then {
+            private _rounds={
+                params ["_rows","_class"];
+                private _total=0;
+                {if ((_x select 0) == _class) then {_total=_total+(_x select 1)}} forEach _rows;
+                _total
+            };
+            private _before=[magazinesAmmoFull _actor,_magazine] call _rounds;
+            _actor action ["TakeMagazine",_supply,_magazine];
+            private _gain=([magazinesAmmoFull _actor,_magazine] call _rounds)-_before;
+            private _removed=_sourceBefore-([magazinesAmmoCargo _supply,_magazine] call _rounds);
+            private _verified=_gain > 0 && {_gain == _removed} && {primaryWeapon _actor == _weapon};
+            _actor setVariable ["CBE_PointActor_Recovery",[_brain get "generation",
+                ["UNVERIFIED","VERIFIED"] select _verified,_body,_magazine,
+                [0,_gain] select _verified,serverTime],true];
+        };
+    };
+    ["VISITED"] call _finish
+};
 if (_position vectorDistance (_brain get "progressPosition") >= 1) then {
     _brain set ["progressPosition",_position];_brain set ["progressAt",serverTime];
 };

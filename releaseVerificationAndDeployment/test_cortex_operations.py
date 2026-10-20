@@ -692,6 +692,21 @@ class CortexOperations(unittest.TestCase):
             # Ignore documentation: this task never copies inventory or global discovery shortcuts.
             self.assertNotIn(forbidden,re.sub(r'/\*.*?\*/|//[^\n]*','',point,flags=re.S))
         point_fsm=(ROOT/'addons/main/fsm/pointActor.fsm').read_text()
+        pickup=step.split('// Native TakeMagazine',1)[1].split('["VISITED"] call _finish',1)[0]
+        for proof in ('CBE_AIPass_AmmoShare_Enable','CortexPrimaryAmmoAvailable',
+                      'uniformContainer _body,vestContainer _body,backpackContainer _body',
+                      'select [0,128]','_actor canAdd','magazinesAmmoFull _actor',
+                      '_gain > 0 && {_gain == _removed}','["UNVERIFIED","VERIFIED"]'):
+            self.assertIn(proof,pickup)
+        self.assertEqual(pickup.count('action ["TakeMagazine"'),1)
+        self.assertLess(step.index('lineIntersects'),step.index('action ["TakeMagazine"'))
+        for forbidden in ('addMagazine','removeMagazine','CancelAction','addBackpack','setUnitLoadout'):
+            self.assertNotIn(forbidden,pickup)
+        def verified(gain,removed,same_weapon=True):
+            return gain>0 and gain==removed and same_weapon
+        self.assertTrue(verified(7,7))
+        for args in ((0,0),(7,0),(7,30),(7,7,False)):
+            self.assertFalse(verified(*args))
         self.assertIn('CBE_fnc_PointActorOperation',point_fsm)
         self.assertIn('serverTime >=',point_fsm)
         for name in ('cortexLocality','cortexStop','cortexDiscover'):
