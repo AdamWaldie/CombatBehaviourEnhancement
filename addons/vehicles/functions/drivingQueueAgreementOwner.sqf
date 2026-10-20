@@ -4,7 +4,8 @@
  * Locality/authority: Only authenticated server remote calls. Each owner validates its own crew/native orders/current brain plus canonical topology; public markers never count as ACK.
  * Repeat/JIP: Exact token/serial/context/roles/original expiry; duplicate agreed delivery does not renew or replay.
  * One timer per accepted phase retires matching local receipts even after movement scheduling
- * stops. Old-machine private metadata can retire after locality loss; no command is issued.
+ * stops. Exact root request metadata retires with terminal results or matching consent expiry.
+ * Old-machine private metadata can retire after locality loss; no command is issued.
  * Valid duplicate VERIFY cannot downgrade AGREED; stale owner context releases exact consent.
  * Machine-private original-expiry closures reject deferred readmission, including after local retirement.
  * Explicit server COMMIT arms a hold request only after exact AGREED consent; no native
@@ -59,6 +60,10 @@ private _scheduleExpiry={
                     if (([_old] call _receiptKey) isEqualTo _key) then {
                         [_key select 0,_key select 7] call CBE_fnc_DrivingQueueTokenClosed;
                         _x setVariable ["CBE_DrivingQueue_Consent",nil];_retired=true;
+                        if (_x == ((_key select 2) select 0) && {
+                            (_x getVariable ["CBE_DrivingQueue_Request",[]]) isEqualTo
+                                [_key select 1,_key select 5,_key select 6,_key select 7]
+                        }) then {_x setVariable ["CBE_DrivingQueue_Request",nil]};
                     };
                 };
             } forEach _vehicles;
@@ -88,6 +93,10 @@ if (_mode == "RESULT" && {_phase in ["REFUSED","RELEASED"]}) exitWith {
         };
     };
     [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;
+    private _root=_vehicles select 0;
+    if (_root in _owned && {
+        (_root getVariable ["CBE_DrivingQueue_Request",[]]) isEqualTo [_serial,_context,_deadline,_expires]
+    }) then {_root setVariable ["CBE_DrivingQueue_Request",nil]};
     {private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
         if ((_old getOrDefault ["token",""]) == _token) then {_x setVariable ["CBE_DrivingQueue_Consent",nil]};
     } forEach _owned;

@@ -347,6 +347,17 @@ class QueueProposalTests(unittest.TestCase):
         terminal=owner.split('// Terminal token cleanup',1)[1].split('private _duplicate=',1)[0]
         self.assertIn('(_old getOrDefault ["token",""]) == _token',terminal)
         self.assertNotIn('call CBE_fnc_DrivingQueueProposalCurrent',terminal)
+        self.assertIn('isEqualTo [_serial,_context,_deadline,_expires]',terminal)
+        self.assertLess(terminal.index('isEqualTo [_serial,_context,_deadline,_expires]'),
+                        terminal.index('CBE_DrivingQueue_Request",nil'))
+        expiry=owner.split('private _scheduleExpiry=',1)[1].split('// Terminal token cleanup',1)[0]
+        self.assertIn('[_key select 1,_key select 5,_key select 6,_key select 7]',expiry)
+        self.assertIn('_x == ((_key select 2) select 0)',expiry)
+        # A delayed terminal/expiry identity must not match a newer request.
+        original=[7,['original context'],10,80]
+        for successor in ([8,original[1],10,80],[7,['new context'],10,80],
+                          [7,original[1],11,80],[7,original[1],10,81]):
+            self.assertNotEqual(original,successor)
         self.assertLess(owner.index('private _accepted='),owner.index('if (_duplicate) exitWith'))
         self.assertIn('(_mode == "RESULT" || {_duplicate})',owner)
 

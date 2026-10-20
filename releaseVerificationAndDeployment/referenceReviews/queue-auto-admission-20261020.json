@@ -78,5 +78,24 @@
       "source": "108ef651 plus uncommitted interrupted-dwell edits",
       "buildout": "evidence and report check passed, scores unchanged"
     }
+  },
+  "terminalRequestFollowUp": {
+    "baselineCommit": "ff8eae55",
+    "finding": "Terminal owner results and consent expiry cleared consent but retained the root request. A finished automatic helper could leave this marker blocking subsequent episodes.",
+    "change": "Exact serial/context/original handshake deadline/expiry comparison retires the root request on terminal server results and matching consent expiry. Completion binding is recorded first. Successor identities remain untouched.",
+    "runtimeSource": {
+      "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+      "sha256": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-queue-request-retirement-build.log",
+      "independent": ".qa/cbe-queue-request-retirement-independent.log",
+      "fingerprint": "f1bb3308b027a6c3035776e59025efcdb42d070981cff7f48fb8a6f6a62115de",
+      "source": "ff8eae55 plus intended dirty retirement changes",
+      "buildout": "passed; scores unchanged"
+    },
+    "physicalAcceptance": false
   }
 }
