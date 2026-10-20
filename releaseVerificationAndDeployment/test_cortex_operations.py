@@ -10397,12 +10397,16 @@ class CortexOperations(unittest.TestCase):
             result=[list(row) for row in active];seen={actor for row in result for actor in row}
             for row in previous[:16]:
                 if len(result)>=16:break
-                if row and len(row)<=2 and not any(actor in seen for actor in row):
-                    result.append(list(row));seen.update(row)
+                if row and len(row)<=2:
+                    retained=list(dict.fromkeys(actor for actor in row if actor not in seen))
+                    if retained:
+                        result.append(retained);seen.update(retained)
             return result
+        self.assertIn('&& {!(_x in _seen)}',publisher)
         self.assertEqual(publish([['a','b']],[['a','b'],['c','d']]),[['a','b'],['c','d']])
-        self.assertEqual(publish([['a','c']],[['a','b'],['c','d'],['e','f']]),[['a','c'],['e','f']])
-        self.assertEqual(publish([['a']],[['x','y'],['x','z']]),[['a'],['x','y']])
+        self.assertEqual(publish([['a']],[['a','b']]),[['a'],['b']])
+        self.assertEqual(publish([['a','c']],[['a','b'],['c','d'],['e','f']]),[['a','c'],['b'],['d'],['e','f']])
+        self.assertEqual(publish([['a']],[['x','y'],['x','z']]),[['a'],['x','y'],['z']])
         self.assertLessEqual(len(publish([['active']],[[str(i)] for i in range(20)])),16)
 
 

@@ -125,5 +125,14 @@
     "implementation": "Three available armed actors with two suitable movers may start2+1 ADVANCE; ordinary bounds capped20m. Existing movingMinimum recognises arrived2+singleton-follow for ordinary and coordinated drills, avoiding a needless relief transfer. Two-capable-actor ADVANCE resume preserves one buddy identity across singleton roles.",
     "limits": "Initial specialist-role suitability remains authoritative. No per-pair leapfrog executor for larger squads. Physical flow, casualties, migration, cover fire and overhead unverified; audits paused.",
     "validation": "1478 existing tests, HEMTT/full build passed; existing assertions extended."
+  },
+  "untouchedPartnerRetention": {
+    "baseline": "aa48dcd2",
+    "finding": "Publication discarded a complete previous row when any member had a new active assignment, losing untouched living same-group partners from the registry.",
+    "implementation": "Filter already assigned actors individually from valid prior rows; retain remaining actors as singleton rows. Active assignments win, unique membership and sixteen-row bound remain.",
+    "limits": "Metadata only. No recruitment, movement, independent pair executor or fitness authority. Physical casualty flow and overhead unverified; audits paused.",
+    "validation": "Existing pair-publication regression extended with reassignment and singleton cases; full build result recorded in handover.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }

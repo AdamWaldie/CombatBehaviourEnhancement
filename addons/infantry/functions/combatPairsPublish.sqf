@@ -6,6 +6,7 @@
  * Repeat/JIP: Active rows win, actors occur once, unchanged registries do not republish.
  * Retains at most sixteen rows of at most two living same-group actors. Owned dormant,
  * incapacitated or mounted members may retain identity without becoming active workers.
+ * Reassigned partners leave untouched survivors as singleton rows for later pair repair.
  * Arguments: 0 group <GROUP,grpNull>; 1 active pair rows <ARRAY,[]>, maximum sixteen.
  * Return: BOOL accepted metadata publication, including unchanged; false on invalid input.
  * Current callers: CombatPairs and BuildingOperationStep replacement publication.
@@ -35,8 +36,8 @@ isNil {
         {
             if (count _merged >= 16) exitWith {};
             if (_x isEqualType [] && {count _x in [1,2]}
-                && {_x findIf {!(_x isEqualType objNull) || {_x in _seen}} < 0}) then {
-                private _row=(_x arrayIntersect _x) select {!isNull _x && {alive _x} && {group _x == _group}};
+                && {_x findIf {!(_x isEqualType objNull)} < 0}) then {
+                private _row=(_x arrayIntersect _x) select {!isNull _x && {alive _x} && {group _x == _group} && {!(_x in _seen)}};
                 if (_row isNotEqualTo []) then {_merged pushBack _row;_seen append _row};
             };
         } forEach (_previous select [0,16]);

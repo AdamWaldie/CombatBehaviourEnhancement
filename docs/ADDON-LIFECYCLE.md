@@ -1345,3 +1345,5 @@ so a close threat cannot reverse the ray beyond its endpoint; invalid or degener
 refuse. No movement, persistent cache, new setting or scheduler is introduced. The ray count
 is unchanged; returned-hit processing grows from one to at most four. Physical screening
 and frame-time cost remain unverified.
+
+Buddy-pair publication retains an untouched living same-group partner as a singleton when its former buddy receives a new active assignment. Active assignments still win and each actor appears once, within the existing sixteen-row bound. Retained identity grants no fitness, movement or fire authority. This avoids losing dormant partner identity during partial roster updates; casualty flow and performance still require physical verification.
