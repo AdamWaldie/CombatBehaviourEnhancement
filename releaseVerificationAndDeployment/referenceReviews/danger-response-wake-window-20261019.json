@@ -11,5 +11,36 @@
   "current_source_sha256": {
     "addons/infantry/functions/dangerStep.sqf": "981ebb3fdce7d742e8a693918fd6bf482a7cd0bdf6cb088ae085798eb4cb084b",
     "addons/infantry/functions/groupBrainStart.sqf": "f1f36a85d721b62b9475c586d057080149db84f11cd65bb894d3988ccb298790"
+  },
+  "blockedGroupPostureCleanup20261020": {
+    "baseline": "da655b89",
+    "finding": "Group hide terminal/old-generation cleanup dropped group rows even when native task/reservation prevented restoration, losing authored stance baseline.",
+    "change": "Preserve exact same-owner unchanged applied posture by transferring original baseline to empty actor stance lease and existing DangerEngineRelease. Original operation/epoch/group retained. First cleanup transfer uses existing thirty-second retry window; no new timer, movement, danger action or replacement of actor lease.",
+    "sources": {
+      "addons/infantry/functions/dangerGroupHideStep.sqf": "92d9f3685750d1cbe6c737004b61bad14448cb2d0c5a74d0ce7620f81f5e4944"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-group-posture-build.log",
+      "independent": ".qa/cbe-group-posture-independent.log",
+      "candidate": ".qa/candidates/group-posture-da655b89-05c1b94c",
+      "fingerprint": "05c1b94cf808fa0f67083f9de6daef447fdd5dae339b909f4b403f6a1b749544",
+      "source": "da655b89 plus intended dirty group-posture cleanup edits"
+    },
+    "remaining": [
+      "Physical protected-task completion, stance restoration, owner/operation interruption and overhead unverified. No guaranteed retry after tactical scheduling stops."
+    ],
+    "physical": false,
+    "scoresChanged": false,
+    "sourceComparison": {
+      "intent": "Finite immediate cover/dodge and hide assessment; preserve movement/task ownership while temporary posture ends. This change repairs CBE restoration, not whole LAMBS parity.",
+      "files": {
+        ".qa/lambs-2621-review/danger/functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+        ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c"
+      },
+      "originalsModified": false,
+      "runtimeDependency": false
+    }
   }
 }

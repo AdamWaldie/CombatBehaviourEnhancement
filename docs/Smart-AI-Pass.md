@@ -2011,3 +2011,6 @@ When several registered driving areas qualify, selection compares the full appro
 
 
 Navigation-area steering yields to native BACK, direct-commander input or LEFT/RIGHT turn input. Crossing also retires its metadata for incompatible crew tasks, including FOLLOW and ATTACK. Cleanup applies the same native-input veto before any STOP or route handback, preserving changed control even when destinations match. Identical repeated STOP orders remain observationally indistinguishable. Physical interruption and continuation require later in-game verification.
+
+
+When a finite group hide posture ends while a protected task prevents restoration, unchanged same-owner stance proof passes to the existing actor cleanup. This preserves the original stance without interrupting treatment, rearming or reserved movement. The first transfer uses the existing thirty-second cleanup observation window; it creates no danger action, movement or timer. A changed stance, operation, owner or existing actor lease prevents transfer. Automatic continuation after tactical scheduling stops remains dependent on an existing cleanup caller.

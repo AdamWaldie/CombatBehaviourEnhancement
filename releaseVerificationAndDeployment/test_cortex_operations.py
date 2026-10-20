@@ -9403,6 +9403,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('isNull objectParent _unit',section)
         self.assertIn('CBE_fnc_CompatibilityExternalControl',section)
         self.assertIn('!isPlayer _unit',section)
+        deferred=text.split('private _deferRestore={',1)[1].split('// Individual handover',1)[0]
+        self.assertIn('[_proof] call _sameOwner',deferred)
+        self.assertIn('CBE_Danger_EngineStanceLease",[]]) isEqualTo []',deferred)
+        self.assertIn('[_prior,_applied,time,',deferred)
+        self.assertIn('call CBE_fnc_DangerEngineRelease',deferred)
+        self.assertNotIn('waitAndExecute',deferred)
+        self.assertNotIn('doMove',deferred)
+        self.assertIn('call _deferRestore',section)
+
 
     def test_cover_candidate_uses_rotated_bounds_and_stays_in_search_radius(self):
         text=source('cortexFindCover')

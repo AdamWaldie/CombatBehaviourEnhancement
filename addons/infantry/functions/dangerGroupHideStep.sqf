@@ -49,6 +49,25 @@ private _mayRestore={
         && {_postureFree}
         && {(_unit getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo []}
 };
+// Group posture can end while treatment/rearm/reservation blocks restoration. Transfer
+// only unchanged same-owner proof to the existing actor cleanup; never replace its lease.
+// The first transfer starts one finite restoration window, not another danger action.
+private _deferRestore={
+    params ["_proof"];
+    private _unit=_proof param [0,objNull,[objNull]];
+    private _prior=_proof param [1,"",[""]];private _applied=_proof param [2,"",[""]];
+    if ([_proof] call _sameOwner && {!isNull _unit} && {local _unit} && {alive _unit}
+        && {!isPlayer _unit} && {group _unit == _group} && {isNull objectParent _unit}
+        && {isNull remoteControlled _unit} && {[_unit] call CBE_fnc_CortexExternalOwner == ""}
+        && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
+        && {_prior in ["AUTO","UP","MIDDLE","DOWN"]} && {_applied in ["AUTO","UP","MIDDLE","DOWN"]}
+        && {_prior != _applied} && {toUpperANSI unitPos _unit == _applied}
+        && {(_unit getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo []}) then {
+        _unit setVariable ["CBE_Danger_EngineStanceLease",[_prior,_applied,time,
+            _proof select 4,_proof select 5,_group]];
+        [_unit] call CBE_fnc_DangerEngineRelease;
+    };
+};
 // Individual handover leaves other soldiers' posture untouched. It uses the same
 // exact owner/native-value rules as group cleanup, before the new task reserves movement.
 if (!isNull _releaseActor) exitWith {
@@ -91,6 +110,7 @@ private _release={
                 && {toUpperANSI (unitPos _unit) == _applied}) then {
                 _unit setUnitPosWeak _prior;
             };
+            [_x] call _deferRestore;
         } forEach _leases;
     };
     _group setVariable ["CBE_Danger_GroupHideLeases",nil];
@@ -113,6 +133,7 @@ if (_leases isNotEqualTo []) exitWith {
             && {toUpperANSI (unitPos _unit) == _applied}) then {
             _unit setUnitPosWeak _prior;
         };
+        if (_leaseGeneration != _generation) then {[_x] call _deferRestore};
     } forEach _leases;
     private _valid=_leases select {
         _x params ["_unit","_prior","_applied","_leaseGeneration"];
