@@ -95,6 +95,11 @@ class PackagePipelineTests(unittest.TestCase):
         self.assertTrue((mission.parent/'@CBE/addons/main.pbo').is_file())
         with self.assertRaises(ValueError): stage(self.folder, mission.parent, 'airskills')
 
+        solo=stage(self.folder,Path(self.temp.name)/'static-solo-normal','staticsolo',batch_mode='normal')
+        self.assertTrue((solo/'cortexQAStaticSolo.sqf').is_file())
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'static-solo-hc','staticsolo',batch_mode='headless')
+
         illumination=stage(self.folder,Path(self.temp.name)/'illumination-normal','illumination',batch_mode='normal')
         self.assertTrue((illumination/'cortexQAIllumination.sqf').is_file())
         self.assertIn('"illumination"',(illumination/'cortexQAServer.sqf').read_text())

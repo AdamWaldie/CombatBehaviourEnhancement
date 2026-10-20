@@ -561,7 +561,17 @@
         "Native action quiescence, same-value replacement orders, split-locality/repeat and overhead unverified.",
         "Holder with external cargo intentionally remains; no background cleanup or fabricated weapon/bag."
       ],
-      "validation": "Existing609 operation-focused cases plus full1482 unit/static, HEMTT/SQF/config/FSM/docs/build pass; no physical audit or percentage credit."
+      "validation": "Existing609 operation-focused cases plus full1482 unit/static, HEMTT/SQF/config/FSM/docs/build pass; no physical audit or percentage credit.",
+      "flowFollowup": {
+        "baseline": "9fa86089",
+        "fixes": [
+          "Explicit empty text base is a complete eligible kit during ordered carrier search, so an earlier unmatched two-part kit cannot hide it.",
+          "MOVING expiry retires before issuing fresh drop/assembly actions; prior completed DROPPING evidence handling retained."
+        ],
+        "preparedFixture": "releaseVerificationAndDeployment/cortexQA/runStaticSolo.sqf",
+        "fixtureScope": "Separate staticsolo normal-only focus, no automatic all/HC inclusion; discovers actual installed one-part config or fails prerequisite. Earlier unmatched native HMG primary plus complete solo carrier. Natural contact, independent WeaponAssembled/WeaponDisassembled observers, actual seat, original weapon deletion, one matching returned backpack and finite receipt retirement. No direct executor/finish/phase calls, forced seats or timer resets. No real firing/repeat/HC acceptance.",
+        "validation": "Full1482 tests/HEMTT/SQF/config/FSM/docs/build passed; final QA cleanup-wait edit reran1482 tests and SQF validation. Independent unsigned candidate/stage/source equality verified. No Arma launch."
+      }
     }
   }
 }

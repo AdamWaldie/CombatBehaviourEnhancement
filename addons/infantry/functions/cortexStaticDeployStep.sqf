@@ -309,6 +309,8 @@ if (count _record >= 10) exitWith {
         "FAILED"
     };
     if (_status == "MOVING") exitWith {
+            // A late brain callback cannot turn an expired approach into a new assembly phase.
+            if (time >= _deadline) exitWith {[false] call _retire; "FAILED"};
             private _pairTogether=_gunner distance _assistant <= 3;
             private _atSector=_gunner distance2D _deployPos <= 3.5
                 && {_assistant distance2D _deployPos <= 3.5};
@@ -756,7 +758,8 @@ private _gunnerIndex=_ready findIf {
     private _base=_info >> "base";
     private _bases=if (isText _base) then {[getText _base]} else {getArray _base};
     _bases=_bases - [""];
-    _ready findIf {_x != _primary && {(backpack _x) in _bases}} >= 0
+    (isText _base && {getText _base == ""})
+        || {_ready findIf {_x != _primary && {(backpack _x) in _bases}} >= 0}
 };
 // Retain the existing transient-base retry/failure decision when no complete ready pair exists.
 if (_gunnerIndex < 0) then {_gunnerIndex=_firstPrimaryIndex};

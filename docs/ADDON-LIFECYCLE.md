@@ -179,7 +179,11 @@ no bag drop or second soldier. Native assembly receives one marked empty ground 
 assembly event identifies the weapon before ordinary boarding; native disassembly must return one
 matching bag, remove the original weapon and physically restore that bag to the carrier. Cleanup
 only deletes the exact owned holder while empty; added cargo and all equipment remain untouched.
-One-part execution is newly wired and has no physical acceptance evidence. The pair physically moves to one of two bounded,
+One-part execution is newly wired and has no physical acceptance evidence. A complete one-part carrier
+qualifies alongside complete pairs rather than being hidden by an earlier unmatched kit.
+Expired approach phases retire before any new drop/assembly action. The separate normal-only
+`staticsolo` audit focus observes actual native assembly, boarding and one-bag recovery; it fails
+its prerequisite if no compatible one-part backpack is loaded. It has been prepared, not run. The pair physically moves to one of two bounded,
 dry, low-slope positions with a clear firing sector, uses the engine assembly action and gives the
 original carrier a real gunner assignment. The squad does not wait. Failure is recorded once for
 the contact episode; CBE does not create a weapon, consume bags directly or force-seat the gunner.

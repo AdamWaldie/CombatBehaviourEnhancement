@@ -65,6 +65,14 @@ if (_focus == "roadpassing") exitWith {
     missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
     diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
+// Single-carrier static mechanics stay separate from ordinary and HC batches.
+if (_focus == "staticsolo") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAStaticSolo.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
 // Separate normal-owner illumination mechanics; no unrelated fixtures or HC adoption.
 if (_focus == "illumination") exitWith {
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIllumination.sqf";

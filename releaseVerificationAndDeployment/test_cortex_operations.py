@@ -1416,6 +1416,15 @@ class CortexOperations(unittest.TestCase):
         selection=deploy.split('private _firstPrimaryIndex=',1)[1].split('if (_gunnerIndex < 0) exitWith',1)[0]
         self.assertIn('_ready findIf {_x != _primary && {(backpack _x) in _bases}} >= 0',selection)
         self.assertIn('_weaponClass isKindOf "StaticWeapon"',selection)
+        self.assertIn('isText _base && {getText _base == ""}',selection)
+        approach=deploy.split('if (_status == "MOVING") exitWith',1)[1].split('private _pairTogether=',1)[0]
+        self.assertIn('if (time >= _deadline) exitWith',approach)
+        solo_fixture=(Path(__file__).parent/'cortexQA/runStaticSolo.sqf').read_text()
+        for forbidden in ['call CBE_fnc_CortexStaticDeployStep','moveInGunner','moveOut ',' reveal ']:
+            self.assertNotIn(forbidden,solo_fixture)
+        for evidence in ['WeaponAssembled','WeaponDisassembled','gunner (_seen select 0) == _actor',
+                         'isNull _weapon','backpack _actor == _bagClass']:
+            self.assertIn(evidence,solo_fixture)
         self.assertIn('isClass (configFile >> "CfgVehicles" >> _weaponClass)',selection)
         self.assertIn('if (_gunnerIndex < 0) then {_gunnerIndex=_firstPrimaryIndex}',selection)
         self.assertIn('((units _group) select [0,64]) select',deploy)
@@ -9740,7 +9749,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('action ["Assemble",_supportBag]',drop)
         self.assertIn('everyBackpack _x',drop)
         deployment_move=deploy.split('if (_status == "MOVING") exitWith',1)[1].split('if (_status == "DROPPING")',1)[0]
-        self.assertLess(deployment_move.index('_record set [1,"DROPPING"]'),deployment_move.index('if (time >= _deadline)'))
+        self.assertLess(deployment_move.index('if (time >= _deadline)'),deployment_move.index('action ["PutBag",_assistant]'))
+        self.assertLess(deployment_move.index('if (time >= _deadline)'),deployment_move.index('action ["Assemble",_holder]'))
         pack_exit=deploy.split('if (_status == "PACK_EXITING") exitWith',1)[1].split('if (_status == "PACK_MOVING")',1)[0]
         self.assertIn('vehicle _gunner == _gunner',pack_exit)
         self.assertIn('currentCommand _gunner != "GET OUT"',pack_exit)
