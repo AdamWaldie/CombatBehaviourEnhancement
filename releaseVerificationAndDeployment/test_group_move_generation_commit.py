@@ -18,6 +18,12 @@ class GroupMoveGeneration(unittest.TestCase):
         self.assertLess(commit.index('isNil {'),commit.index('addWaypoint'))
         self.assertLess(commit.index('call _generationCurrent'),commit.index('CBE_fnc_CortexGroupMoveClear'))
         self.assertEqual(commit.count('call _generationCurrent'),2)
+        busy=text.split('private _nativeTaskBusy=',1)[1].split('// Callers do not',1)[0]
+        self.assertIn('alive _x',busy)
+        self.assertIn('getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []',busy)
+        self.assertIn('call _nativeTaskBusy',same)
+        self.assertEqual(commit.count('call _nativeTaskBusy'),2)
+
     def test_both_reverse_fallback_callers_pass_original_generation(self):
         tick=src('addons/infantry/functions/cortexGroupTick.sqf')
         vehicle=src('addons/vehicles/functions/cortexVehicles.sqf')
