@@ -697,5 +697,42 @@
     ],
     "validation": "251 existing driving and32 indoor lifecycle focused cases plus full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-convoy-pacing-blend-build.log; candidate .qa/candidates/convoy-pacing-e6475f72-f515c748 fingerprint f515c7488e40851b0f5f20603770611707b11dcd7b13266e6d781c8cbea5b429 actuale6475f72+intendeddirtysource. No test-count/score increase.",
     "audits": "PAUSED"
+  },
+  "cornerGrindingReconciliation20261020": {
+    "sourceParent": "a495a102",
+    "reference": {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "examinedLines": [
+        1781,
+        1900
+      ]
+    },
+    "currentHashes": {
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "85d941289e34443aa0494cc1db923cb858331644f3cc1b21fbed0c61078f0fe6",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374",
+      "addons/vehicles/functions/drivingRearPlan.sqf": "b8835ba389d82556beedfa70ae92187987e441b465fd1bb39f1f637a6648f51b",
+      "addons/vehicles/functions/drivingRearClear.sqf": "b0ff813f93dd5474af9b647e0eb48e5ab715ef538fda7f576dc67df439443e21",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "0621d068fdda825e735339cdbed00543b82cdc75e87b78e6e616d522c609530e"
+    },
+    "sourceIntent": [
+      "Diagnose low front/diagonal/side contact rather than infer grinding from slow speed alone.",
+      "Exclude passable gates, traffic holds and near-goal arrival before escalation.",
+      "Back away first; only recent failed back-off plus one-sided contact and actual lateral room permits source side push."
+    ],
+    "currentImplementation": [
+      "DrivingGeometryCap samples three front offsets at low/mid/high body rows, with a short curve/tangent envelope. Its lowest row is model bounding minimum plus0.45m. It does not directly probe the front-quarter/mid-side contact occupied by the current hull.",
+      "Ordinary recovery requires current authored route/crew/owner and measured linear/angular rest; route refresh, fresh bounded rear plan, native reverse, damage monitoring and final route retry share finite journals.",
+      "Existing bypass validates an explicit fresh static obstacle and up to two native paths under its own original90s episode. It is not automatically the corner-recovery continuation."
+    ],
+    "gap": "One-sided low corner/side contact diagnosis and a native lateral corner-release composition remain missing. Existing finite reverse and forward curvature sensing do not establish this source functionality. Native AI can still recover some such cases; no physical failure reproduced in this paused-audit review.",
+    "reject": [
+      "No lateral velocity/force push, teleport, collision disable, crew recall or automatic source-style physics method.",
+      "Do not lower all sensing rows or add side probes on every ordinary callback without a qualified contact/dwell context.",
+      "Do not start a fresh bypass lifetime/attempt budget after each failed reverse."
+    ],
+    "nextImplementationBoundary": "Use the existing ordinary recovery episode as parent: preserve hardDeadline/attempts/authored route and exact native receipts; diagnose current one-sided static contact only after qualified stationary dwell/back-off; any native lateral proposal must share that original budget and use fresh full-body support/actor/solid geometry before issue. Reuse existing path execution where possible without a second movement controller.",
+    "validation": "Read-only source/caller comparison; no production change or redundant build. Latest full1477 result remains .qa/cbe-convoy-pacing-blend-build.log and preserved candidate convoy-pacing-e6475f72-f515c748. Physical/performance acceptance incomplete.",
+    "audits": "PAUSED"
   }
 }
