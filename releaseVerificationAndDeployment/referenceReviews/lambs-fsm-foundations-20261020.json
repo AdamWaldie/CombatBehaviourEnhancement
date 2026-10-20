@@ -23,7 +23,9 @@
     ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doUGL.sqf": "d9a617b963a790a8da98d46d9f4e2ca528148f4d93075fcc614e822a37d80fb1",
     ".qa/lambs-2621-review/main/functions/fnc_isNight.sqf": "c3de1e27654819ba3eb5bd8b7d883581594a80581d1867f3234f416d765f4642",
     ".qa/lambs-2621-review/danger/functions/fnc_tacticsReinforce.sqf": "c6477a2ca420d4a77787f611540647874a7703b937d46b3914952cc205de51d9",
-    ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticFind.sqf": "8cff7212a9714655acae6d4ff36f247ff35e14082e2856954b0cde33a85e2e13"
+    ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticFind.sqf": "8cff7212a9714655acae6d4ff36f247ff35e14082e2856954b0cde33a85e2e13",
+    ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticDeploy.sqf": "566327ec85c372a3b36a019026a59d5eda926aedef9988d9dea1bc032ebb4a57",
+    ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticPack.sqf": "6d39e4d969e61275df1558cfe877b96baaacfcdba34ac8d82a288837c5a274e0"
   },
   "branches": [
     {
@@ -475,5 +477,41 @@
       "limits": "Identical external assignment/order values remain indistinguishable; existing native boarding quiescence and split-locality handback are unverified. Carried deploy/pack teardown is separate and remains under review.",
       "validation": "Existing static regression cases extended; full1482 unit/static, HEMTT/config/FSM/docs/package pass. Audits paused."
     }
+  },
+  "staticDeployPackComparison": {
+    "baseline": "75039b7f",
+    "sources": [
+      ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticDeploy.sqf",
+      ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticPack.sqf"
+    ],
+    "sourceIntent": [
+      "Match weapon and base bag carriers, approach nearby safe sector, physically assemble and orient toward threat.",
+      "Remember deployed weapon; select empty-backpack assistant, approach, disassemble and recover the two bags.",
+      "Separate CommandoMortar deployment and packing branches exist; not reviewed by this comparison."
+    ],
+    "unsafeShortcutsNotCopied": [
+      "WeaponAssembled moveInGunner forced seating.",
+      "Pack moveOut forced exit.",
+      "Delayed movement/forceSpeed/stance restoration without CBE generation/owner receipts."
+    ],
+    "existingCBE": [
+      "Finite original pair and phase deadlines, native bag actions and real boarding, owner/epoch guards and exact class/weapon evidence.",
+      "Native disassembly event records bags; TAKING waits for original weapon deletion before native bag recovery.",
+      "Original sector belief refreshed only for observed target; bounded safe-sector candidates."
+    ],
+    "fixes": [
+      "Both native callbacks now require current phase deadline, active addon and both feature permissions before orienting weapon or renewing bag-recovery work.",
+      "Packing receipt now matches exact current WeaponDisassembled handler ID.",
+      "Queued ACE treatment blocks pair admission/active execution/callbacks and makes retirement command-free; CALM gunner unassignment also respects queued treatment."
+    ],
+    "remaining": [
+      "CommandoMortar-specific source branches remain unimplemented/unreviewed.",
+      "CBE assistant matching uses primary bag base list; source also accepts reciprocal assistant base declaration. Determine engine-valid compatibility before widening.",
+      "Native already-issued assembly/disassembly/boarding cannot be claimed cancelled or quiescent by receipt retirement.",
+      "Carried deployment CALM cleanup remains separate from executor retirement and needs successor reservation/assignment review.",
+      "Static actor marker cleanup currently matches tag, not a complete per-generation receipt; repeated/split-locality behaviour remains unverified.",
+      "Retained physical assembly/firing/packing failures remain open; no audit ran."
+    ],
+    "validation": "Full existing1482 unit/static, HEMTT/SQF/config/FSM/docs/build pass; no new tests, acceptance or percentage credit."
   }
 }

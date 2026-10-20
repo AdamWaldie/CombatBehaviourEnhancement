@@ -1418,6 +1418,20 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('group _assistant == _owner',callbacks)
         self.assertIn('CBE_fnc_CortexCombatEffective',callbacks)
         self.assertIn('!(_assistant in _newActors)',callbacks)
+
+        self.assertIn('(_current param [10,-1,[0]]) == _thisEventHandler', callbacks)
+        for event, boundary in [('WeaponAssembled', '_record set [12,_assemblyHandler]'),
+                                ('WeaponDisassembled', '_record set [1,"PACKING"]')]:
+            receipt = deploy.split('addEventHandler ["' + event + '"', 1)[1].split(boundary, 1)[0]
+            for gate in ['time < (_current param [6,-1,[0]])', 'CBE_AIPass_Active',
+                         'CBE_AIPass_StaticSupport_Enable', 'CBE_AIPass_StaticDeploy_Enable',
+                         'ace_medical_ai_healQueue']:
+                self.assertIn(gate, receipt)
+        retirement = deploy.split('private _retire=', 1)[1].split('private _enabled=', 1)[0]
+        self.assertLess(retirement.index('ace_medical_ai_healQueue'), retirement.index('orderGetIn false'))
+        admission = deploy.split('private _ready=', 1)[1].split('private _gunnerIndex=', 1)[0]
+        self.assertIn('ace_medical_ai_healQueue', admission)
+
         pack_permission=deploy.split('// Permission is live throughout packing',1)[1].split('private _reservedActors=',1)[0]
         self.assertIn('!_allowPack',pack_permission)
         self.assertIn('"PACK_EXITING","PACK_MOVING","PACKING","TAKING"',pack_permission)

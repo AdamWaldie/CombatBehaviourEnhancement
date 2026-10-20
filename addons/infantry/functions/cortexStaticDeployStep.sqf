@@ -4,6 +4,8 @@
  * Locality / Authority: Runs only on the current group owner from the shared group brain. It uses native backpack assembly and boarding actions on local AI actors; it never creates, teleports, rearms, repairs or force-seats a weapon.
  * A ready pair may deploy at its actual safe firing position instead of waiting for both actors to converge on one exact point.
  * After dropping, a still-owned gunner may make one short physical approach to the bag holder within the unchanged drop deadline.
+ * Native assembly/disassembly callbacks require the original phase deadline, exact handler and live
+ * feature/medical authority. Late physical results remain in the world without renewed CBE work.
  * Other squad members may manoeuvre beside an existing deployment; overlapping participants or withdrawal preempt it.
  * Repeat/JIP: One contact-episode record owns the exact pair, expected assembled class, position and resulting weapon. Each group-brain call advances at most one finite phase. Locality, Zeus, specialist or newer operation ownership retires CBE markers without issuing cleanup commands over the new owner. Failed deployment is not retried during the same contact episode.
  * Arguments: 0 group <GROUP>; 1 group state <HASHMAP>; 2 known enemies <ARRAY>; 3 allow post-contact packing <BOOL, default false>.
@@ -37,7 +39,10 @@ private _retire={
     // assignments/formation only for actors not claimed by that operation or an external owner.
     _commandFree=_commandFree || {[_group] call CBE_fnc_CortexExternalTakeover}
         || {[_record param [2,objNull,[objNull]]] call CBE_fnc_CompatibilityExternalControl}
-        || {[_record param [3,objNull,[objNull]]] call CBE_fnc_CompatibilityExternalControl};
+        || {[_record param [3,objNull,[objNull]]] call CBE_fnc_CompatibilityExternalControl}
+        || {[_record param [2,objNull,[objNull]],_record param [3,objNull,[objNull]]] findIf {
+            !isNull _x && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+        } >= 0};
     if (count _record >= 10) then {
         private _gunner=_record param [2,objNull,[objNull]];
         private _assistant=_record param [3,objNull,[objNull]];
@@ -148,6 +153,7 @@ if (count _record >= 10) exitWith {
             || {_status == "MOUNTING" && {_actor == _gunner} && {_command == "GET IN"}
                 && {!isNull _weapon} && {assignedVehicle _actor == _weapon}};
         !([_actor] call CBE_fnc_CortexCombatEffective)
+            || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
             || {!_ownedAction && {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}
     };
     if (_participantUnavailable >= 0) exitWith {
@@ -269,6 +275,11 @@ if (count _record >= 10) exitWith {
                     private _owner=group _actor;
                     private _current=_owner getVariable ["CBE_Danger_StaticDeployment",[]];
                     if (local _actor && {local _owner} && {local _assembled}
+                        && {time < (_current param [6,-1,[0]])}
+                        && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+                        && {[_owner,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                        && {[_owner,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                         && {(_current param [19,[],[[]]]) isEqualTo [clientOwner,_owner getVariable ["CBE_AIPass_Epoch",0]]}
                         && {[_actor] call CBE_fnc_CortexCombatEffective}
                         && {!(_actor in ((_owner getVariable ["CBE_Operation",createHashMap]) getOrDefault ["participants",[]]))}
@@ -521,6 +532,13 @@ if (count _record >= 10) exitWith {
                             && {_command != "DISASSEMBLE" || {_ownsDisassemble}}
                     };
                     if (local _actor && {local _owner} && {!isNull _assistant} && {local _assistant}
+                        && {time < (_current param [6,-1,[0]])}
+                        && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+                        && {[_owner,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                        && {[_owner,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                        && {(_assistant getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                        && {(_current param [10,-1,[0]]) == _thisEventHandler}
                         && {[_actor,true] call _taskFree} && {[_assistant,false] call _taskFree}
                         && {[_actor] call CBE_fnc_CortexCombatEffective}
                         && {[_assistant] call CBE_fnc_CortexCombatEffective}
@@ -603,6 +621,7 @@ if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0) exitWith {"I
 private _ready=(units _group) select {
     alive _x && {local _x} && {!isPlayer _x} && {vehicle _x == _x}
         && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {isNull assignedVehicle _x}
         && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}

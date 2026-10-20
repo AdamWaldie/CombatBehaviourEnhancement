@@ -207,7 +207,9 @@ if (count _staticDeployment >= 10) then {
         if ((_deployMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]) then {
             _deployGunner setVariable ["CBE_Cortex_ActorMove",nil];
         };
-        if (!_yieldToExternal && {!isNull _deployedWeapon}
+        if (!_yieldToExternal
+            && {(_deployGunner getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+            && {!isNull _deployedWeapon}
             && {assignedVehicle _deployGunner == _deployedWeapon}) then {
             [_deployGunner] orderGetIn false;
             unassignVehicle _deployGunner;

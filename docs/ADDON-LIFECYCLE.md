@@ -181,6 +181,10 @@ creates the two bags and the engine's bag actions return them to their original 
 contact before disassembly remounts the gunner; one arriving during disassembly lets the finite pack
 finish before the recovered team may deploy again. Authored movement, Zeus, specialist control,
 locality loss, casualties or timeout release CBE ownership without deleting the weapon or loose bags.
+Native assembly and disassembly receipts must match the current handler and phase deadline, with
+features still enabled and no queued treatment on the affected actors. A late result cannot orient
+the weapon or renew bag recovery. Physical equipment already produced remains in the world; these
+guards do not establish cancellation of an engine action already in progress.
 `CBE_AIPass_VehicleJink_Enable` is a next-operation control, default true. A slow, intact, crew-only
 armed ground vehicle may make one 25-second terrain-checked escape from a close hostile, hit or
 explosion generation. The response uses the shared operation and movement lease, covers 35-45 metres
