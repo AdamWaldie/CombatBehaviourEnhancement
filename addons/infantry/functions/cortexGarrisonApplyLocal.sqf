@@ -18,6 +18,7 @@
  * a new explicit order rebuilds candidates. This is not a permanent accessibility verdict.
  * Arrival and failure release only an unchanged CBE approach speed cap; newer speed commands survive.
  * Saved and applied speed values are published with the actor so owner adoption preserves restoration.
+ * Approach never raises an existing nonnegative speed cap; changed speed receipts yield further writes.
  * Approach stance also has a public applied-value lease for unchanged-stance restoration on release.
  * Transform-bound assignments are checked before initial/deferred commands and alternate-slot selection.
  * Reapplication preserves an already local, physically arrived PATH hold without reenabling
@@ -140,6 +141,22 @@ private _mayIssueMovement = {
         && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+};
+// This value lease is shared by initial entry and later exterior replacement. It never
+// rebases over a changed native cap, including a stricter mission-script speed command.
+private _applyApproachSpeed = {
+    params ["_actor"];
+    private _baseline=_actor getVariable ["CBE_Cortex_GarrisonForcedSpeed",[]];
+    private _applied=_actor getVariable ["CBE_Cortex_GarrisonAppliedSpeed",_baseline];
+    if (!(_baseline isEqualType 0) || {!finite _baseline}
+        || {!(_applied isEqualType 0)} || {!finite _applied}
+        || {abs ((getForcedSpeed _actor)-_applied) > 0.1}) exitWith {false};
+    private _cap=if (_baseline < 0) then {4} else {_baseline min 4};
+    if (_cap != _applied) then {_actor forceSpeed _cap};
+    if (isNil {_actor getVariable "CBE_Cortex_GarrisonAppliedSpeed"} || {_cap != _applied}) then {
+        _actor setVariable ["CBE_Cortex_GarrisonAppliedSpeed",_cap,true];
+    };
+    true
 };
 private _rememberMove = {
     params ["_actor","_target"];
@@ -301,10 +318,7 @@ private _buildingAnchor = {
         if (!_atPost && {[_unit] call _mayIssueMovement}) then {
             _unit setVariable ["CBE_Cortex_GarrisonAppliedStance","UP",true];
             _unit setUnitPos "UP";
-            _unit forceSpeed 4;
-            // Record the exact value CBE applied.  Release restores the previous value only
-            // while this lease is still intact, so a later controller's forced speed survives.
-            _unit setVariable ["CBE_Cortex_GarrisonAppliedSpeed",4,true];
+            [_unit] call _applyApproachSpeed;
             _unit doMove _target; [_unit,_target] call _rememberMove;
         };
     };
@@ -313,6 +327,7 @@ private _buildingAnchor = {
     params ["_job"];
     private _group = _job get "group";
     private _rememberMove = _job get "rememberMove";
+    private _applyApproachSpeed = _job get "applyApproachSpeed";
     private _buildingTopologyCache = _job get "buildingTopologyCache";
     if (isNull _group || {!local _group} || {(_group getVariable ["CBE_AIPass_Garrison", []]) isEqualTo []}) exitWith {-1};
     if ((_group getVariable ["CBE_AIPass_GarrisonGeneration", -1]) != (_job get "generation")) exitWith {-1};
@@ -448,8 +463,7 @@ private _buildingAnchor = {
                             (_job get "routes") set [netId _actor,[+_target,false,getPosATL _actor,time,0,[str _target],0,[],-1,[],false]];
                             _actor setVariable ["CBE_Cortex_GarrisonAppliedStance","UP",true];
                             _actor setUnitPos "UP";
-                            _actor setVariable ["CBE_Cortex_GarrisonAppliedSpeed",4,true];
-                            _actor forceSpeed 4;
+                            [_actor] call _applyApproachSpeed;
                             _actor doMove _target; [_actor,_target] call _rememberMove;
                         };
                     };
@@ -644,5 +658,5 @@ private _buildingAnchor = {
         };
     };
     [2, -1] select (_pending == 0)
-}, createHashMapFromArray [["group", _group], ["assignmentValid",_assignmentValid], ["assignmentArrived",_assignmentArrived], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", _deadline], ["generation", _generation]], 1] call CBE_fnc_CortexQueueJob;
+}, createHashMapFromArray [["group", _group], ["assignmentValid",_assignmentValid], ["assignmentArrived",_assignmentArrived], ["buildingTopologyCache",_buildingTopologyCache], ["routes",_routes], ["rememberMove",_rememberMove], ["applyApproachSpeed",_applyApproachSpeed], ["buildingEntries",_buildingEntries], ["buildingAnchor",_buildingAnchor], ["deadline", _deadline], ["generation", _generation]], 1] call CBE_fnc_CortexQueueJob;
 
