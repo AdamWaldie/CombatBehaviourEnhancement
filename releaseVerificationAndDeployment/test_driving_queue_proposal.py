@@ -102,6 +102,18 @@ class QueueProposalTests(unittest.TestCase):
                           'waitAndExecute','execFSM','serverTime+80','set ["deadline"','set ["expires"'):
             self.assertNotIn(forbidden,body)
         self.assertEqual(body.count('call CBE_fnc_DrivingQueueProposal;'),1)
+        fixture=(ROOT/'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text(encoding='utf-8')
+        natural=fixture.split('// Natural queue admission:',1)[1].split('// Sensor diagnostic only:',1)[0]
+        for forbidden in ('call CBE_fnc_DrivingQueueProposal','call CBE_fnc_DrivingQueueAgreementRequest',
+                          'remoteExec','forceSpeed','sendSimpleCommand','setDriveOnPath'):
+            self.assertNotIn(forbidden,natural)
+        for proof in ('QUEUE-natural-continuous-dwell','QUEUE-natural-physical-reverse',
+                      'QUEUE-natural-whole-hull-passage','QUEUE-natural-authored-continuation',
+                      'boundingBoxReal','modelToWorldWorld','_queueRestore',
+                      'QUEUE-natural-authored-route-retained','QUEUE-natural-original-lifetime',
+                      'waypointStatements','waypointAttachedObject','_queueOriginalUntil'):
+            self.assertIn(proof,natural)
+
         self.assertIn('_jam set ["attempts",(_jam get "attempts")+1]',s)
 
     def test_queue_broker_authenticates_each_owner_with_distinct_role_contract(self):

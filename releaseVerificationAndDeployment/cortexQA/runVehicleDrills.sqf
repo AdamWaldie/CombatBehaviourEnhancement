@@ -5,6 +5,7 @@
  * calm remount and damaged-armour withdrawal using live vehicles, including an active withdrawal
  * migrating from the server to a real headless owner before Zeus replacement.
  * Standalone driving also measures native travel, a condition-gated wait, resume and disabled cleanup.
+ * Normal-only head-on recovery observes natural admission, reverse, hull passage and route continuation.
  * Normal-only excluded tracked, wheeled MRAP and truck reverse-turn diagnostics observe real heading/travel and shared
  * sensor work; default and distinct-effective-commander wheeled/truck cases stay separate.
  * Turning counts must exceed22 straight/support rays, within70 total. These diagnostics do
@@ -1218,6 +1219,129 @@ deleteVehicle _driveVehicle;
 deleteGroup _driveGroup;
 [_drivePreviousSettings] call CBE_fnc_CortexTuning;
 
+
+// Natural queue admission: normal owner only. Initial placement and authored waypoints
+// are fixture inputs; no proposal, consent, COMMIT, speed, BACK or completion is injected.
+if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
+    private _queueKeys=["CBE_AIPass_Enable","CBE_AIPass_Contact_Enable",
+        "CBE_AIPass_DrivingAssist_Enable","CBE_AIPass_DrivingAssist_Recovery_Enable",
+        "CBE_AIPass_DrivingAssist_Queue_Enable"];
+    private _queueRestore=createHashMapFromArray (_queueKeys apply {[_x,missionNamespace getVariable [_x,false]]});
+    [createHashMapFromArray (_queueKeys apply {[_x,_x != "CBE_AIPass_Contact_Enable"]})] call CBE_fnc_CortexTuning;
+    private _queueVehicles=[];private _queueGroups=[];private _queueGoals=[];
+    {
+        _x params ["_start","_heading","_goal"];
+        private _v=createVehicle ["O_APC_Tracked_02_cannon_F",_start,[],0,"NONE"];
+        _v setDir _heading;
+        createVehicleCrew _v;
+        private _g=group driver _v;
+        _g setVariable ["CBE_Headless_ExcludeGroup",true,true];
+        _g setVariable ["acex_headless_blacklist",true,true];
+        {_x setVariable ["acex_headless_blacklist",true,true]} forEach units _g;
+        _g setBehaviour "AWARE";_g setCombatMode "BLUE";
+        private _wp=_g addWaypoint [_goal,0];_wp setWaypointType "MOVE";
+        _wp setWaypointCompletionRadius 5;_g setCurrentWaypoint _wp;
+        (driver _v) setVariable ["CBE_CortexQA_Label","NATURAL QUEUE",true];
+        (driver _v) setVariable ["CBE_CortexQA_Target",_goal,true];
+        _queueVehicles pushBack _v;_queueGroups pushBack _g;_queueGoals pushBack _goal;
+    } forEach [[[7188,7000,0],90,[7330,7000,0]],[[7212,7000,0],270,[7070,7000,0]]];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",_queueVehicles + (_queueVehicles apply {driver _x}),true];
+    ["Natural head-on queue recovery","Two ordinary authored routes oppose each other. Observe natural stationary dwell, one agreed recovery, real reverse travel and whole-hull passage, then onward travel. If native driving avoids the jam or negotiation never starts, this case fails readiness; the fixture supplies no queue requests or movement assistance.",[7200,7000,0]] call _phase;
+    private _queueReady=_queueVehicles findIf {isNull driver _x || {driver _x == effectiveCommander _x}
+        || {!local _x} || {!local group driver _x}} < 0;
+    private _queueReadAuthoredRoute={
+        params ["_routeGroup"];
+        (waypoints _routeGroup) apply {
+            [waypointType _x,waypointPosition _x,waypointStatements _x,waypointTimeout _x,
+                waypointCompletionRadius _x,waypointSpeed _x,waypointBehaviour _x,
+                waypointCombatMode _x,waypointScript _x,waypointAttachedVehicle _x,
+                waypointAttachedObject _x,synchronizedWaypoints _x,synchronizedTriggers _x]
+        }
+    };
+    private _queueAuthored=_queueGroups apply {[_x] call _queueReadAuthoredRoute};
+    private _queueRouteStable=true;private _queueLifetimeStable=true;private _queueOriginalUntil=-1;
+    private _queueDwell=-1;private _queueDwellProved=false;private _queueProposal=createHashMap;
+    private _queueRoot=objNull;private _queueYield=objNull;private _queueYieldOrigin=[];
+    private _queueAxis=[];private _queueReverse=false;private _queueCommitted=false;
+    private _queueCleared=false;private _queueAccepted=false;private _queueContinued=false;
+    private _queueBinding=[];
+    // Independent QA hull projection uses all eight model corners, not the production helper.
+    private _queueSpan={
+        params ["_object","_axis"];
+        private _bounds=boundingBoxReal _object;private _values=[];
+        {private _cx=_x;{private _cy=_x;{
+            _values pushBack ((_object modelToWorldWorld [_cx,_cy,_x]) vectorDotProduct _axis);
+        } forEach [(_bounds select 0) select 2,(_bounds select 1) select 2];
+        } forEach [(_bounds select 0) select 1,(_bounds select 1) select 1];
+        } forEach [(_bounds select 0) select 0,(_bounds select 1) select 0];
+        [selectMin _values,selectMax _values]
+    };
+    private _queueEnd=diag_tickTime+160;
+    while {_queueReady && {diag_tickTime < _queueEnd} && {!_queueContinued}} do {
+        {
+            if (([_x] call _queueReadAuthoredRoute) isNotEqualTo (_queueAuthored select _forEachIndex)) then {
+                _queueRouteStable=false;
+            };
+        } forEach _queueGroups;
+        private _still=_queueVehicles findIf {vectorMagnitude velocity _x >= (1/3.6)
+            || {vectorMagnitude angularVelocity _x >= 0.01}} < 0;
+        if (_still) then {if (_queueDwell < 0) then {_queueDwell=serverTime}} else {_queueDwell=-1};
+        if (count _queueProposal == 0) then {
+            {
+                private _journal=_x getVariable ["CBE_DrivingTrafficRetry",createHashMap];
+                private _candidate=_journal getOrDefault ["queueAutoProposal",createHashMap];
+                if (count _candidate > 0) exitWith {
+                    _queueProposal=_candidate;
+                    _queueOriginalUntil=_candidate get "retryDeadline";
+                    _queueDwellProved=_queueDwell >= 0 && {serverTime-_queueDwell >= 19.5};
+                    _queueRoot=(_candidate get "vehicles") select 0;
+                    _queueYield=(_candidate get "vehicles") select 1;
+                    _queueYieldOrigin=getPosWorld _queueYield;
+                    _queueAxis=vectorDir _queueRoot;_queueAxis set [2,0];_queueAxis=vectorNormalized _queueAxis;
+                };
+            } forEach _queueVehicles;
+        } else {
+            private _consent=_queueRoot getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+            if ((_consent getOrDefault ["serial",-2]) == (_queueProposal get "requestSerial")
+                && {(_consent getOrDefault ["context",[]]) isEqualTo (_queueProposal get "context")}
+                && {_consent getOrDefault ["committed",false]}) then {
+                _queueCommitted=true;
+                private _observedBinding=[_consent get "token",_consent get "expires"];
+                if ((_consent get "expires") > _queueOriginalUntil || {
+                    _queueBinding isNotEqualTo [] && {_queueBinding isNotEqualTo _observedBinding}
+                }) then {_queueLifetimeStable=false};
+                if (_queueBinding isEqualTo []) then {_queueBinding=_observedBinding};
+            };
+            if (((getPosWorld _queueYield) vectorDiff _queueYieldOrigin) vectorDotProduct _queueAxis > 1
+                && {(velocity _queueYield) vectorDotProduct (vectorDir _queueYield) < -0.1}) then {_queueReverse=true};
+            private _rootSpan=[_queueRoot,_queueAxis] call _queueSpan;
+            private _yieldSpan=[_queueYield,_queueAxis] call _queueSpan;
+            if ((_rootSpan select 0) > (_yieldSpan select 1)+1) then {_queueCleared=true};
+            private _work=_queueRoot getVariable ["CBE_DrivingBypass_Work",createHashMap];
+            if (_queueBinding isNotEqualTo [] && {
+                ((_work getOrDefault ["queueClearanceAccepted",[]]) select [0,2]) isEqualTo _queueBinding
+            } && {_work getOrDefault ["queueCrossed",false]}) then {_queueAccepted=true};
+            _queueContinued=_queueCleared;
+            {
+                if (_x distance2D (_queueGoals select _forEachIndex) > 65) then {_queueContinued=false};
+            } forEach _queueVehicles;
+        };
+        sleep 0.2;
+    };
+    ["QUEUE-natural-fixture-ready",_queueReady] call _check;
+    ["QUEUE-natural-continuous-dwell",_queueDwellProved] call _check;
+    ["QUEUE-natural-owner-commit",_queueCommitted] call _check;
+    ["QUEUE-natural-physical-reverse",_queueReverse] call _check;
+    ["QUEUE-natural-whole-hull-passage",_queueCleared] call _check;
+    ["QUEUE-natural-accepted-completion",_queueAccepted] call _check;
+    ["QUEUE-natural-authored-continuation",_queueContinued] call _check;
+    ["QUEUE-natural-authored-route-retained",_queueRouteStable] call _check;
+    ["QUEUE-natural-original-lifetime",_queueCommitted && {_queueLifetimeStable}] call _check;
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+    {{deleteVehicle _x} forEach crew _x;deleteVehicle _x} forEach _queueVehicles;
+    {deleteGroup _x} forEach _queueGroups;
+    [_queueRestore] call CBE_fnc_CortexTuning;
+};
 
 // Sensor diagnostic only: native inputs are fixture stimuli, never a CBE result/brain injection.
 // Keep this distinct from production withdrawal and the intentionally straight convoy case.

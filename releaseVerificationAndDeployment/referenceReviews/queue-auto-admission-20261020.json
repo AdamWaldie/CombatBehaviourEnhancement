@@ -118,5 +118,26 @@
       "source": "776f50b0 plus intended dirty finish-request edits"
     },
     "physicalAcceptance": false
+  },
+  "naturalFixture": {
+    "baselineCommit": "f21b33f3",
+    "path": "releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf",
+    "sha256": "0ea62c3951a125214a4efcc75b6238532f95f7a6f372be3b12705fc17fc93de6",
+    "scope": "Normal-owner two tracked vehicles with authored opposing MOVE routes. Separate dwell, commit, reverse travel, independent eight-corner whole-hull passage, bound accepted completion and onward physical travel observations. Also samples native waypoint metadata without commands and rejects changed consent token/expiry or expiry beyond the original traffic-retry deadline.",
+    "nonInjection": "Initial actors/heading/waypoints and opt-in tuning only. No direct proposal, request, COMMIT, speed, BACK, path, roles, success or teleport assistance after setup. Original settings restored; normal and HC remain separate.",
+    "limits": [
+      "UNRUN; missing natural jam/readiness is a failure, never a manufactured pass.",
+      "Not HC, angled junction, obstacle-rich road, chain, repeat-use, casualty, collision or performance acceptance."
+    ],
+    "sourceReview": "HBQ fn_driveAssist lines1587-1640 uses asymmetric yield/pass, crossing-angle deadlocks and side push. Current CBE crossing selector agrees one role by supported reverse crew then stable netId. Angled junction behavior remains absent; no physics push copied.",
+    "validation": {
+      "tests": 1477,
+      "newUnitCases": 0,
+      "build": ".qa/cbe-natural-queue-contract-build.log",
+      "independent": ".qa/cbe-natural-queue-contract-independent.log",
+      "fingerprint": "dc3c606bb454c1ead14a42e690a227f8753a49972f8f3b21148ddac68df25ae1",
+      "source": "f21b33f3 plus dirty intended fixture/test edits"
+    },
+    "physicalAcceptance": false
   }
 }
