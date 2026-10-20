@@ -91,5 +91,66 @@
       "Native BACK/STOP and handback capabilities across crew layouts/classes remain unaccepted.",
       "Full crossing route planner, dynamic collision, support sampling, failures, repeated queues and performance still require broader review/physical evidence."
     ]
+  },
+  "plannerScopeFollowup": {
+    "baseline": "015c8755",
+    "supersedesBlanketGapClaimsIn": [
+      "adaptive-rear-recovery-20261019.json:headOnGap",
+      "hbq-rear-support-20261020.json:remaining"
+    ],
+    "finding": "Same-direction DrivingPassPlan heading refusal does not prove missing queue crossing. Actual CROSS_PLAN dispatch calls DrivingBypassPlan queue mode, never DrivingPassPlan.",
+    "path": "Stable crossing role -> dependency BACK/STOP holds -> CROSS_PLAN(one side, alternate at most once) -> full held hull union, smooth forward ramp or straight clear corridor -> existing sampled PathGeometry -> allowner CROSS_ARM/path ACK -> private root motion grant -> BypassStep native setDriveOnPath -> path index plus fullhull tail plane -> zero cap/rest -> server independent CROSS_CLEAR -> exact completionbinding and accepted release.",
+    "implementedLimits": "Queue rear roles use existing8/6 or3.5/2 clearance/travel envelopes. Source BackReq3m repeated push/sidepush intent is not copied. Current planner can refuse insufficient ramp room after these bounded legs. An executor is present; adaptive room-making sufficient for close opposing hulls is not established.",
+    "arithmeticIllustration": {
+      "input": "Pure projected bounds x[-2,2], y[10,18], circumscribed radius6, right side; not an engine measurement.",
+      "ramp": 23.56444211124489,
+      "requiredBack": 22.564442111244887,
+      "meaning": "A6m reverse cannot by itself guarantee the missing longitudinal ramp room in this example. Do not claim generic close headon resolution."
+    },
+    "nextImplementationRequirement": "If expanding closeheadon recovery, derive bounded requested room from actual held hull/ramp geometry and carry it through existing rear dependency/owner agreement within original expiry. Revalidate all rear support and actor occupancy; do not loosen ordinary overtaking, replay native movement or add a parallel controller.",
+    "correction": "Planner header incorrectly said no crossing executor consumes proposals. Updated documentation only; executable behaviour unchanged.",
+    "validation": "31 existing bypass and9 existing queue-proposal tests pass .qa/queue-planner-scope-bypass.log and .qa/queue-planner-scope-queue.log. Diff whitespace clean. Comment/engineering-only; no full pipeline/package rebuild or Arma run, no executable change. No physical/parity/percentage claim.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingQueuePairGeometry.sqf",
+        "sha256": "6be1aa9d5edaa08e03ca7dbb652536b6446f46f4c56c27af7d851a239a046210"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
+        "sha256": "d4c6e17c0a2ef74fcd5f6afa4fd19196906be9f3261a32de860bdcbfbfdd538b"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassPlan.sqf",
+        "sha256": "eb2b610f90085871d1d70499ff22cfa23dad9de246d466d57a7b5e90b26bc559"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassRoom.sqf",
+        "sha256": "643a988aec673101135ab0adb684f908ba749ad069d827d367bdea9e2e06fc4f"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassStep.sqf",
+        "sha256": "903c95be0954e958ed8e913e30c3b413dc21f244685d729805b74b4b9cbbcbc5"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassRelease.sqf",
+        "sha256": "89b34055681777ce84c870af734c9da1e2200c54434bd95befa182d12d6e09ac"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+        "sha256": "a0844d25be80edcd7a490e2ecdbaf48678861c64d6dc41ffc547a68a89ab32f8"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+        "sha256": "24e8a5a95ab24b714161eb937861d41dba8cd3532ab0658e42410d32f3649e1d"
+      }
+    ]
   }
 }

@@ -13,7 +13,8 @@
  * unchanged local crossing root after all dependency legs hold may use this mode.
  * It projects every held queue hull; it never relaxes ordinary static-obstacle admission.
  * Queue proposals append an eighth field [token,expires,phaseSerial,participantPoses].
- * No queue crossing executor consumes these proposals yet; they grant no movement.
+ * The authenticated queue broker freezes accepted proposals for DrivingBypassStep. A proposal
+ * alone grants no movement; all-owner path acknowledgements and the current root grant are required.
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY,
  * obstacle transform ARRAY, vehicle transform ARRAY, rayCount NUMBER].
  * Limits: stationary STATIC object only (vehicle hulls must remain engine-off and unoccupied), observation <=1.5 seconds old/50 m away, vehicle <=8 km/h;
@@ -23,7 +24,7 @@
  * Missing ramp room refuses instead of asking native steering for a right-angle lateral step.
  * The radius deliberately overbounds turn footprint; no turning-radius or native steering success
  * is implied. Unsupported terrain/moving objects, large hulls or missing support refuse.
- * Current callers: DrivingBypassStep and trusted diagnostic/script preflight.
+ * Current callers: DrivingBypassStep, DrivingQueueAgreementOwner CROSS_PLAN and trusted preflight.
  * Example: [truck1,_solidObservation,-1] call CBE_fnc_DrivingBypassPlan;
  */
 params [["_vehicle",objNull,[objNull]],["_observed",[],[[]]],["_side",1,[0]],["_envelope",[],[[]]],["_queueAgreement",createHashMap,[createHashMap]]];
