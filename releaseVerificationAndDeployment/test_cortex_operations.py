@@ -8784,6 +8784,12 @@ class CortexOperations(unittest.TestCase):
     def test_station_selection_reuse_requires_complete_same_frame_scan_and_fresh_fire_check(self):
         ready=source('cortexGroundFireReady')
         selector=source('cortexGroundSelectMuzzle')
+        for proof in ('weaponState [_asset,_turret,_weapon,_muzzle]',
+                      '(_loaded select 3) != _magazine','finite (_loaded select 4)',
+                      '(_loaded select 4) <= 0','(_selected param [3,"",[""]]) == _magazine',
+                      'finite _rounds && {_rounds > 0}'):
+            self.assertIn(proof,selector)
+        self.assertLess(selector.index('(_loaded select 3) != _magazine'),selector.index('selectWeaponTurret'))
         for proof in ('_asset turretLocal _turret','fullCrew [_asset','weaponState [_asset,_turret]',
                       '_asset selectWeaponTurret [_weapon,_turret,_muzzle]',
                       '(_selected param [0,""]) == _weapon','(_selected param [1,""]) == _muzzle'):
