@@ -91,5 +91,24 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "suppressionMinimumRange20261020": {
+    "baseline": "1cefbc9b",
+    "finding": "Near-objective clipping could resolve a face too close to shooter; source doSuppress checks final adjusted range.",
+    "upstream": "LAMBS main/settings.inc.sqf minSuppressionRange slider1..500 default50; doSuppress checks distance after clipping.",
+    "implementation": "CBE uses existing20m close-threat domain: reject beliefproxy<20 before rays and resolvedpoint<20 before friendlycone/fire. No new setting; direct close engagement remains independent.",
+    "sourceSHA256": "22be58a7653ab558011e5e5900cc671c4973217e5a2a2fd653c57e2afa4fd79e",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-suppress-close-final-build.log",
+      "retainedInitialFailure": ".qa/cbe-suppress-close-build.log upstream comparison named in shipped lifecycle docs; moved comparison into engineering review.",
+      "independent": ".qa/cbe-suppress-close-independent.log",
+      "candidate": ".qa/candidates/suppress-close-1cefbc9b",
+      "fingerprint": "ae6aa48f667fbae1253caee9400807738843de4cee59fcfb3a30ce814df70813"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

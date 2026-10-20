@@ -6503,6 +6503,13 @@ class CortexOperations(unittest.TestCase):
                        '_unit doSuppressiveFire _aimASL','_cursor+(_geometryChecks max 1)'):
             self.assertIn(marker,suppression)
         self.assertNotIn('doMove',suppression)
+        self.assertLess(suppression.index('(_from vectorDistance _targetASL) >= 20'),
+                        suppression.index('lineIntersectsSurfaces'))
+        self.assertLess(suppression.index('_from vectorDistance _aimASL >= 20'),
+                        suppression.index('_unit doSuppressiveFire _aimASL'))
+        for belief,face,allowed in ((30,29,True),(30,19,False),(19,19,False),(20,20,True)):
+            self.assertEqual(belief>=20 and face>=20,allowed)
+
         fire=source('cortexFireControl')
         eligible=fire.split('private _eligible =',1)[1].split('private _reservedActors=',1)[0]
         for guard in ('simulationEnabled _x','!isObjectHidden _x','_x checkAIFeature "FIREWEAPON"'):

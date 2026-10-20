@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Suppression assesses at most three actor lanes per pass: terrain veto, one FIRE/GEOM hit,
  * near-objective cover face within three metres, then the protected-actor cone at the issued point.
+ * Both belief proxy and resolved face remain outside the existing20m close-threat domain.
  * Blocked batches rotate candidates. Raw belief remains unchanged; this never issues movement.
  * Hidden, simulation-disabled or FIREWEAPON-disabled actors receive no scripted fire assignment.
  * These are live admission gates; no native permission or simulation state is changed.
@@ -289,7 +290,9 @@ if (_suppressPos isNotEqualTo []) then {
                         _geometryChecks=_geometryChecks+1;
                         private _from=eyePos _unit;
                         private _aimASL=+_targetASL;
-                        private _clear=!terrainIntersectASL [_from,_targetASL];
+                        // Keep suppression outside the existing20m close-threat domain.
+                        private _clear=(_from vectorDistance _targetASL) >= 20
+                            && {!terrainIntersectASL [_from,_targetASL]};
                         if (_clear) then {
                             private _hits=lineIntersectsSurfaces [_from,_targetASL,_unit,objNull,true,1,"FIRE","GEOM"];
                             if (_hits isNotEqualTo []) then {
@@ -303,7 +306,8 @@ if (_suppressPos isNotEqualTo []) then {
                                 };
                             };
                         };
-                        if (_clear && {[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear}) then {
+                        if (_clear && {_from vectorDistance _aimASL >= 20}
+                            && {[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear}) then {
                         _unit doSuppressiveFire _aimASL;
                         _unit setVariable ["CBE_AIPass_LastSuppress", _now];
                         _group setVariable ["CBE_AIPass_SuppressCursor",(_cursor + 1) mod count _ranked];
