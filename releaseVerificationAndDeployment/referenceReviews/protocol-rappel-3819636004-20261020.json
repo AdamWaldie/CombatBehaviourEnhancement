@@ -101,5 +101,12 @@
     "validation": "1479 tests, HEMTT/full build and source/API comparison passed; no Arma run.",
     "physicalAcceptance": false,
     "performanceMeasured": false
+  },
+  "flightBoundaryFollowup": {
+    "baseline": "3d53c0c0",
+    "finding": "CortexAircraftEligible already reads declared/provider airframe ownership, but FlightLeaseAcquire/Valid fast paths checked pilot/group only. AR bulk control marks helicopter rather than pilot, allowing a CBE fast flight write between slower planner checks.",
+    "implementation": "Both lease admission and fast mutation predicate now read shared CompatibilityExternalControl on airframe before lease permission. No provider-specific flags duplicated in flight layer; lease release remains exact identity only. Existing air-attack and landing/braking paths use FlightLeaseValid to stop/retire their own commands.",
+    "validation": "1479 existing tests/full HEMTT build passed; no runtime handover/performance proof.",
+    "remaining": "Finite per-actor cargo insertion, stable flight ownership, provider slot/physical completion/abort and normal/HC handover remain incomplete. This is a takeover safeguard, not completed rappelling."
   }
 }

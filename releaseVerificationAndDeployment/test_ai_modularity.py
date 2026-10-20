@@ -272,6 +272,12 @@ class ExtendedSourceOwnershipContracts(unittest.TestCase):
         self.assertIn('[_aircraft] call CBE_fnc_CompatibilityExternalControl', aircraft)
         self.assertIn('[_x] call CBE_fnc_CortexExternalOwner != ""', aircraft)
         self.assertIn('CBE_fnc_CortexExternalOwner', src('cortexIsEligible'))
+        for name in ('flightLeaseAcquire','flightLeaseValid'):
+            lease=src(name)
+            self.assertLess(lease.index('[_aircraft] call CBE_fnc_CompatibilityExternalControl'),
+                            lease.index('getVariable ["CBE_FlightLease"'))
+            self.assertNotIn('AR_Units_Rappelling',lease)
+
 
     def test_specialist_actors_are_excluded_from_skill_layers_as_well_as_tactics(self):
         profile = src('aiApplyProfile')
