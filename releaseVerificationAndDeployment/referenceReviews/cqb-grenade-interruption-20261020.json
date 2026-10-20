@@ -52,5 +52,13 @@
     "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed",
     "candidate": ".qa/candidates/cqb-evasion-return-e9542b20",
     "fingerprint": "97ebf6aacd4ecc7a2ed3364dce2d28cb6496b5c774f70b4e59a03d27c8cedb5a"
+  },
+  "acknowledgementWindow": {
+    "finding": "Immediate escape destination acknowledgement was required for lane retention; asynchronous native acknowledgement could therefore trigger replacement first.",
+    "implementation": "Retain unchanged original room destination for first two seconds of the original six-second evasion lease, only with exact original ClearMotion, visit context, lease/escape/expiry, operation, epoch and issuing client. No native command or clock writes.",
+    "candidate": ".qa/candidates/cqb-evasion-ack-98bac596",
+    "fingerprint": "9ed16c710fd07b2dad5fee68a39cd701c71caf145d9b27d3383ca7df3b8465d7",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed",
+    "limits": "Actual delayed acknowledgement/repeated evasion/migration and runtime overhead unverified; audits paused."
   }
 }

@@ -3,7 +3,8 @@
  * Room exhaustion requires failures from every currently capable lane; inactive lane
  * failures cannot replace another lane attempt, and no capable lanes proves no clearance.
  * The original configured lane count still bounds retries after casualties.
- * A live acknowledged grenade evasion retains lane identity/claims without movement or
+ * A live grenade evasion retains lane identity/claims after native acknowledgement or
+ * during a two-second unchanged-original-destination wait within the same lease, without movement or
  * deadline renewal. Return from an acknowledged interrupted room MOVE requires an exact
  * local escape/clearance receipt; the existing room writer chooses and issues the current leg.
  * Partner entry stall timing accepts actual motion on its unchanged owned native leg,
@@ -233,25 +234,41 @@ private _delay=call {
             _lane,_key,_mover,+_intended,getPosASL _actor,expectedDestination _actor,
             currentCommand _actor,speed _actor,_entered,unitReady _actor]];
     };
-    private _acknowledgedEvasion={
+    private _retainedEvasion={
         params ["_actor"];
-            private _lease=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-            private _native=(expectedDestination _actor) param [0,[]];
-            _lease isEqualType [] && {count _lease == 3}
-                && {(_lease select 0) isEqualTo "GRENADE_EVASION"}
-                && {(_lease select 1) isEqualType []} && {count (_lease select 1) == 3}
-                && {(_lease select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-                && {(_lease select 2) isEqualType 0} && {finite (_lease select 2)}
-                && {time < (_lease select 2)} && {(_lease select 2)-time <= 6}
-                && {count _native == 3} && {_native vectorDistance (_lease select 1) <= 0.25}
-                && {currentCommand _actor in ["","MOVE"]}
-                && {simulationEnabled _actor} && {!isObjectHidden _actor}
-                && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []};
+        private _lease=_actor getVariable ["CBE_Cortex_ActorMove",[]];
+        private _native=(expectedDestination _actor) param [0,[]];
+        private _valid=_lease isEqualType [] && {count _lease == 3}
+            && {(_lease select 0) isEqualTo "GRENADE_EVASION"}
+            && {(_lease select 1) isEqualType []} && {count (_lease select 1) == 3}
+            && {(_lease select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {(_lease select 2) isEqualType 0} && {finite (_lease select 2)}
+            && {time < (_lease select 2)} && {(_lease select 2)-time <= 6}
+            && {count _native == 3} && {currentCommand _actor in ["","MOVE"]}
+            && {simulationEnabled _actor} && {!isObjectHidden _actor}
+            && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []};
+        if (!_valid) exitWith {false};
+        if (_native vectorDistance (_lease select 1) <= 0.25) exitWith {true};
+        // Native escape acknowledgement may lag issue. Retain only the original
+        // proven room destination for two seconds of this same six-second lease.
+        // This is not escape progress, movement permission or an extended deadline.
+        private _return=_actor getVariable ["CBE_Cortex_ClearEvasionReturn",[]];
+        if (count _return != 6 || {(_lease select 2)-time <= 4}) exitWith {false};
+        private _receipt=_return select 0;
+        count _receipt == 5 && {(_receipt select 0) isEqualTo _group}
+            && {(_receipt select 1) isEqualTo (_job getOrDefault ["visitContext",[]])}
+            && {_receipt isEqualTo (_actor getVariable ["CBE_Cortex_ClearMotion",[]])}
+            && {(_return select 1) isEqualTo (_lease select 1)}
+            && {(_return select 2) isEqualTo (_lease select 2)}
+            && {(_return select 3) == (_job get "ownerEpoch")}
+            && {(_return select 4) == (_job get "operationGeneration")}
+            && {(_return select 5) == clientOwner}
+            && {_native isEqualTo (_receipt select 3)}
     };
     private _actorAvailable={
         params ["_actor",["_retainEvasion",false]];
         private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
-        if (!_free && {_retainEvasion}) then {_free=[_actor] call _acknowledgedEvasion};
+        if (!_free && {_retainEvasion}) then {_free=[_actor] call _retainedEvasion};
         [_actor] call CBE_fnc_CortexCombatEffective && {local _actor} && {!isPlayer _actor}
             && {group _actor == _group} && {isNull objectParent _actor} && {_free}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}

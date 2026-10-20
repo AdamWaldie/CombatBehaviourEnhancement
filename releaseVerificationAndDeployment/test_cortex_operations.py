@@ -10051,6 +10051,12 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_replacement_updates_shared_pairs_without_restarting_routes(self):
         text=source('buildingOperationStep')
+        retention=text.split('private _retainedEvasion={',1)[1].split('private _actorAvailable=',1)[0]
+        for proof in ('(_lease select 2)-time <= 4','(_return select 2) isEqualTo (_lease select 2)',
+                      '_native isEqualTo (_receipt select 3)','(_return select 5) == clientOwner'):
+            self.assertIn(proof,retention)
+        for forbidden in ('doMove','setVariable','deadline",'):
+            self.assertNotIn(forbidden,retention.split('// This is not escape progress',1)[-1])
         handback=text.split('private _evasionReturnOwned={',1)[1].split('// Preserve native replacement tasks',1)[0]
         for proof in ('_issuer == clientOwner','_epoch == (_job get "ownerEpoch")',
                       '_operationId == (_job get "operationGeneration")','time >= _expiry',
