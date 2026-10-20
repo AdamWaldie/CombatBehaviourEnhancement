@@ -682,5 +682,18 @@
       "limits": "Future node edits with unchanged currentreceipt/count and same-value unmarked native commands remain ambiguous; old native command quiescence/actual HC migration/performance unproven. No physical or parity credit.",
       "validation": "Focused609/full1482 existing tests, HEMTT/SQF/config/FSM/docs/package passed .qa/withdraw-native-order-build.log. Unsigned candidate .qa/candidates/withdraw-native-order-a450a539 independently verified fingerprint1e286c6755afe7638b9313371bf6ed55c79f998ba3aa88a72b11fe8e94ffce68. No runtime claim."
     }
+  },
+  "nativeAttackMobilityFollowup": {
+    "baseline": "8c3c870d",
+    "source": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf",
+    "sourceSha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    "sourceIntent": "Preserve useful BUSY assault destination near the hide point; assault stance remains UP/MIDDLE rather than repeated prone. No upstream target-transform or route writer copied.",
+    "finding": "DangerEngineAct recognised native MOVE, moving FOLLOW and planning, but moving ATTACK could remain noncommitted and receive DOWN during immediate danger. Group hide/cover already require stationary actors.",
+    "implementation": "Actual speed at least0.5 km/h marks mobile posture regardless of command; native MOVE and INIT/PLANNING/REPLAN remain protected at rest. Reuse one speed sample for movement/evasion/stealth posture checks.",
+    "limits": "No new route or target authority. Stationary BUSY ATTACK is not automatically claimed as travel. Existing idle danger responses remain. Physical native assault/CQB continuity, balance and performance unverified.",
+    "validation": "Existing609 source-contract checks passed; full build result in handover.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

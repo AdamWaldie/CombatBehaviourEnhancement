@@ -5,7 +5,8 @@
  * Repeat/JIP: Uses one machine-local, expiring weak-stance lease. A repeated danger response retains
  * the original authored stance and refreshes only CBE's applied value. Native or external stance
  * changes invalidate the lease and are not overwritten. A committed mover is never forced prone.
- * Native MOVE, moving FOLLOW and INIT/PLANNING/REPLAN tasks retain mobile posture as scripted movers do.
+ * Native MOVE, actual actor motion and INIT/PLANNING/REPLAN retain mobile posture as scripted movers do.
+ * This includes engine ATTACK travel, whose command label does not identify an idle rifleman.
  * Idle prone riflemen may perform one native lateral evasion after a hit or near round.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
  * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
@@ -81,11 +82,12 @@ if (count _operation > 0 && {count _drill > 0}
 if ([_actor] call CBE_fnc_CortexActorMoveReserved) then {_committedMover=true;};
 // Ordinary native routes deserve the same mobility as scripted manoeuvres. A stationary
 // path-planning actor is not idle permission to roll or pin prone before its move begins.
-// Formation travel commonly uses FOLLOW rather than MOVE. Actual motion protects the follower
-// without treating an idle formation member as a permanently committed mover. Speed is km/h;
-// the 0.5 threshold matches the existing stationary evasion boundary below.
+// Native assault travel commonly uses ATTACK, while formation travel uses FOLLOW. Actual
+// motion protects either without treating a stationary combatant as a permanent mover.
+// Sample speed once for this unscheduled response; the existing 0.5 km/h evasion threshold applies.
+private _actorSpeed=abs (speed _actor);
 private _nativeRouteTask=currentCommand _actor == "MOVE"
-    || {currentCommand _actor == "FOLLOW" && {abs (speed _actor) >= 0.5}}
+    || {_actorSpeed >= 0.5}
     || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]};
 if (_nativeRouteTask) then {_committedMover=true};
 // An idle prone rifleman can react physically without a new destination or a tactical worker.
@@ -94,7 +96,7 @@ if (_nativeRouteTask) then {_committedMover=true};
 if (_mode == "IMMEDIATE" && {_cause in [2,9]} && {!_committedMover}
     && {[_group,"CBE_AIPass_DangerEvasion_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {isNull objectParent _actor} && {stance _actor == "PRONE"}
-    && {abs (speed _actor) < 0.5}
+    && {_actorSpeed < 0.5}
     && {currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]}
     && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
     && {primaryWeapon _actor != ""} && {currentWeapon _actor == primaryWeapon _actor}
@@ -149,7 +151,7 @@ if (_mode == "ENGAGE") then {
     // weak, expiring stance and is never applied to a committed mover.
     private _stealthHold=behaviour _actor == "STEALTH"
         && {combatMode _group in ["BLUE","GREEN"]}
-        && {abs (speed _actor) < 1}
+        && {_actorSpeed < 1}
         && {!_committedMover};
     if (_stealthHold) then {
         _desiredStance="DOWN";
