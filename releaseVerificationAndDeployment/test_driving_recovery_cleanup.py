@@ -96,6 +96,17 @@ class RecoveryCleanupTests(unittest.TestCase):
         self.assertLess(release.index('getOrDefault ["commandMode","DESTINATION"]'),release.index('private _retainAcrossLocality='))
         self.assertIn('if (_lookup && {_attempt < 5}',text)
         self.assertIn('[_vehicle,true,_attempt+1,_epoch],1]',text)
+        edge=text.split('if (_nativeEdge) then {',1)[1].split('if (_epoch ==',1)[0]
+        self.assertIn('serverTime+5',edge)
+        self.assertIn('(_status select 4) != clientOwner',edge)
+        reuse=text.split('private _edge=_vehicle getVariable',1)[1].split('private _transfer=',1)[0]
+        self.assertIn('_edge select 2',reuse)
+        self.assertNotIn('serverTime+',reuse)
+        self.assertIn('CBE_AIPass_LocalHandler',reuse)
+        self.assertNotIn('addEventHandler',text)
+        xeh=(ROOT/'addons/main/XEH_postInit.sqf').read_text()
+        self.assertIn('[_this select 0,_this select 1,0,-1,true] call CBE_fnc_DrivingRecoveryAdopt',xeh)
+
         self.assertIn('getOrDefault ["releasePending",false]',text)
         self.assertNotIn('call CBE_fnc_DrivingAssistRelease',text)
         self.assertNotIn('forceSpeed',text)

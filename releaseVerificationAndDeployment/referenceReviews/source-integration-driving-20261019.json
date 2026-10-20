@@ -509,5 +509,29 @@
     },
     "physical": false,
     "scoresChanged": false
+  },
+  "abortDisabledVehicleEdgeFollowUp20261020": {
+    "baseline": "ca1ba54e",
+    "finding": "Master stop removes group Local handler; later disabled-mode vehicle migration could not capture source identity for released abort cleanup.",
+    "change": "Existing native vehicle Local callback explicitly marks actual edge. Only while tactics disabled it captures prior published driving identity and group in local vehicle proposal, five-second original window. Existing bounded lookup may bind proposal to current local group epoch only when exact released owner matches and tactical group handler absent. Init/crew retries cannot create or renew edge; existing exact handback helper validates native/route/crew/baseline/successor. No new handler/timer, tactical activation or movement at adoption.",
+    "sources": {
+      "addons/main/XEH_postInit.sqf": "bbdeda2519c79f65bd83fc44a7f795636f726454a7acf39eeae1be35c3918c0b",
+      "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "245668b996ea468d457c32a8ce48e58e329acb4bfddb24acc7d74a1e0be48f68"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-abort-disabled-build.log",
+      "independent": ".qa/cbe-abort-disabled-independent.log",
+      "candidate": ".qa/candidates/abort-disabled-ca1ba54e-9f1fd2ba",
+      "fingerprint": "9f1fd2ba56d27021a845ab9130158df529bc3daf49869582cb17ee99c93030eb",
+      "source": "ca1ba54e plus intended dirty disabled-mode edge edits"
+    },
+    "remaining": [
+      "No observed vehicle edge, absent source status or delivery beyond finite window cannot adopt.",
+      "Actual disabled-mode split arrival, normal/providerHC repeated transfer, physical continuation and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

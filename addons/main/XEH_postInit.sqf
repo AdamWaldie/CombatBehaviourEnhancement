@@ -34,12 +34,13 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
 },true,[],true] call CBA_fnc_addClassEventHandler;
 
 // Driving cleanup adoption stays available with tactical scheduling disabled.
+// Only the actual vehicle Local edge supplies disabled-mode source identity; init/crew callbacks cannot invent it.
 // Init/Local/GetIn/SeatSwitched install once per native vehicle; no polling or movement replay.
 ["LandVehicle","init",{
     params ["_vehicle"];
     if (isNil {_vehicle getVariable "CBE_DrivingRecovery_LocalEH"}) then {
         _vehicle setVariable ["CBE_DrivingRecovery_LocalEH",_vehicle addEventHandler ["Local",{
-            _this call CBE_fnc_DrivingRecoveryAdopt;
+            [_this select 0,_this select 1,0,-1,true] call CBE_fnc_DrivingRecoveryAdopt;
         }]];
     };
     // A crew member can board or change driving seats after locality has settled.
