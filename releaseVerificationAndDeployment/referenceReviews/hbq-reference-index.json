@@ -137,6 +137,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/convoy-seat-availability-20261020.json",
+      "sha256": "895053b1dffb536251fa2410147a02f5b0f5276cce5976efd2f89ae8163ceb56",
+      "scope": "Current mixed-convoy pacing and competing obstacle caps; actual-seat mutation admission. Selected HBQ ranges only.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/crew-return-execution-boundary-20261019.json",
       "sha256": "f546843ae75545f6a7f17cb870b1845f6fc03f00104e5c038373379649a85dfe",
       "scope": "HBQ crew-left-behind intent and CBE passenger/crew boundary",
@@ -189,6 +198,13 @@
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
       ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-current-queue-execution-20261020.json",
+      "sha256": "0c29e3e544a3cd08144fba36399030cab921d3fdc1ddb4312534b712ed7c991f",
+      "scope": "Installed HBQ byte freshness and selected current CBE queue execution boundaries; not a full new source review or physical acceptance.",
+      "sourceFileMentions": [],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {

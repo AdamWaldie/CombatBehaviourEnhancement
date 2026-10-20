@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-20",
+  "baseline": "c7b82473",
+  "scope": "Installed HBQ byte freshness and selected current CBE queue execution boundaries; not a full new source review or physical acceptance.",
+  "hbq": {
+    "workshopId": "3812620045",
+    "installedPbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3812620045\\addons\\hbq_advanced_driving_ai.pbo",
+    "sha256": "30abacaee42340c12accc0b95cf31972f7bb2ad20cc1c6871494b8aa173f9667",
+    "matchesReviewed20261017Package": true,
+    "liveWorkshopFreshnessEstablished": false
+  },
+  "supersedesCurrentGapClaimsIn": [
+    "releaseVerificationAndDeployment/referenceReviews/hbq-queue-execution-gap-20261018.json",
+    "releaseVerificationAndDeployment/referenceReviews/hbq-rear-support-20261018.json",
+    "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-following-holds-20261018.json"
+  ],
+  "currentSourceTrace": [
+    {
+      "stage": "Request",
+      "evidence": "DrivingAssistStart -> DrivingQueueAutoStep submits a single original jam episode; consent/COMMIT requests have finite retries and retain original expiry.",
+      "limit": "Auto initiation is optional; no movement success follows from acceptance."
+    },
+    {
+      "stage": "Hold",
+      "evidence": "DrivingAssistStart sole cap writer -> DrivingQueueHold APPLIED. READY observes exact cap binding and one second of linear/angular rest.",
+      "limit": "Replicated rest and reports are observations, not a full motion safety guarantee."
+    },
+    {
+      "stage": "Leaf reverse",
+      "evidence": "DrivingQueueReverseCommit issues sendSimpleCommand BACK under exact consent/brain/route/seat receipts and fresh rear plan; STOP requires the matching issued journal, zero owned cap, native STOP acknowledgement and one second rest before HELD.",
+      "limit": "Current executor requires separate driver and movement operator. Native BACK performance across tracked/wheeled classes is unverified; no physics shortcut is established."
+    },
+    {
+      "stage": "Dependency",
+      "evidence": "Owner CHECK_ROOM -> DrivingQueueParentRoom requires held-leaf measured reverse displacement and current full-hull gap, then fresh parent rear support. Server ROOM branch rechecks identities, rest and replicated hull gap before phase-serial/movingIndex advance. Parent ISSUE resamples again.",
+      "limit": "Sampled support and replicated hulls are not continuous collision proof."
+    },
+    {
+      "stage": "Root crossing",
+      "evidence": "Current server has CROSS_PLANNED, arm/acknowledge and CROSS_EXECUTE phases; owner contains corresponding private grants.",
+      "limit": "Only branch locations and selected dispatch inspected here; full crossing executor not reviewed in this checkpoint."
+    },
+    {
+      "stage": "Retirement",
+      "evidence": "DrivingQueueAgreementRelease retires only the captured original private participant consent/request and sends release; no movement or speed command in that helper.",
+      "limit": "Actual native command cleanup and authored forward travel require separate physical validation."
+    }
+  ],
+  "productionSha256": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305",
+    "addons/vehicles/functions/drivingQueueAutoStep.sqf": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e",
+    "addons/vehicles/functions/drivingQueueHold.sqf": "4400459fabc65c3cfa0ceee7dc234716ab472bdbd22cc6cd728a65df2c41793f",
+    "addons/vehicles/functions/drivingQueueReverseCommit.sqf": "24e8a5a95ab24b714161eb937861d41dba8cd3532ab0658e42410d32f3649e1d",
+    "addons/vehicles/functions/drivingQueueParentRoom.sqf": "f976cfa9db07dec760b0cc7df679ec2c92f00ef6f0da6fe2981bad11993668c2",
+    "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada",
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360",
+    "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "6168ea4e3d61fa85c8111820a77e3604f304ffe9de2f5d92b60bc1d7329ab0c9"
+  },
+  "conclusion": "The historical blanket no-executor claim is obsolete. Current queue source includes HOLD/READY, finite native reverse/stop, measured dependency advancement and crossing protocol. Do not build a duplicate controller. These source paths do not establish physical HBQ parity.",
+  "remaining": [
+    "Native reverse/stop capability and clean forward resumption across supported crew layouts and vehicle classes.",
+    "Repeated 2-4 participant queues, new orders, owner migration, deletion, stale acknowledgements and failed support.",
+    "Required external HBQ controller quiescence/resume handover remains separate from CBE internal traffic consent.",
+    "Measured aggregate overhead within 5 percent median and 10 percent p95."
+  ],
+  "validation": {
+    "installedPackageHashVerified": true,
+    "referencedFilesExist": true,
+    "productCodeChanged": false,
+    "fullBuildRepeated": false,
+    "physicalRun": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
+}
