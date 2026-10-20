@@ -1,7 +1,7 @@
 {
   "baseline": "fedab7ef6abdeff4af94e77f3622efe3ba16e8fc",
   "scope": "Active manoeuvre native command provenance and buddy handoff",
-  "status": "Natural/coordinated STOP admission and passive standalone ownership-resume HOLD proof implemented; independent MOVE/identical-order attribution, coordinated hold migration and physical acceptance remain open",
+  "status": "Natural/coordinated STOP admission, standalone passive HOLD resume and finite coordinated passive-hold adoption implemented; independent MOVE/identical-order attribution and physical/performance acceptance remain open",
   "source_sha256": {
     "addons/infantry/functions/combatPairs.sqf": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f",
     "addons/infantry/functions/cortexFlankStep.sqf": "c0f2c81ea4ad9d68031ecba533d928c8cb822f3ef83ab8ad533b42c919eecb39",
@@ -206,5 +206,36 @@
     "physical": false,
     "scoresChanged": false,
     "lateDelivery": "Sticky exact revoked token survives local release and checkpoint adoption. A normal stale delivery of that same token refuses before OperationStart; declared adoption also requires the original matching public status. A newly accepted different token retires refusal metadata."
+  },
+  "coordinatedHoldAdoptionFollowUp20261020": {
+    "baseline": "42c061f7",
+    "finding": "Parent/child support holds were owner-local. New-owner exact STOP admission could not recognise old covering holds, especially when group Local preceded actor locality.",
+    "change": "Existing checkpoint exports exact parent/active-child HOLD union up to64 actors, refusing overflow. Locality passes proof to existing SupportApply. Original token/source generation/expiry/frozen order required before new parent starts. Existing Maintain consumes candidates for original min(now+5,lease expiry), retaining only nonlocal rows and dropping local mismatches. New-owner support receipts require actual native/actor/fitness/features/reservations checks. Duplicate actual-parent adoption ACKs without new generation/window. Release clears pending adoption.",
+    "cost": "At most128 original journal rows per checkpoint, union64; at most64 pending rows per existing callback during five seconds. No ray/query/marker/worker/timer/native command. Measured overhead unknown.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "da8bb6b5d078add8e08632f8efed8b74b1d501e6b95b7f8751b378070ddb36cb",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "78fe5156705fd69c94084645bbb87b5b8e449505166544ea666f794eb733dd85",
+      "addons/support/functions/cortexSupportApply.sqf": "7c2c6882c9b200b4e35caf626cd9960e7cc16ed88b834cd91204445fbe75d2ea",
+      "addons/support/functions/cortexSupportMaintain.sqf": "5c99f5ff75105694c6a0ce776ca236ab79b0b17157381c0c95496ae78a264fd9"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focusedActorTests": 48,
+      "focusedOperationTests": 607,
+      "build": ".qa/cbe-coordinated-hold-adoption-build.log",
+      "independent": ".qa/cbe-coordinated-hold-adoption-independent.log",
+      "candidate": ".qa/candidates/support-adoption-42c061f7-76016bae",
+      "fingerprint": "76016bae99bbce48f0adbdeb3d38ff7bc74a3ee743054fed882fc0bfd605d35f",
+      "source": "42c061f7 plus intended dirty coordinated hold-adoption edits",
+      "initialFailure": "Existing release-list assertion expected only prior fields. Extended it to require pending adoption removal as well."
+    },
+    "remaining": [
+      "Normal/providerHC physical cover-to-bound flow, ordering, casualties and measured cost unverified.",
+      "Identical replacement native orders remain indistinguishable.",
+      "Parent recovery-attempt/unavailable-state migration remains a separate lifecycle review scope; this adds no claim of full operation migration."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

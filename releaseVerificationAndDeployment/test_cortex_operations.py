@@ -9260,7 +9260,7 @@ class CortexOperations(unittest.TestCase):
         gate='if (!_localityPending || {serverTime >= (_settling select 1)}) then {'
         self.assertLess(boundary.index(gate),boundary.index('CBE_fnc_CortexSupportBoundStart'))
         self.assertLess(boundary.index(gate),boundary.index('_state set ["supportBoundSequence"'))
-        self.assertIn('"assaulting","supportBoundSettling"]',text)
+        self.assertIn('"assaulting","supportBoundSettling","supportHoldAdoption"]',text)
         self.assertGreaterEqual(text.count('deleteAt "supportBoundSettling"'),2)
 
     def test_cba_feedback_uses_separate_content_rows_for_title_and_body(self):

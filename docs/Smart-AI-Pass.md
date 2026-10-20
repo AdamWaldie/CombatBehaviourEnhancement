@@ -1915,3 +1915,12 @@ These transitions require the current parent token, operation generation, owner 
 The coordinated support assignment freezes the current authored waypoint receipt when its parent operation is accepted. Checkpoints carry that receipt and its revocation state into ownership adoption. Adoption rejects a changed or missing original receipt. The ordinary reinforcement rally path keeps its existing route lifecycle.
 
 An observed waypoint edit retires coordinated support before another covering or bound command. It also revokes delayed native cleanup for that assignment. Returning the waypoint to its old values cannot reactivate the retired recall. Exact revoked-token refusal also survives local release and checkpoint adoption, preventing a delayed delivery from recapturing a baseline. A newly accepted different token establishes its own receipt. This adds one current-order comparison to an active coordinated support callback, with no additional worker or timer. Physical replacement, locality ordering and overhead remain unverified.
+
+
+### Coordinated passive holds on a new owner
+
+A coordinated checkpoint includes at most 64 exact stopped holds from the current parent-cover journal and active child drill. An oversized union omits the adoption proof. The original support token, source operation generation, lease expiry and authored order must match before the new parent accepts that proof. MOVE commands and acknowledgement windows are excluded.
+
+The existing support callback waits up to five seconds, bounded by the original lease expiry, for actor locality. It installs a new-owner hold receipt only while the actor's STOP, destination, formation leader, fitness, movement features and reservations still permit it. A local mismatch retires the candidate immediately. Nonlocal candidates retain the same deadline; duplicate parent adoption cannot renew it. Release removes pending adoption. No native movement, new worker or public actor marker is created.
+
+Physical normal/provider-HC cover-to-bound flow, replication ordering, casualty cases and cost remain unverified. Source identity and native snapshot checks cannot distinguish an identical replacement order.

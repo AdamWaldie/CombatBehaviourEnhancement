@@ -112,7 +112,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "844536742b61b2d22d03b300eb61037a3dce2ea31ba1b604d5a2e44b95828f6b"
+              "sha256": "da8bb6b5d078add8e08632f8efed8b74b1d501e6b95b7f8751b378070ddb36cb"
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
@@ -3440,7 +3440,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "844536742b61b2d22d03b300eb61037a3dce2ea31ba1b604d5a2e44b95828f6b"
+              "sha256": "da8bb6b5d078add8e08632f8efed8b74b1d501e6b95b7f8751b378070ddb36cb"
             },
             {
               "path": "addons/core/functions/operationStep.sqf",
@@ -3495,7 +3495,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexCheckpoint.sqf",
-              "sha256": "52e03ec8fc88d4db5933a906a66fdd17615d8bd5991460414eced7033bfb64a8"
+              "sha256": "78fe5156705fd69c94084645bbb87b5b8e449505166544ea666f794eb733dd85"
             },
             {
               "path": "addons/core/functions/aiHeadlessAdoptLocal.sqf",
@@ -3553,7 +3553,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "b36b1b7de950b80b73fda0942a553ec387e72a06908f78bed9e639e0e4c095fe"
+              "sha256": "5c99f5ff75105694c6a0ce776ca236ab79b0b17157381c0c95496ae78a264fd9"
             }
           ]
         }
@@ -3610,7 +3610,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "b36b1b7de950b80b73fda0942a553ec387e72a06908f78bed9e639e0e4c095fe"
+              "sha256": "5c99f5ff75105694c6a0ce776ca236ab79b0b17157381c0c95496ae78a264fd9"
             },
             {
               "path": "addons/infantry/functions/recoveryStep.sqf",
@@ -4013,7 +4013,7 @@
             },
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "b36b1b7de950b80b73fda0942a553ec387e72a06908f78bed9e639e0e4c095fe"
+              "sha256": "5c99f5ff75105694c6a0ce776ca236ab79b0b17157381c0c95496ae78a264fd9"
             }
           ]
         },

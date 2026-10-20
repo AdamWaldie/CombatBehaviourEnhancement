@@ -4,9 +4,11 @@
  * recalls only unchanged current-owner holds, without enabling PATH. Deferred/changed proof is
  * retained locally. A missing/incapacitated formation leader defers release without consuming
  * its receipt; the existing finite retry window is unchanged. Pending cleanup uses the existing group callback, original lease expiry+30s
- * and at most64 single-actor attempts; migration grants no portable cleanup authority.
+ * and at most64 single-actor attempts; migration alone grants no cleanup authority.
  * Coordinated parent support keeps its original authored-order receipt. Edits retire the
  * assignment before covering/bound writes and suppress native cleanup over the replacement.
+ * Passive hold adoption uses this callback for at most five original seconds, bounded by
+ * lease expiry. Current native/actor checks precede new-owner receipts; no native command is replayed.
  * Owner execution preserves unknown/malformed actor reservations through the shared strict predicate.
  * Releases only the current CBE support assignment when it expires, is revoked or loses every
  * feature gate capable of owning it. A mode must remain enabled at both ends of the reservation;
@@ -235,7 +237,7 @@ private _releaseSupport={
     ["CANCELLED",_reason] call _finishOperation;
     [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     call _restoreAttack;
-    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling"];
+    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling","supportHoldAdoption"];
 };
 // Engagement teardown requests release only; it must never consume a fresh role or start a bound.
 if (_mode == "RELEASE") exitWith {
@@ -287,6 +289,49 @@ if (_operationEndReason != "") exitWith {
     [_operationEndReason] call _releaseSupport;
 };
 
+// Consume passive holds through this existing callback as actor locality settles.
+// Local mismatches retire immediately; nonlocal actors get only the original five seconds.
+private _adoption=_state getOrDefault ["supportHoldAdoption",[]];
+if (_adoption isNotEqualTo []) then {
+    if (_adoption isEqualType [] && {count _adoption == 5}
+        && {(_adoption select 0) == _operationGeneration}
+        && {(_adoption select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {serverTime < (_adoption select 2)} && {(_adoption select 3) == (_lease select 2)}
+        && {(_adoption select 4) isEqualType []} && {count (_adoption select 4) <= 64}) then {
+        private _adoptedHolds=_state getOrDefault ["supportStopHolds",createHashMap];
+        private _remainingHolds=[];
+        if (_adoptedHolds isEqualType createHashMap && {count _adoptedHolds <= 64}) then {
+            {
+                if (_x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualType objNull}
+                    && {(_x select 1) isEqualType []} && {(_x select 2) isEqualType objNull}) then {
+                    _x params ["_heldActor","_heldNative","_heldLeader"];
+                    if (!isNull _heldActor && {group _heldActor == _group} && {alive _heldActor}) then {
+                        if (!local _heldActor) then {_remainingHolds pushBack _x} else {
+                            if ([_heldActor] call CBE_fnc_CortexCombatEffective && {isNull objectParent _heldActor}
+                                && {simulationEnabled _heldActor} && {!isObjectHidden _heldActor}
+                                && {!isPlayer _heldActor} && {isNull remoteControlled _heldActor}
+                                && {([_heldActor] call CBE_fnc_CortexExternalOwner) == ""}
+                                && {!([_heldActor] call CBE_fnc_CompatibilityExternalControl)}
+                                && {!([_heldActor] call CBE_fnc_CortexActorMoveReserved)}
+                                && {_heldActor checkAIFeature "MOVE"} && {_heldActor checkAIFeature "PATH"}
+                                && {currentCommand _heldActor == "STOP"}
+                                && {(expectedDestination _heldActor) isEqualTo _heldNative} && {formLeader _heldActor == _heldLeader}
+                                && {count _adoptedHolds < 64 || {netId _heldActor in _adoptedHolds}}) then {
+                                _adoptedHolds set [netId _heldActor,[_heldActor,_token,_operationGeneration,
+                                    _adoption select 1,+_heldNative,_heldLeader,_adoption select 3]];
+                            };
+                        };
+                    };
+                };
+            } forEach (_adoption select 4);
+            _state set ["supportStopHolds",_adoptedHolds];
+        };
+        if (_remainingHolds isEqualTo []) then {_state deleteAt "supportHoldAdoption"} else {
+            private _pendingHolds=+_adoption;_pendingHolds set [4,_remainingHolds];
+            _state set ["supportHoldAdoption",_pendingHolds];
+        };
+    } else {_state deleteAt "supportHoldAdoption"};
+};
 // Contact can begin before the rally is reached. Readiness must not depend on CALM.
 if ((_state getOrDefault ["supportToken",""]) == _token
     && {_state getOrDefault ["responding",false]}

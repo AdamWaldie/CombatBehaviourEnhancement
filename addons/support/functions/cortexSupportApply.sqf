@@ -29,7 +29,9 @@
  * support lifecycle. It reconstructs only semantic state and lets SupportMaintain consume the
  * current public role on the new owner. Coordinated adoption requires the original
  * full authored-order receipt; a same-position waypoint edit cannot become its new baseline.
- * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>, authoredOrder <ARRAY> and authoredRevoked <BOOL> for coordinated adoption.
+ * Qualified passive holds enter one original five-second actor-locality window, bounded by
+ * the original lease expiry. Duplicate actual-owner adoption never restarts that window.
+ * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>, authoredOrder <ARRAY> and authoredRevoked <BOOL> and holdProof <ARRAY> for coordinated adoption.
  * Return Value: Retry delay in seconds or -1 after acknowledgement.
  * Current callers: SupportLocal through the existing scheduler and CortexLocality adoption.
  * Example: [_job] call CBE_fnc_CortexSupportApply;
@@ -143,6 +145,17 @@ if (_okay && {_directCoordinationPending}) exitWith {
     [_group,_token,true,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
     -1
 };
+// Repeated adoption delivery acknowledges the existing actual-owner parent without
+// recreating its generation or renewing a pending hold-locality window.
+private _existingParent=_group getVariable ["CBE_Operation",createHashMap];
+if (_okay && {_adopting} && {(_state getOrDefault ["supportToken",""]) == _token}
+    && {(_state getOrDefault ["supportOperationGeneration",-1]) == (_existingParent getOrDefault ["generation",-2])}
+    && {(_existingParent getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_existingParent getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+    && {(_existingParent getOrDefault ["phase",""]) != "CANCELLED"}) exitWith {
+    [_group,_token,true,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
+    -1
+};
 if (_okay && {_replaceLocalDrill}) then {
     [_group,_state,"ROLE_HANDOVER"] call CBE_fnc_CortexFlankEnd;
 };
@@ -157,6 +170,16 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     private _intent=["SUPPORT_RALLY","COORDINATED_ASSAULT"] select _sharedCoordinated;
     // Lease attack is one ATL position, not an array of route points.
     private _objective=if (_attackAllowed) then {+_attack} else {+_rally};
+    private _sourceHoldRows=[];
+    private _holdProof=_job getOrDefault ["holdProof",[]];
+    if (_adopting && {_attackAllowed} && {_holdProof isEqualType []} && {count _holdProof == 6}
+        && {(_holdProof select 0) isEqualTo _token} && {(_holdProof select 3) isEqualTo _expiry}
+        && {(_holdProof select 1) isEqualTo (_group getVariable ["CBE_OperationGeneration",-1])}
+        && {(_holdProof select 2) isEqualType 0} && {finite (_holdProof select 2)} && {(_holdProof select 2) >= 0}
+        && {(_holdProof select 4) isEqualTo _adoptedOrder}
+        && {(_holdProof select 5) isEqualType []} && {count (_holdProof select 5) <= 64}) then {
+        _sourceHoldRows=+(_holdProof select 5);
+    };
     private _operation=[_group,_intent,_objective,_footFit,[+_objective],"ACCEPTED"] call CBE_fnc_OperationStart;
     if (count _operation == 0) exitWith {
         _okay=false;
@@ -174,6 +197,11 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
         [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     };
     _state set ["supportOperationGeneration",_generation];
+    _state deleteAt "supportHoldAdoption";
+    if (_sourceHoldRows isNotEqualTo []) then {
+        _state set ["supportHoldAdoption",[_generation,_operation get "ownerEpoch",
+            (serverTime+5) min _expiry,_expiry,_sourceHoldRows]];
+    };
     _state set ["supportAuthoredRevoked",false];
     _state deleteAt "supportAuthoredRevokedToken";
     if (_attackAllowed) then {

@@ -363,7 +363,8 @@ if (_supportAdoptable) then {
     [createHashMapFromArray [
         ["group",_group],["lease",_supportLease],["waitUntil",serverTime],["adopt",true],
         ["authoredOrder",_restore getOrDefault ["supportAuthoredOrder",[]]],
-        ["authoredRevoked",_restore getOrDefault ["supportAuthoredRevoked",false]]
+        ["authoredRevoked",_restore getOrDefault ["supportAuthoredRevoked",false]],
+        ["holdProof",_restore getOrDefault ["supportHoldProof",[]]]
     ]] call CBE_fnc_CortexSupportApply;
 };
 if (([_group] call CBE_fnc_CortexGroupState) getOrDefault ["supportToken",""] != "") exitWith {

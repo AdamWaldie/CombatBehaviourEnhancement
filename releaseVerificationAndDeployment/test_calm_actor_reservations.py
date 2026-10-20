@@ -174,6 +174,25 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('_adoptedOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',apply)
         self.assertLess(apply.index('&& {_adoptOrderCurrent}'),apply.index('call CBE_fnc_OperationStart'))
         self.assertIn('if (_adopting) then {+_adoptedOrder}',apply)
+        checkpoint=(ROOT/'addons/infantry/functions/cortexCheckpoint.sqf').read_text()
+        self.assertIn('"supportHoldProof"',checkpoint)
+        self.assertIn('if (!_proofOverflow)',checkpoint)
+        self.assertIn('(_row select 1) == "HOLD"',checkpoint)
+        self.assertIn('(_holdProof select 1) isEqualTo (_group getVariable ["CBE_OperationGeneration",-1])',apply)
+        self.assertIn('(serverTime+5) min _expiry,_expiry,_sourceHoldRows',apply)
+        duplicate=apply.split('// Repeated adoption delivery',1)[1].split('if (_okay && {_replaceLocalDrill})',1)[0]
+        self.assertNotIn('OperationStart',duplicate)
+        self.assertNotIn('serverTime+',duplicate)
+        adoption=maintain.split('// Consume passive holds',1)[1].split('// Contact can begin',1)[0]
+        for proof in ('count _adoption == 5','serverTime < (_adoption select 2)',
+                      '(_adoption select 3) == (_lease select 2)','_remainingHolds pushBack _x',
+                      'currentCommand _heldActor == "STOP"','CortexActorMoveReserved',
+                      '(expectedDestination _heldActor) isEqualTo _heldNative',
+                      'formLeader _heldActor == _heldLeader','_pendingHolds set [4,_remainingHolds]'):
+            self.assertIn(proof,adoption)
+        for forbidden in ('doStop','doMove','doFollow','serverTime+','spawn','waitAndExecute'):
+            self.assertNotIn(forbidden,adoption)
+
         self.assertIn('_state set ["supportAuthoredRevoked",true]',maintain)
         self.assertIn('_state set ["supportAuthoredRevokedToken",_revokedToken]',maintain)
         self.assertIn('getOrDefault ["supportAuthoredRevokedToken",""]) != _token',apply)

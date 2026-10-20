@@ -104,6 +104,52 @@ if (count _drill > 0) then {
     };
 
 };
+// Coordinated holds use the authenticated parent lease, not standalone drill replay.
+private _supportToken=_state getOrDefault ["supportToken",""];
+private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
+private _supportGeneration=_state getOrDefault ["supportOperationGeneration",-1];
+private _supportEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _supportOrder=_state getOrDefault ["supportAuthoredOrder",[]];
+if (_supportToken != "" && {count _supportLease == 6} && {(_supportLease select 0) == _supportToken}
+    && {serverTime < (_supportLease select 2)} && {_supportGeneration == (_group getVariable ["CBE_OperationGeneration",-2])}
+    && {!(_state getOrDefault ["supportAuthoredRevoked",false])}
+    && {_supportOrder isNotEqualTo []} && {_supportOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}) then {
+    private _proofRows=createHashMap;private _proofOverflow=false;
+    private _captureHold={
+        params ["_actor","_native","_formationLeader"];
+        if (!isNull _actor && {local _actor} && {group _actor == _group} && {currentCommand _actor == "STOP"}
+            && {(expectedDestination _actor) isEqualTo _native} && {formLeader _actor == _formationLeader}) then {
+            if (count _proofRows >= 64 && {!(netId _actor in _proofRows)}) exitWith {_proofOverflow=true};
+            _proofRows set [netId _actor,[_actor,+_native,_formationLeader]];
+        };
+    };
+    private _parentHolds=_state getOrDefault ["supportStopHolds",createHashMap];
+    if (_parentHolds isEqualType createHashMap && {count _parentHolds <= 64}) then {
+        {private _row=_parentHolds get _x;
+            if (_row isEqualType [] && {count _row == 7} && {(_row select 0) isEqualType objNull}
+                && {(_row select 1) == _supportToken} && {(_row select 2) == _supportGeneration}
+                && {(_row select 3) == _supportEpoch} && {(_row select 6) == (_supportLease select 2)}) then {
+                [_row select 0,_row select 4,_row select 5] call _captureHold;
+            };
+        } forEach (keys _parentHolds);
+    };
+    private _childHolds=_drill getOrDefault ["nativeCommands",createHashMap];
+    if ((_drill getOrDefault ["supportToken",""]) == _supportToken
+        && {(_drill getOrDefault ["operationGeneration",-1]) == _supportGeneration}
+        && {(_drill getOrDefault ["ownerEpoch",-1]) == _supportEpoch}
+        && {_childHolds isEqualType createHashMap} && {count _childHolds <= 64}) then {
+        {private _row=_childHolds get _x;
+            if (_row isEqualType [] && {count _row == 7} && {(_row select 0) isEqualType objNull}
+                && {(_row select 1) == "HOLD"} && {(_row select 0) in (_drill getOrDefault ["units",[]])}) then {
+                [_row select 0,_row select 2,_row select 3] call _captureHold;
+            };
+        } forEach (keys _childHolds);
+    };
+    if (!_proofOverflow) then {
+        _saved pushBack ["supportHoldProof",[_supportToken,_supportGeneration,_supportEpoch,
+            _supportLease select 2,+_supportOrder,(keys _proofRows) apply {_proofRows get _x}]];
+    };
+};
 if (_saved isNotEqualTo (_group getVariable ["CBE_AIPass_Checkpoint", []])) then {
     _group setVariable ["CBE_AIPass_Checkpoint", _saved, true];
 };
