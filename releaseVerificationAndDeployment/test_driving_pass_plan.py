@@ -225,6 +225,17 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('[_minimum-0.05,_maximum+0.05]',span)
         self.assertIn('RETURN_SCAN',s)
         self.assertIn('DROP_BACK',s)
+        # A forward path remains active while losing longitudinal ground to the peer.
+        # Abort speed reduction must not bypass fresh corridor traffic refusal.
+        drop=s.split('if (_phase == "DROP_BACK") exitWith {',1)[1].split('if (_phase == "RETURN_SCAN")',1)[0]
+        self.assertEqual(drop.count('call CBE_fnc_DrivingPassTraffic'),1)
+        self.assertIn('["guideASL",(_work get "activePath")',drop)
+        self.assertIn('getOrDefault ["blocked",true]',drop)
+        self.assertIn('exitWith {[true,0,"DROP_BACK_TRAFFIC_HELD"]}',drop)
+        self.assertLess(drop.index('DROP_BACK_TRAFFIC_HELD'),drop.index('velocityModelSpace _peer'))
+        self.assertNotIn('setDriveOnPath',drop)
+        self.assertIn('if (_trafficUnsafe) then {0}',s)
+
         self.assertNotIn('set ["deadline",',s)
         self.assertIn('call CBE_fnc_DrivingPassGeometry',s)
     def test_automatic_admission_is_bounded_opt_in_and_uses_real_consent(self):

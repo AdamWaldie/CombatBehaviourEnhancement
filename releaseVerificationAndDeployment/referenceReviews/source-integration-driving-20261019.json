@@ -630,5 +630,39 @@
     "runtimeChanged": false,
     "physical": false,
     "scoresChanged": false
+  },
+  "passingAbortTraffic20261020": {
+    "sourceParent": "ff734714",
+    "source": {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "examinedLines": [
+        [
+          1996,
+          2157
+        ],
+        [
+          2461,
+          2508
+        ]
+      ]
+    },
+    "intent": "Abort an unsafe/slow passing attempt by falling behind the moving predecessor, retaining forward path until separated. Source BACK lowers cap relative to peer, floors it at5kmh and starts another10s abort window.",
+    "finding": "CBE OUT detected corridor conflict but DROP_BACK returned positive peer-relative cap and did not recheck traffic. Slower motion still advances along the passing path; it does not prove clearance.",
+    "implementation": "OUT blocked/refused observation returns zero immediately. DROP_BACK freshly observes its activePath through DrivingPassTraffic; blocked/refused observation returns zero with DROP_BACK_TRAFFIC_HELD, clear observation permits existing peer-relative cap. Existing whole-hull clearance, exact cleanup/route identity and original consent deadline remain.",
+    "departures": [
+      "No source minimum5kmh floor or renewed abort deadline.",
+      "No blanket route reset, push/physics, forced merge or extra speed writer."
+    ],
+    "cost": "Adds one bounded existing native traffic-area query per active DROP_BACK callback, <=64candidates/127segments; dense results refuse. No new worker or recurring timer.",
+    "limits": [
+      "Native stopping distance and physical collision avoidance remain unverified.",
+      "Constant-course forecast cannot anticipate turns/acceleration; faster traffic beyond discovery remains unsupported.",
+      "Whole-path monitoring can conservatively refuse conflicts behind the current vehicle.",
+      "Existing drop-back still depends on moving peer and cannot resolve stopped queues.",
+      "Whole HBQ parity and performance budget are not established."
+    ],
+    "validation": "36 existing passing cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-pass-abort-traffic-build.log; candidate .qa/candidates/pass-abort-ff734714-bdcf097b fingerprint bdcf097bfee9237bf70c5b5e00090b619ca3e6fa6cb5ed821a098793ac1a4e36 actualff734714+intendeddirtyedits. No test-count/score increase.",
+    "audits": "PAUSED"
   }
 }

@@ -7,6 +7,8 @@
  * Locality/authority: Existing current ordinary-driving callback only. Exact epoch, generation,
  * route, crew, token and issued command receipts guard every fixed-path write. No speed writer:
  * the caller applies the returned cap with its unchanged traffic/pedestrian/geometry limits.
+ * DROP_BACK rechecks its issued corridor and holds zero for blocked/refused traffic; the
+ * original deadline remains fixed. OUT conflict detection returns zero in the same callback.
  * RETURN rechecks corridor traffic and physical progress; changed peer context or blocked/stalled
  * merge ends the owned path without automatically redirecting through an occupied lane.
  * Observed native STOP events end work without recall. Own setup carries an exact write fence.
@@ -180,6 +182,16 @@ if (_phase == "OUT" && {_ahead} && {_atReturnEntry}) then {
 };
 if (_phase == "DROP_BACK") exitWith {
     if (_behind || {_ahead}) exitWith {["ABORT_CLEAR",true] call _finish};
+    // Dropping behind still follows the issued forward path. Reduced speed alone
+    // cannot authorise travel through the traffic that caused the abort.
+    private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
+        ["context",_pairContext],["observedAt",serverTime],
+        ["guideASL",(_work get "activePath") apply {ATLToASL _x}],
+        ["estimatedSeconds",((_work get "deadline")-serverTime) min 24],
+        ["requiredTravel",_work get "legTravel"]];
+    private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
+    if ((_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION"
+        || {_traffic getOrDefault ["blocked",true]}) exitWith {[true,0,"DROP_BACK_TRAFFIC_HELD"]};
     [true,(((velocityModelSpace _peer select 1) max 0)-12/3.6) max 0,"DROP_BACK"]
 };
 if (_phase == "RETURN_SCAN") exitWith {
@@ -228,8 +240,10 @@ private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_ve
 private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
 private _distance=_vehicle distance2D (_work get "target");
 if ((_work get "lastDistance")-_distance >= 1) then {_work set ["lastDistance",_distance];_work set ["lastAt",serverTime]};
-if ((_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION" || {_traffic getOrDefault ["blocked",true]}
-    || {serverTime-(_work get "lastAt") >= 15} || {behaviour leader _group in ["COMBAT","STEALTH"]}) then {
+private _trafficUnsafe=(_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION"
+    || {_traffic getOrDefault ["blocked",true]};
+if (_trafficUnsafe || {serverTime-(_work get "lastAt") >= 15} || {behaviour leader _group in ["COMBAT","STEALTH"]}) then {
     _work set ["phase","DROP_BACK"];
-    [true,(((velocityModelSpace _peer select 1) max 0)-12/3.6) max 0,"DROP_BACK"]
+    private _dropCap=if (_trafficUnsafe) then {0} else {(((velocityModelSpace _peer select 1) max 0)-12/3.6) max 0};
+    [true,_dropCap,"DROP_BACK"]
 } else {[true,_work get "cap","OUT"]}
