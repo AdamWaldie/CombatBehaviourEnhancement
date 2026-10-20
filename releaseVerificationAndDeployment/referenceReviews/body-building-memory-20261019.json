@@ -51,5 +51,33 @@
     "Nearby-house native query cost depends on local object density; no measured performance-budget result.",
     "Existing indoor inaccessible-node/failure reporting remains authoritative; admission is not physical traversal.",
     "Whole LAMBS parity and balance remain incomplete."
-  ]
+  ],
+  "sameCluePhysicalVisits20261020": {
+    "baseline": "e783c2b6",
+    "sourceIntent": "doAssaultMemory sequences remembered positions, retains useful busy movement and removes observed nearby points. Preserve sequencing without group-wide recall, unsafe random displacement or room-clear claims.",
+    "change": "Retain one original20s clue after admission. Existing8s dispatcher and two concurrent actor limit may serve later eligible waves. Exact VISITED/OBSERVE physical-near node with current clue, owner, operation, native order and transform records max16 local historical nodes. Original clue expiry only; no visit on failure/assignment/timeout/migration. Dispatcher prefers unvisited native candidates/next house; NodeSelect excludes same-clue same-transform visit nodes after live reservations within existing16 exclusion budget. Known-contact work defaultclue[] unchanged; same3roof rays. Stop/invalidclue clears local history.",
+    "sources": {
+      "addons/core/functions/cortexStop.sqf": "ac7e92710cf6119dd4421b38c0ba323c32a600433545371c76d72d5e348f076d",
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "bbe93e579960746dbc7b1eb5b39f10af0788cc2a590c27bb326d740100822a06",
+      "addons/infantry/functions/indoorActorOperation.sqf": "09d65c44e0ce05d3193b6d667cc1fdf4b41b82155e47e03607abf57b31100710",
+      "addons/infantry/functions/indoorActorNodeSelect.sqf": "85c33a24032f6219bce8938bfc0b3fadb491d8a4a981bc0a222996a32e3a703e"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-clue-visit-memory-build.log",
+      "independent": ".qa/cbe-clue-visit-memory-independent.log",
+      "candidate": ".qa/candidates/clue-visits-e783c2b6-46e47fed",
+      "fingerprint": "46e47fed668ca0b98cfd38990445ee100e3fc16fe184c3488a7350654788a474",
+      "source": "e783c2b6 plus intended dirty same-clue physical-visit-memory edits",
+      "focused": "32 indoor lifecycle cases and HEMTT check passed; earlier overly broad admission assertion corrected to distinguish existing house-loop early exit from removed clue consumption"
+    },
+    "remaining": [
+      "Not whole sympathetic-memory parity or room safety proof. Original20s lifetime and actor cooldown may permit only limited waves.",
+      "Per-house native positions remain bounded512,4houses; extra history distance checks are bounded metadata work, native nearby-query density and overall overhead unmeasured.",
+      "Physical sequence/repeat encounters/modded accessibility/normal-providerHC interruption and balance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  }
 }

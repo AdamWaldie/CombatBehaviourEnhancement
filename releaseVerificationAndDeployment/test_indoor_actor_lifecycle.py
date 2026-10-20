@@ -259,7 +259,19 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'select [0,4]','select [0,2]','["deadline",_expires]','["observationOnly",true]',
                       'count _nodes <= 512','serverTime >= _expires'):
             self.assertIn(guard,dispatch)
-        self.assertLess(dispatch.index('if (_admitted > 0'),dispatch.index('setVariable ["CBE_Danger_BuildingClue",nil,true]',dispatch.index('if (_admitted > 0')))
+        self.assertEqual(dispatch.count('setVariable ["CBE_Danger_BuildingClue",nil,true]'),1)
+        self.assertIn('["observationClue",_clue]',dispatch)
+        actor=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        visits=actor.split('// Keep only historical physical visits',1)[1].split('CBE_IndoorActor_Result',1)[0]
+        for proof in ('== "VISITED"','== "OBSERVE"','vectorDistance (AGLToASL _target) <= 2',
+                      'isEqualTo _transform','serverTime < (_clue select 2)','count _visits < 16'):
+            self.assertIn(proof,visits)
+        self.assertNotIn('serverTime+',visits)
+        nodes=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text()
+        self.assertIn('count _reservedASL >= 16',nodes)
+        self.assertIn('(_history select 0) isEqualTo _clue',nodes)
+        self.assertIn('CBE_Danger_BuildingVisits",nil', (ROOT/'addons/core/functions/cortexStop.sqf').read_text())
+
         self.assertNotIn(' doMove ',dispatch)
         self.assertNotIn('["contact",',dispatch)
         self.assertIn('!_observationOnly ||',s)

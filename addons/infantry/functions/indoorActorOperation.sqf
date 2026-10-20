@@ -18,6 +18,8 @@
  * START context: building OBJECT, belief [ATL ARRAY, server timestamp], optional contact OBJECT.
  * Optional deadline NUMBER only shortens the original maximum; position-only clues cannot renew it.
  * observationOnly BOOL false keeps position-only tasks bound to investigation enable/stealth policy.
+ * Optional observationClue ARRAY binds shared visit preference to the exact original body clue;
+ * only a physically reached OBSERVE result records a node, never admission/failure/clearance.
  * Idle/plain-route contexts may issue one leg. An unchanged same-contact native approach is
  * observed without a reset; after measured stagnation one alternate-node escalation is permitted.
  * Observed native destinations are recorded at admission and kept distinct from another
@@ -151,6 +153,31 @@ if (_mode == "FINISH") exitWith {
             _actor setVariable ["CBE_IndoorActor_NodeFailures",_failed];
         };
     };
+    // Keep only historical physical visits from this original finite clue. This is a
+    // preference for later investigation, never a room-safe or hostile-occupancy claim.
+    private _clue=_brain getOrDefault ["observationClue",[]];
+    private _house=_brain getOrDefault ["building",objNull];
+    private _transform=_brain getOrDefault ["transform",[]];
+    if (!_migration && {_observationOnly} && {count _clue == 5}
+        && {(_brain getOrDefault ["reason",""]) == "VISITED"}
+        && {(_brain getOrDefault ["phase",""]) == "OBSERVE"}
+        && {_oldGroup == _group} && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_operation == (_group getVariable ["CBE_OperationGeneration",0])} && {call _releaseAvailable}
+        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _route}
+        && {(_group getVariable ["CBE_Danger_BuildingClue",[]]) isEqualTo _clue}
+        && {serverTime < (_clue select 2)} && {_target call _vectorValid}
+        && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}
+        && {!isNull _house} && {alive _house}
+        && {[getPosWorld _house,vectorDir _house,vectorUp _house] isEqualTo _transform}) then {
+        private _history=_group getVariable ["CBE_Danger_BuildingVisits",[]];
+        private _visits=if (_history isEqualType [] && {count _history == 2}
+            && {(_history select 0) isEqualTo _clue} && {(_history select 1) isEqualType []}) then {
+            (_history select 1) select [0,16]
+        } else {[]};
+        private _row=[_house,_transform call _copyArray,AGLToASL _target];
+        if (!(_row in _visits) && {count _visits < 16}) then {_visits pushBack _row};
+        _group setVariable ["CBE_Danger_BuildingVisits",[_clue call _copyArray,_visits]];
+    };
     _actor setVariable ["CBE_IndoorActor_Result",[_generation,
         _brain getOrDefault ["reason","RELEASED"],serverTime,+_target],true];
     _actor setVariable ["CBE_IndoorActor_Order",nil,true];
@@ -169,6 +196,15 @@ if (_mode == "START") exitWith {
     private _building=_brain getOrDefault ["building",objNull];
     private _belief=_brain getOrDefault ["belief",[]];
     private _contact=_brain getOrDefault ["contact",objNull];
+    private _clue=_brain getOrDefault ["observationClue",[]];
+    if (!(_clue isEqualType []) || {!((count _clue) in [0,5])}) exitWith {false};
+    if (_clue isNotEqualTo [] && {!_observationOnly
+        || {(_group getVariable ["CBE_Danger_BuildingClue",[]]) isNotEqualTo _clue}
+        || {!((_clue select 0) call _vectorValid)}
+        || {[1,2] findIf {!((_clue select _x) isEqualType 0) || {!finite (_clue select _x)}} >= 0}
+        || {serverTime < (_clue select 1)} || {serverTime >= (_clue select 2)}
+        || {(_clue select 2) > (_clue select 1)+20}
+        || {(_clue select 4) isNotEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {false};
     if (!(_contact isEqualType objNull) || {!(_building isEqualType objNull)} || {isNull _building}
         || {!alive _building} || {!(_belief isEqualType [])} || {count _belief != 2}
         || {!((_belief select 0) call _vectorValid)} || {!((_belief select 1) isEqualType 0)}
@@ -212,6 +248,13 @@ if (_mode == "START") exitWith {
     if (!(_requestedDeadline isEqualType 0) || {!finite _requestedDeadline}
         || {_requestedDeadline <= serverTime}) exitWith {false};
     _deadline=_deadline min _requestedDeadline;
+    if (_clue isNotEqualTo []) then {
+        if ((_group getVariable ["CBE_Danger_BuildingClue",[]]) isNotEqualTo _clue
+            || {(_clue select 4) isNotEqualTo _epoch} || {serverTime >= (_clue select 2)}) then {
+            _deadline=serverTime;
+        } else {_deadline=_deadline min (_clue select 2)};
+    };
+    if (_deadline <= serverTime) exitWith {false};
     private _lease=["INDOOR_INVESTIGATE",+(_belief select 0),time+(_deadline-serverTime)];
     private _initialTarget=if ((_admission select 0) == "OBSERVE") then {+(_admission select 2)} else {[]};
     private _serial=(missionNamespace getVariable ["CBE_IndoorActor_Serial",0])+1;
@@ -221,7 +264,7 @@ if (_mode == "START") exitWith {
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],
-        ["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
+        ["observationClue",_clue call _copyArray],["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosASL _actor]];
     // Release only this actor's owned danger posture before publishing the incoming task.
@@ -370,7 +413,7 @@ if (_phase == "SELECT") exitWith {
         };
     } forEach ((_group getVariable ["CBE_IndoorActor_Actors",[]]) select [0,2]);
     if (_escalate) then {_reserved pushBack +(_brain get "target")};
-    private _node=[_actor,_building,(_brain get "belief") select 0,_reserved] call CBE_fnc_IndoorActorNodeSelect;
+    private _node=[_actor,_building,(_brain get "belief") select 0,_reserved,_brain getOrDefault ["observationClue",[]]] call CBE_fnc_IndoorActorNodeSelect;
     if (_node isEqualTo []) exitWith {["NO_CANDIDATE"] call _finish};
     // Geometry work grants no command authority; re-read actor, route and operation ownership.
     if (!(call _available)

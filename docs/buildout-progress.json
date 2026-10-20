@@ -3196,7 +3196,7 @@
             },
             {
               "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
-              "sha256": "b30fd0d06e2e4f7b978c5ca4bef136438504471e0a14b4ed235f1a4a4122d72f"
+              "sha256": "85c33a24032f6219bce8938bfc0b3fadb491d8a4a981bc0a222996a32e3a703e"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -3221,7 +3221,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/indoorActorOperation.sqf",
-              "sha256": "e936e49c7aff5e6ccd89827e5f214684a5956814ec7a7e0406606c96a45008b3"
+              "sha256": "09d65c44e0ce05d3193b6d667cc1fdf4b41b82155e47e03607abf57b31100710"
             },
             {
               "path": "addons/infantry/functions/indoorActorDispatch.sqf",

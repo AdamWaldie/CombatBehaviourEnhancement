@@ -232,6 +232,7 @@ if (!isNil "_civilianCreated") then {
         [_x] call CBE_fnc_CortexClearRelease;
         _x setVariable ["CBE_Danger_BuildingClue",nil,true];
         _x setVariable ["CBE_Danger_BuildingClueSeen",nil,true];
+        _x setVariable ["CBE_Danger_BuildingVisits",nil];
         _x setVariable ["CBE_Danger_Casualties",nil,true];
     };
     {

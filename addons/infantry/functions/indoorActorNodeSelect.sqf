@@ -11,14 +11,17 @@
  * while the original owner epoch, building transform and sixty-second expiry remain valid.
  * A caller must retain the building transform, recheck authority and observe physical arrival.
  * Arguments: 0 actor <OBJECT>, objNull; 1 building <OBJECT>, objNull;
- * 2 believed ATL position <ARRAY>, []; 3 reserved ATL destinations <ARRAY>, [].
+ * 2 believed ATL position <ARRAY>, []; 3 reserved ATL destinations <ARRAY>, [];
+ * 4 original observation clue <ARRAY,[]> enables same-episode physical-visit preference.
+ * Visit preferences share the sixteen-destination exclusion budget after live reservations;
+ * they never affect known-contact work or add roof rays.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
  * Navigation metadata and roof ownership do not establish accessibility or a safe room.
  * Current callers: CBE_fnc_IndoorActorOperation SELECT phase, including natural dispatch.
  * Example: private _node=[soldier1,house1,[100,100,2],[]] call CBE_fnc_IndoorActorNodeSelect;
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
-    ["_belief",[],[[]]],["_reserved",[],[[]]]];
+    ["_belief",[],[[]]],["_reserved",[],[[]]],["_clue",[],[[]]]];
 private _positionValid={
     _this isEqualType [] && {count _this == 3}
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
@@ -32,6 +35,20 @@ private _reservedASL=_reserved apply {AGLToASL _x};
 private _failedNodes=[];
 private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
 private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+private _history=(group _actor) getVariable ["CBE_Danger_BuildingVisits",[]];
+if (count _clue == 5 && {(_clue select 4) isEqualTo _epoch}
+    && {(_clue select 2) isEqualType 0} && {finite (_clue select 2)} && {serverTime < (_clue select 2)}
+    && {((group _actor) getVariable ["CBE_Danger_BuildingClue",[]]) isEqualTo _clue}
+    && {_history isEqualType []} && {count _history == 2} && {(_history select 0) isEqualTo _clue}
+    && {(_history select 1) isEqualType []}) then {
+    {
+        if (count _reservedASL >= 16) exitWith {};
+        if (_x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualTo _building}
+            && {(_x select 1) isEqualTo _transform} && {(_x select 2) call _positionValid}) then {
+            _reservedASL pushBack (_x select 2);
+        };
+    } forEach ((_history select 1) select [0,16]);
+};
 {
     if (_x isEqualType [] && {count _x == 5} && {(_x select 0) isEqualTo _building}
         && {(_x select 1) isEqualTo _transform} && {(_x select 2) call _positionValid}

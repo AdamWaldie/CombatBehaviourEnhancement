@@ -6,6 +6,8 @@
  * Repeat/JIP: One public clue with original twenty-second expiry and owner epoch; no replay on gain.
  * At most one bounded selection per eight seconds, four nearby buildings and sixteen squad actors.
  * At most two investigators use the existing per-group indoor actor limit. No permanent worker.
+ * The original clue remains until expiry; physically visited nodes guide later eligible actors
+ * within that same episode. Assignment/failure never records a visit or renews its deadline.
  * Arguments: group GROUP grpNull; state HASHMAP empty.
  * Return: NUMBER of admitted actors, 0..2; not physical entry or room clearance.
  * Current caller: CortexGroupTick CALM when no enemies or authored/group movement owns the group.
@@ -14,7 +16,9 @@
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]]];
 if (isNull _group || {!local _group}) exitWith {0};
 private _clue=_group getVariable ["CBE_Danger_BuildingClue",[]];
-if !(_clue isEqualType [] && {count _clue == 5}) exitWith {0};
+if !(_clue isEqualType [] && {count _clue == 5}) exitWith {
+    _group setVariable ["CBE_Danger_BuildingVisits",nil];0
+};
 _clue params ["_position","_observed","_expires","_witness","_epoch"];
 private _vector={_this isEqualType [] && {count _this == 3}
     && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}};
@@ -27,6 +31,7 @@ private _valid=_position call _vector && {_observed isEqualType 0} && {finite _o
     && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])};
 if (!_valid) exitWith {
     if ((_group getVariable ["CBE_Danger_BuildingClue",[]]) isEqualTo _clue) then {_group setVariable ["CBE_Danger_BuildingClue",nil,true]};
+    _group setVariable ["CBE_Danger_BuildingVisits",nil];
     0
 };
 if ([_state,"bodyBuilding"] call CBE_fnc_CortexCooldown
@@ -60,7 +65,23 @@ private _admitted=0;
     private _nodes=if (alive _house) then {_house buildingPos -1} else {[]};
     if (count _nodes > 0 && {count _nodes <= 512}) then {
         private _ranked=[];
-        {if (_x call _vector) then {_ranked pushBack [((AGLToASL _x) select 2),_x distance2D _position,_forEachIndex]}} forEach _nodes;
+        private _history=_group getVariable ["CBE_Danger_BuildingVisits",[]];
+        private _visited=[];private _transform=[getPosWorld _house,vectorDir _house,vectorUp _house];
+        if (_history isEqualType [] && {count _history == 2} && {(_history select 0) isEqualTo _clue}
+            && {(_history select 1) isEqualType []}) then {
+            {if (_x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualTo _house}
+                && {(_x select 1) isEqualTo _transform} && {(_x select 2) call _vector}) then {
+                _visited pushBack (_x select 2);
+            }} forEach ((_history select 1) select [0,16]);
+        };
+        {
+            if (_x call _vector) then {
+                private _nodeASL=AGLToASL _x;
+                if (_visited findIf {_x vectorDistance _nodeASL < 1.5} < 0) then {
+                    _ranked pushBack [_nodeASL select 2,_x distance2D _position,_forEachIndex];
+                };
+            };
+        } forEach _nodes;
         _ranked sort true;
         if (_ranked isNotEqualTo []) then {
             private _belief=+(_nodes select ((_ranked select 0) select 2));
@@ -73,13 +94,11 @@ private _admitted=0;
                 private _actor=_actors select (_x select 1);
                 if (currentCommand _actor == "" && {isNull getAttackTarget _actor} && {isNull assignedTarget _actor}) then {
                     if (["START",_actor,createHashMapFromArray [["building",_house],
-                        ["belief",[+_belief,serverTime]],["deadline",_expires],["observationOnly",true]]] call CBE_fnc_IndoorActorOperation) then {_admitted=_admitted+1};
+                        ["belief",[+_belief,serverTime]],["deadline",_expires],["observationOnly",true],["observationClue",_clue]]] call CBE_fnc_IndoorActorOperation) then {_admitted=_admitted+1};
                 };
             } forEach (_rankedActors select [0,2]);
         };
     };
 } forEach (_buildings select [0,4]);
-if (_admitted > 0 && {(_group getVariable ["CBE_Danger_BuildingClue",[]]) isEqualTo _clue}) then {
-    _group setVariable ["CBE_Danger_BuildingClue",nil,true];
-};
+// Admission is not observation progress. The unchanged original expiry bounds later waves.
 _admitted
