@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial role capacity excludes protected native tasks and live actor reservations through
+ * the shared task-availability gate; later executor checks remain authoritative.
  * Only rifle-armed capable foot soldiers count toward assault and cover capacity;
  * unarmed members remain outside this operation roster.
  * Depleted admission: two armed available actors alternate one mover/one cover; three use
@@ -78,7 +80,7 @@ private _onFoot=(units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
         && {primaryWeapon _x != ""}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
-        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 if (count _onFoot < 2) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};

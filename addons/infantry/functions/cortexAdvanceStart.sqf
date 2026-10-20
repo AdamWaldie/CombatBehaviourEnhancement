@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial role capacity excludes protected native tasks and live actor reservations through
+ * the shared task-availability gate; later executor checks remain authoritative.
  * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Starts a bounding advance: a squad under fire that still has somewhere to go pushes an element
  * forward in covered bounds instead of stalling.
@@ -92,7 +94,7 @@ if (_leader distance2D _objective <= 80) exitWith {["OBJECTIVE_REACHED",[_leader
 private _onFoot = (units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {vehicle _x == _x}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
-        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 private _riflemen = _onFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}};

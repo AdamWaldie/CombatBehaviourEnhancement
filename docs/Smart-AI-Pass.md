@@ -2022,3 +2022,6 @@ Shared pair publication prioritises the current operation rows and retains untou
 
 
 Natural tactical assessment can propose a close assault for two or three armed infantry, matching the existing finite executor. It still requires a fresh dismounted infantry contact in the configured close range. Executor admission counts rifle-armed capable participants for element size and cover/mover capacity, then rechecks availability, native tasks, morale, authored orders and a safe avenue. Unarmed members remain outside this assault roster. A single survivor retains the existing native-contact policy. This connects small-element selection to execution; physical flow and balance remain unverified.
+
+
+Natural assault, flank and advance capacity checks exclude actors with protected native tasks or live movement reservations before choosing mover and cover elements. Flank admission also requires combat-effective members. Treatment, rearming, boarding and repair cannot inflate a proposed team that the executor would immediately have to replace. Existing STOP provenance, role limits, contact/order policy and executor rechecks remain in force. Physical task-to-manoeuvre flow remains unverified.

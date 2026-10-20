@@ -68,5 +68,32 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "naturalDrillCapacityFollowUp20261020": {
+    "baseline": "5103ce52",
+    "finding": "Natural assault/flank/advance constructors excluded reservations but could count protected native task actors. Executor then removed them from roles. Flank additionally counted alive incapacitated actors. Apparent admission capacity could exceed usable mover/cover capacity.",
+    "change": "Reuse existing CortexActorFireTaskAvailable in initial onFoot selection for all three natural constructors. Replace flank alive-only fitness with shared combat-effective predicate. Same helper already checks typed reservation expiry and protected tasks. Preserve STOP provenance, roles, morale/orders/contacts/avenues and later native/executor guards. No new scheduler, command owner or query.",
+    "sources": {
+      "addons/infantry/functions/cortexAssaultStart.sqf": "c1ba09e05c5d2ec60297e8fa35cfb03744b6b19278a7f0e43d51143438b64ca7",
+      "addons/infantry/functions/cortexFlankStart.sqf": "9f954bee17c5e4eeb70b04677bbadcb44b9d33a626b5189454a7b522b259bb5a",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "c425b03e8c267a9976d777bf17007ee454b2174511c844773208bf5a96c53a1b",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "9c9a4a53e77e0eaf8f0e0ff79187503c356da6c0b0dde7be842afd469621d413"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-natural-role-capacity-final-build.log",
+      "independent": ".qa/cbe-natural-role-capacity-independent.log",
+      "candidate": ".qa/candidates/natural-role-capacity-5103ce52-64d992eb",
+      "fingerprint": "64d992eba36d892ea4a66aa2c3fdcb7962517ba60d2d69191fdeacbb9432f5be",
+      "source": "5103ce52 plus intended dirty natural-role-capacity edits",
+      "superseded": ".qa/cbe-natural-role-capacity-build.log failed direct reservation-call source assertion; existing test now traces shared task helper and unchanged typed expiry predicate"
+    },
+    "continuationTrace": "Existing FlankStep ensureMovingTeam already handles two survivors with one mover/one cover and donor transfer for three. No duplicate casualty-rebalance patch added.",
+    "remaining": [
+      "Physical small-element/larger squad task interruption, casualty continuation, source-relative balance and overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

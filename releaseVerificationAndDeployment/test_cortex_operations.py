@@ -4266,6 +4266,15 @@ class CortexOperations(unittest.TestCase):
         coordinated=source('cortexCoordinatedAssault')
         self.assertIn('call CBE_fnc_CortexAssaultStart',selector)
         self.assertIn('private _closePosition=_manoeuvre findIf',assessment)
+        for constructor in (assault,flank,advance):
+            roster=constructor.split('private _onFoot',1)[1].split('};',1)[0]
+            self.assertIn('CortexCombatEffective',roster)
+            self.assertIn('CortexActorFireTaskAvailable',roster)
+            self.assertIn('CortexHolderRecallOwned',roster)
+        task_gate=source('cortexActorFireTaskAvailable')
+        for task in ('"HEAL"','"REARM"','"GET IN"','"REPAIR"','CortexActorMoveReserved'):
+            self.assertIn(task,task_gate)
+
         self.assertIn('(_record param [3,1e9,[0]]) >= 12',assessment)
         self.assertIn('(_record param [3,1e9,[0]]) <= _closeRange',assessment)
         self.assertIn('private _freshPosition=_manoeuvre findIf',assessment)
@@ -5311,8 +5320,9 @@ class CortexOperations(unittest.TestCase):
     def test_tactical_drills_do_not_consume_reserved_actors(self):
         for name in ['cortexFlankStart','cortexAdvanceStart','cortexAssaultStart']:
             text=source(name)
-            self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',text)
+            self.assertIn('[_x] call CBE_fnc_CortexActorFireTaskAvailable',text)
             self.assertNotIn('count _actorMove != 3 || {time >= (_actorMove select 2)}',text)
+        self.assertIn('[_actor] call CBE_fnc_CortexActorMoveReserved',source('cortexActorFireTaskAvailable'))
         guard=source('cortexActorMoveReserved')
         for required in ['!local _actor','_lease isEqualTo []','_lease isEqualType []',
                          'count _lease == 3','(_lease select 0) isEqualType ""',

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial role capacity excludes protected native tasks and live actor reservations through
+ * the shared task-availability gate; later executor checks remain authoritative.
  * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Decides whether a squad in contact should flank, and if so plans the manoeuvre.
  *
@@ -71,8 +73,8 @@ private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 if (vehicle _leader != _leader) exitWith {["LEADER_MOUNTED"] call _refuse};
 private _onFoot = (units _group) select {
-    alive _x && {local _x} && {vehicle _x == _x} && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
-        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {vehicle _x == _x} && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 if (count _onFoot < (missionNamespace getVariable ["CBE_AIPass_Flank_MinGroupSize", 6])) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
