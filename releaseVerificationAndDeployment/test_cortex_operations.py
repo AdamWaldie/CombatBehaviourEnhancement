@@ -5960,6 +5960,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBA_fnc_waitAndExecute',scoot)
         self.assertIn('_state set ["movementLease",["ARTILLERY_SCOOT",time+120]]',scoot)
         self.assertIn('CBE_fnc_CortexSelectAvenue',scoot)
+        self.assertEqual(scoot.count('call _crewReady'),2)
+        crew=scoot.split('private _crewReady=',1)[1].split('private _nativeOrder=',1)[0]
+        for guard in ('driver _battery == _driver','local _x','CortexActorFireTaskAvailable',
+                      'currentCommand _x in ["","MOVE","WAIT"]','NativeOrderReceipt',
+                      '_destination vectorDistance (waypointPosition [_group,_index]) > 3'):
+            self.assertIn(guard,crew)
         self.assertIn('objNull,"VEHICLE"',scoot)
         self.assertIn('[_vehicle,_scootToken] call CBE_fnc_CortexArtilleryScoot',locality)
         self.assertLess(locality.index('CortexRestoreCalm'),locality.index('CortexArtilleryScoot'))

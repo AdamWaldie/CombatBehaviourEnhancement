@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Both actual AI movement seats must remain local, available and free of treatment,
+ * protected tasks, direct native STOP and non-route MOVE commands before planning and issue.
+ * Geometry cannot grant authority over changed crew or authored route metadata.
  * Moves a mobile battery after the last shell flight and warning interval have elapsed. If another
  * Cortex movement owner is active, the relocation waits in five-second steps for at most two minutes
  * instead of replacing that route. Once acquired, the shared movement lease prevents contact,
@@ -62,6 +65,35 @@ if !(_purpose in ["SUPPORT","COUNTER"]
     && {[group driver _battery,_feature,false] call CBE_fnc_CortexFeatureEnabled}) exitWith {call _clear; false};
 private _group = group driver _battery;
 private _state = [_group] call CBE_fnc_CortexGroupState;
+private _driver=driver _battery;
+private _operator=effectiveCommander _battery;
+if (isNull _operator) then {_operator=_driver};
+private _crewReady={
+    local _group && {local _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
+        && {driver _battery == _driver} && {(effectiveCommander _battery) in [_operator,objNull]}
+        && {[_driver,_operator] findIf {
+            isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _battery}
+            || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+            || {!simulationEnabled _x} || {isObjectHidden _x} || {!isNull remoteControlled _x}
+            || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+            || {[_x] call CBE_fnc_CompatibilityExternalControl}
+            || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
+            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+            || {!(currentCommand _x in ["","MOVE","WAIT"])}
+        } < 0}
+        && {[_group] call CBE_fnc_NativeOrderReceipt isEqualTo _nativeOrder}
+        && {[_driver,_operator] findIf {
+            currentCommand _x == "MOVE" && {
+                private _index=currentWaypoint _group;
+                private _destination=(expectedDestination _x) param [0,[]];
+                _index <= 0 || {_index >= count waypoints _group} || {count _destination != 3}
+                    || {_destination vectorDistance (waypointPosition [_group,_index]) > 3}
+            }
+        } < 0}
+};
+private _nativeOrder=[_group] call CBE_fnc_NativeOrderReceipt;
+if !(call _crewReady) exitWith {call _clear;false};
 private _activeWaypoint = (waypoints _group) findIf {
     (_x select 1) >= currentWaypoint _group && {waypointDescription _x == "CBE AI PASS"}
 } >= 0;
@@ -87,7 +119,7 @@ if (_spot isEqualTo []) exitWith {call _clear; false};
 private _started=false;
 isNil {
     _started=call {
-        if (!(call _sessionCurrent) || {group driver _battery != _group}
+        if (!(call _sessionCurrent) || {!(call _crewReady)} || {group driver _battery != _group}
             || {!([_group] call CBE_fnc_CortexIsEligible)}) exitWith {call _clear;false};
 if !([_group,"ARTILLERY_SCOOT",true,serverTime+120] call CBE_fnc_CortexOwnershipLease) exitWith {
     if (serverTime < (_session select 3)) then {

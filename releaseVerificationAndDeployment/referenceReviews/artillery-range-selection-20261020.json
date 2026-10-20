@@ -9,7 +9,8 @@
   "files": {
     "addons/support/functions/cortexArtilleryAmmo.sqf": "769eaecae227d0ce3396d15130864df59f968f1229176c8e1176253d92acde3f",
     "addons/support/functions/cortexArtilleryFire.sqf": "eae86b6639dde315bbd799a6d80e730aad9f6051a1505d9c4b51d885060b2bea",
-    "addons/support/functions/cortexArtilleryShot.sqf": "951bcf051d7cad5c795b16390ad71b94a3df404b00ada8ed2121488a201806ca"
+    "addons/support/functions/cortexArtilleryShot.sqf": "951bcf051d7cad5c795b16390ad71b94a3df404b00ada8ed2121488a201806ca",
+    "addons/support/functions/cortexArtilleryScoot.sqf": "902c97dfb9ef2d493c395cee4f6aa779d58667c0d02ec27626909369d4ff6f5c"
   },
   "validation": {
     "tests": 1477,
@@ -51,5 +52,20 @@
     },
     "status": "Pre-fire relocation remains unimplemented; analysis establishes required execution boundaries, not build-out or physical acceptance.",
     "scopeExclusion": "Do not add a second driving controller, unbounded wait or generic per-battery polling worker."
+  },
+  "movementAuthorityFollowup": {
+    "baseline": "a6a99a09",
+    "finding": "Existing Scoot session/group checks did not establish current availability/native task authority for both actual movement-control seats at route acquisition.",
+    "implementation": "Snapshot actual driver/operator and authored receipt before geometry; require local available AI seats with no treatment/reservation/specialist control, enabled movement/path, no STOP or protected command. MOVE must still name current authored waypoint. Recheck before acquiring existing movement operation. No new movement worker or deadline policy.",
+    "clarification": "Post-fire pending admission120s and separately started move120s are deliberate existing finite stages; server observer already retains pending deadline plus120. No unsupported claim that these are one renewed deadline.",
+    "limits": [
+      "This is post-fire movement protection, not pre-fire relocation implementation.",
+      "Direct native intermediate MOVE goals may conservatively refuse rather than authorize takeover.",
+      "Original fire-request route continuity across the whole fire mission remains separate from this callback-local snapshot."
+    ],
+    "candidate": ".qa/candidates/artillery-movement-crew-a6a99a09",
+    "fingerprint": "cd2af07d734b4bc18b2580191067792de927729c29fc6c8e3aee12b6b4f5bee5",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
+    "physicalAcceptance": false
   }
 }

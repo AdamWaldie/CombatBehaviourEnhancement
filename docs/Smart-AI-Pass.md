@@ -2166,3 +2166,5 @@ Coordinated bound admission, cover holds and support recalls yield to queued tre
 Artillery admission selects from loaded, role-suitable magazines that currently reach the reported target, then applies its existing ammunition preference. A preferred out-of-range shell no longer masks another eligible shell. This does not add pre-fire relocation; genuinely out-of-range batteries still refuse the request.
 
 Artillery selection skips visibly unavailable operating crew. The battery owner independently checks the actual gunner, protected tasks/treatment, simulation, fire capability and player/specialist control before safety work and again before native fire. A server-side eligibility observation never substitutes for owner authority or a confirmed shot.
+
+Post-fire artillery movement requires both actual AI control seats to remain available and on the unchanged authored route. Treatment, specialist work, direct STOP and a MOVE to a different destination prevent a scoot from acquiring movement. This protection also applies at the existing movement-issue boundary.
