@@ -7,7 +7,9 @@
  * so the launcher is found from config rather than by name. Turrets are searched driver first, then
  * every turret, including person-turret paths: modded operational turrets may use that flag.
  * Seat protection is handled separately by passenger eligibility. Live inventory is inspected only when a countermeasure is requested: different
- * loadouts of the same class and initially empty turrets must not share stale results. BIS_fnc_fire requests the weapon
+ * loadouts of the same class and initially empty turrets must not share stale results. One live
+ * whole-vehicle magazine snapshot is filtered by exact turret within this request; it is never cached
+ * across requests. BIS_fnc_fire requests the weapon
  * from its own turret.
  * Locality and authority: call where the vehicle is local.
  *
@@ -30,10 +32,11 @@
 params [["_vehicle", objNull, [objNull]]];
 if (isNull _vehicle || {!alive _vehicle} || {!local _vehicle}) exitWith {false};
 private _entry = ["", []];
+private _magazineSnapshot=magazinesAllTurrets _vehicle;
 {
     private _turret = _x;
     private _weapons = _vehicle weaponsTurret _turret;
-    private _turretMagazines=(magazinesAllTurrets _vehicle) select {(_x select 1) isEqualTo _turret && {(_x select 2) > 0}};
+    private _turretMagazines=_magazineSnapshot select {(_x select 1) isEqualTo _turret && {(_x select 2) > 0}};
     private _index = _weapons findIf {
         private _weapon=_x;
         toLowerANSI (getText (configFile >> "CfgWeapons" >> _weapon >> "simulation")) == "cmlauncher"

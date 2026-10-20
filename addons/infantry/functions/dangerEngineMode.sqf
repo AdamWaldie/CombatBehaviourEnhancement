@@ -10,7 +10,8 @@
  */
 
 params [["_actor",objNull,[objNull]],["_record",[],[[]]]];
-if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+if (isNull _actor || {!local _actor} || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _actor} || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count _record < 3}) exitWith {"RELEASE"};
 private _group=group _actor;

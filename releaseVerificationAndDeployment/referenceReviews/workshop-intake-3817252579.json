@@ -1,0 +1,37 @@
+{
+  "added": "2026-10-20",
+  "status": "REGISTERED_PENDING_SOURCE_EVALUATION",
+  "licence": "UNVERIFIED; inspect before incorporating code.",
+  "sourceProtection": "Installed originals and archives are read-only. Keep raw source outside product packages.",
+  "acceptance": "Not implemented or physically validated. Audits remain PAUSED.",
+  "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md is absent; preserve this addition separately for reconciliation. Do not reconstruct the historical register.",
+  "workshopId": "3817252579",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3817252579",
+  "name": "Root's Adaptive Detection System (RADS)",
+  "priority": "Soft optional; scenario-sensitive",
+  "scope": "Soft optional, scenario-sensitive selective AI detection/recognition improvements for stealth missions, especially players concealed in civilian or enemy vehicles. No wholesale port or automatic enablement.",
+  "identityEvidence": "Installed mod.cpp identifies Root and progressive recognition of concealed vehicle occupants. meta.cpp publishedid0; Workshop identity comes from supplied URL and installation folder. Web page inaccessible.",
+  "dependencies": "UNVERIFIED",
+  "userAssessment": "User explicitly requests the same optional inclusion and scenario-risk conditions as3822271074; actual source stability and compatibility remain unverified.",
+  "evaluationTopics": [
+    "Trace progressive detection/recognition and concealed-occupant knowledge before choosing methods.",
+    "Assess side/captive/targetability mutations, scripted detection triggers, objectives, patrols, combat transitions and mission-authored stealth systems for disruption.",
+    "Preserve optional CBA enablement, proposed default OFF, and normal native behaviour when disabled.",
+    "Evaluate observed cues and uncertainty without global perfect knowledge; do not silently erase existing hostile knowledge.",
+    "Check multiplayer locality, JIP, repeated vehicle entry/exit, crew changes, ownership, interruption and exact state restoration.",
+    "Use useful parts within CBE existing FSM ownership; source Zeus/3DEN settings modules are not required. CBA remains settings authority.",
+    "Record selected/reworked/rejected methods, bounded processing cost, balance and scenario limitations."
+  ],
+  "decisionGate": "Require source review, scenario tradeoff assessment and later representative physical validation before enabling. Preserve caveats even if a subset is selected.",
+  "author": "Root",
+  "sameConditionsAs": "3822271074",
+  "upstreamRepository": "https://github.com/A3-Root/Root_AdaptiveDetectionSystem",
+  "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3817252579",
+  "files": {
+    "addons\\root_ads_compat_ace.pbo": "f252a6ab8b4995a65984308ebe896a8db157e785a6c552724d5c1eca6c51b5d6",
+    "addons\\root_ads_main.pbo": "163fe8cc29517f9e6a6fa6a2081a13a487fac215aa3862ce67c15c35ec5e70aa",
+    "addons\\root_ads_modules.pbo": "0b28b9b7eb752dae29335ee6e59b9ef130a200c33dafd7ffab5ca33767148a9e",
+    "meta.cpp": "cdc4d35268646d32faac661c3ce6ea002cb9c76a6b324ee4b2d23cff0b715200",
+    "mod.cpp": "3cbd238e6e9849d3fe1c30d26b93f37cba8d636eda43e927e46dbbc871d59801"
+  }
+}

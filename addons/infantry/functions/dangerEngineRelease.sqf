@@ -5,7 +5,7 @@
  * Repeat/JIP: Repeat-safe and machine-local. Always clears the completed response marker. Restores
  * the recorded prior stance only while the actor still has CBE's exact applied stance and no player,
  * Zeus, specialist controller or finite actor reservation has taken ownership. New leases also bind operation generation, owner epoch and group; replacement work cannot inherit the restoration.
- * Blocked native tasks/reservations and unconfirmed restores retain the original lease for a later
+ * Dormancy, blocked native tasks/reservations and unconfirmed restores retain the original lease for a later
  * existing caller. Automatic retries stop 30 seconds after the original stance expiry; proof remains.
  * No retry worker or deadline renewal is created; later cleanup is not guaranteed.
  * Arguments: 0: soldier <OBJECT>, objNull.
@@ -25,7 +25,7 @@ if (count _lease != 6) exitWith {false};
 private _evidence={
     params ["_reason",["_retire",false]];
     if (_retire) then {_actor setVariable ["CBE_Danger_EngineStanceLease",nil]};
-    if (!_retire && {_reason in ["ACTOR_RESERVATION","NATIVE_TASK_OR_MEDICAL","RESTORE_PENDING"]}) then {
+    if (!_retire && {_reason in ["ACTOR_RESERVATION","ACTOR_DORMANT","NATIVE_TASK_OR_MEDICAL","RESTORE_PENDING"]}) then {
         private _pendingGroup=group _actor;
         private _pending=_pendingGroup getVariable ["CBE_Danger_StancePendingActors",[]];
         if (local _pendingGroup && {_pending isEqualType []} && {count _pending < 64}
@@ -48,6 +48,8 @@ if (isNull _group || {!local _group} || {[_group,false,_actor] call CBE_fnc_Cort
 if (count _lease >= 6 && {(_lease select 3) != (_group getVariable ["CBE_OperationGeneration",0])
     || {(_lease select 4) != (_group getVariable ["CBE_AIPass_Epoch",0])}
     || {(_lease select 5) != _group}}) exitWith {["NEW_OPERATION_OR_OWNER",true] call _evidence};
+// Dormancy suspends commands, not the original stance proof or operation membership.
+if (!simulationEnabled _actor || {isObjectHidden _actor}) exitWith {["ACTOR_DORMANT"] call _evidence};
 if ([_actor] call CBE_fnc_CortexActorMoveReserved) exitWith {
     ["ACTOR_RESERVATION"] call _evidence
 };

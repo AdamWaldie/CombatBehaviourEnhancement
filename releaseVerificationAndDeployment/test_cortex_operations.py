@@ -2959,6 +2959,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_vehicle weaponsTurret _turret',text)
         self.assertIn('toLowerANSI',text)
         self.assertIn('Fired events establish actual fire',text)
+        self.assertEqual(text.count('magazinesAllTurrets _vehicle'),1)
+        self.assertIn('_magazineSnapshot select',text)
+        self.assertLess(text.index('private _magazineSnapshot='),text.index('private _turret = _x;'))
 
     def test_artillery_baseline_retains_counter_owner(self):
         text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text(encoding='utf-8')
@@ -9498,6 +9501,14 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('forEach _placed'),text.index('_ranked sort true'))
 
     def test_danger_release_retains_blocked_original_and_confirms_restore(self):
+        for name in ('dangerEngineCanContinue','dangerEngineMode','dangerEngineAct','dangerEngineRelease'):
+            actor_gate=source(name)
+            self.assertIn('simulationEnabled _actor',actor_gate)
+            self.assertIn('isObjectHidden _actor',actor_gate)
+        release=source('dangerEngineRelease')
+        self.assertIn('["ACTOR_DORMANT"] call _evidence',release)
+        self.assertLess(release.index('["ACTOR_DORMANT"] call _evidence'),release.index('_actor setUnitPosWeak _prior'))
+
         release=source('dangerEngineRelease')
         guard=release.index('["ACTOR_RESERVATION"] call _evidence')
         self.assertLess(release.index('setVariable ["CBE_Danger_EngineResponse",nil]'),guard)

@@ -1,0 +1,28 @@
+{
+  "workshopId": "3380337397",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3380337397",
+  "name": "FPV AI Drones",
+  "author": "slavkovsky77 (installed metadata; Workshop creator display martin.4248)",
+  "added": "2026-10-20",
+  "status": "REGISTERED_PENDING_SOURCE_EVALUATION",
+  "scope": "Evaluate AI drone autonomous targeting, waypoint/search behaviour, attack approach, moving-target prediction, multi-drone allocation and player/Zeus takeover; selectively integrate useful intent with CBE aircraft/threat/AA systems. No wholesale implementation claim.",
+  "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3380337397",
+  "files": {
+    "addons\\fpv_ai_drones.pbo": "35ea37de6a33de4a324e07a5b7e646e8b614b2ae74b54261bb4eb62c97ebf081",
+    "meta.cpp": "d4232b0edaed1737946872e23e39beaa8152c4413f3c9cedc6f2e22c93e87bfd",
+    "mod.cpp": "845b95c5664ff1c9192fb024a5ca907a85012b543d8a1dc1093ec50d011ad02c"
+  },
+  "identityEvidence": "Installed mod/meta identify version1.3.0 and publishedid3380337397; Workshop page retrieved.",
+  "upstreamRepository": "https://github.com/slavkovsky77/Arma3-AI-FPV-Drones",
+  "licence": "Workshop explicitly prohibits code/mod reuploads modified or not without permission and clear credit. Do not copy/distribute source; evaluate intent and licence before incorporation. No permission established.",
+  "dependencies": "Workshop lists CBA_A3 and describes use with drone assets. Exact config dependencies not yet reviewed.",
+  "evaluationTopics": [
+    "Separate native AI decisions from scripted flight/velocity control, detonation and manufactured misses; assess feasibility and ownership before selection.",
+    "Respect native observed knowledge, mission fire policy, appropriate payload/target selection and friendly safety.",
+    "Review group allocation, player/UAV/Zeus takeover, dedicated server/locality and cleanup.",
+    "Avoid automatic takeover of all UAVs of a class; admit explicit ownership and bounded work."
+  ],
+  "sourceProtection": "Read originals only; raw upstream code/assets excluded from product packages.",
+  "masterLedger": "Historical master ledger absent; addition preserved separately for reconciliation.",
+  "acceptance": "No implementation, parity, runtime or physical validation claimed; audits PAUSED."
+}

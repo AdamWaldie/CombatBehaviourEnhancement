@@ -108,3 +108,10 @@ User clarification 2026-10-19: validation must support implementation rather tha
 - Prefer extending a meaningful existing regression case. Add a case only for a distinct failure mode or behavioural invariant; avoid a new source-spelling assertion for each guard, branch or helper. Never remove a check merely to reduce the count or conceal a failure.
 - Keep static contracts, physical behaviour and measured performance separate. More tests and green source-shape assertions do not establish better AI. Audits remain paused until the user authorises them.
 - Do not push micro-commits, dispatch remote checks or mark a draft ready to obtain routine development feedback. Preserve the complete release gates.
+
+
+## Priority update - 2026-10-20
+
+The user prioritises foundations and FSM lifecycle, with functional parity and improvements over LAMBS danger behaviour, before the next broad implementation wave. LAMBS is a reference, not a required addon. Trace native danger ingestion, actor/group decision ownership, operation start/update/cancel/end, locality transfer, interruption, restoration and finite scheduling against source intent. Improve real execution; do not substitute documentation or matching filenames for functionality.
+
+Next, implement, fix and improve the complete Protocol AI collection. Evaluate every available mod and its complete AI scope, retain useful distinctive behaviour, redesign unsafe methods and merge it into CBE ownership rather than copy competing loops. Do not treat this as compatibility-only. Respect source permissions/dependencies and mission authority. Enumerating locally installed items does not establish that the whole Workshop collection has been found. Existing HBQ priority, protected sources and paused audits remain in force; compatibility expansion stays last.

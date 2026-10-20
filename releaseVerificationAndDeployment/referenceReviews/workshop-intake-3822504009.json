@@ -53,6 +53,24 @@
     "licence": "Still unverified; no code copied into product.",
     "performanceMeasured": false,
     "physicalAcceptance": false,
-    "productIntegrationClaim": false
+    "productIntegrationClaim": false,
+    "smokeWithdrawalComparison": {
+      "CBEPaths": [
+        "addons/infantry/functions/cortexFireCountermeasure.sqf",
+        "addons/vehicles/functions/cortexVehicles.sqf"
+      ],
+      "findings": [
+        "CBE discovers countermeasures by cmlauncher config plus compatible positive-round inventory on the exact turret, including driver and person turrets; no name-only smoke lookup.",
+        "Danger smoke has a separate generation receipt so gunner response does not consume its chance. No automatic movement is introduced by the helper.",
+        "Damaged/weapon-disabled mounted vehicle withdrawal requires an admitted avenue, ownership lease and accepted operation; reverse or tagged waypoint receipt controls transition into RETREAT. This is not proof of physical travel.",
+        "Source random cover offset, repeated free movement and blanket forceSpeed restoration are deliberately rejected; screened/hull-safe firing relocation remains separate work.",
+        "Countermeasure helper now reads magazinesAllTurrets once per request rather than once per scanned turret; no persistent cache."
+      ],
+      "validation": "607 existing operation tests pass; full checkpoint build pending for snapshot optimization. Earlier danger suppression full1477 and package verification remain valid only for their previous candidate.",
+      "limits": [
+        "BIS_fnc_fire dispatch is not proof of actual fire; verify Fired evidence later.",
+        "No measured runtime speedup or physical smoke/withdrawal acceptance."
+      ]
+    }
   }
 }

@@ -14,7 +14,8 @@
  */
 
 params [["_actor",objNull,[objNull]],["_initial",false,[true]]];
-if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+if (isNull _actor || {!local _actor} || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _actor}) exitWith {false};
 private _group=group _actor;
 if (isNull _group || {!local _group}
