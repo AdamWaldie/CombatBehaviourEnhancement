@@ -195,5 +195,23 @@
     "audits": "PAUSED",
     "scoresChanged": false,
     "retainedCorrection": "Existing may_bound test model still had historical support exemption; corrected to agree with shared issue source, retaining positive and negative support cases."
+  },
+  "dryChunkBalance20261020": {
+    "baseline": "b059293f",
+    "finding": "With unequal armed counts, all dry chunks went to the lower-capacity team; adding dry actors never changed that deficit and could create large team imbalance.",
+    "implementation": "Capacity-zero chunks use headcount only; armed chunks retain capacity/headcount priority, whole pairs and reconstruction preserved.",
+    "sourceSHA256": "a060dfc85ddacfb29e6c3b7f487599ac7882a5996bef38dbb0e4201615660434",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-dry-chunks-focused.log",
+      "full": ".qa/cbe-dry-chunks-build.log",
+      "independent": ".qa/cbe-dry-chunks-independent.log",
+      "candidate": ".qa/candidates/dry-chunks-b059293f",
+      "fingerprint": "ac19f5f118720cbf3947b545a7b755d051990336ae36f43ddd687305d9f730b3"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

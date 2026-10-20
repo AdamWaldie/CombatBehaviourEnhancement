@@ -4079,7 +4079,7 @@ class CortexOperations(unittest.TestCase):
             for capacity in (2,1,0):
                 for chunk,n in ranked:
                     if n != capacity: continue
-                    team=int((counts[0],len(teams[0])) > (counts[1],len(teams[1])))
+                    team=int(len(teams[0]) > len(teams[1])) if capacity == 0 else int((counts[0],len(teams[0])) > (counts[1],len(teams[1])))
                     teams[team].extend(chunk); counts[team]+=n
             if len(teams[0]) < len(teams[1]): teams.reverse()
             return teams
@@ -4089,6 +4089,12 @@ class CortexOperations(unittest.TestCase):
         for pair in ([0,1],[2,3],[4,5]):
             self.assertTrue(any(set(pair)<=set(t) for t in teams))
         self.assertEqual(allocate([[0,1],[2]],{0,1,2}),[[0,1],[2]])
+        dry_heavy=allocate([[0,1],[2]]+[[n] for n in range(3,12)],{0,1,2})
+        self.assertEqual(sorted(sum(dry_heavy,[])),list(range(12)))
+        self.assertLessEqual(abs(len(dry_heavy[0])-len(dry_heavy[1])),1)
+        self.assertTrue(any({0,1}<=set(t) for t in dry_heavy))
+        self.assertIn('if (_capacity == 0) then {count _first > count _second}',start)
+
 
         maintain=source('cortexSupportMaintain')
         self.assertIn('private _started=[_group,_state,_role] call CBE_fnc_CortexSupportBoundStart',maintain)

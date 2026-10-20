@@ -150,12 +150,15 @@ private _ranked=_chunks apply {[_x,{_x in _armed} count _x]};
 private _armedCounts=[0,0];
 // At most64 chunks and three bounded passes. Distribute capacity before dry chunks,
 // preserving whole pairs; headcount breaks equal-capacity ties deterministically.
+// Dry chunks add no capacity: distribute them by headcount, not the armed deficit.
 for "_capacity" from 2 to 0 step -1 do {
     {
         _x params ["_chunk","_count"];
         if (_count == _capacity) then {
-            private _secondTeam=(_armedCounts select 0) > (_armedCounts select 1)
-                || {(_armedCounts select 0) == (_armedCounts select 1) && {count _first > count _second}};
+            private _secondTeam=if (_capacity == 0) then {count _first > count _second} else {
+                (_armedCounts select 0) > (_armedCounts select 1)
+                    || {(_armedCounts select 0) == (_armedCounts select 1) && {count _first > count _second}}
+            };
             private _team=[0,1] select _secondTeam;
             ([_first,_second] select _team) append _chunk;
             _armedCounts set [_team,(_armedCounts select _team)+_count];
