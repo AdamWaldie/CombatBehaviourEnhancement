@@ -53,5 +53,24 @@
       "physicalAcceptance": false,
       "audits": "PAUSED"
     }
+  },
+  "queryAdmissionFollowup": {
+    "baseline": "51dec005",
+    "problem": "New AA domain query and loaded-station preflight ran even during the existing eight-second target hold, restricted ROE or combined-ground fire delegation, when routine targeting could not act.",
+    "fix": "The additional work now requires available gunner, current fire capability, permitted group/unit ROE, no combined-ground fire owner and expired target hold. Shared-query and snapshot bounds retained; final live firing gates remain unchanged.",
+    "sourceSha256": "79a4bf4adfc8675e7ef60f889deaadc3f9115e03ff7cee8e1e2a224572e5d75c",
+    "validation": {
+      "focusedOperations": 607,
+      "fullTests": 1477,
+      "buildExit": 0,
+      "log": ".qa/native-aa-query-admission-build.log",
+      "candidate": ".qa/candidates/native-aa-query-admission-51dec005",
+      "fingerprint": "25320a94eec8b8593a2e4fab75989d4b5245df843bcc473baf2062c7e2c3ea5b",
+      "independentVerification": true,
+      "signed": false,
+      "physicalAcceptance": false,
+      "performanceMeasured": false,
+      "audits": "PAUSED"
+    }
   }
 }

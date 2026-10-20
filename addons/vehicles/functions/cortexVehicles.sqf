@@ -736,7 +736,13 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         private _airPreference=false;
         private _stationSelection=createHashMap;
         private _gunneryContacts=+(_enemies select [0,8]);
-        if (_airDefence && {[_vehicle,_gunner] call _gunnerAvailable} && {canFire _vehicle}) then {
+        // Do not spend native knowledge or station queries while routine targeting
+        // cannot act. The final live checks below remain the firing boundary.
+        if (_airDefence && {[_vehicle,_gunner] call _gunnerAvailable}
+            && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
+            && {canFire _vehicle}
+            && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
+            && {(_gunner getVariable ["CBE_AIPass_TargetHold",-1]) < time}) then {
             if (!_airContactsRead) then {
                 _airContacts=([_group,-1,"AIR"] call CBE_fnc_CortexKnowledge) select 0;
                 _airContactsRead=true;

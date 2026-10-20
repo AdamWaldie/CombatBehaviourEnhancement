@@ -2142,3 +2142,6 @@ Native AA editor-role platforms now prefer aircraft reported within the last thr
 
 
 AA contact preference is qualified against the actual loaded station before extra aircraft rows enter its target shortlist. An AA editor category carrying only ground-suitable ammunition therefore keeps ordinary target preference instead of spending all eight candidate checks on incompatible aircraft. A completed failed preflight shares the existing same-frame raw station snapshot with ground selection; permission is still freshly checked before firing. No ammunition is supplied or changed. Runtime mixed-ammunition and performance validation remain pending.
+
+
+The additional AA knowledge and station preflight now run only when routine targeting can act: the gunner is available, the vehicle can fire, ROE allows it, no combined-ground fire assignment owns the platform, and the existing target hold has ended. Held or delegated fire therefore incurs no extra aircraft query or ammunition preflight. The final live firing checks remain separate. This reduces avoidable work without adding cache lifetimes, callbacks or early retargeting; the aggregate performance budget remains unmeasured.
