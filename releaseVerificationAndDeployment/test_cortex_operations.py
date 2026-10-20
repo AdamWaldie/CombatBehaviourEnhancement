@@ -8695,7 +8695,7 @@ class CortexOperations(unittest.TestCase):
             'count (_group getVariable ["CBE_Operation",createHashMap]) > 0',
             '(_state getOrDefault ["movementLease",[]]) isNotEqualTo []',
             'CBE_fnc_CortexOwnershipLease','CBE_fnc_OperationStart',
-            '["VEHICLE_ORIENT",time+8]','sendSimpleCommand (["LEFT","RIGHT"]',
+            '["VEHICLE_ORIENT",time+8]','sendSimpleCommand _turnDirection',
             'CBE_Danger_VehicleOrient'
         ]:
             self.assertIn(marker,orient)
@@ -8717,13 +8717,20 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CortexActorFireTaskAvailable',orient.split('if (!([_commander]',1)[1])
         self.assertIn('_nativeOrder,_commander',orient)
         for guard in ('effectiveCommander _orientVehicle != _turnCommander','!_orientCommanderProtected',
-                      'COMMANDER_TASK_OR_SEAT','count _marker == 8'):
+                      'COMMANDER_TASK_OR_SEAT','count _marker == 9'):
             self.assertIn(guard,vehicles)
         self.assertIn('private _nativeOrder=[_group] call CBE_fnc_NativeOrderReceipt',orient)
         self.assertIn('_operationGeneration,_driver,_nativeOrder',orient)
         self.assertIn('_orientOrderChanged=(_marker param [6,[],[[]]]) isNotEqualTo',vehicles)
         self.assertIn('!_orientOrderChanged',vehicles)
         self.assertIn('NATIVE_ORDER_CHANGED',vehicles)
+        self.assertIn('_commander == _driver',orient)
+        self.assertIn('vehicleMoveInfo _vehicle',orient)
+        self.assertIn('["BACK","DIRECTBYCOMANDER"]',orient)
+        self.assertIn('_commander,_turnDirection',orient)
+        self.assertIn('NATIVE_INPUT_CHANGED',vehicles)
+        self.assertIn('_observedTurn in ["NONE",_turnDirection]',vehicles)
+        self.assertIn('!_orientInputChanged',vehicles)
         for guard in ('captive _threat','ace_captives_isSurrendering','ace_captives_isHandcuffed',
                       '(side _group) getFriend (side _threat) >= 0.6'):
             self.assertIn(guard,orient)
@@ -8751,7 +8758,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CompatibilityExternalControl',calm)
         self.assertIn('driver _orientVehicle == _turnDriver',calm)
         self.assertIn('effectiveCommander _orientVehicle == _turnCommander',calm)
-        self.assertIn('count _orientMarker == 8',calm)
+        self.assertIn('count _orientMarker == 9',calm)
+        self.assertIn('vehicleMoveInfo _orientVehicle',calm)
+        self.assertIn('== (_orientMarker select 8)',calm)
         self.assertIn('CortexActorFireTaskAvailable',calm)
         self.assertIn('(_orientMarker param [6,[],[[]]]) isEqualTo',calm)
         self.assertIn('NativeOrderReceipt',calm)

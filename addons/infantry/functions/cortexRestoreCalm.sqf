@@ -224,7 +224,11 @@ if (!isNull _orientVehicle && {local _orientVehicle}) then {
             && {(_orientMarker param [6,[],[[]]]) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
             && {[_turnDriver] call CBE_fnc_CortexCombatEffective}
             && {[_turnDriver] call CBE_fnc_CortexActorFireTaskAvailable}
-            && {count _orientMarker == 8}
+            && {count _orientMarker == 9}
+            && {(_orientMarker param [8,"",[""]]) in ["LEFT","RIGHT"]}
+            && {private _input=vehicleMoveInfo _orientVehicle;
+                !(toUpperANSI (_input param [0,"",[""]]) in ["BACK","DIRECTBYCOMANDER"])
+                    && {toUpperANSI (_input param [1,"",[""]]) == (_orientMarker select 8)}}
             && {!isNull _turnCommander} && {effectiveCommander _orientVehicle == _turnCommander}
             && {local _turnCommander} && {group _turnCommander == _group} && {!isPlayer _turnCommander}
             && {isNull remoteControlled _turnCommander}

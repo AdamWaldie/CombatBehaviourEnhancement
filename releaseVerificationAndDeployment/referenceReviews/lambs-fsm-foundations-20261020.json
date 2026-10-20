@@ -715,5 +715,19 @@
     "validation": "Existing609 source checks passed; full build result in handover.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "orientationNativeInput": {
+    "baseline": "bae8caba",
+    "references": [
+      "https://community.bistudio.com/wiki/vehicleMoveInfo",
+      "https://community.bistudio.com/wiki/sendSimpleCommand"
+    ],
+    "finding": "Direct orientation did not exclude preexisting simple turn/BACK or track its selected direction; later native opposite-turn input could be stopped by old cleanup. Engine documentation also requires effective commander distinct from driver.",
+    "implementation": "Refuse same driver/commander, BACK/DirectByComander and non-NONE initial turn. Nine-field marker adds expected direction. Existing lifecycle cancels NATIVE_INPUT_CHANGED for contradictory/unknown turn or BACK/direct move. Cleanup rechecks move/turn and only stops the recorded direction under existing exact authority. NONE may await alignment/timeout but authorises no turn cleanup.",
+    "limits": "Same-direction replacement and unchanged STOP remain indistinguishable. No new command acknowledgement, controller quiescence or physical provider handover proof. No forced crew reassignment or turn cancellation to admit the request.",
+    "cost": "Bounded vehicleMoveInfo observations during admission/existing lifecycle/cleanup; no crew/world scan or worker. Runtime unmeasured.",
+    "validation": "Existing609 checks passed; fixture prerequisite updated9fields/direction but unrun. Full build result in handover.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }

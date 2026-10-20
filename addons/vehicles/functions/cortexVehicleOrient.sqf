@@ -51,7 +51,10 @@ if (_threat isKindOf "Logic" || {_threat isKindOf "HeadlessClient_F"} || {captiv
     || {_threat getVariable ["ace_captives_isSurrendering",false]}
     || {_threat getVariable ["ace_captives_isHandcuffed",false]}
     || {(side _group) getFriend (side _threat) >= 0.6}) exitWith {false};
-if (_commander knowsAbout _threat <= 0) exitWith {false};
+if (_commander knowsAbout _threat <= 0 || {_commander == _driver}) exitWith {false};
+private _input=vehicleMoveInfo _vehicle;
+if (toUpperANSI (_input param [0,"",[""]]) in ["BACK","DIRECTBYCOMANDER"]
+    || {toUpperANSI (_input param [1,"",[""]]) != "NONE"}) exitWith {false};
 private _relative=_vehicle getRelDir _threatPosition;
 if (_relative <= 20 || {_relative >= 340}) exitWith {false};
 if !([_group,"VEHICLE_ORIENT",true,serverTime+8] call CBE_fnc_CortexOwnershipLease) exitWith {false};
@@ -62,10 +65,11 @@ if (count _operation == 0) exitWith {
 };
 private _operationGeneration=_operation get "generation";
 private _nativeOrder=[_group] call CBE_fnc_NativeOrderReceipt;
-_vehicle sendSimpleCommand (["LEFT","RIGHT"] select (_relative < 180));
+private _turnDirection=["LEFT","RIGHT"] select (_relative < 180);
+_vehicle sendSimpleCommand _turnDirection;
 _state set ["movementLease",["VEHICLE_ORIENT",time+8]];
 _state set ["vehicleOperationGeneration",_operationGeneration];
 _vehicle setVariable ["CBE_Danger_VehicleOrient",[
-    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration,_driver,_nativeOrder,_commander
+    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration,_driver,_nativeOrder,_commander,_turnDirection
 ],true];
 true
