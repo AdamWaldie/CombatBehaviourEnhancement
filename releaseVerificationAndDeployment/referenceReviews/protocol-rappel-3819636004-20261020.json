@@ -1,0 +1,65 @@
+{
+  "workshopId": "3819636004",
+  "name": "PROTOCOL AI RAPPELING",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3819636004\\addons\\protocol_ai_rappeling.pbo",
+    "sha256": "9d314ba77d568b81d87817fdccb6ddf86312cefc7d196687aba873575051f1e5",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 653,
+        "sha256": "db4d3c5eb0a5e4f7882730451c9d713cfff0c93d960e3c56f1e3b715b94ce1cb"
+      },
+      {
+        "name": "functions\\fn_rappeling.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 6306,
+        "sha256": "cf36f814be1fcaf56b637a5879cc8f7db82cc30bde716488b79105da8e725f7e"
+      },
+      {
+        "name": "XEH_preInit.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 746,
+        "sha256": "99a5972051e4561b9611ae6b0c3a2f62038c725475f99d73fc3a4ad5d134c833"
+      }
+    ]
+  },
+  "scope": "Both readable SQFs fully read. Binary startup/dependencies/licence unverified; user-declared Advanced Rappelling and CBA dependencies retained.",
+  "intent": [
+    "Deliver existing helicopter cargo to a validated ground/roof insertion point, hand rope execution to provider and then resume ordinary infantry control."
+  ],
+  "existingCbe": [
+    "No CBE AR_Rappel_All_Cargo executor found in production SQF. Generic aircraft/flight leases and finite actor operations are reusable foundations, not implemented rappelling."
+  ],
+  "sourceDefects": [
+    "Every3s global vehicles scan, no authority/locality/Zeus/player/provider ownership contract.",
+    "Creates a new cargo group and joinSilent before deciding to insert, permanently changing mission group identity.",
+    "nearEntities600 and insideBuilding/live enemy transforms reveal knowledge; fallback nearest house is not the original objective.",
+    "Bounding-box roof centre is not a reachable safe roof/rope landing; height clamp local is not used in provider call.",
+    "doMove on pilot with repeated LIMITED, then flyInHeight setting and2s wait; distance2D<=18 is not proof of stable safe hover.",
+    "Direct AR_Rappel_All_Cargo call has no provider availability/signature validation, completion acknowledgement, cargo/rope cleanup or resume authority. buildingRappelDone marks request as success and prevents repeat use."
+  ],
+  "dependencies": [
+    "Advanced Rappelling",
+    "CBA_A3"
+  ],
+  "remaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+  "sourceProtection": "Original PBO and extracted readable files verified against inventory hashes; no raw source copied into product.",
+  "validation": "Source review, caller tracing, JSON parsing and archive/extract hash verification. No product edit or runtime test in this batch.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false
+}

@@ -1,0 +1,61 @@
+{
+  "workshopId": "3800081309",
+  "name": "PROTOCOL AI AIRBORNE",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3800081309\\addons\\prototcol_ai_airborne.pbo",
+    "sha256": "9b484e9f8b48b59ee5355f8544f96f2a8668129df0aa73403c5becdc836bff1a",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 648,
+        "sha256": "3ae0d82569a30c4a2e8208db965a3a0357b09bded3f8673f6f0b608fa1c05a5f"
+      },
+      {
+        "name": "functions\\fn_airborne.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 3359,
+        "sha256": "4bd72b47fad6cf35250fff1cbde9d01e225f8f236c35606546d8f3eee066d375"
+      },
+      {
+        "name": "XEH_preInit.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 2268,
+        "sha256": "6bb1b9e6c48b958973ce35715ae4228f2a57f4203378f4581ec71cd3d6aaf031"
+      }
+    ]
+  },
+  "scope": "Both readable SQFs fully read. Binary startup/dependency declaration/licence unverified.",
+  "intent": [
+    "Select a suitable existing aircraft, establish drop height, stagger cargo exits and retain gunner support."
+  ],
+  "existingCbe": [
+    "CortexAirborneCheck -> CortexAirborneDropStep -> CortexParachuteJump/Deploy/ProtectionRelease. Known hostile context, cargo/FFV versus operating crew, finite insertion episode and owner epoch; backpack preserved. Native planned landing/player pilot takes precedence."
+  ],
+  "sourceDefects": [
+    "Idle allGroups loop without delay or locality/Zeus/mission ownership.",
+    "Aircraft type exitWith gates inside nested if blocks do not return from the function. Both type flags false leave no filter.",
+    "CBA registers plane enable twice instead of registering general enabled key.",
+    "nearEntities plus side inequality reveals nearby enemy presence including non-hostile sides; no native knowledge gate.",
+    "addBackpack B_Parachute risks replacing equipment; height command is not verified actual safe exit altitude; dropDone permanent across reuse.",
+    "Spawned gunner support loop has no insertion completion/deadline or owner handback."
+  ],
+  "remaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation.",
+  "sourceProtection": "Original PBO and extracted readable files verified against inventory hashes; no raw source copied into product.",
+  "validation": "Source review, caller tracing, JSON parsing and archive/extract hash verification. No product edit or runtime test in this batch.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false
+}

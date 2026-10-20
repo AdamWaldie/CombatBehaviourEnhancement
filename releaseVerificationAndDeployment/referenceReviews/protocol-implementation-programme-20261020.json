@@ -21,9 +21,11 @@
       "name": "PROTOCOL AI AIRBORNE",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3800081309",
       "metadataSHA256": "3f482dc167f0ae6a940b124dcf018e7f98f591be6613de0c66f006b84a4aa25e",
-      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "status": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
       "priority": "After foundations and FSM lifecycle",
-      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-airborne-3800081309-20261020.json",
+      "remaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation."
     },
     {
       "workshopId": "3801354927",
@@ -74,30 +76,37 @@
       "name": "PROTOCOL AI NAVY SEAL",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3813369033",
       "metadataSHA256": "669f58ea7edb6273dcd11a57f4f7f8baaff7cda3042b31693fc64a4265c3179e",
-      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "status": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
       "priority": "After foundations and FSM lifecycle",
-      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-navy-3813369033-20261020.json",
+      "remaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features."
     },
     {
       "workshopId": "3819636004",
       "name": "PROTOCOL AI RAPPELING",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3819636004",
       "metadataSHA256": "d23ec6ce05b28d2737e45e65bfec96144f47e69d1c7829b4912d879302ba8d64",
-      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "status": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
       "priority": "After foundations and FSM lifecycle",
-      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-rappel-3819636004-20261020.json",
+      "remaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature."
     },
     {
       "workshopId": "3822504009",
       "name": "PROTOCOL AI ARMORED FORCE",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3822504009",
       "metadataSHA256": "10ae57c96a4b30f8c79ed7dc2685719a85f1d75420f883adc48aae15abb80628",
-      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "status": "READABLE_SCRIPTS_REVIEWED_PENDING_INTEGRATION",
       "priority": "After foundations and FSM lifecycle",
-      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "workshop-intake-3822504009.json",
+      "remaining": "Existing complete readable review retained; merge selected armour intent into owned finite vehicle/combined-arms paths and physically validate."
     }
   ],
   "inventoryLimits": "Nine locally installed Protocol-named mod metadata records. Not proof of complete Workshop collection discovery or source implementation. Earlier reviews must be reconciled before repeating work.",
   "auditState": "PAUSED",
-  "sourceProtection": "Originals read-only; licence review before incorporating implementation; raw source excluded from product."
+  "sourceProtection": "Originals read-only; licence review before incorporating implementation; raw source excluded from product.",
+  "readableReviewCheckpoint": "All nine locally inventoried Protocol items now have readable-source review pointers. This is not complete Workshop collection discovery, binary config/startup/dependency/licence review, implementation or physical parity."
 }

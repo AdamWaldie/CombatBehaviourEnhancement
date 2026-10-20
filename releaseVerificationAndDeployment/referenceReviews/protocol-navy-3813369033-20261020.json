@@ -1,0 +1,55 @@
+{
+  "workshopId": "3813369033",
+  "name": "PROTOCOL AI NAVY SEAL",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3813369033\\addons\\prototcol_ai_navy_seal.pbo",
+    "sha256": "2518d8cf9e8d66c47b05734f0e7a34bb4e2304e7bc72be0b7a273a58c71dcd65",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 492,
+        "sha256": "d6ae1d483f4137f012c117c50982219dc640497e3059bb7ddf8b23772b9dc2e5"
+      },
+      {
+        "name": "functions\\fn_navy_seal.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 56758,
+        "sha256": "4d706d5f31e18b08356a6e55777f77e2b64635a17ae6d64c393700ce9c99e363"
+      }
+    ]
+  },
+  "scope": "All1203lines fully read, including two spawned near-duplicate controllers. Truncated observations were followed by bounded rereads. Binary startup/dependencies/licence unverified.",
+  "intent": [
+    "Shoreline approach, passenger disembarkation and dry-ground movement, then supporting/assault elements and casualty protection."
+  ],
+  "existingCbe": [
+    "CortexGroupTick -> CortexNavalAssault -> CortexNavalRelease. Bounded shore comparison and finite native approach; separate passenger group and combined-group egress cases, operating crew retained, token/expiry/speed receipts. Ground combat continues through common finite infantry controllers."
+  ],
+  "sourceDefects": [
+    "Two independent spawned workers share naval flags and actors; no locality/Zeus/native/new-operation ownership.",
+    "First shallow test depth>=0.1 AND<=0.1 accepts only exact0.1m; second duplicate uses0.09..0.11m. Repeated nested shoreline queries remain narrow and potentially fail.",
+    "Approach waits until boat death/disembark condition without absolute abort; inner infantry loop lasts while any original actor alive and can block other groups indefinitely.",
+    "Global allUnits hostile oracle and live transforms, side inequality; no authored-waypoint use despite _hasWaypoint variable.",
+    "Repeated moveOut/unassignVehicle and lockCargo true override crew/cargo intent; leader selection and RED/COMBAT/FULL/WEDGE overrides have no restoration.",
+    "Second duplicate creates smoke inventory before forced fire; repeated selectBestPlaces peractor without route/physical arrival authority.",
+    "Land-return helper is defined but unused; no meaningful finite natural handover after threat loss."
+  ],
+  "remaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features.",
+  "sourceProtection": "Original PBO and extracted readable files verified against inventory hashes; no raw source copied into product.",
+  "validation": "Source review, caller tracing, JSON parsing and archive/extract hash verification. No product edit or runtime test in this batch.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false
+}
