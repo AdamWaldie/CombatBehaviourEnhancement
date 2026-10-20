@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * One stalled CBE-issued ISSUE leg may select an alternative node under the same deadline/probe budget.
+ * Exact prior native destination/formation and twelve seconds without progress remain mandatory;
+ * resumed movement, newer tasks and native planning forbid the retry. No access/clearance verdict.
  * Individual BLUE/GREEN orders defer new investigation and end active execution;
  * exact owned movement cleanup remains available without changing combat mode.
  * Physical progress and arrival use absolute ASL coordinates; native destinations remain ATL.
@@ -452,19 +455,30 @@ if (!isNull _contact && {(_actor targetKnowledge _contact) param [7,false,[true]
 };
 private _phase=_brain get "phase";
 if (_phase == "SELECT") exitWith {
-    private _continuingSearch=_brain getOrDefault ["searchContinuing",false];
+    private _retryOwned=_brain getOrDefault ["retryOwned",false];
+    private _continuingSearch=(_brain getOrDefault ["searchContinuing",false]) || {_retryOwned};
     // A further investigation leg consumes the same episode and owned native destination.
     // A fresh native task cannot borrow the original admission or acknowledgement window.
     private _searchLegOwned={
         private _priorTarget=_brain getOrDefault ["target",[]];
         private _native=(expectedDestination _actor) param [0,[],[[]]];
         private _request=_brain getOrDefault ["requestBefore",[]];
-        call _searchMemoryValid && {_brain getOrDefault ["issued",false]}
+        (if (_retryOwned) then {(_brain getOrDefault ["ownedRetries",0]) == 0
+            && {((_brain get "admission") select 0) == "ISSUE"}
+            && {serverTime-(_brain get "progressAt") >= 12}
+            && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])}
+        } else {call _searchMemoryValid})
+            && {_brain getOrDefault ["issued",false]}
             && {currentCommand _actor in ["","MOVE"]}
             && {_priorTarget call _vectorValid} && {_native call _vectorValid}
             && {_native vectorDistance _priorTarget <= 0.25}
-            && {(getPosASL _actor) vectorDistance (AGLToASL _priorTarget) <= 2}
+            && {_retryOwned || {(getPosASL _actor) vectorDistance (AGLToASL _priorTarget) <= 2}}
             && {count _request == 3} && {formLeader _actor == (_request select 2)}
+    };
+    if (_retryOwned && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
+        _brain set ["progressPosition",getPosASL _actor]; _brain set ["progressAt",serverTime];
+        _brain set ["retryOwned",false]; _brain set ["phase","APPROACH"];
+        -1
     };
     if (_continuingSearch && {!(call _searchLegOwned)}) exitWith {["NATIVE_TASK"] call _finish};
     private _admission=if (_continuingSearch) then {(_brain get "admission") call _copyArray} else {
@@ -489,9 +503,9 @@ if (_phase == "SELECT") exitWith {
         -1
     };
     // A stall sample is not authority to reset a path that has since resumed.
-    if (_escalate && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
+    if ((_escalate || {_retryOwned}) && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
         _brain set ["progressPosition",getPosASL _actor]; _brain set ["progressAt",serverTime];
-        _brain set ["escalate",false]; _brain set ["phase","APPROACH"];
+        _brain set ["escalate",false]; _brain set ["retryOwned",false]; _brain set ["phase","APPROACH"];
         -1
     };
     if (_escalate && {(_brain getOrDefault ["escalations",0]) >= 1
@@ -509,7 +523,7 @@ if (_phase == "SELECT") exitWith {
             };
         };
     } forEach ((_group getVariable ["CBE_IndoorActor_Actors",[]]) select [0,2]);
-    if (_escalate) then {_reserved pushBack +(_brain get "target")};
+    if (_escalate || {_retryOwned}) then {_reserved pushBack +(_brain get "target")};
     private _nodeSearch=_brain getOrDefault ["nodeSearch",createHashMap];
     _brain set ["nodeSearch",_nodeSearch];
     private _node=[_actor,_building,(_brain get "belief") select 0,_reserved,
@@ -519,7 +533,7 @@ if (_phase == "SELECT") exitWith {
         // the existing FSM callback, under the unchanged original operation deadline.
         if (_nodeSearch getOrDefault ["pending",false]) then {-1} else {
             // VISITED records limited historical work, never exhaustive room coverage.
-            [if (_continuingSearch) then {"VISITED"} else {"NO_CANDIDATE"}] call _finish
+            [if (_continuingSearch && {!_retryOwned}) then {"VISITED"} else {"NO_CANDIDATE"}] call _finish
         }
     };
     // Geometry work grants no command authority; re-read actor, route and operation ownership.
@@ -534,15 +548,17 @@ if (_phase == "SELECT") exitWith {
         || {(_group getVariable ["CBE_OperationGeneration",0]) != (_brain get "operationGeneration")}
         || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {["PREEMPTED"] call _finish};
     // A stall sample is not authority to reset a path that has since resumed.
-    if (_escalate && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
+    if ((_escalate || {_retryOwned}) && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
         _brain set ["progressPosition",getPosASL _actor]; _brain set ["progressAt",serverTime];
-        _brain set ["escalate",false]; _brain set ["phase","APPROACH"];
+        _brain set ["escalate",false]; _brain set ["retryOwned",false]; _brain set ["phase","APPROACH"];
         -1
     };
     _brain set ["requestBefore",[currentCommand _actor,(expectedDestination _actor) call _copyArray,formLeader _actor]];
     _brain set ["requestIssuedAt",serverTime];
     _actor doMove _node;
     if (_escalate) then {_brain set ["escalations",1]};
+    if (_retryOwned) then {_brain set ["ownedRetries",1]};
+    _brain set ["retryOwned",false];
     _brain set ["escalate",false]; _brain set ["progressAt",serverTime]; _brain set ["progressPosition",getPosASL _actor];
     _brain set ["target",+_node]; _brain set ["issued",true]; _brain set ["phase","APPROACH"];
     private _journal=+(_actor getVariable ["CBE_IndoorActor_Order",[]]);
@@ -602,6 +618,12 @@ if (_phase == "APPROACH") exitWith {
         // the original FSM deadline still bounds this wait and is never renewed.
         if (getUnitState _actor in ["INIT","PLANNING","REPLAN"]) exitWith {-1};
         if (serverTime-(_brain get "progressAt") >= 12) then {
+            // Only our unchanged issued leg may consume one alternative. Native observed
+            // movement retains its existing separate escalation path below.
+            if ((_brain get "issued") && {((_brain get "admission") select 0) == "ISSUE"}
+                && {(_brain getOrDefault ["ownedRetries",0]) == 0}) exitWith {
+                _brain set ["retryOwned",true]; _brain set ["phase","SELECT"];
+            };
             if (!(_brain get "issued") && {(_brain get "escalations") == 0}
                 && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])} && {currentCommand _actor != "FIRE"}) then {
                 private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext;

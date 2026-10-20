@@ -125,6 +125,14 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(proof,observe)
         self.assertNotIn('["deadline",',observe)
         self.assertNotIn('createHashMap',observe)
+        selection=operation.split('if (_phase == "SELECT") exitWith {',1)[1].split('private _target=_brain get "target";',1)[0]
+        for proof in ('["ownedRetries",0]) == 0','serverTime-(_brain get "progressAt") >= 12',
+                      '_retryOwned || {(getPosASL _actor) vectorDistance (AGLToASL _priorTarget) <= 2}',
+                      'if (_retryOwned) then {_brain set ["ownedRetries",1]}',
+                      '_escalate || {_retryOwned}','["retryOwned",false]'):
+            self.assertIn(proof,selection)
+        self.assertNotIn('["deadline",',selection)
+        self.assertNotIn('_brain set ["nodeSearch",createHashMap]',selection)
         continuation=operation.split('private _searchLegOwned=',1)[1].split('private _previous=',1)[0]
         for proof in ('call _searchMemoryValid','_native vectorDistance _priorTarget <= 0.25',
                       'vectorDistance (AGLToASL _priorTarget) <= 2','formLeader _actor == (_request select 2)'):
