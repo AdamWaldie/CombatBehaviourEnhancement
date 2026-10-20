@@ -25,7 +25,7 @@ isNil {
     private _signature={
         params ["_work"];
         ["group","route","driver","operator","started","deadline","hardDeadline",
-            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","queueBinding"] apply {_work getOrDefault [_x,[]]}
+            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","queueBinding","rearEnvelope"] apply {_work getOrDefault [_x,[]]}
     };
     private _abortSignature={
         params ["_hold"];

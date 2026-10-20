@@ -114,6 +114,8 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertEqual(s.count('setDriveOnPath'),1)
         self.assertIn('private _deadline=if (_queue) then {_queueAgreement get "expires"} else {serverTime+90}',s)
         self.assertIn('_deadline=_deadline min (_parentBinding select 2)',s)
+        self.assertIn('_queue || {_convoy} || {(_observed select 2) > 8}',s)
+
         self.assertIn('["deadline",_deadline]',s)
         self.assertIn('_spent set ["bypassSpent",true]',s)
         self.assertIn('_work set ["recoveryParent",_parentBinding]',s)

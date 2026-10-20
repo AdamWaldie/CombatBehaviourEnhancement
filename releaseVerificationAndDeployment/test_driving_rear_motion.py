@@ -24,11 +24,14 @@ class RearMotionTests(unittest.TestCase):
         self.assertIn('private _reverseHandback=_reverseComplete && {_reverseIssued}',text)
         self.assertIn('_along <= -(_rearEnvelope select 1)',block)
         self.assertIn('"REAR_ROOM_OBSERVED"',block)
-        self.assertIn('_rearEnvelope in [[8,6],[3.5,2]]',block)
+        self.assertIn('_rearEnvelope in [[8,6],[3.5,2]] || {_extendedEnvelope}',block)
+        for guard in ('count _rearEnvelope == 2','(_rearEnvelope select 1) <= 24',
+                      '(_rearEnvelope select 0) == (_rearEnvelope select 1)+2','!("queueBinding" in _rearWork)'):
+            self.assertIn(guard,block)
         self.assertIn('getOrDefault ["rearEnvelope",[8,6]]',block)
         # During the intended BACK travel, remaining observation plus actual
         # travel must retain the original far boundary and positive end buffer.
-        for distance,stop in ((8,6),(3.5,2)):
+        for distance,stop in ((8,6),(3.5,2),(14,12),(26,24)):
             for step in range(21):
                 travelled=stop*step/20
                 remaining=min(distance,max(distance-travelled,distance-stop))

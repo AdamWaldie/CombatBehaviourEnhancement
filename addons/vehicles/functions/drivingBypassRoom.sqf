@@ -9,7 +9,7 @@
  * Return: HASHMAP status ROOM/REFUSED, reason; valid inputs also return straight BOOL,
  * before/lateral/ramp/clearAfter/after NUMBER and requiredBack NUMBER. requiredBack is only
  * the missing longitudinal approach under unchanged heading/geometry, never permission to reverse.
- * Current caller: DrivingBypassPlan. Recovery may use this shared calculation only with fresh
+ * Current callers: DrivingBypassPlan and DrivingRearPlan. Recovery uses the calculation only with fresh
  * projected metadata, its original budget and independent rear support/body/actor validation.
  * Example: private _room=[[-2,2,25,30],4,1,false] call CBE_fnc_DrivingBypassRoom;
  */

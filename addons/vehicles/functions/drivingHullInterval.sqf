@@ -6,7 +6,7 @@
  * Arguments: 0 object <OBJECT, objNull>; 1 origin <ARRAY of three NUMBER, [0,0,0]>;
  * 2 unit world axis <ARRAY of three NUMBER, [0,1,0]>.
  * Return: ARRAY [minimum,maximum] in metres, padded outwards by0.05m; [] unavailable.
- * Current callers: DrivingPassStep, DrivingQueueProposal and DrivingQueueProposalCurrent.
+ * Current callers: DrivingPassStep, DrivingQueueProposal, DrivingQueueProposalCurrent and DrivingRearPlan.
  * Cost: Four native model transforms; affine edge projection represents all eight corners.
  * Example: private _span=[truck1,getPosWorld truck2,[0,1,0]] call CBE_fnc_DrivingHullInterval;
  */

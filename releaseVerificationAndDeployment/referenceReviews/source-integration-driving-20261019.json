@@ -810,5 +810,23 @@
     "cost": "Constant bounded scalar work replacing existing inline calculation; existing world queries/ray limits unchanged. Additional result HashMap allocation is unmeasured.",
     "validation": "251 focused existing driving cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-room-build.log; candidate .qa/candidates/bypass-room-390d01f5-103bdf74 fingerprint 103bdf749371eade67bf7a269730875b8e6f28d38fd57aa5e20b770a6d914dd3 actual390d01f5+dirtysource. Existing cases extended, no test-count/score increase.363 production functions is inventory only.",
     "audits": "PAUSED"
+  },
+  "qualifiedApproachBackoff20261020": {
+    "sourceParent": "a33cc34a",
+    "implementation": [
+      "Ordinary close-static bypass defers before creating work/cooldown at forward observation gap<=8m. Existing three-second close-static dwell can therefore reach finite native back-off first.",
+      "DrivingRearPlan optional fresh STATIC observation and maxTravel6..24 uses actual oriented hull intervals/shared approach arithmetic, one-metre margin and integer stop travel, with two-metre observed rear buffer. Source/vehicle transforms recheck. Extended spatial refusal permits one ordinary8/6 fallback; default remains8/6 then3.5/2, never a third observation.",
+      "Only an unspent current recovery parent with continuous close-static evidence requests extension. Existing stricter positive speed cap reduces feasible travel using12seconds of capped-rate travel. Extended reverse allocates <=16s estimated travel+4 inside original hard deadline, reserves>=40s final handback. Defaults and queue phase windows unchanged.",
+      "Active reverse accepts bounded integral7..24m envelope with exact+2buffer only outside queue binding. Existing native acknowledgement, heading/lateral/component-damage checks, fresh rear sampling and STOP handback remain. Admission rechecks source transform and vehicle position/direction/up.",
+      "Long rear support stations are <=4m apart: default<=8m remains<=70rays, ordinary26m maximum<=85, general60m helpermaximum<=109. Original two native area discoveries per observation and64actor density limit unchanged. Cleanup ticket signature includes rearEnvelope."
+    ],
+    "limits": [
+      "This consumes forward STATIC observations; low side-only contact detection remains missing.",
+      "Arithmetic and estimated time do not prove acceleration, arrival, steering or continuous collision/support clearance.",
+      "Insufficient room, budget, density or rear support retains refusal; no physics push or episode renewal.",
+      "Normal/providerHC adoption, repeated physical back-off/bypass/handback and performance not accepted."
+    ],
+    "validation": "251 existing focused driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-corner-backoff-build.log; candidate .qa/candidates/corner-backoff-a33cc34a-2d6f69e3 fingerprint 2d6f69e3238b562097f76bc1a3b05a2021d9923f5982fee9af0d6195640155e7 actuala33cc34a+dirtysource. Initial source-contract mismatches retained .qa/cbe-corner-backoff-focused-initial.log; existing cases extended, no tests/scores added.",
+    "audits": "PAUSED"
   }
 }

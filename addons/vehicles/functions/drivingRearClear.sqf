@@ -6,7 +6,8 @@
  * Repeat/JIP: No retained clearance or handlers. Each command boundary obtains fresh geometry;
  * observations cannot be replayed after a vehicle moves or changes owner. Normal unscheduled
  * callbacks share one lazy crew snapshot; scheduled direct calls retain per-actor crew reads.
- * Nine downward support samples reject missing/steep supporting surfaces; bridge geometry
+ * Default rear travel uses nine support samples; longer corridors sample every <=4m
+ * (at most48 support samples plus one target ray). Bridge geometry
  * remains eligible independently of terrain water. Discrete samples are not a continuous path proof.
  * Current relative velocities also project hull occupancy over two seconds before a reverse.
  * Measured reverse yaw adds a conservative full-body actor envelope and sampled corner sweeps.
@@ -20,7 +21,7 @@
  * It is distance metres behind the vehicle origin, inside the observed rear-body envelope.
  * Dense candidate sets fail closed; at most64 actors use four transform pairs to represent each
  * full eight-corner hull with a0.05m outward model-space rounding pad. At most sixty
- * geometry rays plus ten support rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
+ * geometry rays plus up to49 support rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
  * capped at 250 m; oversized envelopes refuse rather than silently truncating the rear area. Vertical overlap uses real hull extents rather than centre height.
  * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
  * overlap policy; the solid-geometry rays remain independent and can still find obstructions.
@@ -156,6 +157,11 @@ private _clear=true;private _rays=0;
 // the current vehicle frame, including raised road/bridge geometry above water or terrain.
 // Fixed samples bound cost; later callbacks must observe again as the native leg progresses.
 private _supported=true;
+private _supportDistances=[1 min _distance,_distance*0.5,_distance];
+if (_distance > 8) then {
+    _supportDistances=[1];
+    for "_station" from 1 to (ceil (_distance/4)) do {_supportDistances pushBack ((_station*4) min _distance)};
+};
 {
     private _depth=_rear-_x;
     {
@@ -166,7 +172,7 @@ private _supported=true;
         if (_hits isEqualTo [] || {((_hits select 0 select 1) select 2) < 0.7}) exitWith {_supported=false};
     } forEach [_low select 0,((_low select 0)+(_high select 0))*0.5,_high select 0];
     if (!_supported) exitWith {};
-} forEach ([1 min _distance,_distance*0.5,_distance] arrayIntersect [1 min _distance,_distance*0.5,_distance]);
+} forEach (_supportDistances arrayIntersect _supportDistances);
 if (!_supported) exitWith {[false,"REAR_SUPPORT",time,_rays]};
 // Native movement needs the actual supported surface height, not a terrain-level destination.
 // One extra centre-target ray stays inside the already observed rear-body envelope. Open water

@@ -180,7 +180,10 @@ if (count _work > 0 && {(_work getOrDefault ["controller",["ORDINARY",-1]]) isNo
 };
 if (count _work == 0 && {!_convoy || {isNil {_group getVariable "CBE_Convoy_BypassPassage"}}}) then {
     if (count _observed == 9 && {(_observed select 5) == "STATIC"} && {!isNull (_observed select 1)}
-        && {abs speed _vehicle <= 8}) then {
+        && {abs speed _vehicle <= 8}
+        // A close static contact has no gradual pull-out room. Defer before spending
+        // a bypass episode/cooldown so the finite native back-off can create it first.
+        && {_queue || {_convoy} || {(_observed select 2) > 8}}) then {
         private _context=[_group,_route,_observed select 1,_driver,_operator,_controllerReceipt];
         private _cooldown=_vehicle getVariable ["CBE_DrivingBypass_Cooldown",[]];
         private _command=expectedDestination _operator;

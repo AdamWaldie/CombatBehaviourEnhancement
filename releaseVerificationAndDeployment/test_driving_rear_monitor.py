@@ -120,8 +120,23 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('private _rearSafetyRequired=_reverseLeg || {_pendingRear}',s)
         plan=src('drivingRearPlan')
         self.assertIn('private _cbeRearPlanEnvelope=[8,6]',plan)
-        self.assertIn('_cbeRearPlanEnvelope=[3.5,2]',plan)
-        self.assertEqual(plan.count('[_vehicle,3.5] call CBE_fnc_DrivingRearClear'),1)
+        self.assertIn('then {[8,6]} else {[3.5,2]}',plan)
+        self.assertEqual(plan.count('call CBE_fnc_DrivingRearClear'),2)
+        self.assertIn('call CBE_fnc_DrivingBypassRoom',plan)
+        self.assertIn('_maximumTravel > 24',plan)
+        self.assertIn('_cbeRearPlanEnvelope=[_travel+2,_travel]',plan)
+        self.assertIn('CORNER_CONTEXT_CHANGED',plan)
+        self.assertIn('(_hard-40) min (serverTime+_reverseSeconds)',s)
+        self.assertIn('_cornerTravel=(floor (12*_cornerRate)) min 24',s)
+        # Parent total remains fixed; longer reverse borrows time from final travel.
+        for stop in (7,12,24):
+            for now in (30,35.9):
+                hard=96
+                deadline=min(hard-40,now+min(16,max(6,stop/(10/3.6)+4)))
+                self.assertGreater(deadline,now)
+                self.assertLessEqual(deadline,hard-40)
+                self.assertGreaterEqual(deadline-now,stop/(10/3.6))
+
         self.assertIn('} else {[]},_rearEnvelope] call _recordRecovery',s)
         short=plan.split('if (!(_cbeRearPlanClearance select 0)',1)[1]
         for failure in ('REAR_SCAN_BUDGET','DENSE_REAR_TRAFFIC','OWNER_UNAVAILABLE','REAR_TURN_ENVELOPE'):
@@ -235,6 +250,20 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertNotIn(height,old)
         self.assertIn(height,new)
         self.assertLessEqual(len(new)*3,12)
+        self.assertIn('ceil (_distance/4)',s)
+        self.assertIn('(_station*4) min _distance',s)
+        import math
+        for quarter in range(4,241):
+            distance=quarter/4
+            depths=sorted(set([min(1,distance),distance/2,distance] if distance<=8
+                             else [1]+[min(4*i,distance) for i in range(1,math.ceil(distance/4)+1)]))
+            self.assertEqual(depths[-1],distance)
+            self.assertLessEqual(len(depths),16)
+            self.assertTrue(all(b-a<=4 for a,b in zip(depths,depths[1:])))
+            self.assertLessEqual(3*len(depths)+1+60,109)
+            if distance<=26:self.assertLessEqual(3*len(depths)+1+60,85)
+            if distance<=8:self.assertLessEqual(3*len(depths)+1+60,70)
+
         self.assertTrue(all(h<=height for h in new))
 
 if __name__=='__main__':unittest.main()

@@ -73,7 +73,8 @@
  * retries may reconsider persistent blockage. No crossing priority is inferred. Experimental automatic passing uses separate finite
  * preparation and real owner consent, with no collision exemption.
  * The owned rear leg resamples its body corridor once per second on the existing scheduler,
- * stopping for new obstructions without extending its six-second deadline. Intended direction
+ * stopping for new obstructions within its original reverse deadline. Qualified longer
+ * back-off reallocates time inside the same parent while reserving40s for final handback. Intended direction
  * is checked while stopped; an expired rear leg observes the forward retry before issuing it.
  * Reverse admission uses a fresh body-sized rear corridor observation shared with tracked
  * withdrawal. Actor and solid-geometry clearance does not prove native reverse execution.
@@ -90,7 +91,8 @@
  * Native execution and ordinary safety caps remain available.
  * New or newly progressing routes get a 20-second planning/observation grace. A route refresh
  * gets 30 seconds before cautious reverse admission; the reverse leg remains six seconds and
- * the final authored-route retry gets 60 seconds. No new order inherits a spent retry window.
+ * the final authored-route retry normally gets60 seconds; qualified longer back-off retains
+ * at least40 seconds within the same hard deadline. No new order inherits a spent retry window.
  * Exhausted recovery stays at durable stage four without more route/reverse retries. Existing
  * safety sampling continues; new-route identity or measured forward progress can retire exhaustion.
  * Traffic holds, native waits and becoming a follower cannot renew the spent episode.
@@ -508,6 +510,12 @@ _brain set ["geometryTracks",_geometryTracks];
                 if (_queueBound) then {_hard=if (_queueBindingValid) then {_hard min (_queueBinding select 1)} else {serverTime}};
                 private _deadline=switch (_kind) do {case "REFRESH":{_hard-66};case "FINAL":{_hard};case "EXHAUSTED":{_hard};default {_hard-60}};
                 if (_queueBound) then {_deadline=_hard};
+                if (!_queueBound && {_kind == "REVERSE"} && {(_rearEnvelope param [1,0]) > 6}) then {
+                    // Reallocate inside the same parent: retain at least40 seconds for handback.
+                    private _reverseRate=if (_saved > 0) then {_saved min (10/3.6)} else {10/3.6};
+                    private _reverseSeconds=((_rearEnvelope select 1)/_reverseRate+4) max 6 min 16;
+                    _deadline=(_hard-40) min (serverTime+_reverseSeconds);
+                };
                 private _work=createHashMapFromArray [["group",_group],["route",_routeIdentity],["driver",_driver],["operator",_movementOperator],
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _movementOperator)],
                     ["kind",_kind],["commandMode",_commandMode],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
@@ -557,7 +565,13 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _liveDamage=damage _vehicle;
                 private _minimumDamage=_rearWork getOrDefault ["rearMinimumDamage",-1];
                 private _minimumHitpoints=[objNull,_rearWork getOrDefault ["rearMinimumHitpoints",[]]] call CBE_fnc_DrivingDamageReceipt;
-                private _proofValid=_rearEnvelope in [[8,6],[3.5,2]] && {_rearDamage isEqualType 0} && {finite _rearDamage} && {_rearDamage >= 0}
+                private _extendedEnvelope=_rearEnvelope isEqualType [] && {count _rearEnvelope == 2}
+                    && {_rearEnvelope findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {(_rearEnvelope select 1) > 6} && {(_rearEnvelope select 1) <= 24}
+                    && {(_rearEnvelope select 1) == floor (_rearEnvelope select 1)}
+                    && {(_rearEnvelope select 0) == (_rearEnvelope select 1)+2}
+                    && {!("queueBinding" in _rearWork)};
+                private _proofValid=(_rearEnvelope in [[8,6],[3.5,2]] || {_extendedEnvelope}) && {_rearDamage isEqualType 0} && {finite _rearDamage} && {_rearDamage >= 0}
                     && {count _rearHitpoints == 3} && {count _liveHitpoints == 3} && {count _minimumHitpoints == 3}
                     && {_minimumDamage isEqualType 0} && {finite _minimumDamage}
                     && {_minimumDamage >= 0} && {_minimumDamage <= _rearDamage}
@@ -1111,13 +1125,18 @@ _brain set ["geometryTracks",_geometryTracks];
                         case 1: {
                             private _rear=[];
                             private _rearSimpleBefore=+(vehicleMoveInfo _vehicle);
-                            private _rearPose=[getPosASL _vehicle,vectorDir _vehicle,time];
+                            private _rearPose=[getPosASL _vehicle,vectorDir _vehicle,time,vectorUp _vehicle];
                             private _rearHitpointReceipt=[_vehicle] call CBE_fnc_DrivingDamageReceipt;
                             private _rearCommands=[currentCommand _driver,+(expectedDestination _driver),
                                 currentCommand _movementOperator,+(expectedDestination _movementOperator)];
                             private _rearJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                             // Fresh shared body-width observation; no fixed-width centre probe.
-                            private _rearPlan=[_vehicle] call CBE_fnc_DrivingRearPlan;
+                            private _cornerRate=if (_saved > 0) then {_saved min (10/3.6)} else {10/3.6};
+                            private _cornerTravel=(floor (12*_cornerRate)) min 24;
+                            private _rearPlan=if (_solidReady && {_obstacleObservation isNotEqualTo []}
+                                && {_cornerTravel > 6} && {(_rearJournal getOrDefault ["bypassSpent",false]) isEqualTo false}) then {
+                                [_vehicle,_obstacleObservation,_cornerTravel] call CBE_fnc_DrivingRearPlan
+                            } else {[_vehicle] call CBE_fnc_DrivingRearPlan};
                             private _clearance=_rearPlan select 0;private _rearEnvelope=_rearPlan select 1;
                             _rear=+(_clearance param [4,[]]);
                             private _rearSafe=(_clearance select 0) && {count _rear == 3} && {count _rearHitpointReceipt == 3};
@@ -1134,6 +1153,10 @@ _brain set ["geometryTracks",_geometryTracks];
                                     || {time < (_rearPose select 2)} || {time-(_rearPose select 2) > 1}
                                     || {(getPosASL _vehicle) vectorDistance (_rearPose select 0) > 1}
                                     || {(vectorDir _vehicle) vectorDotProduct (_rearPose select 1) < cos 5}
+                                    || {(vectorUp _vehicle) vectorDotProduct (_rearPose select 3) < cos 5}
+                                    || {(_rearEnvelope select 1) > 6 && {count _obstacleObservation != 9
+                                        || {!([_obstacleObservation select 1] call CBE_fnc_DrivingBypassObstacleAvailable)}
+                                        || {[getPosWorld (_obstacleObservation select 1),vectorDir (_obstacleObservation select 1),vectorUp (_obstacleObservation select 1)] isNotEqualTo (_obstacleObservation select 8)}}}
                                     || {[currentCommand _driver,+(expectedDestination _driver),
                                         currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _rearCommands}) exitWith {false};
                                 private _rearCommandMode="DESTINATION";
