@@ -947,5 +947,20 @@
     "validation": "Read current complete relevant admission/PLAN/dwell/rear branches and independently calculate illustrative feasibility. No product changes or new tests; latest full1477 candidate bypass-pause-da5cc8ac-9abdb2e3 unchanged.",
     "audits": "PAUSED",
     "wholeParity": false
+  },
+  "actualApproachAdmission20261020": {
+    "sourceParent": "3aa95899",
+    "implementation": "Registered DrivingBypassApproach reads fresh available STATIC source and current owned hull, two affine projections and both scalar side room results. ROOM if either side fits; BACKOFF only if both sides report finite positive missing approach, otherwise unsupported. No discovery/rays/state/authority. OrdinaryBypassStep diagnoses before work/parent-spend/cooldown, retains queue/convoy branches, returns inactive optional fifth BACKOFF map. DrivingAssistStart feeds qualified shortage into existing stationary3s dwell beyond8m; DrivingRearPlan repeats same current diagnosis at admission, retains maximum24m stop/two-observation fallback/pose/owner/deadline guards.",
+    "limits": "Independent engine steering, support/body clearance and native acknowledgement remain mandatory. No sideways physics, ignored source, widened fixed threshold, new budget or renewed attempts. Unsupported metadata cannot grant room. A geometrically possible side may still fail subsequent full physical path checks; that existing two-side episode remains spent.",
+    "cost": "One ordinary preadmission object availability check, two affine hull intervals/eight native transforms, two constant room calculations; rear admission repeats diagnosis instead of its previous duplicated calculation. Existing full plan remains independent. No new query type/timer/controller; overhead unmeasured.",
+    "validation": "251 focused existing driving cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-approach-admission-build.log. Candidate .qa/candidates/approach-admission-3aa95899-065ac17d fingerprint 065ac17dc8ca5244ad50939560d18bd76c8c53693d0a764a24ad8d4f7b3548a6 actual3aa95899+dirtysource. Independent copied-package verification .qa/cbe-approach-admission-independent.log. Initial2literal contract failures retained .qa/cbe-approach-admission-focused-initial.log; existing cases extended, no added cases or score increase.364 functions is inventory only.",
+    "audits": "PAUSED",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "6bc5331f1e463f45c2c9f2304d7190bf9ddecdb7c3d970289094c7488f6017cc",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "f9a715e066a025d74a7276d99e21b6296e497bdefb8c52ea4619db97a5d8f5ec",
+      "addons/vehicles/functions/drivingRearPlan.sqf": "a0844d25be80edcd7a490e2ecdbaf48678861c64d6dc41ffc547a68a89ab32f8",
+      "addons/vehicles/functions/drivingBypassRoom.sqf": "643a988aec673101135ab0adb684f908ba749ad069d827d367bdea9e2e06fc4f",
+      "addons/vehicles/functions/drivingBypassApproach.sqf": "1ce99c9cfb1a516968d40253dbcae1b7795e80d68b2f0d7db5f3f90f0337964b"
+    }
   }
 }

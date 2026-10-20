@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ordinary admission requires actual approach room before spending work; an inactive
+ * result may include fifth HASHMAP field with a fresh BACKOFF diagnosis for the caller.
  * Purpose: Runs a finite ordinary/convoy-lead bypass or explicitly granted queue crossing through the existing controller.
  * QUEUE requires a private current CROSSING grant and frozen proposal. It rechecks path
  * geometry at issue, keeps original queue expiry, and holds at measured tail clearance.
@@ -178,12 +180,17 @@ if (count _work > 0 && {(_work get "group") != _group}) then {
 if (count _work > 0 && {(_work getOrDefault ["controller",["ORDINARY",-1]]) isNotEqualTo _controllerReceipt}) then {
     [_vehicle,_group,"CONTROLLER_CHANGED",false,true] call CBE_fnc_DrivingBypassRelease;_work=createHashMap;
 };
+// Diagnose ordinary approach before publishing work, spending its parent or cooldown.
+private _approach=createHashMap;
+if (count _work == 0 && {!_convoy} && {!_queue} && {abs speed _vehicle <= 8}) then {
+    _approach=[_vehicle,_observed] call CBE_fnc_DrivingBypassApproach;
+};
 if (count _work == 0 && {!_convoy || {isNil {_group getVariable "CBE_Convoy_BypassPassage"}}}) then {
     if (count _observed == 9 && {(_observed select 5) == "STATIC"} && {!isNull (_observed select 1)}
         && {abs speed _vehicle <= 8}
-        // A close static contact has no gradual pull-out room. Defer before spending
-        // a bypass episode/cooldown so the finite native back-off can create it first.
-        && {_queue || {_convoy} || {(_observed select 2) > 8}}) then {
+        // Actual hull/ramp room, not a fixed forward gap, defers ordinary acquisition.
+        // Queue/convoy retain their existing plan and admission contracts.
+        && {_queue || {_convoy} || {(_approach getOrDefault ["status",""]) == "ROOM"}}) then {
         private _context=[_group,_route,_observed select 1,_driver,_operator,_controllerReceipt];
         private _cooldown=_vehicle getVariable ["CBE_DrivingBypass_Cooldown",[]];
         private _command=expectedDestination _operator;
@@ -226,7 +233,11 @@ if (count _work == 0 && {!_convoy || {isNil {_group getVariable "CBE_Convoy_Bypa
         };
     };
 };
-if (count _work == 0) exitWith {_inactive};
+if (count _work == 0) exitWith {
+    if ((_approach getOrDefault ["status",""]) == "BACKOFF") then {
+        [false,1e6,"BYPASS_APPROACH_REQUIRED",false,_approach]
+    } else {_inactive}
+};
 private _parentCurrent={
     private _binding=_work getOrDefault ["recoveryParent",[]];
     _binding isEqualTo [] || {

@@ -827,8 +827,10 @@ _brain set ["geometryTracks",_geometryTracks];
             // A close static body can stop us before there is room for a bypass proposal.
             // It is not a traffic queue: permit the existing finite rear recovery only after
             // continuous fresh observation, with independent vehicle/gate/pedestrian caps clear.
+            private _approachDiagnosis=_bypass param [4,createHashMap,[createHashMap]];
+            private _approachBackoff=(_approachDiagnosis getOrDefault ["status",""]) == "BACKOFF";
             private _solidCandidate=_obstacleLimited && {count _obstacleObservation == 9}
-                && {(_obstacleObservation select 5) == "STATIC"} && {(_obstacleObservation select 2) <= 8}
+                && {(_obstacleObservation select 5) == "STATIC"} && {(_obstacleObservation select 2) <= 8 || {_approachBackoff}}
                 && {!isNull (_obstacleObservation select 1)} && {([_vehicle] call _stationary)}
                 && {(_withoutObstacle select 0) > 0} && {_pedestrianCap > 0}
                 && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass};

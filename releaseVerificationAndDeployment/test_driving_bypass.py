@@ -114,8 +114,27 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertEqual(s.count('setDriveOnPath'),1)
         self.assertIn('private _deadline=if (_queue) then {_queueAgreement get "expires"} else {serverTime+90}',s)
         self.assertIn('_deadline=_deadline min (_parentBinding select 2)',s)
-        self.assertIn('_queue || {_convoy} || {(_observed select 2) > 8}',s)
+        self.assertIn('_queue || {_convoy} || {(_approach getOrDefault ["status",""]) == "ROOM"}',s)
 
+        self.assertLess(s.index('call CBE_fnc_DrivingBypassApproach'),s.index('_spent set ["bypassSpent",true]'))
+        self.assertIn('[false,1e6,"BYPASS_APPROACH_REQUIRED",false,_approach]',s)
+        approach=(ROOT/'addons/vehicles/functions/drivingBypassApproach.sqf').read_text()
+        self.assertEqual(approach.count('call CBE_fnc_DrivingHullInterval'),2)
+        for guard in ('time-_sampled > 1.5','_gap > 50','_sourcePose isNotEqualTo',
+                      'call CBE_fnc_DrivingBypassObstacleAvailable','forEach [-1,1]',
+                      '_hasRoom=true','_backoff=false','"requiredBack" in _room',
+                      'call CBE_fnc_DrivingBypassRoom'):
+            self.assertIn(guard,approach)
+        for forbidden in ('setVariable','doMove','forceSpeed','setDriveOnPath',
+                          'lineIntersectsSurfaces','nearestObjects','spawn','waitUntil'):
+            self.assertNotIn(forbidden,approach.split('params [[',1)[1])
+        # Independent aligned-hull example outside the old fixed8m gate: turning room
+        # requires more than the default6m rear leg, still within the existing24m budget.
+        import math
+        radius=math.hypot(1,2)+1
+        required=radius+3+max(1.5*(2+radius+3)/math.tan(math.radians(35)),12)-(2+9)
+        self.assertGreater(required,6)
+        self.assertLessEqual(math.ceil(required+1),24)
         self.assertIn('["deadline",_deadline]',s)
         self.assertIn('_spent set ["bypassSpent",true]',s)
         self.assertIn('_work set ["recoveryParent",_parentBinding]',s)
@@ -123,6 +142,8 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('call _nativeAdmissionReady} && {call _parentCurrent}',s)
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         self.assertIn('_sameEpisode && {"bypassSpent" in _old}',assist)
+        self.assertIn('(_obstacleObservation select 2) <= 8 || {_approachBackoff}',assist)
+        self.assertIn('_bypass param [4,createHashMap,[createHashMap]]',assist)
         self.assertIn('!((_old get "bypassSpent") isEqualTo false)',assist)
         pause=assist.split('private _pausedParent=',1)[1].split('_recoveryResult=if (_bypassActive)',1)[0]
         for guard in ('_recoveryOwned','["bypassSpent",false]) isEqualTo true',
