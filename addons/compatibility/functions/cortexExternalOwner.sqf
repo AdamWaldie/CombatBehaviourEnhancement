@@ -3,7 +3,8 @@
  * Identifies AI whose movement, animation or combat state belongs to a supported external system.
  * CBE uses this one read-only gate before any tactic so specialist skeletons, creatures, droids and
  * active melee actors never receive competing movement, animation or damage commands.
- * Ordinary infantry remains eligible when those addons are merely loaded.
+ * Ordinary infantry remains eligible when those addons are merely loaded. Verified active
+ * rappelling markers also yield actor/vehicle control, without assuming descent completion.
  *
  * Locality / Authority: read-only and callable anywhere. No public state or addon variable is changed.
  * Repeat/JIP: repeat-safe; it reads current config and public runtime markers on every call.
@@ -23,6 +24,13 @@
 
 params [["_unit",objNull,[objNull]]];
 if (isNull _unit) exitWith {""};
+
+// Verified Advanced Rappelling actor and bulk-helicopter ownership markers.
+// False/absent does not exclude ordinary AI; never clear a provider's active state.
+if (["AR_Is_Rappelling","AR_Units_Rappelling"] findIf {
+    private _active=_unit getVariable [_x,false];
+    !(_active isEqualType true) || {_active}
+} >= 0) exitWith {"RAPPEL"};
 
 private _config=configOf _unit;
 private _class=typeOf _unit;

@@ -258,6 +258,14 @@ class ExtendedSourceOwnershipContracts(unittest.TestCase):
         self.assertNotIn('allGroups', owner)
         self.assertNotIn('allUnits', owner)
         self.assertNotIn('call _patch', owner)
+        boundary=src('compatibilityExternalControl')
+        for text in (owner,boundary):
+            for marker in ('AR_Is_Rappelling','AR_Units_Rappelling'):
+                self.assertIn(marker,text)
+            self.assertIn('!(_active isEqualType true) || {_active}',text)
+            self.assertNotIn('setVariable',text)
+        self.assertLess(owner.index('AR_Is_Rappelling'),owner.index('configOf _unit'))
+
 
     def test_aircraft_cannot_bypass_external_operation_ownership(self):
         aircraft = src('cortexAircraftEligible')

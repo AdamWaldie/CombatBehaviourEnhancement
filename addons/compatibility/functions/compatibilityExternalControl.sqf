@@ -13,7 +13,7 @@
  *
  * Return Value:
  * Boolean - true when subject/group declares external control, its declaration is malformed,
- * or an actor has a specialist runtime marker. Unknown state never grants CBE ownership.
+ * or an actor has a specialist/runtime rappelling marker. Unknown state never grants CBE ownership.
  *
  * Current callers: CBE eligibility, vehicles, aircraft, skill layers, diagnostics and HC adoption.
  *
@@ -39,5 +39,9 @@ private _groupDeclared=(group _subject) getVariable ["Waldo_AI_ExternalControl",
      "IMS_IsUnitInvicibleScripted","IMS_ISAI","IMS_EventHandler_Hit"] findIf {
         !isNil {_subject getVariable _x}
     } >= 0}
+|| {["AR_Is_Rappelling","AR_Units_Rappelling"] findIf {
+    private _active=_subject getVariable [_x,false];
+    !(_active isEqualType true) || {_active}
+} >= 0}
 || {private _animation=toLowerANSI animationState _subject;
     _animation find "ims_" == 0 || {_animation find "star_wars_fight" == 0}}

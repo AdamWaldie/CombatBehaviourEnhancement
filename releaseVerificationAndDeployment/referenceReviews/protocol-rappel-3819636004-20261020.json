@@ -61,5 +61,45 @@
   "physicalAcceptance": false,
   "performanceMeasured": false,
   "audits": "PAUSED",
-  "scoresChanged": false
+  "scoresChanged": false,
+  "installedProviderApiReview": {
+    "sources": [
+      {
+        "workshopId": "713709341",
+        "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\713709341\\addons\\AR_AdvancedRappelling.pbo",
+        "sha256": "f0065c5a96301a0eb080c3b6bc26d9490c841e90e7a4366560160d22aa8acf02",
+        "readableSource": ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf",
+        "sourceSHA256": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b"
+      },
+      {
+        "workshopId": "2963869423",
+        "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\2963869423\\addons\\AR_AdvancedRappelling.pbo",
+        "sha256": "e2398971db0cc7addcb934c301479e8efb2ed9426ca352280b9366801b384dfb",
+        "readableSource": ".qa/advanced-rappelling-2963869423-review/functions/fn_advancedRappellingInit.sqf",
+        "sourceSHA256": "bced3e3754a03ba8915c16bf61aa56790e3adef93434a7ddb49e1bbf2d20964e"
+      }
+    ],
+    "reviewScope": "Targeted API/ownership/worker/cleanup/remote-dispatch sections and whole readable-source diff between variants; not whole addon startup/binary or runtime acceptance. MIT notice present in both readable sources. Original PBOs unchanged; private extraction only.",
+    "bulkApi": {
+      "name": "AR_Rappel_All_Cargo",
+      "arguments": "[vehicle,rappelHeight=25,positionASL=[]]",
+      "finding": "Vehicle-owner scheduled worker creates LOGIC leader, changes behaviour/combat/formation, waits without deadline, drives helicopter velocity every0.05s, dispatches cargo and waits for rappelling flags. Cleanup restores initial policy without newer-order receipt. Do not call as an unbounded CBE helicopter controller."
+    },
+    "actorApi": {
+      "name": "AR_Rappel_From_Heli",
+      "arguments": "[actor,helicopter]",
+      "authority": "Server reserves available AR_Get_Heli_Rappel_Points slot, sets public AR_Is_Rappelling true, spawns AR_Client_Rappel_From_Heli on actor owner through provider remote wrapper. Returns no success receipt.",
+      "ownership": "Actor worker owns movement/physics/animation and rope objects; clears AR_Is_Rappelling after rope/device cleanup, then allowDamage restoration occurs2s later. Flag clear alone is not insertion or complete provider-quiescence proof.",
+      "variants": "Same API in both installed sources. Bundle variant changes ACE-compatible device class, player ground-detach condition and localization; AI movement exit condition otherwise remains."
+    },
+    "implementation": "Shared CortexExternalOwner and fast CompatibilityExternalControl now refuse active/malformed AR_Is_Rappelling or AR_Units_Rappelling markers read-only. False/absent markers leave ordinary AI eligible. No provider call, flag mutation or rope destruction.",
+    "remainingRequired": [
+      "Finite authenticated per-actor cargo insertion with stable CBE helicopter flight ownership; actual provider slot acceptance and physical ground/roof arrival required.",
+      "Original task/order/owner deadlines, no mission-group reassignment; cancellation must not tear down a still-active provider rope or declare early completion.",
+      "Provider cleanup overlap, normal/HC ownership and repeat/abort need runtime proof; no behaviour module until executor exists."
+    ],
+    "validation": "1479 tests, HEMTT/full build and source/API comparison passed; no Arma run.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  }
 }
