@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Same-owner released queue-abort STOP cleanup may adopt this controlled epoch edge after exact baseline/native validation; no movement is issued here.
  * Finite individual indoor tasks retire their exact-owned native legs before other group cleanup.
  * Stops Cortex on this machine and hands every affected group back to its own orders.
  *
@@ -244,7 +245,20 @@ if (!isNil "_civilianCreated") then {
     if (_localHandler >= 0) then {_x removeEventHandler ["Local", _localHandler]};
     _x setVariable ["CBE_AIPass_LocalHandler", nil];
     _x setVariable ["CBE_AIPass_Adopted", nil];
+    private _stoppingGroup=_x;
+    private _abortSourceOwner=[_stoppingGroup] call CBE_fnc_DrivingOwnerReceipt;
     _x setVariable ["CBE_AIPass_Epoch", (_x getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+    // Master stop owns this exact epoch edge. Retain only validated released STOP
+    // cleanup on the same machine; no timer, command or deadline is restarted here.
+    private _abortVehicles=[];
+    {
+        private _abortVehicle=vehicle _x;
+        if (_abortVehicle != _x && {_abortVehicle isKindOf "LandVehicle"} && {!(_abortVehicle in _abortVehicles)}) then {
+            _abortVehicles pushBack _abortVehicle;
+            [_abortVehicle,_stoppingGroup,createHashMap,[],{false},_abortSourceOwner] call CBE_fnc_DrivingAbortHandback;
+        };
+    } forEach units _stoppingGroup;
+
 } forEach allGroups;
 
 private _jobs = (missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missionNamespace getVariable ["CBE_AIPass_PendingJobs", []]);

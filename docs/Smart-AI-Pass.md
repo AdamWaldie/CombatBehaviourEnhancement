@@ -1984,7 +1984,7 @@ The existing reverse-capable role selection, rear-chain consent and measured roo
 
 Stopping a cancelled crossing does not prove that the vehicle passed. When CBE observes its own cleanup STOP on both operating actors, it retains their exact native destinations and formation leaders with the original route, crew and owner identity. The existing ordinary-driving callback can issue the unchanged plain MOVE route once after fresh traffic and geometry observations are clear, the vehicle is stationary and its speed cap remains owned. A replacement STOP, route, crew, owner or successor operation retires that authority.
 
-This cleanup window ends at the original queue expiry plus 15 seconds. It cannot replenish queue or recovery attempts and does not change the failed crossing result. No new timer or movement controller is installed. Missing STOP acknowledgement grants no handback receipt. Released-cap cleanup below adds bounded safety observation. Owner migration, master-stop epoch changes, physical command acknowledgement and actual route continuation remain unverified or incomplete.
+This cleanup window ends at the original queue expiry plus 15 seconds. It cannot replenish queue or recovery attempts and does not change the failed crossing result. No new timer or movement controller is installed. Missing STOP acknowledgement grants no handback receipt. Released-cap cleanup below adds bounded safety observation. Owner migration, physical command acknowledgement and actual route continuation remain unverified or incomplete.
 
 ### Queue crossing shutdown
 
@@ -1994,4 +1994,10 @@ Stopping ordinary driving also retires its queue crossing path through the same 
 
 After exact cap restoration, CBE records the restored baseline with the pending abort STOP. The existing cleanup FIFO services that receipt alongside reverse cleanup, handling at most four tickets per callback. A ticket can request fresh traffic and geometry observations at most once per second. The same original queue-expiry-plus-15-second deadline applies. No speed cap is reapplied, and a changed or deliberately zero baseline revokes handback authority.
 
-An unchanged original-owner receipt can hand back its plain MOVE route after current safety and native STOP checks even when its per-vehicle driving feature has stopped. New executor generations and owner epochs remain excluded. Master shutdown can advance the owner epoch, so that path still needs explicit validated transfer; this cleanup does not silently rebind it. Physical command acknowledgement, disabled-feature continuation, ownership transfer and overhead remain unverified.
+An unchanged original-owner receipt can hand back its plain MOVE route after current safety and native STOP checks even when its per-vehicle driving feature has stopped. New executor generations and actual owner changes remain excluded. Master shutdown uses the controlled same-owner adoption below. Physical command acknowledgement, disabled-feature continuation, ownership transfer and overhead remain unverified.
+
+### Controlled master-stop epoch adoption
+
+Master stop captures the current driving owner receipt immediately before advancing the group epoch. For a released abort STOP, adoption requires that exact source identity, the same machine, the next epoch, unchanged driving generation and current route, crew, native destination and formation-leader observations. The restored baseline must still match. Successor tasks, external control, reservations, changed observations and expired deadlines refuse adoption.
+
+This step updates cleanup identity and registers the existing cleanup service. It issues no movement and does not renew the handback deadline or observation cadence. Real transfer between machines remains excluded. Master-stop ordering, native acknowledgement and physical continuation still need in-game verification.

@@ -439,5 +439,29 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "abortMasterStopAdoptionFollowUp20261020": {
+    "baseline": "77df5936",
+    "finding": "CortexStop increments owner epoch after release, invalidating an otherwise exact original-owner released STOP cleanup receipt.",
+    "change": "CortexStop captures current driving owner before its epoch increment and offers each occupied ground vehicle for controlled same-owner adoption afterward. DrivingAbortHandback validates exact source owner, current client, next epoch only, unchanged driving generation, released baseline and all existing actual STOP/native/route/crew/leader/external/successor guards. Adoption changes owner receipt and registers existing cleanup, with no native command, new timer, deadline or observation reset.",
+    "sources": {
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "370cb2a39fa7ab2eebf51b1d0768d0ef00fab745b43e9e485d772518c43d8fe2",
+      "addons/core/functions/cortexStop.sqf": "6e0133ef5a1f1106ecdb830eed43c07aedf1eb4f2c5dee86e9ebe335e05b5fbf"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-abort-master-stop-build.log",
+      "independent": ".qa/cbe-abort-master-stop-independent.log",
+      "candidate": ".qa/candidates/abort-master-77df5936-cd3cde8d",
+      "fingerprint": "cd3cde8d29ca98e95efed8ca8ffd5497602f12acfc5566e2fdf51fde07947257",
+      "source": "77df5936 plus intended dirty master-stop adoption edits"
+    },
+    "remaining": [
+      "Actual owner transfer needs original-source status captured at locality edge and admission sequencing; public old receipt alone insufficient.",
+      "Master-stop physical ordering, command acknowledgement and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

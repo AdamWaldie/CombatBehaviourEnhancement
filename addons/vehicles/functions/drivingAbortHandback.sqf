@@ -6,19 +6,22 @@
  * identity. New native orders, seats, route, reservations or successor work retire authority.
  * Repeat/JIP: consume once before native issue; original queue expiry plus15s bounds cleanup.
  * Public receipt is diagnostic on JIP, not replay authority. Migration does not auto-adopt it.
+ * Controlled same-owner master-stop adoption requires source identity, exact next epoch,
+ * unchanged generation, released baseline and current STOP/route/crew validation; it issues no movement.
  * A released-cap receipt permits original-owner cleanup through the existing bounded observer,
  * with at most one fresh traffic/geometry observation per second and no speed mutation.
  * Arguments: 0 vehicle <OBJECT,objNull>; 1 group <GROUP,grpNull>; 2 brain <HASHMAP,empty>;
  * 3 safety <ARRAY,[]> [traffic observation, gate observation, solid observation, cap m/s];
- * 4 current route/authority predicate <CODE,{false}>, synchronous caller context only.
+ * 4 current route/authority predicate <CODE,{false}>, synchronous caller context only;
+ * 5 source owner receipt <ARRAY,[]> internal same-owner master-stop adoption only.
  * Return: BOOL true when route handoff was issued, not proof of travel or queue completion.
  * Cost: fixed two-seat checks; released cleanup uses existing bounded traffic/geometry sensors
  * at most once per second per receipt. No speed write, new timer or new controller.
- * Current callers: DrivingAssistStart after its sole speed-cap transaction; DrivingRecoveryCleanup after release.
+ * Current callers: DrivingAssistStart after its sole speed-cap transaction; DrivingRecoveryCleanup after release; CortexStop for controlled epoch adoption.
  * Example: [truck1,group driver truck1,_brain,[_traffic,_gate,_solid,_cap],{call _mayRecoverRoute}] call CBE_fnc_DrivingAbortHandback;
  */
 params [["_vehicle",objNull,[objNull]],["_group",grpNull,[grpNull]],
-    ["_brain",createHashMap,[createHashMap]],["_safety",[],[[]]],["_mayResume",{false},[{}]]];
+    ["_brain",createHashMap,[createHashMap]],["_safety",[],[[]]],["_mayResume",{false},[{}]],["_adoptFrom",[],[[]]]];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle} || {isNull _group} || {!local _group}) exitWith {false};
 private _hold=_vehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
 if (!(_hold isEqualType createHashMap) || {count _hold == 0}) exitWith {false};
@@ -29,12 +32,28 @@ private _retire={
         _vehicle setVariable ["CBE_DrivingAbort_Result",[_result,serverTime,_hold getOrDefault ["binding",[]]],true];
     };
 };
+// Only the controlled same-owner master-stop epoch edge may rebind this receipt.
+// This changes no native state and grants no extra lifetime. Ordinary calls cannot
+// silently accept a different owner or executor generation.
+private _ownerNow=[_group] call CBE_fnc_DrivingOwnerReceipt;
+private _adoption=_adoptFrom isNotEqualTo [];
+private _adoptionValid=_adoption && {count _adoptFrom == 3} && {count _ownerNow == 3}
+    && {_adoptFrom findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} < 0}
+    && {(_hold getOrDefault ["owner",[]]) isEqualTo _adoptFrom}
+    && {(_adoptFrom select 0) == clientOwner} && {(_ownerNow select 0) == clientOwner}
+    && {(_ownerNow select 1) == (_adoptFrom select 1)+1}
+    && {(_ownerNow select 2) == (_adoptFrom select 2)}
+    && {"releasedCap" in _hold}
+    && {private _baseline=_hold get "releasedCap";
+        _baseline isEqualType 0 && {finite _baseline} && {_baseline != 0}
+            && {abs ((getForcedSpeed _vehicle)-_baseline) <= 0.1}};
+if (_adoption && {!_adoptionValid}) exitWith {false};
 private _deadline=_hold getOrDefault ["deadline",-1];
 private _route=_hold getOrDefault ["route",[]];
 private _driver=_hold getOrDefault ["driver",objNull];private _operator=_hold getOrDefault ["operator",objNull];
 if (!(_deadline isEqualType 0) || {!finite _deadline} || {serverTime >= _deadline}
     || {(_hold getOrDefault ["group",grpNull]) != _group}
-    || {(_hold getOrDefault ["owner",[]]) isNotEqualTo ([_group] call CBE_fnc_DrivingOwnerReceipt)}
+    || {!_adoptionValid && {(_hold getOrDefault ["owner",[]]) isNotEqualTo _ownerNow}}
     || {_route isNotEqualTo ([_group] call CBE_fnc_DrivingRouteReceipt)}
     || {driver _vehicle != _driver} || {effectiveCommander _vehicle != _operator}
     || {_vehicle getVariable ["CBE_Convoy_Active",false]}
@@ -53,6 +72,17 @@ if (!(_deadline isEqualType 0) || {!finite _deadline} || {serverTime >= _deadlin
 if (["CBE_DrivingQueue_Consent","CBE_DrivingBypass_Work","CBE_DrivingPass_Work","CBE_DrivingRecovery_Work"] findIf {
     count (_vehicle getVariable [_x,createHashMap]) > 0
 } >= 0 || {(_vehicle getVariable ["CBE_DrivingCorridor_Work",[]]) isNotEqualTo []}) exitWith {["SUCCESSOR"] call _retire;false};
+if (_adoptionValid) exitWith {
+    isNil {
+        if ((_vehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap]) isEqualTo _hold
+            && {([_group] call CBE_fnc_DrivingOwnerReceipt) isEqualTo _ownerNow}) then {
+            _hold set ["owner",+_ownerNow];
+            _vehicle setVariable ["CBE_DrivingAbort_Hold",_hold,true];
+            [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+        };
+    };
+    false
+};
 private _released="releasedCap" in _hold;
 private _liveBrain=_group getVariable ["CBE_Driving_Brain",createHashMap];
 if (_released && {count _liveBrain > 0}

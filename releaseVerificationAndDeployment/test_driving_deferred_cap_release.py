@@ -20,6 +20,17 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         handback=(ROOT/'addons/vehicles/functions/drivingAbortHandback.sqf').read_text()
         self.assertIn('_hold set ["observeAt",serverTime+1]',handback)
         self.assertIn('CAP_REPLACED_OR_HELD',handback)
+        self.assertIn('(_ownerNow select 1) == (_adoptFrom select 1)+1',handback)
+        self.assertIn('(_ownerNow select 2) == (_adoptFrom select 2)',handback)
+        self.assertIn('(_adoptFrom select 0) == clientOwner',handback)
+        adopt=handback.split('if (_adoptionValid) exitWith {',1)[1].split('private _released=',1)[0]
+        self.assertNotIn('doMove',adopt)
+        self.assertNotIn('deadline',adopt)
+        stop=(ROOT/'addons/core/functions/cortexStop.sqf').read_text()
+        edge=stop.split('private _stoppingGroup=',1)[1].split('} forEach allGroups',1)[0]
+        self.assertLess(edge.index('CBE_fnc_DrivingOwnerReceipt'),edge.index('CBE_AIPass_Epoch'))
+        self.assertLess(edge.index('CBE_AIPass_Epoch'),edge.index('CBE_fnc_DrivingAbortHandback'))
+
         self.assertIn('call CBE_fnc_DrivingFollowingCap',handback)
         self.assertIn('call CBE_fnc_DrivingGeometryCap',handback)
         self.assertNotIn('CBA_fnc_waitAndExecute',handback)
