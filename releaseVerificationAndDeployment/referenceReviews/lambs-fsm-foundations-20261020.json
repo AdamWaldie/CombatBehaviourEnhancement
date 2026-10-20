@@ -313,5 +313,14 @@
     "fingerprint": "f3c50f3302a2c688fcb4a9c809df6e7e76d1ff7cdb527773dd401b2780433416",
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "dangerQueuePriorityWindow": {
+    "baseline": "4670a6ad",
+    "finding": "CBE Start/Init kept first12 records and cleared the queue, excluding later queued urgent events before priority selection. Actual frequency/size in dense Arma3 combat remains unmeasured.",
+    "implementation": "Initial entry retains primary engine cause plus latest47 queued rows. Init selects highest live priority/expiry from latest48, then submits latest11 plus unique selected row, at most12. Selector has48 arithmetic/type/expiry row budget, no actor/world queries or new callback. No previous selected response is reinserted as fresh observation.",
+    "limits": "Older events outside the recent window still deliberately discarded. No whole-source LAMBS parity or performance claim. Reaction timing and added selection cost require physical dense-contact measurement.",
+    "validation": "1480 existing tests, SQF/FSM/HEMTT/full build passed; audits paused.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
   }
 }

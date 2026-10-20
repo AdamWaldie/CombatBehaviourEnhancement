@@ -1,7 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Non-finite geometry/timestamps are rejected before selection or observation side effects.
- * Purpose: Select one live engine danger record with a bounded priority pass. Direct hits remain
+ * Purpose: Select one live engine danger record from at most48 recent records with a bounded
+ * priority pass. The FSM separately submits at most12 observations including this selection.
+ * Direct hits remain
  * highest, but an actor that can fire retains higher priority than casualty observation, shouting
  * or ambient fire so actionable combat is not displaced by weaker events from the same queue.
  * Locality / Authority: Pure owner-local selection. It performs no commands or state mutation.
@@ -31,5 +33,5 @@ private _latest=-1;
             _latest=_expiry;
         };
     };
-} forEach (_records select [0,12]);
+} forEach (_records select [0,48]);
 _selected
