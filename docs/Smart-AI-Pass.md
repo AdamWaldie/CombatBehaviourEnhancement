@@ -2133,3 +2133,6 @@ Convoy command admission now yields when either the actual driver or movement op
 
 
 Artillery requests reject malformed coordinate lengths and non-finite coordinates, error, rounds or numeric scoot defaults before range planning, battery reservation and observer cooldown. The battery owner independently rejects malformed aim coordinates before touching a shot receipt, so invalid geometry cannot consume or reject a genuine pending request. Existing finite valid defaults and shot acknowledgements are unchanged. This does not implement pre-fire range relocation: that remains separate from the post-fire scoot operation. Runtime ammunition, movement and overhead remain unverified.
+
+
+Bounding handoff now gives still-progressing late movers up to six seconds from the first confirmed physical quorum, rather than consuming that grace during the initial approach. A slow majority arriving after twelve seconds therefore no longer immediately strands a moving peer. The fixed server-time expiry survives owner migration and same-bound replacement; only a new bound identity clears it. The original hard bound deadline still wins, and stationary stragglers do not delay a viable element. No new worker or movement command is added. Physical cohesion, casualty flow and performance remain unverified.

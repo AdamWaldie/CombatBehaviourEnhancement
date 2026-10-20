@@ -58,8 +58,9 @@
  * begin immediately and external orders never inherit a frozen actor. A bound completes when every member
  * is within 3 m of his spot, or after
  * six seconds when at least two soldiers and 60 percent of the assigned element have physically arrived.
- * A remaining soldier who is still making physical progress receives up to six additional seconds to
- * finish the bound. This short, progress-driven grace avoids turning an active mover into a recovery
+ * A remaining soldier who is still making physical progress receives up to six additional seconds
+ * from the first physical quorum, capped by the original bound deadline, to finish the bound.
+ * That server-time expiry survives owner migration and same-bound roster reconstruction. This short, progress-driven grace avoids turning an active mover into a recovery
  * chase while never holding the element for an actor who has actually stopped.
  * Remaining actors become bounded recovery stragglers and keep moving toward their element; they are
  * never counted as arrived or teleported. CBE_AIPass_Flank_BoundTimeout limits stationary time; four times that value is the absolute bound limit. Stationary movement ends as STALLED; the absolute limit ends as TIME_LIMIT, never arrival. Handoffs occur as soon as physical arrival is established. CBE_AIPass_Flank_BoundPause is an
@@ -1033,6 +1034,7 @@ private _issue = {
     if (_boundIdentity isNotEqualTo (_drill getOrDefault ["boundDeadlineIdentity",[]])) then {
         _drill set ["boundDeadlineIdentity",_boundIdentity];
         _drill set ["boundDeadline",_now+4*(missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25])];
+        _drill deleteAt "boundQuorumUntil";
     };
     // Replacing casualties or blocked movers cannot renew this bound's hard travel limit.
     _drill set ["boundStart", _now];
@@ -1252,10 +1254,23 @@ switch (_drill get "stage") do {
             private _progressIndex = _movers find _x;
             _progressIndex >= 0 && {_now - ((_progress select _progressIndex) select 3) <= 3}
         } >= 0;
+        // Slow, successful bounds must not consume their straggler allowance before
+        // a majority reaches its actual spots. Freeze one server-time expiry for this
+        // bound identity; casualty reconstruction and owner migration cannot renew it.
+        private _quorumUntil=_drill getOrDefault ["boundQuorumUntil",-1];
+        if (!_arrived && {_boundAge >= 6} && {count _arrivedUnits >= _minimumArrivals}
+            && {_lateMoverProgressing} && {_quorumUntil == -1}) then {
+            isNil {
+                if !(call _decisionCurrent) exitWith {_decisionDeferred=true};
+                _quorumUntil=(serverTime+6) min (serverTime+((_moveDeadline-_now) max 0));
+                _drill set ["boundQuorumUntil",_quorumUntil];
+            };
+        };
+        if (_decisionDeferred) exitWith {_result=0.25};
         private _quorumReady = !_arrived
             && {_boundAge >= 6}
             && {count _arrivedUnits >= _minimumArrivals}
-            && {!_lateMoverProgressing || {_boundAge >= 12}};
+            && {!_lateMoverProgressing || {_quorumUntil >= 0 && {serverTime >= _quorumUntil}}};
         if (_quorumReady) then {
             isNil {
             if !(call _decisionCurrent) exitWith {_decisionDeferred=true};

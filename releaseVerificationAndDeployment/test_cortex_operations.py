@@ -7574,7 +7574,22 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _lateMoverProgressing = _lateMovers findIf',step)
         self.assertIn('_now - ((_progress select _progressIndex) select 3) <= 3',step)
         self.assertIn('_boundAge >= 6',step)
-        self.assertIn('!_lateMoverProgressing || {_boundAge >= 12}',step)
+        self.assertIn('!_lateMoverProgressing || {_quorumUntil >= 0 && {serverTime >= _quorumUntil}}',step)
+        self.assertIn('_quorumUntil=(serverTime+6) min (serverTime+((_moveDeadline-_now) max 0))',step)
+        self.assertIn('_lateMoverProgressing} && {_quorumUntil == -1}',step)
+        identity=step.split('if (_boundIdentity isNotEqualTo',1)[1].split('// Replacing casualties',1)[0]
+        self.assertIn('_drill deleteAt "boundQuorumUntil"',identity)
+        self.assertIn('"boundQuorumUntil"',source('cortexCheckpoint'))
+        # A majority arriving late still grants six seconds, never beyond the
+        # original hard expiry; a later observation retains the first expiry.
+        for first,hard,expected in ((8,100,14),(30,100,36),(30,34,34)):
+            expiry=min(first+6,hard)
+            self.assertEqual(expiry,expected)
+            self.assertLessEqual(expiry,hard)
+            later=first+3
+            self.assertEqual(expiry,expected)
+            self.assertLess(later,expiry)
+
         self.assertIn('count _arrivedUnits >= _minimumArrivals',step)
         self.assertIn('private _stragglers = _units - _arrivedUnits;',step)
         self.assertIn('_recovery pushBack [_straggler,0,_now]',step)
