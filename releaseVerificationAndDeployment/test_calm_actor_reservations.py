@@ -21,11 +21,15 @@ class CalmActorReservationTests(unittest.TestCase):
         self.assertLess(hold.index('call _actorMoveFree'),hold.index('_unit doFollow _leader'))
         self.assertIn('!_yieldToExternal',hold)
     def test_generic_loop_preserves_live_proof_and_leaves_owned_release_to_features(self):
-        generic=self.s.split('private _target = _x getVariable',1)[1].split('private _staticSupport=',1)[0]
+        generic=self.s.split('private _target = _x getVariable',1)[1].split('// Use the same exact-assignment release',1)[0]
         self.assertIn('if ([_x] call _actorMoveFree) then {_x setVariable ["CBE_Cortex_ActorMove",nil]}',generic)
-        # Existing deployment cleanup must still remove its own tag, independently.
-        self.assertIn('(_deployMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]',self.s)
-        self.assertIn('(_assistantMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]',self.s)
+        # CALM delegates to the feature; its shared retirement still clears only static tags.
+        self.assertIn('[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep',self.s)
+        deploy=(ROOT/'addons/infantry/functions/cortexStaticDeployStep.sqf').read_text()
+        clear=deploy.split('private _clearActor=',1)[1].split('private _canReleaseActor=',1)[0]
+        self.assertIn('(_move param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]',clear)
+        self.assertIn('[_gunner] call _clearActor',deploy)
+        self.assertIn('[_assistant] call _clearActor',deploy)
 
 class OperationReservationTests(unittest.TestCase):
     def test_shared_progress_and_recovery_use_strict_actor_reservation(self):

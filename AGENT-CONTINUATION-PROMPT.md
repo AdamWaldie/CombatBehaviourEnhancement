@@ -1,3 +1,9 @@
+# Current source checkpoint - shared static retirement
+
+This note supersedes older next-action/commit snapshots below. Baseline before this batch: e0f7f084. See latest AGENT-HANDOVER.md entries and referenceReviews/lambs-fsm-foundations-20261020.json for verified static-find and deploy/pack comparisons. CONTACT/CALM now share guarded release for both emplacement and carried deployment; native callbacks require deadline/live permissions and exact handler; queued care is protected. Full1482/HEMTT/package passes are static only. Latest unsigned candidate .qa/candidates/static-deploy-release-e0f7f084; log .qa/static-deploy-release-verified-build.log. No physical acceptance, percentage credit or complete LAMBS parity.
+
+Remaining concrete static gaps: tag-only actor-marker retirement and indistinguishable replacement native orders; reciprocal backpack-base compatibility; separate commando-mortar source branches; retained assembly/fire/packing physical failures. Do not claim native action quiescence from receipt deletion. Review actual owner-local executor before changing it; avoid a second equipment controller. Keep the full production-readiness objective unchanged. Audits remain PAUSED, no Arma launch. CBE checkout only, not chat cwd WMP. No push/publication/merge; preserve unrelated dirt and protected references. Verify live branch/PR17 before mutations.
+
 # Latest foundations checkpoint - 2026-10-20
 
 This section supersedes older commit/next-action snapshots below. Full production-readiness objective remains unchanged. Foundations/FSM lifecycle and functional LAMBS parity/improvement first; then implement/fix/improve the entire Protocol AI collection. Nine locally installed Protocol entries are inventoried, not proof of complete collection discovery.

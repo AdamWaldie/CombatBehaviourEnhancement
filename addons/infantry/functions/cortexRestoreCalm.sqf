@@ -193,40 +193,8 @@ if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_Cor
 // Use the same exact-assignment release as CONTACT; never start a deployment during CALM.
 [_group,_state,[],true,_yieldToExternal] call CBE_fnc_CortexStaticSupport;
 _group setVariable ["CBE_Danger_StaticAttempt",nil,true];
-private _staticDeployment=_group getVariable ["CBE_Danger_StaticDeployment",[]];
-if (count _staticDeployment >= 10) then {
-    private _deployGunner=_staticDeployment param [2,objNull,[objNull]];
-    private _deployedWeapon=_staticDeployment param [7,objNull,[objNull]];
-    private _packHandler=_staticDeployment param [10,-1,[0]];
-    if (!isNull _deployGunner && {local _deployGunner}) then {
-        if (_packHandler >= 0) then {_deployGunner removeEventHandler ["WeaponDisassembled",_packHandler]};
-        private _assemblyHandler=_staticDeployment param [12,-1,[0]];
-        if (_assemblyHandler >= 0) then {_deployGunner removeEventHandler ["WeaponAssembled",_assemblyHandler]};
-        _deployGunner setVariable ["CBE_Danger_StaticPackContext",nil];
-        private _deployMove=_deployGunner getVariable ["CBE_Cortex_ActorMove",[]];
-        if ((_deployMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]) then {
-            _deployGunner setVariable ["CBE_Cortex_ActorMove",nil];
-        };
-        if (!_yieldToExternal
-            && {(_deployGunner getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
-            && {!isNull _deployedWeapon}
-            && {assignedVehicle _deployGunner == _deployedWeapon}) then {
-            [_deployGunner] orderGetIn false;
-            unassignVehicle _deployGunner;
-            if (vehicle _deployGunner == _deployedWeapon) then {
-                _deployGunner action ["GetOut",_deployedWeapon];
-            };
-        };
-    };
-    private _deployAssistant=_staticDeployment param [3,objNull,[objNull]];
-    if (!isNull _deployAssistant && {local _deployAssistant}) then {
-        private _assistantMove=_deployAssistant getVariable ["CBE_Cortex_ActorMove",[]];
-        if ((_assistantMove param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]) then {
-            _deployAssistant setVariable ["CBE_Cortex_ActorMove",nil];
-        };
-    };
-};
-_group setVariable ["CBE_Danger_StaticDeployment",nil,true];
+// Carried equipment shares its executor's actor-task-safe retirement boundary.
+[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep;
 _group setVariable ["CBE_Danger_StaticDeployAttempt",nil,true];
 private _vehicleJink=_state getOrDefault ["vehicleDangerJink",[]];
 private _jinkVehicle=_vehicleJink param [1,objNull,[objNull]];

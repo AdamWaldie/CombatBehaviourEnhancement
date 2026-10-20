@@ -1453,11 +1453,19 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('setPos',deploy)
         self.assertNotIn('while {',deploy)
         self.assertNotIn('CortexQueueJob',deploy)
-        for marker in ['CBE_Danger_StaticDeployment','CBE_Danger_StaticDeployAttempt',
-                       'orderGetIn false','unassignVehicle','_yieldToExternal',
-                       'removeEventHandler ["WeaponDisassembled",_packHandler]',
-                       'CBE_Danger_StaticPackContext']:
-            self.assertIn(marker,restore)
+        self.assertIn('[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep', restore)
+        self.assertNotIn('private _staticDeployment=', restore)
+        self.assertIn('CBE_Danger_StaticDeployAttempt', restore)
+        release_only = deploy.split('if (_releaseOnly) exitWith', 1)[1].split('private _enabled=', 1)[0]
+        self.assertIn('call _retire', release_only)
+        self.assertNotIn('action [', release_only)
+        self.assertLess(deploy.index('private _releaseActors='), deploy.index('[_gunner] call _clearActor'))
+        actor_release = deploy.split('private _canReleaseActor=', 1)[1].split('private _retire=', 1)[0]
+        for gate in ['_actor in _operationActors', 'CBE_Cortex_ActorMove',
+                     'ace_medical_ai_healQueue', 'CortexCombatEffective', 'CompatibilityExternalControl']:
+            self.assertIn(gate, actor_release)
+        self.assertIn('(_releaseActors select 0)', deploy)
+        self.assertIn('(_releaseActors select _forEachIndex)', deploy)
         group_tick=source('cortexGroupTick')
         self.assertIn('[_group,_state,[],!_ordered] call CBE_fnc_CortexStaticDeployStep',group_tick)
         self.assertIn('(_packingRecord param [1,""]) in ["PACK_EXITING","PACK_MOVING","PACKING","TAKING"]',group_tick)
@@ -9964,8 +9972,14 @@ class CortexOperations(unittest.TestCase):
         retirement=text.split('private _retire={',1)[1].split('private _enabled=',1)[0]
         self.assertIn('_commandFree=_commandFree ||',retirement)
         self.assertIn('CBE_fnc_CortexExternalTakeover',retirement)
-        self.assertIn('!(_gunner in _operationActors)',retirement)
-        self.assertIn('!(_x in _operationActors)',retirement)
+        actor_gate=text.split('private _canReleaseActor=',1)[1].split('private _retire=',1)[0]
+        self.assertIn('_actor in _operationActors',actor_gate)
+        self.assertIn('[[_gunner] call _canReleaseActor,[_assistant] call _canReleaseActor]',retirement)
+        self.assertLess(retirement.index('private _releaseActors='),retirement.index('[_gunner] call _clearActor'))
+        self.assertIn('(_releaseActors select 0)',retirement)
+        self.assertIn('(_releaseActors select _forEachIndex)',retirement)
+        self.assertIn('(_record param [19,[],[[]]]) isNotEqualTo [clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]',retirement)
+        self.assertIn('((_record param [19,[],[[]]]) param [0,-1,[0]]) == clientOwner',retirement)
         self.assertLess(retirement.index('_commandFree=_commandFree'),retirement.index('if (!_commandFree)'))
 
     def test_anti_armour_cleanup_does_not_erase_another_actor_move(self):

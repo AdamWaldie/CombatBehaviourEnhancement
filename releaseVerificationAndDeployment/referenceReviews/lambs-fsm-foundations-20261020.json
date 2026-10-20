@@ -508,10 +508,16 @@
       "CommandoMortar-specific source branches remain unimplemented/unreviewed.",
       "CBE assistant matching uses primary bag base list; source also accepts reciprocal assistant base declaration. Determine engine-valid compatibility before widening.",
       "Native already-issued assembly/disassembly/boarding cannot be claimed cancelled or quiescent by receipt retirement.",
-      "Carried deployment CALM cleanup remains separate from executor retirement and needs successor reservation/assignment review.",
       "Static actor marker cleanup currently matches tag, not a complete per-generation receipt; repeated/split-locality behaviour remains unverified.",
       "Retained physical assembly/firing/packing failures remain open; no audit ran."
     ],
-    "validation": "Full existing1482 unit/static, HEMTT/SQF/config/FSM/docs/build pass; no new tests, acceptance or percentage credit."
+    "validation": "Full existing1482 unit/static, HEMTT/SQF/config/FSM/docs/build pass; no new tests, acceptance or percentage credit.",
+    "sharedRetirementFollowup": {
+      "baseline": "e0f7f084",
+      "change": "CALM carried-static teardown delegates to CortexStaticDeployStep release-only mode. Retirement evaluates per-actor release permission before clearing markers; nonstatic reservations, current operation participation, player/locality/group/combat/care/external and protected native tasks prevent cleanup commands. Native phase-owned equipment commands have explicit exceptions. Follow only applies on foot.",
+      "locality": "Changed owner/epoch forces command-free retirement; event handlers removed only on original installing machine, including release-only calls.",
+      "validation": "Full1482 existing cases and HEMTT/SQF/config/FSM/docs/build pass. Existing assertions now trace helper and delegation rather than removed duplicate source text. No new cases or live audit.",
+      "remaining": "Static tag-only marker cleanup and indistinguishable replacement native MOVE/equipment orders remain incomplete; native engine action quiescence and complete handover not established."
+    }
   }
 }

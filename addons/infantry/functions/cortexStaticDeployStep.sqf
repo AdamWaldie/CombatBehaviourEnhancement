@@ -9,12 +9,15 @@
  * Other squad members may manoeuvre beside an existing deployment; overlapping participants or withdrawal preempt it.
  * Repeat/JIP: One contact-episode record owns the exact pair, expected assembled class, position and resulting weapon. Each group-brain call advances at most one finite phase. Locality, Zeus, specialist or newer operation ownership retires CBE markers without issuing cleanup commands over the new owner. Failed deployment is not retried during the same contact episode.
  * Arguments: 0 group <GROUP>; 1 group state <HASHMAP>; 2 known enemies <ARRAY>; 3 allow post-contact packing <BOOL, default false>.
+ * 4 release only <BOOL>, false; 5 yield during release <BOOL>, false. Release-only cannot advance
+ * assembly/packing or discover a team. Each actor retains newer movement and protected native tasks.
  * Return Value: STRING - DISABLED, IDLE, MOVING, DROPPING, ASSEMBLING, MOUNTING, ACTIVE, PACK_EXITING, PACK_MOVING, PACKING, TAKING, PACKED, FAILED or YIELDED.
- * Current callers: CBE_fnc_CortexStaticSupport when no suitable existing emplacement is available, and CBE_fnc_CortexGroupTick during SECURITY for finite recovery.
+ * Current callers: CortexStaticSupport when no emplacement is available, CortexGroupTick during SECURITY,
+ * and CortexRestoreCalm for release-only teardown.
  * Example: [group player,[group player] call CBE_fnc_CortexGroupState,[]] call CBE_fnc_CortexStaticDeployStep;
  */
 
-params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_allowPack",false,[false]]];
+params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_allowPack",false,[false]],["_releaseOnly",false,[true]],["_releaseExternal",false,[true]]];
 if (isNull _group || {!local _group}) exitWith {"YIELDED"};
 private _record=_group getVariable ["CBE_Danger_StaticDeployment",[]];
 private _external=[_group] call CBE_fnc_CortexExternalTakeover;
@@ -33,11 +36,36 @@ private _clearActor={
         if ((_move param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]) then {_actor setVariable ["CBE_Cortex_ActorMove",nil]};
     };
 };
+// Check before clearing our marker: retirement must not turn a successor MOVE into follow.
+private _canReleaseActor={
+    params ["_actor"];
+    if (isNull _actor || {!alive _actor} || {!local _actor} || {isPlayer _actor}
+        || {group _actor != _group} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+        || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+        || {[_actor] call CBE_fnc_CompatibilityExternalControl}
+        || {_actor in _operationActors}) exitWith {false};
+    private _move=_actor getVariable ["CBE_Cortex_ActorMove",[]];
+    if (_move isNotEqualTo [] && {!((_move param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"])}) exitWith {false};
+    private _command=toUpperANSI currentCommand _actor;
+    private _status=_record param [1,"",[""]];
+    private _gunner=_record param [2,objNull,[objNull]];
+    private _weapon=_record param [7,objNull,[objNull]];
+    private _ownedEquipment=(_status == "ASSEMBLING" && {_actor == _gunner} && {_command == "ASSEMBLE"})
+        || {_status == "DROPPING" && {_actor == (_record param [3,objNull,[objNull]])} && {_command == "DROP BAG"}}
+        || {_status == "MOUNTING" && {_actor == _gunner} && {_command == "GET IN"}
+            && {!isNull _weapon} && {assignedVehicle _actor == _weapon}}
+        || {_status == "PACK_EXITING" && {_actor == _gunner} && {_command == "GET OUT"}
+            && {!isNull _weapon} && {vehicle _actor == _weapon || {isNull objectParent _actor}}}
+        || {_status == "PACKING" && {_actor == _gunner} && {_command == "DISASSEMBLE"}}
+        || {_status == "TAKING" && {_command == "TAKE BAG" || {_actor == _gunner && {_command == "DISASSEMBLE"}}}};
+    _ownedEquipment || {!(_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+};
 private _retire={
     params ["_commandFree"];
     // A successor operation may own only some actors. Retire bookkeeping, but restore
     // assignments/formation only for actors not claimed by that operation or an external owner.
-    _commandFree=_commandFree || {[_group] call CBE_fnc_CortexExternalTakeover}
+    _commandFree=_commandFree || {(_record param [19,[],[[]]]) isNotEqualTo [clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]}
+        || {[_group] call CBE_fnc_CortexExternalTakeover}
         || {[_record param [2,objNull,[objNull]]] call CBE_fnc_CompatibilityExternalControl}
         || {[_record param [3,objNull,[objNull]]] call CBE_fnc_CompatibilityExternalControl}
         || {[_record param [2,objNull,[objNull]],_record param [3,objNull,[objNull]]] findIf {
@@ -71,30 +99,38 @@ private _retire={
                 _operation getOrDefault ["intent",""],_operation getOrDefault ["generation",-1],
                 _operationActors apply {netId _x}],_weaponEvidence]];
         private _handler=_record param [10,-1,[0]];
-        if (!isNull _gunner && {local _gunner}) then {
+        if (!isNull _gunner && {local _gunner}
+            && {((_record param [19,[],[[]]]) param [0,-1,[0]]) == clientOwner}) then {
+            // Handler IDs are machine-local; a new owner cannot remove the old owner's ID.
             if (_handler >= 0) then {_gunner removeEventHandler ["WeaponDisassembled",_handler]};
             private _assemblyHandler=_record param [12,-1,[0]];
             if (_assemblyHandler >= 0) then {_gunner removeEventHandler ["WeaponAssembled",_assemblyHandler]};
             _gunner setVariable ["CBE_Danger_StaticPackContext",nil];
         };
+        private _releaseActors=[[_gunner] call _canReleaseActor,[_assistant] call _canReleaseActor];
         [_gunner] call _clearActor;
         [_assistant] call _clearActor;
         if (!_commandFree) then {
             private _weapon=_record param [7,objNull,[objNull]];
-            if (!isNull _gunner && {local _gunner} && {!isNull _weapon}
-                && {assignedVehicle _gunner == _weapon} && {!(_gunner in _operationActors)}) then {
+            if ((_releaseActors select 0) && {!isNull _weapon}
+                && {assignedVehicle _gunner == _weapon}) then {
                 [_gunner] orderGetIn false;
                 unassignVehicle _gunner;
                 if (vehicle _gunner == _weapon) then {_gunner action ["GetOut",_weapon]};
             };
-            {if (!isNull _x && {alive _x} && {local _x} && {group _x == _group}
-                && {!(_x in _operationActors)}
+            {if ((_releaseActors select _forEachIndex) && {isNull objectParent _x}
                 && {currentCommand _x in ["","MOVE","STOP","ASSEMBLE","DISASSEMBLE"]}) then {
                 _x doFollow (leader _group);
             }} forEach [_gunner,_assistant];
         };
     };
     _group setVariable ["CBE_Danger_StaticDeployment",nil,true];
+};
+
+// CALM uses the same release boundary; it must not advance or start another equipment phase.
+if (_releaseOnly) exitWith {
+    if (count _record >= 10) then {[_releaseExternal || {_external}] call _retire};
+    "IDLE"
 };
 
 private _enabled=missionNamespace getVariable ["CBE_AIPass_Active",false]

@@ -185,6 +185,11 @@ Native assembly and disassembly receipts must match the current handler and phas
 features still enabled and no queued treatment on the affected actors. A late result cannot orient
 the weapon or renew bag recovery. Physical equipment already produced remains in the world; these
 guards do not establish cancellation of an engine action already in progress.
+Return-to-calm uses the same carried-equipment retirement path. It checks each actor before
+clearing CBE markers; a newer operation participant, other movement reservation or protected
+native task receives no exit or follow command. Follow is limited to actors already on foot.
+Changed owner/epoch retires without native commands, and only the installing machine removes
+its equipment handler IDs. Identical replacement native orders and reused static-task markers remain ambiguous.
 `CBE_AIPass_VehicleJink_Enable` is a next-operation control, default true. A slow, intact, crew-only
 armed ground vehicle may make one 25-second terrain-checked escape from a close hostile, hit or
 explosion generation. The response uses the shared operation and movement lease, covers 35-45 metres
