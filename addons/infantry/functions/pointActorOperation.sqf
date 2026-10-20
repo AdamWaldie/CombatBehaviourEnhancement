@@ -23,6 +23,8 @@
  * Pickup rechecks proximity/LOS against the current body, not just the original observed goal.
  * Recovery journal records VERIFIED only for matching positive receiver/source round deltas;
  * command issue alone remains UNVERIFIED. The point result stays VISITED either way.
+ * CBE accounting loops admit at most128 rows per snapshot; oversized pre-action inventories
+ * defer pickup, oversized post-action evidence cannot verify it. Native snapshot cost is unmeasured.
  * No recovery timer, generic action cancellation, backpack/weapon pickup or deadline extension.
  */
 params [["_mode","START",[""]],["_actor",objNull,[objNull]],["_brain",createHashMap,[createHashMap]]];
@@ -215,6 +217,7 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
         {
             if (!isNull _x && {_compatible isNotEqualTo []}) then {
                 private _cargo=magazinesAmmoCargo _x;
+                if (count _cargo > 128) then {continue};
                 private _index=(_cargo select [0,128]) findIf {
                     (_x select 1) > 0 && {(_x select 0) in _compatible} && {_actor canAdd (_x select 0)}
                 };
@@ -229,18 +232,24 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
             && {!(lineIntersects [eyePos _actor,(getPosASL _body) vectorAdd [0,0,0.5],_actor,_body])}) then {
             private _rounds={
                 params ["_rows","_class"];
+                if (count _rows > 128) exitWith {-1};
                 private _total=0;
                 {if ((_x select 0) == _class) then {_total=_total+(_x select 1)}} forEach _rows;
                 _total
             };
             private _before=[magazinesAmmoFull _actor,_magazine] call _rounds;
+            if (_before >= 0) then {
             _actor action ["TakeMagazine",_supply,_magazine];
-            private _gain=([magazinesAmmoFull _actor,_magazine] call _rounds)-_before;
-            private _removed=_sourceBefore-([magazinesAmmoCargo _supply,_magazine] call _rounds);
-            private _verified=_gain > 0 && {_gain == _removed} && {primaryWeapon _actor == _weapon};
+            private _receiverAfter=[magazinesAmmoFull _actor,_magazine] call _rounds;
+            private _sourceAfter=[magazinesAmmoCargo _supply,_magazine] call _rounds;
+            private _gain=_receiverAfter-_before;
+            private _removed=_sourceBefore-_sourceAfter;
+            private _verified=_receiverAfter >= 0 && {_sourceAfter >= 0}
+                && {_gain > 0 && {_gain == _removed}} && {primaryWeapon _actor == _weapon};
             _actor setVariable ["CBE_PointActor_Recovery",[_brain get "generation",
                 ["UNVERIFIED","VERIFIED"] select _verified,_body,_magazine,
                 [0,_gain] select _verified,serverTime],true];
+            };
         };
     };
     ["VISITED"] call _finish

@@ -709,6 +709,11 @@ class CortexOperations(unittest.TestCase):
                       '_gain > 0 && {_gain == _removed}','["UNVERIFIED","VERIFIED"]'):
             self.assertIn(proof,pickup)
         self.assertEqual(pickup.count('action ["TakeMagazine"'),1)
+        self.assertIn('count _cargo > 128',pickup)
+        self.assertIn('count _rows > 128',pickup)
+        self.assertLess(pickup.index('if (_before >= 0)'),pickup.index('action ["TakeMagazine"'))
+        self.assertIn('_receiverAfter >= 0 && {_sourceAfter >= 0}',pickup)
+
         self.assertIn('[_generation,"NOT_ATTEMPTED",_body,"",0,serverTime]',start)
         self.assertLess(pickup.index('(getPosASL _actor) vectorDistance (getPosASL _body) <= 2'),
                         pickup.index('action ["TakeMagazine"'))

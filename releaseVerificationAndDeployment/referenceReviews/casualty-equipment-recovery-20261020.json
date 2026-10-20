@@ -118,5 +118,23 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "accountingBounds20261020": {
+    "baseline": "cccbeba8",
+    "finding": "Candidate selection bounded128 but source and receiver round totals still iterated whole snapshots.",
+    "implementation": "Skip source inventories over128 rows; round helper returns-1 for oversized evidence. Pre-action receiver failure defers action; post-action failure cannot verify transfer. No truncation-based totals.",
+    "sourceSHA256": "6d8b122e2bb1fc3358539fc966c2b62b7ce985215cda7fafd5e06dd493ad4480",
+    "costLimit": "CBE loops bounded; engine snapshot construction still materializes returned inventory and runtime cost remains unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-recovery-accounting-build.log",
+      "independent": ".qa/cbe-recovery-accounting-independent.log",
+      "candidate": ".qa/candidates/recovery-accounting-cccbeba8",
+      "fingerprint": "5359e5f2f6f4b65e9dccdd104840b3e86bcbaa08c6c861fbacab6d7ef22f34e9"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }
