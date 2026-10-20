@@ -202,12 +202,13 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-damage-protection-20261018.json",
-      "sha256": "816ed6437cd87d793ffd9bb20f6d37fc563e994057bf6d37cf9934f33b0813c8",
+      "sha256": "984a3b2e87386f2ccb018d2d8b4137c1f44fca13853aaa4e6fb9fdadc3a415d2",
       "scope": "Complete HBQ damageInit, protectBriefly and initVehicle helpers; not whole-HBQ parity",
       "sourceFileMentions": [
         "functions/fn_damageInit.sqf",
         "functions/fn_initVehicle.sqf",
-        "functions/fn_protectBriefly.sqf"
+        "functions/fn_protectBriefly.sqf",
+        "XEH_postInit.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },

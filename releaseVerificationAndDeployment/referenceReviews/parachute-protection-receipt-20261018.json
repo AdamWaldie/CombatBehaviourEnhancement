@@ -44,5 +44,32 @@
     "No physical timing, overlap, preexisting invulnerability, failed exit/boarding, ownership/JIP or performance acceptance."
   ],
   "physicalAcceptance": false,
-  "auditsLaunched": false
+  "auditsLaunched": false,
+  "currentStateReconciliation20261020": {
+    "reviewed": "2026-10-20",
+    "baselineCommit": "ee133151",
+    "scope": "Current-state reconciliation; historical findings retained, no product change",
+    "sources": {
+      "addons/infantry/functions/cortexParachuteJump.sqf": "401558c894a13c927571ea9ac076930552df1e8bae14cbd6e1f27a81383d3979",
+      "addons/infantry/functions/cortexParachuteProtectionRelease.sqf": "b469d3526de5f634b182ff3bd90b3a2957ba90fe33c49f3207771ba825bbd77a",
+      "addons/infantry/functions/cortexParachuteDeploy.sqf": "4e5bbba3768ea6b2858d945784dc85c399070bf4810b442bf0d40ba620fcc9ae",
+      "addons/main/XEH_postInit.sqf": "bbdeda2519c79f65bd83fc44a7f795636f726454a7acf39eeae1be35c3918c0b",
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "25f811d6efd253b2a705b09cc716b9f09ba4529db27324ef516ac23c6035fe74"
+    },
+    "supersededWork": [
+      "Exact receipt and original-deadline protection release already implemented; no bare remote allowDamage timer remains in this jump path.",
+      "Native actor init/Local already adopts the accepted finite deployment phase without replaying exit motion.",
+      "Airborne roster rotation advances before attempted exit; rejected passenger cannot monopolize the next selection."
+    ],
+    "currentLimits": [
+      "Receipt delivery after init/Local observation has no guaranteed replay path.",
+      "Same-value external allowDamage false writes cannot be attributed without cooperation.",
+      "Actual migration, failed boarding, repeated use and frame-time acceptance remain unverified.",
+      "No general HBQ-style low-speed vehicle collision damage filter is implemented; parachute protection is a different scope."
+    ],
+    "nextAction": "Investigate guaranteed bounded late-receipt observation and cooperating protection authority before claiming full migration reliability; do not rebuild existing cleanup or fairness paths.",
+    "physicalAcceptance": false,
+    "auditsLaunched": false,
+    "scoresChanged": false
+  }
 }
