@@ -8796,6 +8796,9 @@ class CortexOperations(unittest.TestCase):
                       'finite _rounds && {_rounds > 0}'):
             self.assertIn(proof,selector)
         self.assertLess(selector.index('(_loaded select 3) != _magazine'),selector.index('selectWeaponTurret'))
+        self.assertIn('_loadedPhase != 0',selector)
+        self.assertIn('finite _phase && {_phase == 0}',selector)
+        self.assertLess(selector.index('_loadedPhase != 0'),selector.index('selectWeaponTurret'))
         for proof in ('_asset turretLocal _turret','fullCrew [_asset','weaponState [_asset,_turret]',
                       '_asset selectWeaponTurret [_weapon,_turret,_muzzle]',
                       '(_selected param [0,""]) == _weapon','(_selected param [1,""]) == _muzzle'):
@@ -8900,6 +8903,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('isNil {',issue)
         self.assertLess(issue.index('call _available'),issue.index('loadMagazine'))
         self.assertLess(issue.index('CBE_GroundReloadPending'),issue.index('loadMagazine'))
+        acknowledgement=text.split('private _native=weaponState',1)[1].split('// A different native magazine',1)[0]
+        self.assertIn('finite _reloadPhase',acknowledgement)
+        self.assertIn('_reloadPhase == 0',acknowledgement)
+        self.assertNotIn('setWeaponReloadingTime',text)
         self.assertIn('_magazines arrayIntersect _compatible',text)
         self.assertIn('(_x select 0) != _muzzle && {_magazine in (_x select 1)}',text)
         self.assertIn('count _compatible > 128',text)

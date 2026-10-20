@@ -4,7 +4,8 @@
  * Locality/authority: Actual local AI gunner and local turret only. Callers retain their
  * operation, target, ROE and firing-lane authority; this helper never targets or fires.
  * Repeat/JIP: Read native selected state each call; issue only while it differs, then
- * require native station acknowledgement with the same loaded magazine and positive rounds.
+ * require native station acknowledgement with the same loaded magazine, positive rounds
+ * and completed magazine reload phase. Positive/unknown reload phase grants no fire admission.
  * A stale observation cannot select an emptied or changed magazine. No timer, replay,
  * inventory or cached permission.
  * Arguments: 0 platform OBJECT objNull; 1 gunner OBJECT objNull;
@@ -38,9 +39,11 @@ if (count _crew > 64 || {_crew findIf {(_x select 0) == _gunner && {(_x select 3
 // Read the exact requested muzzle again, not just the currently selected station weapon.
 // A cached proposal or completed reload cannot borrow an earlier loaded-magazine receipt.
 private _loaded=weaponState [_asset,_turret,_weapon,_muzzle];
-if (count _loaded < 5 || {(_loaded select 0) != _weapon} || {(_loaded select 1) != _muzzle}
+private _loadedPhase=_loaded param [6,1,[0]];
+if (count _loaded < 7 || {(_loaded select 0) != _weapon} || {(_loaded select 1) != _muzzle}
     || {(_loaded select 3) != _magazine} || {!((_loaded select 4) isEqualType 0)}
-    || {!finite (_loaded select 4)} || {(_loaded select 4) <= 0}) exitWith {false};
+    || {!finite (_loaded select 4)} || {(_loaded select 4) <= 0}
+    || {!finite _loadedPhase} || {_loadedPhase != 0}) exitWith {false};
 private _selected=weaponState [_asset,_turret];
 if ((_selected param [0,""]) != _weapon || {(_selected param [1,""]) != _muzzle}) then {
     _asset selectWeaponTurret [_weapon,_turret,_muzzle];
@@ -49,3 +52,4 @@ if ((_selected param [0,""]) != _weapon || {(_selected param [1,""]) != _muzzle}
 (_selected param [0,""]) == _weapon && {(_selected param [1,""]) == _muzzle}
     && {(_selected param [3,"",[""]]) == _magazine}
     && {private _rounds=_selected param [4,0,[0]]; finite _rounds && {_rounds > 0}}
+    && {private _phase=_selected param [6,1,[0]]; finite _phase && {_phase == 0}}

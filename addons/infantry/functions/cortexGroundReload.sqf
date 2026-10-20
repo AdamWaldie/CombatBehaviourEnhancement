@@ -13,7 +13,8 @@
  * A combined request retains its original contact stamp and opportunity expiry;
  * role replacement or expiry revokes it. No role or observation deadline is renewed.
  * Return: STRING REQUESTED/PENDING blocks this routine firing pass; READY/REFUSED does not.
- * READY means a requested magazine is actually loaded, not permission to fire.
+ * READY requires the exact requested magazine, rounds and native magazine reload phase0;
+ * it is not permission to fire. A positive phase retains the original pending deadline.
  * Bounds: <=64 crew/128 inventory rows,16 weapons/8 muzzles each,128 compatible classes
  * per muzzle and at most65 native reads including readiness/final validation. Pending
  * observation uses one read. A reserve magazine must identify one configured muzzle;
@@ -84,8 +85,11 @@ if (_pending isNotEqualTo []) exitWith {
         "REFUSED"
     };
     private _native=weaponState [_asset,_turret,_weapon,_muzzle];
-    if (count _native >= 5 && {(_native select 0) == _weapon} && {(_native select 1) == _muzzle}
-        && {(_native select 3) == _magazine} && {(_native select 4) > 0}) exitWith {
+    private _reloadPhase=_native param [6,1,[0]];
+    if (count _native >= 7 && {(_native select 0) == _weapon} && {(_native select 1) == _muzzle}
+        && {(_native select 3) == _magazine} && {(_native select 4) isEqualType 0}
+        && {finite (_native select 4)} && {(_native select 4) > 0}
+        && {finite _reloadPhase} && {_reloadPhase == 0}) exitWith {
         _asset setVariable ["CBE_GroundReloadPending",nil,true];"READY"
     };
     // A different native magazine is a newer choice, not permission to insist on ours.
