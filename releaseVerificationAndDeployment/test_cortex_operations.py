@@ -1744,6 +1744,15 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(assessment.index('_target isKindOf "CAManBase"'),
                         assessment.index('_intent="ASSAULT"'))
         self.assertIn('call CBE_fnc_CortexTacticalAssess',selector)
+        readiness=assessment.split('private _leaderSuppression=',1)[1].split('_result set ["intent",_intent]',1)[0]
+        self.assertIn('getSuppression _leader',readiness)
+        self.assertIn('_intent in ["ASSAULT","ADVANCE","FLANK"]',readiness)
+        self.assertIn('_leaderSuppression >= 0.2',readiness)
+        self.assertIn('"LEADER_SUPPRESSED"',readiness)
+        for mutation in ('doMove','doStop','setWaypoint','setCombatMode','CortexFlankEnd'):
+            self.assertNotIn(mutation,readiness)
+        handoff=selector.split('if (_targetIndex < 0 || {_candidates isEqualTo []}) exitWith',1)[1].split('private _prioritiseContact=',1)[0]
+        self.assertNotIn('CortexTacticalReposition',handoff)
 
     def test_autonomous_foot_manoeuvre_rejects_mobile_platform_contacts(self):
         """Vehicle contact may cause a finite safety reposition, but never a rifle assault route."""

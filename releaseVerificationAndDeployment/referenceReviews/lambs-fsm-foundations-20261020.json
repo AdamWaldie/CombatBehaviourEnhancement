@@ -282,5 +282,23 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "audits": "PAUSED"
+  },
+  "immediateOffensiveReadiness": {
+    "source": {
+      "path": ".qa\\lambs-2621-review\\danger\\functions\\fnc_isLeader.sqf",
+      "sha256": "1d54335d79c30a654f85c808d97529f4aed6071293b45ec724f9d26c6d5ec326",
+      "intent": "LAMBS isLeader requires getSuppression <0.2 before group tactics."
+    },
+    "priorGap": "Smoothed group morale did not establish immediate command readiness.",
+    "implementation": "CortexTacticalAssess returns HOLD/LEADER_SUPPRESSED with no candidates when an otherwise selected ASSAULT/ADVANCE/FLANK has command-anchor suppression >=0.2. Protective REPOSITION remains available. Current operation, native fire and authored waypoints are not changed; next existing callback reassesses.",
+    "departure": "Uses existing CBE owner-local command anchor, including combat-effective fallback when native leader is unavailable. Applies only to new autonomous offensive proposals, not every source tactic or explicit behaviour module.",
+    "cost": "One native getSuppression read per assessment, no extra scan, timer, setting or worker.",
+    "validation": "607 focused/full1477 existing tests and HEMTT/SQF/FSM/docs/package plus independent verification passed.",
+    "candidate": ".qa/candidates/tactical-leader-readiness-7f91f764",
+    "fingerprint": "cee75213cfba1b273028be7a6964b2cada4d8f9831c51a5d5395a7d4151386c1",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

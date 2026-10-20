@@ -13,6 +13,8 @@
  * A lone rifleman facing one fresh close infantry contact retains native engagement rather than
  * receiving a group reposition solely from low headcount. Other low-firepower cases still reposition.
  * Elevation uses the supplied native believed position; no live hostile height is queried.
+ * New autonomous offensive manoeuvres wait while the local command anchor has suppression >=0.2.
+ * This immediate readiness gate does not cancel existing work, defensive repositioning or native orders.
  * Repeat/JIP: Pure assessment. The caller stores the result for diagnostics and starts any operation through the normal generation owner.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: known enemies <ARRAY>; 3: flank enabled <BOOL>; 4: advance enabled <BOOL>; 5: assault enabled <BOOL>.
  * Return Value: HashMap with intent, reason, selected index, candidate order and bounded evidence.
@@ -247,6 +249,14 @@ if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}) then {
             };
         };
     };
+};
+// Smoothed group morale cannot establish immediate command readiness. Defer only a new
+// offensive proposal; leave protective repositioning and ordinary engine orders untouched.
+private _leaderSuppression=getSuppression _leader;
+if (_intent in ["ASSAULT","ADVANCE","FLANK"] && {_leaderSuppression >= 0.2}) exitWith {
+    _result set ["reason","LEADER_SUPPRESSED"];
+    _result set ["evidence",[_leaderSuppression,_intent,_reason]];
+    _result
 };
 _result set ["intent",_intent];
 _result set ["reason",_reason];
