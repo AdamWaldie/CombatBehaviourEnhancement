@@ -42,6 +42,9 @@
  * Missing readiness fails; no role/visit/assignment injection or HC acceptance is inferred.
  * A separate normal-owner variant kills the still-observing guard only during real relief
  * travel, then requires sustained replacement exit observation under the original deadline.
+ * A separate normal-owner security-loss case removes only naturally established exterior
+ * guards, then requires real spare travel, sustained vacant-exit observation, retained source
+ * coverage and unchanged original search/episode budgets. Readiness cannot be injected.
  * Return: Nothing. Current callers: cortexQA/runServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
@@ -1842,6 +1845,134 @@ missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 deleteGroup _reliefGroup;
 deleteVehicle _reliefHouse;
 } forEach [false,true];
+
+// Proactive exit-security case: no interior casualty or pending relief is supplied.
+// Normal owner only. All posts and replacement movement must arise from ordinary CLEAR.
+private _securitySite=[7350,6200,0];
+private _securityHouse=createVehicle ["Land_i_House_Big_01_V1_F",_securitySite,[],0,"NONE"];
+_securityHouse enableSimulationGlobal true;
+[_securityHouse,"security-rebalance"] call _validateNewFixturePlacement;
+private _securityGroup=createGroup [east,true];
+_securityGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
+_securityGroup setVariable ["acex_headless_blacklist",true,true];
+private _securityMembers=[];
+for "_i" from 0 to 11 do {
+    private _unit=_securityGroup createUnit ["O_Soldier_F",_securitySite vectorAdd [-20+(_i mod 4)*4,-35-floor(_i/4)*4,0],[],0,"NONE"];
+    _unit setVariable ["acex_headless_blacklist",true,true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["CQB SECURITY REBALANCE / %1",_i+1],true];
+    _securityMembers pushBack _unit;
+};
+missionNamespace setVariable ["CBE_CortexQA_Actors",_securityMembers,true];
+["CQB proactive exit security","Normal owner only. Ordinary clearance must establish observers on distinct exits, including a duplicated post. A real casualty removes the guards on one exit. A spare must physically leave a still-covered post and establish observation at the vacant exit. No interior casualty, role assignment, movement or completion is injected.",_securitySite] call _phase;
+private _securityAccepted=[_securityGroup,_securityHouse] call CBE_fnc_CortexClearBuilding;
+["CLEAR-security-order-accepted",_securityAccepted] call _check;
+private _observedSecurityPost={
+    params ["_actor","_post","_watch"];
+    !isNull _actor && {alive _actor} && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {count _post == 3} && {count _watch == 3}
+        && {[_actor,_securityHouse,_post] call _observedExit}
+        && {abs (((getDir _actor-(_actor getDir _watch)+540) mod 360)-180) <= 75}
+        && {!terrainIntersectASL [eyePos _actor,AGLToASL _watch]}
+        && {(lineIntersectsSurfaces [eyePos _actor,AGLToASL _watch,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []}
+};
+private _securityPosts=[];private _securityLostExit=[];private _securityCasualties=[];
+private _securityBaseline=[];
+private _securityReady=[{
+    private _job=(_securityGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+    private _team=_job getOrDefault ["team",[]];
+    private _stages=_job getOrDefault ["reserveStages",createHashMap];
+    private _counts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
+    private _posts=[];
+    {
+        private _stage=_stages getOrDefault [netId _x,[]];
+        if (!(_x in _team) && {(_stage param [2,""]) == "ARRIVED"}
+            && {count (_stage param [5,[]]) == 3}
+            && {[_x,_stage param [0,[]],_stage param [4,[]]] call _observedSecurityPost}) then {
+            _posts pushBack [_x,+(_stage select 0),+(_stage select 4),+(_stage select 5),
+                _counts getOrDefault [netId _x,0],getPosASL _x];
+        };
+    } forEach _securityMembers;
+    private _entries=(_posts apply {+(_x select 3)}) arrayIntersect (_posts apply {+(_x select 3)});
+    private _lost=[];private _victims=[];
+    {
+        private _exit=_x;
+        private _others=_posts select {(_x select 3) isNotEqualTo _exit};
+        private _spare=_others findIf {
+            private _sourceExit=_x select 3;
+            (_x select 4) < 3 && {{(_x select 3) isEqualTo _sourceExit} count _others >= 2}
+        } >= 0;
+        if (_spare) exitWith {
+            _lost=+_exit;_victims=(_posts select {(_x select 3) isEqualTo _exit}) apply {_x select 0};
+        };
+    } forEach _entries;
+    private _reserves=_securityMembers select {alive _x && {!(_x in _team)}};
+    private _ready=_lost isNotEqualTo [] && {count _posts == count _reserves}
+        && {count (_job getOrDefault ["earlyExits",createHashMap]) == 0}
+        && {_securityGroup getVariable ["CBE_AIPass_ClearBuilding",false]};
+    if (_ready) then {
+        _securityPosts=_posts;_securityLostExit=_lost;_securityCasualties=_victims;
+        _securityBaseline=[_job get "generation",_job get "hardDeadline"];
+    };
+    _ready
+},120] call _wait;
+["CLEAR-security-natural-fixture-ready",_securityReady,
+    "Missing real distinct-exit/duplicate-post readiness fails without fixture assistance."] call _check;
+private _securityReplacement=objNull;private _securityTravel=false;
+private _securitySourceContinuous=true;private _securityBudgetRetained=true;
+private _securityObservedAt=-1;private _securityCovered=false;
+if (_securityReady) then {
+    {_x setDamage 1} forEach _securityCasualties;
+    private _survivingPosts=_securityPosts select {!((_x select 0) in _securityCasualties)};
+    private _sourceExits=(_survivingPosts apply {+(_x select 3)}) arrayIntersect (_survivingPosts apply {+(_x select 3)});
+    [{
+        private _job=(_securityGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+        private _stages=_job getOrDefault ["reserveStages",createHashMap];
+        private _counts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
+        _securityBudgetRetained=_securityBudgetRetained && {
+            [_job getOrDefault ["generation",-1],_job getOrDefault ["hardDeadline",-1]] isEqualTo _securityBaseline}
+            && {(_job getOrDefault ["deadline",1e12]) <= (_securityBaseline select 1)};
+        private _securityHere=false;
+        {
+            private _exit=_x;
+            if (_survivingPosts findIf {(_x select 3) isEqualTo _exit
+                && {[_x select 0,_x select 1,_x select 2] call _observedSecurityPost}} < 0) then {
+                _securitySourceContinuous=false;
+            };
+        } forEach _sourceExits;
+        {
+            private _actor=_x select 0;
+            private _stage=_stages getOrDefault [netId _actor,[]];
+            if ((_stage param [5,[]]) isEqualTo _securityLostExit
+                && {(_stage param [2,""]) in ["APPROACH","ARRIVED"]}) then {
+                if (isNull _securityReplacement) then {_securityReplacement=_actor};
+                if (_actor == _securityReplacement) then {
+                    _securityTravel=_securityTravel || {(getPosASL _actor) vectorDistance (_x select 5) > 1};
+                    _securityBudgetRetained=_securityBudgetRetained
+                        && {(_counts getOrDefault [netId _actor,0]) >= (_x select 4)+1}
+                        && {(_counts getOrDefault [netId _actor,0]) <= 3};
+                    _securityHere=[_actor,_stage param [0,[]],_stage param [4,[]]] call _observedSecurityPost;
+                };
+            };
+            _securityBudgetRetained=_securityBudgetRetained
+                && {(_counts getOrDefault [netId _actor,0]) >= (_x select 4)}
+                && {(_counts getOrDefault [netId _actor,0]) <= 3};
+        } forEach _survivingPosts;
+        if (!_securityHere) then {_securityObservedAt=-1} else {
+            if (_securityObservedAt < 0) then {_securityObservedAt=serverTime};
+            _securityCovered=serverTime-_securityObservedAt >= 3;
+        };
+        _securityCovered || {!(_securityGroup getVariable ["CBE_AIPass_ClearBuilding",false])}
+    },120] call _wait;
+};
+["CLEAR-security-independent-travel",_securityReady && {_securityTravel} && {!isNull _securityReplacement}] call _check;
+["CLEAR-security-vacant-exit-observed",_securityReady && {_securityCovered},str [netId _securityReplacement,_securityLostExit]] call _check;
+["CLEAR-security-source-cover-retained",_securityReady && {_securityCovered} && {_securitySourceContinuous}] call _check;
+["CLEAR-security-original-budget-retained",_securityReady && {_securityCovered} && {_securityBudgetRetained}] call _check;
+[_securityGroup] call CBE_fnc_CortexClearRelease;
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach _securityMembers;
+deleteGroup _securityGroup;
+deleteVehicle _securityHouse;
 
 // Whole-lane loss after real entry must not let exterior reserves inherit entry evidence.
 private _pairLossSite=[7150,6000,0];

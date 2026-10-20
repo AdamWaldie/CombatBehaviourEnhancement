@@ -121,4 +121,20 @@ class ClearExitRelief(unittest.TestCase):
         self.assertLess(r.index('_reliefWorker distance2D _reliefStart > 1'),r.index('_reliefObserver setDamage 1'))
         self.assertIn('alive _reliefObserver} && {_originalStillHere}',r)
         self.assertIn('if (!_substituteHere) then {_replacementSeenAt=-1}',r)
+        security=s.split('// Proactive exit-security case:',1)[1].split('// Whole-lane loss',1)[0]
+        for required in ('CBE_fnc_CortexClearBuilding','call _observedSecurityPost',
+                         'count _posts == count _reserves','count _reserves',
+                         '_x setDamage 1','_securityCasualties',
+                         '(getPosASL _actor) vectorDistance (_x select 5) > 1',
+                         'serverTime-_securityObservedAt >= 3',
+                         'if (!_securityHere) then {_securityObservedAt=-1}',
+                         '"CLEAR-security-source-cover-retained"',
+                         '"CLEAR-security-original-budget-retained"',
+                         '_securityBaseline=[_job get "generation",_job get "hardDeadline"]'):
+            self.assertIn(required,security)
+        self.assertLess(security.index('"CLEAR-security-natural-fixture-ready"'),security.index('_x setDamage 1'))
+        for forbidden in ('doMove','setDestination','doWatch','_job set','_stages set',
+                          'setVariable ["CBE_Cortex_ClearRelief"','set ["cleared"','set ["actorVisits"'):
+            self.assertNotIn(forbidden,security)
+
 if __name__=='__main__': unittest.main()

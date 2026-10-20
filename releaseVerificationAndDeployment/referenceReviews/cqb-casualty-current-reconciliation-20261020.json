@@ -69,5 +69,23 @@
       "packageFingerprint": "19c8286e8d0684687adf15ae565ccf7fbf7890254b5f2a1c95835feb652d1dd1",
       "packageSource": "ab3a081f plus dirty runtime/documentation edits"
     }
+  },
+  "preparedProactiveSecurityCase": {
+    "file": "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf",
+    "status": "UNRUN_NORMAL_OWNER_ONLY",
+    "setup": "Ordinary twelve-person CLEAR must naturally establish distinct exterior exits, a duplicated source post, all reserve posts independently observed, and no pending early exit. No interior casualty or relief is supplied. Guards on one selected exit are killed only after natural readiness.",
+    "requires": [
+      "Actual replacement ASL travel greater than1m from its original post.",
+      "Three seconds of independent physical destination-floor post/facing/eye VIEW at the vacant exit; missing observation resets the interval.",
+      "At least one original live observer continuously retains each surviving source exit.",
+      "Original generation/hard deadline unchanged, mutable stall deadline never exceeds it; reserve search counts never decrease or exceed3, selected spare consumes at least one remaining original attempt."
+    ],
+    "limits": [
+      "No production state, role, room-visit, movement, door or completion injection.",
+      "Missing natural fixture readiness fails; native path success and coherent timings are not presumed.",
+      "Normal-owner only; no provider-HC/locality/repeated-loss or performance coverage.",
+      "Current source package passes1477 static tests/build; this fixture has not run in Arma."
+    ],
+    "validation": ".qa/cbe-cqb-security-fixture-build.log"
   }
 }
