@@ -955,8 +955,15 @@ _brain set ["geometryTracks",_geometryTracks];
                         _jam set ["command",+(expectedDestination _movementOperator)];_jamChanged=true;
                     };
                 } else {
-                    if (count _jam > 0 && {(_jam get "since") >= 0}) then {
-                        _jam set ["since",-1];_jamChanged=true;
+                    if (count _jam > 0) then {
+                        // Lost dwell eligibility must reach the pending-negotiation cancellation
+                        // path too. This cannot discover a new proposal or cancel committed work.
+                        private _queueInterrupted=[_group,_vehicle,_brain,_jam,_jamPeer,false]
+                            call CBE_fnc_DrivingQueueAutoStep;
+                        _jamChanged=_jamChanged || {_queueInterrupted select 1};
+                        if ((_jam get "since") >= 0) then {
+                            _jam set ["since",-1];_jamChanged=true;
+                        };
                     };
                 };
                 if (_jamChanged && {call _mayIssueDriving}

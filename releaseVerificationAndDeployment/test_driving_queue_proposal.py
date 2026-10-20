@@ -77,6 +77,10 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_DrivingQueueAutoStep',s)
         self.assertIn('if (!(_queueAdmission select 0)',s)
         self.assertIn('_jamChanged=_jamChanged || {_queueAdmission select 1}',s)
+        interrupted=s.split('// Lost dwell eligibility',1)[1].split('if (_jamChanged',1)[0]
+        self.assertIn('[_group,_vehicle,_brain,_jam,_jamPeer,false]',interrupted)
+        self.assertIn('call CBE_fnc_DrivingQueueAutoStep',interrupted)
+        self.assertIn('_jamChanged=_jamChanged || {_queueInterrupted select 1}',interrupted)
         for guard in ('completedFSM _executor','"CBE_AIPass_DrivingAssist_Queue_Enable",false,_vehicle',
                       '"queueAutoAttempted",false','serverTime >= _until','< 20',
                       '_expires > _until','"requestSerial",-1','isNotEqualTo _context',

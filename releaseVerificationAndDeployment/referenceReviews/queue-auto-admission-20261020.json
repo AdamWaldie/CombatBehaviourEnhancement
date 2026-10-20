@@ -11,7 +11,7 @@
     },
     {
       "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-      "sha256": "f02cc72c57c4f456f31b00d0982e5ca895e823ebb348be4e04497b4760d550bd"
+      "sha256": "faa2c4bfabf858bc928ff95298648a0fb115db6c2409f214d079ef3890913bc2"
     },
     {
       "path": "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",
@@ -60,5 +60,23 @@
     "Default remains off; no in-engine natural auto-admission/commit/cancel/repeat or normal/providerHC evidence.",
     "Source wiring and packages do not establish working traffic recovery, tactical superiority, production readiness or complete HBQ parity.",
     "Build-out criteria remain partial due named code gaps; scores unchanged."
-  ]
+  ],
+  "interruptedDwellFollowUp": {
+    "baselineCommit": "108ef651",
+    "finding": "DrivingAssistStart called automatic negotiation only inside jamEligible. Losing stationary/recovery eligibility skipped the helper cancellation branch, leaving an uncommitted request until protocol timeout.",
+    "change": "The existing ineligible branch invokes AutoStep with continuous=false for an existing jam and journals its result. No proposal discovery is possible from that call; matching committed work retains its original executor cleanup.",
+    "limits": [
+      "Only callbacks still admitted by ordinary-driving ownership reach this path; owner loss and external takeover retain their existing protocol cleanup.",
+      "Physical cancellation and performance remain unverified."
+    ],
+    "validation": {
+      "focusedDrivingTests": 251,
+      "newCases": 0,
+      "fullBuild": ".qa/cbe-queue-interrupted-dwell-build.log",
+      "independent": ".qa/cbe-queue-interrupted-dwell-independent.log",
+      "fingerprint": "aa989f31054bbc844e38a2c727541cb67d61863e97a3a246658bbffe9402f1d6",
+      "source": "108ef651 plus uncommitted interrupted-dwell edits",
+      "buildout": "evidence and report check passed, scores unchanged"
+    }
+  }
 }
