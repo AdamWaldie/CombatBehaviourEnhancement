@@ -5867,10 +5867,10 @@ class CortexOperations(unittest.TestCase):
                       'isNull _assigned || {_assigned == _dangerSource}',
                       '!terrainIntersectASL [eyePos _gunner,_aimPosition]',
                       '[_vehicle,_gunner,_dangerSource,_dangerFireObservation,false,true] call CBE_fnc_CortexGroundFireReady',
-                      'currentMuzzle _gunner == _muzzle'):
+                      'call CBE_fnc_CortexGroundSelectMuzzle'):
             self.assertIn(proof,danger)
-        self.assertLess(danger.index('CortexGroundFireReady'),danger.index('_gunner selectWeapon'))
-        self.assertLess(danger.index('currentMuzzle _gunner == _muzzle'),danger.index('_gunner doSuppressiveFire'))
+        self.assertLess(danger.index('CortexGroundFireReady'),danger.index('call CBE_fnc_CortexGroundSelectMuzzle'))
+        self.assertLess(danger.index('call CBE_fnc_CortexGroundSelectMuzzle'),danger.index('_gunner doSuppressiveFire'))
 
 
     def test_vehicle_gunnery_selects_first_usable_ranked_contact_with_finite_work(self):
@@ -8737,6 +8737,13 @@ class CortexOperations(unittest.TestCase):
 
     def test_station_selection_reuse_requires_complete_same_frame_scan_and_fresh_fire_check(self):
         ready=source('cortexGroundFireReady')
+        selector=source('cortexGroundSelectMuzzle')
+        for proof in ('_asset turretLocal _turret','fullCrew [_asset','weaponState [_asset,_turret]',
+                      '_asset selectWeaponTurret [_weapon,_turret,_muzzle]',
+                      '(_selected param [0,""]) == _weapon','(_selected param [1,""]) == _muzzle'):
+            self.assertIn(proof,selector)
+        self.assertNotIn('doFire',selector)
+        self.assertNotIn('forceWeaponFire',selector)
         for guard in ['(_cached select 0) == _asset','(_cached select 1) == _gunner',
                       '(_cached select 2) == clientOwner','(_cached select 3) == diag_frameNo',
                       '(_cached select 4) isEqualTo _station','count (_cached select 5) <= 32',
@@ -8748,13 +8755,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _stationSelection=createHashMap',vehicles)
         self.assertLess(vehicles.index('private _stationSelection=createHashMap'),vehicles.index('private _target=objNull;'))
         self.assertIn('[_vehicle,_gunner,_target,_fireObservation,false,_suppressionPoint isNotEqualTo []] call CBE_fnc_CortexGroundFireReady',fire)
-        self.assertIn('_gunner selectWeapon _muzzle',fire)
-        self.assertLess(fire.index('currentMuzzle _gunner == _muzzle'),fire.index('_gunner doFire'))
+        self.assertIn('call CBE_fnc_CortexGroundSelectMuzzle',fire)
+        self.assertLess(fire.index('call CBE_fnc_CortexGroundSelectMuzzle'),fire.index('_gunner doFire'))
         combined=source('cortexCombinedGroundStep')
-        self.assertLess(combined.index('_gunner selectWeapon _muzzle'),combined.index('_gunner doFire _target'))
+        self.assertLess(combined.index('call CBE_fnc_CortexGroundSelectMuzzle'),combined.index('_gunner doFire _target'))
         self.assertIn('if (_fireDecision == "MUZZLE_SELECTION_PENDING") exitWith {1}',combined)
         self.assertNotIn('forceWeaponFire',combined)
-        for output in ('loadedWeapon','loadedMuzzle','loadedMagazine'):
+        for output in ('loadedWeapon','loadedMuzzle','loadedMagazine','loadedTurret'):
             self.assertIn(f'_observation set ["{output}"',ready)
         self.assertLess(fire.index('private _freshStationReady='),fire.index('_gunner doTarget'))
         self.assertIn('if (_freshStationReady && {[] call _mayIssueVehicle}) then {',fire)
@@ -8766,7 +8773,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('MUZZLE_SELECTION_PENDING',wait)
         immediate=local.split('if (_role == "GROUND_FIRE") exitWith {',1)[1].split('if (_role == "GROUND_MANOEUVRE")',1)[0]
         self.assertIn('[_gunner,"MUZZLE_SELECTION_PENDING"] call _waitForReload',immediate)
-        self.assertLess(immediate.index('currentMuzzle _gunner != _muzzle'),immediate.index('_gunner doFire _target'))
+        self.assertLess(immediate.index('call CBE_fnc_CortexGroundSelectMuzzle'),immediate.index('_gunner doFire _target'))
         self.assertLess(immediate.index('_gunner doFire _target'),immediate.index('call _markApplied'))
 
         self.assertNotIn('call _markApplied',wait)

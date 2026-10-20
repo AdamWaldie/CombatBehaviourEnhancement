@@ -228,9 +228,7 @@ if (_arrivalDistance <= 70) exitWith {
         private _laneClear=[_gunner,_firePoint] call CBE_fnc_CortexLineOfFireClear;
         if !(call _routeCurrent) then {_fireDecision="NATIVE_ORDER_CHANGED"} else {
             if (_laneClear && {call _roleCurrent}) then {
-                private _muzzle=_ammoObservation getOrDefault ["loadedMuzzle",""];
-                if (_muzzle != "" && {currentMuzzle _gunner != _muzzle}) then {_gunner selectWeapon _muzzle};
-                if (_muzzle != "" && {currentMuzzle _gunner == _muzzle}) then {
+                if ([_asset,_gunner,_ammoObservation] call CBE_fnc_CortexGroundSelectMuzzle) then {
                     _gunner doTarget _target;
                     _gunner doFire _target;
                     _fireDecision="ORDER_ISSUED";

@@ -8,7 +8,7 @@
  * Missing usage flags retain a conservative legacy fallback; no targeting command is issued.
  * Locality/authority: Read-only on the gunner owner; vehicle locality may differ; callers retain ROE, safety and token checks.
  * Repeat/JIP: No world state, commands or handlers; rereads native station state at each boundary.
- * Optional observation also returns loadedWeapon/loadedMuzzle/loadedMagazine for the qualifying
+ * Optional observation also returns loadedWeapon/loadedMuzzle/loadedMagazine/loadedTurret for the qualifying
  * actual station state. Outputs reset every call; reload or selection evidence grants no firing permission.
  * Arguments: 0 platform <OBJECT, objNull>; 1 selected gunner <OBJECT, objNull>;
  * 2 target <OBJECT, objNull>, omitted means the station-only ammunition check;
@@ -25,7 +25,7 @@
  */
 params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]],["_bulletSuppression",false,[true]]];
 _observation set ["reloadInProgress",false];
-{_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine"];
+{_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine","loadedTurret"];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
     || {gunner _asset != _gunner} || {vehicle _gunner != _asset}) exitWith {false};
@@ -87,6 +87,7 @@ private _evaluateState={
         _observation set ["loadedWeapon",_weapon];
         _observation set ["loadedMuzzle",_muzzle];
         _observation set ["loadedMagazine",_magazine];
+        _observation set ["loadedTurret",+_station];
     };
     _usable
 };

@@ -1663,6 +1663,7 @@
         "addons/infantry/functions/cortexCombinedRejectServer.sqf",
         "addons/infantry/functions/cortexCombinedGroundStep.sqf",
         "addons/infantry/functions/cortexGroundFireReady.sqf",
+        "addons/infantry/functions/cortexGroundSelectMuzzle.sqf",
         "addons/infantry/functions/cortexActorFireTaskAvailable.sqf"
       ]
     },

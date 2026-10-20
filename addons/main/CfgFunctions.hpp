@@ -274,6 +274,7 @@ class CfgFunctions {
             class CortexCombinedArmsLocal {file = "\z\cbe\addons\infantry\functions\cortexCombinedArmsLocal.sqf";};
             class CortexActorFireTaskAvailable {file = "\z\cbe\addons\infantry\functions\cortexActorFireTaskAvailable.sqf";};
             class CortexGroundFireReady {file = "\z\cbe\addons\infantry\functions\cortexGroundFireReady.sqf";};
+            class CortexGroundSelectMuzzle {file = "\z\cbe\addons\infantry\functions\cortexGroundSelectMuzzle.sqf";};
             class CortexCombinedGroundStep {file = "\z\cbe\addons\infantry\functions\cortexCombinedGroundStep.sqf";};
             class CortexCooldown {file = "\z\cbe\addons\infantry\functions\cortexCooldown.sqf";};
             class CortexCounterBattery {file = "\z\cbe\addons\support\functions\cortexCounterBattery.sqf";};

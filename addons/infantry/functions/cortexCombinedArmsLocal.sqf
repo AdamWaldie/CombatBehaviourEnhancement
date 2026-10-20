@@ -240,11 +240,9 @@ if (_role == "GROUND_FIRE") exitWith {
         [_group,_opportunity,_fireRefusal,clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
         false
     };
-    private _muzzle=_ammoObservation getOrDefault ["loadedMuzzle",""];
-    if (_muzzle != "" && {currentMuzzle _gunner != _muzzle}) then {_gunner selectWeapon _muzzle};
-    // Native selection acknowledgement, not a successful inventory scan, grants fire.
+    // Native turret acknowledgement, not a successful inventory scan, grants fire.
     // Existing group replay retains the original opportunity, route and report clocks.
-    if (_muzzle == "" || {currentMuzzle _gunner != _muzzle}) exitWith {
+    if !([_asset,_gunner,_ammoObservation] call CBE_fnc_CortexGroundSelectMuzzle) exitWith {
         [_gunner,"MUZZLE_SELECTION_PENDING"] call _waitForReload
     };
     _gunner doTarget _target;

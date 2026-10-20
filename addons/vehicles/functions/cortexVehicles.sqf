@@ -573,11 +573,9 @@ if (_dangerDismount isNotEqualTo []) then {
                     if (_dangerSuppressionReady
                         && {[_gunner,_aimPosition] call CBE_fnc_CortexLineOfFireClear}
                         && {[] call _mayIssueVehicle}) then {
-                        private _muzzle=_dangerFireObservation getOrDefault ["loadedMuzzle",""];
-                        if (_dangerGround && {_muzzle != ""} && {currentMuzzle _gunner != _muzzle}) then {
-                            _gunner selectWeapon _muzzle;
-                        };
-                        if (!_dangerGround || {_muzzle != "" && {currentMuzzle _gunner == _muzzle}}) then {
+                        private _muzzleSelected=!_dangerGround
+                            || {[_vehicle,_gunner,_dangerFireObservation] call CBE_fnc_CortexGroundSelectMuzzle};
+                        if (_muzzleSelected) then {
                             // Watching consumes ground-relative position; suppression consumes ASL.
                             _gunner doWatch (ASLToAGL _aimPosition);
                             _gunner doSuppressiveFire _aimPosition;
@@ -830,13 +828,10 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 private _freshStationReady=!(_vehicle isKindOf "LandVehicle")
                     || {[_vehicle,_gunner,_target,_fireObservation,false,_suppressionPoint isNotEqualTo []] call CBE_fnc_CortexGroundFireReady};
                 if (_freshStationReady && {[] call _mayIssueVehicle}) then {
-                    private _muzzle=_fireObservation getOrDefault ["loadedMuzzle",""];
-                    if (_vehicle isKindOf "LandVehicle" && {_muzzle != ""} && {currentMuzzle _gunner != _muzzle}) then {
-                        _gunner selectWeapon _muzzle;
-                    };
-                    // Selection acceptance is not firing. Wait for the native selected muzzle;
-                    // ordinary engine targeting remains available if the switch is unsupported.
-                    if (!(_vehicle isKindOf "LandVehicle") || {_muzzle != "" && {currentMuzzle _gunner == _muzzle}}) then {
+                    private _muzzleSelected=!(_vehicle isKindOf "LandVehicle")
+                        || {[_vehicle,_gunner,_fireObservation] call CBE_fnc_CortexGroundSelectMuzzle};
+                    // Exact native turret acknowledgement, not selection request, grants fire.
+                    if (_muzzleSelected) then {
                         if (_suppressionPoint isEqualTo []) then {
                             if (assignedTarget _gunner != _target) then {_gunner doTarget _target};
                             _gunner doFire _target;

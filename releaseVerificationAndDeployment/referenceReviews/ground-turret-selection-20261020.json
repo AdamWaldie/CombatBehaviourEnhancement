@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-20",
+  "baseline": "1d554d25",
+  "scope": "Exact native ground turret weapon/muzzle selection across existing fire paths.",
+  "finding": "GroundFireReady identified loaded ammunition on a specific fullCrew turret path, but callers requested generic gunner selectWeapon and acknowledged currentMuzzle on the actor. This trace establishes an API/station ambiguity, not proof that every former selection failed in game.",
+  "officialReferences": [
+    "https://community.bohemia.net/wiki/selectWeaponTurret",
+    "https://community.bohemia.net/wiki/weaponState"
+  ],
+  "implementation": [
+    "GroundFireReady observations now include loadedTurret from the actual station alongside loadedWeapon/Muzzle/Magazine, reset on every call.",
+    "Shared CortexGroundSelectMuzzle requires actual local AI gunner, matching native crew turret and turretLocal. It requests selectWeaponTurret with weapon/path/muzzle only when selected station differs, then reads weaponState for the selected station.",
+    "Routine gunnery, ground danger suppression, immediate combined GROUND_FIRE and arrival-stage combined ground fire use the same selection acknowledgement. Existing ROE/target/lane/token and fresh-ammunition guards remain callers authority.",
+    "Unacknowledged native selection grants no doTarget/doFire/doSuppressiveFire; existing finite waits/next callback remain. No forced shot, reload modification, new timer or ammunition creation. Trusted server remote context remains accepted for existing combined fire dispatch."
+  ],
+  "cost": "One <=64 crew-row validation, <=16 station weapon membership and at most two native selected-state reads per selection attempt. No world search/handler. Runtime overhead unmeasured.",
+  "sourceSha256": {
+    "addons/infantry/functions/cortexGroundSelectMuzzle.sqf": "b0bf51f6b381a225236eb02177bed263614ceef3e282b2593f84e7f4654530d2",
+    "addons/infantry/functions/cortexGroundFireReady.sqf": "fe31aae55b553b6ab694b52fa827b56e8c142e9814e8e8f03be90c67be3600d4",
+    "addons/infantry/functions/cortexCombinedArmsLocal.sqf": "356a2887657ead1ffba634a13696c224e4710b443bc1c9de7688c4c03b989e43",
+    "addons/infantry/functions/cortexCombinedGroundStep.sqf": "3e108288be3eac25187c1ef93974e397f9b874bf7374ef7b78dd988a74ebc0f7",
+    "addons/vehicles/functions/cortexVehicles.sqf": "296d2ea310481ef9dea62b0f45d1b1680c36cf7ff69afc929cdf9942013cc8f3"
+  },
+  "validation": {
+    "focusedOperations": 607,
+    "fullTests": 1477,
+    "buildExit": 0,
+    "log": ".qa/ground-turret-selection-build.log",
+    "candidate": ".qa/candidates/ground-turret-selection-1d554d25",
+    "fingerprint": "2fb76056ffac0e8d078f910b6d87e6a1d83d3d8246761b056bf424bf461bf4c8",
+    "independentVerification": true,
+    "signed": false,
+    "initialFocusedFailure": "An old assertion still expected generic gunner selectWeapon; replaced with shared selector/native acknowledgement contract. Source coverage regenerated under existing GUNNERY case; no added test case or acceptance score.",
+    "physicalAcceptance": false,
+    "audits": "PAUSED"
+  },
+  "remaining": [
+    "Actual coax/main/secondary muzzle switching and Fired-event ammunition consumption.",
+    "Separate turret/vehicle owners, seat changes and HC migration.",
+    "Mixed modded ammunition and native acknowledgement failure/timeout.",
+    "No whole Protocol armour/AA or LAMBS parity claim; no measured performance acceptance."
+  ]
+}
