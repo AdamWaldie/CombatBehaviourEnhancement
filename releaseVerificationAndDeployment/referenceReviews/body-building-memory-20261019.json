@@ -129,5 +129,15 @@
       "Physical behaviour and overhead remain unverified; audits paused."
     ],
     "validation": "Existing32indoor cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-indoor-native-preflight-build.log; candidate .qa/candidates/native-preflight-f8f68201-e4357df0 fingerprint e4357df098ff82790155cd78d54767793bfae9eae7f1dcf741b180b05d404dc8 actualf8f68201+intendeddirtyedits. No new tests or score increases."
+  },
+  "sharedSelectorInputBudget20261020": {
+    "sourceParent": "e12f5922",
+    "finding": "Shared selector limited ray work to three eligible records but filtered the entire input first. Native CortexKnowledge provides at most8 detailed records and indoor dispatch already limits input to8, while oversized direct calls had no metadata inspection bound.",
+    "implementation": "Select first8 supplied records before native-belief eligibility filtering; preserve first3 eligible order and existing3roof/fourhits query budget. Update both current callers in header. No movement, live hostile pose, new cache/timer/worker or query.",
+    "limits": "Oversized direct calls ignore records after first8; normal detailed native input semantics unchanged. Runtime cost and physical selection/entry unverified. This is a work-bound correction, not improved clearance acceptance or source parity.",
+    "sourceContract": "CortexKnowledge limits detailed candidate records to8; IndoorActorDispatch independently uses first8.",
+    "implementationHash": "a9e06efb6637cd2ade0aedc5bc531e0177a6a33283154aaedba301b8b35038ef",
+    "validation": "Existing3 focused selector cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-building-select-bound-build.log. Candidate .qa/candidates/building-select-bound-e12f5922-61678423 fingerprint 61678423025b4ddbd29744c46e970828325660a21ebbd72690dd0d826f14204d actuale12f5922+dirtysource. Independent copied-package verification .qa/cbe-building-select-bound-independent.log. No new cases or scores.",
+    "audits": "PAUSED"
   }
 }

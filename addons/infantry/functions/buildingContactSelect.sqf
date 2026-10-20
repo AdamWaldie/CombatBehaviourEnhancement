@@ -4,20 +4,21 @@
  * Locality/authority: read-only, current local group owner. Uses native knowledge records,
  * never a hostile live transform; does not create an operation or grant movement authority.
  * Captive, surrendered and restrained contacts do not initiate contact-driven building work.
- * Repeat/JIP: stateless, bounded to three eligible records and at most three roof queries.
+ * Repeat/JIP: stateless, inspects at most eight supplied native records, then three eligible
+ * records and at most three roof queries. Oversized direct inputs retain their first eight.
  * Results are observations for this call, not persistent access or room-clearance receipts.
  * Arguments: 0: group <GROUP>, grpNull; 1: knowledge records <ARRAY>, [], each
  * [hostile OBJECT, believed ATL ARRAY, age seconds NUMBER, range metres NUMBER, ...];
  * 2: maximum belief range <NUMBER>, 100, finite and positive (clamped to 1000).
  * Return Value: Array [building OBJECT, hostile OBJECT, [believed ATL ARRAY, server timestamp]]
  * or [] if no qualifying observation. Metadata/topology does not prove physical access.
- * Current callers: CBE_fnc_CortexBuildingContact.
+ * Current callers: CortexBuildingContact and IndoorActorDispatch.
  * Example: private _contact=[group player,_knowledge,100] call CBE_fnc_BuildingContactSelect;
  */
 params [["_group",grpNull,[grpNull]],["_enemies",[],[[]]],["_range",100,[0]]];
 if (isNull _group || {!local _group} || {!finite _range} || {_range <= 0}) exitWith {[]};
 _range=_range min 1000;
-private _records=_enemies select {
+private _records=(_enemies select [0,8]) select {
     if !(_x isEqualType []) exitWith {false};
     private _enemy=_x param [0,objNull,[objNull]];
     private _belief=_x param [1,[],[[]]];
