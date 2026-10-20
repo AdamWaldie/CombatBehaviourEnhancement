@@ -1241,3 +1241,14 @@ only a matching marker. A legacy marker without that proof cannot grant cleanup 
 CALM turn-stop also requires that no newer operation generation has started, even if native
 waypoint content is unchanged. The existing vehicle drill checks the new jink receipt before
 its unchanged real-travel and crew-retention checks; that drill remains prepared, not run.
+
+Vehicle withdrawal adoption now starts a fresh current-owner VEHICLE_WITHDRAW operation and
+binds its accepted route and local state to that generation. Previously it rebuilt only a
+waypoint/lease, which lacked the operation proof required by continuation and progress checks.
+The episode start and remaining 120-second budget survive transfer; the former three-second
+minimum is removed so repeated migration cannot extend expiry. A refused operation or route
+retires its matching work and never publishes a successful resumed RETREAT. Smoke and reverse
+actions are not replayed. The separate HC migration fixture now requires a matching public
+operation/route generation and owner epoch before its existing physical-continuation checks.
+It remains prepared, not run; split crew/vehicle ownership, actual repeated transfers and
+performance still need in-engine verification. No new loop, worker or reference addon is added.

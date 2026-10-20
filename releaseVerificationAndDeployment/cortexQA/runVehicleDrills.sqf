@@ -925,6 +925,12 @@ if (_hcOwners isNotEqualTo []) then {
             && {owner _migrateArmour == _hcOwner}
             && {_migrateCrew findIf {owner _x != _hcOwner} < 0}
             && {(_migrateGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "RETREAT"}
+            && {private _operation=_migrateGroup getVariable ["CBE_Operation",createHashMap];
+                private _intent=_migrateGroup getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
+                (_operation getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"
+                    && {(_operation getOrDefault ["ownerEpoch",-1]) == (_migrateGroup getVariable ["CBE_AIPass_Epoch",-2])}
+                    && {(_operation getOrDefault ["generation",-1]) == (_intent getOrDefault ["operationGeneration",-2])}
+                    && {(_operation getOrDefault ["phase",""]) != "CANCELLED"}}
             && {private _entry=_migrateGroup getVariable ["CBE_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "VEHICLE_OWNERSHIP_RESUME"} && {(_entry select 4) == _hcOwner}}
     },40] call _wait;
     ["WITHDRAW-MIGRATION-owner-resume",_realOwnerBoundary && {_migrationRequested} && {_migrationAdopted},str [groupOwner _migrateGroup,owner _migrateArmour,_migrateCrew apply {owner _x},_migrateGroup getVariable ["CBE_Cortex_PhaseTransition",[]]]] call _check;

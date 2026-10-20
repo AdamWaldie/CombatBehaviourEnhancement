@@ -540,11 +540,33 @@ if (_withdrawalResumeEligible) then {
         private _startedAt = _withdrawalIntent select 4;
         private _elapsed = (serverTime-_startedAt) max 0;
         private _target = +(_withdrawalIntent select 2);
-        if !([_group,"VEHICLE_WITHDRAW",true,serverTime+((120-_elapsed) max 3)] call CBE_fnc_CortexOwnershipLease) exitWith {
+        // Rebuild semantic ownership, never the previous owner's operation or native commands.
+        // Keep the original episode end: transfer churn cannot buy a fresh minimum duration.
+        private _remaining=120-_elapsed;
+        if (_remaining <= 0) exitWith {};
+        if !([_group,"VEHICLE_WITHDRAW",true,_startedAt+120] call CBE_fnc_CortexOwnershipLease) exitWith {
             _group setVariable ["CBE_Cortex_Withdrawal",["EXTERNAL_BUSY",_withdrawalIntent select 6,_withdrawalIntent select 5],true];
         };
-        [_group,_target,40] call CBE_fnc_CortexGroupMove;
-        _adopted set ["movementLease",["VEHICLE_WITHDRAW",time+((120-_elapsed) max 3)]];
+        private _operation=[_group,"VEHICLE_WITHDRAW",_target,[],[_target],"MOVING"] call CBE_fnc_OperationStart;
+        if (count _operation == 0) exitWith {
+            [_group,"VEHICLE_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
+            _group setVariable ["CBE_Cortex_Withdrawal",["OPERATION_REFUSED",_withdrawalIntent select 6,_withdrawalIntent select 5],true];
+        };
+        private _generation=_operation get "generation";
+        _operation set ["startedAt",time-_elapsed];
+        _group setVariable ["CBE_Operation",_operation,true];
+        private _waypoint=[_group,_target,40,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
+        private _moveIntent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
+        if (isNull (_waypoint param [0,grpNull,[grpNull]])
+            || {(_waypoint param [1,-1,[0]]) < 0}
+            || {(_moveIntent getOrDefault ["operationGeneration",-1]) != _generation}
+            || {(_moveIntent getOrDefault ["waypoint",[]]) isNotEqualTo _waypoint}) exitWith {
+            [_group,_generation,"MOVEMENT_REJECTED"] call CBE_fnc_OperationCancel;
+            [_group,"VEHICLE_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
+            _group setVariable ["CBE_Cortex_Withdrawal",["MOVEMENT_REJECTED",_withdrawalIntent select 6,_withdrawalIntent select 5],true];
+        };
+        _adopted set ["vehicleOperationGeneration",_generation];
+        _adopted set ["movementLease",["VEHICLE_WITHDRAW",time+_remaining]];
         _adopted set ["enemyPos",+(_withdrawalIntent select 3)];
         _adopted set ["retreatStart",+(_withdrawalIntent select 1)];
         _adopted set ["retreatTarget",_target];

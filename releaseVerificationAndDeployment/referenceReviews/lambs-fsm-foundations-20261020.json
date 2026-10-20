@@ -665,6 +665,14 @@
       "fixture": "Existing runVehicleDrills jink ownership prerequisite checks5field marker and exact state operationgeneration. Physical travel/crew checks unchanged. Not run.",
       "limits": "Missing old receipts intentionally cannot authorize cleanup. Native command quiescence, actual route and provider handover/performance remain unverified. No source-parity or build-score increase.",
       "validation": "Focused609 and full1482 existing tests, HEMTT/SQF/config/FSM/docs/package gates pass .qa/vehicle-retirement-build.log. Candidate .qa/candidates/vehicle-retirement-bf3aa364 independently verified unsigned fingerprint7bb847098621214703c3d781e6d6ce37e0c39ac1bfe3a943aa27ce16e2e6a1d1. No runtime claim."
+    },
+    "withdrawalAdoptionFollowup": {
+      "baseline": "0b74fa1f",
+      "finding": "CortexLocality reconstructed only waypoint/movement lease for vehicle withdrawal, with no operationgeneration. Continuation and RETREAT progress require matching current operation; old minimum3seconds also extended original expiry near deadline.",
+      "change": "Create current-owner VEHICLE_WITHDRAW operation, preserve original episode age in startedAt, request generation-bound native waypoint and validate committed identity before state/RETREAT publication. Lease expires at original server start+120; local remaining budget has no minimum extension. Refusal cancels matching operation and releases lease; no smoke/reverse replay.",
+      "fixture": "Existing separate HC withdrawal migration prerequisite additionally requires public VEHICLE_WITHDRAW operation/current epoch and route generation. Physical continuation checks retained. Not run.",
+      "limits": "Actual migration, splitlocality retry, native execution and performance unverified. No physical acceptance, source parity or percentage credit.",
+      "validation": "Focused609/full1482 existing unit/static, HEMTT/SQF/config/FSM/docs/package passed .qa/vehicle-withdraw-adoption-build.log. Unsigned candidate .qa/candidates/vehicle-withdraw-adoption-0b74fa1f independently verified fingerprint2451a64365c28deb61700f1af68120832f3f12f73affa6268a3e961a793d18f7. No engine claim."
     }
   }
 }

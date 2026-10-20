@@ -5825,7 +5825,15 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(terrain_marker,vehicles)
         vehicle_resume=locality.split('== "VEHICLE"',1)[1]
         self.assertIn('CortexGroupMove',vehicle_resume)
-        self.assertIn('["VEHICLE_WITHDRAW",time+((120-_elapsed) max 3)]',vehicle_resume)
+        self.assertIn('["VEHICLE_WITHDRAW",time+_remaining]',vehicle_resume)
+        self.assertIn('true,_startedAt+120] call CBE_fnc_CortexOwnershipLease',vehicle_resume)
+        self.assertIn('private _remaining=120-_elapsed',vehicle_resume)
+        self.assertNotIn('(120-_elapsed) max 3',vehicle_resume)
+        self.assertIn('[_group,"VEHICLE_WITHDRAW",_target,[],[_target],"MOVING"] call CBE_fnc_OperationStart',vehicle_resume)
+        self.assertIn('_operation set ["startedAt",time-_elapsed]',vehicle_resume)
+        self.assertIn('[_group,_target,40,"MOVE",_generation] call CBE_fnc_CortexGroupMove',vehicle_resume)
+        self.assertIn('["vehicleOperationGeneration",_generation]',vehicle_resume)
+        self.assertLess(vehicle_resume.index('"MOVEMENT_REJECTED"] call CBE_fnc_OperationCancel'),vehicle_resume.index('_adopted set ["movementLease"'))
         self.assertIn('[_group,_adopted,"RETREAT","VEHICLE_OWNERSHIP_RESUME",time-_elapsed,true] call CBE_fnc_CortexSetPhase',vehicle_resume)
         self.assertNotIn('CortexFireCountermeasure',vehicle_resume)
         for marker in [
