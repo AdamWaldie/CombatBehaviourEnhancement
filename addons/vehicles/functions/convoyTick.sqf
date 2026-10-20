@@ -30,6 +30,9 @@
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
  * Lead catch-up pacing reuses the same aligned longitudinal gap as stretch assessment, so
  * lateral drift alone does not create a false rearward gap or feed acceleration lag forward.
+ * Projection/radial gap measurement blends continuously over25..35 degrees and1.8..2.0
+ * desired gaps. Aligned close pairs retain longitudinal spacing; sharp/wide pairs retain radial
+ * distance. This pacing transition adds no ray/world search and cannot relax independent braking.
  * At twice the target gap, actual-speed pacing blends across the existing tolerance
  * instead of abruptly switching from cruise reserve to a slow follower's speed.
  * The lead alone uses registered corridor approach/crossing through this same callback. Active
@@ -733,23 +736,33 @@ private _captureControl=(_group getVariable ["CBE_Convoy_CaptureControl",false])
 _state deleteAt "leadControlSample";
 private _turn = abs (((getDir _lead - (_state get "heading") + 540) mod 360) - 180);
 _state set ["heading", getDir _lead];
+// One measurement policy for lead pacing and follower control. A hard projection/radial
+// switch changed the reported gap despite continuous motion, producing a throttle step.
+private _measurePairGap={
+    params ["_rear","_front","_desired","_gap",["_capture",false]];
+    private _heading=abs (((getDir _rear-getDir _front+540) mod 360)-180);
+    private _angleWeight=(((35-_heading)/10) max 0) min 1;
+    private _rangeWeight=(((2-_gap/(_desired max 1))/0.2) max 0) min 1;
+    _angleWeight=_angleWeight*_angleWeight*(3-2*_angleWeight);
+    _rangeWeight=_rangeWeight*_rangeWeight*(3-2*_rangeWeight);
+    private _weight=_angleWeight*_rangeWeight;
+    if (_weight <= 0 && {!_capture}) exitWith {[_gap,0,_heading,0,0,0]};
+    private _bearing=getDir _front;
+    private _direction=[sin _bearing,cos _bearing,0];
+    private _delta=(getPosATL _front) vectorDiff (getPosATL _rear);_delta set [2,0];
+    private _longitudinal=_delta vectorDotProduct _direction;
+    private _projected=(_longitudinal max 0) min _gap;
+    private _rawLateral=sqrt ((_gap*_gap-_longitudinal*_longitudinal) max 0);
+    // The transition never grants more room than the former radial fallback. Actual
+    // closing/traffic/hull checks remain separate; this is only the pacing measurement.
+    [_gap+(_projected-_gap)*_weight,_rawLateral*_weight,_heading,_longitudinal,_rawLateral,_weight]
+};
 private _stretch = 0;private _spacingGaps=[0];
 for "_i" from 1 to (count _vehicles - 1) do {
     private _follower=_vehicles select _i;
     private _front=_vehicles select (_i-1);
     private _pairGap=_follower distance2D _front;
-    private _headingDifference=abs (((getDir _follower-getDir _front+540) mod 360)-180);
-    // On a common heading, Euclidean distance rewards lateral spread: a 40 m
-    // side-by-side offset looks like a perfect 40 m convoy gap. Measure the
-    // forward component instead. Turning pairs retain normal distance so the
-    // controller does not mistake a legitimate corner for compression.
-    if (_headingDifference <= 25 && {_pairGap <= (_gaps select _i)*1.8}) then {
-        private _bearing=getDir _front;
-        private _direction=[sin _bearing,cos _bearing,0];
-        private _delta=(getPosATL _front) vectorDiff (getPosATL _follower);
-        _delta set [2,0];
-        _pairGap=(_delta vectorDotProduct _direction) max 0;
-    };
+    _pairGap=([_follower,_front,_gaps select _i,_pairGap] call _measurePairGap) select 0;
     _spacingGaps pushBack _pairGap;
     _stretch = _stretch max (_pairGap / (_gaps select _i));
 };
@@ -980,17 +993,8 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _bodyGap = (((_specs get (netId _vehicle)) select 1) + ((_specs get (netId _front)) select 1))*0.5+5;
     private _gapLow = (_desiredGap - _tolerance) max _bodyGap;
     private _gapHigh = _desiredGap + _tolerance;
-    private _controlGap = _gap;
-    private _lateralOffset = 0;
-    private _headingDifference=abs (((getDir _vehicle-getDir _front+540) mod 360)-180);
-    if (_headingDifference <= 25 && {_gap <= _desiredGap*1.8}) then {
-        private _bearing=getDir _front;
-        private _direction=[sin _bearing,cos _bearing,0];
-        private _delta=(getPosATL _front) vectorDiff (getPosATL _vehicle);
-        _delta set [2,0];
-        _controlGap=(_delta vectorDotProduct _direction) max 0;
-        _lateralOffset=sqrt ((_gap*_gap-_controlGap*_controlGap) max 0);
-    };
+    private _pairMeasurement=[_vehicle,_front,_desiredGap,_gap,_captureControl] call _measurePairGap;
+    _pairMeasurement params ["_controlGap","_lateralOffset","_headingDifference","_longitudinal","_rawLateral","_measurementWeight"];
     // Absolute speed cannot distinguish forward progress from a predecessor
     // backing into this follower during native obstacle recovery.
     private _frontReversing=(velocityModelSpace _front select 1) < -0.5;
@@ -1018,17 +1022,10 @@ for "_i" from 1 to (count _vehicles - 1) do {
             [currentCommand _movementOperator,unitReady _vehicle,
                 +(expectedDestination _movementOperator),+(_progress param [5,[]]),
                 +(_progress param [6,[]]),_progress param [3,0]]];
-        // Audit-only measurement: radial policy previously reported lateral offset0,
-        // concealing the mode transition during a widely displaced recapture.
-        private _measurementBearing=getDir _front;
-        private _measurementAxis=[sin _measurementBearing,cos _measurementBearing,0];
-        private _measurementDelta=(getPosATL _front) vectorDiff (getPosATL _vehicle);
-        _measurementDelta set [2,0];
-        private _longitudinal=_measurementDelta vectorDotProduct _measurementAxis;
-        private _rawLateral=sqrt ((_gap*_gap-_longitudinal*_longitudinal) max 0);
-        _controlSample pushBack [["RADIAL","LONGITUDINAL"] select
-            (_headingDifference <= 25 && {_gap <= _desiredGap*1.8}),
-            _headingDifference,_longitudinal,_rawLateral];
+        private _measurementMode=if (_measurementWeight <= 0) then {"RADIAL"} else {
+            ["BLENDED","LONGITUDINAL"] select (_measurementWeight >= 1)
+        };
+        _controlSample pushBack [_measurementMode,_headingDifference,_longitudinal,_rawLateral,_measurementWeight];
     };
     // A stationary/braking predecessor must still constrain us inside the tolerance band.
     // Match the ordinary driving model in SI units, then convert its closing allowance

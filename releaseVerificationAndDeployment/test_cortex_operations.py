@@ -6704,14 +6704,20 @@ class CortexOperations(unittest.TestCase):
 
     def test_convoy_spacing_cannot_stabilize_a_lateral_wedge(self):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
-        self.assertIn('private _controlGap = _gap;',text)
-        self.assertIn('_controlGap=(_delta vectorDotProduct _direction) max 0;',text)
-        self.assertIn('private _lateralOffset = 0;',text)
+        self.assertIn('private _pairMeasurement=',text)
+        self.assertIn('private _projected=(_longitudinal max 0) min _gap;',text)
+        self.assertIn('_rawLateral*_weight',text)
         self.assertIn('_lateralOffset > _tolerance',text)
         recovery=text.split('if (_lateralOffset > _tolerance',1)[1].split('// Reverse yield',1)[0]
         self.assertIn('(_limit max 5) min _closingCap',recovery)
         self.assertNotIn('then {_limit=_limit max 5}',recovery)
-        self.assertIn('_pairGap=(_delta vectorDotProduct _direction) max 0;',text)
+        self.assertIn('_pairGap=([_follower,_front,_gaps select _i,_pairGap] call _measurePairGap) select 0;',text)
+        measure=text.split('private _measurePairGap={',1)[1].split('private _stretch =',1)[0]
+        for proof in ('35-_heading','2-_gap/(_desired max 1)','3-2*_angleWeight',
+                      '3-2*_rangeWeight','_gap+(_projected-_gap)*_weight'):
+            self.assertIn(proof,measure)
+        for forbidden in ('forceSpeed','doMove','nearestObjects','lineIntersects'):
+            self.assertNotIn(forbidden,measure)
 
     def test_convoy_snapshot_preserves_navigation_before_release(self):
         text=(ROOT/'addons/vehicles/functions/convoySync.sqf').read_text()
