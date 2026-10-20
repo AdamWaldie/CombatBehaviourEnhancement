@@ -127,6 +127,24 @@ private _recordSearchVisit={
         || {!(_visitTarget call _vectorValid)} || {(getPosASL _actor) vectorDistance (AGLToASL _visitTarget) > 2}
         || {isNull _visitHouse} || {!alive _visitHouse}
         || {[getPosWorld _visitHouse,vectorDir _visitHouse,vectorUp _visitHouse] isNotEqualTo _visitTransform}) exitWith {false};
+    // Arrival proof is two seconds old: proximity alone can now be outside a wall.
+    // Recheck the same interior geometry once, when committing this visit.
+    private _visitASL=getPosASL _actor;
+    private _visitModel=_visitHouse worldToModel (getPosATL _actor);
+    private _visitBounds=boundingBoxReal _visitHouse;
+    private _visitLow=_visitBounds select 0; private _visitHigh=_visitBounds select 1;
+    if ((_visitModel select 0) <= (_visitLow select 0) || {(_visitModel select 0) >= (_visitHigh select 0)}
+        || {(_visitModel select 1) <= (_visitLow select 1)} || {(_visitModel select 1) >= (_visitHigh select 1)}
+        || {abs ((_visitASL select 2)-((AGLToASL _visitTarget) select 2)) > 1}) exitWith {false};
+    private _visitSegment=lineIntersectsSurfaces [eyePos _actor,(AGLToASL _visitTarget) vectorAdd [0,0,1],_actor,objNull,true,1,"GEOM","NONE"];
+    if (_visitSegment isNotEqualTo []) exitWith {false};
+    private _visitRoofTop=[_visitHouse,_visitBounds] call CBE_fnc_BuildingRoofTop;
+    if (_visitRoofTop <= (_visitASL select 2)+0.4) exitWith {false};
+    private _visitRoof=lineIntersectsSurfaces [_visitASL vectorAdd [0,0,0.4],
+        [_visitASL select 0,_visitASL select 1,_visitRoofTop],_actor,objNull,true,1,"GEOM","NONE"];
+    if (_visitRoof isEqualTo []) exitWith {false};
+    private _visitHit=_visitRoof select 0;
+    if ((_visitHit select 2) != _visitHouse && {(_visitHit select 3) != _visitHouse}) exitWith {false};
     private _memoryState=_group getVariable ["CBE_AIPass_State",createHashMap];
     private _history=_memoryState getOrDefault ["searchBuildingVisits",[]];
     private _visits=if (_history isEqualType [] && {count _history == 2}

@@ -115,7 +115,9 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         history=operation.split('private _recordSearchVisit=',1)[1].split('if (_mode == "FINISH")',1)[0]
         for proof in ('!= "OBSERVE"','vectorDistance (AGLToASL _visitTarget) > 2',
-                      'isNotEqualTo _visitTransform','count _visits < 16','searchBuildingVisits'):
+                      'isNotEqualTo _visitTransform','count _visits < 16','searchBuildingVisits',
+                      'worldToModel (getPosATL _actor)','_visitSegment isNotEqualTo []',
+                      '_visitRoof isEqualTo []','(_visitHit select 3) != _visitHouse'):
             self.assertIn(proof,history)
         self.assertIn('_nodeSearch,_brain getOrDefault ["searchMemory",[]]',operation)
         observe=operation.split('if (_phase == "OBSERVE" &&',1)[1]

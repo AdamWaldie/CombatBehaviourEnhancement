@@ -70,6 +70,12 @@ class ClearObserverInteriorTests(unittest.TestCase):
         for name,guard in checks.items():
             text=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
             self.assertIn(guard,text)
+            # The operation has separate arrival and observation-commit roof checks.
+            if name == 'indoorActorOperation':
+                commit=text.split('private _visitRoofTop=',1)[1].split('private _memoryState=',1)[0]
+                self.assertLess(commit.index('_visitRoofTop <= (_visitASL select 2)+0.4'),
+                                commit.index('lineIntersectsSurfaces'))
+                text=text.split('if (_phase == "APPROACH") exitWith {',1)[1]
             after=text.split('call CBE_fnc_BuildingRoofTop',1)[1]
             self.assertLess(after.index(guard),after.index('lineIntersectsSurfaces'))
         # The helper's invalid sentinel must never satisfy an upward query at ordinary ASL.
