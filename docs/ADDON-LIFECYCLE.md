@@ -171,7 +171,11 @@ weapon. Hidden emplacements are excluded. Already-issued native boarding may sti
 CBE yields; cancellation and physical handback remain unverified. CBE never teleports an actor into the seat.
 CBE_AIPass_StaticDeploy_Enable is a separate next-operation control, default true. If no
 usable emplacement exists, the same finite support opportunity may select one compatible primary
-weapon bag and base bag from uncommitted local AI. The pair physically moves to one of two bounded,
+weapon bag and base bag from uncommitted local AI. Selection considers at most 64 group actors and
+prefers a complete ready pair over an earlier unmatched primary carrier. The primary backpack
+must assemble into a configured static weapon; UAVs and other deployables are outside this path.
+Base compatibility follows the primary backpack configuration. One-part weapons still require
+a separate execution path and are not implemented by this two-person deployment. The pair physically moves to one of two bounded,
 dry, low-slope positions with a clear firing sector, uses the engine assembly action and gives the
 original carrier a real gunner assignment. The squad does not wait. Failure is recorded once for
 the contact episode; CBE does not create a weapon, consume bags directly or force-seat the gunner.

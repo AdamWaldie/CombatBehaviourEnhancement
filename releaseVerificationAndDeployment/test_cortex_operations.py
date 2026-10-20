@@ -1412,6 +1412,14 @@ class CortexOperations(unittest.TestCase):
         ]:
             self.assertIn(marker,deploy)
         self.assertIn('call CBE_fnc_CortexStaticDeployStep',support)
+
+        selection=deploy.split('private _firstPrimaryIndex=',1)[1].split('if (_gunnerIndex < 0) exitWith',1)[0]
+        self.assertIn('_ready findIf {_x != _primary && {(backpack _x) in _bases}} >= 0',selection)
+        self.assertIn('_weaponClass isKindOf "StaticWeapon"',selection)
+        self.assertIn('isClass (configFile >> "CfgVehicles" >> _weaponClass)',selection)
+        self.assertIn('if (_gunnerIndex < 0) then {_gunnerIndex=_firstPrimaryIndex}',selection)
+        self.assertIn('((units _group) select [0,64]) select',deploy)
+
         self.assertIn('_current set [7,_assembled]',deploy)
         self.assertEqual(deploy.count('(_current param [19,[],[[]]]) isEqualTo [clientOwner,_owner getVariable ["CBE_AIPass_Epoch",0]]'),2)
         callbacks=deploy.split('addEventHandler ["WeaponDisassembled"',1)[1].split('_record set [1,"PACKING"]',1)[0]

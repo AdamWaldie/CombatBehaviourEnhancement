@@ -654,7 +654,7 @@ if ((_attempt param [0,-1,[0]]) == _episode
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0) exitWith {"IDLE"};
 // Apply the complete native-task boundary before the first movement command, not only
 // after reserving the pair. Equipment and medical tasks belong to their existing owner.
-private _ready=(units _group) select {
+private _ready=((units _group) select [0,64]) select {
     alive _x && {local _x} && {!isPlayer _x} && {vehicle _x == _x}
         && {[_x] call CBE_fnc_CortexCombatEffective}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
@@ -663,16 +663,32 @@ private _ready=(units _group) select {
         && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
 };
+// Prefer an actually complete pair over the first primary carrier. An unmatched primary
+// must not hide another compatible team. This equipment path accepts static weapons, not UAVs.
+private _firstPrimaryIndex=-1;
 private _gunnerIndex=_ready findIf {
-    private _bag=backpack _x;
-    _bag != "" && {getNumber (configFile >> "CfgVehicles" >> _bag >> "assembleInfo" >> "primary") == 1}
-        && {getText (configFile >> "CfgVehicles" >> _bag >> "assembleInfo" >> "assembleTo") != ""}
+    private _primary=_x;
+    private _bag=backpack _primary;
+    private _info=configFile >> "CfgVehicles" >> _bag >> "assembleInfo";
+    private _weaponClass=getText (_info >> "assembleTo");
+    private _isPrimary=_bag != "" && {getNumber (configFile >> "CfgVehicles" >> _bag >> "assembleInfo" >> "primary") == 1}
+        && {isClass (configFile >> "CfgVehicles" >> _weaponClass)}
+        && {_weaponClass isKindOf "StaticWeapon"};
+    if (!_isPrimary) exitWith {false};
+    if (_firstPrimaryIndex < 0) then {_firstPrimaryIndex=_ready find _primary};
+    private _base=_info >> "base";
+    private _bases=if (isText _base) then {[getText _base]} else {getArray _base};
+    _bases=_bases - [""];
+    _ready findIf {_x != _primary && {(backpack _x) in _bases}} >= 0
 };
+// Retain the existing transient-base retry/failure decision when no complete ready pair exists.
+if (_gunnerIndex < 0) then {_gunnerIndex=_firstPrimaryIndex};
 if (_gunnerIndex < 0) exitWith {
     // A real primary carrier may be temporarily covering, boarding or acting. Do not
     // turn that transient reservation into NO_PRIMARY_BAG for the entire engagement.
     private _carrierPresent=(units _group) findIf {
         alive _x && {local _x} && {getNumber (configFile >> "CfgVehicles" >> backpack _x >> "assembleInfo" >> "primary") == 1}
+            && {(getText (configFile >> "CfgVehicles" >> backpack _x >> "assembleInfo" >> "assembleTo")) isKindOf "StaticWeapon"}
     } >= 0;
     if (_carrierPresent) exitWith {"IDLE"};
     _group setVariable ["CBE_Danger_StaticDeployAttempt",[_episode,"NO_PRIMARY_BAG",serverTime],true];
