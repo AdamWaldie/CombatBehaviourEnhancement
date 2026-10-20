@@ -1281,3 +1281,12 @@ refusal retains its one alternate-side attempt. No new retry, timer, movement wr
 extended deadline is added. This improves failed-plan retirement; it does not supply missing
 turn room or establish successful all-participant recovery. Physical refusal/cleanup and
 subsequent mission travel remain unverified while audits are paused.
+
+Clearance exterior reserves now use the same live task-free predicate as interior actor
+commands. Pending medical care blocks reserve staging, watch/hold commits and casualty
+promotion before a native treatment command starts. Existing reserve readiness is rechecked
+at command boundaries, so admission alone cannot retain permission. The medical queue is
+read only; no treatment is cancelled or cleared. Duplicate simulation/hidden/native-task
+checks are replaced by the shared predicate, with no new scheduler, scan or recovery budget.
+This closes a reserve/interior task-policy mismatch; actual casualty replacement, useful
+exterior isolation and physical post-clear flow remain unverified.

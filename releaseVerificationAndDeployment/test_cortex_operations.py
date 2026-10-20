@@ -6956,8 +6956,10 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn("isObjectHidden",owned)
         self.assertIn("simulationEnabled _actor",command)
         self.assertIn("!isObjectHidden _actor",command)
-        self.assertIn("simulationEnabled _candidate",reserve)
-        self.assertIn("!isObjectHidden _candidate",reserve)
+        self.assertIn('if !([_candidate] call _actorTaskFree) exitWith {false}',reserve)
+        task_free=step.split('private _actorTaskFree={',1)[1].split('// Record only stops',1)[0]
+        for guard in ('simulationEnabled _actor','!isObjectHidden _actor','ace_medical_ai_healQueue'):
+            self.assertIn(guard,task_free)
 
     def test_clearance_visit_evidence_requires_visible_simulated_actor(self):
         step=source("buildingOperationStep")

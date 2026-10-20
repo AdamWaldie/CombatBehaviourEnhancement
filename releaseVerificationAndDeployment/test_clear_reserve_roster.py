@@ -14,6 +14,12 @@ class ClearReserveRosterTests(unittest.TestCase):
                       '!(_candidate in _unavailable)','!isPlayer _candidate','local _candidate',
                       '"reserveAdmissionCommands"','_stageCommandFree','call CBE_fnc_CortexActorMoveReserved'):
             self.assertIn(proof,gate)
+        self.assertIn('if !([_candidate] call _actorTaskFree) exitWith {false}',gate)
+        task_free=text.split('private _actorTaskFree={',1)[1].split('// Record only stops',1)[0]
+        self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',task_free)
+        self.assertNotIn('setVariable',task_free)
+        commit=gate.split('private _reserveCommitReady={',1)[1]
+        self.assertIn('[_actor] call _reserveReady',commit)
     def test_role_allocation_keeps_existing_fairness_and_promotion_coverage_limits(self):
         text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertIn('_stageReserves=_stageReserves select [0,8]',text)

@@ -1389,6 +1389,9 @@ private _delay=call {
     _job set ["quarantineHeld",_quarantineHeld];
     private _reserveReady={
         params ["_candidate"];
+        // Pending medical care owns this actor before a native HEAL command appears.
+        // Reuse the same live task gate as interior commits rather than a drifting task list.
+        if !([_candidate] call _actorTaskFree) exitWith {false};
         private _reservationFree=!([_candidate] call CBE_fnc_CortexActorMoveReserved);
         // Once staging has claimed this reserve, a different individual MOVE/FOLLOW
         // is a replacement order. Do not promote it and overwrite that live command.
@@ -1420,15 +1423,14 @@ private _delay=call {
                 };
             };
         };
-        [_candidate] call CBE_fnc_CortexCombatEffective && {simulationEnabled _candidate}
-            && {!isObjectHidden _candidate} && {_stageCommandFree} && {local _candidate}
+        [_candidate] call CBE_fnc_CortexCombatEffective && {_stageCommandFree} && {local _candidate}
             && {group _candidate == _group} && {!isPlayer _candidate}
             && {isNull objectParent _candidate} && {!(_candidate in _reserved)} && {!(_candidate in _rotatedOut)}
             && {!(_candidate in _unavailable)} && {isNull (remoteControlled _candidate)}
             && {([_candidate] call CBE_fnc_CortexExternalOwner) == ""}
             && {_reservationFree} && {_candidate checkAIFeature "MOVE"} && {_candidate checkAIFeature "PATH"}
             && {!([_candidate] call CBE_fnc_CompatibilityExternalControl)}
-            && {!(currentCommand _candidate in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+
     };
     // An expired native leg may become idle before reaching its post. That is not arrival,
     // but exact target/episode ownership still permits one stop and bounded failed-stage retirement.
