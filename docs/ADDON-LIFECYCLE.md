@@ -1324,3 +1324,13 @@ their existing occupancy and geometry constraints. Unassigned formation-slot sea
 the default null actor. The helper remains read-only; native task/movement ownership is still
 checked by each executor. No search radius, query/ray budget, reservation or deadline changes.
 Actual stable-cover retention and movement quality remain unverified.
+
+A new nearby danger event may retain an already committed cover approach only after a
+fresh check using its recorded screening class. COVER uses the selection path's material
+ray policy; CONCEALMENT uses its visual policy. The decision must match the actor and
+original lease generation, and the incoming generation must still be current. Unknown
+screening proof cannot authorize adoption. Existing threat-distance, native movement and
+order receipts remain required; no doMove is repeated and the original deadline is not
+extended. Endpoint heights and recipient exclusion match selection. At most one object
+ray plus a terrain-intersection check runs for this eligible event transition. Physical
+screening and performance remain unverified.

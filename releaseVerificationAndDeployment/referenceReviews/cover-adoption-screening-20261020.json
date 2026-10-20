@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-20",
+  "baseline": "400ea76f",
+  "scope": "Recorded cover/concealment screening during danger generation adoption",
+  "finding": "Active leg adoption already existed and no-displacement did not issue movement. Its recheck used GEOM for every mode, unlike selection FIRE/GEOM versus VIEW/NONE. Adoption metadata could also change before incoming generation was checked in later continuation.",
+  "change": "Before adoption require current incoming dangergeneration and matching actor/original decisiongeneration with known mode. Recheck selection endpoint heights, actorignore and material/visual LOD by recordedmode; terrain can screen too. Preserve native/order/deadline proof, no newmovement or deadline renewal.",
+  "cost": "Existing eligible transition has at most one objectray, with one added terrainintersection check. No search/newworker/callback. Runtime cost unmeasured.",
+  "limits": "No physical screen efficacy/cover movement/continuous-fire/performance/whole-source parity claim. Source inspection confirms existing nearstationary NO_DISPLACEMENT and original finite adoption path; did not duplicate controller.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/dangerCoverStep.sqf",
+      "sha256": "c1ecbc4f94421f02e8dd6777bea0a5d2e1dc783c34fa16d001f726b732c58d1d"
+    },
+    {
+      "path": "addons/infantry/functions/cortexFindCover.sqf",
+      "sha256": "7626a24e2670a65958a015b89cdbfd4b1fd2c5859ad837d164af25ef395690d8"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_cortex_operations.py",
+      "sha256": "7d192743f471a6e4d224380cec988eb85b9742f2d4730d262abbbe38649f226b"
+    }
+  ],
+  "validation": "Focused609/full1482 unit/static, HEMTT/SQF/config/FSM/docs/package gates pass .qa/cover-adoption-screening-build.log. Unsignedcandidate .qa/candidates/cover-adoption-screening-400ea76f independentlyverified fingerprint6b1765b263e61366a343e61df0add013cb0cb4b2e2bb2d6f3d52d49f08e05e42. No engine/score claim."
+}

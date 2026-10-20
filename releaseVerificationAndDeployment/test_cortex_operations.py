@@ -9873,6 +9873,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"NO_SCREEN"',danger)
         self.assertIn('CBE_AIPass_DangerConcealment_Enable',danger)
         self.assertIn('+_spot,_screenMode',danger)
+        adoption=danger.split('// A fresh observation is not automatically',1)[1].split('_lease set [1,_generation]',1)[0]
+        self.assertIn('_generation == (_group getVariable ["CBE_Danger_Generation",0])',adoption)
+        self.assertIn('_screening in ["COVER","CONCEALMENT"]',adoption)
+        self.assertIn('["FIRE","VIEW"] select (_screening == "CONCEALMENT")',adoption)
+        self.assertIn('["GEOM","NONE"] select (_screening == "CONCEALMENT")',adoption)
+        self.assertIn('terrainIntersectASL [_screenStart,_screenEnd]',adoption)
+        self.assertIn('[_rayStart,_screenEnd,_actor,objNull',adoption)
+        self.assertNotIn('doMove',adoption.replace('// deadline, repeat doMove','// deadline, repeat command'))
 
     def test_alert_observation_is_finite_and_preserves_committed_movement(self):
         text=source('dangerEngineAct')

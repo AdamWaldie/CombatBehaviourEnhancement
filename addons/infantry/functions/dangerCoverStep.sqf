@@ -64,19 +64,35 @@ private _entryContext=call _readOrderContext;
 private _lease=_group getVariable ["CBE_Danger_CoverLease",[]];
 private _leaseContextCurrent=count _lease == 6 && {(_lease select 5) isEqualTo _entryContext};
 private _moveProof=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-// A fresh observation is not automatically a new movement intent. Adopt a still-live solid-cover
-// route only when the nearby new hazard is screened at that exact destination. Never extend its
+// A fresh observation is not automatically a new movement intent. Adopt a still-live screened
+// route only when the nearby new hazard passes its recorded COVER/CONCEALMENT screening at
+// that exact destination. Never extend its
 // deadline, repeat doMove or let a stale callback adopt a newer generation.
 if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 5} && {(_lease select 0) == _actor} && {(_lease select 1) < _generation}
     && {time < (_lease select 2)} && {count _threat == 3}
+    && {_generation == (_group getVariable ["CBE_Danger_Generation",0])}
     && {_threat distance2D (_lease select 4) <= 3}
     && {count _moveProof == 3 && {(_moveProof select 0) == "DANGER_COVER"}
         && {(_moveProof select 1) isEqualTo (_lease select 3)} && {(_moveProof select 2) == (_lease select 2)}}
     && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
     && {!([_group] call CBE_fnc_CortexExternalTakeover)}
     && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
-    && {lineIntersectsSurfaces [AGLToASL ((_lease select 3) vectorAdd [0,0,1.2]),
-        AGLToASL (_threat vectorAdd [0,0,1.2]),_actor,objNull,true,1,"GEOM","NONE"] isNotEqualTo []}) then {
+    && {
+        private _screenReceipt=_group getVariable ["CBE_Danger_CoverDecision",[]];
+        private _screening=_screenReceipt param [5,"",[""]];
+        if (!(_screening in ["COVER","CONCEALMENT"])
+            || {(_screenReceipt param [2,objNull,[objNull]]) != _actor}
+            || {(_screenReceipt param [3,-1,[0]]) != (_lease select 1)}) exitWith {false};
+        // Match selection's endpoint heights, actor exclusion and material/visual policy.
+        // A geometry-only obstruction cannot promote visual concealment to ballistic cover.
+        private _screenStart=(AGLToASL _threat) vectorAdd [0,0,1.6];
+        private _screenEnd=(AGLToASL (_lease select 3)) vectorAdd [0,0,1];
+        private _rayStart=_screenStart vectorAdd ((_screenStart vectorFromTo _screenEnd) vectorMultiply 2);
+        terrainIntersectASL [_screenStart,_screenEnd]
+            || {lineIntersectsSurfaces [_rayStart,_screenEnd,_actor,objNull,true,1,
+                ["FIRE","VIEW"] select (_screening == "CONCEALMENT"),
+                ["GEOM","NONE"] select (_screening == "CONCEALMENT")] isNotEqualTo []}
+    }) then {
     _lease set [1,_generation];
     _lease set [4,+_threat];
     _group setVariable ["CBE_Danger_CoverLease",_lease];
