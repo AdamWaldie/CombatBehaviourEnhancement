@@ -95,7 +95,30 @@ class ParachuteProtectionTests(unittest.TestCase):
     def test_malformed_public_receipts_refuse_before_array_parsing(self):
         observe=source('cortexParachuteObserve')
         jump=source('cortexParachuteJump')
-        self.assertIn('call CBA_fnc_globalEvent',jump)
+        self.assertIn('call CBA_fnc_serverEvent',jump)
+        publish=source('cortexParachutePublish')
+        self.assertIn('!isServer',publish)
+        self.assertIn('serverTime >= _until+1',publish)
+        self.assertIn('CBA_fnc_globalEventJIP',publish)
+        self.assertIn('CBA_fnc_removeGlobalEventJIP',publish)
+        self.assertIn('(_until+1)-serverTime',publish)
+        expiry=publish.split('params ["_token","_proposal","_jipID"];',1)[1]
+        self.assertNotIn('isNull _actor',expiry)
+        self.assertIn('isEqualTo _proposal',expiry)
+        self.assertIn('_registry deleteAt _token',expiry)
+        self.assertLess(publish.index('if (_token in _registry)'),publish.index('call CBA_fnc_globalEventJIP'))
+        self.assertNotIn('allowDamage',publish)
+        self.assertNotIn('CortexParachuteDeploy',publish)
+        entries={}
+        def retain(token,proposal,now,deadline):
+            if now>=deadline+1:return False
+            if token in entries:return entries[token]==proposal
+            entries[token]=proposal
+            return True
+        self.assertTrue(retain('exit','original',0.2,3.8))
+        self.assertFalse(retain('exit','changed',0.3,3.8))
+        self.assertTrue(retain('exit','original',0.4,3.8))
+        self.assertFalse(retain('expired','old',4.8,3.8))
         self.assertIn('CBE_fnc_CortexParachuteObserve',(ROOT/'addons/main/XEH_preInit.sqf').read_text())
         self.assertIn('_stopAt=_until+1',observe)
         self.assertIn('_until > serverTime+4',observe)

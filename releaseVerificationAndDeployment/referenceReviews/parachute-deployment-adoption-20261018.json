@@ -101,5 +101,39 @@
       "physical": false
     },
     "reference": "https://cbateam.github.io/CBA_A3/docs/files/events/fnc_globalEvent-sqf.html"
+  },
+  "finiteJIPWake20261020": {
+    "baseline": "33ff2396",
+    "sources": {
+      "addons/infantry/functions/cortexParachutePublish.sqf": "aadd8c984822857a1b1550f28a8e08b98732fef83fc1e7a5a37b823501a1828d",
+      "addons/infantry/functions/cortexParachuteObserve.sqf": "b27039dcc5060ea9b4cba75ad592ce6679b3edc7567212891beee1b0b2d926eb",
+      "addons/infantry/functions/cortexParachuteJump.sqf": "359e86d41670b481c82d415a9698779ef38c6676a999a9384546e326214fb3d2",
+      "addons/main/XEH_preInit.sqf": "b8bb98cdb95db455230e9766832b04e0d04f29abfa55de93651e7e2faf463f7c"
+    },
+    "implementation": [
+      "Original issuer sends a bounded metadata proposal to the server; server publishes one token-keyed CBA JIP wake.",
+      "Duplicate token proposals cannot replace or renew a retained entry.",
+      "Server removes exact JIP entry and registry row at original protection deadline+1; callback does not depend on actor survival/locality or issuer connection.",
+      "Existing actual-owner observer and exact live receipt readers retain all mutation authority and original deployment/protection deadlines."
+    ],
+    "supersedes": "The prior connected-only wake limitation has an implemented JIP proposal path; physical JIP acceptance is still absent.",
+    "remaining": [
+      "Wake or live receipts arriving after finite observation expiry remain unsupported.",
+      "Physical JIP/locality transfer, loss of issuer, actor deletion, repeated episodes, same-value external protection and measured performance remain unverified."
+    ],
+    "references": [
+      "https://cbateam.github.io/CBA_A3/docs/files/events/fnc_globalEventJIP-sqf.html",
+      "https://raw.githubusercontent.com/CBATeam/CBA_A3/master/addons/events/fnc_globalEventJIP.sqf",
+      "https://raw.githubusercontent.com/CBATeam/CBA_A3/master/addons/events/fnc_removeGlobalEventJIP.sqf"
+    ],
+    "validation": {
+      "tests": 1477,
+      "newTestCases": 0,
+      "log": ".qa/cbe-parachute-jip-build.log",
+      "independentLog": ".qa/cbe-parachute-jip-independent.log",
+      "candidate": ".qa/candidates/parachute-jip-33ff2396-2a0a113a",
+      "fingerprint": "2a0a113a2017feb1fdb6dd1e3f298da92a1869cc55510dab523adbff1c39bd44",
+      "physical": false
+    }
   }
 }

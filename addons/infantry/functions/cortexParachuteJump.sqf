@@ -19,8 +19,8 @@
  * releases. Failed dismount never applies position/velocity or queues chute deployment.
  * Chute boarding rechecks current actor authority without suspension.
  * Native Local/init adoption resumes only the finite chute phase; it never replays exit motion.
- * Connected peers retain a finite wake proposal for late receipts; late JIP receipt arrival
- * and same-value external protection remain unresolved.
+ * Server-retained finite wake proposals cover connected/JIP peers within the observation
+ * window. Receipt arrival beyond that window and same-value external protection remain unresolved.
  *
  * Arguments:
  * 0: soldier <OBJECT>
@@ -88,7 +88,7 @@ isNil {
 // Even a failed dismount must retire the protection we already acquired.
 if (_receipt isNotEqualTo []) then {
     [_unit,_receipt] call CBE_fnc_CortexParachuteProtectionRelease;
-    ["CBE_ParachuteObservation",[_unit,[+_receipt,+_deployReceipt]]] call CBA_fnc_globalEvent;
+    ["CBE_ParachutePublish",[_unit,[+_receipt,+_deployReceipt]]] call CBA_fnc_serverEvent;
 };
 if (!_exited) exitWith {false};
 [_unit] call CBE_fnc_CortexParachuteDeploy;

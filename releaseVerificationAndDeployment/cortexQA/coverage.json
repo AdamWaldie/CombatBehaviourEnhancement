@@ -1126,7 +1126,8 @@
         "addons/infantry/functions/cortexParachuteJump.sqf",
         "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
         "addons/infantry/functions/cortexParachuteDeploy.sqf",
-        "addons/infantry/functions/cortexParachuteObserve.sqf"
+        "addons/infantry/functions/cortexParachuteObserve.sqf",
+        "addons/infantry/functions/cortexParachutePublish.sqf"
       ]
     },
     {

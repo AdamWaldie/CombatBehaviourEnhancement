@@ -40,6 +40,9 @@ missionNamespace setVariable ["CBE_AITweaks_SettingsReady", false];
 ["CBE_AITweaks_LandingReconfigure", {
     [] call CBE_fnc_ImprovedHelicopterLandingInit;
 }] call CBA_fnc_addEventHandler;
+["CBE_ParachutePublish", {
+    _this call CBE_fnc_CortexParachutePublish;
+}] call CBA_fnc_addEventHandler;
 ["CBE_ParachuteObservation", {
     _this call CBE_fnc_CortexParachuteObserve;
 }] call CBA_fnc_addEventHandler;

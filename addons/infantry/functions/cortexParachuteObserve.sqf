@@ -1,12 +1,12 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Observe late replicated receipts for one already accepted parachute exit.
- * Locality/authority: A CBA wake caches metadata on connected peers. Only a deferred actual
+ * Locality/authority: A CBA JIP wake caches metadata on peers. Only a deferred actual
  * actor-owner callback invokes existing exact-receipt readers; the wake grants no mutation.
  * Repeat/JIP: One cached proposal and coalesced observer per actor. Native init/Local can
  * resume it until the original protection deadline plus one second of cleanup observation.
- * Duplicate wakes never extend that window. New JIP peers rely on native receipt adoption;
- * this non-JIP event does not guarantee recovery of a receipt late to a newly joined peer.
+ * Duplicate wakes never extend that window. The server removes the CBA JIP wake at expiry;
+ * receipt arrival beyond that finite window is not guaranteed to be recovered.
  * Arguments: 0 actor <OBJECT, objNull>; 1 proposal <ARRAY, [] reads cache>, [protection,deploy].
  * Return: BOOL, true when a valid finite proposal is retained, not deployment success.
  * Current callers: XEH_preInit wake event, XEH_postInit actor init/Local, own CBA callback.
